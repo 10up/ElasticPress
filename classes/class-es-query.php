@@ -183,8 +183,6 @@ class ES_Query {
 			switch_to_blog( $es_post['site_id'] );
 		}
 
-		echo $es_post['site_id'];
-
 		$post = get_post( $es_post['post_id'] );
 
 		setup_postdata( $post );
