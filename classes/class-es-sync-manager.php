@@ -10,6 +10,35 @@ class ES_Sync_Manager {
 	public function __construct() {
 		add_action( 'init', array( $this, 'debug_sync' ), 20 );
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
+		add_action( 'delete_post', array( $this, 'action_delete_post' ), 10, 3 );
+	}
+
+	/**
+	 * Delete ES post when WP post is deleted
+	 *
+	 * @param int $post_id
+	 * @since 0.1.0
+	 */
+	public function action_delete_post( $post_id ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) || 'publish' != get_post_type( $post_id ) ) {
+			return;
+		}
+
+		$es_id = get_post_meta( $post_id, 'es_id', true );
+
+		if ( ! empty( $es_id ) ) {
+			// Delete ES post if WP post contains an ES ID
+
+			$host_site_id = null;
+			$config = es_get_option( 0 );
+
+			// If cross site search is active, make sure we use the global index
+			if ( ! empty( $config['cross_site_search_active'] ) ) {
+				$host_site_id = 0;
+			}
+
+			es_delete_post( $es_id, null, $host_site_id );
+		}
 	}
 
 	/**
