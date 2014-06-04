@@ -129,6 +129,11 @@ class ES_Query {
 			$formatted_args['size'] = $args['posts_per_page'];
 		}
 
+		if ( isset( $args['paged'] ) ) {
+			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
+			$formatted_args['from'] = $args['posts_per_page'] * $paged;
+		}
+
 		if ( isset( $args['s'] ) ) {
 			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
 			$formatted_args['query'] = $query;
