@@ -97,19 +97,6 @@ class ES_Query {
 	 */
 	private function format_args( $args ) {
 		$formatted_args = array(
-			'filter' => array(
-				'and' => array(
-					0 => array(
-						'term' => array(
-							'post_type' => array(
-								'post',
-								'page',
-								'attachment',
-							),
-						),
-					),
-				),
-			),
 			'sort' => array(
 				array(
 					'_score' => array(
@@ -117,6 +104,10 @@ class ES_Query {
 					),
 				),
 			),
+		);
+
+		$filter = array(
+			'and' => array(),
 		);
 
 		$query = array(
@@ -149,7 +140,19 @@ class ES_Query {
 		}
 
 		if ( isset( $args['post_type'] ) ) {
-			$formatted_args['filter']['and'][0]['term']['post_type'] = (array) $args['post_type'];
+			$post_types = (array) $args['post_type'];
+			$terms_map_name = 'terms';
+			if ( count( $post_types ) < 2 ) {
+				$terms_map_name = 'term';
+			}
+
+			$filter['and'][] = array(
+				$terms_map_name => array(
+					'post_type' => $post_types,
+				),
+			);
+
+			$formatted_args['filter'] = $filter;
 		}
 
 		return $formatted_args;
