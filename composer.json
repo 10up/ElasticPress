@@ -2,7 +2,7 @@
 	"name"       : "Elasticsearch",
 	"description": "Integrate Elasticsearch with WordPress",
 	"license"    : "GPL-2.0+",
-	"require": {
-		"antecedent/patchwork": "*"
+	"require-dev": {
+		"antecedent/patchwork": "~1.2"
 	}
 }
