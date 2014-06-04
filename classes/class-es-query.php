@@ -153,7 +153,9 @@ class ES_Query {
 	 * @return bool
 	 */
 	public function have_posts() {
-		restore_current_blog();
+		if ( is_multisite() && $this->cross_site ) {
+			restore_current_blog();
+		}
 
 		if ( $this->current_post + 1 < $this->post_count ) {
 			return true;
@@ -177,7 +179,7 @@ class ES_Query {
 
 		$es_post = $this->next_post();
 
-		if ( $es_post['site_id'] != get_current_blog_id() ) {
+		if ( is_multisite() && $this->cross_site && $es_post['site_id'] != get_current_blog_id() ) {
 			switch_to_blog( $es_post['site_id'] );
 		}
 
