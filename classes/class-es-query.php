@@ -16,9 +16,13 @@ class ES_Query {
 
 	public $post_count = 0;
 
+	public $found_posts = 0;
+
 	public $in_the_loop = false;
 
 	public $current_post = -1;
+
+	public $max_num_pages = 0;
 
 	/**
 	 * Setup new ES query
@@ -56,9 +60,29 @@ class ES_Query {
 
 		$formatted_args = $this->format_args( $args );
 
+		$posts_per_page = ( isset( $args['posts_per_page'] ) ) ? $args['posts_per_page'] : get_option( 'posts_per_page' );
+
+		$offset = 0;
+
+		if ( isset( $args['paged'] ) ) {
+			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
+			$offset = $posts_per_page * $paged;
+		} else {
+			if ( isset( $args['offset'] ) ) {
+				$offset = $args['offset'];
+			}
+		}
+
 		$es_posts = es_search( $formatted_args, $site_id );
 
+		$this->found_posts = count( $es_posts );
+
+		$es_posts = array_slice( $es_posts, $offset, $posts_per_page );
+
+		$this->max_num_pages = ceil( $this->found_posts / $posts_per_page );
+
 		$this->post_count = count( $es_posts );
+
 		$this->posts = $es_posts;
 
 		return $this->posts;
@@ -73,8 +97,6 @@ class ES_Query {
 	 */
 	private function format_args( $args ) {
 		$formatted_args = array(
-			'size' => get_option( 'posts_per_page' ),
-			'from' => 0,
 			'filter' => array(
 				'and' => array(
 					0 => array(
@@ -119,19 +141,6 @@ class ES_Query {
 					'site_id' => get_current_blog_id()
 				)
 			);
-		}
-
-		if ( isset( $args['offset'] ) ) {
-			$formatted_args['from'] = $args['offset'];
-		}
-
-		if ( isset( $args['posts_per_page'] ) ) {
-			$formatted_args['size'] = $args['posts_per_page'];
-		}
-
-		if ( isset( $args['paged'] ) ) {
-			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
-			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
 
 		if ( isset( $args['s'] ) ) {
