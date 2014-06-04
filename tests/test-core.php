@@ -1,6 +1,6 @@
 <?php
 
-class ESTestCore extends PHPUnit_Framework_TestCase {
+class ESTestCore extends WP_UnitTestCase {
 
 	protected $wp_function_mocks = array(
 		'wp_remote_request' => array(
@@ -8,6 +8,8 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 			'args' => false,
 		),
 	);
+
+	protected $fired_actions = array();
 
 	public function setUp() {
 		$user = @wp_signon(
@@ -38,6 +40,7 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 	public function tearDown() {
 		$this->wp_remote_request_mock['args'] = false;
 		$this->wp_remote_request_mock['return'] = false;
+		$this->fired_actions = array();
 	}
 
 	public function _configureSingleSite() {
@@ -99,11 +102,15 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals( $es_id, $post_id );
 
-
-		// Now let's delete the post. We aren't actually testing what this does
-		// since deleting an ES post isn't recorded in WP
+		add_action( 'es_delete_post', function( $args ) {
+			$this->fired_actions['es_delete_post'] = true;
+		} );
 
 		wp_delete_post( $post_id );
+
+		// Check if ES delete action has been properly fired
+
+		$this->assertTrue( ! empty( $this->fired_actions['es_delete_post'] ) );
 
 		// Now let's make sure the post is not indexed
 
@@ -125,7 +132,7 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 		$this->wp_remote_request_mock['return'] = $response;
 
 		$post_indexed = es_post_indexed( $post_id );
-		
+
 		$this->assertFalse( $post_indexed );
 	}
 }
