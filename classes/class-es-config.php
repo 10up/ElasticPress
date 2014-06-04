@@ -113,7 +113,9 @@ class ES_Config {
 	public function is_setup( $site_id = null ) {
 		$option = $this->get_option( $site_id );
 
-		if ( empty( $option['index_name'] ) || empty( $option['host'] ) || empty( $option['post_types'] ) ) {
+		// @todo: Check an make sure at least one post type is marked for indexing
+		
+		if ( empty( $option['index_name'] ) || empty( $option['host'] ) ) {
 			return false;
 		}
 
