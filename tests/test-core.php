@@ -99,15 +99,23 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals( $es_id, $post_id );
 
+
+		// Now let's delete the post. We aren't actually testing what this does
+		// since deleting an ES post isn't recorded in WP
+
+		wp_delete_post( $post_id );
+
+		// Now let's make sure the post is not indexed
+
 		$response = array(
 			'headers' => array(
 				'content-type' => 'application/json; charset=UTF-8',
 				'content-length' => '*',
 			),
-			'body' => '{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_version":1,"found":true}',
+			'body' => '{"_index":"test-index","_type":"post","_id":"' . $post_id . '","found":false}',
 			'response' => array(
-				'code' => 200,
-				'message' => 'OK',
+				'code' => 404,
+				'message' => 'Not Found',
 			),
 			'cookies' => array(),
 			'filename' => null,
@@ -116,14 +124,8 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/' . $post_id );
 		$this->wp_remote_request_mock['return'] = $response;
 
-		// Now let's delete the post
-
-		wp_delete_post( $post_id );
-
-
-		// Now let's make sure the post is not indexed
-
 		$post_indexed = es_post_indexed( $post_id );
+		
 		$this->assertFalse( $post_indexed );
 	}
 }
