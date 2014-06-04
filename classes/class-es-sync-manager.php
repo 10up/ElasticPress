@@ -10,7 +10,7 @@ class ES_Sync_Manager {
 	public function __construct() {
 		add_action( 'init', array( $this, 'debug_sync' ), 20 );
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
-		add_action( 'delete_post', array( $this, 'action_delete_post' ), 10, 3 );
+		add_action( 'wp_trash_post', array( $this, 'action_trash_post' ) );
 	}
 
 	/**
@@ -19,8 +19,9 @@ class ES_Sync_Manager {
 	 * @param int $post_id
 	 * @since 0.1.0
 	 */
-	public function action_delete_post( $post_id ) {
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) || 'publish' != get_post_type( $post_id ) ) {
+	public function action_trash_post( $post_id ) {
+
+		if ( ! current_user_can( 'edit_post', $post_id ) || 'revision' == get_post_type( $post_id ) ) {
 			return;
 		}
 
@@ -36,6 +37,8 @@ class ES_Sync_Manager {
 			if ( ! empty( $config['cross_site_search_active'] ) ) {
 				$host_site_id = 0;
 			}
+
+			do_action( 'es_delete_post', $es_id, null, $host_site_id );
 
 			es_delete_post( $es_id, null, $host_site_id );
 		}
