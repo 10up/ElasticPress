@@ -1,6 +1,14 @@
 <?php
 
 class ESTestCore extends PHPUnit_Framework_TestCase {
+
+	protected $wp_function_mocks = array(
+		'wp_remote_request' => array(
+			'return' => false,
+			'args' => false,
+		),
+	);
+
 	public function setUp() {
 		$user = @wp_signon(
 			array(
@@ -10,6 +18,26 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 		);
 
 		wp_set_current_user( $user->ID );
+
+		Patchwork\replace( 'wp_remote_request', function( $url, $args = array() ) {
+
+			if ( ! empty( $this->wp_remote_request_mock['args'] ) ) {
+				$args = func_get_args();
+
+				for ( $i = 0; $i < count( $this->wp_remote_request_mock['args'] ); $i++ ) {
+					if ( $args[$i] != $this->wp_remote_request_mock['args'][$i] ) {
+						return false;
+					}
+				}
+			}
+
+			return $this->wp_remote_request_mock['return'];
+		} );
+	}
+
+	public function tearDown() {
+		$this->wp_remote_request_mock['args'] = false;
+		$this->wp_remote_request_mock['return'] = false;
 	}
 
 	public function _configureSingleSite() {
@@ -34,8 +62,10 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 		return $config;
 	}
 
-	public function testPostSync() {
+	public function testPostCreateDeleteSync() {
 		$config = $this->_configureSingleSite();
+
+		// First let's create a post to play with
 
 		$post_id = wp_insert_post( array(
 			'post_type' => 'post',
@@ -44,12 +74,10 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 			'post_title' => 'Test Post'
 		) );
 
-		$post = get_post( $post_id, ARRAY_A );
-
 		$response = array(
 			'headers' => array(
 				'content-type' => 'application/json; charset=UTF-8',
-				'content-length' => '75',
+				'content-length' => '*',
 			),
 			'body' => '{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_version":1,"created":true}',
 			'response' => array(
@@ -60,15 +88,42 @@ class ESTestCore extends PHPUnit_Framework_TestCase {
 			'filename' => null,
 		);
 
-		\WP_Mock::wpFunction( 'wp_remote_request', array( 'return' => 5 ) );
-
-		$test = get_post( 1 );
-		var_dump( $test );
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/' . $post_id );
+		$this->wp_remote_request_mock['return'] = $response;
 
 		wp_publish_post( $post_id );
 
+		// Let's test to see if this post was sent to the index
+
 		$es_id = get_post_meta( $post_id, 'es_id', true );
 
-		$this->assertEquals( $es_id, 1 );
+		$this->assertEquals( $es_id, $post_id );
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_version":1,"found":true}',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/' . $post_id );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		// Now let's delete the post
+
+		wp_delete_post( $post_id );
+
+
+		// Now let's make sure the post is not indexed
+
+		$post_indexed = es_post_indexed( $post_id );
+		$this->assertFalse( $post_indexed );
 	}
 }
