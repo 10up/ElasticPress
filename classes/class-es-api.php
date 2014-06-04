@@ -109,6 +109,7 @@ class ES_API {
 	 * @param int $post_id
 	 * @param int $site_id
 	 * @param int $host_site_id
+	 * @since 0.1.0
 	 * @return bool
 	 */
 	public function post_indexed( $post_id, $site_id = null, $host_site_id = null ) {
