@@ -3,6 +3,6 @@
 	"description": "Integrate Elasticsearch with WordPress",
 	"license"    : "GPL-2.0+",
 	"require": {
-		"mockery/mockery": "dev-master"
+		"antecedent/patchwork": "*"
 	}
 }
