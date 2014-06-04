@@ -102,6 +102,40 @@ class ES_API {
 
 		return false;
 	}
+
+	/**
+	 * Check if a post is indexed given a $site_id and a $host_site_id
+	 *
+	 * @param int $post_id
+	 * @param int $site_id
+	 * @param int $host_site_id
+	 * @return bool
+	 */
+	public function post_indexed( $post_id, $site_id = null, $host_site_id = null ) {
+		$index_url = es_get_index_url( $host_site_id );
+
+		$url = $index_url . '/post/';
+
+		if ( ! empty( $site_id ) && $site_id > 1 ) {
+			$url .= $site_id . 'ms' . $post_id;
+		} else {
+			$url .= $post_id;
+		}
+
+		$request = wp_remote_request( $url, array( 'method' => 'GET' ) );
+
+		if ( ! is_wp_error( $request ) ) {
+			$response_body = wp_remote_retrieve_body( $request );
+
+			$response = json_decode( $response_body, true );
+
+			if ( ! empty( $response['found'] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }
 
 global $es_api;
@@ -121,4 +155,10 @@ function es_search( $args, $site_id = null ) {
 	global $es_api;
 
 	return $es_api->search( $args, $site_id );
+}
+
+function es_post_indexed( $post_id, $site_id = null, $host_site_id = null ) {
+	global $es_api;
+
+	return $es_api->index_post( $post_id, $site_id, $host_site_id );
 }
