@@ -19,12 +19,8 @@
 				var selectedPostTypes = $self.attr( 'data-selected' ).split( ',' );
 
 				$.ajax( {
-					type: 'POST',
+					type: 'GET',
 					url: url,
-					data: {
-						action: 'get_post_types',
-						nonce: ES_Settings.post_types_nonce
-					},
 					success: function( data ) {
 						var $postTypesHTML = $( '<div>' );
 
