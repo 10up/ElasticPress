@@ -15,5 +15,6 @@ require_once( 'classes/class-es-sync-statii.php' );
 require_once( 'classes/class-es-api.php' );
 require_once( 'classes/class-es-sync-manager.php' );
 require_once( 'classes/class-es-cron.php' );
+require_once( 'classes/class-es-ajax.php' );
 require_once( 'classes/class-es-elasticsearch.php' );
 require_once( 'classes/class-es-query.php' );

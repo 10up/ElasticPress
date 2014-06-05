@@ -13,6 +13,8 @@ class ES_Elasticsearch {
 		if ( is_admin() ) {
 			add_action( 'network_admin_menu', array( $this, 'network_admin_menu' ) );
 
+			add_action( 'admin_enqueue_scripts', array( $this, 'network_scripts' ) );
+
 			$config = es_get_option( 0 );
 
 			if ( empty( $config['cross_site_search_active'] ) ) {
@@ -21,6 +23,23 @@ class ES_Elasticsearch {
 				add_action( 'admin_post_es_sync', array( $this, 'sync' ) );
 			}
 		}
+	}
+
+	/**
+	 * Set up network settings scripts
+	 *
+	 * @since 0.1.0
+	 */
+	public function network_scripts() {
+
+		if ( defined( SCRIPT_DEBUG ) && SCRIPT_DEBUG ) {
+			$js_path = '/js/network-settings.js';
+		} else {
+			$js_path = '/build/js/network-settings.min.js';
+		}
+
+		wp_enqueue_script( 'es-network-settings', plugins_url( $js_path, dirname( __FILE__ ) ), array( 'jquery' ), '1.0', true );
+		wp_localize_script( 'es-network-settings', 'ES_Settings', array( 'post_types_nonce' => wp_create_nonce( 'es_post_types_nonce' ) ) );
 	}
 
 	/**
@@ -339,23 +358,21 @@ class ES_Elasticsearch {
 					<input value="<?php echo esc_attr( $global_config['index_name'] ); ?>" type="text" name="es_config[0][index_name]" id="es_index_name">
 				</p>
 
-				<?php foreach ( $sites as $site ) :
-					switch_to_blog( $site['blog_id'] );
-					$post_types = get_post_types();
-					$site_config = es_get_option( $site['blog_id'] ); ?>
+				<div id="es-post-type-chooser">
+					<?php foreach ( $sites as $site ) :
+						switch_to_blog( $site['blog_id'] );
+						$post_types = get_post_types();
+						$site_config = es_get_option( $site['blog_id'] ); ?>
 
-					<fieldset>
-						<input type="hidden" name="es_config[<?php echo $site['blog_id']; ?>][active]" value="1">
-						<legend>Post types for site <?php echo $site['blog_id']; ?></legend>
+						<fieldset>
+							<input type="hidden" name="es_config[<?php echo (int) $site['blog_id']; ?>][active]" value="1">
+							<legend>Post types for site <?php echo (int) $site['blog_id']; ?></legend>
 
-						<?php foreach ( $post_types as $post_type ) : ?>
+							<div class="post-types" data-selected="<?php echo esc_attr( implode( ',', $site_config['post_types'] ) ); ?>" data-site-id="<?php echo (int) $site['blog_id']; ?>" data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"></div>
+						</fieldset>
 
-							<p><input <?php checked( in_array( $post_type, $site_config['post_types'] ), true ); ?> type="checkbox" name="es_config[<?php echo $site['blog_id']; ?>][post_types][]" value="<?php echo esc_attr( $post_type ); ?>"> <?php echo esc_html( $post_type ); ?></p>
-
-						<?php endforeach; ?>
-					</fieldset>
-
-				<?php restore_current_blog(); endforeach; ?>
+					<?php restore_current_blog(); endforeach; ?>
+				</div>
 
 				<?php submit_button(); ?>
 
