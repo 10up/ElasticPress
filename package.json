@@ -1,0 +1,11 @@
+{
+	"name": "elasticsearch",
+	"title": "Elasticsearch",
+	"description": "Dropin plugin for expanding WordPress's default search capability with Elasticsearch",
+	"devDependencies": {
+		"grunt": "~0.4.1",
+		"grunt-contrib-uglify": "~0.1.1",
+		"grunt-contrib-jshint": "~0.1.1",
+		"grunt-contrib-watch": "~0.2.0"
+	}
+}
