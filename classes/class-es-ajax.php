@@ -8,7 +8,6 @@ class ES_AJAX {
 	 * @since 0.1.0
 	 */
 	public function __construct() {
-		add_action( 'init', array( $this, 'setup_rewrites' ) );
 		add_filter( 'query_vars', array( $this, 'filter_query_vars' ) );
 		add_action( 'template_redirect', array( $this, 'action_get_post_types' ) );
 	}
@@ -23,15 +22,6 @@ class ES_AJAX {
 	public function filter_query_vars( $vars ){
 		$vars[] = 'es_query';
 		return $vars;
-	}
-
-	/**
-	 * Setup rewrite rules for front end AJAX endpoints
-	 *
-	 * @since 0.1.0
-	 */
-	public function setup_rewrites() {
-		add_rewrite_rule( '^es-post-types/?','index.php?es_query=post_types','top' );
 	}
 
 	/**
