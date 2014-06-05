@@ -361,14 +361,13 @@ class ES_Elasticsearch {
 				<div id="es-post-type-chooser">
 					<?php foreach ( $sites as $site ) :
 						switch_to_blog( $site['blog_id'] );
-						$post_types = get_post_types();
 						$site_config = es_get_option( $site['blog_id'] ); ?>
 
 						<fieldset>
 							<input type="hidden" name="es_config[<?php echo (int) $site['blog_id']; ?>][active]" value="1">
 							<legend>Post types for site <?php echo (int) $site['blog_id']; ?></legend>
 
-							<div class="post-types" data-selected="<?php echo esc_attr( implode( ',', $site_config['post_types'] ) ); ?>" data-site-id="<?php echo (int) $site['blog_id']; ?>" data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"></div>
+							<div class="post-types" data-selected="<?php echo esc_attr( implode( ',', $site_config['post_types'] ) ); ?>" data-site-id="<?php echo (int) $site['blog_id']; ?>" data-ajax-url="<?php echo esc_url( home_url( '?es_query=post_types' ) ); ?>"></div>
 						</fieldset>
 
 					<?php restore_current_blog(); endforeach; ?>
