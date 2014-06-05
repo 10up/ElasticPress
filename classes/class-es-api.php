@@ -54,6 +54,7 @@ class ES_API {
 	 *
 	 * @param array $args
 	 * @param int $site_id
+	 * @since 0.1.0
 	 * @return array
 	 */
 	public function search( $args, $site_id = null ) {
@@ -69,15 +70,15 @@ class ES_API {
 			$response = json_decode( $response_body, true );
 
 			if ( $this->is_empty_search( $response ) ) {
-				return array();
+				return array( 'found_posts' => 0, 'posts' => array() );
 			}
 
 			$hits = $response['hits']['hits'];
 
-			return wp_list_pluck( $hits, '_source' );
+			return array( 'found_posts' => $response['hits']['total'], 'posts' => wp_list_pluck( $hits, '_source' ) );
 		}
 
-		return array();
+		return array( 'found_posts' => 0, 'posts' => array() );
 	}
 
 	/**

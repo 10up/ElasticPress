@@ -62,28 +62,15 @@ class ES_Query {
 
 		$posts_per_page = ( isset( $args['posts_per_page'] ) ) ? $args['posts_per_page'] : get_option( 'posts_per_page' );
 
-		$offset = 0;
+		$search = es_search( $formatted_args, $site_id );
 
-		if ( isset( $args['paged'] ) ) {
-			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
-			$offset = $posts_per_page * $paged;
-		} else {
-			if ( isset( $args['offset'] ) ) {
-				$offset = $args['offset'];
-			}
-		}
-
-		$es_posts = es_search( $formatted_args, $site_id );
-
-		$this->found_posts = count( $es_posts );
-
-		$es_posts = array_slice( $es_posts, $offset, $posts_per_page );
+		$this->found_posts = $search['found_posts'];
 
 		$this->max_num_pages = ceil( $this->found_posts / $posts_per_page );
 
-		$this->post_count = count( $es_posts );
+		$this->post_count = count( $search['posts'] );
 
-		$this->posts = $es_posts;
+		$this->posts = $search['posts'];
 
 		return $this->posts;
 	}
@@ -97,6 +84,8 @@ class ES_Query {
 	 */
 	private function format_args( $args ) {
 		$formatted_args = array(
+			'from' => 0,
+			'size' => get_option( 'posts_per_page' ),
 			'sort' => array(
 				array(
 					'_score' => array(
@@ -153,6 +142,19 @@ class ES_Query {
 			);
 
 			$formatted_args['filter'] = $filter;
+		}
+
+		if ( isset( $args['offset'] ) ) {
+			$formatted_args['from'] = $args['offset'];
+		}
+
+		if ( isset( $args['posts_per_page'] ) ) {
+			$formatted_args['size'] = $args['posts_per_page'];
+		}
+
+		if ( isset( $args['paged'] ) ) {
+			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
+			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
 
 		return $formatted_args;
