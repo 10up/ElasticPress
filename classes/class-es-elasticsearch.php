@@ -39,7 +39,6 @@ class ES_Elasticsearch {
 		}
 
 		wp_enqueue_script( 'es-network-settings', plugins_url( $js_path, dirname( __FILE__ ) ), array( 'jquery' ), '1.0', true );
-		wp_localize_script( 'es-network-settings', 'ES_Settings', array( 'post_types_nonce' => wp_create_nonce( 'es_post_types_nonce' ) ) );
 	}
 
 	/**

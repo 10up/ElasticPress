@@ -33,6 +33,9 @@ class ES_AJAX {
 		$es_query = get_query_var('es_query');
 
 		if ( $es_query == 'post_types' ) {
+			// Todo: find a better way to do this
+			@header( 'Access-Control-Allow-Origin: *' );
+
 			$output = array(
 				'post_types' => get_post_types( '', 'names' ),
 				'success' => true,
