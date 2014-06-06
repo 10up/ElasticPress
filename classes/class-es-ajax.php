@@ -33,7 +33,9 @@ class ES_AJAX {
 		$es_query = get_query_var('es_query');
 
 		if ( $es_query == 'post_types' ) {
-			// Todo: find a better way to do this
+			// Todo: find a better way to do this (WP API!)
+			// This probably at the very least needs a nonce to prevent cookie hijacking
+
 			@header( 'Access-Control-Allow-Origin: *' );
 
 			$output = array(
