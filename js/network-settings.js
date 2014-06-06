@@ -1,4 +1,4 @@
-( function( $, ES_Settings, undefined ) {
+( function( $, undefined ) {
 
 	'use strict';
 
@@ -58,4 +58,4 @@
 
 	NetworkSettings.getInstance();
 
-} )( jQuery, ES_Settings );
+} )( jQuery );
