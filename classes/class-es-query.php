@@ -99,15 +99,23 @@ class ES_Query {
 			'and' => array(),
 		);
 
+		$search_fields = array(
+			'post_title',
+			'post_excerpt',
+			'post_content',
+		);
+
+		if ( ! empty( $args['search_tax'] ) ) {
+			foreach ( $args['search_tax'] as $tax ) {
+				$search_fields[] = 'terms.' . $tax . '.name';
+			}
+		}
+
 		$query = array(
 			'bool' => array(
 				'must' => array(
 					'fuzzy_like_this' => array(
-						'fields' => array(
-							'post_title',
-							'post_excerpt',
-							'post_content',
-						),
+						'fields' => $search_fields,
 						'like_text' => '',
 						'min_similarity' => 0.5,
 					),
