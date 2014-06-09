@@ -95,7 +95,7 @@ class ESTestCore extends WP_UnitTestCase {
 		return $config;
 	}
 
-	protected function _createAndSyncPost( $site_id = null, $cross_site = false ) {
+	protected function _createAndSyncPost( $post_args = array(), $site_id = null, $cross_site = false ) {
 		if ( $site_id != null ) {
 			switch_to_blog( $site_id );
 		}
@@ -110,12 +110,12 @@ class ESTestCore extends WP_UnitTestCase {
 			$host = $global_config['host'];
 		}
 
-		$post_id = wp_insert_post( array(
+		$post_id = wp_insert_post( wp_parse_args( array(
 			'post_type' => $config['post_types'][0],
 			'post_status' => 'draft',
 			'author' => 1,
 			'post_title' => 'Test Post ' . time(),
-		) );
+		), $post_args ) );
 
 		$es_id = $post_id;
 		if ( $site_id > 1 ) {
@@ -189,7 +189,7 @@ class ESTestCore extends WP_UnitTestCase {
 				'content-type' => 'application/json; charset=UTF-8',
 				'content-length' => '*',
 			),
-			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1,"hits":[{"_index":"vipqs","_type":"post","_id":"' . $post_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . get_current_blog_id() . '}}]}}',
+			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1,"hits":[{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . get_current_blog_id() . '}}]}}',
 			'response' => array(
 				'code' => 200,
 				'message' => 'OK',
@@ -213,6 +213,73 @@ class ESTestCore extends WP_UnitTestCase {
 
 			$this->assertEquals( get_the_title( $post_id ), get_the_title() );
 		}
+	}
+
+	public function testMultiSiteSearchBasic() {
+		$config = $this->_configureMultiSite();
+
+		// First let's create some posts across the network
+		$posts = array();
+		$body = '';
+		$sites = wp_get_sites();
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			for ( $i = 0; $i < 3; $i++ ) {
+
+				$post_id = $this->_createAndSyncPost();
+				$post = get_post( $post_id );
+
+				$es_id = $post_id;
+				if ( $site['blog_id'] > 1 ) {
+					$es_id = $site['blog_id'] . 'ms' . $es_id;
+				}
+
+				$body .= '{"_index":"test-index","_type":"post","_id":"' . $es_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . $site['blog_id'] . '}}';
+
+				$posts[] = $post_id;
+			}
+
+			restore_current_blog();
+		}
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":' . count( $posts ) . ',"max_score":1,"hits":[' . $body . ']}}',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config[0]['host'] . '/' . $config[0]['index_name'] . '/post/_search' );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		$args = array(
+			's' => 'test',
+		);
+		$query = new ES_Query( $args );
+
+		// Make sure the query returns all the posts we created
+		$this->assertEquals( $query->post_count, count( $posts ) );
+
+		// Make sure our loop goes through posts that are on different sites on the network
+		$posts_cross_site = 0;
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			if ( get_current_blog_id() != 1 ) {
+				$posts_cross_site++;
+			}
+		}
+
+		$this->assertTrue( $posts_cross_site > 0 );
 	}
 
 	public function testSingleSitePostCreateDeleteSync() {
@@ -272,9 +339,9 @@ class ESTestCore extends WP_UnitTestCase {
 		foreach ( $sites as $site ) {
 			$post_ids_by_site[$site['blog_id']] = array();
 
-			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( $site['blog_id'], true );
-			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( $site['blog_id'], true );
-			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( $site['blog_id'], true );
+			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), $site['blog_id'], true );
+			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), $site['blog_id'], true );
+			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), $site['blog_id'], true );
 		}
 
 
