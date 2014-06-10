@@ -66,7 +66,6 @@ class EP_ElasticPress {
 	 */
 	public function network_admin_menu() {
 		add_submenu_page( 'settings.php', __( 'ElasticPress', 'elasticpress' ), __( 'ElasticPress', 'elasticpress' ), 'administrator', 'ep_settings', array( $this, 'network_screen_options' ) );
-		add_submenu_page( 'settings.php', __( 'ElasticPress Debug', 'elasticpress' ), __( 'ElasticPress Debug', 'elasticpress' ), 'administrator', 'ep_debug', array( $this, 'network_debug_screen_options' ) );
 		add_action( 'network_admin_edit_ep_settings', array( $this, 'network_save_settings' ) );
 		add_action( 'network_admin_edit_ep_sync', array( $this, 'network_sync' ) );
 	}
@@ -298,25 +297,6 @@ class EP_ElasticPress {
 				<?php endif; ?>
 			</form>
 		</div>
-
-		<?php
-	}
-
-	/**
-	 * Create a rudimentary debug page
-	 *
-	 * @todo Remove me!
-	 */
-	public function network_debug_screen_options() {
-		$config = get_site_option( 'ep_config_by_site' );
-		$statii = get_site_option( 'ep_status_by_site' );
-		?>
-
-		<h2>Config by Site:</h2>
-		<pre><?php var_dump( $config ); ?></pre>
-
-		<h2>Status by Site:</h2>
-		<pre><?php var_dump( $statii ); ?></pre>
 
 		<?php
 	}

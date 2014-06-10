@@ -8,7 +8,6 @@ class EP_Sync_Manager {
 	 * @since 0.1.0
 	 */
 	public function __construct() {
-		add_action( 'init', array( $this, 'debug_sync' ), 20 );
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
 		add_action( 'wp_trash_post', array( $this, 'action_trash_post' ) );
 	}
@@ -76,17 +75,6 @@ class EP_Sync_Manager {
 
 			$this->sync_post( $post->ID, null, $host_site_id );
 
-		}
-	}
-
-	/**
-	 * Debug syncs
-	 *
-	 * @todo Remove me!
-	 */
-	public function debug_sync() {
-		if ( isset( $_GET['sync'] ) ) {
-			$this->do_scheduled_syncs();
 		}
 	}
 
