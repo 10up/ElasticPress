@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name: ElasticPress
- * Description: WordPress plugin for integrating search with Elasticsearch
+ * Description: Integrate WordPress search with Elasticsearch
  * Version:     0.1.0
  * Author:      Aaron Holbrook, Taylor Lovett, 10up
  * Author URI:  http://10up.com
