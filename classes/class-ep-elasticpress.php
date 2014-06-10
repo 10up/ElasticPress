@@ -259,17 +259,17 @@ class EP_ElasticPress {
 				<h2><?php _e( 'ElasticPress Settings', 'elasticpress' ); ?></h2>
 
 				<p>
-					<label for="ep_host"><?php _e( 'Host:', 'elasticpress' ); ?></label>
-					<input value="<?php echo esc_attr( $site_config['host'] ); ?>" type="text" name="ep_config[host]" id="ep_host">
+					<label for="ep_host"><?php _e( 'Host:', 'elasticpress' ); ?></label><br />
+					<input class="regular-text" value="<?php echo esc_attr( $site_config['host'] ); ?>" type="text" name="ep_config[host]" id="ep_host">
 				</p>
 
 				<p>
-					<label for="ep_index_name"><?php _e( 'Index Name:', 'elasticpress' ); ?></label>
-					<input value="<?php echo esc_attr( $site_config['index_name'] ); ?>" type="text" name="ep_config[index_name]" id="ep_index_name">
+					<label for="ep_index_name"><?php _e( 'Index Name:', 'elasticpress' ); ?></label><br />
+					<input class="regular-text" value="<?php echo esc_attr( $site_config['index_name'] ); ?>" type="text" name="ep_config[index_name]" id="ep_index_name">
 				</p>
 
 				<fieldset>
-					<legend><?php _e( 'Post types to index:', 'elasticpress' ); ?></legend>
+					<legend><h3><?php _e( 'Post Types to Index:', 'elasticpress' ); ?></h3></legend>
 
 					<?php foreach ( $post_types as $post_type ) : ?>
 
@@ -285,15 +285,19 @@ class EP_ElasticPress {
 				<?php wp_nonce_field( 'ep_sync_action', 'ep_sync_nonce' ); ?>
 				<input type="hidden" name="action" value="ep_sync">
 
-				<h3><?php _e( 'Sync', 'elasticpress' ); ?></h3>
+				<h2><?php _e( 'Post Sync', 'elasticpress' ); ?></h2>
+
+				<p><?php _e( 'A sync will send all the posts in post types marked for sync to your Elasticsearch server.
+				Existing posts will be updated. This can take hours depending on how many posts you have in your
+				database.', 'elasticpress' ); ?></p>
 
 				<?php if ( ! ep_is_sync_alive() ) : ?>
-					<?php submit_button( __( 'Start Full Sync', 'elasticpress' ), 'primary', 'ep_full_sync' ); ?>
+					<?php submit_button( __( 'Start Sync', 'elasticpress' ), 'primary', 'ep_full_sync' ); ?>
 				<?php else : ?>
 					<p>
-						<?php _e( 'Syncs are currently running.', 'elasticpress' ); ?>
+						<em><?php _e( 'Syncs are currently running.', 'elasticpress' ); ?></em>
 					</p>
-					<?php submit_button( __( 'Cancel Full Sync', 'elasticpress' ), 'primary', 'ep_cancel_sync' ); ?>
+					<?php submit_button( __( 'Cancel Sync', 'elasticpress' ), 'primary', 'ep_cancel_sync' ); ?>
 				<?php endif; ?>
 			</form>
 		</div>
@@ -324,17 +328,17 @@ class EP_ElasticPress {
 
 				<p>
 					<label for="ep_cross_site_search_active"><?php _e( 'Activate Cross Site Search:', 'elasticpress' ); ?></label>
-					<input <?php checked( ! empty( $global_config['cross_site_search_active'] ), true ); ?> type="checkbox" name="ep_config[0][cross_site_search_active]" id="ep_cross_site_search_active" value="1">
+					<input style="margin-left: .4em" <?php checked( ! empty( $global_config['cross_site_search_active'] ), true ); ?> type="checkbox" name="ep_config[0][cross_site_search_active]" id="ep_cross_site_search_active" value="1">
 				</p>
 
 				<p>
-					<label for="ep_host"><?php _e( 'Host:', 'elasticpress' ); ?></label>
-					<input value="<?php echo esc_attr( $global_config['host'] ); ?>" type="text" name="ep_config[0][host]" id="ep_host" value="">
+					<label for="ep_host"><?php _e( 'Host:', 'elasticpress' ); ?></label><br />
+					<input class="regular-text" value="<?php echo esc_attr( $global_config['host'] ); ?>" type="text" name="ep_config[0][host]" id="ep_host" value="">
 				</p>
 
 				<p>
-					<label for="ep_index_name"><?php _e( 'Index Name:', 'elasticpress' ); ?></label>
-					<input value="<?php echo esc_attr( $global_config['index_name'] ); ?>" type="text" name="ep_config[0][index_name]" id="ep_index_name">
+					<label for="ep_index_name"><?php _e( 'Index Name:', 'elasticpress' ); ?></label><br />
+					<input class="regular-text" value="<?php echo esc_attr( $global_config['index_name'] ); ?>" type="text" name="ep_config[0][index_name]" id="ep_index_name">
 				</p>
 
 				<div id="ep-post-type-chooser">
@@ -344,7 +348,7 @@ class EP_ElasticPress {
 
 						<fieldset>
 							<input type="hidden" name="ep_config[<?php echo (int) $site['blog_id']; ?>][active]" value="1">
-							<legend><?php _e( 'Post types for site', 'elasticpress' ); ?> <?php echo (int) $site['blog_id']; ?></legend>
+							<legend><h3><?php _e( 'Post Types for Site:', 'elasticpress' ); ?> <?php echo (int) $site['blog_id']; ?></h3></legend>
 
 							<div class="post-types" data-selected="<?php echo esc_attr( implode( ',', $site_config['post_types'] ) ); ?>" data-site-id="<?php echo (int) $site['blog_id']; ?>" data-ajax-url="<?php echo esc_url( home_url( '?ep_query=post_types' ) ); ?>"></div>
 						</fieldset>
@@ -359,15 +363,19 @@ class EP_ElasticPress {
 			<form method="post" action="<?php echo admin_url( 'network/edit.php?action=ep_sync' ) ?>">
 				<?php wp_nonce_field( 'ep_network_sync_action', 'ep_network_sync_nonce' ); ?>
 
-				<h3><?php _e( 'Site-wide Sync', 'elasticpress' ); ?></h3>
+				<h2><?php _e( 'Site-wide Post Sync', 'elasticpress' ); ?></h2>
+
+				<p><?php _e( 'A site-wide sync will send all the posts in post types marked for sync to your
+				Elasticsearch server. Existing posts will be updated. This can take hours depending on how many
+				posts you have across your network.', 'elasticpress' ); ?></p>
 
 				<?php if ( ep_get_alive_sync_count() < 1 ) : ?>
-					<?php submit_button( __( 'Start Full Sync', 'elasticpress' ), 'primary', 'ep_full_sync' ); ?>
+					<?php submit_button( __( 'Start Sync', 'elasticpress' ), 'primary', 'ep_full_sync' ); ?>
 				<?php else : ?>
 					<p>
-						<?php _e( 'Syncs are currently running.', 'elasticpress' ); ?>
+						<em><?php _e( 'Syncs are currently running.', 'elasticpress' ); ?></em>
 					</p>
-					<?php submit_button( __( 'Cancel Full Sync', 'elasticpress' ), 'primary', 'ep_cancel_sync' ); ?>
+					<?php submit_button( __( 'Cancel Sync', 'elasticpress' ), 'primary', 'ep_cancel_sync' ); ?>
 				<?php endif; ?>
 			</form>
 		</div>
