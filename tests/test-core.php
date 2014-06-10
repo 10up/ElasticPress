@@ -2,13 +2,30 @@
 
 class ESTestCore extends WP_UnitTestCase {
 
+	/**
+	 * Store info about our wp_remote_request mock
+	 *
+	 * @var array
+	 * @since 0.1.0
+	 */
 	protected $wp_remote_request_mock = array(
 		'return' => false,
 		'args' => false,
 	);
 
+	/**
+	 * Helps us keep track of actions that have fired
+	 *
+	 * @var array
+	 * @since 0.1.0
+	 */
 	protected $fired_actions = array();
 
+	/**
+	 * Setup each test. We use Patchwork to replace wp_remote_request.
+	 *
+	 * @since 0.1.0
+	 */
 	public function setUp() {
 		parent::setUp();
 
@@ -37,6 +54,11 @@ class ESTestCore extends WP_UnitTestCase {
 		} );
 	}
 
+	/**
+	 * Clean up after each test. Reset our mocks
+	 *
+	 * @since 0.1.0
+	 */
 	public function tearDown() {
 		parent::tearDown();
 
@@ -45,6 +67,12 @@ class ESTestCore extends WP_UnitTestCase {
 		$this->fired_actions = array();
 	}
 
+	/**
+	 * Configure a single site test
+	 *
+	 * @since 0.1.0
+	 * @return array
+	 */
 	protected function _configureSingleSite() {
 		$config = array(
 			'post_types' => array( 'post' ),
@@ -57,6 +85,12 @@ class ESTestCore extends WP_UnitTestCase {
 		return $config;
 	}
 
+	/**
+	 * Configure a multisite test
+	 *
+	 * @since 0.1.0
+	 * @return array
+	 */
 	protected function _configureMultiSite() {
 		$config = array();
 
@@ -95,6 +129,15 @@ class ESTestCore extends WP_UnitTestCase {
 		return $config;
 	}
 
+	/**
+	 * Create a WP post and "sync" it to Elasticsearch. We are mocking the sync
+	 *
+	 * @param array $post_args
+	 * @param int $site_id
+	 * @param bool $cross_site
+	 * @since 0.1.0
+	 * @return int|WP_Error
+	 */
 	protected function _createAndSyncPost( $post_args = array(), $site_id = null, $cross_site = false ) {
 		if ( $site_id != null ) {
 			switch_to_blog( $site_id );
@@ -149,6 +192,11 @@ class ESTestCore extends WP_UnitTestCase {
 		return $post_id;
 	}
 
+	/**
+	 * Simple test to ensure single site configuration consistency
+	 *
+	 * @aince 0.1.0
+	 */
 	public function testSingleSiteConfigSet() {
 		$config = $this->_configureSingleSite();
 
@@ -163,6 +211,11 @@ class ESTestCore extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Simple test to ensure multisite configuration consistency
+	 *
+	 * @aince 0.1.0
+	 */
 	public function testMultiSiteConfigSet() {
 		$config = $this->_configureMultiSite();
 
@@ -178,6 +231,11 @@ class ESTestCore extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Test a simple single site search. This test runs a simple search on post_content
+	 *
+	 * @since 0.1.0
+	 */
 	public function testSingleSiteSearchBasic() {
 		$config = $this->_configureSingleSite();
 
@@ -215,6 +273,12 @@ class ESTestCore extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Test a simple single site search. This test runs a simple search on post_content against a bunch of posts some
+	 * across a network of blogs.
+	 *
+	 * @since 0.1.0
+	 */
 	public function testMultiSiteSearchBasic() {
 		$config = $this->_configureMultiSite();
 
@@ -233,6 +297,10 @@ class ESTestCore extends WP_UnitTestCase {
 				$es_id = $post_id;
 				if ( $site['blog_id'] > 1 ) {
 					$es_id = $site['blog_id'] . 'ms' . $es_id;
+				}
+
+				if ( ! empty( $body ) ) {
+					$body .= ', ';
 				}
 
 				$body .= '{"_index":"test-index","_type":"post","_id":"' . $es_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . $site['blog_id'] . '}}';
@@ -282,6 +350,12 @@ class ESTestCore extends WP_UnitTestCase {
 		$this->assertTrue( $posts_cross_site > 0 );
 	}
 
+	/**
+	 * Test creating a post on single site, making sure that post syncs to ES. Test deleting a post and making sure
+	 * the post is deleted from ES.
+	 *
+	 * @since 0.1.0
+	 */
 	public function testSingleSitePostCreateDeleteSync() {
 		$config = $this->_configureSingleSite();
 
@@ -329,6 +403,12 @@ class ESTestCore extends WP_UnitTestCase {
 		$this->assertFalse( $post_indexed );
 	}
 
+	/**
+	 * Test creating a bunch of posts on multisite across the network, making sure that all posts sync to ES. Test
+	 * deleting posts across the network and making sure the post is deleted from ES.
+	 *
+	 * @since 0.1.0
+	 */
 	public function testMultiSitePostCreateDeleteSync() {
 		$config = $this->_configureMultiSite();
 
