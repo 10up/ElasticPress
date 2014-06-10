@@ -12,6 +12,6 @@ function _manually_load_plugin() {
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
-require_once 'vendor/autoload.php';
+require_once 'vendor/antecedent/patchwork/Patchwork.php';
 
 require $_tests_dir . '/includes/bootstrap.php';
