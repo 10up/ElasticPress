@@ -1,4 +1,4 @@
-Elasticsearch
+ElasticPress
 =============
 
 WordPress plugin for Elasticsearch

@@ -8,7 +8,7 @@
 
 		function networkSettingsSetup() {
 
-			var $postTypeChooser = $( '#es-post-type-chooser' );
+			var $postTypeChooser = $( '#ep-post-type-chooser' );
 
 			$postTypeChooser.find( '.post-types' ).each( function() {
 
@@ -31,7 +31,7 @@
 								checked = 'checked';
 							}
 
-							$postTypesHTML.append( '<p><input ' + checked + ' type="checkbox" name="es_config[' + site_id + '][post_types][]" value="' + element + '"> ' + element + '</p>' );
+							$postTypesHTML.append( '<p><input ' + checked + ' type="checkbox" name="ep_config[' + site_id + '][post_types][]" value="' + element + '"> ' + element + '</p>' );
 
 						} );
 

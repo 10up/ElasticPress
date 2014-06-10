@@ -1,6 +1,6 @@
 <?php
 
-class ESTestCore extends WP_UnitTestCase {
+class EPTestCore extends WP_UnitTestCase {
 
 	/**
 	 * Store info about our wp_remote_request mock
@@ -80,7 +80,7 @@ class ESTestCore extends WP_UnitTestCase {
 			'index_name' => 'test-index',
 		);
 
-		es_update_option( $config );
+		ep_update_option( $config );
 
 		return $config;
 	}
@@ -100,7 +100,7 @@ class ESTestCore extends WP_UnitTestCase {
 			'cross_site_search_active' => 1,
 		);
 
-		es_update_option( $config[0], 0 );
+		ep_update_option( $config[0], 0 );
 
 		$config[1] = array(
 			'host' => 'http://888.0.0.1:9100',
@@ -108,7 +108,7 @@ class ESTestCore extends WP_UnitTestCase {
 			'index_name' => 'test-index-1',
 		);
 
-		es_update_option( $config[1], 1 );
+		ep_update_option( $config[1], 1 );
 
 		$blog_ids = $this->factory->blog->create_many( 2 );
 
@@ -121,7 +121,7 @@ class ESTestCore extends WP_UnitTestCase {
 				'index_name' => 'test-index-' . $i,
 			);
 
-			es_update_option( $config[$blog_id], $blog_id );
+			ep_update_option( $config[$blog_id], $blog_id );
 
 			$i++;
 		}
@@ -143,12 +143,12 @@ class ESTestCore extends WP_UnitTestCase {
 			switch_to_blog( $site_id );
 		}
 
-		$config = es_get_option( $site_id );
+		$config = ep_get_option( $site_id );
 		$index_name = $config['index_name'];
 		$host = $config['host'];
 
 		if ( $cross_site ) {
-			$global_config = es_get_option( 0 );
+			$global_config = ep_get_option( 0 );
 			$index_name = $global_config['index_name'];
 			$host = $global_config['host'];
 		}
@@ -160,9 +160,9 @@ class ESTestCore extends WP_UnitTestCase {
 			'post_title' => 'Test Post ' . time(),
 		), $post_args ) );
 
-		$es_id = $post_id;
+		$ep_id = $post_id;
 		if ( $site_id > 1 ) {
-			$es_id = $site_id . 'ms' . $post_id;
+			$ep_id = $site_id . 'ms' . $post_id;
 		}
 
 		$response = array(
@@ -170,7 +170,7 @@ class ESTestCore extends WP_UnitTestCase {
 				'content-type' => 'application/json; charset=UTF-8',
 				'content-length' => '*',
 			),
-			'body' => '{"_index":"' . $index_name . '","_type":"post","_id":"' . $es_id . '","_version":1,"created":true}',
+			'body' => '{"_index":"' . $index_name . '","_type":"post","_id":"' . $ep_id . '","_version":1,"created":true}',
 			'response' => array(
 				'code' => 200,
 				'message' => 'OK',
@@ -179,7 +179,7 @@ class ESTestCore extends WP_UnitTestCase {
 			'filename' => null,
 		);
 
-		$this->wp_remote_request_mock['args'] = array( $host . '/' . $index_name . '/post/' . $es_id );
+		$this->wp_remote_request_mock['args'] = array( $host . '/' . $index_name . '/post/' . $ep_id );
 
 		$this->wp_remote_request_mock['return'] = $response;
 
@@ -202,7 +202,7 @@ class ESTestCore extends WP_UnitTestCase {
 
 		$current_site_id = get_current_blog_id();
 
-		$option = get_site_option( 'es_config_by_site', array() );
+		$option = get_site_option( 'ep_config_by_site', array() );
 
 		$this->assertTrue( isset( $option[$current_site_id] ) );
 
@@ -219,7 +219,7 @@ class ESTestCore extends WP_UnitTestCase {
 	public function testMultiSiteConfigSet() {
 		$config = $this->_configureMultiSite();
 
-		$option = get_site_option( 'es_config_by_site', array() );
+		$option = get_site_option( 'ep_config_by_site', array() );
 
 		$this->assertTrue( count( $option ) > 1 );
 
@@ -262,7 +262,7 @@ class ESTestCore extends WP_UnitTestCase {
 		$args = array(
 			's' => 'test',
 		);
-		$query = new ES_Query( $args );
+		$query = new EP_Query( $args );
 
 		$this->assertEquals( $query->post_count, 1 );
 
@@ -294,16 +294,16 @@ class ESTestCore extends WP_UnitTestCase {
 				$post_id = $this->_createAndSyncPost();
 				$post = get_post( $post_id );
 
-				$es_id = $post_id;
+				$ep_id = $post_id;
 				if ( $site['blog_id'] > 1 ) {
-					$es_id = $site['blog_id'] . 'ms' . $es_id;
+					$ep_id = $site['blog_id'] . 'ms' . $ep_id;
 				}
 
 				if ( ! empty( $body ) ) {
 					$body .= ', ';
 				}
 
-				$body .= '{"_index":"test-index","_type":"post","_id":"' . $es_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . $site['blog_id'] . '}}';
+				$body .= '{"_index":"test-index","_type":"post","_id":"' . $ep_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . $site['blog_id'] . '}}';
 
 				$posts[] = $post_id;
 			}
@@ -331,7 +331,7 @@ class ESTestCore extends WP_UnitTestCase {
 		$args = array(
 			's' => 'test',
 		);
-		$query = new ES_Query( $args );
+		$query = new EP_Query( $args );
 
 		// Make sure the query returns all the posts we created
 		$this->assertEquals( $query->post_count, count( $posts ) );
@@ -365,19 +365,19 @@ class ESTestCore extends WP_UnitTestCase {
 
 		// Let's test to see if this post was sent to the index
 
-		$es_id = get_post_meta( $post_id, 'es_id', true );
+		$ep_id = get_post_meta( $post_id, 'ep_id', true );
 
-		$this->assertEquals( $es_id, $post_id );
+		$this->assertEquals( $ep_id, $post_id );
 
-		add_action( 'es_delete_post', function( $args ) {
-			$this->fired_actions['es_delete_post'] = true;
+		add_action( 'ep_delete_post', function( $args ) {
+			$this->fired_actions['ep_delete_post'] = true;
 		} );
 
 		wp_delete_post( $post_id );
 
 		// Check if ES delete action has been properly fired
 
-		$this->assertTrue( ! empty( $this->fired_actions['es_delete_post'] ) );
+		$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
 
 		// Now let's make sure the post is not indexed
 
@@ -398,7 +398,7 @@ class ESTestCore extends WP_UnitTestCase {
 		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/' . $post_id );
 		$this->wp_remote_request_mock['return'] = $response;
 
-		$post_indexed = es_post_indexed( $post_id );
+		$post_indexed = ep_post_indexed( $post_id );
 
 		$this->assertFalse( $post_indexed );
 	}
@@ -432,20 +432,20 @@ class ESTestCore extends WP_UnitTestCase {
 			switch_to_blog( $blog_id );
 
 			foreach( $post_ids as $post_id ) {
-				$es_id = get_post_meta( $post_id, 'es_id', true );
-				$correct_es_id = ( $blog_id <= 1 ) ? $post_id : $blog_id . 'ms' . $post_id;
+				$ep_id = get_post_meta( $post_id, 'ep_id', true );
+				$correct_ep_id = ( $blog_id <= 1 ) ? $post_id : $blog_id . 'ms' . $post_id;
 
-				$this->assertEquals( $es_id, $correct_es_id );
+				$this->assertEquals( $ep_id, $correct_ep_id );
 
-				add_action( 'es_delete_post', function( $args ) {
-					$this->fired_actions['es_delete_post'] = true;
+				add_action( 'ep_delete_post', function( $args ) {
+					$this->fired_actions['ep_delete_post'] = true;
 				} );
 
 				wp_delete_post( $post_id );
 
 				// Check if ES delete action has been properly fired
 
-				$this->assertTrue( ! empty( $this->fired_actions['es_delete_post'] ) );
+				$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
 
 				// Now let's make sure the post is not indexed
 
@@ -454,7 +454,7 @@ class ESTestCore extends WP_UnitTestCase {
 						'content-type' => 'application/json; charset=UTF-8',
 						'content-length' => '*',
 					),
-					'body' => '{"_index":"test-index","_type":"post","_id":"' . $es_id . '","found":false}',
+					'body' => '{"_index":"test-index","_type":"post","_id":"' . $ep_id . '","found":false}',
 					'response' => array(
 						'code' => 404,
 						'message' => 'Not Found',
@@ -463,17 +463,17 @@ class ESTestCore extends WP_UnitTestCase {
 					'filename' => null,
 				);
 
-				$this->wp_remote_request_mock['args'] = array( $config[0]['host'] . '/' . $config[0]['index_name'] . '/post/' . $es_id );
+				$this->wp_remote_request_mock['args'] = array( $config[0]['host'] . '/' . $config[0]['index_name'] . '/post/' . $ep_id );
 				$this->wp_remote_request_mock['return'] = $response;
 
-				$post_indexed = es_post_indexed( $post_id, $blog_id, 0 );
+				$post_indexed = ep_post_indexed( $post_id, $blog_id, 0 );
 
 				$this->assertFalse( $post_indexed );
 
 				$this->wp_remote_request_mock['args'] = false;
 				$this->wp_remote_request_mock['return'] = false;
 				$this->fired_actions = array();
-				remove_all_actions( 'es_delete_post' );
+				remove_all_actions( 'ep_delete_post' );
 			}
 
 			restore_current_blog();

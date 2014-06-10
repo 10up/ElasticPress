@@ -1,6 +1,6 @@
 {
-	"name": "elasticsearch",
-	"title": "Elasticsearch",
+	"name": "elasticpress",
+	"title": "ElasticPress",
 	"description": "Dropin plugin for expanding WordPress's default search capability with Elasticsearch",
 	"devDependencies": {
 		"grunt": "~0.4.1",
