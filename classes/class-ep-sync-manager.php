@@ -179,15 +179,25 @@ class EP_Sync_Manager {
 	 * @return array
 	 */
 	private function prepare_terms( $post ) {
-		$taxonomies = get_object_taxonomies( $post->post_type );
-		if ( empty( $taxonomies ) ) {
+		$taxonomies = get_object_taxonomies( $post->post_type, 'objects' );
+		$selected_taxonomies = array();
+
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public ) {
+				$selected_taxonomies[] = $taxonomy;
+			}
+		}
+
+		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
+
+		if ( empty( $selected_taxonomies ) ) {
 			return array();
 		}
 
 		$terms = array();
 
-		foreach ( $taxonomies as $taxonomy ) {
-			$object_terms = get_the_terms( $post->ID, $taxonomy );
+		foreach ( $selected_taxonomies as $taxonomy ) {
+			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
 
 			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
 				continue;
@@ -280,6 +290,8 @@ class EP_Sync_Manager {
 			'post_meta' => $this->prepare_meta( $post ),
 			'site_id' => $site_id,
 		);
+
+		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id, $site_id, $host_site_id );
 
 		if ( ! $this->is_post_synced( $post_id ) ) {
 			$response = ep_index_post( $post_args, $host_site_id );

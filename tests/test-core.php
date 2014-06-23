@@ -22,6 +22,14 @@ class EPTestCore extends WP_UnitTestCase {
 	protected $fired_actions = array();
 
 	/**
+	 * Helps us keep track of applied filters
+	 *
+	 * @var array
+	 * @since 0.1.1
+	 */
+	protected $applied_filters = array();
+
+	/**
 	 * Setup each test. We use Patchwork to replace wp_remote_request.
 	 *
 	 * @since 0.1.0
@@ -348,6 +356,37 @@ class EPTestCore extends WP_UnitTestCase {
 		}
 
 		$this->assertTrue( $posts_cross_site > 0 );
+	}
+
+	/**
+	 * Make sure proper taxonomies are synced with post. Hidden taxonomies should be skipped!
+	 *
+	 * @since 0.1.1
+	 */
+	public function testSingleSitePostTermSync() {
+		$config = $this->_configureSingleSite();
+
+		add_filter( 'ep_post_sync_args', function( $post_args ) {
+			$this->applied_filters['ep_post_sync_args'] = $post_args;
+
+			return $post_args;
+		}, 10, 1 );
+
+		$post_id = $this->_createAndSyncPost( array(
+			'tags_input' => array( 'test-tag', 'test-tag2' ),
+			'tax_input' => array(
+				'ep_hidden' => 'test-ep-hidden'
+			)
+		) );
+
+		// Check if ES post sync filter has been triggered
+		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
+
+		// Check if ES post sync args have proper terms. ep_hidden terms should not exists
+		// since it's a private taxonomy
+		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args']['terms']['category'] ) && count( $this->applied_filters['ep_post_sync_args']['terms']['category'] ) == 1 );
+		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args']['terms']['post_tag'] ) && count( $this->applied_filters['ep_post_sync_args']['terms']['post_tag'] ) == 2 );
+		$this->assertTrue( empty( $this->applied_filters['ep_post_sync_args']['ep_hidden'] ) );
 	}
 
 	/**
