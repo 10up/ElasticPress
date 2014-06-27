@@ -5,10 +5,10 @@ A plugin to integrate WordPress with Elasticsearch
 
 ## Purpose
 
-Anyone who has tried to anything fancy with WordPress search such as filtering by multiple taxonomies or post meta keys
+Anyone who has tried to do anything fancy with WordPress search such as filtering by multiple taxonomies or post meta keys
 knows that it is lacking. Elasticsearch is a powerful open-source search engine powered by Java. Coupling WordPress and
 Elasticsearch allows us to do amazing things with search at lightning speed such as filtering by multiple taxonomies,
-fuzzy matching, auto complete, etc.
+fuzzy matching, auto complete, the list goes on and on.
 
 
 ## Installation
@@ -50,7 +50,7 @@ where:
 
 * wordpress_test is the name of the test database (all data will be deleted!)
 * root is the MySQL user name
-* '' is the MySQL user password
+* root is the MySQL user password (if you're running VVV). Blank if you're running VIP Quickstart.
 * localhost is the MySQL server host
 * latest is the WordPress version; could also be 3.7, 3.6.2 etc.
 
@@ -60,5 +60,5 @@ phpunit
 ```
 
 #### Issues
-If you identify any errors in this plugin, or have an idea for an improvement, please open an issue. We're excited to
+If you identify any errors or have an idea for improving the plugin, please open an issue. We're excited to
 see what the community thinks of this project, and we would love your input.
