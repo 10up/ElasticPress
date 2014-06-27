@@ -33,9 +33,9 @@ class EP_API {
 		$url = $index_url . '/post/';
 
 		if ( ! empty( $post['site_id'] ) && $post['site_id'] > 1 ) {
-			$url .= $post['site_id'] . 'ms' . $post['post_id'];
+			$url .= (int) $post['site_id'] . 'ms' . (int) $post['post_id'];
 		} else {
-			$url .= $post['post_id'];
+			$url .= (int) $post['post_id'];
 		}
 
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $post ), 'method' => 'PUT' ) );
@@ -120,9 +120,9 @@ class EP_API {
 		$url = $index_url . '/post/';
 
 		if ( ! empty( $site_id ) && $site_id > 1 ) {
-			$url .= $site_id . 'ms' . $post_id;
+			$url .= (int) $site_id . 'ms' . (int) $post_id;
 		} else {
-			$url .= $post_id;
+			$url .= (int) $post_id;
 		}
 
 		$request = wp_remote_request( $url, array( 'method' => 'DELETE' ) );
@@ -155,9 +155,9 @@ class EP_API {
 		$url = $index_url . '/post/';
 
 		if ( ! empty( $site_id ) && $site_id > 1 ) {
-			$url .= $site_id . 'ms' . $post_id;
+			$url .= (int) $site_id . 'ms' . (int) $post_id;
 		} else {
-			$url .= $post_id;
+			$url .= (int) $post_id;
 		}
 
 		$request = wp_remote_request( $url, array( 'method' => 'GET' ) );
