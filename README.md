@@ -14,7 +14,7 @@ fuzzy matching, auto complete, etc.
 ## Installation
 
 1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
-2. Install the plugin in WordPress, you can download a zip via Github and upload it using the WP plugin uploader.
+2. Install the plugin in WordPress, you can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
 
 ## Configuration
 
