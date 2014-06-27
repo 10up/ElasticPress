@@ -2,7 +2,19 @@
 
 class EP_Cron {
 
-	public function __construct() {
+	/**
+	 * Placeholder method
+	 *
+	 * @since 0.1.0
+	 */
+	public function __construct() { }
+
+	/**
+	 * Setup actions and filters
+	 *
+	 * @since 0.1.1
+	 */
+	public function setup() {
 		add_action( 'ep_sync', array( $this, 'sync' ) );
 		add_action( 'init', array( $this, 'schedule_events' ) );
 	}
@@ -48,6 +60,7 @@ class EP_Cron {
 
 		if ( ! $instance ) {
 			$instance = new self();
+			$instance->setup();
 		}
 
 		return $instance;

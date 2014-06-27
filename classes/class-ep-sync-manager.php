@@ -3,11 +3,18 @@
 class EP_Sync_Manager {
 
 	/**
-	 * Setup actions
+	 * Placeholder method
 	 *
 	 * @since 0.1.0
 	 */
-	public function __construct() {
+	public function __construct() { }
+
+	/**
+	 * Setup actions and filters
+	 *
+	 * @since 0.1.1
+	 */
+	public function setup() {
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
 		add_action( 'wp_trash_post', array( $this, 'action_trash_post' ) );
 	}
@@ -89,6 +96,7 @@ class EP_Sync_Manager {
 
 		if ( ! $instance ) {
 			$instance = new self();
+			$instance->setup();
 		}
 
 		return $instance;

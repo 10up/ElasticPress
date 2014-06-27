@@ -2,6 +2,11 @@
 
 class EP_API {
 
+	/**
+	 * Placeholder method
+	 *
+	 * @since 0.1.0
+	 */
 	public function __construct() { }
 
 	/**
