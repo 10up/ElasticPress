@@ -2,60 +2,38 @@
 
 	'use strict';
 
-	var NetworkSettings = ( function() {
+	var $postTypeChooser = $( '#ep-post-type-chooser' );
 
-		var _instance = null;
+	$postTypeChooser.find( '.post-types' ).each( function() {
 
-		function networkSettingsSetup() {
+		var $self = $( this );
 
-			var $postTypeChooser = $( '#ep-post-type-chooser' );
+		var url = $self.attr( 'data-ajax-url' );
+		var site_id = $self.attr( 'data-site-id' );
+		var selectedPostTypes = $self.attr( 'data-selected' ).split( ',' );
 
-			$postTypeChooser.find( '.post-types' ).each( function() {
+		$.ajax( {
+			type: 'GET',
+			url: url,
+			success: function( data ) {
+				var $postTypesHTML = $( '<div>' );
 
-				var $self = $( this );
+				$.each( data['post_types'], function( element ) {
 
-				var url = $self.attr( 'data-ajax-url' );
-				var site_id = $self.attr( 'data-site-id' );
-				var selectedPostTypes = $self.attr( 'data-selected' ).split( ',' );
+					var checked = '';
+					if ( $.inArray( element, selectedPostTypes ) !== -1 ) {
+						checked = 'checked';
+					}
 
-				$.ajax( {
-					type: 'GET',
-					url: url,
-					success: function( data ) {
-						var $postTypesHTML = $( '<div>' );
+					$postTypesHTML.append( '<p><input ' + checked + ' type="checkbox" name="ep_config[' + site_id + '][post_types][]" value="' + element + '"> ' + element + '</p>' );
 
-						$.each( data['post_types'], function( element ) {
-
-							var checked = '';
-							if ( $.inArray( element, selectedPostTypes ) !== -1 ) {
-								checked = 'checked';
-							}
-
-							$postTypesHTML.append( '<p><input ' + checked + ' type="checkbox" name="ep_config[' + site_id + '][post_types][]" value="' + element + '"> ' + element + '</p>' );
-
-						} );
-
-						$self.append( $postTypesHTML );
-					},
-					dataType: 'json'
 				} );
 
-			} );
-		}
+				$self.append( $postTypesHTML );
+			},
+			dataType: 'json'
+		} );
 
-		function getInstance() {
-			if ( _instance == null ) {
-				_instance = new networkSettingsSetup();
-			}
-
-			return _instance;
-		}
-
-		return {
-			getInstance: getInstance
-		}
-	} )();
-
-	NetworkSettings.getInstance();
+	} );
 
 } )( jQuery );
