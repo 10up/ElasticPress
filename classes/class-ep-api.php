@@ -2,6 +2,13 @@
 
 class EP_API {
 
+	/**
+	 * Status of Elasticsearch connection
+	 *
+	 * @var bool
+	 */
+	private $is_alive = array();
+
 	public function __construct() { }
 
 	/**
@@ -182,10 +189,10 @@ class EP_API {
 	 * @since 0.1.1
 	 * @return bool
 	 */
-	public function is_alive( $site_id ) {
+	public function is_alive( $site_id = 0 ) {
 		// If we've already determined what our connection is, we can finish early!
-		if ( isset( $this->is_alive ) ) {
-			return $this->is_alive;
+		if ( isset( $this->is_alive[ $site_id ] ) ) {
+			return $this->is_alive[ $site_id ];
 		}
 
 		// Otherwise, let's proceed with the check
@@ -205,7 +212,7 @@ class EP_API {
 		}
 
 		// Return our status and cache it
-		return $this->is_alive = $is_alive;
+		return $this->is_alive[ $site_id ] = $is_alive;
 	}
 }
 
