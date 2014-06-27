@@ -46,6 +46,13 @@ following command:
 ```
 bash bin/install-wp-tests.sh wordpress_test root '' localhost latest
 ```
+where:
+
+* wordpress_test is the name of the test database (all data will be deleted!)
+* root is the MySQL user name
+* '' is the MySQL user password
+* localhost is the MySQL server host
+* latest is the WordPress version; could also be 3.7, 3.6.2 etc.
 
 Run the plugin tests:
 ```
