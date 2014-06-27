@@ -12,7 +12,7 @@ class EP_Cron {
 	/**
 	 * Setup actions and filters
 	 *
-	 * @since 0.1.1
+	 * @since 0.1.2
 	 */
 	public function setup() {
 		add_action( 'ep_sync', array( $this, 'sync' ) );

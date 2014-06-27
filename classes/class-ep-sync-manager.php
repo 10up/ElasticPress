@@ -12,7 +12,7 @@ class EP_Sync_Manager {
 	/**
 	 * Setup actions and filters
 	 *
-	 * @since 0.1.1
+	 * @since 0.1.2
 	 */
 	public function setup() {
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );

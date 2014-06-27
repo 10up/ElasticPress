@@ -12,7 +12,7 @@ class EP_AJAX {
 	/**
 	 * Setup actions and filters
 	 *
-	 * @since 0.1.1
+	 * @since 0.1.2
 	 */
 	public function setup() {
 		add_filter( 'query_vars', array( $this, 'filter_query_vars' ) );

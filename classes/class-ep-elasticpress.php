@@ -12,7 +12,7 @@ class EP_ElasticPress {
 	/**
 	 * Setup actions and filters
 	 *
-	 * @since 0.1.1
+	 * @since 0.1.2
 	 */
 	public function setup() {
 		add_action( 'init', array( $this, 'register_taxonomy') );
