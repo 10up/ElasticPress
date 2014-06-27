@@ -174,6 +174,39 @@ class EP_API {
 
 		return false;
 	}
+
+	/**
+	 * Ping the server to ensure the Elasticsearch server is operating and the index exists
+	 *
+	 * @param int $site_id
+	 * @since 0.1.1
+	 * @return bool
+	 */
+	public function is_alive( $site_id ) {
+		// If we've already determined what our connection is, we can finish early!
+		if ( isset( $this->is_alive ) ) {
+			return $this->is_alive;
+		}
+
+		// Otherwise, let's proceed with the check
+		$is_alive = false;
+
+		// Get main site options which are stored in location 0
+		$index_url = ep_get_index_url( $site_id );
+
+		$url = $index_url . '/_status';
+
+		$request = wp_remote_request( $url );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$is_alive = true;
+			}
+		}
+
+		// Return our status and cache it
+		return $this->is_alive = $is_alive;
+	}
 }
 
 EP_API::factory();
@@ -196,4 +229,8 @@ function ep_post_indexed( $post_id, $site_id = null, $host_site_id = null ) {
 
 function ep_delete_post( $post_id, $site_id = null, $host_site_id = null ) {
 	return EP_API::factory()->delete_post( $post_id, $site_id, $host_site_id );
+}
+
+function ep_is_alive( $site_id ) {
+	return EP_API::factory()->is_alive( $site_id );
 }
