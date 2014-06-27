@@ -176,33 +176,24 @@ class EP_API {
 	}
 }
 
-global $ep_api;
-$ep_api = EP_API::factory();
+EP_API::factory();
 
 /**
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
 function ep_index_post( $post, $site_id = null ) {
-	global $ep_api;
-
-	return $ep_api->index_post( $post, $site_id );
+	return EP_API::factory()->index_post( $post, $site_id );
 }
 
 function ep_search( $args, $site_id = null ) {
-	global $ep_api;
-
-	return $ep_api->search( $args, $site_id );
+	return EP_API::factory()->search( $args, $site_id );
 }
 
 function ep_post_indexed( $post_id, $site_id = null, $host_site_id = null ) {
-	global $ep_api;
-
-	return $ep_api->post_indexed( $post_id, $site_id, $host_site_id );
+	return EP_API::factory()->post_indexed( $post_id, $site_id, $host_site_id );
 }
 
 function ep_delete_post( $post_id, $site_id = null, $host_site_id = null ) {
-	global $ep_api;
-
-	return $ep_api->delete_post( $post_id, $site_id, $host_site_id );
+	return EP_API::factory()->delete_post( $post_id, $site_id, $host_site_id );
 }
