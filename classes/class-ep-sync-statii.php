@@ -130,39 +130,28 @@ class EP_Sync_Statii {
 	}
 }
 
-global $ep_sync_statii;
-$ep_sync_statii = EP_Sync_Statii::factory();
+EP_Sync_Statii::factory();
 
 /**
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
 function ep_get_sync_status( $site_id = null ) {
-	global $ep_sync_statii;
-
-	return $ep_sync_statii->get_status( $site_id );
+	return EP_Sync_Statii::factory()->get_status( $site_id );
 }
 
 function ep_update_sync_status( $status, $site_id = null ) {
-	global $ep_sync_statii;
-
-	return $ep_sync_statii->update_status( $status, $site_id );
+	return EP_Sync_Statii::factory()->update_status( $status, $site_id );
 }
 
 function ep_get_alive_sync_count() {
-	global $ep_sync_statii;
-
-	return $ep_sync_statii->get_alive_sync_count();
+	return EP_Sync_Statii::factory()->get_alive_sync_count();
 }
 
 function ep_reset_sync( $site_id = null ) {
-	global $ep_sync_statii;
-
-	return $ep_sync_statii->reset_sync( $site_id );
+	return EP_Sync_Statii::factory()->reset_sync( $site_id );
 }
 
 function ep_is_sync_alive( $site_id = null ) {
-	global $ep_sync_statii;
-
-	return $ep_sync_statii->is_sync_alive( $site_id );
+	return EP_Sync_Statii::factory()->is_sync_alive( $site_id );
 }

@@ -123,8 +123,7 @@ class EP_Config {
 	}
 }
 
-global $ep_config;
-$ep_config = EP_Config::factory();
+EP_Config::factory();
 
 /**
  * Accessor functions for methods in above class. See doc blocks above for function details.
@@ -132,25 +131,17 @@ $ep_config = EP_Config::factory();
 
 
 function ep_get_option( $site_id = null ) {
-	global $ep_config;
-
-	return $ep_config->get_option( $site_id );
+	return EP_Config::factory()->get_option( $site_id );
 }
 
 function ep_update_option( $config, $site_id = null ) {
-	global $ep_config;
-
-	return $ep_config->update_option( $config, $site_id );
+	return EP_Config::factory()->update_option( $config, $site_id );
 }
 
 function ep_get_index_url( $site_id = null ) {
-	global $ep_config;
-
-	return $ep_config->get_index_url( $site_id );
+	return EP_Config::factory()->get_index_url( $site_id );
 }
 
 function ep_is_setup( $site_id = null ) {
-	global $ep_config;
-
-	return $ep_config->is_setup( $site_id );
+	return EP_Config::factory()->is_setup( $site_id );
 }
