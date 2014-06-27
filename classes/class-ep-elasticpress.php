@@ -3,11 +3,18 @@
 class EP_ElasticPress {
 
 	/**
-	 * Setup class
+	 * Placeholder method
 	 *
 	 * @since 0.1.0
 	 */
-	public function __construct() {
+	public function __construct() { }
+
+	/**
+	 * Setup actions and filters
+	 *
+	 * @since 0.1.2
+	 */
+	public function setup() {
 		add_action( 'init', array( $this, 'register_taxonomy') );
 
 		if ( is_admin() ) {
@@ -393,6 +400,7 @@ class EP_ElasticPress {
 
 		if ( ! $instance ) {
 			$instance = new self();
+			$instance->setup();
 		}
 
 		return $instance;

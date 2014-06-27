@@ -9,6 +9,11 @@ class EP_API {
 	 */
 	private $is_alive = array();
 
+	/*
+	 * Placeholder method
+	 *
+	 * @since 0.1.0
+	 */
 	public function __construct() { }
 
 	/**

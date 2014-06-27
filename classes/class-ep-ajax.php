@@ -3,11 +3,18 @@
 class EP_AJAX {
 
 	/**
-	 * Setup actions and filters
+	 * Placeholder method
 	 *
 	 * @since 0.1.0
 	 */
-	public function __construct() {
+	public function __construct() { }
+
+	/**
+	 * Setup actions and filters
+	 *
+	 * @since 0.1.2
+	 */
+	public function setup() {
 		add_filter( 'query_vars', array( $this, 'filter_query_vars' ) );
 		add_action( 'template_redirect', array( $this, 'action_get_post_types' ) );
 	}
@@ -58,6 +65,7 @@ class EP_AJAX {
 
 		if ( ! $instance  ) {
 			$instance = new self();
+			$instance->setup();
 		}
 
 		return $instance;

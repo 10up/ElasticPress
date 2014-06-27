@@ -14,6 +14,11 @@ class EP_Config {
 		'cross_site_search_active' => 0,
 	);
 
+	/**
+	 * Placeholder method
+	 *
+	 * @since 0.1.0
+	 */
 	public function __construct() { }
 
 
