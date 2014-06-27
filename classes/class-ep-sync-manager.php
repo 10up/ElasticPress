@@ -363,7 +363,6 @@ class EP_Sync_Manager {
 	}
 }
 
-global $ep_sync_manager;
 $ep_sync_manager = EP_Sync_Manager::factory();
 
 /**
@@ -371,13 +370,9 @@ $ep_sync_manager = EP_Sync_Manager::factory();
  */
 
 function ep_schedule_sync( $site_id = null ) {
-	global $ep_sync_manager;
-
-	$ep_sync_manager->schedule_sync( $site_id );
+	EP_Sync_Manager::factory()->schedule_sync( $site_id );
 }
 
 function ep_full_sync() {
-	global $ep_sync_manager;
-
-	$ep_sync_manager->do_scheduled_syncs();
+	EP_Sync_Manager::factory()->do_scheduled_syncs();
 }
