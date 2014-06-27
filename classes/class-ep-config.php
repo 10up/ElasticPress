@@ -38,6 +38,16 @@ class EP_Config {
 		}
 
 		if ( isset( $option[$site_id] ) ) {
+			// Fallback to main host info if sub site doesn't exist
+			if ( empty( $option[ $site_id ]['host'] ) ) {
+				$option[ $site_id ]['host'] = $option[0]['host'];
+			}
+
+			// Fallback to main index_name if sub site doesn't exist
+			if ( empty( $option[ $site_id ]['index_name'] ) ) {
+				$option[ $site_id ]['index_name'] = $option[0]['index_name'];
+			}
+
 			return $option[$site_id];
 		} else {
 			if ( $site_id === 0 ) {
