@@ -234,7 +234,7 @@ class EP_Sync_Manager {
 	public function prepare_meta( $post ) {
 		$meta = (array) get_post_meta( $post->ID );
 
-		if ( ! empty( $meta ) ) {
+		if ( empty( $meta ) ) {
 			return array();
 		}
 
