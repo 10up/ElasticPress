@@ -2,15 +2,24 @@ ElasticPress
 =============
 [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
 
-Integrate [Elasticsearch](http://www.elasticsearch.org/) with WordPress.
+Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
 ## Purpose
 
-Anyone who has tried to do anything fancy with WordPress search such as filtering by multiple taxonomies or post meta keys
-knows that it is lacking. Elasticsearch is a powerful open-source search engine powered by Java. Coupling WordPress and
-Elasticsearch allows us to do amazing things with search at lightning speed such as filtering by multiple taxonomies,
-fuzzy matching, auto complete, the list goes on and on.
+Let's face it, WordPress search is rudimentary at best. Poor performance, inflexible and rigid matching algorithms (which means no comprehension of 'close' queries), the inability to search metadata and taxonomy information, no way to determine categories of your results and most importantly the overall relevancy of results is poor.
 
+Elasticsearch is a search server based on Lucene. It provides a distributed, multitenant-capable full-text search engine with a RESTful web interface and schema-free JSON documents.
+
+Coupling WordPress with Elasticsearch allows us to do amazing things with search including:
+
+* Relevant results
+* Autosuggest
+* Fuzzy matching (catch misspellings as well as 'close' queries)
+* Proximity and geographic queries
+* Search metadata
+* Search taxonomies
+* Facets
+* [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
 
 ## Installation
 
