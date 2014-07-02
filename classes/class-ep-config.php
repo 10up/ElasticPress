@@ -57,10 +57,10 @@ class EP_Config {
 			return $option[$site_id];
 		} else {
 			if ( $site_id === 0 ) {
-				return $this->global_site_config;
+				return self::$global_site_config;
 			}
 
-			return $this->single_site_config;
+			return self::$single_site_config;
 		}
 	}
 
