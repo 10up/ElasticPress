@@ -1,5 +1,6 @@
 ElasticPress
 =============
+[![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
 
 A plugin to integrate WordPress with Elasticsearch
 
