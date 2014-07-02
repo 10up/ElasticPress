@@ -2,13 +2,13 @@
 
 class EP_Config {
 
-	private $single_site_config = array(
+	private static $single_site_config = array(
 		'post_types' => array(),
 		'host' => '',
 		'index_name' => '',
 	);
 
-	private $global_site_config = array(
+	private static $global_site_config = array(
 		'host' => '',
 		'index_name' => '',
 		'cross_site_search_active' => 0,
