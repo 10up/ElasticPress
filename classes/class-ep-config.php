@@ -2,13 +2,25 @@
 
 class EP_Config {
 
-	private $single_site_config = array(
+	/**
+	 * Skeleton to build out single site config array. Not to be used for actually storing values in.
+	 *
+	 * @since 0.1.0
+	 * @var array
+	 */
+	private static $single_site_config = array(
 		'post_types' => array(),
 		'host' => '',
 		'index_name' => '',
 	);
 
-	private $global_site_config = array(
+	/**
+	 * Skeleton to build out multi site's global config array. Not to be used for actually storing values in.
+	 *
+	 * @since 0.1.0
+	 * @var array
+	 */
+	private static $global_site_config = array(
 		'host' => '',
 		'index_name' => '',
 		'cross_site_search_active' => 0,
@@ -20,7 +32,6 @@ class EP_Config {
 	 * @since 0.1.0
 	 */
 	public function __construct() { }
-
 
 	/**
 	 * Return options for a specific site or globally. We use get_site_option since
@@ -46,10 +57,10 @@ class EP_Config {
 			return $option[$site_id];
 		} else {
 			if ( $site_id === 0 ) {
-				return $this->global_site_config;
+				return self::$global_site_config;
 			}
 
-			return $this->single_site_config;
+			return self::$single_site_config;
 		}
 	}
 
@@ -133,7 +144,6 @@ EP_Config::factory();
 /**
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
-
 
 function ep_get_option( $site_id = null ) {
 	return EP_Config::factory()->get_option( $site_id );
