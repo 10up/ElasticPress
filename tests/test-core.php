@@ -76,6 +76,31 @@ class EPTestCore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Recursive version of PHP's in_array
+	 *
+	 * @todo Max recursion restriction
+	 * @since 0.1.2
+	 * @param mixed $needle
+	 * @param array $haystack
+	 * @return bool
+	 */
+	private function _deepInArray( $needle, $haystack ) {
+		if ( in_array( $needle, $haystack, true ) ) {
+			return true;
+		}
+
+		$result = false;
+
+		foreach ( $haystack as $new_haystack ) {
+			if ( is_array( $new_haystack ) ) {
+				$result = $result || $this->_deepInArray( $needle, $new_haystack );
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Configure a single site test
 	 *
 	 * @since 0.1.0
@@ -141,12 +166,13 @@ class EPTestCore extends WP_UnitTestCase {
 	 * Create a WP post and "sync" it to Elasticsearch. We are mocking the sync
 	 *
 	 * @param array $post_args
+	 * @param array $post_meta
 	 * @param int $site_id
 	 * @param bool $cross_site
-	 * @since 0.1.0
+	 * @since 0.1.2
 	 * @return int|WP_Error
 	 */
-	protected function _createAndSyncPost( $post_args = array(), $site_id = null, $cross_site = false ) {
+	protected function _createAndSyncPost( $post_args = array(), $post_meta = array(), $site_id = null, $cross_site = false ) {
 		if ( $site_id != null ) {
 			switch_to_blog( $site_id );
 		}
@@ -167,6 +193,18 @@ class EPTestCore extends WP_UnitTestCase {
 			'author' => 1,
 			'post_title' => 'Test Post ' . time(),
 		), $post_args ) );
+
+		// Quit if we have a WP_Error object
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+
+		if ( ! empty( $post_meta ) ) {
+			foreach ( $post_meta as $key => $value ) {
+				// No need for sanitization here
+				update_post_meta( $post_id, $key, $value );
+			}
+		}
 
 		$ep_id = $post_id;
 		if ( $site_id > 1 ) {
@@ -279,6 +317,60 @@ class EPTestCore extends WP_UnitTestCase {
 
 			$this->assertEquals( get_the_title( $post_id ), get_the_title() );
 		}
+	}
+
+	/**
+	 * Test a simple post meta search.
+	 *
+	 * @since 0.1.2
+	 */
+	public function testSingleSiteSearchMeta() {
+		$config = $this->_configureSingleSite();
+
+		$post_id = $this->_createAndSyncPost( array(), array( 'test_search_key' => 'John Smith' ) );
+		$post_id2 = $this->_createAndSyncPost();
+		$post = get_post( $post_id );
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1,"hits":[{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . get_current_blog_id() . '}}]}}',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/_search' );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		add_action( 'ep_pre_search_request', function( $args ) {
+			$this->fired_actions['ep_pre_search_request'] = $args;
+		} );
+
+		$args = array(
+			's' => 'John Smith',
+			'search_meta' => array( 'test_search_key' ),
+		);
+		$query = new EP_Query( $args );
+
+		// Make sure proper post is returned
+		$this->assertEquals( $query->post_count, 1 );
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			$this->assertEquals( get_the_title( $post_id ), get_the_title() );
+		}
+
+		// Make sure proper args are sent to ES
+		$this->assertTrue( ! empty( $this->fired_actions['ep_pre_search_request'] ) );
+
+		$this->assertTrue( $this->_deepInArray( 'post_meta.test_search_key', $this->fired_actions['ep_pre_search_request'] ) );
 	}
 
 	/**
@@ -458,9 +550,9 @@ class EPTestCore extends WP_UnitTestCase {
 		foreach ( $sites as $site ) {
 			$post_ids_by_site[$site['blog_id']] = array();
 
-			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), $site['blog_id'], true );
-			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), $site['blog_id'], true );
-			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), $site['blog_id'], true );
+			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), array(), $site['blog_id'], true );
+			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), array(), $site['blog_id'], true );
+			$post_ids_by_site[$site['blog_id']][] = $this->_createAndSyncPost( array(), array(), $site['blog_id'], true );
 		}
 
 

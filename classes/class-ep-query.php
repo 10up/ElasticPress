@@ -111,6 +111,12 @@ class EP_Query {
 			}
 		}
 
+		if ( ! empty( $args['search_meta'] ) ) {
+			foreach ( $args['search_meta'] as $key ) {
+				$search_fields[] = 'post_meta.' . $key;
+			}
+		}
+
 		$query = array(
 			'bool' => array(
 				'must' => array(

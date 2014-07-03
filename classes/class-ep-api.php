@@ -74,6 +74,8 @@ class EP_API {
 
 		$url = $index_url . '/post/_search';
 
+		do_action( 'ep_pre_search_request', $args, $site_id );
+
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $args ), 'method' => 'POST' ) );
 
 		if ( ! is_wp_error( $request ) ) {
