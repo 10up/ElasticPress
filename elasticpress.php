@@ -11,7 +11,7 @@
 
 
 require_once( 'classes/class-ep-config.php' );
-require_once( 'classes/class-ep-sync-statii.php' );
+require_once( 'classes/class-ep-sync-status.php' );
 require_once( 'classes/class-ep-api.php' );
 require_once( 'classes/class-ep-sync-manager.php' );
 require_once( 'classes/class-ep-cron.php' );

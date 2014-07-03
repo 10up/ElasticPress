@@ -1,6 +1,6 @@
 <?php
 
-class EP_Sync_Statii {
+class EP_Sync_Status {
 	private $single_site_status = array(
 		'posts_processed' => 0,
 		'start_time' => 0,
@@ -15,8 +15,8 @@ class EP_Sync_Statii {
 
 
 	/**
-	 * Get current sync status for a specific site or the global setup. Site syncs statii are
-	 * stored in the option under their site id. The global cross-site index status is stored
+	 * Get current sync status for a specific site or the global setup. Site sync status is
+	 * stored in the option under each site id. The global cross-site index status is stored
 	 * in the 0th key of the option. We use get_site_option since it will default to get_option
 	 * in the event where multi-site is not setup. All syncs are stored in one option.
 	 *
@@ -117,7 +117,7 @@ class EP_Sync_Statii {
 	 * Return a singleton instance of the current class
 	 *
 	 * @since 0.1.0
-	 * @return EP_Sync_Statii
+	 * @return EP_Sync_Status
 	 */
 	public static function factory() {
 		static $instance = false;
@@ -130,28 +130,28 @@ class EP_Sync_Statii {
 	}
 }
 
-EP_Sync_Statii::factory();
+EP_Sync_Status::factory();
 
 /**
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
 function ep_get_sync_status( $site_id = null ) {
-	return EP_Sync_Statii::factory()->get_status( $site_id );
+	return EP_Sync_Status::factory()->get_status( $site_id );
 }
 
 function ep_update_sync_status( $status, $site_id = null ) {
-	return EP_Sync_Statii::factory()->update_status( $status, $site_id );
+	return EP_Sync_Status::factory()->update_status( $status, $site_id );
 }
 
 function ep_get_alive_sync_count() {
-	return EP_Sync_Statii::factory()->get_alive_sync_count();
+	return EP_Sync_Status::factory()->get_alive_sync_count();
 }
 
 function ep_reset_sync( $site_id = null ) {
-	return EP_Sync_Statii::factory()->reset_sync( $site_id );
+	return EP_Sync_Status::factory()->reset_sync( $site_id );
 }
 
 function ep_is_sync_alive( $site_id = null ) {
-	return EP_Sync_Statii::factory()->is_sync_alive( $site_id );
+	return EP_Sync_Status::factory()->is_sync_alive( $site_id );
 }
