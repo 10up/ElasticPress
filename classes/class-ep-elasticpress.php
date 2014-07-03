@@ -228,7 +228,7 @@ class EP_ElasticPress {
 
 		if ( ! empty( $_POST['ep_config'] ) && is_array( $_POST['ep_config'] ) ) {
 			foreach ( $_POST['ep_config'] as $site_id => $new_site_config ) {
-				if ( $site_id == 0 )
+				if ( 0 === $site_id )
 					continue;
 
 				$site_config = ep_get_option( $site_id );

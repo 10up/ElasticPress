@@ -27,7 +27,7 @@ class EP_Sync_Manager {
 	 */
 	public function action_trash_post( $post_id ) {
 
-		if ( ! current_user_can( 'edit_post', $post_id ) || 'revision' == get_post_type( $post_id ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) || 'revision' === get_post_type( $post_id ) ) {
 			return;
 		}
 
@@ -59,11 +59,11 @@ class EP_Sync_Manager {
 	 * @since 0.1.0
 	 */
 	public function action_sync_on_transition( $new_status, $old_status, $post ) {
-		if ( 'publish' != $new_status ) {
+		if ( 'publish' !== $new_status ) {
 			return;
 		}
 
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post->ID ) || 'revision' == get_post_type( $post->ID ) ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post->ID ) || 'revision' === get_post_type( $post->ID ) ) {
 			return;
 		}
 
@@ -73,7 +73,6 @@ class EP_Sync_Manager {
 
 		if ( in_array( $post_type, $site_config['post_types'] ) ) {
 			// If post type is supposed to be sync, let's sync this post
-
 			$global_config = ep_get_option( 0 );
 			$host_site_id = null;
 			if ( ! empty( $global_config['cross_site_search_active'] ) ) {
@@ -143,7 +142,6 @@ class EP_Sync_Manager {
 
 				if ( ! empty( $sync_status['start_time'] ) ) {
 					// Do sync for this site!
-
 					switch_to_blog( $site['blog_id'] );
 
 					$args = array(
