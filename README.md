@@ -8,7 +8,7 @@ Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http:/
 
 Let's face it, WordPress search is rudimentary at best. Poor performance, inflexible and rigid matching algorithms (which means no comprehension of 'close' queries), the inability to search metadata and taxonomy information, no way to determine categories of your results and most importantly the overall relevancy of results is poor.
 
-Elasticsearch is a search server based on Lucene. It provides a distributed, multitenant-capable full-text search engine with a RESTful web interface and schema-free JSON documents.
+Elasticsearch is a search server based on [Lucene](http://lucene.apache.org/). It provides a distributed, multitenant-capable full-text search engine with a [REST](http://en.wikipedia.org/wiki/Representational_state_transfer)ful web interface and schema-free [JSON](http://json.org/) documents.
 
 Coupling WordPress with Elasticsearch allows us to do amazing things with search including:
 
@@ -36,12 +36,12 @@ configuring single site and multisite cross-site search are slightly different.
 
 #### Single Site
 1. Activate the plugin.
-2. Within the admin panel, navigate to Settings > ElasticPress
+2. Within the admin panel, navigate to Settings -> ElasticPress
 3. Input the Elasticsearch host, Elasticsearch index name, and at least one post type you want to index.
 
 #### Multisite Cross-site Search
 1. Network activate the plugin
-2. Within your network settings dashboard, go to Settings > ElasticPress
+2. Within your network settings dashboard, go to Settings -> ElasticPress
 3. Check the box to activate cross-site search
 4. Input the Elasticsearch host, Elasticsearch index name, and at least one post type on one site that you want to
 index.
@@ -54,9 +54,17 @@ Follow the configuration instructions above to setup the plugin.
 #### Testing
 Within the terminal change directories to the plugin folder. Initialize your testing environment by running the
 following command:
+
+For VVV users:
+```
+bash bin/install-wp-tests.sh wordpress_test root root localhost latest
+```
+
+For VIP Quickstart users:
 ```
 bash bin/install-wp-tests.sh wordpress_test root '' localhost latest
 ```
+
 where:
 
 * wordpress_test is the name of the test database (all data will be deleted!)
@@ -71,5 +79,4 @@ phpunit
 ```
 
 #### Issues
-If you identify any errors or have an idea for improving the plugin, please open an issue. We're excited to
-see what the community thinks of this project, and we would love your input.
+If you identify any errors or have an idea for improving the plugin, please [open an issue](https://github.com/10up/ElasticPress/issues?state=open). We're excited to see what the community thinks of this project, and we would love your input!
