@@ -19,6 +19,7 @@ Coupling WordPress with Elasticsearch allows us to do amazing things with search
 * Search metadata
 * Search taxonomies
 * Facets
+* Search all sites on a multisite install
 * [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
 
 ## Installation
