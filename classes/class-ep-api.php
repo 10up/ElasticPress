@@ -196,7 +196,7 @@ class EP_API {
 	 * @since 0.1.1
 	 * @return bool
 	 */
-	public function is_alive( $site_id = 0 ) {
+	public function is_alive( $site_id = null ) {
 		// If we've already determined what our connection is, we can finish early!
 		if ( isset( $this->is_alive[ $site_id ] ) ) {
 			return $this->is_alive[ $site_id ];
@@ -245,6 +245,6 @@ function ep_delete_post( $post_id, $site_id = null, $host_site_id = null ) {
 	return EP_API::factory()->delete_post( $post_id, $site_id, $host_site_id );
 }
 
-function ep_is_alive( $site_id ) {
+function ep_is_alive( $site_id = null ) {
 	return EP_API::factory()->is_alive( $site_id );
 }
