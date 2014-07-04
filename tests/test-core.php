@@ -610,4 +610,81 @@ class EPTestCore extends WP_UnitTestCase {
 			restore_current_blog();
 		}
 	}
+
+
+	/**
+	 * Test to check our is_alive health check function for a single site.
+	 * Test both our initial ping of the ES server as well as our storage of the status.
+	 *
+	 * @since 0.1.2
+	 */
+	public function testSingleSiteIsAlive() {
+		$config = $this->_configureSingleSite();
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '*',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/_status' );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		$this->assertTrue( ep_is_alive() );
+
+		// Assert that we've stored the current alive status and that we don't need to do another remote request
+		$this->wp_remote_request_mock['args'] = false;
+		$this->wp_remote_request_mock['return'] = false;
+
+		$this->assertTrue( ep_is_alive() );
+	}
+
+	/**
+	 * Test to check our is_alive health check function for multisite.
+	 * Test both our initial ping of the ES server as well as our storage of the status.
+	 *
+	 * @since 0.1.2
+	 */
+	public function testMultiSiteIsAlive() {
+		$config = $this->_configureMultiSite();
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '*',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		// Test site 1
+		$this->wp_remote_request_mock['args'] = array( $config[0]['host'] . '/' . $config[0]['index_name'] . '/_status' );
+		$this->wp_remote_request_mock['return'] = $response;
+		$this->assertTrue( ep_is_alive( 0 ) );
+
+		// Test site 2
+		$this->wp_remote_request_mock['args'] = array( $config[1]['host'] . '/' . $config[1]['index_name'] . '/_status' );
+		$this->wp_remote_request_mock['return'] = $response;
+		$this->assertTrue( ep_is_alive( 1 ) );
+
+		// Assert that we've stored the current alive status and that we don't need to do another remote request
+		$this->wp_remote_request_mock['args'] = false;
+		$this->wp_remote_request_mock['return'] = false;
+
+		$this->assertTrue( ep_is_alive( 0 ) );
+		$this->assertTrue( ep_is_alive( 1 ) );
+	}
 }
