@@ -43,7 +43,7 @@ class EP_Cron {
 	public function filter_cron_schedules( $schedules ) {
 		$schedules['elasticsearch'] = array(
 			'interval' => ( 60 * 15 ),
-			'display' => 'Every 30 minutes',
+			'display' => __( 'Every 30 minutes' , 'elasticpress' ),
 		);
 
 		return $schedules;
