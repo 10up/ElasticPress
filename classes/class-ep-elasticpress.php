@@ -33,6 +33,16 @@ class EP_ElasticPress {
 	}
 
 	/**
+	 * Localize plugin
+	 *
+	 * @since 0.1.3
+	 * @return void
+	 */
+	public function action_plugins_loaded() {
+		load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' );
+	}
+
+	/**
 	 * Set up network settings scripts
 	 *
 	 * @since 0.1.0
