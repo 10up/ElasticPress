@@ -1,0 +1,100 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Elasticpress\n"
+"POT-Creation-Date: 2014-07-08 01:41-0500\n"
+"PO-Revision-Date: 2014-07-08 01:41-0500\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.6\n"
+"X-Poedit-Basepath: ../\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: classes/class-ep-cron.php:46
+msgid "Every 30 minutes"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:85 classes/class-ep-elasticpress.php:96
+msgid "ElasticPress"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:106 classes/class-ep-elasticpress.php:142
+#: classes/class-ep-elasticpress.php:166 classes/class-ep-elasticpress.php:206
+#: classes/class-ep-elasticpress.php:332
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:110 classes/class-ep-elasticpress.php:210
+msgid "Are you lost?"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:276
+msgid "ElasticPress Settings"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:279 classes/class-ep-elasticpress.php:352
+msgid "Host:"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:284 classes/class-ep-elasticpress.php:357
+msgid "Index Name:"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:289
+msgid "Post Types to Index:"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:305
+msgid "Post Sync"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:307
+msgid ""
+"A sync will send all the posts in post types marked for sync to your "
+"Elasticsearch server.\n"
+"\t\t\t\tExisting posts will be updated. This can take hours depending on how "
+"many posts you have in your\n"
+"\t\t\t\tdatabase."
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:312 classes/class-ep-elasticpress.php:390
+msgid "Start Sync"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:315 classes/class-ep-elasticpress.php:393
+msgid "Syncs are currently running."
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:317 classes/class-ep-elasticpress.php:395
+msgid "Cancel Sync"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:344
+msgid "ElasticPress Network Settings"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:347
+msgid "Activate Cross Site Search:"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:368
+msgid "Post Types for Site:"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:383
+msgid "Site-wide Post Sync"
+msgstr ""
+
+#: classes/class-ep-elasticpress.php:385
+msgid ""
+"A site-wide sync will send all the posts in post types marked for sync to "
+"your\n"
+"\t\t\t\tElasticsearch server. Existing posts will be updated. This can take "
+"hours depending on how many\n"
+"\t\t\t\tposts you have across your network."
+msgstr ""
