@@ -4,6 +4,8 @@ WP_CLI::add_command( 'elasticpress', 'ElasticPress_CLI_Command' );
 
 /**
  * CLI Commands for ElasticPress
+ *
+ * @todo add sync command
  */
 class ElasticPress_CLI_Command extends WP_CLI_Command {
 
@@ -14,13 +16,25 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	public function put_mapping() {
 		WP_CLI::line( "Adding mapping..." );
-		$result = EWP_Config()->create_mapping();
-		if ( '200' == EWP_API()->last_request['response_code'] ) {
-			WP_CLI::success( "Successfully added mapping\n" );
-		} else {
-			print_r( EWP_API()->last_request );
-			print_r( $result );
-			WP_CLI::error( "Could not add post mapping!" );
-		}
+
+		// @todo add command to support which site to flush
+		$site_id = null;
+
+		$result = ep_put_mapping( $site_id );
+
+		// @todo Add check to confirm flushing worked
+		WP_CLI::success( 'Mapping Sent' );
+	}
+
+	public function flush() {
+		WP_CLI::line( "Flushing Index..." );
+
+		// @todo add command to support which site to flush
+		$site_id = null;
+
+		$result = ep_flush( $site_id );
+
+		// @todo Add check to confirm flushing worked
+		WP_CLI::success( 'Flushed' );
 	}
 }

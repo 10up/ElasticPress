@@ -433,9 +433,25 @@ class EP_API {
 
 		$index_url = ep_get_index_url( $site_id );
 
-		$url = $index_url . '/post/_mapping/';
+		$url = $index_url;
 
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $mapping ), 'method' => 'PUT' ) );
+
+		if ( ! is_wp_error( $request ) ) {
+			$response_body = wp_remote_retrieve_body( $request );
+
+			return json_decode( $response_body );
+		}
+
+		return false;
+	}
+
+	public function flush( $site_id = null ) {
+		$index_url = ep_get_index_url( $site_id );
+
+		$url = $index_url;
+
+		$request = wp_remote_request( $url, array( 'method' => 'DELETE' ) );
 
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -475,4 +491,8 @@ function ep_is_alive( $site_id = null ) {
 
 function ep_put_mapping( $site_id = null ) {
 	return EP_API::factory()->put_mapping( $site_id );
+}
+
+function ep_flush( $site_id = null ) {
+	return EP_API::factory()->flush( $site_id );
 }
