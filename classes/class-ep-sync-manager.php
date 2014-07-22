@@ -131,7 +131,15 @@ class EP_Sync_Manager {
 	 * @since 0.1.0
 	 */
 	public function do_scheduled_syncs() {
-		$sites = wp_get_sites();
+		if ( function_exists( 'wp_get_sites') ) {
+			$sites = wp_get_sites();
+		} else {
+			$sites = array(
+				array(
+					'blog_id' => 1,
+				),
+			);
+		}
 
 		foreach ( $sites as $site ) {
 			$site_config = ep_get_option( $site['blog_id'] );
@@ -140,9 +148,11 @@ class EP_Sync_Manager {
 
 				$sync_status = ep_get_sync_status( $site['blog_id'] );
 
-				if ( ! empty( $sync_status['start_time'] ) ) {
-					// Do sync for this site!
-					switch_to_blog( $site['blog_id'] );
+				if ( ! empty( $sync_status['start_time'] ) || 1==1 ) {
+					if ( function_exists( 'switch_to_blog' ) ) {
+						// Do sync for this site!
+						switch_to_blog( $site['blog_id'] );
+					}
 
 					$args = array(
 						'posts_per_page' => 350,
@@ -160,7 +170,7 @@ class EP_Sync_Manager {
 
 							$sync_status['posts_processed']++;
 
-							$this->sync_post( get_the_ID(), null, 0 );
+							$this->sync_post( get_the_ID(), null, $site['blog_id'] ); // @todo was set to 0, however not working - needs review
 
 							ep_update_sync_status( $sync_status, $site['blog_id'] );
 						}
@@ -170,10 +180,14 @@ class EP_Sync_Manager {
 
 					wp_reset_postdata();
 
-					restore_current_blog();
+					if ( function_exists( 'restore_current_blog' ) ) {
+						restore_current_blog();
+					}
 				}
 			}
 		}
+
+		// @todo mark sync as completed and remove cron, change button from cancel sync to start sync
 
 	}
 
@@ -309,7 +323,7 @@ class EP_Sync_Manager {
 				update_post_meta( $post_id , 'ep_last_synced', time() );
 			}
 		} else {
-			$response = ep_index_post( $post_args, $host_site_id);
+			$response = ep_index_post( $post_args, $host_site_id );
 
 			if ( ! empty( $response ) ) {
 				update_post_meta( $post_id, 'ep_last_synced', time() );
