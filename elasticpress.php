@@ -26,4 +26,3 @@ require_once( 'classes/class-ep-query.php' );
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once 'bin/wp-cli.php';
 }
-//ep_put_mapping();

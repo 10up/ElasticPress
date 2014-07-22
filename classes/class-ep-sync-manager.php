@@ -114,6 +114,8 @@ class EP_Sync_Manager {
 			$site_id = get_current_blog_id();
 		}
 
+		wp_schedule_single_event( time(), 'ep_sync' );
+
 		$sync_status = ep_get_sync_status( $site_id );
 
 		if ( empty( $sync_status['start_time'] ) ) {
@@ -314,6 +316,7 @@ class EP_Sync_Manager {
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id, $site_id, $host_site_id );
 
 		if ( ! $this->is_post_synced( $post_id ) ) {
+			// @todo is this really necessary to check if we've synced a post before?
 			$response = ep_index_post( $post_args, $host_site_id );
 
 			if ( ! empty( $response ) && isset( $response->_id ) ) {
