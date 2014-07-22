@@ -25,7 +25,7 @@
 						checked = 'checked';
 					}
 
-					$postTypesHTML.append( '<p><input ' + checked + ' type="checkbox" name="ep_config[' + site_id + '][post_types][]" value="' + element + '"> ' + element + '</p>' );
+					$postTypesHTML.append( '<p><label><input ' + checked + ' type="checkbox" name="ep_config[' + site_id + '][post_types][]" value="' + element + '"> ' + element + '</label></p>' );
 
 				} );
 
