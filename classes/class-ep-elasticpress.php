@@ -22,6 +22,7 @@ class EP_ElasticPress {
 
 			add_action( 'admin_enqueue_scripts', array( $this, 'network_scripts' ) );
 
+			// @todo ensure that this should be sent 0 and not null
 			$config = ep_get_option( 0 );
 
 			if ( empty( $config['cross_site_search_active'] ) ) {
