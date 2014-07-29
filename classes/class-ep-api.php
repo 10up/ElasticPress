@@ -437,7 +437,7 @@ class EP_API {
 
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $mapping ), 'method' => 'PUT' ) );
 
-		if ( ! is_wp_error( $request ) ) {
+		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
 			return json_decode( $response_body );
@@ -453,7 +453,7 @@ class EP_API {
 
 		$request = wp_remote_request( $url, array( 'method' => 'DELETE' ) );
 
-		if ( ! is_wp_error( $request ) ) {
+		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
 			return json_decode( $response_body );
