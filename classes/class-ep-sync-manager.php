@@ -399,3 +399,7 @@ function ep_schedule_sync( $site_id = null ) {
 function ep_full_sync() {
 	EP_Sync_Manager::factory()->do_scheduled_syncs();
 }
+
+function ep_sync_post( $post_id, $site_id = null, $host_site_id = null ) {
+	EP_Sync_Manager::factory()->sync_post( $post_id, $site_id, $host_site_id );
+}
