@@ -150,7 +150,7 @@ class EP_Sync_Manager {
 
 				$sync_status = ep_get_sync_status( $site['blog_id'] );
 
-				if ( ! empty( $sync_status['start_time'] ) || 1==1 ) {
+				if ( ! empty( $sync_status['start_time'] ) ) { // @todo this causes us to not enter the index block
 					if ( function_exists( 'switch_to_blog' ) ) {
 						// Do sync for this site!
 						switch_to_blog( $site['blog_id'] );
