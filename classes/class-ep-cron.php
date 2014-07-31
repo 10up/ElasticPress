@@ -72,7 +72,7 @@ class EP_Cron {
 	 * @since 0.1.0
 	 */
 	public function sync() {
-		ep_full_sync();
+		ep_do_syncs( true );
 	}
 
 }
