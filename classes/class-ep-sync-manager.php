@@ -31,13 +31,14 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$ep_id = get_post_meta( $post_id, 'ep_id', true );
+		$last_synced = get_post_meta( $post_id, 'ep_last_synced', true );
 
-		if ( ! empty( $ep_id ) ) {
+		if ( ! empty( $last_synced ) ) {
 			// Delete ES post if WP post contains an ES ID
 
 			$host_site_id = null;
 			$config = ep_get_option( 0 );
+			$ep_id = ep_format_es_id( $post_id );
 
 			// If cross site search is active, make sure we use the global index
 			if ( ! empty( $config['cross_site_search_active'] ) ) {
@@ -310,73 +311,11 @@ class EP_Sync_Manager {
 
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id, $site_id, $host_site_id );
 
-		if ( ! $this->is_post_synced( $post_id ) ) {
-			$response = ep_index_post( $post_args, $host_site_id );
+		$response = ep_index_post( $post_args, $host_site_id);
 
-			if ( ! empty( $response ) && isset( $response->_id ) ) {
-				$this->mark_post_synced( $post_args['post_id'] );
-
-				update_post_meta( $post_id , 'ep_id', sanitize_text_field( $response->_id ) );
-				update_post_meta( $post_id , 'ep_last_synced', time() );
-			}
-		} else {
-			$response = ep_index_post( $post_args, $host_site_id);
-
-			if ( ! empty( $response ) ) {
-				update_post_meta( $post_id, 'ep_last_synced', time() );
-			}
+		if ( ! empty( $response ) ) {
+			update_post_meta( $post_id, 'ep_last_synced', time() );
 		}
-	}
-
-	/**
-	 * Mark a post as synced using a special hidden taxonomy. Since posts can
-	 * have the same id cross-network, we pass a $site_id. $site_id = null implies
-	 * the current site
-	 *
-	 * @param $post_id
-	 * @param null $site_id
-	 * @since 0.1.0
-	 */
-	public function mark_post_synced( $post_id, $site_id = null ) {
-		if ( ! empty( $site_id ) ) {
-			switch_to_blog( $site_id );
-		}
-
-		wp_set_object_terms( $post_id, 'ep_synced', 'ep_hidden', false );
-
-		if ( ! empty( $site_id ) ) {
-			restore_current_blog();
-		}
-	}
-
-	/**
-	 * Check if post has been synced for a specific site or the current one.
-	 *
-	 * @param $post_id
-	 * @param null $site_id
-	 * @since 0.1.0
-	 * @return bool
-	 */
-	public function is_post_synced( $post_id, $site_id = null ) {
-		if ( ! empty( $site_id ) ) {
-			switch_to_blog( $site_id );
-		}
-
-		$terms = get_the_terms( $post_id, 'ep_hidden' );
-
-		if ( is_array( $terms ) ) {
-			foreach ( $terms as $term ) {
-				if ( $term->slug == 'ep_synced' ) {
-					return true;
-				}
-			}
-		}
-
-		if ( ! empty( $site_id ) ) {
-			restore_current_blog();
-		}
-
-		return false;
 	}
 }
 
