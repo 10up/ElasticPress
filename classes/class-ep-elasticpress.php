@@ -291,7 +291,12 @@ class EP_ElasticPress {
 
 					<?php foreach ( $post_types as $post_type ) : ?>
 
-						<p><input <?php checked( in_array( $post_type, $site_config['post_types'] ), true ); ?> type="checkbox" name="ep_config[post_types][]" value="<?php echo esc_attr( $post_type ); ?>"> <?php echo esc_html( $post_type ); ?></p>
+						<p>
+							<label>
+								<input <?php checked( in_array( $post_type, $site_config['post_types'] ), true ); ?> type="checkbox" name="ep_config[post_types][]" value="<?php echo esc_attr( $post_type ); ?>">
+								<?php echo esc_html( $post_type ); ?>
+							</label>
+						</p>
 
 					<?php endforeach; ?>
 				</fieldset>

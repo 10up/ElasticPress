@@ -41,18 +41,7 @@ class EP_Cron {
 	 * @since 0.1.0
 	 */
 	public function sync() {
-		wp_clear_scheduled_hook( 'ep_sync' );
-		// Do index flush
-		// get proper site ID
-		ep_flush( null );
-
-		// put mapping
-		ep_put_mapping( null );
-
-		ep_full_sync();
-
-		// @todo report that syncing has completed (either successfully or unsuccessfully)
-
+		ep_do_syncs( true );
 	}
 
 }

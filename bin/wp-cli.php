@@ -12,6 +12,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Add the document mapping
 	 *
+	 * @synopsis [--network-wide]
 	 * @subcommand put-mapping
 	 */
 	public function put_mapping() {
@@ -36,12 +37,17 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * Flush the current index. !!Warning!! This empties your elasticsearch index for the entire site.
 	 *
 	 * @todo replace this function with one that updates all rows with a --force option
+	 * @synopsis [--network-wide]
+	 * @param array $args
+	 * @param array $assoc_args
 	 */
-	public function flush() {
-		WP_CLI::line( "Flushing index..." );
-
-		// @todo add command to support which site to flush
+	public function flush( $args, $assoc_args ) {
 		$site_id = null;
+		if ( ! empty( $assoc_args['network-wide'] ) ) {
+			$site_id = 0;
+		}
+
+		WP_CLI::line( "Flushing index..." );
 
 		$result = ep_flush( $site_id );
 

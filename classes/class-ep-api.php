@@ -449,9 +449,7 @@ class EP_API {
 	public function flush( $site_id = null ) {
 		$index_url = ep_get_index_url( $site_id );
 
-		$url = $index_url;
-
-		$request = wp_remote_request( $url, array( 'method' => 'DELETE' ) );
+		$request = wp_remote_request( $index_url, array( 'method' => 'DELETE' ) );
 
 		// 200 means the flush was successful
 		// 404 means the index was non-existent, but we should still pass this through as we will occasionally want to flush an already flushed index

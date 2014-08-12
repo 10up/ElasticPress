@@ -130,18 +130,11 @@ class EP_Sync_Manager {
 	/**
 	 * Do all currently scheduled syncs
 	 *
-	 * @since 0.1.0
+	 * @param boolean $scheduled_only
+	 * @since 0.1.3
 	 */
-	public function do_scheduled_syncs() {
-		if ( function_exists( 'wp_get_sites') ) {
-			$sites = wp_get_sites();
-		} else {
-			$sites = array(
-				array(
-					'blog_id' => 1,
-				),
-			);
-		}
+	public function do_syncs( $scheduled_only = false ) {
+		$sites = wp_get_sites();
 
 		foreach ( $sites as $site ) {
 			$site_config = ep_get_option( $site['blog_id'] );
@@ -150,42 +143,48 @@ class EP_Sync_Manager {
 
 				$sync_status = ep_get_sync_status( $site['blog_id'] );
 
-				if ( ! empty( $sync_status['start_time'] ) ) { // @todo this causes us to not enter the index block
-					if ( function_exists( 'switch_to_blog' ) ) {
-						// Do sync for this site!
-						switch_to_blog( $site['blog_id'] );
-					}
-
-					$args = array(
-						'posts_per_page' => 350,
-						'offset' => $sync_status['posts_processed'],
-						'post_type' => $site_config['post_types'],
-						'post_status' => 'publish',
-					);
-
-					$query = new WP_Query( $args );
-
-					if ( $query->have_posts() ) {
-
-						while ( $query->have_posts() ) {
-							$query->the_post();
-
-							$sync_status['posts_processed']++;
-
-							$this->sync_post( get_the_ID(), null, $site['blog_id'] ); // @todo was set to 0, however not working - needs review
-
-							ep_update_sync_status( $sync_status, $site['blog_id'] );
-						}
+				/**
+				 * If no start time has been set, then the sync hasn't been scheduled. We can only proceed if
+				 * $scheduled_only == false.
+				 */
+				if ( empty( $sync_status['start_time'] ) ) {
+					if ( $scheduled_only ) {
+						continue;
 					} else {
-						ep_reset_sync( $site['blog_id'] );
-					}
-
-					wp_reset_postdata();
-
-					if ( function_exists( 'restore_current_blog' ) ) {
-						restore_current_blog();
+						$sync_status['start_time'] = time();
 					}
 				}
+
+				// Do sync for this site!
+				switch_to_blog( $site['blog_id'] );
+
+				$args = array(
+					'posts_per_page' => 350,
+					'offset' => $sync_status['posts_processed'],
+					'post_type' => $site_config['post_types'],
+					'post_status' => 'publish',
+				);
+
+				$query = new WP_Query( $args );
+
+				if ( $query->have_posts() ) {
+
+					while ( $query->have_posts() ) {
+						$query->the_post();
+
+						$sync_status['posts_processed']++;
+
+						$this->sync_post( get_the_ID(), null, 0 );
+
+						ep_update_sync_status( $sync_status, $site['blog_id'] );
+					}
+				} else {
+					ep_reset_sync( $site['blog_id'] );
+				}
+
+				wp_reset_postdata();
+
+				restore_current_blog();
 			}
 		}
 
@@ -396,10 +395,15 @@ function ep_schedule_sync( $site_id = null ) {
 	EP_Sync_Manager::factory()->schedule_sync( $site_id );
 }
 
+<<<<<<< HEAD
 function ep_full_sync() {
 	EP_Sync_Manager::factory()->do_scheduled_syncs();
 }
 
 function ep_sync_post( $post_id, $site_id = null, $host_site_id = null ) {
 	EP_Sync_Manager::factory()->sync_post( $post_id, $site_id, $host_site_id );
+=======
+function ep_do_syncs( $scheduled_only = false ) {
+	EP_Sync_Manager::factory()->do_syncs( $scheduled_only );
+>>>>>>> feature/separate-scheduled-full
 }
