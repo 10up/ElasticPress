@@ -42,13 +42,7 @@ class EP_API {
 
 		$index_url = ep_get_index_url( $site_id );
 
-		$url = $index_url . '/post/';
-
-		if ( ! empty( $post['site_id'] ) && $post['site_id'] > 1 ) {
-			$url .= (int) $post['site_id'] . 'ms' . (int) $post['post_id'];
-		} else {
-			$url .= (int) $post['post_id'];
-		}
+		$url = $index_url . '/post/' . $this->format_es_id( $post['post_id'], $post['site_id'] );
 
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $post ), 'method' => 'PUT' ) );
 
@@ -59,6 +53,26 @@ class EP_API {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Format a post_id/site_id combo as an Elasticsearch ID
+	 *
+	 * @param int $post_id
+	 * @param int $site_id
+	 * @param 0.1.3
+	 * @return string
+	 */
+	public function format_es_id( $post_id, $site_id = null ) {
+		if ( $site_id === null ) {
+			$site_id = get_current_blog_id();
+		}
+
+		if ( ! empty( $site_id ) && $site_id > 1 ) {
+			return $site_id . 'ms' . (int) $post_id;
+		}
+
+		return $post_id;
 	}
 
 	/**
@@ -495,4 +509,8 @@ function ep_put_mapping( $site_id = null ) {
 
 function ep_flush( $site_id = null ) {
 	return EP_API::factory()->flush( $site_id );
+}
+
+function ep_format_es_id( $post_id, $site_id = null ) {
+	return EP_API::factory()->format_es_id( $post_id, $iste_id );
 }
