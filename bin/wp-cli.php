@@ -140,8 +140,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 					while( true ) {
 
+						echo $offset;
+
 						$args = array(
-							'posts_per_page' => 300000,
+							'posts_per_page' => 500,
 							'post_type' => $site_config['post_types'],
 							'post_status' => 'publish',
 							'offset' => $offset,
