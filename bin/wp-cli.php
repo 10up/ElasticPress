@@ -14,15 +14,19 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @synopsis [--network-wide]
 	 * @subcommand put-mapping
+	 * @param array $args
+	 * @param array $assoc_args
 	 */
-	public function put_mapping() {
+	public function put_mapping( $args, $assoc_args ) {
+		$site_id = null;
+		if ( ! empty( $assoc_args['network-wide'] ) ) {
+			$site_id = 0;
+		}
+
 		WP_CLI::line( "Adding mapping" );
 
-		// @todo add command to support which site to map
-		$site_id = null;
-
 		// Flushes index first
-		$this->flush();
+		$this->flush( $args, $assoc_args );
 
 		$result = ep_put_mapping( $site_id );
 
@@ -59,59 +63,106 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Index the current site or individual posts in Elasticsearch, optionally flushing any existing data and adding the document mapping.
+	 * Index all posts for a site or network wide
 	 *
-	 * ## OPTIONS
-	 *
-	 * [--flush]
-	 * : Flushes out the current data
-	 *
-	 * [--put-mapping]
-	 * : Adds the document mapping in EWP_Config()
-	 *
-	 * [--bulk=<num>]
-	 * : Process this many posts as a time. Defaults to 2,000, which seems to
-	 * be the fastest on average.
-	 *
-	 * [--limit=<num>]
-	 * : How many posts to process. Defaults to all posts.
-	 *
-	 * [--page=<num>]
-	 * : Which page to start on. This is helpful if you encountered an error on
-	 * page 145/150 or if you want to have multiple processes running at once
-	 *
-	 * [<post-id>]
-	 * : By default, this subcommand will query posts based on ID and pagination.
-	 * Instead, you can specify one or more individual post IDs to process. Multiple
-	 * post IDs should be space-delimited (see examples)
-	 * If present, the --bulk, --limit, and --page arguments are ignored.
-	 *
-	 * ## EXAMPLES
-	 *
-	 *      # Flush the current document index, add the mapping, and index the whole site
-	 *      wp elasticsearch index --flush --put-mapping
-	 *
-	 *      # Index the first 10 posts in the database
-	 *      wp elasticsearch index --bulk=10 --limit=10
-	 *
-	 *      # Index the whole site starting on page 145
-	 *      wp elasticsearch index --page=145
-	 *
-	 *      # Index a single post (post ID 12345)
-	 *      wp elasticsearch index 12345
-	 *
-	 *      # Index six specific posts
-	 *      wp elasticsearch index 12340 12341 12342 12343 12344 12345
-	 *
-	 *
-	 * @synopsis [--flush] [--put-mapping] [--bulk=<num>] [--limit=<num>] [--page=<num>] [<post-id>]
+	 * @synopsis [--network-wide]
+	 * @param array $args
+	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
-		$timestamp_start = microtime( true );
+		if ( empty( $assoc_args['network-wide'] ) ) {
+			WP_CLI::line( 'Indexing posts on current site' );
 
-		// @todo add command to support which site to index
-		$site_id = null;
+			$site_config = ep_get_option();
 
-		ep_full_sync();
+			if ( ! empty( $site_config['post_types'] ) ) {
+
+				$args = array(
+					'posts_per_page' => 300000,
+					'post_type' => $site_config['post_types'],
+					'post_status' => 'publish',
+				);
+
+				$query = new WP_Query( $args );
+				$synced = 0;
+				$errors = array();
+
+				if ( $query->have_posts() ) {
+
+					while ( $query->have_posts() ) {
+						$query->the_post();
+
+						$result = ep_sync_post( get_the_ID(), null, 0 );
+
+						if ( ! $result ) {
+							$errors[] = get_the_ID();
+						} else {
+							$synced++;
+						}
+					}
+
+					wp_reset_postdata();
+				}
+
+				WP_CLI::line( 'Number of posts synced on current site (' . get_current_blog_id() . '): ' . $synced );
+
+				if ( ! empty( $errors ) ) {
+					WP_CLI::error( 'Number of post sync errors on current site (' . get_current_blog_id() . '): ' . count( $errors ) );
+				}
+			}
+
+		} else {
+			WP_CLI::line( 'Indexing posts network-wide' );
+
+			$sites = wp_get_sites();
+
+			foreach ( $sites as $site ) {
+				$site_config = ep_get_option( $site['blog_id'] );
+
+				if ( ! empty( $site_config['post_types'] ) ) {
+
+					// Do sync for this site!
+					switch_to_blog( $site['blog_id'] );
+
+					$args = array(
+						'posts_per_page' => 300000,
+						'post_type' => $site_config['post_types'],
+						'post_status' => 'publish',
+					);
+
+					$synced = 0;
+					$errors = array();
+
+					$query = new WP_Query( $args );
+
+					if ( $query->have_posts() ) {
+
+						while ( $query->have_posts() ) {
+							$query->the_post();
+
+							$result = ep_sync_post( get_the_ID(), null, 0 );
+
+							if ( ! $result ) {
+								$errors[] = get_the_ID();
+							} else {
+								$synced++;
+							}
+						}
+					}
+
+					wp_reset_postdata();
+
+					WP_CLI::line( 'Number of posts synced on site ' . get_current_blog_id() . ': ' . $synced );
+
+					if ( ! empty( $errors ) ) {
+						WP_CLI::error( 'Number of post sync errors on site ' . get_current_blog_id() . ': ' . count( $errors ) );
+					}
+
+					restore_current_blog();
+				}
+			}
+		}
+
+		WP_CLI::success( 'Done!' );
 	}
 }

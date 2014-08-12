@@ -16,6 +16,38 @@ class EP_Cron {
 	 */
 	public function setup() {
 		add_action( 'ep_sync', array( $this, 'sync' ) );
+		add_action( 'init', array( $this, 'schedule_events' ) );
+		add_filter( 'cron_schedules', array( $this, 'filter_cron_schedules' ) );
+	}
+
+	/**
+	 * Setup cron jobs
+	 *
+	 * @since 0.1.0
+	 * @return void
+	 */
+	public function schedule_events() {
+		$timestamp = wp_next_scheduled( 'ep_sync' );
+
+		if ( ! $timestamp ) {
+			wp_schedule_event( time(), 'elasticpress', 'ep_sync' );
+		}
+	}
+
+	/**
+	 * Add custom cron schedule
+	 *
+	 * @param array $schedules
+	 * @since 0.1.0
+	 * @return array
+	 */
+	public function filter_cron_schedules( $schedules ) {
+		$schedules['elasticpress'] = array(
+			'interval' => ( MINUTE_IN_SECONDS * 30 ),
+			'display' => __( 'Every 30 minutes' , 'elasticpress' ),
+		);
+
+		return $schedules;
 	}
 
 	/**
@@ -41,7 +73,7 @@ class EP_Cron {
 	 * @since 0.1.0
 	 */
 	public function sync() {
-		ep_do_syncs( true );
+		ep_do_scheduled_syncs();
 	}
 
 }

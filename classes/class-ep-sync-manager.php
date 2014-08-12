@@ -31,13 +31,14 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$ep_id = get_post_meta( $post_id, 'ep_id', true );
+		$last_synced = get_post_meta( $post_id, 'ep_last_synced', true );
 
-		if ( ! empty( $ep_id ) ) {
+		if ( ! empty( $last_synced ) ) {
 			// Delete ES post if WP post contains an ES ID
 
 			$host_site_id = null;
 			$config = ep_get_option( 0 );
+			$ep_id = ep_format_es_id( $post_id );
 
 			// If cross site search is active, make sure we use the global index
 			if ( ! empty( $config['cross_site_search_active'] ) ) {
@@ -114,8 +115,6 @@ class EP_Sync_Manager {
 			$site_id = get_current_blog_id();
 		}
 
-		wp_schedule_single_event( time(), 'ep_sync' );
-
 		$sync_status = ep_get_sync_status( $site_id );
 
 		if ( empty( $sync_status['start_time'] ) ) {
@@ -130,10 +129,9 @@ class EP_Sync_Manager {
 	/**
 	 * Do all currently scheduled syncs
 	 *
-	 * @param boolean $scheduled_only
 	 * @since 0.1.3
 	 */
-	public function do_syncs( $scheduled_only = false ) {
+	public function do_scheduled_syncs() {
 		$sites = wp_get_sites();
 
 		foreach ( $sites as $site ) {
@@ -148,11 +146,7 @@ class EP_Sync_Manager {
 				 * $scheduled_only == false.
 				 */
 				if ( empty( $sync_status['start_time'] ) ) {
-					if ( $scheduled_only ) {
-						continue;
-					} else {
-						$sync_status['start_time'] = time();
-					}
+					continue;
 				}
 
 				// Do sync for this site!
@@ -187,8 +181,6 @@ class EP_Sync_Manager {
 				restore_current_blog();
 			}
 		}
-
-		// @todo mark sync as completed and remove cron, change button from cancel sync to start sync
 
 	}
 
@@ -269,6 +261,7 @@ class EP_Sync_Manager {
 	 * @param int $site_id - Passed to the post created in the ES index
 	 * @param int $host_site_id - Strictly used to determine the index to use
 	 * @since 0.1.0
+	 * @return bool|array
 	 */
 	public function sync_post( $post_id, $site_id = null, $host_site_id = null ) {
 		if ( empty( $site_id ) ) {
@@ -314,74 +307,9 @@ class EP_Sync_Manager {
 
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id, $site_id, $host_site_id );
 
-		if ( ! $this->is_post_synced( $post_id ) ) {
-			// @todo is this really necessary to check if we've synced a post before?
-			$response = ep_index_post( $post_args, $host_site_id );
+		$response = ep_index_post( $post_args, $host_site_id);
 
-			if ( ! empty( $response ) && isset( $response->_id ) ) {
-				$this->mark_post_synced( $post_args['post_id'] );
-
-				update_post_meta( $post_id , 'ep_id', sanitize_text_field( $response->_id ) );
-				update_post_meta( $post_id , 'ep_last_synced', time() );
-			}
-		} else {
-			$response = ep_index_post( $post_args, $host_site_id );
-
-			if ( ! empty( $response ) ) {
-				update_post_meta( $post_id, 'ep_last_synced', time() );
-			}
-		}
-	}
-
-	/**
-	 * Mark a post as synced using a special hidden taxonomy. Since posts can
-	 * have the same id cross-network, we pass a $site_id. $site_id = null implies
-	 * the current site
-	 *
-	 * @param $post_id
-	 * @param null $site_id
-	 * @since 0.1.0
-	 */
-	public function mark_post_synced( $post_id, $site_id = null ) {
-		if ( ! empty( $site_id ) ) {
-			switch_to_blog( $site_id );
-		}
-
-		wp_set_object_terms( $post_id, 'ep_synced', 'ep_hidden', false );
-
-		if ( ! empty( $site_id ) ) {
-			restore_current_blog();
-		}
-	}
-
-	/**
-	 * Check if post has been synced for a specific site or the current one.
-	 *
-	 * @param $post_id
-	 * @param null $site_id
-	 * @since 0.1.0
-	 * @return bool
-	 */
-	public function is_post_synced( $post_id, $site_id = null ) {
-		if ( ! empty( $site_id ) ) {
-			switch_to_blog( $site_id );
-		}
-
-		$terms = get_the_terms( $post_id, 'ep_hidden' );
-
-		if ( is_array( $terms ) ) {
-			foreach ( $terms as $term ) {
-				if ( $term->slug == 'ep_synced' ) {
-					return true;
-				}
-			}
-		}
-
-		if ( ! empty( $site_id ) ) {
-			restore_current_blog();
-		}
-
-		return false;
+		return $response;
 	}
 }
 
@@ -395,15 +323,10 @@ function ep_schedule_sync( $site_id = null ) {
 	EP_Sync_Manager::factory()->schedule_sync( $site_id );
 }
 
-<<<<<<< HEAD
-function ep_full_sync() {
-	EP_Sync_Manager::factory()->do_scheduled_syncs();
+function ep_do_scheduled_syncs() {
+	EP_Sync_Manager::factory()->do_syncs();
 }
 
 function ep_sync_post( $post_id, $site_id = null, $host_site_id = null ) {
-	EP_Sync_Manager::factory()->sync_post( $post_id, $site_id, $host_site_id );
-=======
-function ep_do_syncs( $scheduled_only = false ) {
-	EP_Sync_Manager::factory()->do_syncs( $scheduled_only );
->>>>>>> feature/separate-scheduled-full
+	return EP_Sync_Manager::factory()->sync_post( $post_id, $site_id, $host_site_id );
 }
