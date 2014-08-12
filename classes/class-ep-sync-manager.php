@@ -307,7 +307,7 @@ class EP_Sync_Manager {
 
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id, $site_id, $host_site_id );
 
-		$response = ep_index_post( $post_args, $host_site_id);
+		$response = ep_index_post( $post_args, $host_site_id );
 
 		return $response;
 	}

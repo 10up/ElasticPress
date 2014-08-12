@@ -5,7 +5,6 @@ WP_CLI::add_command( 'elasticpress', 'ElasticPress_CLI_Command' );
 /**
  * CLI Commands for ElasticPress
  *
- * @todo add sync command
  */
 class ElasticPress_CLI_Command extends WP_CLI_Command {
 
@@ -93,9 +92,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 					$args = array(
 						'posts_per_page' => 500,
-						'post_type' => $site_config['post_types'],
-						'offset' => $offset,
-						'post_status' => 'publish',
+						'post_type'      => $site_config['post_types'],
+						'offset'         => $offset,
+						'post_status'    => 'publish',
 					);
 
 					$query = new WP_Query( $args );
@@ -146,13 +145,13 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					$errors = array();
 					$offset = 0;
 
-					while( true ) {
+					while ( true ) {
 
 						$args = array(
 							'posts_per_page' => 500,
-							'post_type' => $site_config['post_types'],
-							'post_status' => 'publish',
-							'offset' => $offset,
+							'post_type'      => $site_config['post_types'],
+							'post_status'    => 'publish',
+							'offset'         => $offset,
 						);
 
 						$query = new WP_Query( $args );
