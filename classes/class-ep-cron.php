@@ -17,6 +17,7 @@ class EP_Cron {
 	public function setup() {
 		add_action( 'ep_sync', array( $this, 'sync' ) );
 		add_action( 'init', array( $this, 'schedule_events' ) );
+		add_filter( 'cron_schedules', array( $this, 'filter_cron_schedules' ) );
 	}
 
 	/**
@@ -29,7 +30,7 @@ class EP_Cron {
 		$timestamp = wp_next_scheduled( 'ep_sync' );
 
 		if ( ! $timestamp ) {
-			wp_schedule_event( time(), 'elasticsearch', 'ep_sync' );
+			wp_schedule_event( time(), 'elasticpress', 'ep_sync' );
 		}
 	}
 
@@ -41,8 +42,8 @@ class EP_Cron {
 	 * @return array
 	 */
 	public function filter_cron_schedules( $schedules ) {
-		$schedules['elasticsearch'] = array(
-			'interval' => ( 60 * 15 ),
+		$schedules['elasticpress'] = array(
+			'interval' => ( MINUTE_IN_SECONDS * 30 ),
 			'display' => __( 'Every 30 minutes' , 'elasticpress' ),
 		);
 
@@ -72,7 +73,7 @@ class EP_Cron {
 	 * @since 0.1.0
 	 */
 	public function sync() {
-		ep_full_sync();
+		ep_do_scheduled_syncs();
 	}
 
 }

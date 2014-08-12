@@ -31,13 +31,14 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$ep_id = get_post_meta( $post_id, 'ep_id', true );
+		$last_synced = get_post_meta( $post_id, 'ep_last_synced', true );
 
-		if ( ! empty( $ep_id ) ) {
+		if ( ! empty( $last_synced ) ) {
 			// Delete ES post if WP post contains an ES ID
 
 			$host_site_id = null;
 			$config = ep_get_option( 0 );
+			$ep_id = ep_format_es_id( $post_id );
 
 			// If cross site search is active, make sure we use the global index
 			if ( ! empty( $config['cross_site_search_active'] ) ) {
@@ -128,7 +129,7 @@ class EP_Sync_Manager {
 	/**
 	 * Do all currently scheduled syncs
 	 *
-	 * @since 0.1.0
+	 * @since 0.1.3
 	 */
 	public function do_scheduled_syncs() {
 		$sites = wp_get_sites();
@@ -140,38 +141,44 @@ class EP_Sync_Manager {
 
 				$sync_status = ep_get_sync_status( $site['blog_id'] );
 
-				if ( ! empty( $sync_status['start_time'] ) ) {
-					// Do sync for this site!
-					switch_to_blog( $site['blog_id'] );
-
-					$args = array(
-						'posts_per_page' => 350,
-						'offset' => $sync_status['posts_processed'],
-						'post_type' => $site_config['post_types'],
-						'post_status' => 'publish',
-					);
-
-					$query = new WP_Query( $args );
-
-					if ( $query->have_posts() ) {
-
-						while ( $query->have_posts() ) {
-							$query->the_post();
-
-							$sync_status['posts_processed']++;
-
-							$this->sync_post( get_the_ID(), null, 0 );
-
-							ep_update_sync_status( $sync_status, $site['blog_id'] );
-						}
-					} else {
-						ep_reset_sync( $site['blog_id'] );
-					}
-
-					wp_reset_postdata();
-
-					restore_current_blog();
+				/**
+				 * If no start time has been set, then the sync hasn't been scheduled. We can only proceed if
+				 * $scheduled_only == false.
+				 */
+				if ( empty( $sync_status['start_time'] ) ) {
+					continue;
 				}
+
+				// Do sync for this site!
+				switch_to_blog( $site['blog_id'] );
+
+				$args = array(
+					'posts_per_page' => 350,
+					'offset' => $sync_status['posts_processed'],
+					'post_type' => $site_config['post_types'],
+					'post_status' => 'publish',
+				);
+
+				$query = new WP_Query( $args );
+
+				if ( $query->have_posts() ) {
+
+					while ( $query->have_posts() ) {
+						$query->the_post();
+
+						$sync_status['posts_processed']++;
+
+						$this->sync_post( get_the_ID(), null, 0 );
+
+						ep_update_sync_status( $sync_status, $site['blog_id'] );
+					}
+				} else {
+					ep_reset_sync( $site['blog_id'] );
+				}
+
+				wp_reset_postdata();
+
+				restore_current_blog();
 			}
 		}
 
@@ -254,6 +261,7 @@ class EP_Sync_Manager {
 	 * @param int $site_id - Passed to the post created in the ES index
 	 * @param int $host_site_id - Strictly used to determine the index to use
 	 * @since 0.1.0
+	 * @return bool|array
 	 */
 	public function sync_post( $post_id, $site_id = null, $host_site_id = null ) {
 		if ( empty( $site_id ) ) {
@@ -299,73 +307,9 @@ class EP_Sync_Manager {
 
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id, $site_id, $host_site_id );
 
-		if ( ! $this->is_post_synced( $post_id ) ) {
-			$response = ep_index_post( $post_args, $host_site_id );
+		$response = ep_index_post( $post_args, $host_site_id );
 
-			if ( ! empty( $response ) && isset( $response->_id ) ) {
-				$this->mark_post_synced( $post_args['post_id'] );
-
-				update_post_meta( $post_id , 'ep_id', sanitize_text_field( $response->_id ) );
-				update_post_meta( $post_id , 'ep_last_synced', time() );
-			}
-		} else {
-			$response = ep_index_post( $post_args, $host_site_id);
-
-			if ( ! empty( $response ) ) {
-				update_post_meta( $post_id, 'ep_last_synced', time() );
-			}
-		}
-	}
-
-	/**
-	 * Mark a post as synced using a special hidden taxonomy. Since posts can
-	 * have the same id cross-network, we pass a $site_id. $site_id = null implies
-	 * the current site
-	 *
-	 * @param $post_id
-	 * @param null $site_id
-	 * @since 0.1.0
-	 */
-	public function mark_post_synced( $post_id, $site_id = null ) {
-		if ( ! empty( $site_id ) ) {
-			switch_to_blog( $site_id );
-		}
-
-		wp_set_object_terms( $post_id, 'ep_synced', 'ep_hidden', false );
-
-		if ( ! empty( $site_id ) ) {
-			restore_current_blog();
-		}
-	}
-
-	/**
-	 * Check if post has been synced for a specific site or the current one.
-	 *
-	 * @param $post_id
-	 * @param null $site_id
-	 * @since 0.1.0
-	 * @return bool
-	 */
-	public function is_post_synced( $post_id, $site_id = null ) {
-		if ( ! empty( $site_id ) ) {
-			switch_to_blog( $site_id );
-		}
-
-		$terms = get_the_terms( $post_id, 'ep_hidden' );
-
-		if ( is_array( $terms ) ) {
-			foreach ( $terms as $term ) {
-				if ( $term->slug == 'ep_synced' ) {
-					return true;
-				}
-			}
-		}
-
-		if ( ! empty( $site_id ) ) {
-			restore_current_blog();
-		}
-
-		return false;
+		return $response;
 	}
 }
 
@@ -379,6 +323,10 @@ function ep_schedule_sync( $site_id = null ) {
 	EP_Sync_Manager::factory()->schedule_sync( $site_id );
 }
 
-function ep_full_sync() {
-	EP_Sync_Manager::factory()->do_scheduled_syncs();
+function ep_do_scheduled_syncs() {
+	EP_Sync_Manager::factory()->do_syncs();
+}
+
+function ep_sync_post( $post_id, $site_id = null, $host_site_id = null ) {
+	return EP_Sync_Manager::factory()->sync_post( $post_id, $site_id, $host_site_id );
 }

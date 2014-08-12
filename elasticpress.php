@@ -18,3 +18,11 @@ require_once( 'classes/class-ep-cron.php' );
 require_once( 'classes/class-ep-ajax.php' );
 require_once( 'classes/class-ep-elasticpress.php' );
 require_once( 'classes/class-ep-query.php' );
+//require_once( 'classes/class-ep-search.php' );
+
+/**
+ * WP CLI Commands
+ */
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	require_once 'bin/wp-cli.php';
+}
