@@ -77,32 +77,42 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			if ( ! empty( $site_config['post_types'] ) ) {
 
-				$args = array(
-					'posts_per_page' => 300000,
-					'post_type' => $site_config['post_types'],
-					'post_status' => 'publish',
-				);
-
-				$query = new WP_Query( $args );
 				$synced = 0;
 				$errors = array();
+				$offset = 0;
 
-				if ( $query->have_posts() ) {
+				while ( true ) {
 
-					while ( $query->have_posts() ) {
-						$query->the_post();
+					$args = array(
+						'posts_per_page' => 500,
+						'post_type' => $site_config['post_types'],
+						'offset' => $offset,
+						'post_status' => 'publish',
+					);
 
-						$result = ep_sync_post( get_the_ID(), null, 0 );
+					$query = new WP_Query( $args );
 
-						if ( ! $result ) {
-							$errors[] = get_the_ID();
-						} else {
-							$synced++;
+					if ( $query->have_posts() ) {
+
+						while ( $query->have_posts() ) {
+							$query->the_post();
+
+							$result = ep_sync_post( get_the_ID(), null, 0 );
+
+							if ( ! $result ) {
+								$errors[] = get_the_ID();
+							} else {
+								$synced++;
+							}
 						}
+					} else {
+						break;
 					}
 
-					wp_reset_postdata();
+					$offset += 500;
 				}
+
+				wp_reset_postdata();
 
 				WP_CLI::line( 'Number of posts synced on current site (' . get_current_blog_id() . '): ' . $synced );
 
@@ -124,30 +134,39 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					// Do sync for this site!
 					switch_to_blog( $site['blog_id'] );
 
-					$args = array(
-						'posts_per_page' => 300000,
-						'post_type' => $site_config['post_types'],
-						'post_status' => 'publish',
-					);
-
 					$synced = 0;
 					$errors = array();
+					$offset = 0;
 
-					$query = new WP_Query( $args );
+					while( true ) {
 
-					if ( $query->have_posts() ) {
+						$args = array(
+							'posts_per_page' => 300000,
+							'post_type' => $site_config['post_types'],
+							'post_status' => 'publish',
+							'offset' => $offset,
+						);
 
-						while ( $query->have_posts() ) {
-							$query->the_post();
+						$query = new WP_Query( $args );
 
-							$result = ep_sync_post( get_the_ID(), null, 0 );
+						if ( $query->have_posts() ) {
 
-							if ( ! $result ) {
-								$errors[] = get_the_ID();
-							} else {
-								$synced++;
+							while ( $query->have_posts() ) {
+								$query->the_post();
+
+								$result = ep_sync_post( get_the_ID(), null, 0 );
+
+								if ( ! $result ) {
+									$errors[] = get_the_ID();
+								} else {
+									$synced++;
+								}
 							}
+						} else {
+							break;
 						}
+
+						$offset += 500;
 					}
 
 					wp_reset_postdata();
