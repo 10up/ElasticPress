@@ -80,6 +80,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				$errors = array();
 				$offset = 0;
 
+				$host_site_id = null;
+				$global_config = ep_get_option( 0 );
+
+				// If cross site search is active, make sure we use the global index
+				if ( ! empty( $global_config['cross_site_search_active'] ) ) {
+					$host_site_id = 0;
+				}
+
 				while ( true ) {
 
 					$args = array(
@@ -96,7 +104,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 						while ( $query->have_posts() ) {
 							$query->the_post();
 
-							$result = ep_sync_post( get_the_ID(), null, null );
+							$result = ep_sync_post( get_the_ID(), null, $host_site_id );
 
 							if ( ! $result ) {
 								$errors[] = get_the_ID();
@@ -138,8 +146,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					$offset = 0;
 
 					while ( true ) {
-
-						echo $offset;
 
 						$args = array(
 							'posts_per_page' => 500,
