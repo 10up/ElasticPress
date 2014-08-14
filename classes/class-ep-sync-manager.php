@@ -132,7 +132,15 @@ class EP_Sync_Manager {
 	 * @since 0.1.3
 	 */
 	public function do_scheduled_syncs() {
-		$sites = wp_get_sites();
+		if ( function_exists( 'wp_get_sites' ) ) {
+			$sites = wp_get_sites();
+		} else {
+			$sites = array(
+				array(
+					'blog_id' => 1,
+				),
+			);
+		}
 
 		foreach ( $sites as $site ) {
 			$site_config = ep_get_option( $site['blog_id'] );
@@ -144,13 +152,17 @@ class EP_Sync_Manager {
 				/**
 				 * If no start time has been set, then the sync hasn't been scheduled. We can only proceed if
 				 * $scheduled_only == false.
+				 *
+				 * @fixme this is broken and causes failure on single site syncing
 				 */
 				if ( empty( $sync_status['start_time'] ) ) {
 					continue;
 				}
 
 				// Do sync for this site!
-				switch_to_blog( $site['blog_id'] );
+				if ( function_exists( 'switch_to_blog' ) ) {
+					switch_to_blog( $site['blog_id'] );
+				}
 
 				$args = array(
 					'posts_per_page' => 350,
@@ -168,7 +180,7 @@ class EP_Sync_Manager {
 
 						$sync_status['posts_processed']++;
 
-						$this->sync_post( get_the_ID(), null, 0 );
+						$this->sync_post( get_the_ID(), null, null );
 
 						ep_update_sync_status( $sync_status, $site['blog_id'] );
 					}
@@ -178,7 +190,9 @@ class EP_Sync_Manager {
 
 				wp_reset_postdata();
 
-				restore_current_blog();
+				if ( function_exists( 'restore_current_blog' ) ) {
+					restore_current_blog();
+				}
 			}
 		}
 
@@ -324,7 +338,7 @@ function ep_schedule_sync( $site_id = null ) {
 }
 
 function ep_do_scheduled_syncs() {
-	EP_Sync_Manager::factory()->do_syncs();
+	EP_Sync_Manager::factory()->do_scheduled_syncs();
 }
 
 function ep_sync_post( $post_id, $site_id = null, $host_site_id = null ) {
