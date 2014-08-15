@@ -43,11 +43,11 @@ class EP_Cron {
 	 */
 	public function filter_cron_schedules( $schedules ) {
 		$schedules['elasticpress'] = array(
-			'interval' => ( MINUTE_IN_SECONDS * 5 ),
-			'display' => __( 'Every 5 minutes' , 'elasticpress' ),
+			'interval' => ( MINUTE_IN_SECONDS * 10 ),
+			'display' => __( 'Every 10 minutes' , 'elasticpress' ),
 		);
 
-		return $schedules;
+		return apply_filters( 'elasticpress_cron_schedule', $schedules );
 	}
 
 	/**
