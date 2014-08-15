@@ -157,8 +157,6 @@ class EP_Sync_Manager {
 				/**
 				 * If no start time has been set, then the sync hasn't been scheduled. We can only proceed if
 				 * $scheduled_only == false.
-				 *
-				 * @fixme this is broken and causes failure on single site syncing
 				 */
 				if ( empty( $sync_status['start_time'] ) ) {
 					continue;
