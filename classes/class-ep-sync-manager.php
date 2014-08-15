@@ -144,6 +144,11 @@ class EP_Sync_Manager {
 
 		foreach ( $sites as $site ) {
 			$site_config = ep_get_option( $site['blog_id'] );
+			if ( ! empty( $config['cross_site_search_active'] ) ) {
+				$host_site_id = 0;
+			} else {
+				$host_site_id = null;
+			}
 
 			if ( ! empty( $site_config['post_types'] ) ) {
 
@@ -180,7 +185,7 @@ class EP_Sync_Manager {
 
 						$sync_status['posts_processed']++;
 
-						$this->sync_post( get_the_ID(), null, null );
+						$this->sync_post( get_the_ID(), null, $host_site_id );
 
 						ep_update_sync_status( $sync_status, $site['blog_id'] );
 					}
