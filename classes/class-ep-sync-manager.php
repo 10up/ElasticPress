@@ -155,17 +155,22 @@ class EP_Sync_Manager {
 				$sync_status = ep_get_sync_status( $site['blog_id'] );
 
 				/**
-				 * If no start time has been set, then the sync hasn't been scheduled. We can only proceed if
-				 * $scheduled_only == false.
+				 * If no start time has been set, then the sync hasn't been scheduled. and will not run
 				 */
 				if ( empty( $sync_status['start_time'] ) ) {
 					continue;
 				}
 
-				// Do sync for this site!
+				// If running multisite, switch to the sub site
 				if ( function_exists( 'switch_to_blog' ) ) {
 					switch_to_blog( $site['blog_id'] );
 				}
+
+				// Flush this site's index
+				ep_flush( $site['blog_id'] );
+
+				// Put the mapping for this site
+				ep_put_mapping( $site['blog_id'] );
 
 				$args = array(
 					'posts_per_page' => 350,
