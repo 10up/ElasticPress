@@ -475,6 +475,105 @@ class EP_API {
 
 		return false;
 	}
+
+	/**
+	 * Format WP query args for ES
+	 *
+	 * @param array $args
+	 * @param boolean $cross_site
+	 * @return array
+	 */
+	public function format_args( $args, $cross_site = false ) {
+		$formatted_args = array(
+			'from' => 0,
+			'size' => get_option( 'posts_per_page' ),
+			'sort' => array(
+				array(
+					'_score' => array(
+						'order' => 'desc',
+					),
+				),
+			),
+		);
+
+		$filter = array(
+			'and' => array(),
+		);
+
+		$search_fields = array(
+			'post_title',
+			'post_excerpt',
+			'post_content',
+		);
+
+		if ( ! empty( $args['search_tax'] ) ) {
+			foreach ( $args['search_tax'] as $tax ) {
+				$search_fields[] = 'terms.' . $tax . '.name';
+			}
+		}
+
+		if ( ! empty( $args['search_meta'] ) ) {
+			foreach ( $args['search_meta'] as $key ) {
+				$search_fields[] = 'post_meta.' . $key;
+			}
+		}
+
+		$query = array(
+			'bool' => array(
+				'must' => array(
+					'fuzzy_like_this' => array(
+						'fields' => $search_fields,
+						'like_text' => '',
+						'min_similarity' => 0.5,
+					),
+				),
+			),
+		);
+
+		if ( ! cross_site ) {
+			$formatted_args['filter']['and'][1] = array(
+				'term' => array(
+					'site_id' => get_current_blog_id()
+				)
+			);
+		}
+
+		if ( isset( $args['s'] ) ) {
+			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
+			$formatted_args['query'] = $query;
+		}
+
+		if ( isset( $args['post_type'] ) ) {
+			$post_types = (array) $args['post_type'];
+			$terms_map_name = 'terms';
+			if ( count( $post_types ) < 2 ) {
+				$terms_map_name = 'term';
+			}
+
+			$filter['and'][] = array(
+				$terms_map_name => array(
+					'post_type' => $post_types,
+				),
+			);
+
+			$formatted_args['filter'] = $filter;
+		}
+
+		if ( isset( $args['offset'] ) ) {
+			$formatted_args['from'] = $args['offset'];
+		}
+
+		if ( isset( $args['posts_per_page'] ) ) {
+			$formatted_args['size'] = $args['posts_per_page'];
+		}
+
+		if ( isset( $args['paged'] ) ) {
+			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
+			$formatted_args['from'] = $args['posts_per_page'] * $paged;
+		}
+
+		return $formatted_args;
+	}
 }
 
 EP_API::factory();
@@ -513,4 +612,8 @@ function ep_flush( $site_id = null ) {
 
 function ep_format_es_id( $post_id, $site_id = null ) {
 	return EP_API::factory()->format_es_id( $post_id, $iste_id );
+}
+
+function ep_format_args( $args ) {
+	return EP_API::factory()->format_args( $args );
 }

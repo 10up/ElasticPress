@@ -58,7 +58,7 @@ class EP_Query {
 			return array();
 		}
 
-		$formatted_args = $this->format_args( $args );
+		$formatted_args = ep_format_args( $args, $this->cross_site );
 
 		$posts_per_page = ( isset( $args['posts_per_page'] ) ) ? $args['posts_per_page'] : get_option( 'posts_per_page' );
 
@@ -73,105 +73,6 @@ class EP_Query {
 		$this->posts = $search['posts'];
 
 		return $this->posts;
-	}
-
-	/**
-	 * Format query args for ES. The intention of this class is to accept args that look
-	 * like WP_Query's
-	 *
-	 * @param array $args
-	 * @return array
-	 */
-	private function format_args( $args ) {
-		$formatted_args = array(
-			'from' => 0,
-			'size' => get_option( 'posts_per_page' ),
-			'sort' => array(
-				array(
-					'_score' => array(
-						'order' => 'desc',
-					),
-				),
-			),
-		);
-
-		$filter = array(
-			'and' => array(),
-		);
-
-		$search_fields = array(
-			'post_title',
-			'post_excerpt',
-			'post_content',
-		);
-
-		if ( ! empty( $args['search_tax'] ) ) {
-			foreach ( $args['search_tax'] as $tax ) {
-				$search_fields[] = 'terms.' . $tax . '.name';
-			}
-		}
-
-		if ( ! empty( $args['search_meta'] ) ) {
-			foreach ( $args['search_meta'] as $key ) {
-				$search_fields[] = 'post_meta.' . $key;
-			}
-		}
-
-		$query = array(
-			'bool' => array(
-				'must' => array(
-					'fuzzy_like_this' => array(
-						'fields' => $search_fields,
-						'like_text' => '',
-						'min_similarity' => 0.5,
-					),
-				),
-			),
-		);
-
-		if ( ! $this->cross_site ) {
-			$formatted_args['filter']['and'][1] = array(
-				'term' => array(
-					'site_id' => get_current_blog_id()
-				)
-			);
-		}
-
-		if ( isset( $args['s'] ) ) {
-			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
-			$formatted_args['query'] = $query;
-		}
-
-		if ( isset( $args['post_type'] ) ) {
-			$post_types = (array) $args['post_type'];
-			$terms_map_name = 'terms';
-			if ( count( $post_types ) < 2 ) {
-				$terms_map_name = 'term';
-			}
-
-			$filter['and'][] = array(
-				$terms_map_name => array(
-					'post_type' => $post_types,
-				),
-			);
-
-			$formatted_args['filter'] = $filter;
-		}
-
-		if ( isset( $args['offset'] ) ) {
-			$formatted_args['from'] = $args['offset'];
-		}
-
-		if ( isset( $args['posts_per_page'] ) ) {
-			$formatted_args['size'] = $args['posts_per_page'];
-		}
-
-		if ( isset( $args['paged'] ) ) {
-			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
-			$formatted_args['from'] = $args['posts_per_page'] * $paged;
-		}
-
-		return $formatted_args;
 	}
 
 	/**
