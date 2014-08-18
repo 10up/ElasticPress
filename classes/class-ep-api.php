@@ -211,10 +211,6 @@ class EP_API {
 	 * @return bool
 	 */
 	public function is_alive( $site_id = null ) {
-		// If we've already determined what our connection is, we can finish early!
-		if ( isset( $this->is_alive[ $site_id ] ) ) {
-			return $this->is_alive[ $site_id ];
-		}
 
 		// Otherwise, let's proceed with the check
 		$is_alive = false;
@@ -233,7 +229,7 @@ class EP_API {
 		}
 
 		// Return our status and cache it
-		return $this->is_alive[ $site_id ] = $is_alive;
+		return $is_alive;
 	}
 
 	public function put_mapping( $site_id = null ) {
@@ -530,7 +526,7 @@ class EP_API {
 			),
 		);
 
-		if ( ! cross_site ) {
+		if ( ! $cross_site ) {
 			$formatted_args['filter']['and'][1] = array(
 				'term' => array(
 					'site_id' => get_current_blog_id()
@@ -611,7 +607,7 @@ function ep_flush( $site_id = null ) {
 }
 
 function ep_format_es_id( $post_id, $site_id = null ) {
-	return EP_API::factory()->format_es_id( $post_id, $iste_id );
+	return EP_API::factory()->format_es_id( $post_id, $site_id );
 }
 
 function ep_format_args( $args ) {
