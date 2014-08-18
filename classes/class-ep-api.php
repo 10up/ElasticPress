@@ -9,7 +9,7 @@ class EP_API {
 	 */
 	private $is_alive = array();
 
-	/*
+	/**
 	 * Placeholder method
 	 *
 	 * @since 0.1.0
@@ -20,6 +20,7 @@ class EP_API {
 	 * Return singleton instance of class
 	 *
 	 * @return EP_API
+	 * @since 0.1.0
 	 */
 	public static function factory() {
 		static $instance = false;
@@ -36,6 +37,7 @@ class EP_API {
 	 *
 	 * @param array $post
 	 * @param int $site_id
+	 * @since 0.1.0
 	 * @return array|bool|mixed
 	 */
 	public function index_post( $post, $site_id = null ) {
@@ -113,6 +115,7 @@ class EP_API {
 	 * Check if a response array contains results or not
 	 *
 	 * @param array $response
+	 * @since 0.1.2
 	 * @return bool
 	 */
 	public function is_empty_search( $response ) {
@@ -232,6 +235,13 @@ class EP_API {
 		return $is_alive;
 	}
 
+	/**
+	 * Send mapping to ES
+	 *
+	 * @param int $site_id
+	 * @since 0.9
+	 * @return array|bool|mixed
+	 */
 	public function put_mapping( $site_id = null ) {
 		$mapping = array(
 			'settings' => array(
@@ -477,6 +487,7 @@ class EP_API {
 	 *
 	 * @param array $args
 	 * @param boolean $cross_site
+	 * @since 0.9
 	 * @return array
 	 */
 	public function format_args( $args, $cross_site = false ) {

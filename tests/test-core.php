@@ -119,6 +119,34 @@ class EPTestCore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * We have to mock the request properly to setup WP Query integration.
+	 *
+	 * @param array $config
+	 * @since 0.9
+	 */
+	public function _setupWPQueryIntegration( $config ) {
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '*',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/_status' );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		EP_WP_Query_Integration::factory()->setup();
+	}
+
+	/**
 	 * Configure a multisite test
 	 *
 	 * @since 0.1.0
@@ -206,10 +234,7 @@ class EPTestCore extends WP_UnitTestCase {
 			}
 		}
 
-		$ep_id = $post_id;
-		if ( $site_id > 1 ) {
-			$ep_id = $site_id . 'ms' . $post_id;
-		}
+		$ep_id = ep_format_es_id( $post_id );
 
 		$response = array(
 			'headers' => array(
@@ -676,6 +701,8 @@ class EPTestCore extends WP_UnitTestCase {
 
 	/**
 	 * Test WP Query integration basic in single site
+	 *
+	 * @since 0.9
 	 */
 	public function testSingleSiteWPQuery() {
 		$config = $this->_configureSingleSite();
@@ -688,24 +715,7 @@ class EPTestCore extends WP_UnitTestCase {
 		$post_ids[4] = $this->_createAndSyncPost();
 
 		// We have to re-setup the query integration class
-		$response = array(
-			'headers' => array(
-				'content-type' => 'application/json; charset=UTF-8',
-				'content-length' => '*',
-			),
-			'body' => '*',
-			'response' => array(
-				'code' => 200,
-				'message' => 'OK',
-			),
-			'cookies' => array(),
-			'filename' => null,
-		);
-
-		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/_status' );
-		$this->wp_remote_request_mock['return'] = $response;
-
-		EP_WP_Query_Integration::factory()->setup();
+		$this->_setupWPQueryIntegration( $config );
 
 		$response = array(
 			'headers' => array(
