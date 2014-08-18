@@ -49,6 +49,7 @@ class EP_Sync_Status {
 	 *
 	 * @param array|int|string|object $status
 	 * @param int $site_id
+	 * @since 0.1.0
 	 * @return bool
 	 */
 	public function update_status( $status, $site_id = null ) {

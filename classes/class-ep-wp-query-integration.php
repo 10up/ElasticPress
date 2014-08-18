@@ -5,6 +5,8 @@ class EP_WP_Query_Integration {
 
 	/**
 	 * Placeholder method
+	 *
+	 * @since 0.9
 	 */
 	public function __construct() { }
 
@@ -25,6 +27,7 @@ class EP_WP_Query_Integration {
 	 *
 	 * @param string $sql
 	 * @param object $query
+	 * @since 0.9
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
@@ -40,6 +43,7 @@ class EP_WP_Query_Integration {
 	 *
 	 * @param int $found_posts
 	 * @param object $query
+	 * @since 0.9
 	 * @return int
 	 */
 	public function filter_found_posts( $found_posts, $query ) {
@@ -50,6 +54,14 @@ class EP_WP_Query_Integration {
 		return $this->found_posts;
 	}
 
+	/**
+	 * Filter query string used for get_posts()
+	 *
+	 * @param string $request
+	 * @param object $query
+	 * @since 0.9
+	 * @return string
+	 */
 	public function filter_posts_request( $request, $query ) {
 		$s = $query->get( 's' );
 
