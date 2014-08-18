@@ -678,21 +678,14 @@ class EPTestCore extends WP_UnitTestCase {
 	 * Test WP Query integration basic in single site
 	 */
 	public function testSingleSiteWPQuery() {
-		global $wp_the_query;
-
 		$config = $this->_configureSingleSite();
 		$post_ids = array();
 		
 		$post_ids[0] = $this->_createAndSyncPost();
-		$post1 = get_post( $post_ids[0] );
 		$post_ids[1] = $this->_createAndSyncPost();
-		$post2 = get_post( $post_ids[1] );
 		$post_ids[2] = $this->_createAndSyncPost();
-		$post3 = get_post( $post_ids[2] );
 		$post_ids[3] = $this->_createAndSyncPost();
-		$post4 = get_post( $post_ids[3] );
 		$post_ids[4] = $this->_createAndSyncPost();
-		$post5 = get_post( $post_ids[4] );
 
 		// We have to re-setup the query integration class
 		$response = array(
@@ -739,17 +732,17 @@ class EPTestCore extends WP_UnitTestCase {
 			$this->fired_actions['ep_wp_query_search'] = true;
 		}, 10, 0 );
 
-		$wp_the_query = new WP_Query( $args );
+		$query = new WP_Query( $args );
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 
-		$this->assertEquals( $wp_the_query->post_count, 5 );
-		$this->assertEquals( $wp_the_query->found_posts, 1101 );
+		$this->assertEquals( $query->post_count, 5 );
+		$this->assertEquals( $query->found_posts, 1101 );
 
 		$i = 0;
 
-		while ( $wp_the_query->have_posts() ) {
-			$wp_the_query->the_post();
+		while ( $query->have_posts() ) {
+			$query->the_post();
 
 			$this->assertEquals( get_the_title( $post_ids[$i] ), get_the_title() );
 
