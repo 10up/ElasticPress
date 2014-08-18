@@ -527,10 +527,10 @@ class EP_API {
 		);
 
 		if ( ! $cross_site ) {
-			$formatted_args['filter']['and'][1] = array(
+			$formatted_args['filter']['and'][] = array(
 				'term' => array(
-					'site_id' => get_current_blog_id()
-				)
+					'site_id' => get_current_blog_id(),
+				),
 			);
 		}
 
