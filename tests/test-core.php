@@ -492,13 +492,15 @@ class EPTestCore extends WP_UnitTestCase {
 
 		// First let's create a post to play with
 
+		add_action( 'ep_sync_on_transition', function() {
+			$this->fired_actions['ep_sync_on_transition'] = true;
+		}, 10, 0 );
+
 		$post_id = $this->_createAndSyncPost();
 
 		// Let's test to see if this post was sent to the index
 
-		$ep_id = get_post_meta( $post_id, 'ep_id', true );
-
-		$this->assertEquals( $ep_id, $post_id );
+		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_transition'] ) );
 
 		add_action( 'ep_delete_post', function( $args ) {
 			$this->fired_actions['ep_delete_post'] = true;
@@ -563,10 +565,7 @@ class EPTestCore extends WP_UnitTestCase {
 			switch_to_blog( $blog_id );
 
 			foreach( $post_ids as $post_id ) {
-				$ep_id = get_post_meta( $post_id, 'ep_id', true );
-				$correct_ep_id = ( $blog_id <= 1 ) ? $post_id : $blog_id . 'ms' . $post_id;
-
-				$this->assertEquals( $ep_id, $correct_ep_id );
+				$ep_id = ep_format_es_id( $post_id );
 
 				add_action( 'ep_delete_post', function( $args ) {
 					$this->fired_actions['ep_delete_post'] = true;
@@ -639,12 +638,6 @@ class EPTestCore extends WP_UnitTestCase {
 		$this->wp_remote_request_mock['return'] = $response;
 
 		$this->assertTrue( ep_is_alive() );
-
-		// Assert that we've stored the current alive status and that we don't need to do another remote request
-		$this->wp_remote_request_mock['args'] = false;
-		$this->wp_remote_request_mock['return'] = false;
-
-		$this->assertTrue( ep_is_alive() );
 	}
 
 	/**
@@ -679,12 +672,73 @@ class EPTestCore extends WP_UnitTestCase {
 		$this->wp_remote_request_mock['args'] = array( $config[1]['host'] . '/' . $config[1]['index_name'] . '/_status' );
 		$this->wp_remote_request_mock['return'] = $response;
 		$this->assertTrue( ep_is_alive( 1 ) );
+	}
 
-		// Assert that we've stored the current alive status and that we don't need to do another remote request
-		$this->wp_remote_request_mock['args'] = false;
-		$this->wp_remote_request_mock['return'] = false;
+	/**
+	 * Test WP Query integration basic in single site
+	 */
+	public function testSingleSiteWPQuery() {
+		$config = $this->_configureSingleSite();
 
-		$this->assertTrue( ep_is_alive( 0 ) );
-		$this->assertTrue( ep_is_alive( 1 ) );
+		$post_id = $this->_createAndSyncPost();
+		$post = get_post( $post_id );
+
+		// We have to re-setup the query integration class
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '*',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/_status' );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		EP_WP_Query_Integration::factory()->setup();
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1,"hits":[{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . get_current_blog_id() . '}}]}}',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/_search' );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		$args = array(
+			's' => 'test',
+		);
+
+		add_action( 'ep_wp_query_search', function() {
+			$this->fired_actions['ep_wp_query_search'] = true;
+		}, 10, 0 );
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			$this->assertEquals( get_the_title( $post_id ), get_the_title() );
+		}
 	}
 }

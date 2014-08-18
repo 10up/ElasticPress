@@ -84,7 +84,11 @@ class EP_WP_Query_Integration {
 		$post_ids = wp_list_pluck( $search['posts'], 'post_id' );
 		$post_ids_string = implode( $post_ids, ',' );
 
-		return "SELECT * FROM {$wpdb->posts} WHERE {$wpdb->posts}.ID IN( {$post_ids_string} ) ORDER BY FIELD( {$wpdb->posts}.ID, {$post_ids_string} )";
+		$sql_query = "SELECT * FROM {$wpdb->posts} WHERE {$wpdb->posts}.ID IN( {$post_ids_string} ) ORDER BY FIELD( {$wpdb->posts}.ID, {$post_ids_string} )";
+
+		do_action( 'ep_wp_query_search', $sql_query, $search, $query );
+
+		return $sql_query;
 	}
 
 	/**
