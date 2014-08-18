@@ -31,24 +31,20 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$last_synced = get_post_meta( $post_id, 'ep_last_synced', true );
+		// Delete ES post if WP post contains an ES ID
 
-		if ( ! empty( $last_synced ) ) {
-			// Delete ES post if WP post contains an ES ID
+		$host_site_id = null;
+		$config = ep_get_option( 0 );
+		$ep_id = ep_format_es_id( $post_id );
 
-			$host_site_id = null;
-			$config = ep_get_option( 0 );
-			$ep_id = ep_format_es_id( $post_id );
-
-			// If cross site search is active, make sure we use the global index
-			if ( ! empty( $config['cross_site_search_active'] ) ) {
-				$host_site_id = 0;
-			}
-
-			do_action( 'ep_delete_post', $ep_id, null, $host_site_id );
-
-			ep_delete_post( $ep_id, null, $host_site_id );
+		// If cross site search is active, make sure we use the global index
+		if ( ! empty( $config['cross_site_search_active'] ) ) {
+			$host_site_id = 0;
 		}
+
+		do_action( 'ep_delete_post', $ep_id, null, $host_site_id );
+
+		ep_delete_post( $ep_id, null, $host_site_id );
 	}
 
 	/**
@@ -80,8 +76,9 @@ class EP_Sync_Manager {
 				$host_site_id = 0;
 			}
 
-			$this->sync_post( $post->ID, null, $host_site_id );
+			do_action( 'ep_sync_on_transition', $post->ID, null, $host_site_id );
 
+			$this->sync_post( $post->ID, null, $host_site_id );
 		}
 	}
 

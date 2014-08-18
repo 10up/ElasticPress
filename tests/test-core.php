@@ -119,6 +119,34 @@ class EPTestCore extends WP_UnitTestCase {
 	}
 
 	/**
+	 * We have to mock the request properly to setup WP Query integration.
+	 *
+	 * @param array $config
+	 * @since 0.9
+	 */
+	public function _setupWPQueryIntegration( $config ) {
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '*',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/_status' );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		EP_WP_Query_Integration::factory()->setup();
+	}
+
+	/**
 	 * Configure a multisite test
 	 *
 	 * @since 0.1.0
@@ -206,10 +234,7 @@ class EPTestCore extends WP_UnitTestCase {
 			}
 		}
 
-		$ep_id = $post_id;
-		if ( $site_id > 1 ) {
-			$ep_id = $site_id . 'ms' . $post_id;
-		}
+		$ep_id = ep_format_es_id( $post_id );
 
 		$response = array(
 			'headers' => array(
@@ -492,13 +517,15 @@ class EPTestCore extends WP_UnitTestCase {
 
 		// First let's create a post to play with
 
+		add_action( 'ep_sync_on_transition', function() {
+			$this->fired_actions['ep_sync_on_transition'] = true;
+		}, 10, 0 );
+
 		$post_id = $this->_createAndSyncPost();
 
 		// Let's test to see if this post was sent to the index
 
-		$ep_id = get_post_meta( $post_id, 'ep_id', true );
-
-		$this->assertEquals( $ep_id, $post_id );
+		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_transition'] ) );
 
 		add_action( 'ep_delete_post', function( $args ) {
 			$this->fired_actions['ep_delete_post'] = true;
@@ -563,10 +590,7 @@ class EPTestCore extends WP_UnitTestCase {
 			switch_to_blog( $blog_id );
 
 			foreach( $post_ids as $post_id ) {
-				$ep_id = get_post_meta( $post_id, 'ep_id', true );
-				$correct_ep_id = ( $blog_id <= 1 ) ? $post_id : $blog_id . 'ms' . $post_id;
-
-				$this->assertEquals( $ep_id, $correct_ep_id );
+				$ep_id = ep_format_es_id( $post_id );
 
 				add_action( 'ep_delete_post', function( $args ) {
 					$this->fired_actions['ep_delete_post'] = true;
@@ -639,12 +663,6 @@ class EPTestCore extends WP_UnitTestCase {
 		$this->wp_remote_request_mock['return'] = $response;
 
 		$this->assertTrue( ep_is_alive() );
-
-		// Assert that we've stored the current alive status and that we don't need to do another remote request
-		$this->wp_remote_request_mock['args'] = false;
-		$this->wp_remote_request_mock['return'] = false;
-
-		$this->assertTrue( ep_is_alive() );
 	}
 
 	/**
@@ -679,12 +697,66 @@ class EPTestCore extends WP_UnitTestCase {
 		$this->wp_remote_request_mock['args'] = array( $config[1]['host'] . '/' . $config[1]['index_name'] . '/_status' );
 		$this->wp_remote_request_mock['return'] = $response;
 		$this->assertTrue( ep_is_alive( 1 ) );
+	}
 
-		// Assert that we've stored the current alive status and that we don't need to do another remote request
-		$this->wp_remote_request_mock['args'] = false;
-		$this->wp_remote_request_mock['return'] = false;
+	/**
+	 * Test WP Query integration basic in single site
+	 *
+	 * @since 0.9
+	 */
+	public function testSingleSiteWPQuery() {
+		$config = $this->_configureSingleSite();
+		$post_ids = array();
+		
+		$post_ids[0] = $this->_createAndSyncPost();
+		$post_ids[1] = $this->_createAndSyncPost();
+		$post_ids[2] = $this->_createAndSyncPost();
+		$post_ids[3] = $this->_createAndSyncPost();
+		$post_ids[4] = $this->_createAndSyncPost();
 
-		$this->assertTrue( ep_is_alive( 0 ) );
-		$this->assertTrue( ep_is_alive( 1 ) );
+		// We have to re-setup the query integration class
+		$this->_setupWPQueryIntegration( $config );
+
+		$response = array(
+			'headers' => array(
+				'content-type' => 'application/json; charset=UTF-8',
+				'content-length' => '*',
+			),
+			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1101,"max_score":1.0,"hits":[{"_index":"vistage-dev","_type":"post","_id":"782","_score":1.0, "_source" : {"post_id":'. $post_ids[0] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[0] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-776","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-776\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}},{"_index":"vistage-dev","_type":"post","_id":"1039","_score":1.0, "_source" : {"post_id":'. $post_ids[1] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[1] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-1033","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-1033\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}},{"_index":"vistage-dev","_type":"post","_id":"523","_score":1.0, "_source" : {"post_id":'. $post_ids[2] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[2] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-517","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-517\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}},{"_index":"vistage-dev","_type":"post","_id":"268","_score":1.0, "_source" : {"post_id":'. $post_ids[3] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[3] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-262","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-262\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}},{"_index":"vistage-dev","_type":"post","_id":"256","_score":1.0, "_source" : {"post_id":'. $post_ids[4] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[4] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-250","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-250\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}}]}}',
+			'response' => array(
+				'code' => 200,
+				'message' => 'OK',
+			),
+			'cookies' => array(),
+			'filename' => null,
+		);
+
+		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/_search' );
+		$this->wp_remote_request_mock['return'] = $response;
+
+		$args = array(
+			's' => 'test',
+		);
+
+		add_action( 'ep_wp_query_search', function() {
+			$this->fired_actions['ep_wp_query_search'] = true;
+		}, 10, 0 );
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+
+		$this->assertEquals( $query->post_count, 5 );
+		$this->assertEquals( $query->found_posts, 1101 );
+
+		$i = 0;
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			$this->assertEquals( get_the_title( $post_ids[$i] ), get_the_title() );
+
+			$i++;
+		}
 	}
 }
