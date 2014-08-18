@@ -43,7 +43,7 @@ class EP_WP_Query_Integration {
 	 * @return int
 	 */
 	public function filter_found_posts( $found_posts, $query ) {
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
+		if ( ! $query->is_search() ) {
 			return $found_posts;
 		}
 

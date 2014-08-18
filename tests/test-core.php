@@ -678,10 +678,21 @@ class EPTestCore extends WP_UnitTestCase {
 	 * Test WP Query integration basic in single site
 	 */
 	public function testSingleSiteWPQuery() {
-		$config = $this->_configureSingleSite();
+		global $wp_the_query;
 
-		$post_id = $this->_createAndSyncPost();
-		$post = get_post( $post_id );
+		$config = $this->_configureSingleSite();
+		$post_ids = array();
+		
+		$post_ids[0] = $this->_createAndSyncPost();
+		$post1 = get_post( $post_ids[0] );
+		$post_ids[1] = $this->_createAndSyncPost();
+		$post2 = get_post( $post_ids[1] );
+		$post_ids[2] = $this->_createAndSyncPost();
+		$post3 = get_post( $post_ids[2] );
+		$post_ids[3] = $this->_createAndSyncPost();
+		$post4 = get_post( $post_ids[3] );
+		$post_ids[4] = $this->_createAndSyncPost();
+		$post5 = get_post( $post_ids[4] );
 
 		// We have to re-setup the query integration class
 		$response = array(
@@ -708,7 +719,7 @@ class EPTestCore extends WP_UnitTestCase {
 				'content-type' => 'application/json; charset=UTF-8',
 				'content-length' => '*',
 			),
-			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1,"hits":[{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . get_current_blog_id() . '}}]}}',
+			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1101,"max_score":1.0,"hits":[{"_index":"vistage-dev","_type":"post","_id":"782","_score":1.0, "_source" : {"post_id":'. $post_ids[0] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[0] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-776","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-776\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}},{"_index":"vistage-dev","_type":"post","_id":"1039","_score":1.0, "_source" : {"post_id":'. $post_ids[1] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[1] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-1033","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-1033\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}},{"_index":"vistage-dev","_type":"post","_id":"523","_score":1.0, "_source" : {"post_id":'. $post_ids[2] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[2] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-517","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-517\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}},{"_index":"vistage-dev","_type":"post","_id":"268","_score":1.0, "_source" : {"post_id":'. $post_ids[3] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[3] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-262","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-262\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}},{"_index":"vistage-dev","_type":"post","_id":"256","_score":1.0, "_source" : {"post_id":'. $post_ids[4] .',"post_author":{"login":"","display_name":""},"post_date":"2014-08-12 17:40:53","post_date_gmt":"2014-08-12 17:40:53","post_title":"'. get_the_title( $post_ids[4] ) . '","post_excerpt":"","post_content":"","post_status":"publish","post_name":"post-250","post_modified":"2014-08-12 17:40:53","post_modified_gmt":"2014-08-12 17:40:53","post_parent":0,"post_type":"post","post_mime_type":"","permalink":"http:\/\/vip.dev\/2014\/08\/post-250\/","terms":{"category":[{"term_id":1,"slug":"uncategorized","name":"Uncategorized","parent":0}]},"post_meta":[],"site_id":' . get_current_blog_id() . '}}]}}',
 			'response' => array(
 				'code' => 200,
 				'message' => 'OK',
@@ -728,17 +739,21 @@ class EPTestCore extends WP_UnitTestCase {
 			$this->fired_actions['ep_wp_query_search'] = true;
 		}, 10, 0 );
 
-		$query = new WP_Query( $args );
+		$wp_the_query = new WP_Query( $args );
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 
-		$this->assertEquals( $query->post_count, 1 );
-		$this->assertEquals( $query->found_posts, 1 );
+		$this->assertEquals( $wp_the_query->post_count, 5 );
+		$this->assertEquals( $wp_the_query->found_posts, 1101 );
 
-		while ( $query->have_posts() ) {
-			$query->the_post();
+		$i = 0;
 
-			$this->assertEquals( get_the_title( $post_id ), get_the_title() );
+		while ( $wp_the_query->have_posts() ) {
+			$wp_the_query->the_post();
+
+			$this->assertEquals( get_the_title( $post_ids[$i] ), get_the_title() );
+
+			$i++;
 		}
 	}
 }
