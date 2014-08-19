@@ -310,9 +310,7 @@ class EP_ElasticPress {
 
 				<h2><?php _e( 'Post Sync', 'elasticpress' ); ?></h2>
 
-				<p><?php _e( 'A sync will send all the posts in post types marked for sync to your Elasticsearch server.
-				Existing posts will be updated. This can take hours depending on how many posts you have in your
-				database.', 'elasticpress' ); ?></p>
+				<p><?php _e( 'This will perform a full sync with Elasticsearch. A sync will send all the posts in post types marked for sync to your Elasticsearch server. This may take a while if you have a large amount of posts.', 'elasticpress' ); ?></p>
 
 				<?php if ( ! ep_is_sync_alive() ) : ?>
 					<?php submit_button( __( 'Start Sync', 'elasticpress' ), 'primary', 'ep_full_sync' ); ?>
