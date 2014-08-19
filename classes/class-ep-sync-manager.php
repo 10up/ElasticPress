@@ -166,11 +166,14 @@ class EP_Sync_Manager {
 					switch_to_blog( $site['blog_id'] );
 				}
 
-				// Flush this site's index
-				ep_flush( $site['blog_id'] );
+				// If this is our initial pass through then we need to flush and apply our mapping first
+				if ( 0 === $sync_status['posts_processed'] ) {
+					// Flush this site's index
+					ep_flush( $site['blog_id'] );
 
-				// Put the mapping for this site
-				ep_put_mapping( $site['blog_id'] );
+					// Put the mapping for this site
+					ep_put_mapping( $site['blog_id'] );
+				}
 
 				$args = array(
 					'posts_per_page' => 350,
