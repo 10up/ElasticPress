@@ -149,16 +149,17 @@ class EPTestCore extends WP_UnitTestCase {
 	/**
 	 * Configure a multisite test
 	 *
+	 * @param bool $cross_site
 	 * @since 0.1.0
 	 * @return array
 	 */
-	protected function _configureMultiSite() {
+	protected function _configureMultiSite( $cross_site = true ) {
 		$config = array();
 
 		$config[0] = array(
 			'host' => 'http://127.0.0.1:9200',
 			'index_name' => 'test-index',
-			'cross_site_search_active' => 1,
+			'cross_site_search_active' => ( $cross_site ) ? 1 : 0,
 		);
 
 		ep_update_option( $config[0], 0 );
@@ -757,6 +758,80 @@ class EPTestCore extends WP_UnitTestCase {
 			$this->assertEquals( get_the_title( $post_ids[$i] ), get_the_title() );
 
 			$i++;
+		}
+	}
+
+	/**
+	 * Test WP Query integration in multisite setup
+	 *
+	 * @aince 0.9
+	 */
+	public function testMultiSiteWPQuery() {
+		$config = $this->_configureMultiSite( false );
+
+		// We have to re-setup the query integration class
+		$this->_setupWPQueryIntegration( $config[1] );
+
+		// Let's create some posts across the network
+		$sites = wp_get_sites();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$posts = array();
+			$body = '';
+
+			for ( $i = 0; $i < 3; $i++ ) {
+
+				$post_id = $this->_createAndSyncPost();
+				$post = get_post( $post_id );
+
+				$ep_id = ep_format_es_id( $post_id );
+
+				if ( ! empty( $body ) ) {
+					$body .= ', ';
+				}
+
+				$body .= '{"_index":"test-index","_type":"post","_id":"' . $ep_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . $site['blog_id'] . '}}';
+
+				$posts[] = $post_id;
+			}
+
+			$response = array(
+				'headers' => array(
+					'content-type' => 'application/json; charset=UTF-8',
+					'content-length' => '*',
+				),
+				'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":' . count( $posts ) . ',"max_score":1,"hits":[' . $body . ']}}',
+				'response' => array(
+					'code' => 200,
+					'message' => 'OK',
+				),
+				'cookies' => array(),
+				'filename' => null,
+			);
+
+			$this->wp_remote_request_mock['args'] = array( $config[$site['blog_id']]['host'] . '/' . $config[$site['blog_id']]['index_name'] . '/post/_search' );
+			$this->wp_remote_request_mock['return'] = $response;
+
+			$args = array(
+				's' => 'test',
+			);
+			$query = new WP_Query( $args );
+
+			// Make sure the query returns all the posts we created
+			$this->assertEquals( $query->post_count, 3 );
+
+			$i = 0;
+			while ( $query->have_posts() ) {
+				$query->the_post();
+
+				$this->assertEquals( $posts[$i], get_the_ID() );
+
+				$i++;
+			}
+
+			restore_current_blog();
 		}
 	}
 }
