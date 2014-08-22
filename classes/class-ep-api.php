@@ -73,11 +73,6 @@ class EP_API {
 
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $args ), 'method' => 'POST' ) );
 
-		echo $url;
-		echo json_encode( $args );
-
-		//echo print_r( $request, true );
-
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
@@ -89,17 +84,7 @@ class EP_API {
 
 			$hits = $response['hits']['hits'];
 
-			wp_list_pluck( $hits, '_source' );
-
-			$posts = array();
-
-			foreach ( $hits as $hit ) {
-				$post = $hit['_source'];
-				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
-				$posts[] = $post;
-			}
-
-			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
+			return array( 'found_posts' => $response['hits']['total'], 'posts' => wp_list_pluck( $hits, '_source' ) );
 		}
 
 		return array( 'found_posts' => 0, 'posts' => array() );
@@ -497,11 +482,10 @@ class EP_API {
 	 * Format WP query args for ES
 	 *
 	 * @param array $args
-	 * @param boolean $cross_site
 	 * @since 0.9
 	 * @return array
 	 */
-	public function format_args( $args, $cross_site = false ) {
+	public function format_args( $args ) {
 		$formatted_args = array(
 			'from' => 0,
 			'size' => get_option( 'posts_per_page' ),
@@ -548,13 +532,13 @@ class EP_API {
 			),
 		);
 
-		if ( ! $cross_site ) {
-			$formatted_args['filter']['and'][1] = array(
+		/*if ( ! $cross_site ) {
+			$formatted_args['filter']['and'][] = array(
 				'term' => array(
 					'site_id' => get_current_blog_id(),
 				),
 			);
-		}
+		}*/
 
 		if ( isset( $args['s'] ) ) {
 			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
