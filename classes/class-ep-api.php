@@ -49,6 +49,13 @@ class EP_API {
 		return false;
 	}
 
+	/**
+	 * Pull the site id from the index name
+	 *
+	 * @param string $index_name
+	 * @since 0.9
+	 * @return int
+	 */
 	public function parse_site_id( $index_name ) {
 		return (int) preg_replace( '#^.*\-([0-9]+)$#', '$1', $index_name );
 	}
@@ -84,7 +91,15 @@ class EP_API {
 
 			$hits = $response['hits']['hits'];
 
-			return array( 'found_posts' => $response['hits']['total'], 'posts' => wp_list_pluck( $hits, '_source' ) );
+			$posts = array();
+
+			foreach ( $hits as $hit ) {
+				$post = $hit['_source'];
+				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
+				$posts[] = $post;
+			}
+
+			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
 		}
 
 		return array( 'found_posts' => 0, 'posts' => array() );
@@ -193,6 +208,12 @@ class EP_API {
 		return $is_alive;
 	}
 
+	/**
+	 * Delete the network index alias
+	 *
+	 * @since 0.9
+	 * @return bool|array
+	 */
 	public function delete_network_alias() {
 		$url = untrailingslashit( EP_HOST ) . '/_aliases/' . ep_get_network_alias();
 
@@ -207,6 +228,13 @@ class EP_API {
 		return false;
 	}
 
+	/**
+	 * Create the network alias from an array of indexes
+	 *
+	 * @param array $indexes
+	 * @since 0.9
+	 * @return array|bool
+	 */
 	public function create_network_alias( $indexes ) {
 		$url = untrailingslashit( EP_HOST ) . '/_aliases';
 
@@ -462,6 +490,12 @@ class EP_API {
 		return false;
 	}
 
+	/**
+	 * Flush the index
+	 *
+	 * @since 0.9
+	 * @return array|bool
+	 */
 	public function flush( ) {
 		$index_url = ep_get_index_url();
 
@@ -531,6 +565,8 @@ class EP_API {
 				),
 			),
 		);
+
+		// @todo: Add param for only grabbing posts from specific sites
 
 		/*if ( ! $cross_site ) {
 			$formatted_args['filter']['and'][] = array(

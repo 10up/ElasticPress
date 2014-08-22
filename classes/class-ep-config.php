@@ -18,6 +18,12 @@ class EP_Config {
 		return $instance;
 	}
 
+	/**
+	 * Generates the index name for the current site
+	 *
+	 * @since 0.9
+	 * @return string
+	 */
 	public function get_index_name() {
 		$site_url = site_url();
 		$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
@@ -26,6 +32,13 @@ class EP_Config {
 		return apply_filters( 'ep_index_name', $index_name );
 	}
 
+	/**
+	 * Returns the index url given an index name. Defaults to current index
+	 *
+	 * @param string $index
+	 * @since 0.9
+	 * @return string
+	 */
 	public function get_index_url( $index = null ) {
 		if ( null === $index ) {
 			$index = $this->get_index_name();
@@ -34,12 +47,24 @@ class EP_Config {
 		return untrailingslashit( EP_HOST ) . '/' . $index;
 	}
 
+	/**
+	 * Returns indexable post types for the current site
+	 *
+	 * @since 0.9
+	 * @return mixed|void
+	 */
 	public function get_indexable_post_types() {
 		$post_types = get_post_types( array( 'public' => true ) );
 
 		return apply_filters( 'ep_indexable_post_types', $post_types );
 	}
 
+	/**
+	 * Generate network index name for alias
+	 *
+	 * @since 0.9
+	 * @return string
+	 */
 	public function get_network_alias() {
 		$url = network_site_url();
 		$slug = preg_replace( '#https?://(www\.)?#i', '', $url );

@@ -13,6 +13,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @synopsis [--network-wide]
 	 * @subcommand put-mapping
+	 * @since 0.9
 	 * @param array $args
 	 * @param array $assoc_args
 	 */
@@ -60,6 +61,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @todo replace this function with one that updates all rows with a --force option
 	 * @synopsis [--network-wide]
+	 * @since 0.9
 	 * @param array $args
 	 * @param array $assoc_args
 	 */
@@ -99,11 +101,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * Map network alias to every index in the network
 	 *
 	 * @param array $args
-	 * @subcommand map-network-alias
+	 * @subcommand recreate-network-alias
+	 * @since 0.9
 	 * @param array $assoc_args
 	 */
-	public function map_network_alias( $args, $assoc_args ) {
-		WP_CLI::line( __( 'Mapping network alias...', 'elasticpress' ) );
+	public function recreate_network_alias( $args, $assoc_args ) {
+		WP_CLI::line( __( 'Recreating network alias...', 'elasticpress' ) );
 
 		ep_delete_network_alias();
 
@@ -116,6 +119,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Helper method for creating the network alias
+	 *
+	 * @since 0.9
+	 * @return array|bool
+	 */
 	private function _create_network_alias() {
 		$sites = wp_get_sites();
 		$indexes = array();
@@ -136,6 +145,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @synopsis [--network-wide]
 	 * @param array $args
+	 * @since 0.1.2
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
@@ -158,7 +168,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				restore_current_blog();
 			}
 
-			WP_CLI::line( __( 'Mapping network alias...' ) );
+			WP_CLI::line( __( 'Recreating network alias...' ) );
 			$this->_create_network_alias();
 
 		} else {
@@ -176,6 +186,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
 	}
 
+	/**
+	 * Helper method for indexing posts
+	 *
+	 * @since 0.9
+	 * @return array
+	 */
 	private function _index_helper() {
 		$synced = 0;
 		$errors = array();
