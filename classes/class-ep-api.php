@@ -3,13 +3,6 @@
 class EP_API {
 
 	/**
-	 * Status of Elasticsearch connection
-	 *
-	 * @var bool
-	 */
-	private $is_alive = array();
-
-	/**
 	 * Placeholder method
 	 *
 	 * @since 0.1.0
@@ -36,15 +29,14 @@ class EP_API {
 	 * Index a post under a given site index or the global index ($site_id = 0)
 	 *
 	 * @param array $post
-	 * @param int $site_id
 	 * @since 0.1.0
 	 * @return array|bool|mixed
 	 */
-	public function index_post( $post, $site_id = null ) {
+	public function index_post( $post ) {
 
-		$index_url = ep_get_index_url( $site_id );
+		$index_url = ep_get_index_url();
 
-		$url = $index_url . '/post/' . $this->format_es_id( $post['post_id'], $post['site_id'] );
+		$url = $index_url . '/post/' . $post['post_id'];
 
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $post ), 'method' => 'PUT' ) );
 
@@ -57,42 +49,34 @@ class EP_API {
 		return false;
 	}
 
-	/**
-	 * Format a post_id/site_id combo as an Elasticsearch ID
-	 *
-	 * @param int $post_id
-	 * @param int $site_id
-	 * @param 0.1.3
-	 * @return string
-	 */
-	public function format_es_id( $post_id, $site_id = null ) {
-		if ( $site_id === null ) {
-			$site_id = get_current_blog_id();
-		}
-
-		if ( ! empty( $site_id ) && $site_id > 1 ) {
-			return $site_id . 'ms' . (int) $post_id;
-		}
-
-		return $post_id;
+	public function parse_site_id( $index_name ) {
+		return (int) preg_replace( '#^.*\-([0-9]+)$#', '$1', $index_name );
 	}
 
 	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
 	 * @param array $args
-	 * @param int $site_id
+	 * @param bool $cross_site
 	 * @since 0.1.0
 	 * @return array
 	 */
-	public function search( $args, $site_id = null ) {
-		$index_url = ep_get_index_url( $site_id );
+	public function search( $args, $cross_site = false ) {
+		$index = null;
+		if ( $cross_site ) {
+			$index = ep_get_network_alias();
+		}
+
+		$index_url = ep_get_index_url( $index );
 
 		$url = $index_url . '/post/_search';
 
-		do_action( 'ep_pre_search_request', $args, $site_id );
-
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $args ), 'method' => 'POST' ) );
+
+		echo $url;
+		echo json_encode( $args );
+
+		//echo print_r( $request, true );
 
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -105,7 +89,17 @@ class EP_API {
 
 			$hits = $response['hits']['hits'];
 
-			return array( 'found_posts' => $response['hits']['total'], 'posts' => wp_list_pluck( $hits, '_source' ) );
+			wp_list_pluck( $hits, '_source' );
+
+			$posts = array();
+
+			foreach ( $hits as $hit ) {
+				$post = $hit['_source'];
+				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
+				$posts[] = $post;
+			}
+
+			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
 		}
 
 		return array( 'found_posts' => 0, 'posts' => array() );
@@ -140,21 +134,13 @@ class EP_API {
 	 * is used to determine the index to delete from.
 	 *
 	 * @param int $post_id
-	 * @param int $site_id
-	 * @param int $host_site_id
 	 * @since 0.1.0
 	 * @return bool
 	 */
-	public function delete_post( $post_id, $site_id = null, $host_site_id = null ) {
-		$index_url = ep_get_index_url( $host_site_id );
+	public function delete_post( $post_id  ) {
+		$index_url = ep_get_index_url();
 
-		$url = $index_url . '/post/';
-
-		if ( ! empty( $site_id ) && $site_id > 1 ) {
-			$url .= (int) $site_id . 'ms' . (int) $post_id;
-		} else {
-			$url .= (int) $post_id;
-		}
+		$url = $index_url . '/post/' . $post_id;
 
 		$request = wp_remote_request( $url, array( 'method' => 'DELETE' ) );
 
@@ -175,21 +161,13 @@ class EP_API {
 	 * Check if a post is indexed given a $site_id and a $host_site_id
 	 *
 	 * @param int $post_id
-	 * @param int $site_id
-	 * @param int $host_site_id
 	 * @since 0.1.0
 	 * @return bool
 	 */
-	public function post_indexed( $post_id, $site_id = null, $host_site_id = null ) {
-		$index_url = ep_get_index_url( $host_site_id );
+	public function post_indexed( $post_id ) {
+		$index_url = ep_get_index_url();
 
-		$url = $index_url . '/post/';
-
-		if ( ! empty( $site_id ) && $site_id > 1 ) {
-			$url .= (int) $site_id . 'ms' . (int) $post_id;
-		} else {
-			$url .= (int) $post_id;
-		}
+		$url = $index_url . '/post/' . $post_id;
 
 		$request = wp_remote_request( $url, array( 'method' => 'GET' ) );
 
@@ -209,19 +187,14 @@ class EP_API {
 	/**
 	 * Ping the server to ensure the Elasticsearch server is operating and the index exists
 	 *
-	 * @param int $site_id
 	 * @since 0.1.1
 	 * @return bool
 	 */
-	public function is_alive( $site_id = null ) {
+	public function is_alive() {
 
-		// Otherwise, let's proceed with the check
 		$is_alive = false;
 
-		// Get main site options which are stored in location 0
-		$index_url = ep_get_index_url( $site_id );
-
-		$url = $index_url . '/_status';
+		$url = ep_get_index_url() . '/_status';
 
 		$request = wp_remote_request( $url );
 
@@ -235,14 +208,54 @@ class EP_API {
 		return $is_alive;
 	}
 
+	public function delete_network_alias() {
+		$url = untrailingslashit( EP_HOST ) . '/_aliases/' . ep_get_network_alias();
+
+		$request = wp_remote_request( $url, array( 'method' => 'GET' ) );
+
+		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
+			$response_body = wp_remote_retrieve_body( $request );
+
+			return json_decode( $response_body );
+		}
+
+		return false;
+	}
+
+	public function create_network_alias( $indexes ) {
+		$url = untrailingslashit( EP_HOST ) . '/_aliases';
+
+		$args = array(
+			'actions' => array()
+		);
+
+		foreach ( $indexes as $index ) {
+			$args['actions'][] = array(
+				'add' => array(
+					'index' => $index,
+					'alias' => ep_get_network_alias(),
+				)
+			);
+		}
+
+		$request = wp_remote_request( $url, array( 'body' => json_encode( $args ), 'method' => 'POST' ) );
+
+		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
+			$response_body = wp_remote_retrieve_body( $request );
+
+			return json_decode( $response_body );
+		}
+
+		return false;
+	}
+
 	/**
 	 * Send mapping to ES
 	 *
-	 * @param int $site_id
 	 * @since 0.9
 	 * @return array|bool|mixed
 	 */
-	public function put_mapping( $site_id = null ) {
+	public function put_mapping() {
 		$mapping = array(
 			'settings' => array(
 				'analysis' => array(
@@ -451,11 +464,9 @@ class EP_API {
 
 		$mapping = apply_filters( 'ep_config_mapping', $mapping );
 
-		$index_url = ep_get_index_url( $site_id );
+		$index_url = ep_get_index_url();
 
-		$url = $index_url;
-
-		$request = wp_remote_request( $url, array( 'body' => json_encode( $mapping ), 'method' => 'PUT' ) );
+		$request = wp_remote_request( $index_url, array( 'body' => json_encode( $mapping ), 'method' => 'PUT' ) );
 
 		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -466,8 +477,8 @@ class EP_API {
 		return false;
 	}
 
-	public function flush( $site_id = null ) {
-		$index_url = ep_get_index_url( $site_id );
+	public function flush( ) {
+		$index_url = ep_get_index_url();
 
 		$request = wp_remote_request( $index_url, array( 'method' => 'DELETE' ) );
 
@@ -538,7 +549,7 @@ class EP_API {
 		);
 
 		if ( ! $cross_site ) {
-			$formatted_args['filter']['and'][] = array(
+			$formatted_args['filter']['and'][1] = array(
 				'term' => array(
 					'site_id' => get_current_blog_id(),
 				),
@@ -589,38 +600,42 @@ EP_API::factory();
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
-function ep_index_post( $post, $site_id = null ) {
-	return EP_API::factory()->index_post( $post, $site_id );
+function ep_index_post( $post ) {
+	return EP_API::factory()->index_post( $post );
 }
 
-function ep_search( $args, $site_id = null ) {
-	return EP_API::factory()->search( $args, $site_id );
+function ep_search( $args, $cross_site = false ) {
+	return EP_API::factory()->search( $args, $cross_site );
 }
 
-function ep_post_indexed( $post_id, $site_id = null, $host_site_id = null ) {
-	return EP_API::factory()->post_indexed( $post_id, $site_id, $host_site_id );
+function ep_post_indexed( $post_id ) {
+	return EP_API::factory()->post_indexed( $post_id );
 }
 
-function ep_delete_post( $post_id, $site_id = null, $host_site_id = null ) {
-	return EP_API::factory()->delete_post( $post_id, $site_id, $host_site_id );
+function ep_delete_post( $post_id ) {
+	return EP_API::factory()->delete_post( $post_id );
 }
 
-function ep_is_alive( $site_id = null ) {
-	return EP_API::factory()->is_alive( $site_id );
+function ep_is_alive() {
+	return EP_API::factory()->is_alive();
 }
 
-function ep_put_mapping( $site_id = null ) {
-	return EP_API::factory()->put_mapping( $site_id );
+function ep_put_mapping() {
+	return EP_API::factory()->put_mapping();
 }
 
-function ep_flush( $site_id = null ) {
-	return EP_API::factory()->flush( $site_id );
-}
-
-function ep_format_es_id( $post_id, $site_id = null ) {
-	return EP_API::factory()->format_es_id( $post_id, $site_id );
+function ep_flush() {
+	return EP_API::factory()->flush();
 }
 
 function ep_format_args( $args ) {
 	return EP_API::factory()->format_args( $args );
+}
+
+function ep_create_network_alias( $indexes ) {
+	return EP_API::factory()->create_network_alias( $indexes );
+}
+
+function ep_delete_network_alias() {
+	return EP_API::factory()->delete_network_alias();
 }

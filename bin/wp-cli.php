@@ -17,22 +17,41 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function put_mapping( $args, $assoc_args ) {
-		$site_id = null;
+
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$site_id = 0;
-		}
+			$sites = wp_get_sites();
 
-		WP_CLI::line( "Adding mapping" );
+			foreach ( $sites as $site ) {
+				switch_to_blog( $site['blog_id'] );
 
-		// Flushes index first
-		$this->flush( $args, $assoc_args );
+				WP_CLI::line( sprintf( __( 'Adding mapping for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
 
-		$result = ep_put_mapping( $site_id );
+				// Flushes index first
+				ep_flush();
 
-		if ( $result ) {
-			WP_CLI::success( 'Mapping sent' );
+				$result = ep_put_mapping();
+
+				if ( $result ) {
+					WP_CLI::success( __( 'Mapping sent', 'elasticpress' ) );
+				} else {
+					WP_CLI::error( __( 'Mapping failed', 'elasticpress' ) );
+				}
+
+				restore_current_blog();
+			}
 		} else {
-			WP_CLI::error( 'Mapping failed' );
+			WP_CLI::line( __( 'Adding mapping...', 'elasticpress' ) );
+
+			// Flushes index first
+			$this->flush( $args, $assoc_args );
+
+			$result = ep_put_mapping();
+
+			if ( $result ) {
+				WP_CLI::success( __( 'Mapping sent', 'elasticpress' ) );
+			} else {
+				WP_CLI::error( __( 'Mapping failed', 'elasticpress' ) );
+			}
 		}
 	}
 
@@ -45,20 +64,71 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function flush( $args, $assoc_args ) {
-		$site_id = null;
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$site_id = 0;
-		}
+			$sites = wp_get_sites();
 
-		WP_CLI::line( "Flushing index..." );
+			foreach ( $sites as $site ) {
+				switch_to_blog( $site['blog_id'] );
 
-		$result = ep_flush( $site_id );
+				WP_CLI::line( sprintf( __( 'Flushing index for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
 
-		if ( $result ) {
-			WP_CLI::success( 'Index flushed' );
+				$result = ep_flush();
+
+				if ( $result ) {
+					WP_CLI::success( __( 'Index flushed', 'elasticpress' ) );
+				} else {
+					WP_CLI::error( __( 'Flush failed', 'elasticpress' ) );
+				}
+
+				restore_current_blog();
+			}
 		} else {
-			WP_CLI::error( 'Flush failed' );
+			WP_CLI::line( __( 'Flushing index...', 'elasticpress' ) );
+
+			$result = ep_flush();
+
+			if ( $result ) {
+				WP_CLI::success( __( 'Index flushed', 'elasticpress' ) );
+			} else {
+				WP_CLI::error( __( 'Flush failed', 'elasticpress' ) );
+			}
 		}
+	}
+
+	/**
+	 * Map network alias to every index in the network
+	 *
+	 * @param array $args
+	 * @subcommand map-network-alias
+	 * @param array $assoc_args
+	 */
+	public function map_network_alias( $args, $assoc_args ) {
+		WP_CLI::line( __( 'Mapping network alias...', 'elasticpress' ) );
+
+		ep_delete_network_alias();
+
+		$create_result = $this->_create_network_alias();
+
+		if ( $create_result ) {
+			WP_CLI::success( __( 'Done!', 'elasticpress' ) );
+		} else {
+			WP_CLI::error( __( 'An error occurred', 'elasticpress' ) );
+		}
+	}
+
+	private function _create_network_alias() {
+		$sites = wp_get_sites();
+		$indexes = array();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$indexes[] = ep_get_index_name();
+
+			restore_current_blog();
+		}
+
+		return ep_create_network_alias( $indexes );
 	}
 
 	/**
@@ -69,126 +139,83 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
-		if ( empty( $assoc_args['network-wide'] ) ) {
-			WP_CLI::line( 'Indexing posts on current site' );
-
-			$site_config = ep_get_option();
-
-			if ( ! empty( $site_config['post_types'] ) ) {
-
-				$synced = 0;
-				$errors = array();
-				$offset = 0;
-
-				$host_site_id = null;
-				$global_config = ep_get_option( 0 );
-
-				// If cross site search is active, make sure we use the global index
-				if ( ! empty( $global_config['cross_site_search_active'] ) ) {
-					$host_site_id = 0;
-				}
-
-				while ( true ) {
-
-					$args = array(
-						'posts_per_page' => 500,
-						'post_type'      => $site_config['post_types'],
-						'offset'         => $offset,
-						'post_status'    => 'publish',
-					);
-
-					$query = new WP_Query( $args );
-
-					if ( $query->have_posts() ) {
-
-						while ( $query->have_posts() ) {
-							$query->the_post();
-
-							$result = ep_sync_post( get_the_ID(), null, $host_site_id );
-
-							if ( ! $result ) {
-								$errors[] = get_the_ID();
-							} else {
-								$synced++;
-							}
-						}
-					} else {
-						break;
-					}
-
-					$offset += 500;
-				}
-
-				wp_reset_postdata();
-
-				WP_CLI::line( 'Number of posts synced on current site (' . get_current_blog_id() . '): ' . $synced );
-
-				if ( ! empty( $errors ) ) {
-					WP_CLI::error( 'Number of post sync errors on current site (' . get_current_blog_id() . '): ' . count( $errors ) );
-				}
-			}
-
-		} else {
-			WP_CLI::line( 'Indexing posts network-wide' );
+		if ( ! empty( $assoc_args['network-wide'] ) ) {
+			WP_CLI::line( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
 			$sites = wp_get_sites();
 
 			foreach ( $sites as $site ) {
-				$site_config = ep_get_option( $site['blog_id'] );
+				switch_to_blog( $site['blog_id'] );
 
-				if ( ! empty( $site_config['post_types'] ) ) {
+				$result = $this->_index_helper();
 
-					// Do sync for this site!
-					switch_to_blog( $site['blog_id'] );
+				WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
-					$synced = 0;
-					$errors = array();
-					$offset = 0;
-
-					while ( true ) {
-
-						$args = array(
-							'posts_per_page' => 500,
-							'post_type'      => $site_config['post_types'],
-							'post_status'    => 'publish',
-							'offset'         => $offset,
-						);
-
-						$query = new WP_Query( $args );
-
-						if ( $query->have_posts() ) {
-
-							while ( $query->have_posts() ) {
-								$query->the_post();
-
-								$result = ep_sync_post( get_the_ID(), null, 0 );
-
-								if ( ! $result ) {
-									$errors[] = get_the_ID();
-								} else {
-									$synced++;
-								}
-							}
-						} else {
-							break;
-						}
-
-						$offset += 500;
-					}
-
-					wp_reset_postdata();
-
-					WP_CLI::line( 'Number of posts synced on site ' . get_current_blog_id() . ': ' . $synced );
-
-					if ( ! empty( $errors ) ) {
-						WP_CLI::error( 'Number of post sync errors on site ' . get_current_blog_id() . ': ' . count( $errors ) );
-					}
-
-					restore_current_blog();
+				if ( ! empty( $errors ) ) {
+					WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
 				}
+
+				restore_current_blog();
+			}
+
+			WP_CLI::line( __( 'Mapping network alias...' ) );
+			$this->_create_network_alias();
+
+		} else {
+			WP_CLI::line( __( 'Indexing posts...', 'elasticpress' ) );
+
+			$result = $this->_index_helper();
+
+			WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
+
+			if ( ! empty( $errors ) ) {
+				WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
 			}
 		}
 
-		WP_CLI::success( 'Done!' );
+		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
+	}
+
+	private function _index_helper() {
+		$synced = 0;
+		$errors = array();
+		$offset = 0;
+
+		while ( true ) {
+
+			$args = array(
+				'posts_per_page' => 500,
+				'post_type'      => ep_get_indexable_post_types(),
+				'post_status'    => 'publish',
+				'offset'         => $offset,
+			);
+
+			$query = new WP_Query( $args );
+
+			if ( $query->have_posts() ) {
+
+				while ( $query->have_posts() ) {
+					$query->the_post();
+
+					$result = ep_sync_post( get_the_ID() );
+
+					if ( ! $result ) {
+						$errors[] = get_the_ID();
+					} else {
+						$synced++;
+					}
+				}
+			} else {
+				break;
+			}
+
+			$offset += 500;
+
+			usleep( 500 );
+		}
+
+		wp_reset_postdata();
+
+		return array( 'synced' => $synced, 'errors' => $errors );
 	}
 }

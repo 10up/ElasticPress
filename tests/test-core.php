@@ -101,30 +101,11 @@ class EPTestCore extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Configure a single site test
-	 *
-	 * @since 0.1.0
-	 * @return array
-	 */
-	protected function _configureSingleSite() {
-		$config = array(
-			'post_types' => array( 'post' ),
-			'host' => 'http://127.0.0.1:9200',
-			'index_name' => 'test-index',
-		);
-
-		ep_update_option( $config );
-
-		return $config;
-	}
-
-	/**
 	 * We have to mock the request properly to setup WP Query integration.
 	 *
-	 * @param array $config
 	 * @since 0.9
 	 */
-	public function _setupWPQueryIntegration( $config ) {
+	public function _setupWPQueryIntegration() {
 
 		$response = array(
 			'headers' => array(
@@ -140,54 +121,10 @@ class EPTestCore extends WP_UnitTestCase {
 			'filename' => null,
 		);
 
-		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/_status' );
+		$this->wp_remote_request_mock['args'] = array( ep_get_index_url() . '/_status' );
 		$this->wp_remote_request_mock['return'] = $response;
 
 		EP_WP_Query_Integration::factory()->setup();
-	}
-
-	/**
-	 * Configure a multisite test
-	 *
-	 * @since 0.1.0
-	 * @return array
-	 */
-	protected function _configureMultiSite() {
-		$config = array();
-
-		$config[0] = array(
-			'host' => 'http://127.0.0.1:9200',
-			'index_name' => 'test-index',
-			'cross_site_search_active' => 1,
-		);
-
-		ep_update_option( $config[0], 0 );
-
-		$config[1] = array(
-			'host' => 'http://888.0.0.1:9100',
-			'post_types' => array( 'post' ),
-			'index_name' => 'test-index-1',
-		);
-
-		ep_update_option( $config[1], 1 );
-
-		$blog_ids = $this->factory->blog->create_many( 2 );
-
-		$i = 2;
-
-		foreach ( $blog_ids as $blog_id ) {
-			$config[$blog_id] = array(
-				'host' => 'http://999.0.0.1:9100',
-				'post_types' => ( $i % 2 == 0 ) ? array( 'post', 'page' ) : array( 'page' ),
-				'index_name' => 'test-index-' . $i,
-			);
-
-			ep_update_option( $config[$blog_id], $blog_id );
-
-			$i++;
-		}
-
-		return $config;
 	}
 
 	/**
@@ -195,28 +132,15 @@ class EPTestCore extends WP_UnitTestCase {
 	 *
 	 * @param array $post_args
 	 * @param array $post_meta
-	 * @param int $site_id
-	 * @param bool $cross_site
 	 * @since 0.1.2
 	 * @return int|WP_Error
 	 */
-	protected function _createAndSyncPost( $post_args = array(), $post_meta = array(), $site_id = null, $cross_site = false ) {
-		if ( $site_id != null ) {
-			switch_to_blog( $site_id );
-		}
+	protected function _createAndSyncPost( $post_args = array(), $post_meta = array() ) {
 
-		$config = ep_get_option( $site_id );
-		$index_name = $config['index_name'];
-		$host = $config['host'];
-
-		if ( $cross_site ) {
-			$global_config = ep_get_option( 0 );
-			$index_name = $global_config['index_name'];
-			$host = $global_config['host'];
-		}
+		$post_types = ep_get_indexable_post_types();
 
 		$post_id = wp_insert_post( wp_parse_args( array(
-			'post_type' => $config['post_types'][0],
+			'post_type' => $post_types[0],
 			'post_status' => 'draft',
 			'author' => 1,
 			'post_title' => 'Test Post ' . time(),
@@ -234,14 +158,12 @@ class EPTestCore extends WP_UnitTestCase {
 			}
 		}
 
-		$ep_id = ep_format_es_id( $post_id );
-
 		$response = array(
 			'headers' => array(
 				'content-type' => 'application/json; charset=UTF-8',
 				'content-length' => '*',
 			),
-			'body' => '{"_index":"' . $index_name . '","_type":"post","_id":"' . $ep_id . '","_version":1,"created":true}',
+			'body' => '{"_index":"' . ep_get_index_name() . '","_type":"post","_id":"' . $post_id . '","_version":1,"created":true}',
 			'response' => array(
 				'code' => 200,
 				'message' => 'OK',
@@ -250,56 +172,13 @@ class EPTestCore extends WP_UnitTestCase {
 			'filename' => null,
 		);
 
-		$this->wp_remote_request_mock['args'] = array( $host . '/' . $index_name . '/post/' . $ep_id );
+		$this->wp_remote_request_mock['args'] = array( ep_get_index_url(). '/post/' . $post_id );
 
 		$this->wp_remote_request_mock['return'] = $response;
 
 		wp_publish_post( $post_id );
 
-		if ( $site_id != null ) {
-			restore_current_blog();
-		}
-
 		return $post_id;
-	}
-
-	/**
-	 * Simple test to ensure single site configuration consistency
-	 *
-	 * @aince 0.1.0
-	 */
-	public function testSingleSiteConfigSet() {
-		$config = $this->_configureSingleSite();
-
-		$current_site_id = get_current_blog_id();
-
-		$option = get_site_option( 'ep_config_by_site', array() );
-
-		$this->assertTrue( isset( $option[$current_site_id] ) );
-
-		foreach ( $option[$current_site_id] as $key => $value ) {
-			$this->assertEquals( $option[$current_site_id][$key], $config[$key] );
-		}
-	}
-
-	/**
-	 * Simple test to ensure multisite configuration consistency
-	 *
-	 * @aince 0.1.0
-	 */
-	public function testMultiSiteConfigSet() {
-		$config = $this->_configureMultiSite();
-
-		$option = get_site_option( 'ep_config_by_site', array() );
-
-		$this->assertTrue( count( $option ) > 1 );
-
-		foreach ( $option as $site_id => $site_config ) {
-
-			foreach ( $site_config as $key => $value ) {
-				$this->assertEquals( $site_config[$key], $config[$site_id][$key] );
-			}
-		}
 	}
 
 	/**
@@ -308,7 +187,6 @@ class EPTestCore extends WP_UnitTestCase {
 	 * @since 0.1.0
 	 */
 	public function testSingleSiteSearchBasic() {
-		$config = $this->_configureSingleSite();
 
 		$post_id = $this->_createAndSyncPost();
 		$post = get_post( $post_id );
@@ -318,7 +196,7 @@ class EPTestCore extends WP_UnitTestCase {
 				'content-type' => 'application/json; charset=UTF-8',
 				'content-length' => '*',
 			),
-			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1,"hits":[{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . get_current_blog_id() . '}}]}}',
+			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1,"hits":[{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '"}}]}}',
 			'response' => array(
 				'code' => 200,
 				'message' => 'OK',
@@ -327,7 +205,7 @@ class EPTestCore extends WP_UnitTestCase {
 			'filename' => null,
 		);
 
-		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/_search' );
+		$this->wp_remote_request_mock['args'] = array( ep_get_index_url() . '/post/_search' );
 		$this->wp_remote_request_mock['return'] = $response;
 
 		$args = array(
@@ -342,60 +220,8 @@ class EPTestCore extends WP_UnitTestCase {
 
 			$this->assertEquals( get_the_title( $post_id ), get_the_title() );
 		}
-	}
 
-	/**
-	 * Test a simple post meta search.
-	 *
-	 * @since 0.1.2
-	 */
-	public function testSingleSiteSearchMeta() {
-		$config = $this->_configureSingleSite();
-
-		$post_id = $this->_createAndSyncPost( array(), array( 'test_search_key' => 'John Smith' ) );
-		$post_id2 = $this->_createAndSyncPost();
-		$post = get_post( $post_id );
-
-		$response = array(
-			'headers' => array(
-				'content-type' => 'application/json; charset=UTF-8',
-				'content-length' => '*',
-			),
-			'body' => '{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":1,"hits":[{"_index":"test-index","_type":"post","_id":"' . $post_id . '","_score":1,"_source":{"post_id":' . $post_id . ',"post_author":{"login":"admin","display_name":"admin"},"post_date":"2014-03-18 14:14:00","post_date_gmt":"2014-03-18 14:14:00","post_title":"' . get_the_title( $post_id ) . '","post_excerpt":"' . apply_filters( 'the_excerpt', $post->post_excerpt ) . '","post_content":"' . apply_filters( 'the_content', $post->post_content ) . '","post_status":"' . get_post_status( $post_id ) . '","post_name":"test-post","post_modified":"2014-03-18 14:14:00","post_modified_gmt":"2014-03-18 14:14:00","post_parent":0,"post_type":"' . get_post_type( $post_id ) . '","post_mime_type":"","permalink":"' . get_permalink( $post_id ) . '","site_id":' . get_current_blog_id() . '}}]}}',
-			'response' => array(
-				'code' => 200,
-				'message' => 'OK',
-			),
-			'cookies' => array(),
-			'filename' => null,
-		);
-
-		$this->wp_remote_request_mock['args'] = array( $config['host'] . '/' . $config['index_name'] . '/post/_search' );
-		$this->wp_remote_request_mock['return'] = $response;
-
-		add_action( 'ep_pre_search_request', function( $args ) {
-			$this->fired_actions['ep_pre_search_request'] = $args;
-		} );
-
-		$args = array(
-			's' => 'John Smith',
-			'search_meta' => array( 'test_search_key' ),
-		);
-		$query = new EP_Query( $args );
-
-		// Make sure proper post is returned
-		$this->assertEquals( $query->post_count, 1 );
-
-		while ( $query->have_posts() ) {
-			$query->the_post();
-
-			$this->assertEquals( get_the_title( $post_id ), get_the_title() );
-		}
-
-		// Make sure proper args are sent to ES
-		$this->assertTrue( ! empty( $this->fired_actions['ep_pre_search_request'] ) );
-
-		$this->assertTrue( $this->_deepInArray( 'post_meta.test_search_key', $this->fired_actions['ep_pre_search_request'] ) );
+		wp_reset_postdata();
 	}
 
 	/**

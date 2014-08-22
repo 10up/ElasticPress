@@ -12,8 +12,6 @@ class EP_Query {
 
 	public $post;
 
-	public $cross_site = false;
-
 	public $post_count = 0;
 
 	public $found_posts = 0;
@@ -31,12 +29,6 @@ class EP_Query {
 	 * @since 0.1.0
 	 */
 	public function __construct( $args ) {
-
-		$config = ep_get_option( 0 );
-		if ( ! empty( $config['cross_site_search_active'] ) ) {
-			$this->cross_site = true;
-		}
-
 		$this->query( $args );
 	}
 
@@ -49,20 +41,11 @@ class EP_Query {
 	 */
 	public function query( $args ) {
 
-		$site_id = null;
-		if ( $this->cross_site ) {
-			$site_id = 0;
-		}
-
-		if ( ! ep_is_setup( $site_id ) ) {
-			return array();
-		}
-
-		$formatted_args = ep_format_args( $args, $this->cross_site );
+		$formatted_args = ep_format_args( $args );
 
 		$posts_per_page = ( isset( $args['posts_per_page'] ) ) ? $args['posts_per_page'] : get_option( 'posts_per_page' );
 
-		$search = ep_search( $formatted_args, $site_id );
+		$search = ep_search( $formatted_args, true );
 
 		$this->found_posts = $search['found_posts'];
 
@@ -82,7 +65,7 @@ class EP_Query {
 	 * @return bool
 	 */
 	public function have_posts() {
-		if ( is_multisite() && $this->cross_site ) {
+		if ( is_multisite() ) {
 			restore_current_blog();
 		}
 
@@ -108,7 +91,7 @@ class EP_Query {
 
 		$ep_post = $this->next_post();
 
-		if ( is_multisite() && $this->cross_site && $ep_post['site_id'] != get_current_blog_id() ) {
+		if ( is_multisite() && $ep_post['site_id'] != get_current_blog_id() ) {
 			switch_to_blog( $ep_post['site_id'] );
 		}
 

@@ -31,20 +31,7 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		// Delete ES post if WP post contains an ES ID
-
-		$host_site_id = null;
-		$config = ep_get_option( 0 );
-		$ep_id = ep_format_es_id( $post_id );
-
-		// If cross site search is active, make sure we use the global index
-		if ( ! empty( $config['cross_site_search_active'] ) ) {
-			$host_site_id = 0;
-		}
-
-		do_action( 'ep_delete_post', $ep_id, null, $host_site_id );
-
-		ep_delete_post( $ep_id, null, $host_site_id );
+		ep_delete_post( $post_id );
 	}
 
 	/**
@@ -64,21 +51,13 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$site_config = ep_get_option();
-
 		$post_type = get_post_type( $post->ID );
 
-		if ( in_array( $post_type, $site_config['post_types'] ) ) {
-			// If post type is supposed to be sync, let's sync this post
-			$global_config = ep_get_option( 0 );
-			$host_site_id = null;
-			if ( ! empty( $global_config['cross_site_search_active'] ) ) {
-				$host_site_id = 0;
-			}
+		$indexable_post_types = get_indexable_post_types();
 
-			do_action( 'ep_sync_on_transition', $post->ID, null, $host_site_id );
+		if ( in_array( $post_type, $indexable_post_types ) ) {
 
-			$this->sync_post( $post->ID, null, $host_site_id );
+			$this->sync_post( $post->ID );
 		}
 	}
 
@@ -97,113 +76,6 @@ class EP_Sync_Manager {
 		}
 
 		return $instance;
-	}
-
-	/**
-	 * Schedule a sync for a specific site or globally
-	 *
-	 * @param int $site_id
-	 * @since 0.1.0
-	 * @return bool
-	 */
-	public function schedule_sync( $site_id = null ) {
-
-		if ( empty( $site_id ) ) {
-			$site_id = get_current_blog_id();
-		}
-
-		$sync_status = ep_get_sync_status( $site_id );
-
-		if ( empty( $sync_status['start_time'] ) ) {
-			$sync_status['start_time'] = time();
-
-			return ep_update_sync_status( $sync_status, $site_id );
-		}
-
-		return false;
-	}
-
-	/**
-	 * Do all currently scheduled syncs
-	 *
-	 * @since 0.1.3
-	 */
-	public function do_scheduled_syncs() {
-		if ( function_exists( 'wp_get_sites' ) ) {
-			$sites = wp_get_sites();
-		} else {
-			$sites = array(
-				array(
-					'blog_id' => 1,
-				),
-			);
-		}
-
-		foreach ( $sites as $site ) {
-			$site_config = ep_get_option( $site['blog_id'] );
-			if ( ! empty( $config['cross_site_search_active'] ) ) {
-				$host_site_id = 0;
-			} else {
-				$host_site_id = null;
-			}
-
-			if ( ! empty( $site_config['post_types'] ) ) {
-
-				$sync_status = ep_get_sync_status( $site['blog_id'] );
-
-				/**
-				 * If no start time has been set, then the sync hasn't been scheduled. and will not run
-				 */
-				if ( empty( $sync_status['start_time'] ) ) {
-					continue;
-				}
-
-				// If running multisite, switch to the sub site
-				if ( function_exists( 'switch_to_blog' ) ) {
-					switch_to_blog( $site['blog_id'] );
-				}
-
-				// If this is our initial pass through then we need to flush and apply our mapping first
-				if ( 0 === $sync_status['posts_processed'] ) {
-					// Flush this site's index
-					ep_flush( $site['blog_id'] );
-
-					// Put the mapping for this site
-					ep_put_mapping( $site['blog_id'] );
-				}
-
-				$args = array(
-					'posts_per_page' => 350,
-					'offset' => $sync_status['posts_processed'],
-					'post_type' => $site_config['post_types'],
-					'post_status' => 'publish',
-				);
-
-				$query = new WP_Query( $args );
-
-				if ( $query->have_posts() ) {
-
-					while ( $query->have_posts() ) {
-						$query->the_post();
-
-						$sync_status['posts_processed']++;
-
-						$this->sync_post( get_the_ID(), null, $host_site_id );
-
-						ep_update_sync_status( $sync_status, $site['blog_id'] );
-					}
-				} else {
-					ep_reset_sync( $site['blog_id'] );
-				}
-
-				wp_reset_postdata();
-
-				if ( function_exists( 'restore_current_blog' ) ) {
-					restore_current_blog();
-				}
-			}
-		}
-
 	}
 
 	/**
@@ -280,15 +152,10 @@ class EP_Sync_Manager {
 	 * Sync a post for a specific site or globally.
 	 *
 	 * @param int $post_id
-	 * @param int $site_id - Passed to the post created in the ES index
-	 * @param int $host_site_id - Strictly used to determine the index to use
 	 * @since 0.1.0
 	 * @return bool|array
 	 */
-	public function sync_post( $post_id, $site_id = null, $host_site_id = null ) {
-		if ( empty( $site_id ) ) {
-			$site_id = get_current_blog_id();
-		}
+	public function sync_post( $post_id ) {
 
 		$post = get_post( $post_id );
 
@@ -324,12 +191,12 @@ class EP_Sync_Manager {
 			'permalink' => get_permalink( $post_id ),
 			'terms' => $this->prepare_terms( $post ),
 			'post_meta' => $this->prepare_meta( $post ),
-			'site_id' => $site_id,
+			//'site_id' => $site_id,
 		);
 
-		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id, $site_id, $host_site_id );
+		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
 
-		$response = ep_index_post( $post_args, $host_site_id );
+		$response = ep_index_post( $post_args );
 
 		return $response;
 	}
@@ -341,14 +208,6 @@ $ep_sync_manager = EP_Sync_Manager::factory();
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
-function ep_schedule_sync( $site_id = null ) {
-	EP_Sync_Manager::factory()->schedule_sync( $site_id );
-}
-
-function ep_do_scheduled_syncs() {
-	EP_Sync_Manager::factory()->do_scheduled_syncs();
-}
-
-function ep_sync_post( $post_id, $site_id = null, $host_site_id = null ) {
-	return EP_Sync_Manager::factory()->sync_post( $post_id, $site_id, $host_site_id );
+function ep_sync_post( $post_id ) {
+	return EP_Sync_Manager::factory()->sync_post( $post_id );
 }

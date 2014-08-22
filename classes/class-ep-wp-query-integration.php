@@ -78,14 +78,10 @@ class EP_WP_Query_Integration {
 
 		$formatted_args = ep_format_args( $query_vars );
 
-		$config = ep_get_option( 0 );
-		$site_id = get_current_blog_id();
+		$search = ep_search( $formatted_args );
 
-		if ( ! empty( $config->cross_site_search_active ) ) {
-			$site_id = 0;
-		}
-
-		$search = ep_search( $formatted_args, $site_id );
+		var_dump( $search );
+		exit;
 
 		$this->found_posts = $search['found_posts'];
 

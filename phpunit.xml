@@ -8,6 +8,7 @@
 	>
     <php>
         <const name="WP_TESTS_MULTISITE" value="1" />
+        <const name="EP_HOST" value="http://127.0.0.1:9200" />
     </php>
 	<testsuites>
 		<testsuite>
