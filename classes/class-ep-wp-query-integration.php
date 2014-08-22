@@ -80,9 +80,6 @@ class EP_WP_Query_Integration {
 
 		$search = ep_search( $formatted_args );
 
-		var_dump( $search );
-		exit;
-
 		$this->found_posts = $search['found_posts'];
 
 		if ( empty( $search['posts'] ) ) {

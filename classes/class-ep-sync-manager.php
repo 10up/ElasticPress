@@ -53,7 +53,7 @@ class EP_Sync_Manager {
 
 		$post_type = get_post_type( $post->ID );
 
-		$indexable_post_types = get_indexable_post_types();
+		$indexable_post_types = ep_get_indexable_post_types();
 
 		if ( in_array( $post_type, $indexable_post_types ) ) {
 
