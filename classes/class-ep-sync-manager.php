@@ -191,7 +191,7 @@ class EP_Sync_Manager {
 			'permalink' => get_permalink( $post_id ),
 			'terms' => $this->prepare_terms( $post ),
 			'post_meta' => $this->prepare_meta( $post ),
-			'site_id' => get_current_blog_id(),
+			//'site_id' => get_current_blog_id(),
 		);
 
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
