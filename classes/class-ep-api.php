@@ -64,13 +64,13 @@ class EP_API {
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
 	 * @param array $args
-	 * @param bool $cross_site
+	 * @param string $scope
 	 * @since 0.1.0
 	 * @return array
 	 */
-	public function search( $args, $cross_site = false ) {
+	public function search( $args, $scope = 'current' ) {
 		$index = null;
-		if ( $cross_site ) {
+		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
 		}
 
