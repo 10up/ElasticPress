@@ -158,13 +158,13 @@ class EP_API {
 	}
 
 	/**
-	 * Check if a post is indexed given a $site_id and a $host_site_id
+	 * Get a post from the index
 	 *
 	 * @param int $post_id
-	 * @since 0.1.0
+	 * @since 0.9
 	 * @return bool
 	 */
-	public function post_indexed( $post_id ) {
+	public function get_post( $post_id ) {
 		$index_url = ep_get_index_url();
 
 		$url = $index_url . '/post/' . $post_id;
@@ -176,8 +176,8 @@ class EP_API {
 
 			$response = json_decode( $response_body, true );
 
-			if ( ! empty( $response['found'] ) ) {
-				return true;
+			if ( ! empty( $response['exists'] ) ) {
+				return $response['_source'];
 			}
 		}
 
@@ -628,8 +628,8 @@ function ep_search( $args, $cross_site = false ) {
 	return EP_API::factory()->search( $args, $cross_site );
 }
 
-function ep_post_indexed( $post_id ) {
-	return EP_API::factory()->post_indexed( $post_id );
+function ep_get_post( $post_id ) {
+	return EP_API::factory()->get_post( $post_id );
 }
 
 function ep_delete_post( $post_id ) {

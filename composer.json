@@ -1,8 +1,0 @@
-{
-	"name"       : "ElasticPress",
-	"description": "Integrate Elasticsearch with WordPress",
-	"license"    : "GPL-2.0+",
-	"require-dev": {
-		"antecedent/patchwork": "~1.2"
-	}
-}

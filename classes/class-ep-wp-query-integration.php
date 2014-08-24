@@ -14,14 +14,13 @@ class EP_WP_Query_Integration {
 			// Make sure we return nothing for MySQL posts query
 			add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
 
+			add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
+
 			// Nukes the FOUND_ROWS() database query
 			add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
 
-			// Since the FOUND_ROWS() query was nuked, we need to supply the total number of found posts
-			add_filter( 'found_posts', array( $this, 'filter_found_posts' ), 5, 2 );
-
 			// Search and filter in EP_Posts to WP_Query
-			add_filter( 'posts_results', array( $this, 'filter_post_results' ), 10, 2 );
+			add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
 
 			// Properly restore blog if necessary
 			add_action( 'loop_end', array( $this, 'action_loop_end' ) );
@@ -29,6 +28,13 @@ class EP_WP_Query_Integration {
 			// Properly switch to blog if necessary
 			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 		}
+	}
+
+	public function action_pre_get_posts( $query ) {
+		if ( ! $query->is_main_query() || ! $query->is_search() )
+			return;
+
+		$query->set( 'cache_results', false );
 	}
 
 	/**
@@ -65,11 +71,9 @@ class EP_WP_Query_Integration {
 	 * @param object &$query
 	 * @return array
 	 */
-	public function filter_post_results( $posts, &$query ) {
+	public function filter_the_posts( $posts, &$query ) {
 
-		$s = $query->get( 's' );
-
-		if ( empty( $s ) ) {
+		if ( ! $query->is_search() ) {
 			return $posts;
 		}
 
@@ -92,8 +96,31 @@ class EP_WP_Query_Integration {
 
 		$posts = array();
 
-		foreach ( $search['posts'] as $post ) {
-			$posts[] = new EP_Post( $post );
+		foreach ( $search['posts'] as $post_array ) {
+			$post = new stdClass();
+
+			$post->ID = $post_array['post_id'];
+			$post->site_id = get_current_blog_id();
+
+			if ( ! empty( $post_array['site_id'] ) ) {
+				$post->site_id = $post_array['site_id'];
+			}
+
+			$post->post_name = $post_array['post_name'];
+			$post->post_status = $post_array['post_status'];
+			$post->post_title = $post_array['post_title'];
+			$post->post_content = $post_array['post_content'];
+			$post->post_date = $post_array['post_date'];
+			$post->post_date_gmt = $post_array['post_date_gmt'];
+			$post->post_array = $post_array['post_modified'];
+			$post->post_modified_gmt = $post_array['post_modified_gmt'];
+
+			// Run through get_post() to add all expected properties (even if they're empty)
+			$post = get_post( $post );
+
+			if ( $post ) {
+				$posts[] = $post;
+			}
 		}
 
 		do_action( 'ep_wp_query_search', $posts, $search, $query );
@@ -126,9 +153,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_posts_request( $request, $query ) {
-		$s = $query->get( 's' );
-
-		if ( empty( $s ) ) {
+		if ( ! $query->is_search() ) {
 			return $request;
 		}
 

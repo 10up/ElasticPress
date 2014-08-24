@@ -9,8 +9,6 @@
  * License:     GPLv2+
  */
 
-
-require_once( 'classes/class-ep-post.php' );
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
 require_once( 'classes/class-ep-sync-manager.php' );

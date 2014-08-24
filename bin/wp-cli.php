@@ -159,7 +159,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 				$result = $this->_index_helper();
 
-				WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
+				WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $site['blog_id'], $result['synced'] ) );
 
 				if ( ! empty( $errors ) ) {
 					WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
