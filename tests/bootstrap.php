@@ -6,6 +6,7 @@ if ( ! $_tests_dir ) {
 }
 
 require_once( $_tests_dir . '/includes/functions.php' );
+require_once( 'functions.php' );
 
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
