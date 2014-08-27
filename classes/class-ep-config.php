@@ -3,90 +3,6 @@
 class EP_Config {
 
 	/**
-	 * Skeleton to build out single site config array. Not to be used for actually storing values in.
-	 *
-	 * @since 0.1.0
-	 * @var array
-	 */
-	private static $single_site_config = array(
-		'post_types' => array(),
-		'host' => '',
-		'index_name' => '',
-	);
-
-	/**
-	 * Skeleton to build out multi site's global config array. Not to be used for actually storing values in.
-	 *
-	 * @since 0.1.0
-	 * @var array
-	 */
-	private static $global_site_config = array(
-		'host' => '',
-		'index_name' => '',
-		'cross_site_search_active' => 0,
-	);
-
-	/**
-	 * Placeholder method
-	 *
-	 * @since 0.1.0
-	 */
-	public function __construct() { }
-
-	/**
-	 * Return options for a specific site or globally. We use get_site_option since
-	 * it defaults to get_option in the event of a non multi-site install. We store
-	 * settings for all sites including the global one in a single option key.
-	 *
-	 * null => use current site id
-	 * 0 => use global site
-	 * 0 => use a specific site
-	 *
-	 * @param int $site_id
-	 * @since 0.1.0
-	 * @return array
-	 */
-	public function get_option( $site_id = null ) {
-		$option = get_site_option( 'ep_config_by_site', array() );
-
-		if ( $site_id === null ) {
-			$site_id = get_current_blog_id();
-		}
-
-		if ( isset( $option[$site_id] ) ) {
-			return $option[$site_id];
-		} else {
-			if ( $site_id === 0 ) {
-				return self::$global_site_config;
-			}
-
-			return self::$single_site_config;
-		}
-	}
-
-	/**
-	 * Update options globally ($site_id = 0) or for a specific site instance.
-	 * We use update_site_option since it will default to update_option for
-	 * non multi-site installs.
-	 *
-	 * @param int|string|array|object $config
-	 * @param int $site_id
-	 * @since 0.1.0
-	 * @return bool
-	 */
-	public function update_option( $config, $site_id = null ) {
-		$option = get_site_option( 'ep_config_by_site', array() );
-
-		if ( $site_id === null ) {
-			$site_id = get_current_blog_id();
-		}
-
-		$option[$site_id] = $config;
-
-		return update_site_option( 'ep_config_by_site', $option );
-	}
-
-	/**
 	 * Get a singleton instance of the class
 	 *
 	 * @since 0.1.0
@@ -103,39 +19,60 @@ class EP_Config {
 	}
 
 	/**
-	 * Get the url for the configured index for a given site or the global setup
+	 * Generates the index name for the current site
 	 *
-	 * @param int $site_id
-	 * @since 0.1.0
-	 * @return bool|string
+	 * @since 0.9
+	 * @return string
 	 */
-	public function get_index_url( $site_id = null ) {
-		$option = $this->get_option( $site_id );
+	public function get_index_name() {
+		$site_url = site_url();
+		$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
+		$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . get_current_blog_id();
 
-		if ( ! isset( $option['index_name'] ) || ! isset( $option['host'] ) ) {
-			return false;
-		}
-
-		return untrailingslashit( $option['host'] ) . '/' . $option['index_name'];
+		return apply_filters( 'ep_index_name', $index_name );
 	}
 
 	/**
-	 * Check if a site is properly setup. We can check individual sites or the global one.
+	 * Returns the index url given an index name. Defaults to current index
 	 *
-	 * @param int $site_id
-	 * @since 0.1.0
-	 * @return bool
+	 * @param string $index
+	 * @since 0.9
+	 * @return string
 	 */
-	public function is_setup( $site_id = null ) {
-		$option = $this->get_option( $site_id );
-
-		// @todo: Check an make sure at least one post type is marked for indexing
-		
-		if ( empty( $option['index_name'] ) || empty( $option['host'] ) ) {
-			return false;
+	public function get_index_url( $index = null ) {
+		if ( null === $index ) {
+			$index = $this->get_index_name();
 		}
 
-		return true;
+		return untrailingslashit( EP_HOST ) . '/' . $index;
+	}
+
+	/**
+	 * Returns indexable post types for the current site
+	 *
+	 * @since 0.9
+	 * @return mixed|void
+	 */
+	public function get_indexable_post_types() {
+		$post_types = get_post_types( array( 'public' => true ) );
+
+		return apply_filters( 'ep_indexable_post_types', $post_types );
+	}
+
+	/**
+	 * Generate network index name for alias
+	 *
+	 * @since 0.9
+	 * @return string
+	 */
+	public function get_network_alias() {
+		$url = network_site_url();
+		$slug = preg_replace( '#https?://(www\.)?#i', '', $url );
+		$slug = preg_replace( '#[^\w]#', '', $slug );
+
+		$alias = $slug . '-global';
+
+		return apply_filters( 'ep_global_alias', $alias );
 	}
 }
 
@@ -145,18 +82,18 @@ EP_Config::factory();
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
-function ep_get_option( $site_id = null ) {
-	return EP_Config::factory()->get_option( $site_id );
+function ep_get_index_url( $index = null ) {
+	return EP_Config::factory()->get_index_url( $index );
 }
 
-function ep_update_option( $config, $site_id = null ) {
-	return EP_Config::factory()->update_option( $config, $site_id );
+function ep_get_index_name() {
+	return EP_Config::factory()->get_index_name();
 }
 
-function ep_get_index_url( $site_id = null ) {
-	return EP_Config::factory()->get_index_url( $site_id );
+function ep_get_indexable_post_types() {
+	return EP_Config::factory()->get_indexable_post_types();
 }
 
-function ep_is_setup( $site_id = null ) {
-	return EP_Config::factory()->is_setup( $site_id );
+function ep_get_network_alias() {
+	return EP_Config::factory()->get_network_alias();
 }

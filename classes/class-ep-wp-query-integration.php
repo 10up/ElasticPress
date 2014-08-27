@@ -1,7 +1,6 @@
 <?php
 
 class EP_WP_Query_Integration {
-	private $found_posts = 0;
 
 	/**
 	 * Placeholder method
@@ -12,14 +11,121 @@ class EP_WP_Query_Integration {
 
 	public function setup() {
 		if ( ep_is_alive() ) {
+			// Make sure we return nothing for MySQL posts query
 			add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
+
+			add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
 
 			// Nukes the FOUND_ROWS() database query
 			add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
 
-			// Since the FOUND_ROWS() query was nuked, we need to supply the total number of found posts
-			add_filter( 'found_posts', array( $this, 'filter_found_posts' ), 5, 2 );
+			// Search and filter in EP_Posts to WP_Query
+			add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
+
+			// Properly restore blog if necessary
+			add_action( 'loop_end', array( $this, 'action_loop_end' ) );
+
+			// Properly switch to blog if necessary
+			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 		}
+	}
+
+	public function action_pre_get_posts( $query ) {
+		if ( ! $query->is_main_query() || ! $query->is_search() )
+			return;
+
+		$query->set( 'cache_results', false );
+	}
+
+	/**
+	 * Switch to the correct site if the post site id is different than the actual one
+	 *
+	 * @param array $post
+	 * @since 0.9
+	 */
+	public function action_the_post( $post ) {
+		if ( is_multisite() && ! empty( $post->site_id ) && get_current_blog_id() != $post->site_id ) {
+			global $authordata;
+
+			switch_to_blog( $post->site_id );
+			$authordata = get_userdata( $post->post_author );
+		}
+
+	}
+
+	/**
+	 * Make sure the correct blog is restored
+	 *
+	 * @since 0.9
+	 */
+	public function action_loop_end() {
+		if ( is_multisite() ) {
+			restore_current_blog();
+		}
+	}
+
+	/**
+	 * Filter the posts array to contain ES search results in EP_Post form.
+	 *
+	 * @param array $posts
+	 * @param object &$query
+	 * @return array
+	 */
+	public function filter_the_posts( $posts, &$query ) {
+
+		if ( ! $query->is_search() ) {
+			return $posts;
+		}
+
+		$query_vars = $query->query_vars;
+		if ( 'any' == $query_vars['post_type'] ) {
+			unset( $query_vars['post_type'] );
+		}
+
+		$scope = 'current';
+		if ( ! empty( $query_vars['sites'] ) ) {
+			$scope = $query_vars['sites'];
+		}
+
+		$formatted_args = ep_format_args( $query_vars );
+
+		$search = ep_search( $formatted_args, $scope );
+
+		$query->found_posts = $search['found_posts'];
+		$query->max_num_pages = ceil( $search['found_posts'] / $query->get( 'posts_per_page' ) );
+
+		$posts = array();
+
+		foreach ( $search['posts'] as $post_array ) {
+			$post = new stdClass();
+
+			$post->ID = $post_array['post_id'];
+			$post->site_id = get_current_blog_id();
+
+			if ( ! empty( $post_array['site_id'] ) ) {
+				$post->site_id = $post_array['site_id'];
+			}
+
+			$post->post_name = $post_array['post_name'];
+			$post->post_status = $post_array['post_status'];
+			$post->post_title = $post_array['post_title'];
+			$post->post_content = $post_array['post_content'];
+			$post->post_date = $post_array['post_date'];
+			$post->post_date_gmt = $post_array['post_date_gmt'];
+			$post->post_array = $post_array['post_modified'];
+			$post->post_modified_gmt = $post_array['post_modified_gmt'];
+
+			// Run through get_post() to add all expected properties (even if they're empty)
+			$post = get_post( $post );
+
+			if ( $post ) {
+				$posts[] = $post;
+			}
+		}
+
+		do_action( 'ep_wp_query_search', $posts, $search, $query );
+
+		return $posts;
 	}
 
 	/**
@@ -39,23 +145,7 @@ class EP_WP_Query_Integration {
 	}
 
 	/**
-	 * Return the found posts
-	 *
-	 * @param int $found_posts
-	 * @param object $query
-	 * @since 0.9
-	 * @return int
-	 */
-	public function filter_found_posts( $found_posts, $query ) {
-		if ( ! $query->is_search() ) {
-			return $found_posts;
-		}
-
-		return $this->found_posts;
-	}
-
-	/**
-	 * Filter query string used for get_posts()
+	 * Filter query string used for get_posts(). Return a query that will return nothing.
 	 *
 	 * @param string $request
 	 * @param object $query
@@ -63,44 +153,13 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_posts_request( $request, $query ) {
-		$s = $query->get( 's' );
-
-		if ( empty( $s ) ) {
+		if ( ! $query->is_search() ) {
 			return $request;
 		}
 
 		global $wpdb;
 
-		$query_vars = $query->query_vars;
-		if ( 'any' == $query_vars['post_type'] ) {
-			unset( $query_vars['post_type'] );
-		}
-
-		$formatted_args = ep_format_args( $query_vars );
-
-		$config = ep_get_option( 0 );
-		$site_id = get_current_blog_id();
-
-		if ( ! empty( $config->cross_site_search_active ) ) {
-			$site_id = 0;
-		}
-
-		$search = ep_search( $formatted_args, $site_id );
-
-		$this->found_posts = $search['found_posts'];
-
-		if ( empty( $search['posts'] ) ) {
-			return "SELECT * FROM $wpdb->posts WHERE 1=0";
-		}
-
-		$post_ids = wp_list_pluck( $search['posts'], 'post_id' );
-		$post_ids_string = implode( $post_ids, ',' );
-
-		$sql_query = "SELECT * FROM {$wpdb->posts} WHERE {$wpdb->posts}.ID IN( {$post_ids_string} ) ORDER BY FIELD( {$wpdb->posts}.ID, {$post_ids_string} )";
-
-		do_action( 'ep_wp_query_search', $sql_query, $search, $query );
-
-		return $sql_query;
+		return "SELECT * FROM $wpdb->posts WHERE 1=0";
 	}
 
 	/**
