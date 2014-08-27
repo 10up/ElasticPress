@@ -2,6 +2,10 @@
 
 class EPTestCore extends WP_UnitTestCase {
 
+	public function __construct() {
+		self::$ignore_files = true;
+	}
+
 	/**
 	 * Helps us keep track of actions that have fired
 	 *
@@ -24,16 +28,13 @@ class EPTestCore extends WP_UnitTestCase {
 	 * @since 0.1.0
 	 */
 	public function setUp() {
+		global $wpdb;
 		parent::setUp();
+		$wpdb->suppress_errors();
 
-		$user = @wp_signon(
-			array(
-				'user_login' => 'admin',
-				'user_password' => 'password'
-			)
-		);
+		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		wp_set_current_user( $user->ID );
+		wp_set_current_user( $admin_id );
 
 	}
 
@@ -134,10 +135,15 @@ class EPTestCore extends WP_UnitTestCase {
 	 * Setup multisite for testing
 	 *
 	 * @param int $number_of_sites
+	 * @param int $user_id
 	 * @since 0.9
 	 */
-	private function _setupMultiSite( $number_of_sites = 3 ) {
-		$this->factory->blog->create_many( $number_of_sites );
+	private function _setupMultiSite( $number_of_sites = 3, $user_id = null ) {
+		if ( null === $user_id ) {
+			$user_id = get_current_user_id();
+		}
+
+		$this->factory->blog->create_many( $number_of_sites, array( 'user_id' => $user_id ) );
 
 		$sites = wp_get_sites();
 
@@ -199,40 +205,6 @@ class EPTestCore extends WP_UnitTestCase {
 
 			restore_current_blog();
 		}
-	}
-
-	/**
-	 * Test to check our is_alive health check function for a single site.
-	 * Test both our initial ping of the ES server as well as our storage of the status.
-	 *
-	 * @since 0.1.2
-	 */
-	public function testSingleSiteIsAlive() {
-		$this->_setupSingleSite();
-
-		$this->assertTrue( ep_is_alive() );
-	}
-
-	/**
-	 * Test to check our is_alive health check function for multisite.
-	 *
-	 * @since 0.1.2
-	 */
-	public function testMultiSiteIsAlive() {
-		/*$this->_setupMultiSite();
-
-		$this->_createAndSyncPost();
-
-		$this->assertTrue( ep_is_alive() );
-
-		$this->_createAndSyncPost();
-
-		// Test site 2
-		switch_to_blog( 2 );
-
-		$this->assertTrue( ep_is_alive() );
-
-		restore_current_blog();*/
 	}
 
 	/**

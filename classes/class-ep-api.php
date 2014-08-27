@@ -176,7 +176,7 @@ class EP_API {
 
 			$response = json_decode( $response_body, true );
 
-			if ( ! empty( $response['exists'] ) ) {
+			if ( ! empty( $response['found'] ) ) {
 				return $response['_source'];
 			}
 		}
