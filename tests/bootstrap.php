@@ -6,7 +6,6 @@ if ( ! $_tests_dir ) {
 }
 
 require_once( $_tests_dir . '/includes/functions.php' );
-require_once( 'functions.php' );
 
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
@@ -36,6 +35,8 @@ function _manually_load_plugin() {
 	if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
 		exit( 'Could not connect to ElasticPress server.' );
 	}
+
+	require_once( 'functions.php' );
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 

@@ -27,8 +27,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 				WP_CLI::line( sprintf( __( 'Adding mapping for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
 
-				// Flushes index first
-				ep_flush();
+				// Deletes index first
+				ep_delete_index();
 
 				$result = ep_put_mapping();
 
@@ -43,8 +43,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		} else {
 			WP_CLI::line( __( 'Adding mapping...', 'elasticpress' ) );
 
-			// Flushes index first
-			$this->flush( $args, $assoc_args );
+			// Deletes index first
+			$this->delete_index( $args, $assoc_args );
 
 			$result = ep_put_mapping();
 
@@ -57,42 +57,43 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Flush the current index. !!Warning!! This empties your elasticsearch index for the entire site.
+	 * Delete the current index. !!Warning!! This removes your elasticsearch index for the entire site.
 	 *
 	 * @todo replace this function with one that updates all rows with a --force option
 	 * @synopsis [--network-wide]
+	 * @subcommand delete-index
 	 * @since 0.9
 	 * @param array $args
 	 * @param array $assoc_args
 	 */
-	public function flush( $args, $assoc_args ) {
+	public function delete_index( $args, $assoc_args ) {
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$sites = wp_get_sites();
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				WP_CLI::line( sprintf( __( 'Flushing index for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
+				WP_CLI::line( sprintf( __( 'Deleting index for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
 
-				$result = ep_flush();
+				$result = ep_delete_index();
 
 				if ( $result ) {
-					WP_CLI::success( __( 'Index flushed', 'elasticpress' ) );
+					WP_CLI::success( __( 'Index deleted', 'elasticpress' ) );
 				} else {
-					WP_CLI::error( __( 'Flush failed', 'elasticpress' ) );
+					WP_CLI::error( __( 'Delete index failed', 'elasticpress' ) );
 				}
 
 				restore_current_blog();
 			}
 		} else {
-			WP_CLI::line( __( 'Flushing index...', 'elasticpress' ) );
+			WP_CLI::line( __( 'Deleting index...', 'elasticpress' ) );
 
-			$result = ep_flush();
+			$result = ep_delete_index();
 
 			if ( $result ) {
-				WP_CLI::success( __( 'Index flushed', 'elasticpress' ) );
+				WP_CLI::success( __( 'Index deleted', 'elasticpress' ) );
 			} else {
-				WP_CLI::error( __( 'Flush failed', 'elasticpress' ) );
+				WP_CLI::error( __( 'Index delete failed', 'elasticpress' ) );
 			}
 		}
 	}

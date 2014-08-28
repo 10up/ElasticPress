@@ -69,5 +69,7 @@ function ep_create_and_sync_post( $post_args = array(), $post_meta = array(), $s
 		restore_current_blog();
 	}
 
+	ep_refresh();
+
 	return $post_id;
 }

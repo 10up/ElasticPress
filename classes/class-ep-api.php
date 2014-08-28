@@ -61,6 +61,24 @@ class EP_API {
 	}
 
 	/**
+	 * Refresh the current index
+	 *
+	 * @since 0.9
+	 * @return bool
+	 */
+	public function refresh() {
+		$request = wp_remote_request( ep_get_index_url() . '/_refresh', array( 'method' => 'POST' ) );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
 	 * @param array $args
@@ -176,7 +194,7 @@ class EP_API {
 
 			$response = json_decode( $response_body, true );
 
-			if ( ! empty( $response['found'] ) ) {
+			if ( ! empty( $response['exists'] ) || ! empty( $response['found'] ) ) {
 				return $response['_source'];
 			}
 		}
@@ -491,18 +509,18 @@ class EP_API {
 	}
 
 	/**
-	 * Flush the index
+	 * Delete the current index
 	 *
 	 * @since 0.9
 	 * @return array|bool
 	 */
-	public function flush( ) {
+	public function delete_index( ) {
 		$index_url = ep_get_index_url();
 
 		$request = wp_remote_request( $index_url, array( 'method' => 'DELETE' ) );
 
-		// 200 means the flush was successful
-		// 404 means the index was non-existent, but we should still pass this through as we will occasionally want to flush an already flushed index
+		// 200 means the delete was successful
+		// 404 means the index was non-existent, but we should still pass this through as we will occasionally want to delete an already deleted index
 		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) || 404 === wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
@@ -644,8 +662,8 @@ function ep_put_mapping() {
 	return EP_API::factory()->put_mapping();
 }
 
-function ep_flush() {
-	return EP_API::factory()->flush();
+function ep_delete_index() {
+	return EP_API::factory()->delete_index();
 }
 
 function ep_format_args( $args ) {
@@ -658,4 +676,8 @@ function ep_create_network_alias( $indexes ) {
 
 function ep_delete_network_alias() {
 	return EP_API::factory()->delete_network_alias();
+}
+
+function ep_refresh() {
+	return EP_API::factory()->refresh();
 }

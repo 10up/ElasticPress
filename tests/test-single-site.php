@@ -36,9 +36,8 @@ class EPTestSingleSite extends WP_UnitTestCase {
 
 		wp_set_current_user( $admin_id );
 
-		ep_flush();
+		ep_delete_index();
 		ep_put_mapping();
-
 	}
 
 	/**
