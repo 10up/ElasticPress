@@ -41,12 +41,12 @@ function ep_create_and_sync_post( $post_args = array(), $post_meta = array(), $s
 
 	$post_types = ep_get_indexable_post_types();
 
-	$args = wp_parse_args( array(
+	$args = wp_parse_args( $post_args, array(
 		'post_type' => array_values( $post_types )[0],
 		'author' => 1,
 		'post_status' => 'publish',
 		'post_title' => 'Test Post ' . time(),
-	), $post_args );
+	) );
 
 	$post_id = wp_insert_post( $args );
 

@@ -70,11 +70,11 @@ class EPTestSingleSite extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test WP Query integration basic in single site
+	 * Test WP Query search on post content
 	 *
 	 * @since 0.9
 	 */
-	public function testSingleSiteWPQuery() {
+	public function testSingleSiteWPQuerySearchContent() {
 		$post_ids = array();
 
 		$post_ids[0] = ep_create_and_sync_post();
@@ -98,6 +98,73 @@ class EPTestSingleSite extends WP_UnitTestCase {
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
 
-		// @Todo: make sure posts contain proper info
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			global $post;
+
+			$wp_post = get_post( get_the_ID() );
+
+			$this->assertEquals( $post->post_title, get_the_title() );
+			$this->assertEquals( $post->post_content, get_the_content() );
+			$this->assertEquals( $post->post_date, $wp_post->post_date );
+			$this->assertEquals( $post->post_modified, $wp_post->post_modified );
+			$this->assertEquals( $post->post_date_gmt, $wp_post->post_date_gmt );
+			$this->assertEquals( $post->post_modified_gmt, $wp_post->post_modified_gmt );
+			$this->assertEquals( $post->post_name, $wp_post->post_name );
+			$this->assertEquals( $post->post_parent, $wp_post->post_parent );
+			$this->assertEquals( $post->post_excerpt, $wp_post->post_excerpt );
+			$this->assertEquals( $post->site_id, get_current_blog_id() );
+		}
 	}
+
+	/**
+	 * Test WP Query search on post title
+	 *
+	 * @since 0.9
+	 */
+	public function testSingleSiteWPQuerySearchTitle() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post();
+		$post_ids[1] = ep_create_and_sync_post();
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_title' => 'findme test' ) );
+		$post_ids[3] = ep_create_and_sync_post( array( 'post_title' => 'findme test2' ) );
+		$post_ids[4] = ep_create_and_sync_post( array( 'post_title' => 'findme test2' ) );
+
+		$args = array(
+			's' => 'findme',
+		);
+
+		add_action( 'ep_wp_query_search', function() {
+			$this->fired_actions['ep_wp_query_search'] = true;
+		}, 10, 0 );
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			global $post;
+
+			$wp_post = get_post( get_the_ID() );
+
+			$this->assertEquals( $post->post_title, get_the_title() );
+			$this->assertEquals( $post->post_content, get_the_content() );
+			$this->assertEquals( $post->post_date, $wp_post->post_date );
+			$this->assertEquals( $post->post_modified, $wp_post->post_modified );
+			$this->assertEquals( $post->post_date_gmt, $wp_post->post_date_gmt );
+			$this->assertEquals( $post->post_modified_gmt, $wp_post->post_modified_gmt );
+			$this->assertEquals( $post->post_name, $wp_post->post_name );
+			$this->assertEquals( $post->post_parent, $wp_post->post_parent );
+			$this->assertEquals( $post->post_excerpt, $wp_post->post_excerpt );
+			$this->assertEquals( $post->site_id, get_current_blog_id() );
+		}
+	}
+
 }
