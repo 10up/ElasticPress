@@ -109,10 +109,11 @@ class EP_WP_Query_Integration {
 			$post->post_name = $post_array['post_name'];
 			$post->post_status = $post_array['post_status'];
 			$post->post_title = $post_array['post_title'];
+			$post->post_parent = $post_array['post_parent'];
 			$post->post_content = $post_array['post_content'];
 			$post->post_date = $post_array['post_date'];
 			$post->post_date_gmt = $post_array['post_date_gmt'];
-			$post->post_array = $post_array['post_modified'];
+			$post->post_modified = $post_array['post_modified'];
 			$post->post_modified_gmt = $post_array['post_modified_gmt'];
 
 			// Run through get_post() to add all expected properties (even if they're empty)

@@ -35,6 +35,8 @@ function _manually_load_plugin() {
 	if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
 		exit( 'Could not connect to ElasticPress server.' );
 	}
+
+	require_once( 'functions.php' );
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
