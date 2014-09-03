@@ -38,6 +38,8 @@ class EPTestSingleSite extends WP_UnitTestCase {
 
 		ep_delete_index();
 		ep_put_mapping();
+
+		EP_WP_Query_Integration::factory()->setup();
 	}
 
 	/**
@@ -63,6 +65,8 @@ class EPTestSingleSite extends WP_UnitTestCase {
 
 		$post_id = ep_create_and_sync_post();
 
+		ep_refresh_index();
+
 		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_transition'] ) );
 
 		$post = ep_get_post( $post_id );
@@ -82,6 +86,8 @@ class EPTestSingleSite extends WP_UnitTestCase {
 		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
 		$post_ids[3] = ep_create_and_sync_post();
 		$post_ids[4] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
+		ep_refresh_index();
 
 		$args = array(
 			's' => 'findme',
@@ -134,6 +140,8 @@ class EPTestSingleSite extends WP_UnitTestCase {
 		$post_ids[3] = ep_create_and_sync_post( array( 'post_title' => 'findme test2' ) );
 		$post_ids[4] = ep_create_and_sync_post( array( 'post_title' => 'findme test2' ) );
 
+		ep_refresh_index();
+
 		$args = array(
 			's' => 'findme',
 		);
@@ -167,6 +175,8 @@ class EPTestSingleSite extends WP_UnitTestCase {
 			'tags_input' => array( 'test-tag', 'test-tag2' )
 		) );
 
+		ep_refresh_index();
+
 		// Check if ES post sync filter has been triggered
 		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
 
@@ -188,6 +198,8 @@ class EPTestSingleSite extends WP_UnitTestCase {
 		$post_ids[2] = ep_create_and_sync_post( array( 'post_excerpt' => 'findme test' ) );
 		$post_ids[3] = ep_create_and_sync_post();
 		$post_ids[4] = ep_create_and_sync_post();
+
+		ep_refresh_index();
 
 		$args = array(
 			's' => 'findme',

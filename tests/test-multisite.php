@@ -34,7 +34,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		$this->factory->blog->create_many( 3, array( 'user_id' => $admin_id ) );
+		$this->factory->blog->create_many( 1, array( 'user_id' => $admin_id ) );
 
 		$sites = wp_get_sites();
 		$indexes = array();
@@ -50,11 +50,12 @@ class EPTestMultisite extends WP_UnitTestCase {
 			restore_current_blog();
 		}
 
-
 		ep_delete_network_alias();
 		ep_create_network_alias( $indexes );
 
 		wp_set_current_user( $admin_id );
+
+		EP_WP_Query_Integration::factory()->setup();
 
 	}
 
@@ -67,6 +68,19 @@ class EPTestMultisite extends WP_UnitTestCase {
 		parent::tearDown();
 
 		$this->fired_actions = array();
+
+		$sites = wp_get_sites();
+		$indexes = array();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_delete_index();
+
+			restore_current_blog();
+		}
+
+		ep_delete_network_alias();
 	}
 
 	/**
@@ -85,6 +99,8 @@ class EPTestMultisite extends WP_UnitTestCase {
 			}, 10, 0 );
 
 			$post_id = ep_create_and_sync_post();
+
+			ep_refresh_index();
 
 			$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_transition'] ) );
 
@@ -108,11 +124,11 @@ class EPTestMultisite extends WP_UnitTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_ids[0] = ep_create_and_sync_post();
-			$post_ids[1] = ep_create_and_sync_post();
-			$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
-			$post_ids[3] = ep_create_and_sync_post();
-			$post_ids[4] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+			ep_create_and_sync_post();
+			ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
+			ep_refresh_index();
 
 			restore_current_blog();
 		}
@@ -130,8 +146,8 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 
-		$this->assertEquals( $query->post_count, 8 );
-		$this->assertEquals( $query->found_posts, 8 );
+		$this->assertEquals( $query->post_count, 4 );
+		$this->assertEquals( $query->found_posts, 4 );
 
 		$other_site_post_count = 0;
 		$original_site_id = get_current_blog_id();
@@ -159,7 +175,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertEquals( 6, $other_site_post_count );
+		$this->assertEquals( 2, $other_site_post_count );
 
 		wp_reset_postdata();
 	}
@@ -175,11 +191,10 @@ class EPTestMultisite extends WP_UnitTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_ids[0] = ep_create_and_sync_post();
-			$post_ids[1] = ep_create_and_sync_post();
-			$post_ids[2] = ep_create_and_sync_post();
-			$post_ids[3] = ep_create_and_sync_post();
-			$post_ids[4] = ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post();
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			ep_refresh_index();
 
 			restore_current_blog();
 		}
@@ -197,8 +212,8 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 
-		$this->assertEquals( $query->post_count, 4 );
-		$this->assertEquals( $query->found_posts, 4 );
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
 	}
 
 	/**
@@ -214,14 +229,13 @@ class EPTestMultisite extends WP_UnitTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_ids[0] = ep_create_and_sync_post();
-			$post_ids[1] = ep_create_and_sync_post();
-			$post_ids[2] = ep_create_and_sync_post();
-			$post_ids[3] = ep_create_and_sync_post();
+			ep_create_and_sync_post();
 
 			if ( $i > 0 ) {
-				$post_ids[4] = ep_create_and_sync_post( array( 'post_excerpt' => 'findme' ) );
+				ep_create_and_sync_post( array( 'post_excerpt' => 'findme' ) );
 			}
+
+			ep_refresh_index();
 
 			restore_current_blog();
 
@@ -241,7 +255,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 
-		$this->assertEquals( $query->post_count, 3 );
-		$this->assertEquals( $query->found_posts, 3 );
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
 	}
 }
