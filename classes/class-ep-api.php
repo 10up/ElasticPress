@@ -233,9 +233,9 @@ class EP_API {
 	 * @return bool|array
 	 */
 	public function delete_network_alias() {
-		$url = untrailingslashit( EP_HOST ) . '/_aliases/' . ep_get_network_alias();
+		$url = untrailingslashit( EP_HOST ) . '/*/_alias/' . ep_get_network_alias();
 
-		$request = wp_remote_request( $url, array( 'method' => 'GET' ) );
+		$request = wp_remote_request( $url, array( 'method' => 'DELETE' ) );
 
 		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
