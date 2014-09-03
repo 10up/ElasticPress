@@ -66,7 +66,7 @@ class EP_API {
 	 * @since 0.9
 	 * @return bool
 	 */
-	public function refresh() {
+	public function refresh_index() {
 		$request = wp_remote_request( ep_get_index_url() . '/_refresh', array( 'method' => 'POST' ) );
 
 		if ( ! is_wp_error( $request ) ) {
@@ -233,9 +233,9 @@ class EP_API {
 	 * @return bool|array
 	 */
 	public function delete_network_alias() {
-		$url = untrailingslashit( EP_HOST ) . '/_aliases/' . ep_get_network_alias();
+		$url = untrailingslashit( EP_HOST ) . '/*/_alias/' . ep_get_network_alias();
 
-		$request = wp_remote_request( $url, array( 'method' => 'GET' ) );
+		$request = wp_remote_request( $url, array( 'method' => 'DELETE' ) );
 
 		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -678,6 +678,6 @@ function ep_delete_network_alias() {
 	return EP_API::factory()->delete_network_alias();
 }
 
-function ep_refresh() {
-	return EP_API::factory()->refresh();
+function ep_refresh_index() {
+	return EP_API::factory()->refresh_index();
 }
