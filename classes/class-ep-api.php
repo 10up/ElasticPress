@@ -580,7 +580,7 @@ class EP_API {
 					'fuzzy_like_this' => array(
 						'fields' => $search_fields,
 						'like_text' => '',
-						'min_similarity' => apply_filters( 'ep_min_similarity', 0.5 ),
+						'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
 					),
 				),
 			),
