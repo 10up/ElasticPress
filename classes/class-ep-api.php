@@ -630,6 +630,10 @@ class EP_API {
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
 
+		if ( isset( $args['aggregations'] ) ) {
+			$formatted_args['aggregations'] = $args['aggregations'];
+		}
+
 		return $formatted_args;
 	}
 }
