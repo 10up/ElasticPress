@@ -626,11 +626,11 @@ class EP_API {
 		}
 
 		if ( isset( $args['paged'] ) ) {
-			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
+			$paged = ( $args['paged'] <= 1 ) ? 0 : $ags['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
 
-		return $formatted_args;
+		return apply_filters( 'ep_formatted_args',$formatted_args );
 	}
 }
 
