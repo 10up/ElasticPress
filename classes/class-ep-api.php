@@ -572,7 +572,7 @@ class EP_API {
 			}
 		}
 
-		$search_fields =  apply_filters( 'ep_search_fields', $search_fields );
+		$search_fields = apply_filters( 'ep_search_fields', $search_fields );
 
 		$query = array(
 			'bool' => array(
@@ -580,7 +580,7 @@ class EP_API {
 					'fuzzy_like_this' => array(
 						'fields' => $search_fields,
 						'like_text' => '',
-						'min_similarity' => 0.5,
+						'min_similarity' => apply_filters( 'ep_min_similarity', 0.5 ),
 					),
 				),
 			),
