@@ -7,8 +7,7 @@ class EP_API {
 	 *
 	 * @since 0.1.0
 	 */
-	public function __construct() {
-	}
+	public function __construct() { }
 
 	/**
 	 * Return singleton instance of class
@@ -19,7 +18,7 @@ class EP_API {
 	public static function factory() {
 		static $instance = false;
 
-		if ( ! $instance ) {
+		if ( ! $instance  ) {
 			$instance = new self();
 		}
 
@@ -30,7 +29,6 @@ class EP_API {
 	 * Index a post under a given site index or the global index ($site_id = 0)
 	 *
 	 * @param array $post
-	 *
 	 * @since 0.1.0
 	 * @return array|bool|mixed
 	 */
@@ -55,7 +53,6 @@ class EP_API {
 	 * Pull the site id from the index name
 	 *
 	 * @param string $index_name
-	 *
 	 * @since 0.9
 	 * @return int
 	 */
@@ -84,9 +81,8 @@ class EP_API {
 	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
-	 * @param array  $args
+	 * @param array $args
 	 * @param string $scope
-	 *
 	 * @since 0.1.0
 	 * @return array
 	 */
@@ -116,9 +112,9 @@ class EP_API {
 			$posts = array();
 
 			foreach ( $hits as $hit ) {
-				$post            = $hit['_source'];
+				$post = $hit['_source'];
 				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
-				$posts[]         = $post;
+				$posts[] = $post;
 			}
 
 			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
@@ -131,7 +127,6 @@ class EP_API {
 	 * Check if a response array contains results or not
 	 *
 	 * @param array $response
-	 *
 	 * @since 0.1.2
 	 * @return bool
 	 */
@@ -157,11 +152,10 @@ class EP_API {
 	 * is used to determine the index to delete from.
 	 *
 	 * @param int $post_id
-	 *
 	 * @since 0.1.0
 	 * @return bool
 	 */
-	public function delete_post( $post_id ) {
+	public function delete_post( $post_id  ) {
 		$index_url = ep_get_index_url();
 
 		$url = $index_url . '/post/' . $post_id;
@@ -185,7 +179,6 @@ class EP_API {
 	 * Get a post from the index
 	 *
 	 * @param int $post_id
-	 *
 	 * @since 0.9
 	 * @return bool
 	 */
@@ -257,7 +250,6 @@ class EP_API {
 	 * Create the network alias from an array of indexes
 	 *
 	 * @param array $indexes
-	 *
 	 * @since 0.9
 	 * @return array|bool
 	 */
@@ -299,58 +291,58 @@ class EP_API {
 			'settings' => array(
 				'analysis' => array(
 					'analyzer' => array(
-						'default'          => array(
+						'default' => array(
 							'tokenizer' => 'standard',
-							'filter'    => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-							'language'  => 'English'
+							'filter' => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
+							'language' => 'English'
 						),
 						'shingle_analyzer' => array(
-							'type'      => 'custom',
+							'type' => 'custom',
 							'tokenizer' => 'standard',
-							'filter'    => array( 'lowercase', 'shingle_filter' )
+							'filter' => array( 'lowercase', 'shingle_filter' )
 						),
 					),
-					'filter'   => array(
-						'shingle_filter'     => array(
-							'type'             => 'shingle',
+					'filter' => array(
+						'shingle_filter' => array(
+							'type' => 'shingle',
 							'min_shingle_size' => 2,
 							'max_shingle_size' => 5
 						),
 						'ewp_word_delimiter' => array(
-							'type'              => 'word_delimiter',
+							'type' => 'word_delimiter',
 							'preserve_original' => true
 						),
-						'ewp_snowball'       => array(
-							'type'     => 'snowball',
+						'ewp_snowball' => array(
+							'type' => 'snowball',
 							'language' => 'English'
 						),
-						'edge_ngram'         => array(
-							'side'     => 'front',
+						'edge_ngram' => array(
+							'side' => 'front',
 							'max_gram' => 10,
 							'min_gram' => 3,
-							'type'     => 'edgeNGram'
+							'type' => 'edgeNGram'
 						)
 					)
 				)
 			),
 			'mappings' => array(
 				'post' => array(
-					"date_detection"    => false,
+					"date_detection" => false,
 					"dynamic_templates" => array(
 						array(
 							"template_meta" => array(
 								"path_match" => "post_meta.*",
-								"mapping"    => array(
-									"type"   => "multi_field",
-									"path"   => "full",
+								"mapping" => array(
+									"type" => "multi_field",
+									"path" => "full",
 									"fields" => array(
 										"{name}" => array(
-											"type"  => "string",
+											"type" => "string",
 											"index" => "analyzed"
 										),
-										"raw"    => array(
-											"type"           => "string",
-											"index"          => "not_analyzed",
+										"raw" => array(
+											"type" => "string",
+											"index" => "not_analyzed",
 											'include_in_all' => false
 										)
 									)
@@ -360,21 +352,21 @@ class EP_API {
 						array(
 							"template_terms" => array(
 								"path_match" => "terms.*",
-								"mapping"    => array(
-									"type"       => "object",
-									"path"       => "full",
+								"mapping" => array(
+									"type" => "object",
+									"path" => "full",
 									"properties" => array(
-										"name"    => array(
+										"name" => array(
 											"type" => "string"
 										),
 										"term_id" => array(
 											"type" => "long"
 										),
-										"parent"  => array(
+										"parent" => array(
 											"type" => "long"
 										),
-										"slug"    => array(
-											"type"  => "string",
+										"slug" => array(
+											"type" => "string",
 											"index" => "not_analyzed"
 										)
 									)
@@ -384,116 +376,116 @@ class EP_API {
 						array(
 							"term_suggest" => array(
 								"path_match" => "term_suggest_*",
-								"mapping"    => array(
-									"type"     => "completion",
+								"mapping" => array(
+									"type" => "completion",
 									"analyzer" => "default",
 								)
 							)
 						)
 					),
-					"_all"              => array(
+					"_all" => array(
 						"analyzer" => "simple"
 					),
-					'properties'        => array(
-						'post_id'           => array(
-							'type'           => 'long',
-							'index'          => 'not_analyzed',
+					'properties' => array(
+						'post_id' => array(
+							'type' => 'long',
+							'index' => 'not_analyzed',
 							'include_in_all' => false
 						),
-						'post_author'       => array(
-							'type'       => 'object',
-							'path'       => 'full',
+						'post_author' => array(
+							'type' => 'object',
+							'path' => 'full',
 							'properties' => array(
 								'display_name' => array(
 									'type' => 'string'
 								),
-								'login'        => array(
-									'type'  => 'string',
+								'login' => array(
+									'type' => 'string',
 									'index' => 'not_analyzed'
 								)
 							)
 						),
-						'post_date'         => array(
-							'type'           => 'date',
-							'format'         => 'YYYY-MM-dd HH:mm:ss',
+						'post_date' => array(
+							'type' => 'date',
+							'format' => 'YYYY-MM-dd HH:mm:ss',
 							'include_in_all' => false
 						),
-						'post_date_gmt'     => array(
-							'type'           => 'date',
-							'format'         => 'YYYY-MM-dd HH:mm:ss',
+						'post_date_gmt' => array(
+							'type' => 'date',
+							'format' => 'YYYY-MM-dd HH:mm:ss',
 							'include_in_all' => false
 						),
-						'post_title'        => array(
-							'type'     => 'string',
-							'_boost'   => 3.0,
-							'store'    => 'yes',
+						'post_title' => array(
+							'type' => 'string',
+							'_boost'  => 3.0,
+							'store'  => 'yes',
 							'analyzer' => 'standard'
 						),
-						'post_excerpt'      => array(
-							'type'   => 'string',
-							'_boost' => 2.0
+						'post_excerpt' => array(
+							'type' => 'string',
+							'_boost'  => 2.0
 						),
-						'post_content'      => array(
-							'type'     => 'string',
+						'post_content' => array(
+							'type' => 'string',
 							'analyzer' => 'default'
 						),
-						'post_status'       => array(
-							'type'  => 'string',
+						'post_status' => array(
+							'type' => 'string',
 							'index' => 'no'
 						),
-						'post_name'         => array(
-							'type'   => 'multi_field',
+						'post_name' => array(
+							'type' => 'multi_field',
 							'fields' => array(
 								'post_name' => array(
 									'type' => 'string'
 								),
-								'raw'       => array(
-									'type'           => 'string',
-									'index'          => 'not_analyzed',
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
 									'include_in_all' => false
 								)
 							)
 						),
-						'post_modified'     => array(
-							'type'           => 'date',
-							'format'         => 'YYYY-MM-dd HH:mm:ss',
+						'post_modified' => array(
+							'type' => 'date',
+							'format' => 'YYYY-MM-dd HH:mm:ss',
 							'include_in_all' => false
 						),
 						'post_modified_gmt' => array(
-							'type'           => 'date',
-							'format'         => 'YYYY-MM-dd HH:mm:ss',
+							'type' => 'date',
+							'format' => 'YYYY-MM-dd HH:mm:ss',
 							'include_in_all' => false
 						),
-						'post_parent'       => array(
-							'type'           => 'long',
-							'index'          => 'not_analyzed',
+						'post_parent' => array(
+							'type' => 'long',
+							'index' => 'not_analyzed',
 							'include_in_all' => false
 						),
-						'post_type'         => array(
-							'type'   => 'multi_field',
+						'post_type' => array(
+							'type' => 'multi_field',
 							'fields' => array(
 								'post_type' => array(
 									'type' => 'string'
 								),
-								'raw'       => array(
-									'type'           => 'string',
-									'index'          => 'not_analyzed',
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
 									'include_in_all' => false
 								)
 							)
 						),
-						'post_mime_type'    => array(
-							'type'           => 'string',
-							'index'          => 'not_analyzed',
+						'post_mime_type' => array(
+							'type' => 'string',
+							'index' => 'not_analyzed',
 							'include_in_all' => false
 						),
-						'permalink'         => array(
+						'permalink' => array(
 							'type' => 'string'
 						),
-						'terms'             => array(
+						'terms' => array(
 							"type" => "object"
 						),
-						'post_meta'         => array(
+						'post_meta' => array(
 							'type' => 'object'
 						)
 					)
@@ -522,7 +514,7 @@ class EP_API {
 	 * @since 0.9
 	 * @return array|bool
 	 */
-	public function delete_index() {
+	public function delete_index( ) {
 		$index_url = ep_get_index_url();
 
 		$request = wp_remote_request( $index_url, array( 'method' => 'DELETE' ) );
@@ -542,7 +534,6 @@ class EP_API {
 	 * Format WP query args for ES
 	 *
 	 * @param array $args
-	 *
 	 * @since 0.9
 	 * @return array
 	 */
@@ -587,8 +578,8 @@ class EP_API {
 			'bool' => array(
 				'must' => array(
 					'fuzzy_like_this' => array(
-						'fields'         => $search_fields,
-						'like_text'      => '',
+						'fields' => $search_fields,
+						'like_text' => '',
 						'min_similarity' => apply_filters( 'ep_min_similarity', 0.5 ),
 					),
 				),
@@ -607,11 +598,11 @@ class EP_API {
 
 		if ( isset( $args['s'] ) ) {
 			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
-			$formatted_args['query']                               = $query;
+			$formatted_args['query'] = $query;
 		}
 
 		if ( isset( $args['post_type'] ) ) {
-			$post_types     = (array) $args['post_type'];
+			$post_types = (array) $args['post_type'];
 			$terms_map_name = 'terms';
 			if ( count( $post_types ) < 2 ) {
 				$terms_map_name = 'term';
@@ -635,7 +626,7 @@ class EP_API {
 		}
 
 		if ( isset( $args['paged'] ) ) {
-			$paged                  = ( $args['paged'] <= 1 ) ? 0 : $ags['paged'] - 1;
+			$paged = ( $args['paged'] <= 1 ) ? 0 : $ags['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
 
