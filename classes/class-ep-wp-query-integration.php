@@ -31,7 +31,7 @@ class EP_WP_Query_Integration {
 	}
 
 	public function action_pre_get_posts( $query ) {
-		if ( ! $query->is_main_query() || ! $query->is_search() )
+		if ( ! $query->is_search() )
 			return;
 
 		$query->set( 'cache_results', false );
@@ -138,7 +138,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
-		if ( ! $query->is_main_query() || ! $query->is_search() ) {
+		if ( ! $query->is_search() ) {
 			return $sql;
 		}
 
