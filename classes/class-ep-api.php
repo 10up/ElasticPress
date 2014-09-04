@@ -114,6 +114,9 @@ class EP_API {
 				apply_filters( 'ep_retrieve_aggregations', $response['aggregations'] );
 			}
 
+			// Allow for raw retrieval of hits
+			apply_filters( 'ep_retrieve_raw_hits', $response['hits'] );
+
 			$posts = array();
 
 			foreach ( $hits as $hit ) {
