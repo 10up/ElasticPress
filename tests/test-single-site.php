@@ -216,4 +216,74 @@ class EPTestSingleSite extends WP_UnitTestCase {
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 	}
+
+	/**
+	 * Test pagination
+	 *
+	 * @since 0.9
+	 */
+	public function testPagination() {
+		ep_create_and_sync_post( array( 'post_excerpt' => 'findme test 1' ) );
+		ep_create_and_sync_post( array( 'post_excerpt' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_excerpt' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		/**
+		 * Tests posts_per_page
+		 */
+
+		$found_posts = array();
+
+		$args = array(
+			's' => 'findme',
+			'posts_per_page' => 1,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$found_posts[] = $query->posts[0]->ID;
+
+		$args = array(
+			's' => 'findme',
+			'posts_per_page' => 1,
+			'paged' => 2,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$found_posts[] = $query->posts[0]->ID;
+
+		$args = array(
+			's' => 'findme',
+			'posts_per_page' => 1,
+			'paged' => 3,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$found_posts[] = $query->posts[0]->ID;
+
+		$args = array(
+			's' => 'findme',
+			'posts_per_page' => 1,
+			'paged' => 4,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 0, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$this->assertEquals( 3, count( array_unique( $found_posts ) ) );
+	}
 }
