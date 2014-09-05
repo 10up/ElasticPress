@@ -111,7 +111,7 @@ class EP_API {
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
-				apply_filters( 'ep_retrieve_aggregations', $response['aggregations'] );
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'] );
 			}
 
 			$posts = array();
