@@ -158,7 +158,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_helper();
+				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
 
 				WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $site['blog_id'], $result['synced'] ) );
 
@@ -193,7 +193,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper() {
+	private function _index_helper( $no_bulk = false ) {
 		$synced = 0;
 		$errors = array();
 		$offset = 0;
@@ -214,8 +214,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				while ( $query->have_posts() ) {
 					$query->the_post();
 
-					$result = ep_sync_post( get_the_ID() );
-
+					if ( $no_bulk ) {
+						// index the posts one-by-one. not sure someone may want to do this.
+						$result = ep_sync_post( get_the_ID() );
+					} else {
+						$result = ep_queue_bulk_sync( get_the_ID(), $query->found_posts );
+					}
 					if ( ! $result ) {
 						$errors[] = get_the_ID();
 					} else {
