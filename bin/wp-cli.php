@@ -175,7 +175,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		} else {
 			WP_CLI::line( __( 'Indexing posts...', 'elasticpress' ) );
 
-			$result = $this->_index_helper();
+			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
 
 			WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
@@ -234,6 +234,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			usleep( 500 );
 		}
+
+        if ( !$no_bulk ) {
+            ep_send_bulk_errors();
+        }
 
 		wp_reset_postdata();
 

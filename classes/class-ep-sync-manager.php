@@ -224,7 +224,7 @@ class EP_Sync_Manager {
 
 		// put the post into the queue
 		$this->posts[$post_id][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-		$this->posts[$post_id][] = addcslashes( json_encode( $this->prepare_post( $post_id ) ) );
+		$this->posts[$post_id][] = addcslashes( json_encode( $this->prepare_post( $post_id ) ), "\n" );
 
 		// augment the counter
 		++$post_count;
@@ -288,7 +288,7 @@ class EP_Sync_Manager {
 				}
 				$this->bulk_index();
 			} else {
-				foreach ( $response['items'] as $items ) {
+				foreach ( $response['items'] as $item ) {
 					if ( !empty( $item['index']['_id'] ) ) {
 						$this->failed_posts[] = $item['index']['_id'];
 					}
@@ -300,6 +300,24 @@ class EP_Sync_Manager {
 			$attempts = 0;
 		}
 	}
+
+    public function send_bulk_errors() {
+        if ( !empty( $this->failed_posts ) ) {
+            $email_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
+            foreach ( $this->failed_posts as $failed ) {
+                $email_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
+            }
+            $send_mail = wp_mail( get_option('admin_email'), wp_specialchars_decode( get_option('blogname') ) . __( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
+
+            if ( !$send_mail ) {
+                fwrite( STDOUT, __( 'Failed to send bulk error email. Print on screen? [y/n] ' ) );
+                $answer = trim( fgets( STDIN ) );
+                if ( 'y' == $answer ) {
+                    WP_CLI::line( $email_text );
+                }
+            }
+        }
+    }
 }
 
 $ep_sync_manager = EP_Sync_Manager::factory();
@@ -312,10 +330,10 @@ function ep_sync_post( $post_id ) {
 	return EP_Sync_Manager::factory()->sync_post( $post_id );
 }
 
-function ep_queue_bulk_sync( $post_id ) {
-	return EP_Sync_Manager::factory()->queue_post( $post_id );
+function ep_queue_bulk_sync( $post_id, $bulk_trigger ) {
+	return EP_Sync_Manager::factory()->queue_post( $post_id, $bulk_trigger );
 }
 
-function ep_bulk_index() {
-	return EP_Sync_Manager::factory()->bulk_index();
+function ep_send_bulk_errors() {
+    EP_Sync_Manager::factory()->send_bulk_errors();
 }
