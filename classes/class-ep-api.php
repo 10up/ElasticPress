@@ -572,13 +572,15 @@ class EP_API {
 			}
 		}
 
+		$search_fields = apply_filters( 'ep_search_fields', $search_fields );
+
 		$query = array(
 			'bool' => array(
 				'must' => array(
 					'fuzzy_like_this' => array(
 						'fields' => $search_fields,
 						'like_text' => '',
-						'min_similarity' => 0.5,
+						'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
 					),
 				),
 			),
@@ -627,8 +629,12 @@ class EP_API {
 			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
+		
+		if ( isset( $args['aggregations'] ) ) {
+			$formatted_args['aggregations'] = $args['aggregations'];
+		}
 
-		return $formatted_args;
+		return apply_filters( 'ep_formatted_args', $formatted_args );
 	}
 }
 

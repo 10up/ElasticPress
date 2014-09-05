@@ -127,7 +127,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @return array|bool
 	 */
 	private function _create_network_alias() {
-		$sites = wp_get_sites();
+		$sites = apply_filters( 'ep_indexable_sites', wp_get_sites() );
 		$indexes = array();
 
 		foreach ( $sites as $site ) {
