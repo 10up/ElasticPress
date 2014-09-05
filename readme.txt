@@ -5,7 +5,7 @@ Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, auto, elastic
 Requires at least: 3.7.1
 Tested up to: 3.9.1
-Stable tag: 0.9
+Stable tag: 0.9.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
