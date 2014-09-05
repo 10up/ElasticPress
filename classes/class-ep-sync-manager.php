@@ -256,10 +256,10 @@ class EP_Sync_Manager {
 
 		// flatten out the array and implode everything to form the request
 		$flatten = new RecursiveIteratorIterator( new RecursiveArrayIterator( $this->posts ) );
-		$flatten = iterator_to_array( $iterate );
+		$flatten = iterator_to_array( $flatten );
 
 		// make sure to add a new line at the end or the request will fail
-		$body    = rtrim( implode( "\n", $iterate ) ) . "\n";
+		$body    = rtrim( implode( "\n", $flatten ) ) . "\n";
 
 		// show the content length in bytes if in debug
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
