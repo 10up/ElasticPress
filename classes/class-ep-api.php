@@ -99,6 +99,10 @@ class EP_API {
 		$request = wp_remote_request( $url, array( 'body' => json_encode( $args ), 'method' => 'POST' ) );
 
 		if ( ! is_wp_error( $request ) ) {
+
+			// Allow for direct response retrieval
+			do_action( 'ep_retrieve_raw_response', $request, $args, $scope );
+
 			$response_body = wp_remote_retrieve_body( $request );
 
 			$response = json_decode( $response_body, true );
@@ -108,6 +112,11 @@ class EP_API {
 			}
 
 			$hits = $response['hits']['hits'];
+
+			// Check for and store aggregations
+			if ( ! empty( $response['aggregations'] ) ) {
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope );
+			}
 
 			$posts = array();
 
