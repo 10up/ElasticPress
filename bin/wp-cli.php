@@ -243,4 +243,19 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		return array( 'synced' => $synced, 'errors' => $errors );
 	}
+
+    /**
+     * Ping the Elasticsearch server and retrieve a status.
+     */
+    public function status() {
+        $request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty' );
+        if ( is_wp_error( $request ) ) {
+            WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
+        }
+        $body = wp_remote_retrieve_body( $request );
+        WP_CLI::line( '' );
+        WP_CLI::line( '====== Status ======' );
+        WP_CLI::line( print_r( $body, true ) );
+        WP_CLI::line( '====== End Status ======' );
+    }
 }
