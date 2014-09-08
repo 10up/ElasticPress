@@ -21,191 +21,191 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
      */
     private $failed_posts = array();
 
-	/**
-	 * Add the document mapping
-	 *
-	 * @synopsis [--network-wide]
-	 * @subcommand put-mapping
-	 * @since 0.9
-	 * @param array $args
-	 * @param array $assoc_args
-	 */
-	public function put_mapping( $args, $assoc_args ) {
+    /**
+     * Add the document mapping
+     *
+     * @synopsis [--network-wide]
+     * @subcommand put-mapping
+     * @since 0.9
+     * @param array $args
+     * @param array $assoc_args
+     */
+    public function put_mapping( $args, $assoc_args ) {
 
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$sites = wp_get_sites();
+        if ( !empty( $assoc_args['network-wide'] ) ) {
+            $sites = wp_get_sites();
 
-			foreach ( $sites as $site ) {
-				switch_to_blog( $site['blog_id'] );
+            foreach ( $sites as $site ) {
+                switch_to_blog( $site['blog_id'] );
 
-				WP_CLI::line( sprintf( __( 'Adding mapping for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
+                WP_CLI::line( sprintf( __( 'Adding mapping for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
 
-				// Deletes index first
-				ep_delete_index();
+                // Deletes index first
+                ep_delete_index();
 
-				$result = ep_put_mapping();
+                $result = ep_put_mapping();
 
-				if ( $result ) {
-					WP_CLI::success( __( 'Mapping sent', 'elasticpress' ) );
-				} else {
-					WP_CLI::error( __( 'Mapping failed', 'elasticpress' ) );
-				}
+                if ( $result ) {
+                    WP_CLI::success( __( 'Mapping sent', 'elasticpress' ) );
+                } else {
+                    WP_CLI::error( __( 'Mapping failed', 'elasticpress' ) );
+                }
 
-				restore_current_blog();
-			}
-		} else {
-			WP_CLI::line( __( 'Adding mapping...', 'elasticpress' ) );
+                restore_current_blog();
+            }
+        } else {
+            WP_CLI::line( __( 'Adding mapping...', 'elasticpress' ) );
 
-			// Deletes index first
-			$this->delete_index( $args, $assoc_args );
+            // Deletes index first
+            $this->delete_index( $args, $assoc_args );
 
-			$result = ep_put_mapping();
+            $result = ep_put_mapping();
 
-			if ( $result ) {
-				WP_CLI::success( __( 'Mapping sent', 'elasticpress' ) );
-			} else {
-				WP_CLI::error( __( 'Mapping failed', 'elasticpress' ) );
-			}
-		}
-	}
+            if ( $result ) {
+                WP_CLI::success( __( 'Mapping sent', 'elasticpress' ) );
+            } else {
+                WP_CLI::error( __( 'Mapping failed', 'elasticpress' ) );
+            }
+        }
+    }
 
-	/**
-	 * Delete the current index. !!Warning!! This removes your elasticsearch index for the entire site.
-	 *
-	 * @todo replace this function with one that updates all rows with a --force option
-	 * @synopsis [--network-wide]
-	 * @subcommand delete-index
-	 * @since 0.9
-	 * @param array $args
-	 * @param array $assoc_args
-	 */
-	public function delete_index( $args, $assoc_args ) {
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$sites = wp_get_sites();
+    /**
+     * Delete the current index. !!Warning!! This removes your elasticsearch index for the entire site.
+     *
+     * @todo replace this function with one that updates all rows with a --force option
+     * @synopsis [--network-wide]
+     * @subcommand delete-index
+     * @since 0.9
+     * @param array $args
+     * @param array $assoc_args
+     */
+    public function delete_index( $args, $assoc_args ) {
+        if ( !empty( $assoc_args['network-wide'] ) ) {
+            $sites = wp_get_sites();
 
-			foreach ( $sites as $site ) {
-				switch_to_blog( $site['blog_id'] );
+            foreach ( $sites as $site ) {
+                switch_to_blog( $site['blog_id'] );
 
-				WP_CLI::line( sprintf( __( 'Deleting index for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
+                WP_CLI::line( sprintf( __( 'Deleting index for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
 
-				$result = ep_delete_index();
+                $result = ep_delete_index();
 
-				if ( $result ) {
-					WP_CLI::success( __( 'Index deleted', 'elasticpress' ) );
-				} else {
-					WP_CLI::error( __( 'Delete index failed', 'elasticpress' ) );
-				}
+                if ( $result ) {
+                    WP_CLI::success( __( 'Index deleted', 'elasticpress' ) );
+                } else {
+                    WP_CLI::error( __( 'Delete index failed', 'elasticpress' ) );
+                }
 
-				restore_current_blog();
-			}
-		} else {
-			WP_CLI::line( __( 'Deleting index...', 'elasticpress' ) );
+                restore_current_blog();
+            }
+        } else {
+            WP_CLI::line( __( 'Deleting index...', 'elasticpress' ) );
 
-			$result = ep_delete_index();
+            $result = ep_delete_index();
 
-			if ( $result ) {
-				WP_CLI::success( __( 'Index deleted', 'elasticpress' ) );
-			} else {
-				WP_CLI::error( __( 'Index delete failed', 'elasticpress' ) );
-			}
-		}
-	}
+            if ( $result ) {
+                WP_CLI::success( __( 'Index deleted', 'elasticpress' ) );
+            } else {
+                WP_CLI::error( __( 'Index delete failed', 'elasticpress' ) );
+            }
+        }
+    }
 
-	/**
-	 * Map network alias to every index in the network
-	 *
-	 * @param array $args
-	 * @subcommand recreate-network-alias
-	 * @since 0.9
-	 * @param array $assoc_args
-	 */
-	public function recreate_network_alias( $args, $assoc_args ) {
-		WP_CLI::line( __( 'Recreating network alias...', 'elasticpress' ) );
+    /**
+     * Map network alias to every index in the network
+     *
+     * @param array $args
+     * @subcommand recreate-network-alias
+     * @since 0.9
+     * @param array $assoc_args
+     */
+    public function recreate_network_alias( $args, $assoc_args ) {
+        WP_CLI::line( __( 'Recreating network alias...', 'elasticpress' ) );
 
-		ep_delete_network_alias();
+        ep_delete_network_alias();
 
-		$create_result = $this->_create_network_alias();
+        $create_result = $this->_create_network_alias();
 
-		if ( $create_result ) {
-			WP_CLI::success( __( 'Done!', 'elasticpress' ) );
-		} else {
-			WP_CLI::error( __( 'An error occurred', 'elasticpress' ) );
-		}
-	}
+        if ( $create_result ) {
+            WP_CLI::success( __( 'Done!', 'elasticpress' ) );
+        } else {
+            WP_CLI::error( __( 'An error occurred', 'elasticpress' ) );
+        }
+    }
 
-	/**
-	 * Helper method for creating the network alias
-	 *
-	 * @since 0.9
-	 * @return array|bool
-	 */
-	private function _create_network_alias() {
-		$sites = apply_filters( 'ep_indexable_sites', wp_get_sites() );
-		$indexes = array();
+    /**
+     * Helper method for creating the network alias
+     *
+     * @since 0.9
+     * @return array|bool
+     */
+    private function _create_network_alias() {
+        $sites   = apply_filters( 'ep_indexable_sites', wp_get_sites() );
+        $indexes = array();
 
-		foreach ( $sites as $site ) {
-			switch_to_blog( $site['blog_id'] );
+        foreach ( $sites as $site ) {
+            switch_to_blog( $site['blog_id'] );
 
-			$indexes[] = ep_get_index_name();
+            $indexes[] = ep_get_index_name();
 
-			restore_current_blog();
-		}
+            restore_current_blog();
+        }
 
-		return ep_create_network_alias( $indexes );
-	}
+        return ep_create_network_alias( $indexes );
+    }
 
-	/**
-	 * Index all posts for a site or network wide
-	 *
-	 * @synopsis [--network-wide]
-	 * @param array $args
-	 * @since 0.1.2
-	 * @param array $assoc_args
-	 */
-	public function index( $args, $assoc_args ) {
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			WP_CLI::line( __( 'Indexing posts network-wide...', 'elasticpress' ) );
+    /**
+     * Index all posts for a site or network wide
+     *
+     * @synopsis [--network-wide]
+     * @param array $args
+     * @since 0.1.2
+     * @param array $assoc_args
+     */
+    public function index( $args, $assoc_args ) {
+        if ( !empty( $assoc_args['network-wide'] ) ) {
+            WP_CLI::line( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
-			$sites = wp_get_sites();
+            $sites = wp_get_sites();
 
-			foreach ( $sites as $site ) {
-				switch_to_blog( $site['blog_id'] );
+            foreach ( $sites as $site ) {
+                switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
+                $result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
 
-				WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $site['blog_id'], $result['synced'] ) );
+                WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $site['blog_id'], $result['synced'] ) );
 
-				if ( ! empty( $errors ) ) {
-					WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
-				}
+                if ( !empty( $errors ) ) {
+                    WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
+                }
 
-				restore_current_blog();
-			}
+                restore_current_blog();
+            }
 
-			WP_CLI::line( __( 'Recreating network alias...' ) );
-			$this->_create_network_alias();
+            WP_CLI::line( __( 'Recreating network alias...' ) );
+            $this->_create_network_alias();
 
-		} else {
-			WP_CLI::line( __( 'Indexing posts...', 'elasticpress' ) );
+        } else {
+            WP_CLI::line( __( 'Indexing posts...', 'elasticpress' ) );
 
-			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
+            $result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
 
-			WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
+            WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
-			if ( ! empty( $errors ) ) {
-				WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
-			}
-		}
+            if ( !empty( $errors ) ) {
+                WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
+            }
+        }
 
-		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
-	}
+        WP_CLI::success( __( 'Done!', 'elasticpress' ) );
+    }
 
-	/**
-	 * Helper method for indexing posts
-	 *
-	 * @since 0.9
-	 * @return array
-	 */
+    /**
+     * Helper method for indexing posts
+     *
+     * @since 0.9
+     * @return array
+     */
     private function _index_helper( $no_bulk = false ) {
         $synced = 0;
         $errors = array();
@@ -262,8 +262,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
         static $post_count = 0;
 
         // put the post into the queue
-        $this->posts[$post_id][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-        $this->posts[$post_id][] = addcslashes( json_encode( ep_prepare_post( $post_id ) ), "\n" );
+        $this->posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
+        $this->posts[ $post_id ][] = addcslashes( json_encode( ep_prepare_post( $post_id ) ), "\n" );
 
         // augment the counter
         ++$post_count;
@@ -301,7 +301,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
         }
 
         // make sure to add a new line at the end or the request will fail
-        $body    = rtrim( implode( "\n", $flatten ) ) . "\n";
+        $body = rtrim( implode( "\n", $flatten ) ) . "\n";
 
         // show the content length in bytes if in debug
         if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -349,7 +349,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
             foreach ( $this->failed_posts as $failed ) {
                 $email_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
             }
-            $send_mail = wp_mail( get_option('admin_email'), wp_specialchars_decode( get_option('blogname') ) . __( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
+            $send_mail = wp_mail( get_option( 'admin_email' ), wp_specialchars_decode( get_option( 'blogname' ) ) . __( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
 
             if ( !$send_mail ) {
                 fwrite( STDOUT, __( 'Failed to send bulk error email. Print on screen? [y/n] ' ) );
