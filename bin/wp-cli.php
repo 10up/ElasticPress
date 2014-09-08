@@ -7,6 +7,19 @@ WP_CLI::add_command( 'elasticpress', 'ElasticPress_CLI_Command' );
  *
  */
 class ElasticPress_CLI_Command extends WP_CLI_Command {
+    /**
+     * Holds the posts that will be bulk synced.
+     *
+     * @since 0.9
+     */
+    private $posts = array();
+
+    /**
+     * Holds all of the posts that failed to index during a bulk index.
+     *
+     * @since 0.9
+     */
+    private $failed_posts = array();
 
 	/**
 	 * Add the document mapping
@@ -193,57 +206,160 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper( $no_bulk = false ) {
-		$synced = 0;
-		$errors = array();
-		$offset = 0;
+    private function _index_helper( $no_bulk = false ) {
+        $synced = 0;
+        $errors = array();
+        $offset = 0;
 
-		while ( true ) {
+        while ( true ) {
 
-			$args = array(
-				'posts_per_page'      => 500,
-				'post_type'           => ep_get_indexable_post_types(),
-				'post_status'         => 'publish',
-				'offset'              => $offset,
+            $args = array(
+                'posts_per_page'      => 500,
+                'post_type'           => ep_get_indexable_post_types(),
+                'post_status'         => 'publish',
+                'offset'              => $offset,
                 'ignore_sticky_posts' => true
-			);
+            );
 
-			$query = new WP_Query( $args );
+            $query = new WP_Query( $args );
 
-			if ( $query->have_posts() ) {
+            if ( $query->have_posts() ) {
 
-				while ( $query->have_posts() ) {
-					$query->the_post();
+                while ( $query->have_posts() ) {
+                    $query->the_post();
 
-					if ( $no_bulk ) {
-						// index the posts one-by-one. not sure someone may want to do this.
-						$result = ep_sync_post( get_the_ID() );
-					} else {
-						$result = ep_queue_bulk_sync( get_the_ID(), $query->found_posts );
-					}
-					if ( ! $result ) {
-						$errors[] = get_the_ID();
-					} else {
-						$synced++;
-					}
-				}
-			} else {
-				break;
-			}
+                    if ( $no_bulk ) {
+                        // index the posts one-by-one. not sure someone may want to do this.
+                        $result = ep_sync_post( get_the_ID() );
+                    } else {
+                        $result = $this->queue_post( get_the_ID(), $query->found_posts );
+                    }
+                    if ( !$result ) {
+                        $errors[] = get_the_ID();
+                    } else {
+                        $synced++;
+                    }
+                }
+            } else {
+                break;
+            }
 
-			$offset += 500;
+            $offset += 500;
 
-			usleep( 500 );
-		}
-
-        if ( !$no_bulk ) {
-            ep_send_bulk_errors();
+            usleep( 500 );
         }
 
-		wp_reset_postdata();
+        if ( !$no_bulk ) {
+            $this->send_bulk_errors();
+        }
 
-		return array( 'synced' => $synced, 'errors' => $errors );
-	}
+        wp_reset_postdata();
+
+        return array( 'synced' => $synced, 'errors' => $errors );
+    }
+
+    private function queue_post( $post_id, $bulk_trigger ) {
+        static $post_count = 0;
+
+        // put the post into the queue
+        $this->posts[$post_id][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
+        $this->posts[$post_id][] = addcslashes( json_encode( ep_prepare_post( $post_id ) ), "\n" );
+
+        // augment the counter
+        ++$post_count;
+
+        // if we have hit the trigger, initiate the bulk request
+        if ( $post_count === absint( $bulk_trigger ) ) {
+            $this->bulk_index();
+
+            // reset the post count
+            $post_count = 0;
+
+            // reset the posts
+            $this->posts = array();
+        }
+        return true;
+    }
+
+    private function bulk_index() {
+        // monitor how many times we attempt to add this particular bulk request
+        static $attempts = 0;
+
+        // augment the attempts
+        ++$attempts;
+
+        // make sure we actually have something to index
+        if ( empty( $this->posts ) ) {
+            WP_CLI::error( 'There are no posts to index.' );
+        }
+
+        $flatten = array();
+
+        foreach ( $this->posts as $post ) {
+            $flatten[] = $post[0];
+            $flatten[] = $post[1];
+        }
+
+        // make sure to add a new line at the end or the request will fail
+        $body    = rtrim( implode( "\n", $flatten ) ) . "\n";
+
+        // show the content length in bytes if in debug
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            WP_CLI::line( WP_CLI::colorize( '%MRequest size:%N' ) . ' ' . mb_strlen( $body, '8bit' ) );
+        }
+
+        // create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
+        $url     = trailingslashit( EP_HOST ) . trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+        $request = wp_remote_request( $url, array( 'method' => 'POST', 'body' => $body ) );
+
+        // kill it on an error and show the message readout
+        if ( is_wp_error( $request ) ) {
+            WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
+        }
+
+        // decode the response
+        $response = json_decode( wp_remote_retrieve_body( $request ), true );
+
+        // if we did have errors, try to add the documents again
+        if ( isset( $response['errors'] ) && $response['errors'] === true ) {
+            if ( $attempts < 5 ) {
+                foreach ( $response['items'] as $item ) {
+                    if ( empty( $item['index']['error'] ) ) {
+                        unset( $this->posts[ $item['index']['_id'] ] );
+                    }
+                }
+                $this->bulk_index();
+            } else {
+                foreach ( $response['items'] as $item ) {
+                    if ( !empty( $item['index']['_id'] ) ) {
+                        $this->failed_posts[] = $item['index']['_id'];
+                    }
+                }
+                $attempts = 0;
+            }
+        } else {
+            // there were no errors, all the posts were added
+            $attempts = 0;
+        }
+    }
+
+    private function send_bulk_errors() {
+        if ( !empty( $this->failed_posts ) ) {
+            $email_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
+            foreach ( $this->failed_posts as $failed ) {
+                $email_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
+            }
+            $send_mail = wp_mail( get_option('admin_email'), wp_specialchars_decode( get_option('blogname') ) . __( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
+
+            if ( !$send_mail ) {
+                fwrite( STDOUT, __( 'Failed to send bulk error email. Print on screen? [y/n] ' ) );
+                $answer = trim( fgets( STDIN ) );
+                if ( 'y' == $answer ) {
+                    WP_CLI::line( $email_text );
+                }
+            }
+        }
+    }
 
     /**
      * Ping the Elasticsearch server and retrieve a status.
