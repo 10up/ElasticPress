@@ -308,17 +308,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
             WP_CLI::line( WP_CLI::colorize( '%MRequest size:%N' ) . ' ' . mb_strlen( $body, '8bit' ) );
         }
 
-        // create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-        $url     = trailingslashit( EP_HOST ) . trailingslashit( ep_get_index_name() ) . 'post/_bulk';
-        $request = wp_remote_request( $url, array( 'method' => 'POST', 'body' => $body ) );
-
-        // kill it on an error and show the message readout
-        if ( is_wp_error( $request ) ) {
-            WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
-        }
-
         // decode the response
-        $response = json_decode( wp_remote_retrieve_body( $request ), true );
+        $response = $this->bulk_index_posts( $body );
 
         // if we did have errors, try to add the documents again
         if ( isset( $response['errors'] ) && $response['errors'] === true ) {
@@ -341,6 +332,19 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
             // there were no errors, all the posts were added
             $attempts = 0;
         }
+    }
+
+    private function bulk_index_posts( $body ) {
+        // create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
+        $url     = trailingslashit( EP_HOST ) . trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+        $request = wp_remote_request( $url, array( 'method' => 'POST', 'body' => $body ) );
+
+        // kill it on an error and show the message readout
+        if ( is_wp_error( $request ) ) {
+            WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
+        }
+
+        return json_decode( wp_remote_retrieve_body( $request ), true );
     }
 
     private function send_bulk_errors() {
