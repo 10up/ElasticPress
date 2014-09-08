@@ -228,9 +228,10 @@ class EP_Sync_Manager {
 
 		// augment the counter
 		++$post_count;
+        WP_CLI::line();
 
 		// if we have hit the trigger, initiate the bulk request
-		if ( $post_count === $bulk_trigger ) {
+		if ( $post_count === absint( $bulk_trigger ) ) {
 			$this->bulk_index();
 
 			// reset the post count
@@ -254,9 +255,12 @@ class EP_Sync_Manager {
 			WP_CLI::error( 'There are no posts to index.' );
 		}
 
-		// flatten out the array and implode everything to form the request
-		$flatten = new RecursiveIteratorIterator( new RecursiveArrayIterator( $this->posts ) );
-		$flatten = iterator_to_array( $flatten );
+        $flatten = array();
+
+        foreach ( $this->posts as $post ) {
+            $flatten[] = $post[0];
+            $flatten[] = $post[1];
+        }
 
 		// make sure to add a new line at the end or the request will fail
 		$body    = rtrim( implode( "\n", $flatten ) ) . "\n";
