@@ -638,14 +638,28 @@ class EP_API {
 			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
-		
-		if ( isset( $args['aggregations'] ) ) {
-			// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
-			if ( isset( $filter ) ) {
-				$formatted_args['aggregations']['agg1']['filter'] = $filter;
-				$formatted_args['aggregations']['agg1']['aggs'] = $args['aggregations'];
+
+		/**
+		 * Aggregations
+		 */
+		if ( isset( $args['aggs'] ) && ! empty( $args['aggs']['aggs'] ) ) {
+			$agg_obj = $args['aggs'];
+
+			// Add a name to the aggregation if it was passed through
+			if ( ! empty( $agg_obj['name'] ) ) {
+				$agg_name = $agg_obj['name'];
 			} else {
-				$formatted_args['aggregations'] = $args['aggregations'];
+				$agg_name = 'aggregation_name';
+			}
+
+			// Add/use the filter if warranted
+			if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && ! empty( $filter ) ) {
+
+				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
+				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
+				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+			} else {
+				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
 			}
 		}
 
