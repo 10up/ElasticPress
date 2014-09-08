@@ -640,7 +640,13 @@ class EP_API {
 		}
 		
 		if ( isset( $args['aggregations'] ) ) {
-			$formatted_args['aggregations'] = $args['aggregations'];
+			// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
+			if ( isset( $filter ) ) {
+				$formatted_args['aggregations']['agg1']['filter'] = $filter;
+				$formatted_args['aggregations']['agg1']['aggs'] = $args['aggregations'];
+			} else {
+				$formatted_args['aggregations'] = $args['aggregations'];
+			}
 		}
 
 		return apply_filters( 'ep_formatted_args', $formatted_args );
