@@ -569,12 +569,48 @@ class EP_API {
 			'post_content',
 		);
 
+		/**
+		 * Tax Query support
+		 *
+		 * Support for the tax_query argument of WP_Query
+		 * Currently only provides support for the 'AND' relation between taxonomies
+		 *
+		 * @use field = slug
+		 *      terms array
+		 * @since 0.9.1
+		 */
+		if ( ! empty( $args['tax_query'] ) ) {
+			$tax_filter = array();
+
+			foreach( $args['tax_query'] as $single_tax_query ) {
+				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
+					$tax_filter[]['terms'] = array(
+						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $single_tax_query['terms'],
+					);
+				}
+			}
+
+			if ( ! empty( $tax_filter ) ) {
+				$filter['and'][]['bool']['must'] = $tax_filter;
+			}
+		}
+
+		/**
+		 * Allow for searching by taxonomy
+		 *
+		 * @since 0.9.0
+		 */
 		if ( ! empty( $args['search_tax'] ) ) {
 			foreach ( $args['search_tax'] as $tax ) {
 				$search_fields[] = 'terms.' . $tax . '.name';
 			}
 		}
 
+		/**
+		 * Allow for searching by meta
+		 *
+		 * @since 0.9.0
+		 */
 		if ( ! empty( $args['search_meta'] ) ) {
 			foreach ( $args['search_meta'] as $key ) {
 				$search_fields[] = 'post_meta.' . $key;
