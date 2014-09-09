@@ -638,9 +638,29 @@ class EP_API {
 			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
-		
-		if ( isset( $args['aggregations'] ) ) {
-			$formatted_args['aggregations'] = $args['aggregations'];
+
+		/**
+		 * Aggregations
+		 */
+		if ( isset( $args['aggs'] ) && ! empty( $args['aggs']['aggs'] ) ) {
+			$agg_obj = $args['aggs'];
+
+			// Add a name to the aggregation if it was passed through
+			if ( ! empty( $agg_obj['name'] ) ) {
+				$agg_name = $agg_obj['name'];
+			} else {
+				$agg_name = 'aggregation_name';
+			}
+
+			// Add/use the filter if warranted
+			if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && ! empty( $filter ) ) {
+
+				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
+				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
+				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+			} else {
+				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
+			}
 		}
 
 		return apply_filters( 'ep_formatted_args', $formatted_args );
