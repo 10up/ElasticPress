@@ -584,8 +584,9 @@ class EP_API {
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
+					$terms = (array) $single_tax_query['terms'];
 					$tax_filter[]['terms'] = array(
-						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $single_tax_query['terms'],
+						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $terms,
 					);
 				}
 			}
