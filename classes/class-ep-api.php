@@ -90,6 +90,8 @@ class EP_API {
 		$index = null;
 		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
+		} else if ( is_int( $scope ) ) {
+			$index = ep_get_index_name( $scope );
 		}
 
 		$index_url = ep_get_index_url( $index );
