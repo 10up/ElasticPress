@@ -91,9 +91,7 @@ class EP_API {
 		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
 		} else if ( is_int( $scope ) ) {
-			switch_to_blog( $scope );
-			$index = ep_get_index_name();
-			restore_current_blog();
+			$index = ep_get_index_name( $scope );
 		}
 
 		$index_url = ep_get_index_url( $index );

@@ -21,13 +21,14 @@ class EP_Config {
 	/**
 	 * Generates the index name for the current site
 	 *
+	 * @param int $blog_id (optional) Blog ID. Defaults to current blog.
 	 * @since 0.9
 	 * @return string
 	 */
-	public function get_index_name() {
-		$site_url = site_url();
+	public function get_index_name( $blog_id = null ) {
+		$site_url = get_site_url( $blog_id );
 		$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
-		$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . get_current_blog_id();
+		$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id ? $blog_id : get_current_blog_id();
 
 		return apply_filters( 'ep_index_name', $index_name );
 	}
@@ -86,8 +87,8 @@ function ep_get_index_url( $index = null ) {
 	return EP_Config::factory()->get_index_url( $index );
 }
 
-function ep_get_index_name() {
-	return EP_Config::factory()->get_index_name();
+function ep_get_index_name( $blog_id = null ) {
+	return EP_Config::factory()->get_index_name( $blog_id );
 }
 
 function ep_get_indexable_post_types() {
