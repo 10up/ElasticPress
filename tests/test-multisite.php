@@ -36,7 +36,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		$this->factory->blog->create_many( 1, array( 'user_id' => $admin_id ) );
 
-		$sites = wp_get_sites();
+		$sites = ep_get_sites();
 		$indexes = array();
 
 		foreach ( $sites as $site ) {
@@ -69,7 +69,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		$this->fired_actions = array();
 
-		$sites = wp_get_sites();
+		$sites = ep_get_sites();
 		$indexes = array();
 
 		foreach ( $sites as $site ) {
@@ -89,7 +89,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 	 * @since 0.9
 	 */
 	public function testPostSync() {
-		$sites = wp_get_sites();
+		$sites = ep_get_sites();
 
 		foreach( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -119,7 +119,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 	 * @since 0.9
 	 */
 	public function testWPQuerySearchContent() {
-		$sites = wp_get_sites();
+		$sites = ep_get_sites();
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -186,7 +186,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 	 * @since 0.9
 	 */
 	public function testWPQuerySearchTitle() {
-		$sites = wp_get_sites();
+		$sites = ep_get_sites();
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -222,7 +222,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 	 * @since 0.9
 	 */
 	public function testWPQuerySearchExcerpt() {
-		$sites = wp_get_sites();
+		$sites = ep_get_sites();
 
 		$i = 0;
 
@@ -265,7 +265,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 	 * @since 0.9
 	 */
 	public function testPagination() {
-		$sites = wp_get_sites();
+		$sites = ep_get_sites();
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
