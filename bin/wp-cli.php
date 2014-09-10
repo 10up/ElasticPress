@@ -153,7 +153,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			WP_CLI::line( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
-			$sites = wp_get_sites();
+			$sites = apply_filters( 'ep_indexable_sites', wp_get_sites() );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
