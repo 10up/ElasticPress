@@ -704,6 +704,15 @@ class EP_API {
 
 		return apply_filters( 'ep_formatted_args', $formatted_args );
 	}
+
+	/**
+	 * Wrapper function for wp_get_sites - allows us to have one central place for the `ep_indexable_sites` filter
+	 *
+	 * @return mixed|void
+	 */
+	public function get_sites() {
+		return apply_filters( 'ep_indexable_sites', wp_get_sites() );
+	}
 }
 
 EP_API::factory();
@@ -754,4 +763,8 @@ function ep_delete_network_alias() {
 
 function ep_refresh_index() {
 	return EP_API::factory()->refresh_index();
+}
+
+function ep_get_sites() {
+	return EP_API::factory()->get_sites();
 }

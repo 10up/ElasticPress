@@ -20,7 +20,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function put_mapping( $args, $assoc_args ) {
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$sites = wp_get_sites();
+			$sites = ep_get_sites();
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -68,7 +68,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	public function delete_index( $args, $assoc_args ) {
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$sites = wp_get_sites();
+			$sites = ep_get_sites();
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -127,7 +127,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @return array|bool
 	 */
 	private function _create_network_alias() {
-		$sites = apply_filters( 'ep_indexable_sites', wp_get_sites() );
+		$sites = ep_get_sites();
 		$indexes = array();
 
 		foreach ( $sites as $site ) {
@@ -153,7 +153,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			WP_CLI::line( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
-			$sites = wp_get_sites();
+			$sites = ep_get_sites();
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
