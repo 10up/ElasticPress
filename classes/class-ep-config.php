@@ -26,6 +26,10 @@ class EP_Config {
 	 * @return string
 	 */
 	public function get_index_name( $blog_id = null ) {
+		if ( ! $blog_id ) {
+			$blog_id = get_current_blog_id();
+		}
+
 		$site_url = get_site_url( $blog_id );
 		$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
 		$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id ? $blog_id : get_current_blog_id();
