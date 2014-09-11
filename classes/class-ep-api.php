@@ -780,7 +780,7 @@ class EP_API {
 
 			$filter['and'][] = array(
 				$terms_map_name => array(
-					'post_type' => $post_types,
+					'post_type.raw' => $post_types,
 				),
 			);
 
