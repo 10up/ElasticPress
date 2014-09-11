@@ -3,6 +3,10 @@ ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
+* **Version**: 0.9.2
+* **Latest Stable**: [v0.9.2](https://github.com/10up/ElasticPress/releases/tag/0.9.2)
+* **Contributors**: [@aaronholbrook](https://github.com/AaronHolbrook), [@tlovett1](https://github.com/tlovett1), [@mattonomics](https://github.com/mattonomics), [@ivanlopez](https://github.com/ivanlopez)
+
 ## Purpose
 
 Let's face it, WordPress search is rudimentary at best. Poor performance, inflexible and rigid matching algorithms (which means no comprehension of 'close' queries), the inability to search metadata and taxonomy information, no way to determine categories of your results and most importantly the overall relevancy of results is poor.
