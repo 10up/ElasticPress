@@ -348,6 +348,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
         // decode the response
         $response = ep_bulk_index_posts( $body );
 
+        if ( is_wp_error( $response ) ) {
+            WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
+        }
+
         // if we did have errors, try to add the documents again
         if ( isset( $response['errors'] ) && $response['errors'] === true ) {
             if ( $attempts < 5 ) {
