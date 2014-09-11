@@ -835,6 +835,22 @@ class EP_API {
 	public function get_sites() {
 		return apply_filters( 'ep_indexable_sites', wp_get_sites() );
 	}
+
+    /**
+     * Decode the bulk index response
+     *
+     * @since 0.9.2
+     * @param $body
+     *
+     * @return array|object
+     */
+    public function bulk_index_posts( $body ) {
+        // create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
+        $url     = trailingslashit( EP_HOST ) . trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+        $request = wp_remote_request( $url, array( 'method' => 'POST', 'body' => $body ) );
+
+        return is_wp_error( $request ) ? $request : json_decode( wp_remote_retrieve_body( $request ), true );
+    }
 }
 
 EP_API::factory();
@@ -893,4 +909,8 @@ function ep_prepare_post( $post_id ) {
 
 function ep_get_sites() {
 	return EP_API::factory()->get_sites();
+}
+
+function ep_bulk_index_posts( $body ) {
+    return EP_API::factory()->bulk_index_posts( $body );
 }

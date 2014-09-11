@@ -21,7 +21,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	private $failed_posts = array();
 
-	/**
+    /**
 	 * Add the document mapping
 	 *
 	 * @synopsis [--network-wide]
@@ -170,8 +170,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	public function index( $args, $assoc_args ) {
 		$total_indexed = 0;
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			WP_CLI::line( __( 'Indexing posts network-wide...', 'elasticpress' ) );
+
+        timer_start();
+
+        if ( ! empty( $assoc_args['network-wide'] ) ) {
+			WP_CLI::log( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
 			$sites = ep_get_sites();
 
@@ -182,32 +185,34 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 				$total_indexed += $result['synced'];
 
-				WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), $site['blog_id'], $result['synced'] ) );
+				WP_CLI::log( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), $site['blog_id'], $result['synced'] ) );
 
-				if ( ! empty( $errors ) ) {
+				if ( ! empty( $result['errors'] ) ) {
 					WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), $site['blog_id'], count( $result['errors'] ) ) );
 				}
 
 				restore_current_blog();
 			}
 
-			WP_CLI::line( __( 'Recreating network alias...' ) );
-
-			WP_CLI::line( sprintf( __( 'Total number of posts indexed: %d', 'elasticpress' ), $total_indexed ) );
+			WP_CLI::log( __( 'Recreating network alias...', 'elasticpress' ) );
 
 			$this->_create_network_alias();
 
+            WP_CLI::log( sprintf( __( 'Total number of posts indexed: %d', 'elasticpress' ), $total_indexed ) );
+
 		} else {
-			WP_CLI::line( __( 'Indexing posts...', 'elasticpress' ) );
+			WP_CLI::log( __( 'Indexing posts...', 'elasticpress' ) );
 
 			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
 
-			WP_CLI::line( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
+			WP_CLI::log( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
-			if ( ! empty( $errors ) ) {
+			if ( ! empty( $result['errors'] ) ) {
 				WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
 			}
 		}
+
+        WP_CLI::log( WP_CLI::colorize( '%Y' . __( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
 
 		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
 	}
@@ -246,7 +251,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 						// index the posts one-by-one. not sure why someone may want to do this.
 						$result = ep_sync_post( get_the_ID() );
 					} else {
-						$result = $this->queue_post( get_the_ID(), $query->found_posts );
+						$result = $this->queue_post( get_the_ID(), $query->post_count );
 					}
 
 					if ( ! $result ) {
@@ -258,6 +263,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			} else {
 				break;
 			}
+
+            WP_CLI::log( 'Indexed ' . ( $query->post_count + $offset ) . '/' . $query->found_posts . ' entries…' );
 
 			$offset += 500;
 
@@ -335,11 +342,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// show the content length in bytes if in debug
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			WP_CLI::line( WP_CLI::colorize( '%MRequest string length:%N' ) . ' ' . number_format( mb_strlen( $body, '8bit' ) ) );
+			WP_CLI::log( 'Request string length: ' . size_format( mb_strlen( $body, '8bit' ), 2 ) );
 		}
 
 		// decode the response
-		$response = $this->bulk_index_posts( $body );
+		$response = ep_bulk_index_posts( $body );
 
 		// if we did have errors, try to add the documents again
 		if ( isset( $response['errors'] ) && $response['errors'] === true ) {
@@ -365,27 +372,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Decode the bulk index response
-	 *
-	 * @since 0.9.2
-	 * @param $body
-	 *
-	 * @return array|mixed
-	 */
-	private function bulk_index_posts( $body ) {
-		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-		$url     = trailingslashit( EP_HOST ) . trailingslashit( ep_get_index_name() ) . 'post/_bulk';
-		$request = wp_remote_request( $url, array( 'method' => 'POST', 'body' => $body ) );
-
-		// kill it on an error and show the message readout
-		if ( is_wp_error( $request ) ) {
-			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
-		}
-
-		return json_decode( wp_remote_retrieve_body( $request ), true );
-	}
-
-	/**
 	 * Send any bulk indexing errors
 	 *
 	 * @since 0.9.2
@@ -402,7 +388,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				fwrite( STDOUT, __( 'Failed to send bulk error email. Print on screen? [y/n] ' ) );
 				$answer = trim( fgets( STDIN ) );
 				if ( 'y' == $answer ) {
-					WP_CLI::line( $email_text );
+					WP_CLI::log( $email_text );
 				}
 			}
 		}
@@ -411,17 +397,43 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Ping the Elasticsearch server and retrieve a status.
 	 *
+     * @synopsis [--raw] [--index=<foo>]
 	 * @since 0.9.1
 	 */
 	public function status() {
 		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty' );
-		if ( is_wp_error( $request ) ) {
+
+        if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}
-		$body = wp_remote_retrieve_body( $request );
+
+        $body = wp_remote_retrieve_body( $request );
 		WP_CLI::line( '' );
 		WP_CLI::line( '====== Status ======' );
 		WP_CLI::line( print_r( $body, true ) );
 		WP_CLI::line( '====== End Status ======' );
 	}
+
+    /**
+     * Get stats on the current index.
+     *
+     * @since 0.9.2
+     */
+    public function stats() {
+        $request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/' );
+        if ( is_wp_error( $request ) ) {
+            WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
+        }
+        $body          = json_decode( wp_remote_retrieve_body( $request ), true );
+        $current_index = ep_get_index_name();
+
+        if ( isset( $body['indices'][ $current_index ] ) ) {
+            WP_CLI::log( '====== Stats for: ' . $current_index . " ======" );
+            WP_CLI::log( 'Documents:  ' . $body['indices'][ $current_index ]['total']['docs']['count'] );
+            WP_CLI::log( 'Index Size: ' . size_format( $body['indices'][ $current_index ]['total']['store']['size_in_bytes'], 2 ) );
+            WP_CLI::log( '====== End Stats ======' );
+        } else {
+            WP_CLI::warning( $current_index . ' is not currently indexed.' );
+        }
+    }
 }
