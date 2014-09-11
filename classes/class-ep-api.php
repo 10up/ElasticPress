@@ -520,6 +520,52 @@ class EP_API {
 	}
 
 	/**
+	 * Prepare a post for syncing
+	 *
+	 * @param int $post_id
+	 * @since 0.9.1
+	 * @return bool|array
+	 */
+	public function prepare_post( $post_id ) {
+		$post = get_post( $post_id );
+
+		$user = get_userdata( $post->post_author );
+
+		if ( $user instanceof WP_User ) {
+			$user_data = array(
+				'login'        => $user->user_login,
+				'display_name' => $user->display_name
+			);
+		} else {
+			$user_data = array(
+				'login'        => '',
+				'display_name' => ''
+			);
+		}
+
+		return array(
+			'post_id'           => $post_id,
+			'post_author'       => $user_data,
+			'post_date'         => $post->post_date,
+			'post_date_gmt'     => $post->post_date_gmt,
+			'post_title'        => get_the_title( $post_id ),
+			'post_excerpt'      => $post->post_excerpt,
+			'post_content'      => apply_filters( 'the_content', $post->post_content ),
+			'post_status'       => 'publish',
+			'post_name'         => $post->post_name,
+			'post_modified'     => $post->post_modified,
+			'post_modified_gmt' => $post->post_modified_gmt,
+			'post_parent'       => $post->post_parent,
+			'post_type'         => $post->post_type,
+			'post_mime_type'    => $post->post_mime_type,
+			'permalink'         => get_permalink( $post_id ),
+			'terms'             => $this->prepare_terms( $post ),
+			'post_meta'         => $this->prepare_meta( $post ),
+			//'site_id'         => get_current_blog_id(),
+		);
+	}
+
+	/**
 	 * Delete the current index
 	 *
 	 * @since 0.9.0
