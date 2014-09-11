@@ -742,7 +742,7 @@ class EP_API {
 			}
 		}
 
-		$search_fields = apply_filters( 'ep_search_fields', $search_fields );
+		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
 		$query = array(
 			'bool' => array(
@@ -780,7 +780,7 @@ class EP_API {
 
 			$filter['and'][] = array(
 				$terms_map_name => array(
-					'post_type' => $post_types,
+					'post_type.raw' => $post_types,
 				),
 			);
 
