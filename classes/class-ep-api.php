@@ -543,7 +543,7 @@ class EP_API {
 			);
 		}
 
-		return array(
+		$post_args = array(
 			'post_id'           => $post_id,
 			'post_author'       => $user_data,
 			'post_date'         => $post->post_date,
@@ -563,6 +563,10 @@ class EP_API {
 			'post_meta'         => $this->prepare_meta( $post ),
 			//'site_id'         => get_current_blog_id(),
 		);
+
+		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
+
+		return $post_args;
 	}
 
 	/**
