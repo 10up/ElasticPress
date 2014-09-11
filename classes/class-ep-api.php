@@ -90,6 +90,8 @@ class EP_API {
 		$index = null;
 		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
+		} else if ( is_int( $scope ) ) {
+			$index = ep_get_index_name( $scope );
 		}
 
 		$index_url = ep_get_index_url( $index );
@@ -569,12 +571,49 @@ class EP_API {
 			'post_content',
 		);
 
+		/**
+		 * Tax Query support
+		 *
+		 * Support for the tax_query argument of WP_Query
+		 * Currently only provides support for the 'AND' relation between taxonomies
+		 *
+		 * @use field = slug
+		 *      terms array
+		 * @since 0.9.1
+		 */
+		if ( ! empty( $args['tax_query'] ) ) {
+			$tax_filter = array();
+
+			foreach( $args['tax_query'] as $single_tax_query ) {
+				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
+					$terms = (array) $single_tax_query['terms'];
+					$tax_filter[]['terms'] = array(
+						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $terms,
+					);
+				}
+			}
+
+			if ( ! empty( $tax_filter ) ) {
+				$filter['and'][]['bool']['must'] = $tax_filter;
+			}
+		}
+
+		/**
+		 * Allow for searching by taxonomy
+		 *
+		 * @since 0.9.0
+		 */
 		if ( ! empty( $args['search_tax'] ) ) {
 			foreach ( $args['search_tax'] as $tax ) {
 				$search_fields[] = 'terms.' . $tax . '.name';
 			}
 		}
 
+		/**
+		 * Allow for searching by meta
+		 *
+		 * @since 0.9.0
+		 */
 		if ( ! empty( $args['search_meta'] ) ) {
 			foreach ( $args['search_meta'] as $key ) {
 				$search_fields[] = 'post_meta.' . $key;
@@ -638,130 +677,41 @@ class EP_API {
 			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
-		
-		if ( isset( $args['aggregations'] ) ) {
-			$formatted_args['aggregations'] = $args['aggregations'];
+
+		/**
+		 * Aggregations
+		 */
+		if ( isset( $args['aggs'] ) && ! empty( $args['aggs']['aggs'] ) ) {
+			$agg_obj = $args['aggs'];
+
+			// Add a name to the aggregation if it was passed through
+			if ( ! empty( $agg_obj['name'] ) ) {
+				$agg_name = $agg_obj['name'];
+			} else {
+				$agg_name = 'aggregation_name';
+			}
+
+			// Add/use the filter if warranted
+			if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && ! empty( $filter ) ) {
+
+				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
+				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
+				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+			} else {
+				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
+			}
 		}
 
 		return apply_filters( 'ep_formatted_args', $formatted_args );
 	}
 
 	/**
-	 * Prepare a post for syncing
+	 * Wrapper function for wp_get_sites - allows us to have one central place for the `ep_indexable_sites` filter
 	 *
-	 * @param int $post_id
-	 * @since 0.9.1
-	 * @return bool|array
+	 * @return mixed|void
 	 */
-	public function prepare_post( $post_id ) {
-		$post = get_post( $post_id );
-
-		$user = get_userdata( $post->post_author );
-
-		if ( $user instanceof WP_User ) {
-			$user_data = array(
-				'login'        => $user->user_login,
-				'display_name' => $user->display_name
-			);
-		} else {
-			$user_data = array(
-				'login'        => '',
-				'display_name' => ''
-			);
-		}
-
-		return array(
-			'post_id'           => $post_id,
-			'post_author'       => $user_data,
-			'post_date'         => $post->post_date,
-			'post_date_gmt'     => $post->post_date_gmt,
-			'post_title'        => get_the_title( $post_id ),
-			'post_excerpt'      => $post->post_excerpt,
-			'post_content'      => apply_filters( 'the_content', $post->post_content ),
-			'post_status'       => 'publish',
-			'post_name'         => $post->post_name,
-			'post_modified'     => $post->post_modified,
-			'post_modified_gmt' => $post->post_modified_gmt,
-			'post_parent'       => $post->post_parent,
-			'post_type'         => $post->post_type,
-			'post_mime_type'    => $post->post_mime_type,
-			'permalink'         => get_permalink( $post_id ),
-			'terms'             => $this->prepare_terms( $post ),
-			'post_meta'         => $this->prepare_meta( $post ),
-			//'site_id'         => get_current_blog_id(),
-		);
-	}
-
-	/**
-	 * Prepare terms to send to ES.
-	 *
-	 * @param object $post
-	 *
-	 * @since 0.1.0
-	 * @return array
-	 */
-	private function prepare_terms( $post ) {
-		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
-		$selected_taxonomies = array();
-
-		foreach ( $taxonomies as $taxonomy ) {
-			if ( $taxonomy->public ) {
-				$selected_taxonomies[] = $taxonomy;
-			}
-		}
-
-		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
-
-		if ( empty( $selected_taxonomies ) ) {
-			return array();
-		}
-
-		$terms = array();
-
-		foreach ( $selected_taxonomies as $taxonomy ) {
-			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
-
-			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
-				continue;
-			}
-
-			foreach ( $object_terms as $term ) {
-				$terms[$term->taxonomy][] = array(
-					'term_id' => $term->term_id,
-					'slug'    => $term->slug,
-					'name'    => $term->name,
-					'parent'  => $term->parent
-				);
-			}
-		}
-
-		return $terms;
-	}
-
-	/**
-	 * Prepare post meta to send to ES
-	 *
-	 * @param object $post
-	 *
-	 * @since 0.1.0
-	 * @return array
-	 */
-	public function prepare_meta( $post ) {
-		$meta = (array) get_post_meta( $post->ID );
-
-		if ( empty( $meta ) ) {
-			return array();
-		}
-
-		$prepared_meta = array();
-
-		foreach ( $meta as $key => $value ) {
-			if ( ! is_protected_meta( $key ) ) {
-				$prepared_meta[$key] = maybe_unserialize( $value );
-			}
-		}
-
-		return $prepared_meta;
+	public function get_sites() {
+		return apply_filters( 'ep_indexable_sites', wp_get_sites() );
 	}
 }
 
@@ -817,4 +767,8 @@ function ep_refresh_index() {
 
 function ep_prepare_post( $post_id ) {
 	return EP_API::factory()->prepare_post( $post_id );
+}
+
+function ep_get_sites() {
+	return EP_API::factory()->get_sites();
 }
