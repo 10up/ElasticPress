@@ -646,114 +646,123 @@ class EP_API {
 		return apply_filters( 'ep_formatted_args', $formatted_args );
 	}
 
-    public function prepare_post( $post_id ) {
-        $post = get_post( $post_id );
+	/**
+	 * Prepare a post for syncing
+	 *
+	 * @param int $post_id
+	 * @since 0.9.1
+	 * @return bool|array
+	 */
+	public function prepare_post( $post_id ) {
+		$post = get_post( $post_id );
 
-        $user = get_userdata( $post->post_author );
+		$user = get_userdata( $post->post_author );
 
-        if ( $user instanceof WP_User ) {
-            $user_data = array(
-                'login'        => $user->user_login,
-                'display_name' => $user->display_name
-            );
-        } else {
-            $user_data = array(
-                'login'        => '',
-                'display_name' => ''
-            );
-        }
+		if ( $user instanceof WP_User ) {
+			$user_data = array(
+				'login'        => $user->user_login,
+				'display_name' => $user->display_name
+			);
+		} else {
+			$user_data = array(
+				'login'        => '',
+				'display_name' => ''
+			);
+		}
 
-        return array(
-            'post_id'           => $post_id,
-            'post_author'       => $user_data,
-            'post_date'         => $post->post_date,
-            'post_date_gmt'     => $post->post_date_gmt,
-            'post_title'        => get_the_title( $post_id ),
-            'post_excerpt'      => $post->post_excerpt,
-            'post_content'      => apply_filters( 'the_content', $post->post_content ),
-            'post_status'       => 'publish',
-            'post_name'         => $post->post_name,
-            'post_modified'     => $post->post_modified,
-            'post_modified_gmt' => $post->post_modified_gmt,
-            'post_parent'       => $post->post_parent,
-            'post_type'         => $post->post_type,
-            'post_mime_type'    => $post->post_mime_type,
-            'permalink'         => get_permalink( $post_id ),
-            'terms'             => $this->prepare_terms( $post ),
-            'post_meta'         => $this->prepare_meta( $post ),
-            //'site_id'         => get_current_blog_id(),
-        );
-    }
+		return array(
+			'post_id'           => $post_id,
+			'post_author'       => $user_data,
+			'post_date'         => $post->post_date,
+			'post_date_gmt'     => $post->post_date_gmt,
+			'post_title'        => get_the_title( $post_id ),
+			'post_excerpt'      => $post->post_excerpt,
+			'post_content'      => apply_filters( 'the_content', $post->post_content ),
+			'post_status'       => 'publish',
+			'post_name'         => $post->post_name,
+			'post_modified'     => $post->post_modified,
+			'post_modified_gmt' => $post->post_modified_gmt,
+			'post_parent'       => $post->post_parent,
+			'post_type'         => $post->post_type,
+			'post_mime_type'    => $post->post_mime_type,
+			'permalink'         => get_permalink( $post_id ),
+			'terms'             => $this->prepare_terms( $post ),
+			'post_meta'         => $this->prepare_meta( $post ),
+			//'site_id'         => get_current_blog_id(),
+		);
+	}
 
-    /**
-     * Prepare terms to send to ES.
-     *
-     * @param object $post
-     * @since 0.1.0
-     * @return array
-     */
-    private function prepare_terms( $post ) {
-        $taxonomies = get_object_taxonomies( $post->post_type, 'objects' );
-        $selected_taxonomies = array();
+	/**
+	 * Prepare terms to send to ES.
+	 *
+	 * @param object $post
+	 *
+	 * @since 0.1.0
+	 * @return array
+	 */
+	private function prepare_terms( $post ) {
+		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
+		$selected_taxonomies = array();
 
-        foreach ( $taxonomies as $taxonomy ) {
-            if ( $taxonomy->public ) {
-                $selected_taxonomies[] = $taxonomy;
-            }
-        }
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public ) {
+				$selected_taxonomies[] = $taxonomy;
+			}
+		}
 
-        $selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
+		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
 
-        if ( empty( $selected_taxonomies ) ) {
-            return array();
-        }
+		if ( empty( $selected_taxonomies ) ) {
+			return array();
+		}
 
-        $terms = array();
+		$terms = array();
 
-        foreach ( $selected_taxonomies as $taxonomy ) {
-            $object_terms = get_the_terms( $post->ID, $taxonomy->name );
+		foreach ( $selected_taxonomies as $taxonomy ) {
+			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
 
-            if ( ! $object_terms || is_wp_error( $object_terms ) ) {
-                continue;
-            }
+			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
+				continue;
+			}
 
-            foreach ( $object_terms as $term ) {
-                $terms[$term->taxonomy][] = array(
-                    'term_id' => $term->term_id,
-                    'slug'    => $term->slug,
-                    'name'    => $term->name,
-                    'parent'  => $term->parent
-                );
-            }
-        }
+			foreach ( $object_terms as $term ) {
+				$terms[$term->taxonomy][] = array(
+					'term_id' => $term->term_id,
+					'slug'    => $term->slug,
+					'name'    => $term->name,
+					'parent'  => $term->parent
+				);
+			}
+		}
 
-        return $terms;
-    }
+		return $terms;
+	}
 
-    /**
-     * Prepare post meta to send to ES
-     *
-     * @param object $post
-     * @since 0.1.0
-     * @return array
-     */
-    public function prepare_meta( $post ) {
-        $meta = (array) get_post_meta( $post->ID );
+	/**
+	 * Prepare post meta to send to ES
+	 *
+	 * @param object $post
+	 *
+	 * @since 0.1.0
+	 * @return array
+	 */
+	public function prepare_meta( $post ) {
+		$meta = (array) get_post_meta( $post->ID );
 
-        if ( empty( $meta ) ) {
-            return array();
-        }
+		if ( empty( $meta ) ) {
+			return array();
+		}
 
-        $prepared_meta = array();
+		$prepared_meta = array();
 
-        foreach ( $meta as $key => $value ) {
-            if ( ! is_protected_meta( $key ) ) {
-                $prepared_meta[$key] = maybe_unserialize( $value );
-            }
-        }
+		foreach ( $meta as $key => $value ) {
+			if ( ! is_protected_meta( $key ) ) {
+				$prepared_meta[$key] = maybe_unserialize( $value );
+			}
+		}
 
-        return $prepared_meta;
-    }
+		return $prepared_meta;
+	}
 }
 
 EP_API::factory();
@@ -807,5 +816,5 @@ function ep_refresh_index() {
 }
 
 function ep_prepare_post( $post_id ) {
-    return EP_API::factory()->prepare_post( $post_id );
+	return EP_API::factory()->prepare_post( $post_id );
 }
