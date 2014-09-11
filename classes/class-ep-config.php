@@ -32,7 +32,7 @@ class EP_Config {
 
 		$site_url = get_site_url( $blog_id );
 		$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
-		$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id ? $blog_id : get_current_blog_id();
+		$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id;
 
 		return apply_filters( 'ep_index_name', $index_name );
 	}
