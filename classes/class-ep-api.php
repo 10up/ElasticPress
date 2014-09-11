@@ -566,6 +566,78 @@ class EP_API {
 	}
 
 	/**
+	 * Prepare terms to send to ES.
+	 *
+	 * @param object $post
+	 *
+	 * @since 0.1.0
+	 * @return array
+	 */
+	private function prepare_terms( $post ) {
+		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
+		$selected_taxonomies = array();
+
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public ) {
+				$selected_taxonomies[] = $taxonomy;
+			}
+		}
+
+		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
+
+		if ( empty( $selected_taxonomies ) ) {
+			return array();
+		}
+
+		$terms = array();
+
+		foreach ( $selected_taxonomies as $taxonomy ) {
+			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
+
+			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
+				continue;
+			}
+
+			foreach ( $object_terms as $term ) {
+				$terms[$term->taxonomy][] = array(
+					'term_id' => $term->term_id,
+					'slug'    => $term->slug,
+					'name'    => $term->name,
+					'parent'  => $term->parent
+				);
+			}
+		}
+
+		return $terms;
+	}
+
+	/**
+	 * Prepare post meta to send to ES
+	 *
+	 * @param object $post
+	 *
+	 * @since 0.1.0
+	 * @return array
+	 */
+	public function prepare_meta( $post ) {
+		$meta = (array) get_post_meta( $post->ID );
+
+		if ( empty( $meta ) ) {
+			return array();
+		}
+
+		$prepared_meta = array();
+
+		foreach ( $meta as $key => $value ) {
+			if ( ! is_protected_meta( $key ) ) {
+				$prepared_meta[$key] = maybe_unserialize( $value );
+			}
+		}
+
+		return $prepared_meta;
+	}
+
+	/**
 	 * Delete the current index
 	 *
 	 * @since 0.9.0
