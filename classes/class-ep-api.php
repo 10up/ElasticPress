@@ -742,7 +742,7 @@ class EP_API {
 			}
 		}
 
-		$search_fields = apply_filters( 'ep_search_fields', $search_fields );
+		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
 		$query = array(
 			'bool' => array(
