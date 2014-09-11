@@ -53,7 +53,7 @@ class EP_API {
 	 * Pull the site id from the index name
 	 *
 	 * @param string $index_name
-	 * @since 0.9
+	 * @since 0.9.0
 	 * @return int
 	 */
 	public function parse_site_id( $index_name ) {
@@ -63,7 +63,7 @@ class EP_API {
 	/**
 	 * Refresh the current index
 	 *
-	 * @since 0.9
+	 * @since 0.9.0
 	 * @return bool
 	 */
 	public function refresh_index() {
@@ -190,7 +190,7 @@ class EP_API {
 	 * Get a post from the index
 	 *
 	 * @param int $post_id
-	 * @since 0.9
+	 * @since 0.9.0
 	 * @return bool
 	 */
 	public function get_post( $post_id ) {
@@ -240,7 +240,7 @@ class EP_API {
 	/**
 	 * Delete the network index alias
 	 *
-	 * @since 0.9
+	 * @since 0.9.0
 	 * @return bool|array
 	 */
 	public function delete_network_alias() {
@@ -261,7 +261,7 @@ class EP_API {
 	 * Create the network alias from an array of indexes
 	 *
 	 * @param array $indexes
-	 * @since 0.9
+	 * @since 0.9.0
 	 * @return array|bool
 	 */
 	public function create_network_alias( $indexes ) {
@@ -294,7 +294,7 @@ class EP_API {
 	/**
 	 * Send mapping to ES
 	 *
-	 * @since 0.9
+	 * @since 0.9.0
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
@@ -522,7 +522,7 @@ class EP_API {
 	/**
 	 * Delete the current index
 	 *
-	 * @since 0.9
+	 * @since 0.9.0
 	 * @return array|bool
 	 */
 	public function delete_index( ) {
@@ -545,7 +545,7 @@ class EP_API {
 	 * Format WP query args for ES
 	 *
 	 * @param array $args
-	 * @since 0.9
+	 * @since 0.9.0
 	 * @return array
 	 */
 	public function format_args( $args ) {
@@ -763,6 +763,10 @@ function ep_delete_network_alias() {
 
 function ep_refresh_index() {
 	return EP_API::factory()->refresh_index();
+}
+
+function ep_prepare_post( $post_id ) {
+	return EP_API::factory()->prepare_post( $post_id );
 }
 
 function ep_get_sites() {
