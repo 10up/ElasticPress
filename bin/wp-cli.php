@@ -232,13 +232,13 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
         while ( true ) {
 
-            $args = array(
-                'posts_per_page'      => 500,
+            $args = apply_filters( 'ep_index_posts_args', array(
+                'posts_per_page'      => 350,
                 'post_type'           => ep_get_indexable_post_types(),
                 'post_status'         => 'publish',
                 'offset'              => $offset,
                 'ignore_sticky_posts' => true
-            );
+            ) );
 
             $query = new WP_Query( $args );
 
