@@ -31,8 +31,9 @@ class EP_WP_Query_Integration {
 	}
 
 	public function action_pre_get_posts( $query ) {
-		if ( ! $query->is_search() )
+		if ( ! ep_elasticpress_enabled( $query ) ) {
 			return;
+		}
 
 		$query->set( 'cache_results', false );
 	}
@@ -73,7 +74,7 @@ class EP_WP_Query_Integration {
 	 */
 	public function filter_the_posts( $posts, &$query ) {
 
-		if ( ! $query->is_search() ) {
+		if ( ! ep_elasticpress_enabled( $query ) ) {
 			return $posts;
 		}
 
@@ -138,7 +139,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
-		if ( ! $query->is_search() ) {
+		if ( ! ep_elasticpress_enabled( $query ) ) {
 			return $sql;
 		}
 
@@ -154,7 +155,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_posts_request( $request, $query ) {
-		if ( ! $query->is_search() ) {
+		if ( ! ep_elasticpress_enabled( $query ) ) {
 			return $request;
 		}
 
