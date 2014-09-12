@@ -766,9 +766,11 @@ class EP_API {
 			);
 		}*/
 
-		if ( isset( $args['s'] ) ) {
+		if ( isset( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
 			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
 			$formatted_args['query'] = $query;
+		} else if ( isset( $args['ep_match_all'] ) && true === $args['ep_match_all'] ) {
+			$formatted_args['query']['match_all'] = array();
 		}
 
 		if ( isset( $args['post_type'] ) ) {
@@ -834,6 +836,25 @@ class EP_API {
 	 */
 	public function get_sites() {
 		return apply_filters( 'ep_indexable_sites', wp_get_sites() );
+	}
+
+	/**
+	 * Check to see if we should allow elasticpress to override this query
+	 *
+	 * @param $query
+	 *
+	 * @return bool
+	 */
+	public function elasticpress_enabled( $query ) {
+		$enabled = false;
+
+		if ( $query->is_search() ) {
+			$enabled = true;
+		} else if ( isset( $query->query['ep_match_all'] ) && true === $query->query['ep_match_all'] ) {
+			$enabled = true;
+		}
+
+		return $enabled;
 	}
 }
 
