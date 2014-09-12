@@ -915,3 +915,7 @@ function ep_prepare_post( $post_id ) {
 function ep_get_sites() {
 	return EP_API::factory()->get_sites();
 }
+
+function ep_elasticpress_enabled( $query ) {
+	return EP_API::factory()->elasticpress_enabled( $query );
+}
