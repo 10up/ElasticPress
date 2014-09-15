@@ -766,9 +766,11 @@ class EP_API {
 			);
 		}*/
 
-		if ( isset( $args['s'] ) ) {
+		if ( isset( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
 			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
 			$formatted_args['query'] = $query;
+		} else if ( isset( $args['ep_match_all'] ) && true === $args['ep_match_all'] ) {
+			$formatted_args['query']['match_all'] = array();
 		}
 
 		if ( isset( $args['post_type'] ) ) {
@@ -850,6 +852,24 @@ class EP_API {
 
 		return is_wp_error( $request ) ? $request : json_decode( wp_remote_retrieve_body( $request ), true );
 	}
+
+	/**
+	 * Check to see if we should allow elasticpress to override this query
+	 *
+	 * @param $query
+	 * @return bool
+	 */
+	public function elasticpress_enabled( $query ) {
+		$enabled = false;
+
+		if ( $query->is_search() ) {
+			$enabled = true;
+		} else if ( isset( $query->query['ep_match_all'] ) && true === $query->query['ep_match_all'] ) {
+			$enabled = true;
+		}
+
+		return $enabled;
+	}
 }
 
 EP_API::factory();
@@ -911,5 +931,9 @@ function ep_get_sites() {
 }
 
 function ep_bulk_index_posts( $body ) {
-    return EP_API::factory()->bulk_index_posts( $body );
+	return EP_API::factory()->bulk_index_posts( $body );
+}
+
+function ep_elasticpress_enabled( $query ) {
+	return EP_API::factory()->elasticpress_enabled( $query );
 }
