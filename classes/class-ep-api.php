@@ -671,9 +671,15 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_args( $args ) {
+		if ( ! empty( $args['post_per_page'] ) ) {
+			$posts_per_page = $args['post_per_page'];
+		} else {
+			$posts_per_page = get_option( 'posts_per_page' );
+		}
+
 		$formatted_args = array(
 			'from' => 0,
-			'size' => get_option( 'posts_per_page' ),
+			'size' => $posts_per_page,
 			'sort' => array(
 				array(
 					'_score' => array(
