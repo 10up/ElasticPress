@@ -50,6 +50,7 @@ class EP_WP_Query_Integration {
 
 			switch_to_blog( $post->site_id );
 			$authordata = get_userdata( $post->post_author );
+			restore_current_blog();
 		}
 
 	}
