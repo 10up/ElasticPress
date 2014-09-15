@@ -320,7 +320,14 @@ class EPTestMultisite extends WP_UnitTestCase {
 	public function testQueryRestorationResetPostData() {
 		$old_blog_id = get_current_blog_id();
 
+		$main_post_id = $this->factory->post->create();
+
+		query_posts( array( 'p' => $main_post_id ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
 		$sites = ep_get_sites();
+
+		$i = 0;
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -328,13 +335,19 @@ class EPTestMultisite extends WP_UnitTestCase {
 			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
 			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
 
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+			}
+
 			ep_refresh_index();
 
 			restore_current_blog();
+
+			$i++;
 		}
 
 		$args = array(
-			's' => 'findme',
+			's' => 'notfirstblog',
 			'sites' => 'all',
 		);
 
@@ -342,6 +355,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		if ( $query->have_posts() ) {
 			while ( $query->have_posts() ) {
+				global $post;
 				$query->the_post();
 
 				// do stuff!
@@ -363,7 +377,14 @@ class EPTestMultisite extends WP_UnitTestCase {
 	public function testQueryRestorationResetQuery() {
 		$old_blog_id = get_current_blog_id();
 
+		$main_post_id = $this->factory->post->create();
+
+		query_posts( array( 'p' => $main_post_id ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
 		$sites = ep_get_sites();
+
+		$i = 0;
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -371,13 +392,19 @@ class EPTestMultisite extends WP_UnitTestCase {
 			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
 			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
 
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+			}
+
 			ep_refresh_index();
 
 			restore_current_blog();
+
+			$i++;
 		}
 
 		$args = array(
-			's' => 'findme',
+			's' => 'notfirstblog',
 			'sites' => 'all',
 		);
 
@@ -385,6 +412,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		if ( $query->have_posts() ) {
 			while ( $query->have_posts() ) {
+				global $post;
 				$query->the_post();
 
 				// do stuff!
