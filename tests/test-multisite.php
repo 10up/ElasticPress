@@ -311,4 +311,90 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		$this->assertEquals( 4, count( array_unique( $found_posts ) ) );
 	}
+
+	/**
+	 * Test query restoration after wp_reset_postdata
+	 *
+	 * @since 0.9.2
+	 */
+	public function testQueryRestorationResetPostData() {
+		$old_blog_id = get_current_blog_id();
+
+		$sites = ep_get_sites();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			ep_refresh_index();
+
+			restore_current_blog();
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+		);
+
+		$query = new WP_Query( $args );
+
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+
+				// do stuff!
+			}
+		}
+
+		wp_reset_postdata();
+
+		$new_blog_id = get_current_blog_id();
+
+		$this->assertEquals( $old_blog_id, $new_blog_id );
+	}
+
+	/**
+	 * Test query restoration after wp_reset_query
+	 *
+	 * @since 0.9.2
+	 */
+	public function testQueryRestorationResetQuery() {
+		$old_blog_id = get_current_blog_id();
+
+		$sites = ep_get_sites();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			ep_refresh_index();
+
+			restore_current_blog();
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+		);
+
+		$query = new WP_Query( $args );
+
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+
+				// do stuff!
+			}
+		}
+
+		wp_reset_query();
+
+		$new_blog_id = get_current_blog_id();
+
+		$this->assertEquals( $old_blog_id, $new_blog_id );
+	}
 }
