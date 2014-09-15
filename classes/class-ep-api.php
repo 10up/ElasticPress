@@ -874,7 +874,7 @@ class EP_API {
 			$enabled = true;
 		}
 
-		return $enabled;
+		return apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
 	}
 }
 
