@@ -311,4 +311,118 @@ class EPTestMultisite extends WP_UnitTestCase {
 
 		$this->assertEquals( 4, count( array_unique( $found_posts ) ) );
 	}
+
+	/**
+	 * Test query restoration after wp_reset_postdata
+	 *
+	 * @since 0.9.2
+	 */
+	public function testQueryRestorationResetPostData() {
+		$old_blog_id = get_current_blog_id();
+
+		$main_post_id = $this->factory->post->create();
+
+		query_posts( array( 'p' => $main_post_id ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'notfirstblog',
+			'sites' => 'all',
+		);
+
+		$query = new WP_Query( $args );
+
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				global $post;
+				$query->the_post();
+
+				// do stuff!
+			}
+		}
+
+		wp_reset_postdata();
+
+		$new_blog_id = get_current_blog_id();
+
+		$this->assertEquals( $old_blog_id, $new_blog_id );
+	}
+
+	/**
+	 * Test query restoration after wp_reset_query
+	 *
+	 * @since 0.9.2
+	 */
+	public function testQueryRestorationResetQuery() {
+		$old_blog_id = get_current_blog_id();
+
+		$main_post_id = $this->factory->post->create();
+
+		query_posts( array( 'p' => $main_post_id ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'notfirstblog',
+			'sites' => 'all',
+		);
+
+		$query = new WP_Query( $args );
+
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				global $post;
+				$query->the_post();
+
+				// do stuff!
+			}
+		}
+
+		wp_reset_query();
+
+		$new_blog_id = get_current_blog_id();
+
+		$this->assertEquals( $old_blog_id, $new_blog_id );
+	}
 }
