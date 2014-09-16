@@ -3,6 +3,13 @@
 class EP_WP_Query_Integration {
 
 	/**
+	 * Is set only when we are within a loop
+	 *
+	 * @var bool
+	 */
+	private $in_loop = false;
+
+	/**
 	 * Placeholder method
 	 *
 	 * @since 0.9
@@ -21,6 +28,9 @@ class EP_WP_Query_Integration {
 
 			// Search and filter in EP_Posts to WP_Query
 			add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
+
+			// Ensure we're in a loop before we allow blog switching
+			add_action( 'loop_start', array( $this, 'action_loop_start' ) );
 
 			// Properly restore blog if necessary
 			add_action( 'loop_end', array( $this, 'action_loop_end' ) );
@@ -45,13 +55,19 @@ class EP_WP_Query_Integration {
 	 * @since 0.9
 	 */
 	public function action_the_post( $post ) {
-		if ( is_multisite() && ! empty( $post->site_id ) && get_current_blog_id() != $post->site_id ) {
+		if ( is_multisite() && true === $this->in_loop && ! empty( $post->site_id ) && get_current_blog_id() != $post->site_id ) {
 			global $authordata;
 
 			switch_to_blog( $post->site_id );
 			$authordata = get_userdata( $post->post_author );
 		}
 
+	}
+
+	public function action_loop_start() {
+		if ( is_multisite() ) {
+			$this->in_loop = true;
+		}
 	}
 
 	/**
@@ -61,6 +77,7 @@ class EP_WP_Query_Integration {
 	 */
 	public function action_loop_end() {
 		if ( is_multisite() ) {
+			$this->in_loop = false;
 			restore_current_blog();
 		}
 	}
