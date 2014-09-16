@@ -64,6 +64,11 @@ class EP_WP_Query_Integration {
 
 	}
 
+	/**
+	 * Ensure we've started a loop before we allow ourselves to change the blog
+	 *
+	 * @since 0.9.2
+	 */
 	public function action_loop_start() {
 		if ( is_multisite() ) {
 			$this->in_loop = true;
