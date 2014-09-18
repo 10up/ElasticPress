@@ -1,6 +1,7 @@
 <?php
 
 class EP_Sync_Manager {
+
 	/**
 	 * Placeholder method
 	 *
@@ -44,6 +45,13 @@ class EP_Sync_Manager {
 	 * @since 0.1.0
 	 */
 	public function action_sync_on_transition( $new_status, $old_status, $post ) {
+		global $importer;
+
+		// If we have an importer we must be doing an import - let's abort
+		if ( ! empty( $importer ) ) {
+			return;
+		}
+
 		if ( 'publish' !== $new_status ) {
 			return;
 		}
