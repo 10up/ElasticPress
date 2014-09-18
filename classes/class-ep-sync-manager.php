@@ -1,6 +1,15 @@
 <?php
 
 class EP_Sync_Manager {
+
+	/**
+	 * Flag to allow us to prevent syncing during an import
+	 *
+	 * @var bool
+	 * @since 0.9.2
+	 */
+	private $importing = false;
+
 	/**
 	 * Placeholder method
 	 *
@@ -16,6 +25,9 @@ class EP_Sync_Manager {
 	public function setup() {
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
 		add_action( 'wp_trash_post', array( $this, 'action_trash_post' ) );
+
+		add_action( 'import_start', array( $this, 'import_start' ) );
+		add_action( 'import_end', array( $this, 'import_end' ) );
 	}
 
 	/**
@@ -95,6 +107,20 @@ class EP_Sync_Manager {
 		$response = ep_index_post( $post_args );
 
 		return $response;
+	}
+
+	/**
+	 * Importing of a post has begun, turn on our flag
+	 */
+	public function import_start() {
+		$this->importing = true;
+	}
+
+	/**
+	 * Importing of a post has finished, turn off our flag
+	 */
+	public function import_end() {
+		$this->importing = false;
 	}
 }
 
