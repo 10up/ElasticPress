@@ -56,11 +56,13 @@ class EP_WP_Query_Integration {
 	 */
 	public function action_the_post( $post ) {
 		if ( is_multisite() && true === $this->in_loop && ! empty( $post->site_id ) && get_current_blog_id() != $post->site_id ) {
-			global $authordata;
-
 			restore_current_blog();
+
 			switch_to_blog( $post->site_id );
-			$authordata = get_userdata( $post->post_author );
+			
+			remove_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
+			setup_postdata( $post );
+			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 		}
 
 	}
