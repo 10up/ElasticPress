@@ -58,6 +58,7 @@ class EP_WP_Query_Integration {
 		if ( is_multisite() && true === $this->in_loop && ! empty( $post->site_id ) && get_current_blog_id() != $post->site_id ) {
 			global $authordata;
 
+			restore_current_blog();
 			switch_to_blog( $post->site_id );
 			$authordata = get_userdata( $post->post_author );
 		}
