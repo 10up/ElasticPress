@@ -52,7 +52,7 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		if ( 'publish' !== $new_status ) {
+		if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
 			return;
 		}
 
@@ -60,15 +60,20 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$post_type = get_post_type( $post->ID );
+		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
+		if ( 'publish' !== $new_status ) {
+			$this->action_trash_post( $post->ID );
+		} else {
+			$post_type = get_post_type( $post->ID );
 
-		$indexable_post_types = ep_get_indexable_post_types();
+			$indexable_post_types = ep_get_indexable_post_types();
 
-		if ( in_array( $post_type, $indexable_post_types ) ) {
+			if ( in_array( $post_type, $indexable_post_types ) ) {
 
-			do_action( 'ep_sync_on_transition', $post->ID );
+				do_action( 'ep_sync_on_transition', $post->ID );
 
-			$this->sync_post( $post->ID );
+				$this->sync_post( $post->ID );
+			}
 		}
 	}
 
