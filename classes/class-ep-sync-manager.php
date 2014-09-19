@@ -53,7 +53,7 @@ class EP_Sync_Manager {
 		}
 
 		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
-		if ( 'publish' === $old_status ) {
+		if ( 'publish' !== $new_status ) {
 			$this->action_trash_post( $post->ID );
 		} else {
 			$post_type = get_post_type( $post->ID );
