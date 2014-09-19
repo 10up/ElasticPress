@@ -113,6 +113,11 @@ class EPTestMultisite extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Test that a post becoming unpublished correctly gets removed from the Elasticsearch index
+	 *
+	 * @since 0.9.3
+	 */
 	public function testPostUnpublish() {
 		$sites = ep_get_sites();
 
