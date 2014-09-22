@@ -171,6 +171,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function index( $args, $assoc_args ) {
 		$total_indexed = 0;
 
+		// Deactivate our search integration
+		$this->deactivate();
+
 		timer_start();
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
@@ -213,6 +216,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		WP_CLI::log( WP_CLI::colorize( '%Y' . __( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
+
+		// Reactivate our search integration
+		$this->activate();
 
 		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
 	}
