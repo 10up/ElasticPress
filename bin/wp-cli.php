@@ -441,4 +441,69 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::warning( $current_index . ' is not currently indexed.' );
 		}
 	}
+
+	/**
+	 * Activate ElasticPress
+	 *
+	 * @since 0.9.3
+	 */
+	public function activate() {
+
+		$status = ep_is_activated();
+
+		if ( $status ) {
+			WP_CLI::warning( 'ElasticPress is already activated.' );
+		} else {
+			WP_CLI::log( 'ElasticPress is currently deactivated, activating...' );
+
+			$result = ep_activate();
+
+			if ( $result ) {
+				WP_CLI::Success( 'ElasticPress was activated!' );
+			} else {
+				WP_CLI::warning( 'ElasticPress was unable to be activated.' );
+			}
+		}
+	}
+
+	/**
+	 * Deactivate ElasticPress
+	 *
+	 * @since 0.9.3
+	 */
+	public function deactivate() {
+
+		$status = ep_is_activated();
+
+		if ( ! $status ) {
+			WP_CLI::warning( 'ElasticPress is already deactivated.' );
+		} else {
+			WP_CLI::log( 'ElasticPress is currently activated, deactivating...' );
+
+			$result = ep_deactivate();
+
+			if ( $result ) {
+				WP_CLI::Success( 'ElasticPress was deactivated!' );
+			} else {
+				WP_CLI::warning( 'ElasticPress was unable to be deactivated.' );
+			}
+		}
+	}
+
+	/**
+	 * Return current status of ElasticPress
+	 *
+	 * @subcommand is-active
+	 *
+	 * @since 0.9.3
+	 */
+	public function is_activated() {
+		$active = ep_is_activated();
+
+		if ( $active ) {
+			WP_CLI::log( 'ElasticPress is currently activated.' );
+		} else {
+			WP_CLI::log( 'ElasticPress is currently deactivated.' );
+		}
+	}
 }
