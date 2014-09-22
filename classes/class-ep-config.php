@@ -40,13 +40,15 @@ class EP_Config {
 	/**
 	 * Returns the index url given an index name. Defaults to current index
 	 *
-	 * @param string $index
+	 * @param string|array $index
 	 * @since 0.9
 	 * @return string
 	 */
 	public function get_index_url( $index = null ) {
 		if ( null === $index ) {
 			$index = $this->get_index_name();
+		} elseif ( is_array( $index ) ) {
+			$index = implode( ',', $index );
 		}
 
 		return untrailingslashit( EP_HOST ) . '/' . $index;

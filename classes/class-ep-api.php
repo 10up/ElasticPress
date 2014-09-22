@@ -88,10 +88,17 @@ class EP_API {
 	 */
 	public function search( $args, $scope = 'current' ) {
 		$index = null;
+
 		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
-		} else if ( is_int( $scope ) ) {
+		} elseif ( is_int( $scope ) ) {
 			$index = ep_get_index_name( $scope );
+		} elseif ( is_array( $scope ) ) {
+			$index = array();
+
+			foreach ( $scope as $site_id ) {
+				$index[] = ep_get_index_name( $site_id );
+			}
 		}
 
 		$index_url = ep_get_index_url( $index );
@@ -761,17 +768,6 @@ class EP_API {
 				),
 			),
 		);
-
-		// @todo: Add param for only grabbing posts from specific sites
-
-		/*if ( ! $cross_site ) {
-			$formatted_args['filter']['and'][] = array(
-				'term' => array(
-					'site_id' => get_current_blog_id(),
-				),
-			);
-		}*/
-
 		if ( isset( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
 			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
 			$formatted_args['query'] = $query;
