@@ -212,7 +212,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test a simple post content search on a subset of network sites
+	 * Test to ensure that if we pass an invalid blog_id to the 'sites' parameter that it doesn't break the search
 	 *
 	 * @since 0.9.2
 	 */
@@ -231,6 +231,7 @@ class EPTestMultisite extends WP_UnitTestCase {
 			restore_current_blog();
 		}
 
+		// 200 is an invalid blog_id which we're going to pass to test
 		$args = array(
 			's' => 'findme',
 			'sites' => array( $sites[1]['blog_id'], $sites[2]['blog_id'], 200 ),
