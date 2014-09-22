@@ -31,8 +31,13 @@ class EP_Config {
 		}
 
 		$site_url = get_site_url( $blog_id );
-		$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
-		$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id;
+
+		if ( ! empty( $site_url ) ) {
+			$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
+			$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id;
+		} else {
+			$index_name = false;
+		}
 
 		return apply_filters( 'ep_index_name', $index_name );
 	}
@@ -48,7 +53,7 @@ class EP_Config {
 		if ( null === $index ) {
 			$index = $this->get_index_name();
 		} elseif ( is_array( $index ) ) {
-			$index = implode( ',', $index );
+			$index = implode( ',', array_filter( $index ) );
 		}
 
 		return untrailingslashit( EP_HOST ) . '/' . $index;

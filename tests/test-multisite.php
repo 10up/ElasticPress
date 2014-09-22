@@ -212,6 +212,37 @@ class EPTestMultisite extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test a simple post content search on a subset of network sites
+	 *
+	 * @since 0.9.2
+	 */
+	public function testInvalidSubsites() {
+		$sites = ep_get_sites();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+			ep_create_and_sync_post();
+			ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
+			ep_refresh_index();
+
+			restore_current_blog();
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => array( $sites[1]['blog_id'], $sites[2]['blog_id'], 200 ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 4 );
+		$this->assertEquals( $query->found_posts, 4 );
+	}
+
+	/**
 	 * Test a simple post content search on a single site on the network
 	 *
 	 * @since 0.9.2
