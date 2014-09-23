@@ -50,12 +50,20 @@ define( 'EP_HOST', 'http://192.168.50.4:9200' );
 The proceeding sets depend on whether you are configuring for single site or multi-site with cross-site search capabilities.
 
 #### Single Site
+
 2. Activate the plugin.
 3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
-```wp elasticpress put-mapping```
-```wp elasticpress index```
+
+```bash
+wp elasticpress put-mapping
+```
+
+```bash
+wp elasticpress index
+```
 
 #### Multisite Cross-site Search
+
 2. Network activate the plugin
 3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
 
@@ -72,9 +80,11 @@ After your index finishes, ```WP_Query``` will be integrated with Elasticsearch 
 ## Development
 
 #### Setup
+
 Follow the configuration instructions above to setup the plugin.
 
 #### Testing
+
 Within the terminal change directories to the plugin folder. Initialize your testing environment by running the
 following command:
 
@@ -96,10 +106,13 @@ where:
 * localhost is the MySQL server host
 * latest is the WordPress version; could also be 3.7, 3.6.2 etc.
 
-Run the plugin tests:
-```
-phpunit
+
+Our test suite depends on a running Elasticsearch server. You can supply a host to PHPUnit as an environmental variable like so:
+
+```bash
+EP_HOST="http://192.168.50.4:9200" phpunit
 ```
 
 #### Issues
+
 If you identify any errors or have an idea for improving the plugin, please [open an issue](https://github.com/10up/ElasticPress/issues?state=open). We're excited to see what the community thinks of this project, and we would love your input!
