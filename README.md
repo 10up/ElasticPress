@@ -150,6 +150,7 @@ The following are special parameters that are only supported by ElasticPress.
     ```
 
 * ```aggs```
+
 * ```sites``` (*int*/*string*/*array*)
 
     This parameter only applies in a multi-site environment. It lets you search for posts on specific sites or across the network.
