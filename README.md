@@ -29,7 +29,7 @@ Coupling WordPress with Elasticsearch allows us to do amazing things with search
 
 The goal of ElasticPress is to integrate WordPress with Elasticsearch. This plugin integrates with the [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query) object returning results from Elasticsearch instead of MySQL.
 
-There are other Elasticsearch integration plugins available for WordPress. ElasticPress, unlike others, offers multi-site search. Elasticsearch is a complex topic and integrating with it results in complex problems. Rather than providing a limited, clunky UI, we elected to instead provide full control via [WP-CLI](http://wp-cli.org/).
+There are other Elasticsearch integration plugins available for WordPress. ElasticPress, unlike others, offers multi-site search. Elasticsearch is a complex topic and integration results in complex problems. Rather than providing a limited, clunky UI, we elected to instead provide full control via [WP-CLI](http://wp-cli.org/).
 
 ## Installation
 
@@ -49,7 +49,7 @@ define( 'EP_HOST', 'http://192.168.50.4:9200' );
 
 The proceeding sets depend on whether you are configuring for single site or multi-site with cross-site search capabilities.
 
-#### Single Site
+### Single Site
 
 2. Activate the plugin.
 3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
@@ -62,7 +62,7 @@ wp elasticpress put-mapping
 wp elasticpress index
 ```
 
-#### Multisite Cross-site Search
+### Multisite Cross-site Search
 
 2. Network activate the plugin
 3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
@@ -77,13 +77,120 @@ wp elasticpress index --network-wide
 
 After your index finishes, ```WP_Query``` will be integrated with Elasticsearch and support a few special parameters.
 
+## Usage
+
+After running an index, ElasticPress integrates with WP_Query. The end goal is to support all the parameters available to WP_Query so the transition is completely transparent. Right now, our WP_Query integration supports *many* of the relevant WP_Query parameters and adds a couple special ones.
+
+### Supported WP_Query Parameters
+
+* ```s``` (*string*)
+
+    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```.
+
+* ```posts_per_page``` (*int*)
+
+    Number of post to show per page. Use -1 to show all posts (the ```offset``` parameter is ignored with a -1 value). Set the ```paged``` parameter to paginate based on ```posts_per_page```.
+
+* ```tax_query``` (*array*)
+
+    Filter posts by terms in taxonomies. Takes an array of form:
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'taxonomy-name',
+                'terms' => array( ... ),
+            )
+        ),
+    ));
+    ```
+
+    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
+
+* ```post_type``` (*string*/*array*)
+
+    Filter posts by post type. ```any``` wil search all public post types.
+
+* ```offset``` (*int*)
+
+    Number of posts to skip in ascending order.
+
+* ```paged``` (*int*)
+
+    Page number of posts to be used with ```posts_per_page```.
+
+The following are special parameters that are only supported by ElasticPress.
+
+* ```search_tax``` (*array*)
+
+    Applies the current search to terms within a taxonomy or taxonomies. For example:
+
+    ```php
+    new WP_Query( array(
+        's' => 'term search phrase',
+        'search_tax' => array( 'category', 'post_tag' ),
+    ));
+    ```
+
+* ```search_meta``` (*array*)
+
+    Applies the current search to post meta. For example:
+
+    ```php
+    new WP_Query( array(
+        's' => 'meta search phrase',
+        'search_meta' => array( 'meta_key_1', 'meta_key_2' ),
+    ));
+    ```
+
+* ```aggs```
+* ```sites``` (*int*/*string*/*array*)
+
+    This parameter only applies in a multi-site environment. It lets you search for posts on specific sites or across the network.
+
+    By default, ```sites``` defaults to ```current``` which searches the current site on the network:
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'sites' => 'current',
+    ));
+    ```
+
+    You can search on all sites across the network:
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'sites' => 'all',
+    ));
+    ```
+
+    You can also specify specific sites by id on the network:
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'sites' => 3,
+    ));
+    ```
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'sites' => 3,
+    ));
+    ```
+
 ## Development
 
-#### Setup
+### Setup
 
 Follow the configuration instructions above to setup the plugin.
 
-#### Testing
+### Testing
 
 Within the terminal change directories to the plugin folder. Initialize your testing environment by running the
 following command:
@@ -113,6 +220,6 @@ Our test suite depends on a running Elasticsearch server. You can supply a host 
 EP_HOST="http://192.168.50.4:9200" phpunit
 ```
 
-#### Issues
+### Issues
 
 If you identify any errors or have an idea for improving the plugin, please [open an issue](https://github.com/10up/ElasticPress/issues?state=open). We're excited to see what the community thinks of this project, and we would love your input!
