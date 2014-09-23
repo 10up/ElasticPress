@@ -77,6 +77,10 @@ wp elasticpress index --network-wide
 
 After your index finishes, ```WP_Query``` will be integrated with Elasticsearch and support a few special parameters.
 
+### Creating Elasticsearch Indices
+
+Creating indices is handled automatically by ElasticPress. Index names are automatically generated based on site URL.
+
 ## Usage
 
 After running an index, ElasticPress integrates with WP_Query. The end goal is to support all the parameters available to WP_Query so the transition is completely transparent. Right now, our WP_Query integration supports *many* of the relevant WP_Query parameters and adds a couple special ones.
