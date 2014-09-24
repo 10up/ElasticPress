@@ -1,26 +1,6 @@
 <?php
 
-class EPTestMultisite extends WP_UnitTestCase {
-
-	public function __construct() {
-		self::$ignore_files = true;
-	}
-
-	/**
-	 * Helps us keep track of actions that have fired
-	 *
-	 * @var array
-	 * @since 0.1.0
-	 */
-	protected $fired_actions = array();
-
-	/**
-	 * Helps us keep track of applied filters
-	 *
-	 * @var array
-	 * @since 0.1.1
-	 */
-	protected $applied_filters = array();
+class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Setup each test.

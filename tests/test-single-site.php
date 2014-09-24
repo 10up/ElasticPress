@@ -1,26 +1,6 @@
 <?php
 
-class EPTestSingleSite extends WP_UnitTestCase {
-
-	public function __construct() {
-		self::$ignore_files = true;
-	}
-
-	/**
-	 * Helps us keep track of actions that have fired
-	 *
-	 * @var array
-	 * @since 0.1.0
-	 */
-	protected $fired_actions = array();
-
-	/**
-	 * Helps us keep track of applied filters
-	 *
-	 * @var array
-	 * @since 0.1.1
-	 */
-	protected $applied_filters = array();
+class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
@@ -56,14 +36,50 @@ class EPTestSingleSite extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper function to test whether a sync has happened
+	 *
+	 * @since 1.0
+	 */
+	public function action_sync_on_transition() {
+		$this->fired_actions['ep_sync_on_transition'] = true;
+	}
+
+	/**
+	 * Helper function to test whether a post has been deleted off ES
+	 *
+	 * @since 1.0
+	 */
+	public function action_delete_post() {
+		$this->fired_actions['ep_delete_post'] = true;
+	}
+
+	/**
+	 * Helper function to test whether a EP search has happened
+	 *
+	 * @since 1.0
+	 */
+	public function action_wp_query_search() {
+		$this->fired_actions['ep_wp_query_search'] = true;
+	}
+
+	/**
+	 * Helper function to check post sync args
+	 *
+	 * @since 1.0
+	 */
+	public function filter_post_sync_args( $post_args ) {
+		$this->applied_filters['ep_post_sync_args'] = $post_args;
+
+		return $post_args;
+	}
+
+	/**
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
 	 */
 	public function testPostSync() {
-		add_action( 'ep_sync_on_transition', function() {
-			$this->fired_actions['ep_sync_on_transition'] = true;
-		}, 10, 0 );
+		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition'), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
 
@@ -81,9 +97,7 @@ class EPTestSingleSite extends WP_UnitTestCase {
 	 * @since 0.9.3
 	 */
 	public function testPostUnpublish() {
-		add_action( 'ep_delete_post', function() {
-			$this->fired_actions['ep_delete_post'] = true;
-		}, 10, 0 );
+		add_action( 'ep_delete_post', array( $this, 'action_delete_post'), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
 
@@ -129,9 +143,7 @@ class EPTestSingleSite extends WP_UnitTestCase {
 			's' => 'findme',
 		);
 
-		add_action( 'ep_wp_query_search', function() {
-			$this->fired_actions['ep_wp_query_search'] = true;
-		}, 10, 0 );
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new WP_Query( $args );
 
@@ -182,9 +194,7 @@ class EPTestSingleSite extends WP_UnitTestCase {
 			's' => 'findme',
 		);
 
-		add_action( 'ep_wp_query_search', function() {
-			$this->fired_actions['ep_wp_query_search'] = true;
-		}, 10, 0 );
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new WP_Query( $args );
 
@@ -201,11 +211,7 @@ class EPTestSingleSite extends WP_UnitTestCase {
 	 */
 	public function testPostTermSync() {
 
-		add_filter( 'ep_post_sync_args', function( $post_args ) {
-			$this->applied_filters['ep_post_sync_args'] = $post_args;
-
-			return $post_args;
-		}, 10, 1 );
+		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
 
 		$post_id = ep_create_and_sync_post( array(
 			'tags_input' => array( 'test-tag', 'test-tag2' )
@@ -241,9 +247,7 @@ class EPTestSingleSite extends WP_UnitTestCase {
 			's' => 'findme',
 		);
 
-		add_action( 'ep_wp_query_search', function() {
-			$this->fired_actions['ep_wp_query_search'] = true;
-		}, 10, 0 );
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new WP_Query( $args );
 
