@@ -221,13 +221,21 @@ class EP_API {
 	}
 
 	/**
-	 * Ping the server to ensure the Elasticsearch server is operating and the index exists
+	 * This function checks two things - that the plugin is currently 'activated' and that it can successfully reach the
+	 * server.
 	 *
 	 * @since 0.1.1
 	 * @return bool
 	 */
 	public function is_alive() {
+		$activated_status = ep_is_activated();
 
+		// If this has been disabled for some reason, then abort early
+		if ( ! $activated_status ) {
+			return false;
+		}
+
+		// Otherwise proceed with our check to the server
 		$is_alive = false;
 
 		$url = ep_get_index_url() . '/_status';
@@ -872,6 +880,18 @@ class EP_API {
 
 		return apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
 	}
+
+	public function is_activated() {
+		return get_site_option( 'ep_is_active', false, false );
+	}
+
+	public function deactivate() {
+		return delete_site_option( 'ep_is_active' );
+	}
+
+	public function activate() {
+		return update_site_option( 'ep_is_active', true );
+	}
 }
 
 EP_API::factory();
@@ -938,4 +958,16 @@ function ep_bulk_index_posts( $body ) {
 
 function ep_elasticpress_enabled( $query ) {
 	return EP_API::factory()->elasticpress_enabled( $query );
+}
+
+function ep_is_activated() {
+	return EP_API::factory()->is_activated();
+}
+
+function ep_activate() {
+	return EP_API::factory()->activate();
+}
+
+function ep_deactivate() {
+	return EP_API::factory()->deactivate();
 }
