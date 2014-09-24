@@ -161,7 +161,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--network-wide]
+	 * @synopsis [--setup] [--network-wide]
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -176,7 +176,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		timer_start();
 
+		// Run setup if flag was passed
+		if ( true === $assoc_args['setup'] ) {
+
+			// Right now setup is just the put_mapping command, as this also deletes the index(s) first
+			$this->put_mapping( $args, $assoc_args );
+		}
+
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
+
 			WP_CLI::log( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
 			$sites = ep_get_sites();
@@ -204,6 +212,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::log( sprintf( __( 'Total number of posts indexed: %d', 'elasticpress' ), $total_indexed ) );
 
 		} else {
+
 			WP_CLI::log( __( 'Indexing posts...', 'elasticpress' ) );
 
 			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
