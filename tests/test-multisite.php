@@ -50,6 +50,8 @@ class EPTestMultisite extends WP_UnitTestCase {
 			restore_current_blog();
 		}
 
+		ep_activate();
+
 		ep_delete_network_alias();
 		ep_create_network_alias( $indexes );
 

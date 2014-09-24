@@ -39,6 +39,8 @@ class EPTestSingleSite extends WP_UnitTestCase {
 		ep_delete_index();
 		ep_put_mapping();
 
+		ep_activate();
+
 		EP_WP_Query_Integration::factory()->setup();
 	}
 
