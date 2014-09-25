@@ -419,7 +419,7 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a tax query search
 	 *
-	 * @since 0.9
+	 * @since 1.0
 	 */
 	public function testTaxQuery() {
 		$sites = ep_get_sites();
@@ -461,9 +461,9 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a tax query search
+	 * Test a post type query search
 	 *
-	 * @since 0.9
+	 * @since 1.0
 	 */
 	public function testPostTypeQuery() {
 		$sites = ep_get_sites();
