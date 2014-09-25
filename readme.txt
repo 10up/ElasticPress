@@ -44,12 +44,12 @@ configuring single site and multisite cross-site search are slightly different.
 = Single Site =
 1. Activate the plugin.
 2. Define the constant EP_HOST in your wp-config file with the connection (and port) of your Elasticsearch application.
-3. Using wp-cli, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --put-mapping`.
+3. Using wp-cli, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup`.
 
 = Multisite Cross-site Search =
 1. Network activate the plugin
 2. Define the constant EP_HOST in your wp-config file with the connection (and port) of your Elasticsearch application.
-3. Using wp-cli, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --put-mapping --network-wide`.
+3. Using wp-cli, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
 
