@@ -55,11 +55,7 @@ The proceeding sets depend on whether you are configuring for single site or mul
 3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
 
 ```bash
-wp elasticpress put-mapping
-```
-
-```bash
-wp elasticpress index
+wp elasticpress index --setup
 ```
 
 ### Multisite Cross-site Search
@@ -68,11 +64,7 @@ wp elasticpress index
 3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
 
 ```bash
-wp elasticpress put-mapping --network-wide
-```
-
-```bash
-wp elasticpress index --network-wide
+wp elasticpress --setup --network-wide
 ```
 
 After your index finishes, ```WP_Query``` will be integrated with Elasticsearch and support a few special parameters.
