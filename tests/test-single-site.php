@@ -333,7 +333,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.0
 	 */
 	public function testTaxQuery() {
-		$post_id = ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ) ) );
 
@@ -348,6 +348,29 @@ class EPTestSingleSite extends EP_Test_Base {
 					'field' => 'slug',
 				)
 			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a post type query
+	 *
+	 * @since 1.0
+	 */
+	public function testPostTypeQuery() {
+		$post_id = ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'findme',
+			'post_type' => 'page',
 		);
 
 		$query = new WP_Query( $args );

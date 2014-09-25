@@ -707,6 +707,7 @@ class EP_API {
 		$filter = array(
 			'and' => array(),
 		);
+		$use_filters = false;
 
 		$search_fields = array(
 			'post_title',
@@ -739,6 +740,8 @@ class EP_API {
 			if ( ! empty( $tax_filter ) ) {
 				$filter['and'][]['bool']['must'] = $tax_filter;
 			}
+
+			$use_filters = true;
 		}
 
 		/**
@@ -796,7 +799,7 @@ class EP_API {
 				),
 			);
 
-			$formatted_args['filter'] = $filter;
+			$use_filters = true;
 		}
 
 		if ( isset( $args['offset'] ) ) {
@@ -810,6 +813,10 @@ class EP_API {
 		if ( isset( $args['paged'] ) ) {
 			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
+		}
+
+		if ( $use_filters ) {
+			$formatted_args['filter'] = $filter;
 		}
 
 		/**
@@ -826,7 +833,7 @@ class EP_API {
 			}
 
 			// Add/use the filter if warranted
-			if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && ! empty( $filter ) ) {
+			if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && $use_filters ) {
 
 				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
