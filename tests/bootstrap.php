@@ -36,8 +36,9 @@ function _manually_load_plugin() {
 		exit( 'Could not connect to ElasticPress server.' );
 	}
 
-	require_once( 'functions.php' );
+	require_once( dirname( __FILE__ ) . '/includes/functions.php' );
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
 require( $_tests_dir . '/includes/bootstrap.php' );
+require_once( dirname( __FILE__ ) . '/includes/class-ep-test-base.php' );
