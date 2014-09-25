@@ -64,7 +64,7 @@ wp elasticpress index --setup
 3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
 
 ```bash
-wp elasticpress --setup --network-wide
+wp elasticpress index --setup --network-wide
 ```
 
 After your index finishes, ```WP_Query``` will be integrated with Elasticsearch and support a few special parameters.
