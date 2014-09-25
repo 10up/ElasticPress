@@ -76,9 +76,7 @@ class EPTestMultisite extends EP_Test_Base {
 		foreach( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			add_action( 'ep_sync_on_transition', function() {
-				$this->fired_actions['ep_sync_on_transition'] = true;
-			}, 10, 0 );
+			add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
 
 			$post_id = ep_create_and_sync_post();
 
@@ -106,9 +104,7 @@ class EPTestMultisite extends EP_Test_Base {
 		foreach( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			add_action( 'ep_delete_post', function() {
-				$this->fired_actions['ep_delete_post'] = true;
-			}, 10, 0 );
+			add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
 
 			$post_id = ep_create_and_sync_post();
 
@@ -162,9 +158,7 @@ class EPTestMultisite extends EP_Test_Base {
 			'sites' => 'all',
 		);
 
-		add_action( 'ep_wp_query_search', function() {
-			$this->fired_actions['ep_wp_query_search'] = true;
-		}, 10, 0 );
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new WP_Query( $args );
 
@@ -371,9 +365,7 @@ class EPTestMultisite extends EP_Test_Base {
 			'sites' => 'all',
 		);
 
-		add_action( 'ep_wp_query_search', function() {
-			$this->fired_actions['ep_wp_query_search'] = true;
-		}, 10, 0 );
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new WP_Query( $args );
 
@@ -414,9 +406,7 @@ class EPTestMultisite extends EP_Test_Base {
 			'sites' => 'all',
 		);
 
-		add_action( 'ep_wp_query_search', function() {
-			$this->fired_actions['ep_wp_query_search'] = true;
-		}, 10, 0 );
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new WP_Query( $args );
 
