@@ -357,6 +357,56 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test an author ID query
+	 *
+	 * @since 1.0
+	 */
+	public function testAuthorIDQuery() {
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_author' => $user_id ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_author' => $user_id ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'findme',
+			'author' => $user_id,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test an author name query
+	 *
+	 * @since 1.0
+	 */
+	public function testAuthorNameQuery() {
+		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_author' => $user_id ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_author' => $user_id ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'findme',
+			'author_name' => 'john',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a post type query
 	 *
 	 * @since 1.0

@@ -499,6 +499,86 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test an author ID query
+	 *
+	 * @since 1.0
+	 */
+	public function testAuthorIDQuery() {
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_author' => $user_id ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'author' => $user_id,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+	}
+
+	/**
+	 * Test an author name query
+	 *
+	 * @since 1.0
+	 */
+	public function testAuthorNameQuery() {
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_author' => $user_id ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'author_name' => 'john',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+	}
+
+	/**
 	 * Test pagination
 	 *
 	 * @since 0.9

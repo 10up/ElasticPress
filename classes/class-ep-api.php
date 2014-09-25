@@ -428,6 +428,10 @@ class EP_API {
 								'login' => array(
 									'type' => 'string',
 									'index' => 'not_analyzed'
+								),
+								'id' => array(
+									'type' => 'long',
+									'index' => 'not_analyzed'
 								)
 							)
 						),
@@ -549,12 +553,14 @@ class EP_API {
 		if ( $user instanceof WP_User ) {
 			$user_data = array(
 				'login'        => $user->user_login,
-				'display_name' => $user->display_name
+				'display_name' => $user->display_name,
+				'id'           => $user->ID,
 			);
 		} else {
 			$user_data = array(
 				'login'        => '',
-				'display_name' => ''
+				'display_name' => '',
+				'id'           => '',
 			);
 		}
 
@@ -740,6 +746,29 @@ class EP_API {
 			if ( ! empty( $tax_filter ) ) {
 				$filter['and'][]['bool']['must'] = $tax_filter;
 			}
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Author query support
+		 *
+		 * @since 1.0
+		 */
+		if ( ! empty( $args['author'] ) ) {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_author.id' => $args['author'],
+				),
+			);
+
+			$use_filters = true;
+		} elseif ( ! empty( $args['author_name'] ) ) {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_author.login' => $args['author'],
+				),
+			);
 
 			$use_filters = true;
 		}
