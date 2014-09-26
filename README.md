@@ -139,7 +139,7 @@ The following are special parameters that are only supported by ElasticPress.
 
 * ```search_meta``` (*array*)
 
-    Applies the current search to post meta. The will fuzzy search across normal search fields AND post meta keys ```meta_key_1``` and ```meta_key_2```:
+    Applies the current search to post meta. The following will fuzzy search across normal search fields AND post meta keys ```meta_key_1``` and ```meta_key_2```:
 
     ```php
     new WP_Query( array(
