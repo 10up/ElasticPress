@@ -579,6 +579,82 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a fuzzy search on meta
+	 *
+	 * @since 1.0
+	 */
+	public function testSearchMetaQuery() {
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_content' => 'post content' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 'findme' ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'search_meta' => array( 'test_key' ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+	}
+
+	/**
+	 * Test a fuzzy search on taxonomy terms
+	 *
+	 * @since 1.0
+	 */
+	public function testSearchTaxQuery() {
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_content' => 'post content' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_content' => 'post content', 'tags_input' => array( 'findme 2' ) ));
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'one findme two',
+			'sites' => 'all',
+			'search_tax' => array( 'post_tag' ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+	}
+
+	/**
 	 * Test pagination
 	 *
 	 * @since 0.9

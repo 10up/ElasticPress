@@ -412,7 +412,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.0
 	 */
 	public function testPostTypeQuery() {
-		$post_id = ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
 
@@ -421,6 +421,50 @@ class EPTestSingleSite extends EP_Test_Base {
 		$args = array(
 			's' => 'findme',
 			'post_type' => 'page',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that fuzzy searches meta
+	 *
+	 * @since 1.0
+	 */
+	public function testSearchMetaQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 'findme' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'search_meta' => array( 'test_key' ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that fuzzy searches taxonomy terms
+	 *
+	 * @since 1.0
+	 */
+	public function testSearchTaxQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content', 'tags_input' => array( 'findme 2' ) ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'one findme two',
+			'search_tax' => array( 'post_tag' ),
 		);
 
 		$query = new WP_Query( $args );
