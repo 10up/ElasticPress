@@ -472,4 +472,55 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
+
+	/**
+	 * Test a crazy advanced query
+	 *
+	 * @since 1.0
+	 */
+	public function testAdvancedQuery() {
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		ep_create_and_sync_post( array( 'post_content' => '' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'ep_test' ) );
+		ep_create_and_sync_post( array(
+			'post_content' => 'findme',
+			'post_type' => 'ep_test',
+			'tags_input' => array( 'superterm' )
+		) );
+		ep_create_and_sync_post( array(
+			'post_content' => 'findme',
+			'post_type' => 'ep_test',
+			'tags_input' => array( 'superterm' ),
+			'post_author' => $user_id,
+		) );
+		ep_create_and_sync_post( array(
+			'post_content' => 'findme',
+			'post_type' => 'ep_test',
+			'tags_input' => array( 'superterm' ),
+			'post_author' => $user_id,
+		), array( 'test_key' => 'meta value' ) );
+
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'meta value',
+			'post_type' => 'ep_test',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms' => array( 'superterm' ),
+					'field' => 'slug',
+				)
+			),
+			'search_meta' => array( 'test_key' ),
+			'author' => $user_id,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
 }

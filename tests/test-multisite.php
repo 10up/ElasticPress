@@ -655,6 +655,73 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a fuzzy search on taxonomy terms
+	 *
+	 * @since 1.0
+	 */
+	public function testAdvancedQuery() {
+		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
+
+		$sites = ep_get_sites();
+
+		switch_to_blog( $sites[0]['blog_id'] );
+
+		ep_create_and_sync_post( array(
+			'post_content' => 'post content',
+			'tags_input' => array( 'term' )
+		) );
+
+		ep_refresh_index();
+
+		restore_current_blog();
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		ep_create_and_sync_post( array(
+			'post_content' => 'post content',
+			'tags_input' => array( 'term' ),
+			'post_author' => $user_id,
+		) );
+
+		ep_refresh_index();
+
+		restore_current_blog();
+
+		switch_to_blog( $sites[2]['blog_id'] );
+
+		ep_create_and_sync_post( array(
+			'post_content' => 'post content',
+			'tags_input' => array( 'term' ),
+			'post_author' => $user_id,
+			'post_type' => 'ep_test'
+		), array( 'test_key' => 'findme' ) );
+
+		ep_refresh_index();
+
+		restore_current_blog();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'post_type' => 'ep_test',
+			'author' => $user_id,
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms' => array( 'term' ),
+					'field' => 'slug',
+				)
+			),
+			'search_meta' => array( 'test_key' ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
 	 * Test pagination
 	 *
 	 * @since 0.9
