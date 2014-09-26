@@ -199,10 +199,11 @@ The following are special parameters that are only supported by ElasticPress.
     ));
     ```
 
+    You can even specify a group of specific sites on the network:
     ```php
     new WP_Query( array(
         's' => 'search phrase',
-        'sites' => 3,
+        'sites' => array( 2, 3 ),
     ));
     ```
 
