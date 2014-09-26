@@ -3,9 +3,8 @@ ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
-* **Version**: 0.9.2
-* **Latest Stable**: [v0.9.2](https://github.com/10up/ElasticPress/releases/tag/0.9.2)
-* **Contributors**: [@aaronholbrook](https://github.com/AaronHolbrook), [@tlovett1](https://github.com/tlovett1), [@mattonomics](https://github.com/mattonomics), [@ivanlopez](https://github.com/ivanlopez)
+**Latest Stable**: [v0.9.2](https://github.com/10up/ElasticPress/releases/tag/0.9.2)
+**Contributors**: [@aaronholbrook](https://github.com/AaronHolbrook), [@tlovett1](https://github.com/tlovett1), [@mattonomics](https://github.com/mattonomics), [@ivanlopez](https://github.com/ivanlopez)
 
 ## Background
 
@@ -85,7 +84,7 @@ After running an index, ElasticPress integrates with WP_Query. The end goal is t
 
 * ```posts_per_page``` (*int*)
 
-    Number of post to show per page. Use -1 to show all posts (the ```offset``` parameter is ignored with a -1 value). Set the ```paged``` parameter to paginate based on ```posts_per_page```.
+    Number of posts to show per page. Use -1 to show all posts (the ```offset``` parameter is ignored with a -1 value). Set the ```paged``` parameter to paginate based on ```posts_per_page```.
 
 * ```tax_query``` (*array*)
 
@@ -117,6 +116,14 @@ After running an index, ElasticPress integrates with WP_Query. The end goal is t
 
     Page number of posts to be used with ```posts_per_page```.
 
+* ```author``` (*int*)
+
+    Show posts associated with certain author ID.
+    
+* ```author_name``` (*string*)
+
+    Show posts associated with certain author. Use ```user_nicename``` (NOT name).
+
 The following are special parameters that are only supported by ElasticPress.
 
 * ```search_tax``` (*array*)
@@ -141,7 +148,25 @@ The following are special parameters that are only supported by ElasticPress.
     ));
     ```
 
-* ```aggs```
+* ```aggs``` (*array*)
+
+    Add aggregation results to your search result. For example:
+    
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'aggs' => array(
+            'name' => 'name-of-aggregation', // (can be whatever you'd like)
+            'use-filter' => true // (*bool*) used if you'd like to apply the other filters (i.e. post type, tax_query, author), to the aggregation
+            'aggs' => array(
+                'name' => 'name-of-sub-aggregation',
+                'terms' => array(
+                    'field' => 'terms.name-of-taxonomy.name-of-term',
+                ),
+            ),
+        ),
+    ));
+    ```
 
 * ```sites``` (*int*/*string*/*array*)
 
