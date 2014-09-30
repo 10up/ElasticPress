@@ -126,27 +126,69 @@ After running an index, ElasticPress integrates with WP_Query. The end goal is t
 
 The following are special parameters that are only supported by ElasticPress.
 
-* ```search_tax``` (*array*)
+* ```search_fields``` (*array*)
 
-    Applies the current search to terms within a taxonomy or taxonomies. The following will fuzzy search across the normal search fields AND terms within taxonomies ```category``` and ```post_tag```:
+    If not specified, defaults to ```array( 'post_title', 'post_excerpt', 'post_content' )```.
 
-    ```php
-    new WP_Query( array(
-        's' => 'term search phrase',
-        'search_tax' => array( 'category', 'post_tag' ),
-    ));
-    ```
+    * ```post_title``` (*string*)
 
-* ```search_meta``` (*array*)
+        Applies current search to post titles.
 
-    Applies the current search to post meta. The following will fuzzy search across normal search fields AND post meta keys ```meta_key_1``` and ```meta_key_2```:
+    * ```post_content``` (*string*)
 
-    ```php
-    new WP_Query( array(
-        's' => 'meta search phrase',
-        'search_meta' => array( 'meta_key_1', 'meta_key_2' ),
-    ));
-    ```
+        Applies current search to post content.
+
+    * ```post_excerpt``` (*string*)
+
+        Applies current search to post excerpts.
+
+    * ```taxonomies``` (*string* => *array*|*string*)
+
+        Applies the current search to terms within a taxonomy or taxonomies. The following will fuzzy search across ```post_title```, ```post_excerpt```, ```post_content```, and terms within taxonomies ```category``` and ```post_tag```:
+
+        ```php
+        new WP_Query( array(
+            's' => 'term search phrase',
+            'search_fields' => array(
+                'post_title',
+                'post_content',
+                'post_excerpt',
+                'taxonomies' => array( 'category', 'post_tag' ),
+            )
+        ));
+        ```
+
+    * ```meta``` (*string* => *array*|*string*)
+
+            Applies the current search to post meta. The following will fuzzy search across ```post_title```, ```post_excerpt```, ```post_content```, and post meta keys ```meta_key_1``` and ```meta_key_2```:
+
+            ```php
+            new WP_Query( array(
+                's' => 'meta search phrase',
+                'search_fields' => array(
+                    'post_title',
+                    'post_content',
+                    'post_excerpt',
+                    'meta' => array( 'meta_key_1', 'meta_key_2' ),
+                )
+            ));
+            ```
+
+    * ```author_name``` (*string*)
+
+            Applies the current search to author login names. The following will fuzzy search across ```post_title```, ```post_excerpt```, ```post_content``` and author login names:
+
+            ```php
+            new WP_Query( array(
+                's' => 'meta search phrase',
+                'search_fields' => array(
+                    'post_title',
+                    'post_content',
+                    'post_excerpt',
+                    'author_name',
+                )
+            ));
+            ```
 
 * ```aggs``` (*array*)
 
