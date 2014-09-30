@@ -423,11 +423,12 @@ class EP_API {
 							'path' => 'full',
 							'properties' => array(
 								'display_name' => array(
-									'type' => 'string'
+									'type' => 'string',
+									'analyzer' => 'standard',
 								),
 								'login' => array(
 									'type' => 'string',
-									'index' => 'not_analyzed'
+									'analyzer' => 'standard',
 								),
 								'id' => array(
 									'type' => 'long',
@@ -794,6 +795,12 @@ class EP_API {
 				}
 
 				unset( $search_field_args['meta'] );
+			}
+
+			if ( in_array( 'author_name', $search_field_args ) ) {
+				$search_fields[] = 'post_author.login';
+
+				unset( $search_field_args['author_name'] );
 			}
 
 			$search_fields = array_merge( $search_field_args, $search_fields );
