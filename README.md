@@ -142,7 +142,7 @@ The following are special parameters that are only supported by ElasticPress.
 
         Applies current search to post excerpts.
 
-    * ```taxonomies``` (*string* => *array*|*string*)
+    * ```taxonomies``` (*string* => *array*/*string*)
 
         Applies the current search to terms within a taxonomy or taxonomies. The following will fuzzy search across ```post_title```, ```post_excerpt```, ```post_content```, and terms within taxonomies ```category``` and ```post_tag```:
 
@@ -158,21 +158,21 @@ The following are special parameters that are only supported by ElasticPress.
         ));
         ```
 
-    * ```meta``` (*string* => *array*|*string*)
+    * ```meta``` (*string* => *array*/*string*)
 
-            Applies the current search to post meta. The following will fuzzy search across ```post_title```, ```post_excerpt```, ```post_content```, and post meta keys ```meta_key_1``` and ```meta_key_2```:
+        Applies the current search to post meta. The following will fuzzy search across ```post_title```, ```post_excerpt```, ```post_content```, and post meta keys ```meta_key_1``` and ```meta_key_2```:
 
-            ```php
-            new WP_Query( array(
-                's' => 'meta search phrase',
-                'search_fields' => array(
-                    'post_title',
-                    'post_content',
-                    'post_excerpt',
-                    'meta' => array( 'meta_key_1', 'meta_key_2' ),
-                )
-            ));
-            ```
+        ```php
+        new WP_Query( array(
+            's' => 'meta search phrase',
+            'search_fields' => array(
+                'post_title',
+                'post_content',
+                'post_excerpt',
+                'meta' => array( 'meta_key_1', 'meta_key_2' ),
+            )
+        ));
+        ```
 
     * ```author_name``` (*string*)
 
