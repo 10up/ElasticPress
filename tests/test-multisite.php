@@ -607,7 +607,12 @@ class EPTestMultisite extends EP_Test_Base {
 		$args = array(
 			's' => 'findme',
 			'sites' => 'all',
-			'search_meta' => array( 'test_key' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'meta' => array( 'test_key' ),
+			),
 		);
 
 		$query = new WP_Query( $args );
@@ -645,7 +650,12 @@ class EPTestMultisite extends EP_Test_Base {
 		$args = array(
 			's' => 'one findme two',
 			'sites' => 'all',
-			'search_tax' => array( 'post_tag' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'taxonomies' => array( 'post_tag' )
+			),
 		);
 
 		$query = new WP_Query( $args );
@@ -712,7 +722,12 @@ class EPTestMultisite extends EP_Test_Base {
 					'field' => 'slug',
 				)
 			),
-			'search_meta' => array( 'test_key' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'meta' => array( 'test_key' ),
+			),
 		);
 
 		$query = new WP_Query( $args );

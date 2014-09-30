@@ -442,7 +442,12 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 		$args = array(
 			's' => 'findme',
-			'search_meta' => array( 'test_key' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'meta' => 'test_key'
+			),
 		);
 
 		$query = new WP_Query( $args );
@@ -464,7 +469,12 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 		$args = array(
 			's' => 'one findme two',
-			'search_tax' => array( 'post_tag' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'taxonomies' => array( 'post_tag' )
+			),
 		);
 
 		$query = new WP_Query( $args );
@@ -514,7 +524,12 @@ class EPTestSingleSite extends EP_Test_Base {
 					'field' => 'slug',
 				)
 			),
-			'search_meta' => array( 'test_key' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'meta' => 'test_key'
+			),
 			'author' => $user_id,
 		);
 
