@@ -176,11 +176,11 @@ The following are special parameters that are only supported by ElasticPress.
 
     * ```author_name``` (*string*)
 
-        Applies the current search to author login names. The following will fuzzy search across ```post_title```, ```post_excerpt```, ```post_content``` and author login names:
+        Applies the current search to author login names. The following will fuzzy search across ```post_title```, ```post_excerpt```, ```post_content``` and author ```user_login```:
 
         ```php
         new WP_Query( array(
-            's' => 'meta search phrase',
+            's' => 'username',
             'search_fields' => array(
                 'post_title',
                 'post_content',
