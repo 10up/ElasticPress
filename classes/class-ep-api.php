@@ -768,7 +768,7 @@ class EP_API {
 		} elseif ( ! empty( $args['author_name'] ) ) {
 			$filter['and'][] = array(
 				'term' => array(
-					'post_author.login' => $args['author'],
+					'post_author.raw' => $args['author'],
 				),
 			);
 
@@ -805,7 +805,7 @@ class EP_API {
 			}
 
 			if ( in_array( 'author_name', $search_field_args ) ) {
-				$search_fields[] = 'post_author.raw';
+				$search_fields[] = 'post_author.login';
 
 				unset( $search_field_args['author_name'] );
 			}
