@@ -161,7 +161,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page]
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -169,6 +169,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
+		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
+			$assoc_args['posts-per-page'] = absint( $assoc_args['posts-per-page'] );
+		} else {
+			$assoc_args['posts-per-page'] = 350;
+		}
+
 		$total_indexed = 0;
 
 		// Deactivate our search integration
@@ -192,7 +198,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
+				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'] );
 
 				$total_indexed += $result['synced'];
 
@@ -215,7 +221,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log( __( 'Indexing posts...', 'elasticpress' ) );
 
-			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ) );
+			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'] );
 
 			WP_CLI::log( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
@@ -240,7 +246,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper( $no_bulk = false ) {
+	private function _index_helper( $no_bulk = false, $posts_per_page) {
 		$synced = 0;
 		$errors = array();
 		$offset = 0;
@@ -248,7 +254,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		while ( true ) {
 
 			$args = apply_filters( 'ep_index_posts_args', array(
-				'posts_per_page'      => 350,
+				'posts_per_page'      => $posts_per_page,
 				'post_type'           => ep_get_indexable_post_types(),
 				'post_status'         => 'publish',
 				'offset'              => $offset,
@@ -281,7 +287,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log( 'Indexed ' . ( $query->post_count + $offset ) . '/' . $query->found_posts . ' entries. . .' );
 
-			$offset += 500;
+			$offset += $posts_per_page;
 
 			usleep( 500 );
 		}
