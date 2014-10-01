@@ -421,7 +421,7 @@ class EP_API {
 						'post_author' => array(
 							'type' => 'object',
 							'path' => 'full',
-							'properties' => array(
+							'fields' => array(
 								'display_name' => array(
 									'type' => 'string',
 									'analyzer' => 'standard',
@@ -433,6 +433,11 @@ class EP_API {
 								'id' => array(
 									'type' => 'long',
 									'index' => 'not_analyzed'
+								),
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+									'include_in_all' => false
 								)
 							)
 						),
@@ -553,12 +558,14 @@ class EP_API {
 
 		if ( $user instanceof WP_User ) {
 			$user_data = array(
+				'raw'          => $user->user_login,
 				'login'        => $user->user_login,
 				'display_name' => $user->display_name,
 				'id'           => $user->ID,
 			);
 		} else {
 			$user_data = array(
+				'raw'          => '',
 				'login'        => '',
 				'display_name' => '',
 				'id'           => '',
