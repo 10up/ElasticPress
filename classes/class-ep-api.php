@@ -805,7 +805,7 @@ class EP_API {
 			}
 
 			if ( in_array( 'author_name', $search_field_args ) ) {
-				$search_fields[] = 'post_author.login';
+				$search_fields[] = 'post_author.raw';
 
 				unset( $search_field_args['author_name'] );
 			}
