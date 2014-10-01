@@ -768,7 +768,7 @@ class EP_API {
 		} elseif ( ! empty( $args['author_name'] ) ) {
 			$filter['and'][] = array(
 				'term' => array(
-					'post_author.login' => $args['author'],
+					'post_author.raw' => $args['author'],
 				),
 			);
 
