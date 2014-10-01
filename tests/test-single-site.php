@@ -442,7 +442,12 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 		$args = array(
 			's' => 'findme',
-			'search_meta' => array( 'test_key' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'meta' => 'test_key'
+			),
 		);
 
 		$query = new WP_Query( $args );
@@ -464,13 +469,48 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 		$args = array(
 			's' => 'one findme two',
-			'search_tax' => array( 'post_tag' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'taxonomies' => array( 'post_tag' )
+			),
 		);
 
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a fuzzy author name query
+	 *
+	 * @since 1.0
+	 */
+	public function testSearchAuthorQuery() {
+		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_author' => $user_id ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'john boy',
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'author_name'
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
@@ -514,7 +554,12 @@ class EPTestSingleSite extends EP_Test_Base {
 					'field' => 'slug',
 				)
 			),
-			'search_meta' => array( 'test_key' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'meta' => 'test_key'
+			),
 			'author' => $user_id,
 		);
 

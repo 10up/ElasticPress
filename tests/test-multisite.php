@@ -607,7 +607,12 @@ class EPTestMultisite extends EP_Test_Base {
 		$args = array(
 			's' => 'findme',
 			'sites' => 'all',
-			'search_meta' => array( 'test_key' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'meta' => array( 'test_key' ),
+			),
 		);
 
 		$query = new WP_Query( $args );
@@ -645,7 +650,57 @@ class EPTestMultisite extends EP_Test_Base {
 		$args = array(
 			's' => 'one findme two',
 			'sites' => 'all',
-			'search_tax' => array( 'post_tag' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'taxonomies' => array( 'post_tag' )
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+	}
+
+	/**
+	 * Test a fuzzy search on author names
+	 *
+	 * @since 1.0
+	 */
+	public function testSearchAuthorQuery() {
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_content' => 'post content' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_content' => 'post content', 'post_author' => $user_id ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'john boy',
+			'sites' => 'all',
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'author_name'
+			),
 		);
 
 		$query = new WP_Query( $args );
@@ -712,7 +767,12 @@ class EPTestMultisite extends EP_Test_Base {
 					'field' => 'slug',
 				)
 			),
-			'search_meta' => array( 'test_key' ),
+			'search_fields' => array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+				'meta' => array( 'test_key' ),
+			),
 		);
 
 		$query = new WP_Query( $args );
