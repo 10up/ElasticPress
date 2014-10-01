@@ -421,17 +421,23 @@ class EP_API {
 						'post_author' => array(
 							'type' => 'object',
 							'path' => 'full',
-							'properties' => array(
+							'fields' => array(
 								'display_name' => array(
-									'type' => 'string'
+									'type' => 'string',
+									'analyzer' => 'standard',
 								),
 								'login' => array(
 									'type' => 'string',
-									'index' => 'not_analyzed'
+									'analyzer' => 'standard',
 								),
 								'id' => array(
 									'type' => 'long',
 									'index' => 'not_analyzed'
+								),
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+									'include_in_all' => false
 								)
 							)
 						),
@@ -552,12 +558,14 @@ class EP_API {
 
 		if ( $user instanceof WP_User ) {
 			$user_data = array(
+				'raw'          => $user->user_login,
 				'login'        => $user->user_login,
 				'display_name' => $user->display_name,
 				'id'           => $user->ID,
 			);
 		} else {
 			$user_data = array(
+				'raw'          => '',
 				'login'        => '',
 				'display_name' => '',
 				'id'           => '',
@@ -715,12 +723,6 @@ class EP_API {
 		);
 		$use_filters = false;
 
-		$search_fields = array(
-			'post_title',
-			'post_excerpt',
-			'post_content',
-		);
-
 		/**
 		 * Tax Query support
 		 *
@@ -774,25 +776,47 @@ class EP_API {
 		}
 
 		/**
-		 * Allow for searching by taxonomy
+		 * Allow for search field specification
 		 *
-		 * @since 0.9.0
+		 * @since 1.0
 		 */
-		if ( ! empty( $args['search_tax'] ) ) {
-			foreach ( $args['search_tax'] as $tax ) {
-				$search_fields[] = 'terms.' . $tax . '.name';
-			}
-		}
+		if ( ! empty( $args['search_fields'] ) ) {
+			$search_field_args = $args['search_fields'];
+			$search_fields = array();
 
-		/**
-		 * Allow for searching by meta
-		 *
-		 * @since 0.9.0
-		 */
-		if ( ! empty( $args['search_meta'] ) ) {
-			foreach ( $args['search_meta'] as $key ) {
-				$search_fields[] = 'post_meta.' . $key;
+			if ( ! empty( $search_field_args['taxonomies'] ) ) {
+				$taxes = (array) $search_field_args['taxonomies'];
+
+				foreach ( $taxes as $tax ) {
+					$search_fields[] = 'terms.' . $tax . '.name';
+				}
+
+				unset( $search_field_args['taxonomies'] );
 			}
+
+			if ( ! empty( $search_field_args['meta'] ) ) {
+				$metas = (array) $search_field_args['meta'];
+
+				foreach ( $metas as $meta ) {
+					$search_fields[] = 'post_meta.' . $meta;
+				}
+
+				unset( $search_field_args['meta'] );
+			}
+
+			if ( in_array( 'author_name', $search_field_args ) ) {
+				$search_fields[] = 'post_author.login';
+
+				unset( $search_field_args['author_name'] );
+			}
+
+			$search_fields = array_merge( $search_field_args, $search_fields );
+		} else {
+			$search_fields = array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+			);
 		}
 
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
