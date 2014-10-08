@@ -32,13 +32,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function put_mapping( $args, $assoc_args ) {
-
-		$alive = ep_is_alive();
-
-		if ( ! $alive ) {
-			WP_CLI::error( __( 'Unable to reach ElasticPress Server. Check that EP_HOST is defined and service is running.', 'elasticpress' ) );
-		}
-
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$sites = ep_get_sites();
 
@@ -175,6 +168,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
+		if ( ! defined( EP_HOST ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+		}
+
 		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
 			$assoc_args['posts-per-page'] = absint( $assoc_args['posts-per-page'] );
 		} else {
