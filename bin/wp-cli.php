@@ -168,7 +168,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
-		if ( ! defined( EP_HOST ) ) {
+		if ( ! defined( 'EP_HOST' ) ) {
 			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
 		}
 
