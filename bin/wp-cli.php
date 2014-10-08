@@ -32,6 +32,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function put_mapping( $args, $assoc_args ) {
+		if ( ! defined( 'EP_HOST' ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+		}
+
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$sites = ep_get_sites();
 
@@ -81,6 +89,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function delete_index( $args, $assoc_args ) {
+		if ( ! defined( 'EP_HOST' ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+		}
+
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$sites = ep_get_sites();
 
@@ -434,6 +450,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.1
 	 */
 	public function status() {
+		if ( ! defined( 'EP_HOST' ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+		}
+
 		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty' );
 
 		if ( is_wp_error( $request ) ) {
@@ -453,6 +477,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.2
 	 */
 	public function stats() {
+		if ( ! defined( 'EP_HOST' ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+		}
+
 		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/' );
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -476,6 +508,13 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.3
 	 */
 	public function activate() {
+		if ( ! defined( 'EP_HOST' ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+		}
 
 		$status = ep_is_activated();
 
@@ -500,6 +539,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.3
 	 */
 	public function deactivate() {
+		if ( ! defined( 'EP_HOST' ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+		}
+
 
 		$status = ep_is_activated();
 
@@ -526,6 +573,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.3
 	 */
 	public function is_activated() {
+		if ( ! defined( 'EP_HOST' ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+		}
+
 		$active = ep_is_activated();
 
 		if ( $active ) {
