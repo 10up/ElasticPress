@@ -578,7 +578,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		if ( false === ep_is_alive() ) {
-			WP_CLI::error( __( 'Unable to reach ElasticPress Server! Check that service is running.', 'elasticpress' ) );
+			WP_CLI::error( __( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
 		}
 
 		$active = ep_is_activated();
