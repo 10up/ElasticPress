@@ -33,6 +33,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	public function put_mapping( $args, $assoc_args ) {
 
+		$alive = ep_is_alive();
+
+		if ( ! $alive ) {
+			WP_CLI::error( __( 'Unable to reach ElasticPress Server. Check that EP_HOST is defined and service is running.', 'elasticpress' ) );
+		}
+
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$sites = ep_get_sites();
 
