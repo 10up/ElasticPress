@@ -228,6 +228,14 @@ class EP_API {
 	 * @return bool
 	 */
 	public function is_alive() {
+		$activated_status = ep_is_activated();
+
+		// If this has been disabled for some reason, then abort early
+		if ( ! $activated_status ) {
+			return false;
+		}
+
+		// Otherwise proceed with our check to the server
 		$is_alive = false;
 
 		$url = ep_get_index_url() . '/_status';
