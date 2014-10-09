@@ -4,7 +4,7 @@ ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
 * **Latest Stable**: [v0.9.3](https://github.com/10up/ElasticPress/releases/tag/v0.9.3)
-* **Contributors**: [@aaronholbrook](https://github.com/AaronHolbrook), [@tlovett1](https://github.com/tlovett1), [@mattonomics](https://github.com/mattonomics), [@ivanlopez](https://github.com/ivanlopez), [@colegeissinger](https://github.com/colegeissinger), [@cmmarslender](https://github.com/cmmarslender)
+* **Contributors**: [@aaronholbrook](https://github.com/AaronHolbrook), [@tlovett1](https://github.com/tlovett1), [@mattonomics](https://github.com/mattonomics), [@ivanlopez](https://github.com/ivanlopez), [@colegeissinger](https://github.com/colegeissinger), [@cmmarslender](https://github.com/cmmarslender), [@ghosttoast](https://github.com/ghoasttoast)
 
 ## Background
 
