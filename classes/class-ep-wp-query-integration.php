@@ -17,7 +17,11 @@ class EP_WP_Query_Integration {
 	public function __construct() { }
 
 	public function setup() {
-		if ( ( ! is_admin() || apply_filters( 'ep_admin_wp_query_integration', false ) ) && ep_is_alive() ) {
+		if (
+			( ! is_admin() || apply_filters( 'ep_admin_wp_query_integration', false ) )
+			&& ep_is_alive()
+			&& ep_is_activated()
+		) {
 			// Make sure we return nothing for MySQL posts query
 			add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
 
@@ -59,7 +63,7 @@ class EP_WP_Query_Integration {
 			restore_current_blog();
 
 			switch_to_blog( $post->site_id );
-			
+
 			remove_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 			setup_postdata( $post );
 			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
