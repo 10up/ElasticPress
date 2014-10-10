@@ -64,4 +64,18 @@ class EP_Test_Base extends WP_UnitTestCase {
 
 		return $post_args;
 	}
+
+	/**
+	 * Setup a post type for testing
+	 *
+	 * @since 1.0
+	 */
+	public function setup_test_post_type() {
+		$args = array(
+			'public' => true,
+			'taxonomies' => array( 'post_tag', 'category' ),
+		);
+
+		register_post_type( 'ep_test', $args );
+	}
 }

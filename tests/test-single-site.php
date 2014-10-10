@@ -22,6 +22,8 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_activate();
 
 		EP_WP_Query_Integration::factory()->setup();
+
+		$this->setup_test_post_type();
 	}
 
 	/**
@@ -540,7 +542,6 @@ class EPTestSingleSite extends EP_Test_Base {
 			'tags_input' => array( 'superterm' ),
 			'post_author' => $user_id,
 		), array( 'test_key' => 'meta value' ) );
-
 
 		ep_refresh_index();
 

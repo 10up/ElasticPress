@@ -9,23 +9,6 @@ require_once( $_tests_dir . '/includes/functions.php' );
 
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-function _setup_test_cpt() {
-	$args = array(
-		'public' => true,
-		'publicly_queryable' => true,
-		'show_ui' => true,
-		'show_in_menu' => true,
-		'query_var' => true,
-		'rewrite' => true,
-		'capability_type' => 'post',
-		'hierarchical' => false,
-		'supports' => array( 'title', 'editor' ),
-		'taxonomies' => array( 'post_tag', 'category' ),
-	);
-
-	register_post_type( 'ep_test', $args );
-}
-
 function _manually_load_plugin() {
 	$host = getenv( 'EP_HOST' );
 	if ( empty( $host ) ) {
@@ -33,8 +16,6 @@ function _manually_load_plugin() {
 	}
 
 	define( 'EP_HOST', $host );
-
-	add_action( 'init', '_setup_test_cpt' );
 
 	require( dirname( __FILE__ ) . '/../elasticpress.php' );
 
