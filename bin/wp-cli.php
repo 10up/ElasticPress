@@ -32,6 +32,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function put_mapping( $args, $assoc_args ) {
+		$this->_connect_check();
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$sites = ep_get_sites();
@@ -82,6 +83,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function delete_index( $args, $assoc_args ) {
+		$this->_connect_check();
+
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$sites = ep_get_sites();
 
@@ -124,6 +127,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function recreate_network_alias( $args, $assoc_args ) {
+		$this->_connect_check();
+
 		WP_CLI::line( __( 'Recreating network alias...', 'elasticpress' ) );
 
 		ep_delete_network_alias();
@@ -169,6 +174,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
+		$this->_connect_check();
+
 		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
 			$assoc_args['posts-per-page'] = absint( $assoc_args['posts-per-page'] );
 		} else {
@@ -427,6 +434,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.1
 	 */
 	public function status() {
+		$this->_connect_check();
+
 		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty' );
 
 		if ( is_wp_error( $request ) ) {
@@ -446,6 +455,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.2
 	 */
 	public function stats() {
+		$this->_connect_check();
+
 		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/' );
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -469,6 +480,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.3
 	 */
 	public function activate() {
+		$this->_connect_check();
 
 		$status = ep_is_activated();
 
@@ -493,6 +505,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.3
 	 */
 	public function deactivate() {
+		$this->_connect_check();
 
 		$status = ep_is_activated();
 
@@ -519,12 +532,29 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.3
 	 */
 	public function is_activated() {
+		$this->_connect_check();
+
 		$active = ep_is_activated();
 
 		if ( $active ) {
 			WP_CLI::log( 'ElasticPress is currently activated.' );
 		} else {
 			WP_CLI::log( 'ElasticPress is currently deactivated.' );
+		}
+	}
+
+	/**
+	 * Provide better error messaging for common connection errors
+	 *
+	 * @since 0.9.3
+	 */
+	private function _connect_check() {
+		if ( ! defined( 'EP_HOST' ) ) {
+			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_is_alive() ) {
+			WP_CLI::error( __( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
 		}
 	}
 }
