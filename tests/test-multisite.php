@@ -39,6 +39,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 		EP_WP_Query_Integration::factory()->setup();
 
+		$this->setup_test_post_type();
+
 	}
 
 	/**

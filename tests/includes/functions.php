@@ -44,7 +44,6 @@ function ep_create_and_sync_post( $post_args = array(), $post_meta = array(), $s
 
 	$args = wp_parse_args( $post_args, array(
 		'post_type' => $post_type_values[0],
-		'author' => 1,
 		'post_status' => 'publish',
 		'post_title' => 'Test Post ' . time(),
 	) );
