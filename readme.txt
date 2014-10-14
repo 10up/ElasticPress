@@ -14,7 +14,7 @@ Integrate [Elasticsearch](http://www.elasticsearch.org/) with WordPress.
 == Description ==
 ElasticPress is a WordPress-Elasticsearch integration that overrides default `WP_Query` behavior to give you search results from Elasticsearch instead of MySQL. The plugin is built to be managed entirely via the command line. ElasticPress supports cross-site search in multi-site WordPress installs.
 
-Let's face it, WordPress search is rudimentary at best. Poor performance, inflexible and rigid matching algorithms (which means no comprehension of 'close' queries), the inability to search metadata and taxonomy information, no way to determine categories of your results and most importantly the overall relevancy of results is poor.
+Out of the box, WordPress search is rudimentary at best: Poor performance, inflexible and rigid matching algorithms, inability to search metadata and taxonomy information, no way to determine categories of your results, and most importantly overall poor result relevancy.
 
 Elasticsearch is a search server based on [Lucene](http://lucene.apache.org/). It provides a distributed, multitenant-capable full-text search engine with a [REST](http://en.wikipedia.org/wiki/Representational_state_transfer)ful web interface and schema-free [JSON](http://json.org/) documents.
 
@@ -30,14 +30,14 @@ Coupling WordPress with Elasticsearch allows us to do amazing things with search
 * Search all sites on a multisite install
 * [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
 
-Requires [WP-CLI](http://wp-cli.org/) and [Elasticsearch](http://www.elasticsearch.org/).
+_Note:_ Requires [WP-CLI](http://wp-cli.org/) and [Elasticsearch](http://www.elasticsearch.org/).
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
 1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
 2. Install [WP-CLI](http://wp-cli.org/).
-3. Install the plugin in WordPress, you can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
+3. Install the plugin in WordPress.
 
 = Configuration =
 
@@ -48,12 +48,12 @@ configuring single site and multi-site cross-site search are slightly different.
 
 = Single Site =
 1. Activate the plugin.
-2. Define the constant EP_HOST in your wp-config file with the connection (and port) of your Elasticsearch application.
+2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
 3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup`.
 
 = Multi-site Cross-site Search =
 1. Network activate the plugin
-2. Define the constant EP_HOST in your wp-config file with the connection (and port) of your Elasticsearch application.
+2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
 3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
