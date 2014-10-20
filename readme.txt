@@ -9,7 +9,7 @@ Stable tag: 1.0
 License: MIT
 License URI: http://opensource.org/licenses/MIT
 
-Integrate [Elasticsearch](http://www.elasticsearch.org/) with WordPress.
+Integrate Elasticsearch with WordPress.
 
 == Description ==
 ElasticPress is a WordPress-Elasticsearch integration that overrides default `WP_Query` behavior to give you search results from Elasticsearch instead of MySQL. The plugin is built to be managed entirely via the command line. ElasticPress supports cross-site search in multi-site WordPress installs.
