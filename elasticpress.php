@@ -3,10 +3,10 @@
 /**
  * Plugin Name: ElasticPress
  * Description: Integrate WordPress search with Elasticsearch
- * Version:     0.9.2
+ * Version:     1.0
  * Author:      Aaron Holbrook, Taylor Lovett, Matt Gross, 10up
  * Author URI:  http://10up.com
- * License:     GPLv2+
+ * License:     MIT
  */
 
 require_once( 'classes/class-ep-config.php' );
