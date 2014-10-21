@@ -737,6 +737,10 @@ class EP_API {
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
 			$sort = $this->parse_orderby( $args['orderby'], $order );
+
+			if ( false !== $sort ) {
+				$formatted_args['sort'] = $sort;
+			}
 		}
 
 		// Either nothing was passed or the parse_orderby failed, use default sort
@@ -1045,7 +1049,7 @@ class EP_API {
 			case 'title':
 				$sort = array(
 					array(
-						$orderby => array(
+						'post_' . $orderby => array(
 							'order' => $order,
 						),
 					),
