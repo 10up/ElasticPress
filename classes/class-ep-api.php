@@ -228,14 +228,6 @@ class EP_API {
 	 * @return bool
 	 */
 	public function is_alive() {
-		$activated_status = ep_is_activated();
-
-		// If this has been disabled for some reason, then abort early
-		if ( ! $activated_status ) {
-			return false;
-		}
-
-		// Otherwise proceed with our check to the server
 		$is_alive = false;
 
 		$url = ep_get_index_url() . '/_status';
@@ -250,6 +242,23 @@ class EP_API {
 
 		// Return our status and cache it
 		return $is_alive;
+	}
+
+	/**
+	 * Performs checks to ensure that EP is both activated (overriding WP Query) and is alive (can connect to server)
+	 *
+	 * @return bool
+	 */
+	public function is_activated_and_alive() {
+		$activated_status = ep_is_activated();
+
+		// If this has been disabled for some reason, then abort early
+		if ( ! $activated_status ) {
+			return false;
+		}
+
+		// Are we able to connect to the Elasticsearch server?
+		return $this->is_alive();
 	}
 
 	/**
@@ -978,6 +987,10 @@ function ep_delete_post( $post_id ) {
 
 function ep_is_alive() {
 	return EP_API::factory()->is_alive();
+}
+
+function ep_is_activated_and_alive() {
+	return EP_API::factory()->is_activated_and_alive();
 }
 
 function ep_put_mapping() {

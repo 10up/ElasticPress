@@ -17,7 +17,7 @@ class EP_WP_Query_Integration {
 	public function __construct() { }
 
 	public function setup() {
-		if ( ( ! is_admin() || apply_filters( 'ep_admin_wp_query_integration', false ) ) && ep_is_alive() ) {
+		if ( ( ! is_admin() || apply_filters( 'ep_admin_wp_query_integration', false ) ) && ep_is_activated_and_alive() ) {
 			// Make sure we return nothing for MySQL posts query
 			add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
 
