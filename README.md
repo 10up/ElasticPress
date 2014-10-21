@@ -123,6 +123,14 @@ After running an index, ElasticPress integrates with WP_Query. The end goal is t
 * ```author_name``` (*string*)
 
     Show posts associated with certain author. Use ```user_nicename``` (NOT name).
+    
+* ```orderby``` (*string*)
+
+    Order results by field name instead of relevance. Currently only supports: ```title```, ```name```, and ```relevance``` (default).
+
+* ```order``` (*string*)
+
+    Which direction to order results in. Accepts ```ASC``` and ```DESC```. Default is ```DESC```.
 
 The following are special parameters that are only supported by ElasticPress.
 

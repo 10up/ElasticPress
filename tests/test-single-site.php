@@ -81,7 +81,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 0.9
 	 */
 	public function testPostSync() {
-		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition'), 10, 0 );
+		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
 
@@ -99,7 +99,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 0.9.3
 	 */
 	public function testPostUnpublish() {
-		add_action( 'ep_delete_post', array( $this, 'action_delete_post'), 10, 0 );
+		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
 
@@ -278,7 +278,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$found_posts = array();
 
 		$args = array(
-			's' => 'findme',
+			's'              => 'findme',
 			'posts_per_page' => 1,
 		);
 
@@ -290,9 +290,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		$found_posts[] = $query->posts[0]->ID;
 
 		$args = array(
-			's' => 'findme',
+			's'              => 'findme',
 			'posts_per_page' => 1,
-			'paged' => 2,
+			'paged'          => 2,
 		);
 
 		$query = new WP_Query( $args );
@@ -303,9 +303,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		$found_posts[] = $query->posts[0]->ID;
 
 		$args = array(
-			's' => 'findme',
+			's'              => 'findme',
 			'posts_per_page' => 1,
-			'paged' => 3,
+			'paged'          => 3,
 		);
 
 		$query = new WP_Query( $args );
@@ -316,9 +316,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		$found_posts[] = $query->posts[0]->ID;
 
 		$args = array(
-			's' => 'findme',
+			's'              => 'findme',
 			'posts_per_page' => 1,
-			'paged' => 4,
+			'paged'          => 4,
 		);
 
 		$query = new WP_Query( $args );
@@ -342,12 +342,12 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 
 		$args = array(
-			's' => 'findme',
+			's'         => 'findme',
 			'tax_query' => array(
 				array(
 					'taxonomy' => 'post_tag',
-					'terms' => array( 'one' ),
-					'field' => 'slug',
+					'terms'    => array( 'one' ),
+					'field'    => 'slug',
 				)
 			)
 		);
@@ -373,7 +373,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 
 		$args = array(
-			's' => 'findme',
+			's'      => 'findme',
 			'author' => $user_id,
 		);
 
@@ -398,7 +398,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 
 		$args = array(
-			's' => 'findme',
+			's'           => 'findme',
 			'author_name' => 'john',
 		);
 
@@ -421,7 +421,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 
 		$args = array(
-			's' => 'findme',
+			's'         => 'findme',
 			'post_type' => 'page',
 		);
 
@@ -443,7 +443,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		ep_refresh_index();
 		$args = array(
-			's' => 'findme',
+			's'             => 'findme',
 			'search_fields' => array(
 				'post_title',
 				'post_excerpt',
@@ -470,7 +470,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		ep_refresh_index();
 		$args = array(
-			's' => 'one findme two',
+			's'             => 'one findme two',
 			'search_fields' => array(
 				'post_title',
 				'post_excerpt',
@@ -500,7 +500,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 
 		$args = array(
-			's' => 'john boy',
+			's'             => 'john boy',
 			'search_fields' => array(
 				'post_title',
 				'post_excerpt',
@@ -527,32 +527,32 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'ep_test' ) );
 		ep_create_and_sync_post( array(
 			'post_content' => 'findme',
-			'post_type' => 'ep_test',
-			'tags_input' => array( 'superterm' )
+			'post_type'    => 'ep_test',
+			'tags_input'   => array( 'superterm' )
 		) );
 		ep_create_and_sync_post( array(
 			'post_content' => 'findme',
-			'post_type' => 'ep_test',
-			'tags_input' => array( 'superterm' ),
-			'post_author' => $user_id,
+			'post_type'    => 'ep_test',
+			'tags_input'   => array( 'superterm' ),
+			'post_author'  => $user_id,
 		) );
 		ep_create_and_sync_post( array(
 			'post_content' => 'findme',
-			'post_type' => 'ep_test',
-			'tags_input' => array( 'superterm' ),
-			'post_author' => $user_id,
+			'post_type'    => 'ep_test',
+			'tags_input'   => array( 'superterm' ),
+			'post_author'  => $user_id,
 		), array( 'test_key' => 'meta value' ) );
 
 		ep_refresh_index();
 
 		$args = array(
-			's' => 'meta value',
-			'post_type' => 'ep_test',
-			'tax_query' => array(
+			's'             => 'meta value',
+			'post_type'     => 'ep_test',
+			'tax_query'     => array(
 				array(
 					'taxonomy' => 'post_tag',
-					'terms' => array( 'superterm' ),
-					'field' => 'slug',
+					'terms'    => array( 'superterm' ),
+					'field'    => 'slug',
 				)
 			),
 			'search_fields' => array(
@@ -561,12 +561,172 @@ class EPTestSingleSite extends EP_Test_Base {
 				'post_content',
 				'meta' => 'test_key'
 			),
-			'author' => $user_id,
+			'author'        => $user_id,
 		);
 
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test post_title orderby query
+	 *
+	 * @since 1.1
+	 */
+	public function testSearchPostTitleOrderbyQuery() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'title',
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test relevance orderby query
+	 *
+	 * @since 1.1
+	 */
+	public function testSearchRelevanceOrderbyQuery() {
+		ep_create_and_sync_post();
+		ep_create_and_sync_post( array( 'post_title' => 'ordertet' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'relevance',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
+	}
+
+	/**
+	 * Test post_name orderby query
+	 *
+	 * @since 1.1
+	 */
+	public function testSearchPostNameOrderbyQuery() {
+		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-333' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-111' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-222' ) );
+
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'postname ordertest',
+			'orderby' => 'name',
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'postname-ordertest-111', $query->posts[0]->post_name );
+		$this->assertEquals( 'postname-ordertest-222', $query->posts[1]->post_name );
+		$this->assertEquals( 'postname-ordertest-333', $query->posts[2]->post_name );
+	}
+
+	/**
+	 * Test default sort and order parameters
+	 *
+	 * Default is to use _score and 'desc'
+	 *
+	 * @since 1.1
+	 */
+	public function testSearchDefaultOrderbyQuery() {
+		ep_create_and_sync_post();
+		ep_create_and_sync_post( array( 'post_title' => 'ordertet' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'ordertest',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
+	}
+
+	/**
+	 * Test default sort and ASC order parameters
+	 *
+	 * Default is to use _score orderby; using 'asc' order
+	 *
+	 * @since 1.1
+	 */
+	public function testSearchDefaultOrderbyASCOrderQuery() {
+		ep_create_and_sync_post();
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'     => 'ordertest',
+			'order' => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest', $query->posts[1]->post_title );
+	}
+
+	/**
+	 * Test unallowed orderby parameter
+	 *
+	 * Will revert to default _score orderby
+	 *
+	 * @since 1.1
+	 */
+	public function testSearchUnallowedOrderbyQuery() {
+		ep_create_and_sync_post();
+		ep_create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'SUPERRELEVANCE',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertestt', $query->posts[1]->post_title );
 	}
 }

@@ -718,14 +718,39 @@ class EP_API {
 		$formatted_args = array(
 			'from' => 0,
 			'size' => $posts_per_page,
-			'sort' => array(
+		);
+
+		/**
+		 * Order and Orderby arguments
+		 *
+		 * Used for how Elasticsearch will sort results
+		 *
+		 * @since 1.1
+		 */
+		// Set sort order, default is 'desc'
+		if ( ! empty( $args['order'] ) ) {
+			$order = $this->parse_order( $args['order'] );
+		} else {
+			$order = 'desc';
+		}
+
+		// Set sort type
+		if ( ! empty( $args['orderby'] ) ) {
+			$sort = $this->parse_orderby( $args['orderby'], $order );
+		}
+
+		// Either nothing was passed or the parse_orderby failed, use default sort
+		if ( empty( $args['orderby'] ) || false === $sort ) {
+
+			// Default sort is to use the score (based on relevance)
+			$formatted_args['sort'] = array(
 				array(
 					'_score' => array(
-						'order' => 'desc',
+						'order' => $order,
 					),
 				),
-			),
-		);
+			);
+		}
 
 		$filter = array(
 			'and' => array(),
@@ -960,6 +985,75 @@ class EP_API {
 
 	public function activate() {
 		return update_site_option( 'ep_is_active', true );
+	}
+
+	/**
+	 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
+	 *
+	 * @since 1.1
+	 * @access protected
+	 *
+	 * @param string $order The 'order' query variable.
+	 * @return string The sanitized 'order' query variable.
+	 */
+	protected function parse_order( $order ) {
+		if ( ! is_string( $order ) || empty( $order ) ) {
+			return 'desc';
+		}
+
+		if ( 'ASC' === strtoupper( $order ) ) {
+			return 'asc';
+		} else {
+			return 'desc';
+		}
+	}
+
+	/**
+	 * If the passed orderby value is allowed, convert the alias to a
+	 * properly-prefixed sort value.
+	 *
+	 * @since 1.1
+	 * @access protected
+	 *
+	 * @param string $orderby Alias for the field to order by.
+	 * @return array|bool Array formatted value to used in the sort DSL. False otherwise.
+	 */
+	protected function parse_orderby( $orderby, $order ) {
+		// Used to filter values.
+		$allowed_keys = array(
+			'relevance',
+			'name',
+			'title',
+		);
+
+		if ( ! in_array( $orderby, $allowed_keys ) ) {
+			return false;
+		}
+
+		switch ( $orderby ) {
+			case 'relevance':
+			default:
+				$sort = array(
+					array(
+						'_score' => array(
+							'order' => $order,
+						),
+					),
+				);
+				break;
+			case 'name':
+			case 'title':
+				$sort = array(
+					array(
+						$orderby => array(
+							'order' => 'post_' . $order,
+						),
+					),
+				);
+				break;
+		}
+
+		return $sort;
 	}
 }
 
