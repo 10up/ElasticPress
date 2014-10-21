@@ -1046,7 +1046,7 @@ class EP_API {
 				$sort = array(
 					array(
 						$orderby => array(
-							'order' => 'post_' . $order,
+							'order' => $order,
 						),
 					),
 				);
