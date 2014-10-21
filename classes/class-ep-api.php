@@ -712,7 +712,11 @@ class EP_API {
 		);
 
 		/**
-		 * Sorting arguments
+		 * Order and Orderby arguments
+		 *
+		 * Used for how Elasticsearch will sort results
+		 *
+		 * @since 1.1
 		 */
 		// Set sort order, default is 'desc'
 		if ( ! empty( $args['order'] ) ) {
@@ -977,7 +981,7 @@ class EP_API {
 	/**
 	 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
 	 *
-	 * @since 4.0.0
+	 * @since 1.1
 	 * @access protected
 	 *
 	 * @param string $order The 'order' query variable.
@@ -999,7 +1003,7 @@ class EP_API {
 	 * If the passed orderby value is allowed, convert the alias to a
 	 * properly-prefixed sort value.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1
 	 * @access protected
 	 *
 	 * @param string $orderby Alias for the field to order by.
@@ -1009,8 +1013,8 @@ class EP_API {
 		// Used to filter values.
 		$allowed_keys = array(
 			'relevance',
-			'post_name',
-			'post_title',
+			'name',
+			'title',
 		);
 
 		if ( ! in_array( $orderby, $allowed_keys ) ) {
@@ -1028,12 +1032,12 @@ class EP_API {
 					),
 				);
 				break;
-			case 'post_name':
-			case 'post_title':
+			case 'name':
+			case 'title':
 				$sort = array(
 					array(
 						$orderby => array(
-							'order' => $order,
+							'order' => 'post_' . $order,
 						),
 					),
 				);

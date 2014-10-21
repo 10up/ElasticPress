@@ -573,7 +573,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test post_title orderby query
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function testSearchPostTitleOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
@@ -584,7 +584,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$args = array(
 			's'       => 'ordertest',
-			'orderby' => 'post_title',
+			'orderby' => 'title',
 			'order'   => 'ASC',
 		);
 
@@ -600,7 +600,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test relevance orderby query
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function testSearchRelevanceOrderbyQuery() {
 		ep_create_and_sync_post();
@@ -625,7 +625,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test post_name orderby query
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function testSearchPostNameOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-333' ) );
@@ -637,7 +637,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$args = array(
 			's'       => 'postname ordertest',
-			'orderby' => 'post_name',
+			'orderby' => 'name',
 			'order'   => 'ASC',
 		);
 
@@ -655,7 +655,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * Default is to use _score and 'desc'
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function testSearchDefaultOrderbyQuery() {
 		ep_create_and_sync_post();
@@ -681,7 +681,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * Default is to use _score orderby; using 'asc' order
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function testSearchDefaultOrderbyASCOrderQuery() {
 		ep_create_and_sync_post();
@@ -708,7 +708,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * Will revert to default _score orderby
 	 *
-	 * @since 1.0
+	 * @since 1.1
 	 */
 	public function testSearchUnallowedOrderbyQuery() {
 		ep_create_and_sync_post();
