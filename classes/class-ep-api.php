@@ -944,15 +944,6 @@ class EP_API {
 			}
 		}
 
-		if ( ! empty( $args['die'] ) && true === $args['die'] ) {
-			echo "\n\n";
-			echo ep_get_index_url();
-			echo "\n\n";
-			echo json_encode( $formatted_args );
-			echo "\n\n";
-			die;
-		}
-
 		return apply_filters( 'ep_formatted_args', $formatted_args );
 	}
 
