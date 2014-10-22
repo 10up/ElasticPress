@@ -461,10 +461,20 @@ class EP_API {
 							'include_in_all' => false
 						),
 						'post_title' => array(
-							'type' => 'string',
-							'_boost'  => 3.0,
-							'store'  => 'yes',
-							'analyzer' => 'standard'
+							'type' => 'multi_field',
+							'fields' => array(
+								'post_title' => array(
+									'type' => 'string',
+									'analyzer' => 'standard',
+									'_boost' => 3.0,
+									'store' => 'yes'
+								),
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+									'include_in_all' => false
+								)
+							)
 						),
 						'post_excerpt' => array(
 							'type' => 'string',
@@ -934,6 +944,15 @@ class EP_API {
 			}
 		}
 
+		if ( ! empty( $args['die'] ) && true === $args['die'] ) {
+			echo "\n\n";
+			echo ep_get_index_url();
+			echo "\n\n";
+			echo json_encode( $formatted_args );
+			echo "\n\n";
+			die;
+		}
+
 		return apply_filters( 'ep_formatted_args', $formatted_args );
 	}
 
@@ -1049,7 +1068,7 @@ class EP_API {
 			case 'title':
 				$sort = array(
 					array(
-						'post_' . $orderby => array(
+						'post_' . $orderby . '.raw' => array(
 							'order' => $order,
 						),
 					),
