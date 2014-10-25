@@ -585,16 +585,16 @@ class EPTestSingleSite extends EP_Test_Base {
 		$args = array(
 			's'       => 'ordertest',
 			'orderby' => 'title',
-			'order'   => 'ASC',
+			'order'   => 'DESC',
 		);
 
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
-		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 111', $query->posts[2]->post_title );
 	}
 
 	/**
@@ -720,13 +720,14 @@ class EPTestSingleSite extends EP_Test_Base {
 		$args = array(
 			's'       => 'ordertest',
 			'orderby' => 'SUPERRELEVANCE',
+			'order'   => 'ASC',
 		);
 
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertestt', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest', $query->posts[1]->post_title );
 	}
 }
