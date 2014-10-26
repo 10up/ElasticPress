@@ -7,6 +7,12 @@
  * Author:      Aaron Holbrook, Taylor Lovett, Matt Gross, 10up
  * Author URI:  http://10up.com
  * License:     MIT
+ *
+ * This program derives work from Alley Interactive's SearchPress
+ * and Automattic's VIP search plugin:
+ *
+ * Copyright (C) 2012-2013 Automattic
+ * Copyright (C) 2013 SearchPress
  */
 
 require_once( 'classes/class-ep-config.php' );
