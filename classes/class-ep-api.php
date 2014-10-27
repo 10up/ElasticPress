@@ -935,6 +935,7 @@ class EP_API {
 	 *
 	 * @param $query
 	 * @return bool
+	 * @since 0.9.2
 	 */
 	public function elasticpress_enabled( $query ) {
 		$enabled = false;
@@ -948,10 +949,22 @@ class EP_API {
 		return apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
 	}
 
+	/**
+	 * Deactivate ElasticPress. Disallow EP to override the main WP_Query for search queries
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
 	public function deactivate() {
 		return delete_site_option( 'ep_is_active' );
 	}
 
+	/**
+	 * Activate ElasticPress. Allow EP to override the main WP_Query for search queries
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
 	public function activate() {
 		return update_site_option( 'ep_is_active', true );
 	}
@@ -1029,6 +1042,7 @@ class EP_API {
 	 * Check to see if ElasticPress is currently active (can be disabled during syncing, etc)
 	 *
 	 * @return mixed
+	 * @since 0.9.2
 	 */
 	public function is_activated() {
 		return get_site_option( 'ep_is_active', false, false );
@@ -1038,7 +1052,7 @@ class EP_API {
 	 * This function checks two things - that the plugin is currently 'activated' and that it can successfully reach the
 	 * server.
 	 *
-	 * @since 0.1.1
+	 * @since 1.1.0
 	 * @return bool
 	 */
 	public function elasticsearch_alive() {
@@ -1063,6 +1077,7 @@ class EP_API {
 	 * @param null $index
 	 *
 	 * @return bool
+	 * @since 1.1.0
 	 */
 	public function index_exists( $index = null ) {
 		$index_exists = false;
