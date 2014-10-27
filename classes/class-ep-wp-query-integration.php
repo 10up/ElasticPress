@@ -17,27 +17,41 @@ class EP_WP_Query_Integration {
 	public function __construct() { }
 
 	public function setup() {
-		if ( ( ! is_admin() || apply_filters( 'ep_admin_wp_query_integration', false ) ) && ep_is_activated_and_alive() ) {
-			// Make sure we return nothing for MySQL posts query
-			add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
 
-			add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
-
-			// Nukes the FOUND_ROWS() database query
-			add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
-
-			// Search and filter in EP_Posts to WP_Query
-			add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
-
-			// Ensure we're in a loop before we allow blog switching
-			add_action( 'loop_start', array( $this, 'action_loop_start' ) );
-
-			// Properly restore blog if necessary
-			add_action( 'loop_end', array( $this, 'action_loop_end' ) );
-
-			// Properly switch to blog if necessary
-			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
+		// Ensure we aren't on the admin (unless overridden)
+		if ( is_admin() && ! apply_filters( 'ep_admin_wp_query_integration', false ) ) {
+			return;
 		}
+
+		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query search
+		if ( ! ep_is_activated() ) {
+			return;
+		}
+
+		// If we can't reach the Elasticsearch service, don't bother with the rest of this
+		if ( ! ep_index_exists() ) {
+			return;
+		}
+
+		// Make sure we return nothing for MySQL posts query
+		add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
+
+		add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
+
+		// Nukes the FOUND_ROWS() database query
+		add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
+
+		// Search and filter in EP_Posts to WP_Query
+		add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
+
+		// Ensure we're in a loop before we allow blog switching
+		add_action( 'loop_start', array( $this, 'action_loop_start' ) );
+
+		// Properly restore blog if necessary
+		add_action( 'loop_end', array( $this, 'action_loop_end' ) );
+
+		// Properly switch to blog if necessary
+		add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 	}
 
 	public function action_pre_get_posts( $query ) {
