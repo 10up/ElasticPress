@@ -16,7 +16,7 @@ class EP_Sync_Manager {
 	 */
 	public function setup() {
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
-		add_action( 'wp_trash_post', array( $this, 'action_trash_post' ) );
+		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 	}
 
 	/**
@@ -25,7 +25,7 @@ class EP_Sync_Manager {
 	 * @param int $post_id
 	 * @since 0.1.0
 	 */
-	public function action_trash_post( $post_id ) {
+	public function action_delete_post( $post_id ) {
 
 		if ( ! current_user_can( 'edit_post', $post_id ) || 'revision' === get_post_type( $post_id ) ) {
 			return;
@@ -62,7 +62,7 @@ class EP_Sync_Manager {
 
 		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
 		if ( 'publish' !== $new_status ) {
-			$this->action_trash_post( $post->ID );
+			$this->action_delete_post( $post->ID );
 		} else {
 			$post_type = get_post_type( $post->ID );
 
