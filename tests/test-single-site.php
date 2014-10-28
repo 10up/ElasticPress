@@ -732,11 +732,44 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
+	 * Test a normal post trash
 	 *
 	 * @since 1.2
 	 */
 	public function testPostDelete() {
+		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
+		$post_id = ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$post = ep_get_post( $post_id );
+
+		// Ensure that our post made it over to elasticsearch
+		$this->assertTrue( ! empty( $post ) );
+
+		// Let's normally trash the post
+		wp_delete_post( $post_id );
+
+		ep_refresh_index();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
+
+		$post = ep_get_post( $post_id );
+
+		// The post, although it still should exist in WP's trash, should not be in our index
+		$this->assertTrue( empty( $post ) );
+
+		$post = get_post( $post_id );
+		$this->assertTrue( ! empty( $post ) );
+
+		$this->fired_actions = array();
+	}
+	/**
+	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
+	 *
+	 * @since 1.2
+	 */
+	public function testPostForceDelete() {
 		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
 		$post_id = ep_create_and_sync_post();
 
@@ -757,6 +790,11 @@ class EPTestSingleSite extends EP_Test_Base {
 		$post = ep_get_post( $post_id );
 
 		// Alright, now the post has been removed from the index, so this should be empty
+		$this->assertTrue( empty( $post ) );
+
+		$post = get_post( $post_id );
+
+		// This post should no longer exist in WP's database
 		$this->assertTrue( empty( $post ) );
 
 		$this->fired_actions = array();
