@@ -16,7 +16,7 @@ class EP_Sync_Manager {
 	 */
 	public function setup() {
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
-		add_action( 'wp_trash_post', array( $this, 'action_trash_post' ) );
+		add_action( 'delete_post', array( $this, 'action_trash_post' ) );
 	}
 
 	/**

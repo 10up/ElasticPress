@@ -730,4 +730,35 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest', $query->posts[1]->post_title );
 	}
+
+	/**
+	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
+	 *
+	 * @since 1.2
+	 */
+	public function testPostDelete() {
+		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
+		$post_id = ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$post = ep_get_post( $post_id );
+
+		// Ensure that our post made it over to elasticsearch
+		$this->assertTrue( ! empty( $post ) );
+
+		// Let's directly delete the post, bypassing the trash
+		wp_delete_post( $post_id, true );
+
+		ep_refresh_index();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
+
+		$post = ep_get_post( $post_id );
+
+		// Alright, now the post has been removed from the index, so this should be empty
+		$this->assertTrue( empty( $post ) );
+
+		$this->fired_actions = array();
+	}
 }
