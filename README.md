@@ -254,6 +254,29 @@ The following are special parameters that are only supported by ElasticPress.
     ));
     ```
 
+* ```ep_match_all``` (*bool*)
+
+    Allows you to perform queries without passing a search parameter. For example:
+    
+    Get 20 of the lastest posts
+    ```php
+    new WP_Query( array(
+        'ep_match_all'   => true,
+        'post_type'      => 'post',
+        'posts_per_page' => 20,
+    ) );
+    ```
+    
+    Get all posts with a specific category
+    ```php
+    new WP_Query( array(
+        'ep_match_all    => true,
+        'post_type       => 'post',
+        'posts_per_page' => -1,
+        'category'       => 5,
+    ) );
+    ```
+
 ## Development
 
 ### Setup
