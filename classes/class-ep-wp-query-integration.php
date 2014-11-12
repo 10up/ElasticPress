@@ -55,7 +55,7 @@ class EP_WP_Query_Integration {
 	}
 
 	public function action_pre_get_posts( $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
 			return;
 		}
 
@@ -112,8 +112,7 @@ class EP_WP_Query_Integration {
 	 * @return array
 	 */
 	public function filter_the_posts( $posts, &$query ) {
-
-		if ( ! ep_elasticpress_enabled( $query ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
 			return $posts;
 		}
 
@@ -178,7 +177,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
 			return $sql;
 		}
 
@@ -194,7 +193,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_posts_request( $request, $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return $request;
 		}
 
