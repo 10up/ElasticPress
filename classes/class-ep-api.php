@@ -862,7 +862,7 @@ class EP_API {
 				),
 			),
 		);
-		if ( isset( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
+		if ( ! empty( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
 			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
 			$formatted_args['query'] = $query;
 		} else if ( isset( $args['ep_match_all'] ) && true === $args['ep_match_all'] ) {
