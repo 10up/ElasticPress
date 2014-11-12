@@ -550,18 +550,41 @@ class EP_API {
 			);
 		}
 
+		$post_date = $post->post_date;
+		$post_date_gmt = $post->post_date_gmt;
+		$post_modified = $post->post_modified;
+		$post_modified_gmt = $post->post_modified_gmt;
+
+		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
+			if ( ! strtotime( $post_date ) ) {
+				$post_date = null;
+			}
+
+			if ( ! strtotime( $post_date_gmt ) ) {
+				$post_date_gmt = null;
+			}
+
+			if ( ! strtotime( $post_modified ) ) {
+				$post_modified = null;
+			}
+
+			if ( ! strtotime( $post_modified_gmt ) ) {
+				$post_modified_gmt = null;
+			}
+		}
+
 		$post_args = array(
 			'post_id'           => $post_id,
 			'post_author'       => $user_data,
-			'post_date'         => $post->post_date,
-			'post_date_gmt'     => $post->post_date_gmt,
+			'post_date'         => $post_date,
+			'post_date_gmt'     => $post_date_gmt,
 			'post_title'        => get_the_title( $post_id ),
 			'post_excerpt'      => $post->post_excerpt,
 			'post_content'      => apply_filters( 'the_content', $post->post_content ),
 			'post_status'       => 'publish',
 			'post_name'         => $post->post_name,
-			'post_modified'     => $post->post_modified,
-			'post_modified_gmt' => $post->post_modified_gmt,
+			'post_modified'     => $post_modified,
+			'post_modified_gmt' => $post_modified_gmt,
 			'post_parent'       => $post->post_parent,
 			'post_type'         => $post->post_type,
 			'post_mime_type'    => $post->post_mime_type,
