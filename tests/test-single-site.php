@@ -799,4 +799,25 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->fired_actions = array();
 	}
+
+	/**
+	 * Test that empty search string returns all results
+	 *
+	 * @since 1.2
+	 */
+	public function testEmptySearchString() {
+		ep_create_and_sync_post();
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => '',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
 }
