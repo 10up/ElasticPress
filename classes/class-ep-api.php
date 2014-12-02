@@ -853,17 +853,27 @@ class EP_API {
 
 		$query = array(
 			'bool' => array(
-				'must' => array(
-					'fuzzy_like_this' => array(
-						'fields' => $search_fields,
-						'like_text' => '',
-						'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
+				'should' => array(
+					array(
+						'multi_match' => array(
+							'query' => '',
+							'fields' => $search_fields,
+							'boost' => apply_filters( 'ep_match_boost', 2 ),
+						)
 					),
+					array(
+						'fuzzy_like_this' => array(
+							'fields' => $search_fields,
+							'like_text' => '',
+							'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
+						),
+					)
 				),
 			),
 		);
 		if ( ! empty( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
-			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
+			$query['bool']['should'][1]['fuzzy_like_this']['like_text'] = $args['s'];
+			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
 		} else if ( isset( $args['ep_match_all'] ) && true === $args['ep_match_all'] ) {
 			$formatted_args['query']['match_all'] = array();
