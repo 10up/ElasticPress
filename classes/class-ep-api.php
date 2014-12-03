@@ -429,7 +429,6 @@ class EP_API {
 								'post_title' => array(
 									'type' => 'string',
 									'analyzer' => 'standard',
-									'_boost' => 3.0,
 									'store' => 'yes'
 								),
 								'raw' => array(
@@ -440,8 +439,7 @@ class EP_API {
 							)
 						),
 						'post_excerpt' => array(
-							'type' => 'string',
-							'_boost'  => 2.0
+							'type' => 'string'
 						),
 						'post_content' => array(
 							'type' => 'string',
