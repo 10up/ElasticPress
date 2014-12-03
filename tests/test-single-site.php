@@ -598,6 +598,54 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test relevance orderby query advanced
+	 *
+	 * @since 1.2
+	 */
+	public function testSearchRelevanceOrderbyQueryAdvanced() {
+		$posts = array();
+
+		$posts[5] = ep_create_and_sync_post( array( 'post_title' => 'ordertet with even more lorem ipsum to make a longer field' ) );
+
+		$posts[2] = ep_create_and_sync_post( array( 'post_title' => 'ordertest ordertet lorem ipsum' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+
+		$posts[4] = ep_create_and_sync_post( array( 'post_title' => 'ordertet with some lorem ipsum' ) );
+
+		$posts[1] = ep_create_and_sync_post( array( 'post_title' => 'ordertest ordertest lorem ipsum' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'Lorem ipsum', 'post_content' => 'Some post content filler text.' ) );
+
+		$posts[3] = ep_create_and_sync_post( array( 'post_title' => 'ordertet ordertet lorem ipsum' ) );
+
+		$posts[0] = ep_create_and_sync_post( array( 'post_title' => 'Ordertest ordertest ordertest' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'relevance',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 6, $query->post_count );
+		$this->assertEquals( 6, $query->found_posts );
+
+		$i = 0;
+		foreach ( $query->posts as $post ) {
+			$this->assertEquals( $posts[$i], $post->ID );
+
+			$i++;
+		}
+	}
+
+	/**
 	 * Test relevance orderby query
 	 *
 	 * @since 1.1
@@ -764,6 +812,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->fired_actions = array();
 	}
+
 	/**
 	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
 	 *
