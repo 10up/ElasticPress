@@ -283,6 +283,10 @@ class EP_API {
 	public function put_mapping() {
 		$mapping = array(
 			'settings' => array(
+				'index' => array(
+					'number_of_shards' => (int) apply_filters( 'ep_default_index_number_of_shards', 5 ), // Default within Elasticsearch
+					'number_of_replicas' => (int) apply_filters( 'ep_default_index_number_of_replicas', 1 ), // Default within Elasticsearch
+				),
 				'analysis' => array(
 					'analyzer' => array(
 						'default' => array(
