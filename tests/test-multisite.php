@@ -1017,4 +1017,50 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$this->assertEquals( $old_blog_id, $new_blog_id );
 	}
+
+	/**
+	 * Test filter for skipping query integration
+	 *
+	 * @since 1.2
+	 */
+	public function testQueryIntegrationSkip() {
+		$main_post_id = $this->factory->post->create();
+
+		query_posts( array( 'p' => $main_post_id ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+			} elseif ( $i === 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'firstblog' ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		add_filter( 'ep_skip_query_integration', '__return_true' );
+
+		$args = array(
+			's' => 'notfirstblog',
+			'sites' => 'all',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( empty( $query->posts ) );
+	}
 }
