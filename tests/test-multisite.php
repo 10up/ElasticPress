@@ -946,4 +946,121 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$this->assertEquals( $old_blog_id, $new_blog_id );
 	}
+
+	/**
+	 * Test query stack with nested queries
+	 *
+	 * @since 1.2
+	 */
+	public function testQueryStack() {
+		$old_blog_id = get_current_blog_id();
+
+		$main_post_id = $this->factory->post->create();
+
+		query_posts( array( 'p' => $main_post_id ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+			} elseif ( $i === 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'firstblog' ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'notfirstblog',
+			'sites' => (int) $sites[1]['blog_id'],
+		);
+
+		$query = new WP_Query( $args );
+
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+
+				$blog_id = get_current_blog_id();
+
+				$query_two = new WP_Query();
+
+				if ( $query_two->have_posts() ) {
+					while ( $query_two->have_posts() ) {
+						global $post;
+						$query_two->the_post();
+
+						$this->assertTrue( empty( $post->site_id ) );
+					}
+				}
+
+				$this->assertEquals( get_current_blog_id(), $blog_id );
+			}
+		}
+
+		wp_reset_query();
+
+		$new_blog_id = get_current_blog_id();
+
+		$this->assertEquals( $old_blog_id, $new_blog_id );
+	}
+
+	/**
+	 * Test filter for skipping query integration
+	 *
+	 * @since 1.2
+	 */
+	public function testQueryIntegrationSkip() {
+		$main_post_id = $this->factory->post->create();
+
+		query_posts( array( 'p' => $main_post_id ) );
+		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+			} elseif ( $i === 0 ) {
+				ep_create_and_sync_post( array( 'post_title' => 'firstblog' ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		add_filter( 'ep_skip_query_integration', '__return_true' );
+
+		$args = array(
+			's' => 'notfirstblog',
+			'sites' => 'all',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( empty( $query->posts ) );
+	}
 }
