@@ -3,11 +3,11 @@
 class EP_WP_Query_Integration {
 
 	/**
-	 * Is set only when we are within a loop
+	 * Is set only when we are within a multisite loop
 	 *
-	 * @var bool
+	 * @var bool|WP_Query
 	 */
-	private $in_loop = false;
+	private $query_stack = array();
 
 	/**
 	 * Placeholder method
@@ -45,17 +45,17 @@ class EP_WP_Query_Integration {
 		add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
 
 		// Ensure we're in a loop before we allow blog switching
-		add_action( 'loop_start', array( $this, 'action_loop_start' ) );
+		add_action( 'loop_start', array( $this, 'action_loop_start' ), 10, 1 );
 
 		// Properly restore blog if necessary
-		add_action( 'loop_end', array( $this, 'action_loop_end' ) );
+		add_action( 'loop_end', array( $this, 'action_loop_end' ), 10, 1 );
 
 		// Properly switch to blog if necessary
 		add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 	}
 
 	public function action_pre_get_posts( $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return;
 		}
 
@@ -69,7 +69,19 @@ class EP_WP_Query_Integration {
 	 * @since 0.9
 	 */
 	public function action_the_post( $post ) {
-		if ( is_multisite() && true === $this->in_loop && ! empty( $post->site_id ) && get_current_blog_id() != $post->site_id ) {
+		if ( ! is_multisite() ) {
+			return;
+		}
+
+		if ( empty( $this->query_stack ) ) {
+			return;
+		}
+
+		if ( ! ep_elasticpress_enabled( $this->query_stack[0] ) || apply_filters( 'ep_skip_query_integration', false, $this->query_stack[0] ) ) {
+			return;
+		}
+
+		if ( ! empty( $post->site_id ) && get_current_blog_id() != $post->site_id ) {
 			restore_current_blog();
 
 			switch_to_blog( $post->site_id );
@@ -86,10 +98,12 @@ class EP_WP_Query_Integration {
 	 *
 	 * @since 0.9.2
 	 */
-	public function action_loop_start() {
-		if ( is_multisite() ) {
-			$this->in_loop = true;
+	public function action_loop_start( $query ) {
+		if ( ! is_multisite() ) {
+			return;
 		}
+
+		array_unshift( $this->query_stack, $query );
 	}
 
 	/**
@@ -97,9 +111,18 @@ class EP_WP_Query_Integration {
 	 *
 	 * @since 0.9
 	 */
-	public function action_loop_end() {
-		if ( is_multisite() ) {
-			$this->in_loop = false;
+	public function action_loop_end( $query ) {
+		if ( ! is_multisite() ) {
+			return;
+		}
+
+		array_pop( $this->query_stack );
+
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
+			return;
+		}
+
+		if ( ! empty( $GLOBALS['switched'] ) ) {
 			restore_current_blog();
 		}
 	}
@@ -112,8 +135,7 @@ class EP_WP_Query_Integration {
 	 * @return array
 	 */
 	public function filter_the_posts( $posts, &$query ) {
-
-		if ( ! ep_elasticpress_enabled( $query ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
 			return $posts;
 		}
 
@@ -178,7 +200,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
 			return $sql;
 		}
 
@@ -194,7 +216,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_posts_request( $request, $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return $request;
 		}
 

@@ -598,6 +598,54 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test relevance orderby query advanced
+	 *
+	 * @since 1.2
+	 */
+	public function testSearchRelevanceOrderbyQueryAdvanced() {
+		$posts = array();
+
+		$posts[5] = ep_create_and_sync_post( array( 'post_title' => 'ordertet with even more lorem ipsum to make a longer field' ) );
+
+		$posts[2] = ep_create_and_sync_post( array( 'post_title' => 'ordertest ordertet lorem ipsum' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+
+		$posts[4] = ep_create_and_sync_post( array( 'post_title' => 'ordertet with some lorem ipsum' ) );
+
+		$posts[1] = ep_create_and_sync_post( array( 'post_title' => 'ordertest ordertest lorem ipsum' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'Lorem ipsum', 'post_content' => 'Some post content filler text.' ) );
+
+		$posts[3] = ep_create_and_sync_post( array( 'post_title' => 'ordertet ordertet lorem ipsum' ) );
+
+		$posts[0] = ep_create_and_sync_post( array( 'post_title' => 'Ordertest ordertest ordertest' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'relevance',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 6, $query->post_count );
+		$this->assertEquals( 6, $query->found_posts );
+
+		$i = 0;
+		foreach ( $query->posts as $post ) {
+			$this->assertEquals( $posts[$i], $post->ID );
+
+			$i++;
+		}
+	}
+
+	/**
 	 * Test relevance orderby query
 	 *
 	 * @since 1.1
@@ -729,5 +777,96 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest', $query->posts[1]->post_title );
+	}
+
+	/**
+	 * Test a normal post trash
+	 *
+	 * @since 1.2
+	 */
+	public function testPostDelete() {
+		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
+		$post_id = ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$post = ep_get_post( $post_id );
+
+		// Ensure that our post made it over to elasticsearch
+		$this->assertTrue( ! empty( $post ) );
+
+		// Let's normally trash the post
+		wp_delete_post( $post_id );
+
+		ep_refresh_index();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
+
+		$post = ep_get_post( $post_id );
+
+		// The post, although it still should exist in WP's trash, should not be in our index
+		$this->assertTrue( empty( $post ) );
+
+		$post = get_post( $post_id );
+		$this->assertTrue( ! empty( $post ) );
+
+		$this->fired_actions = array();
+	}
+
+	/**
+	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
+	 *
+	 * @since 1.2
+	 */
+	public function testPostForceDelete() {
+		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
+		$post_id = ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$post = ep_get_post( $post_id );
+
+		// Ensure that our post made it over to elasticsearch
+		$this->assertTrue( ! empty( $post ) );
+
+		// Let's directly delete the post, bypassing the trash
+		wp_delete_post( $post_id, true );
+
+		ep_refresh_index();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
+
+		$post = ep_get_post( $post_id );
+
+		// Alright, now the post has been removed from the index, so this should be empty
+		$this->assertTrue( empty( $post ) );
+
+		$post = get_post( $post_id );
+
+		// This post should no longer exist in WP's database
+		$this->assertTrue( empty( $post ) );
+
+		$this->fired_actions = array();
+	}
+
+	/**
+	 * Test that empty search string returns all results
+	 *
+	 * @since 1.2
+	 */
+	public function testEmptySearchString() {
+		ep_create_and_sync_post();
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => '',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 }

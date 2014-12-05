@@ -254,6 +254,8 @@ The following are special parameters that are only supported by ElasticPress.
     ) );
     ```
 
+    _Note:_ Nesting cross-site `WP_Query` loops can result in unexpected behavior.
+
 * ```ep_match_all``` (*bool*)
 
     Allows you to perform queries without passing a search parameter. For example:

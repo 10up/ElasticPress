@@ -283,6 +283,10 @@ class EP_API {
 	public function put_mapping() {
 		$mapping = array(
 			'settings' => array(
+				'index' => array(
+					'number_of_shards' => (int) apply_filters( 'ep_default_index_number_of_shards', 5 ), // Default within Elasticsearch
+					'number_of_replicas' => (int) apply_filters( 'ep_default_index_number_of_replicas', 1 ), // Default within Elasticsearch
+				),
 				'analysis' => array(
 					'analyzer' => array(
 						'default' => array(
@@ -425,7 +429,6 @@ class EP_API {
 								'post_title' => array(
 									'type' => 'string',
 									'analyzer' => 'standard',
-									'_boost' => 3.0,
 									'store' => 'yes'
 								),
 								'raw' => array(
@@ -436,8 +439,7 @@ class EP_API {
 							)
 						),
 						'post_excerpt' => array(
-							'type' => 'string',
-							'_boost'  => 2.0
+							'type' => 'string'
 						),
 						'post_content' => array(
 							'type' => 'string',
@@ -550,18 +552,41 @@ class EP_API {
 			);
 		}
 
+		$post_date = $post->post_date;
+		$post_date_gmt = $post->post_date_gmt;
+		$post_modified = $post->post_modified;
+		$post_modified_gmt = $post->post_modified_gmt;
+
+		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
+			if ( ! strtotime( $post_date ) ) {
+				$post_date = null;
+			}
+
+			if ( ! strtotime( $post_date_gmt ) ) {
+				$post_date_gmt = null;
+			}
+
+			if ( ! strtotime( $post_modified ) ) {
+				$post_modified = null;
+			}
+
+			if ( ! strtotime( $post_modified_gmt ) ) {
+				$post_modified_gmt = null;
+			}
+		}
+
 		$post_args = array(
 			'post_id'           => $post_id,
 			'post_author'       => $user_data,
-			'post_date'         => $post->post_date,
-			'post_date_gmt'     => $post->post_date_gmt,
+			'post_date'         => $post_date,
+			'post_date_gmt'     => $post_date_gmt,
 			'post_title'        => get_the_title( $post_id ),
 			'post_excerpt'      => $post->post_excerpt,
 			'post_content'      => apply_filters( 'the_content', $post->post_content ),
 			'post_status'       => 'publish',
 			'post_name'         => $post->post_name,
-			'post_modified'     => $post->post_modified,
-			'post_modified_gmt' => $post->post_modified_gmt,
+			'post_modified'     => $post_modified,
+			'post_modified_gmt' => $post_modified_gmt,
 			'post_parent'       => $post->post_parent,
 			'post_type'         => $post->post_type,
 			'post_mime_type'    => $post->post_mime_type,
@@ -746,9 +771,19 @@ class EP_API {
 			foreach( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
 					$terms = (array) $single_tax_query['terms'];
-					$tax_filter[]['terms'] = array(
+
+					// Set up our terms object
+					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $terms,
 					);
+
+					// Use the AND operator if passed
+					if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
+						$terms_obj['execution'] = 'and';
+					}
+
+					// Add the tax query filter
+					$tax_filter[]['terms'] = $terms_obj;
 				}
 			}
 
@@ -830,17 +865,27 @@ class EP_API {
 
 		$query = array(
 			'bool' => array(
-				'must' => array(
-					'fuzzy_like_this' => array(
-						'fields' => $search_fields,
-						'like_text' => '',
-						'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
+				'should' => array(
+					array(
+						'multi_match' => array(
+							'query' => '',
+							'fields' => $search_fields,
+							'boost' => apply_filters( 'ep_match_boost', 2 ),
+						)
 					),
+					array(
+						'fuzzy_like_this' => array(
+							'fields' => $search_fields,
+							'like_text' => '',
+							'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
+						),
+					)
 				),
 			),
 		);
-		if ( isset( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
-			$query['bool']['must']['fuzzy_like_this']['like_text'] = $args['s'];
+		if ( ! empty( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
+			$query['bool']['should'][1]['fuzzy_like_this']['like_text'] = $args['s'];
+			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
 		} else if ( isset( $args['ep_match_all'] ) && true === $args['ep_match_all'] ) {
 			$formatted_args['query']['match_all'] = array();
