@@ -5,7 +5,7 @@ Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
 Tested up to: 4.1
-Stable tag: 1.1
+Stable tag: 1.2
 License: MIT
 License URI: http://opensource.org/licenses/MIT
 
@@ -57,6 +57,18 @@ configuring single site and multi-site cross-site search are slightly different.
 3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
+
+= 1.2 =
+* Allow number of shards and replicas to be configurable.
+* Improved searching algorithm. Favor exact matches over fuzzy matches.
+* Query stack implementation to allow for query nesting.
+* Filter and disable query integration on a per query basis.
+* Support orderby` parameter in `WP_Query
+* (Bug) We don't want to add the like_text query unless we have a non empty search string. This mimcs the behavior of MySQL or WP which will return everything if s is empty.
+* (Bug) Change delete action to action_delete_post instead of action_trash_post
+* (Bug) Remove _boost from mapping. _boost is deprecated by Elasticsearch.
+* Improve unit testing for query ordering.
+
 = 1.1 =
 * Refactored `is_alive`, `is_activated`, and `is_activated_and_alive`. We now have functions `is_activated`, `elasticsearch_alive`, `index_exists`, and `is_activated`. This refactoring helped us fix #150.
 * Add support for post_title and post_name orderby parameters in `WP_Query` integration. Add support for order parameters.
