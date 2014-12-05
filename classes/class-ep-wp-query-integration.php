@@ -177,6 +177,7 @@ class EP_WP_Query_Integration {
 			$post->post_date_gmt = $post_array['post_date_gmt'];
 			$post->post_modified = $post_array['post_modified'];
 			$post->post_modified_gmt = $post_array['post_modified_gmt'];
+			$post->elasticsearch = true; // Super useful for debugging
 
 			// Run through get_post() to add all expected properties (even if they're empty)
 			$post = get_post( $post );
