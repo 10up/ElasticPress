@@ -190,7 +190,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		timer_start();
 
 		// Run setup if flag was passed
-		if ( true === $assoc_args['setup'] ) {
+		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
 
 			// Right now setup is just the put_mapping command, as this also deletes the index(s) first
 			$this->put_mapping( $args, $assoc_args );
