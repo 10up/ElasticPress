@@ -428,7 +428,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		if ( ! empty( $this->failed_posts ) ) {
 			$email_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
 			foreach ( $this->failed_posts as $failed ) {
-				$email_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
+				$failed_post = get_post( $failed );
+				if ( $failed_post ) {
+					$email_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
+				}
 			}
 			$send_mail = wp_mail( get_option( 'admin_email' ), wp_specialchars_decode( get_option( 'blogname' ) ) . __( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
 
