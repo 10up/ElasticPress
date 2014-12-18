@@ -409,11 +409,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a post type query
+	 * Test a post type query for pages
 	 *
-	 * @since 1.0
+	 * @since 1.3
 	 */
-	public function testPostTypeQuery() {
+	public function testPostTypeQueryPage() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
@@ -429,6 +429,99 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+	}
+
+
+	/**
+	 * Test a post type query for posts
+	 *
+	 * @since 1.3
+	 */
+	public function testPostTypeQueryPost() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with no post type
+	 *
+	 * @since 1.3
+	 */
+	public function testNoPostTypeSearchQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		// post_type defaults to "any"
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with no post type on non-search query
+	 *
+	 * @since 1.3
+	 */
+	public function testNoPostTypeNonSearchQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		// post_type defaults to "any"
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with "any" post type
+	 *
+	 * @since 1.3
+	 */
+	public function testAnyPostTypeQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'any',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
 	}
 
 	/**
