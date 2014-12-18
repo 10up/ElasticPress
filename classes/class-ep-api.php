@@ -899,20 +899,29 @@ class EP_API {
 			$formatted_args['query']['match_all'] = array();
 		}
 
-		if ( isset( $args['post_type'] ) ) {
-			$post_types = (array) $args['post_type'];
-			$terms_map_name = 'terms';
-			if ( count( $post_types ) < 2 ) {
-				$terms_map_name = 'term';
+		/**
+		 * Like WP_Query in search context, if no post_type is specified we default to "any". To
+		 * be safe you should ALWAYS specify the post_type parameter UNLIKE with WP_Query.
+		 *
+		 * @since 1.3
+		 */
+		if ( ! empty( $args['post_type'] ) ) {
+			// should NEVER be "any" but just in case
+			if ( 'any' !== $args['post_type'] ) {
+				$post_types = (array) $args['post_type'];
+				$terms_map_name = 'terms';
+				if ( count( $post_types ) < 2 ) {
+					$terms_map_name = 'term';
+				}
+
+				$filter['and'][] = array(
+					$terms_map_name => array(
+						'post_type.raw' => $post_types,
+					),
+				);
+
+				$use_filters = true;
 			}
-
-			$filter['and'][] = array(
-				$terms_map_name => array(
-					'post_type.raw' => $post_types,
-				),
-			);
-
-			$use_filters = true;
 		}
 
 		if ( isset( $args['offset'] ) ) {
