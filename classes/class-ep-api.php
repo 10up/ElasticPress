@@ -883,11 +883,19 @@ class EP_API {
 				),
 			),
 		);
-		if ( ! empty( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
+
+		/**
+		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
+		 * supported for legacy code but may be deprecated and removed eventually.
+		 *
+		 * @since 1.3
+		 */
+
+		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
 			$query['bool']['should'][1]['fuzzy_like_this']['like_text'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
-		} else if ( isset( $args['ep_match_all'] ) && true === $args['ep_match_all'] ) {
+		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array();
 		}
 
@@ -987,7 +995,9 @@ class EP_API {
 
 		if ( $query->is_search() ) {
 			$enabled = true;
-		} else if ( isset( $query->query['ep_match_all'] ) && true === $query->query['ep_match_all'] ) {
+		} elseif ( ! empty( $query->query['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
+			$enabled = true;
+		} elseif ( ! empty( $query->query['ep_integrate'] ) ) {
 			$enabled = true;
 		}
 
