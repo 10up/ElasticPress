@@ -818,6 +818,99 @@ class EP_API {
 		}
 
 		/**
+		 * 'meta_query' arg support.
+		 *
+		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
+		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
+		 * 'type' is NOT support at this time.
+		 *
+		 * @since 1.3
+		 */
+		if ( ! empty( $args['meta_query'] ) ) {
+			$meta_filter = array();
+
+			$relation = 'must';
+			if ( ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
+				$relation = 'should';
+			}
+
+			foreach( $args['meta_query'] as $single_meta_query ) {
+				if ( ! empty( $single_meta_query['key'] ) ) {
+
+					$terms_obj = false;
+
+					$compare = '=';
+					if ( ! empty( $single_meta_query['compare'] ) ) {
+						$compare = strtolower( $single_meta_query['compare'] );
+					}
+
+					switch ( $compare ) {
+						case '!=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must_not' => array(
+											array(
+												'terms' => array(
+													'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case 'exists':
+							$terms_obj = array(
+								'exists' => array(
+									'field' => 'post_meta.' . $single_meta_query['key'],
+								),
+							);
+
+							break;
+						case 'not exists':
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'exists' => array(
+												'field' => 'post_meta.' . $single_meta_query['key'],
+											),
+										),
+									),
+								),
+							);
+
+							break;
+						case '=':
+						default:
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'terms' => array(
+										'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+									),
+								);
+							}
+
+							break;
+					}
+
+					// Add the meta query filter
+					if ( false !== $terms_obj ) {
+						$meta_filter[] = $terms_obj;
+					}
+				}
+			}
+
+			if ( ! empty( $meta_filter ) ) {
+				$filter['and'][]['bool'][$relation] = $meta_filter;
+			}
+
+			$use_filters = true;
+		}
+
+		/**
 		 * Allow for search field specification
 		 *
 		 * @since 1.0
