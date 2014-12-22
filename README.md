@@ -101,6 +101,51 @@ After running an index, ElasticPress integrates with WP_Query. The end goal is t
 
     ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
 
+* ```meta_query``` (*array*)
+
+    Filter posts by post meta conditions. Takes an array of form:
+
+    ```php
+    new WP_Query( array(
+        's'          => 'search phrase',
+        'meta_query' => array(
+            array(
+                'key'   => 'key_name',
+                'value' => 'meta value',
+                'compare' => '=',
+            ),
+        ),
+    ) );
+    ```
+
+    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
+        * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
+        * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+        * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
+        * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+
+    The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
+    ```php
+    new WP_Query( array(
+        's'          => 'search phrase',
+        'meta_query' => array(
+            array(
+                'key'   => 'key_name',
+                'value' => 'meta value',
+                'compare' => '=',
+            ),
+            array(
+                'key'   => 'key_name2',
+                'value' => 'meta value',
+                'compare' => '!=',
+            ),
+            'relation' => 'AND',
+        ),
+    ) );
+    ```
+
+    Possible values for ```relation``` are ```OR``` and ```AND```. If ```relation``` is set to ```AND```, all inner queries must be true for a post to be returned. If ```relation``` is set to ```OR```, only one of the inner meta queries must be true for the post to be returned.
+
 * ```post_type``` (*string*/*array*)
 
     Filter posts by post type. ```any``` wil search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
