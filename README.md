@@ -120,10 +120,10 @@ After running an index, ElasticPress integrates with WP_Query. The end goal is t
 
     ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
 
-        * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
-        * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
-        * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
-        * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+      * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
+      * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+      * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
+      * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
 
     The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
     ```php
