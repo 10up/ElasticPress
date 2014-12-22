@@ -736,6 +736,58 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a search with a filter on meta
+	 *
+	 * @since 1.3
+	 */
+	public function testFilterMetaQuery() {
+		$sites = ep_get_sites();
+
+		$i = 0;
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'findme', 'test_key2' => 'findme3', ) );
+
+			if ( $i > 0 ) {
+				ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key2' => 'findme', 'test_key' => 'value2', 'test_key3' => 'findme' ) );
+			}
+
+			ep_refresh_index();
+
+			restore_current_blog();
+
+			$i++;
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 'value2'
+				),
+				array(
+					'key' => 'test_key2',
+					'value' => 'findme3',
+					'compare' => '!=',
+				),
+				array(
+					'key' => 'test_key3',
+					'compare' => 'exists',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+	}
+
+	/**
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0

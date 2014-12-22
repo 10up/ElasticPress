@@ -962,4 +962,183 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
+
+	/**
+	 * Test a query that searches and filters by a meta equal query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryEquals() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 'value',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta not equal query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryNotEquals() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 'value',
+					'compare' => '!=',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta exists query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryExists() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'compare' => 'exists',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta not exists query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryNotExists() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'compare' => 'not exists',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test an advanced meta filter query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryOrRelation() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key5' => 'value1' )  );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1', 'test_key2' => 'value' )  );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key6' => 'value', 'test_key2' => 'value2', 'test_key3' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key5',
+					'compare' => 'exists',
+				),
+				array(
+					'key' => 'test_key6',
+					'value' => 'value',
+					'compare' => '=',
+				),
+				'relation' => 'or',
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test an advanced meta filter query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryAdvanced() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1' )  );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1', 'test_key2' => 'value' )  );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value', 'test_key2' => 'value2', 'test_key3' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key3',
+					'compare' => 'exists',
+				),
+				array(
+					'key' => 'test_key2',
+					'value' => 'value2',
+					'compare' => '=',
+				),
+				array(
+					'key' => 'test_key',
+					'value' => 'value1',
+					'compare' => '!=',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
 }
