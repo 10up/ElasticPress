@@ -17,7 +17,10 @@ class EP_WP_Query_Integration {
 	public function __construct() { }
 
 	public function setup() {
+		add_action( 'init', array( $this, 'setup_wp_query_integration' ) );
+	}
 
+	public function setup_wp_query_integration() {
 		// Ensure we aren't on the admin (unless overridden)
 		if ( is_admin() && ! apply_filters( 'ep_admin_wp_query_integration', false ) ) {
 			return;
