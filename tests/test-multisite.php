@@ -37,7 +37,7 @@ class EPTestMultisite extends EP_Test_Base {
 
 		wp_set_current_user( $admin_id );
 
-		EP_WP_Query_Integration::factory()->setup();
+		EP_WP_Query_Integration::factory()->setup_wp_query_integration();
 
 		$this->setup_test_post_type();
 
