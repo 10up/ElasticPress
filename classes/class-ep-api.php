@@ -905,9 +905,9 @@ class EP_API {
 
 			if ( ! empty( $meta_filter ) ) {
 				$filter['and'][]['bool'][$relation] = $meta_filter;
-			}
 
-			$use_filters = true;
+				$use_filters = true;
+			}
 		}
 
 		/**
