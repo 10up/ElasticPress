@@ -818,6 +818,20 @@ class EP_API {
 		}
 
 		/**
+		 * Add 'p' (post_id) support
+		 * Fetches specific post id
+		 *
+		 * @since 1.3
+		 */
+		if ( ! empty( $args['p'] ) ) {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_id' => absint( $args['p'] ),
+				),
+			);
+		}
+
+		/**
 		 * 'meta_query' arg support.
 		 *
 		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the

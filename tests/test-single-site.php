@@ -1141,4 +1141,26 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
+
+	/**
+	 * Test a simple post_id search
+	 *
+	 * @since 1.3
+	 */
+	public function testPostIDSearch() {
+		$post_id_1 = ep_create_and_sync_post( array( 'post_content' => 'the post 1 content findme' ) );
+		$post_id_2 = ep_create_and_sync_post( array( 'post_content' => 'the post 2 content findme' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'findme',
+			'p' => $post_id_1,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
 }
