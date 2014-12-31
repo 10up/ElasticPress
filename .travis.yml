@@ -23,4 +23,5 @@ script:
     - if [ "$(phpenv version-name)" != "5.2" ]; then phpunit --coverage-clover build/logs/clover.xml; else phpunit; fi;
 
 after_script:
-    - if [ "$(phpenv version-name) != "5.2" ]; then php ./vendor/bin/test-reporter --stdout > codeclimate.json; ./vendor/bin/test-reporter; "curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports"; fi;
+    - ./vendor/bin/test-reporter --stdout > codeclimate.json
+    - "if [ \"$(phpenv version-name)\" != \"5.2\" ]; then curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports; fi;"
