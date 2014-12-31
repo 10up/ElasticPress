@@ -1,4 +1,4 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress) [![Code Climate](https://img.shields.io/codeclimate/coverage/github/10up/ElasticPress.svg?style=flat)](https://codeclimate.com/github/10up/ElasticPress)
 =============
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
