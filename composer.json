@@ -1,0 +1,28 @@
+{
+  "name": "10up/ElasticPress",
+  "description": "Integrate Elasticsearch with WordPress.",
+  "type": "wordpress-plugin",
+  "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
+  "license": ["MIT"],
+  "authors": [
+    {
+      "name": "Aaron Holbrook",
+      "email": "aaron@10up.com",
+      "homepage": "http://aaronjholbrook.com"
+    },
+    {
+      "name": "Taylor Lovett",
+      "email": "taylorl@get10up.com"
+    },
+    {
+      "name": "10up",
+      "homepage": "http://10up.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.2"
+  },
+  "require-dev": {
+    "codeclimate/php-test-reporter": "dev-master"
+  }
+}

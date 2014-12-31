@@ -14,7 +14,14 @@ services:
     - elasticsearch
 
 before_script:
+    - mkdir -p build/logs
+    - if [ "$(phpenv version-name)" != "5.2" ]; then composer install --dev; fi;
     - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
     - sleep 5
 
-script: phpunit
+script:
+    - if [ "$(phpenv version-name)" != "5.2" ]; then phpunit --coverage-clover build/logs/clover.xml; else phpunit; fi;
+
+after_script:
+    - ./vendor/bin/test-reporter --stdout > codeclimate.json
+    - "if [ \"$(phpenv version-name)\" != \"5.2\" ]; then curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports; fi;"
