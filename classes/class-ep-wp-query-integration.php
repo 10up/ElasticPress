@@ -85,7 +85,7 @@ class EP_WP_Query_Integration {
 			restore_current_blog();
 
 			switch_to_blog( $post->site_id );
-			
+
 			remove_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 			setup_postdata( $post );
 			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
@@ -177,6 +177,7 @@ class EP_WP_Query_Integration {
 			$post->post_date_gmt = $post_array['post_date_gmt'];
 			$post->post_modified = $post_array['post_modified'];
 			$post->post_modified_gmt = $post_array['post_modified_gmt'];
+			$post->post_type = $post_array['post_type'];
 
 			// Run through get_post() to add all expected properties (even if they're empty)
 			$post = get_post( $post );
