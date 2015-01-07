@@ -138,7 +138,7 @@ class EP_API {
 			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
 		}
 
-		return array( 'found_posts' => 0, 'posts' => array() );
+		return false;
 	}
 
 	/**
