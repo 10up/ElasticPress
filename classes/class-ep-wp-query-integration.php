@@ -9,6 +9,8 @@ class EP_WP_Query_Integration {
 	 */
 	private $query_stack = array();
 
+	private $posts_by_query = array();
+
 	/**
 	 * Placeholder method
 	 *
@@ -28,11 +30,6 @@ class EP_WP_Query_Integration {
 
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query search
 		if ( ! ep_is_activated() ) {
-			return;
-		}
-
-		// If we can't reach the Elasticsearch service, don't bother with the rest of this
-		if ( ! ep_index_exists() ) {
 			return;
 		}
 
@@ -137,15 +134,50 @@ class EP_WP_Query_Integration {
 	}
 
 	/**
-	 * Filter the posts array to contain ES search results in EP_Post form.
+	 * Filter the posts array to contain ES search results in EP_Post form. Pull previously search posts.
 	 *
 	 * @param array $posts
 	 * @param object &$query
 	 * @return array
 	 */
 	public function filter_the_posts( $posts, &$query ) {
-		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
 			return $posts;
+		}
+
+		$new_posts = $this->posts_by_query[spl_object_hash( $query )];
+
+		return $new_posts;
+	}
+
+	/**
+	 * Remove the found_rows from the SQL Query
+	 *
+	 * @param string $sql
+	 * @param object $query
+	 * @since 0.9
+	 * @return string
+	 */
+	public function filter_found_posts_query( $sql, $query ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
+			return $sql;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Filter query string used for get_posts(). Search for posts and save for later.
+	 * Return a query that will return nothing.
+	 *
+	 * @param string $request
+	 * @param object $query
+	 * @since 0.9
+	 * @return string
+	 */
+	public function filter_posts_request( $request, $query ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+			return $request;
 		}
 
 		$query_vars = $query->query_vars;
@@ -162,10 +194,14 @@ class EP_WP_Query_Integration {
 
 		$search = ep_search( $formatted_args, $scope );
 
+		if ( false === $search ) {
+			return $request;
+		}
+
 		$query->found_posts = $search['found_posts'];
 		$query->max_num_pages = ceil( $search['found_posts'] / $query->get( 'posts_per_page' ) );
 
-		$posts = array();
+		$new_posts = array();
 
 		foreach ( $search['posts'] as $post_array ) {
 			$post = new stdClass();
@@ -192,43 +228,12 @@ class EP_WP_Query_Integration {
 			$post = get_post( $post );
 
 			if ( $post ) {
-				$posts[] = $post;
+				$new_posts[] = $post;
 			}
 		}
+		$this->posts_by_query[spl_object_hash( $query )] = $new_posts;
 
-		do_action( 'ep_wp_query_search', $posts, $search, $query );
-
-		return $posts;
-	}
-
-	/**
-	 * Remove the found_rows from the SQL Query
-	 *
-	 * @param string $sql
-	 * @param object $query
-	 * @since 0.9
-	 * @return string
-	 */
-	public function filter_found_posts_query( $sql, $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
-			return $sql;
-		}
-
-		return '';
-	}
-
-	/**
-	 * Filter query string used for get_posts(). Return a query that will return nothing.
-	 *
-	 * @param string $request
-	 * @param object $query
-	 * @since 0.9
-	 * @return string
-	 */
-	public function filter_posts_request( $request, $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
-			return $request;
-		}
+		do_action( 'ep_wp_query_search', $new_posts, $search, $query );
 
 		global $wpdb;
 

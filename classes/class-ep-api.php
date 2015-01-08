@@ -138,7 +138,7 @@ class EP_API {
 			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
 		}
 
-		return array( 'found_posts' => 0, 'posts' => array() );
+		return false;
 	}
 
 	/**
@@ -1226,32 +1226,6 @@ class EP_API {
 		}
 
 		return $elasticsearch_alive;
-	}
-
-	/**
-	 * Ensures that this index exists
-	 *
-	 * @param null $index
-	 *
-	 * @return bool
-	 * @since 1.1.0
-	 */
-	public function index_exists( $index = null ) {
-		$index_exists = false;
-
-		$index_url = ep_get_index_url( $index );
-
-		$url = $index_url . '/_status';
-
-		$request = wp_remote_request( $url );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$index_exists = true;
-			}
-		}
-
-		return $index_exists;
 	}
 }
 
