@@ -39,7 +39,7 @@ class EP_WP_Query_Integration {
 		// Make sure we return nothing for MySQL posts query
 		add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
 
-        // Add header
+		// Add header
 		add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
 
 		// Nukes the FOUND_ROWS() database query
@@ -71,13 +71,13 @@ class EP_WP_Query_Integration {
 
 		$query->set( 'cache_results', false );
 
-        if ( ! headers_sent() ) {
-            /**
-             * Manually setting a header as $wp_query isn't yet initialized
-             * when we call: add_filter('wp_headers', 'filter_wp_headers');
-             */
-            header( 'X-ElasticPress-Search: true' );
-        }
+		if ( ! headers_sent() ) {
+			/**
+			 * Manually setting a header as $wp_query isn't yet initialized
+			 * when we call: add_filter('wp_headers', 'filter_wp_headers');
+			 */
+			header( 'X-ElasticPress-Search: true' );
+		}
 	}
 
 	/**

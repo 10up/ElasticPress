@@ -34,7 +34,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function put_mapping( $args, $assoc_args ) {
 		$this->_connect_check();
 
-        if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
 			$sites = ep_get_sites();
 
 			foreach ( $sites as $site ) {
@@ -196,7 +196,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$this->put_mapping( $args, $assoc_args );
 		}
 
-        if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
 
 			WP_CLI::log( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
