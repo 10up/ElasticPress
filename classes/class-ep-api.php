@@ -292,7 +292,7 @@ class EP_API {
 						'default' => array(
 							'tokenizer' => 'standard',
 							'filter' => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-							'language' => 'English'
+							'language' => apply_filters( 'ep_analyzer_language', 'English' ),
 						),
 						'shingle_analyzer' => array(
 							'type' => 'custom',
@@ -312,7 +312,7 @@ class EP_API {
 						),
 						'ewp_snowball' => array(
 							'type' => 'snowball',
-							'language' => 'English'
+							'language' => apply_filters( 'ep_analyzer_language', 'English' )
 						),
 						'edge_ngram' => array(
 							'side' => 'front',
