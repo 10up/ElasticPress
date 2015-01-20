@@ -88,7 +88,8 @@ class EP_Config {
 	}
 }
 
-EP_Config::factory();
+add_action('plugins_loaded', array('EP_Config', 'factory'), 10);
+
 
 /**
  * Accessor functions for methods in above class. See doc blocks above for function details.

@@ -17,7 +17,6 @@ class EP_WP_Query_Integration {
 	public function __construct() { }
 
 	public function setup() {
-
 		// Ensure we aren't on the admin (unless overridden)
 		if ( is_admin() && ! apply_filters( 'ep_admin_wp_query_integration', false ) ) {
 			return;
@@ -85,7 +84,7 @@ class EP_WP_Query_Integration {
 			restore_current_blog();
 
 			switch_to_blog( $post->site_id );
-			
+
 			remove_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 			setup_postdata( $post );
 			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
@@ -236,7 +235,7 @@ class EP_WP_Query_Integration {
 
 		if ( ! $instance ) {
 			$instance = new self();
-			$instance->setup();
+			add_action('plugins_loaded', array($instance, 'setup'), 11);
 		}
 
 		return $instance;
