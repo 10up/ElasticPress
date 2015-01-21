@@ -515,6 +515,8 @@ class EP_API {
 
 		$request = wp_remote_request( $index_url, array( 'body' => json_encode( $mapping ), 'method' => 'PUT' ) );
 
+		$request = apply_filters( 'ep_config_mapping_request', $request, $index_url, $mapping );
+
 		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
