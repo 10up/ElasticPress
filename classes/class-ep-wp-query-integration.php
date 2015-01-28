@@ -191,7 +191,30 @@ class EP_WP_Query_Integration {
 
 		$query_vars = $query->query_vars;
 		if ( 'any' == $query_vars['post_type'] ) {
-			unset( $query_vars['post_type'] );
+			
+			if( $query->is_search() ) {
+				
+				/*
+				 * This is a search query
+				 * To follow WordPress conventions,
+				 * make sure we only search 'searchable' post types
+				 */
+				$searchable_post_types = get_post_types( array( 'exclude_from_search' => false ) );
+				
+				// Conform the post types array to an acceptable format for ES
+				$post_types = array();
+				foreach( $searchable_post_types as $type ) {
+					$post_types[] = $type;
+				}
+				$query_vars['post_type'] = $post_types;
+			} else {
+				
+				/*
+				 * This is not a search query
+				 * so unset the post_type query var
+				 */
+				unset( $query_vars['post_type'] );
+			}
 		}
 
 		$scope = 'current';
