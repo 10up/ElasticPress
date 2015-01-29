@@ -190,7 +190,7 @@ class EP_WP_Query_Integration {
 		}
 
 		$query_vars = $query->query_vars;
-		if ( 'any' == $query_vars['post_type'] ) {
+		if ( 'any' === $query_vars['post_type'] ) {
 			
 			if ( $query->is_search() ) {
 
