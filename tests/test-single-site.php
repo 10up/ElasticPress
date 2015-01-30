@@ -1146,7 +1146,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test exclude_from_search post type flag
 	 * Ensure that we do not search that post type when all post types are searched
 	 *
-	 * @since 0.9
+	 * @since 1.3
 	 */
 	public function testExcludeFromSearch() {
 		$post_ids = array();
@@ -1185,7 +1185,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test what happens when no post types are available to be searched
 	 *
-	 * @since 0.9
+	 * @since 1.3
 	 */
 	public function testNoAvailablePostTypesToSearch() {
 		$post_ids = array();
