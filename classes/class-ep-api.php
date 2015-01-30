@@ -447,7 +447,7 @@ class EP_API {
 						),
 						'post_status' => array(
 							'type' => 'string',
-							'index' => 'no'
+							'index' => 'not_analyzed'
 						),
 						'post_name' => array(
 							'type' => 'multi_field',
@@ -583,7 +583,7 @@ class EP_API {
 			'post_title'        => get_the_title( $post_id ),
 			'post_excerpt'      => $post->post_excerpt,
 			'post_content'      => apply_filters( 'the_content', $post->post_content ),
-			'post_status'       => 'publish',
+			'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
 			'post_modified_gmt' => $post_modified_gmt,

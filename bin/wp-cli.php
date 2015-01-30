@@ -264,7 +264,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$args = apply_filters( 'ep_index_posts_args', array(
 				'posts_per_page'      => $posts_per_page,
 				'post_type'           => ep_get_indexable_post_types(),
-				'post_status'         => 'publish',
+				'post_status'         => ep_get_indexable_post_status(),
 				'offset'              => $offset,
 				'ignore_sticky_posts' => true
 			) );
