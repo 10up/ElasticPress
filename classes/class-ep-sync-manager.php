@@ -88,7 +88,7 @@ class EP_Sync_Manager {
 
 		if ( ! $instance ) {
 			$instance = new self();
-			$instance->setup();
+			add_action( 'init', array($instance, 'setup'), 10 );
 		}
 
 		return $instance;
