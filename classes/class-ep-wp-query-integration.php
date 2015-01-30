@@ -235,7 +235,7 @@ class EP_WP_Query_Integration {
 
 		if ( ! $instance ) {
 			$instance = new self();
-			add_action('plugins_loaded', array($instance, 'setup'), 11);
+			add_action( 'init', array($instance, 'setup'), 11 );
 		}
 
 		return $instance;
