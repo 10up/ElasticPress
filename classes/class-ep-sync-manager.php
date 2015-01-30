@@ -88,7 +88,7 @@ class EP_Sync_Manager {
 
 		if ( ! $instance ) {
 			$instance = new self();
-			add_action('plugins_loaded', array($instance, 'setup'), 10);
+			add_action( 'init', array($instance, 'setup'), 10 );
 		}
 
 		return $instance;
