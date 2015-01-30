@@ -88,7 +88,7 @@ class EP_Config {
 	}
 }
 
-add_action('plugins_loaded', array('EP_Config', 'factory'), 10);
+add_action( 'init', array('EP_Config', 'factory'), 10 );
 
 
 /**
