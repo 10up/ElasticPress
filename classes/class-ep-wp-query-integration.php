@@ -203,7 +203,9 @@ class EP_WP_Query_Integration {
 
 				// If we have no searchable post types, there's no point going any further
 				if ( empty( $searchable_post_types ) ) {
-					return;
+
+					// Have to return something or it improperly calculates the found_posts
+					return "WHERE 0 = 1";
 				}
 
 				// Conform the post types array to an acceptable format for ES
