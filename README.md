@@ -71,7 +71,7 @@ Creating indices is handled automatically by ElasticPress. Index names are autom
 
 ## Usage
 
-After running an index, ElasticPress integrates with WP_Query. The end goal is to support all the parameters available to WP_Query so the transition is completely transparent. Right now, our WP_Query integration supports *many* of the relevant WP_Query parameters and adds a couple special ones.
+After running an index, ElasticPress integrates with `WP_Query` if and only if the query is a search or the `ep_integrate` parameter is passed (see below). The end goal is to support all the parameters available to WP_Query so the transition is completely transparent. Right now, our WP_Query integration supports *many* of the relevant WP_Query parameters and adds a couple special ones.
 
 ### Supported WP_Query Parameters
 
@@ -302,14 +302,14 @@ The following are special parameters that are only supported by ElasticPress.
 
     _Note:_ Nesting cross-site `WP_Query` loops can result in unexpected behavior.
 
-* ```ep_match_all``` (*bool*)
+* ```ep_integrate``` (*bool*)
 
-    Allows you to perform queries without passing a search parameter. For example:
+    Allows you to perform queries without passing a search parameter. This is pretty powerful as you can leverage Elasticsearch to retrieve queries that are too complex for MySQL (such as a 5-dimensional taxonomy query). For example:
     
     Get 20 of the lastest posts
     ```php
     new WP_Query( array(
-        'ep_match_all'   => true,
+        'ep_integrate'   => true,
         'post_type'      => 'post',
         'posts_per_page' => 20,
     ) );
@@ -318,7 +318,7 @@ The following are special parameters that are only supported by ElasticPress.
     Get all posts with a specific category
     ```php
     new WP_Query( array(
-        'ep_match_all'   => true,
+        'ep_integrate'   => true,
         'post_type'      => 'post',
         'posts_per_page' => -1,
         'category'       => 5,
