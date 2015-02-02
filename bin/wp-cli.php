@@ -449,7 +449,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Ping the Elasticsearch server and retrieve a status.
 	 *
-	 * @synopsis [--raw] [--index=<foo>]
 	 * @since 0.9.1
 	 */
 	public function status() {
