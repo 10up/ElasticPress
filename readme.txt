@@ -6,8 +6,8 @@ Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elas
 Requires at least: 3.7.1
 Tested up to: 4.1
 Stable tag: 1.2
-License: MIT
-License URI: http://opensource.org/licenses/MIT
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Integrate Elasticsearch with WordPress.
 
