@@ -48,7 +48,7 @@ The proceeding sets depend on whether you are configuring for single site or mul
 ### Single Site
 
 2. Activate the plugin.
-3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
+3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running the following commands:
 
 ```bash
 wp elasticpress index --setup
@@ -57,7 +57,7 @@ wp elasticpress index --setup
 ### Multisite Cross-site Search
 
 2. Network activate the plugin
-3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
+3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running the following commands:
 
 ```bash
 wp elasticpress index --setup --network-wide
@@ -324,6 +324,45 @@ The following are special parameters that are only supported by ElasticPress.
         'category'       => 5,
     ) );
     ```
+
+### Supported WP-CLI Commands
+
+The following commands are supported by ElasticPress:
+
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk]`
+
+  Index all posts in the current blog. `--network-wide` will force indexing on all the blogs in the network. `--setup` will clear the index first and re-send the put mapping. `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle). `--no-bulk` let's you disable bulk indexing.
+
+* `wp elasticpress activate`
+
+  Turns on ElasticPress integration. Integration is automatically deactivated during indexing.
+
+* `wp elasticpress deactivate`
+
+  Turns off ElasticPress integration. Integration is automatically deactivated during indexing.
+
+* `wp elasticpress delete-index [--network-wide]`
+
+  Deletes the current blog index. `--network-wide` will force every index on the network to be deleted.
+
+* `wp elasticpress is-active`
+
+  Checks whether ElasticPress is currently integration active. This is different than whether the plugin is WordPress active or not. During indexing, integration will be deactivated automatically.
+
+* `wp elasticpress put-mapping [--network-wide]`
+
+  Sends plugin put mapping to the current blog index. `--network-wide` will force mappings to be sent for every index in the network.
+
+* `wp elasticpress recreate-network-alias`
+
+  Recreates the alias index which points to every index in the network.
+
+* `wp elasticpress stats`
+
+  Returns basic stats on Elasticsearch instance i.e. number of documents in current index as well as disk space used.
+
+* `wp elasticpress status`
+
 
 ## Development
 

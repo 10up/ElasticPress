@@ -166,7 +166,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk]
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -249,6 +249,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * Helper method for indexing posts
 	 *
 	 * @param bool $no_bulk disable bulk indexing
+	 * @param int $posts_per_page
 	 *
 	 * @since 0.9
 	 * @return array
