@@ -1058,7 +1058,7 @@ class EP_API {
 			}
 		}
 
-		return apply_filters( 'ep_formatted_args', $formatted_args );
+		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
 
 	/**
