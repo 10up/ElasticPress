@@ -74,8 +74,40 @@ class EP_Query implements IteratorAggregate, Countable{
     {
 
         $query_vars = $query->query_vars;
-        if ( 'any' == $query_vars['post_type'] ) {
-            unset( $query_vars['post_type'] );
+        if ( 'any' === $query_vars['post_type'] ) {
+            
+            if ( $query->is_search() ) {
+
+                /*
+                 * This is a search query
+                 * To follow WordPress conventions,
+                 * make sure we only search 'searchable' post types
+                 */
+                $searchable_post_types = get_post_types( array( 'exclude_from_search' => false ) );
+
+                // If we have no searchable post types, there's no point going any further
+                if ( empty( $searchable_post_types ) ) {
+
+                    // Have to return something or it improperly calculates the found_posts
+                    return "WHERE 0 = 1";
+                }
+
+                // Conform the post types array to an acceptable format for ES
+                $post_types = array();
+                foreach( $searchable_post_types as $type ) {
+                    $post_types[] = $type;
+                }
+
+                // These are now the only post types we will search
+                $query_vars['post_type'] = $post_types;
+            } else {
+
+                /*
+                 * This is not a search query
+                 * so unset the post_type query var
+                 */
+                unset( $query_vars['post_type'] );
+            }
         }
 
         $scope = 'current';
@@ -139,7 +171,7 @@ class EP_Query implements IteratorAggregate, Countable{
             $wp_query->max_num_pages = ceil( $result['found_posts'] / $wp_query->get( 'posts_per_page' ) );
         }
 
-        $posts = array();
+        $new_posts = array();
 
         foreach ( $result['posts'] as $post_array ) {
             $post = new stdClass();
@@ -151,6 +183,7 @@ class EP_Query implements IteratorAggregate, Countable{
                 $post->site_id = $post_array['site_id'];
             }
 
+            $post->post_type = $post_array['post_type'];
             $post->post_name = $post_array['post_name'];
             $post->post_status = $post_array['post_status'];
             $post->post_title = $post_array['post_title'];
@@ -160,19 +193,20 @@ class EP_Query implements IteratorAggregate, Countable{
             $post->post_date_gmt = $post_array['post_date_gmt'];
             $post->post_modified = $post_array['post_modified'];
             $post->post_modified_gmt = $post_array['post_modified_gmt'];
+            $post->elasticsearch = true; // Super useful for debugging
 
             // Run through get_post() to add all expected properties (even if they're empty)
             $post = get_post( $post );
 
             if ( $post ) {
-                $posts[] = $post;
+                $new_posts[] = $post;
             }
         }
 
-        $this->posts = $posts;
+        $this->posts = $new_posts;
 
         do_action( 'ep_after_get_posts', $this);
-        do_action( 'ep_wp_query_search', $posts, $result, $this->wp_query );
+        do_action( 'ep_wp_query_search', $new_posts, $result, $this->wp_query );
 
         return $this->posts;
     }

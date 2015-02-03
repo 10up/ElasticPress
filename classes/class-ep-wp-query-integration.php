@@ -9,6 +9,8 @@ class EP_WP_Query_Integration {
 	 */
 	private $query_stack = array();
 
+	private $posts_by_query = array();
+
 	/**
 	 * Placeholder method
 	 *
@@ -16,8 +18,11 @@ class EP_WP_Query_Integration {
 	 */
 	public function __construct() { }
 
+	/**
+	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
+	 * @since 0.9
+	 */
 	public function setup() {
-
 		// Ensure we aren't on the admin (unless overridden)
 		if ( is_admin() && ! apply_filters( 'ep_admin_wp_query_integration', false ) ) {
 			return;
@@ -28,14 +33,10 @@ class EP_WP_Query_Integration {
 			return;
 		}
 
-		// If we can't reach the Elasticsearch service, don't bother with the rest of this
-		if ( ! ep_index_exists() ) {
-			return;
-		}
-
 		// Make sure we return nothing for MySQL posts query
 		add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
 
+		// Add header
 		add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
 
 		// Nukes the FOUND_ROWS() database query
@@ -54,12 +55,26 @@ class EP_WP_Query_Integration {
 		add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 	}
 
+	/**
+	 * Disables cache_results, adds header.
+	 *
+	 * @param $query
+	 * @since 0.9
+	 */
 	public function action_pre_get_posts( $query ) {
 		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return;
 		}
 
 		$query->set( 'cache_results', false );
+
+		if ( ! headers_sent() ) {
+			/**
+			 * Manually setting a header as $wp_query isn't yet initialized
+			 * when we call: add_filter('wp_headers', 'filter_wp_headers');
+			 */
+			header( 'X-ElasticPress-Search: true' );
+		}
 	}
 
 	/**
@@ -128,20 +143,20 @@ class EP_WP_Query_Integration {
 	}
 
 	/**
-	 * Filter the posts array to contain ES search results in EP_Post form.
+	 * Filter the posts array to contain ES search results in EP_Post form. Pull previously search posts.
 	 *
 	 * @param array $posts
 	 * @param object &$query
 	 * @return array
 	 */
 	public function filter_the_posts( $posts, &$query ) {
-		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
 			return $posts;
 		}
 
-		$posts = EP_Query::from_wp_query($query)->get_posts();
+		$new_posts = $this->posts_by_query[spl_object_hash( $query )];
 
-		return $posts;
+		return $new_posts;
 	}
 
 	/**
@@ -161,7 +176,8 @@ class EP_WP_Query_Integration {
 	}
 
 	/**
-	 * Filter query string used for get_posts(). Return a query that will return nothing.
+	 * Filter query string used for get_posts(). Search for posts and save for later.
+	 * Return a query that will return nothing.
 	 *
 	 * @param string $request
 	 * @param object $query
@@ -172,6 +188,14 @@ class EP_WP_Query_Integration {
 		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return $request;
 		}
+
+		$ep_query = EP_Query::from_wp_query($query);
+
+		if ( false === $ep_query->get_result() ) {
+			return $request;
+		}
+		
+		$this->posts_by_query[spl_object_hash( $query )] = $ep_query->get_posts();
 
 		global $wpdb;
 
@@ -189,7 +213,7 @@ class EP_WP_Query_Integration {
 
 		if ( ! $instance ) {
 			$instance = new self();
-			$instance->setup();
+			add_action( 'init', array( $instance, 'setup' ) );
 		}
 
 		return $instance;

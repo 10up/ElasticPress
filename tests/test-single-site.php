@@ -409,11 +409,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a post type query
+	 * Test a post type query for pages
 	 *
-	 * @since 1.0
+	 * @since 1.3
 	 */
-	public function testPostTypeQuery() {
+	public function testPostTypeQueryPage() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
@@ -429,6 +429,99 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+	}
+
+
+	/**
+	 * Test a post type query for posts
+	 *
+	 * @since 1.3
+	 */
+	public function testPostTypeQueryPost() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with no post type
+	 *
+	 * @since 1.3
+	 */
+	public function testNoPostTypeSearchQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		// post_type defaults to "any"
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with no post type on non-search query
+	 *
+	 * @since 1.3
+	 */
+	public function testNoPostTypeNonSearchQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		// post_type defaults to "any"
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with "any" post type
+	 *
+	 * @since 1.3
+	 */
+	public function testAnyPostTypeQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'any',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
 	}
 
 	/**
@@ -868,5 +961,268 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta equal query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryEquals() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 'value',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta not equal query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryNotEquals() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 'value',
+					'compare' => '!=',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta exists query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryExists() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'compare' => 'exists',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta not exists query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryNotExists() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'compare' => 'not exists',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test an advanced meta filter query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryOrRelation() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key5' => 'value1' )  );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1', 'test_key2' => 'value' )  );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key6' => 'value', 'test_key2' => 'value2', 'test_key3' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key5',
+					'compare' => 'exists',
+				),
+				array(
+					'key' => 'test_key6',
+					'value' => 'value',
+					'compare' => '=',
+				),
+				'relation' => 'or',
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test an advanced meta filter query
+	 *
+	 * @since 1.3
+	 */
+	public function testMetaQueryAdvanced() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1' )  );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1', 'test_key2' => 'value' )  );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value', 'test_key2' => 'value2', 'test_key3' => 'value' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key3',
+					'compare' => 'exists',
+				),
+				array(
+					'key' => 'test_key2',
+					'value' => 'value2',
+					'compare' => '=',
+				),
+				array(
+					'key' => 'test_key',
+					'value' => 'value1',
+					'compare' => '!=',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test exclude_from_search post type flag
+	 * Ensure that we do not search that post type when all post types are searched
+	 *
+	 * @since 1.3
+	 */
+	public function testExcludeFromSearch() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post();
+		$post_ids[1] = ep_create_and_sync_post();
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$post_ids[3] = ep_create_and_sync_post();
+		$post_ids[4] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
+		register_post_type( 'exclude-me', array(
+			'public' => true,
+			'exclude_from_search' => true,
+		) );
+
+		$post_ids[5] = ep_create_and_sync_post( array( 'post_type' => 'exclude-me', 'post_content' => 'findme' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'findme',
+		);
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+
+		wp_reset_postdata();
+	}
+
+	/**
+	 * Test what happens when no post types are available to be searched
+	 *
+	 * @since 1.3
+	 */
+	public function testNoAvailablePostTypesToSearch() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post();
+		$post_ids[1] = ep_create_and_sync_post();
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$post_ids[3] = ep_create_and_sync_post();
+		$post_ids[4] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
+		$GLOBALS['wp_post_types'];
+
+		$backup_post_types = $GLOBALS['wp_post_types'];
+
+		// Set all post types to be excluded from search
+		foreach ( $GLOBALS['wp_post_types'] as $post_type ) {
+			$post_type->exclude_from_search = true;
+		}
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'findme',
+		);
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( empty( $this->fired_actions['ep_wp_query_search'] ) );
+
+		$this->assertEquals( $query->post_count, 0 );
+		$this->assertEquals( $query->found_posts, 0 );
+
+		wp_reset_postdata();
+
+		// Reset the main $wp_post_types item
+		$GLOBALS['wp_post_types'] = $backup_post_types;
 	}
 }

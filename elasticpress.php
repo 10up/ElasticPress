@@ -3,10 +3,10 @@
 /**
  * Plugin Name: ElasticPress
  * Description: Integrate WordPress search with Elasticsearch
- * Version:     1.2
+ * Version:     1.3
  * Author:      Aaron Holbrook, Taylor Lovett, Matt Gross, 10up
  * Author URI:  http://10up.com
- * License:     MIT
+ * License:     GPLv2 or later
  *
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:

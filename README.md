@@ -48,7 +48,7 @@ The proceeding sets depend on whether you are configuring for single site or mul
 ### Single Site
 
 2. Activate the plugin.
-3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
+3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running the following commands:
 
 ```bash
 wp elasticpress index --setup
@@ -57,7 +57,7 @@ wp elasticpress index --setup
 ### Multisite Cross-site Search
 
 2. Network activate the plugin
-3. Using wp-cli, do an initial sync (with mapping) with your ES server by running the following commands:
+3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running the following commands:
 
 ```bash
 wp elasticpress index --setup --network-wide
@@ -71,7 +71,7 @@ Creating indices is handled automatically by ElasticPress. Index names are autom
 
 ## Usage
 
-After running an index, ElasticPress integrates with WP_Query. The end goal is to support all the parameters available to WP_Query so the transition is completely transparent. Right now, our WP_Query integration supports *many* of the relevant WP_Query parameters and adds a couple special ones.
+After running an index, ElasticPress integrates with `WP_Query` if and only if the query is a search or the `ep_integrate` parameter is passed (see below). The end goal is to support all the parameters available to WP_Query so the transition is completely transparent. Right now, our WP_Query integration supports *many* of the relevant WP_Query parameters and adds a couple special ones.
 
 ### Supported WP_Query Parameters
 
@@ -101,9 +101,55 @@ After running an index, ElasticPress integrates with WP_Query. The end goal is t
 
     ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
 
+* ```meta_query``` (*array*)
+
+    Filter posts by post meta conditions. Takes an array of form:
+
+    ```php
+    new WP_Query( array(
+        's'          => 'search phrase',
+        'meta_query' => array(
+            array(
+                'key'   => 'key_name',
+                'value' => 'meta value',
+                'compare' => '=',
+            ),
+        ),
+    ) );
+    ```
+
+    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
+
+      * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
+      * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+      * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
+      * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+
+    The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
+    ```php
+    new WP_Query( array(
+        's'          => 'search phrase',
+        'meta_query' => array(
+            array(
+                'key'   => 'key_name',
+                'value' => 'meta value',
+                'compare' => '=',
+            ),
+            array(
+                'key'   => 'key_name2',
+                'value' => 'meta value',
+                'compare' => '!=',
+            ),
+            'relation' => 'AND',
+        ),
+    ) );
+    ```
+
+    Possible values for ```relation``` are ```OR``` and ```AND```. If ```relation``` is set to ```AND```, all inner queries must be true for a post to be returned. If ```relation``` is set to ```OR```, only one of the inner meta queries must be true for the post to be returned.
+
 * ```post_type``` (*string*/*array*)
 
-    Filter posts by post type. ```any``` wil search all public post types.
+    Filter posts by post type. ```any``` wil search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
 
 * ```offset``` (*int*)
 
@@ -256,14 +302,14 @@ The following are special parameters that are only supported by ElasticPress.
 
     _Note:_ Nesting cross-site `WP_Query` loops can result in unexpected behavior.
 
-* ```ep_match_all``` (*bool*)
+* ```ep_integrate``` (*bool*)
 
-    Allows you to perform queries without passing a search parameter. For example:
+    Allows you to perform queries without passing a search parameter. This is pretty powerful as you can leverage Elasticsearch to retrieve queries that are too complex for MySQL (such as a 5-dimensional taxonomy query). For example:
     
     Get 20 of the lastest posts
     ```php
     new WP_Query( array(
-        'ep_match_all'   => true,
+        'ep_integrate'   => true,
         'post_type'      => 'post',
         'posts_per_page' => 20,
     ) );
@@ -272,12 +318,51 @@ The following are special parameters that are only supported by ElasticPress.
     Get all posts with a specific category
     ```php
     new WP_Query( array(
-        'ep_match_all'   => true,
+        'ep_integrate'   => true,
         'post_type'      => 'post',
         'posts_per_page' => -1,
         'category'       => 5,
     ) );
     ```
+
+### Supported WP-CLI Commands
+
+The following commands are supported by ElasticPress:
+
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk]`
+
+  Index all posts in the current blog. `--network-wide` will force indexing on all the blogs in the network. `--setup` will clear the index first and re-send the put mapping. `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle). `--no-bulk` let's you disable bulk indexing.
+
+* `wp elasticpress activate`
+
+  Turns on ElasticPress integration. Integration is automatically deactivated during indexing.
+
+* `wp elasticpress deactivate`
+
+  Turns off ElasticPress integration. Integration is automatically deactivated during indexing.
+
+* `wp elasticpress delete-index [--network-wide]`
+
+  Deletes the current blog index. `--network-wide` will force every index on the network to be deleted.
+
+* `wp elasticpress is-active`
+
+  Checks whether ElasticPress is currently integration active. This is different than whether the plugin is WordPress active or not. During indexing, integration will be deactivated automatically.
+
+* `wp elasticpress put-mapping [--network-wide]`
+
+  Sends plugin put mapping to the current blog index. `--network-wide` will force mappings to be sent for every index in the network.
+
+* `wp elasticpress recreate-network-alias`
+
+  Recreates the alias index which points to every index in the network.
+
+* `wp elasticpress stats`
+
+  Returns basic stats on Elasticsearch instance i.e. number of documents in current index as well as disk space used.
+
+* `wp elasticpress status`
+
 
 ## Development
 
@@ -318,3 +403,8 @@ EP_HOST="http://192.168.50.4:9200" phpunit
 ### Issues
 
 If you identify any errors or have an idea for improving the plugin, please [open an issue](https://github.com/10up/ElasticPress/issues?state=open). We're excited to see what the community thinks of this project, and we would love your input!
+
+
+## License
+
+ElasticPress is free software; you can redistribute it and/or modify it under the terms of the [GNU General Public License](http://www.gnu.org/licenses/gpl-2.0.html) as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
