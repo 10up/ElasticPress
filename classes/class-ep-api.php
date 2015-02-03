@@ -312,8 +312,8 @@ class EP_API {
 						),
 						'ewp_snowball' => array(
 							'type' => 'snowball',
-							'language' => 'English'
-						),
+							'language' =>  apply_filters( 'ep_analyzer_language', 'English' ),
+							),
 						'edge_ngram' => array(
 							'side' => 'front',
 							'max_gram' => 10,
