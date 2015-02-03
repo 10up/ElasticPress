@@ -72,6 +72,16 @@ class EP_Config {
 	}
 
 	/**
+	 * Return indexable post_status for the current site
+	 *
+	 * @since 1.3
+	 * @return array
+	 */
+	public function get_indexable_post_status() {
+		return apply_filters( 'ep_indexable_post_status', array( 'publish' ) );
+	}
+
+	/**
 	 * Generate network index name for alias
 	 *
 	 * @since 0.9
@@ -104,6 +114,10 @@ function ep_get_index_name( $blog_id = null ) {
 
 function ep_get_indexable_post_types() {
 	return EP_Config::factory()->get_indexable_post_types();
+}
+
+function ep_get_indexable_post_status() {
+	return EP_Config::factory()->get_indexable_post_status();
 }
 
 function ep_get_network_alias() {

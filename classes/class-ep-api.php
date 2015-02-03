@@ -138,7 +138,7 @@ class EP_API {
 			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
 		}
 
-		return array( 'found_posts' => 0, 'posts' => array() );
+		return false;
 	}
 
 	/**
@@ -292,7 +292,7 @@ class EP_API {
 						'default' => array(
 							'tokenizer' => 'standard',
 							'filter' => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-							'language' => 'English'
+							'language' => apply_filters( 'ep_analyzer_language', 'English' ),
 						),
 						'shingle_analyzer' => array(
 							'type' => 'custom',
@@ -312,8 +312,8 @@ class EP_API {
 						),
 						'ewp_snowball' => array(
 							'type' => 'snowball',
-							'language' => 'English'
-						),
+							'language' =>  apply_filters( 'ep_analyzer_language', 'English' ),
+							),
 						'edge_ngram' => array(
 							'side' => 'front',
 							'max_gram' => 10,
@@ -447,7 +447,7 @@ class EP_API {
 						),
 						'post_status' => array(
 							'type' => 'string',
-							'index' => 'no'
+							'index' => 'not_analyzed'
 						),
 						'post_name' => array(
 							'type' => 'multi_field',
@@ -514,6 +514,8 @@ class EP_API {
 		$index_url = ep_get_index_url();
 
 		$request = wp_remote_request( $index_url, array( 'body' => json_encode( $mapping ), 'method' => 'PUT' ) );
+
+		$request = apply_filters( 'ep_config_mapping_request', $request, $index_url, $mapping );
 
 		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -583,7 +585,7 @@ class EP_API {
 			'post_title'        => get_the_title( $post_id ),
 			'post_excerpt'      => $post->post_excerpt,
 			'post_content'      => apply_filters( 'the_content', $post->post_content ),
-			'post_status'       => 'publish',
+			'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
 			'post_modified_gmt' => $post_modified_gmt,
@@ -818,6 +820,99 @@ class EP_API {
 		}
 
 		/**
+		 * 'meta_query' arg support.
+		 *
+		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
+		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
+		 * 'type' is NOT support at this time.
+		 *
+		 * @since 1.3
+		 */
+		if ( ! empty( $args['meta_query'] ) ) {
+			$meta_filter = array();
+
+			$relation = 'must';
+			if ( ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
+				$relation = 'should';
+			}
+
+			foreach( $args['meta_query'] as $single_meta_query ) {
+				if ( ! empty( $single_meta_query['key'] ) ) {
+
+					$terms_obj = false;
+
+					$compare = '=';
+					if ( ! empty( $single_meta_query['compare'] ) ) {
+						$compare = strtolower( $single_meta_query['compare'] );
+					}
+
+					switch ( $compare ) {
+						case '!=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must_not' => array(
+											array(
+												'terms' => array(
+													'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case 'exists':
+							$terms_obj = array(
+								'exists' => array(
+									'field' => 'post_meta.' . $single_meta_query['key'],
+								),
+							);
+
+							break;
+						case 'not exists':
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'exists' => array(
+												'field' => 'post_meta.' . $single_meta_query['key'],
+											),
+										),
+									),
+								),
+							);
+
+							break;
+						case '=':
+						default:
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'terms' => array(
+										'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+									),
+								);
+							}
+
+							break;
+					}
+
+					// Add the meta query filter
+					if ( false !== $terms_obj ) {
+						$meta_filter[] = $terms_obj;
+					}
+				}
+			}
+
+			if ( ! empty( $meta_filter ) ) {
+				$filter['and'][]['bool'][$relation] = $meta_filter;
+
+				$use_filters = true;
+			}
+		}
+
+		/**
 		 * Allow for search field specification
 		 *
 		 * @since 1.0
@@ -883,28 +978,45 @@ class EP_API {
 				),
 			),
 		);
-		if ( ! empty( $args['s'] ) && ! isset( $args['ep_match_all'] ) ) {
+
+		/**
+		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
+		 * supported for legacy code but may be deprecated and removed eventually.
+		 *
+		 * @since 1.3
+		 */
+
+		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
 			$query['bool']['should'][1]['fuzzy_like_this']['like_text'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
-		} else if ( isset( $args['ep_match_all'] ) && true === $args['ep_match_all'] ) {
+		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array();
 		}
 
-		if ( isset( $args['post_type'] ) ) {
-			$post_types = (array) $args['post_type'];
-			$terms_map_name = 'terms';
-			if ( count( $post_types ) < 2 ) {
-				$terms_map_name = 'term';
+		/**
+		 * Like WP_Query in search context, if no post_type is specified we default to "any". To
+		 * be safe you should ALWAYS specify the post_type parameter UNLIKE with WP_Query.
+		 *
+		 * @since 1.3
+		 */
+		if ( ! empty( $args['post_type'] ) ) {
+			// should NEVER be "any" but just in case
+			if ( 'any' !== $args['post_type'] ) {
+				$post_types = (array) $args['post_type'];
+				$terms_map_name = 'terms';
+				if ( count( $post_types ) < 2 ) {
+					$terms_map_name = 'term';
+				}
+
+				$filter['and'][] = array(
+					$terms_map_name => array(
+						'post_type.raw' => $post_types,
+					),
+				);
+
+				$use_filters = true;
 			}
-
-			$filter['and'][] = array(
-				$terms_map_name => array(
-					'post_type.raw' => $post_types,
-				),
-			);
-
-			$use_filters = true;
 		}
 
 		if ( isset( $args['offset'] ) ) {
@@ -948,7 +1060,7 @@ class EP_API {
 			}
 		}
 
-		return apply_filters( 'ep_formatted_args', $formatted_args );
+		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
 
 	/**
@@ -987,7 +1099,9 @@ class EP_API {
 
 		if ( $query->is_search() ) {
 			$enabled = true;
-		} else if ( isset( $query->query['ep_match_all'] ) && true === $query->query['ep_match_all'] ) {
+		} elseif ( ! empty( $query->query['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
+			$enabled = true;
+		} elseif ( ! empty( $query->query['ep_integrate'] ) ) {
 			$enabled = true;
 		}
 
@@ -1114,32 +1228,6 @@ class EP_API {
 		}
 
 		return $elasticsearch_alive;
-	}
-
-	/**
-	 * Ensures that this index exists
-	 *
-	 * @param null $index
-	 *
-	 * @return bool
-	 * @since 1.1.0
-	 */
-	public function index_exists( $index = null ) {
-		$index_exists = false;
-
-		$index_url = ep_get_index_url( $index );
-
-		$url = $index_url . '/_status';
-
-		$request = wp_remote_request( $url );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$index_exists = true;
-			}
-		}
-
-		return $index_exists;
 	}
 }
 

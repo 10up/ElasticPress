@@ -52,7 +52,9 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+		$indexable_post_statuses = ep_get_indexable_post_status();
+
+		if ( ! in_array( $new_status, $indexable_post_statuses ) && ! in_array( $old_status, $indexable_post_statuses ) ) {
 			return;
 		}
 
@@ -61,7 +63,7 @@ class EP_Sync_Manager {
 		}
 
 		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
-		if ( 'publish' !== $new_status ) {
+		if ( ! in_array( $new_status, $indexable_post_statuses ) ) {
 			$this->action_delete_post( $post->ID );
 		} else {
 			$post_type = get_post_type( $post->ID );
