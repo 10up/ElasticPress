@@ -58,6 +58,18 @@ configuring single site and multi-site cross-site search are slightly different.
 
 == Changelog ==
 
+= 1.3 =
+* Support `meta_query` in WP_Query integration
+* Improved documentation. Each WP-CLI command has been documented
+* Add `elasticsearch` property to global post object to assist in debugging
+* `ep_integrate` param added to allow for WP_Query integration without search. (Formally called ep_match_all)
+* Bug fix: check if failed post exists in indexing. Props [elliot-stocks](https://github.com/elliott-stocks)
+* Bug fix: properly check if setup is defined in indexing. Props [elliot-stocks](https://github.com/elliott-stocks)
+* Bug fix: add WP_Query integration on init rather than plugins loaded. Props [adamsilverstein](https://github.com/adamsilverstein)
+* Bug fix: Properly set global post object post type in loop. Props [tott](https://github.com/tott)
+* Bug fix: Do not check if index exists on every page load. Refactor so we can revert to MySQL after failed ES ping.
+* Bug fix: Make sure we check `is_multisite()` if `--network-wide` is provided [ivankruchkoff](https://github.com/ivankruchkoff)
+
 = 1.2 =
 * Allow number of shards and replicas to be configurable.
 * Improved searching algorithm. Favor exact matches over fuzzy matches.
