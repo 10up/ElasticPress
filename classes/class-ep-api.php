@@ -292,7 +292,7 @@ class EP_API {
 						'default' => array(
 							'tokenizer' => 'standard',
 							'filter' => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-							'language' => 'English'
+							'language' => apply_filters( 'ep_analyzer_language', 'English' ),
 						),
 						'shingle_analyzer' => array(
 							'type' => 'custom',
@@ -514,6 +514,8 @@ class EP_API {
 		$index_url = ep_get_index_url();
 
 		$request = wp_remote_request( $index_url, array( 'body' => json_encode( $mapping ), 'method' => 'PUT' ) );
+
+		$request = apply_filters( 'ep_config_mapping_request', $request, $index_url, $mapping );
 
 		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
