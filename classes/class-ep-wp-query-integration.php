@@ -139,54 +139,7 @@ class EP_WP_Query_Integration {
 			return $posts;
 		}
 
-		$query_vars = $query->query_vars;
-		if ( 'any' == $query_vars['post_type'] ) {
-			unset( $query_vars['post_type'] );
-		}
-
-		$scope = 'current';
-		if ( ! empty( $query_vars['sites'] ) ) {
-			$scope = $query_vars['sites'];
-		}
-
-		$formatted_args = ep_format_args( $query_vars );
-
-		$search = ep_search( $formatted_args, $scope );
-
-		$query->found_posts = $search['found_posts'];
-		$query->max_num_pages = ceil( $search['found_posts'] / $query->get( 'posts_per_page' ) );
-
-		$posts = array();
-
-		foreach ( $search['posts'] as $post_array ) {
-			$post = new stdClass();
-
-			$post->ID = $post_array['post_id'];
-			$post->site_id = get_current_blog_id();
-
-			if ( ! empty( $post_array['site_id'] ) ) {
-				$post->site_id = $post_array['site_id'];
-			}
-
-			$post->post_name = $post_array['post_name'];
-			$post->post_status = $post_array['post_status'];
-			$post->post_title = $post_array['post_title'];
-			$post->post_parent = $post_array['post_parent'];
-			$post->post_content = $post_array['post_content'];
-			$post->post_date = $post_array['post_date'];
-			$post->post_date_gmt = $post_array['post_date_gmt'];
-			$post->post_modified = $post_array['post_modified'];
-			$post->post_modified_gmt = $post_array['post_modified_gmt'];
-
-			// Run through get_post() to add all expected properties (even if they're empty)
-			$post = get_post( $post );
-
-			if ( $post ) {
-				$posts[] = $post;
-			}
-		}
-
-		do_action( 'ep_wp_query_search', $posts, $search, $query );
+		$posts = EP_Query::from_wp_query($query)->get_posts();
 
 		return $posts;
 	}
