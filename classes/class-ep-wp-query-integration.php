@@ -189,93 +189,17 @@ class EP_WP_Query_Integration {
 			return $request;
 		}
 
-		$query_vars = $query->query_vars;
-		if ( 'any' === $query_vars['post_type'] ) {
-			
-			if ( $query->is_search() ) {
+		$ep_query = EP_Query::from_wp_query($query);
 
-				/*
-				 * This is a search query
-				 * To follow WordPress conventions,
-				 * make sure we only search 'searchable' post types
-				 */
-				$searchable_post_types = get_post_types( array( 'exclude_from_search' => false ) );
-
-				// If we have no searchable post types, there's no point going any further
-				if ( empty( $searchable_post_types ) ) {
-
-					// Have to return something or it improperly calculates the found_posts
-					return "WHERE 0 = 1";
-				}
-
-				// Conform the post types array to an acceptable format for ES
-				$post_types = array();
-				foreach( $searchable_post_types as $type ) {
-					$post_types[] = $type;
-				}
-
-				// These are now the only post types we will search
-				$query_vars['post_type'] = $post_types;
-			} else {
-
-				/*
-				 * This is not a search query
-				 * so unset the post_type query var
-				 */
-				unset( $query_vars['post_type'] );
-			}
+		if ($ep_query === false) {
+			return "WHERE 0 = 1";
 		}
 
-		$scope = 'current';
-		if ( ! empty( $query_vars['sites'] ) ) {
-			$scope = $query_vars['sites'];
-		}
-
-		$formatted_args = ep_format_args( $query_vars );
-
-		$search = ep_search( $formatted_args, $scope );
-
-		if ( false === $search ) {
+		if ( false === $ep_query->get_result() ) {
 			return $request;
 		}
-
-		$query->found_posts = $search['found_posts'];
-		$query->max_num_pages = ceil( $search['found_posts'] / $query->get( 'posts_per_page' ) );
-
-		$new_posts = array();
-
-		foreach ( $search['posts'] as $post_array ) {
-			$post = new stdClass();
-
-			$post->ID = $post_array['post_id'];
-			$post->site_id = get_current_blog_id();
-
-			if ( ! empty( $post_array['site_id'] ) ) {
-				$post->site_id = $post_array['site_id'];
-			}
-
-			$post->post_type = $post_array['post_type'];
-			$post->post_name = $post_array['post_name'];
-			$post->post_status = $post_array['post_status'];
-			$post->post_title = $post_array['post_title'];
-			$post->post_parent = $post_array['post_parent'];
-			$post->post_content = $post_array['post_content'];
-			$post->post_date = $post_array['post_date'];
-			$post->post_date_gmt = $post_array['post_date_gmt'];
-			$post->post_modified = $post_array['post_modified'];
-			$post->post_modified_gmt = $post_array['post_modified_gmt'];
-			$post->elasticsearch = true; // Super useful for debugging
-
-			// Run through get_post() to add all expected properties (even if they're empty)
-			$post = get_post( $post );
-
-			if ( $post ) {
-				$new_posts[] = $post;
-			}
-		}
-		$this->posts_by_query[spl_object_hash( $query )] = $new_posts;
-
-		do_action( 'ep_wp_query_search', $new_posts, $search, $query );
+		
+		$this->posts_by_query[spl_object_hash( $query )] = $ep_query->get_posts();
 
 		global $wpdb;
 
