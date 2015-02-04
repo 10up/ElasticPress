@@ -89,7 +89,7 @@ class EP_Query implements IteratorAggregate, Countable{
                 if ( empty( $searchable_post_types ) ) {
 
                     // Have to return something or it improperly calculates the found_posts
-                    return "WHERE 0 = 1";
+                    return false;
                 }
 
                 // Conform the post types array to an acceptable format for ES

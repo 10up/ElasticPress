@@ -191,6 +191,10 @@ class EP_WP_Query_Integration {
 
 		$ep_query = EP_Query::from_wp_query($query);
 
+		if ($ep_query === false) {
+			return "WHERE 0 = 1";
+		}
+
 		if ( false === $ep_query->get_result() ) {
 			return $request;
 		}
