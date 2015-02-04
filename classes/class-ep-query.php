@@ -59,7 +59,8 @@ class EP_Query implements IteratorAggregate, Countable{
      * @param string $scope Scope to use.
      * @return WP_Query
      */
-    public function __construct($args = array(), $scope = 'current') {
+    public function __construct($args = array(), $scope = 'current')
+    {
         $this->args = $args;
         $this->scope = $scope;
     }
@@ -72,7 +73,6 @@ class EP_Query implements IteratorAggregate, Countable{
      */
     public static function from_wp_query(&$query)
     {
-
         $query_vars = $query->query_vars;
         if ( 'any' === $query_vars['post_type'] ) {
             
@@ -117,7 +117,7 @@ class EP_Query implements IteratorAggregate, Countable{
 
         $formatted_args = ep_format_args( $query_vars );
 
-        $ep_query = new static($formatted_args, $scope);
+        $ep_query = new self($formatted_args, $scope);
         $ep_query->wp_query = $query;
         
         return $ep_query;
