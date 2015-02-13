@@ -38,7 +38,9 @@ class EP_API {
 
 		$url = $index_url . '/post/' . $post['post_id'];
 
-		$request = wp_remote_request( $url, array( 'body' => json_encode( $post ), 'method' => 'PUT' ) );
+		$request_args = array( 'body' => json_encode( $post ), 'method' => 'PUT', 'timeout' => 15, );
+
+		$request = wp_remote_request( $url, apply_filters( 'ep_index_post_request_args', $request_args, $post ) );
 
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -105,7 +107,9 @@ class EP_API {
 
 		$url = $index_url . '/post/_search';
 
-		$request = wp_remote_request( $url, array( 'body' => json_encode( $args ), 'method' => 'POST' ) );
+		$request_args = array( 'body' => json_encode( $args ), 'method' => 'POST' );
+
+		$request = wp_remote_request( $url, apply_filters( 'ep_search_request_args', $request_args, $args, $scope ) );
 
 		if ( ! is_wp_error( $request ) ) {
 
@@ -178,7 +182,9 @@ class EP_API {
 
 		$url = $index_url . '/post/' . $post_id;
 
-		$request = wp_remote_request( $url, array( 'method' => 'DELETE' ) );
+		$request_args = array( 'method' => 'DELETE', 'timeout' => 15 );
+
+		$request = wp_remote_request( $url, apply_filters( 'ep_delete_post_request_args', $request_args, $post_id ) );
 
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -205,7 +211,9 @@ class EP_API {
 
 		$url = $index_url . '/post/' . $post_id;
 
-		$request = wp_remote_request( $url, array( 'method' => 'GET' ) );
+		$request_args = array( 'method' => 'GET' );
+
+		$request = wp_remote_request( $url, apply_filters( 'ep_get_post_request_args', $request_args, $post_id ) );
 
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -513,7 +521,9 @@ class EP_API {
 
 		$index_url = ep_get_index_url();
 
-		$request = wp_remote_request( $index_url, array( 'body' => json_encode( $mapping ), 'method' => 'PUT' ) );
+		$request_args = array( 'body' => json_encode( $mapping ), 'method' => 'PUT' );
+
+		$request = wp_remote_request( $index_url, apply_filters( 'ep_put_mapping_request_args', $request_args ) );
 
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index_url, $mapping );
 
@@ -684,7 +694,9 @@ class EP_API {
 	public function delete_index( ) {
 		$index_url = ep_get_index_url();
 
-		$request = wp_remote_request( $index_url, array( 'method' => 'DELETE' ) );
+		$request_args = array( 'method' => 'DELETE' );
+
+		$request = wp_remote_request( $index_url, apply_filters( 'ep_delete_index_request_args', $request_args ) );
 
 		// 200 means the delete was successful
 		// 404 means the index was non-existent, but we should still pass this through as we will occasionally want to delete an already deleted index
@@ -1082,7 +1094,10 @@ class EP_API {
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
 		$url     = trailingslashit( EP_HOST ) . trailingslashit( ep_get_index_name() ) . 'post/_bulk';
-		$request = wp_remote_request( $url, array( 'method' => 'POST', 'body' => $body ) );
+
+		$request_args = array( 'method' => 'POST', 'body' => $body, 'timeout' => 30, );
+
+		$request = wp_remote_request( $url, apply_filters( 'ep_bulk_index_posts_request_args', $request_args, $body ) );
 
 		return is_wp_error( $request ) ? $request : json_decode( wp_remote_retrieve_body( $request ), true );
 	}
