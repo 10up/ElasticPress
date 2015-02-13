@@ -697,7 +697,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchPostDateOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertes 333' ) );
+		sleep( 3 );
+
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
+		sleep( 3 );
+
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
 
 		ep_refresh_index();
