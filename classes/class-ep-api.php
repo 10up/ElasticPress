@@ -1172,6 +1172,7 @@ class EP_API {
 	 * @access protected
 	 *
 	 * @param string $orderby Alias for the field to order by.
+	 * @param string $order
 	 * @return array|bool Array formatted value to used in the sort DSL. False otherwise.
 	 */
 	protected function parse_orderby( $orderby, $order ) {
@@ -1180,6 +1181,7 @@ class EP_API {
 			'relevance',
 			'name',
 			'title',
+			'date',
 		);
 
 		if ( ! in_array( $orderby, $allowed_keys ) ) {
@@ -1192,6 +1194,15 @@ class EP_API {
 				$sort = array(
 					array(
 						'_score' => array(
+							'order' => $order,
+						),
+					),
+				);
+				break;
+			case 'date':
+				$sort = array(
+					array(
+						'post_date' => array(
 							'order' => $order,
 						),
 					),
