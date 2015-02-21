@@ -847,6 +847,78 @@ class EP_API {
 					}
 
 					switch ( $compare ) {
+						case '>':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
+														'gt' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case '>=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
+														'gte' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case '<':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
+														'lt' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case '<=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
+														'lte' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;	
 						case '!=':
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
