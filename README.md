@@ -4,6 +4,7 @@ ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
 **Please note:** the master branch is the stable branch
+
 **Latest stable release:** [1.3](https://github.com/10up/ElasticPress/releases/tag/v1.3)
 
 ## Background
