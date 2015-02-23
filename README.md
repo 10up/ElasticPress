@@ -126,6 +126,10 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
       * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
       * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+      * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
+      * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
+      * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
+      * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
       * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
       * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
 
