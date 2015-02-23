@@ -1104,6 +1104,122 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a query that searches and filters by a meta greater than to query
+	 *
+	 * @since 1.4
+	 */
+	public function testMetaQueryGreaterThan() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '100',
+					'compare' => '>',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta greater than or equal to query
+	 *
+	 * @since 1.4
+	 */
+	public function testMetaQueryGreaterThanEqual() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '100',
+					'compare' => '>=',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta less than to query
+	 *
+	 * @since 1.4
+	 */
+	public function testMetaQueryLessThan() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '101',
+					'compare' => '<',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta less than or equal to query
+	 *
+	 * @since 1.4
+	 */
+	public function testMetaQueryLessThanEqual() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '101',
+					'compare' => '<=',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test an advanced meta filter query
 	 *
 	 * @since 1.3
