@@ -1,7 +1,10 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress) [![Code Climate](https://img.shields.io/codeclimate/coverage/github/10up/ElasticPress.svg?style=flat)](https://codeclimate.com/github/10up/ElasticPress)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress) [![Code Climate](https://img.shields.io/codeclimate/coverage/github/10up/ElasticPress.svg?style=flat)](https://codeclimate.com/github/10up/ElasticPress)
 =============
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
+
+**Please note:** the master branch is the stable branch
+**Latest stable release:** [1.3](https://github.com/10up/ElasticPress/releases/tag/v1.3)
 
 ## Background
 
