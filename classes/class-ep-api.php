@@ -608,6 +608,9 @@ class EP_API {
 			//'site_id'         => get_current_blog_id(),
 		);
 
+		/**
+		 * This filter is named poorly but has to stay to keep backwards compat
+		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
 
 		return $post_args;

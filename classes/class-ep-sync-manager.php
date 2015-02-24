@@ -105,7 +105,11 @@ class EP_Sync_Manager {
 	 */
 	public function sync_post( $post_id ) {
 
-		$post_args = apply_filters( 'ep_post_sync_args', ep_prepare_post( $post_id ), $post_id );
+		$post_args = ep_prepare_post( $post_id );
+
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
+			return;
+		}
 
 		$response = ep_index_post( $post_args );
 
