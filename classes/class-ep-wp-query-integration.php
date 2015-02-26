@@ -32,7 +32,7 @@ class EP_WP_Query_Integration {
 		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
 
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			if ( apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
+			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
 				return;
 			} else {
 				$admin_integration = true;
