@@ -483,7 +483,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		$sites = ( is_multisite() ) ? ep_get_sites() : array( 'blog_id' => get_current_blog_id() );
 
 		foreach ( $sites as $site ) {
-			$current_index = ep_get_index_name();
+			$current_index = ep_get_index_name( $site['blog_id'] );
 
 			if (isset( $body['indices'][$current_index] ) ) {
 				WP_CLI::log( '====== Stats for: ' . $current_index . " ======" );
