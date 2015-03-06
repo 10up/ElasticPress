@@ -517,36 +517,29 @@ class EP_API {
 							"path" => "full",
 							'fields' => array(
 								"year" => array(
-									"type" => "string",
-									'index' => 'not_analyzed'
+									"type" => "integer",
 								),
 								"monthnum" => array(
-									"type" => "string",
-									'index' => 'not_analyzed'
+									"type" => "integer",
 								),
 								"m" => array(
-									"type" => "string",
-									'index' => 'not_analyzed'
+									"type" => "integer",
 								),
 								"w" => array(
-									"type" => "string",
-									'index' => 'not_analyzed'
+									"type" => "integer",
 								),
 								"day" => array(
-									"type" => "string",
-									'index' => 'not_analyzed'
+									"type" => "integer",
 								),
 								"hour" => array(
-									"type" => "string",
+									"type" => "integer",
 									'index' => 'not_analyzed'
 								),
 								"minute" => array(
-									"type" => "string",
-									'index' => 'not_analyzed'
+									"type" => "integer",
 								),
 								"second" => array(
-									"type" => "string",
-									'index' => 'not_analyzed'
+									"type" => "integer",
 								)
 							)
 						)
@@ -651,22 +644,20 @@ class EP_API {
 		 * This filter is named poorly but has to stay to keep backwards compat
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
-		//error_log(print_r(json_encode($post_args), true));
 		return $post_args;
 	}
 
 	private function prepare_date_terms( $post_date_gmt ) {
-		//return array();
 		$timestamp = strtotime( $post_date_gmt );
 		$date_terms = array(
-			'year' => date( "Y", $timestamp),
-			'monthnum' => date( "m", $timestamp),
-			'w' => date( "W", $timestamp),
-			'day' => date( "d", $timestamp),
-			'hour' => date( "H", $timestamp),
-			'minute' => date( "i", $timestamp),
-			'second' => date( "s", $timestamp),
-			'm' => date( "Y", $timestamp). date( "m", $timestamp), // yearmonth
+			'year' => (int) date( "Y", $timestamp),
+			'monthnum' => (int) date( "m", $timestamp),
+			'w' => (int) date( "W", $timestamp),
+			'day' => (int) date( "d", $timestamp),
+			'hour' => (int) date( "H", $timestamp),
+			'minute' => (int) date( "i", $timestamp),
+			'second' => (int) date( "s", $timestamp),
+			'm' => (int) (date( "Y", $timestamp) . date( "m", $timestamp)), // yearmonth
 		);
 		return $date_terms;
 	}
@@ -913,6 +904,16 @@ class EP_API {
 
 		if ( $date_parameters ) {
 			WP_Date_Query::validate_date_values( $date_parameters );
+			$date_terms = array();
+			foreach ( $date_parameters as $param => $value ) {
+				$date_terms[]['term']["date_terms.{$param}"] = $value;
+			}
+
+			$filter['and'][] = array(
+				'bool' => array(
+					'must' => $date_terms,
+				)
+			);
 		}
 		unset( $date_parameters );
 
@@ -1235,7 +1236,9 @@ class EP_API {
 				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
 			}
 		}
-
+		echo '<pre>';
+		var_dump($formatted_args);
+		echo '</pre>';
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
 
