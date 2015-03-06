@@ -336,6 +336,49 @@ class EP_API {
 					"date_detection" => false,
 					"dynamic_templates" => array(
 						array(
+							"template_date_terms" => array(
+								"path_match" => "date_terms.*",
+								"mapping" => array(
+									"type" => "object",
+									"path" => "full",
+									'fields' => array(
+										"year" => array(
+											"type" => "string",
+											'index' => 'not_analyzed'
+										),
+										"monthnum" => array(
+											"type" => "string",
+											'index' => 'not_analyzed'
+										),
+										"m" => array(
+											"type" => "string",
+											'index' => 'not_analyzed'
+										),
+										"w" => array(
+											"type" => "string",
+											'index' => 'not_analyzed'
+										),
+										"day" => array(
+											"type" => "string",
+											'index' => 'not_analyzed'
+										),
+										"hour" => array(
+											"type" => "string",
+											'index' => 'not_analyzed'
+										),
+										"minute" => array(
+											"type" => "string",
+											'index' => 'not_analyzed'
+										),
+										"second" => array(
+											"type" => "string",
+											'index' => 'not_analyzed'
+										)
+									)
+								)
+							)
+						),
+						array(
 							"template_meta" => array(
 								"path_match" => "post_meta.*",
 								"mapping" => array(
@@ -511,6 +554,9 @@ class EP_API {
 						),
 						'post_meta' => array(
 							'type' => 'object'
+						),
+						'date_terms' => array(
+							'type' => 'object'
 						)
 					)
 				)
@@ -605,6 +651,7 @@ class EP_API {
 			'permalink'         => get_permalink( $post_id ),
 			'terms'             => $this->prepare_terms( $post ),
 			'post_meta'         => $this->prepare_meta( $post ),
+			'date_terms'        => $this->prepare_date_terms( $post_date_gmt ),
 			//'site_id'         => get_current_blog_id(),
 		);
 
@@ -612,8 +659,24 @@ class EP_API {
 		 * This filter is named poorly but has to stay to keep backwards compat
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
-
+		error_log(print_r(json_encode($post_args), true));
 		return $post_args;
+	}
+
+	private function prepare_date_terms( $post_date_gmt ) {
+		//return array();
+		$timestamp = strtotime( $post_date_gmt );
+		$date_terms = array(
+			'year' => date( "Y", $timestamp),
+			'monthnum' => date( "m", $timestamp),
+			'w' => date( "W", $timestamp),
+			'day' => date( "d", $timestamp),
+			'hour' => date( "H", $timestamp),
+			'minute' => date( "i", $timestamp),
+			'second' => date( "s", $timestamp),
+			'm' => date( "Y", $timestamp). date( "m", $timestamp), // yearmonth
+		);
+		return $date_terms;
 	}
 
 	/**
@@ -832,6 +895,40 @@ class EP_API {
 			);
 
 			$use_filters = true;
+		}
+
+		/**
+		 * Simple date params support
+		 *
+		 * @since 1.3
+		 */
+		$date_parameters = array(
+			'year' => ! empty( $args['year'] ) ? $args['year'] :false,
+			'monthnum' => ! empty( $args['monthnum']) ? $args['monthnum'] :false,
+			'w' => ! empty( $args['w']) ?  $args['w'] :false,
+			'day' => ! empty( $args['day']) ?  $args['day'] :false,
+			'hour' => ! empty( $args['hour']) ? $args['hour'] :false,
+			'minute' => ! empty( $args['minute']) ? $args['minute'] :false,
+			'second' => ! empty( $args['second'] ) ? $args['second'] :false,
+			'm' => ! empty( $args['m'] ) ? $args['m'] :false, // yearmonth
+		);
+
+		foreach( $date_parameters as $param => $value ) {
+			if ( false === $value ) {
+				unset( $date_parameters[$param] );
+			}
+		}
+
+		if ( $date_parameters ) {
+			WP_Date_Query::validate_date_values( $date_parameters );
+		}
+		unset( $date_parameters );
+
+		/**
+		 * 'date_query' arg support.
+		 */
+		if ( ! empty( $args['date_query'] ) ) {
+
 		}
 
 		/**
