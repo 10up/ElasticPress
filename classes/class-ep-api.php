@@ -336,49 +336,6 @@ class EP_API {
 					"date_detection" => false,
 					"dynamic_templates" => array(
 						array(
-							"template_date_terms" => array(
-								"path_match" => "date_terms.*",
-								"mapping" => array(
-									"type" => "object",
-									"path" => "full",
-									'fields' => array(
-										"year" => array(
-											"type" => "string",
-											'index' => 'not_analyzed'
-										),
-										"monthnum" => array(
-											"type" => "string",
-											'index' => 'not_analyzed'
-										),
-										"m" => array(
-											"type" => "string",
-											'index' => 'not_analyzed'
-										),
-										"w" => array(
-											"type" => "string",
-											'index' => 'not_analyzed'
-										),
-										"day" => array(
-											"type" => "string",
-											'index' => 'not_analyzed'
-										),
-										"hour" => array(
-											"type" => "string",
-											'index' => 'not_analyzed'
-										),
-										"minute" => array(
-											"type" => "string",
-											'index' => 'not_analyzed'
-										),
-										"second" => array(
-											"type" => "string",
-											'index' => 'not_analyzed'
-										)
-									)
-								)
-							)
-						),
-						array(
 							"template_meta" => array(
 								"path_match" => "post_meta.*",
 								"mapping" => array(
@@ -556,7 +513,42 @@ class EP_API {
 							'type' => 'object'
 						),
 						'date_terms' => array(
-							'type' => 'object'
+							"type" => "object",
+							"path" => "full",
+							'fields' => array(
+								"year" => array(
+									"type" => "string",
+									'index' => 'not_analyzed'
+								),
+								"monthnum" => array(
+									"type" => "string",
+									'index' => 'not_analyzed'
+								),
+								"m" => array(
+									"type" => "string",
+									'index' => 'not_analyzed'
+								),
+								"w" => array(
+									"type" => "string",
+									'index' => 'not_analyzed'
+								),
+								"day" => array(
+									"type" => "string",
+									'index' => 'not_analyzed'
+								),
+								"hour" => array(
+									"type" => "string",
+									'index' => 'not_analyzed'
+								),
+								"minute" => array(
+									"type" => "string",
+									'index' => 'not_analyzed'
+								),
+								"second" => array(
+									"type" => "string",
+									'index' => 'not_analyzed'
+								)
+							)
 						)
 					)
 				)
@@ -659,7 +651,7 @@ class EP_API {
 		 * This filter is named poorly but has to stay to keep backwards compat
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
-		error_log(print_r(json_encode($post_args), true));
+		//error_log(print_r(json_encode($post_args), true));
 		return $post_args;
 	}
 
