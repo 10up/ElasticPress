@@ -758,6 +758,42 @@ class EP_API {
 		return false;
 	}
 
+	private function simple_es_date_query( $args ) {
+		$date_parameters = array(
+			'year' => ! empty( $args['year'] ) ? $args['year'] :false,
+			'monthnum' => ! empty( $args['monthnum']) ? $args['monthnum'] :false,
+			'month' => ! empty( $args['month']) ? $args['month'] :false,
+			'w' => ! empty( $args['w']) ?  $args['w'] :false,
+			'day' => ! empty( $args['day']) ?  $args['day'] :false,
+			'hour' => ! empty( $args['hour']) ? $args['hour'] :false,
+			'minute' => ! empty( $args['minute']) ? $args['minute'] :false,
+			'second' => ! empty( $args['second'] ) ? $args['second'] :false,
+			'm' => ! empty( $args['m'] ) ? $args['m'] :false, // yearmonth
+		);
+
+		foreach( $date_parameters as $param => $value ) {
+			if ( false === $value ) {
+				unset( $date_parameters[$param] );
+			}
+		}
+
+		if (  ! $date_parameters ) {
+			return false;
+		}
+
+		WP_Date_Query::validate_date_values( $date_parameters );
+		$date_terms = array();
+		foreach ( $date_parameters as $param => $value ) {
+			$date_terms[]['term']["date_terms.{$param}"] = $value;
+		}
+
+		return array(
+			'bool' => array(
+				'must' => $date_terms,
+			)
+		);
+	}
+
 	/**
 	 * Format WP query args for ES
 	 *
@@ -885,42 +921,25 @@ class EP_API {
 		 *
 		 * @since 1.3
 		 */
-		$date_parameters = array(
-			'year' => ! empty( $args['year'] ) ? $args['year'] :false,
-			'monthnum' => ! empty( $args['monthnum']) ? $args['monthnum'] :false,
-			'w' => ! empty( $args['w']) ?  $args['w'] :false,
-			'day' => ! empty( $args['day']) ?  $args['day'] :false,
-			'hour' => ! empty( $args['hour']) ? $args['hour'] :false,
-			'minute' => ! empty( $args['minute']) ? $args['minute'] :false,
-			'second' => ! empty( $args['second'] ) ? $args['second'] :false,
-			'm' => ! empty( $args['m'] ) ? $args['m'] :false, // yearmonth
-		);
-
-		foreach( $date_parameters as $param => $value ) {
-			if ( false === $value ) {
-				unset( $date_parameters[$param] );
-			}
+		if ( $date_filter = $this->simple_es_date_query( $args ) ) {
+			$filter['and'][] = $date_filter;
 		}
-
-		if ( $date_parameters ) {
-			WP_Date_Query::validate_date_values( $date_parameters );
-			$date_terms = array();
-			foreach ( $date_parameters as $param => $value ) {
-				$date_terms[]['term']["date_terms.{$param}"] = $value;
-			}
-
-			$filter['and'][] = array(
-				'bool' => array(
-					'must' => $date_terms,
-				)
-			);
-		}
-		unset( $date_parameters );
 
 		/**
 		 * 'date_query' arg support.
 		 */
 		if ( ! empty( $args['date_query'] ) ) {
+
+			foreach( $args['date_query'] as $date_args ) {
+				$date_arg_keys = array_keys( $date_args );
+				//@todo: needs to be OR by default?
+				//if there are no comparison modifiers, do a regular date lookup
+				if ( ! array_intersect( array('compare', 'after', 'before'), $date_arg_keys  ) ) {
+					if ( $date_filter = $this->simple_es_date_query( $date_args ) ) {
+						$filter['and'][] = $date_filter;
+					}
+				}
+			}
 
 		}
 
