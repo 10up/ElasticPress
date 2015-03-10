@@ -91,13 +91,13 @@ class EP_WP_Date_Query extends WP_Date_Query {
 						'bool' => $filter['date_terms'],
 					);
 				} else if ( 'range' === $filter_type ) {
-					if ( ! is_array( $filter_array['and']['range'] ) && ! array_key_exists('not', $filter['range'] ) ) {
+					if ( ! is_array( $filter_array['and']['range'] ) && ! array_key_exists( 'not', $filter['range'] ) ) {
 						$filter_array['and']['range'] = array();
-					} else if ( array_key_exists('not', $filter['range'] ) ) {
+					} else if ( array_key_exists( 'not', $filter['range'] ) ) {
 						$filter_array['and']['not']['range'] = array();
 					}
-					if ( array_key_exists('not', $filter['range'] ) ) {
-						$range_column                                  = key( $filter['range']['not'] );
+					if ( array_key_exists( 'not', $filter['range'] ) ) {
+						$range_column                                         = key( $filter['range']['not'] );
 						$filter_array['and']['not']['range'][ $range_column ] = $filter['range']['not'][ $range_column ];
 					} else {
 						$range_column                                  = key( $filter['range'][0] );
@@ -112,7 +112,6 @@ class EP_WP_Date_Query extends WP_Date_Query {
 	}
 
 	protected function get_es_filter_for_clause( $query, $parent_query ) {
-		global $wpdb;
 
 		// The sub-parts of a $where part.
 		$filter_parts = array();
@@ -175,52 +174,55 @@ class EP_WP_Date_Query extends WP_Date_Query {
 
 		if ( $date_parameters ) {
 			EP_WP_Date_Query::validate_date_values( $date_parameters );
-			$date_terms = array();
-			$bool_check = 'must';
+			$date_terms = array(
+				'must' => array(),
+				'should' => array(),
+				'must_not' => array(),
+			);
 			foreach ( $date_parameters as $param => $value ) {
 				if ( '=' === $compare ) {
-					$date_terms[]['term']["date_terms.{$param}"] = $value;
+					$date_terms['must'][]['term']["date_terms.{$param}"] = $value;
+				} else if ( '!=' === $compare ) {
+					$date_terms['must_not'][]['term']["date_terms.{$param}"] = $value;
 				} else if ( 'IN' === $compare ) {
-					$bool_check = 'should';
 					foreach ( $value as $in_value ) {
-						$date_terms[]['term']["date_terms.{$param}"] = $in_value;
+						$date_terms['should'][]['term']["date_terms.{$param}"] = $in_value;
 					}
 				} else if ( 'NOT IN' === $compare ) {
-					$bool_check = 'must_not';
 					foreach ( $value as $in_value ) {
-						$date_terms[]['term']["date_terms.{$param}"] = $in_value;
+						$date_terms['must_not'][]['term']["date_terms.{$param}"] = $in_value;
 					}
 				} else if ( 'BETWEEN' === $compare ) {
-					$range_filter[ "date_terms.{$param}" ] = array();
-					$range_filter[ "date_terms.{$param}" ][ 'gt' ] = $value[0];
-					$range_filter[ "date_terms.{$param}" ][ 'lt' ] = $value[1];
-					$filter_parts['range'] = array( $range_filter );
+					$range_filter["date_terms.{$param}"]       = array();
+					$range_filter["date_terms.{$param}"]['gt'] = $value[0];
+					$range_filter["date_terms.{$param}"]['lt'] = $value[1];
+					$filter_parts['range']                     = array( $range_filter );
 				} else if ( 'NOT BETWEEN' === $compare ) {
-					$range_filter[ "date_terms.{$param}" ] = array();
-					$range_filter[ "date_terms.{$param}" ][ 'gt' ] = $value[0];
-					$range_filter[ "date_terms.{$param}" ][ 'lt' ] = $value[1];
-					$filter_parts['range'] = array( 'not' => $range_filter );
-				} else if ( strpos($compare, '>') !== FALSE ) {
-					$range = ( strpos($compare, '=') !== FALSE ) ? 'gte' : 'gt';
-					$range_filter[ "date_terms.{$param}" ] = array();
-					$range_filter[ "date_terms.{$param}" ][ $range ] = $value;
-					$filter_parts['range'] = array( $range_filter );
-				} else if ( strpos($compare, '<') !== FALSE ) {
-					$range = ( strpos($compare, '=') !== FALSE ) ? 'lte' : 'lt';
-					$range_filter[ "date_terms.{$param}" ] = array();
-					$range_filter[ "date_terms.{$param}" ][ $range ] = $value;
-					$filter_parts['range'] = array( $range_filter );
+					$range_filter["date_terms.{$param}"]       = array();
+					$range_filter["date_terms.{$param}"]['gt'] = $value[0];
+					$range_filter["date_terms.{$param}"]['lt'] = $value[1];
+					$filter_parts['range']                     = array( 'not' => $range_filter );
+				} else if ( strpos( $compare, '>' ) !== false ) {
+					$range                                         = ( strpos( $compare, '=' ) !== false ) ? 'gte' : 'gt';
+					$range_filter["date_terms.{$param}"]           = array();
+					$range_filter["date_terms.{$param}"][ $range ] = $value;
+					$filter_parts['range']                         = array( $range_filter );
+				} else if ( strpos( $compare, '<' ) !== false ) {
+					$range                                         = ( strpos( $compare, '=' ) !== false ) ? 'lte' : 'lt';
+					$range_filter["date_terms.{$param}"]           = array();
+					$range_filter["date_terms.{$param}"][ $range ] = $value;
+					$filter_parts['range']                         = array( $range_filter );
 				}
-				//@todo support other compare operators
 			}
 
+			$date_terms = array_filter($date_terms);
+
 			if ( ! empty( $date_terms ) ) {
-				$filter_parts['date_terms'] = array(
-					"{$bool_check}" => $date_terms
-				);
+				$filter_parts['date_terms'] = $date_terms;
 			}
 		}
 		echo '<pre>';
+		echo '===========================';
 		var_dump( $filter_parts );
 		echo '</pre>';
 
