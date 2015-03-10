@@ -781,7 +781,7 @@ class EP_API {
 			return false;
 		}
 
-		WP_Date_Query::validate_date_values( $date_parameters );
+		EP_WP_Date_Query::validate_date_values( $date_parameters );
 		$date_terms = array();
 		foreach ( $date_parameters as $param => $value ) {
 			$date_terms[]['term']["date_terms.{$param}"] = $value;
@@ -923,6 +923,7 @@ class EP_API {
 		 */
 		if ( $date_filter = $this->simple_es_date_query( $args ) ) {
 			$filter['and'][] = $date_filter;
+			$use_filters = true;
 		}
 
 		/**
@@ -930,16 +931,19 @@ class EP_API {
 		 */
 		if ( ! empty( $args['date_query'] ) ) {
 
-			foreach( $args['date_query'] as $date_args ) {
-				$date_arg_keys = array_keys( $date_args );
-				//@todo: needs to be OR by default?
-				//if there are no comparison modifiers, do a regular date lookup
-				if ( ! array_intersect( array('compare', 'after', 'before'), $date_arg_keys  ) ) {
-					if ( $date_filter = $this->simple_es_date_query( $date_args ) ) {
-						$filter['and'][] = $date_filter;
-					}
-				}
+			$date_query = new EP_WP_Date_Query( $args['date_query'] );
+
+			$date_filter = $date_query->get_es_filter();
+
+			echo '<pre>';
+			var_dump( $date_filter );
+			echo '</pre>';
+
+			if( array_key_exists('and', $date_filter ) ) {
+				$filter['and'][] = $date_filter['and'];
+				$use_filters = true;
 			}
+
 
 		}
 
@@ -1256,7 +1260,7 @@ class EP_API {
 			}
 		}
 		echo '<pre>';
-		var_dump($formatted_args);
+		var_dump(json_encode($formatted_args));
 		echo '</pre>';
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
