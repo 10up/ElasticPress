@@ -418,6 +418,191 @@ class EPTestMultisite extends EP_Test_Base {
 		$this->assertEquals( $query->found_posts, 2 );
 	}
 
+	public function testSimpleDateMonthNum() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'monthnum' => 12,
+			'posts_per_page' => 100,
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 15 );
+		$this->assertEquals( $query->found_posts, 15 );
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'day' => 5,
+			'posts_per_page' => 100,
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+	public function testSimpleDateDay() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'day' => 5,
+			'posts_per_page' => 100,
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+	public function testDateQueryBeforeAfter() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'after'     => 'January 1st, 2012',
+					'before'    => array(
+						'year' => 2012,
+						'day' => 2,
+						'month' => 1,
+					),
+					'inclusive' => true,
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 6 );
+		$this->assertEquals( $query->found_posts, 6 );
+	}
+
+	/* @todo Not working as expected
+	public function testDateQueryMultiColumn() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'column' => 'post_date_gmt',
+					'after' => 'January 1st 2012',
+				),
+				array(
+					'column' => 'post_modified_gmt',
+					'after'  => 'yesterday',
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		//$this->assertEquals( $query->post_count, 6 );
+		//$this->assertEquals( $query->found_posts, 6 );
+	}*/
+
+	public function testDateQuerySimple() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'year'  => 2012,
+					'monthnum' => 1,
+					'day'   => 1,
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+	public function testDateQueryBetween() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array (
+					'day'	=> array( 1, 5 ),
+					'compare'	=> 'BETWEEN',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 9 );
+		$this->assertEquals( $query->found_posts, 9 );
+	}
+
+	public function testDateQueryNotBetween() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array (
+					'day'	=> array( 1, 5 ),
+					'compare'	=> 'NOT BETWEEN',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 21 );
+		$this->assertEquals( $query->found_posts, 21 );
+	}
+
+	/*@todo get a more accurate test set up for this one
+	 * Currently created posts don't have that many date based differences
+	 * for this test
+	 *
+	 */
+	public function testDateQueryCompare() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'monthnum'      => 1,
+					'compare'   => '<=',
+				),
+				array(
+					'year'      => 2012,
+					'compare'   => '>=',
+				),
+				array(
+					'day' => array( 2, 6 ),
+					'compare'   => 'BETWEEN',
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 9 );
+		$this->assertEquals( $query->found_posts, 9 );
+	}
+
 	/**
 	 * Test a tax query search
 	 *

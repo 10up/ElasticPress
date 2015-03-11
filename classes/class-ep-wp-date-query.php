@@ -18,35 +18,12 @@ class EP_WP_Date_Query extends WP_Date_Query {
 		return $sql;
 	}
 
-	public function get_compare( $query ) {
-		if ( ! empty( $query['compare'] ) && in_array( $query['compare'], array(
-				'=',
-				'!=',
-				'>',
-				'>=',
-				'<',
-				'<=',
-				'IN',
-				'NOT IN',
-				'BETWEEN',
-				'NOT BETWEEN'
-			) )
-		) {
-			return strtoupper( $query['compare'] );
-		}
-
-		return $this->compare;
-	}
-
 	protected function get_es_filter_for_query( $query, $depth = 0 ) {
 		$filter_chunks = array(
 			'filters' => array(),
 		);
 
 		$filter_array = array();
-		echo '<pre>';
-		var_dump( $query );
-		echo '</pre>';
 
 		foreach ( $query as $key => $clause ) {
 			if ( 'relation' === $key ) {
@@ -72,11 +49,6 @@ class EP_WP_Date_Query extends WP_Date_Query {
 			}
 		}
 
-		echo '<pre>';
-		echo 'filter chunks';
-		var_dump( $filter_chunks['filters'] );
-		echo '</pre>';
-
 		if ( empty( $relation ) ) {
 			$relation = 'AND';
 		}
@@ -85,15 +57,15 @@ class EP_WP_Date_Query extends WP_Date_Query {
 			$filter_array['and'] = array();
 			foreach ( $filter_chunks['filters'] as $key => $filter ) {
 				$filter_type = key( $filter );
-				var_dump( $filter );
+
 				if ( 'date_terms' === $filter_type ) {
 					$filter_array['and'] = array(
 						'bool' => $filter['date_terms'],
 					);
 				} else if ( 'range' === $filter_type ) {
-					if ( ! is_array( $filter_array['and']['range'] ) && ! array_key_exists( 'not', $filter['range'] ) ) {
+					if ( ! array_key_exists( 'not', $filter['range'] ) && empty( $filter_array['and']['range'] ) ) {
 						$filter_array['and']['range'] = array();
-					} else if ( array_key_exists( 'not', $filter['range'] ) ) {
+					} else if ( array_key_exists( 'not', $filter['range'] ) && empty( $filter_array['and']['not']['range'] ) ) {
 						$filter_array['and']['not']['range'] = array();
 					}
 					if ( array_key_exists( 'not', $filter['range'] ) ) {
@@ -175,8 +147,8 @@ class EP_WP_Date_Query extends WP_Date_Query {
 		if ( $date_parameters ) {
 			EP_WP_Date_Query::validate_date_values( $date_parameters );
 			$date_terms = array(
-				'must' => array(),
-				'should' => array(),
+				'must'     => array(),
+				'should'   => array(),
 				'must_not' => array(),
 			);
 			foreach ( $date_parameters as $param => $value ) {
@@ -215,17 +187,48 @@ class EP_WP_Date_Query extends WP_Date_Query {
 				}
 			}
 
-			$date_terms = array_filter($date_terms);
+			$date_terms = array_filter( $date_terms );
 
 			if ( ! empty( $date_terms ) ) {
 				$filter_parts['date_terms'] = $date_terms;
 			}
 		}
-		echo '<pre>';
-		echo '===========================';
-		var_dump( $filter_parts );
-		echo '</pre>';
 
 		return $filter_parts;
+	}
+
+	static function simple_es_date_filter( $args ) {
+		$date_parameters = array(
+			'year'     => ! empty( $args['year'] ) ? $args['year'] : false,
+			'monthnum' => ! empty( $args['monthnum'] ) ? $args['monthnum'] : false,
+			'month'    => ! empty( $args['month'] ) ? $args['month'] : false,
+			'w'        => ! empty( $args['w'] ) ? $args['w'] : false,
+			'day'      => ! empty( $args['day'] ) ? $args['day'] : false,
+			'hour'     => ! empty( $args['hour'] ) ? $args['hour'] : false,
+			'minute'   => ! empty( $args['minute'] ) ? $args['minute'] : false,
+			'second'   => ! empty( $args['second'] ) ? $args['second'] : false,
+			'm'        => ! empty( $args['m'] ) ? $args['m'] : false, // yearmonth
+		);
+
+		foreach ( $date_parameters as $param => $value ) {
+			if ( false === $value ) {
+				unset( $date_parameters[ $param ] );
+			}
+		}
+
+		if ( ! $date_parameters ) {
+			return false;
+		}
+
+		$date_terms = array();
+		foreach ( $date_parameters as $param => $value ) {
+			$date_terms[]['term']["date_terms.{$param}"] = $value;
+		}
+
+		return array(
+			'bool' => array(
+				'must' => $date_terms,
+			)
+		);
 	}
 }

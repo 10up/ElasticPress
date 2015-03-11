@@ -519,6 +519,9 @@ class EP_API {
 								"year" => array(
 									"type" => "integer",
 								),
+								"month" => array(
+									"type" => "integer",
+								),
 								"monthnum" => array(
 									"type" => "integer",
 								),
@@ -528,12 +531,23 @@ class EP_API {
 								"w" => array(
 									"type" => "integer",
 								),
+								"week" => array(
+									"type" => "integer",
+								),
 								"day" => array(
+									"type" => "integer",
+								),
+								"dayofweek" => array(
+									"type" => "integer",
+								),
+								"dayofweek_iso" => array(
+									"type" => "integer",
+								),
+								"dayofyear" => array(
 									"type" => "integer",
 								),
 								"hour" => array(
 									"type" => "integer",
-									'index' => 'not_analyzed'
 								),
 								"minute" => array(
 									"type" => "integer",
@@ -651,9 +665,14 @@ class EP_API {
 		$timestamp = strtotime( $post_date_gmt );
 		$date_terms = array(
 			'year' => (int) date( "Y", $timestamp),
+			'month' => (int) date( "m", $timestamp),
 			'monthnum' => (int) date( "m", $timestamp),
 			'w' => (int) date( "W", $timestamp),
+			'week' => (int) date( "W", $timestamp),
+			'dayofyear' => (int) date( "z", $timestamp),
 			'day' => (int) date( "d", $timestamp),
+			'dayofweek' => (int) date( "d", $timestamp),
+			'dayofweek_iso' => (int) date( "N", $timestamp),
 			'hour' => (int) date( "H", $timestamp),
 			'minute' => (int) date( "i", $timestamp),
 			'second' => (int) date( "s", $timestamp),
@@ -756,42 +775,6 @@ class EP_API {
 		}
 
 		return false;
-	}
-
-	private function simple_es_date_query( $args ) {
-		$date_parameters = array(
-			'year' => ! empty( $args['year'] ) ? $args['year'] :false,
-			'monthnum' => ! empty( $args['monthnum']) ? $args['monthnum'] :false,
-			'month' => ! empty( $args['month']) ? $args['month'] :false,
-			'w' => ! empty( $args['w']) ?  $args['w'] :false,
-			'day' => ! empty( $args['day']) ?  $args['day'] :false,
-			'hour' => ! empty( $args['hour']) ? $args['hour'] :false,
-			'minute' => ! empty( $args['minute']) ? $args['minute'] :false,
-			'second' => ! empty( $args['second'] ) ? $args['second'] :false,
-			'm' => ! empty( $args['m'] ) ? $args['m'] :false, // yearmonth
-		);
-
-		foreach( $date_parameters as $param => $value ) {
-			if ( false === $value ) {
-				unset( $date_parameters[$param] );
-			}
-		}
-
-		if (  ! $date_parameters ) {
-			return false;
-		}
-
-		EP_WP_Date_Query::validate_date_values( $date_parameters );
-		$date_terms = array();
-		foreach ( $date_parameters as $param => $value ) {
-			$date_terms[]['term']["date_terms.{$param}"] = $value;
-		}
-
-		return array(
-			'bool' => array(
-				'must' => $date_terms,
-			)
-		);
 	}
 
 	/**
@@ -921,7 +904,7 @@ class EP_API {
 		 *
 		 * @since 1.3
 		 */
-		if ( $date_filter = $this->simple_es_date_query( $args ) ) {
+		if ( $date_filter = EP_WP_Date_Query::simple_es_date_filter( $args ) ) {
 			$filter['and'][] = $date_filter;
 			$use_filters = true;
 		}
@@ -935,15 +918,10 @@ class EP_API {
 
 			$date_filter = $date_query->get_es_filter();
 
-			echo '<pre>';
-			var_dump( $date_filter );
-			echo '</pre>';
-
 			if( array_key_exists('and', $date_filter ) ) {
 				$filter['and'][] = $date_filter['and'];
 				$use_filters = true;
 			}
-
 
 		}
 
@@ -1259,9 +1237,6 @@ class EP_API {
 				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
 			}
 		}
-		echo '<pre>';
-		var_dump(json_encode($formatted_args));
-		echo '</pre>';
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
 
