@@ -911,6 +911,7 @@ class EP_API {
 
 		/**
 		 * 'date_query' arg support.
+		 * 
 		 */
 		if ( ! empty( $args['date_query'] ) ) {
 

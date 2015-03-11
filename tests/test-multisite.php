@@ -418,6 +418,10 @@ class EPTestMultisite extends EP_Test_Base {
 		$this->assertEquals( $query->found_posts, 2 );
 	}
 
+	/**
+	 * Test a simple date param search by date and monthnum
+	 *
+	 */
 	public function testSimpleDateMonthNum() {
 		ep_create_date_query_posts();
 
@@ -444,6 +448,10 @@ class EPTestMultisite extends EP_Test_Base {
 		$this->assertEquals( $query->found_posts, 3 );
 	}
 
+	/**
+	 * Test a simple date param search by day number of week
+	 *
+	 */
 	public function testSimpleDateDay() {
 		ep_create_date_query_posts();
 
@@ -459,6 +467,10 @@ class EPTestMultisite extends EP_Test_Base {
 		$this->assertEquals( $query->found_posts, 3 );
 	}
 
+	/**
+	 * Test a date query with before and after range
+	 *
+	 */
 	public function testDateQueryBeforeAfter() {
 		ep_create_date_query_posts();
 
@@ -484,6 +496,10 @@ class EPTestMultisite extends EP_Test_Base {
 		$this->assertEquals( $query->found_posts, 6 );
 	}
 
+	/**
+	 * Test a date query with multiple column range comparison
+	 *
+	 */
 	/* @todo Not working as expected
 	public function testDateQueryMultiColumn() {
 		ep_create_date_query_posts();
@@ -509,6 +525,10 @@ class EPTestMultisite extends EP_Test_Base {
 		//$this->assertEquals( $query->found_posts, 6 );
 	}*/
 
+	/**
+	 * Test a simple date query search by year, monthnum and day of week
+	 *
+	 */
 	public function testDateQuerySimple() {
 		ep_create_date_query_posts();
 
@@ -530,6 +550,10 @@ class EPTestMultisite extends EP_Test_Base {
 		$this->assertEquals( $query->found_posts, 3 );
 	}
 
+	/**
+	 * Test a date query with BETWEEN comparison
+	 *
+	 */
 	public function testDateQueryBetween() {
 		ep_create_date_query_posts();
 
@@ -550,6 +574,10 @@ class EPTestMultisite extends EP_Test_Base {
 		$this->assertEquals( $query->found_posts, 9 );
 	}
 
+	/**
+	 * Test a date query with NOT BETWEEN comparison
+	 *
+	 */
 	public function testDateQueryNotBetween() {
 		ep_create_date_query_posts();
 
@@ -570,7 +598,10 @@ class EPTestMultisite extends EP_Test_Base {
 		$this->assertEquals( $query->found_posts, 21 );
 	}
 
-	/*@todo get a more accurate test set up for this one
+	/**
+	 * Test a date query with multiple range comparisons
+	 *
+	 * @todo get a more accurate test set up for this one
 	 * Currently created posts don't have that many date based differences
 	 * for this test
 	 *
