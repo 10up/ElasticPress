@@ -9,13 +9,14 @@ class EP_WP_Date_Query extends WP_Date_Query {
 	}
 
 	protected function get_es_filter_for_clauses() {
-		$sql = $this->get_es_filter_for_query( $this->queries );
+		$filter = $this->get_es_filter_for_query( $this->queries );
 
-		if ( ! empty( $sql['where'] ) ) {
-			$sql['where'] = ' AND ' . $sql['where'];
-		}
+		/* @todo possibly join filters here?
+		 * if ( ! empty( $sql['where'] ) ) {
+		 * $sql['where'] = ' AND ' . $sql['where'];
+		 * }*/
 
-		return $sql;
+		return $filter;
 	}
 
 	protected function get_es_filter_for_query( $query, $depth = 0 ) {
@@ -32,6 +33,9 @@ class EP_WP_Date_Query extends WP_Date_Query {
 
 				// This is a first-order clause.
 				if ( $this->is_first_order_clause( $clause ) ) {
+					echo '<pre>';
+					var_dump('first order');
+					echo '</pre>';
 					$clause_filter = $this->get_es_filter_for_clause( $clause, $query );
 
 					$filter_count = count( $clause_filter );
@@ -43,12 +47,19 @@ class EP_WP_Date_Query extends WP_Date_Query {
 
 					// This is a subquery, so we recurse.
 				} else {
+					echo '<pre>';
+					var_dump('sub query');
+					echo '</pre>';
 					$clause_filter              = $this->get_es_filter_for_query( $clause, $depth + 1 );
 					$filter_chunks['filters'][] = $clause_filter;
 				}
 			}
 		}
+		echo '<pre>';
+		var_dump($filter_chunks);
+		echo '</pre>';
 
+		//@todo implement OR filter relationships
 		if ( empty( $relation ) ) {
 			$relation = 'AND';
 		}
@@ -88,7 +99,7 @@ class EP_WP_Date_Query extends WP_Date_Query {
 		// The sub-parts of a $where part.
 		$filter_parts = array();
 
-		$column = ( ! empty( $query['column'] ) ) ? esc_sql( $query['column'] ) : $this->column;
+		$column = ( ! empty( $query['column'] ) ) ? $query['column'] : $this->column;
 
 		$compare = $this->get_compare( $query );
 
@@ -125,8 +136,6 @@ class EP_WP_Date_Query extends WP_Date_Query {
 		$date_parameters = array(
 			'year'          => ! empty( $query['year'] ) ? $query['year'] : false,
 			'month'         => ! empty( $query['month'] ) ? $query['month'] : false,
-			'monthnum'      => ! empty( $query['monthnum'] ) ? $query['monthnum'] : false,
-			'w'             => ! empty( $query['w'] ) ? $query['w'] : false,
 			'week'          => ! empty( $query['week'] ) ? $query['week'] : false,
 			'dayofyear'     => ! empty( $query['dayofyear'] ) ? $query['dayofyear'] : false,
 			'day'           => ! empty( $query['day'] ) ? $query['day'] : false,
@@ -137,6 +146,14 @@ class EP_WP_Date_Query extends WP_Date_Query {
 			'second'        => ! empty( $query['second'] ) ? $query['second'] : false,
 			'm'             => ! empty( $query['m'] ) ? $query['m'] : false, // yearmonth
 		);
+
+		if ( empty( $date_parameters['month'] ) && ! empty( $query['monthnum'] ) ) {
+			$date_parameters['month'] = $query['monthnum'];
+		}
+
+		if ( empty( $date_parameters['week'] ) && ! empty( $query['w'] ) ) {
+			$date_parameters['week'] = $query['w'];
+		}
 
 		foreach ( $date_parameters as $param => $value ) {
 			if ( false === $value ) {
@@ -197,18 +214,33 @@ class EP_WP_Date_Query extends WP_Date_Query {
 		return $filter_parts;
 	}
 
+	/**
+	 * Takes WP_Query args, and returns ES filters for query
+	 * Support for older style WP_Query date params
+	 *
+	 * @param $args
+	 *
+	 * @return array|bool
+	 */
 	static function simple_es_date_filter( $args ) {
 		$date_parameters = array(
-			'year'     => ! empty( $args['year'] ) ? $args['year'] : false,
-			'monthnum' => ! empty( $args['monthnum'] ) ? $args['monthnum'] : false,
-			'month'    => ! empty( $args['month'] ) ? $args['month'] : false,
-			'w'        => ! empty( $args['w'] ) ? $args['w'] : false,
-			'day'      => ! empty( $args['day'] ) ? $args['day'] : false,
-			'hour'     => ! empty( $args['hour'] ) ? $args['hour'] : false,
-			'minute'   => ! empty( $args['minute'] ) ? $args['minute'] : false,
-			'second'   => ! empty( $args['second'] ) ? $args['second'] : false,
-			'm'        => ! empty( $args['m'] ) ? $args['m'] : false, // yearmonth
+			'year'   => ! empty( $args['year'] ) ? $args['year'] : false,
+			'month'  => ! empty( $args['month'] ) ? $args['month'] : false,
+			'week'   => ! empty( $args['week'] ) ? $args['week'] : false,
+			'day'    => ! empty( $args['day'] ) ? $args['day'] : false,
+			'hour'   => ! empty( $args['hour'] ) ? $args['hour'] : false,
+			'minute' => ! empty( $args['minute'] ) ? $args['minute'] : false,
+			'second' => ! empty( $args['second'] ) ? $args['second'] : false,
+			'm'      => ! empty( $args['m'] ) ? $args['m'] : false, // yearmonth
 		);
+
+		if ( ! $date_parameters['month'] && ! empty( $args['monthnum'] ) ) {
+			$date_parameters['month'] = $args['monthnum'];
+		}
+
+		if ( ! $date_parameters['week'] && ! empty( $args['w'] ) ) {
+			$date_parameters['week'] = $args['w'];
+		}
 
 		foreach ( $date_parameters as $param => $value ) {
 			if ( false === $value ) {

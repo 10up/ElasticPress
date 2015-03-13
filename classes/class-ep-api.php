@@ -516,43 +516,37 @@ class EP_API {
 							"type" => "object",
 							"path" => "full",
 							'fields' => array(
-								"year" => array(
+								"year" => array( //4 digit year (e.g. 2011)
 									"type" => "integer",
 								),
-								"month" => array(
+								"month" => array( //Month number (from 1 to 12) alternate name "monthnum"
 									"type" => "integer",
 								),
-								"monthnum" => array(
+								"m" => array( //YearMonth (For e.g.: 201307)
 									"type" => "integer",
 								),
-								"m" => array(
+								"week" => array( //Week of the year (from 0 to 53) alternate name "w"
 									"type" => "integer",
 								),
-								"w" => array(
+								"day" => array( //Day of the month (from 1 to 31)
 									"type" => "integer",
 								),
-								"week" => array(
+								"dayofweek" => array( //Accepts numbers 1-7 (1 is Sunday)
 									"type" => "integer",
 								),
-								"day" => array(
+								"dayofweek_iso" => array( //Accepts numbers 1-7 (1 is Monday)
 									"type" => "integer",
 								),
-								"dayofweek" => array(
+								"dayofyear" => array( //Accepts numbers 1-366
 									"type" => "integer",
 								),
-								"dayofweek_iso" => array(
+								"hour" => array( //Hour (from 0 to 23)
 									"type" => "integer",
 								),
-								"dayofyear" => array(
+								"minute" => array( //Minute (from 0 to 59)
 									"type" => "integer",
 								),
-								"hour" => array(
-									"type" => "integer",
-								),
-								"minute" => array(
-									"type" => "integer",
-								),
-								"second" => array(
+								"second" => array( //Second (0 to 59)
 									"type" => "integer",
 								)
 							)
@@ -661,13 +655,19 @@ class EP_API {
 		return $post_args;
 	}
 
+	/**
+	 * Prepare date terms to send to ES.
+	 *
+	 * @param string $timestamp
+	 *
+	 * @since 0.1.4
+	 * @return array
+	 */
 	private function prepare_date_terms( $post_date_gmt ) {
 		$timestamp = strtotime( $post_date_gmt );
 		$date_terms = array(
 			'year' => (int) date( "Y", $timestamp),
 			'month' => (int) date( "m", $timestamp),
-			'monthnum' => (int) date( "m", $timestamp),
-			'w' => (int) date( "W", $timestamp),
 			'week' => (int) date( "W", $timestamp),
 			'dayofyear' => (int) date( "z", $timestamp),
 			'day' => (int) date( "d", $timestamp),
@@ -911,7 +911,7 @@ class EP_API {
 
 		/**
 		 * 'date_query' arg support.
-		 * 
+		 *
 		 */
 		if ( ! empty( $args['date_query'] ) ) {
 
