@@ -33,9 +33,7 @@ class EP_WP_Date_Query extends WP_Date_Query {
 
 				// This is a first-order clause.
 				if ( $this->is_first_order_clause( $clause ) ) {
-					echo '<pre>';
-					var_dump('first order');
-					echo '</pre>';
+
 					$clause_filter = $this->get_es_filter_for_clause( $clause, $query );
 
 					$filter_count = count( $clause_filter );
@@ -47,17 +45,14 @@ class EP_WP_Date_Query extends WP_Date_Query {
 
 					// This is a subquery, so we recurse.
 				} else {
-					echo '<pre>';
-					var_dump('sub query');
-					echo '</pre>';
-					$clause_filter              = $this->get_es_filter_for_query( $clause, $depth + 1 );
-					$filter_chunks['filters'][] = $clause_filter;
+					/**
+					 * @todo WP_Date_Query supports nested date queries, revisit if necessary
+					 * Removed because this implementation had incorrect results
+					 *
+					 */
 				}
 			}
 		}
-		echo '<pre>';
-		var_dump($filter_chunks);
-		echo '</pre>';
 
 		//@todo implement OR filter relationships
 		if ( empty( $relation ) ) {
@@ -94,7 +89,7 @@ class EP_WP_Date_Query extends WP_Date_Query {
 		return $filter_array;
 	}
 
-	protected function get_es_filter_for_clause( $query, $parent_query ) {
+	protected function get_es_filter_for_clause( $query ) {
 
 		// The sub-parts of a $where part.
 		$filter_parts = array();
