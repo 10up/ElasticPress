@@ -11,11 +11,6 @@ class EP_WP_Date_Query extends WP_Date_Query {
 	protected function get_es_filter_for_clauses() {
 		$filter = $this->get_es_filter_for_query( $this->queries );
 
-		/* @todo possibly join filters here?
-		 * if ( ! empty( $sql['where'] ) ) {
-		 * $sql['where'] = ' AND ' . $sql['where'];
-		 * }*/
-
 		return $filter;
 	}
 
