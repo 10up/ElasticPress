@@ -289,7 +289,7 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		$mapping = require_once( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' ) );
+		$mapping = require( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' ) );
 
 		$mapping = apply_filters( 'ep_config_mapping', $mapping );
 
