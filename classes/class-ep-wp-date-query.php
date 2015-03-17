@@ -2,18 +2,39 @@
 
 class EP_WP_Date_Query extends WP_Date_Query {
 
+	/**
+	 * Like WP_Date_Query::get_sql
+	 * takes WP_Date_Query class queries and returns ES filter arrays
+	 *
+	 * @since 0.1.4
+	 * @return array
+	 */
 	public function get_es_filter() {
 		$filter = $this->get_es_filter_for_clauses();
 
 		return $filter;
 	}
 
+	/**
+	 * Like WP_Date_Query::get_sql_for_clauses
+	 * takes all queries in WP_Date_Query object and gets ES filters for each
+	 *
+	 * @since 0.1.4
+	 * @return array
+	 */
 	protected function get_es_filter_for_clauses() {
 		$filter = $this->get_es_filter_for_query( $this->queries );
 
 		return $filter;
 	}
 
+	/**
+	 * @param $query array of date query clauses
+	 * @param int $depth unused but may be necessary if we do nested date queries
+	 *
+	 * @since 0.1.4
+	 * @return array
+	 */
 	protected function get_es_filter_for_query( $query, $depth = 0 ) {
 		$filter_chunks = array(
 			'filters' => array(),
@@ -40,11 +61,8 @@ class EP_WP_Date_Query extends WP_Date_Query {
 
 					// This is a subquery, so we recurse.
 				} else {
-					/**
-					 * @todo WP_Date_Query supports nested date queries, revisit if necessary
-					 * Removed because this implementation had incorrect results
-					 *
-					 */
+					//@todo WP_Date_Query supports nested date queries, revisit if necessary
+					//Removed because this implementation had incorrect results
 				}
 			}
 		}
@@ -56,34 +74,99 @@ class EP_WP_Date_Query extends WP_Date_Query {
 
 		if ( 'AND' === $relation ) {
 			$filter_array['and'] = array();
+
+			$range_filters = array();
+			$term_filters  = array();
 			foreach ( $filter_chunks['filters'] as $key => $filter ) {
 				$filter_type = key( $filter );
-
 				if ( 'date_terms' === $filter_type ) {
-					$filter_array['and'] = array(
-						'bool' => $filter['date_terms'],
-					);
-				} else if ( 'range' === $filter_type ) {
-					if ( ! array_key_exists( 'not', $filter['range'] ) && empty( $filter_array['and']['range'] ) ) {
-						$filter_array['and']['range'] = array();
-					} else if ( array_key_exists( 'not', $filter['range'] ) && empty( $filter_array['and']['not']['range'] ) ) {
-						$filter_array['and']['not']['range'] = array();
-					}
-					if ( array_key_exists( 'not', $filter['range'] ) ) {
-						$range_column                                         = key( $filter['range']['not'] );
-						$filter_array['and']['not']['range'][ $range_column ] = $filter['range']['not'][ $range_column ];
-					} else {
-						$range_column                                  = key( $filter['range'][0] );
-						$filter_array['and']['range'][ $range_column ] = $filter['range'][0][ $range_column ];
-					}
-
+					$term_filters[] = $filter['date_terms'];
+				} else if ( 'range_filters' === $filter_type ) {
+					$range_filters[] = $filter['range_filters'];
 				}
+			}
+
+			if ( $range_filters ) {
+				$filter_array['and'] = array(
+					'bool' => $this->build_es_range_filter( $range_filters ),
+				);
+			}
+
+			if ( $term_filters ) {
+				$filter_array['and'] = array(
+					'bool' => $this->build_es_date_term_filter( $term_filters ),
+				);
 			}
 		}
 
 		return $filter_array;
 	}
 
+	/**
+	 * Takes array of date term filters and groups them into a filter based on
+	 * relationship type
+	 *
+	 * @param array $date_term_filters
+	 * @param string $type type of relationship between date term filters (AND, OR)
+	 *
+	 * @since 0.1.4
+	 * @return array
+	 */
+	protected function build_es_date_term_filter( $date_term_filters = array(), $type = 'AND' ) {
+		$date_term_filter_array = array(
+			'must'     => array(),
+			'should'   => array(),
+			'must_not' => array(),
+		);
+
+		if ( 'AND' === $type ) {
+			foreach ( $date_term_filters as $date_term_filter ) {
+				$date_term_filter_array['must']     = ! empty( $date_term_filter['must'] ) ? array_merge( $date_term_filter_array['must'], $date_term_filter['must'] ) : array();
+				$date_term_filter_array['should']   = ! empty( $date_term_filter['should'] ) ? array_merge( $date_term_filter_array['should'], $date_term_filter['should'] ) : array();
+				$date_term_filter_array['must_not'] = ! empty( $date_term_filter['must_not'] ) ? array_merge( $date_term_filter_array['must_not'], $date_term_filter['must_not'] ) : array();
+			}
+		}
+
+		return array_filter( $date_term_filter_array );
+	}
+
+	/**
+	 * Takes array of range filters and groups them into a single filter
+	 *
+	 * @param array $range_filters
+	 *
+	 * @since 0.1.4
+	 * @return array
+	 */
+	protected function build_es_range_filter( $range_filters = array() ) {
+		$range_filter_array = array(
+			'must'     => array(),
+			'should'   => array(),
+			'must_not' => array(),
+		);
+
+		foreach ( $range_filters as $key => $range_filter ) {
+			if ( 'not' === key( $range_filter ) ) {
+				$range_filter_array['must_not'][] = array(
+					'range' => $range_filter['not']
+				);
+			} else {
+				$range_filter_array['must'][] = array(
+					'range' => $range_filter
+				);
+			}
+		}
+
+		return array_filter( $range_filter_array );
+	}
+
+	/**
+	 * Takes SQL query part, and translates it into an ES filter
+	 *
+	 * @param $query
+	 *
+	 * @return array ES filter
+	 */
 	protected function get_es_filter_for_clause( $query ) {
 
 		// The sub-parts of a $where part.
@@ -104,22 +187,26 @@ class EP_WP_Date_Query extends WP_Date_Query {
 			$gt .= 'e';
 		}
 
+
 		// Range queries.
-		if ( ! empty( $query['after'] ) || ! empty( $query['before'] ) ) {
-			$range_filter[ $column ] = array();
-		}
 
 		if ( ! empty( $query['after'] ) ) {
-			$range_filter[ $column ][ $gt ] = $this->build_mysql_datetime( $query['after'] );
+			$range_filters = array(
+				"{$column}" => array(
+					"{$gt}" => $this->build_mysql_datetime( $query['after'] )
+				)
+			);
 		}
 
 		if ( ! empty( $query['before'] ) ) {
-			$range_filter[ $column ][ $lt ] = $this->build_mysql_datetime( $query['before'] );
+			$range_filters                   = empty( $range_filters[ $column ] ) ? array( "{$column}" => array( "{$lt}" => array() ) ) : $range_filters;
+			$range_filters[ $column ][ $lt ] = $this->build_mysql_datetime( $query['before'] );
 		}
 
 		if ( ! empty( $query['after'] ) || ! empty( $query['before'] ) ) {
-			$filter_parts['range'] = array( $range_filter );
+			$filter_parts['range_filters'] = $range_filters;
 		}
+
 
 		// Specific value queries.
 
@@ -158,6 +245,7 @@ class EP_WP_Date_Query extends WP_Date_Query {
 				'should'   => array(),
 				'must_not' => array(),
 			);
+
 			foreach ( $date_parameters as $param => $value ) {
 				if ( '=' === $compare ) {
 					$date_terms['must'][]['term']["date_terms.{$param}"] = $value;
@@ -175,22 +263,22 @@ class EP_WP_Date_Query extends WP_Date_Query {
 					$range_filter["date_terms.{$param}"]       = array();
 					$range_filter["date_terms.{$param}"]['gt'] = $value[0];
 					$range_filter["date_terms.{$param}"]['lt'] = $value[1];
-					$filter_parts['range']                     = array( $range_filter );
+					$filter_parts['range_filters']             = $range_filter;
 				} else if ( 'NOT BETWEEN' === $compare ) {
 					$range_filter["date_terms.{$param}"]       = array();
 					$range_filter["date_terms.{$param}"]['gt'] = $value[0];
 					$range_filter["date_terms.{$param}"]['lt'] = $value[1];
-					$filter_parts['range']                     = array( 'not' => $range_filter );
+					$filter_parts['range_filters']             = array( 'not' => $range_filter );
 				} else if ( strpos( $compare, '>' ) !== false ) {
 					$range                                         = ( strpos( $compare, '=' ) !== false ) ? 'gte' : 'gt';
 					$range_filter["date_terms.{$param}"]           = array();
 					$range_filter["date_terms.{$param}"][ $range ] = $value;
-					$filter_parts['range']                         = array( $range_filter );
+					$filter_parts['range_filters']                 = $range_filter;
 				} else if ( strpos( $compare, '<' ) !== false ) {
 					$range                                         = ( strpos( $compare, '=' ) !== false ) ? 'lte' : 'lt';
 					$range_filter["date_terms.{$param}"]           = array();
 					$range_filter["date_terms.{$param}"][ $range ] = $value;
-					$filter_parts['range']                         = array( $range_filter );
+					$filter_parts['range_filters']                 = $range_filter;
 				}
 			}
 

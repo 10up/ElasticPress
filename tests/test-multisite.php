@@ -500,7 +500,6 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a date query with multiple column range comparison
 	 *
 	 */
-	/* @todo Not working as expected
 	public function testDateQueryMultiColumn() {
 		ep_create_date_query_posts();
 
@@ -510,20 +509,20 @@ class EPTestMultisite extends EP_Test_Base {
 			'posts_per_page' => 100,
 			'date_query' => array(
 				array(
-					'column' => 'post_date_gmt',
+					'column' => 'post_date',
 					'after' => 'January 1st 2012',
 				),
 				array(
-					'column' => 'post_modified_gmt',
-					'after'  => 'yesterday',
+					'column' => 'post_date_gmt',
+					'after'  => 'January 3rd 2012 8AM',
 				),
 			)
 		);
 
 		$query = new WP_Query( $args );
-		//$this->assertEquals( $query->post_count, 6 );
-		//$this->assertEquals( $query->found_posts, 6 );
-	}*/
+		$this->assertEquals( $query->post_count, 6 );
+		$this->assertEquals( $query->found_posts, 6 );
+	}
 
 	/**
 	 * Test a simple date query search by year, monthnum and day of week
