@@ -1,22 +1,6 @@
 <?php
 
 class EP_WP_Date_Query extends WP_Date_Query {
-
-	/**
-	 * Introduced in WP 4.1 added here for backwards compatibility
-	 * @var array
-	 */
-	public $time_keys = array( 'after', 'before', 'year', 'month', 'monthnum', 'week', 'w', 'dayofyear', 'day', 'dayofweek', 'dayofweek_iso', 'hour', 'minute', 'second' );
-
-	/**
-	 * Introduced in WP 4.1 added here for backwards compatibility
-	 * @var array
-	 */
-	protected function is_first_order_clause( $query ) {
-		$time_keys = array_intersect( $this->time_keys, array_keys( $query ) );
-		return ! empty( $time_keys );
-	}
-
 	/**
 	 * Like WP_Date_Query::get_sql
 	 * takes WP_Date_Query class queries and returns ES filter arrays
@@ -355,5 +339,194 @@ class EP_WP_Date_Query extends WP_Date_Query {
 				'must' => $date_terms,
 			)
 		);
+	}
+
+	/**
+	 * Introduced in WP 4.1 added here for backwards compatibility
+	 * @var array
+	 */
+	public $time_keys = array( 'after', 'before', 'year', 'month', 'monthnum', 'week', 'w', 'dayofyear', 'day', 'dayofweek', 'dayofweek_iso', 'hour', 'minute', 'second' );
+
+	/**
+	 * Introduced in WP 4.1 added here for backwards compatibility
+	 * @var array
+	 */
+	protected function is_first_order_clause( $query ) {
+		$time_keys = array_intersect( $this->time_keys, array_keys( $query ) );
+		return ! empty( $time_keys );
+	}
+
+	/**
+	 * Introduced in WP 4.1 added here for backwards compatibility
+	 * @var array
+	 */
+	public function validate_date_values( $date_query = array() ) {
+		if ( empty( $date_query ) ) {
+			return false;
+		}
+
+		$valid = true;
+
+		/*
+		 * Validate 'before' and 'after' up front, then let the
+		 * validation routine continue to be sure that all invalid
+		 * values generate errors too.
+		 */
+		if ( array_key_exists( 'before', $date_query ) && is_array( $date_query['before'] ) ){
+			$valid = $this->validate_date_values( $date_query['before'] );
+		}
+
+		if ( array_key_exists( 'after', $date_query ) && is_array( $date_query['after'] ) ){
+			$valid = $this->validate_date_values( $date_query['after'] );
+		}
+
+		// Array containing all min-max checks.
+		$min_max_checks = array();
+
+		// Days per year.
+		if ( array_key_exists( 'year', $date_query ) ) {
+			// If a year exists in the date query, we can use it to get the days.
+			$max_days_of_year = date( 'z', mktime( 0, 0, 0, 12, 31, $date_query['year'] ) ) + 1;
+		} else {
+			// otherwise we use the max of 366 (leap-year)
+			$max_days_of_year = 366;
+		}
+
+		$min_max_checks['dayofyear'] = array(
+			'min' => 1,
+			'max' => $max_days_of_year
+		);
+
+		// Days per week.
+		$min_max_checks['dayofweek'] = array(
+			'min' => 1,
+			'max' => 7
+		);
+
+		// Days per week.
+		$min_max_checks['dayofweek_iso'] = array(
+			'min' => 1,
+			'max' => 7
+		);
+
+		// Months per year.
+		$min_max_checks['month'] = array(
+			'min' => 1,
+			'max' => 12
+		);
+
+		// Weeks per year.
+		if ( array_key_exists( 'year', $date_query ) ) {
+			// If we have a specific year, use it to calculate number of weeks.
+			$date = new DateTime();
+			$date->setISODate( $date_query['year'], 53 );
+			$week_count = $date->format( "W" ) === "53" ? 53 : 52;
+
+		} else {
+			// Otherwise set the week-count to a maximum of 53.
+			$week_count = 53;
+		}
+
+		$min_max_checks['week'] = array(
+			'min' => 1,
+			'max' => $week_count
+		);
+
+		// Days per month.
+		$min_max_checks['day'] = array(
+			'min' => 1,
+			'max' => 31
+		);
+
+		// Hours per day.
+		$min_max_checks['hour'] = array(
+			'min' => 1,
+			'max' => 23
+		);
+
+		// Minutes per hour.
+		$min_max_checks['minute'] = array(
+			'min' => 0,
+			'max' => 59
+		);
+
+		// Seconds per minute.
+		$min_max_checks['second'] = array(
+			'min' => 0,
+			'max' => 59
+		);
+
+		// Concatenate and throw a notice for each invalid value.
+		foreach ( $min_max_checks as $key => $check ) {
+			if ( ! array_key_exists( $key, $date_query ) ) {
+				continue;
+			}
+
+			$is_between = $date_query[ $key ] >= $check['min'] && $date_query[ $key ] <= $check['max'];
+
+			if ( ! $is_between ) {
+
+				$error = sprintf(
+				/* translators: Date query invalid date message: 1: invalid value, 2: type of value, 3: minimum valid value, 4: maximum valid value */
+					__( 'Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s.' ),
+					'<code>' . esc_html( $date_query[ $key ] ) . '</code>',
+					'<code>' . esc_html( $key ) . '</code>',
+					'<code>' . esc_html( $check['min'] ) . '</code>',
+					'<code>' . esc_html( $check['max'] ) . '</code>'
+				);
+
+				_doing_it_wrong( __CLASS__, $error, '4.1.0' );
+
+				$valid = false;
+			}
+		}
+
+		// If we already have invalid date messages, don't bother running through checkdate().
+		if ( ! $valid ) {
+			return $valid;
+		}
+
+		$day_month_year_error_msg = '';
+
+		$day_exists   = array_key_exists( 'day', $date_query ) && is_numeric( $date_query['day'] );
+		$month_exists = array_key_exists( 'month', $date_query ) && is_numeric( $date_query['month'] );
+		$year_exists  = array_key_exists( 'year', $date_query ) && is_numeric( $date_query['year'] );
+
+		if ( $day_exists && $month_exists && $year_exists ) {
+			// 1. Checking day, month, year combination.
+			if ( ! wp_checkdate( $date_query['month'], $date_query['day'], $date_query['year'], sprintf( '%s-%s-%s', $date_query['year'], $date_query['month'], $date_query['day'] ) ) ) {
+				/* translators: 1: year, 2: month, 3: day of month */
+				$day_month_year_error_msg = sprintf(
+					__( 'The following values do not describe a valid date: year %1$s, month %2$s, day %3$s.' ),
+					'<code>' . esc_html( $date_query['year'] ) . '</code>',
+					'<code>' . esc_html( $date_query['month'] ) . '</code>',
+					'<code>' . esc_html( $date_query['day'] ) . '</code>'
+				);
+
+				$valid = false;
+			}
+
+		} else if ( $day_exists && $month_exists ) {
+			/*
+			 * 2. checking day, month combination
+			 * We use 2012 because, as a leap year, it's the most permissive.
+			 */
+			if ( ! wp_checkdate( $date_query['month'], $date_query['day'], 2012, sprintf( '2012-%s-%s', $date_query['month'], $date_query['day'] ) ) ) {
+				/* translators: 1: month, 2: day of month */
+				$day_month_year_error_msg = sprintf(
+					__( 'The following values do not describe a valid date: month %1$s, day %2$s.' ),
+					'<code>' . esc_html( $date_query['month'] ) . '</code>',
+					'<code>' . esc_html( $date_query['day'] ) . '</code>'
+				);
+
+				$valid = false;
+			}
+		}
+
+		if ( ! empty( $day_month_year_error_msg ) ) {
+			_doing_it_wrong( __CLASS__, $day_month_year_error_msg, '4.1.0' );
+		}
+
+		return $valid;
 	}
 }
