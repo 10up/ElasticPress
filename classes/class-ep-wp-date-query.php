@@ -3,6 +3,21 @@
 class EP_WP_Date_Query extends WP_Date_Query {
 
 	/**
+	 * Introduced in WP 4.1 added here for backwards compatibility
+	 * @var array
+	 */
+	public $time_keys = array( 'after', 'before', 'year', 'month', 'monthnum', 'week', 'w', 'dayofyear', 'day', 'dayofweek', 'dayofweek_iso', 'hour', 'minute', 'second' );
+
+	/**
+	 * Introduced in WP 4.1 added here for backwards compatibility
+	 * @var array
+	 */
+	protected function is_first_order_clause( $query ) {
+		$time_keys = array_intersect( $this->time_keys, array_keys( $query ) );
+		return ! empty( $time_keys );
+	}
+
+	/**
 	 * Like WP_Date_Query::get_sql
 	 * takes WP_Date_Query class queries and returns ES filter arrays
 	 *
