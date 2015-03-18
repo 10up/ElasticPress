@@ -291,6 +291,7 @@ class EP_API {
 	public function put_mapping() {
 		$mapping = require( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' ) );
 
+
 		$mapping = apply_filters( 'ep_config_mapping', $mapping );
 
 		$index_url = ep_get_index_url();
@@ -379,6 +380,7 @@ class EP_API {
 			'permalink'         => get_permalink( $post_id ),
 			'terms'             => $this->prepare_terms( $post ),
 			'post_meta'         => $this->prepare_meta( $post ),
+			'date_terms'        => $this->prepare_date_terms( $post_date_gmt ),
 			//'site_id'         => get_current_blog_id(),
 		);
 
@@ -386,8 +388,33 @@ class EP_API {
 		 * This filter is named poorly but has to stay to keep backwards compat
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
-
 		return $post_args;
+	}
+
+	/**
+	 * Prepare date terms to send to ES.
+	 *
+	 * @param string $timestamp
+	 *
+	 * @since 0.1.4
+	 * @return array
+	 */
+	private function prepare_date_terms( $post_date_gmt ) {
+		$timestamp = strtotime( $post_date_gmt );
+		$date_terms = array(
+			'year' => (int) date( "Y", $timestamp),
+			'month' => (int) date( "m", $timestamp),
+			'week' => (int) date( "W", $timestamp),
+			'dayofyear' => (int) date( "z", $timestamp),
+			'day' => (int) date( "d", $timestamp),
+			'dayofweek' => (int) date( "d", $timestamp),
+			'dayofweek_iso' => (int) date( "N", $timestamp),
+			'hour' => (int) date( "H", $timestamp),
+			'minute' => (int) date( "i", $timestamp),
+			'second' => (int) date( "s", $timestamp),
+			'm' => (int) (date( "Y", $timestamp) . date( "m", $timestamp)), // yearmonth
+		);
+		return $date_terms;
 	}
 
 	/**
@@ -606,6 +633,33 @@ class EP_API {
 			);
 
 			$use_filters = true;
+		}
+
+		/**
+		 * Simple date params support
+		 *
+		 * @since 1.3
+		 */
+		if ( $date_filter = EP_WP_Date_Query::simple_es_date_filter( $args ) ) {
+			$filter['and'][] = $date_filter;
+			$use_filters = true;
+		}
+
+		/**
+		 * 'date_query' arg support.
+		 *
+		 */
+		if ( ! empty( $args['date_query'] ) ) {
+
+			$date_query = new EP_WP_Date_Query( $args['date_query'] );
+
+			$date_filter = $date_query->get_es_filter();
+
+			if( array_key_exists('and', $date_filter ) ) {
+				$filter['and'][] = $date_filter['and'];
+				$use_filters = true;
+			}
+
 		}
 
 		/**
@@ -920,7 +974,6 @@ class EP_API {
 				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
 			}
 		}
-
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
 
