@@ -168,10 +168,47 @@ class EP_WP_Query_Integration {
 		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
 			return $posts;
 		}
-
-		$new_posts = $this->posts_by_query[spl_object_hash( $query )];
-
+		if ( ! empty( $this->elasticsearch_fields ) ) {
+			// Posts responses are sanitized to a strict IDs only, id=>parent only
+			// or full post object. So lets put useful multisite results in "ep_posts"
+			$query->ep_posts = $this->filter_posts_to_fields( $query );
+			$new_posts = array();
+		} else {
+			$new_posts = $this->posts_by_query[ spl_object_hash( $query ) ];
+		}
 		return $new_posts;
+	}
+
+	/**
+	 * (Multisite only) Filter posts results down to a useful 'ids' or 'id=>parent' response
+	 * with site_ids
+	 *
+	 * @param $query
+	 *
+	 * @return array
+	 */
+	protected function filter_posts_to_fields( &$query ) {
+		$posts = $this->posts_by_query[ spl_object_hash( $query ) ];
+
+		$post_ids = array();
+		if ( 'ids' == $this->elasticsearch_fields ) {
+			foreach ( $posts as $post ) {
+				if ( empty( $post_ids[ $post->site_id ] ) ) {
+					$post_ids[ $post->site_id ] = array();
+				}
+				$post_ids[ $post->site_id ][] = $post->ID;
+			}
+		} else {
+			foreach ( $posts as $new_post ) {
+				$post              = new stdClass();
+				$post->ID          = $new_post->ID;
+				$post->post_parent = $new_post->post_parent;
+				$post->site_id     = $new_post->site_id;
+				$post_ids[]        = $post;
+			}
+		}
+
+		return $post_ids;
 	}
 
 	/**
@@ -203,7 +240,6 @@ class EP_WP_Query_Integration {
 		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return $request;
 		}
-
 		$query_vars = $query->query_vars;
 		if ( 'any' === $query_vars['post_type'] ) {
 			
@@ -259,27 +295,47 @@ class EP_WP_Query_Integration {
 
 		$new_posts = array();
 
+		global $wpdb;
+
+		$sql_query = "SELECT * FROM $wpdb->posts WHERE 1=0";
+
+		// if "fields" query var is set, either send proper sql and bail out or
+		// set flag to send proper multisite results on wp_query object
+		if ( !empty( $query->query_vars['fields'] ) && in_array( $query->query_vars['fields'], array('ids', 'id=>parent') ) ) {
+
+			// because of the "fields" response sanitization in wp_query,
+			// we are unable to alter multisite results to make them meaningful.
+			// So instead, we set a flag so that we can add useful multisite results in post filtering
+			if ( is_multisite() ) {
+				$sql_query = ( 'id=>parent' == $query->query_vars['fields'] ) ? "SELECT ID, post_parent FROM $wpdb->posts WHERE 1=0" : "SELECT ID FROM $wpdb->posts WHERE 1=0";
+				$this->elasticsearch_fields = $query->query_vars['fields'];
+				unset( $query->query_vars['fields'] );
+			} else {
+				return $query->request;
+			}
+		}
+
 		foreach ( $search['posts'] as $post_array ) {
 			$post = new stdClass();
 
-			$post->ID = $post_array['post_id'];
+			$post->ID      = $post_array['post_id'];
 			$post->site_id = get_current_blog_id();
 
 			if ( ! empty( $post_array['site_id'] ) ) {
 				$post->site_id = $post_array['site_id'];
 			}
 
-			$post->post_type = $post_array['post_type'];
-			$post->post_name = $post_array['post_name'];
-			$post->post_status = $post_array['post_status'];
-			$post->post_title = $post_array['post_title'];
-			$post->post_parent = $post_array['post_parent'];
-			$post->post_content = $post_array['post_content'];
-			$post->post_date = $post_array['post_date'];
-			$post->post_date_gmt = $post_array['post_date_gmt'];
-			$post->post_modified = $post_array['post_modified'];
+			$post->post_type         = $post_array['post_type'];
+			$post->post_name         = $post_array['post_name'];
+			$post->post_status       = $post_array['post_status'];
+			$post->post_title        = $post_array['post_title'];
+			$post->post_parent       = $post_array['post_parent'];
+			$post->post_content      = $post_array['post_content'];
+			$post->post_date         = $post_array['post_date'];
+			$post->post_date_gmt     = $post_array['post_date_gmt'];
+			$post->post_modified     = $post_array['post_modified'];
 			$post->post_modified_gmt = $post_array['post_modified_gmt'];
-			$post->elasticsearch = true; // Super useful for debugging
+			$post->elasticsearch     = true; // Super useful for debugging
 
 			// Run through get_post() to add all expected properties (even if they're empty)
 			$post = get_post( $post );
@@ -289,12 +345,9 @@ class EP_WP_Query_Integration {
 			}
 		}
 		$this->posts_by_query[spl_object_hash( $query )] = $new_posts;
-
 		do_action( 'ep_wp_query_search', $new_posts, $search, $query );
 
-		global $wpdb;
-
-		return "SELECT * FROM $wpdb->posts WHERE 1=0";
+		return $sql_query;
 	}
 
 	/**
