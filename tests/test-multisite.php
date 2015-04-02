@@ -600,7 +600,6 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a date query with multiple range comparisons
 	 *
-	 * @todo get a more accurate test set up for this one
 	 * Currently created posts don't have that many date based differences
 	 * for this test
 	 *
@@ -1441,5 +1440,22 @@ class EPTestMultisite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertTrue( empty( $query->posts ) );
+	}
+
+	/**
+	 * Tests Deletion of index when a blog is deleted
+	 */
+	public function testDeleteIndex( ) {
+		$index_count = ep_count_indexes();
+
+		$count_indexes = $index_count['total_indexes'];
+		$last_blog_id = $index_count['last_blog_id_with_index'];
+
+		wpmu_delete_blog( $last_blog_id );
+
+		$post_delete_count = ep_count_indexes();
+		$post_count_indexes = $post_delete_count['total_indexes'];
+
+		$this->assertNotEquals( $count_indexes, $post_count_indexes );
 	}
 }
