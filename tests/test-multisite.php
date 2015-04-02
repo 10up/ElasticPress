@@ -1443,6 +1443,20 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test index_exists helper function
+	 */
+	public function testIndexExists() {
+		$sites = ep_get_sites();
+
+		$first_site_index = ep_get_index_name( $sites[0]['blog_id'] );
+		$index_should_exist = ep_index_exists( $first_site_index );
+		$index_should_not_exist = ep_index_exists( $first_site_index . 2 );
+
+		$this->assertTrue( $index_should_exist );
+		$this->assertFalse( $index_should_not_exist );
+	}
+
+	/**
 	 * Tests Deletion of index when a blog is deleted
 	 */
 	public function testDeleteIndex( ) {
