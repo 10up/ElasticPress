@@ -426,6 +426,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.2
 	 */
 	private function send_bulk_errors() {
+
 		if ( ! empty( $this->failed_posts ) ) {
 			$email_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
 			foreach ( $this->failed_posts as $failed ) {
@@ -443,6 +444,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					WP_CLI::log( $email_text );
 				}
 			}
+
+			// clear faild posts array
+			$this->failed_posts = array();
 		}
 	}
 
