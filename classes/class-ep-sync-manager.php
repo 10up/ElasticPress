@@ -17,6 +17,96 @@ class EP_Sync_Manager {
 	public function setup() {
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
+		add_action( 'edited_terms',  array( $this, 'action_sync_on_term_update' ), 10, 2  );
+	}
+
+	/**
+	 * Sync ES index with the post under updated term
+	 *
+	 * @param  int $term_id  ID of the eidted term
+	 * @param  string $taxonomy
+	 */
+	public function action_sync_on_term_update( $term_id, $taxonomy ) {
+		global $wpdb, $wp_object_cache;
+
+		$posts_to_sync = array();
+		$posts_per_page = 500;
+		$offset = 0;
+
+		$indexable_post_statuses = ep_get_indexable_post_status();
+		$indexable_post_types = ep_get_indexable_post_types();
+
+		if( empty( $indexable_post_statuses ) ) {
+			return;
+		}
+
+		if( empty( $indexable_post_types ) ) {
+			return;
+		}
+
+		while ( true ) {
+			// query to find posts under edited term
+			$query = new WP_Query(array(
+				'posts_per_page' => $posts_per_page,
+				'offset' => $offset,
+				'post_status' => $indexable_post_statuses,
+				'post_type' => $indexable_post_types,
+				'tax_query' => array(
+					array(
+						'taxonomy' => $taxonomy,
+						'field' => 'id',
+						'terms' => $term_id,
+						)
+					)
+				)
+			);
+
+			if( $query->have_posts() ) {
+				while ( $query->have_posts() ) {
+					$query->the_post();
+					$post_id = absint( get_the_ID() );
+
+					// prepare data for bulk index
+					$posts_to_sync[$post_id][] = '{ "index": { "_id": "' . $post_id . '" } }';
+					$posts_to_sync[$post_id][] = addcslashes( json_encode( ep_prepare_post( $post_id ) ), "\n" );
+				}
+			} else {
+				break;
+			}
+
+			// prepare body for bul index
+			$flatten = array();
+			foreach ( $posts_to_sync as $post ) {
+				$flatten[] = $post[0];
+				$flatten[] = $post[1];
+			}
+
+			$body = rtrim( implode( "\n", $flatten ) ) . "\n";
+
+			// perform bulk sync
+			ep_bulk_index_posts( $body );
+
+			usleep( 500 );
+
+			// free up memory
+			$wpdb->queries = array();
+
+			if ( is_object( $wp_object_cache ) ) {
+				$wp_object_cache->group_ops = array();
+				$wp_object_cache->stats = array();
+				$wp_object_cache->memcache_debug = array();
+				$wp_object_cache->cache = array();
+
+				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
+					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
+				}
+			}
+
+			// go to next page
+			$offset += $posts_per_page;
+		}
+
+		wp_reset_postdata();
 	}
 
 	/**
