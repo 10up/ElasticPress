@@ -443,6 +443,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					WP_CLI::log( $email_text );
 				}
 			}
+			// clear failed posts after sending emails
+			$this->failed_posts = array();
 		}
 	}
 
