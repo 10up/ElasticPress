@@ -100,3 +100,26 @@ function ep_create_date_query_posts() {
 	date_default_timezone_set($beginning_tz);
 
 }
+
+/**
+ * Get all sites, count indexes
+ *
+ * @return array total index count with last blog id to manipulate blog with an index
+ */
+function ep_count_indexes() {
+	$sites = ep_get_sites();
+
+	$count_indexes = 0;
+	foreach ( $sites as $site ) {
+		if ( $index_name = ep_get_index_name( $site[ 'blog_id' ] ) ) {
+			if ( ep_index_exists( $index_name ) ) {
+				$count_indexes++;
+				$last_blog_id_with_index = $site[ 'blog_id' ];
+			}
+		}
+	}
+	return array(
+		'total_indexes' => $count_indexes,
+		'last_blog_id_with_index' => $last_blog_id_with_index,
+	);
+}

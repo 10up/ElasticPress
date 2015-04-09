@@ -17,6 +17,15 @@ class EP_Sync_Manager {
 	public function setup() {
 		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
+		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
+		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
+	}
+
+	public function action_delete_blog_from_index( $blog_id ) {
+		if ( ep_index_exists( ep_get_index_name( $blog_id ) ) && ! apply_filters( 'ep_keep_index', false ) ) {
+			ep_delete_index( ep_get_index_name( $blog_id ) );
+		}
 	}
 
 	/**
