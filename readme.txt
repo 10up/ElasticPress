@@ -66,12 +66,15 @@ configuring single site and multi-site cross-site search are slightly different.
 * Improved documentation. Each WP-CLI command has been documented
 * Add `elasticsearch` property to global post object to assist in debugging
 * `ep_integrate` param added to allow for WP_Query integration without search. (Formally called ep_match_all)
+* Filter added for post statuses (defaults to `publish`). Change the sync mechanism to make sure it takes all post statuses into account. Props [jonathanbardo](https://github.com/jonathanbardo)
 * Bug fix: check if failed post exists in indexing. Props [elliot-stocks](https://github.com/elliott-stocks)
 * Bug fix: properly check if setup is defined in indexing. Props [elliot-stocks](https://github.com/elliott-stocks)
 * Bug fix: add WP_Query integration on init rather than plugins loaded. Props [adamsilverstein](https://github.com/adamsilverstein)
 * Bug fix: Properly set global post object post type in loop. Props [tott](https://github.com/tott)
 * Bug fix: Do not check if index exists on every page load. Refactor so we can revert to MySQL after failed ES ping.
-* Bug fix: Make sure we check `is_multisite()` if `--network-wide` is provided [ivankruchkoff](https://github.com/ivankruchkoff)
+* Bug fix: Make sure we check `is_multisite()` if `--network-wide` is provided. Props [ivankruchkoff](https://github.com/ivankruchkoff)
+* Bug fix: Abide by the `exclude_from_search` flag from post type when running search queries. Props [ryanboswell](https://github.com/ryanboswell)
+* Bug fix: Correct mapping of `post_status` to `not_analyzed` to allow for filtering of the search query (will require a re-index). Props [jonathanbardo](https://github.com/jonathanbardo)
 
 = 1.2 =
 * Allow number of shards and replicas to be configurable.
