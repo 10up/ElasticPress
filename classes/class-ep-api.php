@@ -490,13 +490,16 @@ class EP_API {
 	}
 
 	/**
-	 * Delete the current index
+	 * Delete the current index or delete the index passed by name
+	 *
+	 * @param string $index_name
 	 *
 	 * @since 0.9.0
 	 * @return array|bool
 	 */
-	public function delete_index( ) {
-		$index_url = ep_get_index_url();
+	public function delete_index( $index_name = null ) {
+
+		$index_url = ep_get_index_url( $index_name );
 
 		$request_args = array( 'method' => 'DELETE' );
 
@@ -508,6 +511,34 @@ class EP_API {
 			$response_body = wp_remote_retrieve_body( $request );
 
 			return json_decode( $response_body );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks if index exists by index name, returns true or false
+	 *
+	 * @param null $index_name
+	 *
+	 * @return bool
+	 */
+	public function index_exists( $index_name = null ) {
+		$index_url = ep_get_index_url( $index_name );
+
+		$request = wp_remote_head( $index_url );
+
+		// 200 means the index exists
+		// 404 means the index was non-existent
+		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) || 404 === wp_remote_retrieve_response_code( $request ) ) ) {
+
+			if ( 404 === wp_remote_retrieve_response_code( $request ) ) {
+				return false;
+			}
+
+			if ( 200 === wp_remote_retrieve_response_code( $request ) ) {
+				return true;
+			}
 		}
 
 		return false;
@@ -1185,8 +1216,8 @@ function ep_put_mapping() {
 	return EP_API::factory()->put_mapping();
 }
 
-function ep_delete_index() {
-	return EP_API::factory()->delete_index();
+function ep_delete_index( $index_name = null ) {
+	return EP_API::factory()->delete_index( $index_name );
 }
 
 function ep_format_args( $args ) {
@@ -1237,6 +1268,6 @@ function ep_elasticsearch_alive() {
 	return EP_API::factory()->elasticsearch_alive();
 }
 
-function ep_index_exists() {
-	return EP_API::factory()->index_exists();
+function ep_index_exists( $index_name = null ) {
+	return EP_API::factory()->index_exists( $index_name );
 }
