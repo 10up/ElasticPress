@@ -300,6 +300,7 @@ class EP_WP_Query_Integration {
 			$new_posts = $this->fetch_wp_post_object( $new_posts );
 		}
 
+
 		$this->posts_by_query[spl_object_hash( $query )] = $new_posts;
 
 		do_action( 'ep_wp_query_search', $new_posts, $search, $query );
@@ -328,7 +329,7 @@ class EP_WP_Query_Integration {
 		foreach ( $post_list as $post_data ) {
 			$grouped[$post_data->site_id][] = $post_data;
 			// use this to keep the initial order of posts
-			$order[] = md5( $post_data->ID . ' ' . $post_data->post_date_gmt );
+			$order[] = md5( $post_data->ID . ' ' . $post_data->post_date_gmt . ' ' . $post_data->site_id );
 		}
 
 		foreach ( $grouped as $site_id => $post_data ) {
@@ -351,7 +352,7 @@ class EP_WP_Query_Integration {
 
 		// retrive initial order of posts
 		foreach ( $post_objs as $current_index => $post_obj ) {
-			$index = array_search ( md5( $post_obj->ID . ' ' . $post_obj->post_date_gmt ), $order );
+			$index = array_search ( md5( $post_obj->ID . ' ' . $post_obj->post_date_gmt . ' ' . $post_obj->site_id ), $order );
 			$posts_ordered[$index] = $post_objs[$current_index];
 		}
 
