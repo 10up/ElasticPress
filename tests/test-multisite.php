@@ -659,8 +659,8 @@ class EPTestMultisite extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( 1, $query->post_count );
-		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( 6, $query->post_count );
+		$this->assertEquals( 6, $query->found_posts );
 	}
 
 	/**
