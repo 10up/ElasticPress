@@ -633,6 +633,37 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test another date query with multiple range comparisons
+	 */
+	public function testDateQueryCompare2() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'monthnum'  => 1,
+					'compare'   => '<=',
+				),
+				array(
+					'year'      => 2012,
+					'compare'   => '>=',
+				),
+				array(
+					'day' => array( 5, 6 ),
+					'compare'   => 'BETWEEN',
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
 	 * Test a tax query search
 	 *
 	 * @since 1.0
