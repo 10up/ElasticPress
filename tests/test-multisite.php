@@ -520,8 +520,8 @@ class EPTestMultisite extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( $query->post_count, 6 );
-		$this->assertEquals( $query->found_posts, 6 );
+		$this->assertEquals( $query->post_count, 9 );
+		$this->assertEquals( $query->found_posts, 9 );
 	}
 
 	/**
@@ -569,8 +569,8 @@ class EPTestMultisite extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( $query->post_count, 9 );
-		$this->assertEquals( $query->found_posts, 9 );
+		$this->assertEquals( $query->post_count, 15 );
+		$this->assertEquals( $query->found_posts, 15 );
 	}
 
 	/**
@@ -593,8 +593,8 @@ class EPTestMultisite extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( $query->post_count, 21 );
-		$this->assertEquals( $query->found_posts, 21 );
+		$this->assertEquals( $query->post_count, 24 );
+		$this->assertEquals( $query->found_posts, 24 );
 	}
 
 	/**
@@ -621,15 +621,15 @@ class EPTestMultisite extends EP_Test_Base {
 					'compare'   => '>=',
 				),
 				array(
-					'day' => array( 2, 6 ),
+					'day' => array( 2, 5 ),
 					'compare'   => 'BETWEEN',
 				),
 			)
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( $query->post_count, 9 );
-		$this->assertEquals( $query->found_posts, 9 );
+		$this->assertEquals( $query->post_count, 12 );
+		$this->assertEquals( $query->found_posts, 12 );
 	}
 
 	/**
