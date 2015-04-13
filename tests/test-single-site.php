@@ -1372,4 +1372,45 @@ class EPTestSingleSite extends EP_Test_Base {
 		// Reset the main $wp_post_types item
 		$GLOBALS['wp_post_types'] = $backup_post_types;
 	}
+
+	/**
+	 * Test for query where `fields` => `ids` should return $query object where $query->posts contains array of post ids
+	 *
+	 */
+	public function testQueryForIDs() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+
+		ep_refresh_index();
+
+		$args  = array(
+			'post_type' => 'post',
+			'fields'    => 'ids',
+			's'         => 'findme',
+		);
+		$query = new WP_Query( $args );
+		$this->assertEquals( 2, $query->post_count );
+	}
+
+	/**
+	 * Test for query where `fields` => `id=>parent` should return $query object where $query->posts contains array of
+	 * objects with `ID` and `post_parent` properties
+	 */
+	public function testQueryForParentIDs() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+
+		ep_refresh_index();
+
+		$args  = array(
+			'post_type' => 'post',
+			'fields'    => 'id=>parent',
+			's'         => 'findme',
+		);
+		$query = new WP_Query( $args );
+		$this->assertEquals( 2, $query->post_count );
+
+		$this->assertTrue( ! empty( $query->posts[0]->ID ) );
+		$this->assertTrue( 0 === $query->posts[0]->post_parent );
+	}
 }

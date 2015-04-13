@@ -309,7 +309,7 @@ class EP_WP_Query_Integration {
 			if ( is_multisite() ) {
 				$sql_query = ( 'id=>parent' == $query->query_vars['fields'] ) ? "SELECT ID, post_parent FROM $wpdb->posts WHERE 1=0" : "SELECT ID FROM $wpdb->posts WHERE 1=0";
 				$this->elasticsearch_fields = $query->query_vars['fields'];
-				unset( $query->query_vars['fields'] );
+				$query->query_vars['fields'] = '';
 			} else {
 				return $query->request;
 			}

@@ -1442,4 +1442,66 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$this->assertTrue( empty( $query->posts ) );
 	}
+
+	/**
+	 * Test for query where `fields` => `ids` query should get property `ep_posts` with array of blog ids with enclosed
+	 * post ids
+	 */
+	public function testQueryForIDs() {
+		$sites = ep_get_sites();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			ep_refresh_index();
+
+			restore_current_blog();
+		}
+
+		$args  = array(
+			'post_type' => 'post',
+			'fields'    => 'ids',
+			's'         => 'findme',
+		);
+		$query = new WP_Query( $args );
+		$this->assertEquals( 0, $query->post_count );
+		$this->assertEquals( 2, count( $query->ep_posts[1] ) );
+	}
+
+	/**
+	 * Test for query where `fields` => `id=>parent`, $query should get property `ep_posts` which includes
+	 * an array of objects with the following properties
+	 * ID, post_parent, and site_id
+	 */
+	public function testQueryForParentIDs() {
+		$sites = ep_get_sites();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+			ep_refresh_index();
+
+			restore_current_blog();
+		}
+
+		$args  = array(
+			'post_type' => 'post',
+			'fields'    => 'id=>parent',
+			's'         => 'findme',
+			'sites' => 'all'
+		);
+		$query = new WP_Query( $args );
+		$this->assertEquals( 0, $query->post_count );
+		$this->assertEquals( 6, count( $query->ep_posts ) );
+
+		$this->assertTrue( ! empty( $query->ep_posts[1]->ID ) );
+		$this->assertTrue( 0 === $query->ep_posts[1]->post_parent );
+		$this->assertTrue( ! empty( $query->ep_posts[1]->site_id ) );
+	}
 }
