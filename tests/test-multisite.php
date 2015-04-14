@@ -525,6 +525,62 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a date query with multiple column range comparison inclusive
+	 */
+	public function testDateQueryMultiColumnInclusive() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'column' => 'post_date',
+					'before' => 'January 5th 2012',
+				),
+				array(
+					'column' => 'post_date',
+					'after'  => 'January 5th 2012',
+				),
+				'inclusive' => true,
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+	/**
+	 * Test a date query with multiple column range comparison not inclusive
+	 */
+	public function testDateQueryMultiColumnNotInclusive() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'column' => 'post_date',
+					'before' => 'January 5th 2012',
+				),
+				array(
+					'column' => 'post_date',
+					'after'  => 'January 5th 2012',
+				),
+				'inclusive' => false,
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 0 );
+		$this->assertEquals( $query->found_posts, 0 );
+	}
+
+	/**
 	 * Test a simple date query search by year, monthnum and day of week
 	 *
 	 */
