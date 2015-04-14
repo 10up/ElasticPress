@@ -83,7 +83,7 @@ function ep_create_date_query_posts() {
 
 		$post_date = strtotime( "January 6th, 2012" );
 
-		for( $i = 1; $i <= 10; ++$i ) {
+		for( $i = 0; $i <= 10; ++$i ) {
 
 			ep_create_and_sync_post( array(
 				'post_title' => 'post_title' . $site['blog_id'],

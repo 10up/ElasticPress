@@ -262,8 +262,8 @@ class EP_WP_Date_Query extends WP_Date_Query {
 					}
 				} else if ( 'BETWEEN' === $compare ) {
 					$range_filter["date_terms.{$param}"]       = array();
-					$range_filter["date_terms.{$param}"]['gt'] = $value[0];
-					$range_filter["date_terms.{$param}"]['lt'] = $value[1];
+					$range_filter["date_terms.{$param}"]['gte'] = $value[0];
+					$range_filter["date_terms.{$param}"]['lte'] = $value[1];
 					$filter_parts['range_filters']             = $range_filter;
 				} else if ( 'NOT BETWEEN' === $compare ) {
 					$range_filter["date_terms.{$param}"]       = array();
