@@ -598,6 +598,31 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a date query with BETWEEN comparison on 1 day range
+	 *
+	 */
+	public function testDateQueryShortBetween() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array (
+					'day'	=> array( 5, 5 ),
+					'compare'	=> 'BETWEEN',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
 	 * Test a date query with multiple range comparisons
 	 *
 	 * Currently created posts don't have that many date based differences
