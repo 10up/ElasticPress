@@ -380,7 +380,7 @@ class EP_API {
 			'permalink'         => get_permalink( $post_id ),
 			'terms'             => $this->prepare_terms( $post ),
 			'post_meta'         => $this->prepare_meta( $post ),
-			'date_terms'        => $this->prepare_date_terms( $post_date_gmt ),
+			'date_terms'        => $this->prepare_date_terms( $post_date ),
 			//'site_id'         => get_current_blog_id(),
 		);
 
