@@ -803,6 +803,29 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test date query where posts are only pulled from weekdays
+	 */
+	public function testDateQueryWeekdayRange() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'dayofweek' => array( 2, 6 ),
+					'compare'   => 'BETWEEN',
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( 15, $query->post_count );
+		$this->assertEquals( 15, $query->found_posts );
+	}
+
+	/**
 	 * Test a tax query search
 	 *
 	 * @since 1.0
