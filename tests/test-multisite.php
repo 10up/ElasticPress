@@ -714,6 +714,64 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a date query with multiple range comparisons where before and after are
+	 * structured differently. Test inclusive range.
+	 */
+	public function testDateQueryInclusiveTypeMix() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'after'     => 'January 4, 2012',
+					'before'    => array(
+						'year'  => 2012,
+						'month' => 1,
+						'day'   => 5,
+					),
+					'inclusive' => true,
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 6 );
+		$this->assertEquals( $query->found_posts, 6 );
+	}
+
+	/**
+	 * Test a date query with multiple range comparisons where before and after are
+	 * structured differently. Test exclusive range.
+	 */
+	public function testDateQueryExclusiveTypeMix() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'after'     => 'January 4, 2012',
+					'before'    => array(
+						'year'  => 2012,
+						'month' => 1,
+						'day'   => 5,
+					),
+					'inclusive' => false,
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 0 );
+		$this->assertEquals( $query->found_posts, 0 );
+	}
+
+	/**
 	 * Test another date query with multiple range comparisons
 	 */
 	public function testDateQueryCompare2() {
