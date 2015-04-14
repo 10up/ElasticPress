@@ -47,6 +47,8 @@ First, make sure you have Elasticsearch and WP-CLI configured properly.
 define( 'EP_HOST', 'http://192.168.50.4:9200' );
 ```
 
+**Note:** The URL for `EP_HOST` *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
+
 The proceeding sets depend on whether you are configuring for single site or multi-site with cross-site search capabilities.
 
 ### Single Site
