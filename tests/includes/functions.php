@@ -81,15 +81,15 @@ function ep_create_date_query_posts() {
 	foreach ( $sites as $site ) {
 		switch_to_blog( $site['blog_id'] );
 
-		$post_date = strtotime( "January 6th, 2012" );
+		$post_date = strtotime( "January 6th, 2012 11:59PM" );
 
 		for( $i = 0; $i <= 10; ++$i ) {
 
 			ep_create_and_sync_post( array(
 				'post_title' => 'post_title' . $site['blog_id'],
 				'post_content' => 'findme',
-				'post_date'    => date( "Y-m-d H:i:s", strtotime( "-$i days", $post_date ) ),
-				'post_date_gmt' => gmdate( "Y-m-d H:i:s", strtotime( "-$i days", $post_date ) ),
+				'post_date'    => date( "Y-m-d H:i:s", strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+				'post_date_gmt' => gmdate( "Y-m-d H:i:s", strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
 			) );
 
 			ep_refresh_index();
