@@ -9,8 +9,12 @@ require_once( $_tests_dir . '/includes/functions.php' );
 
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-function ep_test_shard_number() {
-	return 1;
+function ep_test_shard_number( $mapping ) {
+	$mapping['settings']['index'] = array(
+		'number_of_shards' => 1,
+	);
+
+	return $mapping;
 }
 
 function _manually_load_plugin() {
@@ -23,7 +27,7 @@ function _manually_load_plugin() {
 
 	require( dirname( __FILE__ ) . '/../elasticpress.php' );
 
-	add_filter( 'ep_default_index_number_of_shards', 'ep_test_shard_number' );
+	add_filter( 'ep_config_mapping', 'ep_test_shard_number' );
 
 	$tries = 5;
 	$sleep = 3;
