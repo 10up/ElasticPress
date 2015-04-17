@@ -269,6 +269,7 @@ class EP_WP_Query_Integration {
 				$post->site_id = $post_array['site_id'];
 			}
 
+			$post->post_author = $post_array['post_author']['id'];
 			$post->post_type = $post_array['post_type'];
 			$post->post_name = $post_array['post_name'];
 			$post->post_status = $post_array['post_status'];
