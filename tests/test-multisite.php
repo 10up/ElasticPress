@@ -485,6 +485,9 @@ class EPTestMultisite extends EP_Test_Base {
 						'year' => 2012,
 						'day' => 2,
 						'month' => 1,
+						'hour' => 23,
+						'minute' => 59,
+						'second' => 59
 					),
 					'inclusive' => true,
 				),
@@ -520,8 +523,9 @@ class EPTestMultisite extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( $query->post_count, 9 );
-		$this->assertEquals( $query->found_posts, 9 );
+
+		$this->assertEquals( $query->post_count, 12 );
+		$this->assertEquals( $query->found_posts, 12 );
 	}
 
 	/**
@@ -537,11 +541,11 @@ class EPTestMultisite extends EP_Test_Base {
 			'date_query' => array(
 				array(
 					'column' => 'post_date',
-					'before' => 'January 5th 2012',
+					'before' => 'January 5th 2012 11:00PM',
 				),
 				array(
 					'column' => 'post_date',
-					'after'  => 'January 5th 2012',
+					'after'  => 'January 5th 2012 10:00PM',
 				),
 				'inclusive' => true,
 			)
@@ -550,6 +554,39 @@ class EPTestMultisite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 		$this->assertEquals( $query->post_count, 3 );
 		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+
+	/**
+	 * Test a date query with multiple eltries
+	 */
+	public function testDateQueryWorkingHours() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites'			=> 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'hour'      => 9,
+					'compare'   => '>=',
+				),
+				array(
+					'hour'      => 17,
+					'compare'   => '<=',
+				),
+				array(
+					'dayofweek' => array( 2, 6 ),
+					'compare'   => 'BETWEEN',
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 12 );
+		$this->assertEquals( $query->found_posts, 12 );
 	}
 
 	/**
@@ -731,6 +768,9 @@ class EPTestMultisite extends EP_Test_Base {
 						'year'  => 2012,
 						'month' => 1,
 						'day'   => 5,
+						'hour'	=> 23,
+						'minute' => 0,
+						'second' => 0
 					),
 					'inclusive' => true,
 				),
@@ -755,7 +795,7 @@ class EPTestMultisite extends EP_Test_Base {
 			'posts_per_page' => 100,
 			'date_query' => array(
 				array(
-					'after'     => 'January 4, 2012',
+					'after'     => 'January 4, 2012 10:00PM',
 					'before'    => array(
 						'year'  => 2012,
 						'month' => 1,
