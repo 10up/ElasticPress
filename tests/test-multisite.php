@@ -1443,6 +1443,46 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test post object data
+	 *
+	 * @since 1.4
+	 */
+	public function testPostObject() {
+		$sites = ep_get_sites();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $site['blog_id'] ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $site['blog_id'] ) );
+
+			ep_refresh_index();
+
+			restore_current_blog();
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 10,
+		);
+
+		$query = new WP_Query( $args );
+
+
+		$this->assertEquals( 6, $query->post_count );
+		$this->assertEquals( 6, $query->found_posts );
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			global $post;
+
+			$this->assertEquals( $post->site_id, $post->post_author );
+		}
+		wp_reset_postdata();
+	}
+
+	/**
 	 * Test index_exists helper function
 	 */
 	public function testIndexExists() {
