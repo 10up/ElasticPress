@@ -297,7 +297,7 @@ class EP_WP_Query_Integration {
 
 		// if multisite is enabled get post object for each site
 		if( is_multisite() ) {
-			$new_posts = $this->fetch_wp_post_object( $new_posts );
+			$new_posts = $this->fill_post_objects( $new_posts );
 		}
 
 
@@ -317,9 +317,11 @@ class EP_WP_Query_Integration {
 	 * for WP_Post object
 	 *
 	 * @param  array $post_list list of found post objects
+	 *
+	 * @since  1.4
 	 * @return array            list of WP_Post objects
 	 */
-	public function fetch_wp_post_object( $post_list ) {
+	public function fill_post_objects( $post_list ) {
 		$post_objs = array();
 		$posts_ordered = array();
 		$grouped = array();
@@ -329,7 +331,7 @@ class EP_WP_Query_Integration {
 		foreach ( $post_list as $post_data ) {
 			$grouped[$post_data->site_id][] = $post_data;
 			// use this to keep the initial order of posts
-			$order[] = md5( $post_data->ID . ' ' . $post_data->post_date_gmt . ' ' . $post_data->site_id );
+			$order[] = $post_data->ID . '-' . $post_data->site_id;
 		}
 
 		foreach ( $grouped as $site_id => $post_data ) {
@@ -352,7 +354,7 @@ class EP_WP_Query_Integration {
 
 		// retrive initial order of posts
 		foreach ( $post_objs as $current_index => $post_obj ) {
-			$index = array_search ( md5( $post_obj->ID . ' ' . $post_obj->post_date_gmt . ' ' . $post_obj->site_id ), $order );
+			$index = array_search ( $post_obj->ID . '-' . $post_obj->site_id, $order );
 			$posts_ordered[$index] = $post_objs[$current_index];
 		}
 
