@@ -69,7 +69,9 @@ class EP_API {
 	 * @return bool
 	 */
 	public function refresh_index() {
-		$request = wp_remote_request( ep_get_index_url() . '/_refresh', array( 'method' => 'POST', 'headers' => $this->format_request_headers() ) );
+		$request_args = array( 'method' => 'POST', 'headers' => $this->format_request_headers() );
+
+		$request = wp_remote_request( ep_get_index_url() . '/_refresh', apply_filters( 'ep_refresh_index_request_args', $request_args ) );
 
 		if ( ! is_wp_error( $request ) ) {
 			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
@@ -253,7 +255,9 @@ class EP_API {
 	public function delete_network_alias() {
 		$url = untrailingslashit( EP_HOST ) . '/*/_alias/' . ep_get_network_alias();
 
-		$request = wp_remote_request( $url, array( 'method' => 'DELETE', 'headers' => $this->format_request_headers() ) );
+		$request_args = array( 'method' => 'DELETE', 'headers' => $this->format_request_headers() );
+
+		$request = wp_remote_request( $url, apply_filters( 'ep_delete_network_alias_request_args', $request_args ) );
 
 		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -287,7 +291,9 @@ class EP_API {
 			);
 		}
 
-		$request = wp_remote_request( $url, array( 'body' => json_encode( $args ), 'method' => 'POST', 'headers' => $this->format_request_headers() ) );
+		$request_args = array( 'body' => json_encode( $args ), 'method' => 'POST', 'headers' => $this->format_request_headers() );
+
+		$request = wp_remote_request( $url, apply_filters( 'ep_create_network_alias_request_args', $request_args, $args, $indexes ) );
 
 		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -564,7 +570,9 @@ class EP_API {
 	public function index_exists( $index_name = null ) {
 		$index_url = ep_get_index_url( $index_name );
 
-		$request = wp_remote_head( $index_url, array( 'headers' => $this->format_request_headers() ) );
+		$request_args = array( 'headers' => $this->format_request_headers() );
+
+		$request = wp_remote_head( $index_url, apply_filters( 'ep_index_exists_request_args', $request_args, $index_name ) );
 
 		// 200 means the index exists
 		// 404 means the index was non-existent
@@ -1216,7 +1224,9 @@ class EP_API {
 
 		$url = EP_HOST;
 
-		$request = wp_remote_request( $url );
+		$request_args = array( 'headers' => $this->format_request_headers() );
+
+		$request = wp_remote_request( $url, apply_filters( 'ep_es_alive_request_args', $request_args ) );
 
 		if ( ! is_wp_error( $request ) ) {
 			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
