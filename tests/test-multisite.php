@@ -585,8 +585,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( $query->post_count, 12 );
-		$this->assertEquals( $query->found_posts, 12 );
+		$this->assertEquals( $query->post_count, 15 );
+		$this->assertEquals( $query->found_posts, 15 );
 	}
 
 	/**
@@ -861,8 +861,8 @@ class EPTestMultisite extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( 15, $query->post_count );
-		$this->assertEquals( 15, $query->found_posts );
+		$this->assertEquals( 27, $query->post_count );
+		$this->assertEquals( 27, $query->found_posts );
 	}
 
 	/**

@@ -451,7 +451,7 @@ class EP_API {
 			'week' => (int) date( "W", $timestamp),
 			'dayofyear' => (int) date( "z", $timestamp),
 			'day' => (int) date( "d", $timestamp),
-			'dayofweek' => (int) date( "d", $timestamp),
+			'dayofweek' => (int) date( "w", $timestamp),
 			'dayofweek_iso' => (int) date( "N", $timestamp),
 			'hour' => (int) date( "H", $timestamp),
 			'minute' => (int) date( "i", $timestamp),
