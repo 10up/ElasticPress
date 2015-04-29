@@ -325,13 +325,19 @@ The following are special parameters that are only supported by ElasticPress.
     ) );
     ```
     
-    Get all posts with a specific category
+    Get all posts with a specific category slug
     ```php
     new WP_Query( array(
         'ep_integrate'   => true,
         'post_type'      => 'post',
         'posts_per_page' => -1,
-        'category'       => 5,
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'category',
+                'terms'    => array( 'term-slug' ),
+                'field'    => 'slug',
+            ),
+        ),
     ) );
     ```
 
