@@ -107,6 +107,113 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
     ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
 
+* The following shorthand paremeters can be used for querying posts for specific date
+        * ```year``` (int) - 4 digit year (e.g. 2011).
+        * ```month``` or ```monthnum``` (int) - Month number (from 1 to 12).
+        * ```week``` (int) - Week of the year (from 0 to 53).
+        * ```day``` (int) - Day of the month (from 1 to 31).
+        * ```dayofyear``` (int) - Day of the month (from 1 to 365 or 366 for leap year).
+        * ```hour``` (int) - Hour (from 0 to 23).
+        * ```minute``` (int) - Minute (from 0 to 59).
+        * ```second``` (int) - Second (0 to 59).
+        * ```dayofweek``` (int|array) - Weekday number, when week starts at Sunday (1 to 7).
+        * ```dayofweek_iso```  (int|array) - Weekday number, when week starts at Monday (1 to 7).
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'sites' => 'all',
+        'date_query' => array(
+            array(
+                'year'  => 2012,
+                'monthnum' => 1,
+                'day'   => 1,
+            )
+        ) ) );
+    ```
+    The above is simple date query example which will return posts which are created on January 1st of 2012 from all sites.
+
+* ```date_query``` (*array*)
+    ```date_query``` accepts array of ```keys```(string) and ```values``` (array|string|int) to find posts created on specific date/time and array of arrays with ```keys``` (string), ```values``` (array|string|int|boolean) and the follwoing parameters ```after```, ```before```, ```inclusive```, ```compare```, ```column```, ```relation```
+
+    ```column``` is used to query specific column from wp_posts table
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'date_query' => array(
+            array(
+                'column' => 'post_date',
+                'after' => 'January 1st 2012',
+            ),
+            array(
+                'column' => 'post_date_gmt',
+                'after'  => 'January 3rd 2012 8AM',
+            ),
+    ) ) );
+    ```
+
+    Will return posts which are created after January 1st 2012 and January 3rd 2012 8AM GMT.
+    NOTE: Currently only ```AND``` value is supported for ```relation``` parameter.
+
+    ```inclusive``` is used after/before options, whether exact value should be matched or not.
+    NOTE: If inclusive is used and you pass in sting without specific time it will be converted to 00:00:00 on that date.
+    In this case, even if inclusive was set to true, the date would not be included in the query. If you want to include that specific date, you need to pass the time as well. (e.g. 'before' => '2012-01-03 23:59:59' )
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'date_query' => array(
+            array(
+                'column' => 'post_date',
+                'before' => 'January 5th 2012 11:00PM',
+            ),
+            array(
+                'column' => 'post_date',
+                'after'  => 'January 5th 2012 10:00PM',
+            ),
+            'inclusive' => true,
+    ) ) );
+    ```
+
+    The example will return all posts which are created on January 5th 2012 after 10:00PM and 11:00PM inclusivly, because the time is specified.
+
+
+    ```compare``` supports the following options
+        * ```=``` - Posts will be returned that are created on specified date
+        * ```!=``` - Posts will be returned that are not created on  specified date
+        * ```>``` - Posts will be returned that are created after specified date
+        * ```>=``` - Posts will be returned that are created on specified date or after
+        * ```<``` - Posts will be returned that  are created before specified date
+        * ```<=``` - Posts will be returned that are created on specified date or before that
+        * ```BETWEEN``` - Posts will be returned that are created between specified range
+        * ```NOT BETWEEN``` - Posts will be returned that are created not in specified range
+        * ```IN``` - Posts will be returned that are created on any of the specified dates
+        * ```NOT IN``` - Posts will be returned that are not created on any of the specified dates
+
+    ```compare``` can be combined with shorthand parameters as well as with ```after``` and ```before```
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'date_query' => array(
+            array(
+                'hour'      => 9,
+                'compare'   => '>=',
+            ),
+            array(
+                'hour'      => 17,
+                'compare'   => '<=',
+            ),
+            array(
+                'dayofweek' => array( 2, 6 ),
+                'compare'   => 'BETWEEN',
+            ),
+    ) ) );
+    ```
+
+    This example will return all posts which are created during Monday to Friday, between 9AM to 5PM.
+
 * ```meta_query``` (*array*)
 
     Filter posts by post meta conditions. Takes an array of form:
