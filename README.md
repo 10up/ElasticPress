@@ -127,13 +127,10 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     new WP_Query( array(
         's' => 'search phrase',
         'sites' => 'all',
-        'date_query' => array(
-            array(
-                'year'  => 2012,
-                'monthnum' => 1,
-                'day'   => 1,
-            )
-        ) ) );
+        'year'  => 2012,
+        'monthnum' => 1,
+        'day'   => 1,
+    ) );
     ```
 
 * ```date_query``` (*array*)
@@ -158,7 +155,8 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
                 'column' => 'post_date_gmt',
                 'after'  => 'January 3rd 2012 8AM',
             ),
-    ) ) );
+        ),
+    ) );
     ```
 
     Currently only the ```AND``` value is supported for the ```relation``` parameter.
@@ -184,7 +182,8 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
                 'after'  => 'January 5th 2012 10:00PM',
             ),
             'inclusive' => true,
-    ) ) );
+        ),
+    ) );
     ```
 
     ```compare``` supports the following options:
@@ -219,7 +218,8 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
                 'dayofweek' => array( 2, 6 ),
                 'compare'   => 'BETWEEN',
             ),
-    ) ) );
+        ),
+    ) );
     ```
 
 * ```meta_query``` (*array*)
