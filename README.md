@@ -108,6 +108,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
 
 * The following shorthand paremeters can be used for querying posts for specific date
+
         * ```year``` (int) - 4 digit year (e.g. 2011).
         * ```month``` or ```monthnum``` (int) - Month number (from 1 to 12).
         * ```week``` (int) - Week of the year (from 0 to 53).
@@ -118,6 +119,8 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
         * ```second``` (int) - Second (0 to 59).
         * ```dayofweek``` (int|array) - Weekday number, when week starts at Sunday (1 to 7).
         * ```dayofweek_iso```  (int|array) - Weekday number, when week starts at Monday (1 to 7).
+
+    This is a simple date query example which will return posts which are created on January 1st of 2012 from all sites:
 
     ```php
     new WP_Query( array(
@@ -131,7 +134,6 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
             )
         ) ) );
     ```
-    The above is simple date query example which will return posts which are created on January 1st of 2012 from all sites.
 
 * ```date_query``` (*array*)
     ```date_query``` accepts array of ```keys```(string) and ```values``` (array|string|int) to find posts created on specific date/time and array of arrays with ```keys``` (string), ```values``` (array|string|int|boolean) and the follwoing parameters ```after```, ```before```, ```inclusive```, ```compare```, ```column```, ```relation```
