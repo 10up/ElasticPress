@@ -3,6 +3,10 @@ ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
+**Please note:** the master branch is the stable branch
+
+**Latest stable release:** [1.4](https://github.com/10up/ElasticPress/releases/tag/v1.4)
+
 ## Background
 
 Let's face it, WordPress search is rudimentary at best. Poor performance, inflexible and rigid matching algorithms (which means no comprehension of 'close' queries), the inability to search metadata and taxonomy information, no way to determine categories of your results and most importantly the overall relevancy of results is poor.
@@ -42,6 +46,8 @@ First, make sure you have Elasticsearch and WP-CLI configured properly.
 ```php
 define( 'EP_HOST', 'http://192.168.50.4:9200' );
 ```
+
+**Note:** The URL for `EP_HOST` *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
 
 The proceeding sets depend on whether you are configuring for single site or multi-site with cross-site search capabilities.
 
@@ -99,7 +105,120 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ) );
     ```
 
-    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
+    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and
+    ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
+
+* The following shorthand parameters can be used for querying posts by specific dates:
+
+    * ```year``` (int) - 4 digit year (e.g. 2011).
+    * ```month``` or ```monthnum``` (int) - Month number (from 1 to 12).
+    * ```week``` (int) - Week of the year (from 0 to 53).
+    * ```day``` (int) - Day of the month (from 1 to 31).
+    * ```dayofyear``` (int) - Day of the month (from 1 to 365 or 366 for leap year).
+    * ```hour``` (int) - Hour (from 0 to 23).
+    * ```minute``` (int) - Minute (from 0 to 59).
+    * ```second``` (int) - Second (0 to 59).
+    * ```dayofweek``` (int|array) - Weekday number, when week starts at Sunday (1 to 7).
+    * ```dayofweek_iso```  (int|array) - Weekday number, when week starts at Monday (1 to 7).
+
+    This is a simple example which will return posts which are created on January 1st of 2012 from all sites:
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'sites' => 'all',
+        'year'  => 2012,
+        'monthnum' => 1,
+        'day'   => 1,
+    ) );
+    ```
+
+* ```date_query``` (*array*)
+
+    ```date_query``` accepts an array of keys and values (array|string|int) to find posts created on
+    specific dates/times as well as an array of arrays with keys and values (array|string|int|boolean)
+    containing the following parameters ```after```, ```before```, ```inclusive```, ```compare```, ```column```, and
+    ```relation```. ```column``` is used to query specific columns from the ```wp_posts``` table. This will return posts
+    which are created after January 1st 2012 and January 3rd 2012 8AM GMT:
+    
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'date_query' => array(
+            array(
+                'column' => 'post_date',
+                'after' => 'January 1st 2012',
+            ),
+            array(
+                'column' => 'post_date_gmt',
+                'after'  => 'January 3rd 2012 8AM',
+            ),
+        ),
+    ) );
+    ```
+    
+    Currently only the ```AND``` value is supported for the ```relation``` parameter.
+
+    ```inclusive``` is used on after/before options to determine whether exact value should be matched or not. If inclusive is used
+    and you pass in sting without specific time, it will be converted to 00:00:00 on that date. In this case, even if
+    inclusive was set to true, the date would not be included in the query. If you want to include that specific date,
+    you need to pass the time as well. (e.g. 'before' => '2012-01-03 23:59:59')
+
+    The example will return all posts which are created on January 5th 2012 after 10:00PM and 11:00PM inclusively,
+    because the time is specified:
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'date_query' => array(
+            array(
+                'column' => 'post_date',
+                'before' => 'January 5th 2012 11:00PM',
+            ),
+            array(
+                'column' => 'post_date',
+                'after'  => 'January 5th 2012 10:00PM',
+            ),
+            'inclusive' => true,
+        ),
+    ) );
+    ```
+
+    ```compare``` supports the following options:
+
+    * ```=``` - Posts will be returned that are created on a specified date.
+    * ```!=``` - Posts will be returned that are not created on a specified date.
+    * ```>``` - Posts will be returned that are created after a specified date.
+    * ```>=``` - Posts will be returned that are created on a specified date or after.
+    * ```<``` - Posts will be returned that are created before a specified date.
+    * ```<=``` - Posts will be returned that are created on a specified date or before that.
+    * ```BETWEEN``` - Posts will be returned that are created between a specified range.
+    * ```NOT BETWEEN``` - Posts will be returned that are created not in a specified range.
+    * ```IN``` - Posts will be returned that are created on any of the specified dates.
+    * ```NOT IN``` - Posts will be returned that are not created on any of the specified dates.
+
+    ```compare``` can be combined with shorthand parameters as well as with ```after``` and ```before```. This example
+    will return all posts which are created during Monday to Friday, between 9AM to 5PM:
+
+    ```php
+    new WP_Query( array(
+        's' => 'search phrase',
+        'date_query' => array(
+            array(
+                'hour'      => 9,
+                'compare'   => '>=',
+            ),
+            array(
+                'hour'      => 17,
+                'compare'   => '<=',
+            ),
+            array(
+                'dayofweek' => array( 2, 6 ),
+                'compare'   => 'BETWEEN',
+            ),
+        ),
+    ) );
+    ```
 
 * ```meta_query``` (*array*)
 
@@ -122,6 +241,10 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
       * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
       * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+      * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
+      * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
+      * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
+      * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
       * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
       * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
 

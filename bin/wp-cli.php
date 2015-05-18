@@ -443,6 +443,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					WP_CLI::log( $email_text );
 				}
 			}
+			// clear failed posts after sending emails
+			$this->failed_posts = array();
 		}
 	}
 
@@ -479,16 +481,20 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}
-		$body          = json_decode( wp_remote_retrieve_body( $request ), true );
-		$current_index = ep_get_index_name();
+		$body  = json_decode( wp_remote_retrieve_body( $request ), true );
+		$sites = ( is_multisite() ) ? ep_get_sites() : array( 'blog_id' => get_current_blog_id() );
 
-		if ( isset( $body['indices'][$current_index] ) ) {
-			WP_CLI::log( '====== Stats for: ' . $current_index . " ======" );
-			WP_CLI::log( 'Documents:  ' . $body['indices'][$current_index]['total']['docs']['count'] );
-			WP_CLI::log( 'Index Size: ' . size_format( $body['indices'][$current_index]['total']['store']['size_in_bytes'], 2 ) );
-			WP_CLI::log( '====== End Stats ======' );
-		} else {
-			WP_CLI::warning( $current_index . ' is not currently indexed.' );
+		foreach ( $sites as $site ) {
+			$current_index = ep_get_index_name( $site['blog_id'] );
+
+			if (isset( $body['indices'][$current_index] ) ) {
+				WP_CLI::log( '====== Stats for: ' . $current_index . " ======" );
+				WP_CLI::log( 'Documents:  ' . $body['indices'][$current_index]['total']['docs']['count'] );
+				WP_CLI::log( 'Index Size: ' . size_format($body['indices'][$current_index]['total']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( '====== End Stats ======' );
+			} else {
+				WP_CLI::warning( $current_index . ' is not currently indexed.' );
+			}
 		}
 	}
 

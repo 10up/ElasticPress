@@ -419,6 +419,453 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a simple date param search by date and monthnum
+	 *
+	 */
+	public function testSimpleDateMonthNum() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'monthnum' => 12,
+			'posts_per_page' => 100,
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 15 );
+		$this->assertEquals( $query->found_posts, 15 );
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'day' => 5,
+			'posts_per_page' => 100,
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+	/**
+	 * Test a simple date param search by day number of week
+	 *
+	 */
+	public function testSimpleDateDay() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'day' => 5,
+			'posts_per_page' => 100,
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+	/**
+	 * Test a date query with before and after range
+	 *
+	 */
+	public function testDateQueryBeforeAfter() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'after'     => 'January 1st, 2012',
+					'before'    => array(
+						'year' => 2012,
+						'day' => 2,
+						'month' => 1,
+						'hour' => 23,
+						'minute' => 59,
+						'second' => 59
+					),
+					'inclusive' => true,
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 6 );
+		$this->assertEquals( $query->found_posts, 6 );
+	}
+
+	/**
+	 * Test a date query with multiple column range comparison
+	 *
+	 */
+	public function testDateQueryMultiColumn() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'column' => 'post_date',
+					'after' => 'January 1st 2012',
+				),
+				array(
+					'column' => 'post_date_gmt',
+					'after'  => 'January 3rd 2012 8AM',
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 12 );
+		$this->assertEquals( $query->found_posts, 12 );
+	}
+
+	/**
+	 * Test a date query with multiple column range comparison inclusive
+	 */
+	public function testDateQueryMultiColumnInclusive() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'column' => 'post_date',
+					'before' => 'January 5th 2012 11:00PM',
+				),
+				array(
+					'column' => 'post_date',
+					'after'  => 'January 5th 2012 10:00PM',
+				),
+				'inclusive' => true,
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+
+	/**
+	 * Test a date query with multiple eltries
+	 */
+	public function testDateQueryWorkingHours() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites'			=> 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'hour'      => 9,
+					'compare'   => '>=',
+				),
+				array(
+					'hour'      => 17,
+					'compare'   => '<=',
+				),
+				array(
+					'dayofweek' => array( 2, 6 ),
+					'compare'   => 'BETWEEN',
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 15 );
+		$this->assertEquals( $query->found_posts, 15 );
+	}
+
+	/**
+	 * Test a date query with multiple column range comparison not inclusive
+	 */
+	public function testDateQueryMultiColumnNotInclusive() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'column' => 'post_date',
+					'before' => 'January 5th 2012',
+				),
+				array(
+					'column' => 'post_date',
+					'after'  => 'January 5th 2012',
+				),
+				'inclusive' => false,
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 0 );
+		$this->assertEquals( $query->found_posts, 0 );
+	}
+
+	/**
+	 * Test a simple date query search by year, monthnum and day of week
+	 *
+	 */
+	public function testDateQuerySimple() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'year'  => 2012,
+					'monthnum' => 1,
+					'day'   => 1,
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 3 );
+		$this->assertEquals( $query->found_posts, 3 );
+	}
+
+	/**
+	 * Test a date query with BETWEEN comparison
+	 *
+	 */
+	public function testDateQueryBetween() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array (
+					'day'	=> array( 1, 5 ),
+					'compare'	=> 'BETWEEN',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 15 );
+		$this->assertEquals( $query->found_posts, 15 );
+	}
+
+	/**
+	 * Test a date query with NOT BETWEEN comparison
+	 *
+	 */
+	public function testDateQueryNotBetween() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array (
+					'day'	=> array( 1, 5 ),
+					'compare'	=> 'NOT BETWEEN',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 24 );
+		$this->assertEquals( $query->found_posts, 24 );
+	}
+
+	/**
+	 * Test a date query with BETWEEN comparison on 1 day range
+	 *
+	 */
+	public function testDateQueryShortBetween() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array (
+					'day'	=> array( 5, 5 ),
+					'compare'	=> 'BETWEEN',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Test a date query with multiple range comparisons
+	 *
+	 * Currently created posts don't have that many date based differences
+	 * for this test
+	 *
+	 */
+	public function testDateQueryCompare() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'monthnum'      => 1,
+					'compare'   => '<=',
+				),
+				array(
+					'year'      => 2012,
+					'compare'   => '>=',
+				),
+				array(
+					'day' => array( 2, 5 ),
+					'compare'   => 'BETWEEN',
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 12 );
+		$this->assertEquals( $query->found_posts, 12 );
+	}
+
+	/**
+	 * Test a date query with multiple range comparisons where before and after are
+	 * structured differently. Test inclusive range.
+	 */
+	public function testDateQueryInclusiveTypeMix() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'after'     => 'January 4, 2012',
+					'before'    => array(
+						'year'  => 2012,
+						'month' => 1,
+						'day'   => 5,
+						'hour'	=> 23,
+						'minute' => 0,
+						'second' => 0
+					),
+					'inclusive' => true,
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 6 );
+		$this->assertEquals( $query->found_posts, 6 );
+	}
+
+	/**
+	 * Test a date query with multiple range comparisons where before and after are
+	 * structured differently. Test exclusive range.
+	 */
+	public function testDateQueryExclusiveTypeMix() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'after'     => 'January 4, 2012 10:00PM',
+					'before'    => array(
+						'year'  => 2012,
+						'month' => 1,
+						'day'   => 5,
+					),
+					'inclusive' => false,
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( $query->post_count, 0 );
+		$this->assertEquals( $query->found_posts, 0 );
+	}
+
+	/**
+	 * Test another date query with multiple range comparisons
+	 */
+	public function testDateQueryCompare2() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'monthnum'  => 1,
+					'compare'   => '<=',
+				),
+				array(
+					'year'      => 2012,
+					'compare'   => '>=',
+				),
+				array(
+					'day' => array( 5, 6 ),
+					'compare'   => 'BETWEEN',
+				),
+			)
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( 6, $query->post_count );
+		$this->assertEquals( 6, $query->found_posts );
+	}
+
+	/**
+	 * Test date query where posts are only pulled from weekdays
+	 */
+	public function testDateQueryWeekdayRange() {
+		ep_create_date_query_posts();
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 100,
+			'date_query' => array(
+				array(
+					'dayofweek' => array( 2, 6 ),
+					'compare'   => 'BETWEEN',
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+		$this->assertEquals( 27, $query->post_count );
+		$this->assertEquals( 27, $query->found_posts );
+	}
+
+	/**
 	 * Test a tax query search
 	 *
 	 * @since 1.0
@@ -1226,5 +1673,76 @@ class EPTestMultisite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertTrue( empty( $query->posts ) );
+	}
+
+	/**
+	 * Test post object data
+	 *
+	 * @since 1.4
+	 */
+	public function testPostObject() {
+		$sites = ep_get_sites();
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $site['blog_id'] ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $site['blog_id'] ) );
+
+			ep_refresh_index();
+
+			restore_current_blog();
+		}
+
+		$args = array(
+			's' => 'findme',
+			'sites' => 'all',
+			'posts_per_page' => 10,
+		);
+
+		$query = new WP_Query( $args );
+
+
+		$this->assertEquals( 6, $query->post_count );
+		$this->assertEquals( 6, $query->found_posts );
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			global $post;
+
+			$this->assertEquals( $post->site_id, $post->post_author );
+		}
+		wp_reset_postdata();
+	}
+
+	/**
+	 * Test index_exists helper function
+	 */
+	public function testIndexExists() {
+		$sites = ep_get_sites();
+
+		$first_site_index = ep_get_index_name( $sites[0]['blog_id'] );
+		$index_should_exist = ep_index_exists( $first_site_index );
+		$index_should_not_exist = ep_index_exists( $first_site_index . 2 );
+
+		$this->assertTrue( $index_should_exist );
+		$this->assertFalse( $index_should_not_exist );
+	}
+
+	/**
+	 * Tests Deletion of index when a blog is deleted
+	 */
+	public function testDeleteIndex( ) {
+		$index_count = ep_count_indexes();
+
+		$count_indexes = $index_count['total_indexes'];
+		$last_blog_id = $index_count['last_blog_id_with_index'];
+
+		wpmu_delete_blog( $last_blog_id );
+
+		$post_delete_count = ep_count_indexes();
+		$post_count_indexes = $post_delete_count['total_indexes'];
+
+		$this->assertNotEquals( $count_indexes, $post_count_indexes );
 	}
 }
