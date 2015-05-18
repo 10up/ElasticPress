@@ -158,7 +158,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
         ),
     ) );
     ```
-
+    
     Currently only the ```AND``` value is supported for the ```relation``` parameter.
 
     ```inclusive``` is used on after/before options to determine whether exact value should be matched or not. If inclusive is used
