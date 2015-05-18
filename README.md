@@ -5,7 +5,7 @@ Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http:/
 
 **Please note:** the master branch is the stable branch
 
-**Latest stable release:** [1.3](https://github.com/10up/ElasticPress/releases/tag/v1.3)
+**Latest stable release:** [1.4](https://github.com/10up/ElasticPress/releases/tag/v1.4)
 
 ## Background
 

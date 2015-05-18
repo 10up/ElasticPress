@@ -4,8 +4,8 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
-Tested up to: 4.2
-Stable tag: 1.3.1
+Tested up to: 4.3
+Stable tag: 1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,8 +58,27 @@ configuring single site and multi-site cross-site search are slightly different.
 
 == Changelog ==
 
+= 1.4 =
+
+### Bug Fixes:
+
+* Duplicate sync post hooks separated. Props [superdummy](https://github.com/superdummy)
+* Don't send empty index error emails. Props [cmmarslender](https://github.com/cmmarslender)
+* Remove default shard and indices configuration numbers but maintain backwards compatibility. Props [zamoose](https://github.com/zamoose)
+* Fix wrong author ID in post data. Props [eduardmaghakyan](https://github.com/eduardmaghakyan)
+
+### Enhancements:
+
+* `date_query` and date parameters now supported in WP_Query. Props [joeyblake](https://github.com/joeyblake) and [eduardmaghakyan](https://github.com/eduardmaghakyan)
+* Make all request headers filterable
+* Add EP API key to all requests as a header if a constant is defined. Props [zamoose](https://github.com/zamoose)
+* Add index exists function; remove indexes on blog deletion/deactivation. Props [joeyblake](https://github.com/joeyblake)
+* Refactor wp-cli stats for multisite. Props [jaace](https://github.com/jaace)
+* Index mappings array moved to separate file. Props [mikaelmattsson](https://github.com/mikaelmattsson)
+* Support meta inequality comparisons. Props [psorensen](https://github.com/psorensen)
+
 = 1.3.1 =
-* Support `date` in WP_Query `orderby`.
+* Support `date` in WP_Query `orderby`. Props [psorensen](https://github.com/psorensen)
 
 = 1.3 =
 * Support `meta_query` in WP_Query integration
