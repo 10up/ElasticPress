@@ -140,9 +140,9 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     containing the following parameters ```after```, ```before```, ```inclusive```, ```compare```, ```column```, and
     ```relation```.
 
-    ```column``` is used to query specific column from ```wp_posts``` table. This will return posts which are created after
-    January 1st 2012 and January 3rd 2012 8AM GMT:
-
+    ```column``` is used to query specific column from ```wp_posts``` table. This will return posts which are
+    created after January 1st 2012 and January 3rd 2012 8AM GMT:
+    
     ```php
     new WP_Query( array(
         's' => 'search phrase',
