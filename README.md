@@ -138,7 +138,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ```date_query``` accepts an array of keys and values (array|string|int) to find posts created on
     specific dates/times as well as an array of arrays with keys and values (array|string|int|boolean)
     containing the following parameters ```after```, ```before```, ```inclusive```, ```compare```, ```column```, and
-    ```relation```. ```column``` is used to query specific column from ```wp_posts``` table. This will return posts
+    ```relation```. ```column``` is used to query specific columns from the ```wp_posts``` table. This will return posts
     which are created after January 1st 2012 and January 3rd 2012 8AM GMT:
     
     ```php
@@ -160,9 +160,9 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     Currently only the ```AND``` value is supported for the ```relation``` parameter.
 
     ```inclusive``` is used on after/before options to determine whether exact value should be matched or not. If inclusive is used
-    and you pass in sting without specific time it will be converted to 00:00:00 on that date. In this case, even if
+    and you pass in sting without specific time, it will be converted to 00:00:00 on that date. In this case, even if
     inclusive was set to true, the date would not be included in the query. If you want to include that specific date,
-    you need to pass the time as well. (e.g. 'before' => '2012-01-03 23:59:59' )
+    you need to pass the time as well. (e.g. 'before' => '2012-01-03 23:59:59')
 
     The example will return all posts which are created on January 5th 2012 after 10:00PM and 11:00PM inclusively,
     because the time is specified:
