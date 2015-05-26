@@ -7,7 +7,7 @@ Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http:/
 
 **Latest stable release:** [1.4](https://github.com/10up/ElasticPress/releases/tag/v1.4)
 
-__Updgrade Notice: If you are upgrading to 1.4, new date features will not work until you re-index: wp elasticpress index --setup
+*Upgrade Notice: If you are upgrading to 1.4, new date features will not work until you re-index: wp elasticpress index --setup*
 
 ## Background
 
