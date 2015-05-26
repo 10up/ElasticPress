@@ -175,7 +175,7 @@ class EP_WP_Date_Query extends WP_Date_Query {
 
 		$compare = $this->get_compare( $query );
 
-		$inclusive = ! empty( $query['inclusive'] );
+		$inclusive = ! empty( $query['inclusive'] ) && $query['inclusive'] === true ? true : false;
 
 		// Assign greater- and less-than values.
 		$lt = 'lt';
