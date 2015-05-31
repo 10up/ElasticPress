@@ -877,6 +877,17 @@ class EP_API {
 							}
 
 							break;
+						case 'like':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'query' => array(
+										"match" => array(
+											'post_meta.' . $single_meta_query['key'] => $single_meta_query['value'],
+										)
+									),
+								);
+							}
+							break;
 						case '=':
 						default:
 							if ( isset( $single_meta_query['value'] ) ) {
