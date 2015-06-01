@@ -274,7 +274,9 @@ class EP_WP_Query_Integration {
 			$post->post_status = $post_array['post_status'];
 			$post->post_title = $post_array['post_title'];
 			$post->post_parent = $post_array['post_parent'];
+			$post->post_excerpt = $post_array['post_excerpt'];
 			$post->post_content = $post_array['post_content'];
+			$post->post_author = $post_array['post_author']['id'];
 			$post->post_date = $post_array['post_date'];
 			$post->post_date_gmt = $post_array['post_date_gmt'];
 			$post->post_modified = $post_array['post_modified'];
