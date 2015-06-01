@@ -166,7 +166,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset]
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -180,6 +180,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$assoc_args['posts-per-page'] = absint( $assoc_args['posts-per-page'] );
 		} else {
 			$assoc_args['posts-per-page'] = 350;
+		}
+		
+		if ( ! empty( $assoc_args['offset'] ) ) {
+			$assoc_args['offset'] = absint( $assoc_args['offset'] );
+		} else {
+			$assoc_args['offset'] = 0;
 		}
 
 		$total_indexed = 0;
@@ -205,7 +211,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'] );
+				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'] );
 
 				$total_indexed += $result['synced'];
 
@@ -228,7 +234,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log( __( 'Indexing posts...', 'elasticpress' ) );
 
-			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'] );
+			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'] );
 
 			WP_CLI::log( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
@@ -250,15 +256,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @param bool $no_bulk disable bulk indexing
 	 * @param int $posts_per_page
+	 * @param int $offset
 	 *
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper( $no_bulk = false, $posts_per_page) {
+	private function _index_helper( $no_bulk = false, $posts_per_page, $offset = 0) {
 		global $wpdb, $wp_object_cache;
 		$synced = 0;
 		$errors = array();
-		$offset = 0;
 
 		while ( true ) {
 
