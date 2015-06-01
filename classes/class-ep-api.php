@@ -289,7 +289,7 @@ class EP_API {
 		$url = untrailingslashit( EP_HOST ) . '/_aliases';
 
 		$args = array(
-			'actions' => array()
+			'actions' => array(),
 		);
 
 		foreach ( $indexes as $index ) {
