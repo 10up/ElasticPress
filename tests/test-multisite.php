@@ -1686,8 +1686,8 @@ class EPTestMultisite extends EP_Test_Base {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $site['blog_id'] ) );
-			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $site['blog_id'] ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_excerpt' => $site['blog_id'] ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_excerpt' => $site['blog_id'] ) );
 
 			ep_refresh_index();
 
@@ -1702,7 +1702,6 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-
 		$this->assertEquals( 6, $query->post_count );
 		$this->assertEquals( 6, $query->found_posts );
 
@@ -1710,8 +1709,9 @@ class EPTestMultisite extends EP_Test_Base {
 			$query->the_post();
 			global $post;
 
-			$this->assertEquals( $post->site_id, $post->post_author );
+			$this->assertEquals( $post->site_id, $post->post_excerpt );
 		}
+		
 		wp_reset_postdata();
 	}
 
