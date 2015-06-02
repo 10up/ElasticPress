@@ -7,7 +7,7 @@ class EP_API {
 	 *
 	 * @since 0.1.0
 	 */
-	public function __construct() { }
+	public function __construct() {}
 
 	/**
 	 * Return singleton instance of class
@@ -16,9 +16,10 @@ class EP_API {
 	 * @since 0.1.0
 	 */
 	public static function factory() {
+
 		static $instance = false;
 
-		if ( ! $instance  ) {
+		if ( ! $instance ) {
 			$instance = new self();
 		}
 
@@ -38,7 +39,12 @@ class EP_API {
 
 		$url = $index_url . '/post/' . $post['post_id'];
 
-		$request_args = array( 'body' => json_encode( $post ), 'method' => 'PUT', 'timeout' => 15, 'headers' => $this->format_request_headers() );
+		$request_args = array(
+			'body'    => json_encode( $post ),
+			'method'  => 'PUT',
+			'timeout' => 15,
+			'headers' => $this->format_request_headers(),
+		);
 
 		$request = wp_remote_request( $url, apply_filters( 'ep_index_post_request_args', $request_args, $post ) );
 
@@ -85,7 +91,7 @@ class EP_API {
 	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
-	 * @param array $args
+	 * @param array  $args
 	 * @param string $scope
 	 * @since 0.1.0
 	 * @return array
@@ -109,7 +115,11 @@ class EP_API {
 
 		$url = $index_url . '/post/_search';
 
-		$request_args = array( 'body' => json_encode( $args ), 'method' => 'POST', 'headers' => $this->format_request_headers() );
+		$request_args = array(
+			'body'    => json_encode( $args ),
+			'method'  => 'POST',
+			'headers' => $this->format_request_headers(),
+		);
 
 		$request = wp_remote_request( $url, apply_filters( 'ep_search_request_args', $request_args, $args, $scope ) );
 
@@ -136,9 +146,9 @@ class EP_API {
 			$posts = array();
 
 			foreach ( $hits as $hit ) {
-				$post = $hit['_source'];
+				$post            = $hit['_source'];
 				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
-				$posts[] = $post;
+				$posts[]         = $post;
 			}
 
 			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
@@ -179,7 +189,7 @@ class EP_API {
 	 * @since 0.1.0
 	 * @return bool
 	 */
-	public function delete_post( $post_id  ) {
+	public function delete_post( $post_id ) {
 		$index_url = ep_get_index_url();
 
 		$url = $index_url . '/post/' . $post_id;
@@ -279,7 +289,7 @@ class EP_API {
 		$url = untrailingslashit( EP_HOST ) . '/_aliases';
 
 		$args = array(
-			'actions' => array()
+			'actions' => array(),
 		);
 
 		foreach ( $indexes as $index ) {
@@ -287,11 +297,15 @@ class EP_API {
 				'add' => array(
 					'index' => $index,
 					'alias' => ep_get_network_alias(),
-				)
+				),
 			);
 		}
 
-		$request_args = array( 'body' => json_encode( $args ), 'method' => 'POST', 'headers' => $this->format_request_headers() );
+		$request_args = array(
+			'body'    => json_encode( $args ),
+			'method'  => 'POST',
+			'headers' => $this->format_request_headers(),
+		);
 
 		$request = wp_remote_request( $url, apply_filters( 'ep_create_network_alias_request_args', $request_args, $args, $indexes ) );
 
@@ -340,7 +354,11 @@ class EP_API {
 
 		$index_url = ep_get_index_url();
 
-		$request_args = array( 'body' => json_encode( $mapping ), 'method' => 'PUT', 'headers' => $this->format_request_headers() );
+		$request_args = array(
+			'body'    => json_encode( $mapping ),
+			'method'  => 'PUT',
+			'headers' => $this->format_request_headers(),
+		);
 
 		$request = wp_remote_request( $index_url, apply_filters( 'ep_put_mapping_request_args', $request_args ) );
 
@@ -383,9 +401,9 @@ class EP_API {
 			);
 		}
 
-		$post_date = $post->post_date;
-		$post_date_gmt = $post->post_date_gmt;
-		$post_modified = $post->post_modified;
+		$post_date         = $post->post_date;
+		$post_date_gmt     = $post->post_date_gmt;
+		$post_modified     = $post->post_modified;
 		$post_modified_gmt = $post->post_modified_gmt;
 
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
@@ -438,26 +456,27 @@ class EP_API {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $timestamp
-	 *
+	 * @param string $post_date_gmt
 	 * @since 0.1.4
 	 * @return array
 	 */
 	private function prepare_date_terms( $post_date_gmt ) {
-		$timestamp = strtotime( $post_date_gmt );
+
+		$timestamp  = strtotime( $post_date_gmt );
 		$date_terms = array(
-			'year' => (int) date( "Y", $timestamp),
-			'month' => (int) date( "m", $timestamp),
-			'week' => (int) date( "W", $timestamp),
-			'dayofyear' => (int) date( "z", $timestamp),
-			'day' => (int) date( "d", $timestamp),
-			'dayofweek' => (int) date( "w", $timestamp),
-			'dayofweek_iso' => (int) date( "N", $timestamp),
-			'hour' => (int) date( "H", $timestamp),
-			'minute' => (int) date( "i", $timestamp),
-			'second' => (int) date( "s", $timestamp),
-			'm' => (int) (date( "Y", $timestamp) . date( "m", $timestamp)), // yearmonth
+			'year'          => (int) date( 'Y', $timestamp ),
+			'month'         => (int) date( 'm', $timestamp ),
+			'week'          => (int) date( 'W', $timestamp ),
+			'dayofyear'     => (int) date( 'z', $timestamp ),
+			'day'           => (int) date( 'd', $timestamp ),
+			'dayofweek'     => (int) date( 'w', $timestamp ),
+			'dayofweek_iso' => (int) date( 'N', $timestamp ),
+			'hour'          => (int) date( 'H', $timestamp ),
+			'minute'        => (int) date( 'i', $timestamp ),
+			'second'        => (int) date( 's', $timestamp ),
+			'm'             => (int) ( date( 'Y', $timestamp ) . date( 'm', $timestamp ) ), // yearmonth
 		);
+
 		return $date_terms;
 	}
 
@@ -470,6 +489,7 @@ class EP_API {
 	 * @return array
 	 */
 	private function prepare_terms( $post ) {
+
 		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
 		$selected_taxonomies = array();
 
@@ -495,11 +515,11 @@ class EP_API {
 			}
 
 			foreach ( $object_terms as $term ) {
-				$terms[$term->taxonomy][] = array(
+				$terms[ $term->taxonomy ][] = array(
 					'term_id' => $term->term_id,
 					'slug'    => $term->slug,
 					'name'    => $term->name,
-					'parent'  => $term->parent
+					'parent'  => $term->parent,
 				);
 			}
 		}
@@ -526,7 +546,7 @@ class EP_API {
 
 		foreach ( $meta as $key => $value ) {
 			if ( ! is_protected_meta( $key ) ) {
-				$prepared_meta[$key] = maybe_unserialize( $value );
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
 
@@ -624,6 +644,9 @@ class EP_API {
 		}
 
 		// Set sort type
+
+		$sort = false;
+
 		if ( ! empty( $args['orderby'] ) ) {
 			$sort = $this->parse_orderby( $args['orderby'], $order );
 
@@ -645,7 +668,7 @@ class EP_API {
 			);
 		}
 
-		$filter = array(
+		$filter      = array(
 			'and' => array(),
 		);
 		$use_filters = false;
@@ -656,14 +679,14 @@ class EP_API {
 		 * Support for the tax_query argument of WP_Query
 		 * Currently only provides support for the 'AND' relation between taxonomies
 		 *
-		 * @use field = slug
+		 * @use   field = slug
 		 *      terms array
 		 * @since 0.9.1
 		 */
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
 
-			foreach( $args['tax_query'] as $single_tax_query ) {
+			foreach ( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
 					$terms = (array) $single_tax_query['terms'];
 
@@ -719,7 +742,7 @@ class EP_API {
 		 */
 		if ( $date_filter = EP_WP_Date_Query::simple_es_date_filter( $args ) ) {
 			$filter['and'][] = $date_filter;
-			$use_filters = true;
+			$use_filters     = true;
 		}
 
 		/**
@@ -732,11 +755,10 @@ class EP_API {
 
 			$date_filter = $date_query->get_es_filter();
 
-			if( array_key_exists('and', $date_filter ) ) {
+			if ( array_key_exists( 'and', $date_filter ) ) {
 				$filter['and'][] = $date_filter['and'];
-				$use_filters = true;
+				$use_filters     = true;
 			}
-
 		}
 
 		/**
@@ -756,7 +778,7 @@ class EP_API {
 				$relation = 'should';
 			}
 
-			foreach( $args['meta_query'] as $single_meta_query ) {
+			foreach ( $args['meta_query'] as $single_meta_query ) {
 				if ( ! empty( $single_meta_query['key'] ) ) {
 
 					$terms_obj = false;
@@ -813,7 +835,7 @@ class EP_API {
 											array(
 												'range' => array(
 													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"gte" => $single_meta_query['value'],
+														'gte' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -821,8 +843,8 @@ class EP_API {
 									),
 								);
 							}
-							
-							break;						
+
+							break;
 						case '<=':
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
@@ -831,7 +853,7 @@ class EP_API {
 											array(
 												'range' => array(
 													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"lte" => $single_meta_query['value'],
+														'lte' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -849,7 +871,7 @@ class EP_API {
 											array(
 												'range' => array(
 													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"gt" => $single_meta_query['value'],
+														'gt' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -867,7 +889,7 @@ class EP_API {
 											array(
 												'range' => array(
 													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"lt" => $single_meta_query['value'],
+														'lt' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -898,7 +920,7 @@ class EP_API {
 			}
 
 			if ( ! empty( $meta_filter ) ) {
-				$filter['and'][]['bool'][$relation] = $meta_filter;
+				$filter['and'][]['bool'][ $relation ] = $meta_filter;
 
 				$use_filters = true;
 			}
@@ -911,7 +933,7 @@ class EP_API {
 		 */
 		if ( ! empty( $args['search_fields'] ) ) {
 			$search_field_args = $args['search_fields'];
-			$search_fields = array();
+			$search_fields     = array();
 
 			if ( ! empty( $search_field_args['taxonomies'] ) ) {
 				$taxes = (array) $search_field_args['taxonomies'];
@@ -955,18 +977,18 @@ class EP_API {
 				'should' => array(
 					array(
 						'multi_match' => array(
-							'query' => '',
+							'query'  => '',
 							'fields' => $search_fields,
-							'boost' => apply_filters( 'ep_match_boost', 2 ),
-						)
+							'boost'  => apply_filters( 'ep_match_boost', 2 ),
+						),
 					),
 					array(
 						'fuzzy_like_this' => array(
-							'fields' => $search_fields,
-							'like_text' => '',
-							'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
+							'fields'         => $search_fields,
+							'like_text'      => '',
+							'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 ),
 						),
-					)
+					),
 				),
 			),
 		);
@@ -980,8 +1002,8 @@ class EP_API {
 
 		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
 			$query['bool']['should'][1]['fuzzy_like_this']['like_text'] = $args['s'];
-			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$formatted_args['query'] = $query;
+			$query['bool']['should'][0]['multi_match']['query']         = $args['s'];
+			$formatted_args['query']                                    = $query;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array();
 		}
@@ -995,7 +1017,7 @@ class EP_API {
 		if ( ! empty( $args['post_type'] ) ) {
 			// should NEVER be "any" but just in case
 			if ( 'any' !== $args['post_type'] ) {
-				$post_types = (array) $args['post_type'];
+				$post_types     = (array) $args['post_type'];
 				$terms_map_name = 'terms';
 				if ( count( $post_types ) < 2 ) {
 					$terms_map_name = 'term';
@@ -1020,7 +1042,7 @@ class EP_API {
 		}
 
 		if ( isset( $args['paged'] ) ) {
-			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
+			$paged                  = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
 		}
 
@@ -1046,7 +1068,7 @@ class EP_API {
 
 				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
-				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+				$formatted_args['aggs'][ $agg_name ]['aggs']   = $agg_obj['aggs'];
 			} else {
 				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
 			}
@@ -1072,9 +1094,14 @@ class EP_API {
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-		$url     = trailingslashit( EP_HOST ) . trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+		$url = trailingslashit( EP_HOST ) . trailingslashit( ep_get_index_name() ) . 'post/_bulk';
 
-		$request_args = array( 'method' => 'POST', 'body' => $body, 'timeout' => 30, 'headers' => $this->format_request_headers() );
+		$request_args = array(
+			'method'  => 'POST',
+		    'body'    => $body,
+		    'timeout' => 30,
+			'headers' => $this->format_request_headers(),
+		);
 
 		$request = wp_remote_request( $url, apply_filters( 'ep_bulk_index_posts_request_args', $request_args, $body ) );
 
@@ -1125,7 +1152,7 @@ class EP_API {
 	/**
 	 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
 	 *
-	 * @since 1.1
+	 * @since  1.1
 	 * @access protected
 	 *
 	 * @param string $order The 'order' query variable.
@@ -1147,7 +1174,7 @@ class EP_API {
 	 * If the passed orderby value is allowed, convert the alias to a
 	 * properly-prefixed sort value.
 	 *
-	 * @since 1.1
+	 * @since  1.1
 	 * @access protected
 	 *
 	 * @param string $orderby Alias for the field to order by.

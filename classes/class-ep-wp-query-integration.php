@@ -115,7 +115,7 @@ class EP_WP_Query_Integration {
 			restore_current_blog();
 
 			switch_to_blog( $post->site_id );
-			
+
 			remove_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 			setup_postdata( $post );
 			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
@@ -165,11 +165,11 @@ class EP_WP_Query_Integration {
 	 * @return array
 	 */
 	public function filter_the_posts( $posts, &$query ) {
-		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[ spl_object_hash( $query ) ] ) ) {
 			return $posts;
 		}
 
-		$new_posts = $this->posts_by_query[spl_object_hash( $query )];
+		$new_posts = $this->posts_by_query[ spl_object_hash( $query ) ];
 
 		return $new_posts;
 	}
@@ -206,7 +206,7 @@ class EP_WP_Query_Integration {
 
 		$query_vars = $query->query_vars;
 		if ( 'any' === $query_vars['post_type'] ) {
-			
+
 			if ( $query->is_search() ) {
 
 				/*
@@ -220,12 +220,12 @@ class EP_WP_Query_Integration {
 				if ( empty( $searchable_post_types ) ) {
 
 					// Have to return something or it improperly calculates the found_posts
-					return "WHERE 0 = 1";
+					return 'WHERE 0 = 1';
 				}
 
 				// Conform the post types array to an acceptable format for ES
 				$post_types = array();
-				foreach( $searchable_post_types as $type ) {
+				foreach ( $searchable_post_types as $type ) {
 					$post_types[] = $type;
 				}
 
@@ -286,7 +286,7 @@ class EP_WP_Query_Integration {
 			// Run through get_post() to add all expected properties (even if they're empty)
 			// do this if mulstisite is disabled
 			// if mulstisite is enabled then we need to proceed differently
-			if( !is_multisite() ) {
+			if ( ! is_multisite() ) {
 				$post_obj = get_post( $post->ID );
 				// merge with the initial object values
 				$post = (object) array_merge( (array) $post_obj, (array) $post );
@@ -298,12 +298,12 @@ class EP_WP_Query_Integration {
 		}
 
 		// if multisite is enabled get post object for each site
-		if( is_multisite() ) {
+		if ( is_multisite() ) {
 			$new_posts = $this->fill_post_objects( $new_posts );
 		}
 
 
-		$this->posts_by_query[spl_object_hash( $query )] = $new_posts;
+		$this->posts_by_query[ spl_object_hash( $query ) ] = $new_posts;
 
 		do_action( 'ep_wp_query_search', $new_posts, $search, $query );
 
@@ -331,7 +331,7 @@ class EP_WP_Query_Integration {
 
 		// group by site_id to decrease number of switch_to_blogs
 		foreach ( $post_list as $post_data ) {
-			$grouped[$post_data->site_id][] = $post_data;
+			$grouped[ $post_data->site_id ][] = $post_data;
 			// use this to keep the initial order of posts
 			$order[] = $post_data->ID . '-' . $post_data->site_id;
 		}
@@ -356,8 +356,8 @@ class EP_WP_Query_Integration {
 
 		// retrive initial order of posts
 		foreach ( $post_objs as $current_index => $post_obj ) {
-			$index = array_search ( $post_obj->ID . '-' . $post_obj->site_id, $order );
-			$posts_ordered[$index] = $post_objs[$current_index];
+			$index = array_search( $post_obj->ID . '-' . $post_obj->site_id, $order );
+			$posts_ordered[ $index ] = $post_objs[ $current_index ];
 		}
 
 		// sort by indexes/keys
