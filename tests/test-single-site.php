@@ -1540,4 +1540,113 @@ class EPTestSingleSite extends EP_Test_Base {
 		$args[] = 'fake_item';
 		return $args;
 	}
+
+	/**
+	 * Test get hosts method
+	 */
+	public function testGetHost() {
+
+		global $ep_backup_host;
+
+		//Check host constant
+		$host_1 = ep_get_host( true );
+
+		//Test only host in array
+		$ep_backup_host = array( 'http://127.0.0.1:9200' );
+
+		$host_2 = ep_get_host( true, true );
+
+		//Test no good hosts
+		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
+
+		$host_3 = ep_get_host( true, true );
+
+		//Test good host 1st array item
+		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
+
+		$host_4 = ep_get_host( true, true );
+
+		//Test good host last array item
+		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
+
+		$host_5 = ep_get_host( true, true );
+
+		$this->assertInternalType( 'string', $host_1 );
+		$this->assertInternalType( 'string', $host_2 );
+		$this->assertWPError( $host_3 );
+		$this->assertInternalType( 'string', $host_4 );
+		$this->assertInternalType( 'string', $host_5 );
+
+	}
+
+	/**
+	 * Test wrapper around wp_remote_request
+	 */
+	public function testEPRemoteRequest() {
+
+		global $ep_backup_host;
+
+		$ep_backup_host = false;
+
+		define( 'EP_FORCE_HOST_REFRESH', true );
+
+		//Test with EP_HOST constant
+		$request_1 = false;
+		$request   = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_1 = true;
+			}
+		}
+
+		//Test with only backups
+
+		define( 'EP_HOST_USE_ONLY_BACKUPS', true );
+
+		$request_2      = false;
+		$ep_backup_host = array( 'http://127.0.0.1:9200' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_2 = true;
+			}
+		}
+
+		$request_3      = false;
+		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( is_wp_error( $request ) ) {
+			$request_3 = $request;
+		}
+
+		$request_4      = false;
+		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_4 = true;
+			}
+		}
+
+		$request_5      = false;
+		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_5 = true;
+			}
+		}
+
+		$this->assertTrue( $request_1 );
+		$this->assertTrue( $request_2 );
+		$this->assertWPError( $request_3 );
+		$this->assertTrue( $request_4 );
+		$this->assertTrue( $request_5 );
+
+	}
 }
