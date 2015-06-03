@@ -387,6 +387,10 @@ class EP_API {
 		$post_date_gmt = $post->post_date_gmt;
 		$post_modified = $post->post_modified;
 		$post_modified_gmt = $post->post_modified_gmt;
+		$comment_count = absint( $post->comment_count );
+		$comment_status = absint( $post->comment_status );
+		$ping_status = absint( $post->ping_status );
+		$menu_order = absint( $post->menu_order );
 
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
 			if ( ! strtotime( $post_date ) ) {
@@ -425,6 +429,10 @@ class EP_API {
 			'terms'             => $this->prepare_terms( $post ),
 			'post_meta'         => $this->prepare_meta( $post ),
 			'date_terms'        => $this->prepare_date_terms( $post_date ),
+			'comment_count'     => $comment_count,
+			'comment_status'    => $comment_status,
+			'ping_status'       => $ping_status,
+			'menu_order'        => $menu_order
 			//'site_id'         => get_current_blog_id(),
 		);
 
@@ -636,14 +644,18 @@ class EP_API {
 		if ( empty( $args['orderby'] ) || false === $sort ) {
 
 			// Default sort is to use the score (based on relevance)
-			$formatted_args['sort'] = array(
+			$default_sort = array(
 				array(
 					'_score' => array(
 						'order' => $order,
 					),
 				),
 			);
-		}
+
+            $default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
+
+            $formatted_args['sort'] = $default_sort;
+        }
 
 		$filter = array(
 			'and' => array(),
@@ -876,6 +888,17 @@ class EP_API {
 								);
 							}
 
+							break;
+						case 'like':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'query' => array(
+										"match" => array(
+											'post_meta.' . $single_meta_query['key'] => $single_meta_query['value'],
+										)
+									),
+								);
+							}
 							break;
 						case '=':
 						default:

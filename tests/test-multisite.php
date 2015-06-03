@@ -1683,11 +1683,13 @@ class EPTestMultisite extends EP_Test_Base {
 	public function testPostObject() {
 		$sites = ep_get_sites();
 
+		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
+
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $site['blog_id'] ) );
-			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $site['blog_id'] ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $user_id, 'post_excerpt' => 'find', 'menu_order' => $site['blog_id'] ) );
+			ep_create_and_sync_post( array( 'post_title' => 'findme', 'post_author' => $user_id, 'post_excerpt' => 'find', 'menu_order' => $site['blog_id'] ) );
 
 			ep_refresh_index();
 
@@ -1710,7 +1712,9 @@ class EPTestMultisite extends EP_Test_Base {
 			$query->the_post();
 			global $post;
 
-			$this->assertEquals( $post->site_id, $post->post_author );
+			$this->assertEquals( $user_id, $post->post_author );
+			$this->assertEquals( 'find', $post->post_excerpt );
+			$this->assertEquals( $post->site_id, $post->menu_order );
 		}
 		wp_reset_postdata();
 	}
