@@ -437,7 +437,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			foreach ( $this->failed_posts as $failed ) {
 				$failed_post = get_post( $failed );
 				if ( $failed_post ) {
-					$error_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
+					$error_text .= "- {$failed}: " . $failed_post->post_title . "\r\n";
 				}
 			}
 
