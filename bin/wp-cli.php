@@ -427,22 +427,27 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	private function send_bulk_errors() {
 		if ( ! empty( $this->failed_posts ) ) {
-			$email_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
-			foreach ( $this->failed_posts as $failed ) {
-				$failed_post = get_post( $failed );
-				if ( $failed_post ) {
-					$email_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
-				}
-			}
-			$send_mail = wp_mail( get_option( 'admin_email' ), wp_specialchars_decode( get_option( 'blogname' ) ) . __( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
 
-			if ( ! $send_mail ) {
-				fwrite( STDOUT, __( 'Failed to send bulk error email. Print on screen? [y/n] ' ) );
-				$answer = trim( fgets( STDIN ) );
-				if ( 'y' == $answer ) {
-					WP_CLI::log( $email_text );
+			// Allow preventing this email
+			if ( true === apply_filters( 'ep_send_bulk_errors', true ) ) {
+				$email_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
+				foreach ( $this->failed_posts as $failed ) {
+					$failed_post = get_post( $failed );
+					if ( $failed_post ) {
+						$email_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
+					}
+				}
+				$send_mail = wp_mail( get_option( 'admin_email' ), wp_specialchars_decode( get_option( 'blogname' ) ) . __( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
+
+				if ( ! $send_mail ) {
+					fwrite( STDOUT, __( 'Failed to send bulk error email. Print on screen? [y/n] ' ) );
+					$answer = trim( fgets( STDIN ) );
+					if ( 'y' == $answer ) {
+						WP_CLI::log( $email_text );
+					}
 				}
 			}
+
 			// clear failed posts after sending emails
 			$this->failed_posts = array();
 		}
