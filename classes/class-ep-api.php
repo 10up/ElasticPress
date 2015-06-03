@@ -644,14 +644,18 @@ class EP_API {
 		if ( empty( $args['orderby'] ) || false === $sort ) {
 
 			// Default sort is to use the score (based on relevance)
-			$formatted_args['sort'] = array(
+			$default_sort = array(
 				array(
 					'_score' => array(
 						'order' => $order,
 					),
 				),
 			);
-		}
+
+            $default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
+
+            $formatted_args['sort'] = $default_sort;
+        }
 
 		$filter = array(
 			'and' => array(),
