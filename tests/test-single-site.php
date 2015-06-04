@@ -1290,6 +1290,35 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a query that searches and filters by a meta value like the query
+	 * @since 1.5
+	 */
+	public function testMetaQueryLike() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'ALICE in wonderland' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'alice in melbourne' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'AlicE in america' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 'alice',
+					'compare' => 'LIKE',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
 	 * Test exclude_from_search post type flag
 	 * Ensure that we do not search that post type when all post types are searched
 	 *
