@@ -1290,7 +1290,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a query that searches and filters by a meta greater than or equal to query
+	 * Test a query that searches and filters by a meta value like the query
 	 * @since 1.5
 	 */
 	public function testMetaQueryLike() {
