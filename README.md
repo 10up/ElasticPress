@@ -101,14 +101,15 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
         'tax_query' => array(
             array(
                 'taxonomy' => 'taxonomy-name',
-                'terms'    => array( ... ),
+                'field'    => 'slug',
+                'terms'    => array( 'term-slug-1', 'term-slug-2', ... ),
             ),
         ),
     ) );
     ```
 
-    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and
-    ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
+    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), and
+    ```terms``` (string|array) parameters. ```field``` must be set to ```slug``` and ```terms``` must be a string or array of term slug(s).
 
 * The following shorthand parameters can be used for querying posts by specific dates:
 
