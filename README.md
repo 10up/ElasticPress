@@ -5,7 +5,7 @@ Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http:/
 
 **Please note:** the master branch is the stable branch
 
-**Latest stable release:** [1.4](https://github.com/10up/ElasticPress/releases/tag/v1.4)
+**Latest stable release:** [1.4](https://github.com/10up/ElasticPress/releases/tag/1.4)
 
 *Upgrade Notice: If you are upgrading to 1.4, new date features will not work until you re-index: wp elasticpress index --setup*
 
@@ -101,14 +101,15 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
         'tax_query' => array(
             array(
                 'taxonomy' => 'taxonomy-name',
-                'terms'    => array( ... ),
+                'field'    => 'slug',
+                'terms'    => array( 'term-slug-1', 'term-slug-2', ... ),
             ),
         ),
     ) );
     ```
 
-    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string) and
-    ```terms``` (string|array) parameters. ```terms``` is a slug, either in string or array form.
+    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), and
+    ```terms``` (string|array) parameters. ```field``` must be set to ```slug``` and ```terms``` must be a string or array of term slug(s).
 
 * The following shorthand parameters can be used for querying posts by specific dates:
 
