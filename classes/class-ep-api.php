@@ -214,6 +214,8 @@ class EP_API {
 			$headers['X-ElasticPress-API-Key'] = EP_API_KEY;
 		}
 
+		$headers = apply_filters( 'ep_format_request_headers', $headers );
+
 		return $headers;
 	}
 
