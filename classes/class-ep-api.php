@@ -1344,3 +1344,7 @@ function ep_elasticsearch_alive() {
 function ep_index_exists( $index_name = null ) {
 	return EP_API::factory()->index_exists( $index_name );
 }
+
+function ep_format_request_headers() {
+	return EP_API::factory()->format_request_headers();
+}
