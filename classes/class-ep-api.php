@@ -1103,7 +1103,17 @@ class EP_API {
 
 		$request = wp_remote_request( $url, apply_filters( 'ep_bulk_index_posts_request_args', $request_args, $body ) );
 
-		return is_wp_error( $request ) ? $request : json_decode( wp_remote_retrieve_body( $request ), true );
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_response_code( $request );
+
+		if ( 200 !== $response ) {
+			WP_CLI::error( wp_remote_retrieve_response_message( $request ) );
+		}
+
+		return json_decode( wp_remote_retrieve_body( $request ), true );
 	}
 
 	/**
