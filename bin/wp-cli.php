@@ -190,6 +190,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$total_indexed = 0;
 
+		/**
+		 * Prior to the index command invoking
+		 * Useful for deregistering filters/actions that occur during a query request
+		 * 
+		 * @since 1.4.1
+		 */
+		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
+
 		// Deactivate our search integration
 		$this->deactivate();
 
