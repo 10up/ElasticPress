@@ -835,8 +835,8 @@ class EP_API {
 									),
 								);
 							}
-							
-							break;						
+
+							break;
 						case '<=':
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
@@ -1082,10 +1082,16 @@ class EP_API {
 	/**
 	 * Wrapper function for wp_get_sites - allows us to have one central place for the `ep_indexable_sites` filter
 	 *
+	 * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites
+	 *
 	 * @return mixed|void
 	 */
-	public function get_sites() {
-		return apply_filters( 'ep_indexable_sites', wp_get_sites() );
+	public function get_sites( $limit = 0 ) {
+		$args = apply_filters( 'ep_indexable_sites_args', array(
+			'limit' => $limit,
+		) );
+
+		return apply_filters( 'ep_indexable_sites', wp_get_sites( $args ) );
 	}
 
 	/**
@@ -1313,8 +1319,8 @@ function ep_prepare_post( $post_id ) {
 	return EP_API::factory()->prepare_post( $post_id );
 }
 
-function ep_get_sites() {
-	return EP_API::factory()->get_sites();
+function ep_get_sites( $limit = 0 ) {
+	return EP_API::factory()->get_sites( $limit );
 }
 
 function ep_bulk_index_posts( $body ) {

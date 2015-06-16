@@ -34,8 +34,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function put_mapping( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
-			$sites = ep_get_sites();
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -85,8 +88,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function delete_index( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
-			$sites = ep_get_sites();
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -181,7 +187,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		} else {
 			$assoc_args['posts-per-page'] = 350;
 		}
-		
+
 		if ( ! empty( $assoc_args['offset'] ) ) {
 			$assoc_args['offset'] = absint( $assoc_args['offset'] );
 		} else {
@@ -193,7 +199,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		/**
 		 * Prior to the index command invoking
 		 * Useful for deregistering filters/actions that occur during a query request
-		 * 
+		 *
 		 * @since 1.4.1
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
@@ -210,11 +216,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$this->put_mapping( $args, $assoc_args );
 		}
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
 
 			WP_CLI::log( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
-			$sites = ep_get_sites();
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -313,16 +322,16 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$offset += $posts_per_page;
 
 			usleep( 500 );
-			
+
 			// Avoid running out of memory
 			$wpdb->queries = array();
-	
+
 			if ( is_object( $wp_object_cache ) ) {
 				$wp_object_cache->group_ops = array();
 				$wp_object_cache->stats = array();
 				$wp_object_cache->memcache_debug = array();
 				$wp_object_cache->cache = array();
-		
+
 				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
 				}
