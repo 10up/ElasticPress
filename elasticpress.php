@@ -14,6 +14,10 @@
  * Copyright (C) 2012-2013 Automattic
  * Copyright (C) 2013 SearchPress
  */
+ 
+ if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
