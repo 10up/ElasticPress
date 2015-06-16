@@ -14,7 +14,7 @@
  * Copyright (C) 2012-2013 Automattic
  * Copyright (C) 2013 SearchPress
  */
- 
+
  if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }

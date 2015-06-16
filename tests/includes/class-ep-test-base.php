@@ -1,5 +1,7 @@
 <?php
-
+ if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
 class EP_Test_Base extends WP_UnitTestCase {
 
 	/**
