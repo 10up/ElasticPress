@@ -1093,7 +1093,7 @@ class EP_API {
 	 *
 	 * @since 0.9.2
 	 * @param $body
-	 * @return array|object
+	 * @return array|object|WP_Error3
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
@@ -1110,7 +1110,7 @@ class EP_API {
 		$response = wp_remote_retrieve_response_code( $request );
 
 		if ( 200 !== $response ) {
-			WP_CLI::error( wp_remote_retrieve_response_message( $request ) );
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
 		}
 
 		return json_decode( wp_remote_retrieve_body( $request ), true );
