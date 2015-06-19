@@ -1093,7 +1093,7 @@ class EP_API {
 	 *
 	 * @since 0.9.2
 	 * @param $body
-	 * @return array|object|WP_Error3
+	 * @return array|object|WP_Error
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
