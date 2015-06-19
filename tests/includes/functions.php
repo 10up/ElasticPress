@@ -1,9 +1,5 @@
 <?php
 
- if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
-}
-
 /**
  * Recursive version of PHP's in_array
  *

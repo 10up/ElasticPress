@@ -1,9 +1,5 @@
 <?php
 
- if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
-}
-
 class EPTestSingleSite extends EP_Test_Base {
 
 	/**
