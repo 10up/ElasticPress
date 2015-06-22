@@ -475,7 +475,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function status() {
 		$this->_connect_check();
 
-		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty' );
+		$request_args = array( 'headers' => ep_format_request_headers() );
+
+		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -496,7 +498,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function stats() {
 		$this->_connect_check();
 
-		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/' );
+		$request_args = array( 'headers' => ep_format_request_headers() );
+
+		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/', $request_args );
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}
