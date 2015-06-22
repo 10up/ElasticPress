@@ -706,6 +706,23 @@ class EP_API {
 		}
 
 		/**
+		 * 'category_name' arg support.
+		 *
+		 * @since 1.5
+		 */
+		if ( ! empty( $args[ 'category_name' ] ) ) {
+			$terms_obj = array(
+				'terms.category.slug' => array( $args[ 'category_name' ] ),
+			);
+
+			$filter['and'][]['bool']['must'] = array(
+				'terms' => $terms_obj
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * Author query support
 		 *
 		 * @since 1.0
