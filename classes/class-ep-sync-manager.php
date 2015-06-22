@@ -25,6 +25,19 @@ class EP_Sync_Manager {
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 	}
+	
+	/**
+	 * Remove actions and filters
+	 *
+	 * @since 1.4
+	 */
+	public function destroy() {
+		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
+		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
+		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
+	}
 
 	public function action_delete_blog_from_index( $blog_id ) {
 		if ( ep_index_exists( ep_get_index_name( $blog_id ) ) && ! apply_filters( 'ep_keep_index', false ) ) {
