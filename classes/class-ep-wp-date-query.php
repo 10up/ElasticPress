@@ -1,5 +1,9 @@
 <?php
 
+ if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
+
 class EP_WP_Date_Query extends WP_Date_Query {
 	/**
 	 * Like WP_Date_Query::get_sql
