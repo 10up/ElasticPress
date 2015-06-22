@@ -1118,7 +1118,7 @@ class EP_API {
 	 *
 	 * @since 0.9.2
 	 * @param $body
-	 * @return array|object
+	 * @return array|object|WP_Error
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
@@ -1128,7 +1128,17 @@ class EP_API {
 
 		$request = wp_remote_request( $url, apply_filters( 'ep_bulk_index_posts_request_args', $request_args, $body ) );
 
-		return is_wp_error( $request ) ? $request : json_decode( wp_remote_retrieve_body( $request ), true );
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_response_code( $request );
+
+		if ( 200 !== $response ) {
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+		}
+
+		return json_decode( wp_remote_retrieve_body( $request ), true );
 	}
 
 	/**
