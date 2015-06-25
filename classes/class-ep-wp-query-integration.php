@@ -85,8 +85,6 @@ class EP_WP_Query_Integration {
 			return;
 		}
 
-		$query->set( 'cache_results', false );
-
 		if ( ! headers_sent() ) {
 			/**
 			 * Manually setting a header as $wp_query isn't yet initialized
