@@ -1427,4 +1427,90 @@ class EPTestSingleSite extends EP_Test_Base {
 		// Reset the main $wp_post_types item
 		$GLOBALS['wp_post_types'] = $backup_post_types;
 	}
+
+	/**
+	 * Test cache_results is off by default
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsDefaultOff() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertFalse( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test cache_results can be turned on
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsOn() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test using cache_results actually populates the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( ! empty( $cache ) );
+	}
+
+	/**
+	 * Test setting cache results to false doesn't store anything in the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsNotInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( empty( $cache ) );
+	}
 }
