@@ -498,6 +498,7 @@ class EP_API {
 		}
 
 		$terms = array();
+		$allowedHierarchy = apply_filters('ep_sync_term_allow_hierarchy', false);
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
 			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
@@ -506,17 +507,45 @@ class EP_API {
 				continue;
 			}
 
-			foreach ( $object_terms as $term ) {
-				$terms[$term->taxonomy][] = array(
-					'term_id' => $term->term_id,
-					'slug'    => $term->slug,
-					'name'    => $term->name,
-					'parent'  => $term->parent
-				);
-			}
-		}
+			$termsDic = array();
 
-		return $terms;
+			foreach ( $object_terms as $term ) {
+				if( ! isset( $termsDic[ $term->term_id ] ) ) {
+					$termsDic[ $term->term_id ] = array(
+						'term_id' => $term->term_id,
+						'slug'    => $term->slug,
+						'name'    => $term->name,
+						'parent'  => $term->parent
+					);
+				}
+				if( $allowedHierarchy ){
+					$termsDic = $this->getParents( $termsDic, $term, $taxonomy->name );
+				}
+			}
+			$terms[$taxonomy->name] = array_values( $termsDic );
+		}
+	}
+
+	/**
+	 * Recursively get all the ancestor terms of given term
+	 * @param $terms
+	 * @param $term
+	 * @param $taxonomyName
+	 * @return mixed
+	 */
+	private function getParents( $terms, $term, $taxonomyName ) {
+		$parentTerm = get_term( $term->parent, $taxonomyName );
+		if( ! $parentTerm || is_wp_error( $parentTerm ) )
+			return $terms;
+		if( ! isset( $terms[ $parentTerm->term_id ] ) ) {
+			$terms[ $parentTerm->term_id ] = array(
+				'term_id' => $parentTerm->term_id,
+				'slug'    => $parentTerm->slug,
+				'name'    => $parentTerm->name,
+				'parent'  => $parentTerm->parent
+			);
+		}
+		return $this->getParents( $terms, $parentTerm, $taxonomyName );
 	}
 
 	/**
