@@ -1749,4 +1749,31 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$this->assertNotEquals( $count_indexes, $post_count_indexes );
 	}
+	
+	/**
+	 * Check if elasticpress_enabled() properly handles an object without the is_search() method.
+	 * @group 285
+	 * @link https://github.com/10up/ElasticPress/issues/285
+	 */
+	public function testQueryWithoutIsSearch() {
+		$query	 = new stdClass();
+		$check	 = ep_elasticpress_enabled( $query );
+		$this->assertFalse( $check );
+	}
+
+	/**
+	 * Check if elasticpress_enabled() properly handles an object with the is_search() method.
+	 * @group 285
+	 * @link https://github.com/10up/ElasticPress/issues/285
+	 */
+	public function testQueryWithIsSearch() {
+		$args	 = array(
+			's'		 => 'findme',
+			'sites'	 => 'all',
+		);
+		$query	 = new WP_Query( $args );
+		$check	 = ep_elasticpress_enabled( $query );
+		$this->assertTrue( $check );
+	}
+	
 }

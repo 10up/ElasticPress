@@ -1151,7 +1151,7 @@ class EP_API {
 	public function elasticpress_enabled( $query ) {
 		$enabled = false;
 
-		if ( $query->is_search() ) {
+		if ( method_exists( $query, 'is_search' ) && $query->is_search() ) {
 			$enabled = true;
 		} elseif ( ! empty( $query->query['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
 			$enabled = true;
