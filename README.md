@@ -387,6 +387,10 @@ The following are special parameters that are only supported by ElasticPress.
     ) );
     ```
 
+* ```cache_results``` (*boolean*)
+
+    This is a built-in WordPress parameter that caches retrieved posts for later use. It also forces meta and terms to be pulled and cached for each cached post. It is extremely important to understand when you use this parameter with ElasticPress that terms and meta will be pulled from MySQL not Elasticsearch during caching. For this reason, ```cache_results``` defaults to false.
+
 * ```sites``` (*int*/*string*/*array*)
 
     This parameter only applies in a multi-site environment. It lets you search for posts on specific sites or across the network.
