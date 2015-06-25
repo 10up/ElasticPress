@@ -1,5 +1,9 @@
 <?php
 
+ if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
+
 class EP_Sync_Manager {
 
 	/**
@@ -15,11 +19,24 @@ class EP_Sync_Manager {
 	 * @since 0.1.2
 	 */
 	public function setup() {
-		add_action( 'transition_post_status', array( $this, 'action_sync_on_transition' ), 10, 3 );
+		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
+	}
+	
+	/**
+	 * Remove actions and filters
+	 *
+	 * @since 1.4
+	 */
+	public function destroy() {
+		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
+		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
+		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 	}
 
 	public function action_delete_blog_from_index( $blog_id ) {
@@ -48,12 +65,12 @@ class EP_Sync_Manager {
 	/**
 	 * Sync ES index with what happened to the post being saved
 	 *
-	 * @param string $new_status
-	 * @param string $old_status
+	 * @param $post_ID
 	 * @param object $post
+	 * @param $update
 	 * @since 0.1.0
 	 */
-	public function action_sync_on_transition( $new_status, $old_status, $post ) {
+	public function action_sync_on_update( $post_ID, $post, $update ) {
 		global $importer;
 
 		// If we have an importer we must be doing an import - let's abort
@@ -62,32 +79,28 @@ class EP_Sync_Manager {
 		}
 
 		$indexable_post_statuses = ep_get_indexable_post_status();
+		$post_type               = get_post_type( $post_ID );
 
-		if ( ! in_array( $new_status, $indexable_post_statuses ) && ! in_array( $old_status, $indexable_post_statuses ) ) {
-			return;
-		}
-
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post->ID ) || 'revision' === get_post_type( $post->ID ) ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_ID ) || 'revision' === $post_type ) {
 			return;
 		}
 
 		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
-		if ( ! in_array( $new_status, $indexable_post_statuses ) ) {
-			$this->action_delete_post( $post->ID );
+		if ( ! in_array( $post->post_status, $indexable_post_statuses ) ) {
+			$this->action_delete_post( $post_ID );
 		} else {
-			$post_type = get_post_type( $post->ID );
+			$post_type = get_post_type( $post_ID );
 
 			$indexable_post_types = ep_get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types ) ) {
 
-				do_action( 'ep_sync_on_transition', $post->ID );
+				do_action( 'ep_sync_on_transition', $post_ID );
 
-				$this->sync_post( $post->ID );
+				$this->sync_post( $post_ID);
 			}
 		}
 	}
-
 	/**
 	 * Return a singleton instance of the current class
 	 *

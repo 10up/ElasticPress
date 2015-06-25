@@ -1,5 +1,7 @@
 <?php
-
+ if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
 class EP_API {
 
 	/**
@@ -214,6 +216,8 @@ class EP_API {
 			$headers['X-ElasticPress-API-Key'] = EP_API_KEY;
 		}
 
+		$headers = apply_filters( 'ep_format_request_headers', $headers );
+
 		return $headers;
 	}
 
@@ -387,6 +391,10 @@ class EP_API {
 		$post_date_gmt = $post->post_date_gmt;
 		$post_modified = $post->post_modified;
 		$post_modified_gmt = $post->post_modified_gmt;
+		$comment_count = absint( $post->comment_count );
+		$comment_status = absint( $post->comment_status );
+		$ping_status = absint( $post->ping_status );
+		$menu_order = absint( $post->menu_order );
 
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
 			if ( ! strtotime( $post_date ) ) {
@@ -425,6 +433,10 @@ class EP_API {
 			'terms'             => $this->prepare_terms( $post ),
 			'post_meta'         => $this->prepare_meta( $post ),
 			'date_terms'        => $this->prepare_date_terms( $post_date ),
+			'comment_count'     => $comment_count,
+			'comment_status'    => $comment_status,
+			'ping_status'       => $ping_status,
+			'menu_order'        => $menu_order
 			//'site_id'         => get_current_blog_id(),
 		);
 
@@ -636,14 +648,18 @@ class EP_API {
 		if ( empty( $args['orderby'] ) || false === $sort ) {
 
 			// Default sort is to use the score (based on relevance)
-			$formatted_args['sort'] = array(
+			$default_sort = array(
 				array(
 					'_score' => array(
 						'order' => $order,
 					),
 				),
 			);
-		}
+
+            $default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
+
+            $formatted_args['sort'] = $default_sort;
+        }
 
 		$filter = array(
 			'and' => array(),
@@ -685,6 +701,23 @@ class EP_API {
 			if ( ! empty( $tax_filter ) ) {
 				$filter['and'][]['bool']['must'] = $tax_filter;
 			}
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'category_name' arg support.
+		 *
+		 * @since 1.5
+		 */
+		if ( ! empty( $args[ 'category_name' ] ) ) {
+			$terms_obj = array(
+				'terms.category.slug' => array( $args[ 'category_name' ] ),
+			);
+
+			$filter['and'][]['bool']['must'] = array(
+				'terms' => $terms_obj
+			);
 
 			$use_filters = true;
 		}
@@ -821,8 +854,8 @@ class EP_API {
 									),
 								);
 							}
-							
-							break;						
+
+							break;
 						case '<=':
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
@@ -876,6 +909,17 @@ class EP_API {
 								);
 							}
 
+							break;
+						case 'like':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'query' => array(
+										"match" => array(
+											'post_meta.' . $single_meta_query['key'] => $single_meta_query['value'],
+										)
+									),
+								);
+							}
 							break;
 						case '=':
 						default:
@@ -1057,10 +1101,16 @@ class EP_API {
 	/**
 	 * Wrapper function for wp_get_sites - allows us to have one central place for the `ep_indexable_sites` filter
 	 *
+	 * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites
+	 *
 	 * @return mixed|void
 	 */
-	public function get_sites() {
-		return apply_filters( 'ep_indexable_sites', wp_get_sites() );
+	public function get_sites( $limit = 0 ) {
+		$args = apply_filters( 'ep_indexable_sites_args', array(
+			'limit' => $limit,
+		) );
+
+		return apply_filters( 'ep_indexable_sites', wp_get_sites( $args ) );
 	}
 
 	/**
@@ -1068,7 +1118,7 @@ class EP_API {
 	 *
 	 * @since 0.9.2
 	 * @param $body
-	 * @return array|object
+	 * @return array|object|WP_Error
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
@@ -1078,7 +1128,17 @@ class EP_API {
 
 		$request = wp_remote_request( $url, apply_filters( 'ep_bulk_index_posts_request_args', $request_args, $body ) );
 
-		return is_wp_error( $request ) ? $request : json_decode( wp_remote_retrieve_body( $request ), true );
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_response_code( $request );
+
+		if ( 200 !== $response ) {
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+		}
+
+		return json_decode( wp_remote_retrieve_body( $request ), true );
 	}
 
 	/**
@@ -1091,7 +1151,7 @@ class EP_API {
 	public function elasticpress_enabled( $query ) {
 		$enabled = false;
 
-		if ( $query->is_search() ) {
+		if ( method_exists( $query, 'is_search' ) && $query->is_search() ) {
 			$enabled = true;
 		} elseif ( ! empty( $query->query['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
 			$enabled = true;
@@ -1288,8 +1348,8 @@ function ep_prepare_post( $post_id ) {
 	return EP_API::factory()->prepare_post( $post_id );
 }
 
-function ep_get_sites() {
-	return EP_API::factory()->get_sites();
+function ep_get_sites( $limit = 0 ) {
+	return EP_API::factory()->get_sites( $limit );
 }
 
 function ep_bulk_index_posts( $body ) {
@@ -1318,4 +1378,8 @@ function ep_elasticsearch_alive() {
 
 function ep_index_exists( $index_name = null ) {
 	return EP_API::factory()->index_exists( $index_name );
+}
+
+function ep_format_request_headers() {
+	return EP_API::factory()->format_request_headers();
 }
