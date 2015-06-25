@@ -1,5 +1,7 @@
 <?php
-
+ if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
 WP_CLI::add_command( 'elasticpress', 'ElasticPress_CLI_Command' );
 
 /**
@@ -34,8 +36,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function put_mapping( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
-			$sites = ep_get_sites();
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -85,8 +90,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function delete_index( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
-			$sites = ep_get_sites();
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -166,7 +174,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset]
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -182,7 +190,21 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$assoc_args['posts-per-page'] = 350;
 		}
 
+		if ( ! empty( $assoc_args['offset'] ) ) {
+			$assoc_args['offset'] = absint( $assoc_args['offset'] );
+		} else {
+			$assoc_args['offset'] = 0;
+		}
+
 		$total_indexed = 0;
+
+		/**
+		 * Prior to the index command invoking
+		 * Useful for deregistering filters/actions that occur during a query request
+		 *
+		 * @since 1.4.1
+		 */
+		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
 		// Deactivate our search integration
 		$this->deactivate();
@@ -196,16 +218,19 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$this->put_mapping( $args, $assoc_args );
 		}
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
 
 			WP_CLI::log( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
-			$sites = ep_get_sites();
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'] );
+				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'] );
 
 				$total_indexed += $result['synced'];
 
@@ -228,7 +253,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log( __( 'Indexing posts...', 'elasticpress' ) );
 
-			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'] );
+			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'] );
 
 			WP_CLI::log( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
@@ -250,15 +275,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @param bool $no_bulk disable bulk indexing
 	 * @param int $posts_per_page
+	 * @param int $offset
 	 *
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper( $no_bulk = false, $posts_per_page) {
+	private function _index_helper( $no_bulk = false, $posts_per_page, $offset = 0) {
 		global $wpdb, $wp_object_cache;
 		$synced = 0;
 		$errors = array();
-		$offset = 0;
 
 		while ( true ) {
 
@@ -299,16 +324,16 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$offset += $posts_per_page;
 
 			usleep( 500 );
-			
+
 			// Avoid running out of memory
 			$wpdb->queries = array();
-	
+
 			if ( is_object( $wp_object_cache ) ) {
 				$wp_object_cache->group_ops = array();
 				$wp_object_cache->stats = array();
 				$wp_object_cache->memcache_debug = array();
 				$wp_object_cache->cache = array();
-		
+
 				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
 				}
@@ -427,23 +452,17 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	private function send_bulk_errors() {
 		if ( ! empty( $this->failed_posts ) ) {
-			$email_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
+			$error_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
 			foreach ( $this->failed_posts as $failed ) {
 				$failed_post = get_post( $failed );
 				if ( $failed_post ) {
-					$email_text .= "- {$failed}: " . get_post( $failed )->post_title . "\r\n";
+					$error_text .= "- {$failed}: " . $failed_post->post_title . "\r\n";
 				}
 			}
-			$send_mail = wp_mail( get_option( 'admin_email' ), wp_specialchars_decode( get_option( 'blogname' ) ) . __( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
 
-			if ( ! $send_mail ) {
-				fwrite( STDOUT, __( 'Failed to send bulk error email. Print on screen? [y/n] ' ) );
-				$answer = trim( fgets( STDIN ) );
-				if ( 'y' == $answer ) {
-					WP_CLI::log( $email_text );
-				}
-			}
-			// clear failed posts after sending emails
+			WP_CLI::log( $error_text );
+
+			// clear failed posts after printing to the screen
 			$this->failed_posts = array();
 		}
 	}
@@ -456,7 +475,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function status() {
 		$this->_connect_check();
 
-		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty' );
+		$request_args = array( 'headers' => ep_format_request_headers() );
+
+		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -477,7 +498,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function stats() {
 		$this->_connect_check();
 
-		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/' );
+		$request_args = array( 'headers' => ep_format_request_headers() );
+
+		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/', $request_args );
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}

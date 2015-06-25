@@ -1,5 +1,9 @@
 <?php
 
+ if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
+
 class EP_WP_Query_Integration {
 
 	/**
@@ -81,7 +85,15 @@ class EP_WP_Query_Integration {
 			return;
 		}
 
+		/**
+		 * `cache_results` defaults to false but can be enabled.
+		 *
+		 * @since 1.5
+		 */
 		$query->set( 'cache_results', false );
+		if ( ! empty( $query->query['cache_results'] ) ) {
+			$query->set( 'cache_results', true );
+		}
 
 		if ( ! headers_sent() ) {
 			/**
@@ -268,36 +280,45 @@ class EP_WP_Query_Integration {
 			if ( ! empty( $post_array['site_id'] ) ) {
 				$post->site_id = $post_array['site_id'];
 			}
+			// ep_search_request_args
+			$post_return_args = apply_filters( 'ep_search_post_return_args',
+				array(
+					'post_type',
+					'post_author',
+					'post_name',
+					'post_status',
+					'post_title',
+					'post_parent',
+					'post_content',
+					'post_excerpt',
+					'post_date',
+					'post_date_gmt',
+					'post_modified',
+					'post_modified_gmt',
+					'post_mime_type',
+					'comment_count',
+					'comment_status',
+					'ping_status',
+					'menu_order',
+					'permalink',
+					'terms',
+					'post_meta'
+					)
+				);
 
-			$post->post_type = $post_array['post_type'];
-			$post->post_name = $post_array['post_name'];
-			$post->post_status = $post_array['post_status'];
-			$post->post_title = $post_array['post_title'];
-			$post->post_parent = $post_array['post_parent'];
-			$post->post_content = $post_array['post_content'];
-			$post->post_date = $post_array['post_date'];
-			$post->post_date_gmt = $post_array['post_date_gmt'];
-			$post->post_modified = $post_array['post_modified'];
-			$post->post_modified_gmt = $post_array['post_modified_gmt'];
-			$post->elasticsearch = true; // Super useful for debugging
-
-			// Run through get_post() to add all expected properties (even if they're empty)
-			// do this if mulstisite is disabled
-			// if mulstisite is enabled then we need to proceed differently
-			if( !is_multisite() ) {
-				$post_obj = get_post( $post->ID );
-				// merge with the initial object values
-				$post = (object) array_merge( (array) $post_obj, (array) $post );
+			foreach ( $post_return_args as $key ) {
+				if( $key === 'post_author' ) {
+					$post->$key = $post_array[$key]['id'];
+				} else {
+					$post->$key = $post_array[$key];
+				}
 			}
+
+			$post->elasticsearch = true; // Super useful for debugging
 
 			if ( $post ) {
 				$new_posts[] = $post;
 			}
-		}
-
-		// if multisite is enabled get post object for each site
-		if( is_multisite() ) {
-			$new_posts = $this->fill_post_objects( $new_posts );
 		}
 
 
@@ -310,59 +331,6 @@ class EP_WP_Query_Integration {
 		return "SELECT * FROM $wpdb->posts WHERE 1=0";
 	}
 
-	/**
-	 * Get post object data in multisite network.
-	 * Using post ID is better as get_post function pupulates all possible fields
-	 * So passing post ID and then merging with inital post object pupulates all expected fields
-	 * for WP_Post object
-	 *
-	 * @param  array $post_list list of found post objects
-	 *
-	 * @since  1.4
-	 * @return array            list of WP_Post objects
-	 */
-	public function fill_post_objects( $post_list ) {
-		$post_objs = array();
-		$posts_ordered = array();
-		$grouped = array();
-		$order = array();
-
-		// group by site_id to decrease number of switch_to_blogs
-		foreach ( $post_list as $post_data ) {
-			$grouped[$post_data->site_id][] = $post_data;
-			// use this to keep the initial order of posts
-			$order[] = $post_data->ID . '-' . $post_data->site_id;
-		}
-
-		foreach ( $grouped as $site_id => $post_data ) {
-			// switch blog only if needed
-			if ( get_current_blog_id() != $site_id ) {
-				global $switched;
-				switch_to_blog( $site_id );
-				foreach ( $post_data as $single_post_data ) {
-					$post_obj = get_post( $single_post_data->ID );
-					$post_objs[] = (object) array_merge( (array) $post_obj, (array) $single_post_data );
-				}
-				restore_current_blog();
-			} else {
-				foreach ( $post_data as $single_post_data ) {
-					$post_obj = get_post( $single_post_data->ID );
-					$post_objs[] = (object) array_merge( (array) $post_obj, (array) $single_post_data );
-				}
-			}
-		}
-
-		// retrive initial order of posts
-		foreach ( $post_objs as $current_index => $post_obj ) {
-			$index = array_search ( $post_obj->ID . '-' . $post_obj->site_id, $order );
-			$posts_ordered[$index] = $post_objs[$current_index];
-		}
-
-		// sort by indexes/keys
-		ksort( $posts_ordered );
-
-		return $posts_ordered;
-	}
 
 	/**
 	 * Return a singleton instance of the current class

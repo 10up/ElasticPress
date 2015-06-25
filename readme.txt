@@ -5,7 +5,7 @@ Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
 Tested up to: 4.3
-Stable tag: 1.4
+Stable tag: 1.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,33 @@ configuring single site and multi-site cross-site search are slightly different.
 3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
+
+= 1.5 =
+
+### Bug Fixes:
+
+* Prevent direct access to any PHP files. Props [joelgarciajr84](https://github.com/joelgarciajr84)
+* Fixed fields not being loaded from ES. Props [stayallive](https://github.com/stayallive)
+* Fixed inclusive check in date_query integration. Props [EduardMaghakyan](https://github.com/EduardMaghakyan)
+
+### Enhancements:
+
+* Add support for category_name WP_Query parameter. Props [ocean90](https://github.com/ocean90)
+* Support limiting sites in network wide commands. Props [bordoni](https://github.com/bordoni)
+* Add support for method to un-integrate WP_Query. Props [kingkool68](https://github.com/kingkool68)
+* Support `cache_results` in WP_Query
+* Add action prior to starting WP-CLI index command
+* Add missing headers to WP_CLI commands. Props [chriswiegman](https://github.com/chriswiegman)
+* Improve error reporting in bulk indexing during bad ES requests.
+* Fix is_search check notice. Props [allenmoore](https://github.com/allenmoore) and [allan23](https://github.com/allan23)
+* Added a filter to modify request headers. Props [tuanmh](https://github.com/tuanmh)
+* Prevent bulk index from sending useless error emails. Props [cmmarslender](https://github.com/cmmarslender)
+* Add --offset parameter to cli indexing command. [Stayallive](https://github.com/stayallive)
+* Change the syncing hook to play better with plugins. Props [jonathanbardo](https://github.com/jonathanbardo)
+* Support like query in post meta. Props [tuanmh](https://github.com/tuanmh)
+* Sanitization fixes for PHPCS. Props [mphillips](https://github.com/mphillips)
+* Added filter to set default sort order. Props [HKandulla](https://github.com/HKandulla)
+* MySQL DB completely removed from integrated ElasticPress WP Query. Props [EduardMaghakyan](https://github.com/EduardMaghakyan) and [crebacz](https://github.com/crebacz)
 
 = 1.4 =
 

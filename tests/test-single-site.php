@@ -359,6 +359,32 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a category_name query
+	 *
+	 * @since 1.5
+	 */
+	public function testCategoryNameQuery() {
+		$cat_one = wp_insert_category( array( 'cat_name' => 'one') );
+		$cat_two = wp_insert_category( array( 'cat_name' => 'two') );
+		$cat_three = wp_insert_category( array( 'cat_name' => 'three') );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $cat_one, $cat_two ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_category' => array( $cat_one, $cat_three) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'             => 'findme',
+			'category_name' => 'one'
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test an author ID query
 	 *
 	 * @since 1.0
@@ -1290,6 +1316,35 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a query that searches and filters by a meta value like the query
+	 * @since 1.5
+	 */
+	public function testMetaQueryLike() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'ALICE in wonderland' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'alice in melbourne' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'AlicE in america' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 'alice',
+					'compare' => 'LIKE',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
 	 * Test exclude_from_search post type flag
 	 * Ensure that we do not search that post type when all post types are searched
 	 *
@@ -1371,5 +1426,91 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		// Reset the main $wp_post_types item
 		$GLOBALS['wp_post_types'] = $backup_post_types;
+	}
+
+	/**
+	 * Test cache_results is off by default
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsDefaultOff() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertFalse( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test cache_results can be turned on
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsOn() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test using cache_results actually populates the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( ! empty( $cache ) );
+	}
+
+	/**
+	 * Test setting cache results to false doesn't store anything in the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsNotInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( empty( $cache ) );
 	}
 }

@@ -37,7 +37,7 @@ function _manually_load_plugin() {
 			// Looks good!
 			break;
 		} else {
-			printf( "\nInvalid response from ES, sleeping %d seconds and trying again...\n", $sleep );
+			printf( "\nInvalid response from ES, sleeping %d seconds and trying again...\n", intval( $sleep ) );
 			sleep( $sleep );
 		}
 	} while ( --$tries );
