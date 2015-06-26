@@ -529,7 +529,7 @@ class EP_API {
 		}
 
 		$terms = array();
-		$allowedHierarchy = apply_filters('ep_sync_term_allow_hierarchy', false);
+		$allowedHierarchy = apply_filters('ep_sync_terms_allow_hierarchy', false);
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
 			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
@@ -555,6 +555,8 @@ class EP_API {
 			}
 			$terms[$taxonomy->name] = array_values( $termsDic );
 		}
+
+		return $terms;
 	}
 
 	/**
