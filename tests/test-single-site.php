@@ -34,6 +34,8 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function tearDown() {
 		parent::tearDown();
 
+		//make sure no one attached to this
+		remove_filter('ep_sync_terms_allow_hierarchy', [ $this, 'ep_allow_multiple_level_terms_sync' ], 100);
 		$this->fired_actions = array();
 	}
 
@@ -227,6 +229,87 @@ class EPTestSingleSite extends EP_Test_Base {
 		// Check if tag was synced
 		$post = ep_get_post( $post_id );
 		$this->assertTrue( ! empty( $post['terms']['post_tag'] ) );
+	}
+
+	/**
+	* @group testPostTermSyncHierarchy
+	*
+	*/
+	public function testPostTermSyncSingleLevel(){
+
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, ["label" => $taxName] );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, $taxName );
+
+		$term2Name = rand_str( 32 );
+		$term2 = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+
+		$term3Name = rand_str( 32 );
+		$term3 = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+
+		$post = ep_get_post( $post_id );
+
+		$terms = $post['terms'];
+		$this->assertTrue( isset( $terms[$taxName] ) );
+
+        $indexedTerms = $terms[$taxName];
+        $expectedTerms = array( $term3['term_id'] );
+        array_walk($indexedTerms, function( $term ) use( $expectedTerms ) {
+           $this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+        });
+	}
+
+	public function ep_allow_multiple_level_terms_sync(){
+		return true;
+	}
+
+	/**
+	 * @group testPostTermSyncHierarchy
+	 *
+	 */
+	public function testPostTermSyncHierarchyMultipleLevel(){
+
+		add_filter('ep_sync_terms_allow_hierarchy', [$this, 'ep_allow_multiple_level_terms_sync'], 100, 1);
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, ["label" => $taxName] );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, $taxName );
+
+		$term2Name = rand_str( 32 );
+		$term2 = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+
+		$term3Name = rand_str( 32 );
+		$term3 = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+
+		$post = ep_get_post( $post_id );
+
+		$terms = $post['terms'];
+		$this->assertTrue( isset( $terms[$taxName] ) );
+		$this->assertTrue( count( $terms[$taxName] ) === 3 );
+		$indexedTerms = $terms[$taxName];
+		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
+		array_walk( $indexedTerms, function( $term ) use ($expectedTerms ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		});
 	}
 
 	/**
