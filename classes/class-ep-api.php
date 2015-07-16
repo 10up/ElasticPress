@@ -150,7 +150,7 @@ class EP_API {
 			foreach ( $hits as $hit ) {
 				$post = $hit['_source'];
 				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
-				$posts[] = $post;
+				$posts[] = apply_filters( 'ep_retrieve_the_post', $post, $hit );
 			}
 
 			/**
