@@ -1609,4 +1609,226 @@ class EPTestSingleSite extends EP_Test_Base {
 		// Reset the main $wp_post_types item
 		$GLOBALS['wp_post_types'] = $backup_post_types;
 	}
+
+	/**
+	 * Test cache_results is off by default
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsDefaultOff() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertFalse( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test cache_results can be turned on
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsOn() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test using cache_results actually populates the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( ! empty( $cache ) );
+	}
+
+	/**
+	 * Test setting cache results to false doesn't store anything in the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsNotInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( empty( $cache ) );
+	}
+	
+		
+	/**
+	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
+	 * @group 306
+	 * @link https://github.com/10up/ElasticPress/issues/306
+	 */
+	public function testPostReturnArgs() {
+		add_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		ep_refresh_index();
+		$args	 = array(
+			's' => 'findme'
+		);
+		$query	 = new WP_Query( $args );
+		remove_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
+	}
+
+	/**
+	 * Adds fake_item to post_return_args.
+	 * @param array $args
+	 * @return string
+	 */
+	public function ep_search_post_return_args_filter( $args ) {
+		$args[] = 'fake_item';
+		return $args;
+	}
+
+	/**
+	 * Test get hosts method
+	 */
+	public function testGetHost() {
+
+		global $ep_backup_host;
+
+		//Check host constant
+		$host_1 = ep_get_host( true );
+
+		//Test only host in array
+		$ep_backup_host = array( 'http://127.0.0.1:9200' );
+
+		$host_2 = ep_get_host( true, true );
+
+		//Test no good hosts
+		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
+
+		$host_3 = ep_get_host( true, true );
+
+		//Test good host 1st array item
+		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
+
+		$host_4 = ep_get_host( true, true );
+
+		//Test good host last array item
+		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
+
+		$host_5 = ep_get_host( true, true );
+
+		$this->assertInternalType( 'string', $host_1 );
+		$this->assertInternalType( 'string', $host_2 );
+		$this->assertWPError( $host_3 );
+		$this->assertInternalType( 'string', $host_4 );
+		$this->assertInternalType( 'string', $host_5 );
+
+	}
+
+	/**
+	 * Test wrapper around wp_remote_request
+	 */
+	public function testEPRemoteRequest() {
+
+		global $ep_backup_host;
+
+		$ep_backup_host = false;
+
+		define( 'EP_FORCE_HOST_REFRESH', true );
+
+		//Test with EP_HOST constant
+		$request_1 = false;
+		$request   = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_1 = true;
+			}
+		}
+
+		//Test with only backups
+
+		define( 'EP_HOST_USE_ONLY_BACKUPS', true );
+
+		$request_2      = false;
+		$ep_backup_host = array( 'http://127.0.0.1:9200' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_2 = true;
+			}
+		}
+
+		$request_3      = false;
+		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( is_wp_error( $request ) ) {
+			$request_3 = $request;
+		}
+
+		$request_4      = false;
+		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_4 = true;
+			}
+		}
+
+		$request_5      = false;
+		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_5 = true;
+			}
+		}
+
+		$this->assertTrue( $request_1 );
+		$this->assertTrue( $request_2 );
+		$this->assertWPError( $request_3 );
+		$this->assertTrue( $request_4 );
+		$this->assertTrue( $request_5 );
+
+	}
 }

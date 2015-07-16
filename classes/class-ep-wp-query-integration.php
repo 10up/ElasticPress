@@ -85,7 +85,15 @@ class EP_WP_Query_Integration {
 			return;
 		}
 
+		/**
+		 * `cache_results` defaults to false but can be enabled.
+		 *
+		 * @since 1.5
+		 */
 		$query->set( 'cache_results', false );
+		if ( ! empty( $query->query['cache_results'] ) ) {
+			$query->set( 'cache_results', true );
+		}
 
 		if ( ! headers_sent() ) {
 			/**
@@ -301,7 +309,7 @@ class EP_WP_Query_Integration {
 			foreach ( $post_return_args as $key ) {
 				if( $key === 'post_author' ) {
 					$post->$key = $post_array[$key]['id'];
-				} else {
+				} elseif ( isset( $post_array[ $key ] ) ) {
 					$post->$key = $post_array[$key];
 				}
 			}

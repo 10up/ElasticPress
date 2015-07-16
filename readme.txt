@@ -5,7 +5,7 @@ Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
 Tested up to: 4.3
-Stable tag: 1.4
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,14 +49,49 @@ configuring single site and multi-site cross-site search are slightly different.
 = Single Site =
 1. Activate the plugin.
 2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
-3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup`.
+3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
+4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup`.
 
 = Multi-site Cross-site Search =
 1. Network activate the plugin
 2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
-3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
+3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
+4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
+
+= 1.5.1 =
+
+### Bug Fixes:
+
+* Prevent notices from being thrown when non-existent index properties are accessed. This was happening for people how upgraded to 1.5 without doing a re-index. Props [allan23](https://github.com/allan23)
+
+= 1.5 =
+
+### Bug Fixes:
+
+* Prevent direct access to any PHP files. Props [joelgarciajr84](https://github.com/joelgarciajr84)
+* Fixed fields not being loaded from ES. Props [stayallive](https://github.com/stayallive)
+* Fixed inclusive check in date_query integration. Props [EduardMaghakyan](https://github.com/EduardMaghakyan)
+
+### Enhancements:
+
+* Add support for category_name WP_Query parameter. Props [ocean90](https://github.com/ocean90)
+* Support limiting sites in network wide commands. Props [bordoni](https://github.com/bordoni)
+* Add support for method to un-integrate WP_Query. Props [kingkool68](https://github.com/kingkool68)
+* Support `cache_results` in WP_Query
+* Add action prior to starting WP-CLI index command
+* Add missing headers to WP_CLI commands. Props [chriswiegman](https://github.com/chriswiegman)
+* Improve error reporting in bulk indexing during bad ES requests.
+* Fix is_search check notice. Props [allenmoore](https://github.com/allenmoore) and [allan23](https://github.com/allan23)
+* Added a filter to modify request headers. Props [tuanmh](https://github.com/tuanmh)
+* Prevent bulk index from sending useless error emails. Props [cmmarslender](https://github.com/cmmarslender)
+* Add --offset parameter to cli indexing command. [Stayallive](https://github.com/stayallive)
+* Change the syncing hook to play better with plugins. Props [jonathanbardo](https://github.com/jonathanbardo)
+* Support like query in post meta. Props [tuanmh](https://github.com/tuanmh)
+* Sanitization fixes for PHPCS. Props [mphillips](https://github.com/mphillips)
+* Added filter to set default sort order. Props [HKandulla](https://github.com/HKandulla)
+* MySQL DB completely removed from integrated ElasticPress WP Query. Props [EduardMaghakyan](https://github.com/EduardMaghakyan) and [crebacz](https://github.com/crebacz)
 
 = 1.4 =
 

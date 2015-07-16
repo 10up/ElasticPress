@@ -5,10 +5,6 @@ Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http:/
 
 **Please note:** the master branch is the stable branch
 
-**Latest stable release:** [1.4](https://github.com/10up/ElasticPress/releases/tag/1.4)
-
-*Upgrade Notice: If you are upgrading to 1.4, new date features will not work until you re-index: wp elasticpress index --setup*
-
 ## Background
 
 Let's face it, WordPress search is rudimentary at best. Poor performance, inflexible and rigid matching algorithms (which means no comprehension of 'close' queries), the inability to search metadata and taxonomy information, no way to determine categories of your results and most importantly the overall relevancy of results is poor.
@@ -386,6 +382,10 @@ The following are special parameters that are only supported by ElasticPress.
         ),
     ) );
     ```
+
+* ```cache_results``` (*boolean*)
+
+    This is a built-in WordPress parameter that caches retrieved posts for later use. It also forces meta and terms to be pulled and cached for each cached post. It is extremely important to understand when you use this parameter with ElasticPress that terms and meta will be pulled from MySQL not Elasticsearch during caching. For this reason, ```cache_results``` defaults to false.
 
 * ```sites``` (*int*/*string*/*array*)
 
