@@ -153,7 +153,18 @@ class EP_API {
 				$posts[] = $post;
 			}
 
-			return array( 'found_posts' => $response['hits']['total'], 'posts' => $posts );
+			/**
+			 * Filter search results.
+			 *
+			 * Allows more complete use of filtering request variables by allowing for filtering of results.
+			 *
+			 * @since 1.6.0
+			 *
+			 * @param array  $results  The unfiltered search results.
+			 * @param object $response The response body retrieved from ElasticSearch.
+			 */
+
+			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response );
 		}
 
 		return false;
