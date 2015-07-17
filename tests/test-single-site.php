@@ -352,7 +352,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		$post = $query->posts[0];
 
 		$terms = $post->terms;
-		error_log(var_export($terms, true));
 		$this->assertTrue( isset( $terms[$taxName] ) );
 		$this->assertTrue( count( $terms[$taxName] ) === 3 );
 		$indexedTerms = $terms[$taxName];
