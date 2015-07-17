@@ -266,8 +266,9 @@ class EPTestSingleSite extends EP_Test_Base {
         $expectedTerms = array( $term3['term_id'] );
 
         $this->assertTrue( count( $indexedTerms ) > 0 );
-        array_walk($indexedTerms, function( $term ) use( $expectedTerms ) {
-           $this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		$me = $this;
+        array_walk($indexedTerms, function( $term ) use( $expectedTerms, $me ) {
+           $me->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
         });
 	}
 
@@ -311,8 +312,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 		
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		array_walk( $indexedTerms, function( $term ) use ($expectedTerms ) {
-			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		$me = $this;
+		array_walk( $indexedTerms, function( $term ) use ($expectedTerms, $me ) {
+			$me->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		});
 	}
 
@@ -358,8 +360,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		array_walk( $indexedTerms, function( $term ) use ($expectedTerms ) {
-			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		$me = $this;
+		array_walk( $indexedTerms, function( $term ) use ($expectedTerms, $me ) {
+			$me->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		});
 
 	}
@@ -405,8 +408,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		array_walk($indexedTerms, function( $term ) use( $expectedTerms ) {
-			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		$me = $this;
+		array_walk($indexedTerms, function( $term ) use( $expectedTerms, $me) {
+			$me->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		});
 	}
 
