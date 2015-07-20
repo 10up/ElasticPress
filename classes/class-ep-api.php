@@ -1324,6 +1324,15 @@ class EP_API {
 
 		$host = null !== $host ? $host : ep_get_host(); //fallback to EP_HOST if no other host provided
 
+		//If we get a WP_Error try again for backups and return false if we still get an error
+		if ( is_wp_error( $host ) ) {
+			$host = ep_get_host( true );
+		}
+
+		if ( is_wp_error( $host ) ) {
+			return $elasticsearch_alive;
+		}
+
 		$request_args = array( 'headers' => $this->format_request_headers() );
 		$url = $host;
 
