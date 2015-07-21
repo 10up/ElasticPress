@@ -34,6 +34,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function tearDown() {
 		parent::tearDown();
 
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
 		$this->fired_actions = array();
 	}
 
@@ -1648,5 +1649,35 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertTrue( $request_4 );
 		$this->assertTrue( $request_5 );
 
+	}
+
+	public function mock_indexable_post_status($post_statuses){
+		$post_statuses = array();
+		$post_statuses[] = "draft";
+		return $post_statuses;
+	}
+
+	public function testPostInvalidDateTime(){
+		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
+		$post_id = ep_create_and_sync_post( array( 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		ep_sync_post($post_id);
+
+		wp_cache_flush();
+
+		$wp_post = get_post($post_id);
+		$post = ep_get_post($post_id);
+
+		$invalid_datetime = "0000-00-00 00:00:00";
+		if( $wp_post->post_date_gmt == $invalid_datetime ){
+			$this->assertNull( $post[ 'post_date_gmt'] );
+		}
+
+		if( $wp_post->post_modified_gmt == $invalid_datetime ){
+			$this->assertNull( $post[ 'post_modified_gmt' ] );
+		}
+		$this->assertNotNull( $post );
 	}
 }
