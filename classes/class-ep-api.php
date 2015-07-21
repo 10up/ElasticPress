@@ -5,11 +5,6 @@
 class EP_API {
 
 	/**
-	 * @var string
-	 */
-	const INVALID_DATETIME = "0000-00-00 00:00:00";
-
-	/**
 	 * Placeholder method
 	 *
 	 * @since 0.1.0
@@ -437,7 +432,7 @@ class EP_API {
 				$post_date = null;
 			}
 
-			if ( ! strtotime( $post_date_gmt ) || $post_date_gmt == self::INVALID_DATETIME ) {
+			if ( ! strtotime( $post_date_gmt ) ) {
 				$post_date_gmt = null;
 			}
 
@@ -445,7 +440,7 @@ class EP_API {
 				$post_modified = null;
 			}
 
-			if ( ! strtotime( $post_modified_gmt ) || $post_modified_gmt == self::INVALID_DATETIME ) {
+			if ( ! strtotime( $post_modified_gmt ) ) {
 				$post_modified_gmt = null;
 			}
 		}
