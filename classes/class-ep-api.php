@@ -12,6 +12,11 @@ class EP_API {
 	public function __construct() { }
 
 	/**
+	 * @var string
+	 */
+	const INVALID_DATETIME = "0000-00-00 00:00:00";
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return EP_API
@@ -432,7 +437,7 @@ class EP_API {
 				$post_date = null;
 			}
 
-			if ( ! strtotime( $post_date_gmt ) ) {
+			if ( ! strtotime( $post_date_gmt ) || $post_date_gmt == self::INVALID_DATETIME ) {
 				$post_date_gmt = null;
 			}
 
@@ -440,7 +445,7 @@ class EP_API {
 				$post_modified = null;
 			}
 
-			if ( ! strtotime( $post_modified_gmt ) ) {
+			if ( ! strtotime( $post_modified_gmt ) || $post_modified_gmt == self::INVALID_DATETIME ) {
 				$post_modified_gmt = null;
 			}
 		}
@@ -529,6 +534,7 @@ class EP_API {
 		}
 
 		$terms = array();
+		$allowedHierarchy = apply_filters('ep_sync_terms_allow_hierarchy', false);
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
 			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
@@ -537,17 +543,47 @@ class EP_API {
 				continue;
 			}
 
+			$termsDic = array();
+
 			foreach ( $object_terms as $term ) {
-				$terms[$term->taxonomy][] = array(
-					'term_id' => $term->term_id,
-					'slug'    => $term->slug,
-					'name'    => $term->name,
-					'parent'  => $term->parent
-				);
+				if( ! isset( $termsDic[ $term->term_id ] ) ) {
+					$termsDic[ $term->term_id ] = array(
+						'term_id' => $term->term_id,
+						'slug'    => $term->slug,
+						'name'    => $term->name,
+						'parent'  => $term->parent
+					);
+				}
+				if( $allowedHierarchy ){
+					$termsDic = $this->getParents( $termsDic, $term, $taxonomy->name );
+				}
 			}
+			$terms[$taxonomy->name] = array_values( $termsDic );
 		}
 
 		return $terms;
+	}
+
+	/**
+	 * Recursively get all the ancestor terms of given term
+	 * @param $terms
+	 * @param $term
+	 * @param $taxonomyName
+	 * @return mixed
+	 */
+	private function getParents( $terms, $term, $taxonomyName ) {
+		$parentTerm = get_term( $term->parent, $taxonomyName );
+		if( ! $parentTerm || is_wp_error( $parentTerm ) )
+			return $terms;
+		if( ! isset( $terms[ $parentTerm->term_id ] ) ) {
+			$terms[ $parentTerm->term_id ] = array(
+				'term_id' => $parentTerm->term_id,
+				'slug'    => $parentTerm->slug,
+				'name'    => $parentTerm->name,
+				'parent'  => $parentTerm->parent
+			);
+		}
+		return $this->getParents( $terms, $parentTerm, $taxonomyName );
 	}
 
 	/**
