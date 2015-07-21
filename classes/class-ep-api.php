@@ -12,6 +12,11 @@ class EP_API {
 	public function __construct() { }
 
 	/**
+	 * @var string
+	 */
+	const INVALID_DATETIME = "0000-00-00 00:00:00";
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return EP_API
@@ -432,7 +437,7 @@ class EP_API {
 				$post_date = null;
 			}
 
-			if ( ! strtotime( $post_date_gmt ) ) {
+			if ( ! strtotime( $post_date_gmt ) || $post_date_gmt == self::INVALID_DATETIME ) {
 				$post_date_gmt = null;
 			}
 
@@ -440,7 +445,7 @@ class EP_API {
 				$post_modified = null;
 			}
 
-			if ( ! strtotime( $post_modified_gmt ) ) {
+			if ( ! strtotime( $post_modified_gmt ) || $post_modified_gmt == self::INVALID_DATETIME ) {
 				$post_modified_gmt = null;
 			}
 		}
