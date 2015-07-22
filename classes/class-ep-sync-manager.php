@@ -20,6 +20,8 @@ class EP_Sync_Manager {
 	 */
 	public function setup() {
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
@@ -33,6 +35,8 @@ class EP_Sync_Manager {
 	 */
 	public function destroy() {
 		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
+		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
@@ -66,11 +70,9 @@ class EP_Sync_Manager {
 	 * Sync ES index with what happened to the post being saved
 	 *
 	 * @param $post_ID
-	 * @param object $post
-	 * @param $update
 	 * @since 0.1.0
 	 */
-	public function action_sync_on_update( $post_ID, $post, $update ) {
+	public function action_sync_on_update( $post_ID ) {
 		global $importer;
 
 		// If we have an importer we must be doing an import - let's abort
@@ -84,6 +86,8 @@ class EP_Sync_Manager {
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_ID ) || 'revision' === $post_type ) {
 			return;
 		}
+
+		$post = get_post( $post_ID );
 
 		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
 		if ( ! in_array( $post->post_status, $indexable_post_statuses ) ) {
