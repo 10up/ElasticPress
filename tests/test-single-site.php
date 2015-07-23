@@ -546,6 +546,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		// post_type defaults to "any"
 		$args = array(
 			'post_type'              => 'attachment',
+			'post_status'            => 'any',
 			'elasticpress_integrate' => true,
 		);
 
