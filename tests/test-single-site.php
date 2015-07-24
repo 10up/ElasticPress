@@ -554,6 +554,9 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_types', array( $this, '_add_attachment_post_type' ) );
+		remove_filter( 'ep_indexable_post_status', array( $this, '_add_attachment_post_status' ) );
 	}
 
 	/**
