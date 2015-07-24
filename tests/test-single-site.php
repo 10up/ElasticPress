@@ -505,6 +505,61 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Add attachment post type for indexing
+	 *
+	 * @since 1.6
+	 * @param array $post_types
+	 * @return array
+	 */
+	public function _add_attachment_post_type( $post_types ) {
+		$post_types[] = 'attachment';
+		return $post_types;
+	}
+
+	/**
+	 * Setup attachment post status for indexing
+	 *
+	 * @since 1.6
+	 * @param array $post_statuses
+	 * @return array
+	 */
+	public function _add_attachment_post_status( $post_statuses ) {
+		$post_statuses[] = 'inherit';
+		return $post_statuses;
+	}
+
+	/**
+	 * Test an attachment query
+	 *
+	 * @since 1.6
+	 */
+	public function testAttachmentQuery() {
+		add_filter( 'ep_indexable_post_types', array( $this, '_add_attachment_post_type' ) );
+		add_filter( 'ep_indexable_post_status', array( $this, '_add_attachment_post_status' ) );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'attachment' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		// post_type defaults to "any"
+		$args = array(
+			'post_type'              => 'attachment',
+			'post_status'            => 'any',
+			'elasticpress_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_types', array( $this, '_add_attachment_post_type' ) );
+		remove_filter( 'ep_indexable_post_status', array( $this, '_add_attachment_post_status' ) );
+	}
+
+	/**
 	 * Test a query with no post type on non-search query
 	 *
 	 * @since 1.3
