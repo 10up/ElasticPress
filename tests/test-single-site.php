@@ -34,7 +34,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function tearDown() {
 		parent::tearDown();
 
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
 		$this->fired_actions = array();
 	}
 
@@ -1679,5 +1678,6 @@ class EPTestSingleSite extends EP_Test_Base {
 			$this->assertNull( $post[ 'post_modified_gmt' ] );
 		}
 		$this->assertNotNull( $post );
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
 	}
 }
