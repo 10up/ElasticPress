@@ -428,19 +428,19 @@ class EP_API {
 		$menu_order = absint( $post->menu_order );
 
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
-			if ( ! strtotime( $post_date ) ) {
+			if ( ! strtotime( $post_date ) || $post_date === "0000-00-00 00:00:00" ) {
 				$post_date = null;
 			}
 
-			if ( ! strtotime( $post_date_gmt ) ) {
+			if ( ! strtotime( $post_date_gmt ) || $post_date_gmt === "0000-00-00 00:00:00" ) {
 				$post_date_gmt = null;
 			}
 
-			if ( ! strtotime( $post_modified ) ) {
+			if ( ! strtotime( $post_modified ) || $post_modified === "0000-00-00 00:00:00" ) {
 				$post_modified = null;
 			}
 
-			if ( ! strtotime( $post_modified_gmt ) ) {
+			if ( ! strtotime( $post_modified_gmt ) || $post_modified_gmt === "0000-00-00 00:00:00" ) {
 				$post_modified_gmt = null;
 			}
 		}
