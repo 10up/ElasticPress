@@ -66,7 +66,7 @@ class EP_Test_Base extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Setup a post type for testing
+	 * Setup a few post types for testing
 	 *
 	 * @since 1.0
 	 */
@@ -77,5 +77,14 @@ class EP_Test_Base extends WP_UnitTestCase {
 		);
 
 		register_post_type( 'ep_test', $args );
+		
+		// Post type that is excluded from search.
+		$args = array(
+			'public' => true,
+			'taxonomies' => array( 'post_tag', 'category' ),
+			'exclude_from_search' => true,
+		);
+
+		register_post_type( 'ep_test_excluded', $args );
 	}
 }
