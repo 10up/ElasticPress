@@ -103,7 +103,7 @@ class EP_Config {
 			$index_name = false;
 		}
 
-		return apply_filters( 'ep_index_name', $index_name );
+		return apply_filters( 'ep_index_name', $index_name, $blog_id );
 	}
 
 	/**
