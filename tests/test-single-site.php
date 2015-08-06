@@ -1735,4 +1735,16 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertNotNull( $post );
 		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
 	}
+	
+	/**
+	 * Test to verify that a post type that is set to exclude_from_search isn't indexable.
+	 * @group 321
+	 * @since 1.6
+	 * @link https://github.com/10up/ElasticPress/issues/321
+	 */
+	public function testExcludeIndexablePostType() {
+		$post_types = ep_get_indexable_post_types();
+		$this->assertArrayNotHasKey( 'ep_test_excluded', $post_types );
+	}
+
 }
