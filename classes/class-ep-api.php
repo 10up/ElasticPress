@@ -755,6 +755,21 @@ class EP_API {
 		}
 
 		/**
+		 * 'post__in' arg support.
+		 *
+		 * @since x.x
+		 */
+		if ( ! empty( $args[ 'post__in' ] ) ) {
+			$filter['and'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_id' => (array) $args[ 'post__in' ],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * Author query support
 		 *
 		 * @since 1.0
