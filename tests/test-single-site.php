@@ -1427,4 +1427,117 @@ class EPTestSingleSite extends EP_Test_Base {
 		// Reset the main $wp_post_types item
 		$GLOBALS['wp_post_types'] = $backup_post_types;
 	}
+
+	/**
+	 * Test cache_results is off by default
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsDefaultOff() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertFalse( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test cache_results can be turned on
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsOn() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test using cache_results actually populates the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( ! empty( $cache ) );
+	}
+
+	/**
+	 * Test setting cache results to false doesn't store anything in the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsNotInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( empty( $cache ) );
+	}
+	
+		
+	/**
+	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
+	 * @group 306
+	 * @link https://github.com/10up/ElasticPress/issues/306
+	 */
+	public function testPostReturnArgs() {
+		add_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		ep_refresh_index();
+		$args	 = array(
+			's' => 'findme'
+		);
+		$query	 = new WP_Query( $args );
+		remove_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
+	}
+
+	/**
+	 * Adds fake_item to post_return_args.
+	 * @param array $args
+	 * @return string
+	 */
+	public function ep_search_post_return_args_filter( $args ) {
+		$args[] = 'fake_item';
+		return $args;
+	}
 }
