@@ -42,7 +42,7 @@ install_test_suite() {
 	# set up testing suite
 	mkdir -p $WP_TESTS_DIR
 	cd $WP_TESTS_DIR
-	svn co --quiet https://develop.svn.wordpress.org/trunk/tests/phpunit/includes/
+	svn co --quiet --trust-server-cert --non-interactive https://develop.svn.wordpress.org/trunk/tests/phpunit/includes/
 
     wget -nv -O wp-tests-config.php https://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php --no-check-certificate
 
