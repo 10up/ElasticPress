@@ -1,6 +1,16 @@
 {
 	"containers": [
 		{
+			"prettyName": "PHP 5.6 FPM WordPress Latest",
+			"image": "dockunit/php-mysql-phpunit-elasticsearch:5.6",
+			"beforeScripts": [
+				"service mysql start",
+				"elasticsearch start & 1>/dev/null",
+				"bash bin/install-wp-tests.sh wordpress_test root '' localhost latest"
+			],
+			"testCommand": "phpunit"
+		},
+		{
 			"prettyName": "PHP 5.2 FPM WordPress Latest",
 			"image": "dockunit/php-mysql-phpunit-elasticsearch:5.2",
 			"beforeScripts": [
