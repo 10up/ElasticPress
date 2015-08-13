@@ -266,10 +266,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		$me = $this;
-		array_walk($indexedTerms, function( $term ) use( $expectedTerms, $me ) {
-			$me->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
-		});
+
+		foreach ( $indexedTerms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		}
 	}
 
 	public function ep_allow_multiple_level_terms_sync(){
@@ -312,10 +312,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		$me = $this;
-		array_walk( $indexedTerms, function( $term ) use ( $expectedTerms, $me ) {
-			$me->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
-		});
+		
+		foreach ( $indexedTerms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		}
 	}
 
 	/**
@@ -360,10 +360,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		$me = $this;
-		array_walk( $indexedTerms, function( $term ) use ( $expectedTerms, $me ) {
-			$me->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
-		});
+		
+		foreach ( $indexedTerms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		}
 	}
 
 	/**
@@ -408,10 +408,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		$me = $this;
-		array_walk($indexedTerms, function( $term ) use( $expectedTerms, $me ) {
-			$me->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
-		});
+
+		foreach ( $indexedTerms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		}
 	}
 
 	/**
