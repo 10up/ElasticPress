@@ -113,7 +113,7 @@ class EP_Config {
 	 * @return mixed|void
 	 */
 	public function get_indexable_post_types() {
-		$post_types = get_post_types( array( 'public' => true, 'exclude_from_search' => false ) );
+		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
 
 		return apply_filters( 'ep_indexable_post_types', $post_types );
 	}

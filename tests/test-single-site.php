@@ -1745,6 +1745,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testExcludeIndexablePostType() {
 		$post_types = ep_get_indexable_post_types();
 		$this->assertArrayNotHasKey( 'ep_test_excluded', $post_types );
+		$this->assertArrayNotHasKey( 'ep_test_not_public', $post_types );
 	}
 
 }
