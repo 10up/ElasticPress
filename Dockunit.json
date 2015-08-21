@@ -2,7 +2,7 @@
 	"containers": [
 		{
 			"prettyName": "PHP 5.6 FPM WordPress Latest",
-			"image": "dockunit/php-fpm-mysql-phpunit-elasticsearch:5.6",
+			"image": "dockunit/prebuilt-images:php-mysql-phpunit-elasticsearch-5.6-fpm",
 			"beforeScripts": [
 				"service mysql start",
 				"elasticsearch start & 1>/dev/null",
@@ -12,7 +12,7 @@
 		},
 		{
 			"prettyName": "PHP 5.2 FPM WordPress Latest",
-			"image": "dockunit/php-fpm-mysql-phpunit-elasticsearch:5.2",
+			"image": "dockunit/prebuilt-images:php-mysql-phpunit-elasticsearch-5.2-fpm",
 			"beforeScripts": [
 				"service mysql start",
 				"elasticsearch start & 1>/dev/null",
