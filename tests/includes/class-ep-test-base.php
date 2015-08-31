@@ -80,11 +80,18 @@ class EP_Test_Base extends WP_UnitTestCase {
 		
 		// Post type that is excluded from search.
 		$args = array(
-			'public' => true,
 			'taxonomies' => array( 'post_tag', 'category' ),
 			'exclude_from_search' => true,
 		);
 
 		register_post_type( 'ep_test_excluded', $args );
+		
+				// Post type that is excluded from search.
+		$args = array(
+			'taxonomies' => array( 'post_tag', 'category' ),
+			'public' => false,
+		);
+
+		register_post_type( 'ep_test_not_public', $args );
 	}
 }
