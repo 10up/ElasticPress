@@ -362,9 +362,17 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private function queue_post( $post_id, $bulk_trigger ) {
 		static $post_count = 0;
 
+		$post_args = ep_prepare_post( $post_id );
+
+		// Mimic EP_Sync_Manager::sync_post( $post_id ), otherwise posts can slip
+		// through the kill filter... that would be bad!
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
+			return true;
+		}
+
 		// put the post into the queue
 		$this->posts[$post_id][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-		$this->posts[$post_id][] = addcslashes( json_encode( ep_prepare_post( $post_id ) ), "\n" );
+		$this->posts[$post_id][] = addcslashes( json_encode( $post_args ), "\n" );
 
 		// augment the counter
 		++$post_count;
@@ -477,7 +485,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty', $request_args );
+		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_status/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -500,7 +508,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/', $request_args );
+		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_stats/', $request_args );
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}

@@ -44,8 +44,7 @@ install_test_suite() {
 	cd $WP_TESTS_DIR
 	svn co --quiet --trust-server-cert --non-interactive https://develop.svn.wordpress.org/trunk/tests/phpunit/includes/
 
-    wget -nv -O wp-tests-config.php https://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php --no-check-certificate
-
+	wget -nv -O wp-tests-config.php https://develop.svn.wordpress.org/trunk/wp-tests-config-sample.php --no-check-certificate
 	sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" wp-tests-config.php
 	sed $ioption "s/youremptytestdbnamehere/$DB_NAME/" wp-tests-config.php
 	sed $ioption "s/yourusernamehere/$DB_USER/" wp-tests-config.php

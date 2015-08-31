@@ -22,6 +22,67 @@ class EP_Config {
 	}
 
 	/**
+	 * Retrieve the appropriate EP_HOST
+	 *
+	 * Looks at the defined EP_HOST or a backup global should the defined host failed.
+	 * Priority is given to the EP_HOST constand with the backups only used when needed.
+	 *
+	 * @since 1.6
+	 *
+	 * @global array $ep_backup_host   array of backup hosts
+	 *
+	 * @param bool   $force            Whether to force a new lookup or not
+	 * @param bool   $use_only_backups Forces the use of only the backup array, no others
+	 *
+	 * @return string|WP_Error the host to use or an error
+	 */
+	public function get_ep_host( $force = false, $use_only_backups = false ) {
+
+		global $ep_backup_host;
+
+		// Delete the transient if we want to force a new good host lookup
+		if ( true === $force ) {
+			delete_site_transient( 'ep_last_good_host' );
+		}
+
+		$last_good_host = get_site_transient( 'ep_last_good_host' );
+
+		if ( $last_good_host ) {
+			return $last_good_host;
+		}
+
+		// If nothing is defined just return an error
+		if ( ! defined( 'EP_HOST' ) && ! $ep_backup_host ) {
+			return new WP_Error( 'elasticpress', __( 'No running host available.', 'elasticpress' ) );
+		}
+
+		$hosts = array();
+
+		if ( defined( 'EP_HOST' ) && false === $use_only_backups ) {
+			$hosts[] = EP_HOST;
+		}
+
+		// If no backups are defined just return the host
+		if ( $ep_backup_host && is_array( $ep_backup_host ) ) {
+			$hosts = array_merge( $hosts, $ep_backup_host );
+		}
+
+		foreach ( $hosts as $host ) {
+
+			if ( true === ep_elasticsearch_alive( $host ) ) {
+
+				set_site_transient( 'ep_last_good_host', $host, apply_filters( 'ep_last_good_host_timeout', 3600 ) );
+
+				return $host;
+
+			}
+		}
+
+		return new WP_Error( 'elasticpress', __( 'No running host available.', 'elasticpress' ) );
+
+	}
+
+	/**
 	 * Generates the index name for the current site
 	 *
 	 * @param int $blog_id (optional) Blog ID. Defaults to current blog.
@@ -42,24 +103,7 @@ class EP_Config {
 			$index_name = false;
 		}
 
-		return apply_filters( 'ep_index_name', $index_name );
-	}
-
-	/**
-	 * Returns the index url given an index name. Defaults to current index
-	 *
-	 * @param string|array $index
-	 * @since 0.9
-	 * @return string
-	 */
-	public function get_index_url( $index = null ) {
-		if ( null === $index ) {
-			$index = $this->get_index_name();
-		} elseif ( is_array( $index ) ) {
-			$index = implode( ',', array_filter( $index ) );
-		}
-
-		return untrailingslashit( EP_HOST ) . '/' . $index;
+		return apply_filters( 'ep_index_name', $index_name, $blog_id );
 	}
 
 	/**
@@ -69,7 +113,7 @@ class EP_Config {
 	 * @return mixed|void
 	 */
 	public function get_indexable_post_types() {
-		$post_types = get_post_types( array( 'public' => true ) );
+		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
 
 		return apply_filters( 'ep_indexable_post_types', $post_types );
 	}
@@ -107,8 +151,8 @@ EP_Config::factory();
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
-function ep_get_index_url( $index = null ) {
-	return EP_Config::factory()->get_index_url( $index );
+function ep_get_host( $force = false, $use_only_backups = false ) {
+	return EP_Config::factory()->get_ep_host( $force, $use_only_backups );
 }
 
 function ep_get_index_name( $blog_id = null ) {

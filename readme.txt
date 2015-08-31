@@ -4,8 +4,8 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
-Tested up to: 4.3
-Stable tag: 1.5.1
+Tested up to: 4.4
+Stable tag: 1.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,14 +49,38 @@ configuring single site and multi-site cross-site search are slightly different.
 = Single Site =
 1. Activate the plugin.
 2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
-3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup`.
+3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
+4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup`.
 
 = Multi-site Cross-site Search =
 1. Network activate the plugin
 2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
-3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
+3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
+4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
+
+= 1.6 =
+
+ElasticPress 1.6 contains a number of important enhancements and bug fixes. Most notably, we now support Elasticsearch fallback hosts and the indexing of attachments.
+
+### Bug Fixes:
+
+* Clean up PHP Code Sniffer errors. Props [chriswiegman](https://github.com/chriswiegman)
+* Properly document Elasticsearch version
+* Abide by `exclude_from_search` instead of `public` when indexing post types. Props [allan23](https://github.com/allan23) and [ghosttoast](https://github.com/ghosttoast).
+* Allow posts to be indexed with invalid date values. Props [tuanmh](https://github.com/tuanmh)
+* Support `ep_post_sync_kill` filter in bulk indexing. Props [Stayallive](https://github.com/Stayallive)
+
+### Enhancements:
+
+* Add blog id to `ep_index_name` filter. Props [kovshenin](https://github.com/kovshenin)
+* Support post caching in search
+* Add recursive term indexing for heirarchal taxonomies. Props [tuanmh](https://github.com/tuanmh)
+* Enable indexing of attachments
+* Support fallback hosts in case main EP host is unavailable. Props [chriswiegman](https://github.com/chriswiegman)
+* Add `ep_retrieve_the_post` filter to support relevancy score manipulation. Props [matthewspencer](https://github.com/matthewspencer)
+* Make search results filterable. Props [chriswiegman](https://github.com/chriswiegman)
 
 = 1.5.1 =
 
