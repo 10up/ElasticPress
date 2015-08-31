@@ -29,6 +29,12 @@ The goal of ElasticPress is to integrate WordPress with Elasticsearch. This plug
 
 There are other Elasticsearch integration plugins available for WordPress. ElasticPress, unlike others, offers multi-site search. Elasticsearch is a complex topic and integration results in complex problems. Rather than providing a limited, clunky UI, we elected to instead provide full control via [WP-CLI](http://wp-cli.org/).
 
+## Requirements
+
+* [Elasticsearch](https://www.elastic.co) 1.3+
+* [WordPress](http://wordpress.org) 3.7.1+
+* [WP-CLI](http://wp-cli.org/) 0.13+
+
 ## Installation
 
 1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
