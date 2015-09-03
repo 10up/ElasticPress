@@ -1,5 +1,7 @@
 <?php
-
+ if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
 WP_CLI::add_command( 'elasticpress', 'ElasticPress_CLI_Command' );
 
 /**
@@ -34,8 +36,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function put_mapping( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
-			$sites = ep_get_sites();
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -85,8 +90,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function delete_index( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
-			$sites = ep_get_sites();
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -181,7 +189,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		} else {
 			$assoc_args['posts-per-page'] = 350;
 		}
-		
+
 		if ( ! empty( $assoc_args['offset'] ) ) {
 			$assoc_args['offset'] = absint( $assoc_args['offset'] );
 		} else {
@@ -193,7 +201,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		/**
 		 * Prior to the index command invoking
 		 * Useful for deregistering filters/actions that occur during a query request
-		 * 
+		 *
 		 * @since 1.4.1
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
@@ -210,11 +218,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$this->put_mapping( $args, $assoc_args );
 		}
 
-		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+				$assoc_args['network-wide'] = 0;
+			}
 
 			WP_CLI::log( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
-			$sites = ep_get_sites();
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -313,16 +324,16 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$offset += $posts_per_page;
 
 			usleep( 500 );
-			
+
 			// Avoid running out of memory
 			$wpdb->queries = array();
-	
+
 			if ( is_object( $wp_object_cache ) ) {
 				$wp_object_cache->group_ops = array();
 				$wp_object_cache->stats = array();
 				$wp_object_cache->memcache_debug = array();
 				$wp_object_cache->cache = array();
-		
+
 				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
 				}
@@ -351,9 +362,17 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private function queue_post( $post_id, $bulk_trigger ) {
 		static $post_count = 0;
 
+		$post_args = ep_prepare_post( $post_id );
+
+		// Mimic EP_Sync_Manager::sync_post( $post_id ), otherwise posts can slip
+		// through the kill filter... that would be bad!
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
+			return true;
+		}
+
 		// put the post into the queue
 		$this->posts[$post_id][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-		$this->posts[$post_id][] = addcslashes( json_encode( ep_prepare_post( $post_id ) ), "\n" );
+		$this->posts[$post_id][] = addcslashes( json_encode( $post_args ), "\n" );
 
 		// augment the counter
 		++$post_count;
@@ -464,7 +483,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function status() {
 		$this->_connect_check();
 
-		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_status/?pretty' );
+		$request_args = array( 'headers' => ep_format_request_headers() );
+
+		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_status/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -485,7 +506,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function stats() {
 		$this->_connect_check();
 
-		$request = wp_remote_get( trailingslashit( EP_HOST ) . '_stats/' );
+		$request_args = array( 'headers' => ep_format_request_headers() );
+
+		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_stats/', $request_args );
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}

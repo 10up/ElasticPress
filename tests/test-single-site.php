@@ -34,6 +34,8 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function tearDown() {
 		parent::tearDown();
 
+		//make sure no one attached to this
+		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -230,6 +232,189 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * @group testPostTermSyncHierarchy
+	 *
+	 */
+	public function testPostTermSyncSingleLevel(){
+
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, array( "label" => $taxName ) );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, $taxName );
+
+		$term2Name = rand_str( 32 );
+		$term2 = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+
+		$term3Name = rand_str( 32 );
+		$term3 = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+
+		$post = ep_get_post( $post_id );
+
+		$terms = $post['terms'];
+		$this->assertTrue( isset( $terms[$taxName] ) );
+
+		$indexedTerms = $terms[$taxName];
+		$expectedTerms = array( $term3['term_id'] );
+
+		$this->assertTrue( count( $indexedTerms ) > 0 );
+
+		foreach ( $indexedTerms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		}
+	}
+
+	public function ep_allow_multiple_level_terms_sync(){
+		return true;
+	}
+
+	/**
+	 * @group testPostTermSyncHierarchy
+	 *
+	 */
+	public function testPostTermSyncHierarchyMultipleLevel(){
+
+		add_filter('ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100, 1 );
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, array( "label" => $taxName ) );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, $taxName );
+
+		$term2Name = rand_str( 32 );
+		$term2 = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+
+		$term3Name = rand_str( 32 );
+		$term3 = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+
+		$post = ep_get_post( $post_id );
+
+		$terms = $post['terms'];
+		$this->assertTrue( isset( $terms[$taxName] ) );
+		$this->assertTrue( count( $terms[$taxName] ) === 3 );
+		$indexedTerms = $terms[$taxName];
+		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
+
+		$this->assertTrue( count( $indexedTerms ) > 0 );
+		
+		foreach ( $indexedTerms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		}
+	}
+
+	/**
+	 * @group testPostTermSyncHierarchy
+	 *
+	 */
+	public function testPostTermSyncHierarchyMultipleLevelQuery(){
+
+		add_filter('ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100, 1 );
+		$post_id = ep_create_and_sync_post(array("post_title" => "#findme"));
+		$post = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, array( "label" => $taxName ) );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, $taxName );
+
+		$term2Name = rand_str( 32 );
+		$term2 = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+
+		$term3Name = rand_str( 32 );
+		$term3 = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+		$query = new WP_Query(array('s' => "#findme"));
+
+		$this->assertNotNull( $query->posts[0] );
+		$this->assertNotNull( $query->posts[0]->terms );
+		$post = $query->posts[0];
+
+		$terms = $post->terms;
+		$this->assertTrue( isset( $terms[$taxName] ) );
+		$this->assertTrue( count( $terms[$taxName] ) === 3 );
+		$indexedTerms = $terms[$taxName];
+		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
+
+		$this->assertTrue( count( $indexedTerms ) > 0 );
+		
+		foreach ( $indexedTerms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		}
+	}
+
+	/**
+	 * @group testPostTermSyncHierarchy
+	 *
+	 */
+	public function testPostTermSyncSingleLevelQuery(){
+
+		$post_id = ep_create_and_sync_post( array( "post_title" => "#findme" ) );
+		$post = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, array( "label" => $taxName ) );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, $taxName );
+
+		$term2Name = rand_str( 32 );
+		$term2 = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+
+		$term3Name = rand_str( 32 );
+		$term3 = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+		$query = new WP_Query(array('s' => "#findme"));
+
+		$this->assertNotNull( $query->posts[0] );
+		$this->assertNotNull( $query->posts[0]->terms );
+		$post = $query->posts[0];
+
+
+		$terms = $post->terms;
+		$this->assertTrue( isset( $terms[$taxName] ) );
+
+		$indexedTerms = $terms[$taxName];
+		$expectedTerms = array( $term3['term_id'] );
+
+		$this->assertTrue( count( $indexedTerms ) > 0 );
+
+		foreach ( $indexedTerms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		}
+	}
+
+	/**
 	 * Test WP Query search on post excerpt
 	 *
 	 * @since 0.9
@@ -359,6 +544,32 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a category_name query
+	 *
+	 * @since 1.5
+	 */
+	public function testCategoryNameQuery() {
+		$cat_one = wp_insert_category( array( 'cat_name' => 'one') );
+		$cat_two = wp_insert_category( array( 'cat_name' => 'two') );
+		$cat_three = wp_insert_category( array( 'cat_name' => 'three') );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $cat_one, $cat_two ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_category' => array( $cat_one, $cat_three) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'             => 'findme',
+			'category_name' => 'one'
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test an author ID query
 	 *
 	 * @since 1.0
@@ -476,6 +687,61 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Add attachment post type for indexing
+	 *
+	 * @since 1.6
+	 * @param array $post_types
+	 * @return array
+	 */
+	public function _add_attachment_post_type( $post_types ) {
+		$post_types[] = 'attachment';
+		return $post_types;
+	}
+
+	/**
+	 * Setup attachment post status for indexing
+	 *
+	 * @since 1.6
+	 * @param array $post_statuses
+	 * @return array
+	 */
+	public function _add_attachment_post_status( $post_statuses ) {
+		$post_statuses[] = 'inherit';
+		return $post_statuses;
+	}
+
+	/**
+	 * Test an attachment query
+	 *
+	 * @since 1.6
+	 */
+	public function testAttachmentQuery() {
+		add_filter( 'ep_indexable_post_types', array( $this, '_add_attachment_post_type' ) );
+		add_filter( 'ep_indexable_post_status', array( $this, '_add_attachment_post_status' ) );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'attachment' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		// post_type defaults to "any"
+		$args = array(
+			'post_type'              => 'attachment',
+			'post_status'            => 'any',
+			'elasticpress_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_types', array( $this, '_add_attachment_post_type' ) );
+		remove_filter( 'ep_indexable_post_status', array( $this, '_add_attachment_post_status' ) );
 	}
 
 	/**
@@ -1401,4 +1667,270 @@ class EPTestSingleSite extends EP_Test_Base {
 		// Reset the main $wp_post_types item
 		$GLOBALS['wp_post_types'] = $backup_post_types;
 	}
+
+	/**
+	 * Test cache_results is off by default
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsDefaultOff() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertFalse( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test cache_results can be turned on
+	 *
+	 * @since 1.5
+	 */
+	public function testCacheResultsOn() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( $query->query_vars['cache_results'] ) ;
+	}
+
+	/**
+	 * Test using cache_results actually populates the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+			'cache_results' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( ! empty( $cache ) );
+	}
+
+	/**
+	 * Test setting cache results to false doesn't store anything in the cache
+	 *
+	 * @since 1.5
+	 */
+	public function testCachedResultIsNotInCache() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		wp_cache_flush();
+
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
+
+		$this->assertTrue( empty( $cache ) );
+	}
+	
+		
+	/**
+	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
+	 * @group 306
+	 * @link https://github.com/10up/ElasticPress/issues/306
+	 */
+	public function testPostReturnArgs() {
+		add_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		ep_refresh_index();
+		$args	 = array(
+			's' => 'findme'
+		);
+		$query	 = new WP_Query( $args );
+		remove_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
+	}
+
+	/**
+	 * Adds fake_item to post_return_args.
+	 * @param array $args
+	 * @return string
+	 */
+	public function ep_search_post_return_args_filter( $args ) {
+		$args[] = 'fake_item';
+		return $args;
+	}
+
+	/**
+	 * Test get hosts method
+	 */
+	public function testGetHost() {
+
+		global $ep_backup_host;
+
+		//Check host constant
+		$host_1 = ep_get_host( true );
+
+		//Test only host in array
+		$ep_backup_host = array( 'http://127.0.0.1:9200' );
+
+		$host_2 = ep_get_host( true, true );
+
+		//Test no good hosts
+		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
+
+		$host_3 = ep_get_host( true, true );
+
+		//Test good host 1st array item
+		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
+
+		$host_4 = ep_get_host( true, true );
+
+		//Test good host last array item
+		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
+
+		$host_5 = ep_get_host( true, true );
+
+		$this->assertInternalType( 'string', $host_1 );
+		$this->assertInternalType( 'string', $host_2 );
+		$this->assertWPError( $host_3 );
+		$this->assertInternalType( 'string', $host_4 );
+		$this->assertInternalType( 'string', $host_5 );
+
+	}
+
+	/**
+	 * Test wrapper around wp_remote_request
+	 */
+	public function testEPRemoteRequest() {
+
+		global $ep_backup_host;
+
+		$ep_backup_host = false;
+
+		define( 'EP_FORCE_HOST_REFRESH', true );
+
+		//Test with EP_HOST constant
+		$request_1 = false;
+		$request   = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_1 = true;
+			}
+		}
+
+		//Test with only backups
+
+		define( 'EP_HOST_USE_ONLY_BACKUPS', true );
+
+		$request_2      = false;
+		$ep_backup_host = array( 'http://127.0.0.1:9200' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_2 = true;
+			}
+		}
+
+		$request_3      = false;
+		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( is_wp_error( $request ) ) {
+			$request_3 = $request;
+		}
+
+		$request_4      = false;
+		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_4 = true;
+			}
+		}
+
+		$request_5      = false;
+		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
+		$request        = ep_remote_request( '', array() );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$request_5 = true;
+			}
+		}
+
+		$this->assertTrue( $request_1 );
+		$this->assertTrue( $request_2 );
+		$this->assertWPError( $request_3 );
+		$this->assertTrue( $request_4 );
+		$this->assertTrue( $request_5 );
+
+	}
+
+	public function mock_indexable_post_status($post_statuses){
+		$post_statuses = array();
+		$post_statuses[] = "draft";
+		return $post_statuses;
+	}
+
+	public function testPostInvalidDateTime(){
+		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
+		$post_id = ep_create_and_sync_post( array( 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		ep_sync_post($post_id);
+
+		wp_cache_flush();
+
+		$wp_post = get_post($post_id);
+		$post = ep_get_post($post_id);
+
+		$invalid_datetime = "0000-00-00 00:00:00";
+		if( $wp_post->post_date_gmt == $invalid_datetime ){
+			$this->assertNull( $post[ 'post_date_gmt'] );
+		}
+
+		if( $wp_post->post_modified_gmt == $invalid_datetime ){
+			$this->assertNull( $post[ 'post_modified_gmt' ] );
+		}
+		$this->assertNotNull( $post );
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
+	}
+	
+	/**
+	 * Test to verify that a post type that is set to exclude_from_search isn't indexable.
+	 * @group 321
+	 * @since 1.6
+	 * @link https://github.com/10up/ElasticPress/issues/321
+	 */
+	public function testExcludeIndexablePostType() {
+		$post_types = ep_get_indexable_post_types();
+		$this->assertArrayNotHasKey( 'ep_test_excluded', $post_types );
+		$this->assertArrayNotHasKey( 'ep_test_not_public', $post_types );
+	}
+
 }

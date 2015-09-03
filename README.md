@@ -1,13 +1,9 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress) [![Code Climate](https://img.shields.io/codeclimate/coverage/github/10up/ElasticPress.svg?style=flat)](https://codeclimate.com/github/10up/ElasticPress)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress) [![Dockunit Status](http://dockunit.io/svg/10up/ElasticPress?master)](http://dockunit.io/projects/10up/ElasticPress#master)
 =============
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
 **Please note:** the master branch is the stable branch
-
-**Latest stable release:** [1.4](https://github.com/10up/ElasticPress/releases/tag/1.4)
-
-*Upgrade Notice: If you are upgrading to 1.4, new date features will not work until you re-index: wp elasticpress index --setup*
 
 ## Background
 
@@ -32,6 +28,12 @@ Coupling WordPress with Elasticsearch allows us to do amazing things with search
 The goal of ElasticPress is to integrate WordPress with Elasticsearch. This plugin integrates with the [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query) object returning results from Elasticsearch instead of MySQL.
 
 There are other Elasticsearch integration plugins available for WordPress. ElasticPress, unlike others, offers multi-site search. Elasticsearch is a complex topic and integration results in complex problems. Rather than providing a limited, clunky UI, we elected to instead provide full control via [WP-CLI](http://wp-cli.org/).
+
+## Requirements
+
+* [Elasticsearch](https://www.elastic.co) 1.3+
+* [WordPress](http://wordpress.org) 3.7.1+
+* [WP-CLI](http://wp-cli.org/) 0.13+
 
 ## Installation
 
@@ -387,6 +389,10 @@ The following are special parameters that are only supported by ElasticPress.
     ) );
     ```
 
+* ```cache_results``` (*boolean*)
+
+    This is a built-in WordPress parameter that caches retrieved posts for later use. It also forces meta and terms to be pulled and cached for each cached post. It is extremely important to understand when you use this parameter with ElasticPress that terms and meta will be pulled from MySQL not Elasticsearch during caching. For this reason, ```cache_results``` defaults to false.
+
 * ```sites``` (*int*/*string*/*array*)
 
     This parameter only applies in a multi-site environment. It lets you search for posts on specific sites or across the network.
@@ -463,7 +469,7 @@ The following commands are supported by ElasticPress:
 
 * `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset]`
 
-  Index all posts in the current blog. `--network-wide` will force indexing on all the blogs in the network. `--setup` will clear the index first and re-send the put mapping. `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle). `--no-bulk` let's you disable bulk indexing. `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
+  Index all posts in the current blog. `--network-wide` will force indexing on all the blogs in the network. `--network-wide` takes an optional argument to limit the number of blogs to be indexed across where 0 is no limit. For example, `--network-wide=5` would limit indexing to only 5 blogs on the network. `--setup` will clear the index first and re-send the put mapping. `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle). `--no-bulk` let's you disable bulk indexing. `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
 
 * `wp elasticpress activate`
 
