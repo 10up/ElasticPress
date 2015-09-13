@@ -1089,7 +1089,7 @@ class EP_API {
 		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
 			$query['bool']['should'][1]['fuzzy_like_this']['like_text'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$query = $this->_add_title_filtering( $query, $args );
+			$query                                              = $this->_add_title_filtering( $query, $args );
 			$formatted_args['query'] = $query;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array();
@@ -1444,15 +1444,16 @@ class EP_API {
 	 * @return array Modified Elasticsearch query structure.
 	 */
 	protected function _add_title_filtering( $query, $args ) {
-		if ( array_key_exists( 'search_orderby_title', $args ) ) {
-			foreach ( $args['search_orderby_title'] as $sql_partial ) {
-				$search_term                           = $this->_get_search_term( $sql_partial, '*' . $args['s'] . '*' );
-				$query['bool']['should'][]['wildcard'] = array (
-					'post_title' => array (
-						'value' => $search_term,
-					),
-				);
-			}
+		if ( ! array_key_exists( 'search_orderby_title', $args ) ) {
+			return $query;
+		}
+		foreach ( $args['search_orderby_title'] as $sql_partial ) {
+			$search_term                           = $this->_get_search_term( $sql_partial, '*' . $args['s'] . '*' );
+			$query['bool']['should'][]['wildcard'] = array (
+				'post_title' => array (
+					'value' => $search_term,
+				),
+			);
 		}
 
 		return $query;
