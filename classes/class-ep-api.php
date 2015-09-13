@@ -1471,7 +1471,7 @@ class EP_API {
 		$regex   = '#.+ LIKE \'(.+)\'#i';
 		$matches = array();
 		if ( preg_match( $regex, $sql_partial, $matches ) ) {
-			return str_replace( '%', '*', $matches[1] );
+			return strtolower( str_replace( '%', '*', $matches[1] ) );
 		}
 
 		return $default;
