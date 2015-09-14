@@ -674,18 +674,9 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_args( $args ) {
-		if ( ! empty( $args['posts_per_page'] ) ) {
-			$posts_per_page = $args['posts_per_page'];
-		} elseif ( ! empty( $args['post_per_page'] ) ) {
-			// For backwards compatibility for those using this since EP 1.4
-			$posts_per_page = $args['post_per_page'];
-		} else {
-			$posts_per_page = get_option( 'posts_per_page' );
-		}
-
 		$formatted_args = array(
 			'from' => 0,
-			'size' => $posts_per_page,
+			'size' => get_option( 'posts_per_page' ),
 		);
 
 		/**
@@ -1126,7 +1117,10 @@ class EP_API {
 			$formatted_args['from'] = $args['offset'];
 		}
 
-		if ( isset( $args['posts_per_page'] ) ) {
+ 		if ( isset( $args['post_per_page'] ) ) {
+			// For backwards compatibility for those using this since EP 1.4
+			$formatted_args['size'] = $args['post_per_page'];
+		} elseif ( isset( $args['posts_per_page'] ) ) {
 			$formatted_args['size'] = $args['posts_per_page'];
 		}
 
