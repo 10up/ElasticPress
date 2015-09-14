@@ -400,7 +400,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$args = array(
 			's'        => 'findme',
-			'post__in' => array( $post_id[0], $post_id[1] ),
+			'post__in' => array( $post_ids[0], $post_ids[1] ),
 		);
 
 		$query = new WP_Query( $args );
@@ -425,7 +425,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$args = array(
 			's'            => 'findme',
-			'post__not_in' => array( $post_id[0] ),
+			'post__not_in' => array( $post_ids[0] ),
 		);
 
 		$query = new WP_Query( $args );
