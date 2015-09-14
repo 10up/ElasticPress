@@ -470,6 +470,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
 
 		$found_posts[] = $query->posts[0]->ID;
