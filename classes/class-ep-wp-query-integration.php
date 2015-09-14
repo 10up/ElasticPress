@@ -322,6 +322,10 @@ class EP_WP_Query_Integration {
 							$post->$key = $post_array[$key];
 						}
 					}
+					
+					if ( class_exists( 'WP_Post' ) ) {
+						$post = new WP_Post( $post );
+					}
 				}
 
 				if ( $post ) {
