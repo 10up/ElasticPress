@@ -329,7 +329,7 @@ class EP_WP_Query_Integration {
 				}
 
 				if ( $post ) {
-					$post->site = $post_site_id;
+					$post->site_id = $post_site_id;
 					$post->elasticsearch = true; // Super useful for debugging
 
 					$new_posts[] = $post;
