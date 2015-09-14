@@ -276,7 +276,7 @@ class EP_WP_Query_Integration {
 			$current_site_id = get_current_blog_id();
 
 			foreach ( $search['posts'] as $post_array ) {
-				$post_site_id = $site;
+				$post_site_id = $current_site_id;
 
 				if ( ! empty( $post_array['site_id'] ) ) {
 					$post_site_id = absint( $post_array['site_id'] );
