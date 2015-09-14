@@ -273,52 +273,65 @@ class EP_WP_Query_Integration {
 			$query->found_posts = $search['found_posts'];
 			$query->max_num_pages = ceil( $search['found_posts'] / $query->get( 'posts_per_page' ) );
 
-			foreach ( $search['posts'] as $post_array ) {
-				$post = new stdClass();
+			$current_site_id = get_current_blog_id();
 
-				$post->ID = $post_array['post_id'];
-				$post->site_id = get_current_blog_id();
+			foreach ( $search['posts'] as $post_array ) {
+				$post_site_id = $current_site_id;
 
 				if ( ! empty( $post_array['site_id'] ) ) {
-					$post->site_id = $post_array['site_id'];
+					$post_site_id = absint( $post_array['site_id'] );
 				}
-				// ep_search_request_args
-				$post_return_args = apply_filters( 'ep_search_post_return_args',
-					array(
-						'post_type',
-						'post_author',
-						'post_name',
-						'post_status',
-						'post_title',
-						'post_parent',
-						'post_content',
-						'post_excerpt',
-						'post_date',
-						'post_date_gmt',
-						'post_modified',
-						'post_modified_gmt',
-						'post_mime_type',
-						'comment_count',
-						'comment_status',
-						'ping_status',
-						'menu_order',
-						'permalink',
-						'terms',
-						'post_meta'
-						)
-					);
 
-				foreach ( $post_return_args as $key ) {
-					if( $key === 'post_author' ) {
-						$post->$key = $post_array[$key]['id'];
-					} elseif ( isset( $post_array[ $key ] ) ) {
-						$post->$key = $post_array[$key];
+				if ( $current_site_id === $post_site_id && class_exists( 'WP_Post' ) ) {
+					$post = get_post( $post_array['post_id'] );
+				} else {
+					$post = new stdClass();
+
+					$post->ID = $post_array['post_id'];
+					
+					// ep_search_request_args
+					$post_return_args = apply_filters( 'ep_search_post_return_args',
+						array(
+							'post_type',
+							'post_author',
+							'post_name',
+							'post_status',
+							'post_title',
+							'post_parent',
+							'post_content',
+							'post_excerpt',
+							'post_date',
+							'post_date_gmt',
+							'post_modified',
+							'post_modified_gmt',
+							'post_mime_type',
+							'comment_count',
+							'comment_status',
+							'ping_status',
+							'menu_order',
+							'permalink',
+							'terms',
+							'post_meta'
+							)
+						);
+
+					foreach ( $post_return_args as $key ) {
+						if( $key === 'post_author' ) {
+							$post->$key = $post_array[$key]['id'];
+						} elseif ( isset( $post_array[ $key ] ) ) {
+							$post->$key = $post_array[$key];
+						}
+					}
+					
+					if ( class_exists( 'WP_Post' ) ) {
+						$post = new WP_Post( $post );
 					}
 				}
 
-				$post->elasticsearch = true; // Super useful for debugging
-
 				if ( $post ) {
+					$post->site_id = $post_site_id;
+					$post->elasticsearch = true; // Super useful for debugging
+
 					$new_posts[] = $post;
 				}
 			}
