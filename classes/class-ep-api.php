@@ -744,12 +744,12 @@ class EP_API {
 			$tax_filter = array();
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
-				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
+				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && in_array( $single_tax_query['field'], array( 'term_id', 'parent', 'slug', 'name' ) ) {
 					$terms = (array) $single_tax_query['terms'];
 
 					// Set up our terms object
 					$terms_obj = array(
-						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $terms,
+						'terms.' . $single_tax_query['taxonomy'] . '.' . $single_tax_query['field'] => $terms,
 					);
 
 					// Use the AND operator if passed
