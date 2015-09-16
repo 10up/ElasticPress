@@ -988,6 +988,36 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test post_date default order for ep_integrate query with no search
+	 *
+	 * @since 1.7
+	 */
+	public function testSearchPostDateOrderbyQueryEPIntegrate() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
+		sleep( 3 );
+
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest ordertest order test 111' ) );
+		sleep( 3 );
+
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+			'order'        => 'desc',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 222', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest ordertest order test 111', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+	}
+
+	/**
 	 * Test relevance orderby query advanced
 	 *
 	 * @since 1.2
