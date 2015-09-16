@@ -700,6 +700,11 @@ class EP_API {
 			$order = 'desc';
 		}
 
+		// Default sort for non-searches to date
+		if ( empty( $args['orderby'] ) && ( ! isset( $args['s'] ) || '' === $args['s'] ) ) {
+			$args['orderby'] = 'date';
+		}
+
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
 			$sort = $this->parse_orderby( $args['orderby'], $order );
@@ -711,7 +716,6 @@ class EP_API {
 
 		// Either nothing was passed or the parse_orderby failed, use default sort
 		if ( empty( $args['orderby'] ) || false === $sort ) {
-
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
 				array(
@@ -721,10 +725,10 @@ class EP_API {
 				),
 			);
 
-            $default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
+			$default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
 
-            $formatted_args['sort'] = $default_sort;
-        }
+			$formatted_args['sort'] = $default_sort;
+		}
 
 		$filter = array(
 			'and' => array(),
