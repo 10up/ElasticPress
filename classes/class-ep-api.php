@@ -467,7 +467,8 @@ class EP_API {
 			'comment_count'     => $comment_count,
 			'comment_status'    => $comment_status,
 			'ping_status'       => $ping_status,
-			'menu_order'        => $menu_order
+			'menu_order'        => $menu_order,
+			'guid'				=> $post->guid
 			//'site_id'         => get_current_blog_id(),
 		);
 

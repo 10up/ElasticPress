@@ -217,6 +217,10 @@ return array(
 				'permalink' => array(
 					'type' => 'string',
 				),
+				'guid' => array(
+					'type' => 'string',
+					'index' => 'not_analyzed'
+				),
 				'terms' => array(
 					'type' => 'object',
 				),
