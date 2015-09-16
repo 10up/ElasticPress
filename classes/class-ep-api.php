@@ -613,9 +613,21 @@ class EP_API {
 
 		$prepared_meta = array();
 
+		/**
+		 * Filter index-able private meta
+		 *
+		 * Allows for specifying private meta keys that may be indexed in the same manor as public meta keys.
+		 *
+		 * @since 1.7
+		 *
+		 * @param         array Array of index-able private meta keys.
+		 * @param WP_POST $post The current post to be indexed.
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', array(), $post );
+
 		foreach ( $meta as $key => $value ) {
-			if ( ! is_protected_meta( $key ) ) {
 				$prepared_meta[$key] = maybe_unserialize( $value );
+			if ( ! is_protected_meta( $key ) || in_array( $key, $allowed_protected_keys ) ) {
 			}
 		}
 
