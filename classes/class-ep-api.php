@@ -119,7 +119,7 @@ class EP_API {
 		$path = $index . '/post/_search';
 
 		$request_args = array(
-			'body'    => json_encode( $args ),
+			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
 			'method'  => 'POST',
 		);
 
