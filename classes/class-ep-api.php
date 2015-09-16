@@ -626,8 +626,8 @@ class EP_API {
 		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', array(), $post );
 
 		foreach ( $meta as $key => $value ) {
+			if ( ! is_protected_meta( $key ) || true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) {
 				$prepared_meta[$key] = maybe_unserialize( $value );
-			if ( ! is_protected_meta( $key ) || in_array( $key, $allowed_protected_keys ) ) {
 			}
 		}
 
