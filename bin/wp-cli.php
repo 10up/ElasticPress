@@ -277,14 +277,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Helper method for indexing posts
 	 *
-	 * @param bool $no_bulk disable bulk indexing
-	 * @param int $posts_per_page
-	 * @param int $offset
+	 * @param array $args
 	 *
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper( $no_bulk = false, $posts_per_page, $offset = 0) {
+	private function _index_helper( $args ) {
 		global $wpdb, $wp_object_cache;
 		$synced = 0;
 		$errors = array();
