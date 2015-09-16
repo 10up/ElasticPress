@@ -544,6 +544,69 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a taxonomy query by term_id
+	 *
+	 * @since 1.6
+	 */
+	public function testTaxQueryByTermID() {
+		$tag = wp_insert_term( 'one', 'post_tag' );
+		
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag['term_id'] ),
+					'field'    => 'term_id',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a taxonomy query by name
+	 *
+	 * @since 1.6
+	 */
+	public function testTaxQueryByName() {
+		$category_1 = wp_insert_term( 'Test category 1', 'category' );
+		$category_2 = wp_insert_term( 'Test category 2', 'category' ) );
+		
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $category_1['term_id'] ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'post_category' => array( $category_2['term_id'] ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_category' => array( $category_1['term_id'] ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'Test' ),
+					'field'    => 'name',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a category_name query
 	 *
 	 * @since 1.5
@@ -907,7 +970,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$args = array(
 			's'             => 'meta value',
 			'post_type'     => 'ep_test',
-			'tax_query'     => array(
+			''     => array(
 				array(
 					'taxonomy' => 'post_tag',
 					'terms'    => array( 'superterm' ),
