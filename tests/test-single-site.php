@@ -1952,6 +1952,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertFalse( $this->is_404, 'auto-draft post status on wp_insert_post action.' );
 
 		// Now let's test inserting a 'publish' post.
+		$this->is_404 = false;
 		add_action( 'http_api_debug', array( $this, '_check_404' ), 10, 5 );
 		$new_post = wp_insert_post( array( 'post_title' => 'Published', 'post_status' => 'publish' ) );
 
