@@ -48,6 +48,8 @@ class EP_API {
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_index_post_request_args', $request_args, $post ) );
 
+		do_action( 'ep_index_post_retrieve_raw_response', $request, $post, $path );
+
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
