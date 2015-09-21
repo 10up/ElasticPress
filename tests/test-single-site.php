@@ -1,7 +1,12 @@
 <?php
 
 class EPTestSingleSite extends EP_Test_Base {
-
+	/**
+	 * Checking if HTTP request returns 404 status code.
+	 * @var boolean 
+	 */
+	var $is_404=false;
+	
 	/**
 	 * Setup each test.
 	 *
@@ -1981,6 +1986,43 @@ class EPTestSingleSite extends EP_Test_Base {
 		$post_types = ep_get_indexable_post_types();
 		$this->assertArrayNotHasKey( 'ep_test_excluded', $post_types );
 		$this->assertArrayNotHasKey( 'ep_test_not_public', $post_types );
+	}
+	
+	/**
+	 * Test to make sure that brand new posts with 'auto-draft' post status do not fire delete or sync.
+	 * @group 343
+	 * @since 1.6
+	 * @link https://github.com/10up/ElasticPress/issues/343
+	 */
+	public function testAutoDraftPostStatus() {
+		// Let's test inserting an 'auto-draft' post.
+		add_action( 'http_api_debug', array( $this, '_check_404' ), 10, 5 );
+		$new_post = wp_insert_post( array( 'post_title' => 'Auto Draft', 'post_status' => 'auto-draft' ) );
+
+		$this->assertFalse( $this->is_404, 'auto-draft post status on wp_insert_post action.' );
+
+		// Now let's test inserting a 'publish' post.
+		$this->is_404 = false;
+		add_action( 'http_api_debug', array( $this, '_check_404' ), 10, 5 );
+		$new_post = wp_insert_post( array( 'post_title' => 'Published', 'post_status' => 'publish' ) );
+
+		$this->assertFalse( $this->is_404, 'publish post status on wp_insert_post action.' );
+	}
+
+	/**
+	 * Runs on http_api_debug action to check for a returned 404 status code.
+	 * @param array|WP_Error $response  HTTP response or WP_Error object.
+	 * @param string $type Context under which the hook is fired.
+	 * @param string $class HTTP transport used.
+	 * @param array $args HTTP request arguments.
+	 * @param string $url The request URL.
+	 */
+	function _check_404( $response, $type, $class, $args, $url ) {
+		$response_code = $response[ 'response' ][ 'code' ];
+		if ( 404 == $response_code ) {
+			$this->is_404 = true;
+		}
+		remove_action( 'http_api_debug', array( $this, '_check_404' ) );
 	}
 
 }
