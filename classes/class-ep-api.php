@@ -1493,8 +1493,8 @@ function ep_index_post( $post ) {
 	return EP_API::factory()->index_post( $post );
 }
 
-function ep_search( $args, $cross_site = false ) {
-	return EP_API::factory()->search( $args, $cross_site );
+function ep_search( $args, $scope = 'current' ) {
+	return EP_API::factory()->search( $args, $scope );
 }
 
 function ep_get_post( $post_id ) {
