@@ -36,6 +36,17 @@ class EP_API {
 	 */
 	public function index_post( $post ) {
 
+		/**
+		 * Filter post prior to indexing
+		*
+		* Allows for last minute indexing of post information.
+		*
+		* @since 1.7
+		*
+		* @param         array Array of post information to index.
+		*/
+		$post = apply_filters( 'ep_pre_index_post', $post );
+
 		$index = trailingslashit( ep_get_index_name() );
 
 		$path = $index . 'post/' . $post['post_id'];
