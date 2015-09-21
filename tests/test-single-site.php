@@ -570,6 +570,56 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a post__in query
+	 *
+	 * @since 1.5
+	 */
+	public function testPostInQuery() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'        => 'findme',
+			'post__in' => array( $post_ids[0], $post_ids[1] ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a post__not_in query
+	 *
+	 * @since 1.5
+	 */
+	public function testPostNotInQuery() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'            => 'findme',
+			'post__not_in' => array( $post_ids[0] ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test an author ID query
 	 *
 	 * @since 1.0
