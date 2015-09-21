@@ -262,6 +262,17 @@ class EP_WP_Query_Integration {
 				$scope = $query_vars['sites'];
 			}
 
+			/**
+			 * Filter search scope
+			 *
+			 * Allows for easier filtering of search scope to meet the requirements of more complex sites, etc.
+			 *
+			 * @since 1.7
+			 *
+			 * @param string $scope The search scope.
+			 */
+			$scope = apply_filters( 'ep_search_scope', $scope );
+
 			$formatted_args = ep_format_args( $query_vars );
 
 			$search = ep_search( $formatted_args, $scope );
