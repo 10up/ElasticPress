@@ -2055,4 +2055,13 @@ class EPTestSingleSite extends EP_Test_Base {
 		remove_action( 'http_api_debug', array( $this, '_check_404' ) );
 	}
 
+	/**
+	 * Test to verify meta array is built correctly.
+	 *
+	 * @since 1.7
+	 */
+	public function testPrepareMeta() {
+
+
+	}
 }
