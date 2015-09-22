@@ -615,7 +615,19 @@ class EP_API {
 
 		foreach ( $meta as $key => $value ) {
 			if ( ! is_protected_meta( $key ) ) {
-				$prepared_meta[$key] = maybe_unserialize( $value );
+				$formatted_value_array = array();
+
+				if ( is_array( $value_array ) ) {
+					foreach ( $value_array as $single_value ) {
+						if ( is_object( $single_value ) || is_array( $single_value ) ) {
+							$formatted_value_array[] = serialize( $single_value ); // Sorry no complex meta values :(
+						} else {
+							$formatted_value_array[] = $single_value;
+						}
+					}
+				}
+
+				$prepared_meta[$key] = $formatted_value_array;
 			}
 		}
 
