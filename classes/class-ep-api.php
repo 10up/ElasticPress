@@ -613,7 +613,7 @@ class EP_API {
 
 		$prepared_meta = array();
 
-		foreach ( $meta as $key => $value ) {
+		foreach ( $meta as $key => $value_array ) {
 			if ( ! is_protected_meta( $key ) ) {
 				$formatted_value_array = array();
 
