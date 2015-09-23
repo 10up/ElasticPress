@@ -1437,6 +1437,11 @@ class EP_API {
 	/**
 	 * Check if WP_Query contains sql part related to eager title search.
 	 * Translate it, if necessary, to Elasticsearch wildcard query.
+	 * Most common use case is to search posts by part of title word ex:
+	 * post_title == Events in Washington
+	 * post_title == Sport events in Washington Heights
+	 *
+	 * This allows to search by typing "wash".
 	 *
 	 * @param array $query Elasticsearch query structure.
 	 * @param array $args  WP_Query structure.
