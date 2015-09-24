@@ -933,7 +933,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
 
-		$this->assertTrue( ( 5 === $query->posts[0]->post_meta['test_key'][0] ) )
+		$this->assertTrue( ( 5 === $query->posts[0]->post_meta['test_key'][0] ) );
 	}
 
 	/**
