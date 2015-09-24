@@ -915,28 +915,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test meta mapping for simple integer
-	 *
-	 * @since 1.7
-	 */
-	public function testSearchMetaMappingInteger() {
-		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 5 ) );
-
-		ep_refresh_index();
-		$args = array(
-			'ep_integrate' => true,
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 1, $query->post_count );
-
-		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
-
-		$this->assertTrue( ( 5 === $query->posts[0]->post_meta['test_key'][0] ) );
-	}
-
-	/**
 	 * Test a query that fuzzy searches meta
 	 *
 	 * @since 1.0
