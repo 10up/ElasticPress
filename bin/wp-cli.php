@@ -372,6 +372,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// put the post into the queue
 		$this->posts[$post_id][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
+		// Encode unicode to utf8 for entire array
+		array_walk_recursive($post_args, function(&$item) {$item = utf8_encode($item);});
 		$this->posts[$post_id][] = addcslashes( json_encode( $post_args ), "\n" );
 
 		// augment the counter
