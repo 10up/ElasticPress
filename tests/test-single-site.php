@@ -933,29 +933,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
 
-		$this->assertEquals( 5, $query->posts[0]->post_meta['test_key'][0] );
-	}
-
-	/**
-	 * Test meta mapping for simple boolean
-	 *
-	 * @since 1.7
-	 */
-	public function testSearchMetaMappingBoolean() {
-		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => true ) );
-
-		ep_refresh_index();
-		$args = array(
-			'ep_integrate' => true,
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 1, $query->post_count );
-
-		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
-
-		$this->assertEquals( true, $query->posts[0]->post_meta['test_key'][0] );
+		$this->assertTrue( ( 5 === $query->posts[0]->post_meta['test_key'][0] ) )
 	}
 
 	/**
