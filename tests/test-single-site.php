@@ -594,7 +594,7 @@ class EPTestSingleSite extends EP_Test_Base {
 			'tax_query' => array(
 				array(
 					'taxonomy' => 'category',
-					'terms'    => array( 'Test' ),
+					'terms'    => array( 'Test category 1' ),
 					'field'    => 'name',
 				)
 			)
