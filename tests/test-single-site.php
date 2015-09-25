@@ -581,7 +581,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testTaxQueryByName() {
 		$category_1 = wp_insert_term( 'Test category 1', 'category' );
-		$category_2 = wp_insert_term( 'Test category 2', 'category' ) );
+		$category_2 = wp_insert_term( 'Test category 2', 'category' );
 		
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $category_1['term_id'] ) ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'post_category' => array( $category_2['term_id'] ) ) );
