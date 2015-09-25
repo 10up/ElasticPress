@@ -970,7 +970,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$args = array(
 			's'             => 'meta value',
 			'post_type'     => 'ep_test',
-			''     => array(
+			'tax_query'     => array(
 				array(
 					'taxonomy' => 'post_tag',
 					'terms'    => array( 'superterm' ),
