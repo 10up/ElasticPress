@@ -5,10 +5,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class EP_User_API {
 
+	/** @var EP_API */
+	protected $api;
+
 	/**
-	 * Empty constructor
+	 * Set up object
+	 *
+	 * @param EP_API $api
 	 */
-	public function __construct() {
+	public function __construct( $api = null ) {
+		if ( ! $api instanceof EP_API ) {
+			$api = EP_API::factory();
+		}
+		$this->api = $api;
 	}
 
 	/**
