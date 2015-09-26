@@ -44,6 +44,7 @@ class EP_User_API {
 		if ( ! $this->active() ) {
 			return;
 		}
+		add_filter( 'ep_config_mapping', array( $this, 'add_user_to_mapping' ) );
 	}
 
 	/**
@@ -60,6 +61,15 @@ class EP_User_API {
 		}
 
 		return $this->api->is_activated() && (bool) EP_USER_SEARCH_ACTIVE;
+	}
+
+	/**
+	 * @param array $mapping
+	 *
+	 * @return array
+	 */
+	public function add_user_to_mapping( $mapping ) {
+		return $mapping;
 	}
 
 }
