@@ -77,7 +77,7 @@ class EP_User_API {
 		);
 		$user_mapping      = require( $user_mapping_file );
 		if ( $user_mapping ) {
-			$mapping['mapping']['user'] = $user_mapping;
+			$mapping = array_merge_recursive( $mapping, $user_mapping );
 		}
 
 		return $mapping;
