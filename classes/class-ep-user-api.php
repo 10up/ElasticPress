@@ -9,18 +9,6 @@ class EP_User_API {
 	protected $api;
 
 	/**
-	 * Set up object
-	 *
-	 * @param EP_API $api
-	 */
-	public function __construct( $api = null ) {
-		if ( ! $api instanceof EP_API ) {
-			$api = EP_API::factory();
-		}
-		$this->api = $api;
-	}
-
-	/**
 	 * Factory method to get singleton
 	 *
 	 * @return EP_User_API
@@ -32,6 +20,18 @@ class EP_User_API {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * Set up object
+	 *
+	 * @param EP_API $api
+	 */
+	public function __construct( $api = null ) {
+		if ( ! $api instanceof EP_API ) {
+			$api = EP_API::factory();
+		}
+		$this->api = $api;
 	}
 
 }
