@@ -17,6 +17,7 @@ class EP_User_API {
 		static $instance;
 		if ( ! $instance ) {
 			$instance = new self();
+			$instance->setup();
 		}
 
 		return $instance;
@@ -32,6 +33,14 @@ class EP_User_API {
 			$api = EP_API::factory();
 		}
 		$this->api = $api;
+	}
+
+	/**
+	 * Set this object up
+	 *
+	 * Actions and filters should get set up here
+	 */
+	public function setup() {
 	}
 
 }
