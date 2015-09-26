@@ -44,7 +44,7 @@ class EP_User_API {
 		if ( ! $this->active() ) {
 			return;
 		}
-		add_filter( 'ep_config_mapping', array( $this, 'add_user_to_mapping' ) );
+		add_filter( 'ep_config_mapping', array( $this, 'add_user_to_mapping' ), 5 );
 	}
 
 	/**
@@ -64,11 +64,22 @@ class EP_User_API {
 	}
 
 	/**
+	 * Add users to the mapping array
+	 *
 	 * @param array $mapping
 	 *
 	 * @return array
 	 */
 	public function add_user_to_mapping( $mapping ) {
+		$user_mapping_file = apply_filters(
+			'ep_config_user_mapping_file',
+			dirname( __FILE__ ) . '/../includes/user-mappings.php'
+		);
+		$user_mapping      = require( $user_mapping_file );
+		if ( $user_mapping ) {
+			$mapping['mapping']['user'] = $user_mapping;
+		}
+
 		return $mapping;
 	}
 
