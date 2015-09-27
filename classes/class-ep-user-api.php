@@ -64,4 +64,4 @@ class EP_User_API {
 
 }
 
-EP_User_API::factory();
+add_action( 'plugins_loaded', array( 'EP_User_API', 'factory' ) );
