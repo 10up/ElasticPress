@@ -41,6 +41,25 @@ class EP_User_API {
 	 * Actions and filters should get set up here
 	 */
 	public function setup() {
+		if ( ! $this->active() ) {
+			return;
+		}
+	}
+
+	/**
+	 * Check if user search is active
+	 *
+	 * User search defaults to being inactive. This cannot be active if the main plugin isn't.
+	 *
+	 * @return bool
+	 */
+	public function active() {
+		if ( ! defined( 'EP_USER_SEARCH_ACTIVE' ) ) {
+			$active = apply_filters( 'ep_user_search_is_active', false );
+			define( 'EP_USER_SEARCH_ACTIVE', $active );
+		}
+
+		return $this->api->is_activated() && (bool) EP_USER_SEARCH_ACTIVE;
 	}
 
 }
