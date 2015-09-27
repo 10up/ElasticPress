@@ -130,6 +130,16 @@ class EP_User_API {
 	}
 
 	/**
+	 * Bulk index some users
+	 *
+	 * @param array|object $body
+	 *
+	 * @return array|object|WP_Error
+	 */
+	public function bulk_index( $body ) {
+	}
+
+	/**
 	 * Prepare terms for indexing
 	 *
 	 * @param WP_User $user
@@ -150,13 +160,14 @@ class EP_User_API {
 	}
 
 	/**
-	 * Bulk index some users
+	 * Get a user based on input
 	 *
-	 * @param array|object $body
+	 * @param WP_User|int|string|array $user
+	 * @param string|null              $by
 	 *
-	 * @return array|object|WP_Error
+	 * @return WP_User
 	 */
-	public function bulk_index( $body ) {
+	private function get_wp_user( $user, $by = null ) {
 	}
 
 }
