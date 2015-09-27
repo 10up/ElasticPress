@@ -168,6 +168,18 @@ class EP_User_API {
 	 * @return WP_User
 	 */
 	private function get_wp_user( $user, $by = null ) {
+		if ( is_numeric( $user ) ) {
+			$user = get_user_by( 'id', (int) $user );
+		} elseif ( $by ) {
+			$user = get_user_by( $by, $user );
+		} elseif ( is_array( $user ) && ( isset( $user['user_id'] ) || isset( $user['ID'] ) ) ) {
+			$user = get_user_by( 'id', isset( $user['user_id'] ) ? $user['user_id'] : $user['ID'] );
+		}
+		if ( ! ( $user instanceof WP_User ) ) {
+			$user = new WP_User( 0 );
+		}
+
+		return $user;
 	}
 
 }
