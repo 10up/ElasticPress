@@ -178,6 +178,55 @@ class EP_User_API {
 	 * @return array
 	 */
 	protected function prepare_terms( $user ) {
+		/*
+		 * WordPress doesn't natively support user taxonomies, so there's no internal way to get a user's taxonomies.
+		 * For this reason, we're going to allow implementations of any actual user taxonomy add the taxonomy itself
+		 * here. Then we'll allow that same implementation code to prevent a standard term lookup against the user
+		 * object by supplying its own terms.
+		 */
+		$user = $this->get_wp_user( $user );
+		if ( ! $user->exists() ) {
+			return array();
+		}
+
+		$taxonomies = array_filter( array_map(
+			array( $this, 'filter_user_taxonomies' ),
+			apply_filters( 'ep_user_taxonomies', array(), $user )
+		) );
+		if ( ! $taxonomies ) {
+			return array();
+		}
+
+		$terms = array();
+
+		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$tax_terms = apply_filters( "ep_user_taxonomy_{$taxonomy->name}_terms", null, $user, $taxonomy );
+			if ( ! $tax_terms ) {
+				$tax_terms = wp_get_object_terms( $user->ID, $taxonomy->name );
+			}
+			if ( ! $tax_terms || is_wp_error( $tax_terms ) ) {
+				continue;
+			}
+			$terms_map = array();
+			foreach ( $tax_terms as $term ) {
+				if ( ! isset( $terms_map[ $term->term_id ] ) ) {
+					$terms_map[ $term->term_id ] = array(
+						'term_id' => $term->term_id,
+						'slug'    => $term->slug,
+						'name'    => $term->name,
+						'parent'  => $term->parent,
+					);
+					if ( $allow_hierarchy ) {
+						$terms_map = $this->get_parent_terms( $terms_map, $term, $taxonomy->name );
+					}
+				}
+			}
+			$terms[ $taxonomy->name ] = array_values( $terms_map );
+		}
+
+		return $terms;
 	}
 
 	/**
@@ -188,6 +237,50 @@ class EP_User_API {
 	 * @return array
 	 */
 	protected function prepare_meta( $user ) {
+	}
+
+	/**
+	 * Recursively get all the ancestor terms of the given term
+	 * @param $terms
+	 * @param $term
+	 * @param $tax_name
+	 * @return array
+	 */
+	private function get_parent_terms( $terms, $term, $tax_name ) {
+		$parent_term = get_term( $term->parent, $tax_name );
+		if( ! $parent_term || is_wp_error( $parent_term ) )
+			return $terms;
+		if( ! isset( $terms[ $parent_term->term_id ] ) ) {
+			$terms[ $parent_term->term_id ] = array(
+				'term_id' => $parent_term->term_id,
+				'slug'    => $parent_term->slug,
+				'name'    => $parent_term->name,
+				'parent'  => $parent_term->parent
+			);
+		}
+		return $this->get_parent_terms( $terms, $parent_term, $tax_name );
+	}
+
+	/**
+	 * Get a taxonomy object from either a string or object
+	 *
+	 * Returns the taxonomy object on success, false on failure
+	 *
+	 * @param string|object $taxonomy
+	 *
+	 * @return bool|object The taxonomy object on success, false on failure
+	 */
+	private function filter_user_taxonomies( $taxonomy ) {
+		if ( is_string( $taxonomy ) ) {
+			$taxonomy = get_taxonomy( $taxonomy );
+		} elseif ( is_object( $taxonomy ) && isset( $taxonomy->name ) ) {
+			$taxonomy = get_taxonomy( $taxonomy->name );
+		}
+		if ( $taxonomy && ! $taxonomy->public ) {
+			$taxonomy = false;
+		}
+
+		return $taxonomy;
 	}
 
 	/**
