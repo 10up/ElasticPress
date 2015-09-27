@@ -83,6 +83,82 @@ class EP_User_API {
 		return $mapping;
 	}
 
+	/**
+	 * Index a user
+	 *
+	 * Returns the response body on success, false on failure
+	 *
+	 * @param array $user The user data
+	 *
+	 * @return bool|array
+	 */
+	public function index_user( $user ) {
+	}
+
+	/**
+	 * Delete a user from the index
+	 *
+	 * Returns a boolean to indicate success of deletion
+	 *
+	 * @param int $user
+	 *
+	 * @return bool
+	 */
+	public function delete_user( $user ) {
+	}
+
+	/**
+	 * Get a user's indexed data
+	 *
+	 * Returns false if the data cannot be retrieved. Otherwise this function returns the data indexed in elasticsearch.
+	 *
+	 * @param int $user
+	 *
+	 * @return bool|array
+	 */
+	public function get_user( $user ) {
+	}
+
+	/**
+	 * Prepare user data for indexing
+	 *
+	 * @param int $user
+	 *
+	 * @return array
+	 */
+	public function prepare( $user ) {
+	}
+
+	/**
+	 * Prepare terms for indexing
+	 *
+	 * @param WP_User $user
+	 *
+	 * @return array
+	 */
+	protected function prepare_terms( $user ) {
+	}
+
+	/**
+	 * Prepare user meta for indexing
+	 *
+	 * @param WP_User $user
+	 *
+	 * @return array
+	 */
+	protected function prepare_meta( $user ) {
+	}
+
+	/**
+	 * Bulk index some users
+	 *
+	 * @param array|object $body
+	 *
+	 * @return array|object|WP_Error
+	 */
+	public function bulk_index( $body ) {
+	}
+
 }
 
 add_action( 'plugins_loaded', array( 'EP_User_API', 'factory' ) );
