@@ -5,10 +5,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
+	/** @var EP_API */
+	protected $api = '';
+
 	protected $name = '';
 
-	public function __construct( $name ) {
+	public function __construct( $name, $api = null ) {
 		$this->name = $name;
+		$this->api  = $api ? $api : EP_API::factory();
 	}
 
 	public function get_name() {
