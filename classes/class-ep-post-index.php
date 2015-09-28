@@ -11,7 +11,9 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	 * @return array
 	 */
 	public function get_settings() {
-		// TODO: Implement get_settings() method.
+		$mapping = require( $this->get_mapping_file() );
+
+		return isset( $mapping['settings'] ) ? (array) $mapping['settings'] : array();
 	}
 
 	/**
@@ -20,7 +22,9 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	 * @return array
 	 */
 	public function get_mappings() {
-		// TODO: Implement get_mappings() method.
+		$mapping = require( $this->get_mapping_file() );
+
+		return isset( $mapping['mappings']['post'] ) ? (array) $mapping['mappings']['post'] : array();
 	}
 
 	/**
@@ -50,6 +54,10 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 
 	protected function process_found_objects( $hits ) {
 		// TODO: Implement process_found_objects() method.
+	}
+
+	private function get_mapping_file() {
+		return apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' );
 	}
 
 }
