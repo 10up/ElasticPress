@@ -57,6 +57,31 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return false;
 	}
 
+	public function get_document( $object ) {
+		$index = untrailingslashit( ep_get_index_name() );
+
+		$path = implode( '/', array( $index, 'post', $object ) );
+
+		$request_args = array( 'method' => 'GET' );
+
+		$request = ep_remote_request(
+			$path,
+			apply_filters( "ep_get_{$this->name}_request_args", $request_args, $object )
+		);
+
+		if ( ! is_wp_error( $request ) ) {
+			$response_body = wp_remote_retrieve_body( $request );
+
+			$response = json_decode( $response_body, true );
+
+			if ( ! empty( $response['exists'] ) || ! empty( $response['found'] ) ) {
+				return $response['_source'];
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Get the primary identifier for an object
 	 *
