@@ -132,12 +132,26 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 		$path = $index . "/{$this->name}/_search";
 
+		if ( 'post' === $this->name ) {
+			/**
+			 * Backwards compatibility: when posts were the only type, this was the filter. This filter is deprecated in
+			 * favor of ep_search_post_args
+			 */
+			$args = apply_filters( 'ep_search_args', $args, $scope );
+		}
 		$request_args = array(
-			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
+			'body'    => json_encode( $args ),
 			'method'  => 'POST',
 		);
 
-		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope ) );
+		if ( 'post' === $this->name ) {
+			/**
+			 * Backwards compatibility: when posts were the only type, this was the filter. This filter is deprecated in
+			 * favor of ep_search_post_request_args
+			 */
+			$request_args = apply_filters( 'ep_search_request_args', $request_args, $args, $scope );
+		}
+		$request = ep_remote_request( $path, $request_args );
 
 		if ( ! is_wp_error( $request ) ) {
 
@@ -167,18 +181,26 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 				$posts[] = apply_filters( 'ep_retrieve_the_post', $post, $hit );
 			}
 
-			/**
-			 * Filter search results.
-			 *
-			 * Allows more complete use of filtering request variables by allowing for filtering of results.
-			 *
-			 * @since 1.6.0
-			 *
-			 * @param array  $results  The unfiltered search results.
-			 * @param object $response The response body retrieved from ElasticSearch.
-			 */
+			$results = array( 'found_objects' => $response['hits']['total'], 'objects' => $posts );
+			if ( 'post' === $this->name ) {
+				/**
+				 * Filter search results.
+				 *
+				 * Allows more complete use of filtering request variables by allowing for filtering of results.
+				 *
+				 * @since 1.6.0
+				 *
+				 * @param array  $results  The unfiltered search results.
+				 * @param object $response The response body retrieved from ElasticSearch.
+				 */
+				$results = apply_filters(
+					'ep_search_results_array',
+					$results,
+					$response
+				);
+			}
 
-			return apply_filters( 'ep_search_results_array', array( 'found_objects' => $response['hits']['total'], 'objects' => $posts ), $response );
+			return $results
 		}
 
 		return false;
