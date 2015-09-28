@@ -60,7 +60,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	public function get_document( $object ) {
 		$index = untrailingslashit( ep_get_index_name() );
 
-		$path = implode( '/', array( $index, 'post', $object ) );
+		$path = implode( '/', array( $index, $this->name, $object ) );
 
 		$request_args = array( 'method' => 'GET' );
 
