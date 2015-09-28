@@ -148,7 +148,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 			$response = json_decode( $response_body, true );
 
-			if ( $this->is_empty_search( $response ) ) {
+			if ( $this->api->is_empty_search( $response ) ) {
 				return array( 'found_posts' => 0, 'posts' => array() );
 			}
 
