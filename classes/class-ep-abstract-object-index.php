@@ -262,6 +262,25 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	}
 
 	protected function prepare_meta( $object ) {
+		$meta = (array) $this->get_object_meta( $object );
+
+		if ( empty( $meta ) ) {
+			return array();
+		}
+
+		$prepared_meta = array();
+
+		foreach ( $meta as $key => $value ) {
+			if ( ! is_protected_meta( $key ) ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
+			}
+		}
+
+		return apply_filters( "ep_prepare_{$this->name}_meta", $prepared_meta, $object );
+	}
+
+	protected function get_object_meta( $object ) {
+		return array();
 	}
 
 	/**
