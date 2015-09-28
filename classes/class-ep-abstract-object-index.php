@@ -176,15 +176,9 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $this->name );
 			}
 
-			$posts = array();
+			$objects = $this->process_found_objects( $hits );
 
-			foreach ( $hits as $hit ) {
-				$post = $hit['_source'];
-				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
-				$posts[] = apply_filters( 'ep_retrieve_the_post', $post, $hit );
-			}
-
-			$results = array( 'found_objects' => $response['hits']['total'], 'objects' => $posts );
+			$results = array( 'found_objects' => $response['hits']['total'], 'objects' => $objects );
 			if ( 'post' === $this->name ) {
 				/**
 				 * Filter search results.
@@ -220,5 +214,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	 * @return int|string
 	 */
 	abstract protected function get_object_identifier( $object );
+
+	abstract protected function process_found_objects( $hits );
 
 }
