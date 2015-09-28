@@ -203,6 +203,12 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return false;
 	}
 
+	protected function prepare_terms( $object ) {
+	}
+
+	protected function prepare_meta( $object ) {
+	}
+
 	/**
 	 * Get the primary identifier for an object
 	 *
