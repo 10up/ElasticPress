@@ -8,21 +8,35 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	/** @var EP_API */
 	protected $api = '';
 
+	/** @var string */
 	protected $name = '';
 
+	/**
+	 * @param string $name
+	 * @param EP_API $api
+	 */
 	public function __construct( $name, $api = null ) {
 		$this->name = $name;
 		$this->api  = $api ? $api : EP_API::factory();
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function get_name() {
 		return $this->name;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function set_name( $name ) {
 		$this->name = $name;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function index_document( $object ) {
 		/**
 		 * Filter the object prior to indexing
@@ -61,6 +75,9 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return false;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function get_document( $object ) {
 		$index = untrailingslashit( ep_get_index_name() );
 
@@ -86,6 +103,9 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return false;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function delete_document( $object ) {
 		$index = untrailingslashit( ep_get_index_name() );
 
@@ -111,6 +131,9 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return false;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function search( $args, $scope = 'current' ) {
 		$index = null;
 
@@ -203,6 +226,13 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return false;
 	}
 
+	/**
+	 * Prepare terms for optional inclusion in the index
+	 *
+	 * @param $object
+	 *
+	 * @return array
+	 */
 	protected function prepare_terms( $object ) {
 		$taxonomies          = $this->get_object_taxonomies( $object );
 		$selected_taxonomies = array();
@@ -257,10 +287,24 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return $terms;
 	}
 
+	/**
+	 * Get taxonomies for the current object/object type
+	 *
+	 * @param $object
+	 *
+	 * @return array
+	 */
 	protected function get_object_taxonomies( $object ) {
 		return array();
 	}
 
+	/**
+	 * Optionally prepare metadata for this object
+	 *
+	 * @param $object
+	 *
+	 * @return array
+	 */
 	protected function prepare_meta( $object ) {
 		$meta = (array) $this->get_object_meta( $object );
 
@@ -279,6 +323,13 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return apply_filters( "ep_prepare_{$this->name}_meta", $prepared_meta, $object );
 	}
 
+	/**
+	 * Get all the metadata for an object
+	 *
+	 * @param $object
+	 *
+	 * @return array
+	 */
 	protected function get_object_meta( $object ) {
 		return array();
 	}
@@ -295,6 +346,13 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	 */
 	abstract protected function get_object_identifier( $object );
 
+	/**
+	 * Process any objects found in search
+	 *
+	 * @param $hits
+	 *
+	 * @return mixed
+	 */
 	abstract protected function process_found_objects( $hits );
 
 	/**
