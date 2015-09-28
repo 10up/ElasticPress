@@ -140,8 +140,8 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			$args = apply_filters( 'ep_search_args', $args, $scope );
 		}
 		$request_args = array(
-			'body'    => json_encode( $args ),
-			'method'  => 'POST',
+			'body'   => json_encode( apply_filters( "ep_search_{$this->name}_args", $args, $scope ) ),
+			'method' => 'POST',
 		);
 
 		if ( 'post' === $this->name ) {
@@ -151,7 +151,10 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			 */
 			$request_args = apply_filters( 'ep_search_request_args', $request_args, $args, $scope );
 		}
-		$request = ep_remote_request( $path, $request_args );
+		$request = ep_remote_request(
+			$path,
+			apply_filters( "ep_search_{$this->name}_request_args", $request_args, $args, $scope )
+		);
 
 		if ( ! is_wp_error( $request ) ) {
 
@@ -200,7 +203,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 				);
 			}
 
-			return $results
+			return apply_filters( "ep_search_{$this->name}_results_array", $results, $response );
 		}
 
 		return false;
