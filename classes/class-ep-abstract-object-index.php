@@ -149,7 +149,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			$response = json_decode( $response_body, true );
 
 			if ( $this->api->is_empty_search( $response ) ) {
-				return array( 'found_posts' => 0, 'posts' => array() );
+				return array( 'found_objects' => 0, 'objects' => array() );
 			}
 
 			$hits = $response['hits']['hits'];
@@ -178,7 +178,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			 * @param object $response The response body retrieved from ElasticSearch.
 			 */
 
-			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response );
+			return apply_filters( 'ep_search_results_array', array( 'found_objects' => $response['hits']['total'], 'objects' => $posts ), $response );
 		}
 
 		return false;
