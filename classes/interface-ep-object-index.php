@@ -40,7 +40,7 @@ interface EP_Object_Index {
 	 *
 	 * @param array $object The object data
 	 *
-	 * @return array|bool The response body if available, otherwise false
+	 * @return array|object|bool The response body if available, otherwise false
 	 */
 	public function index_document( $object );
 
