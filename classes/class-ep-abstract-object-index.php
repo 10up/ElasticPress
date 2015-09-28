@@ -213,7 +213,10 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			}
 		}
 
-		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
+		if ( 'post' === $this->name ) {
+			$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $object );
+		}
+		$selected_taxonomies = apply_filters( "ep_sync_{$this->name}_taxonomies", $selected_taxonomies, $object );
 
 		if ( empty( $selected_taxonomies ) ) {
 			return array();
