@@ -82,6 +82,31 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return false;
 	}
 
+	public function delete_document( $object ) {
+		$index = untrailingslashit( ep_get_index_name() );
+
+		$path = implode( '/', array( $index, $this->name, $object ) );
+
+		$request_args = array( 'method' => 'DELETE', 'timeout' => 15 );
+
+		$request = ep_remote_request(
+			$path,
+			apply_filters( "ep_delete_{$this->name}_request_args", $request_args, $object )
+		);
+
+		if ( ! is_wp_error( $request ) ) {
+			$response_body = wp_remote_retrieve_body( $request );
+
+			$response = json_decode( $response_body, true );
+
+			if ( ! empty( $response['found'] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Get the primary identifier for an object
 	 *
