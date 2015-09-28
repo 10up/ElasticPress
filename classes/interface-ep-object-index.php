@@ -73,4 +73,14 @@ interface EP_Object_Index {
 	 */
 	public function prepare_object( $object );
 
+	/**
+	 * Search for objects under a specific site index or the global index
+	 *
+	 * @param array $args
+	 * @param mixed $scope
+	 *
+	 * @return array|bool
+	 */
+	public function search( $args, $scope = 'current' );
+
 }
