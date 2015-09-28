@@ -147,4 +147,23 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 		return apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' );
 	}
 
+	private function prepare_date_terms( $date ) {
+		$timestamp  = strtotime( $date );
+		$date_terms = array(
+			'year'          => (int) date( "Y", $timestamp ),
+			'month'         => (int) date( "m", $timestamp ),
+			'week'          => (int) date( "W", $timestamp ),
+			'dayofyear'     => (int) date( "z", $timestamp ),
+			'day'           => (int) date( "d", $timestamp ),
+			'dayofweek'     => (int) date( "w", $timestamp ),
+			'dayofweek_iso' => (int) date( "N", $timestamp ),
+			'hour'          => (int) date( "H", $timestamp ),
+			'minute'        => (int) date( "i", $timestamp ),
+			'second'        => (int) date( "s", $timestamp ),
+			'm'             => (int) ( date( "Y", $timestamp ) . date( "m", $timestamp ) ), // yearmonth
+		);
+
+		return $date_terms;
+	}
+
 }
