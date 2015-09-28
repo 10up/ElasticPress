@@ -64,4 +64,13 @@ interface EP_Object_Index {
 	 */
 	public function delete_document( $object );
 
+	/**
+	 * Prepare the object for indexing
+	 *
+	 * @param mixed $object
+	 *
+	 * @return array
+	 */
+	public function prepare_object( $object );
+
 }
