@@ -49,7 +49,15 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	 * @return int|string
 	 */
 	protected function get_object_identifier( $object ) {
-		// TODO: Implement get_object_identifier() method.
+		if ( $object instanceof WP_Post ) {
+			return $object->ID;
+		} elseif ( is_array( $object ) && isset( $object['post_id'] ) ) {
+			return $object['post_id'];
+		} elseif ( is_numeric( $object ) ) {
+			return (int) $object;
+		}
+
+		return 0;
 	}
 
 	protected function process_found_objects( $hits ) {
