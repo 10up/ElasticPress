@@ -111,6 +111,79 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		return false;
 	}
 
+	public function search( $args, $scope = 'current' ) {
+		$index = null;
+
+		if ( 'all' === $scope ) {
+			$index = ep_get_network_alias();
+		} elseif ( is_int( $scope ) ) {
+			$index = ep_get_index_name( $scope );
+		} elseif ( is_array( $scope ) ) {
+			$index = array();
+
+			foreach ( $scope as $site_id ) {
+				$index[] = ep_get_index_name( $site_id );
+			}
+
+			$index = implode( ',', $index );
+		} else {
+			$index = ep_get_index_name();
+		}
+
+		$path = $index . '/post/_search';
+
+		$request_args = array(
+			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
+			'method'  => 'POST',
+		);
+
+		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope ) );
+
+		if ( ! is_wp_error( $request ) ) {
+
+			// Allow for direct response retrieval
+			do_action( 'ep_retrieve_raw_response', $request, $args, $scope );
+
+			$response_body = wp_remote_retrieve_body( $request );
+
+			$response = json_decode( $response_body, true );
+
+			if ( $this->is_empty_search( $response ) ) {
+				return array( 'found_posts' => 0, 'posts' => array() );
+			}
+
+			$hits = $response['hits']['hits'];
+
+			// Check for and store aggregations
+			if ( ! empty( $response['aggregations'] ) ) {
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope );
+			}
+
+			$posts = array();
+
+			foreach ( $hits as $hit ) {
+				$post = $hit['_source'];
+				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
+				$posts[] = apply_filters( 'ep_retrieve_the_post', $post, $hit );
+			}
+
+			/**
+			 * Filter search results.
+			 *
+			 * Allows more complete use of filtering request variables by allowing for filtering of results.
+			 *
+			 * @since 1.6.0
+			 *
+			 * @param array  $results  The unfiltered search results.
+			 * @param object $response The response body retrieved from ElasticSearch.
+			 */
+
+			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response );
+		}
+
+		return false;
+	}
+
 	/**
 	 * Get the primary identifier for an object
 	 *
