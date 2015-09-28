@@ -130,7 +130,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			$index = ep_get_index_name();
 		}
 
-		$path = $index . '/post/_search';
+		$path = $index . "/{$this->name}/_search";
 
 		$request_args = array(
 			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
@@ -142,7 +142,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		if ( ! is_wp_error( $request ) ) {
 
 			// Allow for direct response retrieval
-			do_action( 'ep_retrieve_raw_response', $request, $args, $scope );
+			do_action( 'ep_retrieve_raw_response', $request, $args, $scope, $this->name );
 
 			$response_body = wp_remote_retrieve_body( $request );
 
@@ -156,7 +156,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
-				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope );
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $this->name );
 			}
 
 			$posts = array();
