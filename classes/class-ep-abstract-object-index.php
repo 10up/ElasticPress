@@ -204,7 +204,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	}
 
 	protected function prepare_terms( $object ) {
-		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
+		$taxonomies          = $this->get_object_taxonomies( $object );
 		$selected_taxonomies = array();
 
 		foreach ( $taxonomies as $taxonomy ) {
@@ -249,6 +249,10 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		}
 
 		return $terms;
+	}
+
+	protected function get_object_taxonomies( $object ) {
+		return array();
 	}
 
 	protected function prepare_meta( $object ) {
