@@ -977,28 +977,26 @@ class EP_API {
 	 * @return array|object|WP_Error
 	 */
 	public function bulk_index_posts( $body ) {
-		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-		$path = trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+		return $this->bulk_index( $body, 'post' );
+	}
 
-		$request_args = array(
-			'method'  => 'POST',
-			'body'    => $body,
-			'timeout' => 30,
-		);
-
-		$request = ep_remote_request( $path, apply_filters( 'ep_bulk_index_posts_request_args', $request_args, $body ) );
-
-		if ( is_wp_error( $request ) ) {
-			return $request;
+	/**
+	 * Bulk index objects of a given type
+	 *
+	 * @param array  $body
+	 * @param string $type
+	 *
+	 * @return array|WP_Error
+	 */
+	public function bulk_index( $body, $type = 'post' ) {
+		$object_type = ep_get_object_type( $type );
+		if ( ! $object_type && 's' === substr( $type, - 1 ) ) {
+			$object_type = ep_get_object_type( substr( $type, 0, - 1 ) );
 		}
 
-		$response = wp_remote_retrieve_response_code( $request );
-
-		if ( 200 !== $response ) {
-			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
-		}
-
-		return json_decode( wp_remote_retrieve_body( $request ), true );
+		return $object_type
+			? $object_type->bulk_index( $body )
+			: new WP_Error( 'elasticpress', __( 'Invalid object type', 'elasticpress' ) );
 	}
 
 	/**
