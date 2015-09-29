@@ -93,3 +93,7 @@ function ep_register_object_type( $type ) {
 function ep_get_object_type( $name ) {
 	return EP_Object_Manager::factory()->get_object( $name );
 }
+
+function ep_get_registered_object_type_names() {
+	return EP_Object_Manager::factory()->get_registered_object_names();
+}
