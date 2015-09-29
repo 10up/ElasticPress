@@ -110,6 +110,7 @@ function ep_count_indexes() {
 	$sites = ep_get_sites();
 
 	$count_indexes = 0;
+	$last_blog_id_with_index = 0;
 	foreach ( $sites as $site ) {
 		if ( $index_name = ep_get_index_name( $site[ 'blog_id' ] ) ) {
 			if ( ep_index_exists( $index_name ) ) {
