@@ -26,6 +26,7 @@ class EP_Object_Manager {
 			$this->unregister_object( $object );
 		}
 		$this->objects[ $object->get_name() ] = $object;
+		$object->sync_setup();
 	}
 
 	/**
@@ -34,6 +35,7 @@ class EP_Object_Manager {
 	 * @param EP_Object_Index $object
 	 */
 	public function unregister_object( $object ) {
+		$object->sync_teardown();
 		unset( $this->objects[ $object->get_name() ] );
 	}
 

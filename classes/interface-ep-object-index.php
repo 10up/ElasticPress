@@ -6,6 +6,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 interface EP_Object_Index {
 
 	/**
+	 * Set up any necessary syncing operations for this object type
+	 */
+	public function sync_setup();
+
+	/**
+	 * Undo any syncing operations (e.g. actions/filters added) for this object type
+	 */
+	public function sync_teardown();
+
+	/**
 	 * Get the object type name
 	 *
 	 * @return string

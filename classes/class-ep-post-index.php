@@ -15,6 +15,19 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	}
 
 	/**
+	 * {@inheritdoc}
+	 */
+	public function sync_setup() {
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function sync_teardown() {
+	}
+
+
+	/**
 	 * Get the settings needed by this type's mapping
 	 *
 	 * @return array
