@@ -83,4 +83,14 @@ interface EP_Object_Index {
 	 */
 	public function search( $args, $scope = 'current' );
 
+
+	/**
+	 * Bulk index data of this type
+	 *
+	 * @param array $body
+	 *
+	 * @return array|WP_Error
+	 */
+	public function bulk_index( $body );
+
 }

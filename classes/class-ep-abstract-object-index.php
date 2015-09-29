@@ -233,6 +233,34 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	}
 
 	/**
+	 * {@inheritdoc}
+	 */
+	public function bulk_index( $body ) {
+		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
+		$path = trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+
+		$request_args = array(
+			'method'  => 'POST',
+			'body'    => $body,
+			'timeout' => 30,
+		);
+
+		$request = ep_remote_request( $path, apply_filters( 'ep_bulk_index_posts_request_args', $request_args, $body ) );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_response_code( $request );
+
+		if ( 200 !== $response ) {
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+		}
+
+		return json_decode( wp_remote_retrieve_body( $request ), true );
+	}
+
+	/**
 	 * Prepare terms for optional inclusion in the index
 	 *
 	 * @param $object
