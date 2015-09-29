@@ -262,7 +262,13 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		$mapping = require( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' ) );
+		$mapping = array( 'settings' => array(), 'mappings' => array() );
+
+		foreach ( ep_get_registered_object_type_names() as $name ) {
+			$type                         = ep_get_object_type( $name );
+			$mapping['mappings'][ $name ] = $type->get_mappings();
+			$mapping['settings']          = array_replace_recursive( $mapping['settings'], $type->get_settings() );
+		}
 
 		/**
 		 * We are removing shard/replica defaults but need to maintain the filters
