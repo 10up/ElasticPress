@@ -74,3 +74,21 @@ class EP_Object_Manager {
 	}
 
 }
+
+EP_Object_Manager::factory();
+
+function ep_register_object_type( $type ) {
+	if ( ! $type instanceof EP_Object_Index ) {
+		if ( is_string( $type ) && class_exists( $type ) ) {
+			$type = new $type( null );
+			ep_register_object_type( $type );
+		}
+
+		return;
+	}
+	EP_Object_Manager::factory()->register_object( $type );
+}
+
+function ep_get_object_type( $name ) {
+	return EP_Object_Manager::factory()->get_object( $name );
+}
