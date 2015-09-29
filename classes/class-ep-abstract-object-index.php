@@ -199,7 +199,13 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $this->name );
 			}
 
-			$objects = $this->process_found_objects( $hits );
+			$objects = array();
+
+			foreach ( $hits as $hit ) {
+				$object            = $hit['_source'];
+				$object['site_id'] = $this->api->parse_site_id( $hit['_index'] );
+				$objects[]         = apply_filters( "ep_retrieve_the_{$this->name}", $object, $hit );
+			}
 
 			$results = array( 'found_objects' => $response['hits']['total'], 'objects' => $objects );
 			if ( 'post' === $this->name ) {
@@ -345,15 +351,6 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	 * @return int|string
 	 */
 	abstract protected function get_object_identifier( $object );
-
-	/**
-	 * Process any objects found in search
-	 *
-	 * @param $hits
-	 *
-	 * @return mixed
-	 */
-	abstract protected function process_found_objects( $hits );
 
 	/**
 	 * Recursively get all the ancestor terms of the given term
