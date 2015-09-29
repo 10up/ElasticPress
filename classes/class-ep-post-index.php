@@ -37,6 +37,18 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	}
 
 	/**
+	 * {@inheritdoc}
+	 */
+	public function search( $args, $scope = 'current' ) {
+		$results = parent::search( $args, $scope );
+
+		return array(
+			'found_posts' => $results['found_objects'],
+			'posts'       => $results['objects'],
+		);
+	}
+
+	/**
 	 * Prepare the object for indexing
 	 *
 	 * @param mixed $object
