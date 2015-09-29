@@ -264,7 +264,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
 			$object_terms = apply_filters( "ep_sync_get_terms_{$this->name}", null, $object, $taxonomy );
-			if ( ! is_null( $object_terms ) ) {
+			if ( is_null( $object_terms ) ) {
 				$object_terms = get_the_terms( $this->get_object_identifier( $object ), $taxonomy->name );
 			}
 
