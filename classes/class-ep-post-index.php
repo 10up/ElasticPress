@@ -139,6 +139,20 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	}
 
 	/**
+	 * {@inheritdoc}
+	 */
+	protected function get_object_taxonomies( $object ) {
+		return get_object_taxonomies( $object->post_type, 'objects' );
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function get_object_meta( $object ) {
+		return get_post_meta( $object->ID );
+	}
+
+	/**
 	 * Get the primary identifier for an object
 	 *
 	 * This could be a slug, or an ID, or something else. It will be used as a canonical
