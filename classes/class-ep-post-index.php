@@ -5,6 +5,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class EP_Post_Index extends EP_Abstract_Object_Index {
 
+	protected $name = 'post';
+
+	/**
+	 * EP_Post_Index constructor.
+	 */
+	public function __construct() {
+		parent::__construct( $this->name );
+	}
+
 	/**
 	 * Get the settings needed by this type's mapping
 	 *
