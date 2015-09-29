@@ -68,6 +68,7 @@ class EP_Object_Manager {
 		static $instance;
 		if ( ! $instance ) {
 			$instance = new self();
+			$instance->register_object( new EP_Post_Index );
 		}
 
 		return $instance;
