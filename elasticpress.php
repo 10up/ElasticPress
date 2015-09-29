@@ -21,7 +21,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
-require_once( 'classes/class-ep-user-api.php' );
 require_once( 'classes/interface-ep-object-index.php' );
 require_once( 'classes/class-ep-abstract-object-index.php' );
 require_once( 'classes/class-ep-post-index.php' );
