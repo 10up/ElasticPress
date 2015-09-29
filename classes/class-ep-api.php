@@ -267,7 +267,7 @@ class EP_API {
 		foreach ( ep_get_registered_object_type_names() as $name ) {
 			$type                         = ep_get_object_type( $name );
 			$mapping['mappings'][ $name ] = $type->get_mappings();
-			$mapping['settings']          = array_replace_recursive( $mapping['settings'], $type->get_settings() );
+			$mapping['settings']          = $this->array_replace_recursive( $mapping['settings'], $type->get_settings() );
 		}
 
 		/**
@@ -1221,6 +1221,58 @@ class EP_API {
 
 		return $request;
 
+	}
+
+	/**
+	 * A polyfill for array_replace_recursive not being available on PHP 5.2
+	 *
+	 * @param array $array
+	 * @param array $array1...
+	 *
+	 * @return array
+	 */
+	private function array_replace_recursive( $array, $array1 ) {
+		if ( function_exists( 'array_replace_recursive' ) ) {
+			return call_user_func_array( 'array_replace_recursive', func_get_args() );
+		}
+		// handle the arguments, merge one by one
+		$args  = func_get_args();
+		$array = $args[0];
+		if ( ! is_array( $array ) ) {
+			return $array;
+		}
+		for ( $i = 1; $i < count( $args ); $i ++ ) {
+			if ( is_array( $args[ $i ] ) ) {
+				$array = $this->recurse_array_replace( $array, $args[ $i ] );
+			}
+		}
+
+		return $array;
+	}
+
+	/**
+	 * Polyfill to do the recursing for array_replace_recursive
+	 *
+	 * @param array $array
+	 * @param array $array1
+	 *
+	 * @return array
+	 */
+	private function recurse_array_replace( $array, $array1 ) {
+		foreach ( $array1 as $key => $value ) {
+			// create new key in $array, if it is empty or not an array
+			if ( ! isset( $array[ $key ] ) || ( isset( $array[ $key ] ) && ! is_array( $array[ $key ] ) ) ) {
+				$array[ $key ] = array();
+			}
+
+			// overwrite the value in the base array
+			if ( is_array( $value ) ) {
+				$value = $this->recurse_array_replace( $array[ $key ], $value );
+			}
+			$array[ $key ] = $value;
+		}
+
+		return $array;
 	}
 
 }
