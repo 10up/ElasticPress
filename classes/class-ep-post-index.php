@@ -15,6 +15,9 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	}
 
 	/**
+	 * For purposes of backwards compatibility, the methods for updating and deleting posts will stay on the sync
+	 * manager.
+	 *
 	 * {@inheritdoc}
 	 */
 	public function sync_setup() {
@@ -26,6 +29,9 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	}
 
 	/**
+	 * For purposes of backwards compatibility, the methods for updating and deleting posts will stay on the sync
+	 * manager.
+	 *
 	 * {@inheritdoc}
 	 */
 	public function sync_teardown() {
