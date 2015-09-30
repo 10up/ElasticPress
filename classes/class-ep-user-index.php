@@ -33,14 +33,18 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 * {@inheritdoc}
 	 */
 	public function get_settings() {
-		// TODO: Implement get_settings() method.
+		$user_mapping = require( $this->get_mapping_file() );
+
+		return isset( $user_mapping['settings'] ) ? (array) $user_mapping['settings'] : array();
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function get_mappings() {
-		// TODO: Implement get_mappings() method.
+		$user_mapping = require( $this->get_mapping_file() );
+
+		return isset( $user_mapping['mappings']['user'] ) ? (array) $user_mapping['mappings']['user'] : array();
 	}
 
 	/**
@@ -62,6 +66,22 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 		}
 
 		return is_numeric( $object ) ? (int) $object : 0;
+	}
+
+	/**
+	 * Get the location of the user mapping data
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return string
+	 */
+	private function get_mapping_file() {
+		$user_mapping_file = apply_filters(
+			'ep_config_user_mapping_file',
+			dirname( __FILE__ ) . '/../includes/user-mappings.php'
+		);
+
+		return $user_mapping_file;
 	}
 
 }
