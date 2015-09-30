@@ -19,6 +19,9 @@ class EP_Sync_Manager {
 	 * @since 0.1.2
 	 */
 	public function setup() {
+		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 	}
 
 	/**
@@ -27,6 +30,9 @@ class EP_Sync_Manager {
 	 * @since 1.4
 	 */
 	public function destroy() {
+		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
+		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 	}
 
 	public function action_delete_blog_from_index( $blog_id ) {
