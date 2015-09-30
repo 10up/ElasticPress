@@ -78,7 +78,7 @@ class EP_Object_Manager {
 
 }
 
-EP_Object_Manager::factory();
+add_action( 'plugins_loaded', array( 'EP_Object_Manager', 'factory' ) );
 
 function ep_register_object_type( $type ) {
 	if ( ! $type instanceof EP_Object_Index ) {
