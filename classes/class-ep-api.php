@@ -637,12 +637,20 @@ class EP_API {
 		 */
 		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', array(), $post );
 
-		if ( true !== $excluded_public_keys ) {
+		foreach ( $meta as $key => $value ) {
 
-			foreach ( $meta as $key => $value ) {
-				if ( ! in_array( $key, $excluded_public_keys ) && ( ! is_protected_meta( $key ) || true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) ) {
-					$prepared_meta[ $key ] = maybe_unserialize( $value );
-				}
+			if (
+				true !== $excluded_public_keys && ! is_protected_meta( $key ) &&
+				(
+					! in_array( $key, $excluded_public_keys ) &&
+					(
+						! is_protected_meta( $key ) ||
+						true === $allowed_protected_keys ||
+						in_array( $key, $allowed_protected_keys )
+					)
+				)
+			) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
 
