@@ -91,6 +91,10 @@ class EP_Object_Manager {
 		if ( ! $instance ) {
 			$instance = new self();
 			$instance->register_object( new EP_Post_Index );
+			$user_index = new EP_User_Index();
+			if ( $user_index->active() ) {
+				$instance->register_object( $user_index );
+			}
 		}
 
 		return $instance;

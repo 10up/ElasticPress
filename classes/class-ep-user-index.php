@@ -16,6 +16,26 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	protected $name = 'user';
 
 	/**
+	 * Constructor for EP_User_Index
+	 *
+	 * @since 1.7.0
+	 */
+	public function __construct() {
+		parent::__construct( $this->name );
+	}
+
+	/**
+	 * Check whether user indexing is active. Indexing users is off by default
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return bool
+	 */
+	public function active() {
+		return ( ep_is_activated() && apply_filters( 'ep_user_indexing_active', false ) );
+	}
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function sync_setup() {
