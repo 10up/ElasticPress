@@ -3,20 +3,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // exit if accessed directly
 }
 
+/**
+ * Interface EP_Object_Index
+ *
+ * @since 1.7
+ */
 interface EP_Object_Index {
 
 	/**
 	 * Set up any necessary syncing operations for this object type
+	 *
+	 * @since 1.7
 	 */
 	public function sync_setup();
 
 	/**
 	 * Undo any syncing operations (e.g. actions/filters added) for this object type
+	 *
+	 * @since 1.7
 	 */
 	public function sync_teardown();
 
 	/**
 	 * Get the object type name
+	 *
+	 * @since 1.7
 	 *
 	 * @return string
 	 */
@@ -25,6 +36,8 @@ interface EP_Object_Index {
 	/**
 	 * Set the object type name
 	 *
+	 * @since 1.7
+	 *
 	 * @param string $name
 	 */
 	public function set_name( $name );
@@ -32,12 +45,16 @@ interface EP_Object_Index {
 	/**
 	 * Get the settings needed by this type's mapping
 	 *
+	 * @since 1.7
+	 *
 	 * @return array
 	 */
 	public function get_settings();
 
 	/**
 	 * Get the mapping for this type
+	 *
+	 * @since 1.7
 	 *
 	 * @return array
 	 */
@@ -47,6 +64,8 @@ interface EP_Object_Index {
 	 * Index a document of this type
 	 *
 	 * Returns the response body if available, false otherwise.
+	 *
+	 * @since 1.7
 	 *
 	 * @param array $object The object data
 	 *
@@ -59,6 +78,8 @@ interface EP_Object_Index {
 	 *
 	 * Returns the document data if successful, false otherwise.
 	 *
+	 * @since 1.7
+	 *
 	 * @param mixed $object An object identifier
 	 *
 	 * @return array|bool The document data or false on failur
@@ -67,6 +88,8 @@ interface EP_Object_Index {
 
 	/**
 	 * Delete a document from ES
+	 *
+	 * @since 1.7
 	 *
 	 * @param mixed $object An object identifier
 	 *
@@ -77,6 +100,8 @@ interface EP_Object_Index {
 	/**
 	 * Prepare the object for indexing
 	 *
+	 * @since 1.7
+	 *
 	 * @param mixed $object
 	 *
 	 * @return array
@@ -85,6 +110,8 @@ interface EP_Object_Index {
 
 	/**
 	 * Search for objects under a specific site index or the global index
+	 *
+	 * @since 1.7
 	 *
 	 * @param array $args
 	 * @param mixed $scope
@@ -96,6 +123,8 @@ interface EP_Object_Index {
 
 	/**
 	 * Bulk index data of this type
+	 *
+	 * @since 1.7
 	 *
 	 * @param array $body
 	 *

@@ -3,12 +3,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // exit if accessed directly
 }
 
+/**
+ * Class EP_Post_Index
+ *
+ * @since 1.7
+ */
 class EP_Post_Index extends EP_Abstract_Object_Index {
 
 	protected $name = 'post';
 
 	/**
 	 * EP_Post_Index constructor.
+	 *
+	 * @since 1.7
 	 */
 	public function __construct() {
 		parent::__construct( $this->name );
@@ -44,9 +51,7 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 
 
 	/**
-	 * Get the settings needed by this type's mapping
-	 *
-	 * @return array
+	 * {@inheritdoc}
 	 */
 	public function get_settings() {
 		$mapping = require( $this->get_mapping_file() );
@@ -55,9 +60,7 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	}
 
 	/**
-	 * Get the mapping for this type
-	 *
-	 * @return array
+	 * {@inheritdoc}
 	 */
 	public function get_mappings() {
 		$mapping = require( $this->get_mapping_file() );
@@ -79,6 +82,8 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 
 	/**
 	 * Prepare the object for indexing
+	 *
+	 * @since 1.7
 	 *
 	 * @param mixed $object
 	 *
@@ -187,6 +192,8 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	 * This could be a slug, or an ID, or something else. It will be used as a canonical
 	 * lookup for the document.
 	 *
+	 * @since 1.7
+	 *
 	 * @param mixed $object
 	 *
 	 * @return int|string
@@ -203,10 +210,26 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 		return 0;
 	}
 
+	/**
+	 * Get the mapping file to get our config values from
+	 *
+	 * @since 1.7
+	 *
+	 * @return mixed|void
+	 */
 	private function get_mapping_file() {
 		return apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' );
 	}
 
+	/**
+	 * Prepare the post date terms
+	 *
+	 * @since 1.7
+	 *
+	 * @param string $date
+	 *
+	 * @return array
+	 */
 	private function prepare_date_terms( $date ) {
 		$timestamp  = strtotime( $date );
 		$date_terms = array(

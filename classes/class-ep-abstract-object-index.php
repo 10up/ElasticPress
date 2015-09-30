@@ -3,15 +3,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // exit if accessed directly
 }
 
+/**
+ * Class EP_Abstract_Object_Index
+ *
+ * @since 1.7
+ */
 abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
-	/** @var EP_API */
+	/**
+	 * @var EP_API
+	 * @since 1.7
+	 */
 	protected $api = '';
 
-	/** @var string */
+	/**
+	 * @var string
+	 * @since 1.7
+	 */
 	protected $name = '';
 
 	/**
+	 * @since 1.7
+	 *
 	 * @param string $name
 	 * @param EP_API $api
 	 */
@@ -45,7 +58,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		 *
 		 * @since 1.7
 		 *
-		 * @param         array Array of post information to index.
+		 * @param         array Array of object information to index.
 		 */
 		$object = apply_filters( "ep_pre_index_{$this->name}", $object );
 
@@ -61,9 +74,28 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 		$request = ep_remote_request(
 			$path,
+			/**
+			 * Filter the Request arguments
+			 *
+			 * @since 1.7
+			 *
+			 * @param array $request_args The request args for the remote request
+			 * @param array $object       The object to be indexed
+			 */
 			apply_filters( "ep_index_{$this->name}_request_args", $request_args, $object )
 		);
 
+		/**
+		 * Action that runs after the remote request
+		 *
+		 * This gives plugins access to the raw response from elasticsearch
+		 *
+		 * @since 1.7
+		 *
+		 * @param array  $request The request object returned by wp_remote_request()
+		 * @param array  $object  The object that was (hopefully) indexed
+		 * @param string $path    The path that was attempted in the remote request
+		 */
 		do_action( "ep_index_{$this->name}_retrieve_raw_response", $request, $object, $path );
 
 		if ( ! is_wp_error( $request ) ) {
@@ -87,6 +119,14 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 		$request = ep_remote_request(
 			$path,
+			/**
+			 * Filter the request args for the document lookup
+			 *
+			 * @since 1.7
+			 *
+			 * @param array $request_args The request args
+			 * @param mixed $object       The object identifier
+			 */
 			apply_filters( "ep_get_{$this->name}_request_args", $request_args, $object )
 		);
 
@@ -115,6 +155,14 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 		$request = ep_remote_request(
 			$path,
+			/**
+			 * Filter the request args for the request to delete a document
+			 *
+			 * @since 1.7
+			 *
+			 * @param array $request_args The request args
+			 * @param mixed $object       The object identifier
+			 */
 			apply_filters( "ep_delete_{$this->name}_request_args", $request_args, $object )
 		);
 
@@ -163,6 +211,14 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			$args = apply_filters( 'ep_search_args', $args, $scope );
 		}
 		$request_args = array(
+			/**
+			 * Filter the body of the search request
+			 *
+			 * @since 1.7
+			 *
+			 * @param array      $args  The body of the search request
+			 * @param string|int $scope The site context within which to search
+			 */
 			'body'   => json_encode( apply_filters( "ep_search_{$this->name}_args", $args, $scope ) ),
 			'method' => 'POST',
 		);
@@ -176,6 +232,15 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		}
 		$request = ep_remote_request(
 			$path,
+			/**
+			 * Filter the request args for the search request
+			 *
+			 * @since 1.7
+			 *
+			 * @param array      $request_args The search request args
+			 * @param array      $args         The body of the search request
+			 * @param string|int $scope        The site context within which to search
+			 */
 			apply_filters( "ep_search_{$this->name}_request_args", $request_args, $args, $scope )
 		);
 
@@ -226,6 +291,15 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 				);
 			}
 
+			/**
+			 * Filter the search results
+			 *
+			 * @since 1.7
+			 *
+			 * @param array $results  The search results
+			 * @param array $response The raw response
+			 */
+
 			return apply_filters( "ep_search_{$this->name}_results_array", $results, $response );
 		}
 
@@ -250,6 +324,14 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		}
 		$request = ep_remote_request(
 			$path,
+			/**
+			 * Filter the request args for bulk indexing
+			 *
+			 * @since 1.7
+			 *
+			 * @param array $request_args The request args
+			 * @param array $body         The request body
+			 */
 			apply_filters( "ep_bulk_index_{$this->name}_request_args", $request_args, $body )
 		);
 
@@ -269,6 +351,8 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	/**
 	 * Prepare terms for optional inclusion in the index
 	 *
+	 * @since 1.7
+	 *
 	 * @param $object
 	 *
 	 * @return array
@@ -286,6 +370,14 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		if ( 'post' === $this->name ) {
 			$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $object );
 		}
+		/**
+		 * Filter the selected taxonomies for preparing terms
+		 *
+		 * @since 1.7
+		 *
+		 * @param array $selected_taxonomies The selected taxonomies
+		 * @param mixed $object              The object being prepared
+		 */
 		$selected_taxonomies = apply_filters( "ep_sync_{$this->name}_taxonomies", $selected_taxonomies, $object );
 
 		if ( empty( $selected_taxonomies ) ) {
@@ -297,6 +389,15 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
+			/**
+			 * Allow plugins to override how terms are retrieved for a custom object type
+			 *
+			 * @since 1.7
+			 *
+			 * @param        null    The variable to set to override normal get_the_terms() run
+			 * @param mixed  $object The object being prepared
+			 * @param object $object The taxonomy being checked
+			 */
 			$object_terms = apply_filters( "ep_sync_get_terms_{$this->name}", null, $object, $taxonomy );
 			if ( is_null( $object_terms ) ) {
 				$object_terms = get_the_terms( $this->get_object_identifier( $object ), $taxonomy->name );
@@ -330,6 +431,8 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	/**
 	 * Get taxonomies for the current object/object type
 	 *
+	 * @since 1.7
+	 *
 	 * @param $object
 	 *
 	 * @return array
@@ -340,6 +443,8 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 	/**
 	 * Optionally prepare metadata for this object
+	 *
+	 * @since 1.7
 	 *
 	 * @param $object
 	 *
@@ -360,11 +465,21 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			}
 		}
 
+		/**
+		 * Filter the meta values prepared for indexing
+		 *
+		 * @since 1.7
+		 *
+		 * @param array $prepared_meta The prepared meta
+		 * @param mixed $object        The object being prepared
+		 */
 		return apply_filters( "ep_prepare_{$this->name}_meta", $prepared_meta, $object );
 	}
 
 	/**
 	 * Get all the metadata for an object
+	 *
+	 * @since 1.7
 	 *
 	 * @param $object
 	 *
@@ -380,6 +495,8 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	 * This could be a slug, or an ID, or something else. It will be used as a canonical
 	 * lookup for the document.
 	 *
+	 * @since 1.7
+	 *
 	 * @param mixed $object
 	 *
 	 * @return int|string
@@ -388,6 +505,8 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 	/**
 	 * Recursively get all the ancestor terms of the given term
+	 *
+	 * @since 1.7
 	 *
 	 * @param $terms
 	 * @param $term
