@@ -54,7 +54,14 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 * {@inheritdoc}
 	 */
 	protected function get_object_identifier( $object ) {
-		// TODO: Implement get_object_identifier() method.
+		if ( $object instanceof WP_User ) {
+			return (int) $object->ID;
+		}
+		if ( is_array( $object ) && ! empty( $object['user_id'] ) ) {
+			return (int) $object['user_id'];
+		}
+
+		return is_numeric( $object ) ? (int) $object : 0;
 	}
 
 }
