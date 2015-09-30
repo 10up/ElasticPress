@@ -51,7 +51,37 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 * {@inheritdoc}
 	 */
 	public function prepare_object( $object ) {
-		// TODO: Implement prepare_object() method.
+		$user = $this->get_wp_user( $object );
+
+		if ( ! $user || ! $user->exists() ) {
+			return array();
+		}
+
+		$user_registered = $user->user_registered;
+		if ( apply_filters( 'ep_ignore_invalid_dates', true, $user->ID, $user ) ) {
+			if ( ! strtotime( $user_registered ) || $user_registered === '0000-00-00 00:00:00' ) {
+				$user_registered = null;
+			}
+		}
+
+		$data = array(
+			'user_id'         => absint( $user->ID ),
+			'user_login'      => $user->user_login,
+			'user_nicename'   => $user->user_nicename,
+			'nickname'        => $user->nickname,
+			'user_email'      => $user->user_email,
+			'description'     => $user->description,
+			'first_name'      => $user->first_name,
+			'last_name'       => $user->last_name,
+			'user_url'        => $user->user_url,
+			'display_name'    => $user->display_name,
+			'user_registered' => $user_registered,
+			'role'            => $user->roles,
+			'terms'           => $this->prepare_terms( $user ),
+			'user_meta'       => $this->prepare_meta( $user ),
+		);
+
+		return $data;
 	}
 
 	/**
@@ -82,6 +112,19 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 		);
 
 		return $user_mapping_file;
+	}
+
+	/**
+	 * Get a WordPress user object
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param mixed $object
+	 *
+	 * @return false|WP_User
+	 */
+	private function get_wp_user( $object ) {
+		return get_user_by( 'id', $this->get_object_identifier( $object ) );
 	}
 
 }
