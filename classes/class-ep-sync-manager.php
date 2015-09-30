@@ -19,28 +19,14 @@ class EP_Sync_Manager {
 	 * @since 0.1.2
 	 */
 	public function setup() {
-		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
-		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
-		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
-		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 	}
-	
+
 	/**
 	 * Remove actions and filters
 	 *
 	 * @since 1.4
 	 */
 	public function destroy() {
-		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
-		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
-		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
-		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
-		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 	}
 
 	public function action_delete_blog_from_index( $blog_id ) {
@@ -79,7 +65,7 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-		
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
 
