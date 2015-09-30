@@ -639,22 +639,27 @@ class EP_API {
 
 		foreach ( $meta as $key => $value ) {
 
-			if (
-				true !== $excluded_public_keys && ! is_protected_meta( $key ) &&
-				(
-					! in_array( $key, $excluded_public_keys ) &&
-					(
-						! is_protected_meta( $key ) ||
-						true === $allowed_protected_keys ||
-						in_array( $key, $allowed_protected_keys )
-					)
-				)
-			) {
+			$allow_index = false;
+
+			if ( is_protected_meta( $key ) ) {
+
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) {
+					$allow_index = true;
+				}
+			} else {
+
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys )  ) {
+					$allow_index = true;
+				}
+			}
+
+			if ( true === $allow_index ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
 
 		return $prepared_meta;
+
 	}
 
 	/**
