@@ -107,6 +107,28 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	/**
 	 * {@inheritdoc}
 	 */
+	protected function get_object_taxonomies( $object ) {
+		$taxonomies = array_filter( array_map(
+			array( $this, 'filter_user_taxonomies' ),
+			apply_filters( 'ep_user_taxonomies', array(), $object )
+		) );
+
+		return $taxonomies;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function get_object_meta( $object ) {
+		$user = $this->get_wp_user( $object );
+
+		return $user ? get_user_meta( $user->ID ) : array();
+	}
+
+
+	/**
+	 * {@inheritdoc}
+	 */
 	protected function get_object_identifier( $object ) {
 		if ( $object instanceof WP_User ) {
 			return (int) $object->ID;
@@ -116,6 +138,30 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 		}
 
 		return is_numeric( $object ) ? (int) $object : 0;
+	}
+
+	/**
+	 * Get a taxonomy object from either a string or object
+	 *
+	 * Returns the taxonomy object on success, false on failure
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param string|object $taxonomy
+	 *
+	 * @return bool|object The taxonomy object on success, false on failure
+	 */
+	private function filter_user_taxonomies( $taxonomy ) {
+		if ( is_string( $taxonomy ) ) {
+			$taxonomy = get_taxonomy( $taxonomy );
+		} elseif ( is_object( $taxonomy ) && isset( $taxonomy->name ) ) {
+			$taxonomy = get_taxonomy( $taxonomy->name );
+		}
+		if ( $taxonomy && ! $taxonomy->public ) {
+			$taxonomy = false;
+		}
+
+		return $taxonomy;
 	}
 
 	/**
