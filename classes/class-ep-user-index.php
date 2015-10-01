@@ -39,14 +39,18 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 * {@inheritdoc}
 	 */
 	public function sync_setup() {
-		// TODO: Implement sync_setup() method.
+		add_action( 'profile_update', array( $this, 'action_sync_on_update' ), 999999, 3 );
+		add_action( 'user_register', array( $this, 'action_sync_on_update' ), 999999, 3 );
+		add_action( 'delete_user', array( $this, 'action_delete_user' ) );
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function sync_teardown() {
-		// TODO: Implement sync_teardown() method.
+		remove_action( 'profile_update', array( $this, 'action_sync_on_update' ), 999999, 3 );
+		remove_action( 'user_register', array( $this, 'action_sync_on_update' ), 999999, 3 );
+		remove_action( 'delete_user', array( $this, 'action_delete_user' ) );
 	}
 
 	/**
@@ -102,6 +106,18 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 		);
 
 		return $data;
+	}
+
+	/**
+	 * @param $user_id
+	 */
+	public function action_update_on_sync( $user_id ) {
+	}
+
+	/**
+	 * @param $user_id
+	 */
+	public function action_delete_user( $user_id ) {
 	}
 
 	/**
