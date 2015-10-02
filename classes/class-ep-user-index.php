@@ -41,7 +41,9 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	public function sync_setup() {
 		add_action( 'profile_update', array( $this, 'action_sync_on_update' ), 999999, 3 );
 		add_action( 'user_register', array( $this, 'action_sync_on_update' ), 999999, 3 );
-		add_action( 'delete_user', array( $this, 'action_delete_user' ) );
+		add_action( 'add_user_to_blog', array( $this, 'action_add_user_to_blog' ), 999999, 3 );
+		add_action( 'delete_user', array( $this, 'action_delete_user_from_site' ) );
+		add_action( 'remove_user_from_blog', array( $this, 'action_delete_user_from_site' ), 10, 2 );
 	}
 
 	/**
@@ -50,7 +52,9 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	public function sync_teardown() {
 		remove_action( 'profile_update', array( $this, 'action_sync_on_update' ), 999999, 3 );
 		remove_action( 'user_register', array( $this, 'action_sync_on_update' ), 999999, 3 );
-		remove_action( 'delete_user', array( $this, 'action_delete_user' ) );
+		remove_action( 'add_user_to_blog', array( $this, 'action_add_user_to_blog' ), 999999, 3 );
+		remove_action( 'delete_user', array( $this, 'action_delete_user_from_site' ) );
+		remove_action( 'remove_user_from_blog', array( $this, 'action_delete_user_from_site' ), 10, 2 );
 	}
 
 	/**
@@ -109,15 +113,74 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	}
 
 	/**
+	 * Update a user's data
+	 *
+	 * For multisite, this will update a user's data on all sites to which the user officially belongs.
+	 *
 	 * @param $user_id
 	 */
 	public function action_update_on_sync( $user_id ) {
+		$user     = $this->get_wp_user( $user_id );
+		$userdata = $this->prepare_object( $user );
+		if ( ! $userdata ) {
+			return;
+		}
+		if ( is_multisite() ) {
+			$blogs = get_blogs_of_user( $user->ID );
+			foreach ( $blogs as $blog ) {
+				switch_to_blog( $blog->userblog_id );
+				$this->index_document( $userdata );
+				restore_current_blog();
+			}
+		} else {
+			$this->index_document( $userdata );
+		}
 	}
 
 	/**
+	 * Add a user to the blog
+	 *
+	 * This should only run on multisite
+	 *
+	 * @param $user_id
+	 * @param $role
+	 * @param $blog_id
+	 */
+	public function action_add_user_to_blog( $user_id, $role, $blog_id ) {
+		if ( ! is_multisite() ) {
+			return;
+		}
+		$userdata = $this->prepare_object( $this->get_wp_user( $user_id ) );
+		if ( empty( $userdata ) ) {
+			return;
+		}
+		switch_to_blog( $blog_id );
+		$this->index_document( $userdata );
+		restore_current_blog();
+	}
+
+	/**
+	 * Delete a user from the current site index
+	 *
+	 * In single site mode, this runs on delete_user and will simply delete the document from the one index in
+	 * elasticsearch. In a multisite installation, this will check if the current filter is notremove_user_from_blog and
+	 * will return if so. In multisite context, the remove_user_from_blog is the proper context in which to delete a
+	 * user document, since we only want to get rid of user documents from the site affected.
+	 *
 	 * @param $user_id
 	 */
-	public function action_delete_user( $user_id ) {
+	public function action_delete_user_from_site( $user_id, $site_id = null ) {
+		if ( is_multisite() && 'remove_user_from_blog' !== current_filter() ) {
+			return;
+		}
+		if ( is_multisite() ) {
+			$site_id = (int) $site_id ? (int) $site_id : get_current_blog_id();
+			switch_to_blog( $site_id );
+		}
+		$this->delete_document( $user_id );
+		if ( is_multisite() ) {
+			restore_current_blog();
+		}
 	}
 
 	/**
