@@ -476,7 +476,7 @@ The following commands are supported by ElasticPress:
     * `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
     * `--no-bulk` let's you disable bulk indexing.
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
-    * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type".
+    * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
 
 * `wp elasticpress activate`
 
