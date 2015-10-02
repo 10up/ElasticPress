@@ -200,10 +200,78 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 */
 	protected function get_object_meta( $object ) {
 		$user = $this->get_wp_user( $object );
+		if ( ! $user || ! $user->exists() ) {
+			return array();
+		}
+		$meta      = get_user_meta( $user->ID );
+		$real_meta = array();
+		/**
+		 * Allow Plugins to filter the user meta key blacklist
+		 *
+		 * @since 1.7.0
+		 *
+		 * @param array   $meta The list of meta keys to omit
+		 * @param WP_User $user The user being indexed
+		 */
+		$blacklist = apply_filters( 'ep_user_meta_key_blacklist', array(
+			'first_name',
+			'last_name',
+			'nickname',
+			'description',
+			'rich_editing',
+			'comment_shortcuts',
+			'admin_color',
+			'use_ssl',
+			'show_admin_bar_front',
+			'dismissed_wp_pointers',
+			'default_password_nag',
+			'session_tokens',
+			'show_welcome_panel',
+		), $user );
+		/**
+		 * Allow plugins to filter the list of prefixed meta keys to omit
+		 *
+		 * @since 1.7.0
+		 *
+		 * @param array   $keys The meta keys prefixed by the blog id to omit
+		 * @param WP_User $user The user being indexed
+		 */
+		$prefixed_blacklist = apply_filters( 'ep_user_meta_prefixed_key_blacklist', array(
+			'capabilities',
+			'user_level',
+			'dashboard_quick_press_last_post_id',
+			'user-settings',
+			'user-settings-time',
+		), $user );
+		$prefixed_blacklist = array_map(
+			'preg_quote',
+			$prefixed_blacklist,
+			array_fill( 0, count( $prefixed_blacklist ), '/' )
+		);
+		foreach ( $meta as $key => $value ) {
+			if (
+				in_array( $key, $blacklist ) ||
+				(
+					! empty( $prefixed_blacklist ) &&
+					preg_match( '/(' . implode( '|', $prefixed_blacklist ) . ')$/', $key )
+				)
+			) {
+				continue;
+			}
+			$real_meta[ $key ] = $value;
+		}
 
-		return $user ? get_user_meta( $user->ID ) : array();
+		/**
+		 * Allow plugins and themes to filter the user meta that should or should not be included in the document
+		 *
+		 * @since 1.7.0
+		 *
+		 * @param array   $real_meta The meta to index
+		 * @param WP_User $user      The user being indexed
+		 */
+
+		return apply_filters( 'ep_user_get_meta_values', $real_meta, $user );
 	}
-
 
 	/**
 	 * {@inheritdoc}
