@@ -308,7 +308,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		$post_type = ep_get_indexable_post_types();
 
 		if ( ! empty( $args['post-type'] ) ) {
-			$post_type = explode( ',', array_map( 'trim', $args['post-type'] ) );
+			$post_type = explode( ',', $args['post-type'] );
+			$post_type = array_map( 'trim', $post_type );
 		}
 
 		while ( true ) {
