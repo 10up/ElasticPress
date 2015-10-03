@@ -718,9 +718,12 @@ class EP_API {
 			$args['orderby'] = 'date';
 		}
 
+		// Set default for below
+		$sort = true;
+
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
-			$sort = $this->parse_orderby( $args['orderby'], $order );
+			$sort = $this->parse_orderby( $args['orderby'], $order, $args );
 
 			if ( false !== $sort ) {
 				$formatted_args['sort'] = $sort;
@@ -830,7 +833,7 @@ class EP_API {
 					'post_id' => (array) $args['post__not_in'],
 				),
 			);
-			
+
 			$use_filters = true;
 	        }
 
@@ -1328,32 +1331,30 @@ class EP_API {
 	 *
 	 * @param string $orderby Alias for the field to order by.
 	 * @param string $order
+	 * @param array $args
 	 * @return array|bool Array formatted value to used in the sort DSL. False otherwise.
 	 */
-	protected function parse_orderby( $orderby, $order ) {
+	protected function parse_orderby( $orderby, $order, $args ) {
 		// Used to filter values.
 		$allowed_keys = array(
 			'relevance',
 			'name',
 			'title',
 			'date',
+			'meta_value',
+			'meta_value_num',
 		);
 
 		if ( ! in_array( $orderby, $allowed_keys ) ) {
 			return false;
 		}
 
+		// If meta_key is not set, use default orderby
+		if ( in_array( $orderby, array( 'meta_value', 'meta_value_num' ) ) && ! isset( $args['meta_key'] ) ) {
+			$orderby = 'date';
+		}
+
 		switch ( $orderby ) {
-			case 'relevance':
-			default:
-				$sort = array(
-					array(
-						'_score' => array(
-							'order' => $order,
-						),
-					),
-				);
-				break;
 			case 'date':
 				$sort = array(
 					array(
@@ -1368,6 +1369,41 @@ class EP_API {
 				$sort = array(
 					array(
 						'post_' . $orderby . '.raw' => array(
+							'order' => $order,
+						),
+					),
+				);
+				break;
+			case 'meta_value':
+				$meta_key = $args['meta_key'];
+
+				$sort = array(
+					array(
+						'post_meta.' . $meta_key . '.raw' => array(
+							'order' => $order,
+						),
+					),
+				);
+				break;
+			case 'meta_value_num':
+				$meta_key = $args['meta_key'];
+
+				$sort = array(
+					array(
+						'_script' => array(
+							'script' => 'try { Integer.parseInt( doc["post_meta.' . $meta_key . '.raw"].value ); } catch( Exception e ){ return Integer.MAX_VALUE; }',
+							'type'   => 'number',
+							'lang'   => 'groovy',
+							'order'  => $order,
+						),
+					),
+				);
+				break;
+			case 'relevance':
+			default:
+				$sort = array(
+					array(
+						'_score' => array(
 							'order' => $order,
 						),
 					),
