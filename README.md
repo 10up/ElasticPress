@@ -290,14 +290,14 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 * ```author``` (*int*)
 
     Show posts associated with certain author ID.
-    
+
 * ```author_name``` (*string*)
 
     Show posts associated with certain author. Use ```user_nicename``` (NOT name).
-    
+
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Currently only supports: ```title```, ```name```, ```date```, and ```relevance``` (default).
+    Order results by field name instead of relevance. Currently only supports: ```title```, ```name```, ```date```, ```meta_value```, ```meta_value_num``` and ```relevance``` (default). Both ```meta_value``` and ```meta_value_num```` will require ```meta_key``` to work as expected.
 
 * ```order``` (*string*)
 
@@ -372,7 +372,7 @@ The following are special parameters that are only supported by ElasticPress.
 * ```aggs``` (*array*)
 
     Add aggregation results to your search result. For example:
-    
+
     ```php
     new WP_Query( array(
         's'    => 'search phrase',
@@ -437,7 +437,7 @@ The following are special parameters that are only supported by ElasticPress.
 * ```ep_integrate``` (*bool*)
 
     Allows you to perform queries without passing a search parameter. This is pretty powerful as you can leverage Elasticsearch to retrieve queries that are too complex for MySQL (such as a 5-dimensional taxonomy query). For example:
-    
+
     Get 20 of the lastest posts
     ```php
     new WP_Query( array(
@@ -446,7 +446,7 @@ The following are special parameters that are only supported by ElasticPress.
         'posts_per_page' => 20,
     ) );
     ```
-    
+
     Get all posts with a specific category slug
     ```php
     new WP_Query( array(
