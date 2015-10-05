@@ -3,10 +3,10 @@
 class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Checking if HTTP request returns 404 status code.
-	 * @var boolean 
+	 * @var boolean
 	 */
 	var $is_404=false;
-	
+
 	/**
 	 * Setup each test.
 	 *
@@ -317,7 +317,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		
+
 		foreach ( $indexedTerms as $term ) {
 			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		}
@@ -365,7 +365,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		
+
 		foreach ( $indexedTerms as $term ) {
 			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		}
@@ -1000,6 +1000,62 @@ class EPTestSingleSite extends EP_Test_Base {
 			's'       => 'ordertest',
 			'orderby' => 'title',
 			'order'   => 'DESC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 111', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test meta_value orderby query
+	 *
+	 * @since 1.1
+	 */
+	public function testSearchMetaValueOrderbyQuery() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_meta' => 'metatest ghi' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_meta' => 'metatest abc' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_meta' => 'metatest def' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'        => 'ordertest',
+			'orderby'  => 'meta_value',
+			'order'    => 'DESC',
+			'meta_key' => 'test_meta',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 111', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test meta_value_num orderby query
+	 *
+	 * @since 1.1
+	 */
+	public function testSearchMetaValueNumOrderbyQuery() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_meta' => '100000' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_meta' => '100' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_meta' => '101' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'        => 'ordertest',
+			'orderby'  => 'meta_value_num',
+			'order'    => 'DESC',
+			'meta_key' => 'test_meta',
 		);
 
 		$query = new WP_Query( $args );
@@ -1838,8 +1894,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertTrue( empty( $cache ) );
 	}
-	
-		
+
+
 	/**
 	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
 	 * @group 306
@@ -2005,7 +2061,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertNotNull( $post );
 		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
 	}
-	
+
 	/**
 	 * Test to verify that a post type that is set to exclude_from_search isn't indexable.
 	 * @group 321
@@ -2017,7 +2073,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertArrayNotHasKey( 'ep_test_excluded', $post_types );
 		$this->assertArrayNotHasKey( 'ep_test_not_public', $post_types );
 	}
-	
+
 	/**
 	 * Test to make sure that brand new posts with 'auto-draft' post status do not fire delete or sync.
 	 * @group 343
