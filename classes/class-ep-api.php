@@ -51,6 +51,10 @@ class EP_API {
 
 		$path = $index . 'post/' . $post['post_id'];
 
+		array_walk_recursive( $post, function ( &$item ) {
+			$item = utf8_encode( $item );
+		});
+
 		$request_args = array(
 			'body'    => json_encode( $post ),
 			'method'  => 'PUT',
