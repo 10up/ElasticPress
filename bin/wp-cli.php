@@ -84,6 +84,59 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Add the user mapping without deleting existing indices
+	 *
+	 * @synopsis [--network-wide]
+	 * @subcommand put-user-mapping
+	 * @since      1.7
+	 *
+	 * @param array $args
+	 * @param array $assoc_args
+	 */
+	public function put_user_mapping( $args, $assoc_args ) {
+		$this->_connect_check();
+		$user_type = ep_get_object_type( 'user' );
+		if ( ! method_exists( $user_type, 'active' ) || ! $user_type->active() ) {
+			WP_CLI::error(
+				sprintf(
+				/* translators: The first placeholder is the word true and the second is the name of a WordPress filter. Because these are programming terms that must be sent in English, they should not be translated. */
+					__( 'User indexing is not active! Turn it on by returning %1$s on th %2$s filter', 'elasticpress' ),
+					'true',
+					'ep_user_indexing_active'
+				)
+			);
+
+			return;
+		}
+
+		$settings = $user_type->get_settings();
+		$name     = $user_type->get_name();
+		$mapping  = array( $name => $user_type->get_mappings() );
+
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ) {
+				$assoc_args ['network-wide'] = 0;
+			}
+			$sites = ep_get_sites( $assoc_args['network-wide'] );
+
+			foreach ( $sites as $site ) {
+				switch_to_blog( $site['blog_id'] );
+
+				WP_CLI::line( sprintf( __( 'Adding user mapping for site %s...', 'elasticpress' ), $site['blog_id'] ) );
+
+				$index = trim( ep_get_index_name(), '/' );
+				$this->_send_user_mapping_to_index( $index, $settings, $name, $mapping );
+
+				restore_current_blog();
+			}
+		} else {
+			WP_CLI::line( __( 'Adding user mapping...', 'elasticpress' ) );
+
+			$this->_send_user_mapping_to_index( trim( ep_get_index_name(), '/' ), $settings, $name, $mapping );
+		}
+	}
+
+	/**
 	 * Delete the current index. !!Warning!! This removes your elasticsearch index for the entire site.
 	 *
 	 * @todo       replace this function with one that updates all rows with a --force option
@@ -641,6 +694,58 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		if ( false === ep_elasticsearch_alive() ) {
 			WP_CLI::error( __( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
+		}
+	}
+
+	/**
+	 * @param $response
+	 *
+	 * @return bool
+	 */
+	protected function is_acknowledged( $response ) {
+		return (
+			( $body = json_decode( wp_remote_retrieve_body( $response ) ) ) &&
+			! empty( $body->acknowledged )
+		);
+	}
+
+	/**
+	 * @param $index
+	 * @param $settings
+	 * @param $name
+	 * @param $mapping
+	 */
+	protected function _send_user_mapping_to_index( $index, $settings, $name, $mapping ) {
+		$closed = ep_remote_request( "$index/_close", array( 'method' => 'POST' ) );
+		if ( ! $this->is_acknowledged( $closed ) ) {
+			WP_CLI::error( __( 'User mapping failed (invalid closed response)', 'elasticpress' ) );
+		}
+
+		$settings_response    = ep_remote_request( "$index/_settings", array(
+			'method' => 'PUT',
+			'body'   => json_encode( $settings ),
+		) );
+		$mapping_acknowledged = false;
+		if ( $settings_acknowledged = $this->is_acknowledged( $settings_response ) ) {
+			$mapping_response     = ep_remote_request( "$index/_mappings/$name", array(
+				'method' => 'PUT',
+				'body'   => json_encode( $mapping )
+			) );
+			$mapping_acknowledged = $this->is_acknowledged( $mapping_response );
+		}
+		ep_remote_request( "$index/_open", array( 'method' => 'POST' ) );
+
+		if ( $settings_acknowledged && $mapping_acknowledged ) {
+			WP_CLI::success( __( 'User mapping sent', 'elasticpress' ) );
+		} else {
+			$sent   = _x( 'sent', 'The status of an operation', 'elasticpress' );
+			$failed = _x( 'failed', 'The status of an operation', 'elasticpress' );
+			WP_CLI::error( sprintf(
+			/* translators: The placeholders will each be either the word 'sent' or 'failed'. The words are translated elsewhere and injected here since either placeholder could be either status. */
+				__( 'User mapping failed (settings: %1$s | mapping: %2$s)', 'elasticpress' ),
+				$settings_acknowledged ? $sent : $failed,
+				$mapping_acknowledged ? $sent : $failed
+			) );
 		}
 	}
 }
