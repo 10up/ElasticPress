@@ -585,12 +585,12 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.6
 	 */
 	public function testTaxQueryByName() {
-		$category_1 = wp_insert_term( 'Test category 1', 'category' );
-		$category_2 = wp_insert_term( 'Test category 2', 'category' );
-		
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $category_1['term_id'] ) ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'post_category' => array( $category_2['term_id'] ) ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_category' => array( $category_1['term_id'] ) ) );
+		$cat_one = wp_insert_category( array( 'cat_name' => 'Cat one') );
+		$cat_two = wp_insert_category( array( 'cat_name' => 'Cat two') );
+		$cat_three = wp_insert_category( array( 'cat_name' => 'Cat three') );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $cat_one, $cat_two ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_category' => array( $cat_one, $cat_three) ) );
 
 		ep_refresh_index();
 
@@ -599,7 +599,7 @@ class EPTestSingleSite extends EP_Test_Base {
 			'tax_query' => array(
 				array(
 					'taxonomy' => 'category',
-					'terms'    => array( 'Test category 1' ),
+					'terms'    => array( 'Cat one' ),
 					'field'    => 'name',
 				)
 			)
