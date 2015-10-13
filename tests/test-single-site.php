@@ -2055,4 +2055,61 @@ class EPTestSingleSite extends EP_Test_Base {
 		remove_action( 'http_api_debug', array( $this, '_check_404' ) );
 	}
 
+	/**
+	 * Test to verify meta array is built correctly.
+	 *
+	 * @since 1.7
+	 */
+	public function testPrepareMeta() {
+
+		$post_id     = ep_create_and_sync_post();
+		$post        = get_post( $post_id );
+		$meta_values = array(
+			'value 1',
+			'value 2',
+		);
+
+		add_post_meta( $post_id, 'test_meta_1', 'value 1' );
+		add_post_meta( $post_id, 'test_meta_1', 'value 2' );
+		add_post_meta( $post_id, 'test_meta_1', $meta_values );
+		add_post_meta( $post_id, '_test_private_meta_1', 'value 1' );
+		add_post_meta( $post_id, '_test_private_meta_1', 'value 2' );
+		add_post_meta( $post_id, '_test_private_meta_1', $meta_values );
+
+		$api = new EP_API();
+
+		$meta_1 = $api->prepare_meta( $post );
+
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', array( $this, 'filter_ep_prepare_meta_allowed_protected_keys' ) );
+
+		$meta_2 = $api->prepare_meta( $post );
+
+		add_filter( 'ep_prepare_meta_excluded_public_keys', array( $this, 'filter_ep_prepare_meta_excluded_public_keys' ) );
+
+		$meta_3 = $api->prepare_meta( $post );
+
+		$this->assertTrue( is_array( $meta_1 ) && 1 === sizeof( $meta_1 ) );
+		$this->assertTrue( is_array( $meta_1 ) && array_key_exists( 'test_meta_1', $meta_1 ) );
+		$this->assertTrue( is_array( $meta_2 ) && 2 === sizeof( $meta_2 ) );
+		$this->assertTrue( is_array( $meta_2 ) && array_key_exists( 'test_meta_1', $meta_2 ) && array_key_exists( '_test_private_meta_1', $meta_2 ) );
+		$this->assertTrue( is_array( $meta_3 ) && 1 === sizeof( $meta_3 ) );
+		$this->assertTrue( is_array( $meta_3 ) && array_key_exists( '_test_private_meta_1', $meta_3 ) );
+
+	}
+
+	public function filter_ep_prepare_meta_allowed_protected_keys( $meta_keys ) {
+
+		$meta_keys[] = '_test_private_meta_1';
+
+		return $meta_keys;
+
+	}
+
+	public function filter_ep_prepare_meta_excluded_public_keys( $meta_keys ) {
+
+		$meta_keys[] = 'test_meta_1';
+
+		return $meta_keys;
+
+	}
 }
