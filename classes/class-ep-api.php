@@ -36,6 +36,17 @@ class EP_API {
 	 */
 	public function index_post( $post ) {
 
+		/**
+		 * Filter post prior to indexing
+		*
+		* Allows for last minute indexing of post information.
+		*
+		* @since 1.7
+		*
+		* @param         array Array of post information to index.
+		*/
+		$post = apply_filters( 'ep_pre_index_post', $post );
+
 		$index = trailingslashit( ep_get_index_name() );
 
 		$path = $index . 'post/' . $post['post_id'];
@@ -47,6 +58,8 @@ class EP_API {
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_index_post_request_args', $request_args, $post ) );
+
+		do_action( 'ep_index_post_retrieve_raw_response', $request, $post, $path );
 
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -119,7 +132,7 @@ class EP_API {
 		$path = $index . '/post/_search';
 
 		$request_args = array(
-			'body'    => json_encode( $args ),
+			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
 			'method'  => 'POST',
 		);
 
@@ -467,7 +480,8 @@ class EP_API {
 			'comment_count'     => $comment_count,
 			'comment_status'    => $comment_status,
 			'ping_status'       => $ping_status,
-			'menu_order'        => $menu_order
+			'menu_order'        => $menu_order,
+			'guid'				=> $post->guid
 			//'site_id'         => get_current_blog_id(),
 		);
 
@@ -599,13 +613,53 @@ class EP_API {
 
 		$prepared_meta = array();
 
+		/**
+		 * Filter index-able private meta
+		 *
+		 * Allows for specifying private meta keys that may be indexed in the same manor as public meta keys.
+		 *
+		 * @since 1.7
+		 *
+		 * @param         array Array of index-able private meta keys.
+		 * @param WP_Post $post The current post to be indexed.
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', array(), $post );
+
+		/**
+		 * Filter non-indexed public meta
+		 *
+		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
+		 *
+		 * @since 1.7
+		 *
+		 * @param         array Array of public meta keys to exclude from index.
+		 * @param WP_Post $post The current post to be indexed.
+		 */
+		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', array(), $post );
+
 		foreach ( $meta as $key => $value ) {
-			if ( ! is_protected_meta( $key ) ) {
-				$prepared_meta[$key] = maybe_unserialize( $value );
+
+			$allow_index = false;
+
+			if ( is_protected_meta( $key ) ) {
+
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) {
+					$allow_index = true;
+				}
+			} else {
+
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys )  ) {
+					$allow_index = true;
+				}
+			}
+
+			if ( true === $allow_index ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
 
 		return $prepared_meta;
+
 	}
 
 	/**
@@ -699,6 +753,11 @@ class EP_API {
 			$order = 'desc';
 		}
 
+		// Default sort for non-searches to date
+		if ( empty( $args['orderby'] ) && ( ! isset( $args['s'] ) || '' === $args['s'] ) ) {
+			$args['orderby'] = 'date';
+		}
+
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
 			$sort = $this->parse_orderby( $args['orderby'], $order );
@@ -710,7 +769,6 @@ class EP_API {
 
 		// Either nothing was passed or the parse_orderby failed, use default sort
 		if ( empty( $args['orderby'] ) || false === $sort ) {
-
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
 				array(
@@ -720,10 +778,10 @@ class EP_API {
 				),
 			);
 
-            $default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
+			$default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
 
-            $formatted_args['sort'] = $default_sort;
-        }
+			$formatted_args['sort'] = $default_sort;
+		}
 
 		$filter = array(
 			'and' => array(),
@@ -785,6 +843,36 @@ class EP_API {
 
 			$use_filters = true;
 		}
+
+		/**
+		 * 'post__in' arg support.
+		 *
+		 * @since x.x
+		 */
+		if ( ! empty( $args['post__in'] ) ) {
+			$filter['and'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_id' => (array) $args['post__in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+	        /**
+	         * 'post__not_in' arg support.
+	         *
+	         * @since x.x
+	         */
+	        if ( ! empty( $args['post__not_in'] ) ) {
+			$filter['and'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'post_id' => (array) $args['post__not_in'],
+				),
+			);
+			
+			$use_filters = true;
+	        }
 
 		/**
 		 * Author query support
@@ -1448,8 +1536,8 @@ function ep_index_post( $post ) {
 	return EP_API::factory()->index_post( $post );
 }
 
-function ep_search( $args, $cross_site = false ) {
-	return EP_API::factory()->search( $args, $cross_site );
+function ep_search( $args, $scope = 'current' ) {
+	return EP_API::factory()->search( $args, $scope );
 }
 
 function ep_get_post( $post_id ) {
