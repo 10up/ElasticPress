@@ -96,16 +96,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	public function put_user_mapping( $args, $assoc_args ) {
 		$this->_connect_check();
 		$user_type = ep_get_object_type( 'user' );
-		if ( ! method_exists( $user_type, 'active' ) || ! $user_type->active() ) {
-			WP_CLI::error(
-				sprintf(
-				/* translators: The first placeholder is the word true and the second is the name of a WordPress filter. Because these are programming terms that must be sent in English, they should not be translated. */
-					__( 'User indexing is not active! Turn it on by returning %1$s on th %2$s filter', 'elasticpress' ),
-					'true',
-					'ep_user_indexing_active'
-				)
-			);
-
+		if ( ! $this->_is_user_indexing_active( $user_type ) ) {
 			return;
 		}
 
@@ -747,5 +738,25 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				$mapping_acknowledged ? $sent : $failed
 			) );
 		}
+	}
+
+	/**
+	 * @param EP_Object_Index $user_type
+	 *
+	 * @return bool
+	 */
+	protected function _is_user_indexing_active( $user_type ) {
+		if ( ! method_exists( $user_type, 'active' ) || ! $user_type->active() ) {
+			WP_CLI::error(
+				sprintf(
+				/* translators: The first placeholder is the word true and the second is the name of a WordPress filter. Because these are programming terms that must be sent in English, they should not be translated. */
+					__( 'User indexing is not active! Turn it on by returning %1$s on th %2$s filter', 'elasticpress' ),
+					'true',
+					'ep_user_indexing_active'
+				)
+			);
+			return false;
+		}
+		return true;
 	}
 }
