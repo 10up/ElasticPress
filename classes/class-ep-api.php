@@ -901,6 +901,18 @@ class EP_API {
 				$relation = 'should';
 			}
 
+			$meta_query_type_mapping = array(
+				'numeric'  => 'long',
+				'binary'   => 'raw',
+				'char'     => 'raw',
+				'date'     => 'date',
+				'datetime' => 'datetime',
+				'decimal'  => 'double',
+				'signed'   => 'long',
+				'time'     => 'time',
+				'unsigned' => 'long',
+			);
+
 			foreach( $args['meta_query'] as $single_meta_query ) {
 				if ( ! empty( $single_meta_query['key'] ) ) {
 
@@ -911,6 +923,20 @@ class EP_API {
 						$compare = strtolower( $single_meta_query['compare'] );
 					}
 
+					$type = null;
+					if ( ! empty( $single_meta_query['type'] ) ) {
+						$type = strtolower( $single_meta_query['type'] );
+					}
+
+					if ( in_array( $compare, array( 'exists', 'not exists', 'like' ) ) ) {
+						$meta_key_path = 'post_meta.' . $single_meta_query['key'];
+					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
+						$meta_key_path = 'post_meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
+					} else {
+						$meta_key_path = 'post_meta.' . $single_meta_query['key'] . '.raw';
+					}
+
+
 					switch ( $compare ) {
 						case '!=':
 							if ( isset( $single_meta_query['value'] ) ) {
@@ -919,7 +945,7 @@ class EP_API {
 										'must_not' => array(
 											array(
 												'terms' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+													$meta_key_path => (array) $single_meta_query['value'],
 												),
 											),
 										),
@@ -931,7 +957,7 @@ class EP_API {
 						case 'exists':
 							$terms_obj = array(
 								'exists' => array(
-									'field' => 'post_meta.' . $single_meta_query['key'],
+									'field' => $meta_key_path,
 								),
 							);
 
@@ -942,7 +968,7 @@ class EP_API {
 									'must_not' => array(
 										array(
 											'exists' => array(
-												'field' => 'post_meta.' . $single_meta_query['key'],
+												'field' => $meta_key_path,
 											),
 										),
 									),
@@ -957,8 +983,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"gte" => $single_meta_query['value'],
+													$meta_key_path => array(
+														'gte' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -975,8 +1001,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"lte" => $single_meta_query['value'],
+													$meta_key_path => array(
+														'lte' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -993,8 +1019,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"gt" => $single_meta_query['value'],
+													$meta_key_path => array(
+														'gt' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -1011,8 +1037,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"lt" => $single_meta_query['value'],
+													$meta_key_path => array(
+														'lt' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -1026,8 +1052,8 @@ class EP_API {
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
 									'query' => array(
-										"match" => array(
-											'post_meta.' . $single_meta_query['key'] => $single_meta_query['value'],
+										'match' => array(
+											$meta_key_path => $single_meta_query['value'],
 										)
 									),
 								);
@@ -1038,7 +1064,7 @@ class EP_API {
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
 									'terms' => array(
-										'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+										$meta_key_path => (array) $single_meta_query['value'],
 									),
 								);
 							}
