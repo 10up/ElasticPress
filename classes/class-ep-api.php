@@ -1390,11 +1390,8 @@ class EP_API {
 
 				$sort = array(
 					array(
-						'_script' => array(
-							'script' => 'try { Integer.parseInt( doc["post_meta.' . $meta_key . '.raw"].value ); } catch( Exception e ){ return Integer.MAX_VALUE; }',
-							'type'   => 'number',
-							'lang'   => 'groovy',
-							'order'  => $order,
+						'post_meta.' . $meta_key . '.long' => array(
+							'order' => $order,
 						),
 					),
 				);

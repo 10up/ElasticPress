@@ -67,6 +67,54 @@ return array(
 					),
 				),
 				array(
+					'template_meta_long' => array(
+						'path_match' => 'post_meta.*.long',
+						'mapping' => array(
+							'type' => 'long',
+							'include_in_all' => false,
+						),
+					),
+				),
+				array(
+					'template_meta_double' => array(
+						'path_match' => 'post_meta.*.double',
+						'mapping' => array(
+							'type' => 'double',
+							'include_in_all' => false,
+						),
+					),
+				),
+				array(
+					'template_meta_date' => array(
+						'path_match' => 'post_meta.*.date',
+						'mapping' => array(
+							'type' => 'date',
+							'format' => 'yyyy-MM-dd',
+							'include_in_all' => false,
+						),
+					),
+				),
+				array(
+					'template_meta_datetime' => array(
+						'path_match' => 'post_meta.*.datetime',
+						'mapping' => array(
+							'type' => 'datetime',
+							'format' => 'yyyy-MM-dd HH:mm:ss',
+							'include_in_all' => false,
+						),
+					),
+				),
+				array(
+					'template_meta_time' => array(
+						'path_match' => 'post_meta.*.time',
+						'mapping' => array(
+							'type' => 'date',
+							'format' => 'HH:mm:ss',
+							'include_in_all' => false,
+						),
+					),
+				),
+				array(
 					'template_terms' => array(
 						'path_match' => 'terms.*',
 						'mapping' => array(
