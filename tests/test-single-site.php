@@ -1018,8 +1018,8 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchMetaValueOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_meta' => 'metatest ghi' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_meta' => 'metatest abc' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_meta' => 'metatest def' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_meta' => 'metatest def' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_meta' => 'metatest abc' ) );
 
 		ep_refresh_index();
 
@@ -1035,8 +1035,8 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
-		$this->assertEquals( 'ordertest 111', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[2]->post_title );
 	}
 
 	/**
@@ -1046,8 +1046,8 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchMetaValueNumOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_meta' => '100000' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_meta' => '100' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_meta' => '101' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_meta' => '101' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_meta' => '100' ) );
 
 		ep_refresh_index();
 
@@ -1063,8 +1063,8 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
-		$this->assertEquals( 'ordertest 111', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[2]->post_title );
 	}
 
 	/**
