@@ -746,7 +746,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @return bool
 	 */
 	protected function _is_user_indexing_active( $user_type ) {
-		if ( ! method_exists( $user_type, 'active' ) || ! $user_type->active() ) {
+		if ( ! $user_type || ! method_exists( $user_type, 'active' ) || ! $user_type->active() ) {
 			WP_CLI::error(
 				sprintf(
 				/* translators: The first placeholder is the word true and the second is the name of a WordPress filter. Because these are programming terms that must be sent in English, they should not be translated. */
