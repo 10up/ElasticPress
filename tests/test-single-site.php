@@ -1,7 +1,12 @@
 <?php
 
 class EPTestSingleSite extends EP_Test_Base {
-
+	/**
+	 * Checking if HTTP request returns 404 status code.
+	 * @var boolean 
+	 */
+	var $is_404=false;
+	
 	/**
 	 * Setup each test.
 	 *
@@ -633,6 +638,56 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a post__in query
+	 *
+	 * @since 1.5
+	 */
+	public function testPostInQuery() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'        => 'findme',
+			'post__in' => array( $post_ids[0], $post_ids[1] ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a post__not_in query
+	 *
+	 * @since 1.5
+	 */
+	public function testPostNotInQuery() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'            => 'findme',
+			'post__not_in' => array( $post_ids[0] ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test an author ID query
 	 *
 	 * @since 1.0
@@ -1048,6 +1103,36 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 'ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertes 333', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test post_date default order for ep_integrate query with no search
+	 *
+	 * @since 1.7
+	 */
+	public function testSearchPostDateOrderbyQueryEPIntegrate() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
+		sleep( 3 );
+
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest ordertest order test 111' ) );
+		sleep( 3 );
+
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'ep_integrate' => true,
+			'order'        => 'desc',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 222', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest ordertest order test 111', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
 	}
 
 	/**
@@ -1995,5 +2080,99 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertArrayNotHasKey( 'ep_test_excluded', $post_types );
 		$this->assertArrayNotHasKey( 'ep_test_not_public', $post_types );
 	}
+	
+	/**
+	 * Test to make sure that brand new posts with 'auto-draft' post status do not fire delete or sync.
+	 * @group 343
+	 * @since 1.6
+	 * @link https://github.com/10up/ElasticPress/issues/343
+	 */
+	public function testAutoDraftPostStatus() {
+		// Let's test inserting an 'auto-draft' post.
+		add_action( 'http_api_debug', array( $this, '_check_404' ), 10, 5 );
+		$new_post = wp_insert_post( array( 'post_title' => 'Auto Draft', 'post_status' => 'auto-draft' ) );
 
+		$this->assertFalse( $this->is_404, 'auto-draft post status on wp_insert_post action.' );
+
+		// Now let's test inserting a 'publish' post.
+		$this->is_404 = false;
+		add_action( 'http_api_debug', array( $this, '_check_404' ), 10, 5 );
+		$new_post = wp_insert_post( array( 'post_title' => 'Published', 'post_status' => 'publish' ) );
+
+		$this->assertFalse( $this->is_404, 'publish post status on wp_insert_post action.' );
+	}
+
+	/**
+	 * Runs on http_api_debug action to check for a returned 404 status code.
+	 * @param array|WP_Error $response  HTTP response or WP_Error object.
+	 * @param string $type Context under which the hook is fired.
+	 * @param string $class HTTP transport used.
+	 * @param array $args HTTP request arguments.
+	 * @param string $url The request URL.
+	 */
+	function _check_404( $response, $type, $class, $args, $url ) {
+		$response_code = $response[ 'response' ][ 'code' ];
+		if ( 404 == $response_code ) {
+			$this->is_404 = true;
+		}
+		remove_action( 'http_api_debug', array( $this, '_check_404' ) );
+	}
+
+	/**
+	 * Test to verify meta array is built correctly.
+	 *
+	 * @since 1.7
+	 */
+	public function testPrepareMeta() {
+
+		$post_id     = ep_create_and_sync_post();
+		$post        = get_post( $post_id );
+		$meta_values = array(
+			'value 1',
+			'value 2',
+		);
+
+		add_post_meta( $post_id, 'test_meta_1', 'value 1' );
+		add_post_meta( $post_id, 'test_meta_1', 'value 2' );
+		add_post_meta( $post_id, 'test_meta_1', $meta_values );
+		add_post_meta( $post_id, '_test_private_meta_1', 'value 1' );
+		add_post_meta( $post_id, '_test_private_meta_1', 'value 2' );
+		add_post_meta( $post_id, '_test_private_meta_1', $meta_values );
+
+		$api = new EP_API();
+
+		$meta_1 = $api->prepare_meta( $post );
+
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', array( $this, 'filter_ep_prepare_meta_allowed_protected_keys' ) );
+
+		$meta_2 = $api->prepare_meta( $post );
+
+		add_filter( 'ep_prepare_meta_excluded_public_keys', array( $this, 'filter_ep_prepare_meta_excluded_public_keys' ) );
+
+		$meta_3 = $api->prepare_meta( $post );
+
+		$this->assertTrue( is_array( $meta_1 ) && 1 === sizeof( $meta_1 ) );
+		$this->assertTrue( is_array( $meta_1 ) && array_key_exists( 'test_meta_1', $meta_1 ) );
+		$this->assertTrue( is_array( $meta_2 ) && 2 === sizeof( $meta_2 ) );
+		$this->assertTrue( is_array( $meta_2 ) && array_key_exists( 'test_meta_1', $meta_2 ) && array_key_exists( '_test_private_meta_1', $meta_2 ) );
+		$this->assertTrue( is_array( $meta_3 ) && 1 === sizeof( $meta_3 ) );
+		$this->assertTrue( is_array( $meta_3 ) && array_key_exists( '_test_private_meta_1', $meta_3 ) );
+
+	}
+
+	public function filter_ep_prepare_meta_allowed_protected_keys( $meta_keys ) {
+
+		$meta_keys[] = '_test_private_meta_1';
+
+		return $meta_keys;
+
+	}
+
+	public function filter_ep_prepare_meta_excluded_public_keys( $meta_keys ) {
+
+		$meta_keys[] = 'test_meta_1';
+
+		return $meta_keys;
+
+	}
 }
