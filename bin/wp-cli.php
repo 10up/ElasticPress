@@ -370,6 +370,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	private function queue_post( $post_id, $bulk_trigger, $show_bulk_errors = false ) {
 		static $post_count = 0;
+		static $killed_post_count = 0;
 
 		$post_args = ep_prepare_post( $post_id );
 
@@ -377,6 +378,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		// through the kill filter... that would be bad!
 		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
 			return true;
+			$killed_post_count++;
 		}
 
 		// put the post into the queue
@@ -387,11 +389,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		++$post_count;
 
 		// if we have hit the trigger, initiate the bulk request
-		if ( $post_count === absint( $bulk_trigger ) ) {
+		if ( $post_count === absint( $bulk_trigger - $killed_post_count ) ) {
 			$this->bulk_index( $show_bulk_errors );
 
 			// reset the post count
 			$post_count = 0;
+			$this->killed_post_count = 0;
 
 			// reset the posts
 			$this->posts = array();
