@@ -319,7 +319,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 					if ( ! $result ) {
 						$errors[] = get_the_ID();
-					} else {
+					} elseif ( true === $result ) {
 						$synced ++;
 					}
 				}
