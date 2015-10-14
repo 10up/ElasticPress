@@ -613,13 +613,53 @@ class EP_API {
 
 		$prepared_meta = array();
 
+		/**
+		 * Filter index-able private meta
+		 *
+		 * Allows for specifying private meta keys that may be indexed in the same manor as public meta keys.
+		 *
+		 * @since 1.7
+		 *
+		 * @param         array Array of index-able private meta keys.
+		 * @param WP_Post $post The current post to be indexed.
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', array(), $post );
+
+		/**
+		 * Filter non-indexed public meta
+		 *
+		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
+		 *
+		 * @since 1.7
+		 *
+		 * @param         array Array of public meta keys to exclude from index.
+		 * @param WP_Post $post The current post to be indexed.
+		 */
+		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', array(), $post );
+
 		foreach ( $meta as $key => $value ) {
-			if ( ! is_protected_meta( $key ) ) {
-				$prepared_meta[$key] = maybe_unserialize( $value );
+
+			$allow_index = false;
+
+			if ( is_protected_meta( $key ) ) {
+
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) {
+					$allow_index = true;
+				}
+			} else {
+
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys )  ) {
+					$allow_index = true;
+				}
+			}
+
+			if ( true === $allow_index ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
 
 		return $prepared_meta;
+
 	}
 
 	/**
@@ -688,10 +728,10 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_args( $args ) {
-		if ( ! empty( $args['post_per_page'] ) ) {
-			$posts_per_page = $args['post_per_page'];
+		if ( ! empty( $args['posts_per_page'] ) ) {
+			$posts_per_page = (int) $args['posts_per_page'];
 		} else {
-			$posts_per_page = get_option( 'posts_per_page' );
+			$posts_per_page = (int) get_option( 'posts_per_page' );
 		}
 
 		$formatted_args = array(
@@ -1171,7 +1211,10 @@ class EP_API {
 			$formatted_args['from'] = $args['offset'];
 		}
 
-		if ( isset( $args['posts_per_page'] ) ) {
+ 		if ( isset( $args['post_per_page'] ) ) {
+			// For backwards compatibility for those using this since EP 1.4
+			$formatted_args['size'] = $args['post_per_page'];
+		} elseif ( isset( $args['posts_per_page'] ) ) {
 			$formatted_args['size'] = $args['posts_per_page'];
 		}
 
