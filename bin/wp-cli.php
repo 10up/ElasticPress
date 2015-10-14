@@ -395,7 +395,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// If we have hit the trigger, initiate the bulk request.
 		if ( ( $post_count + $killed_post_count ) === absint( $bulk_trigger ) ) {
-			$this->bulk_index( $show_bulk_errors );
+
+			// Don't waste time if we've killed all the posts.
+			if ( ! empty( $this->posts ) ) {
+				$this->bulk_index( $show_bulk_errors );
+			}
 
 			// reset the post count
 			$post_count = 0;
