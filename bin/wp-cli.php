@@ -372,35 +372,45 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		static $post_count = 0;
 		static $killed_post_count = 0;
 
+		$killed_post = false;
 		$post_args = ep_prepare_post( $post_id );
 
 		// Mimic EP_Sync_Manager::sync_post( $post_id ), otherwise posts can slip
 		// through the kill filter... that would be bad!
 		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
+
 			$killed_post_count++;
-			return 2;
+			$killed_post = true; // Save status for return.
+
+		} else { // Post wasn't killed so process it.
+
+			// put the post into the queue
+			$this->posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
+			$this->posts[ $post_id ][] = addcslashes( json_encode( $post_args ), "\n" );
+
+			// augment the counter
+			++ $post_count;
+
 		}
 
-		// put the post into the queue
-		$this->posts[$post_id][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-		$this->posts[$post_id][] = addcslashes( json_encode( $post_args ), "\n" );
-
-		// augment the counter
-		++$post_count;
-
-		// if we have hit the trigger, initiate the bulk request
-		if ( $post_count === absint( $bulk_trigger - $killed_post_count ) ) {
+		// If we have hit the trigger, initiate the bulk request.
+		if ( ( $post_count + $killed_post_count ) === absint( $bulk_trigger ) ) {
 			$this->bulk_index( $show_bulk_errors );
 
 			// reset the post count
 			$post_count = 0;
-			$this->killed_post_count = 0;
+			$killed_post_count = 0;
 
 			// reset the posts
 			$this->posts = array();
 		}
 
+		if ( true === $killed_post ) {
+			return 2;
+		}
+
 		return true;
+
 	}
 
 	/**
