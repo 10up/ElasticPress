@@ -540,7 +540,7 @@ EP_HOST="http://192.168.50.4:9200" phpunit
 
 #### Dockunit
 
-ElasticPress contains a valid [Dockunit](https://www.npmjs.com/package/dockunit) file for running unit tests across a variety of environments locally (PHP 5.2 and 5.5). It assumes the address of your Elasticsearch server is `http://192.168.50.4:9200`. You can use Dockunit by running:
+ElasticPress contains a valid [Dockunit](https://www.npmjs.com/package/dockunit) file for running unit tests across a variety of environments locally (PHP 5.2 and 5.6). You can use Dockunit by running:
 
 ```bash
 dockunit
