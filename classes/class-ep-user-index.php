@@ -39,8 +39,8 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 * {@inheritdoc}
 	 */
 	public function sync_setup() {
-		add_action( 'profile_update', array( $this, 'action_sync_on_update' ), 999999, 3 );
-		add_action( 'user_register', array( $this, 'action_sync_on_update' ), 999999, 3 );
+		add_action( 'profile_update', array( $this, 'action_update_on_sync' ), 999999, 3 );
+		add_action( 'user_register', array( $this, 'action_update_on_sync' ), 999999, 3 );
 		add_action( 'add_user_to_blog', array( $this, 'action_add_user_to_blog' ), 999999, 3 );
 		add_action( 'delete_user', array( $this, 'action_delete_user_from_site' ) );
 		add_action( 'remove_user_from_blog', array( $this, 'action_delete_user_from_site' ), 10, 2 );
@@ -50,8 +50,8 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 * {@inheritdoc}
 	 */
 	public function sync_teardown() {
-		remove_action( 'profile_update', array( $this, 'action_sync_on_update' ), 999999, 3 );
-		remove_action( 'user_register', array( $this, 'action_sync_on_update' ), 999999, 3 );
+		remove_action( 'profile_update', array( $this, 'action_update_on_sync' ), 999999, 3 );
+		remove_action( 'user_register', array( $this, 'action_update_on_sync' ), 999999, 3 );
 		remove_action( 'add_user_to_blog', array( $this, 'action_add_user_to_blog' ), 999999, 3 );
 		remove_action( 'delete_user', array( $this, 'action_delete_user_from_site' ) );
 		remove_action( 'remove_user_from_blog', array( $this, 'action_delete_user_from_site' ), 10, 2 );
