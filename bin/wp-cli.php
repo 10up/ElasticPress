@@ -343,6 +343,96 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Index all users for a site or network wide
+	 *
+	 * @subcommand index-users
+	 *
+	 * @synopsis [--setup] [--network-wide] [--users-per-page] [--no-bulk] [--offset] [--show-bulk-errors]
+	 *
+	 * @since 1.7.0
+	 *
+	 * @param array $args
+	 * @param array $assoc_args
+	 */
+	public function index_users( $args, $assoc_args ) {
+		$this->_connect_check();
+
+		$user_type = ep_get_object_type( 'user' );
+		if ( ! $this->_is_user_indexing_active( $user_type ) ) {
+			return;
+		}
+
+		if ( ! empty( $assoc_args['users-per-page'] ) ) {
+			$assoc_args['users-per-page'] = absint( $assoc_args['users-per-page'] );
+		} else {
+			$assoc_args['users-per-page'] = 350;
+		}
+
+		if ( ! empty( $assoc_args['offset'] ) ) {
+			$assoc_args['offset'] = absint( $assoc_args['offset'] );
+		} else {
+			$assoc_args['offset'] = 0;
+		}
+
+		$no_bulk          = ! empty( $assoc_args['no-bulk'] );
+		$show_bulk_errors = ! empty( $assoc_args['show-bulk-errors'] );
+		$sites            = ep_get_sites( $assoc_args['network-wide'] );
+		$users_per_page   = max( min( 500, (int) $assoc_args['users-per-page'] ), 1 );
+		$offset           = (int) $assoc_args['offset'];
+
+		/**
+		 * Prior to the index users command invoking
+		 * Useful for deregistering filters/actions that occur during a query request
+		 *
+		 * @since 1.7.0
+		 */
+		do_action( 'ep_wp_cli_pre_user_index', $args, $assoc_args );
+
+		// Deactivate our search integration
+		$this->deactivate();
+
+		timer_start();
+
+		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
+			$this->put_user_mapping( $args, $assoc_args );
+		}
+
+		if ( ! empty( $assoc_args['network-wide'] ) && is_multisite() ) {
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ) {
+				$assoc_args['network-wide'] = 0;
+			}
+
+			WP_CLI::log( __( 'Indexing users network-wide...', 'elasticpress' ) );
+
+			foreach ( $sites as $site ) {
+				switch_to_blog( $site['blog_id'] );
+
+				$this->_index_users_helper( $users_per_page, $offset, $no_bulk, $user_type, $show_bulk_errors, $site );
+
+				restore_current_blog();
+			}
+		} else {
+			WP_CLI::log( __( 'Indexing users...', 'elasticpress' ) );
+
+			$this->_index_users_helper(
+				$users_per_page,
+				$offset,
+				$no_bulk,
+				$user_type,
+				$show_bulk_errors,
+				get_current_blog_id()
+			);
+		}
+
+		WP_CLI::log( WP_CLI::colorize( '%Y' . __( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
+
+		// Reactivate our search integration
+		$this->activate();
+
+		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
+	}
+
+	/**
 	 * Helper method for indexing posts
 	 *
 	 * @param bool $no_bulk disable bulk indexing
@@ -546,6 +636,159 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * @param int             $per_page
+	 * @param int             $offset
+	 * @param bool            $no_bulk
+	 * @param EP_Object_Index $user_type
+	 * @param bool            $show_bulk_errors
+	 * @param int             $site_id
+	 */
+	protected function _index_users_helper( $per_page, $offset, $no_bulk, $user_type, $show_bulk_errors, $site_id ) {
+		$lookup_args = array(
+			'blog_id' => get_current_blog_id(),
+			'orderby' => 'registered',
+			'order'   => 'ASC',
+			'number'  => $per_page,
+		);
+
+		$errors = $success = 0;
+		while ( true ) {
+			$loop_args = array_merge( $lookup_args, compact( $offset ) );
+			$users     = get_users( $loop_args );
+			if ( empty( $users ) ) {
+				break;
+			}
+			foreach ( $users as $user ) {
+				if ( $no_bulk ) {
+					$result = $user_type->index_document( $user_type->prepare_object( $user ) );
+				} else {
+					$result = $this->queue_user( $user->ID, count( $users ), $show_bulk_errors );
+				}
+
+				if ( $result ) {
+					$success++;
+				} else {
+					$errors++;
+				}
+			}
+		}
+
+		WP_CLI::log( sprintf( __( 'Number of users indexed on site %d: %d', 'elasticpress' ), $site_id, $success ) );
+
+		if ( $errors ) {
+			WP_CLI::error( sprintf(
+				__( 'Number of user index errors on site %d: %d', 'elasticpress' ),
+				$site_id,
+				$errors
+			) );
+		}
+	}
+
+	/**
+	 * Queues up a post for bulk indexing
+	 *
+	 * @since 0.9.2
+	 *
+	 * @param $user_id
+	 * @param $bulk_trigger
+	 * @param bool $show_bulk_errors true to show individual user error messages for bulk errors
+	 *
+	 * @return bool|int true if successfully synced, false if not or 2 if post was killed before sync
+	 */
+	private function queue_user( $user_id, $bulk_trigger, $show_bulk_errors = false ) {
+		static $user_count = 0;
+
+		$user_args = ep_get_object_type( 'user' )->prepare_object( $user_id );
+
+		// put the post into the queue
+		$this->users[ $user_id ][] = '{ "index": { "_id": "' . absint( $user_id ) . '" } }';
+		$this->users[ $user_id ][] = addcslashes( json_encode( $user_args ), "\n" );
+
+		// increment the counter
+		++$user_count;
+
+		// If we have hit the trigger, initiate the bulk request.
+		if ( $user_count === absint( $bulk_trigger ) ) {
+			$this->bulk_index_users( $show_bulk_errors );
+
+			// reset the post count
+			$user_count        = 0;
+
+			// reset the posts
+			$this->users = array();
+		}
+
+		return true;
+	}
+
+	/**
+	 * Perform the bulk user index operation
+	 *
+	 * @param bool $show_bulk_errors true to show individual user error messages for bulk errors
+	 *
+	 * @since 0.9.2
+	 */
+	private function bulk_index_users( $show_bulk_errors = false ) {
+		// monitor how many times we attempt to add this particular bulk request
+		static $attempts = 0;
+
+		// augment the attempts
+		++$attempts;
+
+		// make sure we actually have something to index
+		if ( empty( $this->users ) ) {
+			WP_CLI::error( 'There are no users to index.' );
+		}
+
+		$flatten = array();
+
+		foreach ( $this->users as $user ) {
+			$flatten[] = $user[0];
+			$flatten[] = $user[1];
+		}
+
+		// make sure to add a new line at the end or the request will fail
+		$body = rtrim( implode( "\n", $flatten ) ) . "\n";
+
+		// show the content length in bytes if in debug
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			WP_CLI::log( 'Request string length: ' . size_format( mb_strlen( $body, '8bit' ), 2 ) );
+		}
+
+		// decode the response
+		$response = ep_get_object_type( 'user' )->bulk_index( $body );
+
+		if ( is_wp_error( $response ) ) {
+			WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
+		}
+
+		// if we did have errors, try to add the documents again
+		if ( isset( $response['errors'] ) && $response['errors'] === true ) {
+			if ( $attempts < 5 ) {
+				foreach ( $response['items'] as $item ) {
+					if ( empty( $item['index']['error'] ) ) {
+						unset( $this->users[ $item['index']['_id'] ] );
+					}
+				}
+				$this->bulk_index( $show_bulk_errors );
+			} else {
+				foreach ( $response['items'] as $item ) {
+					if ( ! empty( $item['index']['_id'] ) ) {
+						$this->failed_users[] = $item['index']['_id'];
+						if ( $show_bulk_errors ) {
+							$this->failed_users_message[ $item['index']['_id'] ] = $item['index']['error'];
+						}
+					}
+				}
+				$attempts = 0;
+			}
+		} else {
+			// there were no errors, all the posts were added
+			$attempts = 0;
+		}
+	}
+
+	/**
 	 * Send any bulk indexing errors
 	 *
 	 * @since 0.9.2
@@ -568,6 +811,22 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			// clear failed posts after printing to the screen
 			$this->failed_posts = array();
 			$this->failed_posts_message = array();
+		}
+		if ( ! empty( $this->failed_users ) ) {
+			$error_text = __( 'The following users failed to index:', 'elasticpress' ) . PHP_EOL . PHP_EOL;
+			foreach ( $this->failed_users as $failed ) {
+				$failed_user = get_user_by( 'id', $failed );
+				if ( $failed_user ) {
+					$error_text .= " {$failed}: {$failed_user->display_name}" . PHP_EOL;
+					if ( array_key_exists( $failed, $this->failed_posts_message ) ) {
+						$error_text .= "\t" . $this->failed_posts_message[ $failed ] . PHP_EOL;
+					}
+				}
+			}
+
+			WP_CLI::log( $error_text );
+
+			$this->failed_users = $this->failed_users_message = array();
 		}
 	}
 
