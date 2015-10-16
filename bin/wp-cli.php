@@ -17,6 +17,13 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private $posts = array();
 
 	/**
+	 * Holds the users that will be bulk synced
+	 *
+	 * @since 1.7.0
+	 */
+	private $users = array();
+
+	/**
 	 * Holds all of the posts that failed to index during a bulk index.
 	 *
 	 * @since 0.9
@@ -24,11 +31,25 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private $failed_posts = array();
 
 	/**
+	 * Holds all of the users that failed to index during a bulk index.
+	 *
+	 * @since 1.7.0
+	 */
+	private $failed_users = array();
+
+	/**
 	 * Holds error messages for individual posts that failed to index (assuming they're available).
 	 *
 	 * @since 1.7
 	 */
 	private $failed_posts_message = array();
+
+	/**
+	 * Holds error messages for individual posts that failed to index (assuming they're available).
+	 *
+	 * @since 1.7.0
+	 */
+	private $failed_users_message = array();
 
 	/**
 	 * Add the document mapping
