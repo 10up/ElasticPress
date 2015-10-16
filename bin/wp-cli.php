@@ -281,7 +281,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'], isset( $assoc_args['show-bulk-errors'] ) );
+				$result = $this->_index_posts_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'], isset( $assoc_args['show-bulk-errors'] ) );
 
 				$total_indexed += $result['synced'];
 
@@ -304,7 +304,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log( __( 'Indexing posts...', 'elasticpress' ) );
 
-			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'], isset( $assoc_args['show-bulk-errors'] ) );
+			$result = $this->_index_posts_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'], isset( $assoc_args['show-bulk-errors'] ) );
 
 			WP_CLI::log( sprintf( __( 'Number of posts indexed on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
@@ -332,7 +332,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper( $no_bulk = false, $posts_per_page, $offset = 0, $show_bulk_errors = false ) {
+	private function _index_posts_helper( $no_bulk = false, $posts_per_page, $offset = 0, $show_bulk_errors = false ) {
 		global $wpdb, $wp_object_cache;
 		$synced = 0;
 		$errors = array();
