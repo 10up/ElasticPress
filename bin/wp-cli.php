@@ -668,9 +668,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				}
 			}
 
+			WP_CLI::log( 'Processed ' . ( count( $users ) + $offset ) . '/' . $users_query->get_total() . ' users...' );
+
 			$offset += $per_page;
 
 			usleep( 500 );
+		}
+
+		if ( ! $no_bulk ) {
+			$this->send_bulk_errors();
 		}
 
 		WP_CLI::log( sprintf( __( 'Number of users indexed on site %d: %d', 'elasticpress' ), $site_id, $success ) );
