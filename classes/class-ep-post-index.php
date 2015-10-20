@@ -186,8 +186,8 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 		$post_meta = get_post_meta( $object->ID );
 		foreach ( $post_meta as $key => $value ) {
 			if ( is_array( $value ) ) {
-				// Unserialize meta values
-				$value = array_map( 'maybe_unserialize', $value );
+				// Serialize non-scalar meta values
+				$value = array_map( 'maybe_serialize', $value );
 				// If this is a single meta value, pop it out of the array
 				if ( 1 === count( $value ) && isset( $value[0] ) ) {
 					$value = $value[0];

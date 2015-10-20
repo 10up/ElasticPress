@@ -259,8 +259,8 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 				continue;
 			}
 			if ( is_array( $value ) ) {
-				// Unserialize meta values
-				$value = array_map( 'maybe_unserialize', $value );
+				// Serialize non-scalar meta values
+				$value = array_map( 'maybe_serialize', $value );
 				// If this is a single meta value, pop it out of the array
 				if ( 1 === count( $value ) && isset( $value[0] ) ) {
 					$value = $value[0];
