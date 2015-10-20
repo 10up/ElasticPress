@@ -407,21 +407,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$this->_index_users_helper( $users_per_page, $offset, $no_bulk, $user_type, $show_bulk_errors, $site );
+				$this->_index_users_helper( $users_per_page, $offset, $no_bulk, $user_type, $show_bulk_errors );
 
 				restore_current_blog();
 			}
 		} else {
 			WP_CLI::log( __( 'Indexing users...', 'elasticpress' ) );
 
-			$this->_index_users_helper(
-				$users_per_page,
-				$offset,
-				$no_bulk,
-				$user_type,
-				$show_bulk_errors,
-				get_current_blog_id()
-			);
+			$this->_index_users_helper( $users_per_page, $offset, $no_bulk, $user_type, $show_bulk_errors );
 		}
 
 		WP_CLI::log( WP_CLI::colorize( '%Y' . __( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
@@ -641,11 +634,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param bool            $no_bulk
 	 * @param EP_Object_Index $user_type
 	 * @param bool            $show_bulk_errors
-	 * @param int             $site_id
 	 */
-	protected function _index_users_helper( $per_page, $offset, $no_bulk, $user_type, $show_bulk_errors, $site_id ) {
+	protected function _index_users_helper( $per_page, $offset, $no_bulk, $user_type, $show_bulk_errors ) {
+		global $wpdb, $wp_object_cache;
+		$site_id     = get_current_blog_id();
 		$lookup_args = array(
-			'blog_id' => get_current_blog_id(),
+			'blog_id' => $site_id,
 			'orderby' => 'registered',
 			'order'   => 'ASC',
 			'number'  => $per_page,
