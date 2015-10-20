@@ -129,17 +129,7 @@ return array(
 					'type' => 'object',
 				),
 				'user_meta'       => array(
-					'type'   => 'multi_field',
-					'fields' => array(
-						'post_type' => array(
-							'type' => 'string',
-						),
-						'raw'       => array(
-							'type'           => 'string',
-							'index'          => 'not_analyzed',
-							'include_in_all' => false,
-						),
-					),
+					'type'   => 'object',
 				),
 			),
 		)
