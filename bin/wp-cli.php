@@ -770,7 +770,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 						unset( $this->users[ $item['index']['_id'] ] );
 					}
 				}
-				$this->bulk_index( $show_bulk_errors );
+				$this->bulk_index_users( $show_bulk_errors );
 			} else {
 				foreach ( $response['items'] as $item ) {
 					if ( ! empty( $item['index']['_id'] ) ) {
