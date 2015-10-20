@@ -647,9 +647,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$errors = $success = 0;
 		while ( true ) {
-			$loop_args   = array_merge( $lookup_args, compact( $offset ) );
-			$users_query = new WP_User_Query( $loop_args );
-			$users       = $users_query->get_results();
+			$loop_args           = $lookup_args;
+			$loop_args['offset'] = $offset;
+			$users_query         = new WP_User_Query( $loop_args );
+			$users               = $users_query->get_results();
 			if ( empty( $users ) ) {
 				break;
 			}
@@ -666,6 +667,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					$errors++;
 				}
 			}
+
+			$offset += $per_page;
+
+			usleep( 500 );
 		}
 
 		WP_CLI::log( sprintf( __( 'Number of users indexed on site %d: %d', 'elasticpress' ), $site_id, $success ) );
