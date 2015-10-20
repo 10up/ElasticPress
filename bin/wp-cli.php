@@ -647,8 +647,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$errors = $success = 0;
 		while ( true ) {
-			$loop_args = array_merge( $lookup_args, compact( $offset ) );
-			$users     = get_users( $loop_args );
+			$loop_args   = array_merge( $lookup_args, compact( $offset ) );
+			$users_query = new WP_User_Query( $loop_args );
+			$users       = $users_query->get_results();
 			if ( empty( $users ) ) {
 				break;
 			}
