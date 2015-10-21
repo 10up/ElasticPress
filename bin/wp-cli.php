@@ -312,7 +312,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					WP_CLI::error( sprintf( __( 'Number of post index errors on site %d: %d', 'elasticpress' ), $site['blog_id'], count( $result['errors'] ) ) );
 				}
 
-				if ( ( $user_type = ep_get_object_type( 'user' ) ) && $this->_is_user_indexing_active( $user_type ) ) {
+				if ( ( $user_type = ep_get_object_type( 'user' ) ) && $this->_is_user_indexing_active( $user_type, false ) ) {
 					$this->_index_users_helper(
 						$assoc_args['posts-per-page'],
 						$assoc_args['offset'],
@@ -1052,19 +1052,22 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 	/**
 	 * @param EP_Object_Index $user_type
+	 * @param bool            $error
 	 *
 	 * @return bool
 	 */
-	protected function _is_user_indexing_active( $user_type ) {
+	protected function _is_user_indexing_active( $user_type, $error = true ) {
 		if ( ! $user_type || ! method_exists( $user_type, 'active' ) || ! $user_type->active() ) {
-			WP_CLI::error(
-				sprintf(
-				/* translators: The first placeholder is the word true and the second is the name of a WordPress filter. Because these are programming terms that must be sent in English, they should not be translated. */
-					__( 'User indexing is not active! Turn it on by returning %1$s on th %2$s filter', 'elasticpress' ),
-					'true',
-					'ep_user_indexing_active'
-				)
-			);
+			if ( $error ) {
+				WP_CLI::error(
+					sprintf(
+					/* translators: The first placeholder is the word true and the second is the name of a WordPress filter. Because these are programming terms that must be sent in English, they should not be translated. */
+						__( 'User indexing is not active! Turn it on by returning %1$s on th %2$s filter', 'elasticpress' ),
+						'true',
+						'ep_user_indexing_active'
+					)
+				);
+			}
 			return false;
 		}
 		return true;
