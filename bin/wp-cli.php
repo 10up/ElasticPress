@@ -312,6 +312,16 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					WP_CLI::error( sprintf( __( 'Number of post index errors on site %d: %d', 'elasticpress' ), $site['blog_id'], count( $result['errors'] ) ) );
 				}
 
+				if ( ( $user_type = ep_get_object_type( 'user' ) ) && $this->_is_user_indexing_active( $user_type ) ) {
+					$this->_index_users_helper(
+						$assoc_args['posts-per-page'],
+						$assoc_args['offset'],
+						isset( $assoc_args['no-bulk'] ),
+						$user_type,
+						isset( $assoc_args['show-bulk-errors'] )
+					);
+				}
+
 				restore_current_blog();
 			}
 
