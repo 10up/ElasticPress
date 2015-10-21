@@ -32,7 +32,10 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 * @return bool
 	 */
 	public function active() {
-		return ( ep_is_activated() && apply_filters( 'ep_user_indexing_active', false ) );
+		return (
+			( ep_is_activated() || ( defined( 'WP_CLI' ) && WP_CLI ) ) &&
+			apply_filters( 'ep_user_indexing_active', false )
+		);
 	}
 
 	/**
