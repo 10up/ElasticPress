@@ -6,10 +6,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class EP_User_Query_Integration {
 
+	/** @var EP_Object_Index */
+	private $user_index;
+
 	/**
 	 * EP_User_Query_Integration constructor.
+	 *
+	 * @param EP_Object_Index $user_index
 	 */
-	public function __construct() {
+	public function __construct( $user_index = null ) {
+		$this->user_index = $user_index ? $user_index : ep_get_object_type( 'user' );
 	}
 
 	public function setup() {
