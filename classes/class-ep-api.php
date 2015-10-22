@@ -1430,7 +1430,7 @@ class EP_API {
 
 				$sort = array(
 					array(
-						'post_meta.' . $meta_key . '.long' => array(
+						'post_meta.' . $meta_key . '.double' => array(
 							'order' => $order,
 						),
 					),
