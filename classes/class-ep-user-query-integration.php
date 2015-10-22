@@ -19,6 +19,28 @@ class EP_User_Query_Integration {
 	}
 
 	public function setup() {
+		/**
+		 * By default EP will not integrate on admin or ajax requests. Since admin-ajax.php is
+		 * technically an admin request, there is some weird logic here. If we are doing ajax
+		 * and ep_ajax_user_query_integration is filtered true, then we skip the next admin check.
+		 */
+		$admin_integration = apply_filters( 'ep_admin_user_query_integration', false );
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			if ( ! apply_filters( 'ep_ajax_user_query_integration', false ) ) {
+				return;
+			} else {
+				$admin_integration = true;
+			}
+		}
+
+		if ( is_admin() && ! $admin_integration ) {
+			return;
+		}
+
+		if ( $this->is_user_indexing_active() ) {
+			return;
+		}
 	}
 
 	/**
@@ -48,6 +70,17 @@ class EP_User_Query_Integration {
 		$instance->setup();
 
 		return $instance;
+	}
+
+	/**
+	 * @return bool
+	 */
+	private function is_user_indexing_active() {
+		return (
+			( ep_is_activated() || ( defined( 'WP_CLI' ) && WP_CLI ) ) &&
+			method_exists( $this->user_index, 'active' ) &&
+			$this->user_index->active()
+		);
 	}
 
 }
