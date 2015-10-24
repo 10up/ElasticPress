@@ -67,50 +67,49 @@ return array(
 					),
 				),
 				array(
-					'template_meta_long' => array(
-						'path_match' => 'post_meta.*.long',
+					'template_meta_types' => array(
+						'path_match' => 'meta.*',
 						'mapping' => array(
-							'type' => 'long',
-							'include_in_all' => false,
-						),
-					),
-				),
-				array(
-					'template_meta_double' => array(
-						'path_match' => 'post_meta.*.double',
-						'mapping' => array(
-							'type' => 'double',
-							'include_in_all' => false,
-						),
-					),
-				),
-				array(
-					'template_meta_date' => array(
-						'path_match' => 'post_meta.*.date',
-						'mapping' => array(
-							'type' => 'date',
-							'format' => 'yyyy-MM-dd',
-							'include_in_all' => false,
-						),
-					),
-				),
-				array(
-					'template_meta_datetime' => array(
-						'path_match' => 'post_meta.*.datetime',
-						'mapping' => array(
-							'type' => 'datetime',
-							'format' => 'yyyy-MM-dd HH:mm:ss',
-							'include_in_all' => false,
-						),
-					),
-				),
-				array(
-					'template_meta_time' => array(
-						'path_match' => 'post_meta.*.time',
-						'mapping' => array(
-							'type' => 'date',
-							'format' => 'HH:mm:ss',
-							'include_in_all' => false,
+							'type' => 'object',
+							'path' => 'full',
+							'properties' => array(
+								'value' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+								),
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+									'include_in_all' => false,
+								),
+								'long' => array(
+									'type' => 'long',
+									'index' => 'not_analyzed',
+								),
+								'double' => array(
+									'type' => 'double',
+									'index' => 'not_analyzed',
+								),
+								'boolean' => array(
+									'type' => 'boolean',
+									'index' => 'not_analyzed',
+								),
+								'date' => array(
+									'type' => 'date',
+									'format' => 'yyyy-MM-dd',
+									'index' => 'not_analyzed',
+								),
+								'datetime' => array(
+									'type' => 'date',
+									'format' => 'yyyy-MM-dd HH:mm:ss',
+									'index' => 'not_analyzed',
+								),
+								'time' => array(
+									'type' => 'date',
+									'format' => 'HH:mm:ss',
+									'index' => 'not_analyzed',
+								),
+							),
 						),
 					),
 				),
@@ -273,6 +272,9 @@ return array(
 					'type' => 'object',
 				),
 				'post_meta' => array(
+					'type' => 'object',
+				),
+				'meta' => array(
 					'type' => 'object',
 				),
 				'date_terms' => array(
