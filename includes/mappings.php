@@ -75,7 +75,6 @@ return array(
 							'properties' => array(
 								'value' => array(
 									'type' => 'string',
-									'index' => 'not_analyzed',
 								),
 								'raw' => array(
 									'type' => 'string',
