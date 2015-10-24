@@ -1061,6 +1061,8 @@ class EP_API {
 						$meta_key_path = 'meta.' . $single_meta_query['key'];
 					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
+					} elseif ( in_array( $compare, array( '=', '!=' ) ) ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
 					} else {
