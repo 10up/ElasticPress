@@ -1051,7 +1051,7 @@ class EP_API {
 										'must_not' => array(
 											array(
 												'terms' => array(
-													'meta.' . $single_meta_query['key'] . '.value' => (array) $single_meta_query['value'],
+													'meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
 												),
 											),
 										),
@@ -1170,7 +1170,7 @@ class EP_API {
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
 									'terms' => array(
-										'meta.' . $single_meta_query['key'] . '.value' => (array) $single_meta_query['value'],
+										'meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
 									),
 								);
 							}
