@@ -489,6 +489,9 @@ class EP_API {
 		 * This filter is named poorly but has to stay to keep backwards compat
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
+
+		$post_args['meta'] = $this->prepare_meta_types( $post_args['post_meta'] );
+
 		return $post_args;
 	}
 
@@ -659,6 +662,92 @@ class EP_API {
 		}
 
 		return $prepared_meta;
+
+	}
+
+	/**
+	 * Prepare post meta type values to send to ES
+	 *
+	 * @param array $post_meta
+	 *
+	 * @return array
+	 *
+	 * @since x.x.x
+	 */
+	public function prepare_meta_types( $post_meta ) {
+
+		$meta = array();
+
+		foreach ( $post_meta as $meta_key => $meta_values ) {
+			if ( ! is_array( $meta_values ) ) {
+				$meta_values = array( $meta_values );
+			}
+
+			$meta[ $meta_key ] = array_map( array( $this, 'prepare_meta_value_types' ), $meta_values );
+		}
+
+		return $meta;
+
+	}
+
+	/**
+	 * Prepare meta types for meta value
+	 *
+	 * @param mixed $meta_value
+	 *
+	 * @return array
+	 */
+	public function prepare_meta_value_types( $meta_value ) {
+
+		$max_java_int_value = 9223372036854775807;
+
+		$meta_types = array();
+
+		if ( is_array( $meta_value ) || is_object( $meta_value ) ) {
+			$meta_value = serialize( $meta_value );
+		}
+
+		$meta_types['value'] = $meta_value;
+		$meta_types['raw']   = $meta_value;
+
+		if ( is_numeric( $meta_value ) ) {
+			$long = intval( $meta_value );
+
+			if ( $max_java_int_value < $long ) {
+				$long = $max_java_int_value;
+			}
+
+			$double = floatval( $meta_value );
+
+			if ( ! is_finite( $double ) ) {
+				$double = 0;
+			}
+
+			$meta_types['long']   = $long;
+			$meta_types['double'] = $double;
+		}
+
+		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
+
+		if ( is_string( $meta_value ) ) {
+			$timestamp = strtotime( $meta_value );
+
+			$date     = '1971-01-01';
+			$datetime = '1971-01-01 00:00:01';
+			$time     = '00:00:01';
+
+			if ( false !== $timestamp ) {
+				$date     = date_i18n( 'Y-m-d', $timestamp );
+				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
+				$time     = date_i18n( 'H:i:s', $timestamp );
+			}
+
+			$meta_types['date']     = $date;
+			$meta_types['datetime'] = $datetime;
+			$meta_types['time']     = $time;
+		}
+
+		return $meta_types;
 
 	}
 
@@ -962,7 +1051,7 @@ class EP_API {
 										'must_not' => array(
 											array(
 												'terms' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+													'meta.' . $single_meta_query['key'] . '.value' => (array) $single_meta_query['value'],
 												),
 											),
 										),
@@ -974,7 +1063,7 @@ class EP_API {
 						case 'exists':
 							$terms_obj = array(
 								'exists' => array(
-									'field' => 'post_meta.' . $single_meta_query['key'],
+									'field' => 'meta.' . $single_meta_query['key'],
 								),
 							);
 
@@ -985,7 +1074,7 @@ class EP_API {
 									'must_not' => array(
 										array(
 											'exists' => array(
-												'field' => 'post_meta.' . $single_meta_query['key'],
+												'field' => 'meta.' . $single_meta_query['key'],
 											),
 										),
 									),
@@ -1000,8 +1089,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"gte" => $single_meta_query['value'],
+													'meta.' . $single_meta_query['key'] . '.double' => array(
+														'gte' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -1018,8 +1107,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"lte" => $single_meta_query['value'],
+													'meta.' . $single_meta_query['key'] . '.double' => array(
+														'lte' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -1036,8 +1125,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"gt" => $single_meta_query['value'],
+													'meta.' . $single_meta_query['key'] . '.double' => array(
+														'gt' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -1054,8 +1143,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"lt" => $single_meta_query['value'],
+													'meta.' . $single_meta_query['key'] . '.double' => array(
+														'lt' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -1069,8 +1158,8 @@ class EP_API {
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
 									'query' => array(
-										"match" => array(
-											'post_meta.' . $single_meta_query['key'] => $single_meta_query['value'],
+										'match' => array(
+											'meta.' . $single_meta_query['key'] . '.value' => $single_meta_query['value'],
 										)
 									),
 								);
@@ -1081,7 +1170,7 @@ class EP_API {
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
 									'terms' => array(
-										'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+										'meta.' . $single_meta_query['key'] . '.value' => (array) $single_meta_query['value'],
 									),
 								);
 							}
@@ -1126,7 +1215,7 @@ class EP_API {
 				$metas = (array) $search_field_args['meta'];
 
 				foreach ( $metas as $meta ) {
-					$search_fields[] = 'post_meta.' . $meta;
+					$search_fields[] = 'meta.' . $meta . '.value';
 				}
 
 				unset( $search_field_args['meta'] );
@@ -1419,7 +1508,7 @@ class EP_API {
 
 				$sort = array(
 					array(
-						'post_meta.' . $meta_key . '.raw' => array(
+						'meta.' . $meta_key . '.value' => array(
 							'order' => $order,
 						),
 					),
@@ -1430,7 +1519,7 @@ class EP_API {
 
 				$sort = array(
 					array(
-						'post_meta.' . $meta_key . '.double' => array(
+						'meta.' . $meta_key . '.double' => array(
 							'order' => $order,
 						),
 					),
