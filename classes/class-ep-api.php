@@ -1159,7 +1159,7 @@ class EP_API {
 								$terms_obj = array(
 									'query' => array(
 										'match' => array(
-											'meta.' . $single_meta_query['key'] . '.value' => $single_meta_query['value'],
+											'meta.' . $single_meta_query['key'] => $single_meta_query['value'],
 										)
 									),
 								);
