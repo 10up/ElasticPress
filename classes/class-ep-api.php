@@ -1057,6 +1057,7 @@ class EP_API {
 						$type = strtolower( $single_meta_query['type'] );
 					}
 
+					// Comparisons need to look at different paths
 					if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'];
 					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
@@ -1064,6 +1065,7 @@ class EP_API {
 					} elseif ( in_array( $compare, array( '=', '!=' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
+						// Map specific meta field types to different ElasticSearch core types
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
 					} else {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
