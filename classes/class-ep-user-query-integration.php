@@ -41,6 +41,13 @@ class EP_User_Query_Integration {
 		if ( $this->is_user_indexing_active() ) {
 			return;
 		}
+		add_action( 'pre_user_query', array( $this, 'action_pre_user_query' ) );
+	}
+
+	/**
+	 * @param WP_User_Query $wp_user_query
+	 */
+	public function action_pre_user_query( $wp_user_query ) {
 	}
 
 	/**
