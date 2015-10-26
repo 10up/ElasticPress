@@ -245,10 +245,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 				$total_indexed += $result['synced'];
 
-				WP_CLI::log( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), $site['blog_id'], $result['synced'] ) );
+				WP_CLI::log( sprintf( __( 'Number of posts indexed on site %d: %d', 'elasticpress' ), $site['blog_id'], $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
-					WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), $site['blog_id'], count( $result['errors'] ) ) );
+					WP_CLI::error( sprintf( __( 'Number of post index errors on site %d: %d', 'elasticpress' ), $site['blog_id'], count( $result['errors'] ) ) );
 				}
 
 				restore_current_blog();
@@ -266,10 +266,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			$result = $this->_index_helper( $assoc_args );
 
-			WP_CLI::log( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
+			WP_CLI::log( sprintf( __( 'Number of posts indexed on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
 			if ( ! empty( $result['errors'] ) ) {
-				WP_CLI::error( sprintf( __( 'Number of post sync errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
+				WP_CLI::error( sprintf( __( 'Number of post index errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
 			}
 		}
 
@@ -351,7 +351,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 					if ( ! $result ) {
 						$errors[] = get_the_ID();
-					} else {
+					} elseif ( true === $result ) {
 						$synced ++;
 					}
 				}
@@ -359,7 +359,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				break;
 			}
 
-			WP_CLI::log( 'Indexed ' . ( $query->post_count + $offset ) . '/' . $query->found_posts . ' entries. . .' );
+			WP_CLI::log( 'Processed ' . ( $query->post_count + $offset ) . '/' . $query->found_posts . ' entries. . .' );
 
 			$offset += $posts_per_page;
 
@@ -398,38 +398,55 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param $bulk_trigger
 	 * @param bool $show_bulk_errors true to show individual post error messages for bulk errors
 	 *
-	 * @return bool
+	 * @return bool|int true if successfully synced, false if not or 2 if post was killed before sync
 	 */
 	private function queue_post( $post_id, $bulk_trigger, $show_bulk_errors = false ) {
 		static $post_count = 0;
+		static $killed_post_count = 0;
 
+		$killed_post = false;
 		$post_args = ep_prepare_post( $post_id );
 
 		// Mimic EP_Sync_Manager::sync_post( $post_id ), otherwise posts can slip
 		// through the kill filter... that would be bad!
 		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
-			return true;
+
+			$killed_post_count++;
+			$killed_post = true; // Save status for return.
+
+		} else { // Post wasn't killed so process it.
+
+			// put the post into the queue
+			$this->posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
+			$this->posts[ $post_id ][] = addcslashes( json_encode( $post_args ), "\n" );
+
+			// augment the counter
+			++ $post_count;
+
 		}
 
-		// put the post into the queue
-		$this->posts[$post_id][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-		$this->posts[$post_id][] = addcslashes( json_encode( $post_args ), "\n" );
+		// If we have hit the trigger, initiate the bulk request.
+		if ( ( $post_count + $killed_post_count ) === absint( $bulk_trigger ) ) {
 
-		// augment the counter
-		++$post_count;
-
-		// if we have hit the trigger, initiate the bulk request
-		if ( $post_count === absint( $bulk_trigger ) ) {
-			$this->bulk_index( $show_bulk_errors );
+			// Don't waste time if we've killed all the posts.
+			if ( ! empty( $this->posts ) ) {
+				$this->bulk_index( $show_bulk_errors );
+			}
 
 			// reset the post count
 			$post_count = 0;
+			$killed_post_count = 0;
 
 			// reset the posts
 			$this->posts = array();
 		}
 
+		if ( true === $killed_post ) {
+			return 2;
+		}
+
 		return true;
+
 	}
 
 	/**
