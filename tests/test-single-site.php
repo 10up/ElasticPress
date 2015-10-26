@@ -475,6 +475,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
 
 		$found_posts[] = $query->posts[0]->ID;
@@ -488,6 +489,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
 
 		$found_posts[] = $query->posts[0]->ID;
@@ -501,6 +503,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
 
 		$found_posts[] = $query->posts[0]->ID;
@@ -514,6 +517,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 0, $query->post_count );
+		$this->assertEquals( 0, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
 
 		$this->assertEquals( 3, count( array_unique( $found_posts ) ) );
