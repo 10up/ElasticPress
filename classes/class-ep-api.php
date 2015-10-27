@@ -52,7 +52,7 @@ class EP_API {
 		$path = $index . 'post/' . $post['post_id'];
 
 		$request_args = array(
-			'body'    => json_encode( $post ),
+			'body'    => wp_json_encode( $post ),
 			'method'  => 'PUT',
 			'timeout' => 15,
 		);
@@ -1297,7 +1297,7 @@ class EP_API {
 			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
 		}
 
-		return json_decode( wp_remote_retrieve_body( $request ), true );
+		return wp_json_decode( wp_remote_retrieve_body( $request ), true );
 	}
 
 	/**
