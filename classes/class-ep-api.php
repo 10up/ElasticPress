@@ -1511,7 +1511,7 @@ class EP_API {
 
 				$sort = array(
 					array(
-						'meta.' . $meta_key . '.value' => array(
+						'meta.' . $meta_key . '.raw' => array(
 							'order' => $order,
 						),
 					),
