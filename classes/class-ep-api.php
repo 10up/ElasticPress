@@ -51,8 +51,18 @@ class EP_API {
 
 		$path = $index . 'post/' . $post['post_id'];
 
+		if ( function_exists( 'wp_json_encode' ) ) {
+
+			$encoded_post = wp_json_encode( $post );
+
+		} else {
+
+			$encoded_post = json_encode( $post );
+
+		}
+
 		$request_args = array(
-			'body'    => wp_json_encode( $post ),
+			'body'    => $encoded_post,
 			'method'  => 'PUT',
 			'timeout' => 15,
 		);
@@ -1297,7 +1307,7 @@ class EP_API {
 			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
 		}
 
-		return wp_json_decode( wp_remote_retrieve_body( $request ), true );
+		return json_decode( wp_remote_retrieve_body( $request ), true );
 	}
 
 	/**

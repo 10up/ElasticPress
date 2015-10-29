@@ -386,7 +386,16 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			// put the post into the queue
 			$this->posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-			$this->posts[ $post_id ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
+
+			if ( function_exists( 'wp_json_encode' ) ) {
+
+				$this->posts[ $post_id ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
+
+			} else {
+
+				$this->posts[ $post_id ][] = addcslashes( json_encode( $post_args ), "\n" );
+
+			}
 
 			// augment the counter
 			++ $post_count;
@@ -547,7 +556,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}
-		$body  = wp_json_decode( wp_remote_retrieve_body( $request ), true );
+		$body  = json_decode( wp_remote_retrieve_body( $request ), true );
 		$sites = ( is_multisite() ) ? ep_get_sites() : array( 'blog_id' => get_current_blog_id() );
 
 		foreach ( $sites as $site ) {
