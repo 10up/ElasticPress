@@ -108,6 +108,9 @@ class EP_User_Query_Integration {
 	 * @return array
 	 */
 	public function format_args( $arguments ) {
+		$ep_arguments = array();
+
+		return $ep_arguments;
 	}
 
 	/**
