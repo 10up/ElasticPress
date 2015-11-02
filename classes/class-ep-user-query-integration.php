@@ -53,30 +53,33 @@ class EP_User_Query_Integration {
 			// then we should just skip it outright
 			return;
 		}
+		$default_args = array(
+			'blog_id'             => null,
+			'role'                => '',
+			'meta_key'            => '',
+			'meta_value'          => '',
+			'meta_compare'        => '',
+			'include'             => array(),
+			'exclude'             => array(),
+			'search'              => '',
+			'search_columns'      => array(),
+			'orderby'             => 'login',
+			'order'               => 'ASC',
+			'offset'              => '',
+			'number'              => '',
+			'count_total'         => false,
+			'fields'              => 'all',
+			'who'                 => '',
+			'has_published_posts' => null,
+		);
 
 		$results = ep_search( $this->format_args( $wp_user_query->query_vars ), null, 'user' );
 
 		if ( $results['found_objects'] < 1 ) {
-			$wp_user_query->query_vars = array(
-				'blog_id'             => null,
-				'role'                => '',
-				'meta_key'            => '',
-				'meta_value'          => '',
-				'meta_compare'        => '',
-				'include'             => array(),
-				'exclude'             => array(),
-				'search'              => '',
-				'search_columns'      => array(),
-				'orderby'             => 'login',
-				'order'               => 'ASC',
-				'offset'              => '',
-				'number'              => '',
-				'count_total'         => false,
-				'fields'              => 'all',
-				'who'                 => '',
-				'has_published_posts' => null,
-			);
+			$wp_user_query->query_vars = $default_args;
 			add_action( 'pre_user_query', array( $this, 'kill_query' ), 99999 );
+
+			return;
 		}
 	}
 
