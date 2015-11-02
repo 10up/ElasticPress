@@ -48,6 +48,11 @@ class EP_User_Query_Integration {
 	 * @param WP_User_Query $wp_user_query
 	 */
 	public function action_pre_get_users( $wp_user_query ) {
+		if ( $this->is_query_basic_enough_to_skip( $wp_user_query ) ) {
+			// The User query MUST hit the database, so if this query is so basic that it wouldn't even join any tables
+			// then we should just skip it outright
+			return;
+		}
 	}
 
 	/**
@@ -88,6 +93,27 @@ class EP_User_Query_Integration {
 			method_exists( $this->user_index, 'active' ) &&
 			$this->user_index->active()
 		);
+	}
+
+	/**
+	 * @param WP_User_Query $wp_user_query
+	 *
+	 * @return bool
+	 */
+	private function is_query_basic_enough_to_skip( $wp_user_query ) {
+		$args      = $wp_user_query->query_vars;
+		$safe_args = array( 'include', 'order', 'offset', 'number', 'count_total', 'fields', );
+		if ( ! is_multisite() ) {
+			$safe_args[] = 'blog_id';
+		}
+		if ( in_array( $args['orderby'], array( 'login', 'nicename', 'user_login', 'user_nicename', 'ID', 'id' ) ) ) {
+			$safe_args[] = 'order';
+		}
+		if ( ! array_diff( array_keys( array_filter( $args ) ), $safe_args ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 }
