@@ -53,6 +53,16 @@ class EP_User_Query_Integration {
 			// then we should just skip it outright
 			return;
 		}
+
+		$results = ep_search( $this->format_args( $wp_user_query->query_vars ), null, 'user' );
+	}
+
+	/**
+	 * @param array $arguments
+	 *
+	 * @return array
+	 */
+	public function format_args( $arguments ) {
 	}
 
 	/**
