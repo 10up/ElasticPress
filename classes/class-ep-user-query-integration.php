@@ -48,7 +48,7 @@ class EP_User_Query_Integration {
 	 * @param WP_User_Query $wp_user_query
 	 */
 	public function action_pre_get_users( $wp_user_query ) {
-		if ( $this->is_query_basic_enough_to_skip( $wp_user_query ) ) {
+		if ( $this->is_query_basic_enough_to_skip( $wp_user_query ) || $this->skip_integration( $wp_user_query ) ) {
 			// The User query MUST hit the database, so if this query is so basic that it wouldn't even join any tables
 			// then we should just skip it outright
 			return;
@@ -173,6 +173,15 @@ class EP_User_Query_Integration {
 		}
 
 		return false;
+	}
+
+	/**
+	 * @param WP_User_Query $wp_user_query
+	 *
+	 * @return bool
+	 */
+	private function skip_integration( $wp_user_query ) {
+		return apply_filters( 'ep_skip_user_query_integration', false, $wp_user_query );
 	}
 
 }
