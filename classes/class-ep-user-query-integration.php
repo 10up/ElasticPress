@@ -73,7 +73,18 @@ class EP_User_Query_Integration {
 			'has_published_posts' => null,
 		);
 
-		$results = ep_search( $this->format_args( $wp_user_query->query_vars ), null, 'user' );
+		$qv    = $wp_user_query->query_vars;
+		$scope = $qv['blog_id'];
+		if ( -1 === $scope ) {
+			$scope = 'all';
+		}
+		if ( 'all' === $scope && ! apply_filters( 'ep_user_global_search_active', false ) ) {
+			$scope = 'current';
+		}
+		if ( ! in_array( $scope, array( 'all', 'current' ) ) ) {
+			$scope = array_filter( wp_parse_id_list( $scope ) );
+		}
+		$results = ep_search( $this->format_args( $qv ), $scope ? $scope : 'current', 'user' );
 
 		if ( $results['found_objects'] < 1 ) {
 			$wp_user_query->query_vars = $default_args;
