@@ -1330,7 +1330,7 @@ function ep_index_post( $post ) {
 	return EP_API::factory()->index_post( $post );
 }
 
-function ep_search( $args, $scope = 'current' ) {
+function ep_search( $args, $scope = 'current', $type = 'post' ) {
 	return EP_API::factory()->search( $args, $scope );
 }
 
