@@ -55,6 +55,29 @@ class EP_User_Query_Integration {
 		}
 
 		$results = ep_search( $this->format_args( $wp_user_query->query_vars ), null, 'user' );
+
+		if ( $results['found_objects'] < 1 ) {
+			$wp_user_query->query_vars = array(
+				'blog_id'             => null,
+				'role'                => '',
+				'meta_key'            => '',
+				'meta_value'          => '',
+				'meta_compare'        => '',
+				'include'             => array(),
+				'exclude'             => array(),
+				'search'              => '',
+				'search_columns'      => array(),
+				'orderby'             => 'login',
+				'order'               => 'ASC',
+				'offset'              => '',
+				'number'              => '',
+				'count_total'         => false,
+				'fields'              => 'all',
+				'who'                 => '',
+				'has_published_posts' => null,
+			);
+			add_action( 'pre_user_query', array( $this, 'kill_query' ), 99999 );
+		}
 	}
 
 	/**
@@ -63,6 +86,18 @@ class EP_User_Query_Integration {
 	 * @return array
 	 */
 	public function format_args( $arguments ) {
+	}
+
+	/**
+	 * @param WP_User_Query $wp_user_query
+	 */
+	public function kill_query( $wp_user_query ) {
+		global $wpdb;
+		remove_action( 'pre_user_query', array( $this, 'kill_query' ), 99999 );
+		$wp_user_query->query_fields  = "{$wpdb->users}.ID";
+		$wp_user_query->query_from    = "FROM {$wpdb->users}";
+		$wp_user_query->query_where   = 'WHERE 1=0';
+		$wp_user_query->query_orderby = $wp_user_query->query_limit = '';
 	}
 
 	/**
