@@ -84,7 +84,7 @@ class EP_User_Query_Integration {
 		if ( ! in_array( $scope, array( 'all', 'current' ) ) ) {
 			$scope = array_filter( wp_parse_id_list( $scope ) );
 		}
-		$results = ep_search( $this->format_args( $qv ), $scope ? $scope : 'current', 'user' );
+		$results = ep_search( $this->format_args( $wp_user_query ), $scope ? $scope : 'current', 'user' );
 
 		if ( $results['found_objects'] < 1 ) {
 			$wp_user_query->query_vars = $default_args;
@@ -103,11 +103,11 @@ class EP_User_Query_Integration {
 	}
 
 	/**
-	 * @param array $arguments
+	 * @param WP_User_Query $wp_user_query
 	 *
 	 * @return array
 	 */
-	public function format_args( $arguments ) {
+	public function format_args( $wp_user_query ) {
 		$ep_arguments = array();
 
 		return $ep_arguments;
