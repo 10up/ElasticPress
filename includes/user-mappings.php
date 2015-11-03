@@ -73,13 +73,34 @@ return array(
 					'include_in_all' => false,
 				),
 				'user_login'      => array(
-					'type'     => 'string',
-					'analyzer' => 'standard',
+					'type'   => 'multi_field',
+					'fields' => array(
+						'user_login' => array(
+							'type'     => 'string',
+							'analyzer' => 'standard',
+							'store'    => 'yes',
+						),
+						'raw'        => array(
+							'type'           => 'string',
+							'index'          => 'not_analyzed',
+							'include_in_all' => false,
+						),
+					),
 				),
 				'user_nicename'   => array(
-					'type'           => 'string',
-					'index'          => 'not_analyzed',
-					'include_in_all' => false,
+					'type'   => 'multi_field',
+					'fields' => array(
+						'user_nicename' => array(
+							'type'     => 'string',
+							'analyzer' => 'standard',
+							'store'    => 'yes',
+						),
+						'raw'           => array(
+							'type'           => 'string',
+							'index'          => 'not_analyzed',
+							'include_in_all' => false,
+						),
+					),
 				),
 				'nickname'        => array(
 					'type'     => 'string',
@@ -105,12 +126,12 @@ return array(
 				'display_name'    => array(
 					'type'   => 'multi_field',
 					'fields' => array(
-						'post_title' => array(
+						'display_name' => array(
 							'type'     => 'string',
 							'analyzer' => 'standard',
 							'store'    => 'yes',
 						),
-						'raw'        => array(
+						'raw'          => array(
 							'type'           => 'string',
 							'index'          => 'not_analyzed',
 							'include_in_all' => false,
@@ -129,7 +150,7 @@ return array(
 					'type' => 'object',
 				),
 				'user_meta'       => array(
-					'type'   => 'object',
+					'type' => 'object',
 				),
 			),
 		)
