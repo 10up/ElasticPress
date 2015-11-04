@@ -174,6 +174,20 @@ class EP_User_Query_Integration {
 		}
 		// End tax queries
 
+		/**
+		 * include ID list
+		 */
+		if ( ! empty( $arguments['include'] ) ) {
+			$filter['and'][]['bool']['must'] = array(
+				'terms' => array(
+					'user_id' => wp_parse_id_list( $arguments['include'] )
+				)
+			);
+
+			$use_filter = true;
+		}
+		// end include id list
+
 		if ( $use_filter ) {
 			$ep_arguments['filter'] = $filter;
 		}
