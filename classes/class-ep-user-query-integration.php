@@ -108,7 +108,18 @@ class EP_User_Query_Integration {
 	 * @return array
 	 */
 	public function format_args( $wp_user_query ) {
+		$arguments    = $wp_user_query->query_vars;
 		$ep_arguments = array();
+		if ( empty( $arguments['number'] ) ) {
+			$arguments['number'] = (int) apply_filters(
+				'ep_wp_user_query_integration_default_size',
+				1000,
+				$wp_user_query
+			);
+		}
+		// Can't have negative numbers for size
+		$ep_arguments['size'] = max( 0, (int) $arguments['number'] );
+		$ep_arguments['from'] = max( 0, empty( $arguments['offset'] ) ? 0 : (int) $arguments['offset'] );
 
 		return $ep_arguments;
 	}
