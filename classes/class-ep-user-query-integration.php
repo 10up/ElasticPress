@@ -139,6 +139,41 @@ class EP_User_Query_Integration {
 		);
 		$use_filter = false;
 
+		/**
+		 * Tax queries
+		 *
+		 * Because why not?
+		 */
+		if ( ! empty( $arguments['tax_query'] ) ) {
+			$tax_filter = array();
+
+			foreach ( $arguments['tax_query'] as $single_tax_query ) {
+				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
+					$terms = (array) $single_tax_query['terms'];
+
+					// Set up our terms object
+					$terms_obj = array(
+						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $terms,
+					);
+
+					// Use the AND operator if passed
+					if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
+						$terms_obj['execution'] = 'and';
+					}
+
+					// Add the tax query filter
+					$tax_filter[]['terms'] = $terms_obj;
+				}
+			}
+
+			if ( ! empty( $tax_filter ) ) {
+				$filter['and'][]['bool']['must'] = $tax_filter;
+
+				$use_filter = true;
+			}
+		}
+		// End tax queries
+
 		if ( $use_filter ) {
 			$ep_arguments['filter'] = $filter;
 		}
