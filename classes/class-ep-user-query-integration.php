@@ -202,6 +202,20 @@ class EP_User_Query_Integration {
 		}
 		// end exclude id list
 
+		/**
+		 * 'date_query' arg support.
+		 *
+		 */
+		if ( ! empty( $arguments['date_query'] ) ) {
+			$date_query  = new EP_WP_Date_Query( $arguments['date_query'], 'user_registered' );
+			$date_filter = $date_query->get_es_filter();
+			if ( array_key_exists( 'and', $date_filter ) ) {
+				$filter['and'][] = $date_filter['and'];
+				$use_filter      = true;
+			}
+		}
+		// end date query section
+
 		if ( $use_filter ) {
 			$ep_arguments['filter'] = $filter;
 		}
