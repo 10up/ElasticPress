@@ -1331,7 +1331,7 @@ function ep_index_post( $post ) {
 }
 
 function ep_search( $args, $scope = 'current', $type = 'post' ) {
-	return EP_API::factory()->search( $args, $scope );
+	return EP_API::factory()->search( $args, $scope, $type );
 }
 
 function ep_get_post( $post_id ) {
