@@ -188,6 +188,20 @@ class EP_User_Query_Integration {
 		}
 		// end include id list
 
+		/**
+		 * exclude ID list
+		 */
+		if ( ! empty( $arguments['exclude'] ) ) {
+			$filter['and'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'user_id' => wp_parse_id_list( $arguments['exclude'] )
+				)
+			);
+
+			$use_filter = true;
+		}
+		// end exclude id list
+
 		if ( $use_filter ) {
 			$ep_arguments['filter'] = $filter;
 		}
