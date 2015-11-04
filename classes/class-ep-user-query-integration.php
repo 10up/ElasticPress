@@ -93,11 +93,12 @@ class EP_User_Query_Integration {
 			return;
 		}
 
-		$new_qv            = $default_args;
-		$new_qv['include'] = wp_list_pluck( $results['objects'], 'user_id' );
-		$new_qv['orderby'] = 'include';
-		$new_qv['fields']  = $qv['fields'];
-		$new_qv['number']  = $qv['number'];
+		$new_qv                 = $default_args;
+		$new_qv['include']      = wp_list_pluck( $results['objects'], 'user_id' );
+		$new_qv['orderby']      = 'include';
+		$new_qv['fields']       = $qv['fields'];
+		$new_qv['number']       = $qv['number'];
+		$new_qv['elasticpress'] = true;
 
 		$wp_user_query->query_vars = $new_qv;
 	}
