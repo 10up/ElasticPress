@@ -134,6 +134,15 @@ class EP_User_Query_Integration {
 			$ep_arguments['sort'] = $sorts;
 		}
 
+		$filter     = array(
+			'and' => array(),
+		);
+		$use_filter = false;
+
+		if ( $use_filter ) {
+			$ep_arguments['filter'] = $filter;
+		}
+
 		return $ep_arguments;
 	}
 
