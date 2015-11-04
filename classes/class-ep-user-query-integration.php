@@ -121,6 +121,19 @@ class EP_User_Query_Integration {
 		$ep_arguments['size'] = max( 0, (int) $arguments['number'] );
 		$ep_arguments['from'] = max( 0, empty( $arguments['offset'] ) ? 0 : (int) $arguments['offset'] );
 
+		if ( ! empty( $arguments['search'] ) && trim( $arguments['search'] ) ) {
+			if ( empty( $arguments['order'] ) ) {
+				$arguments['order'] = 'desc';
+			}
+			if ( empty( $arguments['orderby'] ) ) {
+				$arguments['orderby'] = 'relevance';
+			}
+		}
+
+		if ( $sorts = $this->parse_sorting( $arguments ) ) {
+			$ep_arguments['sort'] = $sorts;
+		}
+
 		return $ep_arguments;
 	}
 
@@ -204,6 +217,82 @@ class EP_User_Query_Integration {
 	 */
 	private function skip_integration( $wp_user_query ) {
 		return apply_filters( 'ep_skip_user_query_integration', false, $wp_user_query );
+	}
+
+	private function toggle_user_prefix( $thing, $on = null ) {
+		$_thing = $thing;
+		if ( 'user_' === substr( $thing, 0, 5 ) ) {
+			$thing = substr( $thing, 5 );
+		}
+		if ( true === $on ) {
+			return "user_$thing";
+		} elseif ( false === $on ) {
+			return $thing;
+		}
+
+		return $_thing === $thing ? "user_$_thing" : $thing;
+	}
+
+	/**
+	 * @param $arguments
+	 *
+	 * @return array
+	 */
+	private function parse_sorting( $arguments ) {
+		if ( empty( $arguments['order'] ) ) {
+			$arguments['order'] = 'asc';
+		}
+		$order = strtolower( $arguments['order'] ) === 'asc' ? 'asc' : 'desc';
+		if ( empty( $arguments['orderby'] ) ) {
+			$orderby = array( 'user_login' => $order );
+		} elseif ( is_array( $arguments['orderby'] ) ) {
+			$orderby = $arguments['orderby'];
+		} else {
+			$orderby = preg_split( '/[,\s]+/', $arguments['orderby'] );
+		}
+		$sorts = array();
+		foreach ( $orderby as $_key => $_value ) {
+			if ( empty( $_value ) ) {
+				continue;
+			}
+			if ( is_int( $_key ) ) {
+				$_orderby = $_value;
+				$_order   = $order;
+			} else {
+				$_orderby = $_key;
+				$_order   = strtolower( $_value ) === 'asc' ? 'asc' : 'desc';
+			}
+			$sort_field = false;
+			switch ( strtolower( $_orderby ) ) {
+				case 'id':
+				case 'user_id':
+				case 'registered':
+				case 'user_registered':
+					$sort_field = array( $this->toggle_user_prefix( $_orderby, true ) => array( 'order' => $_order ) );
+					break;
+				case 'login':
+				case 'nicename':
+				case 'user_login':
+				case 'user_nicename':
+					$sort_field = array(
+						$this->toggle_user_prefix( $_orderby, true ) . ".raw" => array( 'order' => $_order )
+					);
+					break;
+				case 'name':
+				case 'display_name':
+					$sort_field = array( 'display_name.raw' => array( 'order' => $_order ) );
+					break;
+				case 'score':
+				case 'relevance':
+					$sort_field = array( '_score' => array( 'order' => $_order ) );
+					break;
+			}
+			if ( $sort_field ) {
+				$sorts[] = $sort_field;
+			}
+		}
+
+		return $sorts;
 	}
 
 }
