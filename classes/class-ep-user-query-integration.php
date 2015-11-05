@@ -217,6 +217,184 @@ class EP_User_Query_Integration {
 		}
 		// end date query section
 
+		$meta_query = new WP_Meta_Query();
+		$meta_query->parse_query_vars( $arguments );
+		/**
+		 * 'meta_query' arg support.
+		 *
+		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
+		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
+		 * 'type' is NOT support at this time.
+		 */
+		if ( ! empty( $meta_query->queries ) ) {
+			$meta_filter = array();
+
+			$relation = 'must';
+			if ( ! empty( $meta_query->queries['relation'] ) && 'or' === strtolower( $meta_query->queries['relation'] ) ) {
+				$relation = 'should';
+			}
+
+			foreach ( $meta_query->queries as $single_meta_query ) {
+				if ( empty( $single_meta_query['key'] ) ) {
+					continue;
+				}
+
+				$terms_obj = array();
+
+				$compare = '=';
+				if ( ! empty( $single_meta_query['compare'] ) ) {
+					$compare = strtolower( $single_meta_query['compare'] );
+				}
+
+				switch ( $compare ) {
+					case '!=':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'terms' => array(
+												'user_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case 'exists':
+						$terms_obj = array(
+							'exists' => array(
+								'field' => 'user_meta.' . $single_meta_query['key'],
+							),
+						);
+
+						break;
+					case 'not exists':
+						$terms_obj = array(
+							'bool' => array(
+								'must_not' => array(
+									array(
+										'exists' => array(
+											'field' => 'user_meta.' . $single_meta_query['key'],
+										),
+									),
+								),
+							),
+						);
+
+						break;
+					case '>=':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												'user_meta.' . $single_meta_query['key'] . '.raw' => array(
+													"gte" => $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case '<=':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												'user_meta.' . $single_meta_query['key'] . '.raw' => array(
+													"lte" => $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case '>':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												'user_meta.' . $single_meta_query['key'] . '.raw' => array(
+													"gt" => $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case '<':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												'user_meta.' . $single_meta_query['key'] . '.raw' => array(
+													"lt" => $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case 'like':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'query' => array(
+									"match" => array(
+										'user_meta.' . $single_meta_query['key'] => $single_meta_query['value'],
+									)
+								),
+							);
+						}
+						break;
+					case '=':
+					default:
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'terms' => array(
+									'user_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+								),
+							);
+						}
+
+						break;
+				}
+
+				// Add the meta query filter
+				if ( false !== $terms_obj ) {
+					$meta_filter[] = $terms_obj;
+				}
+			}
+
+			if ( ! empty( $meta_filter ) ) {
+				$filter['and'][]['bool'][ $relation ] = $meta_filter;
+
+				$use_filter = true;
+			}
+		}
+		// End meta query filter
+
 		if ( $use_filter ) {
 			$ep_arguments['filter'] = $filter;
 		}
