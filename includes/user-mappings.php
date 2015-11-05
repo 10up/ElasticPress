@@ -144,7 +144,19 @@ return array(
 					'include_in_all' => false,
 				),
 				'role'            => array(
-					'type' => 'string',
+					'type'   => 'multi_field',
+					'fields' => array(
+						'role' => array(
+							'type'     => 'string',
+							'analyzer' => 'standard',
+							'store'    => 'yes',
+						),
+						'raw'  => array(
+							'type'           => 'string',
+							'index'          => 'not_analyzed',
+							'include_in_all' => false,
+						)
+					)
 				),
 				'terms'           => array(
 					'type' => 'object',

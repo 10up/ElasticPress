@@ -223,7 +223,7 @@ class EP_User_Query_Integration {
 		if ( ! empty( $arguments['role'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'term' => array(
-					'role' => $arguments['role'],
+					'role.raw' => $arguments['role'],
 				),
 			);
 
