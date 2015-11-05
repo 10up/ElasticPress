@@ -217,6 +217,20 @@ class EP_User_Query_Integration {
 		}
 		// end date query section
 
+		/**
+		 * 'role' arg support
+		 */
+		if ( ! empty( $arguments['role'] ) ) {
+			$filter['and'][]['bool']['must'] = array(
+				'term' => array(
+					'role' => $arguments['role'],
+				),
+			);
+
+			$use_filter = true;
+		}
+		// End role query support
+
 		$meta_query = new WP_Meta_Query();
 		$meta_query->parse_query_vars( $arguments );
 		/**
