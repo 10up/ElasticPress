@@ -2116,4 +2116,37 @@ class EPTestSingleSite extends EP_Test_Base {
 		return $meta_keys;
 
 	}
+
+	/**
+	 * Test meta preparation
+	 *
+	 * Tests meta perparation
+	 *
+	 * @since 1.7
+	 */
+	public function testMetaValueTypes() {
+
+		$api = new EP_API();
+
+		$intval         = $api->prepare_meta_value_types( 13 );
+		$floatval       = $api->prepare_meta_value_types( 13.43 );
+		$textval        = $api->prepare_meta_value_types( 'some text' );
+		$bool_false_val = $api->prepare_meta_value_types( false );
+		$bool_true_val  = $api->prepare_meta_value_types( true );
+		$dateval        = $api->prepare_meta_value_types( '2015-01-01' );
+
+		$this->assertTrue( is_array( $intval ) && 5 === sizeof( $intval ) );
+		$this->assertTrue( is_array( $intval ) && array_key_exists( 'long', $intval ) && 13 === $intval['long'] );
+		$this->assertTrue( is_array( $floatval ) && 5 === sizeof( $floatval ) );
+		$this->assertTrue( is_array( $floatval ) && array_key_exists( 'double', $floatval ) && 13.43 === $floatval['double'] );
+		$this->assertTrue( is_array( $textval ) && 6 === sizeof( $textval ) );
+		$this->assertTrue( is_array( $textval ) && array_key_exists( 'raw', $textval ) && 'some text' === $textval['raw'] );
+		$this->assertTrue( is_array( $bool_false_val ) && 3 === sizeof( $bool_false_val ) );
+		$this->assertTrue( is_array( $bool_false_val ) && array_key_exists( 'boolean', $bool_false_val ) && false === $bool_false_val['boolean'] );
+		$this->assertTrue( is_array( $bool_true_val ) && 3 === sizeof( $bool_true_val ) );
+		$this->assertTrue( is_array( $bool_true_val ) && array_key_exists( 'boolean', $bool_true_val ) && true === $bool_true_val['boolean'] );
+		$this->assertTrue( is_array( $dateval ) && 6 === sizeof( $dateval ) );
+		$this->assertTrue( is_array( $dateval ) && array_key_exists( 'datetime', $dateval ) && '2015-01-01 00:00:00' === $dateval['datetime'] );
+
+	}
 }
