@@ -409,6 +409,35 @@ class EP_User_Query_Integration {
 		}
 		// End meta query filter
 
+		/**
+		 * Search support
+		 */
+		$search = '';
+		if ( isset( $arguments['search'] ) ) {
+			$search = trim( $arguments['search'] );
+		}
+		if ( $search ) {
+			$search_columns = $this->parse_search_columns( $arguments, $search, $wp_user_query );
+
+			$ep_arguments['query']['bool']['should'] = array(
+				array(
+					'multi_match' => array(
+						'query'  => $search,
+						'fields' => $search_columns,
+						'boost'  => apply_filters( 'ep_user_match_boost', 2 ),
+					)
+				),
+				array(
+					'fuzzy_like_this' => array(
+						'fields'         => $search_columns,
+						'like_text'      => $search,
+						'min_similarity' => apply_filters( 'ep_min_user_similarity', 0.75 ),
+					),
+				)
+			);
+		}
+		// End search support
+
 		if ( $use_filter ) {
 			$ep_arguments['filter'] = $filter;
 		}
@@ -572,6 +601,70 @@ class EP_User_Query_Integration {
 		}
 
 		return $sorts;
+	}
+
+	/**
+	 * @param $arguments
+	 * @param $search
+	 * @param $query
+	 *
+	 * @return array|mixed|void
+	 */
+	private function parse_search_columns( $arguments, $search, $query ) {
+		// First we need to build up our list of search columns the way WordPress does on its own
+		$search_columns     = array();
+		$search_column_args = array();
+		if ( isset( $arguments['search_columns'] ) && is_array( $arguments['search_columns'] ) ) {
+			$search_columns     = array_intersect(
+				$arguments['search_columns'],
+				array( 'ID', 'user_login', 'user_email', 'user_url', 'user_nicename' )
+			);
+			$search_column_args = $arguments['search_columns'];
+		}
+		if ( ! $search_columns ) {
+			if ( false !== strpos( $search, '@' ) ) {
+				$search_columns = array( 'user_email' );
+			} elseif ( is_numeric( $search ) ) {
+				$search_columns = array( 'user_login', 'ID' );
+			} elseif (
+				preg_match( '|^https?://|', $search ) && ! ( is_multisite() && wp_is_large_network( 'users' ) )
+			) {
+				$search_columns = array( 'user_url' );
+			} else {
+				$search_columns = array( 'user_login', 'user_url', 'user_email', 'user_nicename', 'display_name' );
+			}
+		}
+
+		$search_columns = apply_filters( 'user_search_columns', $search_columns, $search, $query );
+		if ( false !== ( $key = array_search( 'ID', $search_columns ) ) ) {
+			$search_columns[ $key ] = 'user_id';
+		}
+
+		// Ok, now we have our search columns. Now for some elasicpress-specific search columns
+
+		if ( false !== ( $key = array_search( 'user_id', $search_column_args ) ) ) {
+			$search_columns[] = 'user_id';
+		}
+
+		if ( ! empty( $search_column_args['taxonomies'] ) ) {
+			$taxes = (array) $search_column_args['taxonomies'];
+
+			foreach ( $taxes as $tax ) {
+				$search_columns[] = 'terms.' . $tax . '.name';
+			}
+		}
+
+		if ( ! empty( $search_column_args['meta'] ) ) {
+			$metas = (array) $search_column_args['meta'];
+
+			foreach ( $metas as $meta ) {
+				$search_columns[] = 'user_meta.' . $meta;
+			}
+		}
+
+		$search_columns = apply_filters( 'ep_user_search_fields', $search_columns, $arguments );
+
+		return array_unique( $search_columns );
 	}
 
 }
