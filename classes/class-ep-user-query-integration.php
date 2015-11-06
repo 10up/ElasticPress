@@ -9,6 +9,8 @@ class EP_User_Query_Integration {
 	/** @var EP_Object_Index */
 	private $user_index;
 
+	private $aggregations;
+
 	/**
 	 * EP_User_Query_Integration constructor.
 	 *
@@ -84,7 +86,7 @@ class EP_User_Query_Integration {
 		if ( ! in_array( $scope, array( 'all', 'current' ) ) ) {
 			$scope = array_filter( wp_parse_id_list( $scope ) );
 		}
-		$results = ep_search( $this->format_args( $wp_user_query ), $scope ? $scope : 'current', 'user' );
+		$results = ep_search( $this->format_args( $wp_user_query, $scope ), $scope ? $scope : 'current', 'user' );
 
 		if ( $results['found_objects'] < 1 ) {
 			$wp_user_query->query_vars = $default_args;
@@ -105,10 +107,11 @@ class EP_User_Query_Integration {
 
 	/**
 	 * @param WP_User_Query $wp_user_query
+	 * @param               $scope
 	 *
 	 * @return array
 	 */
-	public function format_args( $wp_user_query ) {
+	public function format_args( $wp_user_query, $scope ) {
 		$arguments    = $wp_user_query->query_vars;
 		$ep_arguments = array();
 		if ( empty( $arguments['number'] ) ) {
@@ -174,6 +177,23 @@ class EP_User_Query_Integration {
 			}
 		}
 		// End tax queries
+
+		/**
+		 * Has Published Posts filter
+		 */
+		if ( ! empty( $arguments['has_published_posts'] ) ) {
+			$authors = $this->get_users_with_posts( $arguments['has_published_posts'], $ep_arguments['size'], $scope );
+			if ( ! empty( $arguments['include'] ) ) {
+				$ids = array_values( array_intersect( $arguments['include'], $authors ) );
+			} else {
+				$ids = $authors;
+			}
+			if ( ! $ids ) {
+				$ep_arguments['size'] = 0;
+			}
+			$arguments['include'] = $ids;
+		}
+		// end has published posts filter
 
 		/**
 		 * include ID list
@@ -665,6 +685,66 @@ class EP_User_Query_Integration {
 		$search_columns = apply_filters( 'ep_user_search_fields', $search_columns, $arguments );
 
 		return array_unique( $search_columns );
+	}
+
+	/**
+	 * @param $has_published_posts
+	 * @param $size
+	 * @param $scope
+	 *
+	 * @return array
+	 */
+	private function get_users_with_posts( $has_published_posts, $size, $scope ) {
+		if ( true === $has_published_posts ) {
+			$post_types = get_post_types( array( 'public' => true ) );
+		} else {
+			$post_types = (array) $has_published_posts;
+		}
+		$author_search      = array(
+			'size' => 0,
+			'aggs' => array(
+				'author_ids' => array(
+					'terms' => array(
+						'field' => 'post_author.id',
+						'order' => array( 'post_types' => 'desc' ),
+						'size'  => $size,
+					),
+					'aggs'  => array(
+						'post_types' => array(
+							'filter' => array(
+								'terms' => array(
+									'post_type.raw' => (array) $post_types
+								)
+							)
+						)
+					),
+				),
+			),
+		);
+		$this->aggregations = null;
+		add_action( 'ep_retrieve_aggregations', array( $this, 'intercept_aggregations' ) );
+		ep_search( $author_search, $scope ? $scope : 'current', 'post' );
+		remove_action( 'ep_retrieve_aggregations', array( $this, 'intercept_aggregations' ) );
+		if (
+			! $this->aggregations ||
+			! is_array( $this->aggregations ) ||
+			empty( $this->aggregations['user_ids']['buckets'] )
+		) {
+			return array();
+		}
+		$user_ids = array();
+		foreach ( $this->aggregations['user_ids']['buckets'] as $bucket ) {
+			if ( empty( $bucket['post_type']['doc_count'] ) ) {
+				continue;
+			}
+			$user_ids[] = (int) $bucket['key'];
+		}
+
+		return array_filter( $user_ids );
+	}
+
+	public function intercept_aggregations( $aggregations ) {
+		$this->aggregations = $aggregations;
 	}
 
 }
