@@ -51,8 +51,18 @@ class EP_API {
 
 		$path = $index . 'post/' . $post['post_id'];
 
+		if ( function_exists( 'wp_json_encode' ) ) {
+
+			$encoded_post = wp_json_encode( $post );
+
+		} else {
+
+			$encoded_post = json_encode( $post );
+
+		}
+
 		$request_args = array(
-			'body'    => json_encode( $post ),
+			'body'    => $encoded_post,
 			'method'  => 'PUT',
 			'timeout' => 15,
 		);
