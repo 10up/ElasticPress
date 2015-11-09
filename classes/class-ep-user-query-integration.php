@@ -86,7 +86,20 @@ class EP_User_Query_Integration {
 		if ( ! in_array( $scope, array( 'all', 'current' ) ) ) {
 			$scope = array_filter( wp_parse_id_list( $scope ) );
 		}
-		$results = ep_search( $this->format_args( $wp_user_query, $scope ), $scope ? $scope : 'current', 'user' );
+		try {
+			$results = ep_search( $this->format_args( $wp_user_query, $scope ), $scope ? $scope : 'current', 'user' );
+		} catch ( Exception $e ) {
+			/**
+			 * Allow visibility into any exceptions that we catch here
+			 *
+			 * @param Exception                 $e
+			 * @param WP_User_Query             $wp_user_query
+			 * @param mixed                     $scope
+			 * @param EP_User_Query_Integration $this
+			 */
+			do_action( 'ep_user_search_exception_handler', $e, $wp_user_query, $scope, $this );
+			$results = array( 'found_objects' => 0, 'objects' => array() );
+		}
 
 		if ( $results['found_objects'] < 1 ) {
 			$wp_user_query->query_vars = $default_args;
@@ -189,7 +202,7 @@ class EP_User_Query_Integration {
 				$ids = $authors;
 			}
 			if ( ! $ids ) {
-				$ep_arguments['size'] = 0;
+				throw new LogicException( 'No users could possibly be matched' );
 			}
 			$arguments['include'] = $ids;
 		}
