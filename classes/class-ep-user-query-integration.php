@@ -728,13 +728,13 @@ class EP_User_Query_Integration {
 		if (
 			! $this->aggregations ||
 			! is_array( $this->aggregations ) ||
-			empty( $this->aggregations['user_ids']['buckets'] )
+			empty( $this->aggregations['author_ids']['buckets'] )
 		) {
 			return array();
 		}
 		$user_ids = array();
-		foreach ( $this->aggregations['user_ids']['buckets'] as $bucket ) {
-			if ( empty( $bucket['post_type']['doc_count'] ) ) {
+		foreach ( $this->aggregations['author_ids']['buckets'] as $bucket ) {
+			if ( empty( $bucket['post_types']['doc_count'] ) ) {
 				continue;
 			}
 			$user_ids[] = (int) $bucket['key'];
