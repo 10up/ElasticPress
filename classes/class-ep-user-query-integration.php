@@ -696,7 +696,7 @@ class EP_User_Query_Integration {
 	 */
 	private function get_users_with_posts( $has_published_posts, $size, $scope ) {
 		if ( true === $has_published_posts ) {
-			$post_types = get_post_types( array( 'public' => true ) );
+			$post_types = array_values( get_post_types( array( 'public' => true ) ) );
 		} else {
 			$post_types = (array) $has_published_posts;
 		}
