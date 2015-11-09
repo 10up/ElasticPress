@@ -40,7 +40,7 @@ class EP_User_Query_Integration {
 			return;
 		}
 
-		if ( $this->is_user_indexing_active() ) {
+		if ( ! $this->is_user_indexing_active() ) {
 			return;
 		}
 		add_action( 'pre_get_users', array( $this, 'action_pre_get_users' ), 99999 );
