@@ -1,11 +1,11 @@
 === ElasticPress ===
-Contributors: aaronholbrook, tlovett1, 10up
+Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
 Tested up to: 4.4
-Stable tag: 1.6
+Stable tag: 1.6.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -59,6 +59,13 @@ configuring single site and multi-site cross-site search are slightly different.
 4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
+
+= 1.6.1 =
+
+ElasticPress 1.6.1 fixes mapping backwards compatibility issues with Elasticsearch 2.0:
+
+* Removes the fields field type from object typed fields as they should be called properties.
+* Remove path from object field types.
 
 = 1.6 =
 
