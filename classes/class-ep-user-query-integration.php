@@ -184,7 +184,7 @@ class EP_User_Query_Integration {
 		if ( ! empty( $arguments['has_published_posts'] ) ) {
 			$authors = $this->get_users_with_posts( $arguments['has_published_posts'], $ep_arguments['size'], $scope );
 			if ( ! empty( $arguments['include'] ) ) {
-				$ids = array_values( array_intersect( $arguments['include'], $authors ) );
+				$ids = array_values( array_intersect( wp_parse_id_list( $arguments['include'] ), $authors ) );
 			} else {
 				$ids = $authors;
 			}
