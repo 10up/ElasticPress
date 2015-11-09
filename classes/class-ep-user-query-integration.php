@@ -122,6 +122,8 @@ class EP_User_Query_Integration {
 	 * @param WP_User_Query $wp_user_query
 	 * @param               $scope
 	 *
+	 * @throws Exception If the current query must be aborted
+	 *
 	 * @return array
 	 */
 	public function format_args( $wp_user_query, $scope ) {
