@@ -67,7 +67,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		$path = implode( '/', array( $index, $this->name, $this->get_object_identifier( $object ) ) );
 
 		$request_args = array(
-			'body'    => json_encode( $object ),
+			'body'    => function_exists( 'wp_json_encode' ) ? wp_json_encode( $object ) : json_encode( $object ),
 			'method'  => 'PUT',
 			'timeout' => 15,
 		);

@@ -11,7 +11,7 @@ return array(
 				'default' => array(
 					'tokenizer' => 'standard',
 					'filter' => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-					'language' => apply_filters( 'ep_analyzer_language', 'english' ),
+					'language' => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				),
 				'shingle_analyzer' => array(
 					'type' => 'custom',
@@ -31,7 +31,7 @@ return array(
 				),
 				'ewp_snowball' => array(
 					'type' => 'snowball',
-					'language' => apply_filters( 'ep_analyzer_language', 'english' ),
+					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				),
 				'edge_ngram' => array(
 					'side' => 'front',

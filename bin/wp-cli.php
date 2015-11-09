@@ -554,7 +554,16 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			// put the post into the queue
 			$this->posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-			$this->posts[ $post_id ][] = addcslashes( json_encode( $post_args ), "\n" );
+
+			if ( function_exists( 'wp_json_encode' ) ) {
+
+				$this->posts[ $post_id ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
+
+			} else {
+
+				$this->posts[ $post_id ][] = addcslashes( json_encode( $post_args ), "\n" );
+
+			}
 
 			// augment the counter
 			++ $post_count;
@@ -563,7 +572,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// If we have hit the trigger, initiate the bulk request.
 		if ( ( $post_count + $killed_post_count ) === absint( $bulk_trigger ) ) {
-			$this->bulk_index( $show_bulk_errors );
+
+			// Don't waste time if we've killed all the posts.
+			if ( ! empty( $this->posts ) ) {
+				$this->bulk_index( $show_bulk_errors );
+			}
 
 			// reset the post count
 			$post_count = 0;
