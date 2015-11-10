@@ -492,6 +492,8 @@ class EP_API {
 
 		$post_args['meta'] = $this->prepare_meta_types( $post_args['post_meta'] );
 
+		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
+
 		return $post_args;
 	}
 
