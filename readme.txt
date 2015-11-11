@@ -60,6 +60,13 @@ configuring single site and multi-site cross-site search are slightly different.
 
 == Changelog ==
 
+= 1.6.2 =
+
+ElasticPress 1.6.2 fixes ALL backwards compatibility issues with Elasticsearch 2.0:
+
+* Removes `fuzzy_like_this` query and uses `multi_match` instead.
+* Uses string instead of array for post type term when there is only one term.
+
 = 1.6.1 =
 
 ElasticPress 1.6.1 fixes mapping backwards compatibility issues with Elasticsearch 2.0:
