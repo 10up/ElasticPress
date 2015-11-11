@@ -1066,13 +1066,15 @@ class EP_API {
 							'query' => '',
 							'fields' => $search_fields,
 							'boost' => apply_filters( 'ep_match_boost', 2 ),
+							'fuzziness' => 0,
 						)
 					),
 					array(
-						'fuzzy_like_this' => array(
+						'multi_match' => array(
 							'fields' => $search_fields,
-							'like_text' => '',
-							'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
+							'query' => '',
+							'fuzziness' => 2,
+							'operator' => 'or',
 						),
 					)
 				),
@@ -1087,7 +1089,7 @@ class EP_API {
 		 */
 
 		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
-			$query['bool']['should'][1]['fuzzy_like_this']['like_text'] = $args['s'];
+			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
@@ -1107,7 +1109,8 @@ class EP_API {
 				$terms_map_name = 'terms';
 				if ( count( $post_types ) < 2 ) {
 					$terms_map_name = 'term';
-				}
+					$post_types = $post_types[0];
+ 				}
 
 				$filter['and'][] = array(
 					$terms_map_name => array(
