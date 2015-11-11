@@ -2149,4 +2149,31 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertTrue( is_array( $dateval ) && array_key_exists( 'datetime', $dateval ) && '2015-01-01 00:00:00' === $dateval['datetime'] );
 
 	}
+
+	public function testMetaValueTypeQueryNumeric() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 100 ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 101 ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 101,
+					'compare' => '>=',
+					'type' => 'numeric',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+	}
 }
