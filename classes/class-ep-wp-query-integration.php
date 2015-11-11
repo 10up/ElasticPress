@@ -304,8 +304,7 @@ class EP_WP_Query_Integration {
 						'menu_order',
 						'permalink',
 						'terms',
-						'post_meta',
-						'guid'
+						'post_meta'
 						)
 					);
 

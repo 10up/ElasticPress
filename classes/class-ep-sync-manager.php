@@ -79,7 +79,7 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-		
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
 
@@ -88,11 +88,6 @@ class EP_Sync_Manager {
 		}
 
 		$post = get_post( $post_ID );
-
-		// If the post is an auto-draft - let's abort.
-		if ( 'auto-draft' == $post->post_status ) {
-			return;
-		}
 
 		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
 		if ( ! in_array( $post->post_status, $indexable_post_statuses ) ) {

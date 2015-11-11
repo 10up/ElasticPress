@@ -8,9 +8,7 @@ class EP_Test_Base extends WP_UnitTestCase {
 	 * @since 1.0
 	 */
 	public function __construct() {
-		if ( property_exists( __CLASS__, 'ignore_files' ) ) {
-			self::$ignore_files = true;
-		}
+		self::$ignore_files = true;
 	}
 
 	/**
@@ -79,7 +77,7 @@ class EP_Test_Base extends WP_UnitTestCase {
 		);
 
 		register_post_type( 'ep_test', $args );
-
+		
 		// Post type that is excluded from search.
 		$args = array(
 			'taxonomies' => array( 'post_tag', 'category' ),
@@ -87,7 +85,7 @@ class EP_Test_Base extends WP_UnitTestCase {
 		);
 
 		register_post_type( 'ep_test_excluded', $args );
-
+		
 				// Post type that is excluded from search.
 		$args = array(
 			'taxonomies' => array( 'post_tag', 'category' ),

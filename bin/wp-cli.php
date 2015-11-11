@@ -24,13 +24,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private $failed_posts = array();
 
 	/**
-	 * Holds error messages for individual posts that failed to index (assuming they're available).
-	 *
-	 * @since 1.7
-	 */
-	private $failed_posts_message = array();
-
-	/**
 	 * Add the document mapping
 	 *
 	 * @synopsis [--network-wide]
@@ -181,7 +174,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset]
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -237,7 +230,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'], isset( $assoc_args['show-bulk-errors'] ) );
+				$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'] );
 
 				$total_indexed += $result['synced'];
 
@@ -260,7 +253,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log( __( 'Indexing posts...', 'elasticpress' ) );
 
-			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'], isset( $assoc_args['show-bulk-errors'] ) );
+			$result = $this->_index_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'] );
 
 			WP_CLI::log( sprintf( __( 'Number of posts synced on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
@@ -283,12 +276,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param bool $no_bulk disable bulk indexing
 	 * @param int $posts_per_page
 	 * @param int $offset
-	 * @param bool $show_bulk_errors whether or not to show bulk error messages.
 	 *
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper( $no_bulk = false, $posts_per_page, $offset = 0, $show_bulk_errors = false ) {
+	private function _index_helper( $no_bulk = false, $posts_per_page, $offset = 0) {
 		global $wpdb, $wp_object_cache;
 		$synced = 0;
 		$errors = array();
@@ -314,7 +306,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 						// index the posts one-by-one. not sure why someone may want to do this.
 						$result = ep_sync_post( get_the_ID() );
 					} else {
-						$result = $this->queue_post( get_the_ID(), $query->post_count, $show_bulk_errors );
+						$result = $this->queue_post( get_the_ID(), $query->post_count );
 					}
 
 					if ( ! $result ) {
@@ -364,11 +356,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @param $post_id
 	 * @param $bulk_trigger
-	 * @param bool $show_bulk_errors true to show individual post error messages for bulk errors
 	 *
 	 * @return bool
 	 */
-	private function queue_post( $post_id, $bulk_trigger, $show_bulk_errors = false ) {
+	private function queue_post( $post_id, $bulk_trigger ) {
 		static $post_count = 0;
 
 		$post_args = ep_prepare_post( $post_id );
@@ -388,7 +379,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// if we have hit the trigger, initiate the bulk request
 		if ( $post_count === absint( $bulk_trigger ) ) {
-			$this->bulk_index( $show_bulk_errors );
+			$this->bulk_index();
 
 			// reset the post count
 			$post_count = 0;
@@ -403,11 +394,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Perform the bulk index operation
 	 *
-	 * @param bool $show_bulk_errors true to show individual post error messages for bulk errors
-	 *
 	 * @since 0.9.2
 	 */
-	private function bulk_index( $show_bulk_errors = false ) {
+	private function bulk_index() {
 		// monitor how many times we attempt to add this particular bulk request
 		static $attempts = 0;
 
@@ -449,14 +438,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 						unset( $this->posts[$item['index']['_id']] );
 					}
 				}
-				$this->bulk_index( $show_bulk_errors );
+				$this->bulk_index();
 			} else {
 				foreach ( $response['items'] as $item ) {
 					if ( ! empty( $item['index']['_id'] ) ) {
 						$this->failed_posts[] = $item['index']['_id'];
-						if ( $show_bulk_errors ) {
-							$this->failed_posts_message[$item['index']['_id']] = $item['index']['error'];
-						}
 					}
 				}
 				$attempts = 0;
@@ -479,9 +465,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				$failed_post = get_post( $failed );
 				if ( $failed_post ) {
 					$error_text .= "- {$failed}: " . $failed_post->post_title . "\r\n";
-					if ( array_key_exists( $failed, $this->failed_posts_message ) ) {
-						$error_text .= "\t" . $this->failed_posts_message[ $failed ] . PHP_EOL;
-					}
 				}
 			}
 
@@ -489,7 +472,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			// clear failed posts after printing to the screen
 			$this->failed_posts = array();
-			$this->failed_posts_message = array();
 		}
 	}
 
