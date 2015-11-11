@@ -1117,10 +1117,9 @@ class EP_API {
 						)
 					),
 					array(
-						'fuzzy_like_this' => array(
+						'more_like_this' => array(
 							'fields' => $search_fields,
-							'like_text' => '',
-							'min_similarity' => apply_filters( 'ep_min_similarity', 0.75 )
+							'like' => '',
 						),
 					)
 				),
@@ -1135,7 +1134,7 @@ class EP_API {
 		 */
 
 		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
-			$query['bool']['should'][1]['fuzzy_like_this']['like_text'] = $args['s'];
+			$query['bool']['should'][1]['more_like_this']['like'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
