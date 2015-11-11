@@ -111,8 +111,7 @@ return array(
 				),
 				'post_author' => array(
 					'type' => 'object',
-					'path' => 'full',
-					'fields' => array(
+					'properties' => array(
 						'display_name' => array(
 							'type' => 'string',
 							'analyzer' => 'standard',
@@ -229,8 +228,7 @@ return array(
 				),
 				'date_terms' => array(
 					'type' => 'object',
-					'path' => 'full',
-					'fields' => array(
+					'properties' => array(
 						'year' => array( //4 digit year (e.g. 2011)
 							'type' => 'integer',
 						),
