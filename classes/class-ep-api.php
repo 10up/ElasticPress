@@ -1154,7 +1154,8 @@ class EP_API {
 				$terms_map_name = 'terms';
 				if ( count( $post_types ) < 2 ) {
 					$terms_map_name = 'term';
-				}
+					$post_types = $post_types[0];
+ 				}
 
 				$filter['and'][] = array(
 					$terms_map_name => array(
