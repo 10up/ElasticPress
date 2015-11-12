@@ -2150,6 +2150,11 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	}
 
+	/**
+	 * Test numeric integer meta queries
+	 *
+	 * @since  1.7
+	 */
 	public function testMetaValueTypeQueryNumeric() {
 
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2175,5 +2180,87 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 100,
+					'compare' => '=',
+					'type' => 'numeric',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 103,
+					'compare' => '<=',
+					'type' => 'numeric',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+	}
+
+	/**
+	 * Test decimal meta queries
+	 *
+	 * @since  1.7
+	 */
+	public function testMetaValueTypeQueryDecimal() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 15.5 ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 16.5 ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 16.5,
+					'compare' => '<',
+					'type' => 'decimal',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 16.5,
+					'compare' => '=',
+					'type' => 'decimal',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 }
