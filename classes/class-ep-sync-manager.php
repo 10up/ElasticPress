@@ -83,7 +83,11 @@ class EP_Sync_Manager {
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
 
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_ID ) || 'revision' === $post_type ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
+			// Bypass saving if doing autosave or post type is revision
+			return;
+		} elseif ( ! current_user_can( 'edit_post', $post_ID ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
+			// Bypass saving if user does not have access to edit post and we're not in a cron process
 			return;
 		}
 
