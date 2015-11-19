@@ -1030,7 +1030,6 @@ class EP_API {
 		 *
 		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
 		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
-		 * 'type' is NOT support at this time.
 		 *
 		 * @since 1.3
 		 */
@@ -1072,7 +1071,7 @@ class EP_API {
 					// Comparisons need to look at different paths
 					if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'];
-					} elseif ( in_array( $compare, array( '=', '!=' ) ) ) {
+					} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 						// Map specific meta field types to different ElasticSearch core types
