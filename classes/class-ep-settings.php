@@ -2,24 +2,24 @@
 /**
  * Create an ElasticPress settings page.
  *
- * @package Jovosearch
+ * @package elasticpress
  *
- * @since   0.1.0
+ * @since   1.7
  *
  * @author  Allan Collins <allan.collins@10up.com>
  */
 
 /**
- * Jovosearch Settings Page
+ * ElasticPress Settings Page
  *
  * Sets up the settings page to handle ElasticPress configuration.
  */
-class Jovo_Settings {
+class EP_Settings {
 
 	/**
 	 * WordPress options page
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
 	 * @var object
 	 */
@@ -30,9 +30,9 @@ class Jovo_Settings {
 	 *
 	 * Loads initial actions.
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
-	 * @return Jovo_Settings
+	 * @return EP_Settings
 	 */
 	public function __construct() {
 
@@ -61,7 +61,7 @@ class Jovo_Settings {
 	 *
 	 * Registers and enqueues the necessary JavaScripts for the interface.
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
 	 * @return void
 	 */
@@ -70,27 +70,27 @@ class Jovo_Settings {
 		// Enqueue more easily debugged version if applicable.
 		if ( defined( 'WP_DEBUG' ) && true === WP_DEBUG ) {
 
-			wp_register_script( 'jovo_admin', JOVO_URL . 'assets/js/jovosearch-admin.js', array( 'jquery' ), JOVO_VERSION );
+			wp_register_script( 'ep_admin', EP_URL . 'assets/js/elasticpress-admin.js', array( 'jquery' ), EP_VERSION );
 
-			wp_register_style( 'jovo_progress_style', JOVO_URL . 'assets/css/jquery-ui.css', array(), JOVO_VERSION );
-			wp_register_style( 'jovo_styles', JOVO_URL . 'assets/css/jovosearch.css', array(), JOVO_VERSION );
+			wp_register_style( 'ep_progress_style', EP_URL . 'assets/css/jquery-ui.css', array(), EP_VERSION );
+			wp_register_style( 'ep_styles', EP_URL . 'assets/css/elasticpress.css', array(), EP_VERSION );
 
 		} else {
 
-			wp_register_script( 'jovo_admin', JOVO_URL . 'assets/js/jovosearch-admin.min.js', array( 'jquery' ), JOVO_VERSION );
+			wp_register_script( 'ep_admin', EP_URL . 'assets/js/elasticpress-admin.min.js', array( 'jquery' ), EP_VERSION );
 
-			wp_register_style( 'jovo_progress_style', JOVO_URL . 'assets/css/jquery-ui.min.css', array(), JOVO_VERSION );
-			wp_register_style( 'jovo_styles', JOVO_URL . 'assets/css/jovosearch.min.css', array(), JOVO_VERSION );
+			wp_register_style( 'ep_progress_style', EP_URL . 'assets/css/jquery-ui.min.css', array(), EP_VERSION );
+			wp_register_style( 'ep_styles', EP_URL . 'assets/css/elasticpress.min.css', array(), EP_VERSION );
 
 		}
 
 		// Only add the following to the settings page.
 		if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'settings_page_elasticpress' ) !== false ) {
 
-			wp_enqueue_style( 'jovo_progress_style' );
-			wp_enqueue_style( 'jovo_styles' );
+			wp_enqueue_style( 'ep_progress_style' );
+			wp_enqueue_style( 'ep_styles' );
 
-			wp_enqueue_script( 'jovo_admin' );
+			wp_enqueue_script( 'ep_admin' );
 
 		}
 	}
@@ -100,50 +100,50 @@ class Jovo_Settings {
 	 *
 	 * Sets up Settings API.
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
 	 * @return void
 	 */
 	public function action_admin_init() {
 
 		//Save options for multisite
-		if ( is_multisite() && ( isset( $_POST['jovo_host'] ) || isset( $_POST['jovo_activate'] ) ) ) {
+		if ( is_multisite() && ( isset( $_POST['ep_host'] ) || isset( $_POST['ep_activate'] ) ) ) {
 
-			if ( ! check_admin_referer( 'jovosearch-options' ) ) {
-				die( esc_html__( 'Security error!', 'jovosearch' ) );
+			if ( ! check_admin_referer( 'elasticpress-options' ) ) {
+				die( esc_html__( 'Security error!', 'elasticpress' ) );
 			}
 
-			if ( isset( $_POST['jovo_host'] ) ) {
+			if ( isset( $_POST['ep_host'] ) ) {
 
-				$host = $this->sanitize_jovo_host( $_POST['jovo_host'] );
-				update_site_option( 'jovo_host', $host );
-
-			}
-
-			if ( isset( $_POST['jovo_api_key'] ) ) {
-
-				$host = sanitize_text_field( $_POST['jovo_api_key'] );
-				update_site_option( 'jovo_api_key', $host );
+				$host = $this->sanitize_ep_host( $_POST['ep_host'] );
+				update_site_option( 'ep_host', $host );
 
 			}
 
-			if ( isset( $_POST['jovo_activate'] ) ) {
+			if ( isset( $_POST['ep_api_key'] ) ) {
 
-				$this->sanitize_jovo_activate( $_POST['jovo_activate'] );
+				$host = sanitize_text_field( $_POST['ep_api_key'] );
+				update_site_option( 'ep_api_key', $host );
+
+			}
+
+			if ( isset( $_POST['ep_activate'] ) ) {
+
+				$this->sanitize_ep_activate( $_POST['ep_activate'] );
 
 			} else {
 
-				$this->sanitize_jovo_activate( false );
+				$this->sanitize_ep_activate( false );
 
 			}
 		}
 
-		add_settings_section( 'jovo_settings_section_main', '', array( $this, 'jovo_settings_section_hightlight' ), 'jovosearch' );
+		add_settings_section( 'ep_settings_section_main', '', array( $this, 'ep_settings_section_hightlight' ), 'elasticpress' );
 
-		if ( is_wp_error( Jovo_Lib::check_host() ) || get_site_option( 'jovo_host' ) ) {
+		if ( is_wp_error( Jovo_Lib::check_host() ) || get_site_option( 'ep_host' ) ) {
 
-			add_settings_field( 'jovo_host', esc_html__( 'ElasticSearch Host:', 'jovosearch' ), array( $this, 'setting_callback_host' ), 'jovosearch', 'jovo_settings_section_main' );
-			add_settings_field( 'jovo_api_key', esc_html__( 'ElasticPress API Key:', 'jovosearch' ), array( $this, 'setting_callback_api_key' ), 'jovosearch', 'jovo_settings_section_main' );
+			add_settings_field( 'ep_host', esc_html__( 'ElasticSearch Host:', 'elasticpress' ), array( $this, 'setting_callback_host' ), 'elasticpress', 'ep_settings_section_main' );
+			add_settings_field( 'ep_api_key', esc_html__( 'ElasticPress API Key:', 'elasticpress' ), array( $this, 'setting_callback_api_key' ), 'elasticpress', 'ep_settings_section_main' );
 
 		}
 
@@ -151,13 +151,13 @@ class Jovo_Settings {
 
 		if ( $stats['status'] && ! is_wp_error( Jovo_Lib::check_host() ) ) {
 
-			add_settings_field( 'jovo_activate', esc_html__( 'Use ElasticSearch:', 'jovosearch' ), array( $this, 'setting_callback_activate' ), 'jovosearch', 'jovo_settings_section_main' );
+			add_settings_field( 'ep_activate', esc_html__( 'Use ElasticSearch:', 'elasticpress' ), array( $this, 'setting_callback_activate' ), 'elasticpress', 'ep_settings_section_main' );
 
 		}
 
-		register_setting( 'jovosearch', 'jovo_host', array( $this, 'sanitize_jovo_host' ) );
-		register_setting( 'jovosearch', 'jovo_api_key', 'sanitize_text_field' );
-		register_setting( 'jovosearch', 'jovo_activate', array( $this, 'sanitize_jovo_activate' ) );
+		register_setting( 'elasticpress', 'ep_host', array( $this, 'sanitize_ep_host' ) );
+		register_setting( 'elasticpress', 'ep_api_key', 'sanitize_text_field' );
+		register_setting( 'elasticpress', 'ep_activate', array( $this, 'sanitize_ep_activate' ) );
 
 	}
 
@@ -166,7 +166,7 @@ class Jovo_Settings {
 	 *
 	 * Adds options page to admin menu.
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
 	 * @return void
 	 */
@@ -176,8 +176,10 @@ class Jovo_Settings {
 		$capability  = 'manage_options';
 
 		if ( is_multisite() ) {
+
 			$parent_slug = 'settings.php';
 			$capability  = 'manage_network';
+
 		}
 
 		$this->options_page = add_submenu_page(
@@ -195,7 +197,7 @@ class Jovo_Settings {
 	 *
 	 * Callback for add_meta_box to load column view.
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
 	 * @param WP_Post|NULL $post Normally WP_Post object, but NULL in our case.
 	 * @param array        $args Arguments passed from add_meta_box.
@@ -216,7 +218,7 @@ class Jovo_Settings {
 	 *
 	 * Creates meta boxes for the settings page columns.
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
 	 * @return void
 	 */
@@ -255,9 +257,9 @@ class Jovo_Settings {
 		 *
 		 * @since 0.4.0
 		 *
-		 * @param Jovo_Settings $this Instance of Jovo_Settings.
+		 * @param EP_Settings $this Instance of ep_Settings.
 		 */
-		do_action( 'jovo_do_settings_meta', $this );
+		do_action( 'ep_do_settings_meta', $this );
 
 	}
 
@@ -272,7 +274,7 @@ class Jovo_Settings {
 	 *
 	 * @return string Sanitized input items
 	 */
-	public function sanitize_jovo_activate( $input ) {
+	public function sanitize_ep_activate( $input ) {
 
 		$input = ( isset( $input ) && 1 === intval( $input ) ? true : false );
 
@@ -301,7 +303,7 @@ class Jovo_Settings {
 	 *
 	 * @return string Sanitized input items
 	 */
-	public function sanitize_jovo_host( $input ) {
+	public function sanitize_ep_host( $input ) {
 
 		$input = esc_url_raw( $input );
 
@@ -320,7 +322,7 @@ class Jovo_Settings {
 	 */
 	public function setting_callback_activate() {
 
-		echo '<input type="checkbox" value="1" name="jovo_activate" id="jovo_activate"' . checked( true, ep_is_activated(), false ) . ' />';
+		echo '<input type="checkbox" value="1" name="ep_activate" id="ep_activate"' . checked( true, ep_is_activated(), false ) . ' />';
 
 	}
 
@@ -335,7 +337,7 @@ class Jovo_Settings {
 	 */
 	public function setting_callback_api_key() {
 
-		echo '<input name="jovo_api_key" id="jovo_api_key" type="text" value="' . esc_attr( get_site_option( 'jovo_api_key' ) ) . '">';
+		echo '<input name="ep_api_key" id="ep_api_key" type="text" value="' . esc_attr( get_site_option( 'ep_api_key' ) ) . '">';
 
 	}
 
@@ -344,13 +346,13 @@ class Jovo_Settings {
 	 *
 	 * Callback for settings field. Displays textbox to specify the EP_HOST.
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
 	 * @return void
 	 */
 	public function setting_callback_host() {
 
-		echo '<input name="jovo_host" id="jovo_host" type="text" value="' . esc_attr( get_site_option( 'jovo_host' ) ) . '">';
+		echo '<input name="ep_host" id="ep_host" type="text" value="' . esc_attr( get_site_option( 'ep_host' ) ) . '">';
 
 	}
 
@@ -359,7 +361,7 @@ class Jovo_Settings {
 	 *
 	 * Loads up the settings page.
 	 *
-	 * @since 0.1.0
+	 * @since 1.7
 	 *
 	 * @return void
 	 */
@@ -380,9 +382,9 @@ class Jovo_Settings {
 	 *
 	 * @return void
 	 */
-	public function jovo_settings_section_hightlight() {
+	public function ep_settings_section_hightlight() {
 
-		echo '<h2>' . esc_html__( 'ElasticSearch Integration Options', 'jovosearch' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'ElasticSearch Integration Options', 'elasticpress' ) . '</h2>';
 
 	}
 }

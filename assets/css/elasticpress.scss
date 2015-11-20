@@ -1,0 +1,54 @@
+#ep_stats {
+
+	.ep_site {
+		display : none;
+	}
+
+	#ep_site_sel {
+		padding : 15px 0 0 0;
+	}
+
+	.ep_stats_section {
+		padding : 20px 0;
+	}
+
+	.search_stats {
+		display : block;
+		float   : left;
+		margin  : 0;
+		padding : 10px 0;
+		width   : 50%;
+	}
+
+	.index_stats {
+		display : block;
+		float   : right;
+		margin  : 0;
+		padding : 10px 0;
+		width   : 50%;
+	}
+
+	#ep_ind_stats,
+	#ep_cluster_stats {
+		clear : both;
+		width : 100%;
+	}
+
+	h3 {
+		margin  : 0;
+		padding : 0;
+	}
+
+	ul {
+
+		list-style : disc;
+		margin     : 0;
+		padding    : 0;
+
+		li {
+			margin-left : 20px;
+		}
+
+	}
+
+}

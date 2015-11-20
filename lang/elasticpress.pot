@@ -1,100 +1,313 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the ElasticPress package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Elasticpress\n"
-"POT-Creation-Date: 2014-07-08 01:41-0500\n"
-"PO-Revision-Date: 2014-07-08 01:41-0500\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: en\n"
+"Project-Id-Version: ElasticPress 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-11-20 13:40-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.6\n"
-"X-Poedit-Basepath: ../\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Poedit-KeywordsList: __;_e\n"
-"X-Poedit-SearchPath-0: .\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: classes/class-ep-cron.php:46
-msgid "Every 30 minutes"
+#: bin/wp-cli.php:55
+#, php-format
+msgid "Adding mapping for site %d..."
 msgstr ""
 
-#: classes/class-ep-elasticpress.php:85 classes/class-ep-elasticpress.php:96
+#: bin/wp-cli.php:63 bin/wp-cli.php:79
+msgid "Mapping sent"
+msgstr ""
+
+#: bin/wp-cli.php:65 bin/wp-cli.php:81
+msgid "Mapping failed"
+msgstr ""
+
+#: bin/wp-cli.php:71
+msgid "Adding mapping..."
+msgstr ""
+
+#: bin/wp-cli.php:109
+#, php-format
+msgid "Deleting index for site %d..."
+msgstr ""
+
+#: bin/wp-cli.php:114 bin/wp-cli.php:127
+msgid "Index deleted"
+msgstr ""
+
+#: bin/wp-cli.php:116
+msgid "Delete index failed"
+msgstr ""
+
+#: bin/wp-cli.php:122
+msgid "Deleting index..."
+msgstr ""
+
+#: bin/wp-cli.php:129
+msgid "Index delete failed"
+msgstr ""
+
+#: bin/wp-cli.php:147 bin/wp-cli.php:253
+msgid "Recreating network alias..."
+msgstr ""
+
+#: bin/wp-cli.php:154 bin/wp-cli.php:277
+msgid "Done!"
+msgstr ""
+
+#: bin/wp-cli.php:156
+msgid "An error occurred"
+msgstr ""
+
+#: bin/wp-cli.php:233
+msgid "Indexing posts network-wide..."
+msgstr ""
+
+#: bin/wp-cli.php:244 bin/wp-cli.php:265
+#, php-format
+msgid "Number of posts indexed on site %d: %d"
+msgstr ""
+
+#: bin/wp-cli.php:247 bin/wp-cli.php:268
+#, php-format
+msgid "Number of post index errors on site %d: %d"
+msgstr ""
+
+#: bin/wp-cli.php:257
+#, php-format
+msgid "Total number of posts indexed: %d"
+msgstr ""
+
+#: bin/wp-cli.php:261
+msgid "Indexing posts..."
+msgstr ""
+
+#: bin/wp-cli.php:272
+msgid "Total time elapsed: "
+msgstr ""
+
+#: bin/wp-cli.php:503
+msgid ""
+"The following posts failed to index:\r\n"
+"\r\n"
+msgstr ""
+
+#: bin/wp-cli.php:652
+msgid "EP_HOST is not defined! Check wp-config.php"
+msgstr ""
+
+#: bin/wp-cli.php:656
+msgid "Unable to reach Elasticsearch Server! Check that service is running."
+msgstr ""
+
+#: classes/class-ep-config.php:56 classes/class-ep-config.php:81
+msgid "No running host available."
+msgstr ""
+
+#: classes/class-ep-index-gui.php:102 includes/settings/index.php:14
+msgid "Running Index..."
+msgstr ""
+
+#: classes/class-ep-index-gui.php:103 includes/settings/index.php:14
+msgid "Run Index"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:104
+msgid "items indexed"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:105
+msgid "We're Still counting total items for the index. Please be patient"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:155 classes/class-ep-settings.php:113
+msgid "Security error!"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:187
+msgid ""
+"Mappings could not be completed. If the error persists contact your system "
+"administrator"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:201
+msgid ""
+"Indexing could not be completed. If the error persists contact your system "
+"administrator"
+msgstr ""
+
+#: classes/class-ep-index-worker.php:390
+msgid "The following posts failed to index:"
+msgstr ""
+
+#: classes/class-ep-index-worker.php:401
+msgid ": ElasticPress Index Errors"
+msgstr ""
+
+#: classes/class-ep-settings.php:145
+msgid "ElasticSearch Host:"
+msgstr ""
+
+#: classes/class-ep-settings.php:146
+msgid "ElasticPress API Key:"
+msgstr ""
+
+#: classes/class-ep-settings.php:154
+msgid "Use ElasticSearch:"
+msgstr ""
+
+#: classes/class-ep-settings.php:387
+msgid "ElasticSearch Integration Options"
+msgstr ""
+
+#: classes/class-ep-wp-date-query.php:488
+#, php-format
+msgid ""
+"Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s."
+msgstr ""
+
+#: classes/class-ep-wp-date-query.php:518
+#, php-format
+msgid ""
+"The following values do not describe a valid date: year %1$s, month %2$s, "
+"day %3$s."
+msgstr ""
+
+#: classes/class-ep-wp-date-query.php:535
+#, php-format
+msgid ""
+"The following values do not describe a valid date: month %1$s, day %2$s."
+msgstr ""
+
+#: includes/settings-page.php:13
 msgid "ElasticPress"
 msgstr ""
 
-#: classes/class-ep-elasticpress.php:106 classes/class-ep-elasticpress.php:142
-#: classes/class-ep-elasticpress.php:166 classes/class-ep-elasticpress.php:206
-#: classes/class-ep-elasticpress.php:332
-msgid "You do not have sufficient permissions to access this page."
+#: includes/settings/status.php:22
+msgid "ElasticSearch Host"
 msgstr ""
 
-#: classes/class-ep-elasticpress.php:110 classes/class-ep-elasticpress.php:210
-msgid "Are you lost?"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:276
-msgid "ElasticPress Settings"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:279 classes/class-ep-elasticpress.php:352
-msgid "Host:"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:284 classes/class-ep-elasticpress.php:357
-msgid "Index Name:"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:289
-msgid "Post Types to Index:"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:305
-msgid "Post Sync"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:307
+#: includes/settings/status.php:27
 msgid ""
-"A sync will send all the posts in post types marked for sync to your "
-"Elasticsearch server.\n"
-"\t\t\t\tExisting posts will be updated. This can take hours depending on how "
-"many posts you have in your\n"
-"\t\t\t\tdatabase."
+"Current host is set but cannot be contacted. Please contact the server "
+"administrator."
 msgstr ""
 
-#: classes/class-ep-elasticpress.php:312 classes/class-ep-elasticpress.php:390
-msgid "Start Sync"
+#: includes/settings/status.php:31
+msgid "A host has not been set. You must set a host to continue."
 msgstr ""
 
-#: classes/class-ep-elasticpress.php:315 classes/class-ep-elasticpress.php:393
-msgid "Syncs are currently running."
+#: includes/settings/status.php:42
+msgid "Plugin Status"
 msgstr ""
 
-#: classes/class-ep-elasticpress.php:317 classes/class-ep-elasticpress.php:395
-msgid "Cancel Sync"
+#: includes/settings/status.php:45
+msgid "Connected to ElasticSearch."
 msgstr ""
 
-#: classes/class-ep-elasticpress.php:344
-msgid "ElasticPress Network Settings"
+#: includes/settings/status.php:50
+msgid "ElasticPress can override WP search."
 msgstr ""
 
-#: classes/class-ep-elasticpress.php:347
-msgid "Activate Cross Site Search:"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:368
-msgid "Post Types for Site:"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:383
-msgid "Site-wide Post Sync"
-msgstr ""
-
-#: classes/class-ep-elasticpress.php:385
+#: includes/settings/status.php:56
 msgid ""
-"A site-wide sync will send all the posts in post types marked for sync to "
-"your\n"
-"\t\t\t\tElasticsearch server. Existing posts will be updated. This can take "
-"hours depending on how many\n"
-"\t\t\t\tposts you have across your network."
+"ElasticPress is not activated and cannot override WP search. You can "
+"activate it on the form to the left."
+msgstr ""
+
+#: includes/settings/status.php:61
+msgid "System Stats"
+msgstr ""
+
+#: includes/settings/status.php:65 includes/settings/status.php:134
+msgid "Search Stats"
+msgstr ""
+
+#: includes/settings/status.php:69 includes/settings/status.php:137
+msgid "Total Queries:"
+msgstr ""
+
+#: includes/settings/status.php:72 includes/settings/status.php:140
+msgid "Query Time:"
+msgstr ""
+
+#: includes/settings/status.php:76 includes/settings/status.php:143
+msgid "Total Fetches:"
+msgstr ""
+
+#: includes/settings/status.php:79 includes/settings/status.php:146
+msgid "Fetch Time:"
+msgstr ""
+
+#: includes/settings/status.php:88 includes/settings/status.php:152
+msgid "Index Stats"
+msgstr ""
+
+#: includes/settings/status.php:92 includes/settings/status.php:155
+msgid "Index Total:"
+msgstr ""
+
+#: includes/settings/status.php:95 includes/settings/status.php:158
+msgid "Index Time:"
+msgstr ""
+
+#: includes/settings/status.php:106
+msgid "Site Stats"
+msgstr ""
+
+#: includes/settings/status.php:111
+msgid "Select a site:"
+msgstr ""
+
+#: includes/settings/status.php:112
+msgid "Select"
+msgstr ""
+
+#: includes/settings/status.php:174
+msgid "Cluster Stats"
+msgstr ""
+
+#: includes/settings/status.php:184
+msgid "Disk Usage:"
+msgstr ""
+
+#: includes/settings/status.php:187
+msgid "Disk Space Available:"
+msgstr ""
+
+#: includes/settings/status.php:190
+msgid "Total Disk Space:"
+msgstr ""
+
+#: includes/settings/status.php:203
+msgid "ERROR:"
+msgstr ""
+
+#: node_modules/grunt-pot/test/fixtures/some-file.php:3
+msgid "I'm a translatable string."
+msgstr ""
+
+#: node_modules/grunt-pot/test/fixtures/some-other-file.php:4
+msgid "Me too"
+msgstr ""
+
+#: node_modules/grunt-pot/test/fixtures/some-other-file.php:7
+#, php-format
+msgid "I have %d apple"
+msgid_plural "I have %d apples"
+msgstr[0] ""
+msgstr[1] ""
+
+#. / TRANSLATORS: This should be translated as a shorthand for YEAR-MONTH-DAY using 4, 2 and 2 digits.
+#: node_modules/grunt-pot/test/fixtures/some-other-file.php:16
+msgid "yyyy-mm-dd"
 msgstr ""
