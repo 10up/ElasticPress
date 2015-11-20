@@ -15,8 +15,8 @@
  * Copyright (C) 2013 SearchPress
  */
 
- if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
@@ -34,4 +34,40 @@ require_once( 'classes/class-ep-wp-date-query.php' );
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once 'bin/wp-cli.php';
+}
+
+add_action( 'plugins_loaded', 'ep_loader' );
+
+/**
+ * Loads GUI classes if needed.
+ */
+function ep_loader() {
+
+	if ( class_exists( 'EP_Config' ) ) {
+
+		load_plugin_textdomain( 'elasticpress', false, dirname( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
+
+		// Load the common library.
+		require( dirname( __FILE__ ) . '/classes/class-ep-lib.php' );
+
+		// Load the settings page.
+		require( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
+		new EP_Settings();
+
+		// Load the indexing GUI.
+		if ( ! is_multisite() && true === apply_filters( 'ep_load_index_gui', true ) ) {
+
+			require( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
+			new EP_Index_GUI();
+
+		}
+
+		// Load index statuses.
+		if ( true === apply_filters( 'ep_load_index_status', true ) ) {
+
+			require( dirname( __FILE__ ) . '/classes/class-ep-index-status.php' );
+			new EP_Index_Status();
+
+		}
+	}
 }

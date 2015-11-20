@@ -4,15 +4,13 @@ jQuery ( document ).ready ( function ( $ )  {
 	/**
 	 * Show site stats
 	 */
-	$( '#jovo_site_select' ).change( function()  {
-
-		console.log( 'test' );
+	$( '#ep_site_select' ).change( function()  {
 
 		var siteId = $( this ).val();
 
-		$( '.jovo_site' ).hide();
+		$( '.ep_site' ).hide();
 
-		$( '#jovo_' + siteId ).show();
+		$( '#ep_' + siteId ).show();
 
 	} );
 

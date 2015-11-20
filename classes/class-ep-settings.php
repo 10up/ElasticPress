@@ -36,8 +36,8 @@ class EP_Settings {
 	 */
 	public function __construct() {
 
-		Jovo_Lib::set_api_key();
-		Jovo_Lib::check_host();
+		EP_Lib::set_api_key();
+		EP_Lib::check_host();
 
 		if ( is_multisite() ) { // Must be network admin in multisite.
 
@@ -140,16 +140,16 @@ class EP_Settings {
 
 		add_settings_section( 'ep_settings_section_main', '', array( $this, 'ep_settings_section_hightlight' ), 'elasticpress' );
 
-		if ( is_wp_error( Jovo_Lib::check_host() ) || get_site_option( 'ep_host' ) ) {
+		if ( is_wp_error( EP_Lib::check_host() ) || get_site_option( 'ep_host' ) ) {
 
 			add_settings_field( 'ep_host', esc_html__( 'ElasticSearch Host:', 'elasticpress' ), array( $this, 'setting_callback_host' ), 'elasticpress', 'ep_settings_section_main' );
 			add_settings_field( 'ep_api_key', esc_html__( 'ElasticPress API Key:', 'elasticpress' ), array( $this, 'setting_callback_api_key' ), 'elasticpress', 'ep_settings_section_main' );
 
 		}
 
-		$stats = Jovo_Lib::ep_get_index_status();
+		$stats = EP_Lib::ep_get_index_status();
 
-		if ( $stats['status'] && ! is_wp_error( Jovo_Lib::check_host() ) ) {
+		if ( $stats['status'] && ! is_wp_error( EP_Lib::check_host() ) ) {
 
 			add_settings_field( 'ep_activate', esc_html__( 'Use ElasticSearch:', 'elasticpress' ), array( $this, 'setting_callback_activate' ), 'elasticpress', 'ep_settings_section_main' );
 
@@ -280,11 +280,11 @@ class EP_Settings {
 
 		if ( true === $input ) {
 
-			Jovo_Lib::ep_activate();
+			EP_Lib::ep_activate();
 
 		} else {
 
-			Jovo_Lib::ep_deactivate();
+			EP_Lib::ep_deactivate();
 
 		}
 

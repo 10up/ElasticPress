@@ -69,11 +69,11 @@ class EP_Index_GUI {
 		// Enqueue more easily debugged version if applicable.
 		if ( defined( 'WP_DEBUG' ) && true === WP_DEBUG ) {
 
-			wp_register_script( 'ep_index', EP_URL . 'assets/js/elasticpress-index-admin.js', array( 'jquery', 'jquery-ui-progressbar' ), JOVO_VERSION );
+			wp_register_script( 'ep_index', EP_URL . 'assets/js/elasticpress-index-admin.js', array( 'jquery', 'jquery-ui-progressbar' ), EP_VERSION );
 
 		} else {
 
-			wp_register_script( 'ep_index', EP_URL . 'assets/js/elasticpress-index-admin.min.js', array( 'jquery', 'jquery-ui-progressbar' ), JOVO_VERSION );
+			wp_register_script( 'ep_index', EP_URL . 'assets/js/elasticpress-index-admin.min.js', array( 'jquery', 'jquery-ui-progressbar' ), EP_VERSION );
 
 		}
 
@@ -179,9 +179,9 @@ class EP_Index_GUI {
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
 			// Deactivate our search integration.
-			Jovo_Lib::ep_deactivate();
+			EP_Lib::ep_deactivate();
 
-			$mapping_success = Jovo_Lib::put_mapping();
+			$mapping_success = EP_Lib::put_mapping();
 
 			if ( ! $mapping_success ) {
 				wp_send_json_error( esc_html__( 'Mappings could not be completed. If the error persists contact your system administrator', 'elasticpress' ) );
@@ -204,7 +204,7 @@ class EP_Index_GUI {
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
 			// Reactivate our search integration.
-			Jovo_Lib::ep_activate();
+			EP_Lib::ep_activate();
 
 			$data = array(
 				'ep_sync_complete' => 1,

@@ -5,7 +5,7 @@ jQuery ( document ).ready ( function ( $ ) {
 	 */
 	var performIndex = function ( resetBar, button ) {
 
-		$ ( button ).val ( jovo.running_index_text ).removeClass ( 'button-primary' );
+		$ ( button ).val ( ep.running_index_text ).removeClass ( 'button-primary' );
 
 		//Make sure the progress bar is showing
 		var bar = $ ( '#progressbar' ),
@@ -17,14 +17,14 @@ jQuery ( document ).ready ( function ( $ ) {
 
 			var progress = 0;
 
-			if ( parseInt ( jovo.total_posts ) > 0 ) {
+			if ( parseInt ( ep.total_posts ) > 0 ) {
 
-				progress = parseFloat ( jovo.synced_posts ) / parseFloat ( jovo.total_posts );
-				status.html ( jovo.synced_posts + '/' + jovo.total_posts + 'items' );
+				progress = parseFloat ( ep.synced_posts ) / parseFloat ( ep.total_posts );
+				status.html ( ep.synced_posts + '/' + ep.total_posts + 'items' );
 
 			} else {
 
-				status.html ( jovo.counting_items );
+				status.html ( ep.counting_items );
 
 			}
 
@@ -47,7 +47,7 @@ jQuery ( document ).ready ( function ( $ ) {
 
 		var data = {
 			action : 'ep_launch_index',
-			nonce  : jovo.nonce
+			nonce  : ep.nonce
 		};
 
 		//call the ajax
@@ -68,7 +68,7 @@ jQuery ( document ).ready ( function ( $ ) {
 							}
 						);
 
-						status.html ( response.responseJSON.data.ep_posts_synced + '/' + response.responseJSON.data.ep_posts_total + ' ' + jovo.items_indexed );
+						status.html ( response.responseJSON.data.ep_posts_synced + '/' + response.responseJSON.data.ep_posts_total + ' ' + ep.items_indexed );
 
 						performIndex ( false, button );
 
@@ -84,7 +84,7 @@ jQuery ( document ).ready ( function ( $ ) {
 
 							$ ( '#progressbar' ).fadeOut ( 'slow' );
 							$ ( '#progressstats' ).html ( 'Index complete <a href="">Refresh the stats</a>' );
-							$ ( '#jovo_run_index' ).val ( jovo.index_complete_text ).addClass ( 'button-primary' );
+							$ ( '#ep_run_index' ).val ( ep.index_complete_text ).addClass ( 'button-primary' );
 
 						}, 1000 );
 
@@ -98,12 +98,12 @@ jQuery ( document ).ready ( function ( $ ) {
 	};
 
 	// The run index button
-	var run_index_button = $ ( '#jovo_run_index' );
+	var run_index_button = $ ( '#ep_run_index' );
 
 	/**
 	 * Start the poll if we need it
 	 */
-	if ( 1 === jovo.index_running ) {
+	if ( 1 === ep.index_running ) {
 		performIndex ( true, run_index_button );
 	}
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-20 13:40-0500\n"
+"POT-Creation-Date: 2015-11-20 14:04-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -101,11 +101,11 @@ msgid ""
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:652
+#: bin/wp-cli.php:652 classes/class-ep-lib.php:174
 msgid "EP_HOST is not defined! Check wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:656
+#: bin/wp-cli.php:656 classes/class-ep-lib.php:178
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
@@ -153,6 +153,29 @@ msgstr ""
 msgid ": ElasticPress Index Errors"
 msgstr ""
 
+#: classes/class-ep-lib.php:77 classes/class-ep-lib.php:438
+#: classes/class-ep-lib.php:478 classes/class-ep-lib.php:529
+msgid "ElasticSearch Host is not available."
+msgstr ""
+
+#: classes/class-ep-lib.php:202
+msgid ""
+"Invalid response from ElasticPress server. Please contact your administrator."
+msgstr ""
+
+#: classes/class-ep-lib.php:209
+msgid ""
+"Site not indexed. <p>Please run: <code>wp elasticpress index --setup --"
+"network-wide</code> using WP-CLI. Or use the index button on the left of "
+"this screen.</p>"
+msgstr ""
+
+#: classes/class-ep-lib.php:213
+msgid ""
+"Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
+"using WP-CLI. Or use the index button on the left of this screen.</p>"
+msgstr ""
+
 #: classes/class-ep-settings.php:145
 msgid "ElasticSearch Host:"
 msgstr ""
@@ -190,106 +213,6 @@ msgstr ""
 
 #: includes/settings-page.php:13
 msgid "ElasticPress"
-msgstr ""
-
-#: includes/settings/status.php:22
-msgid "ElasticSearch Host"
-msgstr ""
-
-#: includes/settings/status.php:27
-msgid ""
-"Current host is set but cannot be contacted. Please contact the server "
-"administrator."
-msgstr ""
-
-#: includes/settings/status.php:31
-msgid "A host has not been set. You must set a host to continue."
-msgstr ""
-
-#: includes/settings/status.php:42
-msgid "Plugin Status"
-msgstr ""
-
-#: includes/settings/status.php:45
-msgid "Connected to ElasticSearch."
-msgstr ""
-
-#: includes/settings/status.php:50
-msgid "ElasticPress can override WP search."
-msgstr ""
-
-#: includes/settings/status.php:56
-msgid ""
-"ElasticPress is not activated and cannot override WP search. You can "
-"activate it on the form to the left."
-msgstr ""
-
-#: includes/settings/status.php:61
-msgid "System Stats"
-msgstr ""
-
-#: includes/settings/status.php:65 includes/settings/status.php:134
-msgid "Search Stats"
-msgstr ""
-
-#: includes/settings/status.php:69 includes/settings/status.php:137
-msgid "Total Queries:"
-msgstr ""
-
-#: includes/settings/status.php:72 includes/settings/status.php:140
-msgid "Query Time:"
-msgstr ""
-
-#: includes/settings/status.php:76 includes/settings/status.php:143
-msgid "Total Fetches:"
-msgstr ""
-
-#: includes/settings/status.php:79 includes/settings/status.php:146
-msgid "Fetch Time:"
-msgstr ""
-
-#: includes/settings/status.php:88 includes/settings/status.php:152
-msgid "Index Stats"
-msgstr ""
-
-#: includes/settings/status.php:92 includes/settings/status.php:155
-msgid "Index Total:"
-msgstr ""
-
-#: includes/settings/status.php:95 includes/settings/status.php:158
-msgid "Index Time:"
-msgstr ""
-
-#: includes/settings/status.php:106
-msgid "Site Stats"
-msgstr ""
-
-#: includes/settings/status.php:111
-msgid "Select a site:"
-msgstr ""
-
-#: includes/settings/status.php:112
-msgid "Select"
-msgstr ""
-
-#: includes/settings/status.php:174
-msgid "Cluster Stats"
-msgstr ""
-
-#: includes/settings/status.php:184
-msgid "Disk Usage:"
-msgstr ""
-
-#: includes/settings/status.php:187
-msgid "Disk Space Available:"
-msgstr ""
-
-#: includes/settings/status.php:190
-msgid "Total Disk Space:"
-msgstr ""
-
-#: includes/settings/status.php:203
-msgid "ERROR:"
 msgstr ""
 
 #: node_modules/grunt-pot/test/fixtures/some-file.php:3

@@ -2,17 +2,17 @@
 /**
  * Template for displaying Elasticsearch statistics
  *
- * @since   1.7
+ * @since   0.1.0
  *
- * @package elasticpress
+ * @package Jovosearch
  *
  * @author  Allan Collins <allan.collins@10up.com>
  */
 
-$stats        = Jovo_Lib::ep_get_index_status();
-$search_stats = Jovo_lib::ep_get_search_status();
+$stats        = EP_Lib::ep_get_index_status();
+$search_stats = EP_Lib::ep_get_search_status();
 
-echo '<div id="jovo_stats">';
+echo '<div id="ep_stats">';
 
 ?>
 
@@ -20,7 +20,7 @@ echo '<div id="jovo_stats">';
 		<table class="form-table">
 			<tr>
 				<th scope="row"><?php esc_html_e( 'ElasticSearch Host', 'elasticpress' ) ?>:</th>
-				<?php if ( ! is_wp_error( Jovo_Lib::check_host() ) ) { ?>
+				<?php if ( ! is_wp_error( EP_Lib::check_host() ) ) { ?>
 
 					<?php $current_host = ep_get_host( true ); ?>
 
@@ -101,14 +101,14 @@ if ( $stats['status'] ) {
 	<?php
 	if ( is_multisite() ) {
 
-		echo '<div id="jovo_ind_stats" class="jovo_stats_section">';
+		echo '<div id="ep_ind_stats" class="ep_stats_section">';
 
 		printf( '<h2>%s</h2>', esc_html__( 'Site Stats', 'elasticpress' ) );
 
 		$sites = ep_get_sites();
 
-		echo '<div id="jovo_site_sel">';
-		echo '<strong>' . esc_html__( 'Select a site:', 'elasticpress' ) . '</strong> <select name="jovo_site_select" id="jovo_site_select">';
+		echo '<div id="ep_site_sel">';
+		echo '<strong>' . esc_html__( 'Select a site:', 'elasticpress' ) . '</strong> <select name="ep_site_select" id="ep_site_select">';
 		echo '<option value="0">' . esc_html__( 'Select', 'elasticpress' ) . '</option>';
 
 		foreach ( $sites as $site ) {
@@ -124,11 +124,11 @@ if ( $stats['status'] ) {
 
 		foreach ( $sites as $site ) {
 
-			$stats        = Jovo_Lib::ep_get_index_status( $site['blog_id'] );
-			$search_stats = Jovo_Lib::ep_get_search_status( $site['blog_id'] );
+			$stats        = EP_Lib::ep_get_index_status( $site['blog_id'] );
+			$search_stats = EP_Lib::ep_get_search_status( $site['blog_id'] );
 			$details      = get_blog_details( $site['blog_id'] );
 			?>
-			<div id="jovo_<?php echo $site['blog_id']; ?>" class="jovo_site">
+			<div id="ep_<?php echo $site['blog_id']; ?>" class="ep_site">
 				<?php if ( $stats['status'] ) : ?>
 					<div class="search_stats">
 						<?php printf( '<h3>%s</h3>', esc_html__( 'Search Stats', 'elasticpress' ) ); ?>
@@ -169,12 +169,12 @@ if ( $stats['status'] ) {
 	}
 	?>
 
-	<div id="jovo_cluster_stats" class="jovo_stats_section">
+	<div id="ep_cluster_stats" class="ep_stats_section">
 
 		<?php printf( '<h2>%s</h2>', esc_html__( 'Cluster Stats', 'elasticpress' ) ); ?>
 
 		<?php
-		$stats      = Jovo_Lib::ep_get_cluster_status();
+		$stats      = EP_Lib::ep_get_cluster_status();
 		$fs         = $stats->nodes->fs;
 		$disk_usage = $fs->total_in_bytes - $fs->available_in_bytes;
 		?>
@@ -184,10 +184,10 @@ if ( $stats['status'] ) {
 				<strong><?php esc_html_e( 'Disk Usage:', 'elasticpress' ); ?></strong> <?php echo esc_html( number_format( ( $disk_usage / $fs->total_in_bytes ) * 100, 0 ) ); ?>%
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Disk Space Available:', 'elasticpress' ); ?></strong> <?php echo esc_html( Jovo_Lib::ep_byte_size( $fs->available_in_bytes ) ); ?>
+				<strong><?php esc_html_e( 'Disk Space Available:', 'elasticpress' ); ?></strong> <?php echo esc_html( EP_Lib::ep_byte_size( $fs->available_in_bytes ) ); ?>
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Total Disk Space:', 'elasticpress' ); ?></strong> <?php echo esc_html( Jovo_Lib::ep_byte_size( $fs->total_in_bytes ) ); ?>
+				<strong><?php esc_html_e( 'Total Disk Space:', 'elasticpress' ); ?></strong> <?php echo esc_html( EP_Lib::ep_byte_size( $fs->total_in_bytes ) ); ?>
 			</li>
 		</ul>
 	</div>

@@ -81,7 +81,7 @@ class EP_Index_Worker {
 	 */
 	public function index( $network_wide = false ) {
 
-		Jovo_Lib::check_host();
+		EP_Lib::check_host();
 
 		$total_indexed = 0;
 
