@@ -2153,7 +2153,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test numeric integer meta queries
 	 *
-	 * @since  1.7
+	 * @since 1.7
 	 */
 	public function testMetaValueTypeQueryNumeric() {
 
@@ -2219,7 +2219,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test decimal meta queries
 	 *
-	 * @since  1.7
+	 * @since 1.7
 	 */
 	public function testMetaValueTypeQueryDecimal() {
 
@@ -2262,5 +2262,183 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test character meta queries. Really just defaults to a normal string query
+	 *
+	 * @since 1.7
+	 */
+	public function testMetaValueTypeQueryChar() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'abc' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'acc' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => 'abc',
+					'compare' => '=',
+					'type' => 'char',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test date meta queries
+	 *
+	 * @since 1.7
+	 */
+	public function testMetaValueTypeQueryDate() {
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '11/13/15' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '11/15/15' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '2015-11-14',
+					'compare' => '>',
+					'type' => 'date',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '2015-11-15',
+					'compare' => '=',
+					'type' => 'date',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+
+	}
+
+	/**
+	 * Test time meta queries
+	 *
+	 * @since 1.7
+	 */
+	public function testMetaValueTypeQueryTime() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '5:00am' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '17:00:00',
+					'compare' => '<',
+					'type' => 'time',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '05:00:00',
+					'compare' => '=',
+					'type' => 'time',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+	}
+
+	/**
+	 * Test date time meta queries
+	 *
+	 * @since 1.7
+	 */
+	public function testMetaValueTypeQueryDatetime() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '5:00am 1/2/12' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '2013-03-02 06:00:15',
+					'compare' => '<',
+					'type' => 'datetime',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '2012-01-02 05:00:00',
+					'compare' => '=',
+					'type' => 'datetime',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$args = array(
+			's' => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => '2011-01-02 07:30:00',
+					'compare' => '>',
+					'type' => 'datetime',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
 	}
 }
