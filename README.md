@@ -242,7 +242,8 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ) );
     ```
 
-    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
+    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), 
+    ```type``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
 
       * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
       * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
@@ -274,6 +275,25 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ```
 
     Possible values for ```relation``` are ```OR``` and ```AND```. If ```relation``` is set to ```AND```, all inner queries must be true for a post to be returned. If ```relation``` is set to ```OR```, only one of the inner meta queries must be true for the post to be returned.
+
+    ```type``` supports the following values:  'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 
+    'DECIMAL', 'SIGNED', 'TIME', and 'UNSIGNED'. By default WordPress casts meta values to these types 
+    in MySQL so some of these don't make sense in the context of Elasticsearch. ElasticPress does no "runtime" 
+    casting but instead compares the value to a different type compiled during indexing
+
+    * `NUMERIC` - Compares query `value` to integer version of stored meta value.
+    * `SIGNED` - Compares query `value` to integer version of stored meta value.
+    * `UNSIGNED` - Compares query `value` to integer version of stored meta value.
+    * `BINARY` - Compares query `value` to raw, unanalyzed version of stored meta value.
+    * `CHAR` - Compares query `value` to raw, unanalyzed version of stored meta value.
+    * `DECIMAL` - Compares query `value` to float version of stored meta value.
+    * `DATE` - Compares query `value` to date version of stored meta value. Query `value` must be formated like `2015-11-14`
+    * `DATETIME` - Compares query `value` to date/time version of stored meta value. Query `value` must be formated like `2012-01-02 05:00:00` or `yyyy:mm:dd hh:mm:ss`.
+    * `TIME` - Compares query `value` to time version of stored meta value. Query `value` must be formated like `17:00:00` or `hh:mm:ss`.
+
+    If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
+    is very rarely needed to be used.
+
 
 * ```post_type``` (*string*/*array*)
 
