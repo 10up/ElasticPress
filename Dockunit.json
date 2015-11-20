@@ -1,8 +1,8 @@
 {
 	"containers": [
 		{
-			"prettyName": "PHP 5.6 FPM WordPress Latest",
-			"image": "dockunit/prebuilt-images:php-mysql-phpunit-elasticsearch-5.6-fpm",
+			"prettyName": "PHP 7.0 RC 6 FPM WordPress Latest with Elasticsearch 2.0",
+			"image": "dockunit/prebuilt-images:php-7.0-rc-6-fpm-mysql-phpunit-elasticsearch-2.0",
 			"beforeScripts": [
 				"service mysql start",
 				"service elasticsearch start",
@@ -11,8 +11,18 @@
 			"testCommand": "phpunit"
 		},
 		{
-			"prettyName": "PHP 5.2 FPM WordPress Latest",
-			"image": "dockunit/prebuilt-images:php-mysql-phpunit-elasticsearch-5.2-fpm",
+			"prettyName": "PHP 5.6 FPM WordPress Latest with Elasticsearch 2.0",
+			"image": "dockunit/prebuilt-images:php-5.6-fpm-mysql-phpunit-elasticsearch-2.0",
+			"beforeScripts": [
+				"service mysql start",
+				"service elasticsearch start",
+				"bash bin/install-wp-tests.sh wordpress_test root '' localhost latest"
+			],
+			"testCommand": "phpunit"
+		},
+		{
+			"prettyName": "PHP 5.2 FPM WordPress Latest with Elasticsearch 1.7",
+			"image": "dockunit/prebuilt-images:php-5.2-fpm-mysql-phpunit-elasticsearch-1.7",
 			"beforeScripts": [
 				"service mysql start",
 				"service elasticsearch start",
