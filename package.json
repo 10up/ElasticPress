@@ -1,0 +1,22 @@
+{
+	"name"           : "ElasticPress",
+	"private"        : true,
+	"version"        : "1.0.0",
+	"description"    : "Grunt base for the ElasticPress Plugin.",
+	"dependencies"   : { },
+	"devDependencies": {
+		"grunt"               : "*",
+		"grunt-contrib-uglify": "*",
+		"grunt-contrib-watch" : "*",
+		"grunt-sass"  : "*",
+		"grunt-contrib-cssmin": "*",
+		"load-grunt-tasks"    : "*",
+		"grunt-autoprefixer"  : "*",
+		"grunt-pot"           : "*"
+	},
+	"author"         : "10up",
+	"repository"     : {
+		"type": "git",
+		"url" : "https://github.com/10up/ElasticPress"
+	}
+}
