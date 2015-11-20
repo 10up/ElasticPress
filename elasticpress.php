@@ -19,6 +19,9 @@
     exit; // Exit if accessed directly.
 }
 
+define( 'EP_URL', plugin_dir_url( __FILE__ ) );
+define( 'EP_VERSION', '1.6.2' );
+
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
 require_once( 'classes/class-ep-sync-manager.php' );
