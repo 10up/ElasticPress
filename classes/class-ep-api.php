@@ -1275,6 +1275,9 @@ class EP_API {
 	 */
 	public function get_sites( $limit = 0 ) {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
+			'archived'   => 0,
+			'spam'       => 0,
+			'deleted'    => 0,
 			'limit' => $limit,
 		) );
 
