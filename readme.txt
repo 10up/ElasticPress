@@ -5,7 +5,7 @@ Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
 Tested up to: 4.4
-Stable tag: 1.6.2
+Stable tag: 1.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -59,6 +59,21 @@ configuring single site and multi-site cross-site search are slightly different.
 4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
+
+= 1.7 (Mapping change, requires reindex) =
+
+ElasticPress 1.7 restructures meta mapping for posts for much more flexible meta queries. The `post_meta` Elasticsearch post property has been left for backwards compatibility. As of this version, post meta will be stored in the `meta` Elasticsearch property. `meta` is structured as follows:
+
+* `meta.value` (string)
+* `meta.raw` (unanalyzed string)
+* `meta.long` (unanalyzed number)
+* `meta.double` (unanalyzed number)
+* `meta.boolean` (unanalyzed number)
+* `meta.date` (unanalyzed yyyy-MM-dd date)
+* `meta.datetime` (unanalyzed yyyy-MM-dd HH:mm:ss datetime)
+* `time` (unanalyzed HH:mm:ss time)
+
+When querying posts, you will get back `meta.value`. However, if you plan to mess with the new post mapping, it's important to understand the intricacies.
 
 = 1.6.2 =
 
