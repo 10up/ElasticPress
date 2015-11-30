@@ -300,7 +300,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				'post_type'           => ep_get_indexable_post_types(),
 				'post_status'         => ep_get_indexable_post_status(),
 				'offset'              => $offset,
-				'ignore_sticky_posts' => true
+				'ignore_sticky_posts' => true,
+				'orderby'             => array( 'ID' => 'DESC' ),
 			) );
 
 			$query = new WP_Query( $args );
