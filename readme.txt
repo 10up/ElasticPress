@@ -75,14 +75,21 @@ ElasticPress 1.7 restructures meta mapping for posts for much more flexible meta
 
 When querying posts, you will get back `meta.value`. However, if you plan to mess with the new post mapping, it's important to understand the intricacies.
 
-= 1.6.2 =
+The real implications of this is in `meta_query`. You can now effectively search by meta types. See the new section in README.md for details on this.
+
+1.7 also contains the following bugs/enhancements:
+
+* (Bug) Prevent missed post indexing when duplicate post dates. Props [lukaspawlik](https://github.com/lukaspawlik)
+* (Bug) Complex meta types are automatically serialized upon storage.
+
+= 1.6.2 (Mapping change, requires reindex) =
 
 ElasticPress 1.6.2 fixes ALL backwards compatibility issues with Elasticsearch 2.0:
 
 * Removes `fuzzy_like_this` query and uses `multi_match` instead.
 * Uses string instead of array for post type term when there is only one term.
 
-= 1.6.1 =
+= 1.6.1 (Mapping change, requires reindex) =
 
 ElasticPress 1.6.1 fixes mapping backwards compatibility issues with Elasticsearch 2.0:
 
