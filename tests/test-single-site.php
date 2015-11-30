@@ -1909,82 +1909,23 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test wrapper around wp_remote_request
+	 * Helper method for mocking indexable post statuses
+	 * 
+	 * @param   array $post_statuses
+	 * @return  array
 	 */
-	public function testEPRemoteRequest() {
-
-		global $ep_backup_host;
-
-		$ep_backup_host = false;
-
-		define( 'EP_FORCE_HOST_REFRESH', true );
-
-		//Test with EP_HOST constant
-		$request_1 = false;
-		$request   = ep_remote_request( '', array() );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$request_1 = true;
-			}
-		}
-
-		//Test with only backups
-
-		define( 'EP_HOST_USE_ONLY_BACKUPS', true );
-
-		$request_2      = false;
-		$ep_backup_host = array( 'http://127.0.0.1:9200' );
-		$request        = ep_remote_request( '', array() );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$request_2 = true;
-			}
-		}
-
-		$request_3      = false;
-		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
-		$request        = ep_remote_request( '', array() );
-
-		if ( is_wp_error( $request ) ) {
-			$request_3 = $request;
-		}
-
-		$request_4      = false;
-		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
-		$request        = ep_remote_request( '', array() );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$request_4 = true;
-			}
-		}
-
-		$request_5      = false;
-		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
-		$request        = ep_remote_request( '', array() );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$request_5 = true;
-			}
-		}
-
-		$this->assertTrue( $request_1 );
-		$this->assertTrue( $request_2 );
-		$this->assertWPError( $request_3 );
-		$this->assertTrue( $request_4 );
-		$this->assertTrue( $request_5 );
-
-	}
-
-	public function mock_indexable_post_status($post_statuses){
+	public function mock_indexable_post_status( $post_statuses ) {
 		$post_statuses = array();
 		$post_statuses[] = "draft";
 		return $post_statuses;
 	}
 
+	/**
+	 * Test invalid post date time
+	 * 
+	 * @param   array $post_statuses
+	 * @return  array
+	 */
 	public function testPostInvalidDateTime(){
 		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
 		$post_id = ep_create_and_sync_post( array( 'post_status' => 'draft' ) );
@@ -2012,7 +1953,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	
 	/**
 	 * Test to verify that a post type that is set to exclude_from_search isn't indexable.
-	 * @group 321
+	 * 
 	 * @since 1.6
 	 * @link https://github.com/10up/ElasticPress/issues/321
 	 */
@@ -2024,7 +1965,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	
 	/**
 	 * Test to make sure that brand new posts with 'auto-draft' post status do not fire delete or sync.
-	 * @group 343
+	 * 
 	 * @since 1.6
 	 * @link https://github.com/10up/ElasticPress/issues/343
 	 */
@@ -2045,6 +1986,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Runs on http_api_debug action to check for a returned 404 status code.
+	 * 
 	 * @param array|WP_Error $response  HTTP response or WP_Error object.
 	 * @param string $type Context under which the hook is fired.
 	 * @param string $class HTTP transport used.
@@ -2101,6 +2043,12 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	}
 
+	/**
+	 * Helper method for filtering private meta keys
+	 * 
+	 * @param  array $meta_keys
+	 * @return array
+	 */
 	public function filter_ep_prepare_meta_allowed_protected_keys( $meta_keys ) {
 
 		$meta_keys[] = '_test_private_meta_1';
@@ -2109,6 +2057,12 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	}
 
+	/**
+	 * Helper method for filtering excluded meta keys
+	 * 
+	 * @param  array $meta_keys
+	 * @return array
+	 */
 	public function filter_ep_prepare_meta_excluded_public_keys( $meta_keys ) {
 
 		$meta_keys[] = 'test_meta_1';
