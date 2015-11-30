@@ -850,6 +850,75 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test meta mapping for complex arrays. All complex arrays are serialized
+	 *
+	 * @since 1.7
+	 */
+	public function testSearchMetaMappingComplexArray() {
+		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => array( 'test' ) ) );
+
+		ep_refresh_index();
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
+
+		$this->assertTrue( is_array( unserialize( $query->posts[0]->post_meta['test_key'][0] ) ) ); // Make sure value is properly serialized
+	}
+
+	/**
+	 * Test meta mapping for complex objects. All complex objects are serialized
+	 *
+	 * @since 1.7
+	 */
+	public function testSearchMetaMappingComplexObject() {
+		$object = new stdClass();
+		$object->test = 'hello';
+
+		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => $object ) );
+
+		ep_refresh_index();
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
+
+		$this->assertEquals( 'hello', unserialize( $query->posts[0]->post_meta['test_key'][0] )->test ); // Make sure value is properly serialized
+	}
+
+	/**
+	 * Test meta mapping for simple string
+	 *
+	 * @since 1.7
+	 */
+	public function testSearchMetaMappingString() {
+		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 'test' ) );
+
+		ep_refresh_index();
+		$args = array(
+			'ep_integrate' => true,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
+
+		$this->assertEquals( 'test', $query->posts[0]->post_meta['test_key'][0] );
+	}
+
+	/**
 	 * Test a query that fuzzy searches meta
 	 *
 	 * @since 1.0

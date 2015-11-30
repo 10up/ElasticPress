@@ -228,7 +228,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
 * ```meta_query``` (*array*)
 
-    Filter posts by post meta conditions. Takes an array of form:
+    Filter posts by post meta conditions. Meta arrays and objects are serialized due to limitations of Elasticsearch. Takes an array of form:
 
     ```php
     new WP_Query( array(
