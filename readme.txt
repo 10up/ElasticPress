@@ -81,6 +81,7 @@ The real implications of this is in `meta_query`. You can now effectively search
 
 * (Bug) Prevent missed post indexing when duplicate post dates. Props [lukaspawlik](https://github.com/lukaspawlik)
 * (Bug) Complex meta types are automatically serialized upon storage.
+* (Enhancement) Index posts according to post type. Props [sc0ttkclark](https://github.com/sc0ttkclark)
 
 = 1.6.2 (Mapping change, requires reindex) =
 
