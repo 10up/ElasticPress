@@ -285,7 +285,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     * `NUMERIC` - Compares query `value` to integer version of stored meta value.
     * `SIGNED` - Compares query `value` to integer version of stored meta value.
     * `UNSIGNED` - Compares query `value` to integer version of stored meta value.
-    * `BINARY` - Compares query `value` to raw, unanalyzed version of stored meta value.
+    * `BINARY` - Compares query `value` to raw, unanalyzed version of stored meta value. For actual attachment searches, check out [this](https://github.com/elastic/elasticsearch-mapper-attachments).
     * `CHAR` - Compares query `value` to raw, unanalyzed version of stored meta value.
     * `DECIMAL` - Compares query `value` to float version of stored meta value.
     * `DATE` - Compares query `value` to date version of stored meta value. Query `value` must be formated like `2015-11-14`
