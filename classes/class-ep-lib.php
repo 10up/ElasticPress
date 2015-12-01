@@ -255,7 +255,7 @@ class EP_Lib {
 
 			$response = json_decode( wp_remote_retrieve_body( $request ) );
 
-			return ep_parse_api_resonse( $response );
+			return ep_parse_api_response( $response );
 
 		}
 
