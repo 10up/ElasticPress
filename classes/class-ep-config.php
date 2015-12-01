@@ -158,7 +158,7 @@ class EP_Config {
 		global $ep_backup_host;
 
 		if ( ! defined( 'EP_HOST' ) && ! is_array( $ep_backup_host ) ) {
-			EP_Lib::set_host();
+			ep_set_host();
 		}
 
 		if ( ! defined( 'EP_HOST' ) && ! is_array( $ep_backup_host ) ) {
@@ -170,6 +170,31 @@ class EP_Config {
 		}
 
 		return true;
+
+	}
+
+	/**
+	 * Set EP_HOST if needed
+	 *
+	 * Retrieves the value set in options the host and defines EP_HOST constant.
+	 *
+	 * @since 1.7
+	 *
+	 * @return string The set host.
+	 */
+	public function set_host() {
+
+		$ep_host = get_site_option( 'ep_host' );
+
+		if ( $ep_host && ! defined( 'EP_HOST' ) ) {
+			define( 'EP_HOST', $ep_host );
+		}
+
+		if ( defined( 'EP_HOST' ) ) {
+			return EP_HOST;
+		}
+
+		return '';
 
 	}
 }
@@ -202,4 +227,8 @@ function ep_get_network_alias() {
 
 function ep_check_host() {
 	return EP_Config::factory()->check_host();
+}
+
+function ep_set_host() {
+	return EP_Config::factory()->set_host();
 }
