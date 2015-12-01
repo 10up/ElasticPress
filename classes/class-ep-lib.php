@@ -127,24 +127,6 @@ class EP_Lib {
 	}
 
 	/**
-	 * Set EP_HOST if needed
-	 *
-	 * Retrieves the value set in options the host and defines EP_HOST constant.
-	 *
-	 * @since 1.7
-	 *
-	 * @return void
-	 */
-	public static function set_host() {
-
-		$ep_host = get_site_option( 'ep_host' );
-
-		if ( $ep_host && ! defined( 'EP_HOST' ) ) {
-			define( 'EP_HOST', $ep_host );
-		}
-	}
-
-	/**
 	 * Set EP_API_KEY if needed
 	 *
 	 * Retrieves the value set in options the api key and defines EP_API_KEY constant.
