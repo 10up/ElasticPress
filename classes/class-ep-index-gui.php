@@ -176,22 +176,22 @@ class EP_Index_GUI {
 
 		set_transient( 'ep_post_count', $post_count, 600 );
 
+		$network = false;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$network = true;
+		}
+
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
 			// Deactivate our search integration.
 			ep_deactivate();
 
-			$mapping_success = ep_process_site_mappings();
+			$mapping_success = ep_process_site_mappings( $network );
 
 			if ( ! $mapping_success ) {
 				wp_send_json_error( esc_html__( 'Mappings could not be completed. If the error persists contact your system administrator', 'elasticpress' ) );
 			}
-		}
-
-		$network = false;
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$network = true;
 		}
 
 		$indexer       = new EP_Index_Worker();
