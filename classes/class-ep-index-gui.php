@@ -179,7 +179,7 @@ class EP_Index_GUI {
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
 			// Deactivate our search integration.
-			EP_Lib::ep_deactivate();
+			ep_deactivate();
 
 			$mapping_success = EP_Lib::put_mapping();
 
@@ -204,7 +204,7 @@ class EP_Index_GUI {
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
 			// Reactivate our search integration.
-			EP_Lib::ep_activate();
+			ep_activate();
 
 			$data = array(
 				'ep_sync_complete' => 1,

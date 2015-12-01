@@ -9,8 +9,8 @@
  * @author  Allan Collins <allan.collins@10up.com>
  */
 
-$stats        = EP_Lib::ep_get_index_status();
-$search_stats = EP_Lib::ep_get_search_status();
+$stats        = ep_get_index_status();
+$search_stats = ep_get_search_status();
 
 echo '<div id="ep_stats">';
 
@@ -124,8 +124,8 @@ if ( $stats['status'] ) {
 
 		foreach ( $sites as $site ) {
 
-			$stats        = EP_Lib::ep_get_index_status( $site['blog_id'] );
-			$search_stats = EP_Lib::ep_get_search_status( $site['blog_id'] );
+			$stats        = ep_get_index_status( $site['blog_id'] );
+			$search_stats = ep_get_search_status( $site['blog_id'] );
 			$details      = get_blog_details( $site['blog_id'] );
 			?>
 			<div id="ep_<?php echo $site['blog_id']; ?>" class="ep_site">
@@ -174,7 +174,7 @@ if ( $stats['status'] ) {
 		<?php printf( '<h2>%s</h2>', esc_html__( 'Cluster Stats', 'elasticpress' ) ); ?>
 
 		<?php
-		$stats      = EP_Lib::ep_get_cluster_status();
+		$stats      = ep_get_cluster_status();
 		$fs         = $stats->nodes->fs;
 		$disk_usage = $fs->total_in_bytes - $fs->available_in_bytes;
 		?>

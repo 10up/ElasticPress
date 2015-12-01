@@ -147,7 +147,7 @@ class EP_Settings {
 
 		}
 
-		$stats = EP_Lib::ep_get_index_status();
+		$stats = ep_get_index_status();
 
 		if ( $stats['status'] && ! is_wp_error( ep_check_host() ) ) {
 
@@ -280,11 +280,11 @@ class EP_Settings {
 
 		if ( true === $input ) {
 
-			EP_Lib::ep_activate();
+			ep_activate();
 
 		} else {
 
-			EP_Lib::ep_deactivate();
+			ep_deactivate();
 
 		}
 

@@ -25,7 +25,7 @@ if ( is_multisite() ) {
 	settings_fields( 'elasticpress' );
 	do_settings_sections( 'elasticpress' );
 
-	$stats = EP_Lib::ep_get_index_status();
+	$stats = ep_get_index_status();
 
 	if ( ( $stats['status'] && ! is_wp_error( ep_check_host() ) ) || is_wp_error( ep_check_host() ) || get_site_option( 'ep_host' ) ) {
 		submit_button();
