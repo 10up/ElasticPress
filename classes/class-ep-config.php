@@ -247,6 +247,29 @@ class EP_Config {
 		return $this->option_host;
 
 	}
+
+	/**
+	 * Whether plugin is network activated
+	 *
+	 * Determines whether plugin is network activated or just on the local site.
+	 *
+	 * @since 1.8
+	 *
+	 * @param string $plugin the plugin base name.
+	 *
+	 * @return bool True if network activated or false
+	 */
+	public function is_network( $plugin ) {
+
+		$plugins = get_site_option( 'active_sitewide_plugins');
+
+		if ( is_multisite() && isset( $plugins[ $plugin ] ) ) {
+			return true;
+		}
+
+		return false;
+
+	}
 }
 
 EP_Config::factory();
