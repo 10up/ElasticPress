@@ -29,6 +29,12 @@ require_once( 'classes/class-ep-elasticpress.php' );
 require_once( 'classes/class-ep-wp-query-integration.php' );
 require_once( 'classes/class-ep-wp-date-query.php' );
 
+$network_activated = ep_is_network_activated( plugin_basename( __FILE__ ) );
+
+if ( $network_activated ) {
+	define( 'EP_IS_NETWORK', true );
+}
+
 /**
  * WP CLI Commands
  */

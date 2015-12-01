@@ -14,7 +14,7 @@
 //Set form action
 $action = 'options.php';
 
-if ( is_multisite() ) {
+if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$action = '';
 }
 ?>

@@ -39,7 +39,7 @@ class EP_Settings {
 		ep_set_api_key();
 		ep_check_host();
 
-		if ( is_multisite() ) { // Must be network admin in multisite.
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { // Must be network admin in multisite.
 
 			add_action( 'network_admin_menu', array( $this, 'action_admin_menu' ) );
 
@@ -107,7 +107,7 @@ class EP_Settings {
 	public function action_admin_init() {
 
 		//Save options for multisite
-		if ( is_multisite() && ( isset( $_POST['ep_host'] ) || isset( $_POST['ep_activate'] ) ) ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ( isset( $_POST['ep_host'] ) || isset( $_POST['ep_activate'] ) ) ) {
 
 			if ( ! check_admin_referer( 'elasticpress-options' ) ) {
 				die( esc_html__( 'Security error!', 'elasticpress' ) );
@@ -184,7 +184,7 @@ class EP_Settings {
 		$parent_slug = 'options-general.php';
 		$capability  = 'manage_options';
 
-		if ( is_multisite() ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 			$parent_slug = 'settings.php';
 			$capability  = 'manage_network';

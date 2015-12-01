@@ -313,3 +313,7 @@ function ep_set_api_key() {
 function ep_host_by_option() {
 	return EP_Config::factory()->host_by_option();
 }
+
+function ep_is_network_activated( $plugin ) {
+	return EP_Config::factory()->is_network( $plugin );
+}
