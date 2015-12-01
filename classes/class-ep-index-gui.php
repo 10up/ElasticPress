@@ -190,7 +190,7 @@ class EP_Index_GUI {
 
 		$network = false;
 
-		if ( is_multisite() ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$network = true;
 		}
 
