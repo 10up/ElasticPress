@@ -239,10 +239,7 @@ class EP_Settings {
 		add_meta_box(
 			'ep-contentbox-1',
 			'Settings',
-			array(
-				$this,
-				'load_view',
-			),
+			array( $this, 'load_view' ),
 			$this->options_page,
 			'normal',
 			'core',
@@ -252,10 +249,7 @@ class EP_Settings {
 		add_meta_box(
 			'ep-contentbox-2',
 			'Current Status',
-			array(
-				$this,
-				'load_view',
-			),
+			array( $this, 'load_view' ),
 			$this->options_page,
 			'side',
 			'core',
