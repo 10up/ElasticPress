@@ -181,7 +181,7 @@ class EP_Index_GUI {
 			// Deactivate our search integration.
 			ep_deactivate();
 
-			$mapping_success = EP_Lib::put_mapping();
+			$mapping_success = ep_process_site_mappings();
 
 			if ( ! $mapping_success ) {
 				wp_send_json_error( esc_html__( 'Mappings could not be completed. If the error persists contact your system administrator', 'elasticpress' ) );
