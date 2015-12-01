@@ -47,9 +47,6 @@ function ep_loader() {
 
 		load_plugin_textdomain( 'elasticpress', false, dirname( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
 
-		// Load the common library.
-		require( dirname( __FILE__ ) . '/classes/class-ep-lib.php' );
-
 		// Load the settings page.
 		require( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
 		new EP_Settings();
