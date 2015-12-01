@@ -143,18 +143,15 @@ class EP_Settings {
 			'ep_settings_section_hightlight',
 		), 'elasticpress' );
 
-		if ( is_wp_error( ep_check_host() ) || get_site_option( 'ep_host' ) ) {
+		add_settings_field( 'ep_host', esc_html__( 'ElasticSearch Host:', 'elasticpress' ), array(
+			$this,
+			'setting_callback_host',
+		), 'elasticpress', 'ep_settings_section_main' );
 
-			add_settings_field( 'ep_host', esc_html__( 'ElasticSearch Host:', 'elasticpress' ), array(
-				$this,
-				'setting_callback_host',
-			), 'elasticpress', 'ep_settings_section_main' );
-			add_settings_field( 'ep_api_key', esc_html__( 'ElasticPress API Key:', 'elasticpress' ), array(
-				$this,
-				'setting_callback_api_key',
-			), 'elasticpress', 'ep_settings_section_main' );
-
-		}
+		add_settings_field( 'ep_api_key', esc_html__( 'ElasticPress API Key:', 'elasticpress' ), array(
+			$this,
+			'setting_callback_api_key',
+		), 'elasticpress', 'ep_settings_section_main' );
 
 		$stats = ep_get_index_status();
 
@@ -358,7 +355,15 @@ class EP_Settings {
 	 */
 	public function setting_callback_host() {
 
-		echo '<input name="ep_host" id="ep_host" type="text" value="' . esc_attr( get_site_option( 'ep_host' ) ) . '">';
+		$read_only = '';
+		$host = get_site_option( 'ep_host' );
+
+		if ( false === ep_host_by_option() ) {
+			$read_only = 'readonly';
+			$host = EP_HOST;
+		}
+
+		echo '<input name="ep_host" id="ep_host" type="text" value="' . esc_attr( $host ) . '" ' . esc_attr( $read_only ) . '>';
 
 	}
 

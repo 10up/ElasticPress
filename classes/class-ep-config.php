@@ -6,6 +6,15 @@
 class EP_Config {
 
 	/**
+	 * True if EP_HOST has been set via option or false.
+	 *
+	 * @since 1.8
+	 *
+	 * @var bool
+	 */
+	public $option_host = false;
+
+	/**
 	 * Get a singleton instance of the class
 	 *
 	 * @since 0.1.0
@@ -209,9 +218,10 @@ class EP_Config {
 	 */
 	public function set_host() {
 
-		$ep_host = get_site_option( 'ep_host' );
+		$ep_host           = get_site_option( 'ep_host' );
 
 		if ( $ep_host && ! defined( 'EP_HOST' ) ) {
+			$this->option_host = true;
 			define( 'EP_HOST', $ep_host );
 		}
 
@@ -220,6 +230,21 @@ class EP_Config {
 		}
 
 		return '';
+
+	}
+
+	/**
+	 * Tracks how EP_HOST was set
+	 *
+	 * Tracks how EP_HOST was set for easer use.
+	 *
+	 * @since 1.8
+	 *
+	 * @return bool True if option is used to set host or false.
+	 */
+	public function host_by_option() {
+
+		return $this->option_host;
 
 	}
 }
@@ -260,4 +285,8 @@ function ep_set_host() {
 
 function ep_set_api_key() {
 	return EP_Config::factory()->set_api_key();
+}
+
+function ep_host_by_option() {
+	return EP_Config::factory()->host_by_option();
 }
