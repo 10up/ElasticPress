@@ -20,7 +20,7 @@ echo '<div id="ep_stats">';
 		<table class="form-table">
 			<tr>
 				<th scope="row"><?php esc_html_e( 'ElasticSearch Host', 'elasticpress' ) ?>:</th>
-				<?php if ( ! is_wp_error( EP_Lib::check_host() ) ) { ?>
+				<?php if ( ! is_wp_error( ep_check_host() ) ) { ?>
 
 					<?php $current_host = ep_get_host( true ); ?>
 
