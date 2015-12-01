@@ -58,7 +58,7 @@ function ep_loader() {
 		new EP_Settings();
 
 		// Load the indexing GUI.
-		if ( ! is_multisite() && true === apply_filters( 'ep_load_index_gui', true ) ) {
+		if ( true === apply_filters( 'ep_load_index_gui', true ) ) {
 
 			require( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
 			new EP_Index_GUI();
