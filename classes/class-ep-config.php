@@ -153,7 +153,7 @@ class EP_Config {
 	 *
 	 * @return bool|WP_Error true on success or WP_Error
 	 */
-	public static function check_host() {
+	public function check_host() {
 
 		global $ep_backup_host;
 
