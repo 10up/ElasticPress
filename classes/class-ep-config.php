@@ -174,6 +174,31 @@ class EP_Config {
 	}
 
 	/**
+	 * Set EP_API_KEY if needed
+	 *
+	 * Retrieves the value set in options the api key and defines EP_API_KEY constant.
+	 *
+	 * @since 0.3.0
+	 *
+	 * @return string The set API key.
+	 */
+	public function set_api_key() {
+
+		$ep_api_key = get_site_option( 'ep_api_key' );
+
+		if ( $ep_api_key && ! defined( 'EP_API_KEY' ) ) {
+			define( 'EP_API_KEY', $ep_api_key );
+		}
+
+		if ( defined( 'EP_API_KEY' ) ) {
+			return EP_API_KEY;
+		}
+
+		return '';
+
+	}
+
+	/**
 	 * Set EP_HOST if needed
 	 *
 	 * Retrieves the value set in options the host and defines EP_HOST constant.
@@ -231,4 +256,8 @@ function ep_check_host() {
 
 function ep_set_host() {
 	return EP_Config::factory()->set_host();
+}
+
+function ep_set_api_key() {
+	return EP_Config::factory()->set_api_key();
 }

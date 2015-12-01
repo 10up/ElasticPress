@@ -36,7 +36,7 @@ class EP_Settings {
 	 */
 	public function __construct() {
 
-		EP_Lib::set_api_key();
+		ep_set_api_key();
 		ep_check_host();
 
 		if ( is_multisite() ) { // Must be network admin in multisite.

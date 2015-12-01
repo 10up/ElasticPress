@@ -133,24 +133,6 @@ class EP_Lib {
 	}
 
 	/**
-	 * Set EP_API_KEY if needed
-	 *
-	 * Retrieves the value set in options the api key and defines EP_API_KEY constant.
-	 *
-	 * @since 0.3.0
-	 *
-	 * @return void
-	 */
-	public static function set_api_key() {
-
-		$ep_api_key = get_site_option( 'ep_api_key' );
-
-		if ( $ep_api_key && ! defined( 'EP_API_KEY' ) ) {
-			define( 'EP_API_KEY', $ep_api_key );
-		}
-	}
-
-	/**
 	 * Retrieve Index status
 	 *
 	 * Retrieves index stats from ElasticSearch.
