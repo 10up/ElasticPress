@@ -81,7 +81,7 @@ class EP_Index_Worker {
 	 */
 	public function index( $network_wide = false ) {
 
-		EP_Lib::check_host();
+		ep_check_host();
 
 		$total_indexed = 0;
 

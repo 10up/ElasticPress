@@ -27,7 +27,7 @@ class EP_Lib {
 	 */
 	public static function ep_activate() {
 
-		EP_Lib::check_host();
+		ep_check_host();
 
 		$status = ep_is_activated();
 
@@ -129,7 +129,7 @@ class EP_Lib {
 	 */
 	public static function ep_deactivate() {
 
-		EP_Lib::check_host();
+		ep_check_host();
 
 		$status = ep_is_activated();
 
@@ -151,35 +151,6 @@ class EP_Lib {
 
 			}
 		}
-	}
-
-	/**
-	 * Check if connection is alive.
-	 *
-	 * Provide better error messaging for common connection errors
-	 *
-	 * @since 1.7
-	 *
-	 * @return bool|WP_Error true on success or WP_Error
-	 */
-	public static function check_host() {
-
-		global $ep_backup_host;
-
-		if ( ! defined( 'EP_HOST' ) && ! is_array( $ep_backup_host ) ) {
-			EP_Lib::set_host();
-		}
-
-		if ( ! defined( 'EP_HOST' ) && ! is_array( $ep_backup_host ) ) {
-			return new WP_Error( 'elasticpress', esc_html__( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
-		}
-
-		if ( false === ep_elasticsearch_alive() ) {
-			return new WP_Error( 'elasticpress', esc_html__( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
-		}
-
-		return true;
-
 	}
 
 	/**
@@ -369,7 +340,7 @@ class EP_Lib {
 	 */
 	public static function put_mapping( $network_wide = false ) {
 
-		EP_Lib::check_host();
+		ep_check_host();
 
 		if ( true === $network_wide && is_multisite() ) {
 

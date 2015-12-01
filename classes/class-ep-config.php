@@ -143,6 +143,35 @@ class EP_Config {
 
 		return apply_filters( 'ep_global_alias', $alias );
 	}
+
+	/**
+	 * Check if connection is alive.
+	 *
+	 * Provide better error messaging for common connection errors
+	 *
+	 * @since 1.7
+	 *
+	 * @return bool|WP_Error true on success or WP_Error
+	 */
+	public static function check_host() {
+
+		global $ep_backup_host;
+
+		if ( ! defined( 'EP_HOST' ) && ! is_array( $ep_backup_host ) ) {
+			EP_Lib::set_host();
+		}
+
+		if ( ! defined( 'EP_HOST' ) && ! is_array( $ep_backup_host ) ) {
+			return new WP_Error( 'elasticpress', esc_html__( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
+		}
+
+		if ( false === ep_elasticsearch_alive() ) {
+			return new WP_Error( 'elasticpress', esc_html__( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
+		}
+
+		return true;
+
+	}
 }
 
 EP_Config::factory();
@@ -169,4 +198,8 @@ function ep_get_indexable_post_status() {
 
 function ep_get_network_alias() {
 	return EP_Config::factory()->get_network_alias();
+}
+
+function ep_check_host() {
+	return EP_Config::factory()->check_host();
 }
