@@ -17,52 +17,6 @@
 class EP_Lib {
 
 	/**
-	 * Easily read bytes
-	 *
-	 * Converts bytes to human-readable format.
-	 *
-	 * @since 1.7
-	 *
-	 * @param int $bytes The raw bytes to convert.
-	 * @param int $precision The precision with which to display the conversion.
-	 *
-	 * @return string
-	 */
-	public static function ep_byte_size( $bytes, $precision = 2 ) {
-
-		$kilobyte = 1024;
-		$megabyte = $kilobyte * 1024;
-		$gigabyte = $megabyte * 1024;
-		$terabyte = $gigabyte * 1024;
-
-		if ( ( $bytes >= 0 ) && ( $bytes < $kilobyte ) ) {
-
-			return $bytes . ' B';
-
-		} elseif ( ( $bytes >= $kilobyte ) && ( $bytes < $megabyte ) ) {
-
-			return round( $bytes / $kilobyte, $precision ) . ' KB';
-
-		} elseif ( ( $bytes >= $megabyte ) && ( $bytes < $gigabyte ) ) {
-
-			return round( $bytes / $megabyte, $precision ) . ' MB';
-
-		} elseif ( ( $bytes >= $gigabyte ) && ( $bytes < $terabyte ) ) {
-
-			return round( $bytes / $gigabyte, $precision ) . ' GB';
-
-		} elseif ( $bytes >= $terabyte ) {
-
-			return round( $bytes / $terabyte, $precision ) . ' TB';
-
-		} else {
-
-			return $bytes . ' B';
-
-		}
-	}
-
-	/**
 	 * Add the document mapping
 	 *
 	 * Creates the document mapping for the index.

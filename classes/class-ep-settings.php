@@ -138,12 +138,21 @@ class EP_Settings {
 			}
 		}
 
-		add_settings_section( 'ep_settings_section_main', '', array( $this, 'ep_settings_section_hightlight' ), 'elasticpress' );
+		add_settings_section( 'ep_settings_section_main', '', array(
+			$this,
+			'ep_settings_section_hightlight',
+		), 'elasticpress' );
 
 		if ( is_wp_error( ep_check_host() ) || get_site_option( 'ep_host' ) ) {
 
-			add_settings_field( 'ep_host', esc_html__( 'ElasticSearch Host:', 'elasticpress' ), array( $this, 'setting_callback_host' ), 'elasticpress', 'ep_settings_section_main' );
-			add_settings_field( 'ep_api_key', esc_html__( 'ElasticPress API Key:', 'elasticpress' ), array( $this, 'setting_callback_api_key' ), 'elasticpress', 'ep_settings_section_main' );
+			add_settings_field( 'ep_host', esc_html__( 'ElasticSearch Host:', 'elasticpress' ), array(
+				$this,
+				'setting_callback_host',
+			), 'elasticpress', 'ep_settings_section_main' );
+			add_settings_field( 'ep_api_key', esc_html__( 'ElasticPress API Key:', 'elasticpress' ), array(
+				$this,
+				'setting_callback_api_key',
+			), 'elasticpress', 'ep_settings_section_main' );
 
 		}
 
@@ -151,7 +160,10 @@ class EP_Settings {
 
 		if ( $stats['status'] && ! is_wp_error( ep_check_host() ) ) {
 
-			add_settings_field( 'ep_activate', esc_html__( 'Use ElasticSearch:', 'elasticpress' ), array( $this, 'setting_callback_activate' ), 'elasticpress', 'ep_settings_section_main' );
+			add_settings_field( 'ep_activate', esc_html__( 'Use ElasticSearch:', 'elasticpress' ), array(
+				$this,
+				'setting_callback_activate',
+			), 'elasticpress', 'ep_settings_section_main' );
 
 		}
 
@@ -386,5 +398,51 @@ class EP_Settings {
 
 		echo '<h2>' . esc_html__( 'ElasticSearch Integration Options', 'elasticpress' ) . '</h2>';
 
+	}
+
+	/**
+	 * Easily read bytes
+	 *
+	 * Converts bytes to human-readable format.
+	 *
+	 * @since 1.7
+	 *
+	 * @param int $bytes The raw bytes to convert.
+	 * @param int $precision The precision with which to display the conversion.
+	 *
+	 * @return string
+	 */
+	public static function ep_byte_size( $bytes, $precision = 2 ) {
+
+		$kilobyte = 1024;
+		$megabyte = $kilobyte * 1024;
+		$gigabyte = $megabyte * 1024;
+		$terabyte = $gigabyte * 1024;
+
+		if ( ( $bytes >= 0 ) && ( $bytes < $kilobyte ) ) {
+
+			return $bytes . ' B';
+
+		} elseif ( ( $bytes >= $kilobyte ) && ( $bytes < $megabyte ) ) {
+
+			return round( $bytes / $kilobyte, $precision ) . ' KB';
+
+		} elseif ( ( $bytes >= $megabyte ) && ( $bytes < $gigabyte ) ) {
+
+			return round( $bytes / $megabyte, $precision ) . ' MB';
+
+		} elseif ( ( $bytes >= $gigabyte ) && ( $bytes < $terabyte ) ) {
+
+			return round( $bytes / $gigabyte, $precision ) . ' GB';
+
+		} elseif ( $bytes >= $terabyte ) {
+
+			return round( $bytes / $terabyte, $precision ) . ' TB';
+
+		} else {
+
+			return $bytes . ' B';
+
+		}
 	}
 }

@@ -184,10 +184,10 @@ if ( $stats['status'] ) {
 				<strong><?php esc_html_e( 'Disk Usage:', 'elasticpress' ); ?></strong> <?php echo esc_html( number_format( ( $disk_usage / $fs->total_in_bytes ) * 100, 0 ) ); ?>%
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Disk Space Available:', 'elasticpress' ); ?></strong> <?php echo esc_html( EP_Lib::ep_byte_size( $fs->available_in_bytes ) ); ?>
+				<strong><?php esc_html_e( 'Disk Space Available:', 'elasticpress' ); ?></strong> <?php echo esc_html( $this->ep_byte_size( $fs->available_in_bytes ) ); ?>
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Total Disk Space:', 'elasticpress' ); ?></strong> <?php echo esc_html( EP_Lib::ep_byte_size( $fs->total_in_bytes ) ); ?>
+				<strong><?php esc_html_e( 'Total Disk Space:', 'elasticpress' ); ?></strong> <?php echo esc_html( $this->ep_byte_size( $fs->total_in_bytes ) ); ?>
 			</li>
 		</ul>
 	</div>
