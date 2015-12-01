@@ -103,7 +103,13 @@ class EP_Lib {
 				'msg'    => esc_html__( 'Invalid response from ElasticPress server. Please contact your administrator.' ),
 			);
 
-		} elseif ( isset( $response->error ) && stristr( $response->error, 'IndexMissingException' ) ) {
+		} elseif (
+				isset( $response->error ) &&
+		        (
+		            ( is_string( $response->error ) && stristr( $response->error, 'IndexMissingException' ) ) ||
+		            ( isset( $response->error->reason ) && stristr( $response->error-> reason, 'no such index' ) )
+		        )
+		) {
 
 			if ( is_multisite() ) {
 
