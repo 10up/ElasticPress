@@ -17,41 +17,6 @@
 class EP_Lib {
 
 	/**
-	 * Activate ElasticPress
-	 *
-	 * Activates ElasticPress search allowing the site to use ElasticPress search.
-	 *
-	 * @since 1.7
-	 *
-	 * @return bool True on success or false
-	 */
-	public static function ep_activate() {
-
-		ep_check_host();
-
-		$status = ep_is_activated();
-
-		if ( $status ) {
-
-			return true;
-
-		} else {
-
-			$result = ep_activate();
-
-			if ( $result ) {
-
-				return true;
-
-			} else {
-
-				return false;
-
-			}
-		}
-	}
-
-	/**
 	 * Get ElasticSearch plugins
 	 *
 	 * Gets a list of available ElasticSearch plugins.
@@ -116,41 +81,6 @@ class EP_Lib {
 			'msg'    => $request->get_error_message(),
 		);
 
-	}
-
-	/**
-	 * Deactivate ElasticPress
-	 *
-	 * Deactivates ElasticPress search forcing the site to use native search.
-	 *
-	 * @since 1.7
-	 *
-	 * @return bool True on success or false
-	 */
-	public static function ep_deactivate() {
-
-		ep_check_host();
-
-		$status = ep_is_activated();
-
-		if ( ! $status ) {
-
-			return true;
-
-		} else {
-
-			$result = ep_deactivate();
-
-			if ( $result ) {
-
-				return true;
-
-			} else {
-
-				return false;
-
-			}
-		}
 	}
 
 	/**
