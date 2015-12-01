@@ -9,8 +9,14 @@
  * @author  Allan Collins <allan.collins@10up.com>
  */
 
-$stats        = ep_get_index_status();
-$search_stats = ep_get_search_status();
+$site_stats_id = null;
+
+if ( is_multisite() && ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK  ) ) {
+	$site_stats_id = get_current_blog_id();
+}
+
+$stats        = ep_get_index_status( $site_stats_id );
+$search_stats = ep_get_search_status( $site_stats_id );
 
 echo '<div id="ep_stats">';
 
@@ -99,7 +105,7 @@ if ( $stats['status'] ) {
 	</div>
 
 	<?php
-	if ( is_multisite() ) {
+	if ( ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ) {
 
 		echo '<div id="ep_ind_stats" class="ep_stats_section">';
 
