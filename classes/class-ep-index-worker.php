@@ -87,6 +87,8 @@ class EP_Index_Worker {
 
 		if ( true === $network_wide && is_multisite() ) {
 
+			ep_delete_network_alias();
+
 			$sites = ep_get_sites();
 
 			foreach ( $sites as $site ) {
