@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-02 09:47-0500\n"
+"POT-Creation-Date: 2015-12-02 09:55-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -149,20 +149,28 @@ msgid "items indexed"
 msgstr ""
 
 #: classes/class-ep-index-gui.php:105
+msgid "site(s) remain to be indexed"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:106
+msgid "We are settings up your site(s) for indexing. Please be patient."
+msgstr ""
+
+#: classes/class-ep-index-gui.php:107
 msgid "We're Still counting total items for the index. Please be patient"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:155 classes/class-ep-settings.php:113
+#: classes/class-ep-index-gui.php:157 classes/class-ep-settings.php:113
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:195
+#: classes/class-ep-index-gui.php:197
 msgid ""
 "Mappings could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:208
+#: classes/class-ep-index-gui.php:210
 msgid ""
 "Indexing could not be completed. If the error persists contact your system "
 "administrator"

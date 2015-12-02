@@ -62,6 +62,8 @@ jQuery ( document ).ready ( function ( $ ) {
 
 					if ( 'undefined' !== typeof response.responseJSON.data.ep_mapping_complete ) {
 
+						status.html ( ep.mapping_sites + '<br />'+ response.responseJSON.data.ep_mapping_complete + ' ' + ep.sites_to_index );
+
 						performIndex ( false, button );
 
 					} else if ( 0 == response.responseJSON.data.ep_sync_complete ) { //incomplete
