@@ -189,8 +189,15 @@ class EP_Index_GUI {
 
 			$mapping_success = ep_process_site_mappings( $network );
 
-			if ( ! $mapping_success ) {
-				wp_send_json_error( esc_html__( 'Mappings could not be completed. If the error persists contact your system administrator', 'elasticpress' ) );
+			if ( true !== $mapping_success ) {
+
+				if ( false === $mapping_success ) {
+					wp_send_json_error( esc_html__( 'Mappings could not be completed. If the error persists contact your system administrator', 'elasticpress' ) );
+				}
+
+				wp_send_json_success( $mapping_success );
+				exit();
+
 			}
 		}
 

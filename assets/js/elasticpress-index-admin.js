@@ -58,7 +58,13 @@ jQuery ( document ).ready ( function ( $ ) {
 				data     : data,
 				complete : function ( response ) {
 
-					if ( 0 == response.responseJSON.data.ep_sync_complete ) { //incomplete
+					console.log( response.responseJSON.data.ep_mapping_complete );
+
+					if ( 'undefined' !== typeof response.responseJSON.data.ep_mapping_complete ) {
+
+						performIndex ( false, button );
+
+					} else if ( 0 == response.responseJSON.data.ep_sync_complete ) { //incomplete
 
 						var progress = parseFloat ( response.responseJSON.data.ep_posts_synced ) / parseFloat ( response.responseJSON.data.ep_posts_total );
 
