@@ -70,14 +70,14 @@ class EP_Settings {
 		// Enqueue more easily debugged version if applicable.
 		if ( defined( 'WP_DEBUG' ) && true === WP_DEBUG ) {
 
-			wp_register_script( 'ep_admin', EP_URL . 'assets/js/elasticpress-admin.js', array( 'jquery' ), EP_VERSION );
+			wp_register_script( 'ep_admin', EP_URL . 'assets/js/elasticpress-admin.js', array( 'jquery', 'jquery-ui-progressbar' ), EP_VERSION );
 
 			wp_register_style( 'ep_progress_style', EP_URL . 'assets/css/jquery-ui.css', array(), EP_VERSION );
 			wp_register_style( 'ep_styles', EP_URL . 'assets/css/elasticpress.css', array(), EP_VERSION );
 
 		} else {
 
-			wp_register_script( 'ep_admin', EP_URL . 'assets/js/elasticpress-admin.min.js', array( 'jquery' ), EP_VERSION );
+			wp_register_script( 'ep_admin', EP_URL . 'assets/js/elasticpress-admin.min.js', array( 'jquery', 'jquery-ui-progressbar' ), EP_VERSION );
 
 			wp_register_style( 'ep_progress_style', EP_URL . 'assets/css/jquery-ui.min.css', array(), EP_VERSION );
 			wp_register_style( 'ep_styles', EP_URL . 'assets/css/elasticpress.min.css', array(), EP_VERSION );
@@ -91,6 +91,36 @@ class EP_Settings {
 			wp_enqueue_style( 'ep_styles' );
 
 			wp_enqueue_script( 'ep_admin' );
+
+			$running      = 0;
+			$total_posts  = 0;
+			$synced_posts = 0;
+
+			if ( false !== get_transient( 'ep_index_offset' ) ) {
+
+				$running      = 1;
+				$synced_posts = get_transient( 'ep_index_synced' );
+				$total_posts  = get_transient( 'ep_post_count' );
+
+			}
+
+			wp_localize_script(
+					'ep_admin',
+					'ep',
+					array(
+							'nonce'               => wp_create_nonce( 'ep_manual_index' ),
+							'stats_nonce'         => wp_create_nonce( 'ep_site_stats' ),
+							'running_index_text'  => esc_html__( 'Running Index...', 'elasticpress' ),
+							'index_complete_text' => esc_html__( 'Run Index', 'elasticpress' ),
+							'items_indexed'       => esc_html__( 'items indexed', 'elasticpress' ),
+							'sites_to_index'      => esc_html__( 'site(s) remain to be indexed', 'elasticpress' ),
+							'mapping_sites'       => esc_html__( 'We are settings up your site(s) for indexing. Please be patient.', 'elasticpress' ),
+							'counting_items'      => esc_html__( 'We\'re Still counting total items for the index. Please be patient', 'elasticpress' ),
+							'index_running'       => $running,
+							'total_posts'         => isset( $total_posts['total'] ) ? $total_posts['total'] : 0,
+							'synced_posts'        => $synced_posts,
+					)
+			);
 
 		}
 	}

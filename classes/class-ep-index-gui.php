@@ -44,74 +44,13 @@ class EP_Index_GUI {
 		// Load the class files.
 		require( dirname( __FILE__ ) . '/class-ep-index-worker.php' );
 
-		// Add JavaScripts.
-		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
-
 		// Add Ajax Actions.
 		add_action( 'wp_ajax_ep_launch_index', array( $this, 'action_wp_ajax_ep_launch_index' ) );
+		add_action( 'wp_ajax_ep_get_site_stats', array( $this, 'action_wp_ajax_ep_get_site_stats' ) );
 		add_action( 'ep_do_settings_meta', array( $this, 'action_ep_do_settings_meta' ) );
 
 		return $this;
 
-	}
-
-	/**
-	 * Register and Enqueue JavaScripts
-	 *
-	 * Registers and enqueues the necessary JavaScripts for the interface.
-	 *
-	 * @since 0.1.0
-	 *
-	 * @return void
-	 */
-	public function action_admin_enqueue_scripts() {
-
-		// Enqueue more easily debugged version if applicable.
-		if ( defined( 'WP_DEBUG' ) && true === WP_DEBUG ) {
-
-			wp_register_script( 'ep_index', EP_URL . 'assets/js/elasticpress-index-admin.js', array( 'jquery', 'jquery-ui-progressbar' ), EP_VERSION );
-
-		} else {
-
-			wp_register_script( 'ep_index', EP_URL . 'assets/js/elasticpress-index-admin.min.js', array( 'jquery', 'jquery-ui-progressbar' ), EP_VERSION );
-
-		}
-
-		// Only add the following to the settings page.
-		if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'settings_page_elasticpress' ) !== false ) {
-
-			wp_enqueue_script( 'ep_index' );
-
-			$running      = 0;
-			$total_posts  = 0;
-			$synced_posts = 0;
-
-			if ( false !== get_transient( 'ep_index_offset' ) ) {
-
-				$running      = 1;
-				$synced_posts = get_transient( 'ep_index_synced' );
-				$total_posts  = get_transient( 'ep_post_count' );
-
-			}
-
-			wp_localize_script(
-				'ep_index',
-				'ep',
-				array(
-					'nonce'               => wp_create_nonce( 'ep_manual_index' ),
-					'running_index_text'  => esc_html__( 'Running Index...', 'elasticpress' ),
-					'index_complete_text' => esc_html__( 'Run Index', 'elasticpress' ),
-					'items_indexed'       => esc_html__( 'items indexed', 'elasticpress' ),
-					'sites_to_index'      => esc_html__( 'site(s) remain to be indexed', 'elasticpress' ),
-					'mapping_sites'       => esc_html__( 'We are settings up your site(s) for indexing. Please be patient.', 'elasticpress' ),
-					'counting_items'      => esc_html__( 'We\'re Still counting total items for the index. Please be patient', 'elasticpress' ),
-					'index_running'       => $running,
-					'total_posts'         => isset( $total_posts['total'] ) ? $total_posts['total'] : 0,
-					'synced_posts'        => $synced_posts,
-				)
-			);
-
-		}
 	}
 
 	/**
@@ -231,6 +170,66 @@ class EP_Index_GUI {
 		}
 
 		wp_send_json_success( $data );
+
+	}
+
+	/**
+	 * Process site stats
+	 *
+	 * Returns the HTML for stats for an individual site.
+	 *
+	 * @since 1.8
+	 *
+	 * @return void
+	 */
+	public function action_wp_ajax_ep_get_site_stats() {
+
+		// Verify nonce and make sure this is run by an admin.
+		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'ep_site_stats' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
+		}
+
+		$site = intval( $_POST['site'] );
+
+		$index_stats  = ep_get_index_status( $site );
+		$search_stats = ep_get_search_status( $site );
+
+		$stats = '<div id="ep_' . $site . '" class="ep_site">';
+
+		if ( $index_stats['status'] ) {
+
+			$stats .= '<div class="search_stats">';
+			$stats .= sprintf( '<h3>%s</h3>', esc_html__( 'Search Stats', 'elasticpress' ) );
+			$stats .= '<ul>';
+			$stats .= '<li>';
+			$stats .= '<strong>' . esc_html__( 'Total Queries:', 'elasticpress' ) . ' </strong> ' . esc_html( $search_stats->query_total );
+			$stats .= '</li>';
+			$stats .= '<li>';
+			$stats .= '<strong>' . esc_html__( 'Query Time:', 'elasticpress' ) . ' </strong> ' . esc_html( $search_stats->query_time_in_millis ) . 'ms';
+			$stats .= '</li>';
+			$stats .= '<li>';
+			$stats .= '<strong>' . esc_html__( 'Total Fetches:', 'elasticpress' ) . ' </strong> ' . esc_html( $search_stats->fetch_total );
+			$stats .= '</li>';
+			$stats .= '<li>';
+			$stats .= '<strong>' . esc_html__( 'Fetch Time:', 'elasticpress' ) . ' </strong> ' . esc_html( $search_stats->fetch_time_in_millis ) . 'ms';
+			$stats .= '</li>';
+			$stats .= '</ul>';
+			$stats .= '</div>';
+			$stats .= '<div class="index_stats">';
+			$stats .= sprintf( '<h3>%s</h3>', esc_html__( 'Index Stats', 'elasticpress' ) );
+			$stats .= '<ul>';
+			$stats .= '<li>';
+			$stats .= '<strong>' . esc_html__( 'Index Total:', 'elasticpress' ) . ' </strong> ' . esc_html( $index_stats['data']->index_total );
+			$stats .= '</li>';
+			$stats .= '<li>';
+			$stats .= '<strong>' . esc_html__( 'Index Time:', 'elasticpress' ) . ' </strong> ' . esc_html( $index_stats['data']->index_time_in_millis ) . 'ms';
+			$stats .= '</li>';
+			$stats .= '</ul>';
+			$stats .= '</div>';
+		}
+		$stats .= '</div>';
+
+		wp_send_json_success( $stats );
 
 	}
 }

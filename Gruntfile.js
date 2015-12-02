@@ -21,9 +21,6 @@ module.exports = function ( grunt ) {
 					files : {
 						'assets/js/elasticpress-admin.min.js' : [
 							'assets/js/elasticpress-admin.js'
-						],
-						'assets/js/elasticpress-index-admin.min.js' : [
-							'assets/js/elasticpress-index-admin.js'
 						]
 					}
 

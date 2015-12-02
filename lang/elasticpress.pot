@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-02 09:55-0500\n"
+"POT-Creation-Date: 2015-12-02 13:07-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -136,44 +136,53 @@ msgstr ""
 msgid "No running host available."
 msgstr ""
 
-#: classes/class-ep-index-gui.php:102 includes/settings/index.php:14
-msgid "Running Index..."
-msgstr ""
-
-#: classes/class-ep-index-gui.php:103 includes/settings/index.php:14
-msgid "Run Index"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:104
-msgid "items indexed"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:105
-msgid "site(s) remain to be indexed"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:106
-msgid "We are settings up your site(s) for indexing. Please be patient."
-msgstr ""
-
-#: classes/class-ep-index-gui.php:107
-msgid "We're Still counting total items for the index. Please be patient"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:157 classes/class-ep-settings.php:113
+#: classes/class-ep-index-gui.php:96 classes/class-ep-index-gui.php:189
+#: classes/class-ep-settings.php:143
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:197
+#: classes/class-ep-index-gui.php:136
 msgid ""
 "Mappings could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:210
+#: classes/class-ep-index-gui.php:149
 msgid ""
 "Indexing could not be completed. If the error persists contact your system "
 "administrator"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:202 includes/settings/status.php:71
+msgid "Search Stats"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:205 includes/settings/status.php:75
+msgid "Total Queries:"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:208 includes/settings/status.php:78
+msgid "Query Time:"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:211 includes/settings/status.php:82
+msgid "Total Fetches:"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:214 includes/settings/status.php:85
+msgid "Fetch Time:"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:219 includes/settings/status.php:94
+msgid "Index Stats"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:222 includes/settings/status.php:98
+msgid "Index Total:"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:225 includes/settings/status.php:101
+msgid "Index Time:"
 msgstr ""
 
 #: classes/class-ep-index-status.php:60
@@ -188,19 +197,43 @@ msgstr ""
 msgid ": ElasticPress Index Errors"
 msgstr ""
 
-#: classes/class-ep-settings.php:146
+#: classes/class-ep-settings.php:113 includes/settings/index.php:14
+msgid "Running Index..."
+msgstr ""
+
+#: classes/class-ep-settings.php:114 includes/settings/index.php:14
+msgid "Run Index"
+msgstr ""
+
+#: classes/class-ep-settings.php:115
+msgid "items indexed"
+msgstr ""
+
+#: classes/class-ep-settings.php:116
+msgid "site(s) remain to be indexed"
+msgstr ""
+
+#: classes/class-ep-settings.php:117
+msgid "We are settings up your site(s) for indexing. Please be patient."
+msgstr ""
+
+#: classes/class-ep-settings.php:118
+msgid "We're Still counting total items for the index. Please be patient"
+msgstr ""
+
+#: classes/class-ep-settings.php:176
 msgid "ElasticSearch Host:"
 msgstr ""
 
-#: classes/class-ep-settings.php:151
+#: classes/class-ep-settings.php:181
 msgid "ElasticPress API Key:"
 msgstr ""
 
-#: classes/class-ep-settings.php:160
+#: classes/class-ep-settings.php:190
 msgid "Use ElasticSearch:"
 msgstr ""
 
-#: classes/class-ep-settings.php:398
+#: classes/class-ep-settings.php:428
 msgid "ElasticSearch Integration Options"
 msgstr ""
 
@@ -263,38 +296,6 @@ msgstr ""
 msgid "System Stats"
 msgstr ""
 
-#: includes/settings/status.php:71 includes/settings/status.php:140
-msgid "Search Stats"
-msgstr ""
-
-#: includes/settings/status.php:75 includes/settings/status.php:143
-msgid "Total Queries:"
-msgstr ""
-
-#: includes/settings/status.php:78 includes/settings/status.php:146
-msgid "Query Time:"
-msgstr ""
-
-#: includes/settings/status.php:82 includes/settings/status.php:149
-msgid "Total Fetches:"
-msgstr ""
-
-#: includes/settings/status.php:85 includes/settings/status.php:152
-msgid "Fetch Time:"
-msgstr ""
-
-#: includes/settings/status.php:94 includes/settings/status.php:158
-msgid "Index Stats"
-msgstr ""
-
-#: includes/settings/status.php:98 includes/settings/status.php:161
-msgid "Index Total:"
-msgstr ""
-
-#: includes/settings/status.php:101 includes/settings/status.php:164
-msgid "Index Time:"
-msgstr ""
-
 #: includes/settings/status.php:112
 msgid "Site Stats"
 msgstr ""
@@ -307,23 +308,23 @@ msgstr ""
 msgid "Select"
 msgstr ""
 
-#: includes/settings/status.php:180
+#: includes/settings/status.php:140
 msgid "Cluster Stats"
 msgstr ""
 
-#: includes/settings/status.php:190
+#: includes/settings/status.php:150
 msgid "Disk Usage:"
 msgstr ""
 
-#: includes/settings/status.php:193
+#: includes/settings/status.php:153
 msgid "Disk Space Available:"
 msgstr ""
 
-#: includes/settings/status.php:196
+#: includes/settings/status.php:156
 msgid "Total Disk Space:"
 msgstr ""
 
-#: includes/settings/status.php:209
+#: includes/settings/status.php:169
 msgid "ERROR:"
 msgstr ""
 

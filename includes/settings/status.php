@@ -11,7 +11,7 @@
 
 $site_stats_id = null;
 
-if ( is_multisite() && ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK  ) ) {
+if ( is_multisite() && ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) ) {
 	$site_stats_id = get_current_blog_id();
 }
 
@@ -53,7 +53,8 @@ if ( $stats['status'] ) {
 	<?php if ( ep_is_activated() ) { ?>
 
 		<span class="dashicons dashicons-yes"
-		      style="color:green;"></span> <?php esc_html_e( 'ElasticPress can override WP search.', 'elasticpress' ); ?><br/>
+		      style="color:green;"></span> <?php esc_html_e( 'ElasticPress can override WP search.', 'elasticpress' ); ?>
+		<br/>
 		<br/>
 
 	<?php } else { ?>
@@ -98,7 +99,8 @@ if ( $stats['status'] ) {
 				<strong><?php esc_html_e( 'Index Total:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $stats['data']->index_total ); ?>
 			</li>
 			<li>
-				<strong><?php esc_html_e( 'Index Time:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $stats['data']->index_time_in_millis ); ?>ms
+				<strong><?php esc_html_e( 'Index Time:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $stats['data']->index_time_in_millis ); ?>
+				ms
 			</li>
 		</ul>
 
@@ -111,64 +113,35 @@ if ( $stats['status'] ) {
 
 		printf( '<h2>%s</h2>', esc_html__( 'Site Stats', 'elasticpress' ) );
 
-		$sites = ep_get_sites();
-
 		echo '<div id="ep_site_sel">';
 		echo '<strong>' . esc_html__( 'Select a site:', 'elasticpress' ) . '</strong> <select name="ep_site_select" id="ep_site_select">';
 		echo '<option value="0">' . esc_html__( 'Select', 'elasticpress' ) . '</option>';
 
-		foreach ( $sites as $site ) {
+		$site_list = get_site_transient( 'ep_site_list_for_stats' );
 
-			$details = get_blog_details( $site['blog_id'] );
+		if ( false === $site_list ) {
 
-			printf( '<option value="%d">%s</option>', $site['blog_id'], $details->blogname );
+			$site_list = '';
+			$sites     = ep_get_sites();
+
+			foreach ( $sites as $site ) {
+
+				$details = get_blog_details( $site['blog_id'] );
+
+				$site_list .= sprintf( '<option value="%d">%s</option>', $site['blog_id'], $details->blogname );
+
+			}
+
+			set_site_transient( 'ep_site_list_for_stats', $site_list, 600 );
 
 		}
+
+		echo wp_kses( $site_list, array( 'option' => array( 'value' ) ) );
 
 		echo '</select>';
 		echo '</div>';
 
-		foreach ( $sites as $site ) {
-
-			$stats        = ep_get_index_status( $site['blog_id'] );
-			$search_stats = ep_get_search_status( $site['blog_id'] );
-			$details      = get_blog_details( $site['blog_id'] );
-			?>
-			<div id="ep_<?php echo $site['blog_id']; ?>" class="ep_site">
-				<?php if ( $stats['status'] ) : ?>
-					<div class="search_stats">
-						<?php printf( '<h3>%s</h3>', esc_html__( 'Search Stats', 'elasticpress' ) ); ?>
-						<ul>
-							<li>
-								<strong><?php esc_html_e( 'Total Queries:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $search_stats->query_total ); ?>
-							</li>
-							<li>
-								<strong><?php esc_html_e( 'Query Time:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $search_stats->query_time_in_millis ); ?>ms
-							</li>
-							<li>
-								<strong><?php esc_html_e( 'Total Fetches:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $search_stats->fetch_total ); ?>
-							</li>
-							<li>
-								<strong><?php esc_html_e( 'Fetch Time:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $search_stats->fetch_time_in_millis ); ?>ms
-							</li>
-						</ul>
-
-					</div>
-					<div class="index_stats">
-						<?php printf( '<h3>%s</h3>', esc_html__( 'Index Stats', 'elasticpress' ) ); ?>
-						<ul>
-							<li>
-								<strong><?php esc_html_e( 'Index Total:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $stats['data']->index_total ); ?>
-							</li>
-							<li>
-								<strong><?php esc_html_e( 'Index Time:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $stats['data']->index_time_in_millis ); ?>ms
-							</li>
-						</ul>
-					</div>
-				<?php endif; ?>
-			</div>
-			<?php
-		}
+		echo '<div id="ep_site_stats"></div>';
 
 		echo '</div>';
 
@@ -187,7 +160,8 @@ if ( $stats['status'] ) {
 
 		<ul>
 			<li>
-				<strong><?php esc_html_e( 'Disk Usage:', 'elasticpress' ); ?></strong> <?php echo esc_html( number_format( ( $disk_usage / $fs->total_in_bytes ) * 100, 0 ) ); ?>%
+				<strong><?php esc_html_e( 'Disk Usage:', 'elasticpress' ); ?></strong> <?php echo esc_html( number_format( ( $disk_usage / $fs->total_in_bytes ) * 100, 0 ) ); ?>
+				%
 			</li>
 			<li>
 				<strong><?php esc_html_e( 'Disk Space Available:', 'elasticpress' ); ?></strong> <?php echo esc_html( $this->ep_byte_size( $fs->available_in_bytes ) ); ?>
