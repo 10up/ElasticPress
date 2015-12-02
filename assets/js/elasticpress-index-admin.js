@@ -58,8 +58,6 @@ jQuery ( document ).ready ( function ( $ ) {
 				data     : data,
 				complete : function ( response ) {
 
-					console.log( response.responseJSON.data.ep_mapping_complete );
-
 					if ( 'undefined' !== typeof response.responseJSON.data.ep_mapping_complete ) {
 
 						status.html ( ep.mapping_sites + '<br />'+ response.responseJSON.data.ep_mapping_complete + ' ' + ep.sites_to_index );
