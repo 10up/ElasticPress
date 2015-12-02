@@ -24,7 +24,7 @@ jQuery( document ).ready ( function ( $ ) {
 
 			} else {
 
-				status.html ( ep.counting_items );
+				status.html ( ep.mapping_sites );
 
 			}
 
