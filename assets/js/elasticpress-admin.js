@@ -140,6 +140,8 @@ jQuery( document ).ready ( function ( $ ) {
 
 		event.preventDefault ();
 
+		console.log( selector.val() );
+
 		var data = {
 			action : 'ep_get_site_stats',
 			nonce :  ep.stats_nonce,
@@ -153,8 +155,6 @@ jQuery( document ).ready ( function ( $ ) {
 				type :     'POST',
 				data :     data,
 				complete : function ( response ) {
-
-					console.log( $( '#ep_site_stats' ) );
 
 					$( '#ep_site_stats' ).html( response.responseJSON.data );
 

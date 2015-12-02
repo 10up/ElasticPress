@@ -136,7 +136,7 @@ if ( $stats['status'] ) {
 
 		}
 
-		echo wp_kses( $site_list, array( 'option' => array( 'value' ) ) );
+		echo wp_kses( $site_list, array( 'option' => array( 'value' => array() ) ) );
 
 		echo '</select>';
 		echo '</div>';
