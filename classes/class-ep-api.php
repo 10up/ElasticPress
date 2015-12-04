@@ -1277,6 +1277,8 @@ class EP_API {
 
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
+        $fuzziness = (!isset($args['fuzziness'])) ? 2 : $args['fuzziness'];
+
 		$query = array(
 			'bool' => array(
 				'should' => array(
@@ -1292,7 +1294,7 @@ class EP_API {
 						'multi_match' => array(
 							'fields' => $search_fields,
 							'query' => '',
-							'fuzziness' => 2,
+							'fuzziness' => $fuzziness,
 							'operator' => 'or',
 						),
 					)
