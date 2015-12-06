@@ -181,7 +181,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -209,6 +209,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$total_indexed = 0;
 
+		$keep_active = false;
+		if (
+			isset( $assoc_args['keep-active'] ) &&
+			true === $assoc_args['keep-active'] &&
+			( ! isset( $assoc_args['setup'] ) || false === $assoc_args['setup'] )
+		) {
+			$keep_active = true;
+		}
+
 		/**
 		 * Prior to the index command invoking
 		 * Useful for deregistering filters/actions that occur during a query request
@@ -218,7 +227,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
 		// Deactivate our search integration
-		$this->deactivate();
+		if ( ! $keep_active ) {
+			$this->deactivate();
+		}
 
 		timer_start();
 
