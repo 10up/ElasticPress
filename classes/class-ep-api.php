@@ -139,7 +139,7 @@ class EP_API {
 			$index = ep_get_index_name();
 		}
 
-		$path = $index . '/post/_search';
+		$path = apply_filters( 'ep_search_request_path', $index . '/post/_search', $args, $scope );
 
 		$request_args = array(
 			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
