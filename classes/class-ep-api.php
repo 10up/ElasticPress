@@ -40,8 +40,18 @@ class EP_API {
 
 		$path = $index . 'post/' . $post['post_id'];
 
+		if ( function_exists( 'wp_json_encode' ) ) {
+
+			$encoded_post = wp_json_encode( $post );
+
+		} else {
+
+			$encoded_post = json_encode( $post );
+
+		}
+
 		$request_args = array(
-			'body'    => json_encode( $post ),
+			'body'    => $encoded_post,
 			'method'  => 'PUT',
 			'timeout' => 15,
 		);
@@ -475,6 +485,11 @@ class EP_API {
 		 * This filter is named poorly but has to stay to keep backwards compat
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
+
+		$post_args['meta'] = $this->prepare_meta_types( $post_args['post_meta'] );
+
+		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
+
 		return $post_args;
 	}
 
@@ -599,13 +614,139 @@ class EP_API {
 
 		$prepared_meta = array();
 
+		/**
+		 * Filter index-able private meta
+		 *
+		 * Allows for specifying private meta keys that may be indexed in the same manor as public meta keys.
+		 *
+		 * @since 1.7
+		 *
+		 * @param         array Array of index-able private meta keys.
+		 * @param WP_Post $post The current post to be indexed.
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', array(), $post );
+
+		/**
+		 * Filter non-indexed public meta
+		 *
+		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
+		 *
+		 * @since 1.7
+		 *
+		 * @param         array Array of public meta keys to exclude from index.
+		 * @param WP_Post $post The current post to be indexed.
+		 */
+		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', array(), $post );
+
 		foreach ( $meta as $key => $value ) {
-			if ( ! is_protected_meta( $key ) ) {
-				$prepared_meta[$key] = maybe_unserialize( $value );
+
+			$allow_index = false;
+
+			if ( is_protected_meta( $key ) ) {
+
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) {
+					$allow_index = true;
+				}
+			} else {
+
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys )  ) {
+					$allow_index = true;
+				}
+			}
+
+			if ( true === $allow_index ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
 
 		return $prepared_meta;
+
+	}
+
+	/**
+	 * Prepare post meta type values to send to ES
+	 *
+	 * @param array $post_meta
+	 *
+	 * @return array
+	 *
+	 * @since x.x.x
+	 */
+	public function prepare_meta_types( $post_meta ) {
+
+		$meta = array();
+
+		foreach ( $post_meta as $meta_key => $meta_values ) {
+			if ( ! is_array( $meta_values ) ) {
+				$meta_values = array( $meta_values );
+			}
+
+			$meta[ $meta_key ] = array_map( array( $this, 'prepare_meta_value_types' ), $meta_values );
+		}
+
+		return $meta;
+
+	}
+
+	/**
+	 * Prepare meta types for meta value
+	 *
+	 * @param mixed $meta_value
+	 *
+	 * @return array
+	 */
+	public function prepare_meta_value_types( $meta_value ) {
+
+		$max_java_int_value = 9223372036854775807;
+
+		$meta_types = array();
+
+		if ( is_array( $meta_value ) || is_object( $meta_value ) ) {
+			$meta_value = serialize( $meta_value );
+		}
+
+		$meta_types['value'] = $meta_value;
+		$meta_types['raw']   = $meta_value;
+
+		if ( is_numeric( $meta_value ) ) {
+			$long = intval( $meta_value );
+
+			if ( $max_java_int_value < $long ) {
+				$long = $max_java_int_value;
+			}
+
+			$double = floatval( $meta_value );
+
+			if ( ! is_finite( $double ) ) {
+				$double = 0;
+			}
+
+			$meta_types['long']   = $long;
+			$meta_types['double'] = $double;
+		}
+
+		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
+
+		if ( is_string( $meta_value ) ) {
+			$timestamp = strtotime( $meta_value );
+
+			$date     = '1971-01-01';
+			$datetime = '1971-01-01 00:00:01';
+			$time     = '00:00:01';
+
+			if ( false !== $timestamp ) {
+				$date     = date_i18n( 'Y-m-d', $timestamp );
+				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
+				$time     = date_i18n( 'H:i:s', $timestamp );
+			}
+
+			$meta_types['date']     = $date;
+			$meta_types['datetime'] = $datetime;
+			$meta_types['time']     = $time;
+		}
+
+		return $meta_types;
+
 	}
 
 	/**
@@ -674,10 +815,10 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_args( $args ) {
-		if ( ! empty( $args['post_per_page'] ) ) {
-			$posts_per_page = $args['post_per_page'];
+		if ( ! empty( $args['posts_per_page'] ) ) {
+			$posts_per_page = (int) $args['posts_per_page'];
 		} else {
-			$posts_per_page = get_option( 'posts_per_page' );
+			$posts_per_page = (int) get_option( 'posts_per_page' );
 		}
 
 		$formatted_args = array(
@@ -787,6 +928,36 @@ class EP_API {
 		}
 
 		/**
+		 * 'post__in' arg support.
+		 *
+		 * @since x.x
+		 */
+		if ( ! empty( $args['post__in'] ) ) {
+			$filter['and'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_id' => (array) $args['post__in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+	        /**
+	         * 'post__not_in' arg support.
+	         *
+	         * @since x.x
+	         */
+	        if ( ! empty( $args['post__not_in'] ) ) {
+			$filter['and'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'post_id' => (array) $args['post__not_in'],
+				),
+			);
+
+			$use_filters = true;
+	        }
+
+		/**
 		 * Author query support
 		 *
 		 * @since 1.0
@@ -841,7 +1012,6 @@ class EP_API {
 		 *
 		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
 		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
-		 * 'type' is NOT support at this time.
 		 *
 		 * @since 1.3
 		 */
@@ -853,6 +1023,18 @@ class EP_API {
 				$relation = 'should';
 			}
 
+			$meta_query_type_mapping = array(
+				'numeric'  => 'long',
+				'binary'   => 'raw',
+				'char'     => 'raw',
+				'date'     => 'date',
+				'datetime' => 'datetime',
+				'decimal'  => 'double',
+				'signed'   => 'long',
+				'time'     => 'time',
+				'unsigned' => 'long',
+			);
+
 			foreach( $args['meta_query'] as $single_meta_query ) {
 				if ( ! empty( $single_meta_query['key'] ) ) {
 
@@ -863,6 +1045,25 @@ class EP_API {
 						$compare = strtolower( $single_meta_query['compare'] );
 					}
 
+					$type = null;
+					if ( ! empty( $single_meta_query['type'] ) ) {
+						$type = strtolower( $single_meta_query['type'] );
+					}
+
+					// Comparisons need to look at different paths
+					if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'];
+					} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
+						// Map specific meta field types to different ElasticSearch core types
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
+					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
+					} else {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
+					}
+
 					switch ( $compare ) {
 						case '!=':
 							if ( isset( $single_meta_query['value'] ) ) {
@@ -871,7 +1072,7 @@ class EP_API {
 										'must_not' => array(
 											array(
 												'terms' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+													$meta_key_path => (array) $single_meta_query['value'],
 												),
 											),
 										),
@@ -883,7 +1084,7 @@ class EP_API {
 						case 'exists':
 							$terms_obj = array(
 								'exists' => array(
-									'field' => 'post_meta.' . $single_meta_query['key'],
+									'field' => $meta_key_path,
 								),
 							);
 
@@ -894,7 +1095,7 @@ class EP_API {
 									'must_not' => array(
 										array(
 											'exists' => array(
-												'field' => 'post_meta.' . $single_meta_query['key'],
+												'field' => $meta_key_path,
 											),
 										),
 									),
@@ -909,7 +1110,7 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
+													$meta_key_path => array(
 														"gte" => $single_meta_query['value'],
 													),
 												),
@@ -927,8 +1128,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"lte" => $single_meta_query['value'],
+													$meta_key_path => array(
+														'lte' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -945,8 +1146,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"gt" => $single_meta_query['value'],
+													$meta_key_path => array(
+														'gt' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -963,8 +1164,8 @@ class EP_API {
 										'must' => array(
 											array(
 												'range' => array(
-													'post_meta.' . $single_meta_query['key'] . '.raw' => array(
-														"lt" => $single_meta_query['value'],
+													$meta_key_path => array(
+														'lt' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -978,8 +1179,8 @@ class EP_API {
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
 									'query' => array(
-										"match" => array(
-											'post_meta.' . $single_meta_query['key'] => $single_meta_query['value'],
+										'match' => array(
+											$meta_key_path => $single_meta_query['value'],
 										)
 									),
 								);
@@ -990,7 +1191,7 @@ class EP_API {
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
 									'terms' => array(
-										'post_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+										$meta_key_path => (array) $single_meta_query['value'],
 									),
 								);
 							}
@@ -1035,7 +1236,7 @@ class EP_API {
 				$metas = (array) $search_field_args['meta'];
 
 				foreach ( $metas as $meta ) {
-					$search_fields[] = 'post_meta.' . $meta;
+					$search_fields[] = 'meta.' . $meta . '.value';
 				}
 
 				unset( $search_field_args['meta'] );
@@ -1126,7 +1327,10 @@ class EP_API {
 			$formatted_args['from'] = $args['offset'];
 		}
 
-		if ( isset( $args['posts_per_page'] ) ) {
+ 		if ( isset( $args['post_per_page'] ) ) {
+			// For backwards compatibility for those using this since EP 1.4
+			$formatted_args['size'] = $args['post_per_page'];
+		} elseif ( isset( $args['posts_per_page'] ) ) {
 			$formatted_args['size'] = $args['posts_per_page'];
 		}
 

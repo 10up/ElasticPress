@@ -5,7 +5,7 @@ Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
 Tested up to: 4.4
-Stable tag: 1.6.2
+Stable tag: 1.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,14 +60,37 @@ configuring single site and multi-site cross-site search are slightly different.
 
 == Changelog ==
 
-= 1.6.2 =
+= 1.7 (Mapping change, requires reindex) =
+
+ElasticPress 1.7 restructures meta mapping for posts for much more flexible meta queries. The `post_meta` Elasticsearch post property has been left for backwards compatibility. As of this version, post meta will be stored in the `meta` Elasticsearch property. `meta` is structured as follows:
+
+* `meta.value` (string)
+* `meta.raw` (unanalyzed string)
+* `meta.long` (unanalyzed number)
+* `meta.double` (unanalyzed number)
+* `meta.boolean` (unanalyzed number)
+* `meta.date` (unanalyzed yyyy-MM-dd date)
+* `meta.datetime` (unanalyzed yyyy-MM-dd HH:mm:ss datetime)
+* `time` (unanalyzed HH:mm:ss time)
+
+When querying posts, you will get back `meta.value`. However, if you plan to mess with the new post mapping, it's important to understand the intricacies.
+
+The real implications of this is in `meta_query`. You can now effectively search by meta types. See the new section in README.md for details on this.
+
+1.7 also contains the following bugs/enhancements:
+
+* (Bug) Prevent missed post indexing when duplicate post dates. Props [lukaspawlik](https://github.com/lukaspawlik)
+* (Bug) Complex meta types are automatically serialized upon storage.
+* (Enhancement) Index posts according to post type. Props [sc0ttkclark](https://github.com/sc0ttkclark)
+
+= 1.6.2 (Mapping change, requires reindex) =
 
 ElasticPress 1.6.2 fixes ALL backwards compatibility issues with Elasticsearch 2.0:
 
 * Removes `fuzzy_like_this` query and uses `multi_match` instead.
 * Uses string instead of array for post type term when there is only one term.
 
-= 1.6.1 =
+= 1.6.1 (Mapping change, requires reindex) =
 
 ElasticPress 1.6.1 fixes mapping backwards compatibility issues with Elasticsearch 2.0:
 

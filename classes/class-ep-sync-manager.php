@@ -24,6 +24,7 @@ class EP_Sync_Manager {
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 	}
@@ -39,10 +40,16 @@ class EP_Sync_Manager {
 		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 	}
 
+	/**
+	 * Remove blog from index when a site is deleted, archived, or deactivated
+	 *
+	 * @param $blog_id
+	 */
 	public function action_delete_blog_from_index( $blog_id ) {
 		if ( ep_index_exists( ep_get_index_name( $blog_id ) ) && ! apply_filters( 'ep_keep_index', false ) ) {
 			ep_delete_index( ep_get_index_name( $blog_id ) );
@@ -83,7 +90,11 @@ class EP_Sync_Manager {
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
 
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_ID ) || 'revision' === $post_type ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
+			// Bypass saving if doing autosave or post type is revision
+			return;
+		} elseif ( ! current_user_can( 'edit_post', $post_ID ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
+			// Bypass saving if user does not have access to edit post and we're not in a cron process
 			return;
 		}
 
