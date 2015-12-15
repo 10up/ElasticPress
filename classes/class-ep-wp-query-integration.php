@@ -262,6 +262,11 @@ class EP_WP_Query_Integration {
 				$scope = $query_vars['sites'];
 			}
 
+			/*
+			* Created filter 'ep_wp_query_vars' to add meta_query to ElasticSearch
+			*/
+			$query_vars = apply_filters('ep_wp_query_vars', $query_vars);
+
 			$formatted_args = ep_format_args( $query_vars );
 
 			$search = ep_search( $formatted_args, $scope );
