@@ -96,6 +96,12 @@ class EP_Index_GUI {
 			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
 		}
 
+		$network = false;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$network = true;
+		}
+
 		$post_count    = array( 'total' => 0 );
 		$post_types    = ep_get_indexable_post_types();
 		$post_statuses = ep_get_indexable_post_status();
@@ -116,12 +122,6 @@ class EP_Index_GUI {
 		}
 
 		set_transient( 'ep_post_count', $post_count, 600 );
-
-		$network = false;
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$network = true;
-		}
 
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
