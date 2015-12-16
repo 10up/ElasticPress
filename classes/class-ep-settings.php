@@ -113,7 +113,7 @@ class EP_Settings {
 							'running_index_text'  => esc_html__( 'Running Index...', 'elasticpress' ),
 							'index_complete_text' => esc_html__( 'Run Index', 'elasticpress' ),
 							'items_indexed'       => esc_html__( 'items indexed', 'elasticpress' ),
-							'sites_to_index'      => esc_html__( 'site(s) remain to be indexed', 'elasticpress' ),
+							'sites_to_index'      => esc_html__( 'site(s) remain to be mapped', 'elasticpress' ),
 							'mapping_sites'       => esc_html__( 'We are settings up your site(s) for indexing. Please be patient.', 'elasticpress' ),
 							'index_running'       => $running,
 							'total_posts'         => isset( $total_posts['total'] ) ? $total_posts['total'] : 0,
