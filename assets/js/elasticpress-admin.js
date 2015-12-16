@@ -1,17 +1,17 @@
-jQuery( document ).ready ( function ( $ ) {
+jQuery( document ).ready( function ( $ ) {
 
 	/**
 	 * Update the progress bar every 3 seconds
 	 */
 	var performIndex = function ( resetBar, button ) {
 
-		$( button ).val ( ep.running_index_text ).removeClass ( 'button-primary' );
+		$( button ).val( ep.running_index_text ).removeClass( 'button-primary' );
 
 		//Make sure the progress bar is showing
 		var bar    = $( '#progressbar' ),
 		    status = $( '#progressstats' );
 
-		bar.show ();
+		bar.show();
 
 		if ( resetBar ) {
 
@@ -20,15 +20,15 @@ jQuery( document ).ready ( function ( $ ) {
 			if ( parseInt( ep.total_posts ) > 0 ) {
 
 				progress = parseFloat( ep.synced_posts ) / parseFloat( ep.total_posts );
-				status.html ( ep.synced_posts + '/' + ep.total_posts + 'items' );
+				status.html( ep.synced_posts + '/' + ep.total_posts + 'items' );
 
 			} else {
 
-				status.html ( ep.mapping_sites );
+				status.html( ep.mapping_sites );
 
 			}
 
-			bar.progressbar (
+			bar.progressbar(
 				{
 					value : progress * 100
 				}
@@ -37,6 +37,19 @@ jQuery( document ).ready ( function ( $ ) {
 		}
 
 		processIndex( bar, button, status );
+
+	};
+
+	var epSitesRemaining = 0;
+	var epTotalToIndex   = 0;
+	var epTotalIndexed   = 0;
+
+	// Resets index counts
+	var resetIndex = function () {
+
+		epSitesRemaining = 0;
+		epTotalToIndex   = 0;
+		epTotalIndexed   = 0;
 
 	};
 
@@ -51,36 +64,45 @@ jQuery( document ).ready ( function ( $ ) {
 		};
 
 		//call the ajax
-		$.ajax (
+		$.ajax(
 			{
 				url :      ajaxurl,
 				type :     'POST',
 				data :     data,
 				complete : function ( response ) {
 
-					if ( 'undefined' !== typeof response.responseJSON.data.ep_mapping_complete ) {
+					console.log( response.responseJSON.data );
 
-						status.html ( ep.mapping_sites + '<br />' + response.responseJSON.data.ep_mapping_complete + ' ' + ep.sites_to_index );
+					if ( 0 == response.responseJSON.data.ep_sync_complete ) { //incomplete
 
-						performIndex( false, button );
+						if ( 0 < response.responseJSON.data.ep_sites_remaining && epSitesRemaining !== response.responseJSON.data.ep_sites_remaining ) {
 
-					} else if ( 0 == response.responseJSON.data.ep_sync_complete ) { //incomplete
+							epSitesRemaining = response.responseJSON.data.ep_sites_remaining;
+							epTotalToIndex += response.responseJSON.data.ep_posts_total;
 
-						var progress = parseFloat( response.responseJSON.data.ep_posts_synced ) / parseFloat( response.responseJSON.data.ep_posts_total );
+						} else if ( 0 === response.responseJSON.data.is_network ) {
 
-						bar.progressbar (
+							epTotalToIndex = response.responseJSON.data.ep_posts_total;
+
+						}
+
+						epTotalIndexed += response.responseJSON.data.ep_posts_synced;
+
+						var progress = parseFloat( epTotalIndexed ) / parseFloat( epTotalToIndex );
+
+						bar.progressbar(
 							{
 								value : progress * 100
 							}
 						);
 
-						status.html ( response.responseJSON.data.ep_posts_synced + '/' + response.responseJSON.data.ep_posts_total + ' ' + ep.items_indexed );
+						status.html( epTotalIndexed + '/' + epTotalToIndex + ' ' + ep.items_indexed );
 
 						performIndex( false, button );
 
 					} else { //indexing complete
 
-						bar.progressbar (
+						bar.progressbar(
 							{
 								value : 100
 							}
@@ -88,9 +110,10 @@ jQuery( document ).ready ( function ( $ ) {
 
 						setTimeout( function () {
 
-							$( '#progressbar' ).fadeOut ( 'slow' );
-							$( '#progressstats' ).html ( 'Index complete <a href="">Refresh the stats</a>' );
-							$( '#ep_run_index' ).val ( ep.index_complete_text ).addClass ( 'button-primary' );
+							$( '#progressbar' ).fadeOut( 'slow' );
+							$( '#progressstats' ).html( 'Index complete <a href="">Refresh the stats</a>' );
+							$( '#ep_run_index' ).val( ep.index_complete_text ).addClass( 'button-primary' );
+							resetIndex();
 
 						}, 1000 );
 
@@ -116,13 +139,15 @@ jQuery( document ).ready ( function ( $ ) {
 	/**
 	 * Process indexing operation
 	 */
-	run_index_button.click ( function ( event ) {
+	run_index_button.click( function ( event ) {
 
-		event.preventDefault ();
+		event.preventDefault();
+
+		resetIndex();
 
 		var button = this;
 
-		if ( ! $( button ).hasClass ( 'button-primary' ) ) {
+		if ( ! $( button ).hasClass( 'button-primary' ) ) {
 			return;
 		}
 
@@ -138,7 +163,7 @@ jQuery( document ).ready ( function ( $ ) {
 	 */
 	selector.change( function ( event ) {
 
-		event.preventDefault ();
+		event.preventDefault();
 
 		console.log( selector.val() );
 
@@ -149,7 +174,7 @@ jQuery( document ).ready ( function ( $ ) {
 		};
 
 		//call the ajax
-		$.ajax (
+		$.ajax(
 			{
 				url :      ajaxurl,
 				type :     'POST',

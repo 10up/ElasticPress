@@ -206,9 +206,10 @@ class EP_Index_GUI {
 		$result = $this->_run_index();
 
 		if ( false !== $site ) {
+
 			$indexes[] = ep_get_index_name();
 
-			if ( is_array( $result ) && isset( $result['ep_sync_complete'] ) ) {
+			if ( is_array( $result ) && isset( $result['ep_sync_complete'] )&& true ===  $result['ep_sync_complete']  ) {
 
 				delete_transient( 'ep_index_synced' );
 				delete_transient( 'ep_post_count' );
@@ -216,6 +217,15 @@ class EP_Index_GUI {
 			}
 
 			restore_current_blog();
+
+		} else {
+
+			if ( is_array( $result ) && isset( $result['ep_sync_complete'] ) && true ===  $result['ep_sync_complete'] ) {
+
+				delete_transient( 'ep_index_synced' );
+				delete_transient( 'ep_post_count' );
+
+			}
 		}
 
 		if ( is_array( $result ) && isset( $result['ep_sync_complete'] ) ) {
@@ -245,12 +255,28 @@ class EP_Index_GUI {
 						ep_create_network_alias( $indexes );
 
 					}
+				} else {
+
+					$result['ep_sync_complete'] = ( true === $result['ep_sync_complete'] ) ? 1 : 0;
+
 				}
 
 				ep_activate();
 
 			}
 		}
+
+		if ( ! empty( $sites ) ) {
+
+			$result['ep_sites_remaining'] = sizeof( $sites );
+
+		} else {
+
+			$result['ep_sites_remaining'] = 0;
+
+		}
+
+		$result['is_network'] = ( true === $network ) ? 1 : 0;
 
 		wp_send_json_success( $result );
 
