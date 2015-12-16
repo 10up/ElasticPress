@@ -179,8 +179,6 @@ class EP_Index_Worker {
 		if ( true === $complete ) {
 
 			delete_transient( 'ep_index_offset' );
-			delete_transient( 'ep_index_synced' );
-			delete_transient( 'ep_post_count' );
 			$this->send_bulk_errors();
 
 		}

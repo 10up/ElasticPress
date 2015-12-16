@@ -133,9 +133,6 @@ class EP_Index_GUI {
 
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
-			// Reactivate our search integration.
-			ep_activate();
-
 			$data = array(
 				'ep_sync_complete' => true,
 				'ep_posts_synced'  => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
@@ -193,8 +190,8 @@ class EP_Index_GUI {
 			} else {
 
 				$sites   = ( isset( $last_run['sites'] ) ) ? $last_run['sites'] : ep_get_sites();
-				$success   = ( isset( $last_run['success'] ) ) ? $last_run['success'] : array();
-				$indexes   = ( isset( $last_run['indexes'] ) ) ? $last_run['indexes'] : array();
+				$success = ( isset( $last_run['success'] ) ) ? $last_run['success'] : array();
+				$indexes = ( isset( $last_run['indexes'] ) ) ? $last_run['indexes'] : array();
 
 			}
 
@@ -210,6 +207,14 @@ class EP_Index_GUI {
 
 		if ( false !== $site ) {
 			$indexes[] = ep_get_index_name();
+
+			if ( is_array( $result ) && isset( $result['ep_sync_complete'] ) ) {
+
+				delete_transient( 'ep_index_synced' );
+				delete_transient( 'ep_post_count' );
+
+			}
+
 			restore_current_blog();
 		}
 
