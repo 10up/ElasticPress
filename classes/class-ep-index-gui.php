@@ -80,27 +80,7 @@ class EP_Index_GUI {
 
 	}
 
-	/**
-	 * Process manual indexing
-	 *
-	 * Processes the action when the manual indexing button is clicked.
-	 *
-	 * @since 0.1.0
-	 *
-	 * @return void
-	 */
-	public function action_wp_ajax_ep_launch_index() {
-
-		// Verify nonce and make sure this is run by an admin.
-		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'ep_manual_index' ) || ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
-		}
-
-		$network = false;
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$network = true;
-		}
+	protected function _run_index() {
 
 		$post_count    = array( 'total' => 0 );
 		$post_types    = ep_get_indexable_post_types();
@@ -128,7 +108,7 @@ class EP_Index_GUI {
 			// Deactivate our search integration.
 			ep_deactivate();
 
-			$mapping_success = ep_process_site_mappings( $network );
+			$mapping_success = ep_process_site_mappings();
 
 			if ( true !== $mapping_success ) {
 
@@ -143,11 +123,13 @@ class EP_Index_GUI {
 		}
 
 		$indexer       = new EP_Index_Worker();
-		$index_success = $indexer->index( $network );
+		$index_success = $indexer->index();
 
 		if ( ! $index_success ) {
-			wp_send_json_error( esc_html__( 'Indexing could not be completed. If the error persists contact your system administrator', 'elasticpress' ) );
+			return new WP_Error( esc_html__( 'Indexing could not be completed. If the error persists contact your system administrator', 'elasticpress' ) );
 		}
+
+		$total = get_transient( 'ep_post_count' );
 
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
@@ -155,21 +137,117 @@ class EP_Index_GUI {
 			ep_activate();
 
 			$data = array(
-				'ep_sync_complete' => 1,
+				'ep_sync_complete' => true,
+				'ep_posts_synced'  => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
+				'ep_posts_total'   => absint( $total['total'] ),
 			);
 
 		} else {
 
-			$total = get_transient( 'ep_post_count' );
-
 			$data = array(
-				'ep_sync_complete' => 0,
-				'ep_posts_synced'  => get_transient( 'ep_index_synced' ),
+				'ep_sync_complete' => false,
+				'ep_posts_synced'  => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
 				'ep_posts_total'   => absint( $total['total'] ),
 			);
 		}
 
-		wp_send_json_success( $data );
+		return $data;
+
+	}
+
+	/**
+	 * Process manual indexing
+	 *
+	 * Processes the action when the manual indexing button is clicked.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @return void
+	 */
+	public function action_wp_ajax_ep_launch_index() {
+
+		// Verify nonce and make sure this is run by an admin.
+		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'ep_manual_index' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
+		}
+
+		$network = false;
+		$site    = false;
+		$sites   = false;
+		$indexes = false;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$network = true;
+		}
+
+		if ( true === $network ) {
+
+			$last_run = get_site_transient( 'ep_sites_to_index' );
+
+			if ( false === $last_run ) {
+
+				$sites   = ep_get_sites();
+				$success = array();
+				$indexes = array();
+
+			} else {
+
+				$sites   = ( isset( $last_run['sites'] ) ) ? $last_run['sites'] : ep_get_sites();
+				$success   = ( isset( $last_run['success'] ) ) ? $last_run['success'] : array();
+				$indexes   = ( isset( $last_run['indexes'] ) ) ? $last_run['indexes'] : array();
+
+			}
+
+			$site_info = array_pop( $sites );
+			$site      = absint( $site_info['blog_id'] );
+		}
+
+		if ( false !== $site ) {
+			switch_to_blog( $site );
+		}
+
+		$result = $this->_run_index();
+
+		if ( false !== $site ) {
+			$indexes[] = ep_get_index_name();
+			restore_current_blog();
+		}
+
+		if ( is_array( $result ) && isset( $result['ep_sync_complete'] ) ) {
+
+			if ( true === $result['ep_sync_complete'] ) {
+
+				if ( $network ) {
+
+					$success[] = $site;
+
+					$last_run = array(
+						'sites'   => $sites,
+						'success' => $success,
+						'indexes' => $indexes,
+					);
+
+					set_site_transient( 'ep_sites_to_index', $last_run, 600 );
+
+					if ( ! empty( $sites ) ) {
+
+						$result['ep_sync_complete'] = 0;
+
+					} else {
+
+						$result['ep_sync_complete'] = 1;
+						delete_site_transient( 'ep_sites_to_index' );
+						ep_create_network_alias( $indexes );
+
+					}
+				}
+
+				ep_activate();
+
+			}
+		}
+
+		wp_send_json_success( $result );
 
 	}
 
