@@ -1292,7 +1292,7 @@ class EP_API {
 						'multi_match' => array(
 							'fields' => $search_fields,
 							'query' => '',
-							'fuzziness' => 2,
+							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 2 ),
 							'operator' => 'or',
 						),
 					)
