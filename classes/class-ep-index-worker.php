@@ -75,46 +75,16 @@ class EP_Index_Worker {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param bool $network_wide To index network wide or not.
-	 *
 	 * @return bool True on success or false
 	 */
-	public function index( $network_wide = false ) {
+	public function index() {
 
 		ep_check_host();
 
-		$total_indexed = 0;
+		$result = $this->_index_helper();
 
-		if ( true === $network_wide && is_multisite() ) {
-
-			ep_delete_network_alias();
-
-			$sites = ep_get_sites();
-
-			foreach ( $sites as $site ) {
-
-				switch_to_blog( $site['blog_id'] );
-
-				$result = $this->_index_helper();
-
-				$total_indexed += $result['synced'];
-
-				if ( ! empty( $result['errors'] ) ) {
-					return false;
-				}
-
-				restore_current_blog();
-			}
-
-			$this->_create_network_alias();
-
-		} else {
-
-			$result = $this->_index_helper();
-
-			if ( ! empty( $result['errors'] ) ) {
-				return false;
-			}
+		if ( ! empty( $result['errors'] ) ) {
+			return false;
 		}
 
 		return true;
