@@ -1284,7 +1284,7 @@ class EP_API {
 						'multi_match' => array(
 							'query' => '',
 							'fields' => $search_fields,
-							'boost' => apply_filters( 'ep_match_boost', 2 ),
+							'boost' => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
 							'fuzziness' => 0,
 						)
 					),
@@ -1292,7 +1292,7 @@ class EP_API {
 						'multi_match' => array(
 							'fields' => $search_fields,
 							'query' => '',
-							'fuzziness' => 2,
+							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 2, $search_fields, $args ),
 							'operator' => 'or',
 						),
 					)
