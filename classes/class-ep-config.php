@@ -218,7 +218,7 @@ class EP_Config {
 	 */
 	public function set_host() {
 
-		$ep_host           = get_site_option( 'ep_host' );
+		$ep_host = get_site_option( 'ep_host' );
 
 		if ( $ep_host && ! defined( 'EP_HOST' ) ) {
 			$this->option_host = true;
