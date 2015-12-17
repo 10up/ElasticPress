@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-02 13:07-0500\n"
+"POT-Creation-Date: 2015-12-17 13:07-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -136,52 +136,52 @@ msgstr ""
 msgid "No running host available."
 msgstr ""
 
-#: classes/class-ep-index-gui.php:96 classes/class-ep-index-gui.php:189
-#: classes/class-ep-settings.php:143
-msgid "Security error!"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:136
+#: classes/class-ep-index-gui.php:116
 msgid ""
 "Mappings could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:149
+#: classes/class-ep-index-gui.php:129
 msgid ""
 "Indexing could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:202 includes/settings/status.php:71
+#: classes/class-ep-index-gui.php:170 classes/class-ep-index-gui.php:300
+#: classes/class-ep-settings.php:147
+msgid "Security error!"
+msgstr ""
+
+#: classes/class-ep-index-gui.php:313 includes/settings/status.php:72
 msgid "Search Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:205 includes/settings/status.php:75
+#: classes/class-ep-index-gui.php:316 includes/settings/status.php:76
 msgid "Total Queries:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:208 includes/settings/status.php:78
+#: classes/class-ep-index-gui.php:319 includes/settings/status.php:79
 msgid "Query Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:211 includes/settings/status.php:82
+#: classes/class-ep-index-gui.php:322 includes/settings/status.php:83
 msgid "Total Fetches:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:214 includes/settings/status.php:85
+#: classes/class-ep-index-gui.php:325 includes/settings/status.php:86
 msgid "Fetch Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:219 includes/settings/status.php:94
+#: classes/class-ep-index-gui.php:330 includes/settings/status.php:95
 msgid "Index Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:222 includes/settings/status.php:98
+#: classes/class-ep-index-gui.php:333 includes/settings/status.php:99
 msgid "Index Total:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:225 includes/settings/status.php:101
+#: classes/class-ep-index-gui.php:336 includes/settings/status.php:102
 msgid "Index Time:"
 msgstr ""
 
@@ -189,51 +189,47 @@ msgstr ""
 msgid "Index Status"
 msgstr ""
 
-#: classes/class-ep-index-worker.php:390
+#: classes/class-ep-index-worker.php:362
 msgid "The following posts failed to index:"
 msgstr ""
 
-#: classes/class-ep-index-worker.php:401
+#: classes/class-ep-index-worker.php:373
 msgid ": ElasticPress Index Errors"
 msgstr ""
 
-#: classes/class-ep-settings.php:113 includes/settings/index.php:14
-msgid "Running Index..."
-msgstr ""
-
-#: classes/class-ep-settings.php:114 includes/settings/index.php:14
-msgid "Run Index"
-msgstr ""
-
-#: classes/class-ep-settings.php:115
+#: classes/class-ep-settings.php:107
 msgid "items indexed"
 msgstr ""
 
-#: classes/class-ep-settings.php:116
-msgid "site(s) remain to be indexed"
+#: classes/class-ep-settings.php:110
+msgid "items indexed in "
 msgstr ""
 
-#: classes/class-ep-settings.php:117
-msgid "We are settings up your site(s) for indexing. Please be patient."
+#: classes/class-ep-settings.php:119 includes/settings/index.php:14
+msgid "Running Index..."
 msgstr ""
 
-#: classes/class-ep-settings.php:118
-msgid "We're Still counting total items for the index. Please be patient"
+#: classes/class-ep-settings.php:120 includes/settings/index.php:14
+msgid "Run Index"
 msgstr ""
 
-#: classes/class-ep-settings.php:176
+#: classes/class-ep-settings.php:122
+msgid " site(s)"
+msgstr ""
+
+#: classes/class-ep-settings.php:180
 msgid "ElasticSearch Host:"
 msgstr ""
 
-#: classes/class-ep-settings.php:181
+#: classes/class-ep-settings.php:185
 msgid "ElasticPress API Key:"
 msgstr ""
 
-#: classes/class-ep-settings.php:190
+#: classes/class-ep-settings.php:194
 msgid "Use ElasticSearch:"
 msgstr ""
 
-#: classes/class-ep-settings.php:428
+#: classes/class-ep-settings.php:432
 msgid "ElasticSearch Integration Options"
 msgstr ""
 
@@ -286,17 +282,17 @@ msgstr ""
 msgid "ElasticPress can override WP search."
 msgstr ""
 
-#: includes/settings/status.php:62
+#: includes/settings/status.php:63
 msgid ""
 "ElasticPress is not activated and cannot override WP search. You can "
 "activate it on the form to the left."
 msgstr ""
 
-#: includes/settings/status.php:67
+#: includes/settings/status.php:68
 msgid "System Stats"
 msgstr ""
 
-#: includes/settings/status.php:112
+#: includes/settings/status.php:114
 msgid "Site Stats"
 msgstr ""
 
@@ -308,23 +304,23 @@ msgstr ""
 msgid "Select"
 msgstr ""
 
-#: includes/settings/status.php:140
+#: includes/settings/status.php:153
 msgid "Cluster Stats"
 msgstr ""
 
-#: includes/settings/status.php:150
+#: includes/settings/status.php:163
 msgid "Disk Usage:"
 msgstr ""
 
-#: includes/settings/status.php:153
+#: includes/settings/status.php:167
 msgid "Disk Space Available:"
 msgstr ""
 
-#: includes/settings/status.php:156
+#: includes/settings/status.php:170
 msgid "Total Disk Space:"
 msgstr ""
 
-#: includes/settings/status.php:169
+#: includes/settings/status.php:183
 msgid "ERROR:"
 msgstr ""
 
