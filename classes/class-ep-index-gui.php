@@ -134,18 +134,20 @@ class EP_Index_GUI {
 		if ( false === get_transient( 'ep_index_offset' ) ) {
 
 			$data = array(
-				'ep_sync_complete' => true,
-				'ep_posts_synced'  => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
-				'ep_posts_total'   => absint( $total['total'] ),
-			);
+				'ep_sync_complete'  => true,
+				'ep_posts_synced'   => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
+				'ep_posts_total'    => absint( $total['total'] ),
+				'ep_current_synced' => $index_success['current_synced'],
+		);
 
 		} else {
 
 			$data = array(
-				'ep_sync_complete' => false,
-				'ep_posts_synced'  => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
-				'ep_posts_total'   => absint( $total['total'] ),
-			);
+				'ep_sync_complete'  => false,
+				'ep_posts_synced'   => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
+				'ep_posts_total'    => absint( $total['total'] ),
+				'ep_current_synced' => $index_success['current_synced'],
+		);
 		}
 
 		return $data;
@@ -209,7 +211,7 @@ class EP_Index_GUI {
 
 			$indexes[] = ep_get_index_name();
 
-			if ( is_array( $result ) && isset( $result['ep_sync_complete'] )&& true ===  $result['ep_sync_complete']  ) {
+			if ( is_array( $result ) && isset( $result['ep_sync_complete'] ) && true === $result['ep_sync_complete'] ) {
 
 				delete_transient( 'ep_index_synced' );
 				delete_transient( 'ep_post_count' );
@@ -220,7 +222,7 @@ class EP_Index_GUI {
 
 		} else {
 
-			if ( is_array( $result ) && isset( $result['ep_sync_complete'] ) && true ===  $result['ep_sync_complete'] ) {
+			if ( is_array( $result ) && isset( $result['ep_sync_complete'] ) && true === $result['ep_sync_complete'] ) {
 
 				delete_transient( 'ep_index_synced' );
 				delete_transient( 'ep_post_count' );

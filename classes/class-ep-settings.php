@@ -104,6 +104,12 @@ class EP_Settings {
 
 			}
 
+			$indexed = esc_html__( 'items indexed', 'elasticpress' );
+
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$indexed = esc_html__( 'items indexed in ', 'elasticpress' );
+			}
+
 			wp_localize_script(
 					'ep_admin',
 					'ep',
@@ -112,7 +118,8 @@ class EP_Settings {
 							'stats_nonce'         => wp_create_nonce( 'ep_site_stats' ),
 							'running_index_text'  => esc_html__( 'Running Index...', 'elasticpress' ),
 							'index_complete_text' => esc_html__( 'Run Index', 'elasticpress' ),
-							'items_indexed'       => esc_html__( 'items indexed', 'elasticpress' ),
+							'items_indexed'       => $indexed,
+							'sites'               => esc_html__( ' site(s)', 'elasticpress' ),
 							'index_running'       => $running,
 							'total_posts'         => isset( $total_posts['total'] ) ? $total_posts['total'] : 0,
 							'synced_posts'        => $synced_posts,

@@ -22,10 +22,6 @@ jQuery( document ).ready( function ( $ ) {
 				progress = parseFloat( ep.synced_posts ) / parseFloat( ep.total_posts );
 				status.html( ep.synced_posts + '/' + ep.total_posts + 'items' );
 
-			} else {
-
-				status.html( ep.mapping_sites );
-
 			}
 
 			bar.progressbar(
@@ -43,6 +39,7 @@ jQuery( document ).ready( function ( $ ) {
 	var epSitesRemaining = 0;
 	var epTotalToIndex   = 0;
 	var epTotalIndexed   = 0;
+	var epSitesCompleted = 0;
 
 	// Resets index counts
 	var resetIndex = function () {
@@ -71,36 +68,39 @@ jQuery( document ).ready( function ( $ ) {
 				data :     data,
 				complete : function ( response ) {
 
-					console.log( response.responseJSON.data );
+					var sitesCompletedText = '';
 
-					if ( 0 == response.responseJSON.data.ep_sync_complete ) { //incomplete
+					if ( 0 === response.responseJSON.data.is_network ) {
 
-						if ( 0 < response.responseJSON.data.ep_sites_remaining && epSitesRemaining !== response.responseJSON.data.ep_sites_remaining ) {
+						epTotalToIndex = response.responseJSON.data.ep_posts_total;
+
+					} else {
+
+						if ( epSitesRemaining !== response.responseJSON.data.ep_sites_remaining ) {
 
 							epSitesRemaining = response.responseJSON.data.ep_sites_remaining;
 							epTotalToIndex += response.responseJSON.data.ep_posts_total;
-
-						} else if ( 0 === response.responseJSON.data.is_network ) {
-
-							epTotalToIndex = response.responseJSON.data.ep_posts_total;
+							epSitesCompleted ++;
 
 						}
 
-						epTotalIndexed += response.responseJSON.data.ep_posts_synced;
+						sitesCompletedText = epSitesCompleted + ep.sites;
 
-						var progress = parseFloat( epTotalIndexed ) / parseFloat( epTotalToIndex );
+					}
 
-						bar.progressbar(
-							{
-								value : progress * 100
-							}
-						);
+					epTotalIndexed += response.responseJSON.data.ep_current_synced;
 
-						status.html( epTotalIndexed + '/' + epTotalToIndex + ' ' + ep.items_indexed );
+					var progress = parseFloat( epTotalIndexed ) / parseFloat( epTotalToIndex );
 
-						performIndex( false, button );
+					bar.progressbar(
+						{
+							value : progress * 100
+						}
+					);
 
-					} else { //indexing complete
+					status.html( epTotalIndexed + '/' + epTotalToIndex + ' ' + ep.items_indexed + sitesCompletedText );
+
+					if ( 1 == response.responseJSON.data.ep_sync_complete ) { //indexing complete
 
 						bar.progressbar(
 							{
@@ -117,10 +117,12 @@ jQuery( document ).ready( function ( $ ) {
 
 						}, 1000 );
 
+					} else {
+
+						performIndex( false, button );
+
 					}
-
 				}
-
 			}
 		);
 

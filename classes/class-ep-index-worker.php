@@ -87,7 +87,7 @@ class EP_Index_Worker {
 			return false;
 		}
 
-		return true;
+		return $result;
 
 	}
 
@@ -109,10 +109,11 @@ class EP_Index_Worker {
 		$offset_transient = get_transient( 'ep_index_offset' );
 		$sync_transient   = get_transient( 'ep_index_synced' );
 
-		$synced   = false === $sync_transient ? 0 : absint( $sync_transient );
-		$errors   = array();
-		$offset   = false === $offset_transient ? 0 : absint( $offset_transient );
-		$complete = false;
+		$synced         = false === $sync_transient ? 0 : absint( $sync_transient );
+		$errors         = array();
+		$offset         = false === $offset_transient ? 0 : absint( $offset_transient );
+		$complete       = false;
+		$current_synced = 0;
 
 		$args = apply_filters( 'ep_index_posts_args', array(
 			'posts_per_page'      => $posts_per_page,
@@ -138,6 +139,7 @@ class EP_Index_Worker {
 
 				} else {
 
+					$current_synced ++;
 					$synced ++;
 
 				}
@@ -185,7 +187,7 @@ class EP_Index_Worker {
 
 		wp_reset_postdata();
 
-		return array( 'synced' => $synced, 'errors' => $errors );
+		return array( 'synced' => $synced, 'current_synced' => $current_synced, 'errors' => $errors );
 
 	}
 
