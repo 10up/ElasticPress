@@ -134,7 +134,7 @@ jQuery( document ).ready( function ( $ ) {
 	/**
 	 * Start the poll if we need it
 	 */
-	if ( 1 === ep.index_running ) {
+	if ( 1 == ep.index_running ) {
 		performIndex( true, run_index_button );
 	}
 
