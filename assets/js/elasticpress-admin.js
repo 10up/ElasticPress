@@ -68,11 +68,12 @@ jQuery( document ).ready( function ( $ ) {
 				data :     data,
 				complete : function ( response ) {
 
-					var sitesCompletedText = '';
+					var sitesCompletedText = ''
 
 					if ( 0 === response.responseJSON.data.is_network ) {
 
 						epTotalToIndex = response.responseJSON.data.ep_posts_total;
+						epTotalIndexed = response.responseJSON.data.ep_posts_synced;
 
 					} else {
 
@@ -85,10 +86,9 @@ jQuery( document ).ready( function ( $ ) {
 						}
 
 						sitesCompletedText = epSitesCompleted + ep.sites;
+						epTotalIndexed += response.responseJSON.data.ep_current_synced;
 
 					}
-
-					epTotalIndexed += response.responseJSON.data.ep_current_synced;
 
 					var progress = parseFloat( epTotalIndexed ) / parseFloat( epTotalToIndex );
 
