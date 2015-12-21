@@ -224,16 +224,17 @@ class EP_API {
 	 * is used to determine the index to delete from.
 	 *
 	 * @param int $post_id
+	 * @param bool $blocking
 	 * @since 0.1.0
 	 * @return bool
 	 */
-	public function delete_post( $post_id  ) {
+	public function delete_post( $post_id, $blocking = true  ) {
 
 		$index = trailingslashit( ep_get_index_name() );
 
 		$path = $index . '/post/' . $post_id;
 
-		$request_args = array( 'method' => 'DELETE', 'timeout' => 15 );
+		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_delete_post_request_args', $request_args, $post_id ) );
 
@@ -1685,8 +1686,8 @@ function ep_get_post( $post_id ) {
 	return EP_API::factory()->get_post( $post_id );
 }
 
-function ep_delete_post( $post_id ) {
-	return EP_API::factory()->delete_post( $post_id );
+function ep_delete_post( $post_id, $blocking = true ) {
+	return EP_API::factory()->delete_post( $post_id, $blocking );
 }
 
 function ep_put_mapping() {

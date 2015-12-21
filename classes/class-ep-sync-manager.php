@@ -70,7 +70,7 @@ class EP_Sync_Manager {
 
 		do_action( 'ep_delete_post', $post_id );
 
-		ep_delete_post( $post_id );
+		ep_delete_post( $post_id, false );
 	}
 
 	/**
