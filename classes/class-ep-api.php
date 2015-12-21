@@ -31,10 +31,11 @@ class EP_API {
 	 * Index a post under a given site index or the global index ($site_id = 0)
 	 *
 	 * @param array $post
+	 * @param bool $blocking
 	 * @since 0.1.0
 	 * @return array|bool|mixed
 	 */
-	public function index_post( $post ) {
+	public function index_post( $post, $blocking = true ) {
 
 		/**
 		 * Filter post prior to indexing
@@ -65,6 +66,7 @@ class EP_API {
 			'body'    => $encoded_post,
 			'method'  => 'PUT',
 			'timeout' => 15,
+			'blocking' => $blocking,
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_index_post_request_args', $request_args, $post ) );
@@ -1641,6 +1643,11 @@ class EP_API {
 			$request = wp_remote_request( esc_url( trailingslashit( $host ) . $path ), $args ); //try the existing host to avoid unnecessary calls
 		}
 
+		// Return now if we're not blocking, since we won't have a response yet
+		if ( isset( $args['blocking'] ) && false === $args['blocking' ] ) {
+			return $request;
+		}
+
 		//If we have a failure we'll try it again with a backup host
 		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 200 !== $request['response']['code'] ) ) {
 
@@ -1666,8 +1673,8 @@ EP_API::factory();
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
-function ep_index_post( $post ) {
-	return EP_API::factory()->index_post( $post );
+function ep_index_post( $post, $blocking = true ) {
+	return EP_API::factory()->index_post( $post, $blocking );
 }
 
 function ep_search( $args, $scope = 'current' ) {

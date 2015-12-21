@@ -117,7 +117,7 @@ class EP_Sync_Manager {
 
 				do_action( 'ep_sync_on_transition', $post_ID );
 
-				$this->sync_post( $post_ID);
+				$this->sync_post( $post_ID, false );
 			}
 		}
 	}
@@ -142,10 +142,11 @@ class EP_Sync_Manager {
 	 * Sync a post for a specific site or globally.
 	 *
 	 * @param int $post_id
+	 * @param bool $blocking
 	 * @since 0.1.0
 	 * @return bool|array
 	 */
-	public function sync_post( $post_id ) {
+	public function sync_post( $post_id, $blocking = true ) {
 
 		$post_args = ep_prepare_post( $post_id );
 
@@ -153,7 +154,7 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$response = ep_index_post( $post_args );
+		$response = ep_index_post( $post_args, $blocking );
 
 		return $response;
 	}
@@ -165,6 +166,6 @@ $ep_sync_manager = EP_Sync_Manager::factory();
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
-function ep_sync_post( $post_id ) {
-	return EP_Sync_Manager::factory()->sync_post( $post_id );
+function ep_sync_post( $post_id, $blocking = true ) {
+	return EP_Sync_Manager::factory()->sync_post( $post_id, $blocking );
 }
