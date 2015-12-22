@@ -1788,14 +1788,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.3
 	 */
 	public function testNoAvailablePostTypesToSearch() {
-		$post_ids = array();
-
-		$post_ids[0] = ep_create_and_sync_post();
-		$post_ids[1] = ep_create_and_sync_post();
-		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
-		$post_ids[3] = ep_create_and_sync_post();
-		$post_ids[4] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
-
 		$GLOBALS['wp_post_types'];
 
 		$backup_post_types = $GLOBALS['wp_post_types'];
@@ -1805,20 +1797,24 @@ class EPTestSingleSite extends EP_Test_Base {
 			$post_type->exclude_from_search = true;
 		}
 
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post();
+		$post_ids[1] = ep_create_and_sync_post();
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$post_ids[3] = ep_create_and_sync_post();
+		$post_ids[4] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
 		ep_refresh_index();
 
 		$args = array(
 			's' => 'findme',
 		);
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new WP_Query( $args );
 
-		$this->assertTrue( empty( $this->fired_actions['ep_wp_query_search'] ) );
-
-		$this->assertEquals( $query->post_count, 0 );
-		$this->assertEquals( $query->found_posts, 0 );
+		$this->assertEquals( 0, $query->post_count );
+		$this->assertEquals( 0, $query->found_posts );
 
 		wp_reset_postdata();
 
