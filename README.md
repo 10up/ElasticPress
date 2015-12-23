@@ -489,7 +489,7 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]`
 
     Index all posts in the current blog.
 
@@ -500,6 +500,7 @@ The following commands are supported by ElasticPress:
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
     * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
+    * `--keep-active` let's you keep ElasticPress active during indexing (cannot be used with --setup).
 
 * `wp elasticpress activate`
 
