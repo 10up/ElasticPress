@@ -232,7 +232,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . '/post/' . $post_id;
+		$path = $index . 'post/' . $post_id;
 
 		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
 
