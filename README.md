@@ -1,4 +1,4 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress) [![Dockunit Status](http://dockunit.io/svg/10up/ElasticPress?master)](http://dockunit.io/projects/10up/ElasticPress#master)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
 =============
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
@@ -566,14 +566,6 @@ Our test suite depends on a running Elasticsearch server. You can supply a host 
 
 ```bash
 EP_HOST="http://192.168.50.4:9200" phpunit
-```
-
-#### Dockunit
-
-ElasticPress contains a valid [Dockunit](https://www.npmjs.com/package/dockunit) file for running unit tests across a variety of environments locally (PHP 5.2 and 5.6). You can use Dockunit by running:
-
-```bash
-dockunit
 ```
 
 ### Issues
