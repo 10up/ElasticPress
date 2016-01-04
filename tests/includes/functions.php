@@ -42,11 +42,16 @@ function ep_create_and_sync_post( $post_args = array(), $post_meta = array(), $s
 	$post_types = ep_get_indexable_post_types();
 	$post_type_values = array_values( $post_types );
 
-	$args = wp_parse_args( $post_args, array(
-		'post_type' => $post_type_values[0],
+	$args = array(
 		'post_status' => 'publish',
 		'post_title' => 'Test Post ' . time(),
-	) );
+	);
+
+	if ( ! empty( $post_type_values ) ) {
+		$args['post_type'] = $post_type_values[0];
+	}
+
+	$args = wp_parse_args( $post_args, $args );
 
 	$post_id = wp_insert_post( $args );
 

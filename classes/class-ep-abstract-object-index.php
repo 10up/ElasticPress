@@ -50,7 +50,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function index_document( $object ) {
+	public function index_document( $object, $blocking = true ) {
 		/**
 		 * Filter the object prior to indexing
 		 *
@@ -67,9 +67,10 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		$path = implode( '/', array( $index, $this->name, $this->get_object_identifier( $object ) ) );
 
 		$request_args = array(
-			'body'    => function_exists( 'wp_json_encode' ) ? wp_json_encode( $object ) : json_encode( $object ),
-			'method'  => 'PUT',
-			'timeout' => 15,
+			'body'     => function_exists( 'wp_json_encode' ) ? wp_json_encode( $object ) : json_encode( $object ),
+			'method'   => 'PUT',
+			'timeout'  => 15,
+			'blocking' => $blocking,
 		);
 
 		$request = ep_remote_request(
@@ -146,12 +147,12 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function delete_document( $object ) {
+	public function delete_document( $object, $blocking = true ) {
 		$index = untrailingslashit( ep_get_index_name() );
 
 		$path = implode( '/', array( $index, $this->name, $object ) );
 
-		$request_args = array( 'method' => 'DELETE', 'timeout' => 15 );
+		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
 
 		$request = ep_remote_request(
 			$path,
@@ -205,11 +206,13 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 		if ( 'post' === $this->name ) {
 			/**
-			 * Backwards compatibility: when posts were the only type, this was the filter. This filter is deprecated in
-			 * favor of ep_search_post_args
+			 * Backwards compatibility: when posts were the only type, these were the filters. This filter is deprecated
+			 * in favor of ep_post_search_request_path and ep_search_post_args
 			 */
+			$path = apply_filters( 'ep_search_request_path', $path, $args, $scope );
 			$args = apply_filters( 'ep_search_args', $args, $scope );
 		}
+		$path = apply_filters( "ep_{$this->name}_search_request_path", $path, $args, $scope );
 		$request_args = array(
 			/**
 			 * Filter the body of the search request

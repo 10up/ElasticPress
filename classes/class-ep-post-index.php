@@ -169,6 +169,10 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
 
+		$post_args['meta'] = $this->api->prepare_meta_types( $post_args['post_meta'] );
+
+		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
+
 		return $post_args;
 	}
 
