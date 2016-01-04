@@ -67,11 +67,12 @@ interface EP_Object_Index {
 	 *
 	 * @since 1.7
 	 *
-	 * @param array $object The object data
+	 * @param array $object   The object data
+	 * @param bool  $blocking Whether to make a blocking request. Defaults to true
 	 *
 	 * @return array|object|bool The response body if available, otherwise false
 	 */
-	public function index_document( $object );
+	public function index_document( $object, $blocking = true );
 
 	/**
 	 * Get a document from ES
@@ -91,11 +92,12 @@ interface EP_Object_Index {
 	 *
 	 * @since 1.7
 	 *
-	 * @param mixed $object An object identifier
+	 * @param mixed $object   An object identifier
+	 * @param bool  $blocking Whether the request should be blocking
 	 *
 	 * @return bool True for success, false for failure
 	 */
-	public function delete_document( $object );
+	public function delete_document( $object, $blocking = true );
 
 	/**
 	 * Prepare the object for indexing

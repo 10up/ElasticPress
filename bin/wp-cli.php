@@ -246,7 +246,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type]
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -266,6 +266,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$assoc_args['offset'] = absint( $assoc_args['offset'] );
 		} else {
 			$assoc_args['offset'] = 0;
+		}
+
+		if ( empty( $assoc_args['post-type'] ) ) {
+			$assoc_args['post-type'] = null;
 		}
 
 		$total_indexed = 0;
@@ -302,7 +306,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_posts_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'], isset( $assoc_args['show-bulk-errors'] ) );
+				$result = $this->_index_posts_helper( $assoc_args );
 
 				$total_indexed += $result['synced'];
 
@@ -335,7 +339,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			WP_CLI::log( __( 'Indexing posts...', 'elasticpress' ) );
 
-			$result = $this->_index_posts_helper( isset( $assoc_args['no-bulk'] ), $assoc_args['posts-per-page'], $assoc_args['offset'], isset( $assoc_args['show-bulk-errors'] ) );
+			$result = $this->_index_posts_helper( $assoc_args );
 
 			WP_CLI::log( sprintf( __( 'Number of posts indexed on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
 
@@ -448,27 +452,56 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Helper method for indexing posts
 	 *
-	 * @param bool $no_bulk disable bulk indexing
-	 * @param int $posts_per_page
-	 * @param int $offset
-	 * @param bool $show_bulk_errors whether or not to show bulk error messages.
+	 * @param array $args
 	 *
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_posts_helper( $no_bulk = false, $posts_per_page, $offset = 0, $show_bulk_errors = false ) {
+	private function _index_posts_helper( $args ) {
 		global $wpdb, $wp_object_cache;
 		$synced = 0;
 		$errors = array();
+
+		$no_bulk = false;
+
+		if ( isset( $args['no-bulk'] ) ) {
+			$no_bulk = true;
+		}
+
+		$show_bulk_errors = false;
+
+		if ( isset( $args['show-bulk-errors'] ) ) {
+			$show_bulk_errors = true;
+		}
+
+		$posts_per_page = 350;
+
+		if ( ! empty( $args['posts-per-page'] ) ) {
+			$posts_per_page = absint( $args['posts-per-page'] );
+		}
+
+		$offset = 0;
+
+		if ( ! empty( $args['offset'] ) ) {
+			$offset = absint( $args['offset'] );
+		}
+
+		$post_type = ep_get_indexable_post_types();
+
+		if ( ! empty( $args['post-type'] ) ) {
+			$post_type = explode( ',', $args['post-type'] );
+			$post_type = array_map( 'trim', $post_type );
+		}
 
 		while ( true ) {
 
 			$args = apply_filters( 'ep_index_posts_args', array(
 				'posts_per_page'      => $posts_per_page,
-				'post_type'           => ep_get_indexable_post_types(),
+				'post_type'           => $post_type,
 				'post_status'         => ep_get_indexable_post_status(),
 				'offset'              => $offset,
-				'ignore_sticky_posts' => true
+				'ignore_sticky_posts' => true,
+				'orderby'             => array( 'ID' => 'DESC' ),
 			) );
 
 			$query = new WP_Query( $args );
