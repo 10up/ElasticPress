@@ -3,10 +3,10 @@
 class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Checking if HTTP request returns 404 status code.
-	 * @var boolean 
+	 * @var boolean
 	 */
 	var $is_404=false;
-	
+
 	/**
 	 * Setup each test.
 	 *
@@ -317,7 +317,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		
+
 		foreach ( $indexedTerms as $term ) {
 			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		}
@@ -365,7 +365,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		
+
 		foreach ( $indexedTerms as $term ) {
 			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		}
@@ -1907,8 +1907,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertTrue( empty( $cache ) );
 	}
-	
-		
+
+
 	/**
 	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
 	 * @group 306
@@ -1975,7 +1975,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Helper method for mocking indexable post statuses
-	 * 
+	 *
 	 * @param   array $post_statuses
 	 * @return  array
 	 */
@@ -1987,7 +1987,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test invalid post date time
-	 * 
+	 *
 	 * @param   array $post_statuses
 	 * @return  array
 	 */
@@ -2015,10 +2015,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertNotNull( $post );
 		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
 	}
-	
+
 	/**
 	 * Test to verify that a post type that is set to exclude_from_search isn't indexable.
-	 * 
+	 *
 	 * @since 1.6
 	 * @link https://github.com/10up/ElasticPress/issues/321
 	 */
@@ -2027,10 +2027,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertArrayNotHasKey( 'ep_test_excluded', $post_types );
 		$this->assertArrayNotHasKey( 'ep_test_not_public', $post_types );
 	}
-	
+
 	/**
 	 * Test to make sure that brand new posts with 'auto-draft' post status do not fire delete or sync.
-	 * 
+	 *
 	 * @since 1.6
 	 * @link https://github.com/10up/ElasticPress/issues/343
 	 */
@@ -2051,7 +2051,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Runs on http_api_debug action to check for a returned 404 status code.
-	 * 
+	 *
 	 * @param array|WP_Error $response  HTTP response or WP_Error object.
 	 * @param string $type Context under which the hook is fired.
 	 * @param string $class HTTP transport used.
@@ -2110,7 +2110,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Helper method for filtering private meta keys
-	 * 
+	 *
 	 * @param  array $meta_keys
 	 * @return array
 	 */
@@ -2124,7 +2124,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Helper method for filtering excluded meta keys
-	 * 
+	 *
 	 * @param  array $meta_keys
 	 * @return array
 	 */
