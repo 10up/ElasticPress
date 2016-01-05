@@ -2460,4 +2460,19 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserObjectIndexNotRegistered() {
+		$this->assertNull(ep_get_object_type('user'));
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserIndexingInactive() {
+		$this->assertFalse(ep_get_object_type('user')->active());
+	}
+
 }
