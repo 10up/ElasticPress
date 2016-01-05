@@ -36,50 +36,22 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function index_post( $post, $blocking = true ) {
+		return $this->index_document( $post, 'post', $blocking );
+	}
 
-		/**
-		 * Filter post prior to indexing
-		*
-		* Allows for last minute indexing of post information.
-		*
-		* @since 1.7
-		*
-		* @param         array Array of post information to index.
-		*/
-		$post = apply_filters( 'ep_pre_index_post', $post );
+	/**
+	 * Index a document of the specified type
+	 *
+	 * @param array  $document
+	 * @param string $type
+	 * @param bool   $blocking
+	 *
+	 * @return array|bool|object
+	 */
+	public function index_document( $document, $type = 'post', $blocking = true ) {
+		$type_object = ep_get_object_type( $type );
 
-		$index = trailingslashit( ep_get_index_name() );
-
-		$path = $index . 'post/' . $post['post_id'];
-
-		if ( function_exists( 'wp_json_encode' ) ) {
-
-			$encoded_post = wp_json_encode( $post );
-
-		} else {
-
-			$encoded_post = json_encode( $post );
-
-		}
-
-		$request_args = array(
-			'body'    => $encoded_post,
-			'method'  => 'PUT',
-			'timeout' => 15,
-			'blocking' => $blocking,
-		);
-
-		$request = ep_remote_request( $path, apply_filters( 'ep_index_post_request_args', $request_args, $post ) );
-
-		do_action( 'ep_index_post_retrieve_raw_response', $request, $post, $path );
-
-		if ( ! is_wp_error( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
-
-			return json_decode( $response_body );
-		}
-
-		return false;
+		return $type_object ? $type_object->index_document( $document, $blocking ) : false;
 	}
 
 	/**
@@ -119,80 +91,14 @@ class EP_API {
 	 *
 	 * @param array $args
 	 * @param string $scope
+	 * @param string $type
 	 * @since 0.1.0
 	 * @return array
 	 */
-	public function search( $args, $scope = 'current' ) {
-		$index = null;
+	public function search( $args, $scope = 'current', $type = 'post' ) {
+		$index_type = ep_get_object_type( $type );
 
-		if ( 'all' === $scope ) {
-			$index = ep_get_network_alias();
-		} elseif ( is_int( $scope ) ) {
-			$index = ep_get_index_name( $scope );
-		} elseif ( is_array( $scope ) ) {
-			$index = array();
-
-			foreach ( $scope as $site_id ) {
-				$index[] = ep_get_index_name( $site_id );
-			}
-
-			$index = implode( ',', $index );
-		} else {
-			$index = ep_get_index_name();
-		}
-
-		$path = apply_filters( 'ep_search_request_path', $index . '/post/_search', $args, $scope );
-
-		$request_args = array(
-			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
-			'method'  => 'POST',
-		);
-
-		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope ) );
-
-		if ( ! is_wp_error( $request ) ) {
-
-			// Allow for direct response retrieval
-			do_action( 'ep_retrieve_raw_response', $request, $args, $scope );
-
-			$response_body = wp_remote_retrieve_body( $request );
-
-			$response = json_decode( $response_body, true );
-
-			if ( $this->is_empty_search( $response ) ) {
-				return array( 'found_posts' => 0, 'posts' => array() );
-			}
-
-			$hits = $response['hits']['hits'];
-
-			// Check for and store aggregations
-			if ( ! empty( $response['aggregations'] ) ) {
-				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope );
-			}
-
-			$posts = array();
-
-			foreach ( $hits as $hit ) {
-				$post = $hit['_source'];
-				$post['site_id'] = $this->parse_site_id( $hit['_index'] );
-				$posts[] = apply_filters( 'ep_retrieve_the_post', $post, $hit );
-			}
-
-			/**
-			 * Filter search results.
-			 *
-			 * Allows more complete use of filtering request variables by allowing for filtering of results.
-			 *
-			 * @since 1.6.0
-			 *
-			 * @param array  $results  The unfiltered search results.
-			 * @param object $response The response body retrieved from ElasticSearch.
-			 */
-
-			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response );
-		}
-
-		return false;
+		return $index_type ? $index_type->search( $args, $scope ) : array();
 	}
 
 	/**
@@ -228,27 +134,23 @@ class EP_API {
 	 * @since 0.1.0
 	 * @return bool
 	 */
-	public function delete_post( $post_id, $blocking = true  ) {
+	public function delete_post( $post_id, $blocking = true ) {
+		return $this->delete_document( $post_id, 'post', $blocking );
+	}
 
-		$index = trailingslashit( ep_get_index_name() );
+	/**
+	 * Delete a document from the index
+	 *
+	 * @param int|string $document_id
+	 * @param string     $type
+	 * @param bool       $blocking
+	 *
+	 * @return bool
+	 */
+	public function delete_document( $document_id, $type = 'post', $blocking = true ) {
+		$index_type = ep_get_object_type( $type );
 
-		$path = $index . '/post/' . $post_id;
-
-		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
-
-		$request = ep_remote_request( $path, apply_filters( 'ep_delete_post_request_args', $request_args, $post_id ) );
-
-		if ( ! is_wp_error( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
-
-			$response = json_decode( $response_body, true );
-
-			if ( ! empty( $response['found'] ) ) {
-				return true;
-			}
-		}
-
-		return false;
+		return $index_type ? $index_type->delete_document( $document_id, $blocking ) : false;
 	}
 
 	/**
@@ -277,26 +179,21 @@ class EP_API {
 	 * @return bool
 	 */
 	public function get_post( $post_id ) {
+		return $this->get_document( $post_id, 'post' );
+	}
 
-		$index = ep_get_index_name();
+	/**
+	 * Get a document of the given type from the index
+	 *
+	 * @param int|string $document_id
+	 * @param string     $type
+	 *
+	 * @return array|bool
+	 */
+	public function get_document( $document_id, $type = 'post' ) {
+		$object_type = ep_get_object_type( $type );
 
-		$path = $index . '/post/' . $post_id;
-
-		$request_args = array( 'method' => 'GET' );
-
-		$request = ep_remote_request( $path, apply_filters( 'ep_get_post_request_args', $request_args, $post_id ) );
-
-		if ( ! is_wp_error( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
-
-			$response = json_decode( $response_body, true );
-
-			if ( ! empty( $response['exists'] ) || ! empty( $response['found'] ) ) {
-				return $response['_source'];
-			}
-		}
-
-		return false;
+		return $object_type ? $object_type->get_document( $document_id ) : false;
 	}
 
 	/**
@@ -369,7 +266,13 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		$mapping = require( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' ) );
+		$mapping = array( 'settings' => array(), 'mappings' => array() );
+
+		foreach ( ep_get_registered_object_type_names() as $name ) {
+			$type                         = ep_get_object_type( $name );
+			$mapping['mappings'][ $name ] = $type->get_mappings();
+			$mapping['settings']          = $this->array_replace_recursive( $mapping['settings'], $type->get_settings() );
+		}
 
 		/**
 		 * We are removing shard/replica defaults but need to maintain the filters
@@ -424,194 +327,21 @@ class EP_API {
 	 * @return bool|array
 	 */
 	public function prepare_post( $post_id ) {
-		$post = get_post( $post_id );
-
-		$user = get_userdata( $post->post_author );
-
-		if ( $user instanceof WP_User ) {
-			$user_data = array(
-				'raw'          => $user->user_login,
-				'login'        => $user->user_login,
-				'display_name' => $user->display_name,
-				'id'           => $user->ID,
-			);
-		} else {
-			$user_data = array(
-				'raw'          => '',
-				'login'        => '',
-				'display_name' => '',
-				'id'           => '',
-			);
-		}
-
-		$post_date = $post->post_date;
-		$post_date_gmt = $post->post_date_gmt;
-		$post_modified = $post->post_modified;
-		$post_modified_gmt = $post->post_modified_gmt;
-		$comment_count = absint( $post->comment_count );
-		$comment_status = absint( $post->comment_status );
-		$ping_status = absint( $post->ping_status );
-		$menu_order = absint( $post->menu_order );
-
-		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
-			if ( ! strtotime( $post_date ) || $post_date === "0000-00-00 00:00:00" ) {
-				$post_date = null;
-			}
-
-			if ( ! strtotime( $post_date_gmt ) || $post_date_gmt === "0000-00-00 00:00:00" ) {
-				$post_date_gmt = null;
-			}
-
-			if ( ! strtotime( $post_modified ) || $post_modified === "0000-00-00 00:00:00" ) {
-				$post_modified = null;
-			}
-
-			if ( ! strtotime( $post_modified_gmt ) || $post_modified_gmt === "0000-00-00 00:00:00" ) {
-				$post_modified_gmt = null;
-			}
-		}
-
-		$post_args = array(
-			'post_id'           => $post_id,
-			'post_author'       => $user_data,
-			'post_date'         => $post_date,
-			'post_date_gmt'     => $post_date_gmt,
-			'post_title'        => get_the_title( $post_id ),
-			'post_excerpt'      => $post->post_excerpt,
-			'post_content'      => apply_filters( 'the_content', $post->post_content ),
-			'post_status'       => $post->post_status,
-			'post_name'         => $post->post_name,
-			'post_modified'     => $post_modified,
-			'post_modified_gmt' => $post_modified_gmt,
-			'post_parent'       => $post->post_parent,
-			'post_type'         => $post->post_type,
-			'post_mime_type'    => $post->post_mime_type,
-			'permalink'         => get_permalink( $post_id ),
-			'terms'             => $this->prepare_terms( $post ),
-			'post_meta'         => $this->prepare_meta( $post ),
-			'date_terms'        => $this->prepare_date_terms( $post_date ),
-			'comment_count'     => $comment_count,
-			'comment_status'    => $comment_status,
-			'ping_status'       => $ping_status,
-			'menu_order'        => $menu_order,
-			'guid'				=> $post->guid
-			//'site_id'         => get_current_blog_id(),
-		);
-
-		/**
-		 * This filter is named poorly but has to stay to keep backwards compat
-		 */
-		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
-
-		$post_args['meta'] = $this->prepare_meta_types( $post_args['post_meta'] );
-
-		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
-
-		return $post_args;
+		return $this->prepare_document( $post_id, 'post' );
 	}
 
 	/**
-	 * Prepare date terms to send to ES.
+	 * Prepare an object for indexing as a document in ES
 	 *
-	 * @param string $timestamp
+	 * @param mixed  $object
+	 * @param string $type
 	 *
-	 * @since 0.1.4
 	 * @return array
 	 */
-	private function prepare_date_terms( $post_date_gmt ) {
-		$timestamp = strtotime( $post_date_gmt );
-		$date_terms = array(
-			'year' => (int) date( "Y", $timestamp),
-			'month' => (int) date( "m", $timestamp),
-			'week' => (int) date( "W", $timestamp),
-			'dayofyear' => (int) date( "z", $timestamp),
-			'day' => (int) date( "d", $timestamp),
-			'dayofweek' => (int) date( "w", $timestamp),
-			'dayofweek_iso' => (int) date( "N", $timestamp),
-			'hour' => (int) date( "H", $timestamp),
-			'minute' => (int) date( "i", $timestamp),
-			'second' => (int) date( "s", $timestamp),
-			'm' => (int) (date( "Y", $timestamp) . date( "m", $timestamp)), // yearmonth
-		);
-		return $date_terms;
-	}
+	public function prepare_document( $object, $type = 'post' ) {
+		$object_type = ep_get_object_type( $type );
 
-	/**
-	 * Prepare terms to send to ES.
-	 *
-	 * @param object $post
-	 *
-	 * @since 0.1.0
-	 * @return array
-	 */
-	private function prepare_terms( $post ) {
-		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
-		$selected_taxonomies = array();
-
-		foreach ( $taxonomies as $taxonomy ) {
-			if ( $taxonomy->public ) {
-				$selected_taxonomies[] = $taxonomy;
-			}
-		}
-
-		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
-
-		if ( empty( $selected_taxonomies ) ) {
-			return array();
-		}
-
-		$terms = array();
-
-		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
-
-		foreach ( $selected_taxonomies as $taxonomy ) {
-			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
-
-			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
-				continue;
-			}
-
-			$terms_dic = array();
-
-			foreach ( $object_terms as $term ) {
-				if( ! isset( $terms_dic[ $term->term_id ] ) ) {
-					$terms_dic[ $term->term_id ] = array(
-						'term_id' => $term->term_id,
-						'slug'    => $term->slug,
-						'name'    => $term->name,
-						'parent'  => $term->parent
-					);
-					if( $allow_hierarchy ){
-						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name );
-					}
-				}
-			}
-			$terms[ $taxonomy->name ] = array_values( $terms_dic );
-		}
-
-		return $terms;
-	}
-
-	/**
-	 * Recursively get all the ancestor terms of the given term
-	 * @param $terms
-	 * @param $term
-	 * @param $tax_name
-	 * @return array
-	 */
-	private function get_parent_terms( $terms, $term, $tax_name ) {
-		$parent_term = get_term( $term->parent, $tax_name );
-		if( ! $parent_term || is_wp_error( $parent_term ) )
-			return $terms;
-		if( ! isset( $terms[ $parent_term->term_id ] ) ) {
-			$terms[ $parent_term->term_id ] = array(
-				'term_id' => $parent_term->term_id,
-				'slug'    => $parent_term->slug,
-				'name'    => $parent_term->name,
-				'parent'  => $parent_term->parent
-			);
-		}
-		return $this->get_parent_terms( $terms, $parent_term, $tax_name );
+		return $object_type ? $object_type->prepare_object( $object ) : array();
 	}
 
 	/**
@@ -1413,28 +1143,26 @@ class EP_API {
 	 * @return array|object|WP_Error
 	 */
 	public function bulk_index_posts( $body ) {
-		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-		$path = trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+		return $this->bulk_index( $body, 'post' );
+	}
 
-		$request_args = array(
-			'method'  => 'POST',
-			'body'    => $body,
-			'timeout' => 30,
-		);
-
-		$request = ep_remote_request( $path, apply_filters( 'ep_bulk_index_posts_request_args', $request_args, $body ) );
-
-		if ( is_wp_error( $request ) ) {
-			return $request;
+	/**
+	 * Bulk index objects of a given type
+	 *
+	 * @param array  $body
+	 * @param string $type
+	 *
+	 * @return array|WP_Error
+	 */
+	public function bulk_index( $body, $type = 'post' ) {
+		$object_type = ep_get_object_type( $type );
+		if ( ! $object_type && 's' === substr( $type, - 1 ) ) {
+			$object_type = ep_get_object_type( substr( $type, 0, - 1 ) );
 		}
 
-		$response = wp_remote_retrieve_response_code( $request );
-
-		if ( 200 !== $response ) {
-			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
-		}
-
-		return json_decode( wp_remote_retrieve_body( $request ), true );
+		return $object_type
+			? $object_type->bulk_index( $body )
+			: new WP_Error( 'elasticpress', __( 'Invalid object type', 'elasticpress' ) );
 	}
 
 	/**
@@ -1664,6 +1392,58 @@ class EP_API {
 
 		return $request;
 
+	}
+
+	/**
+	 * A polyfill for array_replace_recursive not being available on PHP 5.2
+	 *
+	 * @param array $array
+	 * @param array $array1...
+	 *
+	 * @return array
+	 */
+	private function array_replace_recursive( $array, $array1 ) {
+		if ( function_exists( 'array_replace_recursive' ) ) {
+			return call_user_func_array( 'array_replace_recursive', func_get_args() );
+		}
+		// handle the arguments, merge one by one
+		$args  = func_get_args();
+		$array = $args[0];
+		if ( ! is_array( $array ) ) {
+			return $array;
+		}
+		for ( $i = 1; $i < count( $args ); $i ++ ) {
+			if ( is_array( $args[ $i ] ) ) {
+				$array = $this->recurse_array_replace( $array, $args[ $i ] );
+			}
+		}
+
+		return $array;
+	}
+
+	/**
+	 * Polyfill to do the recursing for array_replace_recursive
+	 *
+	 * @param array $array
+	 * @param array $array1
+	 *
+	 * @return array
+	 */
+	private function recurse_array_replace( $array, $array1 ) {
+		foreach ( $array1 as $key => $value ) {
+			// create new key in $array, if it is empty or not an array
+			if ( ! isset( $array[ $key ] ) || ( isset( $array[ $key ] ) && ! is_array( $array[ $key ] ) ) ) {
+				$array[ $key ] = array();
+			}
+
+			// overwrite the value in the base array
+			if ( is_array( $value ) ) {
+				$value = $this->recurse_array_replace( $array[ $key ], $value );
+			}
+			$array[ $key ] = $value;
+		}
+
+		return $array;
 	}
 
 }

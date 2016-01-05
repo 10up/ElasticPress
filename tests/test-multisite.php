@@ -1673,6 +1673,8 @@ class EPTestMultisite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertTrue( empty( $query->posts ) );
+
+		remove_filter( 'ep_skip_query_integration', '__return_true' );
 	}
 
 	/**
@@ -1703,7 +1705,6 @@ class EPTestMultisite extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
-
 
 		$this->assertEquals( 6, $query->post_count );
 		$this->assertEquals( 6, $query->found_posts );
@@ -1833,5 +1834,5 @@ class EPTestMultisite extends EP_Test_Base {
 		$check	 = ep_elasticpress_enabled( $query );
 		$this->assertTrue( $check );
 	}
-	
+
 }
