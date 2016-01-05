@@ -518,10 +518,7 @@ class EP_User_Query_Integration {
 		if ( false === $instance ) {
 			return null;
 		}
-		if (
-			! method_exists( $user, 'active' ) ||
-			! $user->active()
-		) {
+		if ( ! $user->active() ) {
 			$instance = false;
 
 			return null;
@@ -538,7 +535,6 @@ class EP_User_Query_Integration {
 	private function is_user_indexing_active() {
 		return (
 			( ep_is_activated() || ( defined( 'WP_CLI' ) && WP_CLI ) ) &&
-			method_exists( $this->user_index, 'active' ) &&
 			$this->user_index->active()
 		);
 	}

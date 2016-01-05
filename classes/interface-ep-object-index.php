@@ -11,6 +11,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 interface EP_Object_Index {
 
 	/**
+	 * Check whether user indexing is active. Indexing users is off by default
+	 *
+	 * @since 1.7.0
+	 *
+	 * @return bool
+	 */
+	public function active();
+
+	/**
 	 * Set up any necessary syncing operations for this object type
 	 *
 	 * @since 1.7
