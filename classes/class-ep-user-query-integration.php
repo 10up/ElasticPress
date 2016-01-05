@@ -44,6 +44,17 @@ class EP_User_Query_Integration {
 			return;
 		}
 		add_action( 'pre_get_users', array( $this, 'action_pre_get_users' ), 99999 );
+		add_action( 'ep_wp_cli_pre_index', array( $this, 'disable' ) );
+		add_action( 'ep_wp_cli_pre_user_index', array( $this, 'disable' ) );
+	}
+
+	/**
+	 * Disable the query integration
+	 */
+	public function disable() {
+		remove_action( 'pre_get_users', array( $this, 'action_pre_get_users' ), 99999 );
+		remove_action( 'ep_wp_cli_pre_index', array( $this, 'disable' ) );
+		remove_action( 'ep_wp_cli_pre_user_index', array( $this, 'disable' ) );
 	}
 
 	/**
