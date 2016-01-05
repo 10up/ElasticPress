@@ -169,6 +169,10 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
 
+		$post_args['meta'] = $this->api->prepare_meta_types( $post_args['post_meta'] );
+
+		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
+
 		return $post_args;
 	}
 
@@ -185,15 +189,7 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	protected function get_object_meta( $object ) {
 		$post_meta = get_post_meta( $object->ID );
 		foreach ( $post_meta as $key => $value ) {
-			if ( is_array( $value ) ) {
-				// Serialize non-scalar meta values
-				$value = array_map( 'maybe_serialize', $value );
-				// If this is a single meta value, pop it out of the array
-				if ( 1 === count( $value ) && isset( $value[0] ) ) {
-					$value = $value[0];
-				}
-				$post_meta[ $key ] = $value;
-			}
+			$post_meta[ $key ] = $value;
 		}
 
 		return $post_meta;

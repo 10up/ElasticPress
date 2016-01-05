@@ -50,7 +50,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function index_document( $object ) {
+	public function index_document( $object, $blocking = true ) {
 		/**
 		 * Filter the object prior to indexing
 		 *
@@ -67,9 +67,10 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 		$path = implode( '/', array( $index, $this->name, $this->get_object_identifier( $object ) ) );
 
 		$request_args = array(
-			'body'    => json_encode( $object ),
-			'method'  => 'PUT',
-			'timeout' => 15,
+			'body'     => function_exists( 'wp_json_encode' ) ? wp_json_encode( $object ) : json_encode( $object ),
+			'method'   => 'PUT',
+			'timeout'  => 15,
+			'blocking' => $blocking,
 		);
 
 		$request = ep_remote_request(
@@ -146,12 +147,12 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function delete_document( $object ) {
+	public function delete_document( $object, $blocking = true ) {
 		$index = untrailingslashit( ep_get_index_name() );
 
 		$path = implode( '/', array( $index, $this->name, $object ) );
 
-		$request_args = array( 'method' => 'DELETE', 'timeout' => 15 );
+		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
 
 		$request = ep_remote_request(
 			$path,
@@ -205,11 +206,13 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 		if ( 'post' === $this->name ) {
 			/**
-			 * Backwards compatibility: when posts were the only type, this was the filter. This filter is deprecated in
-			 * favor of ep_search_post_args
+			 * Backwards compatibility: when posts were the only type, these were the filters. This filter is deprecated
+			 * in favor of ep_post_search_request_path and ep_search_post_args
 			 */
+			$path = apply_filters( 'ep_search_request_path', $path, $args, $scope );
 			$args = apply_filters( 'ep_search_args', $args, $scope );
 		}
+		$path = apply_filters( "ep_{$this->name}_search_request_path", $path, $args, $scope );
 		$request_args = array(
 			/**
 			 * Filter the body of the search request
@@ -459,20 +462,52 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 
 		$prepared_meta = array();
 
+		$allowed_protected_keys = apply_filters( "ep_prepare_{$this->name}_meta_allowed_protected_keys", array(), $object );
+		if ( 'post' === $this->name ) {
+			/**
+			 * Filter index-able private meta
+			 *
+			 * Allows for specifying private meta keys that may be indexed in the same manor as public meta keys.
+			 *
+			 * @since 1.7
+			 *
+			 * @param         array Array of index-able private meta keys.
+			 * @param WP_Post $post The current post to be indexed.
+			 */
+			$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', $allowed_protected_keys, $object );
+		}
+
+		$excluded_public_keys = apply_filters( "ep_prepare_{$this->name}_meta_excluded_public_keys", array(), $object );
+		if('post'===$this->name){
+			/**
+			 * Filter non-indexed public meta
+			 *
+			 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
+			 *
+			 * @since 1.7
+			 *
+			 * @param         array Array of public meta keys to exclude from index.
+			 * @param WP_Post $post The current post to be indexed.
+			 */
+			$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', $excluded_public_keys, $object );
+		}
+
 		foreach ( $meta as $key => $value ) {
-			if ( ! is_protected_meta( $key ) ) {
+			$allow_index = false;
+			if ( is_protected_meta( $key ) ) {
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) {
+					$allow_index = true;
+				}
+			} else {
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys )  ) {
+					$allow_index = true;
+				}
+			}
+			if ( true === $allow_index ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
 
-		/**
-		 * Filter the meta values prepared for indexing
-		 *
-		 * @since 1.7
-		 *
-		 * @param array $prepared_meta The prepared meta
-		 * @param mixed $object        The object being prepared
-		 */
 		return apply_filters( "ep_prepare_{$this->name}_meta", $prepared_meta, $object );
 	}
 

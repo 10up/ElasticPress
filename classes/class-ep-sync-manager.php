@@ -20,6 +20,7 @@ class EP_Sync_Manager {
 	 */
 	public function setup() {
 		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 	}
@@ -31,10 +32,16 @@ class EP_Sync_Manager {
 	 */
 	public function destroy() {
 		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
 		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 	}
 
+	/**
+	 * Remove blog from index when a site is deleted, archived, or deactivated
+	 *
+	 * @param $blog_id
+	 */
 	public function action_delete_blog_from_index( $blog_id ) {
 		if ( ep_index_exists( ep_get_index_name( $blog_id ) ) && ! apply_filters( 'ep_keep_index', false ) ) {
 			ep_delete_index( ep_get_index_name( $blog_id ) );
@@ -55,7 +62,7 @@ class EP_Sync_Manager {
 
 		do_action( 'ep_delete_post', $post_id );
 
-		ep_delete_post( $post_id );
+		ep_delete_post( $post_id, false );
 	}
 
 	/**
@@ -75,7 +82,11 @@ class EP_Sync_Manager {
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
 
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_ID ) || 'revision' === $post_type ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
+			// Bypass saving if doing autosave or post type is revision
+			return;
+		} elseif ( ! current_user_can( 'edit_post', $post_ID ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
+			// Bypass saving if user does not have access to edit post and we're not in a cron process
 			return;
 		}
 
@@ -98,7 +109,7 @@ class EP_Sync_Manager {
 
 				do_action( 'ep_sync_on_transition', $post_ID );
 
-				$this->sync_post( $post_ID);
+				$this->sync_post( $post_ID, false );
 			}
 		}
 	}
@@ -123,10 +134,11 @@ class EP_Sync_Manager {
 	 * Sync a post for a specific site or globally.
 	 *
 	 * @param int $post_id
+	 * @param bool $blocking
 	 * @since 0.1.0
 	 * @return bool|array
 	 */
-	public function sync_post( $post_id ) {
+	public function sync_post( $post_id, $blocking = true ) {
 
 		$post_args = ep_prepare_post( $post_id );
 
@@ -134,7 +146,7 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$response = ep_index_post( $post_args );
+		$response = ep_index_post( $post_args, $blocking );
 
 		return $response;
 	}
@@ -146,6 +158,6 @@ $ep_sync_manager = EP_Sync_Manager::factory();
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
-function ep_sync_post( $post_id ) {
-	return EP_Sync_Manager::factory()->sync_post( $post_id );
+function ep_sync_post( $post_id, $blocking = true ) {
+	return EP_Sync_Manager::factory()->sync_post( $post_id, $blocking );
 }
