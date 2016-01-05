@@ -22,6 +22,15 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	}
 
 	/**
+	 * The post index is always considered to be active when elasticpress itself is
+	 *
+	 * {@inheritdoc}
+	 */
+	public function active() {
+		return true;
+	}
+
+	/**
 	 * For purposes of backwards compatibility, the methods for updating and deleting posts will stay on the sync
 	 * manager.
 	 *
