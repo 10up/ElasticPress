@@ -1833,5 +1833,128 @@ class EPTestMultisite extends EP_Test_Base {
 		$check	 = ep_elasticpress_enabled( $query );
 		$this->assertTrue( $check );
 	}
+
+	/**
+	 * Test index status
+	 *
+	 * Tests index status when site is and is not indexed.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @group BBPE-251
+	 *
+	 * @return void
+	 */
+	function testGetIndexStatus() {
+
+		$blog = get_current_blog_id();
+
+		$status_indexed = ep_get_index_status( $blog );
+
+		ep_delete_index();
+
+		$status_unindexed = ep_get_index_status( $blog );
+
+		$this->setUp();
+
+		$this->assertTrue( $status_indexed['status'] );
+		$this->assertFalse( $status_unindexed['status'] );
+
+	}
+
+	/**
+	 * Search status
+	 *
+	 * Test search status.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @group BBPE-251
+	 *
+	 * @return void
+	 */
+	function testGetSearchStatus() {
+
+		$blog = get_current_blog_id();
+
+		$status_indexed = ep_get_search_status( $blog );
+
+		ep_delete_index();
+
+		$status_unindexed = ep_get_search_status( $blog );
+
+		$this->setUp();
+
+		$this->assertInstanceOf( 'stdClass', $status_indexed );
+		$this->assertFalse( $status_unindexed );
+
+	}
+
+	/**
+	 * Cluster status
+	 *
+	 * Test cluster status.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @group BBPE-251
+	 *
+	 * @return void
+	 */
+	function testGetClusterStatus() {
+
+		$status_indexed = ep_get_cluster_status();
+
+		ep_delete_index();
+
+		$status_unindexed = ep_get_cluster_status();
+
+
+		$this->setUp();
+
+		if ( is_array( $status_indexed ) ) {
+
+			$this->assertTrue( $status_indexed['status'] );
+
+		} else {
+
+			$this->assertTrue( isset( $status_indexed->cluster_name ) );
+
+		}
+
+		if ( is_array( $status_unindexed ) ) {
+
+			$this->assertTrue( $status_unindexed['status'] );
+
+		} else {
+
+			$this->assertTrue( isset( $status_unindexed->cluster_name ) );
+
+		}
+	}
+
+	/**
+	 * Test put mapping function
+	 *
+	 * Tests the index put mapping function.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @return void
+	 */
+	function testPutMapping() {
+
+		$mapping_indexed = ep_process_site_mappings();
+
+		ep_delete_index();
+
+		$mapping_unindexed = ep_process_site_mappings();
+
+		$this->setUp();
+
+		$this->assertTrue( $mapping_indexed );
+		$this->assertTrue( $mapping_unindexed );
+
+	}
 	
 }
