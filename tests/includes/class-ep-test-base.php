@@ -2,6 +2,8 @@
 
 class EP_Test_Base extends WP_UnitTestCase {
 
+	private $_test_groups = array();
+
 	/**
 	 * Prevents weird MySQLi error.
 	 *
@@ -15,22 +17,12 @@ class EP_Test_Base extends WP_UnitTestCase {
 
 	public function setUp() {
 		parent::setUp();
-		if ( false === strpos( $this->getName(), 'UserObjectIndexNotRegistered' ) && ! ep_get_object_type( 'user' ) ) {
-			ep_register_object_type( new EP_User_Index() );
-		} else {
-			$user = ep_get_object_type( 'user' );
-			if ( $user ) {
-				EP_Object_Manager::factory()->unregister_object( $user );
-			}
-		}
-		if ( false === strpos( $this->getName(), 'UserIndexingInactive' ) ) {
-			add_filter( 'ep_user_indexing_active', '__return_true' );
-		}
+		$this->maybe_set_up_user_index_tests();
 	}
 
 	public function tearDown() {
 		parent::tearDown();
-		remove_all_filters('ep_user_indexing_active');
+		$this->maybe_tear_down_user_index_tests();
 	}
 
 	/**
@@ -116,4 +108,34 @@ class EP_Test_Base extends WP_UnitTestCase {
 
 		register_post_type( 'ep_test_not_public', $args );
 	}
+
+	private function maybe_set_up_user_index_tests() {
+		$this->_test_groups = \PHPUnit_Util_Test::getGroups( get_class( $this ), $this->getName( false ) );
+		if ( ! in_array( 'users', $this->_test_groups ) ) {
+			return;
+		}
+		if ( false === strpos( $this->getName(), 'UserObjectIndexNotRegistered' ) && ! ep_get_object_type( 'user' ) ) {
+			ep_register_object_type( new EP_User_Index() );
+		} else {
+			$user = ep_get_object_type( 'user' );
+			if ( $user ) {
+				EP_Object_Manager::factory()->unregister_object( $user );
+			}
+		}
+		if ( false === strpos( $this->getName(), 'UserIndexingInactive' ) ) {
+			add_filter( 'ep_user_indexing_active', '__return_true' );
+		}
+	}
+
+	private function maybe_tear_down_user_index_tests(){
+		remove_all_filters( 'ep_user_indexing_active' );
+		if ( ! in_array( 'users', (array) $this->_test_groups ) ) {
+			return;
+		}
+		$user = ep_get_object_type( 'user' );
+		if ( $user ) {
+			EP_Object_Manager::factory()->unregister_object( $user );
+		}
+	}
+
 }
