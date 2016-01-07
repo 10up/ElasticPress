@@ -392,7 +392,7 @@ class EP_Settings {
 		$read_only = '';
 		$host = get_site_option( 'ep_host' );
 
-		if ( false === ep_host_by_option() ) {
+		if ( false === ep_host_by_option() && defined( 'EP_HOST' ) ) {
 			$read_only = 'readonly';
 			$host = EP_HOST;
 		}
