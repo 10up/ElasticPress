@@ -114,15 +114,17 @@ class EP_Test_Base extends WP_UnitTestCase {
 		if ( ! in_array( 'users', $this->_test_groups ) ) {
 			return;
 		}
-		if ( false === strpos( $this->getName(), 'UserObjectIndexNotRegistered' ) && ! ep_get_object_type( 'user' ) ) {
-			ep_register_object_type( new EP_User_Index() );
-		} else {
+		if ( in_array( 'users-index-not-registered', $this->_test_groups ) ) {
 			$user = ep_get_object_type( 'user' );
 			if ( $user ) {
 				EP_Object_Manager::factory()->unregister_object( $user );
 			}
+		} else {
+			if ( ! ep_get_object_type( 'user' ) ) {
+				ep_register_object_type( new EP_User_Index() );
+			}
 		}
-		if ( false === strpos( $this->getName(), 'UserIndexingInactive' ) ) {
+		if ( ! in_array( 'users-indexing-inactive', $this->_test_groups ) ) {
 			add_filter( 'ep_user_indexing_active', '__return_true' );
 		}
 	}

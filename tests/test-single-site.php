@@ -2463,6 +2463,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * @group users
+	 * @group users-index-not-registered
 	 */
 	public function testUserObjectIndexNotRegistered() {
 		$this->assertNull(ep_get_object_type('user'));
@@ -2470,6 +2471,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * @group users
+	 * @group users-indexing-inactive
 	 */
 	public function testUserIndexingInactive() {
 		$this->assertFalse(ep_get_object_type('user')->active());
