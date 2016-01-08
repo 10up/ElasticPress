@@ -2477,4 +2477,40 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertFalse(ep_get_object_type('user')->active());
 	}
 
+	/**
+	 * @group users
+	 * @group users-index-not-registered
+	 */
+	public function test_user_mapping_not_sent_when_inactive() {
+		$data = $this->get_index_data();
+		if ( ! $data || ! is_array( $data ) || ! isset( $data[ ep_get_index_name() ]['mappings'] ) ) {
+			$this->fail( 'Could not retrieve information about the current index.' );
+		}
+		$this->assertArrayNotHasKey( 'user', $data[ ep_get_index_name() ]['mappings'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function test_user_mapping_sent_in_global_mapping() {
+		$data = $this->get_index_data();
+		if ( ! $data || ! is_array( $data ) || ! isset( $data[ ep_get_index_name() ]['mappings'] ) ) {
+			$this->fail( 'Could not retrieve information about the current index.' );
+		}
+		$this->assertArrayHasKey( 'user', $data[ ep_get_index_name() ]['mappings'] );
+	}
+
+	private function get_index_data() {
+		$response = ep_remote_request( ep_get_index_name(), array() );
+		if ( ! $response || is_wp_error( $response ) ) {
+			$data = false;
+		} elseif ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			$data = false;
+		} else {
+			$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		}
+
+		return $data;
+	}
+
 }
