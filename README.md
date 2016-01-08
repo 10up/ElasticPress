@@ -39,7 +39,7 @@ There are other Elasticsearch integration plugins available for WordPress. Elast
 
 ## Installation
 
-1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
+1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. ElasticPress requires WP-CLI. Install it by following [these instructions](http://wp-cli.org).
 3. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
 
