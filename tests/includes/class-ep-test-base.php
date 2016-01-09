@@ -125,7 +125,7 @@ class EP_Test_Base extends WP_UnitTestCase {
 			}
 		}
 		if ( ! in_array( 'users-indexing-inactive', $this->_test_groups ) ) {
-			add_filter( 'ep_user_indexing_active', '__return_true' );
+			add_filter( 'ep_user_indexing_active', '__return_true', 0 );
 		}
 	}
 
