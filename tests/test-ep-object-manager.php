@@ -19,7 +19,45 @@ class Test_EP_Object_Manager extends EP_Test_Base {
 			->expects( $this->once() )
 			->method( 'sync_setup' );
 		/** @var EP_Object_Index $object_index */
-		$this->manager->register_object($object_index);
+		$this->manager->register_object( $object_index );
+	}
+
+	public function testUnregisterObject() {
+		$object_index = $this->getObjectIndexMock( 'post' );
+		$object_index
+			->expects( $this->once() )
+			->method( 'sync_teardown' );
+		/** @var EP_Object_Index $object_index */
+		$this->manager->register_object( $object_index );
+		$this->manager->unregister_object( $object_index );
+	}
+
+	public function testRegisteringTwiceUnregistersFirstObject() {
+		$first_index  = $this->getObjectIndexMock( 'user' );
+		$second_index = $this->getObjectIndexMock( 'user' );
+		$first_index
+			->expects( $this->once() )
+			->method( 'sync_teardown' );
+		/** @var EP_Object_Index $first_index */
+		/** @var EP_Object_Index $second_index */
+		$this->manager->register_object( $first_index );
+		$this->manager->register_object( $second_index );
+	}
+
+	public function testGetObject() {
+		$object_index = $this->getObjectIndexMock( 'post' );
+		/** @var EP_Object_Index $object_index */
+		$this->manager->register_object( $object_index );
+		$this->assertSame( $object_index, $this->manager->get_object( 'post' ) );
+	}
+
+	public function testGetRegisteredObjectName() {
+		$names = array( 'test', 'post', 'comment', 'user' );
+		shuffle( $names );
+		foreach ( $names as $name ) {
+			$this->manager->register_object( $this->getObjectIndexMock( $name ) );
+		}
+		$this->assertEqualSetsWithIndex( $names, $this->manager->get_registered_object_names() );
 	}
 
 	/**
