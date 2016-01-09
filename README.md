@@ -39,7 +39,7 @@ There are other Elasticsearch integration plugins available for WordPress. Elast
 
 ## Installation
 
-1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
+1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. ElasticPress requires WP-CLI. Install it by following [these instructions](http://wp-cli.org).
 3. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
 
@@ -289,9 +289,9 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     * `BINARY` - Compares query `value` to raw, unanalyzed version of stored meta value. For actual attachment searches, check out [this](https://github.com/elastic/elasticsearch-mapper-attachments).
     * `CHAR` - Compares query `value` to raw, unanalyzed version of stored meta value.
     * `DECIMAL` - Compares query `value` to float version of stored meta value.
-    * `DATE` - Compares query `value` to date version of stored meta value. Query `value` must be formated like `2015-11-14`
-    * `DATETIME` - Compares query `value` to date/time version of stored meta value. Query `value` must be formated like `2012-01-02 05:00:00` or `yyyy:mm:dd hh:mm:ss`.
-    * `TIME` - Compares query `value` to time version of stored meta value. Query `value` must be formated like `17:00:00` or `hh:mm:ss`.
+    * `DATE` - Compares query `value` to date version of stored meta value. Query `value` must be formatted like `2015-11-14`
+    * `DATETIME` - Compares query `value` to date/time version of stored meta value. Query `value` must be formatted like `2012-01-02 05:00:00` or `yyyy:mm:dd hh:mm:ss`.
+    * `TIME` - Compares query `value` to time version of stored meta value. Query `value` must be formatted like `17:00:00` or `hh:mm:ss`.
 
     If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
     is very rarely needed to be used.
@@ -299,7 +299,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
 * ```post_type``` (*string*/*array*)
 
-    Filter posts by post type. ```any``` wil search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
+    Filter posts by post type. ```any``` will search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
 
 * ```offset``` (*int*)
 
@@ -459,8 +459,8 @@ The following are special parameters that are only supported by ElasticPress.
 * ```ep_integrate``` (*bool*)
 
     Allows you to perform queries without passing a search parameter. This is pretty powerful as you can leverage Elasticsearch to retrieve queries that are too complex for MySQL (such as a 5-dimensional taxonomy query). For example:
-    
-    Get 20 of the lastest posts
+
+    Get 20 of the latest posts
     ```php
     new WP_Query( array(
         'ep_integrate'   => true,
