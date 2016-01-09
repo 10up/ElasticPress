@@ -2502,6 +2502,39 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @group users
 	 * @group users-index-not-registered
 	 */
+	public function testUserIndexNoSyncWithoutSetup() {
+		$users = new EP_User_Index();
+		$this->assertFalse( has_action( 'profile_update', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertFalse( has_action( 'user_register', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertFalse( has_action( 'add_user_to_blog', array( $users, 'action_add_user_to_blog' ) ) );
+		$this->assertFalse( has_action( 'delete_user', array( $users, 'action_delete_user_from_site' ) ) );
+		$this->assertFalse( has_action( 'remove_user_from_blog', array( $users, 'action_delete_user_from_site' ) ) );
+	}
+
+	/**
+	 * @group users
+	 * @group users-index-not-registered
+	 */
+	public function testUserIndexSyncSetUpAndTearDown() {
+		$users = new EP_User_Index();
+		$users->sync_setup();
+		$this->assertEquals( 999999, has_action( 'profile_update', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertEquals( 999999, has_action( 'user_register', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertEquals( 999999, has_action( 'add_user_to_blog', array( $users, 'action_add_user_to_blog' ) ) );
+		$this->assertEquals( 10, has_action( 'delete_user', array( $users, 'action_delete_user_from_site' ) ) );
+		$this->assertEquals( 10, has_action( 'remove_user_from_blog', array( $users, 'action_delete_user_from_site' ) ) );
+		$users->sync_teardown();
+		$this->assertFalse( has_action( 'profile_update', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertFalse( has_action( 'user_register', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertFalse( has_action( 'add_user_to_blog', array( $users, 'action_add_user_to_blog' ) ) );
+		$this->assertFalse( has_action( 'delete_user', array( $users, 'action_delete_user_from_site' ) ) );
+		$this->assertFalse( has_action( 'remove_user_from_blog', array( $users, 'action_delete_user_from_site' ) ) );
+	}
+
+	/**
+	 * @group users
+	 * @group users-index-not-registered
+	 */
 	public function testUserMappingNotSentWhenInactive() {
 		$data = $this->getIndexData();
 		if ( ! $data || ! is_array( $data ) || ! isset( $data[ ep_get_index_name() ]['mappings'] ) ) {
