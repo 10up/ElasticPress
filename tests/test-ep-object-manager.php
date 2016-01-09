@@ -61,6 +61,13 @@ class Test_EP_Object_Manager extends EP_Test_Base {
 	}
 
 	/**
+	 * @group users-indexing-inactive
+	 */
+	public function testFactoryReturnsStaticInstance() {
+		$this->assertSame( EP_Object_Manager::factory(), EP_Object_Manager::factory() );
+	}
+
+	/**
 	 * @return PHPUnit_Framework_MockObject_MockObject
 	 */
 	private function getObjectIndexMock( $name ) {
