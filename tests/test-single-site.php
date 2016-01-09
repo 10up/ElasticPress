@@ -2479,6 +2479,27 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * @group users
+	 */
+	public function testUserIndexInactiveWhenElasticPressDeactivated() {
+		$users = ep_get_object_type( 'user' );
+		$this->assertTrue( $users->active() );
+		ep_deactivate();
+		$this->assertFalse( $users->active() );
+		ep_activate();
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserIndexInactiveWhenFilterReturnsFalse() {
+		$users = ep_get_object_type( 'user' );
+		$this->assertTrue( $users->active() );
+		add_filter( 'ep_user_indexing_active', '__return_false' );
+		$this->assertFalse( $users->active() );
+	}
+
+	/**
+	 * @group users
 	 * @group users-index-not-registered
 	 */
 	public function testUserMappingNotSentWhenInactive() {
