@@ -110,7 +110,7 @@ class EP_Test_Base extends WP_UnitTestCase {
 	}
 
 	private function maybe_set_up_user_index_tests() {
-		$this->_test_groups = \PHPUnit_Util_Test::getGroups( get_class( $this ), $this->getName( false ) );
+		$this->_test_groups = PHPUnit_Util_Test::getGroups( get_class( $this ), $this->getName( false ) );
 		if ( ! in_array( 'users', $this->_test_groups ) ) {
 			return;
 		}
