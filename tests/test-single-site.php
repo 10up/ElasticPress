@@ -2554,6 +2554,20 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertArrayHasKey( 'user', $data[ ep_get_index_name() ]['mappings'] );
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserQueryLooksUpUsersByRole() {
+		EP_User_Query_Integration::factory();
+		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
+		$user_ids   = $this->factory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
+		$this->assertTrue( ! empty( $user_query->query_vars['elasticpress'] ) );
+		$this->assertEquals( $user_ids, $user_query->get_results() );
+		remove_role('ep_test_role');
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
