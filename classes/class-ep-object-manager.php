@@ -35,7 +35,7 @@ class EP_Object_Manager {
 	 */
 	public function register_object( $object ) {
 		if ( isset( $this->objects[ $object->get_name() ] ) ) {
-			$this->unregister_object( $object );
+			$this->unregister_object( $this->objects[ $object->get_name() ] );
 		}
 		$this->objects[ $object->get_name() ] = $object;
 		$object->sync_setup();
