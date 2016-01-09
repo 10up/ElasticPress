@@ -2481,8 +2481,8 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @group users
 	 * @group users-index-not-registered
 	 */
-	public function test_user_mapping_not_sent_when_inactive() {
-		$data = $this->get_index_data();
+	public function testUserMappingNotSentWhenInactive() {
+		$data = $this->getIndexData();
 		if ( ! $data || ! is_array( $data ) || ! isset( $data[ ep_get_index_name() ]['mappings'] ) ) {
 			$this->fail( 'Could not retrieve information about the current index.' );
 		}
@@ -2492,15 +2492,15 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * @group users
 	 */
-	public function test_user_mapping_sent_in_global_mapping() {
-		$data = $this->get_index_data();
+	public function testUserMappingSentInGlobalMapping() {
+		$data = $this->getIndexData();
 		if ( ! $data || ! is_array( $data ) || ! isset( $data[ ep_get_index_name() ]['mappings'] ) ) {
 			$this->fail( 'Could not retrieve information about the current index.' );
 		}
 		$this->assertArrayHasKey( 'user', $data[ ep_get_index_name() ]['mappings'] );
 	}
 
-	private function get_index_data() {
+	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
 			$data = false;
