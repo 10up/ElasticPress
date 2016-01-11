@@ -35,7 +35,7 @@ _Note:_ Requires [WP-CLI](http://wp-cli.org/) and [Elasticsearch](http://www.ela
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
-1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
+1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. Install [WP-CLI](http://wp-cli.org/).
 3. Install the plugin in WordPress.
 
