@@ -12,6 +12,11 @@ class EP_API {
 	public function __construct() { }
 
 	/**
+	 * Logged queries for debugging. Only used when WP_DEBUG is on.
+	 */
+	public $queries = array();
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return EP_API
@@ -1622,6 +1627,16 @@ class EP_API {
 	 */
 	public function remote_request( $path, $args = array() ) {
 
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$query = array(
+				'time_start' => time(),
+				'args' => $args,
+				'blocking' => true,
+				'failed_hosts' => array(),
+				'request' => false,
+			);
+		}
+
 		//The allowance of these variables makes testing easier.
 		$force       = false;
 		$use_backups = false;
@@ -1641,11 +1656,26 @@ class EP_API {
 		$request = false;
 
 		if ( ! is_wp_error( $host ) ) { // probably only reachable in testing but just to be safe
-			$request = wp_remote_request( esc_url( trailingslashit( $host ) . $path ), $args ); //try the existing host to avoid unnecessary calls
+			$request_url = esc_url( trailingslashit( $host ) . $path );
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$query['url'] = $request_url;
+			}
+
+			$request = wp_remote_request( esc_url( $request_url, $args ); //try the existing host to avoid unnecessary calls
+		} else {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$query['failed_hosts'][] = $host;
+			}
 		}
 
 		// Return now if we're not blocking, since we won't have a response yet
 		if ( isset( $args['blocking'] ) && false === $args['blocking' ] ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$query['blocking'] = true;
+				$this->queries[] = $query;
+			}
+
 			return $request;
 		}
 
@@ -1653,13 +1683,27 @@ class EP_API {
 		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 200 !== $request['response']['code'] ) ) {
 
 			$host = ep_get_host( true, $use_backups );
+			$request_url = esc_url( trailingslashit( $host ) . $path );
 
 			if ( is_wp_error( $host ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					$query['failed_hosts'][] = $host;
+					$query['time_finish'] = time();
+					$this->queries[] = $query;
+				}
+
 				return $host;
 			}
 
-			return wp_remote_request( esc_url( trailingslashit( $host ) . $path ), $args );
+			$request = wp_remote_request( $request_url, $args );
 
+		}
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$query['time_finish'] = time();
+			$query['request'] = $request;
+			$query['url'] = $request_url;
+			$this->queries[] = $query;
 		}
 
 		return $request;
