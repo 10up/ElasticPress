@@ -1538,13 +1538,16 @@ class EP_API {
 				),
 			);
 		} else {
-			$sort = array(
-				array(
-					$orderby => array(
+			$orderbys = explode( ' ', $orderby );
+			$sort = array();
+
+			foreach ( $orderbys as $orderby_clause ) {
+				$sort[] = array(
+					$orderby_clause => array(
 						'order' => $order,
 					),
-				),
-			);
+				);
+			}
 		}
 
 		return $sort;
