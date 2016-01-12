@@ -1091,7 +1091,7 @@ class EP_API {
 					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
 					} else {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . 'value';
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
 					}
 
 					switch ( $compare ) {
@@ -1519,26 +1519,20 @@ class EP_API {
 			if ( ! empty( $orderby_clause ) ) {
 				if ( 'relevance' === $orderby_clause ) {
 					$sort[] = array(
-						array(
-							'_score' => array(
-								'order' => $order,
-							),
+						'_score' => array(
+							'order' => $order,
 						),
 					);
 		 		} elseif ( 'date' === $orderby_clause ) {
 					$sort[] = array(
-						array(
-							'post_date' => array(
-								'order' => $order,
-							),
+						'post_date' => array(
+							'order' => $order,
 						),
 					);
 				} elseif ( 'name' === $orderby_clause || 'title' === $orderby_clause  ) {
 					$sort[] = array(
-						array(
-							'post_' . $orderby_clause . '.raw' => array(
-								'order' => $order,
-							),
+						'post_' . $orderby_clause . '.raw' => array(
+							'order' => $order,
 						),
 					);
 				} else {
