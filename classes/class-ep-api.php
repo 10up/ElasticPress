@@ -1681,6 +1681,7 @@ class EP_API {
 		// Return now if we're not blocking, since we won't have a response yet
 		if ( isset( $args['blocking'] ) && false === $args['blocking' ] ) {
 			$query['blocking'] = true;
+			$query['request']  = $request;
 			$this->queries[]   = $query;
 
 			return $request;
