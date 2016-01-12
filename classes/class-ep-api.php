@@ -1516,36 +1516,38 @@ class EP_API {
 		$sort = array();
 
 		foreach ( $orderbys as $orderby_clause ) {
-			if ( 'relevance' === $orderby ) {
-				$sort = array(
-					array(
-						'_score' => array(
+			if ( ! empty( $orderby_clause ) ) {
+				if ( 'relevance' === $orderby_clause ) {
+					$sort = array(
+						array(
+							'_score' => array(
+								'order' => $order,
+							),
+						),
+					);
+		 		} elseif ( 'date' === $orderby_clause ) {
+					$sort = array(
+						array(
+							'post_date' => array(
+								'order' => $order,
+							),
+						),
+					);
+				} elseif ( 'name' === $orderby_clause || 'title' === $orderby_clause  ) {
+					$sort = array(
+						array(
+							'post_' . $orderby_clause . '.raw' => array(
+								'order' => $order,
+							),
+						),
+					);
+				} else {
+					$sort[] = array(
+						$orderby_clause => array(
 							'order' => $order,
 						),
-					),
-				);
-	 		} elseif ( 'date' === $orderby ) {
-				$sort = array(
-					array(
-						'post_date' => array(
-							'order' => $order,
-						),
-					),
-				);
-			} elseif ( 'name' === $orderby || ( 'title' === $orderby ) ) {
-				$sort = array(
-					array(
-						'post_' . $orderby . '.raw' => array(
-							'order' => $order,
-						),
-					),
-				);
-			} else {
-				$sort[] = array(
-					$orderby_clause => array(
-						'order' => $order,
-					),
-				);
+					);
+				}
 			}
 		}
 
