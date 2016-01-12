@@ -12,6 +12,13 @@ class EP_API {
 	public function __construct() { }
 
 	/**
+	 * Logged queries for debugging
+	 *
+	 * @since  1.8
+	 */
+	private $queries = array();
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return EP_API
@@ -1608,6 +1615,16 @@ class EP_API {
 	}
 
 	/**
+	 * Return queries for debugging
+	 *
+	 * @since  1.8
+	 * @return array
+	 */
+	public function get_query_log() {
+		return $this->queries;
+	}
+
+	/**
 	 * Wrapper for wp_remote_request
 	 *
 	 * This is a wrapper function for wp_remote_request that will switch to a backup server
@@ -1621,6 +1638,16 @@ class EP_API {
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
 	public function remote_request( $path, $args = array() ) {
+
+		$query = array(
+			'time_start'   => microtime( true ),
+			'time_finish'  => false,
+			'args'         => $args,
+			'blocking'     => true,
+			'failed_hosts' => array(),
+			'request'      => false,
+			'host'         => false,
+		);
 
 		//The allowance of these variables makes testing easier.
 		$force       = false;
@@ -1641,11 +1668,22 @@ class EP_API {
 		$request = false;
 
 		if ( ! is_wp_error( $host ) ) { // probably only reachable in testing but just to be safe
-			$request = wp_remote_request( esc_url( trailingslashit( $host ) . $path ), $args ); //try the existing host to avoid unnecessary calls
+			$request_url   = esc_url( trailingslashit( $host ) . $path );
+
+			$query['url']  = $request_url;
+			$query['host'] = $host;
+
+			$request = wp_remote_request( $request_url, $args ); //try the existing host to avoid unnecessary calls
+		} else {
+			$query['failed_hosts'][] = $host;
 		}
 
 		// Return now if we're not blocking, since we won't have a response yet
 		if ( isset( $args['blocking'] ) && false === $args['blocking' ] ) {
+			$query['blocking'] = true;
+			$query['request']  = $request;
+			$this->queries[]   = $query;
+
 			return $request;
 		}
 
@@ -1653,14 +1691,25 @@ class EP_API {
 		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 200 !== $request['response']['code'] ) ) {
 
 			$host = ep_get_host( true, $use_backups );
+			$request_url = esc_url( trailingslashit( $host ) . $path );
 
 			if ( is_wp_error( $host ) ) {
+				$query['failed_hosts'][] = $host;
+				$query['time_finish']    = microtime( true );
+				$this->queries[]         = $query;
+
 				return $host;
 			}
 
-			return wp_remote_request( esc_url( trailingslashit( $host ) . $path ), $args );
+			$request = wp_remote_request( $request_url, $args );
 
 		}
+
+		$query['time_finish'] = microtime( true );
+		$query['request'] = $request;
+		$query['url']     = $request_url;
+		$query['host']    = $host;
+		$this->queries[]  = $query;
 
 		return $request;
 
@@ -1756,4 +1805,8 @@ function ep_format_request_headers() {
 
 function ep_remote_request( $path, $args ) {
 	return EP_API::factory()->remote_request( $path, $args );
+}
+
+function ep_get_query_log() {
+	return EP_API::factory()->get_query_log();
 }
