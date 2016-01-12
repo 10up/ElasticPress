@@ -1512,36 +1512,35 @@ class EP_API {
 	 * @return array
 	 */
 	protected function parse_orderby( $orderby, $order ) {
+		$orderbys = explode( ' ', $orderby );
+		$sort = array();
 
-		if ( 'relevance' === $orderby ) {
-			$sort = array(
-				array(
-					'_score' => array(
-						'order' => $order,
+		foreach ( $orderbys as $orderby_clause ) {
+			if ( 'relevance' === $orderby ) {
+				$sort = array(
+					array(
+						'_score' => array(
+							'order' => $order,
+						),
 					),
-				),
-			);
- 		} elseif ( 'date' === $orderby ) {
-			$sort = array(
-				array(
-					'post_date' => array(
-						'order' => $order,
+				);
+	 		} elseif ( 'date' === $orderby ) {
+				$sort = array(
+					array(
+						'post_date' => array(
+							'order' => $order,
+						),
 					),
-				),
-			);
-		} elseif ( 'name' === $orderby || ( 'title' === $orderby ) ) {
-			$sort = array(
-				array(
-					'post_' . $orderby . '.raw' => array(
-						'order' => $order,
+				);
+			} elseif ( 'name' === $orderby || ( 'title' === $orderby ) ) {
+				$sort = array(
+					array(
+						'post_' . $orderby . '.raw' => array(
+							'order' => $order,
+						),
 					),
-				),
-			);
-		} else {
-			$orderbys = explode( ' ', $orderby );
-			$sort = array();
-
-			foreach ( $orderbys as $orderby_clause ) {
+				);
+			} else {
 				$sort[] = array(
 					$orderby_clause => array(
 						'order' => $order,

@@ -1170,6 +1170,35 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test post meta num multiple fields orderby query asc
+	 *
+	 * @since 1.8
+	 */
+	public function testSearchPostMetaNumMultipleOrderbyQuery() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 3, 'test_key2' => 2 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3, 'test_key2' => 1 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 2, 'test_key2' => 1 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1, 'test_key2' => 1 ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'meta.test_key.long meta.test_key2.long',
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
+	}
+
+	/**
 	 * Test post_date orderby query
 	 *
 	 * @since 1.4
