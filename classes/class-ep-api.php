@@ -16,7 +16,7 @@ class EP_API {
 	 *
 	 * @since  1.8
 	 */
-	public $queries = array();
+	private $queries = array();
 
 	/**
 	 * Return singleton instance of class
@@ -1615,6 +1615,16 @@ class EP_API {
 	}
 
 	/**
+	 * Return queries for debugging
+	 *
+	 * @since  1.8
+	 * @return array
+	 */
+	public function get_query_log() {
+		return $this->queries;
+	}
+
+	/**
 	 * Wrapper for wp_remote_request
 	 *
 	 * This is a wrapper function for wp_remote_request that will switch to a backup server
@@ -1794,4 +1804,8 @@ function ep_format_request_headers() {
 
 function ep_remote_request( $path, $args ) {
 	return EP_API::factory()->remote_request( $path, $args );
+}
+
+function ep_get_query_log() {
+	return EP_API::factory()->get_query_log();
 }
