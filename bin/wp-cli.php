@@ -373,7 +373,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				$wp_object_cache->group_ops = array();
 				$wp_object_cache->stats = array();
 				$wp_object_cache->memcache_debug = array();
-				$wp_object_cache->cache = array();
+				wp_cache_flush();
 
 				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
