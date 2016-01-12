@@ -1630,12 +1630,13 @@ class EP_API {
 	public function remote_request( $path, $args = array() ) {
 
 		$query = array(
-			'time_start' => microtime( true ),
-			'args' => $args,
-			'blocking' => true,
+			'time_start'   => microtime( true ),
+			'time_finish'  => false,
+			'args'         => $args,
+			'blocking'     => true,
 			'failed_hosts' => array(),
-			'request' => false,
-			'host' => false,
+			'request'      => false,
+			'host'         => false,
 		);
 
 		//The allowance of these variables makes testing easier.
@@ -1657,9 +1658,9 @@ class EP_API {
 		$request = false;
 
 		if ( ! is_wp_error( $host ) ) { // probably only reachable in testing but just to be safe
-			$request_url = esc_url( trailingslashit( $host ) . $path );
+			$request_url   = esc_url( trailingslashit( $host ) . $path );
 
-			$query['url'] = $request_url;
+			$query['url']  = $request_url;
 			$query['host'] = $host;
 
 			$request = wp_remote_request( $request_url, $args ); //try the existing host to avoid unnecessary calls
@@ -1670,7 +1671,7 @@ class EP_API {
 		// Return now if we're not blocking, since we won't have a response yet
 		if ( isset( $args['blocking'] ) && false === $args['blocking' ] ) {
 			$query['blocking'] = true;
-			$this->queries[] = $query;
+			$this->queries[]   = $query;
 
 			return $request;
 		}
@@ -1683,8 +1684,8 @@ class EP_API {
 
 			if ( is_wp_error( $host ) ) {
 				$query['failed_hosts'][] = $host;
-				$query['time_finish'] = microtime( true );
-				$this->queries[] = $query;
+				$query['time_finish']    = microtime( true );
+				$this->queries[]         = $query;
 
 				return $host;
 			}
@@ -1695,9 +1696,9 @@ class EP_API {
 
 		$query['time_finish'] = microtime( true );
 		$query['request'] = $request;
-		$query['url'] = $request_url;
-		$query['host'] = $host;
-		$this->queries[] = $query;
+		$query['url']     = $request_url;
+		$query['host']    = $host;
+		$this->queries[]  = $query;
 
 		return $request;
 
