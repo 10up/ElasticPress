@@ -1629,7 +1629,7 @@ class EP_API {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$query = array(
-				'time_start' => time(),
+				'time_start' => microtime( true ),
 				'args' => $args,
 				'blocking' => true,
 				'failed_hosts' => array(),
@@ -1688,7 +1688,7 @@ class EP_API {
 			if ( is_wp_error( $host ) ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					$query['failed_hosts'][] = $host;
-					$query['time_finish'] = time();
+					$query['time_finish'] = microtime( true );
 					$this->queries[] = $query;
 				}
 
@@ -1700,7 +1700,7 @@ class EP_API {
 		}
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$query['time_finish'] = time();
+			$query['time_finish'] = microtime( true );
 			$query['request'] = $request;
 			$query['url'] = $request_url;
 			$this->queries[] = $query;
