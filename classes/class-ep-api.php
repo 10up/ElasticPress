@@ -1662,7 +1662,7 @@ class EP_API {
 				$query['url'] = $request_url;
 			}
 
-			$request = wp_remote_request( esc_url( $request_url, $args ); //try the existing host to avoid unnecessary calls
+			$request = wp_remote_request( $request_url, $args ); //try the existing host to avoid unnecessary calls
 		} else {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				$query['failed_hosts'][] = $host;
