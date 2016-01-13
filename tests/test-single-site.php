@@ -2578,7 +2578,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$user_ids = $this->getFactory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
 		ep_refresh_index();
 		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
-		$this->assertFalse( ! empty( $user_query->query_vars['elasticpress'] ) );
+		$this->assertArrayNotHasKey( 'elasticpress', $user_query->query_vars );
 		$this->assertEquals( $user_ids, $user_query->get_results() );
 		remove_filter( 'ep_skip_user_query_integration', '__return_true' );
 		remove_role( 'ep_test_role' );
