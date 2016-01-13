@@ -1364,13 +1364,6 @@ class EP_API {
 			$formatted_args['from'] = $args['offset'];
 		}
 
- 		if ( isset( $args['post_per_page'] ) ) {
-			// For backwards compatibility for those using this since EP 1.4
-			$formatted_args['size'] = $args['post_per_page'];
-		} elseif ( isset( $args['posts_per_page'] ) ) {
-			$formatted_args['size'] = $args['posts_per_page'];
-		}
-
 		if ( isset( $args['paged'] ) ) {
 			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
