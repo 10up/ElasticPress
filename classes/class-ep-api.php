@@ -839,8 +839,17 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_args( $args ) {
+		if ( isset( $args['post_per_page'] ) ) {
+			// For backwards compatibility for those using this since EP 1.4
+			$args['posts_per_page'] = $args['post_per_page'];
+		}
+
 		if ( ! empty( $args['posts_per_page'] ) ) {
 			$posts_per_page = (int) $args['posts_per_page'];
+
+			if ( -1 === $posts_per_page ) {
+				$posts_per_page = PHP_INT_MAX; // -1 does not work
+			}
 		} else {
 			$posts_per_page = (int) get_option( 'posts_per_page' );
 		}
