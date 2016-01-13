@@ -2584,6 +2584,22 @@ class EPTestSingleSite extends EP_Test_Base {
 		remove_role( 'ep_test_role' );
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserQueryIntegrationSkippedForBasicQueries() {
+		EP_User_Query_Integration::factory();
+		$user_ids   = $this->factory()->user->create_many( 5 );
+		$user_query = new WP_User_Query( array(
+			'include' => $user_ids,
+			'fields'  => 'ID',
+			'orderby' => 'ID',
+			'order'   => 'ASC',
+		) );
+		$this->assertArrayNotHasKey( 'elasticpress', $user_query->query_vars );
+		$this->assertEquals( 5, count( $user_query->get_results() ) );
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
