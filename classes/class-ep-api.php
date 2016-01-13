@@ -848,7 +848,7 @@ class EP_API {
 			$posts_per_page = (int) $args['posts_per_page'];
 
 			if ( -1 === $posts_per_page ) {
-				$posts_per_page = PHP_INT_MAX; // -1 does not work
+				$posts_per_page = 10000; // -1 does not work, use max result window for ES
 			}
 		} else {
 			$posts_per_page = (int) get_option( 'posts_per_page' );
