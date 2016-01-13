@@ -2560,12 +2560,28 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testUserQueryLooksUpUsersByRole() {
 		EP_User_Query_Integration::factory();
 		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
-		$user_ids   = $this->factory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
+		$user_ids = $this->factory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
 		ep_refresh_index();
 		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
 		$this->assertTrue( ! empty( $user_query->query_vars['elasticpress'] ) );
 		$this->assertEquals( $user_ids, $user_query->get_results() );
-		remove_role('ep_test_role');
+		remove_role( 'ep_test_role' );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserQuerySkipsWhenFilterSaysSo() {
+		EP_User_Query_Integration::factory();
+		add_filter( 'ep_skip_user_query_integration', '__return_true' );
+		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
+		$user_ids = $this->factory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
+		$this->assertFalse( ! empty( $user_query->query_vars['elasticpress'] ) );
+		$this->assertEquals( $user_ids, $user_query->get_results() );
+		remove_filter( 'ep_skip_user_query_integration', '__return_true' );
+		remove_role( 'ep_test_role' );
 	}
 
 	private function getIndexData() {
