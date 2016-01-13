@@ -1414,34 +1414,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test unallowed orderby parameter
-	 *
-	 * Will revert to default _score orderby
-	 *
-	 * @since 1.1
-	 */
-	public function testSearchUnallowedOrderbyQuery() {
-		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
-
-		ep_refresh_index();
-
-		$args = array(
-			's'       => 'ordertest',
-			'orderby' => 'SUPERRELEVANCE',
-			'order'   => 'ASC',
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
-		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest', $query->posts[1]->post_title );
-	}
-
-	/**
 	 * Test a normal post trash
 	 *
 	 * @since 1.2
