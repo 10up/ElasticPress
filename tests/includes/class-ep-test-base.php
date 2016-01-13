@@ -151,4 +151,15 @@ class EP_Test_Base extends WP_UnitTestCase {
 		return null;
 	}
 
+	/**
+	 * @return WP_UnitTest_Factory
+	 */
+	protected function getFactory() {
+		if ( method_exists( $this, 'factory' ) ) {
+			return $this->factory();
+		} else {
+			return $this->factory;
+		}
+	}
+
 }

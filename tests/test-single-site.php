@@ -2560,7 +2560,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testUserQueryLooksUpUsersByRole() {
 		EP_User_Query_Integration::factory();
 		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
-		$user_ids = $this->factory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
+		$user_ids = $this->getFactory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
 		ep_refresh_index();
 		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
 		$this->assertTrue( ! empty( $user_query->query_vars['elasticpress'] ) );
@@ -2575,7 +2575,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		EP_User_Query_Integration::factory();
 		add_filter( 'ep_skip_user_query_integration', '__return_true' );
 		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
-		$user_ids = $this->factory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
+		$user_ids = $this->getFactory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
 		ep_refresh_index();
 		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
 		$this->assertFalse( ! empty( $user_query->query_vars['elasticpress'] ) );
@@ -2589,7 +2589,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testUserQueryIntegrationSkippedForBasicQueries() {
 		EP_User_Query_Integration::factory();
-		$user_ids   = $this->factory()->user->create_many( 5 );
+		$user_ids   = $this->getFactory()->user->create_many( 5 );
 		$user_query = new WP_User_Query( array(
 			'include' => $user_ids,
 			'fields'  => 'ID',
