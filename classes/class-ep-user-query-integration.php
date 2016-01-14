@@ -541,13 +541,17 @@ class EP_User_Query_Integration {
 	}
 
 	/**
+	 * @param EP_User_Index $index
+	 *
 	 * @return EP_User_Query_Integration
 	 */
-	public static function factory() {
+	public static function factory( $index = null ) {
 		static $instance;
 		if ( ! $instance ) {
-			$instance = new self;
+			$instance = new self( $index );
 			$instance->setup();
+		} elseif ( $index && $index !== $instance->user_index ) {
+			$instance->user_index = $index;
 		}
 
 		return $instance;
