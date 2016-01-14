@@ -580,7 +580,7 @@ class EP_User_Query_Integration {
 			$safe_args[] = 'blog_id';
 		}
 		if ( in_array( $args['orderby'], array( 'login', 'nicename', 'user_login', 'user_nicename', 'ID', 'id' ) ) ) {
-			$safe_args[] = 'order';
+			$safe_args[] = 'orderby';
 		}
 		if ( ! array_diff( array_keys( array_filter( $args ) ), $safe_args ) ) {
 			return true;
