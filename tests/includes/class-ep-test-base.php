@@ -142,13 +142,13 @@ class EP_Test_Base extends WP_UnitTestCase {
 
 	public function assertEqualSetsWithIndex( $expected, $actual ) {
 		if ( method_exists( 'WP_UnitTestCase', 'assertEqualSetsWithIndex' ) ) {
-			return parent::assertEqualSetsWithIndex( $expected, $actual );
+			parent::assertEqualSetsWithIndex( $expected, $actual );
+
+			return;
 		}
 		ksort( $expected );
 		ksort( $actual );
 		$this->assertEquals( $expected, $actual );
-
-		return null;
 	}
 
 	/**
