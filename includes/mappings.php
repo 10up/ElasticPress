@@ -67,6 +67,52 @@ return array(
 					),
 				),
 				array(
+					'template_meta_types' => array(
+						'path_match' => 'meta.*',
+						'mapping' => array(
+							'type' => 'object',
+							'path' => 'full',
+							'properties' => array(
+								'value' => array(
+									'type' => 'string',
+								),
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+									'include_in_all' => false,
+								),
+								'long' => array(
+									'type' => 'long',
+									'index' => 'not_analyzed',
+								),
+								'double' => array(
+									'type' => 'double',
+									'index' => 'not_analyzed',
+								),
+								'boolean' => array(
+									'type' => 'boolean',
+									'index' => 'not_analyzed',
+								),
+								'date' => array(
+									'type' => 'date',
+									'format' => 'yyyy-MM-dd',
+									'index' => 'not_analyzed',
+								),
+								'datetime' => array(
+									'type' => 'date',
+									'format' => 'yyyy-MM-dd HH:mm:ss',
+									'index' => 'not_analyzed',
+								),
+								'time' => array(
+									'type' => 'date',
+									'format' => 'HH:mm:ss',
+									'index' => 'not_analyzed',
+								),
+							),
+						),
+					),
+				),
+				array(
 					'template_terms' => array(
 						'path_match' => 'terms.*',
 						'mapping' => array(
@@ -111,8 +157,7 @@ return array(
 				),
 				'post_author' => array(
 					'type' => 'object',
-					'path' => 'full',
-					'fields' => array(
+					'properties' => array(
 						'display_name' => array(
 							'type' => 'string',
 							'analyzer' => 'standard',
@@ -227,10 +272,12 @@ return array(
 				'post_meta' => array(
 					'type' => 'object',
 				),
+				'meta' => array(
+					'type' => 'object',
+				),
 				'date_terms' => array(
 					'type' => 'object',
-					'path' => 'full',
-					'fields' => array(
+					'properties' => array(
 						'year' => array( //4 digit year (e.g. 2011)
 							'type' => 'integer',
 						),
