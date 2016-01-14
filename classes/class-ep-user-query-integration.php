@@ -43,7 +43,7 @@ class EP_User_Query_Integration {
 		if ( ! $this->is_user_indexing_active() ) {
 			return;
 		}
-		add_action( 'pre_get_users', array( $this, 'action_pre_get_users' ), 99999 );
+		add_action( $this->get_pre_get_users_action(), array( $this, 'action_pre_get_users' ), 99999 );
 		add_action( 'ep_wp_cli_pre_index', array( $this, 'disable' ) );
 		add_action( 'ep_wp_cli_pre_user_index', array( $this, 'disable' ) );
 	}
@@ -52,7 +52,7 @@ class EP_User_Query_Integration {
 	 * Disable the query integration
 	 */
 	public function disable() {
-		remove_action( 'pre_get_users', array( $this, 'action_pre_get_users' ), 99999 );
+		remove_action( $this->get_pre_get_users_action(), array( $this, 'action_pre_get_users' ), 99999 );
 		remove_action( 'ep_wp_cli_pre_index', array( $this, 'disable' ) );
 		remove_action( 'ep_wp_cli_pre_user_index', array( $this, 'disable' ) );
 	}
@@ -767,6 +767,15 @@ class EP_User_Query_Integration {
 
 	public function intercept_aggregations( $aggregations ) {
 		$this->aggregations = $aggregations;
+	}
+
+	/**
+	 * Get the correct action to hook into user queries based on the WP version
+	 *
+	 * @return string
+	 */
+	private function get_pre_get_users_action(){
+		return version_compare( $GLOBALS['wp_version'], '4.0', '<' ) ? 'pre_user_query' : 'pre_get_users';
 	}
 
 }
