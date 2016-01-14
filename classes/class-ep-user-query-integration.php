@@ -43,7 +43,8 @@ class EP_User_Query_Integration {
 		if ( ! $this->is_user_indexing_active() ) {
 			return;
 		}
-		add_action( $this->get_pre_get_users_action(), array( $this, 'action_pre_get_users' ), 99999 );
+		$action = $this->get_pre_get_users_action();
+		add_action( $action, array( $this, "action_$action" ), 99999 );
 		add_action( 'ep_wp_cli_pre_index', array( $this, 'disable' ) );
 		add_action( 'ep_wp_cli_pre_user_index', array( $this, 'disable' ) );
 	}
@@ -52,9 +53,24 @@ class EP_User_Query_Integration {
 	 * Disable the query integration
 	 */
 	public function disable() {
-		remove_action( $this->get_pre_get_users_action(), array( $this, 'action_pre_get_users' ), 99999 );
+		$action = $this->get_pre_get_users_action();
+		remove_action( $action, array( $this, "action_$action" ), 99999 );
 		remove_action( 'ep_wp_cli_pre_index', array( $this, 'disable' ) );
 		remove_action( 'ep_wp_cli_pre_user_index', array( $this, 'disable' ) );
+	}
+
+	/**
+	 * Wrapper for action_pre_get_users when the pre_get_users action isn't available
+	 *
+	 * This only runs when the pre_get_users action is unavailable, so we can't preempt the query, instead we need to
+	 * clean up what WP_User_Query has already done in prepare_query().
+	 *
+	 * The pre_get_users action was introduced in WordPress 4.0
+	 *
+	 * @param WP_User_Query $wp_user_query
+	 */
+	public function action_pre_user_query( $wp_user_query ) {
+		$this->action_pre_get_users( $wp_user_query );
 	}
 
 	/**
@@ -774,7 +790,7 @@ class EP_User_Query_Integration {
 	 *
 	 * @return string
 	 */
-	private function get_pre_get_users_action(){
+	private function get_pre_get_users_action() {
 		return version_compare( $GLOBALS['wp_version'], '4.0', '<' ) ? 'pre_user_query' : 'pre_get_users';
 	}
 
