@@ -2565,6 +2565,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
 		$this->assertTrue( ! empty( $user_query->query_vars['elasticpress'] ) );
 		$this->assertEquals( $user_ids, $user_query->get_results() );
+		foreach ( $user_ids as $user_id ) {
+			wp_delete_user( $user_id );
+		}
+		ep_refresh_index();
 		remove_role( 'ep_test_role' );
 	}
 
@@ -2580,6 +2584,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
 		$this->assertArrayNotHasKey( 'elasticpress', $user_query->query_vars );
 		$this->assertEquals( $user_ids, $user_query->get_results() );
+		foreach ( $user_ids as $user_id ) {
+			wp_delete_user( $user_id );
+		}
+		ep_refresh_index();
 		remove_filter( 'ep_skip_user_query_integration', '__return_true' );
 		remove_role( 'ep_test_role' );
 	}
@@ -2590,6 +2598,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testUserQueryIntegrationSkippedForBasicQueries() {
 		EP_User_Query_Integration::factory();
 		$user_ids   = $this->getFactory()->user->create_many( 5 );
+		ep_refresh_index();
 		$user_query = new WP_User_Query( array(
 			'include' => $user_ids,
 			'fields'  => 'ID',
@@ -2598,12 +2607,16 @@ class EPTestSingleSite extends EP_Test_Base {
 		) );
 		$this->assertArrayNotHasKey( 'elasticpress', $user_query->query_vars );
 		$this->assertEquals( 5, count( $user_query->get_results() ) );
+		foreach ( $user_ids as $user_id ) {
+			wp_delete_user( $user_id );
+		}
+		ep_refresh_index();
 	}
 
 	/**
 	 * @group users
 	 */
-	public function testQueryGetsKilledIfNoResultsFromES() {
+	public function testUserQueryGetsKilledIfNoResultsFromES() {
 		$integration = EP_User_Query_Integration::factory();
 		$user_query  = new WP_User_Query( array(
 			'role' => 'fictional_role',
