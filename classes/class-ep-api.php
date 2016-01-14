@@ -880,15 +880,8 @@ class EP_API {
 
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
-			$sort = $this->parse_orderby( $args['orderby'], $order );
-
-			if ( false !== $sort ) {
-				$formatted_args['sort'] = $sort;
-			}
-		}
-
-		// Either nothing was passed or the parse_orderby failed, use default sort
-		if ( empty( $args['orderby'] ) || false === $sort ) {
+			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order );
+		} else {
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
 				array(
@@ -1509,59 +1502,47 @@ class EP_API {
 	}
 
 	/**
-	 * If the passed orderby value is allowed, convert the alias to a
-	 * properly-prefixed sort value.
+	 * Convert the alias to a properly-prefixed sort value.
 	 *
 	 * @since 1.1
 	 * @access protected
 	 *
-	 * @param string $orderby Alias for the field to order by.
+	 * @param string $orderby Alias or path for the field to order by.
 	 * @param string $order
-	 * @return array|bool Array formatted value to used in the sort DSL. False otherwise.
+	 * @return array
 	 */
 	protected function parse_orderby( $orderby, $order ) {
-		// Used to filter values.
-		$allowed_keys = array(
-			'relevance',
-			'name',
-			'title',
-			'date',
-		);
+		$orderbys = explode( ' ', $orderby );
+		$sort = array();
 
-		if ( ! in_array( $orderby, $allowed_keys ) ) {
-			return false;
-		}
-
-		switch ( $orderby ) {
-			case 'relevance':
-			default:
-				$sort = array(
-					array(
+		foreach ( $orderbys as $orderby_clause ) {
+			if ( ! empty( $orderby_clause ) ) {
+				if ( 'relevance' === $orderby_clause ) {
+					$sort[] = array(
 						'_score' => array(
 							'order' => $order,
 						),
-					),
-				);
-				break;
-			case 'date':
-				$sort = array(
-					array(
+					);
+		 		} elseif ( 'date' === $orderby_clause ) {
+					$sort[] = array(
 						'post_date' => array(
 							'order' => $order,
 						),
-					),
-				);
-				break;
-			case 'name':
-			case 'title':
-				$sort = array(
-					array(
-						'post_' . $orderby . '.raw' => array(
+					);
+				} elseif ( 'name' === $orderby_clause || 'title' === $orderby_clause  ) {
+					$sort[] = array(
+						'post_' . $orderby_clause . '.raw' => array(
 							'order' => $order,
 						),
-					),
-				);
-				break;
+					);
+				} else {
+					$sort[] = array(
+						$orderby_clause => array(
+							'order' => $order,
+						),
+					);
+				}
+			}
 		}
 
 		return $sort;
