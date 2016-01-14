@@ -541,27 +541,14 @@ class EP_User_Query_Integration {
 	}
 
 	/**
-	 * @return EP_User_Query_Integration|null
+	 * @return EP_User_Query_Integration
 	 */
 	public static function factory() {
 		static $instance;
-		if ( $instance ) {
-			return $instance;
+		if ( ! $instance ) {
+			$instance = new self;
+			$instance->setup();
 		}
-		$user = ep_get_object_type( 'user' );
-		if ( ! $user ) {
-			return null;
-		}
-		if ( false === $instance ) {
-			return null;
-		}
-		if ( ! $user->active() ) {
-			$instance = false;
-
-			return null;
-		}
-		$instance = new self;
-		$instance->setup();
 
 		return $instance;
 	}
