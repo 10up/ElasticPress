@@ -2604,6 +2604,7 @@ class EPTestSingleSite extends EP_Test_Base {
 			'fields'  => 'ID',
 			'orderby' => 'ID',
 			'order'   => 'ASC',
+			'blog_id' => 0,
 		) );
 		$this->assertArrayNotHasKey( 'elasticpress', $user_query->query_vars );
 		$this->assertEquals( 5, count( $user_query->get_results() ) );
