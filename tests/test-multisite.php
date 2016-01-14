@@ -1749,7 +1749,65 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$this->assertNotEquals( $count_indexes, $post_count_indexes );
 	}
-	
+
+	/**
+	 * Tests deletion of index when a blog is deleted
+	 * @group 392
+	 * @link https://github.com/10up/ElasticPress/issues/392
+	 */
+	public function testDeactivateSite( ) {
+		$index_count = ep_count_indexes();
+
+		$count_indexes = $index_count['total_indexes'];
+		$last_blog_id = $index_count['last_blog_id_with_index'];
+
+		do_action( 'deactivate_blog', $last_blog_id );
+		update_blog_status( $last_blog_id, 'deleted', '1' );
+
+		$post_delete_count = ep_count_indexes();
+		$post_count_indexes = $post_delete_count['total_indexes'];
+
+		$this->assertNotEquals( $count_indexes, $post_count_indexes );
+	}
+
+	/**
+	 * Tests deletion of index when a blog is marked as spam
+	 * @group 392
+	 * @link https://github.com/10up/ElasticPress/issues/392
+	 */
+	public function testSpamSite( ) {
+		$index_count = ep_count_indexes();
+
+		$count_indexes = $index_count['total_indexes'];
+		$last_blog_id = $index_count['last_blog_id_with_index'];
+
+		update_blog_status( $last_blog_id, 'spam', '1' );
+
+		$post_delete_count = ep_count_indexes();
+		$post_count_indexes = $post_delete_count['total_indexes'];
+
+		$this->assertNotEquals( $count_indexes, $post_count_indexes );
+	}
+
+	/**
+	 * Tests deletion of index when a blog is marked as archived
+	 * @group 392
+	 * @link https://github.com/10up/ElasticPress/issues/392
+	 */
+	public function testArchivedSite( ) {
+		$index_count = ep_count_indexes();
+
+		$count_indexes = $index_count['total_indexes'];
+		$last_blog_id = $index_count['last_blog_id_with_index'];
+
+		update_blog_status( $last_blog_id, 'archived', '1' );
+
+		$post_delete_count = ep_count_indexes();
+		$post_count_indexes = $post_delete_count['total_indexes'];
+
+		$this->assertNotEquals( $count_indexes, $post_count_indexes );
+	}
+
 	/**
 	 * Check if elasticpress_enabled() properly handles an object without the is_search() method.
 	 * @group 285
