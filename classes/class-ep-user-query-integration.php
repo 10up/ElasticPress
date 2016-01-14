@@ -21,6 +21,7 @@ class EP_User_Query_Integration {
 	}
 
 	public function setup() {
+		$this->disable();
 		/**
 		 * By default EP will not integrate on admin or ajax requests. Since admin-ajax.php is
 		 * technically an admin request, there is some weird logic here. If we are doing ajax
