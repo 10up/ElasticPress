@@ -2558,7 +2558,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @group users
 	 */
 	public function testUserQueryLooksUpUsersByRole() {
-		EP_User_Query_Integration::factory(ep_get_object_type('user'));
+		EP_User_Query_Integration::factory(ep_get_object_type('user'))->setup();
 		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
 		$user_ids = $this->getFactory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
 		ep_refresh_index();
@@ -2576,7 +2576,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @group users
 	 */
 	public function testUserQuerySkipsWhenFilterSaysSo() {
-		EP_User_Query_Integration::factory(ep_get_object_type('user'));
+		EP_User_Query_Integration::factory(ep_get_object_type('user'))->setup();
 		add_filter( 'ep_skip_user_query_integration', '__return_true' );
 		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
 		$user_ids = $this->getFactory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
@@ -2596,7 +2596,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @group users
 	 */
 	public function testUserQueryIntegrationSkippedForBasicQueries() {
-		EP_User_Query_Integration::factory(ep_get_object_type('user'));
+		EP_User_Query_Integration::factory(ep_get_object_type('user'))->setup();
 		$user_ids   = $this->getFactory()->user->create_many( 5 );
 		ep_refresh_index();
 		$user_query = new WP_User_Query( array(
@@ -2618,6 +2618,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testUserQueryGetsKilledIfNoResultsFromES() {
 		$integration = EP_User_Query_Integration::factory(ep_get_object_type('user'));
+		$integration->setup();
 		$user_query  = new WP_User_Query( array(
 			'role' => 'fictional_role',
 		) );
