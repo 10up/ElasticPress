@@ -2600,6 +2600,18 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 5, count( $user_query->get_results() ) );
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testQueryGetsKilledIfNoResultsFromES() {
+		$integration = EP_User_Query_Integration::factory();
+		$user_query  = new WP_User_Query( array(
+			'role' => 'fictional_role',
+		) );
+		$this->assertEmpty( $user_query->get_results() );
+		$this->assertFalse( has_action( 'pre_user_query', array( $integration, 'kill_query' ) ) );
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
