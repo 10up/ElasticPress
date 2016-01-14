@@ -575,7 +575,7 @@ class EP_User_Query_Integration {
 	 */
 	private function is_query_basic_enough_to_skip( $wp_user_query ) {
 		$args      = $wp_user_query->query_vars;
-		$safe_args = array( 'include', 'order', 'offset', 'number', 'count_total', 'fields', );
+		$safe_args = array( 'include', 'order', 'paged', 'offset', 'number', 'count_total', 'fields', );
 		if ( ! is_multisite() ) {
 			$safe_args[] = 'blog_id';
 		}
