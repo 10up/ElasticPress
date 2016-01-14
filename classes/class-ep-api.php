@@ -880,7 +880,7 @@ class EP_API {
 
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
-			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order );
+			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order, $args );
 		} else {
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
