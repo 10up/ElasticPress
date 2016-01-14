@@ -151,7 +151,7 @@ class EP_User_Query_Integration {
 
 		if ( $results['found_objects'] < 1 ) {
 			$wp_user_query->query_vars = $default_args;
-			add_action( 'pre_user_query', array( $this, 'kill_query' ), 99999 );
+			add_action( 'pre_user_query', array( $this, 'kill_query' ), 999999 );
 
 			return;
 		}
@@ -533,7 +533,7 @@ class EP_User_Query_Integration {
 	 */
 	public function kill_query( $wp_user_query ) {
 		global $wpdb;
-		remove_action( 'pre_user_query', array( $this, 'kill_query' ), 99999 );
+		remove_action( 'pre_user_query', array( $this, 'kill_query' ), 999999 );
 		$wp_user_query->query_fields  = "{$wpdb->users}.ID";
 		$wp_user_query->query_from    = "FROM {$wpdb->users}";
 		$wp_user_query->query_where   = 'WHERE 1=0';
