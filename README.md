@@ -1,9 +1,11 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress) [![Dockunit Status](http://dockunit.io/svg/10up/ElasticPress?master)](http://dockunit.io/projects/10up/ElasticPress#master)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
 =============
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
-**Please note:** the master branch is the stable branch
+**Please note:** the master branch is the stable
+
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, and 1.7 require re-indexing.
 
 ## Background
 
@@ -37,7 +39,7 @@ There are other Elasticsearch integration plugins available for WordPress. Elast
 
 ## Installation
 
-1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
+1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. ElasticPress requires WP-CLI. Install it by following [these instructions](http://wp-cli.org).
 3. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
 
@@ -227,7 +229,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
 * ```meta_query``` (*array*)
 
-    Filter posts by post meta conditions. Takes an array of form:
+    Filter posts by post meta conditions. Meta arrays and objects are serialized due to limitations of Elasticsearch. Takes an array of form:
 
     ```php
     new WP_Query( array(
@@ -242,7 +244,8 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ) );
     ```
 
-    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
+    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), 
+    ```type``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
 
       * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
       * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
@@ -275,9 +278,28 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
     Possible values for ```relation``` are ```OR``` and ```AND```. If ```relation``` is set to ```AND```, all inner queries must be true for a post to be returned. If ```relation``` is set to ```OR```, only one of the inner meta queries must be true for the post to be returned.
 
+    ```type``` supports the following values:  'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 
+    'DECIMAL', 'SIGNED', 'TIME', and 'UNSIGNED'. By default WordPress casts meta values to these types 
+    in MySQL so some of these don't make sense in the context of Elasticsearch. ElasticPress does no "runtime" 
+    casting but instead compares the value to a different type compiled during indexing
+
+    * `NUMERIC` - Compares query `value` to integer version of stored meta value.
+    * `SIGNED` - Compares query `value` to integer version of stored meta value.
+    * `UNSIGNED` - Compares query `value` to integer version of stored meta value.
+    * `BINARY` - Compares query `value` to raw, unanalyzed version of stored meta value. For actual attachment searches, check out [this](https://github.com/elastic/elasticsearch-mapper-attachments).
+    * `CHAR` - Compares query `value` to raw, unanalyzed version of stored meta value.
+    * `DECIMAL` - Compares query `value` to float version of stored meta value.
+    * `DATE` - Compares query `value` to date version of stored meta value. Query `value` must be formatted like `2015-11-14`
+    * `DATETIME` - Compares query `value` to date/time version of stored meta value. Query `value` must be formatted like `2012-01-02 05:00:00` or `yyyy:mm:dd hh:mm:ss`.
+    * `TIME` - Compares query `value` to time version of stored meta value. Query `value` must be formatted like `17:00:00` or `hh:mm:ss`.
+
+    If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
+    is very rarely needed to be used.
+
+
 * ```post_type``` (*string*/*array*)
 
-    Filter posts by post type. ```any``` wil search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
+    Filter posts by post type. ```any``` will search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
 
 * ```offset``` (*int*)
 
@@ -301,7 +323,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Currently only supports: ```title```, ```name```, ```date```, ```post__in``` and ```relevance``` (default).
+    Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
 
 * ```order``` (*string*)
 
@@ -442,7 +464,7 @@ The following are special parameters that are only supported by ElasticPress.
 
     Allows you to perform queries without passing a search parameter. This is pretty powerful as you can leverage Elasticsearch to retrieve queries that are too complex for MySQL (such as a 5-dimensional taxonomy query). For example:
 
-    Get 20 of the lastest posts
+    Get 20 of the latest posts
     ```php
     new WP_Query( array(
         'ep_integrate'   => true,
@@ -471,9 +493,17 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type]`
 
-  Index all posts in the current blog. `--network-wide` will force indexing on all the blogs in the network. `--network-wide` takes an optional argument to limit the number of blogs to be indexed across where 0 is no limit. For example, `--network-wide=5` would limit indexing to only 5 blogs on the network. `--setup` will clear the index first and re-send the put mapping. `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle). `--no-bulk` let's you disable bulk indexing. `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again). `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
+    Index all posts in the current blog.
+
+    * `--network-wide` will force indexing on all the blogs in the network. `--network-wide` takes an optional argument to limit the number of blogs to be indexed across where 0 is no limit. For example, `--network-wide=5` would limit indexing to only 5 blogs on the network.
+    * `--setup` will clear the index first and re-send the put mapping.
+    * `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
+    * `--no-bulk` let's you disable bulk indexing.
+    * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
+    * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
+    * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
 
 * `wp elasticpress activate`
 
@@ -540,14 +570,6 @@ Our test suite depends on a running Elasticsearch server. You can supply a host 
 
 ```bash
 EP_HOST="http://192.168.50.4:9200" phpunit
-```
-
-#### Dockunit
-
-ElasticPress contains a valid [Dockunit](https://www.npmjs.com/package/dockunit) file for running unit tests across a variety of environments locally (PHP 5.2 and 5.5). It assumes the address of your Elasticsearch server is `http://192.168.50.4:9200`. You can use Dockunit by running:
-
-```bash
-dockunit
 ```
 
 ### Issues

@@ -1,11 +1,11 @@
 === ElasticPress ===
-Contributors: aaronholbrook, tlovett1, 10up
+Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
 Tested up to: 4.4
-Stable tag: 1.6
+Stable tag: 1.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -59,6 +59,43 @@ configuring single site and multi-site cross-site search are slightly different.
 4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
+
+= 1.7 (Mapping change, requires reindex) =
+
+ElasticPress 1.7 restructures meta mapping for posts for much more flexible meta queries. The `post_meta` Elasticsearch post property has been left for backwards compatibility. As of this version, post meta will be stored in the `meta` Elasticsearch property. `meta` is structured as follows:
+
+* `meta.value` (string)
+* `meta.raw` (unanalyzed string)
+* `meta.long` (unanalyzed number)
+* `meta.double` (unanalyzed number)
+* `meta.boolean` (unanalyzed number)
+* `meta.date` (unanalyzed yyyy-MM-dd date)
+* `meta.datetime` (unanalyzed yyyy-MM-dd HH:mm:ss datetime)
+* `time` (unanalyzed HH:mm:ss time)
+
+When querying posts, you will get back `meta.value`. However, if you plan to mess with the new post mapping, it's important to understand the intricacies.
+
+The real implications of this is in `meta_query`. You can now effectively search by meta types. See the new section in README.md for details on this.
+
+1.7 also contains the following bugs/enhancements:
+
+* (Bug) Prevent missed post indexing when duplicate post dates. Props [lukaspawlik](https://github.com/lukaspawlik)
+* (Bug) Complex meta types are automatically serialized upon storage.
+* (Enhancement) Index posts according to post type. Props [sc0ttkclark](https://github.com/sc0ttkclark)
+
+= 1.6.2 (Mapping change, requires reindex) =
+
+ElasticPress 1.6.2 fixes ALL backwards compatibility issues with Elasticsearch 2.0:
+
+* Removes `fuzzy_like_this` query and uses `multi_match` instead.
+* Uses string instead of array for post type term when there is only one term.
+
+= 1.6.1 (Mapping change, requires reindex) =
+
+ElasticPress 1.6.1 fixes mapping backwards compatibility issues with Elasticsearch 2.0:
+
+* Removes the fields field type from object typed fields as they should be called properties.
+* Remove path from object field types.
 
 = 1.6 =
 
@@ -142,12 +179,15 @@ ElasticPress 1.6 contains a number of important enhancements and bug fixes. Most
 * Improved documentation. Each WP-CLI command has been documented
 * Add `elasticsearch` property to global post object to assist in debugging
 * `ep_integrate` param added to allow for WP_Query integration without search. (Formally called ep_match_all)
+* Filter added for post statuses (defaults to `publish`). Change the sync mechanism to make sure it takes all post statuses into account. Props [jonathanbardo](https://github.com/jonathanbardo)
 * Bug fix: check if failed post exists in indexing. Props [elliot-stocks](https://github.com/elliott-stocks)
 * Bug fix: properly check if setup is defined in indexing. Props [elliot-stocks](https://github.com/elliott-stocks)
 * Bug fix: add WP_Query integration on init rather than plugins loaded. Props [adamsilverstein](https://github.com/adamsilverstein)
 * Bug fix: Properly set global post object post type in loop. Props [tott](https://github.com/tott)
 * Bug fix: Do not check if index exists on every page load. Refactor so we can revert to MySQL after failed ES ping.
-* Bug fix: Make sure we check `is_multisite()` if `--network-wide` is provided [ivankruchkoff](https://github.com/ivankruchkoff)
+* Bug fix: Make sure we check `is_multisite()` if `--network-wide` is provided. Props [ivankruchkoff](https://github.com/ivankruchkoff)
+* Bug fix: Abide by the `exclude_from_search` flag from post type when running search queries. Props [ryanboswell](https://github.com/ryanboswell)
+* Bug fix: Correct mapping of `post_status` to `not_analyzed` to allow for filtering of the search query (will require a re-index). Props [jonathanbardo](https://github.com/jonathanbardo)
 
 = 1.2 =
 * Allow number of shards and replicas to be configurable.

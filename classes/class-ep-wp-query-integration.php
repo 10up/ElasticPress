@@ -127,7 +127,7 @@ class EP_WP_Query_Integration {
 			restore_current_blog();
 
 			switch_to_blog( $post->site_id );
-			
+
 			remove_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 			setup_postdata( $post );
 			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
@@ -218,7 +218,7 @@ class EP_WP_Query_Integration {
 
 		$query_vars = $query->query_vars;
 		if ( 'any' === $query_vars['post_type'] ) {
-			
+
 			if ( $query->is_search() ) {
 
 				/*
