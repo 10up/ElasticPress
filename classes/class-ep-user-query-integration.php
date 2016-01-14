@@ -70,7 +70,28 @@ class EP_User_Query_Integration {
 	 * @param WP_User_Query $wp_user_query
 	 */
 	public function action_pre_user_query( $wp_user_query ) {
+		if ( ! empty( $wp_user_query->query_vars['role'] ) ) {
+			$wp_user_query->query_vars['meta_query'] = array_filter(
+				$wp_user_query->query_vars['meta_query'],
+				array( $this, 'remove_role_meta_query' )
+			);
+		}
 		$this->action_pre_get_users( $wp_user_query );
+	}
+
+	/**
+	 * Filter the role meta query out so that we're not looking users up with the wrong data
+	 *
+	 * @param mixed $item
+	 *
+	 * @return bool
+	 */
+	public function remove_role_meta_query( $item ) {
+		if ( is_array( $item ) && ! empty( $item['key'] ) ) {
+			return ! preg_match( '/^.+_capabilities$/', $item['key'] );
+		}
+
+		return true;
 	}
 
 	/**
