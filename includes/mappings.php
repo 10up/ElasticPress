@@ -80,6 +80,13 @@ return array(
 							'properties' => array(
 								'value' => array(
 									'type' => 'string',
+									'fields' => array(
+										'sortable' => array(
+											'type' => 'string',
+											'analyzer' => 'ewp_lowercase',
+											'include_in_all' => false,
+										),
+									),
 								),
 								'raw' => array(
 									'type' => 'string',
