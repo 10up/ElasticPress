@@ -583,10 +583,11 @@ class EP_API {
 			foreach ( $object_terms as $term ) {
 				if( ! isset( $terms_dic[ $term->term_id ] ) ) {
 					$terms_dic[ $term->term_id ] = array(
-						'term_id' => $term->term_id,
-						'slug'    => $term->slug,
-						'name'    => $term->name,
-						'parent'  => $term->parent
+						'term_id'  => $term->term_id,
+						'slug'     => $term->slug,
+						'name'     => $term->name,
+						'name_raw' => $term->name,
+						'parent'   => $term->parent
 					);
 					if( $allow_hierarchy ){
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name );
@@ -904,7 +905,7 @@ class EP_API {
 		/**
 		 * Tax Query support
 		 *
-		 * Support for the tax_query argument of WP_Query. Currently only provides support for the 'AND' relation 
+		 * Support for the tax_query argument of WP_Query. Currently only provides support for the 'AND' relation
 		 * between taxonomies. Field only supports slug, term_id, and name defaulting to term_id.
 		 *
 		 * @use field = slug
@@ -928,7 +929,7 @@ class EP_API {
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
-					
+
 					// Use the AND operator if passed
 					if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
 						$terms_obj['execution'] = 'and';
