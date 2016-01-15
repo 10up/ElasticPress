@@ -129,6 +129,10 @@ return array(
 									'fields' => array(
 										'raw' => array(
 											'type' => 'string',
+											'index' => 'not_analyzed',
+										),
+										'sortable' => array(
+											'type' => 'string',
 											'analyzer' => 'ewp_lowercase',
 										),
 									),
