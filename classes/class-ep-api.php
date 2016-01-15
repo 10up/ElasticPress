@@ -1083,6 +1083,8 @@ class EP_API {
 						$meta_key_path = 'meta.' . $single_meta_query['key'];
 					} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+					} elseif ( 'like' === $compare ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 						// Map specific meta field types to different ElasticSearch core types
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
