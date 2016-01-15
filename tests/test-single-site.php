@@ -1246,7 +1246,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$args = array(
 			's'       => 'ordertest',
-			'orderby' => 'terms.category.name.raw',
+			'orderby' => 'terms.category.name.sortable',
 			'order'   => 'ASC',
 		);
 
