@@ -553,6 +553,69 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a taxonomy query by term_id
+	 *
+	 * @since 1.6
+	 */
+	public function testTaxQueryByTermID() {
+		$tag = wp_insert_term( 'one', 'post_tag' );
+		
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag['term_id'] ),
+					'field'    => 'term_id',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a taxonomy query by name
+	 *
+	 * @since 1.6
+	 */
+	public function testTaxQueryByName() {
+		$cat_one = wp_insert_category( array( 'cat_name' => 'Cat one') );
+		$cat_two = wp_insert_category( array( 'cat_name' => 'Cat two') );
+		$cat_three = wp_insert_category( array( 'cat_name' => 'Cat three') );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $cat_one, $cat_two ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_category' => array( $cat_one, $cat_three) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'Cat one' ),
+					'field'    => 'name',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a category_name query
 	 *
 	 * @since 1.5
