@@ -122,6 +122,10 @@ return array(
 								'name' => array(
 									'type' => 'string',
 								),
+								'name_raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+								),
 								'term_id' => array(
 									'type' => 'long',
 								),

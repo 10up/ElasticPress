@@ -524,11 +524,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a taxonomy query
+	 * Test a taxonomy query with slug field
 	 *
-	 * @since 1.0
+	 * @since 1.8
 	 */
-	public function testTaxQuery() {
+	public function testTaxQuerySlug() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ) ) );
@@ -542,6 +542,92 @@ class EPTestSingleSite extends EP_Test_Base {
 					'taxonomy' => 'post_tag',
 					'terms'    => array( 'one' ),
 					'field'    => 'slug',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a taxonomy query with term id field
+	 *
+	 * @since 1.8
+	 */
+	public function testTaxQueryTermId() {
+		$post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ) ) );
+
+		$tags = wp_get_post_tags( $post );
+		$tag_id = 0;
+
+		foreach ( $tags as $tag ) {
+			if ( 'one' === $tag->slug ) {
+				$tag_id = $tag->term_id;
+			}
+		}
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id ),
+					'field'    => 'term_id',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id ),
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a taxonomy query with term name field
+	 *
+	 * @since 1.8
+	 */
+	public function testTaxQueryTermName() {
+		$cat1 =  wp_create_category( 'category one' );
+		$cat2 =  wp_create_category( 'category two' );
+		$cat3 =  wp_create_category( 'category three' );
+
+		$post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $cat1, $cat2 ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_category' => array( $cat1, $cat3 ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'category one' ),
+					'field'    => 'name',
 				)
 			)
 		);
