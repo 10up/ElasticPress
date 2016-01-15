@@ -20,7 +20,7 @@ return array(
 				),
 				'ewp_lowercase' => array(
 					'type' => 'custom',
-					'tokenizer' => 'standard',
+					'tokenizer' => 'keyword',
 					'filter' => array( 'lowercase' ),
 				),
 			),
