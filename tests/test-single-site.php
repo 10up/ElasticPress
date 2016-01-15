@@ -2650,6 +2650,28 @@ class EPTestSingleSite extends EP_Test_Base {
 		remove_role( 'ep_test_role' );
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserQueryIntegrationHasPublishedPosts() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 2, array( 'role' => 'author' ) );
+		$this->getFactory()->post->create( array( 'post_author' => $ids[0] ) );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array(
+			'include'             => $ids,
+			'has_published_posts' => true,
+			'fields'              => 'ID',
+		) );
+		$this->assertTrue( $user_query->query_vars['elasticpress'] );
+		$this->assertContains( $ids[0], $user_query->get_results() );
+		$this->assertNotContains( $ids[1], $user_query->get_results() );
+		foreach ( $ids as $id ) {
+			wp_delete_user( $id );
+		}
+		ep_refresh_index();
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
