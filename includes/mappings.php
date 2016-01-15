@@ -129,7 +129,7 @@ return array(
 									'fields' => array(
 										'raw' => array(
 											'type' => 'string',
-											'index' => 'ewp_lowercase',
+											'analyzer' => 'ewp_lowercase',
 										),
 									),
 								),
