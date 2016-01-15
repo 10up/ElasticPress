@@ -1151,7 +1151,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testSearchPostTitleOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
 
 		ep_refresh_index();
 
@@ -1166,7 +1166,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[2]->post_title );
 	}
 
@@ -1177,7 +1177,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchPostMetaStringOrderbyQueryAsc() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 'b' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'B' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'a' ) );
 
 		ep_refresh_index();
@@ -1193,7 +1193,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
 	}
 
@@ -1205,7 +1205,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testSearchPostMetaNumOrderbyQueryAsc() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 4 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 2 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 2 ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1 ) );
 
 		ep_refresh_index();
@@ -1221,7 +1221,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
 		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
 	}
@@ -1239,7 +1239,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333', 'post_category' => array( $cat4 ) ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444', 'post_category' => array( $cat1 ) ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222', 'post_category' => array( $cat3 ) ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222', 'post_category' => array( $cat3 ) ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111', 'post_category' => array( $cat2 ) ) );
 
 		ep_refresh_index();
@@ -1255,7 +1255,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
 		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
 	}
@@ -1268,7 +1268,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testSearchPostMetaNumOrderbyQueryDesc() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 4 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 2 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 2 ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1 ) );
 
 		ep_refresh_index();
@@ -1284,7 +1284,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[3]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[2]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[2]->post_title );
 		$this->assertEquals( 'ordertest 333', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 444', $query->posts[0]->post_title );
 	}
@@ -1297,7 +1297,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testSearchPostMetaNumMultipleOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 3, 'test_key2' => 2 ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3, 'test_key2' => 1 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 2, 'test_key2' => 1 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 2, 'test_key2' => 1 ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1, 'test_key2' => 1 ) );
 
 		ep_refresh_index();
@@ -1313,7 +1313,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
 		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
 	}
@@ -1330,7 +1330,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
 		sleep( 3 );
 
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
 
 		ep_refresh_index();
 
@@ -1344,7 +1344,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( 'ordertest 222', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertes 333', $query->posts[2]->post_title );
 	}
@@ -1361,7 +1361,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest ordertest order test 111' ) );
 		sleep( 3 );
 
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
 
 		ep_refresh_index();
 
@@ -1374,7 +1374,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( 'ordertest 222', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest ordertest order test 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
 	}
@@ -1460,7 +1460,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testSearchPostNameOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-333' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-111' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-222' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'postname-Ordertest-222' ) );
 
 
 		ep_refresh_index();
@@ -1476,7 +1476,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'postname-ordertest-111', $query->posts[0]->post_name );
-		$this->assertEquals( 'postname-ordertest-222', $query->posts[1]->post_name );
+		$this->assertEquals( 'postname-Ordertest-222', $query->posts[1]->post_name );
 		$this->assertEquals( 'postname-ordertest-333', $query->posts[2]->post_name );
 	}
 
@@ -1489,7 +1489,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchDefaultOrderbyQuery() {
 		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_title' => 'ordertet' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertet' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
 
 		ep_refresh_index();
@@ -1503,7 +1503,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertet', $query->posts[1]->post_title );
 	}
 
 	/**
@@ -1515,7 +1515,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchDefaultOrderbyASCOrderQuery() {
 		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
 
 		ep_refresh_index();
@@ -1530,7 +1530,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
 	}
 
 	/**
