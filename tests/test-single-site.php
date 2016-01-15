@@ -1476,7 +1476,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'postname-ordertest-111', $query->posts[0]->post_name );
-		$this->assertEquals( 'postname-Ordertest-222', $query->posts[1]->post_name );
+		$this->assertEquals( 'postname-ordertest-222', $query->posts[1]->post_name );
 		$this->assertEquals( 'postname-ordertest-333', $query->posts[2]->post_name );
 	}
 
