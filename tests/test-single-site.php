@@ -1227,6 +1227,40 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test post category orderby query asc
+	 *
+	 * @since 1.8
+	 */
+	public function testSearchTaxNameOrderbyQueryAsc() {
+		$cat1 =  wp_create_category( 'Category 1' );
+		$cat2 =  wp_create_category( 'Another category two' );
+		$cat3 =  wp_create_category( 'basic category' );
+		$cat4 =  wp_create_category( 'Category 0' );
+
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333', 'post_category' => array( $cat4 ) ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444', 'post_category' => array( $cat1 ) ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222', 'post_category' => array( $cat3 ) ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111', 'post_category' => array( $cat2 ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'terms.category.name_raw',
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
+	}
+
+	/**
 	 * Test post meta number orderby query desc
 	 *
 	 * @since 1.8
