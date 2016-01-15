@@ -215,6 +215,11 @@ return array(
 							'index' => 'not_analyzed',
 							'include_in_all' => false,
 						),
+						'sortable' => array(
+							'type' => 'string',
+							'analyzer' => 'ewp_lowercase',
+							'include_in_all' => false,
+						),
 					),
 				),
 				'post_excerpt' => array(
