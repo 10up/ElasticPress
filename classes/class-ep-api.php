@@ -586,7 +586,6 @@ class EP_API {
 						'term_id'  => $term->term_id,
 						'slug'     => $term->slug,
 						'name'     => $term->name,
-						'name_raw' => $term->name,
 						'parent'   => $term->parent
 					);
 					if( $allow_hierarchy ){
@@ -922,7 +921,7 @@ class EP_API {
 					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
 
 					if ( 'name' === $field ) {
-						$field = 'name_raw';
+						$field = 'name.raw';
 					}
 
 					// Set up our terms object

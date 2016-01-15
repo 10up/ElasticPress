@@ -18,6 +18,11 @@ return array(
 					'tokenizer' => 'standard',
 					'filter' => array( 'lowercase', 'shingle_filter' ),
 				),
+				'ewp_lowercase' => array(
+					'type' => 'custom',
+					'tokenizer' => 'standard',
+					'filter' => array( 'lowercase' ),
+				),
 			),
 			'filter' => array(
 				'shingle_filter' => array(
@@ -121,10 +126,12 @@ return array(
 							'properties' => array(
 								'name' => array(
 									'type' => 'string',
-								),
-								'name_raw' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed',
+									'fields' => array(
+										'raw' => array(
+											'type' => 'string',
+											'index' => 'ewp_lowercase',
+										),
+									),
 								),
 								'term_id' => array(
 									'type' => 'long',
