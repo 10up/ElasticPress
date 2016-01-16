@@ -86,9 +86,14 @@ return array(
 											'analyzer' => 'ewp_lowercase',
 											'include_in_all' => false,
 										),
+										'raw' => array(
+											'type' => 'string',
+											'index' => 'not_analyzed',
+											'include_in_all' => false,
+										),
 									),
 								),
-								'raw' => array(
+								'raw' => array( /* Left for backwards compat */
 									'type' => 'string',
 									'index' => 'not_analyzed',
 									'include_in_all' => false,
@@ -182,11 +187,29 @@ return array(
 					'properties' => array(
 						'display_name' => array(
 							'type' => 'string',
-							'analyzer' => 'standard',
+							'fields' => array(
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+								),
+								'sortable' => array(
+									'type' => 'string',
+									'analyzer' => 'ewp_lowercase',
+								),
+							),
 						),
 						'login' => array(
 							'type' => 'string',
-							'analyzer' => 'standard',
+							'fields' => array(
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+								),
+								'sortable' => array(
+									'type' => 'string',
+									'analyzer' => 'ewp_lowercase',
+								),
+							),
 						),
 						'id' => array(
 							'type' => 'long',

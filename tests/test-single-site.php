@@ -1198,6 +1198,70 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Sort by an author login
+	 *
+	 * @since 1.8
+	 */
+	public function testAuthorLoginOrderbyQueryAsc() {
+		$bob = $this->factory->user->create( array( 'user_login' => 'Bob', 'role' => 'administrator' ) );
+		$al = $this->factory->user->create( array( 'user_login' => 'al', 'role' => 'administrator' ) );
+		$jim = $this->factory->user->create( array( 'user_login' => 'Jim', 'role' => 'administrator' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 1', 'post_author' => $al ) );
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 2', 'post_author' => $bob ) );
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 3', 'post_author' => $jim ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'findme',
+			'orderby' => 'post_author.login.sortable',
+			'order'   => 'asc',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$this->assertEquals( 'findme test 1', $query->posts[0]->post_title );
+		$this->assertEquals( 'findme test 2', $query->posts[1]->post_title );
+		$this->assertEquals( 'findme test 3', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Sort by an author display name
+	 *
+	 * @since 1.8
+	 */
+	public function testAuthorDisplayNameOrderbyQueryAsc() {
+		$bob = $this->factory->user->create( array( 'display_name' => 'Bob', 'role' => 'administrator' ) );
+		$al = $this->factory->user->create( array( 'display_name' => 'al', 'role' => 'administrator' ) );
+		$jim = $this->factory->user->create( array( 'display_name' => 'Jim', 'role' => 'administrator' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 1', 'post_author' => $al ) );
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 2', 'post_author' => $bob ) );
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 3', 'post_author' => $jim ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'findme',
+			'orderby' => 'post_author.display_name.sortable',
+			'order'   => 'desc',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$this->assertEquals( 'findme test 3', $query->posts[0]->post_title );
+		$this->assertEquals( 'findme test 2', $query->posts[1]->post_title );
+		$this->assertEquals( 'findme test 1', $query->posts[2]->post_title );
+	}
+
+	/**
 	 * Test post meta number orderby query asc
 	 *
 	 * @since 1.8
