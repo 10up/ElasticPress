@@ -2653,7 +2653,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * @group users
 	 */
-	public function testUserQueryIntegrationHasPublishedPosts() {
+	public function testUserQueryIntegrationHasPublishedPostsAndInclude() {
 		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
 		$ids = $this->getFactory()->user->create_many( 2, array( 'role' => 'author' ) );
 		$this->getFactory()->post->create( array( 'post_author' => $ids[0] ) );
@@ -2664,8 +2664,7 @@ class EPTestSingleSite extends EP_Test_Base {
 			'fields'              => 'ID',
 		) );
 		$this->assertTrue( $user_query->query_vars['elasticpress'] );
-		$this->assertContains( $ids[0], $user_query->get_results() );
-		$this->assertNotContains( $ids[1], $user_query->get_results() );
+		$this->assertEquals( array( $ids[0] ), $user_query->get_results() );
 		foreach ( $ids as $id ) {
 			wp_delete_user( $id );
 		}
