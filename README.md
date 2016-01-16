@@ -113,7 +113,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ```
 
     ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), and
-    ```terms``` (string|array) parameters. ```field``` must be set to ```slug``` and ```terms``` must be a string or array of term slug(s).
+    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s).
 
 * The following shorthand parameters can be used for querying posts by specific dates:
 

@@ -583,10 +583,10 @@ class EP_API {
 			foreach ( $object_terms as $term ) {
 				if( ! isset( $terms_dic[ $term->term_id ] ) ) {
 					$terms_dic[ $term->term_id ] = array(
-						'term_id' => $term->term_id,
-						'slug'    => $term->slug,
-						'name'    => $term->name,
-						'parent'  => $term->parent
+						'term_id'  => $term->term_id,
+						'slug'     => $term->slug,
+						'name'     => $term->name,
+						'parent'   => $term->parent
 					);
 					if( $allow_hierarchy ){
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name );
@@ -904,8 +904,8 @@ class EP_API {
 		/**
 		 * Tax Query support
 		 *
-		 * Support for the tax_query argument of WP_Query
-		 * Currently only provides support for the 'AND' relation between taxonomies
+		 * Support for the tax_query argument of WP_Query. Currently only provides support for the 'AND' relation
+		 * between taxonomies. Field only supports slug, term_id, and name defaulting to term_id.
 		 *
 		 * @use field = slug
 		 *      terms array
@@ -915,12 +915,18 @@ class EP_API {
 			$tax_filter = array();
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
-				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
+				if ( ! empty( $single_tax_query['terms'] ) ) {
 					$terms = (array) $single_tax_query['terms'];
+
+					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
+
+					if ( 'name' === $field ) {
+						$field = 'name.raw';
+					}
 
 					// Set up our terms object
 					$terms_obj = array(
-						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $terms,
+						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
 
 					// Use the AND operator if passed
@@ -1531,9 +1537,15 @@ class EP_API {
 							'order' => $order,
 						),
 					);
-				} elseif ( 'name' === $orderby_clause || 'title' === $orderby_clause  ) {
+				} elseif ( 'name' === $orderby_clause ) {
 					$sort[] = array(
 						'post_' . $orderby_clause . '.raw' => array(
+							'order' => $order,
+						),
+					);
+				} elseif ( 'title' === $orderby_clause ) {
+					$sort[] = array(
+						'post_' . $orderby_clause . '.sortable' => array(
 							'order' => $order,
 						),
 					);
