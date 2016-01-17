@@ -71,7 +71,10 @@ class EP_User_Query_Integration {
 	 * @param WP_User_Query $wp_user_query
 	 */
 	public function action_pre_user_query( $wp_user_query ) {
-		if ( ! empty( $wp_user_query->query_vars['role'] ) ) {
+		if (
+			! empty( $wp_user_query->query_vars['meta_query'] ) &&
+			( ! empty( $wp_user_query->query_vars['role'] ) || is_multisite() )
+		) {
 			$wp_user_query->query_vars['meta_query'] = array_filter(
 				$wp_user_query->query_vars['meta_query'],
 				array( $this, 'remove_role_meta_query' )
