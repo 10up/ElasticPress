@@ -12,6 +12,13 @@ class EP_API {
 	public function __construct() { }
 
 	/**
+	 * Logged queries for debugging
+	 *
+	 * @since  1.8
+	 */
+	private $queries = array();
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return EP_API
@@ -562,8 +569,17 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_args( $args ) {
+		if ( isset( $args['post_per_page'] ) ) {
+			// For backwards compatibility for those using this since EP 1.4
+			$args['posts_per_page'] = $args['post_per_page'];
+		}
+
 		if ( ! empty( $args['posts_per_page'] ) ) {
 			$posts_per_page = (int) $args['posts_per_page'];
+
+			if ( -1 === $posts_per_page ) {
+				$posts_per_page = 10000; // -1 does not work, use max result window for ES
+			}
 		} else {
 			$posts_per_page = (int) get_option( 'posts_per_page' );
 		}
@@ -594,15 +610,8 @@ class EP_API {
 
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
-			$sort = $this->parse_orderby( $args['orderby'], $order );
-
-			if ( false !== $sort ) {
-				$formatted_args['sort'] = $sort;
-			}
-		}
-
-		// Either nothing was passed or the parse_orderby failed, use default sort
-		if ( empty( $args['orderby'] ) || false === $sort ) {
+			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order );
+		} else {
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
 				array(
@@ -625,8 +634,8 @@ class EP_API {
 		/**
 		 * Tax Query support
 		 *
-		 * Support for the tax_query argument of WP_Query
-		 * Currently only provides support for the 'AND' relation between taxonomies
+		 * Support for the tax_query argument of WP_Query. Currently only provides support for the 'AND' relation
+		 * between taxonomies. Field only supports slug, term_id, and name defaulting to term_id.
 		 *
 		 * @use field = slug
 		 *      terms array
@@ -636,12 +645,18 @@ class EP_API {
 			$tax_filter = array();
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
-				if ( ! empty( $single_tax_query['terms'] ) && ! empty( $single_tax_query['field'] ) && 'slug' === $single_tax_query['field'] ) {
+				if ( ! empty( $single_tax_query['terms'] ) ) {
 					$terms = (array) $single_tax_query['terms'];
+
+					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
+
+					if ( 'name' === $field ) {
+						$field = 'name.raw';
+					}
 
 					// Set up our terms object
 					$terms_obj = array(
-						'terms.' . $single_tax_query['taxonomy'] . '.slug' => $terms,
+						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
 
 					// Use the AND operator if passed
@@ -806,13 +821,15 @@ class EP_API {
 						$meta_key_path = 'meta.' . $single_meta_query['key'];
 					} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+					} elseif ( 'like' === $compare ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 						// Map specific meta field types to different ElasticSearch core types
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
 					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
 					} else {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
 					}
 
 					switch ( $compare ) {
@@ -1078,13 +1095,6 @@ class EP_API {
 			$formatted_args['from'] = $args['offset'];
 		}
 
- 		if ( isset( $args['post_per_page'] ) ) {
-			// For backwards compatibility for those using this since EP 1.4
-			$formatted_args['size'] = $args['post_per_page'];
-		} elseif ( isset( $args['posts_per_page'] ) ) {
-			$formatted_args['size'] = $args['posts_per_page'];
-		}
-
 		if ( isset( $args['paged'] ) ) {
 			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
 			$formatted_args['from'] = $args['posts_per_page'] * $paged;
@@ -1228,59 +1238,53 @@ class EP_API {
 	}
 
 	/**
-	 * If the passed orderby value is allowed, convert the alias to a
-	 * properly-prefixed sort value.
+	 * Convert the alias to a properly-prefixed sort value.
 	 *
 	 * @since 1.1
 	 * @access protected
 	 *
-	 * @param string $orderby Alias for the field to order by.
+	 * @param string $orderby Alias or path for the field to order by.
 	 * @param string $order
-	 * @return array|bool Array formatted value to used in the sort DSL. False otherwise.
+	 * @return array
 	 */
 	protected function parse_orderby( $orderby, $order ) {
-		// Used to filter values.
-		$allowed_keys = array(
-			'relevance',
-			'name',
-			'title',
-			'date',
-		);
+		$orderbys = explode( ' ', $orderby );
+		$sort = array();
 
-		if ( ! in_array( $orderby, $allowed_keys ) ) {
-			return false;
-		}
-
-		switch ( $orderby ) {
-			case 'relevance':
-			default:
-				$sort = array(
-					array(
+		foreach ( $orderbys as $orderby_clause ) {
+			if ( ! empty( $orderby_clause ) ) {
+				if ( 'relevance' === $orderby_clause ) {
+					$sort[] = array(
 						'_score' => array(
 							'order' => $order,
 						),
-					),
-				);
-				break;
-			case 'date':
-				$sort = array(
-					array(
+					);
+		 		} elseif ( 'date' === $orderby_clause ) {
+					$sort[] = array(
 						'post_date' => array(
 							'order' => $order,
 						),
-					),
-				);
-				break;
-			case 'name':
-			case 'title':
-				$sort = array(
-					array(
-						'post_' . $orderby . '.raw' => array(
+					);
+				} elseif ( 'name' === $orderby_clause ) {
+					$sort[] = array(
+						'post_' . $orderby_clause . '.raw' => array(
 							'order' => $order,
 						),
-					),
-				);
-				break;
+					);
+				} elseif ( 'title' === $orderby_clause ) {
+					$sort[] = array(
+						'post_' . $orderby_clause . '.sortable' => array(
+							'order' => $order,
+						),
+					);
+				} else {
+					$sort[] = array(
+						$orderby_clause => array(
+							'order' => $order,
+						),
+					);
+				}
+			}
 		}
 
 		return $sort;
@@ -1336,6 +1340,16 @@ class EP_API {
 	}
 
 	/**
+	 * Return queries for debugging
+	 *
+	 * @since  1.8
+	 * @return array
+	 */
+	public function get_query_log() {
+		return $this->queries;
+	}
+
+	/**
 	 * Wrapper for wp_remote_request
 	 *
 	 * This is a wrapper function for wp_remote_request that will switch to a backup server
@@ -1349,6 +1363,16 @@ class EP_API {
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
 	public function remote_request( $path, $args = array() ) {
+
+		$query = array(
+			'time_start'   => microtime( true ),
+			'time_finish'  => false,
+			'args'         => $args,
+			'blocking'     => true,
+			'failed_hosts' => array(),
+			'request'      => false,
+			'host'         => false,
+		);
 
 		//The allowance of these variables makes testing easier.
 		$force       = false;
@@ -1369,11 +1393,22 @@ class EP_API {
 		$request = false;
 
 		if ( ! is_wp_error( $host ) ) { // probably only reachable in testing but just to be safe
-			$request = wp_remote_request( esc_url( trailingslashit( $host ) . $path ), $args ); //try the existing host to avoid unnecessary calls
+			$request_url   = esc_url( trailingslashit( $host ) . $path );
+
+			$query['url']  = $request_url;
+			$query['host'] = $host;
+
+			$request = wp_remote_request( $request_url, $args ); //try the existing host to avoid unnecessary calls
+		} else {
+			$query['failed_hosts'][] = $host;
 		}
 
 		// Return now if we're not blocking, since we won't have a response yet
 		if ( isset( $args['blocking'] ) && false === $args['blocking' ] ) {
+			$query['blocking'] = true;
+			$query['request']  = $request;
+			$this->queries[]   = $query;
+
 			return $request;
 		}
 
@@ -1381,14 +1416,25 @@ class EP_API {
 		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 200 !== $request['response']['code'] ) ) {
 
 			$host = ep_get_host( true, $use_backups );
+			$request_url = esc_url( trailingslashit( $host ) . $path );
 
 			if ( is_wp_error( $host ) ) {
+				$query['failed_hosts'][] = $host;
+				$query['time_finish']    = microtime( true );
+				$this->queries[]         = $query;
+
 				return $host;
 			}
 
-			return wp_remote_request( esc_url( trailingslashit( $host ) . $path ), $args );
+			$request = wp_remote_request( $request_url, $args );
 
 		}
+
+		$query['time_finish'] = microtime( true );
+		$query['request'] = $request;
+		$query['url']     = $request_url;
+		$query['host']    = $host;
+		$this->queries[]  = $query;
 
 		return $request;
 
@@ -1536,4 +1582,8 @@ function ep_format_request_headers() {
 
 function ep_remote_request( $path, $args ) {
 	return EP_API::factory()->remote_request( $path, $args );
+}
+
+function ep_get_query_log() {
+	return EP_API::factory()->get_query_log();
 }
