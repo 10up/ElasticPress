@@ -2671,6 +2671,29 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserQueryIntegrationExcludeAndLoginSearch() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 5 );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array(
+			'number'  => 5,
+			'exclude' => array( $ids[0] ),
+			'orderby' => 'ID',
+			'order'   => 'DESC',
+			'fields'  => 'ID',
+		) );
+		$this->assertTrue( $user_query->query_vars['elasticpress'] );
+		$this->assertNotContains( $ids[0], $user_query->get_results() );
+		$this->assertCount( 4, array_intersect( array_slice( $ids, 1 ), $user_query->get_results() ) );
+		foreach ( $ids as $id ) {
+			wp_delete_user( $id );
+		}
+		ep_refresh_index();
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
