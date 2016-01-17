@@ -2654,6 +2654,9 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @group users
 	 */
 	public function testUserQueryIntegrationHasPublishedPostsAndInclude() {
+		if ( version_compare( $GLOBALS['wp_version'], '4.3', '<' ) ) {
+			$this->markTestSkipped( 'has_published_posts was added in 4.3' );
+		}
 		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
 		$ids = $this->getFactory()->user->create_many( 2, array( 'role' => 'author' ) );
 		$this->getFactory()->post->create( array( 'post_author' => $ids[0] ) );
