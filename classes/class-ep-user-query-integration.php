@@ -647,7 +647,9 @@ class EP_User_Query_Integration {
 				case 'user_id':
 				case 'registered':
 				case 'user_registered':
-					$sort_field = array( $this->toggle_user_prefix( $_orderby, true ) => array( 'order' => $_order ) );
+					$sort_field = array(
+						strtolower( $this->toggle_user_prefix( $_orderby, true ) ) => array( 'order' => $_order )
+					);
 					break;
 				case 'login':
 				case 'nicename':
