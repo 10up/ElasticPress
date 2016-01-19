@@ -3001,6 +3001,36 @@ class EPTestSingleSite extends EP_Test_Base {
 		);
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryEquals() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3 );
+
+		wp_update_user( array( 'ID' => $ids[1], 'display_name' => 'display name findme' ) );
+
+		update_user_meta( $ids[2], 'test_key', 'value' );
+		wp_update_user( array( 'ID' => $ids[2], 'display_name' => 'john doe findme' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'   => 'test_key',
+					'value' => 'value',
+				)
+			),
+		);
+
+		$query = new WP_user_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[2] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
