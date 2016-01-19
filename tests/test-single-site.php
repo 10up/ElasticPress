@@ -3092,6 +3092,38 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertTrue( $query->query_vars['elasticpress'] );
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryLessThan() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 4, array( 'display_name' => 'john doe findme' ) );
+
+		$find_mark = rand( 0, 2 );
+
+		update_user_meta( $ids[ $find_mark ], 'test_key', '100' );
+		update_user_meta( $ids[ $find_mark + 1 ], 'test_key', '101' );
+		wp_update_user( array( 'ID' => $ids[ $find_mark ] ) );
+		wp_update_user( array( 'ID' => $ids[ $find_mark + 1 ] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => '101',
+					'compare' => '<',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[ $find_mark ] ) ), $query->get_results() );
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
