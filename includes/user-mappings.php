@@ -7,10 +7,10 @@ return array(
 	'settings' => array(
 		'analysis' => array(
 			'analyzer' => array(
-				'email' => array(
+				'ewp_email'     => array(
 					'tokenizer' => 'uax_url_email',
 					'filter'    => array( 'standard', 'lowercase' )
-				)
+				),
 			)
 		)
 	),
@@ -108,7 +108,7 @@ return array(
 				),
 				'user_email'      => array(
 					'type'     => 'string',
-					'analyzer' => 'email',
+					'analyzer' => 'ewp_email',
 				),
 				'description'     => array(
 					'type'     => 'string',
