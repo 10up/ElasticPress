@@ -552,7 +552,7 @@ class EP_User_Query_Integration {
 					'multi_match' => array(
 						'fields'    => $search_columns,
 						'query'     => $search,
-						'fuzziness' => apply_filters( 'ep_min_user_similarity', 0.75 ),
+						'fuzziness' => apply_filters( 'ep_min_user_similarity', 2, $search_columns, $arguments ),
 						'operator'  => 'or',
 					),
 				)
