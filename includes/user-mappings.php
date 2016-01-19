@@ -263,6 +263,9 @@ return array(
 				'user_meta'       => array(
 					'type' => 'object',
 				),
+				'meta'            => array(
+					'type' => 'object',
+				)
 			),
 		)
 	),
