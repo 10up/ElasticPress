@@ -11,6 +11,11 @@ return array(
 					'tokenizer' => 'uax_url_email',
 					'filter'    => array( 'standard', 'lowercase' )
 				),
+				'ewp_lowercase' => array(
+					'type'      => 'custom',
+					'tokenizer' => 'keyword',
+					'filter'    => array( 'lowercase' ),
+				),
 			)
 		)
 	),
@@ -46,7 +51,17 @@ return array(
 							'path'       => 'full',
 							'properties' => array(
 								'name'    => array(
-									'type' => 'string',
+									'type'   => 'string',
+									'fields' => array(
+										'raw'      => array(
+											'type'  => 'string',
+											'index' => 'not_analyzed',
+										),
+										'sortable' => array(
+											'type'     => 'string',
+											'analyzer' => 'ewp_lowercase',
+										),
+									),
 								),
 								'term_id' => array(
 									'type' => 'long',
@@ -85,6 +100,11 @@ return array(
 							'index'          => 'not_analyzed',
 							'include_in_all' => false,
 						),
+						'sortable'   => array(
+							'type'           => 'string',
+							'analyzer'       => 'ewp_lowercase',
+							'include_in_all' => false,
+						),
 					),
 				),
 				'user_nicename'   => array(
@@ -98,6 +118,11 @@ return array(
 						'raw'           => array(
 							'type'           => 'string',
 							'index'          => 'not_analyzed',
+							'include_in_all' => false,
+						),
+						'sortable'      => array(
+							'type'           => 'string',
+							'analyzer'       => 'ewp_lowercase',
 							'include_in_all' => false,
 						),
 					),
@@ -121,7 +146,18 @@ return array(
 					'type' => 'string',
 				),
 				'user_url'        => array(
-					'type' => 'string',
+					'type'   => 'multi_field',
+					'fields' => array(
+						'user_url' => array(
+							'type'  => 'string',
+							'index' => 'not_analyzed',
+						),
+						'sortable' => array(
+							'type'           => 'string',
+							'analyzer'       => 'ewp_lowercase',
+							'include_in_all' => false
+						),
+					),
 				),
 				'display_name'    => array(
 					'type'   => 'multi_field',
@@ -135,6 +171,11 @@ return array(
 							'type'           => 'string',
 							'index'          => 'not_analyzed',
 							'include_in_all' => false,
+						),
+						'sortable'     => array(
+							'type'           => 'string',
+							'analyzer'       => 'ewp_lowercase',
+							'include_in_all' => false
 						),
 					),
 				),
