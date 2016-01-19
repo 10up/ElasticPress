@@ -775,7 +775,7 @@ class EP_User_Query_Integration {
 			$metas = (array) $search_column_args['meta'];
 
 			foreach ( $metas as $meta ) {
-				$search_columns[] = 'user_meta.' . $meta;
+				$search_columns[] = 'meta.' . $meta . '.value';
 			}
 		}
 

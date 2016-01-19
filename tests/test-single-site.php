@@ -2967,6 +2967,40 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserSearchMetaQuery() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3 );
+
+		wp_update_user( array( 'ID' => $ids[1], 'display_name' => 'display name findme' ) );
+
+		update_user_meta( $ids[2], 'test_key', 'findme' );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'         => 'findme',
+			'search_columns' => array(
+				'display_name',
+				'meta' => 'test_key',
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+		$this->assertEquals(
+			array(
+				new WP_User( $ids[1] ),
+				new WP_User( $ids[2] ),
+			),
+			$query->get_results()
+		);
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
