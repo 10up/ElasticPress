@@ -24,26 +24,6 @@ return array(
 			'date_detection'    => false,
 			'dynamic_templates' => array(
 				array(
-					'template_meta' => array(
-						'path_match' => 'user_meta.*',
-						'mapping'    => array(
-							'type'   => 'multi_field',
-							'path'   => 'full',
-							'fields' => array(
-								'{name}' => array(
-									'type'  => 'string',
-									'index' => 'analyzed',
-								),
-								'raw'    => array(
-									'type'           => 'string',
-									'index'          => 'not_analyzed',
-									'include_in_all' => false,
-								),
-							),
-						),
-					),
-				),
-				array(
 					'template_meta_types' => array(
 						'path_match' => 'meta.*',
 						'mapping'    => array(
@@ -258,9 +238,6 @@ return array(
 					)
 				),
 				'terms'           => array(
-					'type' => 'object',
-				),
-				'user_meta'       => array(
 					'type' => 'object',
 				),
 				'meta'            => array(

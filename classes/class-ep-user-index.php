@@ -109,10 +109,8 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 			'user_registered' => $user_registered,
 			'role'            => $user->roles,
 			'terms'           => $this->prepare_terms( $user ),
-			'user_meta'       => $this->prepare_meta( $user ),
+			'meta'            => $this->api->prepare_meta_types( $this->prepare_meta( $user ) ),
 		);
-
-		$data['meta'] = $this->api->prepare_meta_types( $data['user_meta'] );
 
 		return $data;
 	}
