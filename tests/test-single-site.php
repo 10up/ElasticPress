@@ -3166,6 +3166,46 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertTrue( $query->query_vars['elasticpress'] );
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryLike() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 5, array( 'display_name' => 'jane doe findme' ) );
+
+		update_user_meta( $ids[2], 'test_key', 'ALICE in wonderland' );
+		update_user_meta( $ids[3], 'test_key', 'alice in melbourne' );
+		update_user_meta( $ids[4], 'test_key', 'AlicE in america' );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+		wp_update_user( array( 'ID' => $ids[3] ) );
+		wp_update_user( array( 'ID' => $ids[4] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => 'alice',
+					'compare' => 'LIKE',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals(
+			array(
+				new WP_User( $ids[2] ),
+				new WP_User( $ids[3] ),
+				new WP_User( $ids[4] ),
+			),
+			$query->get_results()
+		);
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
