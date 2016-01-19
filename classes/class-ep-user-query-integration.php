@@ -335,6 +335,18 @@ class EP_User_Query_Integration {
 				$relation = 'should';
 			}
 
+			$meta_query_type_mapping = array(
+				'numeric'  => 'long',
+				'binary'   => 'raw',
+				'char'     => 'raw',
+				'date'     => 'date',
+				'datetime' => 'datetime',
+				'decimal'  => 'double',
+				'signed'   => 'long',
+				'time'     => 'time',
+				'unsigned' => 'long',
+			);
+
 			foreach ( $meta_query->queries as $single_meta_query ) {
 				if ( empty( $single_meta_query['key'] ) ) {
 					continue;
@@ -347,6 +359,27 @@ class EP_User_Query_Integration {
 					$compare = strtolower( $single_meta_query['compare'] );
 				}
 
+				$type = null;
+				if ( ! empty( $single_meta_query['type'] ) ) {
+					$type = strtolower( $single_meta_query['type'] );
+				}
+
+				// Comparisons need to look at different paths
+				if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
+					$meta_key_path = 'meta.' . $single_meta_query['key'];
+				} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+				} elseif ( 'like' === $compare ) {
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
+				} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
+					// Map specific meta field types to different ElasticSearch core types
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
+				} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
+				} else {
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+				}
+
 				switch ( $compare ) {
 					case '!=':
 						if ( isset( $single_meta_query['value'] ) ) {
@@ -355,7 +388,7 @@ class EP_User_Query_Integration {
 									'must_not' => array(
 										array(
 											'terms' => array(
-												'user_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+												$meta_key_path => (array) $single_meta_query['value'],
 											),
 										),
 									),
@@ -367,7 +400,7 @@ class EP_User_Query_Integration {
 					case 'exists':
 						$terms_obj = array(
 							'exists' => array(
-								'field' => 'user_meta.' . $single_meta_query['key'],
+								'field' => $meta_key_path,
 							),
 						);
 
@@ -378,7 +411,7 @@ class EP_User_Query_Integration {
 								'must_not' => array(
 									array(
 										'exists' => array(
-											'field' => 'user_meta.' . $single_meta_query['key'],
+											'field' => $meta_key_path,
 										),
 									),
 								),
@@ -393,7 +426,7 @@ class EP_User_Query_Integration {
 									'must' => array(
 										array(
 											'range' => array(
-												'user_meta.' . $single_meta_query['key'] . '.raw' => array(
+												$meta_key_path => array(
 													"gte" => $single_meta_query['value'],
 												),
 											),
@@ -411,7 +444,7 @@ class EP_User_Query_Integration {
 									'must' => array(
 										array(
 											'range' => array(
-												'user_meta.' . $single_meta_query['key'] . '.raw' => array(
+												$meta_key_path => array(
 													"lte" => $single_meta_query['value'],
 												),
 											),
@@ -429,7 +462,7 @@ class EP_User_Query_Integration {
 									'must' => array(
 										array(
 											'range' => array(
-												'user_meta.' . $single_meta_query['key'] . '.raw' => array(
+												$meta_key_path => array(
 													"gt" => $single_meta_query['value'],
 												),
 											),
@@ -447,7 +480,7 @@ class EP_User_Query_Integration {
 									'must' => array(
 										array(
 											'range' => array(
-												'user_meta.' . $single_meta_query['key'] . '.raw' => array(
+												$meta_key_path => array(
 													"lt" => $single_meta_query['value'],
 												),
 											),
@@ -463,7 +496,7 @@ class EP_User_Query_Integration {
 							$terms_obj = array(
 								'query' => array(
 									"match" => array(
-										'user_meta.' . $single_meta_query['key'] => $single_meta_query['value'],
+										$meta_key_path => $single_meta_query['value'],
 									)
 								),
 							);
@@ -474,7 +507,7 @@ class EP_User_Query_Integration {
 						if ( isset( $single_meta_query['value'] ) ) {
 							$terms_obj = array(
 								'terms' => array(
-									'user_meta.' . $single_meta_query['key'] . '.raw' => (array) $single_meta_query['value'],
+									$meta_key_path => (array) $single_meta_query['value'],
 								),
 							);
 						}
