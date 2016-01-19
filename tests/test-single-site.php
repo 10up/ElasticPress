@@ -3124,6 +3124,48 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( array( new WP_User( $ids[ $find_mark ] ) ), $query->get_results() );
 	}
 
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryOrRelation() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3, array( 'display_name' => 'john doe findme' ) );
+
+		update_user_meta( $ids[0], 'test_key5', 'value1' );
+		update_user_meta( $ids[1], 'test_key', 'value1' );
+		update_user_meta( $ids[1], 'test_key2', 'value' );
+		update_user_meta( $ids[2], 'test_key6', 'value' );
+		update_user_meta( $ids[2], 'test_key2', 'value2' );
+		update_user_meta( $ids[2], 'test_key3', 'value' );
+
+		wp_update_user( array( 'ID' => $ids[0] ) );
+		wp_update_user( array( 'ID' => $ids[1] ) );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key5',
+					'compare' => 'exists',
+				),
+				array(
+					'key'     => 'test_key6',
+					'value'   => 'value',
+					'compare' => '=',
+				),
+				'relation' => 'or',
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[0] ), new WP_User( $ids[2] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
 	private function getIndexData() {
 		$response = ep_remote_request( ep_get_index_name(), array() );
 		if ( ! $response || is_wp_error( $response ) ) {
