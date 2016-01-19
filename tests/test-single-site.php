@@ -3091,6 +3091,34 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * @group users
 	 */
+	public function testUserMetaQueryNotExists() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3, array( 'display_name' => 'display name findme' ) );
+
+		update_user_meta( $ids[0], 'test_key', 'value' );
+		wp_update_user( array( 'ID' => $ids[0] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'compare' => 'not exists',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[1] ), new WP_User( $ids[2] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
 	public function testUserMetaQueryGreaterThan() {
 		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
 		$ids = $this->getFactory()->user->create_many( 4, array( 'display_name' => 'john doe findme' ) );
