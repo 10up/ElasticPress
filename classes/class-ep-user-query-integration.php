@@ -542,16 +542,18 @@ class EP_User_Query_Integration {
 			$ep_arguments['query']['bool']['should'] = array(
 				array(
 					'multi_match' => array(
-						'query'  => $search,
-						'fields' => $search_columns,
-						'boost'  => apply_filters( 'ep_user_match_boost', 2 ),
+						'query'     => $search,
+						'fields'    => $search_columns,
+						'boost'     => apply_filters( 'ep_user_match_boost', 2, $search_columns, $arguments ),
+						'fuzziness' => 0,
 					)
 				),
 				array(
-					'fuzzy_like_this' => array(
-						'fields'         => $search_columns,
-						'like_text'      => $search,
-						'min_similarity' => apply_filters( 'ep_min_user_similarity', 0.75 ),
+					'multi_match' => array(
+						'fields'    => $search_columns,
+						'query'     => $search,
+						'fuzziness' => apply_filters( 'ep_min_user_similarity', 0.75 ),
+						'operator'  => 'or',
 					),
 				)
 			);
