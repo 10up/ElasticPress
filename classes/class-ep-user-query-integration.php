@@ -691,20 +691,26 @@ class EP_User_Query_Integration {
 					break;
 				case 'login':
 				case 'nicename':
+				case 'email':
+				case 'url':
 				case 'user_login':
 				case 'user_nicename':
+				case 'user_email':
+				case 'user_url':
 					$sort_field = array(
-						$this->toggle_user_prefix( $_orderby, true ) . ".raw" => array( 'order' => $_order )
+						$this->toggle_user_prefix( $_orderby, true ) . ".sortable" => array( 'order' => $_order )
 					);
 					break;
 				case 'name':
 				case 'display_name':
-					$sort_field = array( 'display_name.raw' => array( 'order' => $_order ) );
+					$sort_field = array( 'display_name.sortable' => array( 'order' => $_order ) );
 					break;
 				case 'score':
 				case 'relevance':
 					$sort_field = array( '_score' => array( 'order' => $_order ) );
 					break;
+				default:
+					$sort_field = array( $_orderby => array( 'order' => $_order ) );
 			}
 			if ( $sort_field ) {
 				$sorts[] = $sort_field;
