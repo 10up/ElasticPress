@@ -181,7 +181,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]
 	 *
 	 * @param array $args
 	 *
@@ -190,8 +190,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
-		$defaults   = array( 'bulk' => true );
-		$assoc_args = wp_parse_args( $assoc_args, $defaults );
 		$this->_connect_check();
 
 		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
@@ -304,7 +302,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		$synced = 0;
 		$errors = array();
 
-		$no_bulk = ! $args['bulk'];
+		$no_bulk = false;
+
+		if ( isset( $args['nobulk'] ) ) {
+			$no_bulk = true;
+		}
 
 		$show_bulk_errors = false;
 
