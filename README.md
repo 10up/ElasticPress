@@ -5,7 +5,7 @@ Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http:/
 
 **Please note:** the master branch is the stable
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, and 1.7 require re-indexing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, and 1.8 require re-indexing.
 
 ## Background
 
@@ -567,6 +567,10 @@ Our test suite depends on a running Elasticsearch server. You can supply a host 
 ```bash
 EP_HOST="http://192.168.50.4:9200" phpunit
 ```
+
+### Debugging
+
+We have a [Debug Bar Plugin](https://github.com/10up/debug-bar-elasticpress) available for ElasticPress. This tool allows you to examine all the ElasticPress queries on each page load.
 
 ### Issues
 

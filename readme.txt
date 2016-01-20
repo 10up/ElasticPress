@@ -64,7 +64,7 @@ configuring single site and multi-site cross-site search are slightly different.
 
 ElasticPress 1.8 adds a bunch of mapping changes for accomplishing more complex WP_Query functions such as filtering by term id and sorting by any Elasticsearch property. Version 1.8 also speeds up post syncing dramatically through non-blocking queries. Full list of enhancements and bug fixes:
 
-Enhancements:
+### Enhancements:
 
 * Add a filter around the search fuzziness argument. Props [dkotter](https://github.com/dkotter).
 * Make post indexing a non-blocking query. Props [cmmarslender](https://github.com/cmmarslender).
@@ -75,7 +75,7 @@ Enhancements:
 * Add raw/sortable property to meta mapping. Props [sc0ttkclark](https://github.com/sc0ttkclark)
 * Add raw/sortable to author display name and login
 
-Bugs:
+### Bugs:
 
 * Fix post deletion. Props [lukaspawlik](https://github.com/lukaspawlik).
 * Properly flush cache with `wp_cache_flush`. Props [jstensved](https://github.com/jstensved)
