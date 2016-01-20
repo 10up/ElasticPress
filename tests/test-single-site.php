@@ -1805,8 +1805,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testMetaQueryGreaterThan() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '99' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '1000' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '9999' ) );
 
 		ep_refresh_index();
 		$args = array(
@@ -1822,8 +1825,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( 1, $query->post_count );
-		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
 	}
 
 	/**
@@ -1834,8 +1837,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testMetaQueryGreaterThanEqual() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '99' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '1000' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '9999' ) );
 
 		ep_refresh_index();
 		$args = array(
@@ -1851,8 +1857,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
 	}
 
 	/**
@@ -1863,8 +1869,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testMetaQueryLessThan() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '99' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '1000' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '9999' ) );
 
 		ep_refresh_index();
 		$args = array(
@@ -1880,8 +1889,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( 1, $query->post_count );
-		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -1892,8 +1901,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testMetaQueryLessThanEqual() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '99' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '1000' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '9999' ) );
 
 		ep_refresh_index();
 		$args = array(
@@ -1909,8 +1921,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
 	}
 
 	/**
