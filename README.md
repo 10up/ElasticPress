@@ -1,11 +1,11 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress) [![Dockunit Status](http://dockunit.io/svg/10up/ElasticPress?master)](http://dockunit.io/projects/10up/ElasticPress#master)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
 =============
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
 **Please note:** the master branch is the stable
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, and 1.7 require re-indexing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, and 1.8 require re-indexing.
 
 ## Background
 
@@ -39,7 +39,7 @@ There are other Elasticsearch integration plugins available for WordPress. Elast
 
 ## Installation
 
-1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
+1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. ElasticPress requires WP-CLI. Install it by following [these instructions](http://wp-cli.org).
 3. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
 
@@ -113,7 +113,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ```
 
     ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), and
-    ```terms``` (string|array) parameters. ```field``` must be set to ```slug``` and ```terms``` must be a string or array of term slug(s).
+    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s).
 
 * The following shorthand parameters can be used for querying posts by specific dates:
 
@@ -289,9 +289,9 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     * `BINARY` - Compares query `value` to raw, unanalyzed version of stored meta value. For actual attachment searches, check out [this](https://github.com/elastic/elasticsearch-mapper-attachments).
     * `CHAR` - Compares query `value` to raw, unanalyzed version of stored meta value.
     * `DECIMAL` - Compares query `value` to float version of stored meta value.
-    * `DATE` - Compares query `value` to date version of stored meta value. Query `value` must be formated like `2015-11-14`
-    * `DATETIME` - Compares query `value` to date/time version of stored meta value. Query `value` must be formated like `2012-01-02 05:00:00` or `yyyy:mm:dd hh:mm:ss`.
-    * `TIME` - Compares query `value` to time version of stored meta value. Query `value` must be formated like `17:00:00` or `hh:mm:ss`.
+    * `DATE` - Compares query `value` to date version of stored meta value. Query `value` must be formatted like `2015-11-14`
+    * `DATETIME` - Compares query `value` to date/time version of stored meta value. Query `value` must be formatted like `2012-01-02 05:00:00` or `yyyy:mm:dd hh:mm:ss`.
+    * `TIME` - Compares query `value` to time version of stored meta value. Query `value` must be formatted like `17:00:00` or `hh:mm:ss`.
 
     If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
     is very rarely needed to be used.
@@ -299,7 +299,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
 * ```post_type``` (*string*/*array*)
 
-    Filter posts by post type. ```any``` wil search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
+    Filter posts by post type. ```any``` will search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
 
 * ```offset``` (*int*)
 
@@ -319,7 +319,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Currently only supports: ```title```, ```name```, ```date```, and ```relevance``` (default).
+    Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
 
 * ```order``` (*string*)
 
@@ -459,8 +459,8 @@ The following are special parameters that are only supported by ElasticPress.
 * ```ep_integrate``` (*bool*)
 
     Allows you to perform queries without passing a search parameter. This is pretty powerful as you can leverage Elasticsearch to retrieve queries that are too complex for MySQL (such as a 5-dimensional taxonomy query). For example:
-    
-    Get 20 of the lastest posts
+
+    Get 20 of the latest posts
     ```php
     new WP_Query( array(
         'ep_integrate'   => true,
@@ -568,13 +568,9 @@ Our test suite depends on a running Elasticsearch server. You can supply a host 
 EP_HOST="http://192.168.50.4:9200" phpunit
 ```
 
-#### Dockunit
+### Debugging
 
-ElasticPress contains a valid [Dockunit](https://www.npmjs.com/package/dockunit) file for running unit tests across a variety of environments locally (PHP 5.2 and 5.6). You can use Dockunit by running:
-
-```bash
-dockunit
-```
+We have a [Debug Bar Plugin](https://github.com/10up/debug-bar-elasticpress) available for ElasticPress. This tool allows you to examine all the ElasticPress queries on each page load.
 
 ### Issues
 

@@ -3,10 +3,10 @@
 class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Checking if HTTP request returns 404 status code.
-	 * @var boolean 
+	 * @var boolean
 	 */
 	var $is_404=false;
-	
+
 	/**
 	 * Setup each test.
 	 *
@@ -317,7 +317,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		
+
 		foreach ( $indexedTerms as $term ) {
 			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		}
@@ -365,7 +365,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
 		$this->assertTrue( count( $indexedTerms ) > 0 );
-		
+
 		foreach ( $indexedTerms as $term ) {
 			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
 		}
@@ -524,11 +524,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a taxonomy query
+	 * Test a taxonomy query with slug field
 	 *
-	 * @since 1.0
+	 * @since 1.8
 	 */
-	public function testTaxQuery() {
+	public function testTaxQuerySlug() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ) ) );
@@ -542,6 +542,92 @@ class EPTestSingleSite extends EP_Test_Base {
 					'taxonomy' => 'post_tag',
 					'terms'    => array( 'one' ),
 					'field'    => 'slug',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a taxonomy query with term id field
+	 *
+	 * @since 1.8
+	 */
+	public function testTaxQueryTermId() {
+		$post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ) ) );
+
+		$tags = wp_get_post_tags( $post );
+		$tag_id = 0;
+
+		foreach ( $tags as $tag ) {
+			if ( 'one' === $tag->slug ) {
+				$tag_id = $tag->term_id;
+			}
+		}
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id ),
+					'field'    => 'term_id',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id ),
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a taxonomy query with term name field
+	 *
+	 * @since 1.8
+	 */
+	public function testTaxQueryTermName() {
+		$cat1 =  wp_create_category( 'category one' );
+		$cat2 =  wp_create_category( 'category two' );
+		$cat3 =  wp_create_category( 'category three' );
+
+		$post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_category' => array( $cat1, $cat2 ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_category' => array( $cat1, $cat3 ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'category one' ),
+					'field'    => 'name',
 				)
 			)
 		);
@@ -1065,7 +1151,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testSearchPostTitleOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
 
 		ep_refresh_index();
 
@@ -1080,8 +1166,220 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test post meta string orderby query asc
+	 *
+	 * @since 1.8
+	 */
+	public function testSearchPostMetaStringOrderbyQueryAsc() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'B' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'a' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'meta.test_key.value.sortable',
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Sort by an author login
+	 *
+	 * @since 1.8
+	 */
+	public function testAuthorLoginOrderbyQueryAsc() {
+		$bob = $this->factory->user->create( array( 'user_login' => 'Bob', 'role' => 'administrator' ) );
+		$al = $this->factory->user->create( array( 'user_login' => 'al', 'role' => 'administrator' ) );
+		$jim = $this->factory->user->create( array( 'user_login' => 'Jim', 'role' => 'administrator' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 1', 'post_author' => $al ) );
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 2', 'post_author' => $bob ) );
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 3', 'post_author' => $jim ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'findme',
+			'orderby' => 'post_author.login.sortable',
+			'order'   => 'asc',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$this->assertEquals( 'findme test 1', $query->posts[0]->post_title );
+		$this->assertEquals( 'findme test 2', $query->posts[1]->post_title );
+		$this->assertEquals( 'findme test 3', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Sort by an author display name
+	 *
+	 * @since 1.8
+	 */
+	public function testAuthorDisplayNameOrderbyQueryAsc() {
+		$bob = $this->factory->user->create( array( 'display_name' => 'Bob', 'role' => 'administrator' ) );
+		$al = $this->factory->user->create( array( 'display_name' => 'al', 'role' => 'administrator' ) );
+		$jim = $this->factory->user->create( array( 'display_name' => 'Jim', 'role' => 'administrator' ) );
+
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 1', 'post_author' => $al ) );
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 2', 'post_author' => $bob ) );
+		ep_create_and_sync_post( array( 'post_title' => 'findme test 3', 'post_author' => $jim ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'findme',
+			'orderby' => 'post_author.display_name.sortable',
+			'order'   => 'desc',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$this->assertEquals( 'findme test 3', $query->posts[0]->post_title );
+		$this->assertEquals( 'findme test 2', $query->posts[1]->post_title );
+		$this->assertEquals( 'findme test 1', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test post meta number orderby query asc
+	 *
+	 * @since 1.8
+	 */
+	public function testSearchPostMetaNumOrderbyQueryAsc() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 4 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 2 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1 ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'meta.test_key.long',
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
+	}
+
+	/**
+	 * Test post category orderby query asc
+	 *
+	 * @since 1.8
+	 */
+	public function testSearchTaxNameOrderbyQueryAsc() {
+		$cat1 =  wp_create_category( 'Category 1' );
+		$cat2 =  wp_create_category( 'Another category two' );
+		$cat3 =  wp_create_category( 'basic category' );
+		$cat4 =  wp_create_category( 'Category 0' );
+
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333', 'post_category' => array( $cat4 ) ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444', 'post_category' => array( $cat1 ) ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222', 'post_category' => array( $cat3 ) ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111', 'post_category' => array( $cat2 ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'terms.category.name.sortable',
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
+	}
+
+	/**
+	 * Test post meta number orderby query desc
+	 *
+	 * @since 1.8
+	 */
+	public function testSearchPostMetaNumOrderbyQueryDesc() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 4 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 2 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1 ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'meta.test_key.long',
+			'order'   => 'DESC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[3]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 444', $query->posts[0]->post_title );
+	}
+
+	/**
+	 * Test post meta num multiple fields orderby query asc
+	 *
+	 * @since 1.8
+	 */
+	public function testSearchPostMetaNumMultipleOrderbyQuery() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 3, 'test_key2' => 2 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3, 'test_key2' => 1 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 2, 'test_key2' => 1 ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1, 'test_key2' => 1 ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => 'meta.test_key.long meta.test_key2.long',
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
 	}
 
 	/**
@@ -1096,7 +1394,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
 		sleep( 3 );
 
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
 
 		ep_refresh_index();
 
@@ -1110,7 +1408,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( 'ordertest 222', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertes 333', $query->posts[2]->post_title );
 	}
@@ -1127,7 +1425,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest ordertest order test 111' ) );
 		sleep( 3 );
 
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
 
 		ep_refresh_index();
 
@@ -1140,7 +1438,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( 'ordertest 222', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest ordertest order test 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
 	}
@@ -1226,7 +1524,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testSearchPostNameOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-333' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-111' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-222' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'postname-Ordertest-222' ) );
 
 
 		ep_refresh_index();
@@ -1255,7 +1553,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchDefaultOrderbyQuery() {
 		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_title' => 'ordertet' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertet' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
 
 		ep_refresh_index();
@@ -1269,7 +1567,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertet', $query->posts[1]->post_title );
 	}
 
 	/**
@@ -1281,7 +1579,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchDefaultOrderbyASCOrderQuery() {
 		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
 
 		ep_refresh_index();
@@ -1296,35 +1594,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest', $query->posts[1]->post_title );
-	}
-
-	/**
-	 * Test unallowed orderby parameter
-	 *
-	 * Will revert to default _score orderby
-	 *
-	 * @since 1.1
-	 */
-	public function testSearchUnallowedOrderbyQuery() {
-		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest' ) );
-
-		ep_refresh_index();
-
-		$args = array(
-			's'       => 'ordertest',
-			'orderby' => 'SUPERRELEVANCE',
-			'order'   => 'ASC',
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
-		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest', $query->posts[1]->post_title );
+		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
 	}
 
 	/**
@@ -1907,8 +2177,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertTrue( empty( $cache ) );
 	}
-	
-		
+
+
 	/**
 	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
 	 * @group 306
@@ -1975,7 +2245,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Helper method for mocking indexable post statuses
-	 * 
+	 *
 	 * @param   array $post_statuses
 	 * @return  array
 	 */
@@ -1987,7 +2257,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test invalid post date time
-	 * 
+	 *
 	 * @param   array $post_statuses
 	 * @return  array
 	 */
@@ -2015,10 +2285,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertNotNull( $post );
 		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
 	}
-	
+
 	/**
 	 * Test to verify that a post type that is set to exclude_from_search isn't indexable.
-	 * 
+	 *
 	 * @since 1.6
 	 * @link https://github.com/10up/ElasticPress/issues/321
 	 */
@@ -2027,10 +2297,10 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertArrayNotHasKey( 'ep_test_excluded', $post_types );
 		$this->assertArrayNotHasKey( 'ep_test_not_public', $post_types );
 	}
-	
+
 	/**
 	 * Test to make sure that brand new posts with 'auto-draft' post status do not fire delete or sync.
-	 * 
+	 *
 	 * @since 1.6
 	 * @link https://github.com/10up/ElasticPress/issues/343
 	 */
@@ -2051,7 +2321,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Runs on http_api_debug action to check for a returned 404 status code.
-	 * 
+	 *
 	 * @param array|WP_Error $response  HTTP response or WP_Error object.
 	 * @param string $type Context under which the hook is fired.
 	 * @param string $class HTTP transport used.
@@ -2110,7 +2380,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Helper method for filtering private meta keys
-	 * 
+	 *
 	 * @param  array $meta_keys
 	 * @return array
 	 */
@@ -2124,7 +2394,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Helper method for filtering excluded meta keys
-	 * 
+	 *
 	 * @param  array $meta_keys
 	 * @return array
 	 */

@@ -18,6 +18,11 @@ return array(
 					'tokenizer' => 'standard',
 					'filter' => array( 'lowercase', 'shingle_filter' ),
 				),
+				'ewp_lowercase' => array(
+					'type' => 'custom',
+					'tokenizer' => 'keyword',
+					'filter' => array( 'lowercase' ),
+				),
 			),
 			'filter' => array(
 				'shingle_filter' => array(
@@ -75,8 +80,20 @@ return array(
 							'properties' => array(
 								'value' => array(
 									'type' => 'string',
+									'fields' => array(
+										'sortable' => array(
+											'type' => 'string',
+											'analyzer' => 'ewp_lowercase',
+											'include_in_all' => false,
+										),
+										'raw' => array(
+											'type' => 'string',
+											'index' => 'not_analyzed',
+											'include_in_all' => false,
+										),
+									),
 								),
-								'raw' => array(
+								'raw' => array( /* Left for backwards compat */
 									'type' => 'string',
 									'index' => 'not_analyzed',
 									'include_in_all' => false,
@@ -121,6 +138,16 @@ return array(
 							'properties' => array(
 								'name' => array(
 									'type' => 'string',
+									'fields' => array(
+										'raw' => array(
+											'type' => 'string',
+											'index' => 'not_analyzed',
+										),
+										'sortable' => array(
+											'type' => 'string',
+											'analyzer' => 'ewp_lowercase',
+										),
+									),
 								),
 								'term_id' => array(
 									'type' => 'long',
@@ -160,11 +187,29 @@ return array(
 					'properties' => array(
 						'display_name' => array(
 							'type' => 'string',
-							'analyzer' => 'standard',
+							'fields' => array(
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+								),
+								'sortable' => array(
+									'type' => 'string',
+									'analyzer' => 'ewp_lowercase',
+								),
+							),
 						),
 						'login' => array(
 							'type' => 'string',
-							'analyzer' => 'standard',
+							'fields' => array(
+								'raw' => array(
+									'type' => 'string',
+									'index' => 'not_analyzed',
+								),
+								'sortable' => array(
+									'type' => 'string',
+									'analyzer' => 'ewp_lowercase',
+								),
+							),
 						),
 						'id' => array(
 							'type' => 'long',
@@ -198,6 +243,11 @@ return array(
 						'raw' => array(
 							'type' => 'string',
 							'index' => 'not_analyzed',
+							'include_in_all' => false,
+						),
+						'sortable' => array(
+							'type' => 'string',
+							'analyzer' => 'ewp_lowercase',
 							'include_in_all' => false,
 						),
 					),
