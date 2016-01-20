@@ -4,8 +4,8 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
-Tested up to: 4.4
-Stable tag: 1.7
+Tested up to: 4.5
+Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,7 +26,7 @@ Coupling WordPress with Elasticsearch allows us to do amazing things with search
 * Proximity and geographic queries
 * Search metadata
 * Search taxonomies
-* Facets
+* Facets/aggregations
 * Search all sites on a multisite install
 * [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
 
@@ -59,6 +59,28 @@ configuring single site and multi-site cross-site search are slightly different.
 4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
 == Changelog ==
+
+= 1.8 (Mapping change, requires reindex) =
+
+ElasticPress 1.8 adds a bunch of mapping changes for accomplishing more complex WP_Query functions such as filtering by term id and sorting by any Elasticsearch property. Version 1.8 also speeds up post syncing dramatically through non-blocking queries. Full list of enhancements and bug fixes:
+
+Enhancements:
+
+* Add a filter around the search fuzziness argument. Props [dkotter](https://github.com/dkotter).
+* Make post indexing a non-blocking query. Props [cmmarslender](https://github.com/cmmarslender).
+* Log queries for debugging. Makes [ElasticPress Debug Bar](https://github.com/10up/debug-bar-elasticpress) plugin possible.
+* Make `posts_per_page = -1` possible.
+* Support term id and name tax queries.
+* Add raw/sortable to property to term mapping. Props [sc0ttkclark](https://github.com/sc0ttkclark)
+* Add raw/sortable property to meta mapping. Props [sc0ttkclark](https://github.com/sc0ttkclark)
+* Add raw/sortable to author display name and login
+
+Bugs:
+
+* Fix post deletion. Props [lukaspawlik](https://github.com/lukaspawlik).
+* Properly flush cache with `wp_cache_flush`. Props [jstensved](https://github.com/jstensved)
+* When directly comparing meta values in a meta query, use the `raw` property instead of `value`.
+* Support arbitrary document paths in orderby. Props [sc0ttkclark](https://github.com/sc0ttkclark).
 
 = 1.7 (Mapping change, requires reindex) =
 
