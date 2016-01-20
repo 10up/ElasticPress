@@ -337,7 +337,7 @@ class EP_User_Query_Integration {
 			$meta_filter = array();
 
 			$relation = 'must';
-			if ( ! empty( $meta_query->queries['relation'] ) && 'or' === strtolower( $meta_query->queries['relation'] ) ) {
+			if ( ! empty( $meta_query->relation ) && 'or' === strtolower( $meta_query->relation ) ) {
 				$relation = 'should';
 			}
 
