@@ -81,6 +81,12 @@ class EP_User_Query_Integration {
 			);
 		}
 		$this->action_pre_get_users( $wp_user_query );
+		if ( empty( $wp_user_query->query_vars['elasticpress'] ) ) {
+			return;
+		}
+		$this->disable();
+		$wp_user_query->prepare_query();
+		$this->setup();
 	}
 
 	/**
