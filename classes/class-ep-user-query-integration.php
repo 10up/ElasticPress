@@ -608,6 +608,7 @@ class EP_User_Query_Integration {
 	private function is_user_indexing_active() {
 		return (
 			( ep_is_activated() || ( defined( 'WP_CLI' ) && WP_CLI ) ) &&
+			$this->user_index &&
 			$this->user_index->active()
 		);
 	}
