@@ -209,15 +209,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$total_indexed = 0;
 
-		$keep_active = false;
-		if (
-			isset( $assoc_args['keep-active'] ) &&
-			true === $assoc_args['keep-active'] &&
-			( ! isset( $assoc_args['setup'] ) || false === $assoc_args['setup'] )
-		) {
-			$keep_active = true;
-		}
-
 		/**
 		 * Prior to the index command invoking
 		 * Useful for deregistering filters/actions that occur during a query request
@@ -226,8 +217,13 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		// Deactivate our search integration
-		if ( ! $keep_active ) {
+		// Deactivate ElasticPress if setup is set to true.
+		if (
+			! isset( $assoc_args['keep-active'] ) ||
+			false === $assoc_args['keep-active'] ||
+			( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] )
+		) {
+			// Deactivate our search integration
 			$this->deactivate();
 		}
 
