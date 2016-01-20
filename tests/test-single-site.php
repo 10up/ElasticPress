@@ -3305,6 +3305,52 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * @group users
 	 */
+	public function testUserMetaQueryAdvanced() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3, array( 'display_name' => 'jane doe findme' ) );
+
+		update_user_meta( $ids[0], 'test_key', 'value1' );
+		update_user_meta( $ids[1], 'test_key', 'value1' );
+		update_user_meta( $ids[1], 'test_key2', 'value' );
+		update_user_meta( $ids[2], 'test_key', 'value' );
+		update_user_meta( $ids[2], 'test_key2', 'value2' );
+		update_user_meta( $ids[2], 'test_key3', 'value' );
+
+		wp_update_user( array( 'ID' => $ids[0] ) );
+		wp_update_user( array( 'ID' => $ids[1] ) );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key3',
+					'compare' => 'exists',
+				),
+				array(
+					'key' => 'test_key2',
+					'value' => 'value2',
+					'compare' => '=',
+				),
+				array(
+					'key' => 'test_key',
+					'value' => 'value1',
+					'compare' => '!=',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array(new WP_User($ids[2])),$query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
 	public function testUserMetaQueryLike() {
 		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
 		$ids = $this->getFactory()->user->create_many( 5, array( 'display_name' => 'jane doe findme' ) );
