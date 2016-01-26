@@ -4,7 +4,7 @@
  *
  * @package ElasticPress
  *
- * @since   0.1.0
+ * @since   1.9
  *
  * @author  Chris Wiegman <chris.wiegman@10up.com>
  */
@@ -19,7 +19,7 @@ class EP_Index_Worker {
 	/**
 	 * Holds the posts that will be bulk synced.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @var array
 	 */
@@ -30,7 +30,7 @@ class EP_Index_Worker {
 	 *
 	 * Initiates the index worker process.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @return EP_Index_Worker
 	 */
@@ -45,7 +45,7 @@ class EP_Index_Worker {
 	 *
 	 * Helper method for creating the network alias
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @return array|bool Array of indexes or false on error
 	 */
@@ -73,7 +73,7 @@ class EP_Index_Worker {
 	 *
 	 * Index all posts for a site or network wide.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @return bool True on success or false
 	 */
@@ -96,7 +96,7 @@ class EP_Index_Worker {
 	 *
 	 * Handles the sync operation for individual posts.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @return array Array of posts successfully synced as well as errors
 	 */
@@ -196,7 +196,7 @@ class EP_Index_Worker {
 	 *
 	 * Adds individual posts to a queue for later processing.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @param int $post_id      The post ID to add.
 	 * @param int $bulk_trigger The maximum number of posts to hold in the queue before triggering a bulk-update operation.
@@ -237,7 +237,7 @@ class EP_Index_Worker {
 	 *
 	 * Sends multiple posts to the ES server at once.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @param int $offset The current offset to keep track of.
 	 *
@@ -349,7 +349,7 @@ class EP_Index_Worker {
 	 *
 	 * Emails bulk errors regarding any posts that failed to index.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @return void
 	 */

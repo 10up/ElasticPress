@@ -4,7 +4,7 @@
  *
  * @package ElasticPress
  *
- * @since   0.1.0
+ * @since   1.9
  *
  * @author  Chris Wiegman <chris.wiegman@10up.com>
  */
@@ -21,7 +21,7 @@ class EP_Index_GUI {
 	/**
 	 * Path to the class file
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @var string
 	 */
@@ -33,7 +33,7 @@ class EP_Index_GUI {
 	 * Loads various hook functions required to build the
 	 * Easy EP interface.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @return EP_Index_GUI
 	 */
@@ -58,7 +58,7 @@ class EP_Index_GUI {
 	 *
 	 * Adds a meta box for allowing remote indexing.
 	 *
-	 * @since 0.4.0
+	 * @since 1.9
 	 *
 	 * @param EP_Settings $ep_settings Instance of EP_Settings.
 	 *
@@ -159,7 +159,7 @@ class EP_Index_GUI {
 	 *
 	 * Processes the action when the manual indexing button is clicked.
 	 *
-	 * @since 0.1.0
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
@@ -289,7 +289,7 @@ class EP_Index_GUI {
 	 *
 	 * Returns the HTML for stats for an individual site.
 	 *
-	 * @since 1.8
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
