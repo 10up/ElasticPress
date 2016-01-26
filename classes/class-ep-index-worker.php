@@ -181,8 +181,17 @@ class EP_Index_Worker {
 		if ( true === $complete ) {
 
 			delete_transient( 'ep_index_offset' );
-			$this->send_bulk_errors();
 
+			/**
+			 * Allow disabling of bulk error email.
+			 *
+			 * @since 1.9
+			 *
+			 * @param bool $to_send true to send bulk errors or false [Default: true]
+			 */
+			if ( true === apply_filters( 'ep_disable_index_bulk_errors', true ) ) {
+				$this->send_bulk_errors();
+			}
 		}
 
 		wp_reset_postdata();
@@ -370,7 +379,34 @@ class EP_Index_Worker {
 				}
 			}
 
-			wp_mail( get_option( 'admin_email' ), wp_specialchars_decode( get_option( 'blogname' ) ) . esc_html__( ': ElasticPress Index Errors', 'elasticpress' ), $email_text );
+			/**
+			 * Filter the email text used to send the bulk error email
+			 *
+			 * @since 1.9
+			 *
+			 * @param string $email_text The message body of the bulk error email.
+			 */
+			$email_text = apply_filters( 'ep_bulk_errors_email_text', $email_text );
+
+			/**
+			 * Filter the email subject used to send the bulk error email
+			 *
+			 * @since 1.9
+			 *
+			 * @param string $email_subject The subject of the bulk error email.
+			 */
+			$email_subject = apply_filters( 'ep_bulk_errors_email_subject', wp_specialchars_decode( get_option( 'blogname' ) ) . esc_html__( ': ElasticPress Index Errors', 'elasticpress' ) );
+
+			/**
+			 * Filter the email recipient who should receive the bulk indexing errors
+			 *
+			 * @since 1.9
+			 *
+			 * @param string $email_to The email address to which the bulk errors should be sent.
+			 */
+			$email_to = apply_filters( 'wp_bulk_errors_email_to', get_option( 'admin_email' ) );
+
+			wp_mail( $email_to, $email_subject, $email_text );
 
 			// Clear failed posts after sending emails.
 			delete_transient( 'ep_index_failed_posts' );
