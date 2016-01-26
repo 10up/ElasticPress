@@ -4,7 +4,7 @@
  *
  * @since   0.1.0
  *
- * @package Jovosearch
+ * @package ElasticPress
  *
  * @author  Allan Collins <allan.collins@10up.com>
  */

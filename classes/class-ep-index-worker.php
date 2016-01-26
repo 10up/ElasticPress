@@ -2,7 +2,7 @@
 /**
  * Process indexing of posts
  *
- * @package Jovosearch
+ * @package ElasticPress
  *
  * @since   0.1.0
  *

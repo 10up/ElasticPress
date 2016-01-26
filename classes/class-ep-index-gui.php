@@ -1,8 +1,8 @@
 <?php
 /**
- * Jovo Indexing Interface
+ * ElasticPress Indexing Interface
  *
- * @package Jovosearch
+ * @package ElasticPress
  *
  * @since   0.1.0
  *
@@ -60,7 +60,7 @@ class EP_Index_GUI {
 	 *
 	 * @since 0.4.0
 	 *
-	 * @param Jovo_Settings $ep_settings Instance of Jovo_Settings.
+	 * @param EP_Settings $ep_settings Instance of EP_Settings.
 	 *
 	 * @return void
 	 */
