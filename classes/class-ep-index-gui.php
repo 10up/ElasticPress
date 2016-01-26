@@ -147,7 +147,7 @@ class EP_Index_GUI {
 				'ep_posts_synced'   => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
 				'ep_posts_total'    => absint( $total['total'] ),
 				'ep_current_synced' => $index_success['current_synced'],
-		);
+			);
 
 		} else {
 
@@ -156,7 +156,7 @@ class EP_Index_GUI {
 				'ep_posts_synced'   => ( false === get_transient( 'ep_index_synced' ) ? 0 : absint( get_transient( 'ep_index_synced' ) ) ),
 				'ep_posts_total'    => absint( $total['total'] ),
 				'ep_current_synced' => $index_success['current_synced'],
-		);
+			);
 		}
 
 		return $data;
