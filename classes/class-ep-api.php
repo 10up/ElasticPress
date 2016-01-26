@@ -239,7 +239,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . 'post/' . $post_id;
+		$path = $index . '/post/' . $post_id;
 
 		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
 
@@ -1720,6 +1720,292 @@ class EP_API {
 
 	}
 
+	/**
+	 * Parse response from Elasticsearch
+	 *
+	 * Determines if there is an issue or if the response is valid.
+	 *
+	 * @since 1.9
+	 *
+	 * @param object $response JSON decoded response from ElasticSearch.
+	 *
+	 * @return array Contains the status message or the returned statistics.
+	 */
+	public function parse_api_response( $response ) {
+
+		if ( null === $response ) {
+
+			return array(
+				'status' => false,
+				'msg'    => esc_html__( 'Invalid response from ElasticPress server. Please contact your administrator.' ),
+			);
+
+		} elseif (
+			isset( $response->error ) &&
+			(
+				( is_string( $response->error ) && stristr( $response->error, 'IndexMissingException' ) ) ||
+				( isset( $response->error->reason ) && stristr( $response->error->reason, 'no such index' ) )
+			)
+		) {
+
+			if ( is_multisite() ) {
+
+				$error = __( 'Site not indexed. <p>Please run: <code>wp elasticpress index --setup --network-wide</code> using WP-CLI. Or use the index button on the left of this screen.</p>', 'elasticpress' );
+
+			} else {
+
+				$error = __( 'Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> using WP-CLI. Or use the index button on the left of this screen.</p>', 'elasticpress' );
+
+			}
+
+			return array(
+				'status' => false,
+				'msg'    => $error,
+			);
+
+		}
+
+		return array( 'status' => true, 'data' => $response->_all->primaries->indexing );
+
+	}
+
+	/**
+	 * Get ElasticSearch plugins
+	 *
+	 * Gets a list of available ElasticSearch plugins.
+	 *
+	 * @since 1.9
+	 *
+	 * @return array Array of plugins and their version or error message
+	 */
+	public function get_plugins() {
+
+		$plugins = get_transient( 'ep_installed_plugins' );
+
+		if ( is_array( $plugins ) ) {
+			return $plugins;
+		}
+
+		$plugins = array();
+
+		if ( is_wp_error( ep_get_host() ) ) {
+
+			return array(
+				'status' => false,
+				'msg'    => esc_html__( 'ElasticSearch Host is not available.', 'elasticpress' ),
+			);
+
+		}
+
+		$path = '/_nodes?plugin=true';
+
+		$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
+
+		if ( ! is_wp_error( $request ) ) {
+
+			$response = json_decode( wp_remote_retrieve_body( $request ), true );
+
+			if ( isset( $response['nodes'] ) ) {
+
+				foreach ( $response['nodes'] as $node ) {
+
+					if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
+
+						foreach ( $node['plugins'] as $plugin ) {
+
+							$plugins[ $plugin['name'] ] = $plugin['version'];
+
+						}
+
+						break;
+
+					}
+				}
+			}
+
+			set_transient( 'ep_installed_plugins', $plugins, apply_filters( 'ep_installed_plugins_exp', 3600 ) );
+
+			return $plugins;
+
+		}
+
+		return array(
+			'status' => false,
+			'msg'    => $request->get_error_message(),
+		);
+
+	}
+
+	/**
+	 * Get cluster status
+	 *
+	 * Retrieves cluster stats from ElasticSearch.
+	 *
+	 * @since 1.9
+	 *
+	 * @return array Contains the status message or the returned statistics.
+	 */
+	public function get_cluster_status() {
+
+		if ( is_wp_error( ep_get_host() ) ) {
+
+			return array(
+				'status' => false,
+				'msg'    => esc_html__( 'ElasticSearch Host is not available.', 'elasticpress' ),
+			);
+
+		} else {
+
+			$request = ep_remote_request( '_cluster/stats', array( 'method' => 'GET' ) );
+
+			if ( ! is_wp_error( $request ) ) {
+
+				$response = json_decode( wp_remote_retrieve_body( $request ) );
+
+				return $response;
+
+			}
+
+			return array(
+				'status' => false,
+				'msg'    => $request->get_error_message(),
+			);
+
+		}
+	}
+
+	/**
+	 * Get index status
+	 *
+	 * Retrieves index stats from ElasticSearch.
+	 *
+	 * @since 1.9
+	 *
+	 * @param int $blog_id Id of blog to get stats.
+	 *
+	 * @return array Contains the status message or the returned statistics.
+	 */
+	public function get_index_status( $blog_id = null ) {
+
+		if ( is_wp_error( ep_get_host( true ) ) ) {
+
+			return array(
+				'status' => false,
+				'msg'    => esc_html__( 'ElasticSearch Host is not available.', 'elasticpress' ),
+			);
+
+		} else {
+
+			if ( is_multisite() && null === $blog_id ) {
+
+				$path = ep_get_network_alias() . '/_stats/indexing/';
+
+			} else {
+
+				$path = ep_get_index_name( $blog_id ) . '/_stats/indexing/';
+
+			}
+
+			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
+
+		}
+
+		if ( ! is_wp_error( $request ) ) {
+
+			$response = json_decode( wp_remote_retrieve_body( $request ) );
+
+			return ep_parse_api_response( $response );
+
+		}
+
+		return array(
+			'status' => false,
+			'msg'    => $request->get_error_message(),
+		);
+
+	}
+
+	/**
+	 * Retrieves search stats from ElasticSearch.
+	 *
+	 * Retrieves various search statistics from the ES server.
+	 *
+	 * @since 1.9
+	 *
+	 * @param int $blog_id Id of blog to get stats.
+	 *
+	 * @return array Contains the status message or the returned statistics.
+	 */
+	public function get_search_status( $blog_id = null ) {
+
+		if ( is_wp_error( ep_get_host() ) ) {
+
+			return array(
+				'status' => false,
+				'msg'    => esc_html__( 'ElasticSearch Host is not available.', 'elasticpress' ),
+			);
+
+		} else {
+
+			if ( is_multisite() && null === $blog_id ) {
+
+				$path = ep_get_network_alias() . '/_stats/search/';
+
+			} else {
+
+				$path = ep_get_index_name( $blog_id ) . '/_stats/search/';
+
+			}
+
+			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
+
+		}
+
+		if ( ! is_wp_error( $request ) ) {
+
+			$stats = json_decode( wp_remote_retrieve_body( $request ) );
+
+			if ( isset( $stats->_all ) ) {
+				return $stats->_all->primaries->search;
+			}
+
+			return false;
+
+		}
+
+		return array(
+			'status' => false,
+			'msg'    => $request->get_error_message(),
+		);
+
+	}
+
+	/**
+	 * Add the document mapping
+	 *
+	 * Creates the document mapping for the index.
+	 *
+	 * @since      1.9
+	 *
+	 * @return bool true on success or false
+	 */
+	public function process_site_mappings() {
+
+		ep_check_host();
+
+		// Deletes index first.
+		ep_delete_index();
+
+		$result = ep_put_mapping();
+
+		if ( $result ) {
+			return true;
+		}
+
+		return false;
+
+	}
+
 }
 
 EP_API::factory();
@@ -1814,4 +2100,28 @@ function ep_remote_request( $path, $args ) {
 
 function ep_get_query_log() {
 	return EP_API::factory()->get_query_log();
+}
+
+function ep_parse_api_response( $response ) {
+	return EP_API::factory()->parse_api_response( $response );
+}
+
+function ep_get_plugins() {
+	return EP_API::factory()->get_plugins();
+}
+
+function ep_get_search_status( $blog_id = null ) {
+	return EP_API::factory()->get_search_status( $blog_id );
+}
+
+function ep_get_index_status( $blog_id = null ) {
+	return EP_API::factory()->get_index_status( $blog_id );
+}
+
+function ep_get_cluster_status() {
+	return EP_API::factory()->get_cluster_status();
+}
+
+function ep_process_site_mappings() {
+	return EP_API::factory()->process_site_mappings();
 }
