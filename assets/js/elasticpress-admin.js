@@ -20,7 +20,7 @@ jQuery( document ).ready( function ( $ ) {
 			if ( parseInt( ep.total_posts ) > 0 ) {
 
 				progress = parseFloat( ep.synced_posts ) / parseFloat( ep.total_posts );
-				status.html( ep.synced_posts + '/' + ep.total_posts + 'items' );
+				status.text( ep.synced_posts + '/' + ep.total_posts + 'items' );
 
 			}
 
@@ -98,7 +98,7 @@ jQuery( document ).ready( function ( $ ) {
 						}
 					);
 
-					status.html( epTotalIndexed + '/' + epTotalToIndex + ' ' + ep.items_indexed + sitesCompletedText );
+					status.text( epTotalIndexed + '/' + epTotalToIndex + ' ' + ep.items_indexed + sitesCompletedText );
 
 					if ( 1 == response.responseJSON.data.ep_sync_complete ) { //indexing complete
 
