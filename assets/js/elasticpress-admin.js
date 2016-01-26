@@ -167,8 +167,6 @@ jQuery( document ).ready( function ( $ ) {
 
 		event.preventDefault();
 
-		console.log( selector.val() );
-
 		var data = {
 			action : 'ep_get_site_stats',
 			nonce :  ep.stats_nonce,
