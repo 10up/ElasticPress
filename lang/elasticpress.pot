@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-17 13:07-0500\n"
+"POT-Creation-Date: 2016-01-26 14:35-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -109,26 +109,26 @@ msgstr ""
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1728
+#: classes/class-ep-api.php:1740
 msgid ""
 "Invalid response from ElasticPress server. Please contact your administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1741
+#: classes/class-ep-api.php:1753
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup --"
 "network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1745
+#: classes/class-ep-api.php:1757
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1783 classes/class-ep-api.php:1842
-#: classes/class-ep-api.php:1882 classes/class-ep-api.php:1933
+#: classes/class-ep-api.php:1795 classes/class-ep-api.php:1854
+#: classes/class-ep-api.php:1894 classes/class-ep-api.php:1945
 msgid "ElasticSearch Host is not available."
 msgstr ""
 
@@ -136,52 +136,52 @@ msgstr ""
 msgid "No running host available."
 msgstr ""
 
-#: classes/class-ep-index-gui.php:116
+#: classes/class-ep-index-gui.php:125
 msgid ""
 "Mappings could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:129
+#: classes/class-ep-index-gui.php:138
 msgid ""
 "Indexing could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:170 classes/class-ep-index-gui.php:300
+#: classes/class-ep-index-gui.php:179 classes/class-ep-index-gui.php:309
 #: classes/class-ep-settings.php:147
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:313 includes/settings/status.php:72
+#: classes/class-ep-index-gui.php:322 includes/settings/status.php:72
 msgid "Search Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:316 includes/settings/status.php:76
+#: classes/class-ep-index-gui.php:325 includes/settings/status.php:76
 msgid "Total Queries:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:319 includes/settings/status.php:79
+#: classes/class-ep-index-gui.php:328 includes/settings/status.php:79
 msgid "Query Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:322 includes/settings/status.php:83
+#: classes/class-ep-index-gui.php:331 includes/settings/status.php:83
 msgid "Total Fetches:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:325 includes/settings/status.php:86
+#: classes/class-ep-index-gui.php:334 includes/settings/status.php:86
 msgid "Fetch Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:330 includes/settings/status.php:95
+#: classes/class-ep-index-gui.php:339 includes/settings/status.php:95
 msgid "Index Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:333 includes/settings/status.php:99
+#: classes/class-ep-index-gui.php:342 includes/settings/status.php:99
 msgid "Index Total:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:336 includes/settings/status.php:102
+#: classes/class-ep-index-gui.php:345 includes/settings/status.php:102
 msgid "Index Time:"
 msgstr ""
 
@@ -189,11 +189,11 @@ msgstr ""
 msgid "Index Status"
 msgstr ""
 
-#: classes/class-ep-index-worker.php:362
+#: classes/class-ep-index-worker.php:371
 msgid "The following posts failed to index:"
 msgstr ""
 
-#: classes/class-ep-index-worker.php:373
+#: classes/class-ep-index-worker.php:398
 msgid ": ElasticPress Index Errors"
 msgstr ""
 
