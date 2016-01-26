@@ -80,6 +80,15 @@ class EP_Index_GUI {
 
 	}
 
+	/**
+	 * Executes the index
+	 *
+	 * When the indexer is called VIA Ajax this function starts the index or resumes from the previous position.
+	 *
+	 * @since 1.9
+	 *
+	 * @return array|WP_Error
+	 */
 	protected function _run_index() {
 
 		$post_count    = array( 'total' => 0 );
