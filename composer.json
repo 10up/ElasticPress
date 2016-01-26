@@ -23,6 +23,8 @@
     "php": ">=5.2"
   },
   "require-dev": {
-    "codeclimate/php-test-reporter": "dev-master"
+    "codeclimate/php-test-reporter": "dev-master",
+    "phpunit/phpunit": "*@stable",
+    "wp-cli/wp-cli": "master"
   }
 }
