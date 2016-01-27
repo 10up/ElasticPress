@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-26 14:35-0500\n"
+"POT-Creation-Date: 2016-01-27 16:57-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -109,26 +109,26 @@ msgstr ""
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1740
+#: classes/class-ep-api.php:1764
 msgid ""
 "Invalid response from ElasticPress server. Please contact your administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1753
+#: classes/class-ep-api.php:1777
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup --"
 "network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1757
+#: classes/class-ep-api.php:1781
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1795 classes/class-ep-api.php:1854
-#: classes/class-ep-api.php:1894 classes/class-ep-api.php:1945
+#: classes/class-ep-api.php:1819 classes/class-ep-api.php:1878
+#: classes/class-ep-api.php:1918 classes/class-ep-api.php:1969
 msgid "ElasticSearch Host is not available."
 msgstr ""
 
@@ -149,39 +149,39 @@ msgid ""
 msgstr ""
 
 #: classes/class-ep-index-gui.php:179 classes/class-ep-index-gui.php:309
-#: classes/class-ep-settings.php:147
+#: classes/class-ep-settings.php:154
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:322 includes/settings/status.php:72
+#: classes/class-ep-index-gui.php:322 includes/settings/status.php:70
 msgid "Search Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:325 includes/settings/status.php:76
+#: classes/class-ep-index-gui.php:325 includes/settings/status.php:74
 msgid "Total Queries:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:328 includes/settings/status.php:79
+#: classes/class-ep-index-gui.php:328 includes/settings/status.php:77
 msgid "Query Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:331 includes/settings/status.php:83
+#: classes/class-ep-index-gui.php:331 includes/settings/status.php:81
 msgid "Total Fetches:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:334 includes/settings/status.php:86
+#: classes/class-ep-index-gui.php:334 includes/settings/status.php:84
 msgid "Fetch Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:339 includes/settings/status.php:95
+#: classes/class-ep-index-gui.php:339 includes/settings/status.php:93
 msgid "Index Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:342 includes/settings/status.php:99
+#: classes/class-ep-index-gui.php:342 includes/settings/status.php:97
 msgid "Index Total:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:345 includes/settings/status.php:102
+#: classes/class-ep-index-gui.php:345 includes/settings/status.php:100
 msgid "Index Time:"
 msgstr ""
 
@@ -197,39 +197,45 @@ msgstr ""
 msgid ": ElasticPress Index Errors"
 msgstr ""
 
-#: classes/class-ep-settings.php:107
+#: classes/class-ep-settings.php:106
 msgid "items indexed"
 msgstr ""
 
-#: classes/class-ep-settings.php:110
+#: classes/class-ep-settings.php:109
 msgid "items indexed in "
 msgstr ""
 
-#: classes/class-ep-settings.php:119 includes/settings/index.php:14
+#: classes/class-ep-settings.php:124 includes/settings/index.php:14
 msgid "Running Index..."
 msgstr ""
 
-#: classes/class-ep-settings.php:120 includes/settings/index.php:14
+#: classes/class-ep-settings.php:125 includes/settings/index.php:14
 msgid "Run Index"
 msgstr ""
 
-#: classes/class-ep-settings.php:122
+#: classes/class-ep-settings.php:127
 msgid " site(s)"
+msgstr ""
+
+#: classes/class-ep-settings.php:131
+msgid ""
+"A failure has occured. Please try the indexing operation again and if the "
+"error persists contact your website administrator."
+msgstr ""
+
+#: classes/class-ep-settings.php:132
+msgid "Index complete <a href=\"\">Refresh the stats</a>"
 msgstr ""
 
 #: classes/class-ep-settings.php:180
 msgid "ElasticSearch Host:"
 msgstr ""
 
-#: classes/class-ep-settings.php:185
-msgid "ElasticPress API Key:"
-msgstr ""
-
-#: classes/class-ep-settings.php:194
+#: classes/class-ep-settings.php:189
 msgid "Use ElasticSearch:"
 msgstr ""
 
-#: classes/class-ep-settings.php:432
+#: classes/class-ep-settings.php:420
 msgid "ElasticSearch Integration Options"
 msgstr ""
 
@@ -267,7 +273,9 @@ msgid ""
 msgstr ""
 
 #: includes/settings/status.php:37
-msgid "A host has not been set. You must set a host to continue."
+msgid ""
+"A host has not been set or is set but cannot be contacted. You must set a "
+"proper host to continue."
 msgstr ""
 
 #: includes/settings/status.php:48
@@ -282,45 +290,45 @@ msgstr ""
 msgid "ElasticPress can override WP search."
 msgstr ""
 
-#: includes/settings/status.php:63
+#: includes/settings/status.php:61
 msgid ""
-"ElasticPress is not activated and cannot override WP search. You can "
-"activate it on the form to the left."
+"ElasticPress is not enabled and cannot override WP queries. You can activate "
+"it on the form to the left."
 msgstr ""
 
-#: includes/settings/status.php:68
+#: includes/settings/status.php:66
 msgid "System Stats"
 msgstr ""
 
-#: includes/settings/status.php:114
+#: includes/settings/status.php:112
 msgid "Site Stats"
 msgstr ""
 
-#: includes/settings/status.php:117
+#: includes/settings/status.php:115
 msgid "Select a site:"
 msgstr ""
 
-#: includes/settings/status.php:118
+#: includes/settings/status.php:116
 msgid "Select"
 msgstr ""
 
-#: includes/settings/status.php:153
+#: includes/settings/status.php:151
 msgid "Cluster Stats"
 msgstr ""
 
-#: includes/settings/status.php:163
+#: includes/settings/status.php:161
 msgid "Disk Usage:"
 msgstr ""
 
-#: includes/settings/status.php:167
+#: includes/settings/status.php:165
 msgid "Disk Space Available:"
 msgstr ""
 
-#: includes/settings/status.php:170
+#: includes/settings/status.php:168
 msgid "Total Disk Space:"
 msgstr ""
 
-#: includes/settings/status.php:183
+#: includes/settings/status.php:181
 msgid "ERROR:"
 msgstr ""
 
