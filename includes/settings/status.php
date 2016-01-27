@@ -60,7 +60,7 @@ if ( $stats['status'] ) {
 	<?php } else { ?>
 
 		<span class="dashicons dashicons-no"
-		      style="color:red;"></span> <?php esc_html_e( 'ElasticPress is not activated and cannot override WP search. You can activate it on the form to the left.', 'elasticpress' ); ?>
+		      style="color:red;"></span> <?php esc_html_e( 'ElasticPress is not enabled and cannot override WP search. You can activate it on the form to the left.', 'elasticpress' ); ?>
 		<br/>
 
 	<?php } ?>
