@@ -66,6 +66,10 @@ class EP_Uninstaller {
 		delete_site_option( 'ep_host' );
 		delete_site_option( 'ep_activate' );
 
+		// Delete options if we're not network activated.
+		delete_option( 'ep_host' );
+		delete_option( 'ep_activate' );
+
 		// Delete transients.
 		delete_transient( 'ep_post_count' );
 		delete_transient( 'ep_index_offset' );

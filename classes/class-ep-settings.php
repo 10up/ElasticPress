@@ -111,19 +111,19 @@ class EP_Settings {
 			}
 
 			wp_localize_script(
-					'ep_admin',
-					'ep',
-					array(
-							'nonce'               => wp_create_nonce( 'ep_manual_index' ),
-							'stats_nonce'         => wp_create_nonce( 'ep_site_stats' ),
-							'running_index_text'  => esc_html__( 'Running Index...', 'elasticpress' ),
-							'index_complete_text' => esc_html__( 'Run Index', 'elasticpress' ),
-							'items_indexed'       => $indexed,
-							'sites'               => esc_html__( ' site(s)', 'elasticpress' ),
-							'index_running'       => $running,
-							'total_posts'         => isset( $total_posts['total'] ) ? $total_posts['total'] : 0,
-							'synced_posts'        => $synced_posts,
-					)
+				'ep_admin',
+				'ep',
+				array(
+					'nonce'               => wp_create_nonce( 'ep_manual_index' ),
+					'stats_nonce'         => wp_create_nonce( 'ep_site_stats' ),
+					'running_index_text'  => esc_html__( 'Running Index...', 'elasticpress' ),
+					'index_complete_text' => esc_html__( 'Run Index', 'elasticpress' ),
+					'items_indexed'       => $indexed,
+					'sites'               => esc_html__( ' site(s)', 'elasticpress' ),
+					'index_running'       => $running,
+					'total_posts'         => isset( $total_posts['total'] ) ? $total_posts['total'] : 0,
+					'synced_posts'        => $synced_posts,
+				)
 			);
 
 		}
@@ -374,7 +374,18 @@ class EP_Settings {
 	 */
 	public function setting_callback_api_key() {
 
-		echo '<input name="ep_api_key" id="ep_api_key" type="text" value="' . esc_attr( get_site_option( 'ep_api_key' ) ) . '">';
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			$key = get_site_option( 'ep_api_key' );
+
+		} else {
+
+			$key = get_option( 'ep_api_key' );
+
+		}
+
+
+		echo '<input name="ep_api_key" id="ep_api_key" type="text" value="' . esc_attr( $key ) . '">';
 
 	}
 
@@ -389,12 +400,21 @@ class EP_Settings {
 	 */
 	public function setting_callback_host() {
 
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			$host = get_site_option( 'ep_host' );
+
+		} else {
+
+			$host = get_option( 'ep_host' );
+
+		}
+
 		$read_only = '';
-		$host = get_site_option( 'ep_host' );
 
 		if ( false === ep_host_by_option() && defined( 'EP_HOST' ) ) {
 			$read_only = 'readonly';
-			$host = EP_HOST;
+			$host      = EP_HOST;
 		}
 
 		echo '<input name="ep_host" id="ep_host" type="text" value="' . esc_attr( $host ) . '" ' . esc_attr( $read_only ) . '>';
@@ -440,7 +460,7 @@ class EP_Settings {
 	 *
 	 * @since 1.7
 	 *
-	 * @param int $bytes The raw bytes to convert.
+	 * @param int $bytes     The raw bytes to convert.
 	 * @param int $precision The precision with which to display the conversion.
 	 *
 	 * @return string

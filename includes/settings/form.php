@@ -25,7 +25,17 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	settings_fields( 'elasticpress' );
 	do_settings_sections( 'elasticpress' );
 
-	if ( ( ! ep_host_by_option() && ! is_wp_error( ep_check_host() ) ) || is_wp_error( ep_check_host() ) || get_site_option( 'ep_host' ) ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+		$host = get_site_option( 'ep_host' );
+
+	} else {
+
+		$host = get_option( 'ep_host' );
+
+	}
+
+	if ( ( ! ep_host_by_option() && ! is_wp_error( ep_check_host() ) ) || is_wp_error( ep_check_host() ) || $host ) {
 		submit_button();
 	}
 

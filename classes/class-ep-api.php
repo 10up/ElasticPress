@@ -1478,7 +1478,15 @@ class EP_API {
 
 		ep_check_host();
 
-		return delete_site_option( 'ep_is_active' );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			return delete_site_option( 'ep_is_active' );
+
+		} else {
+
+			return delete_option( 'ep_is_active' );
+
+		}
 
 	}
 
@@ -1492,8 +1500,15 @@ class EP_API {
 
 		ep_check_host();
 
-		return update_site_option( 'ep_is_active', true );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
+			return update_site_option( 'ep_is_active', true );
+
+		} else {
+
+			return update_option( 'ep_is_active', true );
+
+		}
 	}
 
 	/**
@@ -1577,7 +1592,15 @@ class EP_API {
 	 * @since 0.9.2
 	 */
 	public function is_activated() {
-		return get_site_option( 'ep_is_active', false, false );
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			return get_site_option( 'ep_is_active', false, false );
+
+		} else {
+
+			return get_option( 'ep_is_active', false, false );
+		}
 	}
 
 	/**

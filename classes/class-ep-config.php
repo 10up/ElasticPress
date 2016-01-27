@@ -193,7 +193,15 @@ class EP_Config {
 	 */
 	public function set_api_key() {
 
-		$ep_api_key = get_site_option( 'ep_api_key' );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			$ep_api_key = get_site_option( 'ep_api_key' );
+
+		} else {
+
+			$ep_api_key = get_option( 'ep_api_key' );
+
+		}
 
 		if ( $ep_api_key && ! defined( 'EP_API_KEY' ) ) {
 			define( 'EP_API_KEY', $ep_api_key );
@@ -218,7 +226,15 @@ class EP_Config {
 	 */
 	public function set_host() {
 
-		$ep_host = get_site_option( 'ep_host' );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			$ep_host = get_site_option( 'ep_host' );
+
+		} else {
+
+			$ep_host = get_option( 'ep_host' );
+
+		}
 
 		if ( $ep_host && ! defined( 'EP_HOST' ) ) {
 			$this->option_host = true;
