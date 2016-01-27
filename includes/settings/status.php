@@ -34,7 +34,7 @@ echo '<div id="ep_stats">';
 
 				<?php } else { ?>
 
-					<td><?php esc_html_e( 'A host has not been set. You must set a host to continue.', 'elasticpress' ); ?></td>
+					<td><?php esc_html_e( 'A host has not been set or is set but cannot be contacted. You must set a proper host to continue.', 'elasticpress' ); ?></td>
 
 				<?php } ?>
 			</tr>
@@ -58,7 +58,7 @@ if ( $stats['status'] ) {
 	<?php } else { ?>
 
 		<span class="dashicons dashicons-no"
-		      style="color:red;"></span> <?php esc_html_e( 'ElasticPress is not enabled and cannot override WP search. You can activate it on the form to the left.', 'elasticpress' ); ?>
+		      style="color:red;"></span> <?php esc_html_e( 'ElasticPress is not enabled and cannot override WP queries. You can activate it on the form to the left.', 'elasticpress' ); ?>
 		<br/>
 
 	<?php } ?>

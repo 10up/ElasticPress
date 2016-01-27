@@ -34,7 +34,7 @@ class EP_Config {
 	 * Retrieve the appropriate EP_HOST
 	 *
 	 * Looks at the defined EP_HOST or a backup global should the defined host failed.
-	 * Priority is given to the EP_HOST constand with the backups only used when needed.
+	 * Priority is given to the EP_HOST constant with the backups only used when needed.
 	 *
 	 * @since 1.6
 	 *
