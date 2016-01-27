@@ -53,9 +53,7 @@ if ( $stats['status'] ) {
 	<?php if ( ep_is_activated() ) { ?>
 
 		<span class="dashicons dashicons-yes"
-		      style="color:green;"></span> <?php esc_html_e( 'ElasticPress can override WP search.', 'elasticpress' ); ?>
-		<br/>
-		<br/>
+		      style="color:green;"></span> <?php esc_html_e( 'ElasticPress can override WP search.', 'elasticpress' ); ?><br/><br/>
 
 	<?php } else { ?>
 
@@ -173,7 +171,7 @@ if ( $stats['status'] ) {
 	</div>
 
 	<?php
-} else {
+} elseif ( ! is_wp_error( ep_check_host() ) ) {
 
 	$allowed_tags = array(
 		'p'    => array(),
