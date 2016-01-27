@@ -267,6 +267,7 @@ class EP_API {
 	public function format_request_headers() {
 		$headers = array();
 
+		// Check for ElasticPress API key and add to header if needed.
 		if ( defined( 'EP_API_KEY' ) && EP_API_KEY ) {
 			$headers['X-ElasticPress-API-Key'] = EP_API_KEY;
 		}

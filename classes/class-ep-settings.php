@@ -36,7 +36,6 @@ class EP_Settings {
 	 */
 	public function __construct() {
 
-		ep_set_api_key();
 		ep_check_host();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { // Must be network admin in multisite.
@@ -154,13 +153,6 @@ class EP_Settings {
 
 			}
 
-			if ( isset( $_POST['ep_api_key'] ) ) {
-
-				$host = sanitize_text_field( $_POST['ep_api_key'] );
-				update_site_option( 'ep_api_key', $host );
-
-			}
-
 			if ( isset( $_POST['ep_activate'] ) ) {
 
 				$this->sanitize_ep_activate( $_POST['ep_activate'] );
@@ -182,11 +174,6 @@ class EP_Settings {
 			'setting_callback_host',
 		), 'elasticpress', 'ep_settings_section_main' );
 
-		add_settings_field( 'ep_api_key', esc_html__( 'ElasticPress API Key:', 'elasticpress' ), array(
-			$this,
-			'setting_callback_api_key',
-		), 'elasticpress', 'ep_settings_section_main' );
-
 		$stats = ep_get_index_status();
 
 		if ( $stats['status'] && ! is_wp_error( ep_check_host() ) ) {
@@ -199,7 +186,6 @@ class EP_Settings {
 		}
 
 		register_setting( 'elasticpress', 'ep_host', array( $this, 'sanitize_ep_host' ) );
-		register_setting( 'elasticpress', 'ep_api_key', 'sanitize_text_field' );
 		register_setting( 'elasticpress', 'ep_activate', array( $this, 'sanitize_ep_activate' ) );
 
 	}
@@ -366,35 +352,9 @@ class EP_Settings {
 	/**
 	 * Setting callback
 	 *
-	 * Callback for settings field. Displays textbox to specify the EP_API_KEY.
-	 *
-	 * @since 0.3.0
-	 *
-	 * @return void
-	 */
-	public function setting_callback_api_key() {
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			$key = get_site_option( 'ep_api_key' );
-
-		} else {
-
-			$key = get_option( 'ep_api_key' );
-
-		}
-
-
-		echo '<input name="ep_api_key" id="ep_api_key" type="text" value="' . esc_attr( $key ) . '">';
-
-	}
-
-	/**
-	 * Setting callback
-	 *
 	 * Callback for settings field. Displays textbox to specify the EP_HOST.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
