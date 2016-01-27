@@ -109,6 +109,12 @@ class EP_Settings {
 				$indexed = esc_html__( 'items indexed in ', 'elasticpress' );
 			}
 
+			$allowed_link = array(
+				'a' => array(
+					'href' => array(),
+				),
+			);
+
 			wp_localize_script(
 				'ep_admin',
 				'ep',
@@ -122,6 +128,8 @@ class EP_Settings {
 					'index_running'       => $running,
 					'total_posts'         => isset( $total_posts['total'] ) ? $total_posts['total'] : 0,
 					'synced_posts'        => $synced_posts,
+					'failed_text'         => esc_html__( 'A failure has occured. Please try the indexing operation again and if the error persists contact your website administrator.', 'elasticpress' ),
+					'complete_text'       => wp_kses( __( 'Index complete <a href="">Refresh the stats</a>', 'elasticpress' ), $allowed_link ),
 				)
 			);
 
