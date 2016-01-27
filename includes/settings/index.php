@@ -2,7 +2,7 @@
 /**
  * Form for execution ElasticPress indexer
  *
- * @since   1.7
+ * @since   1.9
  *
  * @package elasticpress
  *

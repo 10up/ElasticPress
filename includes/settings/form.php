@@ -2,7 +2,7 @@
 /**
  * Form for setting ElasticPress preferences
  *
- * @since   1.7
+ * @since   1.9
  *
  * @package elasticpress
  *

@@ -4,7 +4,7 @@
  *
  * @package elasticpress
  *
- * @since   1.7
+ * @since   1.9
  *
  * @author  Allan Collins <allan.collins@10up.com>
  */
@@ -19,7 +19,7 @@ class EP_Settings {
 	/**
 	 * WordPress options page
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @var object
 	 */
@@ -30,7 +30,7 @@ class EP_Settings {
 	 *
 	 * Loads initial actions.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return EP_Settings
 	 */
@@ -60,7 +60,7 @@ class EP_Settings {
 	 *
 	 * Registers and enqueues the necessary JavaScripts for the interface.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
@@ -133,7 +133,7 @@ class EP_Settings {
 	 *
 	 * Sets up Settings API.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
@@ -166,7 +166,7 @@ class EP_Settings {
 
 		add_settings_section( 'ep_settings_section_main', '', array(
 			$this,
-			'ep_settings_section_hightlight',
+			'callback_ep_settings_section_main',
 		), 'elasticpress' );
 
 		add_settings_field( 'ep_host', esc_html__( 'ElasticSearch Host:', 'elasticpress' ), array(
@@ -195,7 +195,7 @@ class EP_Settings {
 	 *
 	 * Adds options page to admin menu.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
@@ -226,7 +226,7 @@ class EP_Settings {
 	 *
 	 * Callback for add_meta_box to load column view.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @param WP_Post|NULL $post Normally WP_Post object, but NULL in our case.
 	 * @param array        $args Arguments passed from add_meta_box.
@@ -247,7 +247,7 @@ class EP_Settings {
 	 *
 	 * Creates meta boxes for the settings page columns.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
@@ -291,7 +291,7 @@ class EP_Settings {
 	 *
 	 * Sanitizes the activation input from the dashboard and performs activation/deactivation.
 	 *
-	 * @since 0.2.0
+	 * @since 1.9
 	 *
 	 * @param string $input input items.
 	 *
@@ -320,7 +320,7 @@ class EP_Settings {
 	 *
 	 * Sanitizes the EP_HOST inputed from the dashboard.
 	 *
-	 * @since 0.2.0
+	 * @since 1.9
 	 *
 	 * @param string $input input items.
 	 *
@@ -339,7 +339,7 @@ class EP_Settings {
 	 *
 	 * Callback for settings field. Displays textbox to specify the EP_HOST.
 	 *
-	 * @since 0.2.0
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
@@ -386,7 +386,7 @@ class EP_Settings {
 	 *
 	 * Loads up the settings page.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
@@ -403,11 +403,11 @@ class EP_Settings {
 	 *
 	 * Adds a header to main settings information
 	 *
-	 * @since 0.2.0
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
-	public function ep_settings_section_hightlight() {
+	public function callback_ep_settings_section_main() {
 
 		echo '<h2>' . esc_html__( 'ElasticSearch Integration Options', 'elasticpress' ) . '</h2>';
 
@@ -418,7 +418,7 @@ class EP_Settings {
 	 *
 	 * Converts bytes to human-readable format.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @param int $bytes     The raw bytes to convert.
 	 * @param int $precision The precision with which to display the conversion.

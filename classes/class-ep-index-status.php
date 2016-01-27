@@ -4,7 +4,7 @@
  *
  * @package elasticpress
  *
- * @since   1.7
+ * @since   1.9
  *
  * @author  Chris Wiegman <chris.wiegman@10up.com>
  */
@@ -22,7 +22,7 @@ class EP_Index_Status {
 	 *
 	 * Wires actions and filters for the index status indicators.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return EP_Index_Status
 	 */
@@ -37,7 +37,7 @@ class EP_Index_Status {
 	 *
 	 * Shows the index status of individual posts.
 	 *
-	 * @since 1.7
+	 * @since 1.9
 	 *
 	 * @return void
 	 */
