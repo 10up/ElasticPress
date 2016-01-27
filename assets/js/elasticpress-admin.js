@@ -66,61 +66,76 @@ jQuery( document ).ready( function ( $ ) {
 				url :      ajaxurl,
 				type :     'POST',
 				data :     data,
+				error :    function ( request ) {
+
+					alert( request.responseText );
+
+				},
 				complete : function ( response ) {
 
-					var sitesCompletedText = ''
+					// Handle returned error appropriately.
+					if ( 'undefined' === typeof response.responseJSON || 'undefined' === typeof response.responseJSON.data ) {
 
-					if ( 0 === response.responseJSON.data.is_network ) {
-
-						epTotalToIndex = response.responseJSON.data.ep_posts_total;
-						epTotalIndexed = response.responseJSON.data.ep_posts_synced;
+						$( '#progressstats' ).text( ep.failed_text );
+						$( '#ep_run_index' ).val( ep.index_complete_text ).addClass( 'button-primary' );
+						$( '#progressbar' ).fadeOut( 'slow' );
 
 					} else {
 
-						if ( epSitesRemaining !== response.responseJSON.data.ep_sites_remaining ) {
+						var sitesCompletedText = ''
 
-							epSitesRemaining = response.responseJSON.data.ep_sites_remaining;
-							epTotalToIndex += response.responseJSON.data.ep_posts_total;
-							epSitesCompleted ++;
+						if ( 0 === response.responseJSON.data.is_network ) {
+
+							epTotalToIndex = response.responseJSON.data.ep_posts_total;
+							epTotalIndexed = response.responseJSON.data.ep_posts_synced;
+
+						} else {
+
+							if ( epSitesRemaining !== response.responseJSON.data.ep_sites_remaining ) {
+
+								epSitesRemaining = response.responseJSON.data.ep_sites_remaining;
+								epTotalToIndex += response.responseJSON.data.ep_posts_total;
+								epSitesCompleted ++;
+
+							}
+
+							sitesCompletedText = epSitesCompleted + ep.sites;
+							epTotalIndexed += response.responseJSON.data.ep_current_synced;
 
 						}
 
-						sitesCompletedText = epSitesCompleted + ep.sites;
-						epTotalIndexed += response.responseJSON.data.ep_current_synced;
-
-					}
-
-					var progress = parseFloat( epTotalIndexed ) / parseFloat( epTotalToIndex );
-
-					bar.progressbar(
-						{
-							value : progress * 100
-						}
-					);
-
-					status.text( epTotalIndexed + '/' + epTotalToIndex + ' ' + ep.items_indexed + sitesCompletedText );
-
-					if ( 1 == response.responseJSON.data.ep_sync_complete ) { //indexing complete
+						var progress = parseFloat( epTotalIndexed ) / parseFloat( epTotalToIndex );
 
 						bar.progressbar(
 							{
-								value : 100
+								value : progress * 100
 							}
 						);
 
-						setTimeout( function () {
+						status.text( epTotalIndexed + '/' + epTotalToIndex + ' ' + ep.items_indexed + sitesCompletedText );
 
-							$( '#progressbar' ).fadeOut( 'slow' );
-							$( '#progressstats' ).html( 'Index complete <a href="">Refresh the stats</a>' );
-							$( '#ep_run_index' ).val( ep.index_complete_text ).addClass( 'button-primary' );
-							resetIndex();
+						if ( 1 == response.responseJSON.data.ep_sync_complete ) { //indexing complete
 
-						}, 1000 );
+							bar.progressbar(
+								{
+									value : 100
+								}
+							);
 
-					} else {
+							setTimeout( function () {
 
-						performIndex( false, button );
+								$( '#progressbar' ).fadeOut( 'slow' );
+								$( '#progressstats' ).html( ep.complete_text );
+								$( '#ep_run_index' ).val( ep.index_complete_text ).addClass( 'button-primary' );
+								resetIndex();
 
+							}, 1000 );
+
+						} else {
+
+							performIndex( false, button );
+
+						}
 					}
 				}
 			}
@@ -153,6 +168,7 @@ jQuery( document ).ready( function ( $ ) {
 			return;
 		}
 
+		$( '#progressstats' ).text( ep.running_index_text );
 		performIndex( true, button ); //start the polling
 
 	} );
@@ -179,6 +195,11 @@ jQuery( document ).ready( function ( $ ) {
 				url :      ajaxurl,
 				type :     'POST',
 				data :     data,
+				error :    function ( request ) {
+
+					alert( request.responseText );
+
+				},
 				complete : function ( response ) {
 
 					$( '#ep_site_stats' ).html( response.responseJSON.data );
