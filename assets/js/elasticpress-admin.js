@@ -82,7 +82,7 @@ jQuery( document ).ready( function ( $ ) {
 
 					} else {
 
-						var sitesCompletedText = ''
+						var sitesCompletedText = '';
 
 						if ( 0 === response.responseJSON.data.is_network ) {
 
