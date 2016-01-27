@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
-define( 'EP_VERSION', '1.6.2' );
+define( 'EP_VERSION', '1.8' );
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
