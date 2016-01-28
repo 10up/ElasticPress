@@ -1459,9 +1459,9 @@ class EP_API {
 
 		if ( method_exists( $query, 'is_search' ) && $query->is_search() ) {
 			$enabled = true;
-		} elseif ( ! empty( $query->query['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
+		} elseif ( ! empty( $query->query_vars['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
 			$enabled = true;
-		} elseif ( ! empty( $query->query['ep_integrate'] ) ) {
+		} elseif ( ! empty( $query->query_vars['ep_integrate'] ) ) {
 			$enabled = true;
 		}
 
@@ -1688,7 +1688,6 @@ class EP_API {
 		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 200 !== $request['response']['code'] ) ) {
 
 			$host = ep_get_host( true, $use_backups );
-			$request_url = esc_url( trailingslashit( $host ) . $path );
 
 			if ( is_wp_error( $host ) ) {
 				$query['failed_hosts'][] = $host;
@@ -1698,6 +1697,7 @@ class EP_API {
 				return $host;
 			}
 
+			$request_url = esc_url( trailingslashit( $host ) . $path );
 			$request = wp_remote_request( $request_url, $args );
 
 		}

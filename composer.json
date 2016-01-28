@@ -1,5 +1,5 @@
 {
-  "name": "10up/ElasticPress",
+  "name": "10up/elasticpress",
   "description": "Integrate Elasticsearch with WordPress.",
   "type": "wordpress-plugin",
   "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
@@ -25,6 +25,11 @@
   "require-dev": {
     "codeclimate/php-test-reporter": "dev-master",
     "phpunit/phpunit": "*@stable",
-    "wp-cli/wp-cli": "master"
+    "wp-cli/wp-cli": "dev-master"
+  },
+  "config": {
+    "platform": {
+      "php": "5.3.29"
+    }
   }
 }
