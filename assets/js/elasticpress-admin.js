@@ -20,7 +20,7 @@ jQuery( document ).ready( function ( $ ) {
 			if ( parseInt( ep.total_posts ) > 0 ) {
 
 				progress = parseFloat( ep.synced_posts ) / parseFloat( ep.total_posts );
-				status.text( ep.synced_posts + '/' + ep.total_posts + 'items' );
+				status.text( ep.synced_posts + '/' + ep.total_posts + ' items' );
 
 			}
 
