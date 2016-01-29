@@ -1330,6 +1330,7 @@ class EP_API {
 		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
+			$query                                              = $this->_add_title_filtering( $query, $args );
 			$formatted_args['query'] = $query;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array();
@@ -1710,6 +1711,54 @@ class EP_API {
 
 		return $request;
 
+	}
+
+	/**
+	 * Check if WP_Query contains sql part related to eager title search.
+	 * Translate it, if necessary, to Elasticsearch wildcard query.
+	 * Most common use case is to search posts by part of title word ex:
+	 * post_title == Events in Washington
+	 * post_title == Sport events in Washington Heights
+	 *
+	 * This allows to search by typing "wash".
+	 *
+	 * @param array $query Elasticsearch query structure.
+	 * @param array $args  WP_Query structure.
+	 *
+	 * @return array Modified Elasticsearch query structure.
+	 */
+	protected function _add_title_filtering( $query, $args ) {
+		if ( ! array_key_exists( 'search_orderby_title', $args ) ) {
+			return $query;
+		}
+		foreach ( $args['search_orderby_title'] as $sql_partial ) {
+			$search_term                           = $this->_get_search_term( $sql_partial, '*' . $args['s'] . '*' );
+			$query['bool']['should'][]['wildcard'] = array (
+				'post_title' => array (
+					'value' => $search_term,
+				),
+			);
+		}
+
+		return $query;
+	}
+
+	/**
+	 * Retrieve search term from SQL partial.
+	 *
+	 * @param string $sql_partial SQL partial text.
+	 * @param string $default     Default value to return.
+	 *
+	 * @return mixed|string Search term or default value.
+	 */
+	protected function _get_search_term( $sql_partial, $default = '' ) {
+		$regex   = '#.+ LIKE \'(.+)\'#i';
+		$matches = array();
+		if ( preg_match( $regex, $sql_partial, $matches ) ) {
+			return strtolower( str_replace( '%', '*', $matches[1] ) );
+		}
+
+		return $default;
 	}
 
 }
