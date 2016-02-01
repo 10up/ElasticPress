@@ -8,6 +8,7 @@
 	>
     <php>
         <const name="WP_TESTS_MULTISITE" value="1" />
+        <ini name="error_reporting" value="24575" />
     </php>
 	<testsuites>
 		<testsuite>
