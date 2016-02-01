@@ -181,7 +181,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]
+	 *
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -303,7 +304,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$no_bulk = false;
 
-		if ( isset( $args['no-bulk'] ) ) {
+		if ( isset( $args['nobulk'] ) ) {
 			$no_bulk = true;
 		}
 
