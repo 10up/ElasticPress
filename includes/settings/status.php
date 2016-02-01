@@ -25,7 +25,7 @@ echo '<div id="ep_stats">';
 	<form>
 		<table class="form-table">
 			<tr>
-				<th scope="row"><?php esc_html_e( 'ElasticSearch Host', 'elasticpress' ) ?>:</th>
+				<th scope="row"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ) ?>:</th>
 				<?php if ( ! is_wp_error( ep_check_host() ) ) { ?>
 
 					<?php $current_host = ep_get_host( true ); ?>
@@ -48,7 +48,7 @@ if ( $stats['status'] ) {
 	printf( '<h2>%s</h2>', esc_html__( 'Plugin Status', 'elasticpress' ) );
 	?>
 	<span class="dashicons dashicons-yes"
-	      style="color:green;"></span> <?php esc_html_e( 'Connected to ElasticSearch.', 'elasticpress' ); ?><br/><br/>
+	      style="color:green;"></span> <?php esc_html_e( 'Connected to Elasticsearch.', 'elasticpress' ); ?><br/><br/>
 
 	<?php if ( ep_is_activated() ) { ?>
 
