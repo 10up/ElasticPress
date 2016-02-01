@@ -5,7 +5,7 @@ Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http:/
 
 **Please note:** the master branch is the stable
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, and 1.7 require re-indexing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, and 1.8 require re-indexing.
 
 ## Background
 
@@ -113,7 +113,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     ```
 
     ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), and
-    ```terms``` (string|array) parameters. ```field``` must be set to ```slug``` and ```terms``` must be a string or array of term slug(s).
+    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s).
 
 * The following shorthand parameters can be used for querying posts by specific dates:
 
@@ -319,7 +319,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Currently only supports: ```title```, ```name```, ```date```, and ```relevance``` (default).
+    Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
 
 * ```order``` (*string*)
 
@@ -489,25 +489,26 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]`
 
     Index all posts in the current blog.
 
     * `--network-wide` will force indexing on all the blogs in the network. `--network-wide` takes an optional argument to limit the number of blogs to be indexed across where 0 is no limit. For example, `--network-wide=5` would limit indexing to only 5 blogs on the network.
     * `--setup` will clear the index first and re-send the put mapping.
     * `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
-    * `--no-bulk` let's you disable bulk indexing.
+    * `--nobulk` let's you disable bulk indexing.
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
     * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
+    * `--keep-active` let's you keep ElasticPress active during indexing (cannot be used with `--setup`).
 
 * `wp elasticpress activate`
 
-  Turns on ElasticPress integration. Integration is automatically deactivated during indexing.
+  Turns on ElasticPress integration. Integration is automatically deactivated during indexing if `--keep-active` isn't passed or `--setup` is passed.
 
 * `wp elasticpress deactivate`
 
-  Turns off ElasticPress integration. Integration is automatically deactivated during indexing.
+  Turns off ElasticPress integration. Integration is automatically deactivated during indexing if `--keep-active` isn't passed or `--setup` is passed.
 
 * `wp elasticpress delete-index [--network-wide]`
 
@@ -567,6 +568,10 @@ Our test suite depends on a running Elasticsearch server. You can supply a host 
 ```bash
 EP_HOST="http://192.168.50.4:9200" phpunit
 ```
+
+### Debugging
+
+We have a [Debug Bar Plugin](https://github.com/10up/debug-bar-elasticpress) available for ElasticPress. This tool allows you to examine all the ElasticPress queries on each page load.
 
 ### Issues
 

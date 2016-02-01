@@ -181,7 +181,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]
+	 *
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -217,8 +218,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		// Deactivate our search integration
-		$this->deactivate();
+		// Deactivate ElasticPress if setup is set to true.
+		if (
+			! isset( $assoc_args['keep-active'] ) ||
+			false === $assoc_args['keep-active'] ||
+			( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] )
+		) {
+			// Deactivate our search integration
+			$this->deactivate();
+		}
 
 		timer_start();
 
@@ -296,7 +304,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$no_bulk = false;
 
-		if ( isset( $args['no-bulk'] ) ) {
+		if ( isset( $args['nobulk'] ) ) {
 			$no_bulk = true;
 		}
 
