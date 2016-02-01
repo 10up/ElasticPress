@@ -123,7 +123,7 @@ class EP_Index_Worker {
 			'ignore_sticky_posts' => true,
 		) );
 
-		$query = new \WP_Query( $args );
+		$query = new WP_Query( $args );
 
 		if ( $query->have_posts() ) {
 

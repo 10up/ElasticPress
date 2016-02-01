@@ -193,7 +193,7 @@ class EP_API {
 			 * @since 1.6.0
 			 *
 			 * @param array  $results  The unfiltered search results.
-			 * @param object $response The response body retrieved from ElasticSearch.
+			 * @param object $response The response body retrieved from Elasticsearch.
 			 */
 
 			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response );
@@ -1095,7 +1095,7 @@ class EP_API {
 					} elseif ( 'like' === $compare ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
-						// Map specific meta field types to different ElasticSearch core types
+						// Map specific meta field types to different Elasticsearch core types
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
 					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
@@ -1751,7 +1751,7 @@ class EP_API {
 	 *
 	 * @since 1.9
 	 *
-	 * @param object $response JSON decoded response from ElasticSearch.
+	 * @param object $response JSON decoded response from Elasticsearch.
 	 *
 	 * @return array Contains the status message or the returned statistics.
 	 */
@@ -1794,9 +1794,9 @@ class EP_API {
 	}
 
 	/**
-	 * Get ElasticSearch plugins
+	 * Get Elasticsearch plugins
 	 *
-	 * Gets a list of available ElasticSearch plugins.
+	 * Gets a list of available Elasticearch plugins.
 	 *
 	 * @since 1.9
 	 *
@@ -1816,7 +1816,7 @@ class EP_API {
 
 			return array(
 				'status' => false,
-				'msg'    => esc_html__( 'ElasticSearch Host is not available.', 'elasticpress' ),
+				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
 			);
 
 		}
@@ -1863,7 +1863,7 @@ class EP_API {
 	/**
 	 * Get cluster status
 	 *
-	 * Retrieves cluster stats from ElasticSearch.
+	 * Retrieves cluster stats from Elasticsearch.
 	 *
 	 * @since 1.9
 	 *
@@ -1875,7 +1875,7 @@ class EP_API {
 
 			return array(
 				'status' => false,
-				'msg'    => esc_html__( 'ElasticSearch Host is not available.', 'elasticpress' ),
+				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
 			);
 
 		} else {
@@ -1901,7 +1901,7 @@ class EP_API {
 	/**
 	 * Get index status
 	 *
-	 * Retrieves index stats from ElasticSearch.
+	 * Retrieves index stats from Elasticsearch.
 	 *
 	 * @since 1.9
 	 *
@@ -1915,7 +1915,7 @@ class EP_API {
 
 			return array(
 				'status' => false,
-				'msg'    => esc_html__( 'ElasticSearch Host is not available.', 'elasticpress' ),
+				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
 			);
 
 		} else {
@@ -1950,7 +1950,7 @@ class EP_API {
 	}
 
 	/**
-	 * Retrieves search stats from ElasticSearch.
+	 * Retrieves search stats from Elasticsearch.
 	 *
 	 * Retrieves various search statistics from the ES server.
 	 *
@@ -1966,7 +1966,7 @@ class EP_API {
 
 			return array(
 				'status' => false,
-				'msg'    => esc_html__( 'ElasticSearch Host is not available.', 'elasticpress' ),
+				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
 			);
 
 		} else {

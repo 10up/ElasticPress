@@ -1,25 +1,19 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the ElasticPress package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
+# Copyright (C) 2016 Aaron Holbrook, Taylor Lovett, Matt Gross, 10up
+# This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 1.0.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-27 17:02-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Project-Id-Version: ElasticPress 1.8\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
+"POT-Creation-Date: 2016-02-01 18:17:04+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2016-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: grunt-wp-i18n 0.5.3\n"
 
 #: bin/wp-cli.php:55
-#, php-format
 msgid "Adding mapping for site %d..."
 msgstr ""
 
@@ -36,7 +30,6 @@ msgid "Adding mapping..."
 msgstr ""
 
 #: bin/wp-cli.php:109
-#, php-format
 msgid "Deleting index for site %d..."
 msgstr ""
 
@@ -56,11 +49,11 @@ msgstr ""
 msgid "Index delete failed"
 msgstr ""
 
-#: bin/wp-cli.php:147 bin/wp-cli.php:257
+#: bin/wp-cli.php:147 bin/wp-cli.php:265
 msgid "Recreating network alias..."
 msgstr ""
 
-#: bin/wp-cli.php:154 bin/wp-cli.php:281
+#: bin/wp-cli.php:154 bin/wp-cli.php:289
 msgid "Done!"
 msgstr ""
 
@@ -68,56 +61,54 @@ msgstr ""
 msgid "An error occurred"
 msgstr ""
 
-#: bin/wp-cli.php:237
+#: bin/wp-cli.php:245
 msgid "Indexing posts network-wide..."
 msgstr ""
 
-#: bin/wp-cli.php:248 bin/wp-cli.php:269
-#, php-format
+#: bin/wp-cli.php:256 bin/wp-cli.php:277
 msgid "Number of posts indexed on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:251 bin/wp-cli.php:272
-#, php-format
+#: bin/wp-cli.php:259 bin/wp-cli.php:280
 msgid "Number of post index errors on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:261
-#, php-format
+#: bin/wp-cli.php:269
 msgid "Total number of posts indexed: %d"
 msgstr ""
 
-#: bin/wp-cli.php:265
+#: bin/wp-cli.php:273
 msgid "Indexing posts..."
 msgstr ""
 
-#: bin/wp-cli.php:276
+#: bin/wp-cli.php:284
 msgid "Total time elapsed: "
 msgstr ""
 
-#: bin/wp-cli.php:536
+#: bin/wp-cli.php:544
 msgid ""
 "The following posts failed to index:\r\n"
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:685 classes/class-ep-config.php:174
+#: bin/wp-cli.php:693 classes/class-ep-config.php:174
 msgid "EP_HOST is not defined! Check wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:689 classes/class-ep-config.php:178
+#: bin/wp-cli.php:697 classes/class-ep-config.php:178
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
 #: classes/class-ep-api.php:1764
 msgid ""
-"Invalid response from ElasticPress server. Please contact your administrator."
+"Invalid response from ElasticPress server. Please contact your "
+"administrator."
 msgstr ""
 
 #: classes/class-ep-api.php:1777
 msgid ""
-"Site not indexed. <p>Please run: <code>wp elasticpress index --setup --"
-"network-wide</code> using WP-CLI. Or use the index button on the left of "
+"Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
+"--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
@@ -129,7 +120,7 @@ msgstr ""
 
 #: classes/class-ep-api.php:1819 classes/class-ep-api.php:1878
 #: classes/class-ep-api.php:1918 classes/class-ep-api.php:1969
-msgid "ElasticSearch Host is not available."
+msgid "Elasticsearch Host is not available."
 msgstr ""
 
 #: classes/class-ep-config.php:65 classes/class-ep-config.php:90
@@ -189,10 +180,6 @@ msgstr ""
 msgid "Index Status"
 msgstr ""
 
-#: classes/class-ep-index-worker.php:371
-msgid "The following posts failed to index:"
-msgstr ""
-
 #: classes/class-ep-index-worker.php:398
 msgid ": ElasticPress Index Errors"
 msgstr ""
@@ -205,11 +192,11 @@ msgstr ""
 msgid "items indexed in "
 msgstr ""
 
-#: classes/class-ep-settings.php:124 includes/settings/index.php:14
+#: classes/class-ep-settings.php:124 includes/settings/index.php:15
 msgid "Running Index..."
 msgstr ""
 
-#: classes/class-ep-settings.php:125 includes/settings/index.php:14
+#: classes/class-ep-settings.php:125 includes/settings/index.php:15
 msgid "Run Index"
 msgstr ""
 
@@ -228,42 +215,45 @@ msgid "Index complete <a href=\"\">Refresh the stats</a>"
 msgstr ""
 
 #: classes/class-ep-settings.php:180
-msgid "ElasticSearch Host:"
+msgid "Elasticsearch Host:"
 msgstr ""
 
 #: classes/class-ep-settings.php:189
-msgid "Use ElasticSearch:"
+msgid "Use Elasticsearch:"
 msgstr ""
 
 #: classes/class-ep-settings.php:420
-msgid "ElasticSearch Integration Options"
+msgid "Elasticsearch Integration Options"
 msgstr ""
 
 #: classes/class-ep-wp-date-query.php:488
-#, php-format
-msgid ""
-"Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s."
+#. translators: Date query invalid date message: 1: invalid value, 2: type of
+#. value, 3: minimum valid value, 4: maximum valid value
+msgid "Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s."
 msgstr ""
 
 #: classes/class-ep-wp-date-query.php:518
-#, php-format
+#. translators: 1: year, 2: month, 3: day of month
 msgid ""
 "The following values do not describe a valid date: year %1$s, month %2$s, "
 "day %3$s."
 msgstr ""
 
 #: classes/class-ep-wp-date-query.php:535
-#, php-format
-msgid ""
-"The following values do not describe a valid date: month %1$s, day %2$s."
+#. translators: 1: month, 2: day of month
+msgid "The following values do not describe a valid date: month %1$s, day %2$s."
 msgstr ""
 
-#: includes/settings-page.php:13
-msgid "ElasticPress"
+#: includes/settings/index.php:23
+msgid "ElasticPress needs to be enabled to run an index."
+msgstr ""
+
+#: includes/settings/index.php:26
+msgid "A proper host must be set before running an index."
 msgstr ""
 
 #: includes/settings/status.php:28
-msgid "ElasticSearch Host"
+msgid "Elasticsearch Host"
 msgstr ""
 
 #: includes/settings/status.php:33
@@ -283,7 +273,7 @@ msgid "Plugin Status"
 msgstr ""
 
 #: includes/settings/status.php:51
-msgid "Connected to ElasticSearch."
+msgid "Connected to Elasticsearch."
 msgstr ""
 
 #: includes/settings/status.php:56
@@ -292,8 +282,8 @@ msgstr ""
 
 #: includes/settings/status.php:61
 msgid ""
-"ElasticPress is not enabled and cannot override WP queries. You can activate "
-"it on the form to the left."
+"ElasticPress is not enabled and cannot override WP queries. You can "
+"activate it on the form to the left."
 msgstr ""
 
 #: includes/settings/status.php:66
@@ -332,22 +322,141 @@ msgstr ""
 msgid "ERROR:"
 msgstr ""
 
-#: node_modules/grunt-pot/test/fixtures/some-file.php:3
-msgid "I'm a translatable string."
+#. Plugin Name of the plugin/theme
+msgid "ElasticPress"
 msgstr ""
 
-#: node_modules/grunt-pot/test/fixtures/some-other-file.php:4
-msgid "Me too"
+#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithTerms.php:211
+msgid "Invalid Taxonomy"
 msgstr ""
 
-#: node_modules/grunt-pot/test/fixtures/some-other-file.php:7
-#, php-format
-msgid "I have %d apple"
-msgid_plural "I have %d apples"
+#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithUpgrade.php:413
+msgid " Try again"
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithUpgrade.php:418
+msgid "API error. Try Again."
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/commands/core.php:638
+msgid "Wildcard DNS may not be configured correctly."
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/commands/cron.php:339
+msgid "%s year"
+msgid_plural "%s years"
 msgstr[0] ""
 msgstr[1] ""
 
-#. / TRANSLATORS: This should be translated as a shorthand for YEAR-MONTH-DAY using 4, 2 and 2 digits.
-#: node_modules/grunt-pot/test/fixtures/some-other-file.php:16
-msgid "yyyy-mm-dd"
+#: vendor/wp-cli/wp-cli/php/commands/cron.php:340
+msgid "%s month"
+msgid_plural "%s months"
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/cron.php:341
+msgid "%s week"
+msgid_plural "%s weeks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/cron.php:342
+msgid "%s day"
+msgid_plural "%s days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/cron.php:343
+msgid "%s hour"
+msgid_plural "%s hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/cron.php:344
+msgid "%s minute"
+msgid_plural "%s minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/cron.php:345
+msgid "%s second"
+msgid_plural "%s seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/export.php:264
+msgid "Invalid start ID: %d"
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/commands/media.php:65
+msgid "image"
+msgid_plural "images"
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/media.php:75
+msgid "An error occurred with image regeneration."
+msgid_plural "An error occurred regenerating one or more images."
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/media.php:79
+msgid "the image"
+msgid_plural "all images"
+msgstr[0] ""
+msgstr[1] ""
+
+#: vendor/wp-cli/wp-cli/php/commands/site.php:99
+msgid "Uncategorized"
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/export/class-wp-export-query.php:327
+msgid "Term is missing a parent: %s (%d)"
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/export/writers.php:35
+#: vendor/wp-cli/wp-cli/php/export/writers.php:39
+msgid "Export Error"
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/export/writers.php:95
+#: vendor/wp-cli/wp-cli/php/export/writers.php:159
+msgid "WP Export: error opening %s for writing."
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/export/writers.php:112
+#: vendor/wp-cli/wp-cli/php/export/writers.php:147
+msgid "WP Export: error writing to export file."
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/utils-wp.php:122
+msgid "Inactive Widgets"
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/utils-wp.php:125
+msgid "Drag widgets here to remove them from the sidebar but keep their settings."
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Integrate WordPress search with Elasticsearch"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Aaron Holbrook, Taylor Lovett, Matt Gross, 10up"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://10up.com"
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/commands/core.php:451
+#: vendor/wp-cli/wp-cli/php/commands/core.php:499
+msgctxt "Default network name"
+msgid "%s Sites"
+msgstr ""
+
+#: vendor/wp-cli/wp-cli/php/commands/site.php:102
+#. translators: Default category slug
+msgctxt "Default category slug"
+msgid "Uncategorized"
 msgstr ""

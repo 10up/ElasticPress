@@ -177,7 +177,7 @@ class EP_Settings {
 			'callback_ep_settings_section_main',
 		), 'elasticpress' );
 
-		add_settings_field( 'ep_host', esc_html__( 'ElasticSearch Host:', 'elasticpress' ), array(
+		add_settings_field( 'ep_host', esc_html__( 'Elasticsearch Host:', 'elasticpress' ), array(
 			$this,
 			'setting_callback_host',
 		), 'elasticpress', 'ep_settings_section_main' );
@@ -186,7 +186,7 @@ class EP_Settings {
 
 		if ( $stats['status'] && ! is_wp_error( ep_check_host() ) ) {
 
-			add_settings_field( 'ep_activate', esc_html__( 'Use ElasticSearch:', 'elasticpress' ), array(
+			add_settings_field( 'ep_activate', esc_html__( 'Use Elasticsearch:', 'elasticpress' ), array(
 				$this,
 				'setting_callback_activate',
 			), 'elasticpress', 'ep_settings_section_main' );
@@ -417,7 +417,7 @@ class EP_Settings {
 	 */
 	public function callback_ep_settings_section_main() {
 
-		echo '<h2>' . esc_html__( 'ElasticSearch Integration Options', 'elasticpress' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'Elasticsearch Integration Options', 'elasticpress' ) . '</h2>';
 
 	}
 
