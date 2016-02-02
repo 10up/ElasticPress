@@ -1404,7 +1404,8 @@ class EP_API {
 	}
 
 	/**
-	 * WP is using 'weird' taxonomy name, for example: 'category' but in query used 'category_name', 'post_tag' but in queries using 'tag'
+	 * WP is using 'weird' taxonomy name, for example: 'category' but in query using 'category_name', 'post_tag' but in queries using 'tag'
+	 * Map taxonomy name in db to taxonomy in query
 	 * @param $taxonomies
 	 * @return array
 	 */
