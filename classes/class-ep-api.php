@@ -921,10 +921,10 @@ class EP_API {
 			$taxonomies = $this->sanitize_taxonomy_names($taxonomies); //fix it up
 
 			foreach( $taxonomies as $tax => $taxName ){
-				if( isset( $args[ $taxName ] ) ){
+				if( isset( $args[ $taxName ] ) && ! empty( $args[ $taxName ] ) ){
 					$args['tax_query'][] = array(
 						'taxonomy' => $tax,
-						'terms' =>  $args[ $taxName ],
+						'terms' =>  array($args[ $taxName ]),
 						'field' => 'slug'
 					);
 				}
