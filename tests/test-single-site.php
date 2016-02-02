@@ -420,6 +420,95 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * @group testPostImplicitTaxonomyQuery
+	 *
+	 */
+	public function testPostImplicitTaxonomyQueryCustomTax(){
+
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, array( "label" => $taxName ) );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, $taxName );
+
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		$args = array(
+			$taxName => $term1Name,
+			's' => ''
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+	}
+
+
+	/**
+	 * @group testPostImplicitTaxonomyQuery
+	 *
+	 */
+	public function testPostImplicitTaxonomyQueryCategoryName(){
+
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, 'category' );
+
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'category', true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		$args = array(
+			'category_name' => $term1Name,
+			's' => ''
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+	}
+
+	/**
+	 * @group testPostImplicitTaxonomyQuery
+	 *
+	 */
+	public function testPostImplicitTaxonomyQueryTag(){
+
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, 'post_tag' );
+
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'post_tag', true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		$args = array(
+			'tag' => $term1Name,
+			's' => ''
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+	}
+
+	/**
 	 * Test WP Query search on post excerpt
 	 *
 	 * @since 0.9

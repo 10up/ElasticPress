@@ -912,6 +912,25 @@ class EP_API {
 		 *      terms array
 		 * @since 0.9.1
 		 */
+
+		//set tax_query if it's implicitly set in the query
+		//e.g. $args['tag'], $args['category_name']
+		if ( empty( $args['tax_query'] ) ) {
+
+			$taxonomies = get_taxonomies();
+			$taxonomies = $this->sanitize_taxonomy_names($taxonomies); //fix it up
+
+			foreach( $taxonomies as $tax => $taxName ){
+				if( isset( $args[ $taxName ] ) ){
+					$args['tax_query'][] = array(
+						'taxonomy' => $tax,
+						'terms' =>  $args[ $taxName ],
+						'field' => 'slug'
+					);
+				}
+			}
+		}
+
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
 
@@ -943,23 +962,6 @@ class EP_API {
 			if ( ! empty( $tax_filter ) ) {
 				$filter['and'][]['bool']['must'] = $tax_filter;
 			}
-
-			$use_filters = true;
-		}
-
-		/**
-		 * 'category_name' arg support.
-		 *
-		 * @since 1.5
-		 */
-		if ( ! empty( $args[ 'category_name' ] ) ) {
-			$terms_obj = array(
-				'terms.category.slug' => array( $args[ 'category_name' ] ),
-			);
-
-			$filter['and'][]['bool']['must'] = array(
-				'terms' => $terms_obj
-			);
 
 			$use_filters = true;
 		}
@@ -1402,6 +1404,28 @@ class EP_API {
 	}
 
 	/**
+	 * WP is using 'weird' taxonomy name, for example: 'category' but in query used 'category_name', 'post_tag' but in queries using 'tag'
+	 * @param $taxonomies
+	 * @return array
+	 */
+	protected function sanitize_taxonomy_names( $taxonomies ){
+		$taxes = array();
+		foreach( $taxonomies as $tax => $taxName ){
+			switch( $tax ){
+				case "category":
+					$taxes["category"] = "category_name";
+					break;
+				case "post_tag":
+					$taxes["post_tag"] = "tag";
+					break;
+				default:
+					$taxes[ $tax ] = $taxName;
+			}
+		}
+		return $taxes;
+	}
+
+	/**
 	 * Wrapper function for wp_get_sites - allows us to have one central place for the `ep_indexable_sites` filter
 	 *
 	 * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites
@@ -1600,7 +1624,7 @@ class EP_API {
 
 		} else {
 
-			return get_option( 'ep_is_active', false, false );
+			return true;
 		}
 	}
 
