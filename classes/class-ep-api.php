@@ -1625,7 +1625,7 @@ class EP_API {
 
 		} else {
 
-			return true;
+			return get_option( 'ep_is_active', false, false );
 		}
 	}
 
