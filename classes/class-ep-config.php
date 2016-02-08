@@ -285,6 +285,10 @@ function ep_get_indexable_post_types() {
 	return EP_Config::factory()->get_indexable_post_types();
 }
 
+function ep_get_searchable_post_types() {
+	return EP_Config::factory()->get_searchable_post_types();
+}
+
 function ep_get_indexable_post_status() {
 	return EP_Config::factory()->get_indexable_post_status();
 }
