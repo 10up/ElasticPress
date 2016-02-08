@@ -83,6 +83,27 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Helper function to randomize post insertion
+	 *
+	 * @param array $posts Arguments to send to ep_create_and_sync_post callback
+	 *
+	 * @return array
+	 */
+	protected function randomize_post_insert( $posts ) {
+
+		shuffle( $posts );
+
+		$saved_posts = array();
+
+		foreach ( $posts as $post_data ) {
+			$saved_posts[] = call_user_func_array( 'ep_create_and_sync_post', $post_data );
+		}
+
+		return $saved_posts;
+
+	}
+
+	/**
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
@@ -1388,9 +1409,31 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.8
 	 */
 	public function testSearchPostMetaValueStringOrderbyQueryAsc() {
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 'b' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'a' ) );
+
+		$posts = array(
+			array(
+				array( 'post_title' => 'ordertest 111' ),
+				array( 'test_key' => 'a' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 222' ),
+				array( 'test_key' => 'b' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 333' ),
+				array( 'test_key' => 'c' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 444' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 555' ),
+				array( 'test_key' => '' ),
+			),
+		);
+
+		// Insert in random order
+		$this->randomize_post_insert( $posts );
 
 		ep_refresh_index();
 
@@ -1398,16 +1441,21 @@ class EPTestSingleSite extends EP_Test_Base {
 			's'        => 'ordertest',
 			'orderby'  => 'meta_value',
 			'order'    => 'ASC',
-		 'meta_key' => 'test_key',
+			'meta_key' => 'test_key',
 		);
 
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
-		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+		$this->assertEquals( $posts[0][0]['post_title'], $query->posts[0]->post_title );
+		$this->assertEquals( $posts[1][0]['post_title'], $query->posts[1]->post_title );
+		$this->assertEquals( $posts[2][0]['post_title'], $query->posts[2]->post_title );
+
+		$empty_posts = array( $posts[3][0]['post_title'], $posts[4][0]['post_title'] );
+		$this->assertContains( $query->posts[3]->post_title, $empty_posts );
+		$this->assertContains( $query->posts[4]->post_title, $empty_posts );
+
 	}
 
 	/**
@@ -1416,10 +1464,31 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.8
 	 */
 	public function testSearchPostMetaValueNumOrderbyQueryAsc() {
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 4 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 2 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1 ) );
+
+		$posts = array(
+			array(
+				array( 'post_title' => 'ordertest 111' ),
+				array( 'test_key' => 1 ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 222' ),
+				array( 'test_key' => 2 ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 333' ),
+				array( 'test_key' => 3 ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 444' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 555' ),
+				array( 'test_key' => '' ),
+			),
+		);
+
+		// Insert in random order
+		$this->randomize_post_insert( $posts );
 
 		ep_refresh_index();
 
@@ -1427,17 +1496,21 @@ class EPTestSingleSite extends EP_Test_Base {
 			's'        => 'ordertest',
 			'orderby'  => 'meta_value_num',
 			'order'    => 'ASC',
-		 'meta_key' => 'test_key',
+			'meta_key' => 'test_key',
 		);
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( 4, $query->post_count );
-		$this->assertEquals( 4, $query->found_posts );
-		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[1]->post_title );
-		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
-		$this->assertEquals( 'ordertest 444', $query->posts[3]->post_title );
+		$this->assertEquals( 5, $query->post_count );
+		$this->assertEquals( 5, $query->found_posts );
+		$this->assertEquals( $posts[0][0]['post_title'], $query->posts[0]->post_title );
+		$this->assertEquals( $posts[1][0]['post_title'], $query->posts[1]->post_title );
+		$this->assertEquals( $posts[2][0]['post_title'], $query->posts[2]->post_title );
+
+		$empty_posts = array( $posts[3][0]['post_title'], $posts[4][0]['post_title'] );
+		$this->assertContains( $query->posts[3]->post_title, $empty_posts );
+		$this->assertContains( $query->posts[4]->post_title, $empty_posts );
+
 	}
 
 	/**
@@ -1446,10 +1519,31 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.8
 	 */
 	public function testSearchPostMetaValueNumOrderbyQueryDesc() {
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 4 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 2 ) );
-		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1 ) );
+
+		$posts = array(
+			array(
+				array( 'post_title' => 'ordertest 111' ),
+				array( 'test_key' => 1 ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 222' ),
+				array( 'test_key' => 2 ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 333' ),
+				array( 'test_key' => 3 ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 444' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 555' ),
+				array( 'test_key' => '' ),
+			),
+		);
+
+		// Insert in random order
+		$this->randomize_post_insert( $posts );
 
 		ep_refresh_index();
 
@@ -1457,17 +1551,21 @@ class EPTestSingleSite extends EP_Test_Base {
 			's'        => 'ordertest',
 			'orderby'  => 'meta_value',
 			'order'    => 'DESC',
-		 'meta_key' => 'test_key',
+			'meta_key' => 'test_key',
 		);
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( 4, $query->post_count );
-		$this->assertEquals( 4, $query->found_posts );
-		$this->assertEquals( 'ordertest 111', $query->posts[3]->post_title );
-		$this->assertEquals( 'ordertest 222', $query->posts[2]->post_title );
-		$this->assertEquals( 'ordertest 333', $query->posts[1]->post_title );
-		$this->assertEquals( 'ordertest 444', $query->posts[0]->post_title );
+		$this->assertEquals( 5, $query->post_count );
+		$this->assertEquals( 5, $query->found_posts );
+		$this->assertEquals( $posts[0][0]['post_title'], $query->posts[0]->post_title );
+		$this->assertEquals( $posts[1][0]['post_title'], $query->posts[1]->post_title );
+		$this->assertEquals( $posts[2][0]['post_title'], $query->posts[2]->post_title );
+
+		$empty_posts = array( $posts[3][0]['post_title'], $posts[4][0]['post_title'] );
+		$this->assertContains( $query->posts[3]->post_title, $empty_posts );
+		$this->assertContains( $query->posts[4]->post_title, $empty_posts );
+
 	}
 
 	/**
