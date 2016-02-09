@@ -1,11 +1,29 @@
 jQuery( document ).ready( function ( $ ) {
 
+	var pauseIndexing    = false;
+	var epSitesRemaining = 0;
+	var epTotalToIndex   = 0;
+	var epTotalIndexed   = 0;
+	var epSitesCompleted = 0;
+
+	// The run index button
+	var run_index_button = $( '#ep_run_index' );
+
+	// The pause index button
+	var pause_index_button = $( '#ep_pause_index' );
+
 	/**
 	 * Update the progress bar every 3 seconds
 	 */
-	var performIndex = function ( resetBar, button ) {
+	var performIndex = function ( resetBar, button, stopbtn ) {
 
-		$( button ).val( ep.running_index_text ).removeClass( 'button-primary' );
+		if ( pauseIndexing ) {
+			return;
+		}
+
+		$( button ).val( ep.running_index_text ).removeClass( 'button-primary' ).attr( 'disabled', true );
+
+		$( stopbtn ).removeClass( 'hidden' );
 
 		//Make sure the progress bar is showing
 		var bar    = $( '#progressbar' ),
@@ -32,14 +50,53 @@ jQuery( document ).ready( function ( $ ) {
 
 		}
 
-		processIndex( bar, button, status );
+		processIndex( bar, button, stopbtn, status );
 
 	};
 
-	var epSitesRemaining = 0;
-	var epTotalToIndex   = 0;
-	var epTotalIndexed   = 0;
-	var epSitesCompleted = 0;
+	/**
+	 * Set our variable to pause indexing
+	 */
+	var pauseIndex = function( pausebtn, indexbtn ) {
+
+		var btn = $( pausebtn );
+		var paused = btn.data( 'paused' );
+
+		if ( paused === 'enabled' ) {
+
+			btn.val( ep.index_pause_text ).data( 'paused', 'disabled' );
+
+			pauseIndexing = false;
+
+			performIndex( false, indexbtn, pausebtn );
+
+		} else {
+
+			var data = {
+				action : 'ep_pause_index',
+				nonce :  ep.pause_nonce
+			};
+
+			// call the ajax request to re-enable ElasticPress
+			$.ajax(
+				{
+					url     : ajaxurl,
+					type    : 'POST',
+					data    : data,
+					complete: function (response) {
+
+						btn.val( ep.index_resume_text ).data( 'paused', 'enabled' );
+						$( indexbtn ).val( ep.index_paused_text ).attr( 'disabled', true );
+
+						pauseIndexing = true;
+
+					}
+				}
+			);
+
+		}
+
+	};
 
 	// Resets index counts
 	var resetIndex = function () {
@@ -53,7 +110,7 @@ jQuery( document ).ready( function ( $ ) {
 	/**
 	 * Send request to server and process response
 	 */
-	var processIndex = function ( bar, button, status ) {
+	var processIndex = function ( bar, button, stopbtn, status ) {
 
 		var data = {
 			action : 'ep_launch_index',
@@ -72,7 +129,8 @@ jQuery( document ).ready( function ( $ ) {
 					if ( 'undefined' === typeof response.responseJSON || 'undefined' === typeof response.responseJSON.data ) {
 
 						$( '#progressstats' ).text( ep.failed_text );
-						$( '#ep_run_index' ).val( ep.index_complete_text ).addClass( 'button-primary' );
+						$( button ).val( ep.index_complete_text ).addClass( 'button-primary' ).attr( 'disabled', false );
+						$( stopbtn ).addClass( 'hidden' );
 						$( '#progressbar' ).fadeOut( 'slow' );
 
 					} else {
@@ -121,14 +179,15 @@ jQuery( document ).ready( function ( $ ) {
 
 								$( '#progressbar' ).fadeOut( 'slow' );
 								$( '#progressstats' ).html( ep.complete_text );
-								$( '#ep_run_index' ).val( ep.index_complete_text ).addClass( 'button-primary' );
+								$( button ).val( ep.index_complete_text ).addClass( 'button-primary' ).attr( 'disabled', false );
+								$( stopbtn ).addClass( 'hidden' );
 								resetIndex();
 
 							}, 1000 );
 
 						} else {
 
-							performIndex( false, button );
+							performIndex( false, button, stopbtn );
 
 						}
 					}
@@ -138,14 +197,37 @@ jQuery( document ).ready( function ( $ ) {
 
 	};
 
-	// The run index button
-	var run_index_button = $( '#ep_run_index' );
+	/**
+	 * Show the progress bar when indexing is paused.
+	 */
+	var showProgressBar = function() {
+
+		var bar    = $( '#progressbar' ),
+			status = $( '#progressstats' );
+
+		bar.show();
+
+		var progress = parseFloat( ep.synced_posts ) / parseFloat( ep.total_posts );
+
+		bar.progressbar(
+			{
+				value : progress * 100
+			}
+		);
+
+		status.text( ep.synced_posts + '/' + ep.total_posts + ' ' + ep.items_indexed );
+
+	};
 
 	/**
 	 * Start the poll if we need it
 	 */
-	if ( 1 == ep.index_running ) {
-		performIndex( true, run_index_button );
+	if ( 1 == ep.index_running && 1 != ep.paused ) {
+		performIndex( true, run_index_button, pause_index_button );
+	}
+
+	if ( 1 == ep.index_running && 1 == ep.paused ) {
+		showProgressBar();
 	}
 
 	/**
@@ -164,7 +246,18 @@ jQuery( document ).ready( function ( $ ) {
 		}
 
 		$( '#progressstats' ).text( ep.running_index_text );
-		performIndex( true, button ); //start the polling
+		performIndex( true, button, pause_index_button ); //start the polling
+
+	} );
+
+	/**
+	 * Process the pause index operation
+	 */
+	pause_index_button.click( function ( event ) {
+
+		event.preventDefault();
+
+		pauseIndex( this, run_index_button );
 
 	} );
 

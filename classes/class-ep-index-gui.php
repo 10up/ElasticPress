@@ -46,6 +46,7 @@ class EP_Index_GUI {
 
 		// Add Ajax Actions.
 		add_action( 'wp_ajax_ep_launch_index', array( $this, 'action_wp_ajax_ep_launch_index' ) );
+		add_action( 'wp_ajax_ep_pause_index', array( $this, 'action_wp_ajax_ep_pause_index' ) );
 		add_action( 'wp_ajax_ep_get_site_stats', array( $this, 'action_wp_ajax_ep_get_site_stats' ) );
 		add_action( 'ep_do_settings_meta', array( $this, 'action_ep_do_settings_meta' ) );
 
@@ -190,6 +191,8 @@ class EP_Index_GUI {
 
 		if ( true === $network ) {
 
+			delete_site_option( 'ep_index_paused' );
+
 			$last_run = get_site_transient( 'ep_sites_to_index' );
 
 			if ( false === $last_run ) {
@@ -208,6 +211,8 @@ class EP_Index_GUI {
 
 			$site_info = array_pop( $sites );
 			$site      = absint( $site_info['blog_id'] );
+		} else {
+			delete_option( 'ep_index_paused' );
 		}
 
 		if ( false !== $site ) {
@@ -291,6 +296,37 @@ class EP_Index_GUI {
 
 		wp_send_json_success( $result );
 
+	}
+
+	/**
+	 * Process the indexing pause request
+	 *
+	 * Processes the action when the pause indexing button is clicked,
+	 * re-enabling the ElasticPress integration while indexing is paused.
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	public function action_wp_ajax_ep_pause_index() {
+
+		// Verify nonce and make sure this is run by an admin.
+		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'ep_pause_index' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_index_paused', true );
+		} else {
+			update_option( 'ep_index_paused', true, false );
+		}
+
+		// If ElasticPress is activated correctly, send a positive response
+		if ( ep_activate() ) {
+			wp_send_json_success();
+		}
+
+		wp_send_json_error();
 	}
 
 	/**
