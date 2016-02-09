@@ -389,6 +389,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				}
 				unset( $cache_property );
 
+				/*
+				 * In the case where we're not using an external object cache, we need to call flush on the default
+				 * WordPress object cache class to clear the values from the cache property
+				 */
+				if ( ! wp_using_ext_object_cache() ) {
+					wp_cache_flush();
+				}
+
 				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
 				}
