@@ -25,7 +25,7 @@
   "require-dev": {
     "codeclimate/php-test-reporter": "dev-master",
     "phpunit/phpunit": "*@stable",
-    "wp-cli/wp-cli": "dev-master"
+    "wp-cli/wp-cli": "*@stable"
   },
   "config": {
     "platform": {
