@@ -298,7 +298,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @return array
 	 */
 	private function _index_helper( $args ) {
-		global $wpdb, $wp_object_cache;
 		$synced = 0;
 		$errors = array();
 
@@ -375,18 +374,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			usleep( 500 );
 
 			// Avoid running out of memory
-			$wpdb->queries = array();
-
-			if ( is_object( $wp_object_cache ) ) {
-				$wp_object_cache->group_ops = array();
-				$wp_object_cache->stats = array();
-				$wp_object_cache->memcache_debug = array();
-				wp_cache_flush();
-
-				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
-					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
-				}
-			}
+			$this->stop_the_insanity();
 		}
 
 		if ( ! $no_bulk ) {
@@ -681,6 +669,43 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		} else {
 			WP_CLI::log( 'ElasticPress is currently deactivated.' );
 		}
+	}
+
+	/**
+	 * Resets some values to reduce memory footprint.
+	 */
+	public function stop_the_insanity() {
+		global $wpdb, $wp_object_cache, $wp_actions;
+
+		$wpdb->queries = array();
+
+		if ( is_object( $wp_object_cache ) ) {
+			$wp_object_cache->group_ops = array();
+			$wp_object_cache->stats = array();
+			$wp_object_cache->memcache_debug = array();
+
+			// Make sure this is a public property, before trying to clear it
+			$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
+			if ( $cache_property->isPublic() ) {
+				$wp_object_cache->cache = array();
+			}
+			unset( $cache_property );
+
+			/*
+			 * In the case where we're not using an external object cache, we need to call flush on the default
+			 * WordPress object cache class to clear the values from the cache property
+			 */
+			if ( ! wp_using_ext_object_cache() ) {
+				wp_cache_flush();
+			}
+
+			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
+				call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
+			}
+		}
+
+		// Prevent wp_actions from growing out of control
+		$wp_actions = array();
 	}
 
 	/**
