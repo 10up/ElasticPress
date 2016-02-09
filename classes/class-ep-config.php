@@ -128,6 +128,18 @@ class EP_Config {
 	}
 
 	/**
+	 * Returns searchable post types for the current site
+	 *
+	 * @since 1.9
+	 * @return mixed|void
+	 */
+	public function get_searchable_post_types() {
+		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
+
+		return apply_filters( 'ep_searchable_post_types', $post_types );
+	}
+
+	/**
 	 * Return indexable post_status for the current site
 	 *
 	 * @since 1.3
@@ -271,6 +283,10 @@ function ep_get_index_name( $blog_id = null ) {
 
 function ep_get_indexable_post_types() {
 	return EP_Config::factory()->get_indexable_post_types();
+}
+
+function ep_get_searchable_post_types() {
+	return EP_Config::factory()->get_searchable_post_types();
 }
 
 function ep_get_indexable_post_status() {
