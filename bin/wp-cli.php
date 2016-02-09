@@ -381,7 +381,13 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				$wp_object_cache->group_ops = array();
 				$wp_object_cache->stats = array();
 				$wp_object_cache->memcache_debug = array();
-				wp_cache_flush();
+
+				// Make sure this is a public property, before trying to clear it
+				$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
+				if ( $cache_property->isPublic() ) {
+					$wp_object_cache->cache = array();
+				}
+				unset( $cache_property );
 
 				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
