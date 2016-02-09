@@ -298,7 +298,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @return array
 	 */
 	private function _index_helper( $args ) {
-		global $wpdb, $wp_object_cache;
+		global $wpdb, $wp_object_cache, $wp_actions;
 		$synced = 0;
 		$errors = array();
 
@@ -392,6 +392,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
 				}
+
+				// Prevent wp_actions from growing out of control
+				$wp_actions = array();
 			}
 		}
 
