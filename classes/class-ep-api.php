@@ -1711,7 +1711,7 @@ class EP_API {
 		if ( isset( $args['blocking'] ) && false === $args['blocking' ] ) {
 			$query['blocking'] = true;
 			$query['request']  = $request;
-			$this->queries[]   = $query;
+			$this->_add_query_log( $query );
 
 			return $request;
 		}
@@ -1724,7 +1724,7 @@ class EP_API {
 			if ( is_wp_error( $host ) ) {
 				$query['failed_hosts'][] = $host;
 				$query['time_finish']    = microtime( true );
-				$this->queries[]         = $query;
+				$this->_add_query_log( $query );
 
 				return $host;
 			}
@@ -1738,7 +1738,7 @@ class EP_API {
 		$query['request'] = $request;
 		$query['url']     = $request_url;
 		$query['host']    = $host;
-		$this->queries[]  = $query;
+		$this->_add_query_log( $query );
 
 		return $request;
 
@@ -2028,6 +2028,19 @@ class EP_API {
 
 		return false;
 
+	}
+
+	/**
+	 * Query logging. Don't log anything when WP_DEBUG is not enabled.
+	 *
+	 * @param array $query Query.
+	 *
+	 * @return void Method does not return.
+	 */
+	protected function _add_query_log( $query ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$this->queries[] = $query;
+		}
 	}
 
 }

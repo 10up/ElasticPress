@@ -332,6 +332,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$post_type = array_map( 'trim', $post_type );
 		}
 
+		/**
+		 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
+		 */
+		$query = new WP_Query();
+
 		while ( true ) {
 
 			$args = apply_filters( 'ep_index_posts_args', array(
@@ -343,7 +348,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				'orderby'             => array( 'ID' => 'DESC' ),
 			) );
 
-			$query = new WP_Query( $args );
+			$query->query( $args );
 
 			if ( $query->have_posts() ) {
 
@@ -375,6 +380,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			// Avoid running out of memory
 			$this->stop_the_insanity();
+
 		}
 
 		if ( ! $no_bulk ) {
