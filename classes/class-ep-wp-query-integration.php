@@ -226,7 +226,7 @@ class EP_WP_Query_Integration {
 				 * To follow WordPress conventions,
 				 * make sure we only search 'searchable' post types
 				 */
-				$searchable_post_types = get_post_types( array( 'exclude_from_search' => false ) );
+				$searchable_post_types = ep_get_searchable_post_types();
 
 				// If we have no searchable post types, there's no point going any further
 				if ( empty( $searchable_post_types ) ) {
