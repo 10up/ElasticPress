@@ -340,14 +340,16 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		while ( true ) {
 
 			$args = apply_filters( 'ep_index_posts_args', array(
-				'posts_per_page'      => $posts_per_page,
-				'post_type'           => $post_type,
-				'post_status'         => ep_get_indexable_post_status(),
-				'offset'              => $offset,
-				'ignore_sticky_posts' => true,
-				'orderby'             => array( 'ID' => 'DESC' ),
+				'posts_per_page'         => $posts_per_page,
+				'post_type'              => $post_type,
+				'post_status'            => ep_get_indexable_post_status(),
+				'offset'                 => $offset,
+				'ignore_sticky_posts'    => true,
+				'orderby'                => array( 'ID' => 'DESC' ),
+				'cache_results '         => false,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
 			) );
-
 			$query->query( $args );
 
 			if ( $query->have_posts() ) {
@@ -408,6 +410,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		static $killed_post_count = 0;
 
 		$killed_post = false;
+
 		$post_args = ep_prepare_post( $post_id );
 
 		// Mimic EP_Sync_Manager::sync_post( $post_id ), otherwise posts can slip
