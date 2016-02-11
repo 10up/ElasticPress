@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 1.8\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-02-01 18:17:04+00:00\n"
+"POT-Creation-Date: 2016-02-08 22:22:16+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -144,35 +144,35 @@ msgstr ""
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:322 includes/settings/status.php:70
+#: classes/class-ep-index-gui.php:322
 msgid "Search Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:325 includes/settings/status.php:74
+#: classes/class-ep-index-gui.php:325
 msgid "Total Queries:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:328 includes/settings/status.php:77
+#: classes/class-ep-index-gui.php:328
 msgid "Query Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:331 includes/settings/status.php:81
+#: classes/class-ep-index-gui.php:331
 msgid "Total Fetches:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:334 includes/settings/status.php:84
+#: classes/class-ep-index-gui.php:334
 msgid "Fetch Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:339 includes/settings/status.php:93
+#: classes/class-ep-index-gui.php:339
 msgid "Index Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:342 includes/settings/status.php:97
+#: classes/class-ep-index-gui.php:342
 msgid "Index Total:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:345 includes/settings/status.php:100
+#: classes/class-ep-index-gui.php:345
 msgid "Index Time:"
 msgstr ""
 
@@ -252,73 +252,69 @@ msgstr ""
 msgid "A proper host must be set before running an index."
 msgstr ""
 
-#: includes/settings/status.php:28
+#: includes/settings/status.php:27
 msgid "Elasticsearch Host"
 msgstr ""
 
-#: includes/settings/status.php:33
+#: includes/settings/status.php:32
 msgid ""
 "Current host is set but cannot be contacted. Please contact the server "
 "administrator."
 msgstr ""
 
-#: includes/settings/status.php:37
+#: includes/settings/status.php:36
 msgid ""
 "A host has not been set or is set but cannot be contacted. You must set a "
 "proper host to continue."
 msgstr ""
 
-#: includes/settings/status.php:48
+#: includes/settings/status.php:47
 msgid "Plugin Status"
 msgstr ""
 
-#: includes/settings/status.php:51
+#: includes/settings/status.php:50
 msgid "Connected to Elasticsearch."
 msgstr ""
 
-#: includes/settings/status.php:56
+#: includes/settings/status.php:55
 msgid "ElasticPress can override WP search."
 msgstr ""
 
-#: includes/settings/status.php:61
+#: includes/settings/status.php:60
 msgid ""
 "ElasticPress is not enabled and cannot override WP queries. You can "
 "activate it on the form to the left."
 msgstr ""
 
-#: includes/settings/status.php:66
-msgid "System Stats"
-msgstr ""
-
-#: includes/settings/status.php:112
+#: includes/settings/status.php:70
 msgid "Site Stats"
 msgstr ""
 
-#: includes/settings/status.php:115
+#: includes/settings/status.php:73
 msgid "Select a site:"
 msgstr ""
 
-#: includes/settings/status.php:116
+#: includes/settings/status.php:74
 msgid "Select"
 msgstr ""
 
-#: includes/settings/status.php:151
+#: includes/settings/status.php:109
 msgid "Cluster Stats"
 msgstr ""
 
-#: includes/settings/status.php:161
+#: includes/settings/status.php:119
 msgid "Disk Usage:"
 msgstr ""
 
-#: includes/settings/status.php:165
+#: includes/settings/status.php:123
 msgid "Disk Space Available:"
 msgstr ""
 
-#: includes/settings/status.php:168
+#: includes/settings/status.php:126
 msgid "Total Disk Space:"
 msgstr ""
 
-#: includes/settings/status.php:181
+#: includes/settings/status.php:139
 msgid "ERROR:"
 msgstr ""
 

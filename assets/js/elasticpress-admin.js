@@ -66,11 +66,6 @@ jQuery( document ).ready( function ( $ ) {
 				url :      ajaxurl,
 				type :     'POST',
 				data :     data,
-				error :    function ( request ) {
-
-					alert( request.responseText );
-
-				},
 				complete : function ( response ) {
 
 					// Handle returned error appropriately.
@@ -195,11 +190,6 @@ jQuery( document ).ready( function ( $ ) {
 				url :      ajaxurl,
 				type :     'POST',
 				data :     data,
-				error :    function ( request ) {
-
-					alert( request.responseText );
-
-				},
 				complete : function ( response ) {
 
 					$( '#ep_site_stats' ).html( response.responseJSON.data );
