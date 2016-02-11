@@ -257,6 +257,10 @@ class EP_WP_Query_Integration {
 
 		$use_get_post = apply_filters( 'ep_wp_query_search_use_get_post', true, $query );
 
+		if ( ! empty( $query_vars['cache_results'] ) ) {
+			$use_get_post = false;
+		}
+
 		$search = null;
 
 		if( count( $new_posts ) < 1 ) {
