@@ -1617,10 +1617,18 @@ class EP_API {
 							$args['meta_query'] = array();
 						}
 
-						$args['meta_query'][] = array(
-							'key'     => $meta_key,
-							'compare' => 'EXISTS',
-						);
+						if ( 'meta_value_num' == $orderby_clause ) {
+							$args['meta_query'][] = array(
+								'key'     => $meta_key,
+								'compare' => 'EXISTS',
+							);
+						} else {
+							$args['meta_query'][] = array(
+								'key'     => $meta_key,
+								'compare' => '!=',
+								'value'   => '',
+							);
+						}
 					}
 				} else {
 					$sort[] = array(
