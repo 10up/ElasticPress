@@ -684,7 +684,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * Resets some values to reduce memory footprint.
 	 */
 	public function stop_the_insanity() {
-		global $wpdb, $wp_object_cache, $wp_actions;
+		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
 
 		$wpdb->queries = array();
 
@@ -715,6 +715,21 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// Prevent wp_actions from growing out of control
 		$wp_actions = array();
+
+		// WP_Query class adds filter get_term_metadata using its own instance
+		// what prevents WP_Query class from being destructed by PHP gc.
+		//    if ( $q['update_post_term_cache'] ) {
+		//        add_filter( 'get_term_metadata', array( $this, 'lazyload_term_meta' ), 10, 2 );
+		//    }
+		// It's high memory consuming as WP_Query instance holds all query results inside itself
+		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
+		if ( isset( $wp_filter['get_term_metadata'][10] ) ) {
+			foreach ( $wp_filter['get_term_metadata'][10] as $hook => $content ) {
+				if ( preg_match( '#^[0-9a-f]{32}lazyload_term_meta$#', $hook ) ) {
+					unset( $wp_filter['get_term_metadata'][10][$hook] );
+				}
+			}
+		}
 	}
 
 	/**
