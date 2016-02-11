@@ -1544,7 +1544,7 @@ class EP_API {
 	 * @param array  $args
 	 * @return array
 	 */
-	protected function parse_orderby( $orderby, $order, $args ) {
+	protected function parse_orderby( $orderby, $order, &$args ) {
 		$orderbys = explode( ' ', $orderby );
 		$sort = array();
 
@@ -1586,11 +1586,42 @@ class EP_API {
 					if ( 'meta_value_num' === $orderby_clause ) {
 						$orderby_path = 'double';
 					}
+
 					$sort[] = array(
 						'meta.' . $meta_key . '.' . $orderby_path => array(
 							'order' => $order,
 						),
 					);
+
+					// Check if we need to restrict meta field with 'exists' for correct orderby parity
+					$meta_value_has_check = false;
+
+					if ( ! empty( $args['meta_value'] ) && '' !== $args['meta_value'] ) {
+						// meta_value check
+						$meta_value_has_check = true;
+					} elseif ( ! empty( $args['meta_value_num'] ) && '' !== $args['meta_value_num'] ) {
+						// meta_value_num check
+						$meta_value_has_check = true;
+					} elseif ( ! empty( $args['meta_query'] ) ) {
+						// Check if meta_query has this key
+						foreach ( $args['meta_query'] as $meta_query ) {
+							if ( isset( $meta_query['key'] ) && $meta_key == $meta_query['key'] ) {
+								$meta_value_has_check = true;
+							}
+						}
+					}
+
+					// Add meta query restrict to posts where meta key exists
+					if ( ! $meta_value_has_check ) {
+						if ( empty( $args['meta_query'] ) ) {
+							$args['meta_query'] = array();
+						}
+
+						$args['meta_query'][] = array(
+							'key'     => $meta_key,
+							'compare' => 'EXISTS',
+						);
+					}
 				} else {
 					$sort[] = array(
 						$orderby_clause => array(
