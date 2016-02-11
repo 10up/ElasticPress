@@ -1619,14 +1619,13 @@ class EP_API {
 
 						if ( 'meta_value_num' == $orderby_clause ) {
 							$args['meta_query'][] = array(
-								'key'     => $meta_key,
+								'key'     => $meta_key . '.' . $orderby_path,
 								'compare' => 'EXISTS',
 							);
 						} else {
 							$args['meta_query'][] = array(
 								'key'     => $meta_key,
-								'compare' => '!=',
-								'value'   => '',
+								'compare' => 'EXISTS',
 							);
 						}
 					}
