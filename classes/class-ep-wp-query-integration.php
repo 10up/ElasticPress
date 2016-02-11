@@ -257,7 +257,7 @@ class EP_WP_Query_Integration {
 
 		$use_get_post = apply_filters( 'ep_wp_query_search_use_get_post', true, $query );
 
-		if ( ! empty( $query_vars['cache_results'] ) ) {
+		if ( empty( $query_vars['cache_results'] ) ) {
 			$use_get_post = false;
 		}
 
@@ -290,7 +290,7 @@ class EP_WP_Query_Integration {
 					$post_site_id = $post_array['site_id'];
 				}
 
-				if ( $current_site_id == $post_site_id && $use_get_post ) {
+				if ( $use_get_post && $current_site_id === $post_site_id ) {
 					$post = get_post( $post_array['post_id'] );
 
 					if ( isset( $post_array['post_meta'] ) ) {
