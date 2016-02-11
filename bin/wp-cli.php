@@ -685,11 +685,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$wp_object_cache->memcache_debug = array();
 
 			// Make sure this is a public property, before trying to clear it
-			$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
-			if ( $cache_property->isPublic() ) {
-				$wp_object_cache->cache = array();
+			try {
+				$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
+				if ( $cache_property->isPublic() ) {
+					$wp_object_cache->cache = array();
+				}
+				unset( $cache_property );
+			} catch ( ReflectionException $e ) {
 			}
-			unset( $cache_property );
 
 			/*
 			 * In the case where we're not using an external object cache, we need to call flush on the default
