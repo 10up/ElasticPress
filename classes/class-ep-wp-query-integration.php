@@ -288,6 +288,14 @@ class EP_WP_Query_Integration {
 
 				if ( $current_site_id == $post_site_id && $use_get_post ) {
 					$post = get_post( $post_array['post_id'] );
+
+					if ( isset( $post_array['post_meta'] ) ) {
+						$post->post_meta = $post_array['post_meta'];
+					}
+
+					if ( isset( $post_array['terms'] ) ) {
+						$post->terms = $post_array['terms'];
+					}
 				} else {
 					$post = new stdClass();
 
