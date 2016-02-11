@@ -1456,6 +1456,58 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test post meta string orderby query desc
+	 *
+	 * @since 1.8
+	 */
+	public function testSearchPostMetaValueStringOrderbyQueryDesc() {
+
+		$posts = array(
+			array(
+				array( 'post_title' => 'ordertest 111' ),
+				array( 'test_key' => 'a' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 222' ),
+				array( 'test_key' => 'b' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 333' ),
+				array( 'test_key' => 'c' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 444' ),
+			),
+			array(
+				array( 'post_title' => 'ordertest 555' ),
+				array( 'test_key' => '' ),
+			),
+		);
+
+		// Insert in random order
+		$this->randomize_post_insert( $posts );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'        => 'ordertest',
+			'orderby'  => 'meta_value',
+			'order'    => 'DESC',
+			'meta_key' => 'test_key',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+		$this->assertEquals( $posts[2][0]['post_title'], $query->posts[0]->post_title );
+		$this->assertEquals( $posts[1][0]['post_title'], $query->posts[1]->post_title );
+		$this->assertEquals( $posts[0][0]['post_title'], $query->posts[2]->post_title );
+		$this->assertEquals( $posts[4][0]['post_title'], $query->posts[3]->post_title );
+
+	}
+
+	/**
 	 * Test post meta number orderby query asc
 	 *
 	 * @since 1.8
@@ -1543,7 +1595,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$args = array(
 			's'        => 'ordertest',
 			'orderby'  => 'meta_value_num',
-			'order'    => 'ASC',
+			'order'    => 'DESC',
 			'meta_key' => 'test_key',
 		);
 
@@ -1554,58 +1606,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( $posts[2][0]['post_title'], $query->posts[0]->post_title );
 		$this->assertEquals( $posts[1][0]['post_title'], $query->posts[1]->post_title );
 		$this->assertEquals( $posts[0][0]['post_title'], $query->posts[2]->post_title );
-
-	}
-
-	/**
-	 * Test post meta number orderby query desc
-	 *
-	 * @since 1.8
-	 */
-	public function testSearchPostMetaValueNumOrderbyQueryDesc() {
-
-		$posts = array(
-			array(
-				array( 'post_title' => 'ordertest 111' ),
-				array( 'test_key' => 1 ),
-			),
-			array(
-				array( 'post_title' => 'ordertest 222' ),
-				array( 'test_key' => 2 ),
-			),
-			array(
-				array( 'post_title' => 'ordertest 333' ),
-				array( 'test_key' => 3 ),
-			),
-			array(
-				array( 'post_title' => 'ordertest 444' ),
-			),
-			array(
-				array( 'post_title' => 'ordertest 555' ),
-				array( 'test_key' => '' ),
-			),
-		);
-
-		// Insert in random order
-		$this->randomize_post_insert( $posts );
-
-		ep_refresh_index();
-
-		$args = array(
-			's'        => 'ordertest',
-			'orderby'  => 'meta_value',
-			'order'    => 'DESC',
-			'meta_key' => 'test_key',
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 4, $query->post_count );
-		$this->assertEquals( 4, $query->found_posts );
-		$this->assertEquals( $posts[2][0]['post_title'], $query->posts[0]->post_title );
-		$this->assertEquals( $posts[1][0]['post_title'], $query->posts[1]->post_title );
-		$this->assertEquals( $posts[0][0]['post_title'], $query->posts[2]->post_title );
-		$this->assertEquals( $posts[4][0]['post_title'], $query->posts[3]->post_title );
 
 	}
 
