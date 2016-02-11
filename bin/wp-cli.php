@@ -332,18 +332,25 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$post_type = array_map( 'trim', $post_type );
 		}
 
+		/**
+		 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
+		 */
+		$query = new WP_Query();
+
 		while ( true ) {
 
 			$args = apply_filters( 'ep_index_posts_args', array(
-				'posts_per_page'      => $posts_per_page,
-				'post_type'           => $post_type,
-				'post_status'         => ep_get_indexable_post_status(),
-				'offset'              => $offset,
-				'ignore_sticky_posts' => true,
-				'orderby'             => array( 'ID' => 'DESC' ),
+				'posts_per_page'         => $posts_per_page,
+				'post_type'              => $post_type,
+				'post_status'            => ep_get_indexable_post_status(),
+				'offset'                 => $offset,
+				'ignore_sticky_posts'    => true,
+				'orderby'                => array( 'ID' => 'DESC' ),
+				'cache_results '         => false,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
 			) );
-
-			$query = new WP_Query( $args );
+			$query->query( $args );
 
 			if ( $query->have_posts() ) {
 
@@ -375,6 +382,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			// Avoid running out of memory
 			$this->stop_the_insanity();
+
 		}
 
 		if ( ! $no_bulk ) {
@@ -402,6 +410,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		static $killed_post_count = 0;
 
 		$killed_post = false;
+
 		$post_args = ep_prepare_post( $post_id );
 
 		// Mimic EP_Sync_Manager::sync_post( $post_id ), otherwise posts can slip
@@ -675,7 +684,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * Resets some values to reduce memory footprint.
 	 */
 	public function stop_the_insanity() {
-		global $wpdb, $wp_object_cache, $wp_actions;
+		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
 
 		$wpdb->queries = array();
 
@@ -706,6 +715,21 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// Prevent wp_actions from growing out of control
 		$wp_actions = array();
+
+		// WP_Query class adds filter get_term_metadata using its own instance
+		// what prevents WP_Query class from being destructed by PHP gc.
+		//    if ( $q['update_post_term_cache'] ) {
+		//        add_filter( 'get_term_metadata', array( $this, 'lazyload_term_meta' ), 10, 2 );
+		//    }
+		// It's high memory consuming as WP_Query instance holds all query results inside itself
+		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
+		if ( isset( $wp_filter['get_term_metadata'][10] ) ) {
+			foreach ( $wp_filter['get_term_metadata'][10] as $hook => $content ) {
+				if ( preg_match( '#^[0-9a-f]{32}lazyload_term_meta$#', $hook ) ) {
+					unset( $wp_filter['get_term_metadata'][10][$hook] );
+				}
+			}
+		}
 	}
 
 	/**
