@@ -170,11 +170,14 @@ class EP_Index_Worker {
 			$wp_object_cache->memcache_debug = array();
 
 			// Make sure this is a public property, before trying to clear it
-			$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
-			if ( $cache_property->isPublic() ) {
-				$wp_object_cache->cache = array();
+			try {
+				$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
+				if ( $cache_property->isPublic() ) {
+					$wp_object_cache->cache = array();
+				}
+				unset( $cache_property );
+			} catch ( ReflectionException $e ) {
 			}
-			unset( $cache_property );
 
 			if ( is_callable( array( $wp_object_cache, '__remoteset' ) ) ) {
 				call_user_func( array( $wp_object_cache, '__remoteset' ) ); // Important.
