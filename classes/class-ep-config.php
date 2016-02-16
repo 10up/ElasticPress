@@ -125,7 +125,7 @@ class EP_Config {
 	 * @return array
 	 */
 	public function get_indexable_post_status() {
-    if ( defined( 'EP_INDEX_ATTACHMENTS' ) ) {
+    if ( defined( 'EP_INDEX_ATTACHMENTS' ) && EP_INDEX_ATTACHMENTS == true ) {
 		  return apply_filters( 'ep_indexable_post_status', array( 'publish', 'inherit' ) );
     }
     else {
