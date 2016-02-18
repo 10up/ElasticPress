@@ -303,7 +303,11 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
 * ```post__in``` (*array*)
 
-    Filter posts by specific post IDs.
+    Specify post IDs to retrieve.
+
+* ```post__not_in``` (*array*)
+
+    Specify post IDs to exclude.
 
 * ```offset``` (*int*)
 
