@@ -301,6 +301,14 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
     Filter posts by post type. ```any``` will search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
 
+* ```post__in``` (*array*)
+
+    Specify post IDs to retrieve.
+
+* ```post__not_in``` (*array*)
+
+    Specify post IDs to exclude.
+
 * ```offset``` (*int*)
 
     Number of posts to skip in ascending order.
