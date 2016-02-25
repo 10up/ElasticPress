@@ -47,6 +47,7 @@ class EP_Index_GUI {
 		// Add Ajax Actions.
 		add_action( 'wp_ajax_ep_launch_index', array( $this, 'action_wp_ajax_ep_launch_index' ) );
 		add_action( 'wp_ajax_ep_pause_index', array( $this, 'action_wp_ajax_ep_pause_index' ) );
+		add_action( 'wp_ajax_ep_restart_index', array( $this, 'action_wp_ajax_ep_restart_index' ) );
 		add_action( 'wp_ajax_ep_get_site_stats', array( $this, 'action_wp_ajax_ep_get_site_stats' ) );
 		add_action( 'ep_do_settings_meta', array( $this, 'action_ep_do_settings_meta' ) );
 
@@ -327,6 +328,37 @@ class EP_Index_GUI {
 		}
 
 		wp_send_json_error();
+	}
+
+	/**
+	 * Process the indexing restart request
+	 *
+	 * Processes the action when the restart indexing button is clicked,
+	 * updating the option saying indexing is not paused anymore.
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	public function action_wp_ajax_ep_restart_index() {
+
+		// Verify nonce and make sure this is run by an admin.
+		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'ep_restart_index' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_option( 'ep_index_paused' );
+			delete_site_transient( 'ep_sites_to_index' );
+		} else {
+			delete_option( 'ep_index_paused' );
+		}
+
+		delete_transient( 'ep_index_offset' );
+		delete_transient( 'ep_index_synced' );
+		delete_transient( 'ep_post_count' );
+
+		wp_send_json_success();
 	}
 
 	/**

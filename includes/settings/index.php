@@ -31,6 +31,8 @@ if ( false === get_transient( 'ep_index_offset' ) ) {
 
 $stop_class = $paused ? ' button-primary' : ' button-primary hidden';
 $stop_text  = $paused ? esc_html__( 'Resume Indexing', 'elasticpress' ) : esc_html__( 'Pause Indexing', 'elasticpress' );
+
+$restart_class = $paused ? ' button-secondary' : ' button-secondary hidden';
 ?>
 
 <p>
@@ -38,6 +40,7 @@ $stop_text  = $paused ? esc_html__( 'Resume Indexing', 'elasticpress' ) : esc_ht
 		<?php if ( ep_is_activated() ) : ?>
 			<input type="submit" name="ep_run_index" id="ep_run_index" class="button<?php echo esc_attr( $run_class ); ?> button-large" value="<?php echo esc_attr( $run_text ); ?>"<?php if ( $paused ) : echo ' disabled="disabled"'; endif; ?>>
 			<input type="submit" name="ep_pause_index" id="ep_pause_index" class="button<?php echo esc_attr( $stop_class ); ?> button-large" value="<?php echo esc_attr( $stop_text ); ?>"<?php if ( $paused ) : echo ' data-paused="enabled"'; endif; ?>>
+			<input type="submit" name="ep_restart_index" id="ep_restart_index" class="button<?php echo esc_attr( $restart_class ); ?> button-large" value="<?php esc_attr_e( 'Restart Index', 'elasticpress' ); ?>">
 		<?php else : ?>
 			<span class="error"><?php esc_html_e( 'ElasticPress needs to be enabled to run an index.', 'elasticpress' ); ?></span>
 		<?php endif; ?>
@@ -45,5 +48,5 @@ $stop_text  = $paused ? esc_html__( 'Resume Indexing', 'elasticpress' ) : esc_ht
 		<span class="error"><?php esc_html_e( 'A proper host must be set before running an index.', 'elasticpress' ); ?></span>
 	<?php endif; ?>
 </p>
-<p><div id="progressbar" style="display: none;"></div>
-<p id="progressstats">
+<div id="progressbar" style="display: none;"></div>
+<p id="progressstats"></p>

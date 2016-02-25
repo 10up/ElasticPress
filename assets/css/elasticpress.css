@@ -33,4 +33,7 @@
   padding: 0; }
   #ep_stats ul li {
     margin-left: 20px; }
+
+#ep_restart_index {
+  float: right; }
 /*# sourceMappingURL=elasticpress.css.map */

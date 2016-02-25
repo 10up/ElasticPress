@@ -12,10 +12,13 @@ jQuery( document ).ready( function ( $ ) {
 	// The pause index button
 	var pause_index_button = $( '#ep_pause_index' );
 
+	// The restart index button
+	var restart_index_button = $( '#ep_restart_index' );
+
 	/**
 	 * Update the progress bar every 3 seconds
 	 */
-	var performIndex = function ( resetBar, button, stopbtn ) {
+	var performIndex = function ( resetBar, button, stopBtn, restartBtn ) {
 
 		if ( pauseIndexing ) {
 			return;
@@ -23,7 +26,8 @@ jQuery( document ).ready( function ( $ ) {
 
 		$( button ).val( ep.running_index_text ).removeClass( 'button-primary' ).attr( 'disabled', true );
 
-		$( stopbtn ).removeClass( 'hidden' );
+		$( stopBtn ).removeClass( 'hidden' );
+		$( restartBtn ).addClass( 'hidden' );
 
 		//Make sure the progress bar is showing
 		var bar    = $( '#progressbar' ),
@@ -50,16 +54,16 @@ jQuery( document ).ready( function ( $ ) {
 
 		}
 
-		processIndex( bar, button, stopbtn, status );
+		processIndex( bar, button, stopBtn, restartBtn, status );
 
 	};
 
 	/**
 	 * Set our variable to pause indexing
 	 */
-	var pauseIndex = function( pausebtn, indexbtn ) {
+	var pauseIndex = function( pauseBtn, indexBtn, restartBtn ) {
 
-		var btn = $( pausebtn );
+		var btn = $( pauseBtn );
 		var paused = btn.data( 'paused' );
 
 		if ( paused === 'enabled' ) {
@@ -68,7 +72,7 @@ jQuery( document ).ready( function ( $ ) {
 
 			pauseIndexing = false;
 
-			performIndex( false, indexbtn, pausebtn );
+			performIndex( false, indexBtn, pauseBtn, restartBtn );
 
 		} else {
 
@@ -86,7 +90,8 @@ jQuery( document ).ready( function ( $ ) {
 					complete: function (response) {
 
 						btn.val( ep.index_resume_text ).data( 'paused', 'enabled' );
-						$( indexbtn ).val( ep.index_paused_text ).attr( 'disabled', true );
+						$( indexBtn ).val( ep.index_paused_text ).attr( 'disabled', true );
+						$( restartBtn ).removeClass( 'hidden' );
 
 						pauseIndexing = true;
 
@@ -95,6 +100,41 @@ jQuery( document ).ready( function ( $ ) {
 			);
 
 		}
+
+	};
+
+	/**
+	 * Allow indexing to be restarted.
+	 */
+	var restartIndex = function( restartBtn, pauseBtn, indexBtn ) {
+
+		var data = {
+			action : 'ep_restart_index',
+			nonce :  ep.restart_nonce
+		};
+
+		// call the ajax request to un-pause indexing
+		$.ajax(
+			{
+				url     : ajaxurl,
+				type    : 'POST',
+				data    : data,
+				complete: function (response) {
+
+					resetIndex();
+
+					$( restartBtn ).addClass( 'hidden' );
+					$( pauseBtn ).val( ep.index_pause_text ).data( 'paused', 'disabled' ).addClass( 'hidden' );
+					$( indexBtn ).val( ep.index_complete_text ).addClass( 'button-primary' ).attr( 'disabled', false );
+
+					$( '#progressstats' ).text( '' );
+					$( '#progressbar' ).fadeOut( 'slow' );
+
+					pauseIndexing = false;
+
+				}
+			}
+		);
 
 	};
 
@@ -110,7 +150,7 @@ jQuery( document ).ready( function ( $ ) {
 	/**
 	 * Send request to server and process response
 	 */
-	var processIndex = function ( bar, button, stopbtn, status ) {
+	var processIndex = function ( bar, button, stopBtn, restartBtn, status ) {
 
 		var data = {
 			action : 'ep_launch_index',
@@ -130,7 +170,8 @@ jQuery( document ).ready( function ( $ ) {
 
 						$( '#progressstats' ).text( ep.failed_text );
 						$( button ).val( ep.index_complete_text ).addClass( 'button-primary' ).attr( 'disabled', false );
-						$( stopbtn ).addClass( 'hidden' );
+						$( stopBtn ).addClass( 'hidden' );
+						$( restartBtn ).addClass( 'hidden' );
 						$( '#progressbar' ).fadeOut( 'slow' );
 
 					} else {
@@ -180,14 +221,15 @@ jQuery( document ).ready( function ( $ ) {
 								$( '#progressbar' ).fadeOut( 'slow' );
 								$( '#progressstats' ).html( ep.complete_text );
 								$( button ).val( ep.index_complete_text ).addClass( 'button-primary' ).attr( 'disabled', false );
-								$( stopbtn ).addClass( 'hidden' );
+								$( stopBtn ).addClass( 'hidden' );
+								$( restartBtn ).addClass( 'hidden' );
 								resetIndex();
 
 							}, 1000 );
 
 						} else {
 
-							performIndex( false, button, stopbtn );
+							performIndex( false, button, stopBtn, restartBtn );
 
 						}
 					}
@@ -223,7 +265,7 @@ jQuery( document ).ready( function ( $ ) {
 	 * Start the poll if we need it
 	 */
 	if ( 1 == ep.index_running && 1 != ep.paused ) {
-		performIndex( true, run_index_button, pause_index_button );
+		performIndex( true, run_index_button, pause_index_button, restart_index_button );
 	}
 
 	if ( 1 == ep.index_running && 1 == ep.paused ) {
@@ -246,7 +288,7 @@ jQuery( document ).ready( function ( $ ) {
 		}
 
 		$( '#progressstats' ).text( ep.running_index_text );
-		performIndex( true, button, pause_index_button ); //start the polling
+		performIndex( true, button, pause_index_button, restart_index_button ); //start the polling
 
 	} );
 
@@ -257,7 +299,18 @@ jQuery( document ).ready( function ( $ ) {
 
 		event.preventDefault();
 
-		pauseIndex( this, run_index_button );
+		pauseIndex( this, run_index_button, restart_index_button );
+
+	} );
+
+	/**
+	 * Process the restart index operation
+	 */
+	restart_index_button.click( function ( event ) {
+
+		event.preventDefault();
+
+		restartIndex( this, pause_index_button, run_index_button );
 
 	} );
 

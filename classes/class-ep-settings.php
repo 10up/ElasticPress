@@ -127,6 +127,7 @@ class EP_Settings {
 				array(
 					'nonce'               => wp_create_nonce( 'ep_manual_index' ),
 					'pause_nonce'         => wp_create_nonce( 'ep_pause_index' ),
+					'restart_nonce'       => wp_create_nonce( 'ep_restart_index' ),
 					'stats_nonce'         => wp_create_nonce( 'ep_site_stats' ),
 					'running_index_text'  => esc_html__( 'Running Index...', 'elasticpress' ),
 					'index_complete_text' => esc_html__( 'Run Index', 'elasticpress' ),
