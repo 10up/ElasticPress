@@ -276,7 +276,7 @@ class EP_User_Query_Integration {
 		if ( ! empty( $arguments['include'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'terms' => array(
-					'user_id' => wp_parse_id_list( $arguments['include'] )
+					'user_id' => array_values( wp_parse_id_list( $arguments['include'] ) ),
 				)
 			);
 
@@ -290,7 +290,7 @@ class EP_User_Query_Integration {
 		if ( ! empty( $arguments['exclude'] ) ) {
 			$filter['and'][]['bool']['must_not'] = array(
 				'terms' => array(
-					'user_id' => wp_parse_id_list( $arguments['exclude'] )
+					'user_id' => array_values( wp_parse_id_list( $arguments['exclude'] ) ),
 				)
 			);
 
