@@ -284,14 +284,17 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 				 *
 				 * @since 1.6.0
 				 *
-				 * @param array  $results  The unfiltered search results.
+				 * @param array $results The unfiltered search results.
 				 * @param object $response The response body retrieved from ElasticSearch.
 				 */
-				$results = apply_filters(
+				$posts_results = apply_filters(
 					'ep_search_results_array',
-					$results,
+					array( 'found_posts' => $results['found_objects'], 'posts' => $results['objects'] ),
 					$response
 				);
+
+				$results['found_objects'] = $posts_results['found_posts'];
+				$results['objects']       = $posts_results['posts'];
 			}
 
 			/**
@@ -299,7 +302,7 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 			 *
 			 * @since 1.7
 			 *
-			 * @param array $results  The search results
+			 * @param array $results The search results
 			 * @param array $response The raw response
 			 */
 

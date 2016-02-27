@@ -2732,6 +2732,116 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test check host
+	 *
+	 * Tests the check host function
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	function testCheckHost() {
+
+		$check_host = ep_check_host();
+
+		$this->assertTrue( $check_host );
+
+	}
+
+	/**
+	 * Test byte size
+	 *
+	 * Tests the human readable byte conversion function.@deprecated
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	function testByteSize() {
+
+		$one_kb = EP_Settings::ep_byte_size( 1056, 0 );
+
+		$one_mb = EP_Settings::ep_byte_size( 1056000, 0 );
+
+		$this->assertEquals( '1 KB', $one_kb );
+		$this->assertEquals( '1 MB', $one_mb );
+
+	}
+
+	/**
+	 * Test indexing function
+	 *
+	 * Tests indexing.
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	function testIndex() {
+
+		if ( ! class_exists( 'EP_Index_Worker' ) ) {
+			require( $this->plugin_path . '/classes/class-ep-index-worker.php' );
+		}
+
+		$index_worker = new EP_Index_Worker();
+
+		$index_result = $index_worker->index();
+
+		$this->assertTrue( is_array( $index_result ) );
+
+	}
+
+	/**
+	 * Test sanitize host
+	 *
+	 * Tests the sanitization function for saving a host via the dashboard.
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	function testSanitizeHost() {
+
+		if ( ! class_exists( 'EP_Settings' ) ) {
+			require( $this->plugin_path . '/classes/class-ep-settings.php' );
+		}
+
+		$settings = new EP_Settings();
+
+		$host = $settings->sanitize_ep_host( 'http://127.0.0.1:9200' );
+
+		$this->assertEquals( 'http://127.0.0.1:9200', $host );
+
+	}
+
+	/**
+	 * Test sanitize activation
+	 *
+	 * Tests the sanitization function for changing activation state via the dashboard.
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	function testSanitizeActivate() {
+
+		if ( ! class_exists( 'EP_Settings' ) ) {
+			require( $this->plugin_path . '/classes/class-ep-settings.php' );
+		}
+
+		$settings = new EP_Settings();
+
+		$active   = $settings->sanitize_ep_activate( '1' );
+		$inactive = $settings->sanitize_ep_activate( '0' );
+		$no_field = $settings->sanitize_ep_activate( null );
+
+		$this->assertTrue( $active );
+		$this->assertFalse( $inactive );
+		$this->assertFalse( $no_field );
+
+	}
+
+	/**
 	 * @group users
 	 * @group users-index-not-registered
 	 */

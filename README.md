@@ -301,6 +301,14 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 
     Filter posts by post type. ```any``` will search all public post types. `WP_Query` defaults to either `post` or `any` if no `post_type` is provided depending on the context of the query. This is confusing. ElasticPress will ALWAYS default to `any` if no `post_type` is provided. If you want to search for `post` posts, you MUST specify `post` as the `post_type`.
 
+* ```post__in``` (*array*)
+
+    Specify post IDs to retrieve.
+
+* ```post__not_in``` (*array*)
+
+    Specify post IDs to exclude.
+
 * ```offset``` (*int*)
 
     Number of posts to skip in ascending order.
@@ -489,25 +497,26 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]`
 
     Index all posts in the current blog.
 
     * `--network-wide` will force indexing on all the blogs in the network. `--network-wide` takes an optional argument to limit the number of blogs to be indexed across where 0 is no limit. For example, `--network-wide=5` would limit indexing to only 5 blogs on the network.
     * `--setup` will clear the index first and re-send the put mapping.
     * `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
-    * `--no-bulk` let's you disable bulk indexing.
+    * `--nobulk` let's you disable bulk indexing.
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
     * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
+    * `--keep-active` let's you keep ElasticPress active during indexing (cannot be used with `--setup`).
 
 * `wp elasticpress activate`
 
-  Turns on ElasticPress integration. Integration is automatically deactivated during indexing.
+  Turns on ElasticPress integration. Integration is automatically deactivated during indexing if `--keep-active` isn't passed or `--setup` is passed.
 
 * `wp elasticpress deactivate`
 
-  Turns off ElasticPress integration. Integration is automatically deactivated during indexing.
+  Turns off ElasticPress integration. Integration is automatically deactivated during indexing if `--keep-active` isn't passed or `--setup` is passed.
 
 * `wp elasticpress delete-index [--network-wide]`
 
