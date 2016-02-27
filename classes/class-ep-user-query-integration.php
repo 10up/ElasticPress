@@ -171,9 +171,11 @@ class EP_User_Query_Integration {
 		$new_qv['orderby']      = 'include';
 		$new_qv['fields']       = $qv['fields'];
 		$new_qv['number']       = $qv['number'];
+		$new_qv['count_total']  = false;
 		$new_qv['elasticpress'] = true;
 
-		$wp_user_query->query_vars = $new_qv;
+		$wp_user_query->query_vars  = $new_qv;
+		$wp_user_query->total_users = $results['found_objects'];
 	}
 
 	/**
