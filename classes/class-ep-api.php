@@ -272,6 +272,20 @@ class EP_API {
 			$headers['X-ElasticPress-API-Key'] = EP_API_KEY;
 		}
 
+    /**
+     * ES Shield Username & Password
+     * Adds username:password basic authentication headers
+     *
+     * Define the constant ES_SHIELD in your wp-config.php
+     * Format: 'username:password' (colon separated)
+     * Example: define( 'ES_SHIELD', 'es_admin:password' );
+     *
+     * @since 1.9
+     */
+		if ( defined( 'ES_SHIELD' ) && ES_SHIELD ) {
+			$headers['Authorization'] = 'Basic ' . base64_encode( ES_SHIELD );
+		}
+
 		$headers = apply_filters( 'ep_format_request_headers', $headers );
 
 		return $headers;
