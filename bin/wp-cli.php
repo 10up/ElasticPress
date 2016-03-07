@@ -567,7 +567,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_status/?pretty', $request_args );
+		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_recovery/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
