@@ -35,12 +35,12 @@ There are other Elasticsearch integration plugins available for WordPress. Elast
 
 * [Elasticsearch](https://www.elastic.co) 1.3+
 * [WordPress](http://wordpress.org) 3.7.1+
-* [WP-CLI](http://wp-cli.org/) 0.13+
+* [WP-CLI](http://wp-cli.org/) 0.13+, if using WP-CLI for indexing
 
 ## Installation
 
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
-2. ElasticPress requires WP-CLI. Install it by following [these instructions](http://wp-cli.org).
+2. ElasticPress requires WP-CLI, if you want to use WP-CLI for indexing. Install it by following [these instructions](http://wp-cli.org).
 3. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
 
 ## Configuration Using WP-CLI
@@ -572,6 +572,15 @@ The following commands are supported by ElasticPress:
 
 * `wp elasticpress status`
 
+### Other Supported Params
+
+* ElasticPress can be used with the [Elasticsearch Shield](https://www.elastic.co/products/shield) plugin
+
+    * Define the constant ```ES_SHIELD``` in your ```wp-config.php``` file with the username and password of your Elasticsearch Shield user. For example:
+
+```php
+define( 'ES_SHIELD', 'username:password' );
+```
 
 ## Development
 
