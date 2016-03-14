@@ -35,15 +35,15 @@ There are other Elasticsearch integration plugins available for WordPress. Elast
 
 * [Elasticsearch](https://www.elastic.co) 1.3+
 * [WordPress](http://wordpress.org) 3.7.1+
-* [WP-CLI](http://wp-cli.org/) 0.13+
+* [WP-CLI](http://wp-cli.org/) 0.13+, if using WP-CLI for indexing
 
 ## Installation
 
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
-2. ElasticPress requires WP-CLI. Install it by following [these instructions](http://wp-cli.org).
+2. ElasticPress requires WP-CLI, if you want to use WP-CLI for indexing. Install it by following [these instructions](http://wp-cli.org).
 3. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
 
-## Configuration
+## Configuration Using WP-CLI
 
 First, make sure you have Elasticsearch and WP-CLI configured properly.
 
@@ -74,6 +74,38 @@ wp elasticpress index --setup
 ```bash
 wp elasticpress index --setup --network-wide
 ```
+
+## Configuration Using the Admin GUI (requires ElasticPress >= 1.9)
+
+First, make sure you have Elasticsearch configured properly.
+
+### Single Site (stand-alone or a single site on a network)
+
+1. Activate the plugin on the single site you want to index.
+2. Go to the settings page, found at Settings > ElasticPress.
+3. Set the ElasticSearch host in the proper input, with the connection (and port) of your Elasticsearch application. For example:
+
+```
+http://192.168.50.4:9200
+```
+
+**Note:** The URL for the ElasticSearch host *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
+
+### Multisite Cross-site Search
+
+1. Network activate the plugin
+2. Go to the settings page, found at Settings > ElasticPress, in the Network Admin.
+3. Set the ElasticSearch host in the proper input, with the connection (and port) of your Elasticsearch application. For example:
+
+```
+http://192.168.50.4:9200
+```
+
+**Note:** The URL for the ElasticSearch host *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
+
+#### Indexing
+1. Once a proper host is set, you can now click the Run Index button to start the indexing process.
+2. Once indexing is done, refresh this page to view the status and some stats.
 
 After your index finishes, ```WP_Query``` will be integrated with Elasticsearch and support a few special parameters.
 
@@ -540,6 +572,15 @@ The following commands are supported by ElasticPress:
 
 * `wp elasticpress status`
 
+### Other Supported Params
+
+* ElasticPress can be used with the [Elasticsearch Shield](https://www.elastic.co/products/shield) plugin
+
+    * Define the constant ```ES_SHIELD``` in your ```wp-config.php``` file with the username and password of your Elasticsearch Shield user. For example:
+
+```php
+define( 'ES_SHIELD', 'username:password' );
+```
 
 ## Development
 
