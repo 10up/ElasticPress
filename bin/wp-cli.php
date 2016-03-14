@@ -181,7 +181,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--no-bulk] [--offset] [--show-bulk-errors] [--post-type]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]
+	 *
 	 * @param array $args
 	 *
 	 * @since 0.1.2
@@ -217,8 +218,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		// Deactivate our search integration
-		$this->deactivate();
+		// Deactivate ElasticPress if setup is set to true.
+		if (
+			! isset( $assoc_args['keep-active'] ) ||
+			false === $assoc_args['keep-active'] ||
+			( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] )
+		) {
+			// Deactivate our search integration
+			$this->deactivate();
+		}
 
 		timer_start();
 
@@ -290,13 +298,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @return array
 	 */
 	private function _index_helper( $args ) {
-		global $wpdb, $wp_object_cache;
 		$synced = 0;
 		$errors = array();
 
 		$no_bulk = false;
 
-		if ( isset( $args['no-bulk'] ) ) {
+		if ( isset( $args['nobulk'] ) ) {
 			$no_bulk = true;
 		}
 
@@ -325,18 +332,25 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$post_type = array_map( 'trim', $post_type );
 		}
 
+		/**
+		 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
+		 */
+		$query = new WP_Query();
+
 		while ( true ) {
 
 			$args = apply_filters( 'ep_index_posts_args', array(
-				'posts_per_page'      => $posts_per_page,
-				'post_type'           => $post_type,
-				'post_status'         => ep_get_indexable_post_status(),
-				'offset'              => $offset,
-				'ignore_sticky_posts' => true,
-				'orderby'             => array( 'ID' => 'DESC' ),
+				'posts_per_page'         => $posts_per_page,
+				'post_type'              => $post_type,
+				'post_status'            => ep_get_indexable_post_status(),
+				'offset'                 => $offset,
+				'ignore_sticky_posts'    => true,
+				'orderby'                => array( 'ID' => 'DESC' ),
+				'cache_results '         => false,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
 			) );
-
-			$query = new WP_Query( $args );
+			$query->query( $args );
 
 			if ( $query->have_posts() ) {
 
@@ -367,18 +381,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			usleep( 500 );
 
 			// Avoid running out of memory
-			$wpdb->queries = array();
+			$this->stop_the_insanity();
 
-			if ( is_object( $wp_object_cache ) ) {
-				$wp_object_cache->group_ops = array();
-				$wp_object_cache->stats = array();
-				$wp_object_cache->memcache_debug = array();
-				wp_cache_flush();
-
-				if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
-					call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
-				}
-			}
 		}
 
 		if ( ! $no_bulk ) {
@@ -406,6 +410,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		static $killed_post_count = 0;
 
 		$killed_post = false;
+
 		$post_args = ep_prepare_post( $post_id );
 
 		// Mimic EP_Sync_Manager::sync_post( $post_id ), otherwise posts can slip
@@ -562,7 +567,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_status/?pretty', $request_args );
+		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_recovery/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -672,6 +677,61 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::log( 'ElasticPress is currently activated.' );
 		} else {
 			WP_CLI::log( 'ElasticPress is currently deactivated.' );
+		}
+	}
+
+	/**
+	 * Resets some values to reduce memory footprint.
+	 */
+	public function stop_the_insanity() {
+		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
+
+		$wpdb->queries = array();
+
+		if ( is_object( $wp_object_cache ) ) {
+			$wp_object_cache->group_ops = array();
+			$wp_object_cache->stats = array();
+			$wp_object_cache->memcache_debug = array();
+
+			// Make sure this is a public property, before trying to clear it
+			try {
+				$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
+				if ( $cache_property->isPublic() ) {
+					$wp_object_cache->cache = array();
+				}
+				unset( $cache_property );
+			} catch ( ReflectionException $e ) {
+			}
+
+			/*
+			 * In the case where we're not using an external object cache, we need to call flush on the default
+			 * WordPress object cache class to clear the values from the cache property
+			 */
+			if ( ! wp_using_ext_object_cache() ) {
+				wp_cache_flush();
+			}
+
+			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
+				call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
+			}
+		}
+
+		// Prevent wp_actions from growing out of control
+		$wp_actions = array();
+
+		// WP_Query class adds filter get_term_metadata using its own instance
+		// what prevents WP_Query class from being destructed by PHP gc.
+		//    if ( $q['update_post_term_cache'] ) {
+		//        add_filter( 'get_term_metadata', array( $this, 'lazyload_term_meta' ), 10, 2 );
+		//    }
+		// It's high memory consuming as WP_Query instance holds all query results inside itself
+		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
+		if ( isset( $wp_filter['get_term_metadata'][10] ) ) {
+			foreach ( $wp_filter['get_term_metadata'][10] as $hook => $content ) {
+				if ( preg_match( '#^[0-9a-f]{32}lazyload_term_meta$#', $hook ) ) {
+					unset( $wp_filter['get_term_metadata'][10][$hook] );
+				}
+			}
 		}
 	}
 
