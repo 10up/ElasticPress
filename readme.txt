@@ -1,5 +1,5 @@
 === ElasticPress ===
-Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, 10up
+Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
