@@ -2,16 +2,16 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 1.8\n"
+"Project-Id-Version: ElasticPress 1.9\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-02-25 22:32:52+00:00\n"
+"POT-Creation-Date: 2016-03-15 15:34:46+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2016-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"X-Generator: grunt-wp-i18n 0.5.3\n"
+"X-Generator: grunt-wp-i18n 0.5.4\n"
 
 #: bin/wp-cli.php:55
 msgid "Adding mapping for site %d..."
@@ -85,41 +85,41 @@ msgstr ""
 msgid "Total time elapsed: "
 msgstr ""
 
-#: bin/wp-cli.php:532
+#: bin/wp-cli.php:541
 msgid ""
 "The following posts failed to index:\r\n"
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:718 classes/class-ep-config.php:174
+#: bin/wp-cli.php:745 classes/class-ep-config.php:186
 msgid "EP_HOST is not defined! Check wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:722 classes/class-ep-config.php:178
+#: bin/wp-cli.php:749 classes/class-ep-config.php:190
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1764
+#: classes/class-ep-api.php:1778
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1777
+#: classes/class-ep-api.php:1791
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1781
+#: classes/class-ep-api.php:1795
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1819 classes/class-ep-api.php:1878
-#: classes/class-ep-api.php:1918 classes/class-ep-api.php:1969
+#: classes/class-ep-api.php:1833 classes/class-ep-api.php:1892
+#: classes/class-ep-api.php:1932 classes/class-ep-api.php:1983
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -181,7 +181,7 @@ msgstr ""
 msgid "Index Status"
 msgstr ""
 
-#: classes/class-ep-index-worker.php:398
+#: classes/class-ep-index-worker.php:410
 msgid ": ElasticPress Index Errors"
 msgstr ""
 
@@ -257,15 +257,11 @@ msgstr ""
 msgid "The following values do not describe a valid date: month %1$s, day %2$s."
 msgstr ""
 
-#: includes/settings/index.php:43
+#: includes/settings/index.php:42
 msgid "Restart Index"
 msgstr ""
 
-#: includes/settings/index.php:45
-msgid "ElasticPress needs to be enabled to run an index."
-msgstr ""
-
-#: includes/settings/index.php:48
+#: includes/settings/index.php:44
 msgid "A proper host must be set before running an index."
 msgstr ""
 
