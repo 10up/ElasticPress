@@ -7,7 +7,8 @@
  * Author:      Aaron Holbrook, Taylor Lovett, Matt Gross, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
- *
+ * Text Domain: elasticpress
+ * Domain Path: /lang/
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:
  *
@@ -53,7 +54,7 @@ function ep_loader() {
 
 	if ( class_exists( 'EP_Config' ) ) {
 
-		load_plugin_textdomain( 'elasticpress', false, dirname( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
+		load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
 
 		// Load the settings page.
 		require( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
