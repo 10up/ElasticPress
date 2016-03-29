@@ -15,16 +15,20 @@ jQuery( document ).ready( function ( $ ) {
 	// The restart index button
 	var restart_index_button = $( '#ep_restart_index' );
 
+	// The keep active ElasticSearch integration checkbox.
+	var keep_active_checkbox = $( '#ep_keep_active' );
+
 	/**
 	 * Update the progress bar every 3 seconds
 	 */
-	var performIndex = function ( resetBar, button, stopBtn, restartBtn ) {
+	var performIndex = function ( resetBar, button, stopBtn, restartBtn, keepActiveCheckbox ) {
 
 		if ( pauseIndexing ) {
 			return;
 		}
 
 		$( button ).val( ep.running_index_text ).removeClass( 'button-primary' ).attr( 'disabled', true );
+		$( keepActiveCheckbox ).attr( 'disabled', true );
 
 		$( stopBtn ).removeClass( 'hidden' );
 		$( restartBtn ).addClass( 'hidden' );
@@ -42,7 +46,7 @@ jQuery( document ).ready( function ( $ ) {
 			if ( parseInt( ep.total_posts ) > 0 ) {
 
 				progress = parseFloat( ep.synced_posts ) / parseFloat( ep.total_posts );
-				status.text( ep.synced_posts + '/' + ep.total_posts + ' items' );
+				status.text( ep.synced_posts + '/' + ep.total_posts + ' ' + ep.items_indexed_suff );
 
 			}
 
@@ -54,14 +58,14 @@ jQuery( document ).ready( function ( $ ) {
 
 		}
 
-		processIndex( bar, button, stopBtn, restartBtn, status );
+		processIndex( bar, button, stopBtn, restartBtn, status, keepActiveCheckbox );
 
 	};
 
 	/**
 	 * Set our variable to pause indexing
 	 */
-	var pauseIndex = function( pauseBtn, indexBtn, restartBtn ) {
+	var pauseIndex = function( pauseBtn, indexBtn, restartBtn, keepActiveCheckbox ) {
 
 		var btn = $( pauseBtn );
 		var paused = btn.data( 'paused' );
@@ -72,13 +76,14 @@ jQuery( document ).ready( function ( $ ) {
 
 			pauseIndexing = false;
 
-			performIndex( false, indexBtn, pauseBtn, restartBtn );
+			performIndex( false, indexBtn, pauseBtn, restartBtn, keepActiveCheckbox );
 
 		} else {
 
 			var data = {
-				action : 'ep_pause_index',
-				nonce :  ep.pause_nonce
+				action      : 'ep_pause_index',
+				keep_active : keepActiveCheckbox.is( ':checked' ),
+				nonce       :  ep.pause_nonce
 			};
 
 			// call the ajax request to re-enable ElasticPress
@@ -106,7 +111,7 @@ jQuery( document ).ready( function ( $ ) {
 	/**
 	 * Allow indexing to be restarted.
 	 */
-	var restartIndex = function( restartBtn, pauseBtn, indexBtn ) {
+	var restartIndex = function( restartBtn, pauseBtn, indexBtn, keepActiveCheckbox ) {
 
 		var data = {
 			action : 'ep_restart_index',
@@ -126,6 +131,7 @@ jQuery( document ).ready( function ( $ ) {
 					$( restartBtn ).addClass( 'hidden' );
 					$( pauseBtn ).val( ep.index_pause_text ).data( 'paused', 'disabled' ).addClass( 'hidden' );
 					$( indexBtn ).val( ep.index_complete_text ).addClass( 'button-primary' ).attr( 'disabled', false );
+					$( keepActiveCheckbox ).attr( 'disabled', false );
 
 					$( '#progressstats' ).text( '' );
 					$( '#progressbar' ).fadeOut( 'slow' );
@@ -150,11 +156,12 @@ jQuery( document ).ready( function ( $ ) {
 	/**
 	 * Send request to server and process response
 	 */
-	var processIndex = function ( bar, button, stopBtn, restartBtn, status ) {
+	var processIndex = function ( bar, button, stopBtn, restartBtn, status, keepActiveCheckbox ) {
 
 		var data = {
-			action : 'ep_launch_index',
-			nonce :  ep.nonce
+			action      : 'ep_launch_index',
+			keep_active : keepActiveCheckbox.is( ':checked' ),
+			nonce       :  ep.nonce
 		};
 
 		//call the ajax
@@ -170,6 +177,7 @@ jQuery( document ).ready( function ( $ ) {
 
 						$( '#progressstats' ).text( ep.failed_text );
 						$( button ).val( ep.index_complete_text ).addClass( 'button-primary' ).attr( 'disabled', false );
+						$( keepActiveCheckbox ).attr( 'disabled', false );
 						$( stopBtn ).addClass( 'hidden' );
 						$( restartBtn ).addClass( 'hidden' );
 						$( '#progressbar' ).fadeOut( 'slow' );
@@ -221,6 +229,7 @@ jQuery( document ).ready( function ( $ ) {
 								$( '#progressbar' ).fadeOut( 'slow' );
 								$( '#progressstats' ).html( ep.complete_text );
 								$( button ).val( ep.index_complete_text ).addClass( 'button-primary' ).attr( 'disabled', false );
+								$( keepActiveCheckbox ).attr( 'disabled', false );
 								$( stopBtn ).addClass( 'hidden' );
 								$( restartBtn ).addClass( 'hidden' );
 								resetIndex();
@@ -229,7 +238,7 @@ jQuery( document ).ready( function ( $ ) {
 
 						} else {
 
-							performIndex( false, button, stopBtn, restartBtn );
+							performIndex( false, button, stopBtn, restartBtn, keepActiveCheckbox );
 
 						}
 					}
@@ -265,7 +274,7 @@ jQuery( document ).ready( function ( $ ) {
 	 * Start the poll if we need it
 	 */
 	if ( 1 == ep.index_running && 1 != ep.paused ) {
-		performIndex( true, run_index_button, pause_index_button, restart_index_button );
+		performIndex( true, run_index_button, pause_index_button, restart_index_button, keep_active_checkbox );
 	}
 
 	if ( 1 == ep.index_running && 1 == ep.paused ) {
@@ -288,7 +297,7 @@ jQuery( document ).ready( function ( $ ) {
 		}
 
 		$( '#progressstats' ).text( ep.running_index_text );
-		performIndex( true, button, pause_index_button, restart_index_button ); //start the polling
+		performIndex( true, button, pause_index_button, restart_index_button, keep_active_checkbox ); //start the polling
 
 	} );
 
@@ -299,7 +308,7 @@ jQuery( document ).ready( function ( $ ) {
 
 		event.preventDefault();
 
-		pauseIndex( this, run_index_button, restart_index_button );
+		pauseIndex( this, run_index_button, restart_index_button, keep_active_checkbox );
 
 	} );
 
@@ -310,7 +319,7 @@ jQuery( document ).ready( function ( $ ) {
 
 		event.preventDefault();
 
-		restartIndex( this, pause_index_button, run_index_button );
+		restartIndex( this, pause_index_button, run_index_button, keep_active_checkbox );
 
 	} );
 

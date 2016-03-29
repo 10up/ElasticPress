@@ -12,12 +12,15 @@ global $ep_host_status;
 ?>
 <?php
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$paused = absint( get_site_option( 'ep_index_paused' ) );
+	$paused      = absint( get_site_option( 'ep_index_paused' ) );
+	$keep_active = absint( get_site_option( 'ep_index_keep_active' ) );
 } else {
-	$paused = absint( get_option( 'ep_index_paused' ) );
+	$paused      = absint( get_option( 'ep_index_paused' ) );
+	$keep_active = absint( get_option( 'ep_index_keep_active' ) );
 }
 
-$run_class  = ( false === get_transient( 'ep_index_offset' ) ) ? ' button-primary' : '';
+$run_class        = ( false === get_transient( 'ep_index_offset' ) ) ? ' button-primary' : '';
+$keep_active_text = esc_html__( 'Do not deactivate ElasticSearch integration (this will not delete current index, mappings and posts before reindexing)', 'elasticpress' );
 
 if ( false === get_transient( 'ep_index_offset' ) ) {
 	$run_text = esc_html__( 'Run Index', 'elasticpress' );
@@ -40,6 +43,8 @@ $restart_class = $paused ? ' button-secondary' : ' button-secondary hidden';
 		<input type="submit" name="ep_run_index" id="ep_run_index" class="button<?php echo esc_attr( $run_class ); ?> button-large" value="<?php echo esc_attr( $run_text ); ?>"<?php if ( $paused ) : echo ' disabled="disabled"'; endif; ?>>
 		<input type="submit" name="ep_pause_index" id="ep_pause_index" class="button<?php echo esc_attr( $stop_class ); ?> button-large" value="<?php echo esc_attr( $stop_text ); ?>"<?php if ( $paused ) : echo ' data-paused="enabled"'; endif; ?>>
 		<input type="submit" name="ep_restart_index" id="ep_restart_index" class="button<?php echo esc_attr( $restart_class ); ?> button-large" value="<?php esc_attr_e( 'Restart Index', 'elasticpress' ); ?>">
+		<br/><br/>
+		<input type="checkbox" name="ep_keep_active" id="ep_keep_active"<?php if ( $paused ) : echo ' disabled="disabled"'; endif; ?><?php if ( $keep_active ) : echo ' checked="checked"'; endif; ?>/><label for="ep_keep_active"><?php echo $keep_active_text; ?></label>
 	<?php else : ?>
 		<span class="error"><?php esc_html_e( 'A proper host must be set before running an index.', 'elasticpress' ); ?></span>
 	<?php endif; ?>
