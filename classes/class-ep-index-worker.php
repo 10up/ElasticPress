@@ -229,9 +229,11 @@ class EP_Index_Worker {
 
 		static $post_count = 0;
 
-		// Put the post into the queue.
-		$this->posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-		$this->posts[ $post_id ][] = addcslashes( wp_json_encode( ep_prepare_post( $post_id ) ), "\n" );
+        $post_args = ep_prepare_post( $post_id );
+
+        // Put the post into the queue.
+        $this->posts[ $post_id ][] = '{ "index": { "_id": "' . apply_filters( 'ep_post_index_id', absint( $post_id ), $post_args ) . '" } }';
+		$this->posts[ $post_id ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
 
 		// Augment the counter.
 		++ $post_count;
