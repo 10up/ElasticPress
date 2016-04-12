@@ -819,23 +819,31 @@ class EP_API {
 	 * Checks if index exists by index name, returns true or false
 	 *
 	 * @param null $index_name
+	 * @param bool $force True to force remote check or false to use cached check if available.
 	 *
 	 * @return bool
 	 */
-	public function index_exists( $index_name = null ) {
+	public function index_exists( $index_name = null, $force = false ) {
 
 		$index = ( null === $index_name ) ? ep_get_index_name() : sanitize_text_field( $index_name );
 
 		$cache_key = 'ep_index_exists_' . $index;
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( true === $force ) {
 
-			$request = get_site_transient( $cache_key );
+			$request = false;
 
 		} else {
 
-			$request = get_transient( $cache_key );
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
+				$request = get_site_transient( $cache_key );
+
+			} else {
+
+				$request = get_transient( $cache_key );
+
+			}
 		}
 
 		if ( false === $request ) {
