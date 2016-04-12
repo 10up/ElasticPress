@@ -15,7 +15,7 @@ if ( is_multisite() && ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) ) {
 	$site_stats_id = get_current_blog_id();
 }
 
-$stats = ep_get_index_status( $site_stats_id );
+$stats = ep_get_index_status( $site_stats_id , true );
 
 echo '<div id="ep_stats">';
 
