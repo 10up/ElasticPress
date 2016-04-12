@@ -1925,41 +1925,67 @@ class EP_API {
 	 */
 	public function get_index_status( $blog_id = null ) {
 
-		if ( is_wp_error( ep_get_host( true ) ) ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
-			return array(
-				'status' => false,
-				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
-			);
+			$status = get_site_transient( 'ep_index_status' );
 
 		} else {
 
-			if ( is_multisite() && null === $blog_id ) {
+			$status = get_transient( 'ep_index_status' );
 
-				$path = ep_get_network_alias() . '/_stats/indexing/';
+		}
+
+		if ( false === $status ) {
+
+			if ( is_wp_error( ep_get_host( true ) ) ) {
+
+				return array(
+					'status' => false,
+					'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
+				);
 
 			} else {
 
-				$path = ep_get_index_name( $blog_id ) . '/_stats/indexing/';
+				if ( is_multisite() && null === $blog_id ) {
+
+					$path = ep_get_network_alias() . '/_stats/indexing/';
+
+				} else {
+
+					$path = ep_get_index_name( $blog_id ) . '/_stats/indexing/';
+
+				}
+
+				$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
 			}
 
-			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
+			if ( ! is_wp_error( $request ) ) {
+
+				$response = json_decode( wp_remote_retrieve_body( $request ) );
+
+				$status =  ep_parse_api_response( $response );
+
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+					set_site_transient( 'ep_index_status', $status, 600 );
+
+				} else {
+
+					set_transient( 'ep_index_status', $status, 600 );
+
+				}
+
+				return $status;
+
+			}
+
+			return array(
+				'status' => false,
+				'msg'    => $request->get_error_message(),
+			);
 
 		}
-
-		if ( ! is_wp_error( $request ) ) {
-
-			$response = json_decode( wp_remote_retrieve_body( $request ) );
-
-			return ep_parse_api_response( $response );
-
-		}
-
-		return array(
-			'status' => false,
-			'msg'    => $request->get_error_message(),
-		);
 
 	}
 
