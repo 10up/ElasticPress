@@ -2077,8 +2077,6 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		ep_refresh_index();
 
-		var_dump( ep_check_host() );
-
 		$args = array(
 			's' => 'findme',
 		);
