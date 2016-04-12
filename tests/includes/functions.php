@@ -117,7 +117,7 @@ function ep_count_indexes() {
 	$count_indexes = 0;
 	foreach ( $sites as $site ) {
 		if ( $index_name = ep_get_index_name( $site[ 'blog_id' ] ) ) {
-			if ( ep_index_exists( $index_name ) ) {
+			if ( ep_index_exists( $index_name, true ) ) {
 				$count_indexes++;
 				$last_blog_id_with_index = $site[ 'blog_id' ];
 			}
