@@ -420,6 +420,18 @@ class EP_API {
 
 		$index = ep_get_index_name();
 
+		$cache_key = 'ep_index_exists_' . $index;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			delete_site_transient( $cache_key );
+
+		} else {
+
+			delete_transient( $cache_key );
+
+		}
+
 		$request_args = array(
 			'body'    => json_encode( $mapping ),
 			'method'  => 'PUT',
