@@ -826,13 +826,39 @@ class EP_API {
 
 		$index = ( null === $index_name ) ? ep_get_index_name() : sanitize_text_field( $index_name );
 
-		$request_args = array( 'method' => 'HEAD' );
+		$cache_key = 'ep_index_exists_' . $index;
 
-		$request = ep_remote_request( $index, apply_filters( 'ep_index_exists_request_args', $request_args, $index_name ) );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			$request = get_site_transient( $cache_key );
+
+		} else {
+
+			$request = get_transient( $cache_key );
+
+		}
+
+		if ( false === $request ) {
+
+			$request_args = array( 'method' => 'HEAD' );
+
+			$request = ep_remote_request( $index, apply_filters( 'ep_index_exists_request_args', $request_args, $index_name ) );
+
+		}
 
 		// 200 means the index exists
 		// 404 means the index was non-existent
 		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) || 404 === wp_remote_retrieve_response_code( $request ) ) ) {
+
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+				set_site_transient( $cache_key, $request, 3600 );
+
+			} else {
+
+				set_transient( $cache_key, $request, 3600 );
+
+			}
 
 			if ( 404 === wp_remote_retrieve_response_code( $request ) ) {
 				return false;
