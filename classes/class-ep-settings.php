@@ -36,8 +36,6 @@ class EP_Settings {
 	 */
 	public function __construct() {
 
-		ep_check_host();
-
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { // Must be network admin in multisite.
 
 			add_action( 'network_admin_menu', array( $this, 'action_admin_menu' ) );
