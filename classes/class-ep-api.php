@@ -2241,8 +2241,8 @@ function ep_elasticsearch_alive( $host = null ) {
 	return EP_API::factory()->elasticsearch_alive( $host );
 }
 
-function ep_index_exists( $index_name = null ) {
-	return EP_API::factory()->index_exists( $index_name );
+function ep_index_exists( $index_name = null, $force = false ) {
+	return EP_API::factory()->index_exists( $index_name, $force );
 }
 
 function ep_format_request_headers() {
