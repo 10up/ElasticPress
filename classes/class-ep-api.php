@@ -1926,6 +1926,18 @@ class EP_API {
 	 */
 	public function get_index_status( $blog_id = null, $force = false ) {
 
+		if ( null === $blog_id ) {
+
+			$cache_id = '0';
+
+		} else {
+
+			$cache_id = (string)$blog_id;
+
+		}
+
+		$cache_key = 'ep_index_status_' . $cache_id;
+
 		if ( true === $force ) {
 
 			$status = false;
@@ -1934,11 +1946,11 @@ class EP_API {
 
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
-				$status = get_site_transient( 'ep_index_status' );
+				$status = get_site_transient( $cache_key );
 
 			} else {
 
-				$status = get_transient( 'ep_index_status' );
+				$status = get_transient( $cache_key );
 
 			}
 		}
@@ -1976,11 +1988,11 @@ class EP_API {
 
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
-					set_site_transient( 'ep_index_status', $status, 600 );
+					set_site_transient( $cache_key, $status, 600 );
 
 				} else {
 
-					set_transient( 'ep_index_status', $status, 600 );
+					set_transient( $cache_key, $status, 600 );
 
 				}
 
