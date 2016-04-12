@@ -8,6 +8,7 @@
  *
  * @author  Allan Collins <allan.collins@10up.com>
  */
+global $ep_host_status;
 ?>
 
 <?php
@@ -35,7 +36,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 	}
 
-	if ( ( ! ep_host_by_option() && ! is_wp_error( ep_check_host() ) ) || is_wp_error( ep_check_host() ) || $host ) {
+	if ( ( ! ep_host_by_option() && ! is_wp_error( $ep_host_status ) ) || is_wp_error( $ep_host_status ) || $host ) {
 		submit_button();
 	}
 
