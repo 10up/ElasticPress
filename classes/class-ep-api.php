@@ -800,6 +800,18 @@ class EP_API {
 
 		$index = ( null === $index_name ) ? ep_get_index_name() : sanitize_text_field( $index_name );
 
+		$cache_key = 'ep_index_exists_' . $index;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			delete_site_transient( $cache_key );
+
+		} else {
+
+			delete_transient( $cache_key );
+
+		}
+
 		$request_args = array( 'method' => 'DELETE' );
 
 		$request = ep_remote_request( $index, apply_filters( 'ep_delete_index_request_args', $request_args ) );
