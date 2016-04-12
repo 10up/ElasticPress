@@ -1920,19 +1920,27 @@ class EP_API {
 	 * @since 1.9
 	 *
 	 * @param int $blog_id Id of blog to get stats.
+	 * @param bool $force Whether to force a refresh or use cache.
 	 *
 	 * @return array Contains the status message or the returned statistics.
 	 */
-	public function get_index_status( $blog_id = null ) {
+	public function get_index_status( $blog_id = null, $force = false ) {
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( true === $force ) {
 
-			$status = get_site_transient( 'ep_index_status' );
+			$status = false;
 
 		} else {
 
-			$status = get_transient( 'ep_index_status' );
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
+				$status = get_site_transient( 'ep_index_status' );
+
+			} else {
+
+				$status = get_transient( 'ep_index_status' );
+
+			}
 		}
 
 		if ( false === $status ) {
@@ -2191,8 +2199,8 @@ function ep_get_search_status( $blog_id = null ) {
 	return EP_API::factory()->get_search_status( $blog_id );
 }
 
-function ep_get_index_status( $blog_id = null ) {
-	return EP_API::factory()->get_index_status( $blog_id );
+function ep_get_index_status( $blog_id = null, $force = false ) {
+	return EP_API::factory()->get_index_status( $blog_id, $force );
 }
 
 function ep_get_cluster_status() {
