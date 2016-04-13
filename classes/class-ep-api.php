@@ -495,6 +495,7 @@ class EP_API {
 
 		$post_args = array(
 			'post_id'           => $post_id,
+			'ID'                => $post_id,
 			'post_author'       => $user_data,
 			'post_date'         => $post_date,
 			'post_date_gmt'     => $post_date_gmt,
