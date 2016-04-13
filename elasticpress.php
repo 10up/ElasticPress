@@ -76,6 +76,7 @@ function ep_loader() {
 
 		}
 	}
+
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
