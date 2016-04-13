@@ -2053,7 +2053,7 @@ class EP_API {
 	 * @return void Method does not return.
 	 */
 	protected function _add_query_log( $query ) {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
 			$this->queries[] = $query;
 		}
 	}
