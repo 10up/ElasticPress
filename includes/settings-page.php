@@ -8,6 +8,8 @@
  *
  * @author  Allan Collins <allan.collins@10up.com>
  */
+global $ep_host_status;
+$ep_host_status = ep_check_host();
 ?>
 <div class="wrap">
 	<?php printf( '<h2>%s</h2>', esc_html__( 'ElasticPress', 'elasticpress' ) ); ?>
