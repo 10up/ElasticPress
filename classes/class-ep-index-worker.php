@@ -116,11 +116,15 @@ class EP_Index_Worker {
 		$current_synced = 0;
 
 		$args = apply_filters( 'ep_index_posts_args', array(
-			'posts_per_page'      => $posts_per_page,
-			'post_type'           => ep_get_indexable_post_types(),
-			'post_status'         => ep_get_indexable_post_status(),
-			'offset'              => $offset,
-			'ignore_sticky_posts' => true,
+			'posts_per_page'         => $posts_per_page,
+			'post_type'              => ep_get_indexable_post_types(),
+			'post_status'            => ep_get_indexable_post_status(),
+			'offset'                 => $offset,
+			'ignore_sticky_posts'    => true,
+			'orderby'                => array( 'ID' => 'DESC' ),
+			'cache_results '         => false,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
 		) );
 
 		$query = new WP_Query( $args );
