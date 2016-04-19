@@ -66,13 +66,13 @@ First, make sure you have Elasticsearch configured properly.
 
 1. Activate the plugin on the single site you want to index.
 2. Go to the settings page, found at Settings > ElasticPress.
-3. Set the ElasticSearch host in the proper input, with the connection (and port) of your Elasticsearch application.
+3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
 
 = Multisite Cross-site Search =
 
 1. Network activate the plugin
 2. Go to the settings page, found at Settings > ElasticPress, in the Network Admin.
-3. Set the ElasticSearch host in the proper input, with the connection (and port) of your Elasticsearch application.
+3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
 
 = Indexing =
 1. Once a proper host is set, you can now click the Run Index button to start the indexing process.

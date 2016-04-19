@@ -228,7 +228,7 @@ msgid "Index complete <a href=\"\">Refresh the stats</a>"
 msgstr ""
 
 #: classes/class-ep-settings.php:146
-msgid "Do not deactivate ElasticSearch integration"
+msgid "Do not deactivate Elasticsearch integration"
 msgstr ""
 
 #: classes/class-ep-settings.php:194
@@ -263,7 +263,7 @@ msgstr ""
 
 #: includes/settings/index.php:23
 msgid ""
-"Do not deactivate ElasticSearch integration (this will not delete current "
+"Do not deactivate Elasticsearch integration (this will not delete current "
 "index, mappings and posts before reindexing)"
 msgstr ""
 

@@ -15,7 +15,7 @@ jQuery( document ).ready( function ( $ ) {
 	// The restart index button
 	var restart_index_button = $( '#ep_restart_index' );
 
-	// The keep active ElasticSearch integration checkbox.
+	// The keep active Elasticsearch integration checkbox.
 	var keep_active_checkbox = $( '#ep_keep_active' );
 
 	/**
