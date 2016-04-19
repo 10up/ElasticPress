@@ -87,7 +87,7 @@ class EP_Index_GUI {
 	 *
 	 * When the indexer is called VIA Ajax this function starts the index or resumes from the previous position.
 	 *
-	 * @param bool $keep_active Whether ElasticSearch integration should not be deactivated, index not deleted and mappings not set.
+	 * @param bool $keep_active Whether Elasticsearch integration should not be deactivated, index not deleted and mappings not set.
 	 *
 	 * @since 1.9
 	 *

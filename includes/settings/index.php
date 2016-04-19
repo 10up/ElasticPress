@@ -20,7 +20,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 }
 
 $run_class        = ( false === get_transient( 'ep_index_offset' ) ) ? ' button-primary' : '';
-$keep_active_text = esc_html__( 'Do not deactivate ElasticSearch integration (this will not delete current index, mappings and posts before reindexing)', 'elasticpress' );
+$keep_active_text = esc_html__( 'Do not deactivate Elasticsearch integration (this will not delete current index, mappings and posts before reindexing)', 'elasticpress' );
 
 if ( false === get_transient( 'ep_index_offset' ) ) {
 	$run_text = esc_html__( 'Run Index', 'elasticpress' );
