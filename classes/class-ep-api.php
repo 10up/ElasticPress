@@ -1790,7 +1790,7 @@ class EP_API {
 		}
 
 		//If we have a failure we'll try it again with a backup host
-		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 200 !== $request['response']['code'] ) ) {
+		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 0 !== strpos( $request['response']['code'], '20' ) ) ) {
 
 			$host = ep_get_host( true, $use_backups );
 
