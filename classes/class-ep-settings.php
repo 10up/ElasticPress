@@ -133,6 +133,7 @@ class EP_Settings {
 					'index_resume_text'   => esc_html__( 'Resume Indexing', 'elasticpress' ),
 					'index_pause_text'    => esc_html__( 'Pause Indexing', 'elasticpress' ),
 					'items_indexed'       => $indexed,
+					'items_indexed_suff'  => esc_html__( 'items indexed', 'elasticpress' ),
 					'paused'              => absint( $paused ),
 					'sites'               => esc_html__( ' site(s)', 'elasticpress' ),
 					'index_running'       => $running,

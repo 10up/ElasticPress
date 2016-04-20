@@ -87,11 +87,13 @@ class EP_Index_GUI {
 	 *
 	 * When the indexer is called VIA Ajax this function starts the index or resumes from the previous position.
 	 *
+	 * @param bool $keep_active Whether Elasticsearch integration should not be deactivated, index not deleted and mappings not set.
+	 *
 	 * @since 1.9
 	 *
 	 * @return array|WP_Error
 	 */
-	protected function _run_index() {
+	protected function _run_index( $keep_active = false ) {
 
 		$post_count    = array( 'total' => 0 );
 		$post_types    = ep_get_indexable_post_types();
@@ -114,7 +116,7 @@ class EP_Index_GUI {
 
 		set_transient( 'ep_post_count', $post_count, 600 );
 
-		if ( false === get_transient( 'ep_index_offset' ) ) {
+		if ( ! $keep_active && ( false === get_transient( 'ep_index_offset' ) ) ) {
 
 			// Deactivate our search integration.
 			ep_deactivate();
@@ -181,10 +183,11 @@ class EP_Index_GUI {
 			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
 		}
 
-		$network = false;
-		$site    = false;
-		$sites   = false;
-		$indexes = false;
+		$network     = false;
+		$site        = false;
+		$sites       = false;
+		$indexes     = false;
+		$keep_active = isset( $_POST['keep_active'] ) ? 'true' === $_POST['keep_active'] : false;
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$network = true;
@@ -193,6 +196,7 @@ class EP_Index_GUI {
 		if ( true === $network ) {
 
 			delete_site_option( 'ep_index_paused' );
+			update_site_option( 'ep_index_keep_active', $keep_active );
 
 			$last_run = get_site_transient( 'ep_sites_to_index' );
 
@@ -214,13 +218,14 @@ class EP_Index_GUI {
 			$site      = absint( $site_info['blog_id'] );
 		} else {
 			delete_option( 'ep_index_paused' );
+			update_option( 'ep_index_keep_active', $keep_active, false );
 		}
 
 		if ( false !== $site ) {
 			switch_to_blog( $site );
 		}
 
-		$result = $this->_run_index();
+		$result = $this->_run_index( $keep_active );
 
 		if ( false !== $site ) {
 
@@ -230,6 +235,7 @@ class EP_Index_GUI {
 
 				delete_transient( 'ep_index_synced' );
 				delete_transient( 'ep_post_count' );
+				delete_site_option( 'ep_index_keep_active' );
 
 			}
 
@@ -241,6 +247,7 @@ class EP_Index_GUI {
 
 				delete_transient( 'ep_index_synced' );
 				delete_transient( 'ep_post_count' );
+				delete_option( 'ep_index_keep_active' );
 
 			}
 		}
@@ -315,11 +322,14 @@ class EP_Index_GUI {
 		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'ep_pause_index' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
 		}
+		$keep_active = isset( $_POST['keep_active'] ) ? 'true' === $_POST['keep_active'] : false;
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			update_site_option( 'ep_index_paused', true );
+			update_site_option( 'ep_index_keep_active', $keep_active );
 		} else {
 			update_option( 'ep_index_paused', true, false );
+			update_site_option( 'ep_index_keep_active', $keep_active );
 		}
 
 		// If ElasticPress is activated correctly, send a positive response
@@ -350,8 +360,10 @@ class EP_Index_GUI {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_option( 'ep_index_paused' );
 			delete_site_transient( 'ep_sites_to_index' );
+			delete_site_option( 'ep_index_keep_active' );
 		} else {
 			delete_option( 'ep_index_paused' );
+			delete_option( 'ep_index_keep_active' );
 		}
 
 		delete_transient( 'ep_index_offset' );
