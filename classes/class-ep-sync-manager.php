@@ -51,7 +51,7 @@ class EP_Sync_Manager {
 	 * @param $blog_id
 	 */
 	public function action_delete_blog_from_index( $blog_id ) {
-		if ( ep_index_exists( ep_get_index_name( $blog_id ) ) && ! apply_filters( 'ep_keep_index', false ) ) {
+		if ( ep_index_exists( ep_get_index_name( $blog_id ), true ) && ! apply_filters( 'ep_keep_index', false ) ) {
 			ep_delete_index( ep_get_index_name( $blog_id ) );
 		}
 	}

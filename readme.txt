@@ -1,5 +1,5 @@
 === ElasticPress ===
-Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, 10up
+Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
@@ -30,16 +30,16 @@ Coupling WordPress with Elasticsearch allows us to do amazing things with search
 * Search all sites on a multisite install
 * [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
 
-_Note:_ Requires [WP-CLI](http://wp-cli.org/) and [Elasticsearch](http://www.elasticsearch.org/).
+_Note:_ Requires [Elasticsearch](http://www.elasticsearch.org/) and [WP-CLI](http://wp-cli.org/), if using WP-CLI for indexing.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
 1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
-2. Install [WP-CLI](http://wp-cli.org/).
+2. Install [WP-CLI](http://wp-cli.org/), if using for indexing.
 3. Install the plugin in WordPress.
 
-= Configuration =
+= Configuration Using WP-CLI =
 
 First, make sure you have Elasticsearch configured properly and WP-CLI setup.
 
@@ -58,7 +58,50 @@ configuring single site and multi-site cross-site search are slightly different.
 3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
 4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
 
+= Configuration Using the Admin GUI (requires ElasticPress >= 1.9) =
+
+First, make sure you have Elasticsearch configured properly.
+
+= Single Site (stand-alone or a single site on a network) =
+
+1. Activate the plugin on the single site you want to index.
+2. Go to the settings page, found at Settings > ElasticPress.
+3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
+
+= Multisite Cross-site Search =
+
+1. Network activate the plugin
+2. Go to the settings page, found at Settings > ElasticPress, in the Network Admin.
+3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
+
+= Indexing =
+1. Once a proper host is set, you can now click the Run Index button to start the indexing process.
+2. Once indexing is done, refresh this page to view the status and some stats.
+
 == Changelog ==
+
+= 1.9 =
+
+ElasticPress 1.9 adds in an admin UI, where you can set your Elasticsearch Host and run your index command, without needing to us WP-CLI. Version 1.9 also adds in some performance improvements to reduce memory consumption during indexing. Full list of enhancements and bug fixes:
+
+### Enhancements:
+* Add in an Admin GUI to handle indexing. Props [ChrisWiegman](https://github.com/ChrisWiegman).
+* Add option to not disable ElasticPress while indexing. Props [lukaspawlik](https://github.com/lukaspawlik).
+* Allow filtering of which post types we want to search for. Props [rossluebe](https://github.com/rossluebe).
+* Remove composer.lock from the repo. Props [ChrisWiegman](https://github.com/ChrisWiegman).
+* Ensure both PHPUnit and WP-CLI are available in the development environment. Props [ChrisWiegman](https://github.com/ChrisWiegman).
+* User lower-case for our composer name, so packagist can find us. Props [johnpbloch](https://github.com/johnpbloch).
+* Check query_vars, not query to determine status. Props [ChrisWiegman](https://github.com/ChrisWiegman).
+* Improve memory usage during indexing and fix unnecessary cache flushes. Props [cmmarslender](https://github.com/cmmarslender).
+* Further reduce memory usage during indexing. Props [lukaspawlik](https://github.com/lukaspawlik).
+* Add post__in and post__not_in documentation. Props [mgibbs189](https://github.com/mgibbs189).
+* Add Elasticsearch Shield authentication headers if constant is set. Props [rveitch](https://github.com/rveitch).
+
+### Bugs:
+* Fix the --no-bulk indexing option. Props [lukaspawlik](https://github.com/lukaspawlik).
+* Fixed an error that occurs if no Elasticsearch host is running. Props [petenelson](https://github.com/petenelson).
+* Fixed an exception error. Props [dkotter](https://github.com/dkotter).
+* Fixed the WP-CLI status command. Props [dkotter](https://github.com/dkotter).
 
 = 1.8 (Mapping change, requires reindex) =
 

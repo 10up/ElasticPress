@@ -116,11 +116,13 @@ class EP_Index_Worker {
 		$current_synced = 0;
 
 		$args = apply_filters( 'ep_index_posts_args', array(
-			'posts_per_page'      => $posts_per_page,
-			'post_type'           => ep_get_indexable_post_types(),
-			'post_status'         => ep_get_indexable_post_status(),
-			'offset'              => $offset,
-			'ignore_sticky_posts' => true,
+			'posts_per_page'         => $posts_per_page,
+			'post_type'              => ep_get_indexable_post_types(),
+			'post_status'            => ep_get_indexable_post_status(),
+			'offset'                 => $offset,
+			'ignore_sticky_posts'    => true,
+			'orderby'                => 'ID',
+			'order'                  => 'DESC',
 		) );
 
 		$query = new WP_Query( $args );
@@ -168,12 +170,24 @@ class EP_Index_Worker {
 			$wp_object_cache->group_ops      = array();
 			$wp_object_cache->stats          = array();
 			$wp_object_cache->memcache_debug = array();
-			$wp_object_cache->cache          = array();
+
+			// Make sure this is a public property, before trying to clear it
+			try {
+				$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
+				if ( $cache_property->isPublic() ) {
+					$wp_object_cache->cache = array();
+				}
+				unset( $cache_property );
+			} catch ( ReflectionException $e ) {
+			}
 
 			if ( is_callable( array( $wp_object_cache, '__remoteset' ) ) ) {
 				call_user_func( array( $wp_object_cache, '__remoteset' ) ); // Important.
 			}
 		}
+
+		// Prevent wp_actions from growing out of control
+		$wp_actions = array();
 
 		set_transient( 'ep_index_offset', $offset, 600 );
 		set_transient( 'ep_index_synced', $synced, 600 );

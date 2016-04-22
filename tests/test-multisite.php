@@ -1849,11 +1849,11 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$blog = get_current_blog_id();
 
-		$status_indexed = ep_get_index_status( $blog );
+		$status_indexed = ep_get_index_status( $blog, true );
 
 		ep_delete_index();
 
-		$status_unindexed = ep_get_index_status( $blog );
+		$status_unindexed = ep_get_index_status( $blog, true );
 
 		$this->setUp();
 

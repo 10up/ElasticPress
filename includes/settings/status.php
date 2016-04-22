@@ -8,15 +8,14 @@
  *
  * @author  Allan Collins <allan.collins@10up.com>
  */
-
+global $ep_host_status;
 $site_stats_id = null;
 
 if ( is_multisite() && ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) ) {
 	$site_stats_id = get_current_blog_id();
 }
 
-$stats        = ep_get_index_status( $site_stats_id );
-$search_stats = ep_get_search_status( $site_stats_id );
+$stats = ep_get_index_status( $site_stats_id , true );
 
 echo '<div id="ep_stats">';
 
@@ -26,7 +25,7 @@ echo '<div id="ep_stats">';
 		<table class="form-table">
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ) ?>:</th>
-				<?php if ( ! is_wp_error( ep_check_host() ) ) { ?>
+				<?php if ( ! is_wp_error( $ep_host_status ) ) { ?>
 
 					<?php $current_host = ep_get_host( true ); ?>
 
@@ -62,47 +61,6 @@ if ( $stats['status'] ) {
 		<br/>
 
 	<?php } ?>
-
-	<?php printf( '<h2>%s</h2>', esc_html__( 'System Stats', 'elasticpress' ) ); ?>
-
-	<div class="search_stats">
-
-		<?php printf( '<h3>%s</h3>', esc_html__( 'Search Stats', 'elasticpress' ) ); ?>
-
-		<ul>
-			<li>
-				<strong><?php esc_html_e( 'Total Queries:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $search_stats->query_total ); ?>
-			</li>
-			<li>
-				<strong><?php esc_html_e( 'Query Time:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $search_stats->query_time_in_millis ); ?>
-				ms
-			</li>
-			<li>
-				<strong><?php esc_html_e( 'Total Fetches:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $search_stats->fetch_total ); ?>
-				<br/>
-			<li>
-				<strong><?php esc_html_e( 'Fetch Time:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $search_stats->fetch_time_in_millis ); ?>
-				ms
-			</li>
-		</ul>
-
-	</div>
-
-	<div class="index_stats">
-
-		<?php printf( '<h3>%s</h3>', esc_html__( 'Index Stats', 'elasticpress' ) ); ?>
-
-		<ul>
-			<li>
-				<strong><?php esc_html_e( 'Index Total:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $stats['data']->index_total ); ?>
-			</li>
-			<li>
-				<strong><?php esc_html_e( 'Index Time:', 'elasticpress' ); ?> </strong> <?php echo esc_html( $stats['data']->index_time_in_millis ); ?>
-				ms
-			</li>
-		</ul>
-
-	</div>
 
 	<?php
 	if ( ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ) {

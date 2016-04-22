@@ -46,6 +46,8 @@ class EP_Index_GUI {
 
 		// Add Ajax Actions.
 		add_action( 'wp_ajax_ep_launch_index', array( $this, 'action_wp_ajax_ep_launch_index' ) );
+		add_action( 'wp_ajax_ep_pause_index', array( $this, 'action_wp_ajax_ep_pause_index' ) );
+		add_action( 'wp_ajax_ep_restart_index', array( $this, 'action_wp_ajax_ep_restart_index' ) );
 		add_action( 'wp_ajax_ep_get_site_stats', array( $this, 'action_wp_ajax_ep_get_site_stats' ) );
 		add_action( 'ep_do_settings_meta', array( $this, 'action_ep_do_settings_meta' ) );
 
@@ -85,11 +87,13 @@ class EP_Index_GUI {
 	 *
 	 * When the indexer is called VIA Ajax this function starts the index or resumes from the previous position.
 	 *
+	 * @param bool $keep_active Whether Elasticsearch integration should not be deactivated, index not deleted and mappings not set.
+	 *
 	 * @since 1.9
 	 *
 	 * @return array|WP_Error
 	 */
-	protected function _run_index() {
+	protected function _run_index( $keep_active = false ) {
 
 		$post_count    = array( 'total' => 0 );
 		$post_types    = ep_get_indexable_post_types();
@@ -112,7 +116,7 @@ class EP_Index_GUI {
 
 		set_transient( 'ep_post_count', $post_count, 600 );
 
-		if ( false === get_transient( 'ep_index_offset' ) ) {
+		if ( ! $keep_active && ( false === get_transient( 'ep_index_offset' ) ) ) {
 
 			// Deactivate our search integration.
 			ep_deactivate();
@@ -179,16 +183,20 @@ class EP_Index_GUI {
 			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
 		}
 
-		$network = false;
-		$site    = false;
-		$sites   = false;
-		$indexes = false;
+		$network     = false;
+		$site        = false;
+		$sites       = false;
+		$indexes     = false;
+		$keep_active = isset( $_POST['keep_active'] ) ? 'true' === $_POST['keep_active'] : false;
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$network = true;
 		}
 
 		if ( true === $network ) {
+
+			delete_site_option( 'ep_index_paused' );
+			update_site_option( 'ep_index_keep_active', $keep_active );
 
 			$last_run = get_site_transient( 'ep_sites_to_index' );
 
@@ -208,13 +216,16 @@ class EP_Index_GUI {
 
 			$site_info = array_pop( $sites );
 			$site      = absint( $site_info['blog_id'] );
+		} else {
+			delete_option( 'ep_index_paused' );
+			update_option( 'ep_index_keep_active', $keep_active, false );
 		}
 
 		if ( false !== $site ) {
 			switch_to_blog( $site );
 		}
 
-		$result = $this->_run_index();
+		$result = $this->_run_index( $keep_active );
 
 		if ( false !== $site ) {
 
@@ -224,6 +235,7 @@ class EP_Index_GUI {
 
 				delete_transient( 'ep_index_synced' );
 				delete_transient( 'ep_post_count' );
+				delete_site_option( 'ep_index_keep_active' );
 
 			}
 
@@ -235,6 +247,7 @@ class EP_Index_GUI {
 
 				delete_transient( 'ep_index_synced' );
 				delete_transient( 'ep_post_count' );
+				delete_option( 'ep_index_keep_active' );
 
 			}
 		}
@@ -291,6 +304,73 @@ class EP_Index_GUI {
 
 		wp_send_json_success( $result );
 
+	}
+
+	/**
+	 * Process the indexing pause request
+	 *
+	 * Processes the action when the pause indexing button is clicked,
+	 * re-enabling the ElasticPress integration while indexing is paused.
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	public function action_wp_ajax_ep_pause_index() {
+
+		// Verify nonce and make sure this is run by an admin.
+		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'ep_pause_index' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
+		}
+		$keep_active = isset( $_POST['keep_active'] ) ? 'true' === $_POST['keep_active'] : false;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_index_paused', true );
+			update_site_option( 'ep_index_keep_active', $keep_active );
+		} else {
+			update_option( 'ep_index_paused', true, false );
+			update_site_option( 'ep_index_keep_active', $keep_active );
+		}
+
+		// If ElasticPress is activated correctly, send a positive response
+		if ( ep_activate() ) {
+			wp_send_json_success();
+		}
+
+		wp_send_json_error();
+	}
+
+	/**
+	 * Process the indexing restart request
+	 *
+	 * Processes the action when the restart indexing button is clicked,
+	 * updating the option saying indexing is not paused anymore.
+	 *
+	 * @since 1.9
+	 *
+	 * @return void
+	 */
+	public function action_wp_ajax_ep_restart_index() {
+
+		// Verify nonce and make sure this is run by an admin.
+		if ( ! wp_verify_nonce( sanitize_text_field( $_POST['nonce'] ), 'ep_restart_index' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( esc_html__( 'Security error!', 'elasticpress' ) );
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_option( 'ep_index_paused' );
+			delete_site_transient( 'ep_sites_to_index' );
+			delete_site_option( 'ep_index_keep_active' );
+		} else {
+			delete_option( 'ep_index_paused' );
+			delete_option( 'ep_index_keep_active' );
+		}
+
+		delete_transient( 'ep_index_offset' );
+		delete_transient( 'ep_index_synced' );
+		delete_transient( 'ep_post_count' );
+
+		wp_send_json_success();
 	}
 
 	/**

@@ -36,8 +36,6 @@ class EP_Settings {
 	 */
 	public function __construct() {
 
-		ep_check_host();
-
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { // Must be network admin in multisite.
 
 			add_action( 'network_admin_menu', array( $this, 'action_admin_menu' ) );
@@ -103,6 +101,12 @@ class EP_Settings {
 
 			}
 
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$paused = get_site_option( 'ep_index_paused' );
+			} else {
+				$paused = get_option( 'ep_index_paused' );
+			}
+
 			$indexed = esc_html__( 'items indexed', 'elasticpress' );
 
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -120,10 +124,17 @@ class EP_Settings {
 				'ep',
 				array(
 					'nonce'               => wp_create_nonce( 'ep_manual_index' ),
+					'pause_nonce'         => wp_create_nonce( 'ep_pause_index' ),
+					'restart_nonce'       => wp_create_nonce( 'ep_restart_index' ),
 					'stats_nonce'         => wp_create_nonce( 'ep_site_stats' ),
 					'running_index_text'  => esc_html__( 'Running Index...', 'elasticpress' ),
 					'index_complete_text' => esc_html__( 'Run Index', 'elasticpress' ),
+					'index_paused_text'   => esc_html__( 'Indexing is Paused', 'elasticpress' ),
+					'index_resume_text'   => esc_html__( 'Resume Indexing', 'elasticpress' ),
+					'index_pause_text'    => esc_html__( 'Pause Indexing', 'elasticpress' ),
 					'items_indexed'       => $indexed,
+					'items_indexed_suff'  => esc_html__( 'items indexed', 'elasticpress' ),
+					'paused'              => absint( $paused ),
 					'sites'               => esc_html__( ' site(s)', 'elasticpress' ),
 					'index_running'       => $running,
 					'total_posts'         => isset( $total_posts['total'] ) ? $total_posts['total'] : 0,
