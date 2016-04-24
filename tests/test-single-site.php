@@ -2841,4 +2841,27 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertFalse( $no_field );
 
 	}
+
+	/**
+	 * Test a post_parent query
+	 * @group testPostParentQuery
+	 * @since 1.5
+	 */
+	public function testPostParentQuery() {
+		$parent_post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1') );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'post_parent' => $parent_post ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3'));
+
+		ep_refresh_index();
+
+		$args = array(
+			's'             => 'findme',
+			'post_parent' => $parent_post
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
 }
