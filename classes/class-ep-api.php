@@ -2160,6 +2160,8 @@ class EP_API {
 		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
 			$this->queries[] = $query;
 		}
+
+		do_action( 'ep_add_query_log', $query );
 	}
 
 }
