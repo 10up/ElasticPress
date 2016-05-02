@@ -1014,7 +1014,13 @@ class EP_API {
 			}
 
 			if ( ! empty( $tax_filter ) ) {
-				$filter['and'][]['bool']['must'] = $tax_filter;
+				$relation = 'must';
+
+				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
+					$relation = 'should';
+				}
+
+				$filter['and'][]['bool'][$relation] = $tax_filter;
 			}
 
 			$use_filters = true;
