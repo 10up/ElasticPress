@@ -57,13 +57,13 @@ function ep_loader() {
 		load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
 
 		// Load the settings page.
-		require( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
+		require_once( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
 		new EP_Settings();
 
 		// Load the indexing GUI.
 		if ( true === apply_filters( 'ep_load_index_gui', true ) ) {
 
-			require( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
+			require_once( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
 			new EP_Index_GUI();
 
 		}
@@ -71,7 +71,7 @@ function ep_loader() {
 		// Load index statuses.
 		if ( true === apply_filters( 'ep_load_index_status', true ) ) {
 
-			require( dirname( __FILE__ ) . '/classes/class-ep-index-status.php' );
+			require_once( dirname( __FILE__ ) . '/classes/class-ep-index-status.php' );
 			new EP_Index_Status();
 
 		}
