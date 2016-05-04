@@ -553,6 +553,44 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a taxonomy query with OR relation
+	 *
+	 * @since 2.0
+	 */
+	public function testTaxQueryOrRelation() {
+		$cat1 =  wp_create_category( 'category one' );
+		$cat2 =  wp_create_category( 'category two' );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ), 'post_category' => array( $cat1 )  ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ), 'post_category' => array( $cat2 )  ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				'relation' => 'or',
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'two' ),
+					'field'    => 'slug',
+				),
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'category two' ),
+					'field'    => 'name',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a taxonomy query with term id field
 	 *
 	 * @since 1.8
