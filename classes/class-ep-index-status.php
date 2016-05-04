@@ -47,7 +47,7 @@ class EP_Index_Status {
 
 		$post_types = ep_get_indexable_post_types();
 
-		if ( in_array( $post->post_type, $post_types ) && ep_is_activated() && ep_index_exists() ) {
+		if ( apply_filters( 'ep_print_post_index_status' , true, $post ) && in_array( $post->post_type, $post_types ) && ep_is_activated() && ep_index_exists() ) {
 
 			$post_status = ep_get_post( $post->ID );
 			$fill        = 'red';
