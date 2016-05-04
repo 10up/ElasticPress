@@ -1021,11 +1021,13 @@ class EP_API {
 		}
 
 		/**
-		 * 'category_name' arg support.
+		 * 'category_name' arg support. Skip entirely if `tax_query` has already been provided. WP_Query
+		 * has some quirky backwards compat functionality that will fill `category_name` if the category
+		 * taxonomy is provided within `tax_query` which leads to duplicate filters.
 		 *
 		 * @since 1.5
 		 */
-		if ( ! empty( $args[ 'category_name' ] ) ) {
+		if ( ! empty( $args[ 'category_name' ] ) && empty( $tax_filter ) ) {
 			$terms_obj = array(
 				'terms.category.slug' => array( $args[ 'category_name' ] ),
 			);
