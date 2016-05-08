@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 1.9\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-03-29 18:44:58+00:00\n"
+"POT-Creation-Date: 2016-03-15 15:34:46+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -127,53 +127,53 @@ msgstr ""
 msgid "No running host available."
 msgstr ""
 
-#: classes/class-ep-index-gui.php:129
+#: classes/class-ep-index-gui.php:127
 msgid ""
 "Mappings could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:142
+#: classes/class-ep-index-gui.php:140
 msgid ""
 "Indexing could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:183 classes/class-ep-index-gui.php:323
-#: classes/class-ep-index-gui.php:357 classes/class-ep-index-gui.php:389
-#: classes/class-ep-settings.php:168
+#: classes/class-ep-index-gui.php:181 classes/class-ep-index-gui.php:316
+#: classes/class-ep-index-gui.php:347 classes/class-ep-index-gui.php:377
+#: classes/class-ep-settings.php:166
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:402
+#: classes/class-ep-index-gui.php:390
 msgid "Search Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:405
+#: classes/class-ep-index-gui.php:393
 msgid "Total Queries:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:408
+#: classes/class-ep-index-gui.php:396
 msgid "Query Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:411
+#: classes/class-ep-index-gui.php:399
 msgid "Total Fetches:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:414
+#: classes/class-ep-index-gui.php:402
 msgid "Fetch Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:419
+#: classes/class-ep-index-gui.php:407
 msgid "Index Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:422
+#: classes/class-ep-index-gui.php:410
 msgid "Index Total:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:425
+#: classes/class-ep-index-gui.php:413
 msgid "Index Time:"
 msgstr ""
 
@@ -181,11 +181,11 @@ msgstr ""
 msgid "Index Status"
 msgstr ""
 
-#: classes/class-ep-index-worker.php:414
+#: classes/class-ep-index-worker.php:410
 msgid ": ElasticPress Index Errors"
 msgstr ""
 
-#: classes/class-ep-settings.php:112 classes/class-ep-settings.php:138
+#: classes/class-ep-settings.php:112
 msgid "items indexed"
 msgstr ""
 
@@ -193,53 +193,49 @@ msgstr ""
 msgid "items indexed in "
 msgstr ""
 
-#: classes/class-ep-settings.php:132 includes/settings/index.php:31
+#: classes/class-ep-settings.php:132 includes/settings/index.php:28
 msgid "Running Index..."
 msgstr ""
 
-#: classes/class-ep-settings.php:133 includes/settings/index.php:26
+#: classes/class-ep-settings.php:133 includes/settings/index.php:23
 msgid "Run Index"
 msgstr ""
 
-#: classes/class-ep-settings.php:134 includes/settings/index.php:29
+#: classes/class-ep-settings.php:134 includes/settings/index.php:26
 msgid "Indexing is Paused"
 msgstr ""
 
-#: classes/class-ep-settings.php:135 includes/settings/index.php:36
+#: classes/class-ep-settings.php:135 includes/settings/index.php:33
 msgid "Resume Indexing"
 msgstr ""
 
-#: classes/class-ep-settings.php:136 includes/settings/index.php:36
+#: classes/class-ep-settings.php:136 includes/settings/index.php:33
 msgid "Pause Indexing"
 msgstr ""
 
-#: classes/class-ep-settings.php:140
+#: classes/class-ep-settings.php:139
 msgid " site(s)"
 msgstr ""
 
-#: classes/class-ep-settings.php:144
+#: classes/class-ep-settings.php:143
 msgid ""
 "A failure has occured. Please try the indexing operation again and if the "
 "error persists contact your website administrator."
 msgstr ""
 
-#: classes/class-ep-settings.php:145
+#: classes/class-ep-settings.php:144
 msgid "Index complete <a href=\"\">Refresh the stats</a>"
 msgstr ""
 
-#: classes/class-ep-settings.php:146
-msgid "Do not deactivate Elasticsearch integration"
-msgstr ""
-
-#: classes/class-ep-settings.php:194
+#: classes/class-ep-settings.php:192
 msgid "Elasticsearch Host:"
 msgstr ""
 
-#: classes/class-ep-settings.php:203
+#: classes/class-ep-settings.php:201
 msgid "Use Elasticsearch:"
 msgstr ""
 
-#: classes/class-ep-settings.php:434
+#: classes/class-ep-settings.php:432
 msgid "Elasticsearch Integration Options"
 msgstr ""
 
@@ -261,17 +257,11 @@ msgstr ""
 msgid "The following values do not describe a valid date: month %1$s, day %2$s."
 msgstr ""
 
-#: includes/settings/index.php:23
-msgid ""
-"Do not deactivate Elasticsearch integration (this will not delete current "
-"index, mappings and posts before reindexing)"
-msgstr ""
-
-#: includes/settings/index.php:45
+#: includes/settings/index.php:42
 msgid "Restart Index"
 msgstr ""
 
-#: includes/settings/index.php:48
+#: includes/settings/index.php:44
 msgid "A proper host must be set before running an index."
 msgstr ""
 
