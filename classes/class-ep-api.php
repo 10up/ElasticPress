@@ -2150,7 +2150,10 @@ class EP_API {
 	}
 
 	/**
-	 * Query logging. Don't log anything when WP_DEBUG is not enabled.
+	 * Query logging. Don't log anything to the queries property when
+	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
+	 * want to access the query outside of the ElasticPress plugin. This
+	 * runs regardless of debufg settings.
 	 *
 	 * @param array $query Query.
 	 *
