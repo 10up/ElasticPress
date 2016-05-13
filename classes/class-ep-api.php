@@ -1347,7 +1347,6 @@ class EP_API {
 							'fields' => $search_fields,
 							'query' => '',
 							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
-							'operator' => 'and',
 						),
 					)
 				),
