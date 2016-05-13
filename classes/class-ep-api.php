@@ -1327,6 +1327,15 @@ class EP_API {
 					array(
 						'multi_match' => array(
 							'query' => '',
+							'type' => 'phrase',
+							'fields' => $search_fields,
+							'boost' => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+							'fuzziness' => 0,
+						)
+					),
+					array(
+						'multi_match' => array(
+							'query' => '',
 							'fields' => $search_fields,
 							'boost' => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
 							'fuzziness' => 0,
@@ -1352,6 +1361,7 @@ class EP_API {
 		 */
 
 		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
+			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
