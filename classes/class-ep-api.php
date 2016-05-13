@@ -1339,6 +1339,7 @@ class EP_API {
 							'fields' => $search_fields,
 							'boost' => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
 							'fuzziness' => 0,
+							'operator' => 'and',
 						)
 					),
 					array(
