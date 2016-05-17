@@ -2,7 +2,7 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 1.9\n"
+"Project-Id-Version: ElasticPress 1.9.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "POT-Creation-Date: 2016-03-15 15:34:46+00:00\n"
 "MIME-Version: 1.0\n"
