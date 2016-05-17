@@ -80,6 +80,11 @@ First, make sure you have Elasticsearch configured properly.
 
 == Changelog ==
 
+= 1.9.1 =
+
+### Bugs
+* Fix version number which was still on 1.8
+
 = 1.9 =
 
 ElasticPress 1.9 adds in an admin UI, where you can set your Elasticsearch Host and run your index command, without needing to us WP-CLI. Version 1.9 also adds in some performance improvements to reduce memory consumption during indexing. Full list of enhancements and bug fixes:
