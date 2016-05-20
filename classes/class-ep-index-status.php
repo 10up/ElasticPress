@@ -28,7 +28,9 @@ class EP_Index_Status {
 	 */
 	public function __construct() {
 
-		add_action( 'post_submitbox_misc_actions', array( $this, 'post_submitbox_misc_actions' ) );
+		if ( defined( 'WP_DEBUG' ) && true === WP_DEBUG ) {
+			add_action( 'post_submitbox_misc_actions', array( $this, 'post_submitbox_misc_actions' ) );
+		}
 
 	}
 
