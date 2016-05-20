@@ -232,6 +232,7 @@ jQuery( document ).ready( function ( $ ) {
 								$( keepActiveCheckbox ).attr( 'disabled', false );
 								$( stopBtn ).addClass( 'hidden' );
 								$( restartBtn ).addClass( 'hidden' );
+								$( '#ep_activate' ).prop( 'checked', true );
 								resetIndex();
 
 							}, 1000 );
