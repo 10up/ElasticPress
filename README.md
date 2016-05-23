@@ -25,6 +25,10 @@ Coupling WordPress with Elasticsearch allows us to do amazing things with search
 * Search all sites on a multisite install
 * [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
 
+<p align="center">
+<a href="http://10up.com/contact/#request_quote"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/05/ghbadge-with-font.svg" width="700"></a>
+</p>
+
 ## Purpose
 
 The goal of ElasticPress is to integrate WordPress with Elasticsearch. This plugin integrates with the [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query) object returning results from Elasticsearch instead of MySQL.
