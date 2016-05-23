@@ -255,6 +255,14 @@ class EP_WP_Query_Integration {
 
 		$new_posts = apply_filters( 'ep_wp_query_search_cached_posts', array(), $query );
 
+		$use_get_post = apply_filters( 'ep_wp_query_search_use_get_post', true, $query );
+
+		if ( empty( $query_vars['cache_results'] ) ) {
+			$use_get_post = false;
+		}
+
+		$search = null;
+
 		if( count( $new_posts ) < 1 ) {
 
 			$scope = 'current';
@@ -273,53 +281,71 @@ class EP_WP_Query_Integration {
 			$query->found_posts = $search['found_posts'];
 			$query->max_num_pages = ceil( $search['found_posts'] / $query->get( 'posts_per_page' ) );
 
-			foreach ( $search['posts'] as $post_array ) {
-				$post = new stdClass();
+			$current_site_id = get_current_blog_id();
 
-				$post->ID = $post_array['post_id'];
-				$post->site_id = get_current_blog_id();
+			foreach ( $search['posts'] as $post_array ) {
+				$post_site_id = $current_site_id;
 
 				if ( ! empty( $post_array['site_id'] ) ) {
-					$post->site_id = $post_array['site_id'];
+					$post_site_id = $post_array['site_id'];
 				}
-				// ep_search_request_args
-				$post_return_args = apply_filters( 'ep_search_post_return_args',
-					array(
-						'post_type',
-						'post_author',
-						'post_name',
-						'post_status',
-						'post_title',
-						'post_parent',
-						'post_content',
-						'post_excerpt',
-						'post_date',
-						'post_date_gmt',
-						'post_modified',
-						'post_modified_gmt',
-						'post_mime_type',
-						'comment_count',
-						'comment_status',
-						'ping_status',
-						'menu_order',
-						'permalink',
-						'terms',
-						'post_meta',
-						'guid'
-						)
-					);
 
-				foreach ( $post_return_args as $key ) {
-					if( $key === 'post_author' ) {
-						$post->$key = $post_array[$key]['id'];
-					} elseif ( isset( $post_array[ $key ] ) ) {
-						$post->$key = $post_array[$key];
+				if ( $use_get_post && $current_site_id === $post_site_id ) {
+					$post = get_post( $post_array['post_id'] );
+
+					if ( isset( $post_array['post_meta'] ) ) {
+						$post->post_meta = $post_array['post_meta'];
 					}
-				}
 
-				$post->elasticsearch = true; // Super useful for debugging
+					if ( isset( $post_array['terms'] ) ) {
+						$post->terms = $post_array['terms'];
+					}
+				} else {
+					$post = new stdClass();
+
+					$post->ID = $post_array['post_id'];
+
+					// ep_search_request_args
+					$post_return_args = apply_filters( 'ep_search_post_return_args', array(
+							'post_type',
+							'post_author',
+							'post_name',
+							'post_status',
+							'post_title',
+							'post_parent',
+							'post_content',
+							'post_excerpt',
+							'post_date',
+							'post_date_gmt',
+							'post_modified',
+							'post_modified_gmt',
+							'post_mime_type',
+							'comment_count',
+							'comment_status',
+							'ping_status',
+							'menu_order',
+							'permalink',
+							'terms',
+							'post_meta',
+							'guid'
+						) );
+
+					foreach ( $post_return_args as $key ) {
+						if ( $key === 'post_author' ) {
+							$post->$key = $post_array[ $key ]['id'];
+						} elseif ( isset( $post_array[ $key ] ) ) {
+							$post->$key = $post_array[ $key ];
+						}
+					}
+
+					$post = get_post( $post );
+				}
 
 				if ( $post ) {
+					// Set custom EP parameters
+					$post->site_id = $post_site_id;
+					$post->elasticsearch = true; // Super useful for debugging
+
 					$new_posts[] = $post;
 				}
 			}
