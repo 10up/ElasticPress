@@ -203,7 +203,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		} else {
 			$assoc_args['offset'] = 0;
 		}
-
+		
 		if ( empty( $assoc_args['post-type'] ) ) {
 			$assoc_args['post-type'] = null;
 		}
@@ -245,9 +245,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::log( __( 'Indexing posts network-wide...', 'elasticpress' ) );
 
 			$sites = ep_get_sites( $assoc_args['network-wide'] );
+			
+			$post_types = $assoc_args['post-type'];
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
+
+				if ( is_null( $post_types ) ) {
+					$assoc_args[ 'post-type' ] = $this->_fetch_post_types();
+				}
 
 				$result = $this->_index_helper( $assoc_args );
 
@@ -750,4 +756,26 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( __( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
 		}
 	}
+	
+	/**
+	 * Hits WP-API endpoint to collect all post types.
+	 * @since 1.9
+	 * @url https://github.com/10up/ElasticPress/issues/334
+	 * @return string|null Comma separated post_types or null.
+	 */
+	private function _fetch_post_types() {
+		//Check to see if WP-API is installed or WP 4.4+.
+		if ( !function_exists( 'register_rest_route' ) ) {
+			return null;
+		}
+		$endpoint	 = site_url( '/wp-json/elasticpress/v1/posttypes/' );
+		$request	 = wp_remote_get( $endpoint );
+		if ( !is_wp_error( $request ) ) {
+			$response	 = json_decode( wp_remote_retrieve_body( $request ), true );
+			$response	 = implode( ',', $response );
+			return (!empty( $response )) ? $response : null;
+		}
+		return null;
+	}
+
 }

@@ -29,7 +29,7 @@ require_once( 'classes/class-ep-sync-manager.php' );
 require_once( 'classes/class-ep-elasticpress.php' );
 require_once( 'classes/class-ep-wp-query-integration.php' );
 require_once( 'classes/class-ep-wp-date-query.php' );
-
+require_once( 'classes/class-ep-endpoint.php' );
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
 $network_activated = ep_is_network_activated( plugin_basename( __FILE__ ) );
