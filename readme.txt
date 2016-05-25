@@ -80,6 +80,10 @@ First, make sure you have Elasticsearch configured properly.
 
 == Changelog ==
 
+= 1.9.1 =
+
+Quick bug fix version to address the GUI not working properly when plugin is not network enabled within multisite. Props to [Ivan Lopez](https://github.com/ivanlopez)
+
 = 1.9 =
 
 ElasticPress 1.9 adds in an admin UI, where you can set your Elasticsearch Host and run your index command, without needing to us WP-CLI. Version 1.9 also adds in some performance improvements to reduce memory consumption during indexing. Full list of enhancements and bug fixes:

@@ -1953,7 +1953,7 @@ class EP_API {
 
 		} else {
 
-			if ( is_multisite() && null === $blog_id ) {
+			if ( is_multisite() && null === $blog_id && defined( 'EP_IS_NETWORK' ) && true == EP_IS_NETWORK ) {
 
 				$path = ep_get_network_alias() . '/_stats/indexing/';
 
