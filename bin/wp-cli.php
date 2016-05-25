@@ -158,6 +158,57 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Clear the index cache for one or all of the blogs
+	 *
+	 * @subcommand clear-index-cache
+	 *
+	 * @param  array $args
+	 * @param  array $assoc_args
+	 */
+	public function clear_index_cache( $args, $assoc_args ) {
+
+		WP_CLI::line( __( 'Clearing index cache...', 'elasticpress' ) );
+		
+		$flushed = ep_flush_index_name_cache( $blog_id );
+
+		if ( $flushed ) {
+			WP_CLI::success( __( 'Done!', 'elasticpress' ) );
+		} else {
+			WP_CLI::error( __( "Error flushing cache, maybe it's already been flushed?", 'elasticpress' ) );
+		}
+
+	}
+
+	/**
+	 * Set the index cache for a blog
+	 *
+	 * @subcommand set-index
+	 * @synopsis <index-name>
+	 *
+	 * @param  array $args
+	 * @param  array $assoc_args
+	 */
+	public function set_index_cache( $args, $assoc_args ) {
+
+		$index_name = isset( $args[0] ) ? $args[0] : false;
+
+		if ( ! $index_name ) {
+			WP_CLI::error( __( 'An index name is required', 'elasticpress' ) );
+		}
+
+		$blog_id = get_current_blog_id();
+
+		$set = ep_set_cached_index_name( $blog_id, $index_name );
+
+		if ( $set ) {
+			WP_CLI::success( __( 'Done!', 'elasticpress' ) );
+		} else {
+			WP_CLI::error( __( 'An error occurred', 'elasticpress' ) );
+		}
+
+	}
+
+	/**
 	 * Helper method for creating the network alias
 	 *
 	 * @since 0.9

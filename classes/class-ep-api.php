@@ -418,6 +418,8 @@ class EP_API {
 
 		$mapping = apply_filters( 'ep_config_mapping', $mapping );
 
+		ep_flush_index_name_cache();
+
 		$index = ep_get_index_name();
 
 		$request_args = array(
@@ -809,6 +811,8 @@ class EP_API {
 		// 404 means the index was non-existent, but we should still pass this through as we will occasionally want to delete an already deleted index
 		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) || 404 === wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
+
+			ep_flush_index_name_cache();
 
 			return json_decode( $response_body );
 		}
