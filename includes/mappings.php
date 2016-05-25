@@ -259,6 +259,10 @@ return array(
 					'type' => 'string',
 					'analyzer' => 'default',
 				),
+				'post_content_unfiltered' => array(
+					'type' => 'string',
+					'index' => 'not_analyzed',
+				),
 				'post_status' => array(
 					'type' => 'string',
 					'index' => 'not_analyzed',
