@@ -364,6 +364,11 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 * ```order``` (*string*)
 
     Which direction to order results in. Accepts ```ASC``` and ```DESC```. Default is ```DESC```.
+  
+* ```post_parent``` (*int*)
+
+    Show posts that have the specified post parent.
+  
 
 The following are special parameters that are only supported by ElasticPress.
 

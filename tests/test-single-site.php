@@ -2845,7 +2845,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test a post_parent query
 	 * @group testPostParentQuery
-	 * @since 1.5
+	 * @since 2.0
 	 */
 	public function testPostParentQuery() {
 		$parent_post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1') );

@@ -1040,7 +1040,7 @@ class EP_API {
 		/**
 		 * 'post_parent' arg support.
 		 *
-		 * @since x.x
+		 * @since 2.0
 		 */
 		if ( ! empty( $args['post_parent'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
