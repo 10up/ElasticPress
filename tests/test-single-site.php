@@ -1865,6 +1865,36 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a query that searches and filters by a meta between query
+	 *
+	 * @since 2.0
+	 */
+	public function testMetaQueryBetween() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '105' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '110' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => array( 102, 106 ),
+					'compare' => 'BETWEEN',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
 	 * Test a query that searches and filters by a meta greater than or equal to query
 	 *
 	 * @since 1.4
