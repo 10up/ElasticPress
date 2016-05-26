@@ -988,6 +988,21 @@ class EP_API {
 		}
 
 		/**
+		 * 'post_parent' arg support.
+		 *
+		 * @since 2.0
+		 */
+		if ( ! empty( $args['post_parent'] ) ) {
+			$filter['and'][]['bool']['must'] = array(
+				'term' => array(
+					'post_parent' => $args['post_parent'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * 'post__in' arg support.
 		 *
 		 * @since x.x
