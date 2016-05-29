@@ -123,6 +123,8 @@ class EP_Index_GUI {
 
 			$mapping_success = ep_process_site_mappings();
 
+			do_action( 'ep_put_mapping' );
+
 			if ( true !== $mapping_success ) {
 
 				if ( false === $mapping_success ) {
