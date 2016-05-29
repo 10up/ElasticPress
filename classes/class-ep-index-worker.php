@@ -299,6 +299,8 @@ class EP_Index_Worker {
 		// Decode the response.
 		$response = ep_bulk_index_posts( $body );
 
+		do_action( 'ep_post_bulk_index', $this->posts );
+
 		if ( is_wp_error( $response ) ) {
 
 			$failed_blocks   = is_array( get_transient( 'ep_index_failed_blocks' ) ) ? get_transient( 'ep_index_failed_blocks' ) : array();
