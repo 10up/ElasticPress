@@ -642,6 +642,44 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a taxonomy query with OR relation
+	 *
+	 * @since 2.0
+	 */
+	public function testTaxQueryOrRelation() {
+		$cat1 =  wp_create_category( 'category one' );
+		$cat2 =  wp_create_category( 'category two' );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ), 'post_category' => array( $cat1 )  ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ), 'post_category' => array( $cat2 )  ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				'relation' => 'or',
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'two' ),
+					'field'    => 'slug',
+				),
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'category two' ),
+					'field'    => 'name',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a taxonomy query with term id field
 	 *
 	 * @since 1.8
@@ -1916,6 +1954,36 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a query that searches and filters by a meta between query
+	 *
+	 * @since 2.0
+	 */
+	public function testMetaQueryBetween() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '105' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '110' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => array( 102, 106 ),
+					'compare' => 'BETWEEN',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
 	 * Test a query that searches and filters by a meta greater than or equal to query
 	 *
 	 * @since 1.4
@@ -2147,6 +2215,14 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.3
 	 */
 	public function testNoAvailablePostTypesToSearch() {
+		$GLOBALS['wp_post_types'];
+
+		$backup_post_types = $GLOBALS['wp_post_types'];
+
+		// Set all post types to be excluded from search
+		foreach ( $GLOBALS['wp_post_types'] as $post_type ) {
+			$post_type->exclude_from_search = true;
+		}
 
 		$post_ids = array();
 
@@ -2156,15 +2232,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		$post_ids[3] = ep_create_and_sync_post();
 		$post_ids[4] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
 
-		$GLOBALS['wp_post_types'];
-
-		$backup_post_types = $GLOBALS['wp_post_types'];
-
-		// Set all post types to be excluded from search
-		foreach ( $GLOBALS['wp_post_types'] as $post_type ) {
-			$post_type->exclude_from_search = true;
-		}
-		
 		ep_refresh_index();
 
 		$args = array(
@@ -2929,5 +2996,28 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertFalse( $inactive );
 		$this->assertFalse( $no_field );
 
+	}
+
+	/**
+	 * Test a post_parent query
+	 * @group testPostParentQuery
+	 * @since 2.0
+	 */
+	public function testPostParentQuery() {
+		$parent_post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1') );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'post_parent' => $parent_post ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3'));
+
+		ep_refresh_index();
+
+		$args = array(
+			's'             => 'findme',
+			'post_parent' => $parent_post
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 }

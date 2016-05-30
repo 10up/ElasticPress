@@ -3,7 +3,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: Integrate WordPress search with Elasticsearch
- * Version:     1.9
+ * Version:     1.9.1
  * Author:      Aaron Holbrook, Taylor Lovett, Matt Gross, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
-define( 'EP_VERSION', '1.9' );
+define( 'EP_VERSION', '1.9.1' );
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
@@ -57,13 +57,13 @@ function ep_loader() {
 		load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
 
 		// Load the settings page.
-		require( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
+		require_once( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
 		new EP_Settings();
 
 		// Load the indexing GUI.
 		if ( true === apply_filters( 'ep_load_index_gui', true ) ) {
 
-			require( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
+			require_once( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
 			new EP_Index_GUI();
 
 		}
@@ -71,7 +71,7 @@ function ep_loader() {
 		// Load index statuses.
 		if ( true === apply_filters( 'ep_load_index_status', true ) ) {
 
-			require( dirname( __FILE__ ) . '/classes/class-ep-index-status.php' );
+			require_once( dirname( __FILE__ ) . '/classes/class-ep-index-status.php' );
 			new EP_Index_Status();
 
 		}

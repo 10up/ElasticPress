@@ -28,7 +28,9 @@ class EP_Index_Status {
 	 */
 	public function __construct() {
 
-		add_action( 'post_submitbox_misc_actions', array( $this, 'post_submitbox_misc_actions' ) );
+		if ( defined( 'WP_DEBUG' ) && true === WP_DEBUG ) {
+			add_action( 'post_submitbox_misc_actions', array( $this, 'post_submitbox_misc_actions' ) );
+		}
 
 	}
 
@@ -47,7 +49,7 @@ class EP_Index_Status {
 
 		$post_types = ep_get_indexable_post_types();
 
-		if ( in_array( $post->post_type, $post_types ) && ep_is_activated() && ep_index_exists() ) {
+		if ( apply_filters( 'ep_print_post_index_status' , true, $post ) && in_array( $post->post_type, $post_types ) && ep_is_activated() && ep_index_exists() ) {
 
 			$post_status = ep_get_post( $post->ID );
 			$fill        = 'red';

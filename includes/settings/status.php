@@ -8,14 +8,14 @@
  *
  * @author  Allan Collins <allan.collins@10up.com>
  */
-global $ep_host_status;
+
 $site_stats_id = null;
 
 if ( is_multisite() && ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) ) {
 	$site_stats_id = get_current_blog_id();
 }
 
-$stats = ep_get_index_status( $site_stats_id , true );
+$stats = ep_get_index_status( $site_stats_id );
 
 echo '<div id="ep_stats">';
 
@@ -25,7 +25,7 @@ echo '<div id="ep_stats">';
 		<table class="form-table">
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ) ?>:</th>
-				<?php if ( ! is_wp_error( $ep_host_status ) ) { ?>
+				<?php if ( ! is_wp_error( ep_check_host() ) ) { ?>
 
 					<?php $current_host = ep_get_host( true ); ?>
 
@@ -57,7 +57,7 @@ if ( $stats['status'] ) {
 	<?php } else { ?>
 
 		<span class="dashicons dashicons-no"
-		      style="color:red;"></span> <?php esc_html_e( 'ElasticPress is not enabled and cannot override WP queries. You can activate it on the form to the left.', 'elasticpress' ); ?>
+		      style="color:red;"></span> <?php esc_html_e( 'WordPress is currently using default search. To activate ElasticPress, check “Use Elasticsearch” in the form on the left and click “Save Changes".', 'elasticpress' ); ?>
 		<br/>
 
 	<?php } ?>

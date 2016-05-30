@@ -239,7 +239,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . '/post/' . $post_id;
+		$path = $index . 'post/' . $post_id;
 
 		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
 
@@ -419,18 +419,6 @@ class EP_API {
 		$mapping = apply_filters( 'ep_config_mapping', $mapping );
 
 		$index = ep_get_index_name();
-
-		$cache_key = 'ep_index_exists_' . $index;
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			delete_site_transient( $cache_key );
-
-		} else {
-
-			delete_transient( $cache_key );
-
-		}
 
 		$request_args = array(
 			'body'    => json_encode( $mapping ),
@@ -813,18 +801,6 @@ class EP_API {
 
 		$index = ( null === $index_name ) ? ep_get_index_name() : sanitize_text_field( $index_name );
 
-		$cache_key = 'ep_index_exists_' . $index;
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			delete_site_transient( $cache_key );
-
-		} else {
-
-			delete_transient( $cache_key );
-
-		}
-
 		$request_args = array( 'method' => 'DELETE' );
 
 		$request = ep_remote_request( $index, apply_filters( 'ep_delete_index_request_args', $request_args ) );
@@ -844,54 +820,20 @@ class EP_API {
 	 * Checks if index exists by index name, returns true or false
 	 *
 	 * @param null $index_name
-	 * @param bool $force True to force remote check or false to use cached check if available.
 	 *
 	 * @return bool
 	 */
-	public function index_exists( $index_name = null, $force = false ) {
+	public function index_exists( $index_name = null ) {
 
 		$index = ( null === $index_name ) ? ep_get_index_name() : sanitize_text_field( $index_name );
 
-		$cache_key = 'ep_index_exists_' . $index;
+		$request_args = array( 'method' => 'HEAD' );
 
-		if ( true === $force ) {
-
-			$request = false;
-
-		} else {
-
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-				$request = get_site_transient( $cache_key );
-
-			} else {
-
-				$request = get_transient( $cache_key );
-
-			}
-		}
-
-		if ( false === $request ) {
-
-			$request_args = array( 'method' => 'HEAD' );
-
-			$request = ep_remote_request( $index, apply_filters( 'ep_index_exists_request_args', $request_args, $index_name ) );
-
-		}
+		$request = ep_remote_request( $index, apply_filters( 'ep_index_exists_request_args', $request_args, $index_name ) );
 
 		// 200 means the index exists
 		// 404 means the index was non-existent
 		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) || 404 === wp_remote_retrieve_response_code( $request ) ) ) {
-
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-				set_site_transient( $cache_key, $request, 3600 );
-
-			} else {
-
-				set_transient( $cache_key, $request, 3600 );
-
-			}
 
 			if ( 404 === wp_remote_retrieve_response_code( $request ) ) {
 				return false;
@@ -1033,8 +975,29 @@ class EP_API {
 			}
 
 			if ( ! empty( $tax_filter ) ) {
-				$filter['and'][]['bool']['must'] = $tax_filter;
+				$relation = 'must';
+
+				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
+					$relation = 'should';
+				}
+
+				$filter['and'][]['bool'][$relation] = $tax_filter;
 			}
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'post_parent' arg support.
+		 *
+		 * @since 2.0
+		 */
+		if ( ! empty( $args['post_parent'] ) ) {
+			$filter['and'][]['bool']['must'] = array(
+				'term' => array(
+					'post_parent' => $args['post_parent'],
+				),
+			);
 
 			$use_filters = true;
 		}
@@ -1172,7 +1135,7 @@ class EP_API {
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 						// Map specific meta field types to different Elasticsearch core types
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
-					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
+					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
 					} else {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
@@ -1226,6 +1189,31 @@ class EP_API {
 												'range' => array(
 													$meta_key_path => array(
 														"gte" => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case 'between':
+							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"gte" => $single_meta_query['value'][0],
+													),
+												),
+											),
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"lte" => $single_meta_query['value'][1],
 													),
 												),
 											),
@@ -1379,17 +1367,26 @@ class EP_API {
 					array(
 						'multi_match' => array(
 							'query' => '',
+							'type' => 'phrase',
+							'fields' => $search_fields,
+							'boost' => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+							'fuzziness' => 0,
+						)
+					),
+					array(
+						'multi_match' => array(
+							'query' => '',
 							'fields' => $search_fields,
 							'boost' => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
 							'fuzziness' => 0,
+							'operator' => 'and',
 						)
 					),
 					array(
 						'multi_match' => array(
 							'fields' => $search_fields,
 							'query' => '',
-							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 2, $search_fields, $args ),
-							'operator' => 'or',
+							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
 						),
 					)
 				),
@@ -1404,6 +1401,7 @@ class EP_API {
 		 */
 
 		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
+			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
@@ -2004,92 +2002,46 @@ class EP_API {
 	 * @since 1.9
 	 *
 	 * @param int $blog_id Id of blog to get stats.
-	 * @param bool $force Whether to force a refresh or use cache.
 	 *
 	 * @return array Contains the status message or the returned statistics.
 	 */
-	public function get_index_status( $blog_id = null, $force = false ) {
+	public function get_index_status( $blog_id = null ) {
 
-		if ( null === $blog_id ) {
-
-			$cache_id = '0';
-
-		} else {
-
-			$cache_id = (string)$blog_id;
-
-		}
-
-		$cache_key = 'ep_index_status_' . $cache_id;
-
-		if ( true === $force ) {
-
-			$status = false;
-
-		} else {
-
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-				$status = get_site_transient( $cache_key );
-
-			} else {
-
-				$status = get_transient( $cache_key );
-
-			}
-		}
-
-		if ( false === $status ) {
-
-			if ( is_wp_error( ep_get_host( true ) ) ) {
-
-				return array(
-					'status' => false,
-					'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
-				);
-
-			} else {
-
-				if ( is_multisite() && null === $blog_id ) {
-
-					$path = ep_get_network_alias() . '/_stats/indexing/';
-
-				} else {
-
-					$path = ep_get_index_name( $blog_id ) . '/_stats/indexing/';
-
-				}
-
-				$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
-
-			}
-
-			if ( ! is_wp_error( $request ) ) {
-
-				$response = json_decode( wp_remote_retrieve_body( $request ) );
-
-				$status =  ep_parse_api_response( $response );
-
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-					set_site_transient( $cache_key, $status, 600 );
-
-				} else {
-
-					set_transient( $cache_key, $status, 600 );
-
-				}
-
-				return $status;
-
-			}
+		if ( is_wp_error( ep_get_host( true ) ) ) {
 
 			return array(
 				'status' => false,
-				'msg'    => $request->get_error_message(),
+				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
 			);
 
+		} else {
+
+			if ( is_multisite() && null === $blog_id && defined( 'EP_IS_NETWORK' ) && true == EP_IS_NETWORK ) {
+
+				$path = ep_get_network_alias() . '/_stats/indexing/';
+
+			} else {
+
+				$path = ep_get_index_name( $blog_id ) . '/_stats/indexing/';
+
+			}
+
+			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
+
 		}
+
+		if ( ! is_wp_error( $request ) ) {
+
+			$response = json_decode( wp_remote_retrieve_body( $request ) );
+
+			return ep_parse_api_response( $response );
+
+		}
+
+		return array(
+			'status' => false,
+			'msg'    => $request->get_error_message(),
+		);
 
 	}
 
@@ -2175,7 +2127,10 @@ class EP_API {
 	}
 
 	/**
-	 * Query logging. Don't log anything when WP_DEBUG is not enabled.
+	 * Query logging. Don't log anything to the queries property when
+	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
+	 * want to access the query outside of the ElasticPress plugin. This
+	 * runs regardless of debufg settings.
 	 *
 	 * @param array $query Query.
 	 *
@@ -2185,6 +2140,8 @@ class EP_API {
 		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
 			$this->queries[] = $query;
 		}
+
+		do_action( 'ep_add_query_log', $query );
 	}
 
 }
@@ -2267,8 +2224,8 @@ function ep_elasticsearch_alive( $host = null ) {
 	return EP_API::factory()->elasticsearch_alive( $host );
 }
 
-function ep_index_exists( $index_name = null, $force = false ) {
-	return EP_API::factory()->index_exists( $index_name, $force );
+function ep_index_exists( $index_name = null ) {
+	return EP_API::factory()->index_exists( $index_name );
 }
 
 function ep_format_request_headers() {
@@ -2295,8 +2252,8 @@ function ep_get_search_status( $blog_id = null ) {
 	return EP_API::factory()->get_search_status( $blog_id );
 }
 
-function ep_get_index_status( $blog_id = null, $force = false ) {
-	return EP_API::factory()->get_index_status( $blog_id, $force );
+function ep_get_index_status( $blog_id = null ) {
+	return EP_API::factory()->get_index_status( $blog_id );
 }
 
 function ep_get_cluster_status() {
