@@ -927,6 +927,25 @@ class EP_API {
 		 *      terms array
 		 * @since 0.9.1
 		 */
+
+		//set tax_query if it's implicitly set in the query
+		//e.g. $args['tag'], $args['category_name']
+		if ( empty( $args['tax_query'] ) ) {
+
+			$taxonomies = get_taxonomies();
+			$taxonomies = $this->sanitize_taxonomy_names($taxonomies); //fix it up
+
+			foreach( $taxonomies as $tax => $taxName ){
+				if( isset( $args[ $taxName ] ) && ! empty( $args[ $taxName ] ) ){
+					$args['tax_query'][] = array(
+						'taxonomy' => $tax,
+						'terms' =>  array($args[ $taxName ]),
+						'field' => 'slug'
+					);
+				}
+			}
+		}
+
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
 
@@ -964,25 +983,6 @@ class EP_API {
 
 				$filter['and'][]['bool'][$relation] = $tax_filter;
 			}
-
-			$use_filters = true;
-		}
-
-		/**
-		 * 'category_name' arg support. Skip entirely if `tax_query` has already been provided. WP_Query
-		 * has some quirky backwards compat functionality that will fill `category_name` if the category
-		 * taxonomy is provided within `tax_query` which leads to duplicate filters.
-		 *
-		 * @since 1.5
-		 */
-		if ( ! empty( $args[ 'category_name' ] ) && empty( $tax_filter ) ) {
-			$terms_obj = array(
-				'terms.category.slug' => array( $args[ 'category_name' ] ),
-			);
-
-			$filter['and'][]['bool']['must'] = array(
-				'terms' => $terms_obj
-			);
 
 			$use_filters = true;
 		}
@@ -1472,6 +1472,29 @@ class EP_API {
 			}
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
+	}
+
+	/**
+	 * WP is using 'weird' taxonomy name, for example: 'category' but in query using 'category_name', 'post_tag' but in queries using 'tag'
+	 * Map taxonomy name in db to taxonomy in query
+	 * @param $taxonomies
+	 * @return array
+	 */
+	protected function sanitize_taxonomy_names( $taxonomies ){
+		$taxes = array();
+		foreach( $taxonomies as $tax => $taxName ){
+			switch( $tax ){
+				case "category":
+					$taxes["category"] = "category_name";
+					break;
+				case "post_tag":
+					$taxes["post_tag"] = "tag";
+					break;
+				default:
+					$taxes[ $tax ] = $taxName;
+			}
+		}
+		return $taxes;
 	}
 
 	/**
