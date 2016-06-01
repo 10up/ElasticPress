@@ -54,6 +54,15 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Helper function to test whether a meta sync has happened
+	 *
+	 * @since 2.0
+	 */
+	public function action_sync_on_meta_update() {
+		$this->fired_actions['ep_sync_on_meta_update'] = true;
+	}
+
+	/**
 	 * Helper function to test whether a post has been deleted off ES
 	 *
 	 * @since 1.0
@@ -95,6 +104,56 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_transition'] ) );
+
+		$post = ep_get_post( $post_id );
+		$this->assertTrue( ! empty( $post ) );
+	}
+
+	/**
+	 * Test a post sync on meta add
+	 *
+	 * @since 2.0
+	 */
+	public function testPostSyncOnMetaAdd() {
+		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
+
+		$post_id = ep_create_and_sync_post();
+
+		$this->fired_actions = array();
+
+		ep_refresh_index();
+
+		update_post_meta( $post_id, 'test', 1 );
+
+		EP_Sync_Manager::factory()->action_index_sync_queue();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_meta_update'] ) );
+
+		$post = ep_get_post( $post_id );
+		$this->assertTrue( ! empty( $post ) );
+	}
+
+	/**
+	 * Test a post sync on meta update
+	 *
+	 * @since 2.0
+	 */
+	public function testPostSyncOnMetaUpdate() {
+		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
+
+		$post_id = ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		update_post_meta( $post_id, 'test', 1 );
+
+		$this->fired_actions = array();
+
+		update_post_meta( $post_id, 'test', 2 );
+
+		EP_Sync_Manager::factory()->action_index_sync_queue();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_meta_update'] ) );
 
 		$post = ep_get_post( $post_id );
 		$this->assertTrue( ! empty( $post ) );

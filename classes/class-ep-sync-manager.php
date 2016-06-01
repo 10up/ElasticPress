@@ -14,6 +14,14 @@ class EP_Sync_Manager {
 	public function __construct() { }
 
 	/**
+	 * Save posts for indexing later
+	 * 
+	 * @since  2.0
+	 * @var    array
+	 */
+	protected $sync_post_queue = array();
+
+	/**
 	 * Setup actions and filters
 	 *
 	 * @since 0.1.2
@@ -27,6 +35,9 @@ class EP_Sync_Manager {
 		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
+		add_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
 	
 	/**
@@ -43,6 +54,76 @@ class EP_Sync_Manager {
 		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		remove_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
+	}
+
+	/**
+	 * Sync queued posts on shutdown. We do this in case a post is updated multiple times.
+	 *
+	 * @since  2.0
+	 */
+	public function action_index_sync_queue() {
+		if ( empty( $this->sync_post_queue ) ) {
+			return;
+		}
+
+		foreach ( $this->sync_post_queue as $post_id => $value ) {
+			do_action( 'ep_sync_on_meta_update', $post_id );
+
+			$this->sync_post( $post_id, false );
+		}
+	}
+
+	/**
+	 * When whitelisted meta is updated, queue the post for reindex
+	 * 
+	 * @param  int $meta_id
+	 * @param  int $object_id
+	 * @param  string $meta_key
+	 * @param  string $meta_value
+	 * @since  2.0
+	 */
+	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
+		global $importer;
+
+		// If we have an importer we must be doing an import - let's abort
+		if ( ! empty( $importer ) ) {
+			return;
+		}
+		
+		$indexable_post_statuses = ep_get_indexable_post_status();
+		$post_type               = get_post_type( $object_id );
+
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
+			// Bypass saving if doing autosave or post type is revision
+			return;
+		}
+
+		$post = get_post( $object_id );
+
+		// If the post is an auto-draft - let's abort.
+		if ( 'auto-draft' == $post->post_status ) {
+			return;
+		}
+
+		if ( in_array( $post->post_status, $indexable_post_statuses ) ) {
+			$indexable_post_types = ep_get_indexable_post_types();
+
+			if ( in_array( $post_type, $indexable_post_types ) ) {
+
+				// Using this function to hook in after all the meta applicable filters
+				$prepared_post = ep_prepare_post( $object_id );
+
+				// Make sure meta key that was changed is actually relevant
+				if ( ! isset( $prepared_post['meta'][$meta_key] ) ) {
+					return;
+				}
+
+				$this->sync_post_queue[$object_id] = true;
+			}
+		}
 	}
 
 	/**
