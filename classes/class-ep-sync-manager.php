@@ -19,7 +19,7 @@ class EP_Sync_Manager {
 	 * @since  2.0
 	 * @var    array
 	 */
-	protected $sync_post_queue = array();
+	public $sync_post_queue = array();
 
 	/**
 	 * Setup actions and filters
