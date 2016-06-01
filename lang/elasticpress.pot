@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 1.9\n"
+"Project-Id-Version: ElasticPress 2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-05-20 16:18:31+00:00\n"
+"POT-Creation-Date: 2016-06-01 16:31:42+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -17,109 +17,109 @@ msgstr ""
 msgid "Adding mapping for site %d..."
 msgstr ""
 
-#: bin/wp-cli.php:63 bin/wp-cli.php:79
+#: bin/wp-cli.php:65 bin/wp-cli.php:83
 msgid "Mapping sent"
 msgstr ""
 
-#: bin/wp-cli.php:65 bin/wp-cli.php:81
+#: bin/wp-cli.php:67 bin/wp-cli.php:85
 msgid "Mapping failed"
 msgstr ""
 
-#: bin/wp-cli.php:71
+#: bin/wp-cli.php:73
 msgid "Adding mapping..."
 msgstr ""
 
-#: bin/wp-cli.php:109
+#: bin/wp-cli.php:113
 msgid "Deleting index for site %d..."
 msgstr ""
 
-#: bin/wp-cli.php:114 bin/wp-cli.php:127
+#: bin/wp-cli.php:118 bin/wp-cli.php:131
 msgid "Index deleted"
 msgstr ""
 
-#: bin/wp-cli.php:116
+#: bin/wp-cli.php:120
 msgid "Delete index failed"
 msgstr ""
 
-#: bin/wp-cli.php:122
+#: bin/wp-cli.php:126
 msgid "Deleting index..."
 msgstr ""
 
-#: bin/wp-cli.php:129
+#: bin/wp-cli.php:133
 msgid "Index delete failed"
 msgstr ""
 
-#: bin/wp-cli.php:147 bin/wp-cli.php:265
+#: bin/wp-cli.php:151 bin/wp-cli.php:269
 msgid "Recreating network alias..."
 msgstr ""
 
-#: bin/wp-cli.php:154 bin/wp-cli.php:289
+#: bin/wp-cli.php:158 bin/wp-cli.php:293
 msgid "Done!"
 msgstr ""
 
-#: bin/wp-cli.php:156
+#: bin/wp-cli.php:160
 msgid "An error occurred"
 msgstr ""
 
-#: bin/wp-cli.php:245
+#: bin/wp-cli.php:249
 msgid "Indexing posts network-wide..."
 msgstr ""
 
-#: bin/wp-cli.php:256 bin/wp-cli.php:277
+#: bin/wp-cli.php:260 bin/wp-cli.php:281
 msgid "Number of posts indexed on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:259 bin/wp-cli.php:280
+#: bin/wp-cli.php:263 bin/wp-cli.php:284
 msgid "Number of post index errors on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:269
+#: bin/wp-cli.php:273
 msgid "Total number of posts indexed: %d"
 msgstr ""
 
-#: bin/wp-cli.php:273
+#: bin/wp-cli.php:277
 msgid "Indexing posts..."
 msgstr ""
 
-#: bin/wp-cli.php:284
+#: bin/wp-cli.php:288
 msgid "Total time elapsed: "
 msgstr ""
 
-#: bin/wp-cli.php:542
+#: bin/wp-cli.php:550
 msgid ""
 "The following posts failed to index:\r\n"
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:746 classes/class-ep-config.php:186
+#: bin/wp-cli.php:754 classes/class-ep-config.php:186
 msgid "EP_HOST is not defined! Check wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:750 classes/class-ep-config.php:190
+#: bin/wp-cli.php:758 classes/class-ep-config.php:190
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1787
+#: classes/class-ep-api.php:1860
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1800
+#: classes/class-ep-api.php:1873
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1804
+#: classes/class-ep-api.php:1877
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1842 classes/class-ep-api.php:1901
-#: classes/class-ep-api.php:1941 classes/class-ep-api.php:1992
+#: classes/class-ep-api.php:1915 classes/class-ep-api.php:1974
+#: classes/class-ep-api.php:2014 classes/class-ep-api.php:2065
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -127,53 +127,53 @@ msgstr ""
 msgid "No running host available."
 msgstr ""
 
-#: classes/class-ep-index-gui.php:129
+#: classes/class-ep-index-gui.php:131
 msgid ""
 "Mappings could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:142
+#: classes/class-ep-index-gui.php:144
 msgid ""
 "Indexing could not be completed. If the error persists contact your system "
 "administrator"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:183 classes/class-ep-index-gui.php:323
-#: classes/class-ep-index-gui.php:357 classes/class-ep-index-gui.php:389
+#: classes/class-ep-index-gui.php:185 classes/class-ep-index-gui.php:325
+#: classes/class-ep-index-gui.php:359 classes/class-ep-index-gui.php:391
 #: classes/class-ep-settings.php:167
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:402
+#: classes/class-ep-index-gui.php:404
 msgid "Search Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:405
+#: classes/class-ep-index-gui.php:407
 msgid "Total Queries:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:408
+#: classes/class-ep-index-gui.php:410
 msgid "Query Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:411
+#: classes/class-ep-index-gui.php:413
 msgid "Total Fetches:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:414
+#: classes/class-ep-index-gui.php:416
 msgid "Fetch Time:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:419
+#: classes/class-ep-index-gui.php:421
 msgid "Index Stats"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:422
+#: classes/class-ep-index-gui.php:424
 msgid "Index Total:"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:425
+#: classes/class-ep-index-gui.php:427
 msgid "Index Time:"
 msgstr ""
 
@@ -181,7 +181,7 @@ msgstr ""
 msgid "Index Status"
 msgstr ""
 
-#: classes/class-ep-index-worker.php:412
+#: classes/class-ep-index-worker.php:414
 msgid ": ElasticPress Index Errors"
 msgstr ""
 
@@ -341,111 +341,6 @@ msgstr ""
 msgid "ElasticPress"
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithTerms.php:211
-msgid "Invalid Taxonomy"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithUpgrade.php:408
-msgid " Try again"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithUpgrade.php:413
-msgid "API error. Try Again."
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/commands/core.php:658
-msgid "Wildcard DNS may not be configured correctly."
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:327
-msgid "%s year"
-msgid_plural "%s years"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:328
-msgid "%s month"
-msgid_plural "%s months"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:329
-msgid "%s week"
-msgid_plural "%s weeks"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:330
-msgid "%s day"
-msgid_plural "%s days"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:331
-msgid "%s hour"
-msgid_plural "%s hours"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:332
-msgid "%s minute"
-msgid_plural "%s minutes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:333
-msgid "%s second"
-msgid_plural "%s seconds"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/export.php:256
-msgid "Invalid start ID: %d"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/commands/media.php:58
-msgid "image"
-msgid_plural "images"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/media.php:66
-msgid "the image"
-msgid_plural "all images"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/site.php:99
-msgid "Uncategorized"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/export/class-wp-export-query.php:327
-msgid "Term is missing a parent: %s (%d)"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/export/writers.php:35
-#: vendor/wp-cli/wp-cli/php/export/writers.php:39
-msgid "Export Error"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/export/writers.php:95
-#: vendor/wp-cli/wp-cli/php/export/writers.php:159
-msgid "WP Export: error opening %s for writing."
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/export/writers.php:112
-#: vendor/wp-cli/wp-cli/php/export/writers.php:147
-msgid "WP Export: error writing to export file."
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/utils-wp.php:122
-msgid "Inactive Widgets"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/utils-wp.php:125
-msgid "Drag widgets here to remove them from the sidebar but keep their settings."
-msgstr ""
-
 #. Description of the plugin/theme
 msgid "Integrate WordPress search with Elasticsearch"
 msgstr ""
@@ -456,16 +351,4 @@ msgstr ""
 
 #. Author URI of the plugin/theme
 msgid "http://10up.com"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/commands/core.php:485
-#: vendor/wp-cli/wp-cli/php/commands/core.php:530
-msgctxt "Default network name"
-msgid "%s Sites"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/commands/site.php:102
-#. translators: Default category slug
-msgctxt "Default category slug"
-msgid "Uncategorized"
 msgstr ""
