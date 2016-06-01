@@ -36,6 +36,7 @@ class EP_Sync_Manager {
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
 	
@@ -54,6 +55,7 @@ class EP_Sync_Manager {
 		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		remove_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
 
