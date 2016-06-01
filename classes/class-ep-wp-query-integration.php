@@ -255,6 +255,8 @@ class EP_WP_Query_Integration {
 
 		$new_posts = apply_filters( 'ep_wp_query_search_cached_posts', array(), $query );
 
+		$search = array();
+
 		if( count( $new_posts ) < 1 ) {
 
 			$scope = 'current';
@@ -320,6 +322,27 @@ class EP_WP_Query_Integration {
 
 				if ( $post ) {
 					$new_posts[] = $post;
+				}
+			}
+
+			// Support for orderby post__in
+			if ( ! empty( $query_vars['post__in'] ) && ! empty( $query_vars['orderby'] ) && 'post__in' == $query_vars['orderby'] ) {
+				$reordered_posts = array();
+
+				$post__in = $query_vars['post__in'];
+				$new_post_ids = wp_list_pluck( $new_posts, 'ID' );
+				$new_post_ids = array_map( 'absint', $new_post_ids );
+
+				foreach ( $post__in as $id ) {
+					$found_key = array_search( absint( $id ), $new_post_ids, true );
+
+					if ( false !== $found_key ) {
+						$reordered_posts[] = $new_posts[ $found_key ];
+					}
+				}
+
+				if ( ! empty( $reordered_posts ) ) {
+					$new_posts = $reordered_posts;
 				}
 			}
 

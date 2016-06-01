@@ -183,7 +183,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     containing the following parameters ```after```, ```before```, ```inclusive```, ```compare```, ```column```, and
     ```relation```. ```column``` is used to query specific columns from the ```wp_posts``` table. This will return posts
     which are created after January 1st 2012 and January 3rd 2012 8AM GMT:
-    
+
     ```php
     new WP_Query( array(
         's' => 'search phrase',
@@ -199,7 +199,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
         ),
     ) );
     ```
-    
+
     Currently only the ```AND``` value is supported for the ```relation``` parameter.
 
     ```inclusive``` is used on after/before options to determine whether exact value should be matched or not. If inclusive is used
@@ -356,11 +356,15 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 * ```author``` (*int*)
 
     Show posts associated with certain author ID.
-    
+
 * ```author_name``` (*string*)
 
     Show posts associated with certain author. Use ```user_nicename``` (NOT name).
-    
+
+* ```post__in``` (*array*)
+
+    Show posts in from specific list of IDs
+
 * ```orderby``` (*string*)
 
     Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
@@ -443,7 +447,7 @@ The following are special parameters that are only supported by ElasticPress.
 * ```aggs``` (*array*)
 
     Add aggregation results to your search result. For example:
-    
+
     ```php
     new WP_Query( array(
         's'    => 'search phrase',
@@ -517,7 +521,7 @@ The following are special parameters that are only supported by ElasticPress.
         'posts_per_page' => 20,
     ) );
     ```
-    
+
     Get all posts with a specific category slug
     ```php
     new WP_Query( array(

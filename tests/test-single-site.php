@@ -1725,6 +1725,33 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a post__in orderby query
+	 *
+	 * @since x.x
+	 */
+	public function testPostInOrderByQuery() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'        => 'findme',
+			'post__in' => array( $post_ids[2], $post_ids[0] ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 'findme test 3', $query->posts[0]->post_title );
+		$this->assertEquals( 'findme test 1', $query->posts[1]->post_title );
+	}
+
+	/**
 	 * Test a normal post trash
 	 *
 	 * @since 1.2
