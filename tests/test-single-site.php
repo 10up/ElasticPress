@@ -27,6 +27,8 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_activate();
 
 		EP_WP_Query_Integration::factory()->setup();
+		EP_Sync_Manager::factory()->setup();
+		EP_Sync_Manager::factory()->sync_post_queue = array();
 
 		$this->setup_test_post_type();
 	}
@@ -114,7 +116,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * @since 2.0
 	 */
-	public function testPostSyncOnMetaAdd() {
+	public function testpoopPostSyncOnMetaAdd() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
@@ -138,7 +140,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * @since 2.0
 	 */
-	public function testPostSyncOnMetaUpdate() {
+	public function testpoopPostSyncOnMetaUpdate() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
