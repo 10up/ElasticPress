@@ -896,7 +896,7 @@ class EP_API {
 
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
-			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order );
+			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order, $args );
 		} else {
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
@@ -1637,11 +1637,17 @@ class EP_API {
 	 *
 	 * @param string $orderby Alias or path for the field to order by.
 	 * @param string $order
+	 * @param array  $args
 	 * @return array
 	 */
-	protected function parse_orderby( $orderby, $order ) {
+	protected function parse_orderby( $orderby, $order, &$args ) {
 		$orderbys = explode( ' ', $orderby );
 		$sort = array();
+
+		// If meta_key is not set, use default orderby
+		if ( in_array( $orderby, array( 'meta_value', 'meta_value_num' ) ) && ! isset( $args['meta_key'] ) ) {
+			$orderby = 'date';
+		}
 
 		foreach ( $orderbys as $orderby_clause ) {
 			if ( ! empty( $orderby_clause ) ) {
@@ -1669,6 +1675,56 @@ class EP_API {
 							'order' => $order,
 						),
 					);
+				} elseif ( 'meta_value' === $orderby_clause || 'meta_value_num' === $orderby_clause ) {
+					$meta_key = $args['meta_key'];
+					$orderby_path = 'raw';
+
+					if ( 'meta_value_num' === $orderby_clause ) {
+						$orderby_path = 'double';
+					}
+
+					$sort[] = array(
+						'meta.' . $meta_key . '.' . $orderby_path => array(
+							'order' => $order,
+						),
+					);
+
+					// Check if we need to restrict meta field with 'exists' for correct orderby parity
+					$meta_value_has_check = false;
+
+					if ( ! empty( $args['meta_value'] ) && '' !== $args['meta_value'] ) {
+						// meta_value check
+						$meta_value_has_check = true;
+					} elseif ( ! empty( $args['meta_value_num'] ) && '' !== $args['meta_value_num'] ) {
+						// meta_value_num check
+						$meta_value_has_check = true;
+					} elseif ( ! empty( $args['meta_query'] ) ) {
+						// Check if meta_query has this key
+						foreach ( $args['meta_query'] as $meta_query ) {
+							if ( isset( $meta_query['key'] ) && $meta_key == $meta_query['key'] ) {
+								$meta_value_has_check = true;
+							}
+						}
+					}
+
+					// Add meta query restrict to posts where meta key exists
+					if ( ! $meta_value_has_check ) {
+						if ( empty( $args['meta_query'] ) ) {
+							$args['meta_query'] = array();
+						}
+
+						if ( 'meta_value_num' == $orderby_clause ) {
+							$args['meta_query'][] = array(
+								'key'     => $meta_key . '.' . $orderby_path,
+								'compare' => 'EXISTS',
+							);
+						} else {
+							$args['meta_query'][] = array(
+								'key'     => $meta_key,
+								'compare' => 'EXISTS',
+							);
+						}
+					}
 				} else {
 					$sort[] = array(
 						$orderby_clause => array(
