@@ -25,6 +25,10 @@ Coupling WordPress with Elasticsearch allows us to do amazing things with search
 * Search all sites on a multisite install
 * [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
 
+<p align="center">
+<a href="http://10up.com/contact/#request_quote"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/05/ghbadge-with-font.svg" width="700"></a>
+</p>
+
 ## Purpose
 
 The goal of ElasticPress is to integrate WordPress with Elasticsearch. This plugin integrates with the [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query) object returning results from Elasticsearch instead of MySQL.
@@ -83,25 +87,25 @@ First, make sure you have Elasticsearch configured properly.
 
 1. Activate the plugin on the single site you want to index.
 2. Go to the settings page, found at Settings > ElasticPress.
-3. Set the ElasticSearch host in the proper input, with the connection (and port) of your Elasticsearch application. For example:
+3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application. For example:
 
 ```
 http://192.168.50.4:9200
 ```
 
-**Note:** The URL for the ElasticSearch host *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
+**Note:** The URL for the Elasticsearch host *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
 
 ### Multisite Cross-site Search
 
 1. Network activate the plugin
 2. Go to the settings page, found at Settings > ElasticPress, in the Network Admin.
-3. Set the ElasticSearch host in the proper input, with the connection (and port) of your Elasticsearch application. For example:
+3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application. For example:
 
 ```
 http://192.168.50.4:9200
 ```
 
-**Note:** The URL for the ElasticSearch host *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
+**Note:** The URL for the Elasticsearch host *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
 
 #### Indexing
 1. Once a proper host is set, you can now click the Run Index button to start the indexing process.
@@ -364,6 +368,11 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
 * ```order``` (*string*)
 
     Which direction to order results in. Accepts ```ASC``` and ```DESC```. Default is ```DESC```.
+  
+* ```post_parent``` (*int*)
+
+    Show posts that have the specified post parent.
+  
 
 The following are special parameters that are only supported by ElasticPress.
 

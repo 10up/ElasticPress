@@ -239,7 +239,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . '/post/' . $post_id;
+		$path = $index . 'post/' . $post_id;
 
 		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
 
@@ -495,6 +495,7 @@ class EP_API {
 
 		$post_args = array(
 			'post_id'           => $post_id,
+			'ID'                => $post_id,
 			'post_author'       => $user_data,
 			'post_date'         => $post_date,
 			'post_date_gmt'     => $post_date_gmt,
@@ -926,6 +927,25 @@ class EP_API {
 		 *      terms array
 		 * @since 0.9.1
 		 */
+
+		//set tax_query if it's implicitly set in the query
+		//e.g. $args['tag'], $args['category_name']
+		if ( empty( $args['tax_query'] ) ) {
+
+			$taxonomies = get_taxonomies();
+			$taxonomies = $this->sanitize_taxonomy_names($taxonomies); //fix it up
+
+			foreach( $taxonomies as $tax => $taxName ){
+				if( isset( $args[ $taxName ] ) && ! empty( $args[ $taxName ] ) ){
+					$args['tax_query'][] = array(
+						'taxonomy' => $tax,
+						'terms' =>  array($args[ $taxName ]),
+						'field' => 'slug'
+					);
+				}
+			}
+		}
+
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
 
@@ -955,24 +975,28 @@ class EP_API {
 			}
 
 			if ( ! empty( $tax_filter ) ) {
-				$filter['and'][]['bool']['must'] = $tax_filter;
+				$relation = 'must';
+
+				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
+					$relation = 'should';
+				}
+
+				$filter['and'][]['bool'][$relation] = $tax_filter;
 			}
 
 			$use_filters = true;
 		}
 
 		/**
-		 * 'category_name' arg support.
+		 * 'post_parent' arg support.
 		 *
-		 * @since 1.5
+		 * @since 2.0
 		 */
-		if ( ! empty( $args[ 'category_name' ] ) ) {
-			$terms_obj = array(
-				'terms.category.slug' => array( $args[ 'category_name' ] ),
-			);
-
+		if ( ! empty( $args['post_parent'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
-				'terms' => $terms_obj
+				'term' => array(
+					'post_parent' => $args['post_parent'],
+				),
 			);
 
 			$use_filters = true;
@@ -1111,7 +1135,7 @@ class EP_API {
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 						// Map specific meta field types to different Elasticsearch core types
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
-					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<' ) ) ) {
+					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
 					} else {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
@@ -1165,6 +1189,31 @@ class EP_API {
 												'range' => array(
 													$meta_key_path => array(
 														"gte" => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case 'between':
+							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"gte" => $single_meta_query['value'][0],
+													),
+												),
+											),
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"lte" => $single_meta_query['value'][1],
 													),
 												),
 											),
@@ -1318,17 +1367,26 @@ class EP_API {
 					array(
 						'multi_match' => array(
 							'query' => '',
+							'type' => 'phrase',
+							'fields' => $search_fields,
+							'boost' => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+							'fuzziness' => 0,
+						)
+					),
+					array(
+						'multi_match' => array(
+							'query' => '',
 							'fields' => $search_fields,
 							'boost' => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
 							'fuzziness' => 0,
+							'operator' => 'and',
 						)
 					),
 					array(
 						'multi_match' => array(
 							'fields' => $search_fields,
 							'query' => '',
-							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 2, $search_fields, $args ),
-							'operator' => 'or',
+							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
 						),
 					)
 				),
@@ -1343,6 +1401,7 @@ class EP_API {
 		 */
 
 		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
+			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
@@ -1413,6 +1472,29 @@ class EP_API {
 			}
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
+	}
+
+	/**
+	 * WP is using 'weird' taxonomy name, for example: 'category' but in query using 'category_name', 'post_tag' but in queries using 'tag'
+	 * Map taxonomy name in db to taxonomy in query
+	 * @param $taxonomies
+	 * @return array
+	 */
+	protected function sanitize_taxonomy_names( $taxonomies ){
+		$taxes = array();
+		foreach( $taxonomies as $tax => $taxName ){
+			switch( $tax ){
+				case "category":
+					$taxes["category"] = "category_name";
+					break;
+				case "post_tag":
+					$taxes["post_tag"] = "tag";
+					break;
+				default:
+					$taxes[ $tax ] = $taxName;
+			}
+		}
+		return $taxes;
 	}
 
 	/**
@@ -1731,7 +1813,7 @@ class EP_API {
 		}
 
 		//If we have a failure we'll try it again with a backup host
-		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 200 !== $request['response']['code'] ) ) {
+		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 0 !== strpos( $request['response']['code'], '20' ) ) ) {
 
 			$host = ep_get_host( true, $use_backups );
 
@@ -2045,16 +2127,21 @@ class EP_API {
 	}
 
 	/**
-	 * Query logging. Don't log anything when WP_DEBUG is not enabled.
+	 * Query logging. Don't log anything to the queries property when
+	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
+	 * want to access the query outside of the ElasticPress plugin. This
+	 * runs regardless of debufg settings.
 	 *
 	 * @param array $query Query.
 	 *
 	 * @return void Method does not return.
 	 */
 	protected function _add_query_log( $query ) {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
 			$this->queries[] = $query;
 		}
+
+		do_action( 'ep_add_query_log', $query );
 	}
 
 }

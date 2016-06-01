@@ -54,6 +54,15 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Helper function to test whether a meta sync has happened
+	 *
+	 * @since 2.0
+	 */
+	public function action_sync_on_meta_update() {
+		$this->fired_actions['ep_sync_on_meta_update'] = true;
+	}
+
+	/**
 	 * Helper function to test whether a post has been deleted off ES
 	 *
 	 * @since 1.0
@@ -95,6 +104,56 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_refresh_index();
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_transition'] ) );
+
+		$post = ep_get_post( $post_id );
+		$this->assertTrue( ! empty( $post ) );
+	}
+
+	/**
+	 * Test a post sync on meta add
+	 *
+	 * @since 2.0
+	 */
+	public function testPostSyncOnMetaAdd() {
+		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
+
+		$post_id = ep_create_and_sync_post();
+
+		$this->fired_actions = array();
+
+		ep_refresh_index();
+
+		update_post_meta( $post_id, 'test', 1 );
+
+		EP_Sync_Manager::factory()->action_index_sync_queue();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_meta_update'] ) );
+
+		$post = ep_get_post( $post_id );
+		$this->assertTrue( ! empty( $post ) );
+	}
+
+	/**
+	 * Test a post sync on meta update
+	 *
+	 * @since 2.0
+	 */
+	public function testPostSyncOnMetaUpdate() {
+		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
+
+		$post_id = ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		update_post_meta( $post_id, 'test', 1 );
+
+		$this->fired_actions = array();
+
+		update_post_meta( $post_id, 'test', 2 );
+
+		EP_Sync_Manager::factory()->action_index_sync_queue();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_on_meta_update'] ) );
 
 		$post = ep_get_post( $post_id );
 		$this->assertTrue( ! empty( $post ) );
@@ -420,6 +479,95 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * @group testPostImplicitTaxonomyQuery
+	 *
+	 */
+	public function testPostImplicitTaxonomyQueryCustomTax(){
+
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, array( "label" => $taxName ) );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, $taxName );
+
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		$args = array(
+			$taxName => $term1Name,
+			's' => ''
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+	}
+
+
+	/**
+	 * @group testPostImplicitTaxonomyQuery
+	 *
+	 */
+	public function testPostImplicitTaxonomyQueryCategoryName(){
+
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, 'category' );
+
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'category', true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		$args = array(
+			'category_name' => $term1Name,
+			's' => ''
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+	}
+
+	/**
+	 * @group testPostImplicitTaxonomyQuery
+	 *
+	 */
+	public function testPostImplicitTaxonomyQueryTag(){
+
+		$post_id = ep_create_and_sync_post();
+		$post = get_post( $post_id );
+
+		$term1Name = rand_str( 32 );
+		$term1 = wp_insert_term( $term1Name, 'post_tag' );
+
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'post_tag', true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		$args = array(
+			'tag' => $term1Name,
+			's' => ''
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+	}
+
+	/**
 	 * Test WP Query search on post excerpt
 	 *
 	 * @since 0.9
@@ -542,6 +690,44 @@ class EPTestSingleSite extends EP_Test_Base {
 					'taxonomy' => 'post_tag',
 					'terms'    => array( 'one' ),
 					'field'    => 'slug',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a taxonomy query with OR relation
+	 *
+	 * @since 2.0
+	 */
+	public function testTaxQueryOrRelation() {
+		$cat1 =  wp_create_category( 'category one' );
+		$cat2 =  wp_create_category( 'category two' );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ), 'post_category' => array( $cat1 )  ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'tags_input' => array( 'one', 'three' ), 'post_category' => array( $cat2 )  ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				'relation' => 'or',
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'two' ),
+					'field'    => 'slug',
+				),
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( 'category two' ),
+					'field'    => 'name',
 				)
 			)
 		);
@@ -1827,6 +2013,36 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a query that searches and filters by a meta between query
+	 *
+	 * @since 2.0
+	 */
+	public function testMetaQueryBetween() {
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '105' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '110' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+					'value' => array( 102, 106 ),
+					'compare' => 'BETWEEN',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
 	 * Test a query that searches and filters by a meta greater than or equal to query
 	 *
 	 * @since 1.4
@@ -2839,5 +3055,28 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertFalse( $inactive );
 		$this->assertFalse( $no_field );
 
+	}
+
+	/**
+	 * Test a post_parent query
+	 * @group testPostParentQuery
+	 * @since 2.0
+	 */
+	public function testPostParentQuery() {
+		$parent_post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1') );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'post_parent' => $parent_post ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3'));
+
+		ep_refresh_index();
+
+		$args = array(
+			's'             => 'findme',
+			'post_parent' => $parent_post
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 }

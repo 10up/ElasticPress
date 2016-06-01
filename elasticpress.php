@@ -3,11 +3,12 @@
 /**
  * Plugin Name: ElasticPress
  * Description: Integrate WordPress search with Elasticsearch
- * Version:     1.9.1
+ * Version:     2.0
  * Author:      Aaron Holbrook, Taylor Lovett, Matt Gross, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
- *
+ * Text Domain: elasticpress
+ * Domain Path: /lang/
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:
  *
@@ -20,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
-define( 'EP_VERSION', '1.9.1' );
+define( 'EP_VERSION', '2.0' );
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
@@ -53,16 +54,16 @@ function ep_loader() {
 
 	if ( class_exists( 'EP_Config' ) ) {
 
-		load_plugin_textdomain( 'elasticpress', false, dirname( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
+		load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
 
 		// Load the settings page.
-		require( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
+		require_once( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
 		new EP_Settings();
 
 		// Load the indexing GUI.
 		if ( true === apply_filters( 'ep_load_index_gui', true ) ) {
 
-			require( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
+			require_once( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
 			new EP_Index_GUI();
 
 		}
@@ -70,9 +71,14 @@ function ep_loader() {
 		// Load index statuses.
 		if ( true === apply_filters( 'ep_load_index_status', true ) ) {
 
-			require( dirname( __FILE__ ) . '/classes/class-ep-index-status.php' );
+			require_once( dirname( __FILE__ ) . '/classes/class-ep-index-status.php' );
 			new EP_Index_Status();
 
 		}
+	}
+
+	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
 	}
 }
