@@ -145,7 +145,7 @@ class EP_Sync_Manager {
 	 */
 	public function action_delete_post( $post_id ) {
 
-		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_ID ) ) || 'revision' === get_post_type( $post_id ) ) {
+		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) || 'revision' === get_post_type( $post_id ) ) {
 			return;
 		}
 
