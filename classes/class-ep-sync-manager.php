@@ -64,7 +64,7 @@ class EP_Sync_Manager {
 	 */
 	public function action_delete_post( $post_id ) {
 
-		if ( ! current_user_can( 'edit_post', $post_id ) || 'revision' === get_post_type( $post_id ) ) {
+		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_ID ) ) || 'revision' === get_post_type( $post_id ) ) {
 			return;
 		}
 
@@ -93,9 +93,13 @@ class EP_Sync_Manager {
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
 			// Bypass saving if doing autosave or post type is revision
 			return;
-		} elseif ( ! current_user_can( 'edit_post', $post_ID ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
-			// Bypass saving if user does not have access to edit post and we're not in a cron process
-			return;
+		}
+
+		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_ID ) ) {
+			if ( ! current_user_can( 'edit_post', $post_ID ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
+				// Bypass saving if user does not have access to edit post and we're not in a cron process
+				return;
+			}
 		}
 
 		$post = get_post( $post_ID );
