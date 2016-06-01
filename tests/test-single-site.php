@@ -27,6 +27,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_activate();
 
 		EP_WP_Query_Integration::factory()->setup();
+		EP_Sync_Manager::factory()->setup();
 
 		$this->setup_test_post_type();
 	}
