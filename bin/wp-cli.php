@@ -336,6 +336,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$post_type = array_map( 'trim', $post_type );
 		}
 
+		if ( is_array( $post_type ) ) {
+			$post_type = array_values( $post_type );
+		}
+
 		/**
 		 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
 		 */
