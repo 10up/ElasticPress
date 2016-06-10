@@ -103,16 +103,126 @@ class EP_Config {
 			$blog_id = get_current_blog_id();
 		}
 
-		$site_url = get_site_url( $blog_id );
+		$index_name = ep_get_cached_index_name( $blog_id );
 
-		if ( ! empty( $site_url ) ) {
-			$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
-			$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id;
-		} else {
-			$index_name = false;
+		if ( ! $index_name ) {
+			$site_url = get_site_url( $blog_id );
+
+			if ( ! empty( $site_url ) ) {
+				$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
+				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id;
+			} else {
+				$index_name = false;
+			}
 		}
 
-		return apply_filters( 'ep_index_name', $index_name, $blog_id );
+		$index_name =  apply_filters( 'ep_index_name', $index_name, $blog_id );
+
+		if ( $index_name ) {
+			ep_set_cached_index_name( $blog_id, $index_name );
+		}
+
+		return $index_name;
+	}
+
+	/**
+	 * Flush the index name cache. If Elasticpress is network activated,
+	 * then remove the index name from the site options array. Otherwise
+	 * just delete the option from the db.
+	 * 
+	 * @param  int     $blog_id The blog id to flush the cache from
+	 * @return boolean          Whether the flush was successful
+	 */
+	public function flush_index_name_cache( $blog_id = null ) {
+
+		$flushed = false;
+
+		if ( ! $blog_id ) {
+			$blog_id = get_current_blog_id();
+		}
+
+		if ( EP_IS_NETWORK ) {
+			$option = get_site_option( 'ep_index_names', array() );
+			if ( isset( $option[ $blog_id ] ) ) {
+				unset( $option[ $blog_id ] );
+			}
+			$flushed = update_site_option( 'ep_index_names', $option );
+		} else {
+			switch_to_blog( $blog_id );
+			$flushed = delete_option( 'ep_index_name' );
+			restore_current_blog();
+		}
+
+		return $flushed;
+
+	}
+
+	/**
+	 * Get the cached index name from the database. If Elasticpress is
+	 * network activated, grab the option from the site option array.
+	 * Otherwise use the option relative to $blog_id.
+	 * 
+	 * @param  int    $blog_id The blog id to fetch the index name for
+	 * @return string          The cached index name
+	 */
+	public function get_cached_index_name( $blog_id ) {
+
+		$cache = '';
+
+		if ( ep_cache_index_names() ) {
+			if ( EP_IS_NETWORK ) {
+				$option = get_site_option( 'ep_index_names' );
+				$cache = isset( $option[ $blog_id ] ) ? $option[ $blog_id ] : false;
+			} else {
+				switch_to_blog( $blog_id );
+				$cache = get_option( 'ep_index_name' );
+				restore_current_blog();
+			}
+		}
+
+		return $cache;
+
+	}
+
+	/**
+	 * Set the index cache for the given blog id. If Elasticpress is
+	 * network enabled, add the index name to an array stored in site
+	 * options. Otherwise, set the index as a flat option in the current
+	 * blog.
+	 * 
+	 * @param  int    $blog_id    The blog ID to set the index for
+	 * @param  string $index_name The index name
+	 * @return boolean            Whether the index was saved
+	 */
+	public function set_cached_index_name( $blog_id, $index_name ) {
+
+		$updated = false;
+
+		if ( ep_cache_index_names() ) {
+			if ( EP_IS_NETWORK ) {
+				$option = get_site_option( 'ep_index_names', array() );
+				$option[ $blog_id ] = $index_name;
+				$updated = update_site_option( 'ep_index_names', $option );
+			} else {
+				switch_to_blog( $blog_id );
+				$updated = update_option( 'ep_index_name', $index_name );
+				restore_current_blog();
+			}
+		}
+
+		return $updated;
+
+	}
+
+	/**
+	 * Returns whether to cache index names in the DB.
+	 * 
+	 * @return boolean
+	 */
+	public function cache_index_names() {
+
+		return apply_filters( 'ep_cache_index_names', true );
+
 	}
 
 	/**
@@ -279,6 +389,22 @@ function ep_get_host( $force = false, $use_only_backups = false ) {
 
 function ep_get_index_name( $blog_id = null ) {
 	return EP_Config::factory()->get_index_name( $blog_id );
+}
+
+function ep_flush_index_name_cache( $blog_id = null ) {
+	return EP_Config::factory()->flush_index_name_cache( $blog_id );
+}
+
+function ep_get_cached_index_name( $blog_id ) {
+	return EP_Config::factory()->get_cached_index_name( $blog_id );
+}
+
+function ep_set_cached_index_name( $blog_id, $index_name ) {
+	return EP_Config::factory()->set_cached_index_name( $blog_id, $index_name );
+}
+
+function ep_cache_index_names() {
+	return EP_Config::factory()->cache_index_names();
 }
 
 function ep_get_indexable_post_types() {
