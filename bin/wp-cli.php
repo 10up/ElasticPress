@@ -434,7 +434,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		} else { // Post wasn't killed so process it.
 
 			// put the post into the queue
-			$this->posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
+            $this->posts[ $post_id ][] = '{ "index": { "_id": "' . apply_filters( 'ep_post_index_id', absint( $post_id ), $post_args ) . '" } }';
 
 			if ( function_exists( 'wp_json_encode' ) ) {
 
