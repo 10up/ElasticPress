@@ -1366,9 +1366,9 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testPostInOrderByQuery() {
 		$post_ids = array();
 
-		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 333' ) );
-		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 111' ) );
-		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 222' ) );
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
 
 		ep_refresh_index();
 
@@ -1395,9 +1395,9 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testPostInOrderByQueryAsc() {
 		$post_ids = array();
 
-		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 333' ) );
-		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 111' ) );
-		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 222' ) );
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ) );
 
 		ep_refresh_index();
 
