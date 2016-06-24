@@ -363,7 +363,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
+    Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, ```post__in```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
 
 * ```order``` (*string*)
 
