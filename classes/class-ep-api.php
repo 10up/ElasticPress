@@ -1,7 +1,15 @@
 <?php
- if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+/**
+ * ElasticPress-Elasticsearch API functionas
+ *
+ * @since  1.0
+ * @package elasticpress
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
+
 class EP_API {
 
 	/**
@@ -129,7 +137,7 @@ class EP_API {
 	 * @since 0.1.0
 	 * @return array
 	 */
-	public function search( $args, $scope = 'current' ) {
+	public function query( $args, $scope = 'current' ) {
 		$index = null;
 
 		if ( 'all' === $scope ) {
@@ -166,7 +174,7 @@ class EP_API {
 
 			$response = json_decode( $response_body, true );
 
-			if ( $this->is_empty_search( $response ) ) {
+			if ( $this->is_empty_query( $response ) ) {
 				return array( 'found_posts' => 0, 'posts' => array() );
 			}
 
@@ -209,7 +217,7 @@ class EP_API {
 	 * @since 0.1.2
 	 * @return bool
 	 */
-	public function is_empty_search( $response ) {
+	public function is_empty_query( $response ) {
 
 		if ( ! is_array( $response ) ) {
 			return true;
@@ -1566,49 +1574,6 @@ class EP_API {
 	}
 
 	/**
-	 * Deactivate ElasticPress. Disallow EP to override the main WP_Query for search queries
-	 *
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public function deactivate() {
-
-		ep_check_host();
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			return delete_site_option( 'ep_is_active' );
-
-		} else {
-
-			return delete_option( 'ep_is_active' );
-
-		}
-
-	}
-
-	/**
-	 * Activate ElasticPress. Allow EP to override the main WP_Query for search queries
-	 *
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public function activate() {
-
-		ep_check_host();
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			return update_site_option( 'ep_is_active', true );
-
-		} else {
-
-			return update_option( 'ep_is_active', true );
-
-		}
-	}
-
-	/**
 	 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
 	 *
 	 * @since 1.1
@@ -1683,60 +1648,30 @@ class EP_API {
 	}
 
 	/**
-	 * Check to see if ElasticPress is currently active (can be disabled during syncing, etc)
+	 * This function checks if we can connect to Elasticsearch
 	 *
-	 * @return mixed
-	 * @since 0.9.2
-	 */
-	public function is_activated() {
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			return get_site_option( 'ep_is_active', false, false );
-
-		} else {
-
-			return get_option( 'ep_is_active', false, false );
-		}
-	}
-
-	/**
-	 * This function checks two things - that the plugin is currently 'activated' and that it can successfully reach the
-	 * server.
-	 *
-	 * @since 1.1.0
-	 *
-	 * @param string $host The host to check
-	 *
+	 * @since 2.1
 	 * @return bool
 	 */
-	public function elasticsearch_alive( $host = null ) {
+	public function elasticsearch_can_connect() {
 
-		$elasticsearch_alive = false;
+		$host = ep_get_host();
 
-		$host = null !== $host ? $host : ep_get_host(); //fallback to EP_HOST if no other host provided
-
-		//If we get a WP_Error try again for backups and return false if we still get an error
-		if ( is_wp_error( $host ) ) {
-			$host = ep_get_host( true );
-		}
-
-		if ( is_wp_error( $host ) ) {
-			return $elasticsearch_alive;
+		if ( empty( $host ) ) {
+			return false;
 		}
 
 		$request_args = array( 'headers' => $this->format_request_headers() );
-		$url = $host;
 
-		$request = wp_remote_request( $url, apply_filters( 'ep_es_alive_request_args', $request_args ) );
+		$request = wp_remote_request( $host, apply_filters( 'ep_es_can_connect_args', $request_args ) );
 
 		if ( ! is_wp_error( $request ) ) {
 			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$elasticsearch_alive = true;
+				return true;
 			}
 		}
 
-		return $elasticsearch_alive;
+		return false;
 	}
 
 	/**
@@ -1752,8 +1687,7 @@ class EP_API {
 	/**
 	 * Wrapper for wp_remote_request
 	 *
-	 * This is a wrapper function for wp_remote_request that will switch to a backup server
-	 * (if present) should the primary EP host fail.
+	 * This is a wrapper function for wp_remote_request to account for request failures.
 	 *
 	 * @since 1.6
 	 *
@@ -1771,36 +1705,31 @@ class EP_API {
 			'blocking'     => true,
 			'failed_hosts' => array(),
 			'request'      => false,
-			'host'         => false,
+			'host'         => ep_get_host(),
 		);
-
-		//The allowance of these variables makes testing easier.
-		$force       = false;
-		$use_backups = false;
 
 		//Add the API Header
 		$args['headers'] = $this->format_request_headers();
 
-		if ( defined( 'EP_FORCE_HOST_REFRESH' ) && true === EP_FORCE_HOST_REFRESH ) {
-			$force = true;
-		}
-
-		if ( defined( 'EP_HOST_USE_ONLY_BACKUPS' ) && true === EP_HOST_USE_ONLY_BACKUPS ) {
-			$use_backups = true;
-		}
-
-		$host    = ep_get_host( $force, $use_backups );
 		$request = false;
+		$failures = 0;
 
-		if ( ! is_wp_error( $host ) ) { // probably only reachable in testing but just to be safe
-			$request_url   = esc_url( trailingslashit( $host ) . $path );
+		// Optionally let us try back up hosts and account for failures
+		while ( true ) {
+			$query['host'] = apply_filters( 'ep_pre_request_host', $query['host'], $failures, $path, $args );
+			$query['url'] = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
 
-			$query['url']  = $request_url;
-			$query['host'] = $host;
+			$request = wp_remote_request( $query['url'], $args ); //try the existing host to avoid unnecessary calls
 
-			$request = wp_remote_request( $request_url, $args ); //try the existing host to avoid unnecessary calls
-		} else {
-			$query['failed_hosts'][] = $host;
+			if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 0 !== strpos( $request['response']['code'], '20' ) ) ) {
+				$failures++;
+
+				if ( $failures >= apply_filters( 'ep_max_remote_request_tries', 1, $path, $args ) ) {
+					break;
+				}
+			} else {
+				break;
+			}
 		}
 
 		// Return now if we're not blocking, since we won't have a response yet
@@ -1812,28 +1741,8 @@ class EP_API {
 			return $request;
 		}
 
-		//If we have a failure we'll try it again with a backup host
-		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 0 !== strpos( $request['response']['code'], '20' ) ) ) {
-
-			$host = ep_get_host( true, $use_backups );
-
-			if ( is_wp_error( $host ) ) {
-				$query['failed_hosts'][] = $host;
-				$query['time_finish']    = microtime( true );
-				$this->_add_query_log( $query );
-
-				return $host;
-			}
-
-			$request_url = esc_url( trailingslashit( $host ) . $path );
-			$request = wp_remote_request( $request_url, $args );
-
-		}
-
 		$query['time_finish'] = microtime( true );
 		$query['request'] = $request;
-		$query['url']     = $request_url;
-		$query['host']    = $host;
 		$this->_add_query_log( $query );
 
 		return $request;
@@ -2101,32 +2010,6 @@ class EP_API {
 	}
 
 	/**
-	 * Add the document mapping
-	 *
-	 * Creates the document mapping for the index.
-	 *
-	 * @since      1.9
-	 *
-	 * @return bool true on success or false
-	 */
-	public function process_site_mappings() {
-
-		ep_check_host();
-
-		// Deletes index first.
-		ep_delete_index();
-
-		$result = ep_put_mapping();
-
-		if ( $result ) {
-			return true;
-		}
-
-		return false;
-
-	}
-
-	/**
 	 * Query logging. Don't log anything to the queries property when
 	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
 	 * want to access the query outside of the ElasticPress plugin. This
@@ -2156,8 +2039,8 @@ function ep_index_post( $post, $blocking = true ) {
 	return EP_API::factory()->index_post( $post, $blocking );
 }
 
-function ep_search( $args, $scope = 'current' ) {
-	return EP_API::factory()->search( $args, $scope );
+function ep_query( $args, $scope = 'current' ) {
+	return EP_API::factory()->query( $args, $scope );
 }
 
 function ep_get_post( $post_id ) {
@@ -2208,18 +2091,6 @@ function ep_elasticpress_enabled( $query ) {
 	return EP_API::factory()->elasticpress_enabled( $query );
 }
 
-function ep_activate() {
-	return EP_API::factory()->activate();
-}
-
-function ep_deactivate() {
-	return EP_API::factory()->deactivate();
-}
-
-function ep_is_activated() {
-	return EP_API::factory()->is_activated();
-}
-
 function ep_elasticsearch_alive( $host = null ) {
 	return EP_API::factory()->elasticsearch_alive( $host );
 }
@@ -2260,6 +2131,6 @@ function ep_get_cluster_status() {
 	return EP_API::factory()->get_cluster_status();
 }
 
-function ep_process_site_mappings() {
-	return EP_API::factory()->process_site_mappings();
+function ep_elasticsearch_can_connect() {
+	return EP_API::factory()->elasticsearch_can_connect();
 }

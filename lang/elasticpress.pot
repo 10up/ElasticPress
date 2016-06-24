@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.0\n"
+"Project-Id-Version: ElasticPress 2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-06-01 16:31:42+00:00\n"
+"POT-Creation-Date: 2016-06-23 08:46:28+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -91,254 +91,129 @@ msgid ""
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:754 classes/class-ep-config.php:186
+#: bin/wp-cli.php:754 classes/class-ep-config.php:181
 msgid "EP_HOST is not defined! Check wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:758 classes/class-ep-config.php:190
+#: bin/wp-cli.php:758 classes/class-ep-config.php:185
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1860
+#: classes/class-ep-api.php:1868
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1873
+#: classes/class-ep-api.php:1881
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1877
+#: classes/class-ep-api.php:1885
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1915 classes/class-ep-api.php:1974
-#: classes/class-ep-api.php:2014 classes/class-ep-api.php:2065
+#: classes/class-ep-api.php:1923 classes/class-ep-api.php:1982
+#: classes/class-ep-api.php:2022 classes/class-ep-api.php:2073
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
-#: classes/class-ep-config.php:65 classes/class-ep-config.php:90
+#: classes/class-ep-config.php:72 classes/class-ep-config.php:97
 msgid "No running host available."
 msgstr ""
 
-#: classes/class-ep-index-gui.php:131
+#: classes/class-ep-dashboard.php:77
+msgid "<a href=\"%s\">Dashboard</a>"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:115
 msgid ""
-"Mappings could not be completed. If the error persists contact your system "
-"administrator"
+"ElasticPress is in the middle of a sync. The plugin wont work until it "
+"finishes. Want to <a href=\"%s\">go back and finish it</a>?"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:144
-msgid ""
-"Indexing could not be completed. If the error persists contact your system "
-"administrator"
+#: classes/class-ep-dashboard.php:455 classes/class-ep-dashboard.php:456
+#: includes/settings-page.php:29
+msgid "Settings"
 msgstr ""
 
-#: classes/class-ep-index-gui.php:185 classes/class-ep-index-gui.php:325
-#: classes/class-ep-index-gui.php:359 classes/class-ep-index-gui.php:391
-#: classes/class-ep-settings.php:167
-msgid "Security error!"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:404
-msgid "Search Stats"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:407
-msgid "Total Queries:"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:410
-msgid "Query Time:"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:413
-msgid "Total Fetches:"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:416
-msgid "Fetch Time:"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:421
-msgid "Index Stats"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:424
-msgid "Index Total:"
-msgstr ""
-
-#: classes/class-ep-index-gui.php:427
-msgid "Index Time:"
-msgstr ""
-
-#: classes/class-ep-index-status.php:62
-msgid "Index Status"
-msgstr ""
-
-#: classes/class-ep-index-worker.php:414
-msgid ": ElasticPress Index Errors"
-msgstr ""
-
-#: classes/class-ep-settings.php:112 classes/class-ep-settings.php:138
-msgid "items indexed"
-msgstr ""
-
-#: classes/class-ep-settings.php:115
-msgid "items indexed in "
-msgstr ""
-
-#: classes/class-ep-settings.php:132 includes/settings/index.php:31
-msgid "Running Index..."
-msgstr ""
-
-#: classes/class-ep-settings.php:133 includes/settings/index.php:26
-msgid "Run Index"
-msgstr ""
-
-#: classes/class-ep-settings.php:134 includes/settings/index.php:29
-msgid "Indexing is Paused"
-msgstr ""
-
-#: classes/class-ep-settings.php:135 includes/settings/index.php:36
-msgid "Resume Indexing"
-msgstr ""
-
-#: classes/class-ep-settings.php:136 includes/settings/index.php:36
-msgid "Pause Indexing"
-msgstr ""
-
-#: classes/class-ep-settings.php:140
-msgid " site(s)"
-msgstr ""
-
-#: classes/class-ep-settings.php:144
-msgid ""
-"A failure has occured. Please try the indexing operation again and if the "
-"error persists contact your website administrator."
-msgstr ""
-
-#: classes/class-ep-settings.php:145
-msgid "Index complete <a href=\"\">Refresh the stats</a>"
-msgstr ""
-
-#: classes/class-ep-settings.php:193
-msgid "Elasticsearch Host:"
-msgstr ""
-
-#: classes/class-ep-settings.php:202
-msgid "Use Elasticsearch:"
-msgstr ""
-
-#: classes/class-ep-settings.php:433
-msgid "Elasticsearch Integration Options"
-msgstr ""
-
-#: classes/class-ep-wp-date-query.php:488
+#: classes/class-ep-wp-date-query.php:494
 #. translators: Date query invalid date message: 1: invalid value, 2: type of
 #. value, 3: minimum valid value, 4: maximum valid value
 msgid "Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s."
 msgstr ""
 
-#: classes/class-ep-wp-date-query.php:518
+#: classes/class-ep-wp-date-query.php:524
 #. translators: 1: year, 2: month, 3: day of month
 msgid ""
 "The following values do not describe a valid date: year %1$s, month %2$s, "
 "day %3$s."
 msgstr ""
 
-#: classes/class-ep-wp-date-query.php:535
+#: classes/class-ep-wp-date-query.php:541
 #. translators: 1: month, 2: day of month
 msgid "The following values do not describe a valid date: month %1$s, day %2$s."
 msgstr ""
 
-#: includes/settings/index.php:22
+#. Plugin Name of the plugin/theme
+msgid "ElasticPress"
+msgstr ""
+
+#: includes/dashboard-page.php:37
 msgid ""
-"Do not deactivate Elasticsearch integration (this will not delete current "
-"index, mappings and posts before reindexing)"
+"ElasticPress let's you supercharge your WordPress website with various "
+"modules. Activate the ones you need below."
 msgstr ""
 
-#: includes/settings/index.php:45
-msgid "Restart Index"
+#: includes/dashboard-page.php:71
+msgid "Deactivate"
 msgstr ""
 
-#: includes/settings/index.php:49
-msgid "A proper host must be set before running an index."
+#: includes/dashboard-page.php:72
+msgid "Activate"
 msgstr ""
 
-#: includes/settings/status.php:27
+#: includes/dashboard-page.php:73
+msgid "Syncing..."
+msgstr ""
+
+#: includes/settings-page.php:38
 msgid "Elasticsearch Host"
 msgstr ""
 
-#: includes/settings/status.php:32
+#: includes/settings-page.php:42
+msgid "Your Elasticsearch host is set in wp-config.php"
+msgstr ""
+
+#: includes/settings-page.php:50
+msgid "Save Changes"
+msgstr ""
+
+#: modules/related-posts/related-posts.php:124
 msgid ""
-"Current host is set but cannot be contacted. Please contact the server "
-"administrator."
+"Show related content below each post. Related content is queried "
+"performantly and effectively."
 msgstr ""
 
-#: includes/settings/status.php:36
+#: modules/search/search.php:16
 msgid ""
-"A host has not been set or is set but cannot be contacted. You must set a "
-"proper host to continue."
+"Dramatically improve the relevancy of search results and performance of "
+"searches. Weight search results by recency."
 msgstr ""
 
-#: includes/settings/status.php:47
-msgid "Plugin Status"
-msgstr ""
-
-#: includes/settings/status.php:50
-msgid "Connected to Elasticsearch."
-msgstr ""
-
-#: includes/settings/status.php:55
-msgid "ElasticPress can override WP search."
-msgstr ""
-
-#: includes/settings/status.php:60
+#: modules/woocommerce/woocommerce.php:622
 msgid ""
-"WordPress is currently using default search. To activate ElasticPress, "
-"check “Use Elasticsearch” in the form on the left and click “Save Changes\"."
+"Dramatically increase the performance of WooCommerce product rivers, "
+"product searches, product filters, order searches, and more."
 msgstr ""
 
-#: includes/settings/status.php:70
-msgid "Site Stats"
-msgstr ""
-
-#: includes/settings/status.php:73
-msgid "Select a site:"
-msgstr ""
-
-#: includes/settings/status.php:74
-msgid "Select"
-msgstr ""
-
-#: includes/settings/status.php:109
-msgid "Cluster Stats"
-msgstr ""
-
-#: includes/settings/status.php:119
-msgid "Disk Usage:"
-msgstr ""
-
-#: includes/settings/status.php:123
-msgid "Disk Space Available:"
-msgstr ""
-
-#: includes/settings/status.php:126
-msgid "Total Disk Space:"
-msgstr ""
-
-#: includes/settings/status.php:139
-msgid "ERROR:"
-msgstr ""
-
-#. Plugin Name of the plugin/theme
-msgid "ElasticPress"
+#: modules/woocommerce/woocommerce.php:636
+msgid "WooCommerce must be active to use this module."
 msgstr ""
 
 #. Description of the plugin/theme

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Elasticsearch mapping
+ *
+ * @since  1.3
+ * @package elasticpress
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

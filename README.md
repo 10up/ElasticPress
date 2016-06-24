@@ -3,9 +3,9 @@ ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch
 
 Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
 
-**Please note:** the master branch is the stable
+**Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, and 1.8 require re-indexing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1 require re-indexing.
 
 ## Background
 
@@ -39,7 +39,6 @@ There are other Elasticsearch integration plugins available for WordPress. Elast
 
 * [Elasticsearch](https://www.elastic.co) 1.3+
 * [WordPress](http://wordpress.org) 3.7.1+
-* [WP-CLI](http://wp-cli.org/) 0.13+, if using WP-CLI for indexing
 
 ## Installation
 

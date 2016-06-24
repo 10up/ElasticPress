@@ -2967,26 +2967,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test byte size
-	 *
-	 * Tests the human readable byte conversion function.@deprecated
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testByteSize() {
-
-		$one_kb = EP_Settings::ep_byte_size( 1056, 0 );
-
-		$one_mb = EP_Settings::ep_byte_size( 1056000, 0 );
-
-		$this->assertEquals( '1 KB', $one_kb );
-		$this->assertEquals( '1 MB', $one_mb );
-
-	}
-
-	/**
 	 * Test indexing function
 	 *
 	 * Tests indexing.

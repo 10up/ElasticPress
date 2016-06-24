@@ -222,14 +222,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		// Deactivate ElasticPress if setup is set to true.
-		if (
-			! isset( $assoc_args['keep-active'] ) ||
-			false === $assoc_args['keep-active'] ||
-			( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] )
-		) {
-			// Deactivate our search integration
-			$this->deactivate();
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			update_site_option( 'ep_index_meta', array( 'wpcli' => true ) );
+		} else {
+			update_option( 'ep_index_meta', array( 'wpcli' => true ) );
 		}
 
 		timer_start();
@@ -287,8 +283,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		WP_CLI::log( WP_CLI::colorize( '%Y' . __( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
 
-		// Reactivate our search integration
-		$this->activate();
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			delete_site_option( 'ep_index_meta' );
+		} else {
+			delete_option( 'ep_index_meta' );
+		}
 
 		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
 	}
@@ -334,6 +333,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		if ( ! empty( $args['post-type'] ) ) {
 			$post_type = explode( ',', $args['post-type'] );
 			$post_type = array_map( 'trim', $post_type );
+		}
+
+		if ( is_array( $post_type ) ) {
+			$post_type = array_values( $post_type );
 		}
 
 		/**
@@ -621,75 +624,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Activate ElasticPress
-	 *
-	 * @since 0.9.3
-	 */
-	public function activate() {
-		$this->_connect_check();
-
-		$status = ep_is_activated();
-
-		if ( $status ) {
-			WP_CLI::warning( 'ElasticPress is already activated.' );
-		} else {
-			WP_CLI::log( 'ElasticPress is currently deactivated, activating...' );
-
-			$result = ep_activate();
-
-			if ( $result ) {
-				WP_CLI::Success( 'ElasticPress was activated!' );
-			} else {
-				WP_CLI::warning( 'ElasticPress was unable to be activated.' );
-			}
-		}
-	}
-
-	/**
-	 * Deactivate ElasticPress
-	 *
-	 * @since 0.9.3
-	 */
-	public function deactivate() {
-		$this->_connect_check();
-
-		$status = ep_is_activated();
-
-		if ( ! $status ) {
-			WP_CLI::warning( 'ElasticPress is already deactivated.' );
-		} else {
-			WP_CLI::log( 'ElasticPress is currently activated, deactivating...' );
-
-			$result = ep_deactivate();
-
-			if ( $result ) {
-				WP_CLI::Success( 'ElasticPress was deactivated!' );
-			} else {
-				WP_CLI::warning( 'ElasticPress was unable to be deactivated.' );
-			}
-		}
-	}
-
-	/**
-	 * Return current status of ElasticPress
-	 *
-	 * @subcommand is-active
-	 *
-	 * @since 0.9.3
-	 */
-	public function is_activated() {
-		$this->_connect_check();
-
-		$active = ep_is_activated();
-
-		if ( $active ) {
-			WP_CLI::log( 'ElasticPress is currently activated.' );
-		} else {
-			WP_CLI::log( 'ElasticPress is currently deactivated.' );
-		}
-	}
-
-	/**
 	 * Resets some values to reduce memory footprint.
 	 */
 	public function stop_the_insanity() {
@@ -750,11 +684,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 0.9.3
 	 */
 	private function _connect_check() {
-		if ( ! defined( 'EP_HOST' ) ) {
-			WP_CLI::error( __( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
-		}
-
-		if ( false === ep_elasticsearch_alive() ) {
+		if ( empty( ep_get_host() ) ) {
+			WP_CLI::error( __( 'There is no Elasticsearch host set up. Either add one through the dashboard or define one in wp-config.php', 'elasticpress' ) );
+		} elseif ( ! ep_elasticsearch_can_connect() ) {
 			WP_CLI::error( __( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
 		}
 	}
