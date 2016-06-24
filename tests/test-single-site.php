@@ -1359,6 +1359,64 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a post__in orderby query
+	 *
+	 * @since 2.1
+	 */
+	public function testPostInOrderByQuery() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 333' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 111' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 222' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'        => 'ordertest',
+			'post__in' => array( $post_ids[0], $post_ids[1] ),
+			'orderby'  => 'post__in',
+			'order'    => 'DESC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[1]->post_title );
+	}
+
+	/**
+	 * Test a post__in orderby query asc
+	 *
+	 * @since 2.1
+	 */
+	public function testPostInOrderByQueryAsc() {
+		$post_ids = array();
+
+		$post_ids[0] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 333' ) );
+		$post_ids[1] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 111' ) );
+		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'ordertest 222' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'        => 'ordertest',
+			'post__in' => array( $post_ids[0], $post_ids[1] ),
+			'orderby'  => 'post__in',
+			'order'    => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
+		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
+	}
+
+	/**
 	 * Test post meta string orderby query asc
 	 *
 	 * @since 1.8
