@@ -24,8 +24,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_delete_index();
 		ep_put_mapping();
 
-		ep_activate();
-
 		EP_WP_Query_Integration::factory()->setup();
 		EP_Sync_Manager::factory()->setup();
 		EP_Sync_Manager::factory()->sync_post_queue = array();
@@ -2424,44 +2422,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test get hosts method
-	 */
-	public function testGetHost() {
-
-		global $ep_backup_host;
-
-		//Check host constant
-		$host_1 = ep_get_host( true );
-
-		//Test only host in array
-		$ep_backup_host = array( 'http://127.0.0.1:9200' );
-
-		$host_2 = ep_get_host( true, true );
-
-		//Test no good hosts
-		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
-
-		$host_3 = ep_get_host( true, true );
-
-		//Test good host 1st array item
-		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
-
-		$host_4 = ep_get_host( true, true );
-
-		//Test good host last array item
-		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
-
-		$host_5 = ep_get_host( true, true );
-
-		$this->assertInternalType( 'string', $host_1 );
-		$this->assertInternalType( 'string', $host_2 );
-		$this->assertWPError( $host_3 );
-		$this->assertInternalType( 'string', $host_4 );
-		$this->assertInternalType( 'string', $host_5 );
-
-	}
-
-	/**
 	 * Helper method for mocking indexable post statuses
 	 *
 	 * @param   array $post_statuses
@@ -2947,96 +2907,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 1, $query->post_count );
-	}
-
-	/**
-	 * Test check host
-	 *
-	 * Tests the check host function
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testCheckHost() {
-
-		$check_host = ep_check_host();
-
-		$this->assertTrue( $check_host );
-
-	}
-
-	/**
-	 * Test indexing function
-	 *
-	 * Tests indexing.
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testIndex() {
-
-		if ( ! class_exists( 'EP_Index_Worker' ) ) {
-			require( $this->plugin_path . '/classes/class-ep-index-worker.php' );
-		}
-
-		$index_worker = new EP_Index_Worker();
-
-		$index_result = $index_worker->index();
-
-		$this->assertTrue( is_array( $index_result ) );
-
-	}
-
-	/**
-	 * Test sanitize host
-	 *
-	 * Tests the sanitization function for saving a host via the dashboard.
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testSanitizeHost() {
-
-		if ( ! class_exists( 'EP_Settings' ) ) {
-			require( $this->plugin_path . '/classes/class-ep-settings.php' );
-		}
-
-		$settings = new EP_Settings();
-
-		$host = $settings->sanitize_ep_host( 'http://127.0.0.1:9200' );
-
-		$this->assertEquals( 'http://127.0.0.1:9200', $host );
-
-	}
-
-	/**
-	 * Test sanitize activation
-	 *
-	 * Tests the sanitization function for changing activation state via the dashboard.
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testSanitizeActivate() {
-
-		if ( ! class_exists( 'EP_Settings' ) ) {
-			require( $this->plugin_path . '/classes/class-ep-settings.php' );
-		}
-
-		$settings = new EP_Settings();
-
-		$active   = $settings->sanitize_ep_activate( '1' );
-		$inactive = $settings->sanitize_ep_activate( '0' );
-		$no_field = $settings->sanitize_ep_activate( null );
-
-		$this->assertTrue( $active );
-		$this->assertFalse( $inactive );
-		$this->assertFalse( $no_field );
-
 	}
 
 	/**

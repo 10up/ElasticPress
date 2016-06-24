@@ -30,8 +30,6 @@ class EPTestMultisite extends EP_Test_Base {
 			restore_current_blog();
 		}
 
-		ep_activate();
-
 		ep_delete_network_alias();
 		ep_create_network_alias( $indexes );
 
@@ -1931,30 +1929,6 @@ class EPTestMultisite extends EP_Test_Base {
 			$this->assertTrue( isset( $status_unindexed->cluster_name ) );
 
 		}
-	}
-
-	/**
-	 * Test put mapping function
-	 *
-	 * Tests the index put mapping function.
-	 *
-	 * @since 0.1.0
-	 *
-	 * @return void
-	 */
-	function testPutMapping() {
-
-		$mapping_indexed = ep_process_site_mappings();
-
-		ep_delete_index();
-
-		$mapping_unindexed = ep_process_site_mappings();
-
-		$this->setUp();
-
-		$this->assertTrue( $mapping_indexed );
-		$this->assertTrue( $mapping_unindexed );
-
 	}
 	
 }
