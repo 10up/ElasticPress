@@ -1645,7 +1645,7 @@ class EP_API {
 
 		foreach ( $orderbys as $orderby_clause ) {
 			if ( ! empty( $orderby_clause ) ) {
-				if ( 'relevance' === $orderby_clause ) {
+				if ( 'relevance' === $orderby_clause || 'post__in' == $orderby_clause ) {
 					$sort[] = array(
 						'_score' => array(
 							'order' => $order,
