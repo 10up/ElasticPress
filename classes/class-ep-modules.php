@@ -59,6 +59,29 @@ class EP_Modules {
 	}
 
 	/**
+	 * A convenient function to programmatically activate a module
+	 *
+	 * @param  string $slug
+	 * @since  2.1
+	 */
+	public function activate_module( $slug ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$modules = get_site_option( 'ep_active_modules', array() );
+		} else {
+			$modules = get_option( 'ep_active_modules', array() );
+		}
+
+		if ( false === array_search( $slug, $modules ) ) {
+			$modules[] = $slug;
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				update_site_option( 'ep_active_modules', $modules );
+			} else {
+				update_option( 'ep_active_modules', $modules );
+			}
+		}
+	}
+
+	/**
 	 * Returns all active modules
 	 *
 	 * @since  2.1
@@ -128,6 +151,10 @@ EP_Modules::factory();
  */
 function ep_register_module( $slug, $module_args ) {
 	return EP_Modules::factory()->register_module( $slug, $module_args );
+}
+
+function ep_activate_module( $slug ) {
+	return EP_Modules::factory()->activate_module( $slug );
 }
 
 /**

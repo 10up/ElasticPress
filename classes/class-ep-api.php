@@ -1562,9 +1562,7 @@ class EP_API {
 	public function elasticpress_enabled( $query ) {
 		$enabled = false;
 
-		if ( method_exists( $query, 'is_search' ) && $query->is_search() ) {
-			$enabled = true;
-		} elseif ( ! empty( $query->query_vars['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
+		if ( ! empty( $query->query_vars['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
 			$enabled = true;
 		} elseif ( ! empty( $query->query_vars['ep_integrate'] ) ) {
 			$enabled = true;

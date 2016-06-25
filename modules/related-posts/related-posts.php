@@ -11,7 +11,7 @@ function ep_related_posts_formatted_args( $formatted_args, $args ) {
 		$formatted_args[ 'query' ] = array(
 			'more_like_this' => array(
 				'ids'				 => is_array( $args[ 'more_like' ] ) ? $args[ 'more_like' ] : array( $args[ 'more_like' ] ),
-				'fields'			 => array( 'post_title', 'post_content', 'terms.post_tag.name' ),
+				'fields'			 => apply_filters( 'ep_related_posts_fields', array( 'post_title', 'post_content', 'terms.post_tag.name' ) ),
 				'min_term_freq'		 => 1,
 				'max_query_terms'	 => 12,
 				'min_doc_freq'		 => 1,
@@ -82,7 +82,7 @@ function ep_related_get_html( $posts ) {
 		return '';
 	}
 
-	$html = '<h3>Related Posts</h3>';
+	$html = '<h3>' . esc_html__( 'Related Posts', 'elasticpress' ) . '</h3>';
 	$html .= '<ul>';
 
 	foreach ( $posts as $post ) {
@@ -92,6 +92,9 @@ function ep_related_get_html( $posts ) {
 	}
 
 	$html .= '</ul>';
+
+	do_action( 'ep_related_html_attached', $posts );
+
 	/**
 	 * Filter the display HTML for related posts.
 	 * 

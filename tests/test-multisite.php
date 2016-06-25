@@ -39,6 +39,11 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$this->setup_test_post_type();
 
+		/**
+		 * Most of our search test are bundled into core tests for legacy reasons
+		 */
+		ep_activate_module( 'search' );
+		EP_Modules::factory()->setup_modules();
 	}
 
 	/**

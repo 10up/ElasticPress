@@ -29,6 +29,12 @@ class EPTestSingleSite extends EP_Test_Base {
 		EP_Sync_Manager::factory()->sync_post_queue = array();
 
 		$this->setup_test_post_type();
+
+		/**
+		 * Most of our search test are bundled into core tests for legacy reasons
+		 */
+		ep_activate_module( 'search' );
+		EP_Modules::factory()->setup_modules();
 	}
 
 	/**
@@ -42,53 +48,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		//make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
-	}
-
-	/**
-	 * Helper function to test whether a sync has happened
-	 *
-	 * @since 1.0
-	 */
-	public function action_sync_on_transition() {
-		$this->fired_actions['ep_sync_on_transition'] = true;
-	}
-
-	/**
-	 * Helper function to test whether a meta sync has happened
-	 *
-	 * @since 2.0
-	 */
-	public function action_sync_on_meta_update() {
-		$this->fired_actions['ep_sync_on_meta_update'] = true;
-	}
-
-	/**
-	 * Helper function to test whether a post has been deleted off ES
-	 *
-	 * @since 1.0
-	 */
-	public function action_delete_post() {
-		$this->fired_actions['ep_delete_post'] = true;
-	}
-
-	/**
-	 * Helper function to test whether a EP search has happened
-	 *
-	 * @since 1.0
-	 */
-	public function action_wp_query_search() {
-		$this->fired_actions['ep_wp_query_search'] = true;
-	}
-
-	/**
-	 * Helper function to check post sync args
-	 *
-	 * @since 1.0
-	 */
-	public function filter_post_sync_args( $post_args ) {
-		$this->applied_filters['ep_post_sync_args'] = $post_args;
-
-		return $post_args;
 	}
 
 	/**
@@ -114,7 +73,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * @since 2.0
 	 */
-	public function testpoopPostSyncOnMetaAdd() {
+	public function testPostSyncOnMetaAdd() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
@@ -138,7 +97,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * @since 2.0
 	 */
-	public function testpoopPostSyncOnMetaUpdate() {
+	public function testPostSyncOnMetaUpdate() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
@@ -2930,5 +2889,42 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test register module
+	 * 
+	 * @since 2.1
+	 */
+	public function testRegisterModule() {
+		ep_register_module( 'test', array(
+			'title' => 'Test',
+		) );
+
+		$this->assertTrue( ! empty( EP_Modules::factory()->registered_modules['test'] ) );
+		$this->assertTrue( ! empty( ep_get_registered_module( 'test' ) ) );
+	}
+
+	/**
+	 * Test setup modules
+	 * 
+	 * @since 2.1
+	 */
+	public function testSetupModules() {
+		ep_register_module( 'test', array(
+			'title' => 'Test',
+		) );
+
+		ep_activate_module( 'test' );
+
+		$module = ep_get_registered_module( 'test' );
+
+		$this->assertTrue( ! empty( $module ) );
+
+		$this->assertTrue( ! $module->is_active() );
+
+		EP_Modules::factory()->setup_modules();
+
+		$this->assertTrue( $module->is_active() );
 	}
 }
