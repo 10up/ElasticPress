@@ -25,6 +25,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 
 		$this->setup_test_post_type();
 
+		delete_option( 'ep_active_modules' );
 		ep_activate_module( 'woocommerce' );
 		EP_Modules::factory()->setup_modules();
 	}
@@ -85,7 +86,86 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+	}
+
+	/**
+	 * Test products post type query does get integrated when querying orders
+	 *
+	 * @since 2.1
+	 */
+	public function testProductsPostTypeQueryShopOrder() {
+		ep_create_and_sync_post();
+		ep_create_and_sync_post( array( 'post_type' => 'shop_order' ) );
+
+		ep_refresh_index();
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$args = array(
+			'post_type' => 'product',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test products post type query does get integrated when querying WC product_cat taxonomy
+	 *
+	 * @since 2.1
+	 */
+	public function testProductsPostTypeQueryProductCatTax() {
+		ep_create_and_sync_post();
+
+		ep_refresh_index();
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$args = array(
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'product_cat',
+					'terms'    => array( 'cat' ),
+					'field'    => 'slug',
+				)
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+	}
+
+	/**
+	 * Test search integration is on
+	 *
+	 * @since 2.1
+	 */
+	public function testSearchOnShopOrderAdmin() {
+		define( 'WP_ADMIN', true );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'shop_order' ) );
+
+		ep_refresh_index();
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$args = array(
+			's' => 'findme',
+			'post_type' => 'shop_order',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 }

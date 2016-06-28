@@ -502,7 +502,7 @@ function ep_wc_formatted_args( $formatted_args, $args ) {
 		if ( isset( $_GET['post_status'] ) && 'all' !== $_GET['post_status'] ) {
 			$post_status = array( $_GET['post_status'] );
 		} else {
-			$post_status = get_statuses();
+			$post_status = ep_wc_get_statuses();
 
 			// Lets make sure the thrashed posts are not accounted for in the default edit post listing
 			$trash_index = array_search( 'trash', $post_status );
@@ -610,6 +610,7 @@ function ep_wc_setup() {
 	add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 	add_filter( 'ep_admin_wp_query_integration', '__return_true' );
 	add_filter( 'ep_indexable_post_status', 'ep_wc_get_statuses' );
+	add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
 }
 
 /**
