@@ -350,29 +350,29 @@ function ep_wc_translate_args( $query ) {
 
 					switch ( $_GET['orderby'] ) {
 						case 'popularity':
-							$query->set( 'orderby', get_orderby_meta_mapping( 'total_sales' ) );
+							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
 							$query->set( 'order', 'desc' );
 							break;
 						case 'price':
 						case 'price-desc':
-							$query->set( 'orderby', get_orderby_meta_mapping( '_price' ) );
+							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
 							break;
 						case 'rating' :
-							$query->set( 'orderby', get_orderby_meta_mapping( '_wc_average_rating' ) );
+							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
 							$query->set( 'order', 'desc' );
 							break;
 						case 'date':
-							$query->set( 'orderby', get_orderby_meta_mapping( 'date' ) );
+							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
 							break;
 						default:
-							$query->set( 'orderby', get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
+							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 					}
 				} else {
 					$orderby = $query->get( 'orderby', 'date' ); // Default to date
 					if ( in_array( $orderby, array( 'meta_value_num', 'meta_value' ) ) ) {
 						$orderby = $query->get( 'meta_key', 'date' ); // Default to date
 					}
-					$query->set( 'orderby', get_orderby_meta_mapping( $orderby ) );
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( $orderby ) );
 				}
 			} // Conditional check for orders
 			elseif ( in_array( $post_type, array( 'shop_order', 'shop_order_refund' ) ) || $post_type === array( 'shop_order', 'shop_order_refund' ) ) {
