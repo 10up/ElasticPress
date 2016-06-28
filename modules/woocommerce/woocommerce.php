@@ -540,7 +540,7 @@ function ep_wc_formatted_args( $formatted_args, $args ) {
 		$post_status = apply_filters( 'valid_front_end_post_statuses', $post_status, $formatted_args, $args );
 
 		// Narrow down to the post parent for product variations
-		if ( 'product_variation' == $args['post_type'] ) {
+		if ( ! empty( $args['post_type'] ) && 'product_variation' == $args['post_type'] ) {
 			if ( isset( $args['post_parent'] ) && $args['post_parent'] ) {
 				$formatted_args['filter']['and'][] = array(
 					'term' => array( 'post_parent' => $args['post_parent'] ),
