@@ -144,7 +144,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test search integration is on
+	 * Test search integration is on for shop orders in admin
 	 *
 	 * @since 2.1
 	 */
@@ -167,5 +167,23 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test search integration is on for the front end
+	 *
+	 * @since 2.1
+	 */
+	public function testSearchOnAllFrontEnd() {
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 	}
 }
