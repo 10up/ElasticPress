@@ -182,6 +182,11 @@ return array(
 					'index' => 'not_analyzed',
 					'include_in_all' => false,
 				),
+				'ID' => array(
+					'type' => 'long',
+					'index' => 'not_analyzed',
+					'include_in_all' => false,
+				),
 				'post_author' => array(
 					'type' => 'object',
 					'properties' => array(

@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
-Tested up to: 4.5
+Tested up to: 4.6
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -66,19 +66,51 @@ First, make sure you have Elasticsearch configured properly.
 
 1. Activate the plugin on the single site you want to index.
 2. Go to the settings page, found at Settings > ElasticPress.
-3. Set the ElasticSearch host in the proper input, with the connection (and port) of your Elasticsearch application.
+3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
 
 = Multisite Cross-site Search =
 
 1. Network activate the plugin
 2. Go to the settings page, found at Settings > ElasticPress, in the Network Admin.
-3. Set the ElasticSearch host in the proper input, with the connection (and port) of your Elasticsearch application.
+3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
 
 = Indexing =
 1. Once a proper host is set, you can now click the Run Index button to start the indexing process.
 2. Once indexing is done, refresh this page to view the status and some stats.
 
 == Changelog ==
+
+= 2.0 =
+
+10up ships ElasticPress 2.0 with __radical search algorithm improvements__ and a __more comprehensive integration of WP_Query__. ElasticPress is now even closer to supporting the complete WP_Query API. This version also improves upon post syncing ensuring that post meta updates are synced to Elasticsearch, adds a number of important hooks, and, of course, fixes some pesky bugs.
+
+### Enhancements
+* Radical search algorithm improvements for more relevant results (see [#508](https://github.com/10up/ElasticPress/pull/508) for details)
+* Support meta `BETWEEN` queries.
+* Improve GUI by disabling index status meta box text and improving instructions. Props [ivanlopez](https://github.com/ivanlopez)
+* Support `OR` relation for tax queries.
+* Sync post to Elasticsearch when meta is added/updated.
+* Support all taxonomies as root WP_Query arguments. Props [tuanmh](https://github.com/tuanmh)
+* Add `ID` field to Elasticsearch mapping
+* Support `post_parent` WP_Query arguments. Props [tuanmh](https://github.com/tuanmh)
+* Add filter to disable printing of post index status. Props [tuanmh](https://github.com/tuanmh)
+* Add useful CLI hooks
+* Add a filter to bypass permission checking on sync (critical for front end updates)
+
+### Bugs
+* Consider all remote request 20x responses as successful. Props [tuanmh](https://github.com/tuanmh)
+* Fix plugin localization. Props [mustafauysal](https://github.com/mustafauysal)
+* Do query logging by default. Props [lukaspawlik](https://github.com/lukaspawlik)
+* Fix cannot redeclare class issue. Props [tuanmh](https://github.com/tuanmh)
+* Fix double querying Elasticsearch by ignoring `category_name` when `tax_query` is present.
+* Fix post deletion endpoint URL. Props [lukaspawlik](https://github.com/lukaspawlik)
+
+A special thanks goes out to [Tuan Minh Huynh](https://github.com/tuanmh) and everyone else for contributions to version 2.0.
+
+
+= 1.9.1 =
+
+Quick bug fix version to address the GUI not working properly when plugin is not network enabled within multisite. Props to [Ivan Lopez](https://github.com/ivanlopez)
 
 = 1.9 =
 

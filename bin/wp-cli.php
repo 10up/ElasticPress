@@ -59,6 +59,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 				$result = ep_put_mapping();
 
+				do_action( 'ep_cli_put_mapping', $args, $assoc_args );
+
 				if ( $result ) {
 					WP_CLI::success( __( 'Mapping sent', 'elasticpress' ) );
 				} else {
@@ -74,6 +76,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$this->delete_index( $args, $assoc_args );
 
 			$result = ep_put_mapping();
+
+			do_action( 'ep_cli_put_mapping', $args, $assoc_args );
 
 			if ( $result ) {
 				WP_CLI::success( __( 'Mapping sent', 'elasticpress' ) );
@@ -332,6 +336,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$post_type = array_map( 'trim', $post_type );
 		}
 
+		if ( is_array( $post_type ) ) {
+			$post_type = array_values( $post_type );
+		}
+
 		/**
 		 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
 		 */
@@ -345,7 +353,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				'post_status'            => ep_get_indexable_post_status(),
 				'offset'                 => $offset,
 				'ignore_sticky_posts'    => true,
-				'orderby'                => array( 'ID' => 'DESC' ),
+				'orderby'                => 'ID',
+				'order'                  => 'DESC',
 				'cache_results '         => false,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
@@ -360,6 +369,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					if ( $no_bulk ) {
 						// index the posts one-by-one. not sure why someone may want to do this.
 						$result = ep_sync_post( get_the_ID() );
+
+						do_action( 'ep_cli_post_index', get_the_ID() );
 					} else {
 						$result = $this->queue_post( get_the_ID(), $query->post_count, $show_bulk_errors );
 					}
@@ -500,6 +511,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// decode the response
 		$response = ep_bulk_index_posts( $body );
+
+		do_action( 'ep_cli_post_bulk_index', $this->posts );
 
 		if ( is_wp_error( $response ) ) {
 			WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
