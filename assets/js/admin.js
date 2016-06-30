@@ -1,6 +1,6 @@
 ( function( $ ) {
 	var $modules = $( document.getElementsByClassName( 'ep-modules' ) );
-	var $outerWrap = $( '.js-ep-wrap' );
+	var $errorOverlay = $( '.error-overlay' );
 
 	var $progressBar = $( '.progress-bar' );
 	var $syncStatusText = $( '.sync-status' );
@@ -121,7 +121,7 @@
 			$syncStatusText.show();
 			$progressBar.show();
 			$pauseSyncButton.show();
-			$outerWrap.addClass( 'syncing' );
+			$errorOverlay.addClass( 'syncing' );
 
 			$cancelSyncButton.hide();
 			$resumeSyncButton.hide();
@@ -138,7 +138,7 @@
 			$syncStatusText.show();
 			$progressBar.show();
 			$pauseSyncButton.hide();
-			$outerWrap.addClass( 'syncing' );
+			$errorOverlay.addClass( 'syncing' );
 
 			$cancelSyncButton.show();
 			$resumeSyncButton.show();
@@ -151,7 +151,7 @@
 			$syncStatusText.show();
 			$progressBar.hide();
 			$pauseSyncButton.hide();
-			$outerWrap.addClass( 'syncing' );
+			$errorOverlay.addClass( 'syncing' );
 
 			$cancelSyncButton.hide();
 			$resumeSyncButton.hide();
@@ -163,7 +163,7 @@
 			$cancelSyncButton.hide();
 			$resumeSyncButton.hide();
 			$pauseSyncButton.hide();
-			$outerWrap.removeClass( 'syncing' );
+			$errorOverlay.removeClass( 'syncing' );
 			$progressBar.hide();
 
 			if ( moduleSync ) {
@@ -180,7 +180,7 @@
 			$syncStatusText.hide();
 			$progressBar.hide();
 			$pauseSyncButton.hide();
-			$outerWrap.removeClass( 'syncing' );
+			$errorOverlay.removeClass( 'syncing' );
 
 			$cancelSyncButton.hide();
 			$resumeSyncButton.hide();
@@ -204,7 +204,7 @@
 			$cancelSyncButton.hide();
 			$resumeSyncButton.hide();
 			$startSyncButton.show();
-			$outerWrap.removeClass( 'syncing' );
+			$errorOverlay.removeClass( 'syncing' );
 
 			if ( moduleSync ) {
 				var $module = $modules.find( '.ep-module-' + moduleSync );

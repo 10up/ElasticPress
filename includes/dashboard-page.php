@@ -31,7 +31,8 @@ $query = new WP_Query( $args );
 
 <?php require_once( dirname( __FILE__ ) . '/header.php' ); ?>
 
-<div class="wrap js-ep-wrap <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! ep_elasticsearch_can_connect() ) : ?>cant-connect<?php endif; ?>">
+<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! ep_elasticsearch_can_connect() ) : ?>cant-connect<?php endif; ?>"></div>
+<div class="wrap">
 	<h2><?php esc_html_e( 'ElasticPress', 'elasticpress' ); ?></h2>
 
 	<p><?php esc_html_e( "ElasticPress let's you supercharge your WordPress website with various modules. Activate the ones you need below.", 'elasticpress' ); ?></p>

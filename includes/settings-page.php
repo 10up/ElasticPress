@@ -22,7 +22,8 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <?php require_once( dirname( __FILE__ ) . '/header.php' ); ?>
 
-<div class="wrap js-ep-wrap">
+<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?>"></div>
+<div class="wrap">
 	<h2><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h2>
 	
 	<form action="<?php echo esc_attr( $action ); ?>" method="post">
