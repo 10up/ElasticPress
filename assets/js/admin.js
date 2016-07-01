@@ -84,7 +84,7 @@
 			}
 
 			if ( 0 === toProcess ) {
-				if ( response.data.start ) {
+				if ( ep.index_meta.start ) {
 					// No posts to sync
 					syncStatus = 'noposts';
 					updateSyncDash();
@@ -261,14 +261,22 @@
 			}
 
 			if ( 0 === response.data.found_posts ) {
-				if ( response.data.start ) {
-					// No posts to sync
-					syncStatus = 'noposts';
+				if ( siteStack && siteStack.length ) {
+					// We are mid multisite sync
+					syncStatus = 'sync';
 					updateSyncDash();
+
+					sync();
 				} else {
-					// Sync finished
-					syncStatus = 'finished';
-					updateSyncDash();
+					if ( response.data.start ) {
+						// No posts to sync
+						syncStatus = 'noposts';
+						updateSyncDash();
+					} else {
+						// Sync finished
+						syncStatus = 'finished';
+						updateSyncDash();
+					}
 				}
 			} else {
 				// We are starting a sync
