@@ -16,6 +16,11 @@
 	var processed = 0;
 	var toProcess = 0;
 
+	$modules.on( 'click', '.learn-more, .collapse', function( event ) {
+		$module = $( this ).parents( '.ep-module' );
+		$module.toggleClass( 'show-all' );
+	} );
+
 	$modules.on( 'click', '.js-toggle-module', function( event ) {
 		event.preventDefault();
 

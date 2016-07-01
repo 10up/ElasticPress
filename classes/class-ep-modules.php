@@ -40,7 +40,8 @@ class EP_Modules {
 	 *         "requires_install_reindex" (boolean) - Setting to true will force a reindex after the module is activated
 	 *         "setup_cb" (callback) - Callback to a function to be called on each page load when the module is activated
 	 *         "post_activation_cb" (callback) - Callback to a function to be called after a module is first activated
-	 *         "module_box_cb" (callback) - Callback to a function that outputs HTML module box interior (description of module)
+	 *         "module_box_summary_cb" (callback) - Callback to a function that outputs HTML module box summary (short description of module)
+	 *         "module_box_long_cb" (callback) - Callback to a function that outputs HTML module box full description
 	 *         "dependencies_met_cb" (callback) - Callback to a function that determines if the modules dependencies are met. True 
 	 *         		means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
 	 *         

@@ -68,13 +68,28 @@ function ep_admin_integrate( $query ) {
 }
 
 /**
- * Output module box
+ * Output module box summary
  * 
  * @since 2.1
  */
-function ep_admin_module_box() {
+function ep_admin_module_box_summary() {
 	?>
 	<p><?php esc_html_e( 'The posts table can be painfully slow to load, especially when trying to filter by date, taxonomy, or meta. This module makes post, page, and custom post type lists run fast no matter what.', 'elasticpress' ); ?></p>
+	<?php
+}
+
+/**
+ * Output module box long
+ * 
+ * @since 2.1
+ */
+function ep_admin_module_box_long() {
+	?>
+	<p><?php _e( 'Within the admin panel, posts, pages, and custom post types are shown in a standarized easy to use table format. After activating an SEO plugin, increasing post per pages, and making other modifications, that table view loads very slowly.', 'elasticpress' ); ?></p>
+
+	<p><?php _e( 'ElasticPress admin will make your admin curation experience much faster and easier. No longer will you have to wait 60 seconds to do things that should be easy such as viewing 200 posts at once.', 'elasticpress' ); ?></p>
+
+	<p><?php _e( 'Using the search module in conjunction with this module will supercharge your admin search.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -98,7 +113,8 @@ function ep_admin_get_statuses() {
 ep_register_module( 'admin', array(
 	'title' => 'Admin',
 	'setup_cb' => 'ep_admin_setup',
-	'module_box_cb' => 'ep_admin_module_box',
+	'module_box_summary_cb' => 'ep_admin_module_box_summary',
+	'module_box_long_cb' => 'ep_admin_module_box_long',
 	'requires_install_reindex' => true,
 ) );
 

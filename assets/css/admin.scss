@@ -243,19 +243,57 @@ $tablet-width: 768px;
 	text-align: right;
 }
 
+.ep-module .long {
+	display: none;
+}
+
+.ep-module.show-all .long {
+	display: block;
+}
+
+.ep-module .learn-more,
+.ep-module .collapse {
+	cursor: pointer;
+}
+
+.ep-module.show-all .learn-more {
+	display: none;
+}
+
+.ep-module .learn-more:after {
+	content: "\f140";
+	font-family: dashicons;
+	font-size: 1.5em;
+	vertical-align: middle;
+	top: -.07em;
+	position: relative;
+}
+
+
+.ep-module .collapse:after {
+	content: "\f142";
+	font-family: dashicons;
+	font-size: 1.5em;
+	vertical-align: middle;
+	top: -.07em;
+	position: relative;
+}
+
 @media (min-width: $tablet-width) {
-	.ep-module {
+	.ep-modules .left {
 		display: block;
-		margin-bottom: 0;
 		float: left;
 		box-sizing: border-box;
 		padding-right: 10px;
-		padding-bottom: 20px;
 		width: 50%;
 	}
-	.ep-module:nth-child(2n) {
+
+	.ep-modules .right {
+		display: block;
+		float: right;
+		box-sizing: border-box;
 		padding-left: 10px;
-		padding-right: 0;
+		width: 50%;
 	}
 
 	.ep-module .module-message {

@@ -7,13 +7,33 @@
  */
 
 /**
- * Output module box
+ * Output module box summary
  * 
  * @since 2.1
  */
-function ep_search_module_box() {
+function ep_search_module_box_summary() {
 	?>
 	<p><?php esc_html_e( 'Dramatically improve the relevancy of search results and performance of searches. Weight search results by recency.', 'elasticpress' ); ?></p>
+	<?php
+}
+
+/**
+ * Output module box long
+ * 
+ * @since 2.1
+ */
+function ep_search_module_box_long() {
+	?>
+	<p><?php esc_html_e( 'Search is a long neglected piece of WordPress. Result relevancy is poor; performance is poor; there is no handling of misspellings; there is no way to search categories, tags, or custom taxonomies as WordPress by default only searches post content, excerpt, and title.', 'elasticpress' ); ?></p>
+
+	<p>
+		<?php esc_html_e( 'The search module allows you to do all these things and more. Just activating the module will make your search experience much better. Your users will be able to more effectively browse your website and find the content they desire. Misspellings will be accounted for, categories searched, and results weighted by recency. If activated in conjunction with the admin module, admin search will be improved as well.', 'elasticpress' ); ?>
+	</p>
+
+	<p>
+		<?php _e( "This module is a <strong>must have</strong> for all websites which is why it's activated by default.", 'elasticpress' ); ?>
+	</p>
+	
 	<?php
 }
 
@@ -182,6 +202,7 @@ function ep_integrate_search_queries( $enabled, $query ) {
 ep_register_module( 'search', array(
 	'title' => 'Search',
 	'setup_cb' => 'ep_search_setup',
-	'module_box_cb' => 'ep_search_module_box',
+	'module_box_summary_cb' => 'ep_search_module_box_summary',
+	'module_box_long_cb' => 'ep_search_module_box_long',
 	'requires_install_reindex' => false,
 ) );

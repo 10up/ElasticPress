@@ -37,10 +37,15 @@ $query = new WP_Query( $args );
 
 	<p><?php esc_html_e( "ElasticPress let's you supercharge your WordPress website with various modules. Activate the ones you need below.", 'elasticpress' ); ?></p>
 
-	<ul class="ep-modules metabox-holder">
+	<div class="ep-modules metabox-holder">
 		<?php $modules = EP_Modules::factory()->registered_modules; ?>
 
-		<?php foreach ( $modules as $module ) :
+		<?php 
+		$left = '';
+		$right = '';
+		$i = 0;
+		foreach ( $modules as $module ) :
+			$i++;
 			$module_classes = ( $module->is_active() ) ? 'module-active' : '';
 
 			if ( ! empty( $index_meta ) && ! empty( $index_meta['module_sync'] ) && $module->slug === $index_meta['module_sync'] ) {
@@ -51,8 +56,9 @@ $query = new WP_Query( $args );
 			if ( is_wp_error( $deps_met ) ) {
 				$module_classes .= 'module-dependencies-unmet';
 			}
+			ob_start();
 			?>
-			<li class="ep-module ep-module-<?php echo esc_attr( $module->slug ); ?> <?php echo esc_attr( $module_classes ); ?>">
+			<div class="ep-module ep-module-<?php echo esc_attr( $module->slug ); ?> <?php echo esc_attr( $module_classes ); ?>">
 				<div class="postbox">
 					<h2 class="hndle"><span><?php echo esc_html( $module->title ); ?></span></h2>
 
@@ -74,7 +80,20 @@ $query = new WP_Query( $args );
 						<button disabled data-module="<?php echo esc_attr( $module->slug ); ?>" class="js-toggle-module syncing-placeholder button"><?php esc_html_e( 'Syncing...', 'elasticpress' ); ?></a>
 					</div>
 				</div>
-			</li>
+			</div>
+			<?php
+			if ( $i % 2 === 0 ) {
+				$right .= ob_get_clean();
+			} else {
+				$left .= ob_get_clean();
+			}
+			?>
 		<?php endforeach; ?>
-	</ul>
+		<div class="left">
+			<?php echo $left; ?>
+		</div>
+		<div class="right">
+			<?php echo $right; ?>
+		</div>
+	</div>
 </div>

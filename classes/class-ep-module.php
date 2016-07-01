@@ -37,12 +37,20 @@ class EP_Module {
 	public $setup_cb;
 
 	/**
-	 * Contains registered callback to output during module box creation
+	 * Contains registered callback to output module summary in module box
 	 * 
 	 * @since 2.1
 	 * @var callback
 	 */
-	public $module_box_cb;
+	public $module_box_summary_cb;
+
+	/**
+	 * Contains registered callback to output module long description in module box
+	 * 
+	 * @since 2.1
+	 * @var callback
+	 */
+	public $module_box_long_cb;
 
 	/**
 	 * Contains registered callback to determine if a modules dependencies are met
@@ -135,16 +143,44 @@ class EP_Module {
 	}
 
 	/**
-	 * Outputs module box HTML/text.
+	 * Outputs module box
 	 *
 	 * @since  2.1
 	 */
 	public function output_module_box() {
-		if ( ! empty( $this->module_box_cb ) ) {
-			call_user_func( $this->module_box_cb );
+		if ( ! empty( $this->module_box_summary_cb ) ) {
+			call_user_func( $this->module_box_summary_cb );
 		}
 
-		do_action( 'ep_module_box', $this->slug, $this );
+		do_action( 'ep_module_box_summary', $this->slug, $this );
+
+		if ( ! empty( $this->module_box_long_cb ) ) {
+			?>
+
+			<a class="learn-more"><?php esc_html_e( 'Learn more', 'elasticpress' ); ?></a>
+
+			<div class="long">
+				<?php call_user_func( $this->module_box_long_cb ); ?>
+
+				<p><a class="collapse"><?php esc_html_e( 'Collapse', 'elasticpress' ); ?></a></p>
+				<?php do_action( 'ep_module_box_long', $this->slug, $this ); ?>
+
+			</div>
+			<?php
+		}
+	}
+
+	/**
+	 * Outputs module box long description
+	 *
+	 * @since  2.1
+	 */
+	public function output_module_box_full() {
+		if ( ! empty( $this->module_box_full_cb ) ) {
+			call_user_func( $this->module_box_full_cb );
+		}
+
+		do_action( 'ep_module_box_full', $this->slug, $this );
 	}
 
 	/**

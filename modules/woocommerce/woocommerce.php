@@ -614,13 +614,26 @@ function ep_wc_setup() {
 }
 
 /**
- * Output module box
+ * Output module box summary
  * 
  * @since 2.1
  */
-function ep_wc_module_box() {
+function ep_wc_module_box_summary() {
 	?>
 	<p><?php esc_html_e( 'Dramatically increase the performance of WooCommerce product rivers, product searches, product filters, order searches, and more.', 'elasticpress' ); ?></p>
+	<?php
+}
+
+/**
+ * Output module box long
+ * 
+ * @since 2.1
+ */
+function ep_wc_module_box_long() {
+	?>
+	<p><?php esc_html_e( 'Running eCommerce stores is hard enough already. You should not have to worry about slow load times. ElasticPress WooCommerce supercharges all product queries, product sorts, and filters both on the front end and the admin. No matter how many products or filters you have, your site will load fast.', 'elasticpress' ); ?></p>
+
+	<p><?php esc_html_e( 'In the admin, order management and fulfillment is supercharged. Finding orders is much easier with more relevant searches. View order lists is easier since they load faster.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -644,7 +657,8 @@ function wc_dependencies_met_cb() {
 ep_register_module( 'woocommerce', array(
 	'title' => 'WooCommerce',
 	'setup_cb' => 'ep_wc_setup',
-	'module_box_cb' => 'ep_wc_module_box',
+	'module_box_summary_cb' => 'ep_wc_module_box_summary',
+	'module_box_long_cb' => 'ep_wc_module_box_long',
 	'requires_install_reindex' => true,
 	'dependencies_met_cb' => 'wc_dependencies_met_cb',
 ) );

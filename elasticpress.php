@@ -45,8 +45,8 @@ require_once( 'classes/class-ep-dashboard.php' );
 // Include core modules
 require_once( 'modules/search/search.php' );
 require_once( 'modules/related-posts/related-posts.php' );
-require_once( 'modules/woocommerce/woocommerce.php' );
 require_once( 'modules/admin/admin.php' );
+require_once( 'modules/woocommerce/woocommerce.php' );
 
 /**
  * WP CLI Commands

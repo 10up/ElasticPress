@@ -118,13 +118,26 @@ function ep_related_posts_setup() {
 }
 
 /**
- * Output module box
+ * Output module box summary
  * 
  * @since 2.1
  */
-function ep_related_posts_module_box() {
+function ep_related_posts_module_box_summary() {
 	?>
 	<p><?php esc_html_e( 'Show related content below each post. Related content is queried performantly and effectively.', 'elasticpress' ); ?></p>
+	<?php
+}
+
+/**
+ * Output module box long
+ * 
+ * @since 2.1
+ */
+function ep_related_posts_module_box_long() {
+	?>
+	<p><?php esc_html_e( 'Showing users related content is a quick way to improve readership and loyalty. There a number of plugins that show related content, most of which are ineffective and slow.', 'elasticpress' ); ?></p>
+
+	<p><?php esc_html_e( 'ElasticPress has a powerful content matching algorithm that lets it find related content very effectively. This module will show three related posts after the post content.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -134,7 +147,8 @@ function ep_related_posts_module_box() {
 ep_register_module( 'related_posts', array(
 	'title' => 'Related Posts',
 	'setup_cb' => 'ep_related_posts_setup',
-	'module_box_cb' => 'ep_related_posts_module_box',
+	'module_box_summary_cb' => 'ep_related_posts_module_box_summary',
+	'module_box_long_cb' => 'ep_related_posts_module_box_long',
 	'requires_install_reindex' => false,
 ) );
 
