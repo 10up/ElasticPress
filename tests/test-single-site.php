@@ -24,13 +24,17 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_delete_index();
 		ep_put_mapping();
 
-		ep_activate();
-
 		EP_WP_Query_Integration::factory()->setup();
 		EP_Sync_Manager::factory()->setup();
 		EP_Sync_Manager::factory()->sync_post_queue = array();
 
 		$this->setup_test_post_type();
+
+		/**
+		 * Most of our search test are bundled into core tests for legacy reasons
+		 */
+		ep_activate_module( 'search' );
+		EP_Modules::factory()->setup_modules();
 	}
 
 	/**
@@ -44,53 +48,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		//make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
-	}
-
-	/**
-	 * Helper function to test whether a sync has happened
-	 *
-	 * @since 1.0
-	 */
-	public function action_sync_on_transition() {
-		$this->fired_actions['ep_sync_on_transition'] = true;
-	}
-
-	/**
-	 * Helper function to test whether a meta sync has happened
-	 *
-	 * @since 2.0
-	 */
-	public function action_sync_on_meta_update() {
-		$this->fired_actions['ep_sync_on_meta_update'] = true;
-	}
-
-	/**
-	 * Helper function to test whether a post has been deleted off ES
-	 *
-	 * @since 1.0
-	 */
-	public function action_delete_post() {
-		$this->fired_actions['ep_delete_post'] = true;
-	}
-
-	/**
-	 * Helper function to test whether a EP search has happened
-	 *
-	 * @since 1.0
-	 */
-	public function action_wp_query_search() {
-		$this->fired_actions['ep_wp_query_search'] = true;
-	}
-
-	/**
-	 * Helper function to check post sync args
-	 *
-	 * @since 1.0
-	 */
-	public function filter_post_sync_args( $post_args ) {
-		$this->applied_filters['ep_post_sync_args'] = $post_args;
-
-		return $post_args;
 	}
 
 	/**
@@ -116,7 +73,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * @since 2.0
 	 */
-	public function testpoopPostSyncOnMetaAdd() {
+	public function testPostSyncOnMetaAdd() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
@@ -140,7 +97,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * @since 2.0
 	 */
-	public function testpoopPostSyncOnMetaUpdate() {
+	public function testPostSyncOnMetaUpdate() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
 
 		$post_id = ep_create_and_sync_post();
@@ -2424,44 +2381,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test get hosts method
-	 */
-	public function testGetHost() {
-
-		global $ep_backup_host;
-
-		//Check host constant
-		$host_1 = ep_get_host( true );
-
-		//Test only host in array
-		$ep_backup_host = array( 'http://127.0.0.1:9200' );
-
-		$host_2 = ep_get_host( true, true );
-
-		//Test no good hosts
-		$ep_backup_host = array( 'bad host 1', 'bad host 2' );
-
-		$host_3 = ep_get_host( true, true );
-
-		//Test good host 1st array item
-		$ep_backup_host = array( 'http://127.0.0.1:9200', 'bad host 2' );
-
-		$host_4 = ep_get_host( true, true );
-
-		//Test good host last array item
-		$ep_backup_host = array( 'bad host 1', 'http://127.0.0.1:9200' );
-
-		$host_5 = ep_get_host( true, true );
-
-		$this->assertInternalType( 'string', $host_1 );
-		$this->assertInternalType( 'string', $host_2 );
-		$this->assertWPError( $host_3 );
-		$this->assertInternalType( 'string', $host_4 );
-		$this->assertInternalType( 'string', $host_5 );
-
-	}
-
-	/**
 	 * Helper method for mocking indexable post statuses
 	 *
 	 * @param   array $post_statuses
@@ -2950,116 +2869,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test check host
-	 *
-	 * Tests the check host function
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testCheckHost() {
-
-		$check_host = ep_check_host();
-
-		$this->assertTrue( $check_host );
-
-	}
-
-	/**
-	 * Test byte size
-	 *
-	 * Tests the human readable byte conversion function.@deprecated
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testByteSize() {
-
-		$one_kb = EP_Settings::ep_byte_size( 1056, 0 );
-
-		$one_mb = EP_Settings::ep_byte_size( 1056000, 0 );
-
-		$this->assertEquals( '1 KB', $one_kb );
-		$this->assertEquals( '1 MB', $one_mb );
-
-	}
-
-	/**
-	 * Test indexing function
-	 *
-	 * Tests indexing.
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testIndex() {
-
-		if ( ! class_exists( 'EP_Index_Worker' ) ) {
-			require( $this->plugin_path . '/classes/class-ep-index-worker.php' );
-		}
-
-		$index_worker = new EP_Index_Worker();
-
-		$index_result = $index_worker->index();
-
-		$this->assertTrue( is_array( $index_result ) );
-
-	}
-
-	/**
-	 * Test sanitize host
-	 *
-	 * Tests the sanitization function for saving a host via the dashboard.
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testSanitizeHost() {
-
-		if ( ! class_exists( 'EP_Settings' ) ) {
-			require( $this->plugin_path . '/classes/class-ep-settings.php' );
-		}
-
-		$settings = new EP_Settings();
-
-		$host = $settings->sanitize_ep_host( 'http://127.0.0.1:9200' );
-
-		$this->assertEquals( 'http://127.0.0.1:9200', $host );
-
-	}
-
-	/**
-	 * Test sanitize activation
-	 *
-	 * Tests the sanitization function for changing activation state via the dashboard.
-	 *
-	 * @since 1.9
-	 *
-	 * @return void
-	 */
-	function testSanitizeActivate() {
-
-		if ( ! class_exists( 'EP_Settings' ) ) {
-			require( $this->plugin_path . '/classes/class-ep-settings.php' );
-		}
-
-		$settings = new EP_Settings();
-
-		$active   = $settings->sanitize_ep_activate( '1' );
-		$inactive = $settings->sanitize_ep_activate( '0' );
-		$no_field = $settings->sanitize_ep_activate( null );
-
-		$this->assertTrue( $active );
-		$this->assertFalse( $inactive );
-		$this->assertFalse( $no_field );
-
-	}
-
-	/**
 	 * Test a post_parent query
 	 * @group testPostParentQuery
 	 * @since 2.0
@@ -3080,5 +2889,42 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test register module
+	 * 
+	 * @since 2.1
+	 */
+	public function testRegisterModule() {
+		ep_register_module( 'test', array(
+			'title' => 'Test',
+		) );
+
+		$this->assertTrue( ! empty( EP_Modules::factory()->registered_modules['test'] ) );
+		$this->assertTrue( ! empty( ep_get_registered_module( 'test' ) ) );
+	}
+
+	/**
+	 * Test setup modules
+	 * 
+	 * @since 2.1
+	 */
+	public function testSetupModules() {
+		ep_register_module( 'test', array(
+			'title' => 'Test',
+		) );
+
+		ep_activate_module( 'test' );
+
+		$module = ep_get_registered_module( 'test' );
+
+		$this->assertTrue( ! empty( $module ) );
+
+		$this->assertTrue( ! $module->is_active() );
+
+		EP_Modules::factory()->setup_modules();
+
+		$this->assertTrue( $module->is_active() );
 	}
 }

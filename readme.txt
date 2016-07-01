@@ -2,83 +2,44 @@
 Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
-Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
+Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search
 Requires at least: 3.7.1
 Tested up to: 4.6
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Integrate Elasticsearch with WordPress.
+Supercharge WordPress performance and search with Elasticsearch.
 
 == Description ==
-ElasticPress is a WordPress-Elasticsearch integration that overrides default `WP_Query` behavior to give you search results from Elasticsearch instead of MySQL. The plugin is built to be managed entirely via the command line. ElasticPress supports cross-site search in multi-site WordPress installs.
+ElasticPress is a simple plugin to dramatically improve WordPress performance and search. By integrating with [Elasticsearch](https://elastic.co), ElasticPress can speed up search queries, post/page/etc. look ups, improve search relevancy, support search misspellings, support search filters, and more. If you have struggled with slow load times when showing a list of posts or irrelevant search results, this plugin is for you. If you want to facet search results with filters, this plugin is for you.
 
-Out of the box, WordPress search is rudimentary at best: Poor performance, inflexible and rigid matching algorithms, inability to search metadata and taxonomy information, no way to determine categories of your results, and most importantly overall poor result relevancy.
-
-Elasticsearch is a search server based on [Lucene](http://lucene.apache.org/). It provides a distributed, multitenant-capable full-text search engine with a [REST](http://en.wikipedia.org/wiki/Representational_state_transfer)ful web interface and schema-free [JSON](http://json.org/) documents.
-
-Coupling WordPress with Elasticsearch allows us to do amazing things with search including:
-
-* Relevant results
-* Autosuggest
-* Fuzzy matching (catch misspellings as well as 'close' queries)
-* Proximity and geographic queries
-* Search metadata
-* Search taxonomies
-* Facets/aggregations
-* Search all sites on a multisite install
-* [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
-
-_Note:_ Requires [Elasticsearch](http://www.elasticsearch.org/) and [WP-CLI](http://wp-cli.org/), if using WP-CLI for indexing.
+ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins (right now [WooCommerce](http://wordpress.org/plugins/woocommerce) only). ElasticPress will make your WooCommerce product pages load much faster even when using filters.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
 1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
-2. Install [WP-CLI](http://wp-cli.org/), if using for indexing.
-3. Install the plugin in WordPress.
-
-= Configuration Using WP-CLI =
-
-First, make sure you have Elasticsearch configured properly and WP-CLI setup.
-
-Before configuring the WordPress plugin, you need to decide how you want to run the plugin. The processes for
-configuring single site and multi-site cross-site search are slightly different.
-
-= Single Site =
-1. Activate the plugin.
-2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
-3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
-4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup`.
-
-= Multi-site Cross-site Search =
-1. Network activate the plugin
-2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
-3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
-4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
-
-= Configuration Using the Admin GUI (requires ElasticPress >= 1.9) =
-
-First, make sure you have Elasticsearch configured properly.
-
-= Single Site (stand-alone or a single site on a network) =
-
-1. Activate the plugin on the single site you want to index.
-2. Go to the settings page, found at Settings > ElasticPress.
-3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
-
-= Multisite Cross-site Search =
-
-1. Network activate the plugin
-2. Go to the settings page, found at Settings > ElasticPress, in the Network Admin.
-3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
-
-= Indexing =
-1. Once a proper host is set, you can now click the Run Index button to start the indexing process.
-2. Once indexing is done, refresh this page to view the status and some stats.
+2. Activate the plugin in WordPress.
+3. In the ElasticPress settings page, input your Elasticsearch host.
+4. Activate the ElasticPress modules you need from the dashboard.
 
 == Changelog ==
+
+= 2.1 =
+
+* Redo UI
+* Make plugin modular
+* Remove unnecessary back up hosts code
+* Bundle existing modules into plugin
+
+Backward compat breaks:
+
+* Move ep_admin_wp_query_integration to search integration only. EP integration by default is available everywhere.
+* Remove `keep alive` setting
+* Remove setting to integrate with search (just activate the module instead)
+* Back up hosts code removed
+* Remove active/inactive state. Rather just check if an index is going on our not
 
 = 2.0 =
 

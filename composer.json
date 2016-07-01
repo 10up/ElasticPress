@@ -1,9 +1,9 @@
 {
   "name": "10up/elasticpress",
-  "description": "Integrate Elasticsearch with WordPress.",
+  "description": "Supercharge WordPress with Elasticsearch.",
   "type": "wordpress-plugin",
   "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
-  "license": ["MIT"],
+  "license": ["GPLv2"],
   "authors": [
     {
       "name": "Aaron Holbrook",
@@ -19,13 +19,27 @@
       "homepage": "http://10up.com"
     }
   ],
+  "repositories": [
+    {
+      "type": "package",
+      "package": {
+        "name": "woothemes/woocommerce",
+        "version": "master",
+        "source": {
+          "url": "https://github.com/woothemes/woocommerce.git",
+          "type": "git",
+          "reference": "master"
+        }
+      }
+    }
+  ],
   "require": {
     "php": ">=5.2"
   },
   "require-dev": {
-    "codeclimate/php-test-reporter": "dev-master",
     "phpunit/phpunit": "*@stable",
-    "wp-cli/wp-cli": "*@stable"
+    "wp-cli/wp-cli": "*@stable",
+    "woothemes/woocommerce": "@dev"
   },
   "config": {
     "platform": {
