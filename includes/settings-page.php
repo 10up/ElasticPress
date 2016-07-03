@@ -35,8 +35,8 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				<tr>
 					<th scope="row"><label for="ep_host"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ); ?></label></th>
 					<td>
-						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST && ! ep_host_by_option() ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( ep_get_host() ); ?>" name="ep_host" id="ep_host">
-						<?php if ( defined( 'EP_HOST' ) && EP_HOST && ! ep_host_by_option() ) : ?>
+						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( ep_get_host() ); ?>" name="ep_host" id="ep_host">
+						<?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>
 							<?php esc_html_e( 'Your Elasticsearch host is set in wp-config.php', 'elasticpress' ); ?>
 						<?php endif; ?>
 					</td>
