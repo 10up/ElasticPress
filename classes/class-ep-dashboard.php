@@ -195,15 +195,19 @@ class EP_Dashboard {
 
 				$index_meta['current_site'] = array_shift( $index_meta['site_stack'] );
 			} else {
-				ep_delete_index();
+				if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
+					ep_delete_index();
 
-				ep_put_mapping();
+					ep_put_mapping();
+				}
 			}
 
 			if ( ! empty( $_POST['module_sync'] ) ) {
 				$index_meta['module_sync'] = esc_attr( $_POST['module_sync'] );
 			}
 		} else if ( ! empty( $index_meta['site_stack'] ) && $index_meta['offset'] >= $index_meta['found_posts'] ) {
+			$status = 'start';
+
 			$index_meta['start'] = true;
 			$index_meta['offset'] = 0;
 			$index_meta['current_site'] = array_shift( $index_meta['site_stack'] );
@@ -211,17 +215,23 @@ class EP_Dashboard {
 			$index_meta['start'] = false;
 		}
 
+		$index_meta = apply_filters( 'ep_index_meta', $index_meta );
+
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			switch_to_blog( $index_meta['current_site']['id'] );
 
 			if ( ! empty( $index_meta['start'] ) ) {
-				ep_delete_index();
+				if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
+					ep_delete_index();
 
-				ep_put_mapping();
+					ep_put_mapping();
+				}
 			}
 		}
 
 		$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
+
+		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
 		$args = apply_filters( 'ep_index_posts_args', array(
 			'posts_per_page'         => $posts_per_page,
@@ -333,8 +343,6 @@ class EP_Dashboard {
 		} else {
 			delete_option( 'ep_index_meta' );
 		}
-
-		ep_deactivate();
 
 		wp_send_json_success();
 	}
