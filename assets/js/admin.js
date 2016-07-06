@@ -286,8 +286,8 @@
 
 				sync();
 			}
-		} ).error( function() {
-			if (response && response.status && parseInt( response.status ) >= 400 && parseInt( response.status ) < 600 ) {
+		} ).error( function( response ) {
+			if ( response && response.status && parseInt( response.status ) >= 400 && parseInt( response.status ) < 600 ) {
 				syncStatus = 'error';
 				updateSyncDash();
 
