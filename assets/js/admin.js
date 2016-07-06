@@ -97,6 +97,7 @@
 				// We are mid sync
 				if ( ep.auto_start_index ) {
 					syncStatus = 'sync';
+					updateSyncDash();
 					sync();
 				} else {
 					syncStatus = 'pause';
@@ -115,7 +116,7 @@
 		}
 
 		if ( 'sync' === syncStatus ) {
-			var text = 'Syncing ' + parseInt( processed ) + '/' + parseInt( toProcess );
+			var text = ep.sync_syncing + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
 
 			if ( currentSite ) {
 				text += ' (' + currentSite.url + ')'
@@ -132,7 +133,7 @@
 			$resumeSyncButton.hide();
 			$startSyncButton.hide();
 		} else if ( 'pause' === syncStatus ) {
-			var text = 'Syncing paused ' + parseInt( processed ) + '/' + parseInt( toProcess );
+			var text = ep.sync_paused + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
 
 			if ( currentSite ) {
 				text += ' (' + currentSite.url + ')'
@@ -149,7 +150,7 @@
 			$resumeSyncButton.show();
 			$startSyncButton.hide();
 		} else if ( 'wpcli' === syncStatus ) {
-			var text = "WP CLI sync is occuring. Refresh the page to see if it's finished";
+			var text = ep.sync_wpcli;
 
 			$syncStatusText.text( text );
 
@@ -162,7 +163,7 @@
 			$resumeSyncButton.hide();
 			$startSyncButton.hide();
 		} else if ( 'error' === syncStatus ) {
-			$syncStatusText.text( 'An error occured while syncing' );
+			$syncStatusText.text( ep.sync_error );
 			$syncStatusText.show();
 			$startSyncButton.show();
 			$cancelSyncButton.hide();
@@ -199,9 +200,9 @@
 			moduleSync = null;
 		} else if ( 'finished' === syncStatus || 'noposts' === syncStatus ) {
 			if ( 'noposts' === syncStatus ) {
-				$syncStatusText.text( 'No posts to sync' );
+				$syncStatusText.text( ep.sync_no_posts );
 			} else {
-				$syncStatusText.text( 'Sync complete' );
+				$syncStatusText.text( ep.sync_complete );
 			}
 
 			$progressBar.hide();
@@ -286,10 +287,12 @@
 				sync();
 			}
 		} ).error( function() {
-			syncStatus = 'error';
-			updateSyncDash();
+			if (response && response.status && parseInt( response.status ) >= 400 && parseInt( response.status ) < 600 ) {
+				syncStatus = 'error';
+				updateSyncDash();
 
-			cancelSync();
+				cancelSync();
+			}
 		});
 	}
 
@@ -307,6 +310,8 @@
 
 	$resumeSyncButton.on( 'click', function() {
 		syncStatus = 'sync';
+
+		updateSyncDash();
 
 		sync();
 	} );
