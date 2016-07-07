@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-07-07 03:53:44+00:00\n"
+"POT-Creation-Date: 2016-07-07 03:58:10+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -244,6 +244,15 @@ msgid ""
 "you easily get one like <a href='https://qbox.io'>Qbox</a>. If you have a "
 "bigger website, 10up provides Elasticsearch hosting via <a "
 "href='http://www.elasticpress.io'>ElasticPress.io</a>."
+msgstr ""
+
+#: includes/intro-page.php:31
+msgid "Set Up"
+msgstr ""
+
+#: includes/intro-page.php:32
+#: vendor/woothemes/woocommerce/includes/admin/class-wc-admin-setup-wizard.php:771
+msgid "Learn More"
 msgstr ""
 
 #: includes/settings-page.php:36
@@ -8093,10 +8102,6 @@ msgstr ""
 
 #: vendor/woothemes/woocommerce/includes/admin/class-wc-admin-setup-wizard.php:765
 msgid "Next Steps"
-msgstr ""
-
-#: vendor/woothemes/woocommerce/includes/admin/class-wc-admin-setup-wizard.php:771
-msgid "Learn More"
 msgstr ""
 
 #: vendor/woothemes/woocommerce/includes/admin/class-wc-admin-setup-wizard.php:773

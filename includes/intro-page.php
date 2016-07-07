@@ -28,6 +28,6 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 </div>
 
 <div class="setup-message">
-	<a class="setup-button setup-button-primary" href="<?php echo esc_url( $setup_url ); ?>">Set Up</a>
-	<a class="setup-button" href="https://wordpress.org/plugins/elasticpress">Learn More</a>
+	<a class="setup-button setup-button-primary" href="<?php echo esc_url( $setup_url ); ?>"><?php esc_html_e( 'Set Up', 'elasticpress' ); ?></a>
+	<a class="setup-button" href="https://wordpress.org/plugins/elasticpress"><?php esc_html_e( 'Learn More', 'elasticpress' ); ?></a>
 </div>
