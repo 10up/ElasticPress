@@ -291,6 +291,10 @@ class EP_Dashboard {
 
 				$index_meta['offset'] = absint( $index_meta['offset'] + $posts_per_page );
 
+				if ( $index_meta['offset'] >= $index_meta['found_posts'] ) {
+					$index_meta['offset'] = $index_meta['found_posts'];
+				}
+
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					update_site_option( 'ep_index_meta', $index_meta );
 				} else {
