@@ -1119,6 +1119,31 @@ class EP_API {
 			);
 
 			foreach( $args['meta_query'] as $single_meta_query ) {
+
+				/**
+				 * There is a strange case where meta_query looks like this:
+				 * array(
+				 * 	"something" => array(
+				 * 	 array(
+				 * 	 	'key' => ...
+				 * 	 	...
+				 * 	 )
+				 * 	)
+				 * )
+				 *
+				 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
+				 *
+				 * @since  2.1
+				 */
+				if ( empty( $single_meta_query['key'] ) ) {
+					reset( $single_meta_query );
+					$first_key = key( $single_meta_query );
+
+					if ( is_array( $single_meta_query[$first_key] ) ) {
+						$single_meta_query = $single_meta_query[$first_key];
+					}
+				}
+
 				if ( ! empty( $single_meta_query['key'] ) ) {
 
 					$terms_obj = false;
@@ -1150,6 +1175,7 @@ class EP_API {
 					}
 
 					switch ( $compare ) {
+						case 'not in':
 						case '!=':
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
