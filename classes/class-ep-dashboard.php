@@ -39,6 +39,7 @@ class EP_Dashboard {
 		add_action( 'wp_ajax_ep_toggle_module', array( $this, 'action_wp_ajax_ep_toggle_module' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
+		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
 		add_action( 'wp_ajax_ep_index', array( $this, 'action_wp_ajax_ep_index' ) );
 		add_action( 'wp_ajax_ep_cancel_index', array( $this, 'action_wp_ajax_ep_cancel_index' ) );
 		add_action( 'admin_notices', array( $this, 'action_mid_index_notice' ) );
@@ -411,25 +412,28 @@ class EP_Dashboard {
 			$maybe_min = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
 			wp_enqueue_style( 'ep_admin_styles', EP_URL . 'assets/css/admin' . $maybe_min . '.css', array(), EP_VERSION );
-			wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'assets/js/admin' . $maybe_min . '.js', array( 'jquery' ), EP_VERSION, true );
 
-			$data = array( 'nonce' => wp_create_nonce( 'ep_nonce' ) );
+			if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) {
+				wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'assets/js/admin' . $maybe_min . '.js', array( 'jquery' ), EP_VERSION, true );
 
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$index_meta = get_site_option( 'ep_index_meta' );
-			} else {
-				$index_meta = get_option( 'ep_index_meta' );
-			}
+				$data = array( 'nonce' => wp_create_nonce( 'ep_nonce' ) );
 
-			if ( ! empty( $index_meta ) ) {
-				$data['index_meta'] = $index_meta;
-
-				if ( isset( $_GET['resume_sync'] ) ) {
-					$data['auto_start_index'] = true;
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					$index_meta = get_site_option( 'ep_index_meta' );
+				} else {
+					$index_meta = get_option( 'ep_index_meta' );
 				}
-			}
 
-			wp_localize_script( 'ep_admin_scripts', 'ep', $data );
+				if ( ! empty( $index_meta ) ) {
+					$data['index_meta'] = $index_meta;
+
+					if ( isset( $_GET['resume_sync'] ) ) {
+						$data['auto_start_index'] = true;
+					}
+				}
+
+				wp_localize_script( 'ep_admin_scripts', 'ep', $data );
+			}
 		}
 	}
 
@@ -457,6 +461,45 @@ class EP_Dashboard {
 	}
 
 	/**
+	 * Conditionally show dashboard or intro
+	 *
+	 * @since  2.1
+	 */
+	public function intro_or_dashboard() {
+		global $pagenow;
+
+		if ( 'admin.php' !== $pagenow || empty( $_GET['page'] ) || 'elasticpress' !== $_GET['page'] ) {
+			return;
+		}
+
+		$host =  ep_get_host();
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$intro_shown = get_site_option( 'ep_intro_shown', false );
+		} else {
+			$intro_shown = get_option( 'ep_intro_shown', false );
+		}
+
+		if ( ! $intro_shown ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+			} else {
+				wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+			}
+			exit;
+		} else {
+			if ( empty( $host ) ) {
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+				} else {
+					wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+				}
+				exit;
+			}
+		}
+	}
+
+	/**
 	 * Build dashboard page
 	 *
 	 * @since 2.1
@@ -472,6 +515,21 @@ class EP_Dashboard {
 	 */
 	public function settings_page() {
 		include( dirname( __FILE__ ) . '/../includes/settings-page.php' );
+	}
+
+	/**
+	 * Build settings page
+	 *
+	 * @since  2.1
+	 */
+	public function intro_page() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_intro_shown', true );
+		} else {
+			update_option( 'ep_intro_shown', true );
+		}
+
+		include( dirname( __FILE__ ) . '/../includes/intro-page.php' );
 	}
 
 	/**
@@ -506,6 +564,15 @@ class EP_Dashboard {
 			$capability,
 			'elasticpress-settings',
 			array( $this, 'settings_page' )
+		);
+
+		add_submenu_page(
+			null,
+			'ElasticPress' . esc_html__( 'Welcome', 'elasticpress' ),
+			'ElasticPress' . esc_html__( 'Welcome', 'elasticpress' ),
+			$capability,
+			'elasticpress-intro',
+			array( $this, 'intro_page' )
 		);
 	}
 

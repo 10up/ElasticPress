@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-07-01 03:33:42+00:00\n"
+"POT-Creation-Date: 2016-07-07 03:51:09+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -125,27 +125,27 @@ msgstr ""
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:79
+#: classes/class-ep-dashboard.php:80
 msgid "<a href=\"%s\">Dashboard</a>"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:117
+#: classes/class-ep-dashboard.php:118
 msgid ""
 "ElasticPress is in the middle of a sync. The plugin wont work until it "
 "finishes. Want to <a href=\"%s\">go back and finish it</a>?"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:151
+#: classes/class-ep-dashboard.php:152
 msgid ""
 "There is a problem with connecting to your Elasticsearch host. You will "
 "need to <a href=\"%s\">fix it</a> for ElasticPress to work."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:441
+#: classes/class-ep-dashboard.php:453
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:496 classes/class-ep-dashboard.php:497
+#: classes/class-ep-dashboard.php:562 classes/class-ep-dashboard.php:563
 #: includes/settings-page.php:27
 #: vendor/woothemes/woocommerce/includes/admin/class-wc-admin-menus.php:80
 #: vendor/woothemes/woocommerce/includes/admin/settings/class-wc-settings-api.php:45
@@ -153,6 +153,10 @@ msgstr ""
 #: vendor/woothemes/woocommerce/includes/admin/views/html-admin-page-status-report.php:476
 #: vendor/woothemes/woocommerce/includes/class-wc-install.php:832
 msgid "Settings"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:571 classes/class-ep-dashboard.php:572
+msgid "Welcome"
 msgstr ""
 
 #: classes/class-ep-module.php:160
@@ -187,22 +191,35 @@ msgstr ""
 msgid "ElasticPress"
 msgstr ""
 
-#: includes/dashboard-page.php:38
+#: includes/dashboard-page.php:26
 msgid ""
 "ElasticPress let's you supercharge your WordPress website with various "
 "modules. Activate the ones you need below."
 msgstr ""
 
-#: includes/dashboard-page.php:78
+#: includes/dashboard-page.php:66
 msgid "Deactivate"
 msgstr ""
 
-#: includes/dashboard-page.php:79
+#: includes/dashboard-page.php:67
 msgid "Activate"
 msgstr ""
 
-#: includes/dashboard-page.php:80
+#: includes/dashboard-page.php:68
 msgid "Syncing..."
+msgstr ""
+
+#: includes/intro-page.php:24
+msgid "Supercharge WordPress Performance with ElasticPress"
+msgstr ""
+
+#: includes/intro-page.php:25
+msgid ""
+"You're almost there! The plugin is free to use but requires an "
+"Elasticsearch server behind-the-scenes. There are tons of services that let "
+"you easily get one like <a href='https://qbox.io'>Qbox</a>. If you have a "
+"bigger website, 10up provides Elasticsearch hosting via <a "
+"href='http://www.elasticpress.io'>ElasticPress.io</a>."
 msgstr ""
 
 #: includes/settings-page.php:36
@@ -213,7 +230,11 @@ msgstr ""
 msgid "Your Elasticsearch host is set in wp-config.php"
 msgstr ""
 
-#: includes/settings-page.php:48
+#: includes/settings-page.php:42
+msgid "Plug in your Elasticsearch server here!"
+msgstr ""
+
+#: includes/settings-page.php:50
 msgid "Save Changes"
 msgstr ""
 

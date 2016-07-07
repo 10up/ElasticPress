@@ -279,7 +279,70 @@ $tablet-width: 768px;
 	position: relative;
 }
 
+.setup-message {
+	text-align: center;
+	background-color: #e63e3b;
+	margin: 20px -20px 0 -20px;
+	padding: 2em 0;
+	clear: both;
+}
+
+.setup-message .setup-button {
+	border-radius: 5px;
+	background-color: #d73c38;
+	color: #f19ea4;
+	display: inline-block;
+	margin: 0 .75em;
+	text-decoration: none;
+	padding: .75em 3em;
+	box-shadow: 1px 1px 3px 1px rgba(0,0,0,0.25);
+}
+
+.setup-message .setup-button-primary {
+	background-color: #fff;
+	color: #d84440;
+}
+
+.modules-screenshot {
+	display: none;
+}
+
+.wrap h3 {
+	color: #888;
+	line-height: 1.75;
+}
+
+.intro h3 {
+	padding: 9px 15px 4px 0;
+}
+
+.intro h2 {
+	font-size: 23px;
+	font-weight: 400;
+	margin: 0;
+	padding: 9px 15px 4px 0;
+	line-height: 29px;
+}
+
+.wrap.intro {
+	overflow: auto;
+}
+
 @media (min-width: $tablet-width) {
+	.intro .left {
+		float: left;
+		width: 30%;
+	}
+
+	.modules-screenshot {
+		margin: 0 auto;
+		max-width: 1000px;
+		width: 70%;
+		display: block;
+		height: auto;
+		float: right;
+	}
+
 	.ep-modules .left {
 		display: block;
 		float: left;

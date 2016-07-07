@@ -18,11 +18,13 @@ $base_url =  ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'netwo
 
 	<div class="icons">
 		<span class="sync-status"></span>
-		<a class="dashicons pause-sync dashicons-controls-pause"></a>
-		<a class="dashicons resume-sync dashicons-controls-play"></a>
-		<a class="dashicons cancel-sync dashicons-no"></a>
-		<?php if ( ep_elasticsearch_can_connect() ) : ?>
-			<a class="dashicons start-sync dashicons-update"></a>
+		<?php if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) : ?>
+			<a class="dashicons pause-sync dashicons-controls-pause"></a>
+			<a class="dashicons resume-sync dashicons-controls-play"></a>
+			<a class="dashicons cancel-sync dashicons-no"></a>
+			<?php if ( ep_elasticsearch_can_connect() ) : ?>
+				<a class="dashicons start-sync dashicons-update"></a>
+			<?php endif; ?>
 		<?php endif; ?>
 		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic"></a>
 	</div>
