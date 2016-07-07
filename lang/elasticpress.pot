@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-07-07 03:51:09+00:00\n"
+"POT-Creation-Date: 2016-07-07 03:53:44+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -101,27 +101,27 @@ msgstr ""
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1767
+#: classes/class-ep-api.php:1793
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1780
+#: classes/class-ep-api.php:1806
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1784
+#: classes/class-ep-api.php:1810
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1822 classes/class-ep-api.php:1881
-#: classes/class-ep-api.php:1921 classes/class-ep-api.php:1972
+#: classes/class-ep-api.php:1848 classes/class-ep-api.php:1907
+#: classes/class-ep-api.php:1947 classes/class-ep-api.php:1998
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -141,11 +141,35 @@ msgid ""
 "need to <a href=\"%s\">fix it</a> for ElasticPress to work."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:453
+#: classes/class-ep-dashboard.php:435
+msgid "No posts to sync"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:436
+msgid "Sync complete"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:437
+msgid "Sync paused"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:438
+msgid "Syncing"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:439
+msgid "WP CLI sync is occuring. Refresh the page to see if it's finished"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:440
+msgid "An error occured while syncing"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:460
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:562 classes/class-ep-dashboard.php:563
+#: classes/class-ep-dashboard.php:569 classes/class-ep-dashboard.php:570
 #: includes/settings-page.php:27
 #: vendor/woothemes/woocommerce/includes/admin/class-wc-admin-menus.php:80
 #: vendor/woothemes/woocommerce/includes/admin/settings/class-wc-settings-api.php:45
@@ -155,7 +179,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:571 classes/class-ep-dashboard.php:572
+#: classes/class-ep-dashboard.php:578 classes/class-ep-dashboard.php:579
 msgid "Welcome"
 msgstr ""
 
