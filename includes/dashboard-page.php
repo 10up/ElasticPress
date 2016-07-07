@@ -21,9 +21,9 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! ep_elasticsearch_can_connect() ) : ?>cant-connect<?php endif; ?>"></div>
 <div class="wrap">
-	<h2><?php esc_html_e( 'ElasticPress', 'elasticpress' ); ?></h2>
+	<h1><?php esc_html_e( 'ElasticPress', 'elasticpress' ); ?></h1>
 
-	<h3><?php esc_html_e( "ElasticPress let's you supercharge your WordPress website with various modules. Activate the ones you need below.", 'elasticpress' ); ?></h3>
+	<h2><?php esc_html_e( "ElasticPress let's you supercharge your WordPress website with various modules. Activate the ones you need below.", 'elasticpress' ); ?></h2>
 
 	<div class="ep-modules metabox-holder">
 		<?php $modules = EP_Modules::factory()->registered_modules; ?>

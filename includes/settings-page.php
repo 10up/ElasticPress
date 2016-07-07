@@ -24,7 +24,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?>"></div>
 <div class="wrap">
-	<h2><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h2>
+	<h1><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h1>
 	
 	<form action="<?php echo esc_attr( $action ); ?>" method="post">
 		<?php settings_fields( 'elasticpress' ); ?>

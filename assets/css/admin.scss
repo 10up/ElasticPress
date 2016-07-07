@@ -307,21 +307,14 @@ $tablet-width: 768px;
 	display: none;
 }
 
-.wrap h3 {
+.wrap h2 {
 	color: #888;
 	line-height: 1.75;
-}
-
-.intro h3 {
-	padding: 9px 15px 4px 0;
+	margin: .5em 0 .75em;
 }
 
 .intro h2 {
-	font-size: 23px;
-	font-weight: 400;
-	margin: 0;
 	padding: 9px 15px 4px 0;
-	line-height: 29px;
 }
 
 .wrap.intro {
