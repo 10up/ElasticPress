@@ -130,18 +130,33 @@ class EP_Dashboard {
 			return;
 		}
 
+		// Don't show message on intro page
+		if ( ! empty( $_GET['page'] ) && 'elasticpress-intro' === $_GET['page'] ) {
+			return;
+		}
+
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			if ( ! is_network_admin() ) {
 				return;
 			}
 
 			$url = admin_url( 'network/admin.php?page=elasticpress-settings' );
+			$options_host = get_site_option( 'ep_host' );
 		} else {
 			if ( is_network_admin() ) {
 				return;
 			}
 
 			$url = admin_url( 'admin.php?page=elasticpress-settings' );
+			$options_host = get_option( 'ep_host' );
+		}
+
+		/**
+		 * If we are on the setting screen and a host has never been set in the options table or defined, then let's
+		 * assume this is our first time and not show an obvious message.
+		 */
+		if ( ! empty( $_GET['page'] ) && 'elasticpress-settings' === $_GET['page'] && false === $options_host && ( ! defined( 'EP_HOST' ) || empty( EP_HOST ) ) ) {
+			return;
 		}
 
 		$host = ep_get_host();
