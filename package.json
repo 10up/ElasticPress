@@ -1,7 +1,5 @@
 {
 	"name":            "ElasticPress",
-	"private":         true,
-	"version":         "1.0.0",
 	"description":     "Grunt base for the ElasticPress Plugin.",
 	"dependencies":    {},
 	"devDependencies": {

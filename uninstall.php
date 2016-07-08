@@ -5,10 +5,7 @@
  * Used when clicking "Delete" from inside of WordPress's plugins page.
  *
  * @package elasticpress
- *
  * @since   1.7
- *
- * @author  Chris Wiegman <chris.wiegman@10up.com>
  */
 
 /**
@@ -22,7 +19,6 @@ class EP_Uninstaller {
 	 * Perform some checks to make sure plugin can/should be uninstalled
 	 *
 	 * @since 1.7
-	 *
 	 * @return EP_Uninstaller
 	 */
 	public function __construct() {
@@ -57,27 +53,17 @@ class EP_Uninstaller {
 	 * Deletes ElasticPress options and transients.
 	 *
 	 * @since 1.7
-	 *
 	 * @return void
 	 */
 	protected static function clean_options() {
 
 		// Delete options.
 		delete_site_option( 'ep_host' );
-		delete_site_option( 'ep_activate' );
-
-		// Delete options if we're not network activated.
 		delete_option( 'ep_host' );
-		delete_option( 'ep_activate' );
-
-		// Delete transients.
-		delete_transient( 'ep_post_count' );
-		delete_transient( 'ep_index_offset' );
-		delete_transient( 'ep_index_synced' );
-		delete_transient( 'ep_index_failed_posts' );
-		delete_transient( 'ep_index_failed_blocks' );
-		delete_transient( 'ep_installed_plugins' );
-
+		delete_site_option( 'ep_index_meta' );
+		delete_option( 'ep_index_meta' );
+		delete_site_option( 'ep_active_modules' );
+		delete_option( 'ep_active_modules' );
 	}
 
 	/**
@@ -86,7 +72,6 @@ class EP_Uninstaller {
 	 * Gracefully exit the uninstaller if we should not be here
 	 *
 	 * @since 1.7
-	 *
 	 * @return void
 	 */
 	protected function exit_uninstaller() {

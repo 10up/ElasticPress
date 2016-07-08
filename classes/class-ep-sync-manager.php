@@ -1,7 +1,13 @@
 <?php
+/**
+ * Manage syncing of content between WP and Elasticsearch
+ *
+ * @since  1.0
+ * @package elasticpress
+ */
 
- if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
 class EP_Sync_Manager {
@@ -206,6 +212,7 @@ class EP_Sync_Manager {
 			}
 		}
 	}
+	
 	/**
 	 * Return a singleton instance of the current class
 	 *

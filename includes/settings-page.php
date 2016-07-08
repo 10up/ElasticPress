@@ -2,24 +2,51 @@
 /**
  * Template for ElasticPress settings page
  *
- * @since  1.7
- *
+ * @since  2.1
  * @package elasticpress
- *
- * @author  Allan Collins <allan.collins@10up.com>
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+$action = 'options.php';
+
+if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	$index_meta = get_site_option( 'ep_index_meta', false );
+	$action = '';
+} else {
+	$index_meta = get_option( 'ep_index_meta', false );
+}
 ?>
+
+<?php require_once( dirname( __FILE__ ) . '/header.php' ); ?>
+
+<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?>"></div>
 <div class="wrap">
-	<?php printf( '<h2>%s</h2>', esc_html__( 'ElasticPress', 'elasticpress' ) ); ?>
+	<h1><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h1>
+	
+	<form action="<?php echo esc_attr( $action ); ?>" method="post">
+		<?php settings_fields( 'elasticpress' ); ?>
+		<?php settings_errors(); ?>
 
-	<div id="dashboard-widgets" class="metabox-holder columns-2 has-right-sidebar">
-		<div id='postbox-container-1' class='postbox-container'>
-			<?php $meta_boxes = do_meta_boxes( $this->options_page, 'normal', null ); ?>
-		</div>
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th scope="row"><label for="ep_host"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ); ?></label></th>
+					<td>
+						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( ep_get_host() ); ?>" name="ep_host" id="ep_host">
+						<?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>
+							<span class="description"><?php esc_html_e( 'Your Elasticsearch host is set in wp-config.php', 'elasticpress' ); ?></span>
+						<?php else : ?>
+							<span class="description"><?php _e( 'Plug in your Elasticsearch server here!', 'elasticpress' ); ?></span>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
+			</tbody>
+		</table>
 
-		<div id='postbox-container-2' class='postbox-container'>
-			<?php do_meta_boxes( $this->options_page, 'side', null ); ?>
-		</div>
-
-	</div>
+		<input type="submit" <?php if ( ! empty( $index_meta ) ) : ?>disabled<?php endif; ?> name="submit" id="submit" class="button button-primary" value="<?php esc_html_e( 'Save Changes', 'elasticpress' ); ?>">
+	</form>
 </div>
