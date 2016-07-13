@@ -6,7 +6,7 @@
   padding-right: 20px;
   padding-top: 5px;
   padding-bottom: 5px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 2px solid #ddd;
   z-index: 2; }
 
 .progress-bar {
@@ -265,6 +265,8 @@
   padding: 9px 15px 4px 0; }
 
 .wrap.intro {
+  margin-top: 30px;
+  margin-bottom: 30px;
   overflow: auto; }
 
 @media (min-width: 768px) {
