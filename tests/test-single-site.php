@@ -980,6 +980,98 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a post status query for published posts
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryPublish() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => 'publish',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a post status query for draft posts
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryDraft() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => 'draft',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a post status query for published or draft posts
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryMulti() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => 'draft',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with no post status
+	 *
+	 * @since 2.1
+	 */
+	public function testNoPostStatusSearchQuery() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		// post_status defaults to "publish"
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
 	 * Add attachment post type for indexing
 	 *
 	 * @since 1.6
