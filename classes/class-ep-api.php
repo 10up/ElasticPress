@@ -1487,7 +1487,7 @@ class EP_API {
 
 				$filter['and'][] = array(
 					$terms_map_name => array(
-						'post_status' => $post_status,
+						'post_status.raw' => $post_status,
 					),
 				);
 
