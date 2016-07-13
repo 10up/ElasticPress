@@ -1039,7 +1039,10 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$args = array(
 			's'         => 'findme',
-			'post_status' => 'draft',
+			'post_status' => array(
+				'draft',
+				'publish',
+			),
 		);
 
 		$query = new WP_Query( $args );
