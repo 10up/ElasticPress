@@ -509,6 +509,18 @@ The following commands are supported by ElasticPress:
 
   Recreates the alias index which points to every index in the network.
 
+* `wp elasticpress activate-module <module-slug> [--network-wide]`
+
+  Activate a module. If a re-indexing is required, you will need to do it manually. `--network-wide` will affect network activated ElasticPress.
+
+* `wp elasticpress deactivate-module <module-slug> [--network-wide]`
+
+  Deactivate a module. `--network-wide` will affect network activated ElasticPress.
+
+* `wp elasticpress list-modules [--all] [--network-wide]`
+
+  Lists active modules. `--all` will show all registered modules. `--network-wide` will force checking network options as opposed to a single sites options.
+
 * `wp elasticpress stats`
 
   Returns basic stats on Elasticsearch instance i.e. number of documents in current index as well as disk space used.
