@@ -525,6 +525,36 @@ The following commands are supported by ElasticPress:
 define( 'ES_SHIELD', 'username:password' );
 ```
 
+## Custom Modules
+
+ElasticPress has a robust API for registering your own module. Refer to the code within each module for detailed examples. To register a module, you will need to call the `ep_register_module()` function like so:
+
+```php
+add_action( 'plugins_loaded', function() {
+    ep_register_module( 'slug', array(
+        'title' => 'Pretty Title',
+        'setup_cb' => 'setup_callback_function',
+        'module_box_summary_cb' => 'summary_callback_function',
+        'module_box_long_cb' => 'long_summary_callback-function',
+        'requires_install_reindex' => true,
+        'dependencies_met_cb' => 'dependencies_meta_callback_function',
+        'post_activation_cb' => 'post_activation_callback_function',
+    ) );
+} );
+```
+
+The only arguments that are really required are the `slug` and `title` of the associative arguments array. Here are descriptions of each of the associative arguments:
+
+`title` (string) - Pretty title for module
+`requires_install_reindex` (boolean) - Setting to true will force a reindex after the module is activated.
+`setup_cb` (callback) - Callback to a function to be called on each page load when the module is activated.
+`post_activation_cb` (callback) - Callback to a function to be called after a module is first activated.
+`module_box_summary_cb` (callback) - Callback to a function that outputs HTML module box summary (short description of module).
+`module_box_long_cb` (callback) - Callback to a function that outputs HTML module box full description.
+`dependencies_met_cb` (callback) - Callback to a function that determines if the modules dependencies are met. True means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
+
+If you build an open source custom module, let us know! We'd be happy to list the module within ElasticPress documentation.
+
 ## Development
 
 ### Setup
