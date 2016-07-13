@@ -980,6 +980,162 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a post status query for published posts
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryPublish() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => 'publish',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a post status query for draft posts
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryDraft() {
+		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => 'draft',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
+	}
+
+	/**
+	 * Test a post status query for published or draft posts without 'draft' allowed as indexable status
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryMultiDefault() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => array(
+				'draft',
+				'publish',
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a post status query for published or draft posts with 'draft' whitelisted as indexable status
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryMulti() {
+		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => array(
+				'draft',
+				'publish',
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
+	}
+
+	/**
+	 * Test a query with no post status without 'draft' indexable status
+	 *
+	 * @since 2.1
+	 */
+	public function testNoPostStatusSearchQueryDefault() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		// post_status defaults to "publish"
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with no post status with 'draft' as indexable status
+	 *
+	 * @since 2.1
+	 */
+	public function testNoPostStatusSearchQuery() {
+		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		// post_status defaults to "publish"
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
+	}
+
+	/**
 	 * Add attachment post type for indexing
 	 *
 	 * @since 1.6

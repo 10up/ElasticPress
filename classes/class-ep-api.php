@@ -1469,6 +1469,32 @@ class EP_API {
 			}
 		}
 
+		/**
+		 * Like WP_Query in search context, if no post_status is specified we default to "any". To
+		 * be safe you should ALWAYS specify the post_status parameter UNLIKE with WP_Query.
+		 *
+		 * @since 2.1
+		 */
+		if ( ! empty( $args['post_status'] ) ) {
+			// should NEVER be "any" but just in case
+			if ( 'any' !== $args['post_status'] ) {
+				$post_status = (array) $args['post_status'];
+				$terms_map_name = 'terms';
+				if ( count( $post_status ) < 2 ) {
+					$terms_map_name = 'term';
+					$post_status = $post_status[0];
+ 				}
+
+				$filter['and'][] = array(
+					$terms_map_name => array(
+						'post_status' => $post_status,
+					),
+				);
+
+				$use_filters = true;
+			}
+		}
+
 		if ( isset( $args['offset'] ) ) {
 			$formatted_args['from'] = $args['offset'];
 		}
