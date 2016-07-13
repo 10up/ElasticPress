@@ -1672,6 +1672,18 @@ class EP_API {
 							'order' => $order,
 						),
 					);
+				} elseif ( 'type' === $orderby_clause ) {
+					$sort[] = array(
+						'post_type' => array(
+							'order' => $order,
+						),
+					);
+				} elseif ( 'modified' === $orderby_clause ) {
+					$sort[] = array(
+						'post_modified' => array(
+							'order' => $order,
+						),
+					);
 				} elseif ( 'name' === $orderby_clause ) {
 					$sort[] = array(
 						'post_' . $orderby_clause . '.raw' => array(
