@@ -1135,7 +1135,7 @@ class EP_API {
 				 *
 				 * @since  2.1
 				 */
-				if ( empty( $single_meta_query['key'] ) ) {
+				if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
 					reset( $single_meta_query );
 					$first_key = key( $single_meta_query );
 
