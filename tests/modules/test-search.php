@@ -6,6 +6,7 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * Setup each test.
 	 *
 	 * @since 2.1
+	 * @group search
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -30,6 +31,7 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 2.1
+	 * @group search
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -43,6 +45,7 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * Test that search is off by default
 	 *
 	 * @since 2.1
+	 * @group search
 	 */
 	public function testSearchOff() {
 		$post_ids = array();

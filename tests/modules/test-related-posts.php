@@ -6,6 +6,7 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 	 * Setup each test.
 	 *
 	 * @since 2.1
+	 * @group related_posts
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -30,6 +31,7 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 2.1
+	 * @group related_posts
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -43,6 +45,7 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 	 * Log action usage for tests
 	 *
 	 * @since  2.1
+	 * @group related_posts
 	 */
 	public function action_ep_related_html_attached() {
 		$this->fired_actions['ep_related_html_attached'] = true;
@@ -52,6 +55,7 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 	 * Test that related posts is off
 	 *
 	 * @since 2.1
+	 * @group related_posts
 	 */
 	public function testRelatedPostsOff() {
 		delete_option( 'ep_active_modules' );
@@ -87,6 +91,7 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 	 * Test that related posts is on
 	 *
 	 * @since 2.1
+	 * @group related_posts
 	 */
 	public function testRelatedPostsOn() {
 		$post_ids = array();

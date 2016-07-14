@@ -5,7 +5,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Checking if HTTP request returns 404 status code.
 	 * @var boolean
 	 */
-	var $is_404=false;
+	var $is_404 = false;
 
 	/**
 	 * Setup each test.
