@@ -309,7 +309,7 @@ ElasticPress integrates with `WP_Query` if and only if the `ep_integrate` parame
     
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
+    Order results by field name instead of relevance. Supports: ```title```, ```modified```, ```type```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
 
 * ```order``` (*string*)
 
@@ -539,7 +539,7 @@ define( 'ES_SHIELD', 'username:password' );
 
 ## Custom Modules
 
-ElasticPress has a robust API for registering your own module. Refer to the code within each module for detailed examples. To register a module, you will need to call the `ep_register_module()` function like so:
+ElasticPress has a robust API for registering your own modules. Refer to the code within each module for detailed examples. To register a module, you will need to call the `ep_register_module()` function like so:
 
 ```php
 add_action( 'plugins_loaded', function() {
@@ -547,7 +547,7 @@ add_action( 'plugins_loaded', function() {
         'title' => 'Pretty Title',
         'setup_cb' => 'setup_callback_function',
         'module_box_summary_cb' => 'summary_callback_function',
-        'module_box_long_cb' => 'long_summary_callback-function',
+        'module_box_long_cb' => 'long_summary_callback_function',
         'requires_install_reindex' => true,
         'dependencies_met_cb' => 'dependencies_meta_callback_function',
         'post_activation_cb' => 'post_activation_callback_function',
