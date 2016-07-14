@@ -13,10 +13,12 @@
  * @since  2.1
  */
 function ep_admin_setup() {
-	add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
-	add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-	add_action( 'pre_get_posts', 'ep_admin_integrate' );
-	add_filter( 'ep_indexable_post_types', 'ep_admin_indexable_post_types' );
+	if ( is_admin() ) {
+		add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
+		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
+		add_action( 'pre_get_posts', 'ep_admin_integrate' );
+		add_filter( 'ep_indexable_post_types', 'ep_admin_indexable_post_types' );
+	}
 }
 
 /**
@@ -51,6 +53,10 @@ function ep_admin_integrate( $query ) {
 	$supported_post_types = apply_filters( 'ep_admin_supported_post_types', $post_types );
 
 	$post_type = $query->get( 'post_type' );
+
+	if ( empty( $post_type ) ) {
+		$post_type = 'post';
+	}
 
 	if ( is_array( $post_type ) ) {
 		foreach ( $post_type as $pt ) {
