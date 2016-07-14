@@ -1493,6 +1493,14 @@ class EP_API {
 
 				$use_filters = true;
 			}
+		} else {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_status' => 'publish',
+				),
+			);
+
+			$use_filters = true;
 		}
 
 		if ( isset( $args['offset'] ) ) {
