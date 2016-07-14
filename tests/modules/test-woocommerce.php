@@ -6,7 +6,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Setup each test.
 	 *
 	 * @since 2.1
-	 * @group WooCommerce
+	 * @group woocommerce
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -33,7 +33,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 2.1
-	 * @group WooCommerce
+	 * @group woocommerce
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -47,7 +47,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test products post type query doesn't get integrated when the module is not active
 	 *
 	 * @since 2.1
-	 * @group WooCommerce
+	 * @group Wwoocommerce
 	 */
 	public function testProductsPostTypeQueryOff() {
 		EP_Modules::factory()->setup_modules();
@@ -72,7 +72,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test products post type query does get integrated when the module is not active
 	 *
 	 * @since 2.1
-	 * @group WooCommerce
+	 * @group woocommerce
 	 */
 	public function testProductsPostTypeQueryOn() {
 		ep_activate_module( 'woocommerce' );
@@ -100,7 +100,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test orders post type query does get integrated
 	 *
 	 * @since 2.1
-	 * @group WooCommerce
+	 * @group woocommerce
 	 */
 	public function testProductsPostTypeQueryShopOrder() {
 		ep_activate_module( 'woocommerce' );
@@ -128,7 +128,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test products post type query does get integrated when querying WC product_cat taxonomy
 	 *
 	 * @since 2.1
-	 * @group WooCommerce
+	 * @group woocommerce
 	 */
 	public function testProductsPostTypeQueryProductCatTax() {
 		ep_activate_module( 'woocommerce' );
@@ -159,7 +159,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test search integration is on for shop orders
 	 *
 	 * @since 2.1
-	 * @group WooCommerce
+	 * @group woocommerce
 	 */
 	public function testSearchOnShopOrderAdmin() {
 		ep_activate_module( 'woocommerce' );
@@ -187,7 +187,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test search integration is on in general
 	 *
 	 * @since 2.1
-	 * @group WooCommerce
+	 * @group woocommerce
 	 */
 	public function testSearchOnAllFrontEnd() {
 		ep_activate_module( 'woocommerce' );
