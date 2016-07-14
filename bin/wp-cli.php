@@ -469,9 +469,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				'ignore_sticky_posts'    => true,
 				'orderby'                => 'ID',
 				'order'                  => 'DESC',
-				'cache_results '         => false,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
 			) );
 			$query->query( $args );
 
