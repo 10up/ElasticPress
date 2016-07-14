@@ -56,6 +56,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( __( 'This module is already active', 'elasticpress' ) );
 		}
 
+		if ( is_wp_error( $module->dependencies_met() ) ) {
+			WP_CLI::error( __( 'Module depedencies are not met', 'elasticpress' ) );
+		}
+
 		$active_modules[] = $module->slug;
 
 		$module->post_activation();
