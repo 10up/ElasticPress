@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-07-13 03:03:38+00:00\n"
+"POT-Creation-Date: 2016-07-14 00:59:54+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -13,115 +13,151 @@ msgstr ""
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "X-Generator: grunt-wp-i18n 0.5.4\n"
 
-#: bin/wp-cli.php:55
+#: bin/wp-cli.php:46 bin/wp-cli.php:93
+msgid "No module with that slug is registered"
+msgstr ""
+
+#: bin/wp-cli.php:56
+msgid "This module is already active"
+msgstr ""
+
+#: bin/wp-cli.php:60
+msgid "Module depedencies are not met"
+msgstr ""
+
+#: bin/wp-cli.php:68
+msgid "This module requires a re-index. You may want to run the index command next."
+msgstr ""
+
+#: bin/wp-cli.php:77
+msgid "Module activated"
+msgstr ""
+
+#: bin/wp-cli.php:107
+msgid "Module is not active"
+msgstr ""
+
+#: bin/wp-cli.php:116
+msgid "Module deactivated"
+msgstr ""
+
+#: bin/wp-cli.php:137
+msgid "Active modules:"
+msgstr ""
+
+#: bin/wp-cli.php:139
+msgid "Registered modules:"
+msgstr ""
+
+#: bin/wp-cli.php:170
 msgid "Adding mapping for site %d..."
 msgstr ""
 
-#: bin/wp-cli.php:65 bin/wp-cli.php:83
+#: bin/wp-cli.php:180 bin/wp-cli.php:198
 msgid "Mapping sent"
 msgstr ""
 
-#: bin/wp-cli.php:67 bin/wp-cli.php:85
+#: bin/wp-cli.php:182 bin/wp-cli.php:200
 msgid "Mapping failed"
 msgstr ""
 
-#: bin/wp-cli.php:73
+#: bin/wp-cli.php:188
 msgid "Adding mapping..."
 msgstr ""
 
-#: bin/wp-cli.php:113
+#: bin/wp-cli.php:228
 msgid "Deleting index for site %d..."
 msgstr ""
 
-#: bin/wp-cli.php:118 bin/wp-cli.php:131
+#: bin/wp-cli.php:233 bin/wp-cli.php:246
 msgid "Index deleted"
 msgstr ""
 
-#: bin/wp-cli.php:120
+#: bin/wp-cli.php:235
 msgid "Delete index failed"
 msgstr ""
 
-#: bin/wp-cli.php:126
+#: bin/wp-cli.php:241
 msgid "Deleting index..."
 msgstr ""
 
-#: bin/wp-cli.php:133
+#: bin/wp-cli.php:248
 msgid "Index delete failed"
 msgstr ""
 
-#: bin/wp-cli.php:151 bin/wp-cli.php:265
+#: bin/wp-cli.php:266 bin/wp-cli.php:380
 msgid "Recreating network alias..."
 msgstr ""
 
-#: bin/wp-cli.php:158 bin/wp-cli.php:292
+#: bin/wp-cli.php:273 bin/wp-cli.php:407
 msgid "Done!"
 msgstr ""
 
-#: bin/wp-cli.php:160
+#: bin/wp-cli.php:275
 msgid "An error occurred"
 msgstr ""
 
-#: bin/wp-cli.php:245
+#: bin/wp-cli.php:360
 msgid "Indexing posts network-wide..."
 msgstr ""
 
-#: bin/wp-cli.php:256 bin/wp-cli.php:277
+#: bin/wp-cli.php:371 bin/wp-cli.php:392
 msgid "Number of posts indexed on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:259 bin/wp-cli.php:280
+#: bin/wp-cli.php:374 bin/wp-cli.php:395
 msgid "Number of post index errors on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:269
+#: bin/wp-cli.php:384
 msgid "Total number of posts indexed: %d"
 msgstr ""
 
-#: bin/wp-cli.php:273
+#: bin/wp-cli.php:388
 msgid "Indexing posts..."
 msgstr ""
 
-#: bin/wp-cli.php:284
+#: bin/wp-cli.php:399
 msgid "Total time elapsed: "
 msgstr ""
 
-#: bin/wp-cli.php:553
+#: bin/wp-cli.php:668
 msgid ""
 "The following posts failed to index:\r\n"
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:688
+#: bin/wp-cli.php:803
 msgid ""
 "There is no Elasticsearch host set up. Either add one through the dashboard "
 "or define one in wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:690
+#: bin/wp-cli.php:805
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1793
+#: classes/class-ep-api.php:1831
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1806
+#: classes/class-ep-api.php:1844
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1810
+#: classes/class-ep-api.php:1848
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1848 classes/class-ep-api.php:1907
-#: classes/class-ep-api.php:1947 classes/class-ep-api.php:1998
+#: classes/class-ep-api.php:1886 classes/class-ep-api.php:1945
+#: classes/class-ep-api.php:1985 classes/class-ep-api.php:2036
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
