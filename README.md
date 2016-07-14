@@ -480,6 +480,8 @@ The following are special parameters that are only supported by ElasticPress.
     ) );
     ```
 
+    Setting `ep_integrate` to `false` will override the `s` parameter if provided.
+
 ### Supported WP-CLI Commands
 
 The following commands are supported by ElasticPress:

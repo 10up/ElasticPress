@@ -189,7 +189,9 @@ function ep_use_searchable_post_types_on_any( $post_type, $query ) {
  * @return bool
  */
 function ep_integrate_search_queries( $enabled, $query ) {
-	if ( method_exists( $query, 'is_search' ) && $query->is_search() ) {
+	if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+		$enabled = false;
+	} else if ( method_exists( $query, 'is_search' ) && $query->is_search() ) {
 		$enabled = true;
 	}
 
