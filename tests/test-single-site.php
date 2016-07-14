@@ -1086,7 +1086,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a query with no post status without 'draft' indexable status
+	 * Test a query with no post status without 'draft' indexable status. Post status should default to publish.
 	 *
 	 * @since 2.1
 	 */
@@ -1109,7 +1109,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a query with no post status with 'draft' as indexable status
+	 * Test a query with no post status with 'draft' as indexable status. Post status should default to publish
 	 *
 	 * @since 2.1
 	 */
@@ -2543,7 +2543,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @return  array
 	 */
 	public function mock_indexable_post_status( $post_statuses ) {
-		$post_statuses = array();
 		$post_statuses[] = "draft";
 		return $post_statuses;
 	}
