@@ -1444,10 +1444,7 @@ class EP_API {
 		}
 
 		/**
-		 * Like WP_Query in search context, if no post_type is specified we default to "any". To
-		 * be safe you should ALWAYS specify the post_type parameter UNLIKE with WP_Query.
-		 *
-		 * @since 1.3
+		 * If not set default to post. If search and not set, default to "any".
 		 */
 		if ( ! empty( $args['post_type'] ) ) {
 			// should NEVER be "any" but just in case
@@ -1467,6 +1464,14 @@ class EP_API {
 
 				$use_filters = true;
 			}
+		} elseif ( empty( $args['s'] ) ) {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_type.raw' => 'post',
+				),
+			);
+
+			$use_filters = true;
 		}
 
 		/**
