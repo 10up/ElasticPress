@@ -142,7 +142,7 @@ class EP_API {
 
 		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
-		} elseif ( is_numeric( $scope ) ) {
+		} elseif ( is_int( (int) $scope ) ) {
 			$index = ep_get_index_name( $scope );
 		} elseif ( is_array( $scope ) ) {
 			$index = array();
