@@ -904,7 +904,7 @@ class EP_API {
 
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
-			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order );
+			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order, $args );
 		} else {
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
@@ -1665,9 +1665,10 @@ class EP_API {
 	 *
 	 * @param string $orderby Alias or path for the field to order by.
 	 * @param string $order
+	 * @param  array $args
 	 * @return array
 	 */
-	protected function parse_orderby( $orderby, $order ) {
+	protected function parse_orderby( $orderby, $order, $args ) {
 		$orderbys = explode( ' ', $orderby );
 		$sort = array();
 
@@ -1709,6 +1710,14 @@ class EP_API {
 							'order' => $order,
 						),
 					);
+				} elseif ( 'meta_value' === $orderby_clause ) {
+					if ( ! empty( $args['meta_key'] ) ) {
+						$sort[] = array(
+							'meta.' . $args['meta_key'] . '.value' => array(
+								'order' => $order,
+							),
+						);
+					}
 				} else {
 					$sort[] = array(
 						$orderby_clause => array(
