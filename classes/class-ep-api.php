@@ -132,12 +132,13 @@ class EP_API {
 	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
-	 * @param array $args
-	 * @param string $scope
-	 * @since 0.1.0
+	 * @param  array  $args
+	 * @param  array  $query_args Strictly for debugging
+	 * @param  string $scope
+	 * @since  0.1.0
 	 * @return array
 	 */
-	public function query( $args, $scope = 'current' ) {
+	public function query( $args, $query_args, $scope = 'current' ) {
 		$index = null;
 
 		if ( 'all' === $scope ) {
@@ -156,19 +157,19 @@ class EP_API {
 			$index = ep_get_index_name();
 		}
 
-		$path = apply_filters( 'ep_search_request_path', $index . '/post/_search', $args, $scope );
+		$path = apply_filters( 'ep_search_request_path', $index . '/post/_search', $args, $scope, $query_args );
 
 		$request_args = array(
-			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
+			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope, $query_args ) ),
 			'method'  => 'POST',
 		);
 
-		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope ) );
+		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args );
 
 		if ( ! is_wp_error( $request ) ) {
 
 			// Allow for direct response retrieval
-			do_action( 'ep_retrieve_raw_response', $request, $args, $scope );
+			do_action( 'ep_retrieve_raw_response', $request, $args, $scope, $query_args );
 
 			$response_body = wp_remote_retrieve_body( $request );
 
@@ -182,7 +183,7 @@ class EP_API {
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
-				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope );
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $query_args );
 			}
 
 			$posts = array();
@@ -1777,10 +1778,11 @@ class EP_API {
 	 *
 	 * @param string $path Site URL to retrieve.
 	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @param array  $query_args Optional. The query args originally passed to WP_Query
 	 *
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
-	public function remote_request( $path, $args = array() ) {
+	public function remote_request( $path, $args = array(), $query_args = array() ) {
 
 		$query = array(
 			'time_start'   => microtime( true ),
@@ -1790,6 +1792,7 @@ class EP_API {
 			'failed_hosts' => array(),
 			'request'      => false,
 			'host'         => ep_get_host(),
+			'query_args'   => $query_args,
 		);
 
 		//Add the API Header
@@ -2123,8 +2126,8 @@ function ep_index_post( $post, $blocking = true ) {
 	return EP_API::factory()->index_post( $post, $blocking );
 }
 
-function ep_query( $args, $scope = 'current' ) {
-	return EP_API::factory()->query( $args, $scope );
+function ep_query( $args, $query_args, $scope = 'current' ) {
+	return EP_API::factory()->query( $args, $query_args, $scope );
 }
 
 function ep_get_post( $post_id ) {
@@ -2187,8 +2190,8 @@ function ep_format_request_headers() {
 	return EP_API::factory()->format_request_headers();
 }
 
-function ep_remote_request( $path, $args ) {
-	return EP_API::factory()->remote_request( $path, $args );
+function ep_remote_request( $path, $args, $query_args ) {
+	return EP_API::factory()->remote_request( $path, $args, $query_args );
 }
 
 function ep_get_query_log() {

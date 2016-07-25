@@ -226,7 +226,7 @@ class EP_WP_Query_Integration {
 
 			$formatted_args = ep_format_args( $query_vars );
 
-			$ep_query = ep_query( $formatted_args, $scope );
+			$ep_query = ep_query( $formatted_args, $query->query_vars, $scope );
 
 			if ( false === $ep_query ) {
 				return $request;
