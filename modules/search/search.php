@@ -65,6 +65,37 @@ function ep_search_setup() {
 	add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
 	add_filter( 'ep_formatted_args', 'ep_weight_recent', 10, 2 );
 	add_filter( 'ep_query_post_type', 'ep_filter_query_post_type_for_search', 10, 2 );
+	add_action( 'pre_get_posts', 'ep_improve_default_search', 10, 1 );
+}
+
+/**
+ * By default search authors, taxonomies, and post stuff
+ *
+ * @since  2.1
+ * @param  WP_Query $query
+ */
+function ep_improve_default_search( $query ) {
+	if ( is_admin() ) {
+		return;
+	}
+
+	/**
+	 * Make sure this is an ElasticPress search query
+	 */
+	if ( ! ep_elasticpress_enabled( $query ) || ! $query->is_search() ) {
+		return;
+	}
+
+	$query->set( 'search_fields', array(
+		'post_title',
+		'post_content',
+		'post_excerpt',
+		'author_name',
+		'taxonomies' => array(
+			'post_tag',
+			'category',
+		),
+    ) );
 }
 
 /**
