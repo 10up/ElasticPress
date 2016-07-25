@@ -702,7 +702,7 @@ class EP_API {
 				}
 			}
 
-			if ( true === $allow_index ) {
+			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', $post ) ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
