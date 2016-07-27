@@ -9,7 +9,7 @@ Supercharge WordPress performance and search with Elasticsearch.
 
 ElasticPress is a simple plugin to dramatically improve WordPress performance and search. By integrating with [Elasticsearch](https://elastic.co), ElasticPress can speed up search queries, post/page/etc look ups, complex meta and taxonomy queries, improve search relevancy, support search misspellings, support search filters, and more. If you have struggled with slow load times when showing a list of posts or irrelevant search results, this plugin is for you. If you want to facet search results with filters, this plugin is for you.
 
-ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins (right now [WooCommerce](http://wordpress.org/plugins/woocommerce) only). ElasticPress will make your WooCommerce product pages load much faster even when using filters.
+ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins. ElasticPress will make your WooCommerce product pages load much faster even when using filters.
 
 <p align="center">
 <a href="http://10up.com/contact/#request_quote"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/05/ghbadge-with-font.svg" width="700"></a>
@@ -52,6 +52,10 @@ Related Posts finds similiar content by comparing terms and post fields. A posts
 ### WooCommerce
 
 This module runs all WooCommerce product and orders queries through Elasticsearch. Product queries (filters especially) run much faster. In the back end, browsing products and orders is much faster.
+
+### bbPress
+
+This module runs bbPress search through Elasticsearch. Topic, forum, and replies will be searched much more effectively - post content, excerpt, title, taxonomies, recency weighting, etc.
 
 ## `WP_Query` and the ElasticPress Query Integration
 
