@@ -15,6 +15,13 @@
 function ep_bbp_setup() {
 	add_filter( 'ep_prepare_meta_whitelist_key', 'ep_bbp_whitelist_meta_keys', 10, 3 );
 	add_action( 'pre_get_posts', 'ep_bbp_search', 10, 1 );
+
+	/**
+	 * We have to do this in case the search module isn't active
+	 */
+	if ( ! is_admin() ) {
+		add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
+	}
 }
 
 function ep_bbp_search( $query ) {
@@ -43,6 +50,24 @@ function ep_bbp_search( $query ) {
 		'author_name',
 		'taxonomies' => array( 'topic-tag' ),
     ) );
+}
+
+/**
+ * In case the search module isn't active
+ * 
+ * @param  bool $enabled
+ * @param  WP_Query $query
+ * @since  2.1
+ * @return bool
+ */
+function ep_bbp_integrate_search_queries( $enabled, $query ) {
+	if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+		$enabled = false;
+	} else if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
+		$enabled = true;
+	}
+
+	return $enabled;
 }
 
 /**
