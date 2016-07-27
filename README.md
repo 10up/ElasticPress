@@ -1,4 +1,4 @@
-ElasticPress
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
 =============
 
 Supercharge WordPress performance and search with Elasticsearch.
