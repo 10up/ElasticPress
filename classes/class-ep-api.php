@@ -2190,7 +2190,7 @@ function ep_format_request_headers() {
 	return EP_API::factory()->format_request_headers();
 }
 
-function ep_remote_request( $path, $args, $query_args ) {
+function ep_remote_request( $path, $args = array(), $query_args = array() ) {
 	return EP_API::factory()->remote_request( $path, $args, $query_args );
 }
 
