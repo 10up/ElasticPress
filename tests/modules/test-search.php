@@ -48,6 +48,7 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * @group search
 	 */
 	public function testSearchOff() {
+		EP_Modules::factory()->setup_modules();
 		$post_ids = array();
 
 		ep_create_and_sync_post();
@@ -65,5 +66,34 @@ class EPTestSearchModule extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertTrue( empty( $this->fired_actions['ep_wp_query_search'] ) );
+	}
+
+	/**
+	 * Test that search is on
+	 *
+	 * @since 2.1
+	 * @group search
+	 */
+	public function testSearchOn() {
+		ep_activate_module( 'search' );
+		EP_Modules::factory()->setup_modules();
+
+		$post_ids = array();
+
+		ep_create_and_sync_post();
+		ep_create_and_sync_post();
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+
+		ep_refresh_index();
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 	}
 }
