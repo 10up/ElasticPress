@@ -53,24 +53,6 @@ function ep_bbp_search( $query ) {
 }
 
 /**
- * In case the search module isn't active
- * 
- * @param  bool $enabled
- * @param  WP_Query $query
- * @since  2.1
- * @return bool
- */
-function ep_bbp_integrate_search_queries( $enabled, $query ) {
-	if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
-		$enabled = false;
-	} else if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
-		$enabled = true;
-	}
-
-	return $enabled;
-}
-
-/**
  * Index BBPress meta
  *
  * @param   boolean $whitelist
