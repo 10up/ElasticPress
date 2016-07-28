@@ -1664,16 +1664,27 @@ class EP_API {
 	 * @since 1.1
 	 * @access protected
 	 *
-	 * @param string $orderby Alias or path for the field to order by.
+	 * @param string $orderbys Alias or path for the field to order by.
 	 * @param string $order
 	 * @param  array $args
 	 * @return array
 	 */
-	protected function parse_orderby( $orderby, $order, $args ) {
-		$orderbys = explode( ' ', $orderby );
+	protected function parse_orderby( $orderbys, $default_order, $args ) {
+		if ( ! is_array( $orderbys ) ) {
+			$orderbys = explode( ' ', $orderbys );
+		}
+
 		$sort = array();
 
-		foreach ( $orderbys as $orderby_clause ) {
+		foreach ( $orderbys as $key => $value ) {
+			if ( is_string( $key ) ) {
+				$orderby_clause = $key;
+				$order = $value;
+			} else {
+				$orderby_clause = $value;
+				$order = $default_order;
+			}
+
 			if ( ! empty( $orderby_clause ) ) {
 				if ( 'relevance' === $orderby_clause ) {
 					$sort[] = array(

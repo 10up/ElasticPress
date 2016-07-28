@@ -1499,6 +1499,61 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test post meta string orderby query asc array
+	 *
+	 * @since 2.1
+	 */
+	public function testSearchPostMetaStringOrderbyQueryAscArray() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'B' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'a' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => array( 'meta.test_key.value.sortable' ),
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test post meta string orderby query advanced. Specifically, look at orderby when it is an array
+	 * like array( 'key' => 'order direction ' )
+	 *
+	 * @since 2.1
+	 */
+	public function testSearchPostMetaStringOrderbyQueryAdvanced() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c', 'test_key2' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'd', 'test_key2' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'd', 'test_key2' => 'd' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => array( 'meta.test_key.value.sortable' => 'asc', 'meta.test_key.value.sortable' => 'desc' ),
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 111', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[2]->post_title );
+	}
+
+	/**
 	 * Sort by an author login
 	 *
 	 * @since 1.8
