@@ -57,6 +57,10 @@ This module runs all WooCommerce product and orders queries through Elasticsearc
 
 This module runs bbPress search through Elasticsearch. Topic, forum, and replies will be searched much more effectively - post content, excerpt, title, taxonomies, recency weighting, etc.
 
+### The Events Calendar
+
+The Events Calendar runs some very complex MySQL queries to find out which events fall on what day. This module will make your calendars load much faster.
+
 ## `WP_Query` and the ElasticPress Query Integration
 
 ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search module is activated, all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
