@@ -605,7 +605,7 @@ function ep_wc_setup() {
 	add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 	add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 	add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-	add_filter( 'ep_indexable_post_status', 'ep_wc_get_statuses' );
+	add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
 	add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
 }
 
