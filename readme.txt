@@ -32,6 +32,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Make plugin modular
 * Remove unnecessary back up hosts code
 * Bundle existing modules into plugin
+* Support `meta_key` and `meta_value`
 
 Backward compat breaks:
 

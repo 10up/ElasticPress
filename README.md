@@ -307,6 +307,17 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
     is very rarely needed to be used.
 
+* ```meta_key``` (*string*)
+
+    Allows you to query meta with the defined key. Requires `meta_value` or `meta_value_num` be used as well.
+
+* ```meta_value``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
+
+* ```meta_value_num``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
 
 * ```post_type``` (*string*/*array*)
 
