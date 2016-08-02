@@ -269,6 +269,13 @@
   margin-bottom: 30px;
   overflow: auto; }
 
+#wpbody #update-nag,
+#wpbody .update-nag {
+  margin-left: -20px;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 20px; }
+
 @media (min-width: 768px) {
   .intro .left {
     float: left;
