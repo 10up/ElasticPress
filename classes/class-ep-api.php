@@ -1019,7 +1019,7 @@ class EP_API {
 		if ( ! empty( $args['post__in'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'terms' => array(
-					'post_id' => (array) $args['post__in'],
+					'post_id' => array_values( (array) $args['post__in'] ),
 				),
 			);
 
