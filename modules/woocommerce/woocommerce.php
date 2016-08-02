@@ -269,8 +269,20 @@ function ep_wc_translate_args( $query ) {
 		}
 	}
 
+	$post_type = $query->get( 'post_type', false );
+
 	if ( ! empty( $tax_query ) ) {
 		$query->set( 'tax_query', $tax_query );
+
+		if ( empty( $post_type ) ) {
+			$post_type = 'product';
+		} elseif ( is_array( $post_type ) ) {
+			$post_type[] = 'product';
+		} else {
+			$post_type = array( $post_type, 'product' );
+		}
+
+		$query->set( 'post_type', $post_type );
 	}
 
 	/**
@@ -282,8 +294,6 @@ function ep_wc_translate_args( $query ) {
 		'shop_order_refund',
 		'product_variation'
 	);
-
-	$post_type = $query->get( 'post_type', false );
 
 	// For orders it queries an array of shop_order and shop_order_refund post types, hence an array_diff
 	if ( ! empty( $post_type ) && ( in_array( $post_type, $supported_post_types ) || ( is_array( $post_type ) && ! array_diff( $post_type, $supported_post_types ) ) ) ) {
