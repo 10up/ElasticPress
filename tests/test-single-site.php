@@ -2977,6 +2977,10 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	function testByteSize() {
 
+		if ( ! class_exists( 'EP_Settings' ) ) {
+			require( $this->plugin_path . '/classes/class-ep-settings.php' );
+		}
+
 		$one_kb = EP_Settings::ep_byte_size( 1056, 0 );
 
 		$one_mb = EP_Settings::ep_byte_size( 1056000, 0 );

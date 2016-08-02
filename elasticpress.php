@@ -57,8 +57,10 @@ function ep_loader() {
 		load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
 
 		// Load the settings page.
-		require_once( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
-		new EP_Settings();
+		if( is_admin() && is_user_logged_in() ) {
+			require_once( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
+			new EP_Settings();
+		}
 
 		// Load the indexing GUI.
 		if ( true === apply_filters( 'ep_load_index_gui', true ) ) {
