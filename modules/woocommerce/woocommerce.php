@@ -471,90 +471,6 @@ function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
 }
 
 /**
- * Fetches all necessary WooCommerce related post statuses
- *
- * @since  2.1
- * @return  array
- */
-function ep_wc_get_statuses() {
-	$post_statuses = get_post_stati();
-
-	unset( $post_statuses['auto-draft'] );
-
-	return array_values( $post_statuses );
-}
-
-/**
- * Handle Woo Commerce related formatted args
- *
- * @since  2.1
- * @param  array $formatted_args The formatted WP query arguments
- * @return array
- */
-function ep_wc_formatted_args( $formatted_args, $args ) {
-
-	if ( is_admin() ) {
-		if ( isset( $_GET['post_status'] ) && 'all' !== $_GET['post_status'] ) {
-			$post_status = array( $_GET['post_status'] );
-		} else {
-			$post_status = ep_wc_get_statuses();
-
-			// Lets make sure the thrashed posts are not accounted for in the default edit post listing
-			$trash_index = array_search( 'trash', $post_status );
-			if ( $trash_index ) {
-				unset( $post_status[ $trash_index ] );
-			}
-
-			$post_status = array_values( $post_status );
-		}
-	} else {
-
-		// Setting a collection of post status for the front-end display
-		$post_status = array(
-			'publish',
-			'wc-cancelled',
-			'wc-completed',
-			'wp-failed',
-			'wc-on-hold',
-			'wc-pending',
-			'wc-processing',
-			'wc-refunded',
-		);
-
-		// Include Custom WooCommerce Order Statuses to this list of front-end display post statuses
-		if ( function_exists( 'wc_get_order_statuses' ) ) {
-
-			$woo_order_statuses = wc_get_order_statuses();
-			if ( ! empty( $woo_order_statuses ) ) {
-				$woo_order_statuses = array_keys( $woo_order_statuses );
-
-				$post_status = array_values( array_unique( array_merge( $post_status, $woo_order_statuses ) ) );
-			}
-		}
-
-		$post_status = apply_filters( 'valid_front_end_post_statuses', $post_status, $formatted_args, $args );
-
-		// Narrow down to the post parent for product variations
-		if ( ! empty( $args['post_type'] ) && 'product_variation' == $args['post_type'] ) {
-			if ( isset( $args['post_parent'] ) && $args['post_parent'] ) {
-				$formatted_args['filter']['and'][] = array(
-					'term' => array( 'post_parent' => $args['post_parent'] ),
-				);
-			}
-		}
-	}
-
-	// Add post status detail to the query.
-	if ( $post_status ) {
-		$formatted_args['filter']['and'][] = array(
-			'terms' => array( 'post_status' => $post_status ),
-		);
-	}
-
-	return $formatted_args;
-}
-
-/**
  * Make search coupons don't go through ES
  * 
  * @param  bool $enabled
@@ -594,7 +510,6 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
 function ep_wc_setup() {
 	add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
 	add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
-	add_filter( 'ep_formatted_args', 'ep_wc_formatted_args', 10, 2 );
 	add_filter( 'ep_indexable_post_types', 'ep_wc_post_types', 10, 1 );
 	add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
 	add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields' );
