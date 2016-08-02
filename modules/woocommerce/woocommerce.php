@@ -332,34 +332,18 @@ function ep_wc_translate_args( $query ) {
 		$query->query['suppress_filters'] = false;
 		$query->set( 'suppress_filters', false );
 
-		/**
-		 * This stuff will mess up search queries. We check the actual "s" query arg since sometimes in the admin WP sets it to empty
-		 * for non-search queries
-		 */
+		$orderby = $query->get( 'orderby' );
+
+		if ( ! empty( $orderby ) && 'rand' === $orderby ) {
+			$query->set( 'orderby', false ); // Just order by relevance.
+		}
+
 		if ( empty( $query->get( 's' ) ) ) {
 			$query->query_vars['ep_integrate'] = true;
 			$query->query['ep_integrate'] = true;
-
-			// Assuming $post_type to be product if empty
-			if ( empty( $post_type ) || 'product' === $post_type ) {
-				$orderby = $query->get( 'orderby', 'date' ); // Default to date
-				if ( in_array( $orderby, array( 'meta_value_num', 'meta_value' ) ) ) {
-					$orderby = $query->get( 'meta_key', 'date' ); // Default to date
-				}
-				$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( $orderby ) );
-			} elseif ( in_array( $post_type, array( 'shop_order', 'shop_order_refund' ) ) || $post_type === array( 'shop_order', 'shop_order_refund' ) ) {
-				$query->set( 'order', 'desc' );
-			} elseif ( 'product_variation' === $post_type ) {
-				$query->set( 'orderby', 'menu_order' );
-				$query->set( 'order', 'asc' );
-			}
-
-			$orderby = $query->get( 'orderby' );
-
-			if ( ! empty( $orderby ) && 'rand' === $orderby ) {
-				$query->set( 'orderby', false ); // Just order by relevance.
-			}
 		} else {
+			$query->set( 'orderby', false ); // Just order by relevance.
+
 			// Search query
 			if ( 'shop_order' === $post_type ) {
 				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
@@ -410,7 +394,6 @@ function ep_wc_translate_args( $query ) {
 			switch ( $_GET['orderby'] ) {
 				case 'popularity':
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
-					$query->set( 'order', 'desc' );
 					break;
 				case 'price':
 				case 'price-desc':
@@ -418,7 +401,6 @@ function ep_wc_translate_args( $query ) {
 					break;
 				case 'rating' :
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
-					$query->set( 'order', 'desc' );
 					break;
 				case 'date':
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
