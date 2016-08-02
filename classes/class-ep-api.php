@@ -1760,6 +1760,14 @@ class EP_API {
 							),
 						);
 					}
+				} elseif ( 'meta_value_num' === $orderby_clause ) {
+					if ( ! empty( $args['meta_key'] ) ) {
+						$sort[] = array(
+							'meta.' . $args['meta_key'] . '.long' => array(
+								'order' => $order,
+							),
+						);
+					}
 				} else {
 					$sort[] = array(
 						$orderby_clause => array(

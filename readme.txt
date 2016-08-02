@@ -33,6 +33,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Remove unnecessary back up hosts code
 * Bundle existing modules into plugin
 * Support `meta_key` and `meta_value`
+* Order by `meta_value_num`
 
 Backward compat breaks:
 
