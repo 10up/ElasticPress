@@ -423,6 +423,9 @@ function ep_wc_translate_args( $query ) {
 				case 'date':
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
 					break;
+				case 'ID':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'ID' ) );
+					break;
 				default:
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 			}
@@ -440,6 +443,7 @@ function ep_wc_translate_args( $query ) {
 function ep_wc_get_orderby_meta_mapping( $meta_key ) {
 	$mapping = apply_filters( 'orderby_meta_mapping',
 		array(
+			'ID'				 => 'ID',
 			'menu_order'         => 'menu_order title date',
 			'menu_order title'   => 'menu_order title date',
 			'total_sales'        => 'meta.total_sales.long date',
