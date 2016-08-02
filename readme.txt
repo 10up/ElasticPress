@@ -80,6 +80,11 @@ First, make sure you have Elasticsearch configured properly.
 
 == Changelog ==
 
+= 2.0.1 =
+
+### Bug fixes
+* Don't load settings on front end. This fixes a critical bug causing ElasticPress to check the Elasticsearch connection on the front end.
+
 = 2.0 =
 
 10up ships ElasticPress 2.0 with __radical search algorithm improvements__ and a __more comprehensive integration of WP_Query__. ElasticPress is now even closer to supporting the complete WP_Query API. This version also improves upon post syncing ensuring that post meta updates are synced to Elasticsearch, adds a number of important hooks, and, of course, fixes some pesky bugs.
