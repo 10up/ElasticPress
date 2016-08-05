@@ -226,6 +226,16 @@ class EP_WP_Query_Integration {
 
 			$formatted_args = ep_format_args( $query_vars );
 
+			/**
+			 * Filter search scope
+			 *
+			 * @since 2.1
+			 *
+			 * @param mixed $scope The search scope. Accepts `all` (string), a single
+			 *                     site id (int or string), or an array of site ids (array).
+			 */
+			$scope = apply_filters( 'ep_search_scope', $scope );
+
 			$ep_query = ep_query( $formatted_args, $query->query_vars, $scope );
 
 			if ( false === $ep_query ) {
