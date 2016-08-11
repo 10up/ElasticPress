@@ -12,7 +12,7 @@ ElasticPress is a simple plugin to dramatically improve WordPress performance an
 ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins. ElasticPress will make your WooCommerce product pages load much faster even when using filters.
 
 <p align="center">
-<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/08/10up-Github-Banner-Copy.png" width="850"></a>
+<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/08/10up_github_banner-2.png" width="850"></a>
 </p>
 
 ## How Does it Work
