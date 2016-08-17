@@ -48,7 +48,6 @@ require_once( 'modules/related-posts/related-posts.php' );
 require_once( 'modules/admin/admin.php' );
 require_once( 'modules/woocommerce/woocommerce.php' );
 require_once( 'modules/the-events-calendar/the-events-calendar.php' );
-require_once( 'modules/bbpress/bbpress.php' );
 
 /**
  * WP CLI Commands
