@@ -321,6 +321,21 @@ $tablet-width: 768px;
 	margin-top: 30px;
 	margin-bottom: 30px;
 	overflow: auto;
+
+	.updated,
+	.notice,
+	.error,
+	.is-dismissible {
+		display: none !important;
+	}
+}
+
+#wpbody #update-nag,
+#wpbody .update-nag {
+	margin-left: -20px;
+	width: 100%;
+	margin-top: 0;
+	margin-bottom: 20px;
 }
 
 @media (min-width: $tablet-width) {

@@ -17,18 +17,7 @@ function ep_admin_setup() {
 		add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
 		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
 		add_action( 'pre_get_posts', 'ep_admin_integrate' );
-		add_filter( 'ep_indexable_post_types', 'ep_admin_indexable_post_types' );
 	}
-}
-
-/**
- * Index all public post types
- *
- * @since  2.1
- * @return array
- */
-function ep_admin_indexable_post_types() {
-	return get_post_types( array( 'public' => true ) );
 }
 
 /**
@@ -48,7 +37,16 @@ function ep_admin_integrate( $query ) {
 		return;
 	}
 
-	$post_types = ep_get_indexable_post_types();
+	/**
+	 * We limit to these post types to not conflict with other modules like WooCommerce
+	 *
+	 * @since  2.1
+	 * @var array
+	 */
+	$post_types = array(
+		'post',
+		'page'
+	);
 
 	$supported_post_types = apply_filters( 'ep_admin_supported_post_types', $post_types );
 
@@ -80,7 +78,7 @@ function ep_admin_integrate( $query ) {
  */
 function ep_admin_module_box_summary() {
 	?>
-	<p><?php esc_html_e( 'The posts table can be painfully slow to load, especially when trying to filter by date, taxonomy, or meta. This module makes post, page, and custom post type lists run fast no matter what.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'The posts table can be painfully slow to load, especially when trying to filter by date, taxonomy, or meta. This module makes posts and pages lists run fast no matter what.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -91,7 +89,7 @@ function ep_admin_module_box_summary() {
  */
 function ep_admin_module_box_long() {
 	?>
-	<p><?php _e( 'Within the admin panel, posts, pages, and custom post types are shown in a standarized easy to use table format. After activating an SEO plugin, increasing post per pages, and making other modifications, that table view loads very slowly.', 'elasticpress' ); ?></p>
+	<p><?php _e( 'Within the admin panel, posts and pages are shown in a standarized easy to use table format. After activating an SEO plugin, increasing post per pages, and making other modifications, that table view loads very slowly.', 'elasticpress' ); ?></p>
 
 	<p><?php _e( 'ElasticPress admin will make your admin curation experience much faster and easier. No longer will you have to wait 60 seconds to do things that should be easy such as viewing 200 posts at once.', 'elasticpress' ); ?></p>
 
@@ -102,15 +100,16 @@ function ep_admin_module_box_long() {
 /**
  * Fetches all post statuses we need to index
  *
- * @since   2.1
- * @return  array
+ * @since  2.1
+ * @param  array $statuses
+ * @return array
  */
-function ep_admin_get_statuses() {
+function ep_admin_get_statuses( $statuses ) {
 	$post_statuses = get_post_stati();
 
 	unset( $post_statuses['auto-draft'] );
 
-	return array_values( $post_statuses );
+	return array_unique( array_merge( $statuses, array_values( $post_statuses ) ) );
 }
 
 /**

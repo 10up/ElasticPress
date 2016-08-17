@@ -12,7 +12,7 @@ ElasticPress is a simple plugin to dramatically improve WordPress performance an
 ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins. ElasticPress will make your WooCommerce product pages load much faster even when using filters.
 
 <p align="center">
-<a href="http://10up.com/contact/#request_quote"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/05/ghbadge-with-font.svg" width="700"></a>
+<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/08/10up_github_banner-2.png" width="850"></a>
 </p>
 
 ## How Does it Work
@@ -307,6 +307,17 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
     is very rarely needed to be used.
 
+* ```meta_key``` (*string*)
+
+    Allows you to query meta with the defined key. Requires `meta_value` or `meta_value_num` be used as well.
+
+* ```meta_value``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
+
+* ```meta_value_num``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
 
 * ```post_type``` (*string*/*array*)
 
@@ -338,7 +349,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Supports: ```title```, ```modified```, ```type```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
+    Order results by field name instead of relevance. Supports: ```title```, ```modified```, `meta_value`, `meta_value_num`, ```type```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
 
 * ```order``` (*string*)
 

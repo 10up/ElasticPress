@@ -32,14 +32,19 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Make plugin modular
 * Remove unnecessary back up hosts code
 * Bundle existing modules into plugin
+* Support `meta_key` and `meta_value`
+* Order by `meta_value_num`
 
-Backward compat breaks:
+### Backward compat breaks:
 
 * Move ep_admin_wp_query_integration to search integration only. EP integration by default is available everywhere.
 * Remove `keep alive` setting
 * Remove setting to integrate with search (just activate the module instead)
 * Back up hosts code removed
 * Remove active/inactive state. Rather just check if an index is going on our not
+
+### Bug fixes
+* Fix `post__in` support
 
 = 2.0 =
 

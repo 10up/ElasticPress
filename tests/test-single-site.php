@@ -2787,6 +2787,84 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test meta key query
+	 *
+	 * @since 2.1
+	 */
+	public function testMetaKeyQuery() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'test' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_key' => 'test_key',
+			'meta_value' => 'test',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+	}
+
+	/**
+	 * Test meta key query with num
+	 *
+	 * @since 2.1
+	 */
+	public function testMetaKeyQueryNum() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 5 ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_key' => 'test_key',
+			'meta_value_num' => 5,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+	}
+
+	/**
+	 * Test mix meta_key with meta_query
+	 *
+	 * @since 2.1
+	 */
+	public function testMetaKeyQueryMix() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 5, 'test_key_2' => 'aaa' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_key' => 'test_key',
+			'meta_value_num' => 5,
+			'meta_query' => array(
+				array(
+					'key' => 'test_key_2',
+					'value' => 'aaa',
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+	}
+
+	/**
 	 * Test numeric integer meta queries
 	 *
 	 * @since 1.7

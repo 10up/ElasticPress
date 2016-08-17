@@ -143,8 +143,8 @@ class EP_API {
 
 		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
-		} elseif ( is_int( $scope ) ) {
-			$index = ep_get_index_name( $scope );
+		} elseif ( is_numeric( $scope ) ) {
+			$index = ep_get_index_name( (int) $scope );
 		} elseif ( is_array( $scope ) ) {
 			$index = array();
 
@@ -1019,7 +1019,7 @@ class EP_API {
 		if ( ! empty( $args['post__in'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'terms' => array(
-					'post_id' => (array) $args['post__in'],
+					'post_id' => array_values( (array) $args['post__in'] ),
 				),
 			);
 
@@ -1091,6 +1091,32 @@ class EP_API {
 
 		}
 
+		$meta_queries = array();
+
+		/**
+		 * Support meta_key
+		 *
+		 * @since  2.1
+		 */
+		if ( ! empty( $args['meta_key'] ) ) {
+			if ( ! empty( $args['meta_value'] ) ) {
+				$meta_value = $args['meta_value'];
+			} elseif ( ! empty( $args['meta_value_num'] ) ) {
+				$meta_value = $args['meta_value_num'];
+			}
+
+			if ( ! empty( $meta_value ) ) {
+				$meta_queries[] = array(
+					'key' => $args['meta_key'],
+					'value' => $meta_value,
+				);
+			}
+		}
+
+		/**
+		 * Todo: Support meta_type
+		 */
+
 		/**
 		 * 'meta_query' arg support.
 		 *
@@ -1100,10 +1126,14 @@ class EP_API {
 		 * @since 1.3
 		 */
 		if ( ! empty( $args['meta_query'] ) ) {
+			$meta_queries = array_merge( $meta_queries, $args['meta_query'] );
+		}
+
+		if ( ! empty( $meta_queries ) ) {
 			$meta_filter = array();
 
 			$relation = 'must';
-			if ( ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
+			if ( ! empty( $args['meta_query'] ) && ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
 				$relation = 'should';
 			}
 
@@ -1119,7 +1149,7 @@ class EP_API {
 				'unsigned' => 'long',
 			);
 
-			foreach( $args['meta_query'] as $single_meta_query ) {
+			foreach( $meta_queries as $single_meta_query ) {
 
 				/**
 				 * There is a strange case where meta_query looks like this:
@@ -1726,6 +1756,14 @@ class EP_API {
 					if ( ! empty( $args['meta_key'] ) ) {
 						$sort[] = array(
 							'meta.' . $args['meta_key'] . '.value' => array(
+								'order' => $order,
+							),
+						);
+					}
+				} elseif ( 'meta_value_num' === $orderby_clause ) {
+					if ( ! empty( $args['meta_key'] ) ) {
+						$sort[] = array(
+							'meta.' . $args['meta_key'] . '.long' => array(
 								'order' => $order,
 							),
 						);

@@ -269,8 +269,20 @@ function ep_wc_translate_args( $query ) {
 		}
 	}
 
+	$post_type = $query->get( 'post_type', false );
+
 	if ( ! empty( $tax_query ) ) {
 		$query->set( 'tax_query', $tax_query );
+
+		if ( empty( $post_type ) ) {
+			$post_type = 'product';
+		} elseif ( is_array( $post_type ) ) {
+			$post_type[] = 'product';
+		} else {
+			$post_type = array( $post_type, 'product' );
+		}
+
+		$query->set( 'post_type', $post_type );
 	}
 
 	/**
@@ -282,8 +294,6 @@ function ep_wc_translate_args( $query ) {
 		'shop_order_refund',
 		'product_variation'
 	);
-
-	$post_type = $query->get( 'post_type', false );
 
 	// For orders it queries an array of shop_order and shop_order_refund post types, hence an array_diff
 	if ( ! empty( $post_type ) && ( in_array( $post_type, $supported_post_types ) || ( is_array( $post_type ) && ! array_diff( $post_type, $supported_post_types ) ) ) ) {
@@ -332,62 +342,18 @@ function ep_wc_translate_args( $query ) {
 		$query->query['suppress_filters'] = false;
 		$query->set( 'suppress_filters', false );
 
-		/**
-		 * This stuff will mess up search queries
-		 */
-		if ( ! $query->is_search() ) {
+		$orderby = $query->get( 'orderby' );
+
+		if ( ! empty( $orderby ) && 'rand' === $orderby ) {
+			$query->set( 'orderby', false ); // Just order by relevance.
+		}
+
+		if ( empty( $query->get( 's' ) ) ) {
 			$query->query_vars['ep_integrate'] = true;
 			$query->query['ep_integrate'] = true;
-
-			// Assuming $post_type to be product if empty
-			if ( empty( $post_type ) || 'product' === $post_type ) {
-
-				/**
-				 * Set orderby from GET param
-				 * Also make sure the orderby param affects only the main query
-				 */
-				if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) {
-
-					switch ( $_GET['orderby'] ) {
-						case 'popularity':
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
-							$query->set( 'order', 'desc' );
-							break;
-						case 'price':
-						case 'price-desc':
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
-							break;
-						case 'rating' :
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
-							$query->set( 'order', 'desc' );
-							break;
-						case 'date':
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
-							break;
-						default:
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
-					}
-				} else {
-					$orderby = $query->get( 'orderby', 'date' ); // Default to date
-					if ( in_array( $orderby, array( 'meta_value_num', 'meta_value' ) ) ) {
-						$orderby = $query->get( 'meta_key', 'date' ); // Default to date
-					}
-					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( $orderby ) );
-				}
-			} // Conditional check for orders
-			elseif ( in_array( $post_type, array( 'shop_order', 'shop_order_refund' ) ) || $post_type === array( 'shop_order', 'shop_order_refund' ) ) {
-				$query->set( 'order', 'desc' );
-			} elseif ( 'product_variation' === $post_type ) {
-				$query->set( 'orderby', 'menu_order' );
-				$query->set( 'order', 'asc' );
-			}
-
-			$orderby = $query->get( 'orderby' );
-
-			if ( ! empty( $orderby ) && 'rand' === $orderby ) {
-				$query->set( 'orderby', false ); // Just order by relevance.
-			}
 		} else {
+			$query->set( 'orderby', false ); // Just order by relevance.
+
 			// Search query
 			if ( 'shop_order' === $post_type ) {
 				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
@@ -428,6 +394,34 @@ function ep_wc_translate_args( $query ) {
 				$query->set( 'search_fields', $search_fields );
 			}
 		}
+
+		/**
+		 * Set orderby from GET param
+		 * Also make sure the orderby param affects only the main query
+		 */
+		if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+
+			switch ( $_GET['orderby'] ) {
+				case 'popularity':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
+					break;
+				case 'price':
+				case 'price-desc':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
+					break;
+				case 'rating' :
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
+					break;
+				case 'date':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
+					break;
+				case 'ID':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'ID' ) );
+					break;
+				default:
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
+			}
+		}
 	}
 }
 
@@ -441,6 +435,7 @@ function ep_wc_translate_args( $query ) {
 function ep_wc_get_orderby_meta_mapping( $meta_key ) {
 	$mapping = apply_filters( 'orderby_meta_mapping',
 		array(
+			'ID'				 => 'ID',
 			'menu_order'         => 'menu_order title date',
 			'menu_order title'   => 'menu_order title date',
 			'total_sales'        => 'meta.total_sales.long date',
@@ -469,90 +464,6 @@ function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
 	}
 
 	return $post_args;
-}
-
-/**
- * Fetches all necessary WooCommerce related post statuses
- *
- * @since  2.1
- * @return  array
- */
-function ep_wc_get_statuses() {
-	$post_statuses = get_post_stati();
-
-	unset( $post_statuses['auto-draft'] );
-
-	return array_values( $post_statuses );
-}
-
-/**
- * Handle Woo Commerce related formatted args
- *
- * @since  2.1
- * @param  array $formatted_args The formatted WP query arguments
- * @return array
- */
-function ep_wc_formatted_args( $formatted_args, $args ) {
-
-	if ( is_admin() ) {
-		if ( isset( $_GET['post_status'] ) && 'all' !== $_GET['post_status'] ) {
-			$post_status = array( $_GET['post_status'] );
-		} else {
-			$post_status = ep_wc_get_statuses();
-
-			// Lets make sure the thrashed posts are not accounted for in the default edit post listing
-			$trash_index = array_search( 'trash', $post_status );
-			if ( $trash_index ) {
-				unset( $post_status[ $trash_index ] );
-			}
-
-			$post_status = array_values( $post_status );
-		}
-	} else {
-
-		// Setting a collection of post status for the front-end display
-		$post_status = array(
-			'publish',
-			'wc-cancelled',
-			'wc-completed',
-			'wp-failed',
-			'wc-on-hold',
-			'wc-pending',
-			'wc-processing',
-			'wc-refunded',
-		);
-
-		// Include Custom WooCommerce Order Statuses to this list of front-end display post statuses
-		if ( function_exists( 'wc_get_order_statuses' ) ) {
-
-			$woo_order_statuses = wc_get_order_statuses();
-			if ( ! empty( $woo_order_statuses ) ) {
-				$woo_order_statuses = array_keys( $woo_order_statuses );
-
-				$post_status = array_values( array_unique( array_merge( $post_status, $woo_order_statuses ) ) );
-			}
-		}
-
-		$post_status = apply_filters( 'valid_front_end_post_statuses', $post_status, $formatted_args, $args );
-
-		// Narrow down to the post parent for product variations
-		if ( ! empty( $args['post_type'] ) && 'product_variation' == $args['post_type'] ) {
-			if ( isset( $args['post_parent'] ) && $args['post_parent'] ) {
-				$formatted_args['filter']['and'][] = array(
-					'term' => array( 'post_parent' => $args['post_parent'] ),
-				);
-			}
-		}
-	}
-
-	// Add post status detail to the query.
-	if ( $post_status ) {
-		$formatted_args['filter']['and'][] = array(
-			'terms' => array( 'post_status' => $post_status ),
-		);
-	}
-
-	return $formatted_args;
 }
 
 /**
@@ -595,7 +506,6 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
 function ep_wc_setup() {
 	add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
 	add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
-	add_filter( 'ep_formatted_args', 'ep_wc_formatted_args', 10, 2 );
 	add_filter( 'ep_indexable_post_types', 'ep_wc_post_types', 10, 1 );
 	add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
 	add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields' );
@@ -605,7 +515,7 @@ function ep_wc_setup() {
 	add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 	add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 	add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-	add_filter( 'ep_indexable_post_status', 'ep_wc_get_statuses' );
+	add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
 	add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
 }
 
