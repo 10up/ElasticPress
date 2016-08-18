@@ -84,7 +84,17 @@
 			}
 
 			if ( 0 === toProcess ) {
-				if ( ep.index_meta.start ) {
+				if ( siteStack.length ) {
+					// We are mid sync but no posts on this site
+					if ( ep.auto_start_index ) {
+						syncStatus = 'sync';
+						updateSyncDash();
+						sync();
+					} else {
+						syncStatus = 'pause';
+						updateSyncDash();
+					}
+				} else if ( ep.index_meta.start ) {
 					// No posts to sync
 					syncStatus = 'noposts';
 					updateSyncDash();
