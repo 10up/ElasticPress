@@ -31,6 +31,121 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private $failed_posts_message = array();
 
 	/**
+	 * Activate a module.
+	 *
+	 * @synopsis <module> [--network-wide]
+	 * @subcommand activate-module
+	 * @since      2.1
+	 * @param array $args
+	 * @param array $assoc_args
+	 */
+	public function activate_module( $args, $assoc_args ) {
+		$module = ep_get_registered_module( $args[0] );
+
+		if ( empty( $module ) ) {
+			WP_CLI::error( __( 'No module with that slug is registered', 'elasticpress' ) );
+		}
+
+		if ( ! empty( $assoc_args['network-wide'] ) ) {
+			$active_modules = get_site_option( 'ep_active_modules', array() );
+		} else {
+			$active_modules = get_option( 'ep_active_modules', array() );
+		}
+
+		if ( $module->is_active() ) {
+			WP_CLI::error( __( 'This module is already active', 'elasticpress' ) );
+		}
+
+		if ( is_wp_error( $module->dependencies_met() ) ) {
+			WP_CLI::error( __( 'Module depedencies are not met', 'elasticpress' ) );
+		}
+
+		$active_modules[] = $module->slug;
+
+		$module->post_activation();
+
+		if ( $module->requires_install_reindex ) {
+			WP_CLI::warning( __( 'This module requires a re-index. You may want to run the index command next.', 'elasticpress' ) );
+		}
+
+		if ( ! empty( $assoc_args['network-wide'] ) ) {
+			update_site_option( 'ep_active_modules', $active_modules );
+		} else {
+			update_option( 'ep_active_modules', $active_modules );
+		}
+
+		WP_CLI::success( __( 'Module activated', 'elasticpress' ) );
+	}
+
+	/**
+	 * Dectivate a module.
+	 *
+	 * @synopsis <module> [--network-wide]
+	 * @subcommand deactivate-module
+	 * @since      2.1
+	 * @param array $args
+	 * @param array $assoc_args
+	 */
+	public function deactivate_module( $args, $assoc_args ) {
+		$module = ep_get_registered_module( $args[0] );
+
+		if ( empty( $module ) ) {
+			WP_CLI::error( __( 'No module with that slug is registered', 'elasticpress' ) );
+		}
+
+		if ( ! empty( $assoc_args['network-wide'] ) ) {
+			$active_modules = get_site_option( 'ep_active_modules', array() );
+		} else {
+			$active_modules = get_option( 'ep_active_modules', array() );
+		}
+
+		$key = array_search( $module->slug, $active_modules );
+
+		if ( false !== $key ) {
+			unset( $active_modules[$key] );
+		} else {
+			WP_CLI::error( __( 'Module is not active', 'elasticpress' ) );
+		}
+
+		if ( ! empty( $assoc_args['network-wide'] ) ) {
+			update_site_option( 'ep_active_modules', $active_modules );
+		} else {
+			update_option( 'ep_active_modules', $active_modules );
+		}
+
+		WP_CLI::success( __( 'Module deactivated', 'elasticpress' ) );
+	}
+
+	/**
+	 * List modules (either active or all)
+	 *
+	 * @synopsis [--all] [--network-wide]
+	 * @subcommand list-modules
+	 * @since      2.1
+	 * @param array $args
+	 * @param array $assoc_args
+	 */
+	public function list_modules( $args, $assoc_args ) {
+
+		if ( empty( $assoc_args['all'] ) ) {
+			if ( ! empty( $assoc_args['network-wide'] ) ) {
+				$modules = get_site_option( 'ep_active_modules', array() );
+			} else {
+				$modules = get_option( 'ep_active_modules', array() );
+			}
+
+			WP_CLI::line( __( 'Active modules:', 'elasticpress' ) );
+		} else {
+			WP_CLI::line( __( 'Registered modules:', 'elasticpress' ) );
+			$modules = wp_list_pluck( EP_Modules::factory()->registered_modules, 'slug' );
+		}
+
+		foreach ( $modules as $module ) {
+			WP_CLI::line( $module );
+		}
+	}
+
+	/**
 	 * Add the document mapping
 	 *
 	 * @synopsis [--network-wide]
@@ -185,7 +300,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type]
 	 *
 	 * @param array $args
 	 *
@@ -354,9 +469,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				'ignore_sticky_posts'    => true,
 				'orderby'                => 'ID',
 				'order'                  => 'DESC',
-				'cache_results '         => false,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
 			) );
 			$query->query( $args );
 

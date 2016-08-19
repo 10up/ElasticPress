@@ -25,7 +25,8 @@ function _manually_load_plugin() {
 
 	define( 'EP_HOST', $host );
 
-	require( dirname( __FILE__ ) . '/../vendor/woothemes/woocommerce/woocommerce.php' );
+	require( dirname( __FILE__ ) . '/../vendor/woocommerce/woocommerce.php' );
+	require( dirname( __FILE__ ) . '/../vendor/bbpress/bbpress.php' );
 	require( dirname( __FILE__ ) . '/../elasticpress.php' );
 
 	add_filter( 'ep_config_mapping', 'ep_test_shard_number' );
@@ -55,7 +56,7 @@ function _setup_theme() {
 	define( 'WP_UNINSTALL_PLUGIN', true );
 
 	update_option( 'woocommerce_status_options', array( 'uninstall_data' => 1 ) );
-	include( dirname( __FILE__ ) . '/../vendor/woothemes/woocommerce/uninstall.php' );
+	include( dirname( __FILE__ ) . '/../vendor/woocommerce/uninstall.php' );
 	WC_Install::install();
 
 	$GLOBALS['wp_roles']->reinit();

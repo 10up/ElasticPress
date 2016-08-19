@@ -5,7 +5,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Checking if HTTP request returns 404 status code.
 	 * @var boolean
 	 */
-	var $is_404=false;
+	var $is_404 = false;
 
 	/**
 	 * Setup each test.
@@ -980,6 +980,162 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test a post status query for published posts
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryPublish() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => 'publish',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a post status query for draft posts
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryDraft() {
+		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => 'draft',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
+	}
+
+	/**
+	 * Test a post status query for published or draft posts without 'draft' allowed as indexable status
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryMultiDefault() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => array(
+				'draft',
+				'publish',
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a post status query for published or draft posts with 'draft' whitelisted as indexable status
+	 *
+	 * @since 2.1
+	 */
+	public function testPostStatusQueryMulti() {
+		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'post_status' => array(
+				'draft',
+				'publish',
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
+	}
+
+	/**
+	 * Test a query with no post status without 'draft' indexable status. Post status should default to publish.
+	 *
+	 * @since 2.1
+	 */
+	public function testNoPostStatusSearchQueryDefault() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		// post_status defaults to "publish"
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test a query with no post status with 'draft' as indexable status. Post status should default to publish
+	 *
+	 * @since 2.1
+	 */
+	public function testNoPostStatusSearchQuery() {
+		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
+
+		ep_refresh_index();
+
+		// post_status defaults to "publish"
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
+	}
+
+	/**
 	 * Add attachment post type for indexing
 	 *
 	 * @since 1.6
@@ -1398,6 +1554,61 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test post meta string orderby query asc array
+	 *
+	 * @since 2.1
+	 */
+	public function testSearchPostMetaStringOrderbyQueryAscArray() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'B' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'a' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => array( 'meta.test_key.value.sortable' ),
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 222', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 333', $query->posts[2]->post_title );
+	}
+
+	/**
+	 * Test post meta string orderby query advanced. Specifically, look at orderby when it is an array
+	 * like array( 'key' => 'order direction ' )
+	 *
+	 * @since 2.1
+	 */
+	public function testSearchPostMetaStringOrderbyQueryAdvanced() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c', 'test_key2' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'd', 'test_key2' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'd', 'test_key2' => 'd' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'       => 'ordertest',
+			'orderby' => array( 'meta.test_key.value.sortable' => 'asc', 'meta.test_key.value.sortable' => 'desc' ),
+			'order'   => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
+		$this->assertEquals( 'Ordertest 111', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 222', $query->posts[2]->post_title );
 	}
 
 	/**
@@ -2445,7 +2656,6 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @return  array
 	 */
 	public function mock_indexable_post_status( $post_statuses ) {
-		$post_statuses = array();
 		$post_statuses[] = "draft";
 		return $post_statuses;
 	}
@@ -2631,6 +2841,84 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertTrue( is_array( $bool_true_val ) && array_key_exists( 'boolean', $bool_true_val ) && true === $bool_true_val['boolean'] );
 		$this->assertTrue( is_array( $dateval ) && 6 === sizeof( $dateval ) );
 		$this->assertTrue( is_array( $dateval ) && array_key_exists( 'datetime', $dateval ) && '2015-01-01 00:00:00' === $dateval['datetime'] );
+
+	}
+
+	/**
+	 * Test meta key query
+	 *
+	 * @since 2.1
+	 */
+	public function testMetaKeyQuery() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'test' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_key' => 'test_key',
+			'meta_value' => 'test',
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+	}
+
+	/**
+	 * Test meta key query with num
+	 *
+	 * @since 2.1
+	 */
+	public function testMetaKeyQueryNum() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 5 ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_key' => 'test_key',
+			'meta_value_num' => 5,
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+	}
+
+	/**
+	 * Test mix meta_key with meta_query
+	 *
+	 * @since 2.1
+	 */
+	public function testMetaKeyQueryMix() {
+
+		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 5, 'test_key_2' => 'aaa' ) );
+
+		ep_refresh_index();
+		$args = array(
+			's' => 'findme',
+			'meta_key' => 'test_key',
+			'meta_value_num' => 5,
+			'meta_query' => array(
+				array(
+					'key' => 'test_key_2',
+					'value' => 'aaa',
+				),
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 
 	}
 

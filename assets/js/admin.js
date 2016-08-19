@@ -205,6 +205,7 @@
 				$syncStatusText.text( ep.sync_complete );
 			}
 
+			$syncStatusText.show();
 			$progressBar.hide();
 			$pauseSyncButton.hide();
 			$cancelSyncButton.hide();

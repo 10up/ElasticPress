@@ -6,6 +6,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Setup each test.
 	 *
 	 * @since 2.1
+	 * @group woocommerce
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -26,14 +27,13 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 		$this->setup_test_post_type();
 
 		delete_option( 'ep_active_modules' );
-		ep_activate_module( 'woocommerce' );
-		EP_Modules::factory()->setup_modules();
 	}
 
 	/**
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 2.1
+	 * @group woocommerce
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -47,9 +47,9 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test products post type query doesn't get integrated when the module is not active
 	 *
 	 * @since 2.1
+	 * @group Wwoocommerce
 	 */
 	public function testProductsPostTypeQueryOff() {
-		delete_option( 'ep_active_modules' );
 		EP_Modules::factory()->setup_modules();
 
 		ep_create_and_sync_post();
@@ -72,8 +72,12 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test products post type query does get integrated when the module is not active
 	 *
 	 * @since 2.1
+	 * @group woocommerce
 	 */
 	public function testProductsPostTypeQueryOn() {
+		ep_activate_module( 'woocommerce' );
+		EP_Modules::factory()->setup_modules();
+
 		ep_create_and_sync_post();
 		ep_create_and_sync_post( array( 'post_content' => 'product 1', 'post_type' => 'product' ) );
 
@@ -93,11 +97,15 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test products post type query does get integrated when querying orders
+	 * Test orders post type query does get integrated
 	 *
 	 * @since 2.1
+	 * @group woocommerce
 	 */
 	public function testProductsPostTypeQueryShopOrder() {
+		ep_activate_module( 'woocommerce' );
+		EP_Modules::factory()->setup_modules();
+
 		ep_create_and_sync_post();
 		ep_create_and_sync_post( array( 'post_type' => 'shop_order' ) );
 
@@ -106,7 +114,7 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$args = array(
-			'post_type' => 'product',
+			'post_type' => 'shop_order',
 		);
 
 		$query = new WP_Query( $args );
@@ -120,8 +128,12 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	 * Test products post type query does get integrated when querying WC product_cat taxonomy
 	 *
 	 * @since 2.1
+	 * @group woocommerce
 	 */
 	public function testProductsPostTypeQueryProductCatTax() {
+		ep_activate_module( 'woocommerce' );
+		EP_Modules::factory()->setup_modules();
+
 		ep_create_and_sync_post();
 
 		ep_refresh_index();
@@ -144,12 +156,14 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test search integration is on for shop orders in admin
+	 * Test search integration is on for shop orders
 	 *
 	 * @since 2.1
+	 * @group woocommerce
 	 */
 	public function testSearchOnShopOrderAdmin() {
-		define( 'WP_ADMIN', true );
+		ep_activate_module( 'woocommerce' );
+		EP_Modules::factory()->setup_modules();
 
 		ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'shop_order' ) );
 
@@ -170,11 +184,14 @@ class EPTestWooCommerceModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test search integration is on for the front end
+	 * Test search integration is on in general
 	 *
 	 * @since 2.1
+	 * @group woocommerce
 	 */
 	public function testSearchOnAllFrontEnd() {
+		ep_activate_module( 'woocommerce' );
+		EP_Modules::factory()->setup_modules();
 
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 

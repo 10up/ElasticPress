@@ -132,18 +132,19 @@ class EP_API {
 	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
-	 * @param array $args
-	 * @param string $scope
-	 * @since 0.1.0
+	 * @param  array  $args
+	 * @param  array  $query_args Strictly for debugging
+	 * @param  string $scope
+	 * @since  0.1.0
 	 * @return array
 	 */
-	public function query( $args, $scope = 'current' ) {
+	public function query( $args, $query_args, $scope = 'current' ) {
 		$index = null;
 
 		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
-		} elseif ( is_int( $scope ) ) {
-			$index = ep_get_index_name( $scope );
+		} elseif ( is_numeric( $scope ) ) {
+			$index = ep_get_index_name( (int) $scope );
 		} elseif ( is_array( $scope ) ) {
 			$index = array();
 
@@ -156,19 +157,19 @@ class EP_API {
 			$index = ep_get_index_name();
 		}
 
-		$path = apply_filters( 'ep_search_request_path', $index . '/post/_search', $args, $scope );
+		$path = apply_filters( 'ep_search_request_path', $index . '/post/_search', $args, $scope, $query_args );
 
 		$request_args = array(
-			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
+			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope, $query_args ) ),
 			'method'  => 'POST',
 		);
 
-		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope ) );
+		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args );
 
 		if ( ! is_wp_error( $request ) ) {
 
 			// Allow for direct response retrieval
-			do_action( 'ep_retrieve_raw_response', $request, $args, $scope );
+			do_action( 'ep_retrieve_raw_response', $request, $args, $scope, $query_args );
 
 			$response_body = wp_remote_retrieve_body( $request );
 
@@ -182,7 +183,7 @@ class EP_API {
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
-				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope );
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $query_args );
 			}
 
 			$posts = array();
@@ -702,7 +703,7 @@ class EP_API {
 				}
 			}
 
-			if ( true === $allow_index ) {
+			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
@@ -904,7 +905,7 @@ class EP_API {
 
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
-			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order );
+			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order, $args );
 		} else {
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
@@ -1000,7 +1001,7 @@ class EP_API {
 		 *
 		 * @since 2.0
 		 */
-		if ( ! empty( $args['post_parent'] ) ) {
+		if ( ! empty( $args['post_parent'] ) && 'any' !== strtolower( $args['post_parent'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'term' => array(
 					'post_parent' => $args['post_parent'],
@@ -1018,7 +1019,7 @@ class EP_API {
 		if ( ! empty( $args['post__in'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'terms' => array(
-					'post_id' => (array) $args['post__in'],
+					'post_id' => array_values( (array) $args['post__in'] ),
 				),
 			);
 
@@ -1090,6 +1091,32 @@ class EP_API {
 
 		}
 
+		$meta_queries = array();
+
+		/**
+		 * Support meta_key
+		 *
+		 * @since  2.1
+		 */
+		if ( ! empty( $args['meta_key'] ) ) {
+			if ( ! empty( $args['meta_value'] ) ) {
+				$meta_value = $args['meta_value'];
+			} elseif ( ! empty( $args['meta_value_num'] ) ) {
+				$meta_value = $args['meta_value_num'];
+			}
+
+			if ( ! empty( $meta_value ) ) {
+				$meta_queries[] = array(
+					'key' => $args['meta_key'],
+					'value' => $meta_value,
+				);
+			}
+		}
+
+		/**
+		 * Todo: Support meta_type
+		 */
+
 		/**
 		 * 'meta_query' arg support.
 		 *
@@ -1099,10 +1126,14 @@ class EP_API {
 		 * @since 1.3
 		 */
 		if ( ! empty( $args['meta_query'] ) ) {
+			$meta_queries = array_merge( $meta_queries, $args['meta_query'] );
+		}
+
+		if ( ! empty( $meta_queries ) ) {
 			$meta_filter = array();
 
 			$relation = 'must';
-			if ( ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
+			if ( ! empty( $args['meta_query'] ) && ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
 				$relation = 'should';
 			}
 
@@ -1118,7 +1149,7 @@ class EP_API {
 				'unsigned' => 'long',
 			);
 
-			foreach( $args['meta_query'] as $single_meta_query ) {
+			foreach( $meta_queries as $single_meta_query ) {
 
 				/**
 				 * There is a strange case where meta_query looks like this:
@@ -1135,7 +1166,7 @@ class EP_API {
 				 *
 				 * @since  2.1
 				 */
-				if ( empty( $single_meta_query['key'] ) ) {
+				if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
 					reset( $single_meta_query );
 					$first_key = key( $single_meta_query );
 
@@ -1444,10 +1475,7 @@ class EP_API {
 		}
 
 		/**
-		 * Like WP_Query in search context, if no post_type is specified we default to "any". To
-		 * be safe you should ALWAYS specify the post_type parameter UNLIKE with WP_Query.
-		 *
-		 * @since 1.3
+		 * If not set default to post. If search and not set, default to "any".
 		 */
 		if ( ! empty( $args['post_type'] ) ) {
 			// should NEVER be "any" but just in case
@@ -1467,6 +1495,48 @@ class EP_API {
 
 				$use_filters = true;
 			}
+		} elseif ( empty( $args['s'] ) ) {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_type.raw' => 'post',
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Like WP_Query in search context, if no post_status is specified we default to "any". To
+		 * be safe you should ALWAYS specify the post_status parameter UNLIKE with WP_Query.
+		 *
+		 * @since 2.1
+		 */
+		if ( ! empty( $args['post_status'] ) ) {
+			// should NEVER be "any" but just in case
+			if ( 'any' !== $args['post_status'] ) {
+				$post_status = (array) $args['post_status'];
+				$terms_map_name = 'terms';
+				if ( count( $post_status ) < 2 ) {
+					$terms_map_name = 'term';
+					$post_status = $post_status[0];
+ 				}
+
+				$filter['and'][] = array(
+					$terms_map_name => array(
+						'post_status' => $post_status,
+					),
+				);
+
+				$use_filters = true;
+			}
+		} else {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_status' => 'publish',
+				),
+			);
+
+			$use_filters = true;
 		}
 
 		if ( isset( $args['offset'] ) ) {
@@ -1624,15 +1694,27 @@ class EP_API {
 	 * @since 1.1
 	 * @access protected
 	 *
-	 * @param string $orderby Alias or path for the field to order by.
+	 * @param string $orderbys Alias or path for the field to order by.
 	 * @param string $order
+	 * @param  array $args
 	 * @return array
 	 */
-	protected function parse_orderby( $orderby, $order ) {
-		$orderbys = explode( ' ', $orderby );
+	protected function parse_orderby( $orderbys, $default_order, $args ) {
+		if ( ! is_array( $orderbys ) ) {
+			$orderbys = explode( ' ', $orderbys );
+		}
+
 		$sort = array();
 
-		foreach ( $orderbys as $orderby_clause ) {
+		foreach ( $orderbys as $key => $value ) {
+			if ( is_string( $key ) ) {
+				$orderby_clause = $key;
+				$order = $value;
+			} else {
+				$orderby_clause = $value;
+				$order = $default_order;
+			}
+
 			if ( ! empty( $orderby_clause ) ) {
 				if ( 'relevance' === $orderby_clause || 'post__in' == $orderby_clause ) {
 					$sort[] = array(
@@ -1643,6 +1725,18 @@ class EP_API {
 		 		} elseif ( 'date' === $orderby_clause ) {
 					$sort[] = array(
 						'post_date' => array(
+							'order' => $order,
+						),
+					);
+				} elseif ( 'type' === $orderby_clause ) {
+					$sort[] = array(
+						'post_type' => array(
+							'order' => $order,
+						),
+					);
+				} elseif ( 'modified' === $orderby_clause ) {
+					$sort[] = array(
+						'post_modified' => array(
 							'order' => $order,
 						),
 					);
@@ -1658,6 +1752,22 @@ class EP_API {
 							'order' => $order,
 						),
 					);
+				} elseif ( 'meta_value' === $orderby_clause ) {
+					if ( ! empty( $args['meta_key'] ) ) {
+						$sort[] = array(
+							'meta.' . $args['meta_key'] . '.value' => array(
+								'order' => $order,
+							),
+						);
+					}
+				} elseif ( 'meta_value_num' === $orderby_clause ) {
+					if ( ! empty( $args['meta_key'] ) ) {
+						$sort[] = array(
+							'meta.' . $args['meta_key'] . '.long' => array(
+								'order' => $order,
+							),
+						);
+					}
 				} else {
 					$sort[] = array(
 						$orderby_clause => array(
@@ -1717,10 +1827,11 @@ class EP_API {
 	 *
 	 * @param string $path Site URL to retrieve.
 	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @param array  $query_args Optional. The query args originally passed to WP_Query
 	 *
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
-	public function remote_request( $path, $args = array() ) {
+	public function remote_request( $path, $args = array(), $query_args = array() ) {
 
 		$query = array(
 			'time_start'   => microtime( true ),
@@ -1730,6 +1841,7 @@ class EP_API {
 			'failed_hosts' => array(),
 			'request'      => false,
 			'host'         => ep_get_host(),
+			'query_args'   => $query_args,
 		);
 
 		//Add the API Header
@@ -2063,8 +2175,8 @@ function ep_index_post( $post, $blocking = true ) {
 	return EP_API::factory()->index_post( $post, $blocking );
 }
 
-function ep_query( $args, $scope = 'current' ) {
-	return EP_API::factory()->query( $args, $scope );
+function ep_query( $args, $query_args, $scope = 'current' ) {
+	return EP_API::factory()->query( $args, $query_args, $scope );
 }
 
 function ep_get_post( $post_id ) {
@@ -2127,8 +2239,8 @@ function ep_format_request_headers() {
 	return EP_API::factory()->format_request_headers();
 }
 
-function ep_remote_request( $path, $args ) {
-	return EP_API::factory()->remote_request( $path, $args );
+function ep_remote_request( $path, $args = array(), $query_args = array() ) {
+	return EP_API::factory()->remote_request( $path, $args, $query_args );
 }
 
 function ep_get_query_log() {

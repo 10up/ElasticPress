@@ -1,12 +1,12 @@
 <?php
 
-class EPTestSearchModule extends EP_Test_Base {
+class EPTestbbPressModule extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
 	 *
 	 * @since 2.1
-	 * @group search
+	 * @group bbpress
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -25,35 +25,24 @@ class EPTestSearchModule extends EP_Test_Base {
 		EP_Sync_Manager::factory()->sync_post_queue = array();
 
 		$this->setup_test_post_type();
-	}
 
-	/**
-	 * Clean up after each test. Reset our mocks
-	 *
-	 * @since 2.1
-	 * @group search
-	 */
-	public function tearDown() {
-		parent::tearDown();
-
-		//make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
-		$this->fired_actions = array();
+		delete_option( 'ep_active_modules' );
 	}
 
 	/**
 	 * Test that search is off by default
 	 *
 	 * @since 2.1
-	 * @group search
+	 * @group bbpress
 	 */
 	public function testSearchOff() {
 		EP_Modules::factory()->setup_modules();
+		
 		$post_ids = array();
 
 		ep_create_and_sync_post();
 		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'topic' ) );
 
 		ep_refresh_index();
 
@@ -61,6 +50,7 @@ class EPTestSearchModule extends EP_Test_Base {
 
 		$args = array(
 			's' => 'findme',
+			'post_type' => 'topic',
 		);
 
 		$query = new WP_Query( $args );
@@ -72,17 +62,19 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * Test that search is on
 	 *
 	 * @since 2.1
-	 * @group search
+	 * @group bbpress
 	 */
 	public function testSearchOn() {
-		ep_activate_module( 'search' );
+		ep_activate_module( 'bbpress' );
 		EP_Modules::factory()->setup_modules();
+
+		$GLOBALS['wp_query']->set( 'bbp_search', true );
 
 		$post_ids = array();
 
 		ep_create_and_sync_post();
 		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'topic' ) );
 
 		ep_refresh_index();
 
@@ -90,6 +82,7 @@ class EPTestSearchModule extends EP_Test_Base {
 
 		$args = array(
 			's' => 'findme',
+			'post_type' => 'topic',
 		);
 
 		$query = new WP_Query( $args );

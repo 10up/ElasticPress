@@ -8,7 +8,7 @@ $tablet-width: 768px;
 	padding-right: 20px;
 	padding-top: 5px;
 	padding-bottom: 5px;
-	border-bottom: 1px solid #eee;
+	border-bottom: 2px solid #ddd;
 	z-index: 2;
 }
 
@@ -318,7 +318,24 @@ $tablet-width: 768px;
 }
 
 .wrap.intro {
+	margin-top: 30px;
+	margin-bottom: 30px;
 	overflow: auto;
+
+	.updated,
+	.notice,
+	.error,
+	.is-dismissible {
+		display: none !important;
+	}
+}
+
+#wpbody #update-nag,
+#wpbody .update-nag {
+	margin-left: -20px;
+	width: 100%;
+	margin-top: 0;
+	margin-bottom: 20px;
 }
 
 @media (min-width: $tablet-width) {

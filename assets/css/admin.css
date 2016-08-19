@@ -6,7 +6,7 @@
   padding-right: 20px;
   padding-top: 5px;
   padding-bottom: 5px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 2px solid #ddd;
   z-index: 2; }
 
 .progress-bar {
@@ -265,7 +265,21 @@
   padding: 9px 15px 4px 0; }
 
 .wrap.intro {
+  margin-top: 30px;
+  margin-bottom: 30px;
   overflow: auto; }
+  .wrap.intro .updated,
+  .wrap.intro .notice,
+  .wrap.intro .error,
+  .wrap.intro .is-dismissible {
+    display: none !important; }
+
+#wpbody #update-nag,
+#wpbody .update-nag {
+  margin-left: -20px;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 20px; }
 
 @media (min-width: 768px) {
   .intro .left {
