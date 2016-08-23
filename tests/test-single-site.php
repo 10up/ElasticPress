@@ -119,6 +119,28 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test pagination with offset
+	 *
+	 * @since 2.1
+	 */
+	public function testPaginationWithOffset() {
+		ep_create_and_sync_post( array( 'post_title' => 'one' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'two' ) );
+
+		ep_refresh_index();
+
+		$query = new WP_Query( array(
+			'post_type' => 'post',
+			'ep_integrate' => true,
+			'posts_per_page' => 1,
+			'offset' => 1,
+		) );
+
+		$this->assertEquals( 1, count( $query->posts ) );
+		$this->assertEquals( 'two', $query->posts[0]->post_title );
+	}
+
+	/**
 	 * Test that a post becoming unpublished correctly gets removed from the Elasticsearch index
 	 *
 	 * @since 0.9.3

@@ -1543,9 +1543,8 @@ class EP_API {
 			$formatted_args['from'] = $args['offset'];
 		}
 
-		if ( isset( $args['paged'] ) ) {
-			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
-			$formatted_args['from'] = $args['posts_per_page'] * $paged;
+		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
+			$formatted_args['from'] = $args['posts_per_page'] * ( $args['paged'] - 1 );
 		}
 
 		if ( $use_filters ) {

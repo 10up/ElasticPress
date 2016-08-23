@@ -45,6 +45,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 ### Bug fixes
 * Fix `post__in` support
+* Fix `paged` overwriting `offset`
 
 = 2.0 =
 
