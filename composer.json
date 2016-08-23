@@ -31,8 +31,7 @@
   "require-dev": {
     "phpunit/phpunit": "*@stable",
     "wp-cli/wp-cli": "*@stable",
-    "wpackagist-plugin/woocommerce": "dev-trunk",
-    "wpackagist-plugin/bbpress": "dev-trunk"
+    "wpackagist-plugin/woocommerce": "dev-trunk"
   },
   "config": {
     "platform": {
