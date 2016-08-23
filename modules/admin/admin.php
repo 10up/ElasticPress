@@ -44,8 +44,8 @@ function ep_admin_integrate( $query ) {
 	 * @var array
 	 */
 	$post_types = array(
-		'post',
-		'page'
+		'post' => 'post',
+		'page' => 'page',
 	);
 
 	$supported_post_types = apply_filters( 'ep_admin_supported_post_types', $post_types );
