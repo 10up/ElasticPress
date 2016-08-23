@@ -26,7 +26,6 @@ function _manually_load_plugin() {
 	define( 'EP_HOST', $host );
 
 	require( dirname( __FILE__ ) . '/../vendor/woocommerce/woocommerce.php' );
-	require( dirname( __FILE__ ) . '/../vendor/bbpress/bbpress.php' );
 	require( dirname( __FILE__ ) . '/../elasticpress.php' );
 
 	add_filter( 'ep_config_mapping', 'ep_test_shard_number' );
