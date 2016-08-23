@@ -450,8 +450,7 @@ class EP_Dashboard {
 						$data['auto_start_index'] = true;
 					}
 				}
-
-				$data['sync_no_posts'] = esc_html__( 'No posts to sync', 'elasticpress' );
+				
 				$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );
 				$data['sync_paused'] = esc_html__( 'Sync paused', 'elasticpress' );
 				$data['sync_syncing'] = esc_html__( 'Syncing', 'elasticpress' );

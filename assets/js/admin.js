@@ -83,27 +83,7 @@
 				siteStack = ep.index_meta.site_stack;
 			}
 
-			if ( 0 === toProcess ) {
-				if ( siteStack.length ) {
-					// We are mid sync but no posts on this site
-					if ( ep.auto_start_index ) {
-						syncStatus = 'sync';
-						updateSyncDash();
-						sync();
-					} else {
-						syncStatus = 'pause';
-						updateSyncDash();
-					}
-				} else if ( ep.index_meta.start ) {
-					// No posts to sync
-					syncStatus = 'noposts';
-					updateSyncDash();
-				} else {
-					// Sync finished
-					syncStatus = 'finished';
-					updateSyncDash();
-				}
-			} else {
+			if ( siteStack && siteStack.length ) {
 				// We are mid sync
 				if ( ep.auto_start_index ) {
 					syncStatus = 'sync';
@@ -112,6 +92,22 @@
 				} else {
 					syncStatus = 'pause';
 					updateSyncDash();
+				}
+			} else {
+				if ( 0 === toProcess && ! ep.index_meta.start ) {
+					// Sync finished
+					syncStatus = 'finished';
+					updateSyncDash();
+				} else {
+					// We are mid sync
+					if ( ep.auto_start_index ) {
+						syncStatus = 'sync';
+						updateSyncDash();
+						sync();
+					} else {
+						syncStatus = 'pause';
+						updateSyncDash();
+					}
 				}
 			}
 		}
@@ -208,12 +204,8 @@
 			}
 
 			moduleSync = null;
-		} else if ( 'finished' === syncStatus || 'noposts' === syncStatus ) {
-			if ( 'noposts' === syncStatus ) {
-				$syncStatusText.text( ep.sync_no_posts );
-			} else {
-				$syncStatusText.text( ep.sync_complete );
-			}
+		} else if ( 'finished' === syncStatus ) {
+			$syncStatusText.text( ep.sync_complete );
 
 			$syncStatusText.show();
 			$progressBar.hide();
@@ -272,24 +264,19 @@
 				currentSite = response.data.current_site;
 			}
 
-			if ( 0 === response.data.found_posts ) {
-				if ( siteStack && siteStack.length ) {
-					// We are mid multisite sync
-					syncStatus = 'sync';
-					updateSyncDash();
+			if ( siteStack && siteStack.length ) {
+				// We are mid multisite sync
+				syncStatus = 'sync';
+				updateSyncDash();
 
-					sync();
-				} else {
-					if ( response.data.start ) {
-						// No posts to sync
-						syncStatus = 'noposts';
-						updateSyncDash();
-					} else {
-						// Sync finished
-						syncStatus = 'finished';
-						updateSyncDash();
-					}
-				}
+				sync();
+				return;
+			}
+
+			if ( 0 === response.data.found_posts && ! response.data.start ) {
+				// Sync finished
+				syncStatus = 'finished';
+				updateSyncDash();
 			} else {
 				// We are starting a sync
 				syncStatus = 'sync';
