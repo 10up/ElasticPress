@@ -41,6 +41,8 @@ class EPTestAdminModule extends EP_Test_Base {
 		//make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
+
+		set_current_screen( 'front' );
 	}
 
 	/**
