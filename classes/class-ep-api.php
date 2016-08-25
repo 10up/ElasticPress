@@ -1601,7 +1601,7 @@ class EP_API {
 	}
 
 	/**
-	 * Wrapper function for wp_get_sites - allows us to have one central place for the `ep_indexable_sites` filter
+	 * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
 	 *
 	 * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites
 	 *
@@ -1611,8 +1611,14 @@ class EP_API {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
 			'limit' => $limit,
 		) );
+		
+		if ( function_exists( 'get_sites' ) ) {
+			$sites = get_sites( $args );
+		} else {
+			$sites = wp_get_sites( $args );
+		}
 
-		return apply_filters( 'ep_indexable_sites', wp_get_sites( $args ) );
+		return apply_filters( 'ep_indexable_sites', $sites );
 	}
 
 	/**
