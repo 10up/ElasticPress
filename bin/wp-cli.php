@@ -310,6 +310,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	public function index( $args, $assoc_args ) {
 		$this->_connect_check();
+		$was_active = $this->is_activated();
 
 		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
 			$assoc_args['posts-per-page'] = absint( $assoc_args['posts-per-page'] );
@@ -402,6 +403,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			delete_site_option( 'ep_index_meta' );
 		} else {
 			delete_option( 'ep_index_meta' );
+		}
+
+		if ( $was_active ) {
+			$this->activate();
+		} else {
+			WP_CLI::warning( __( 'ElasticPress is deactivated', 'elasticpress' ) );
 		}
 
 		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
