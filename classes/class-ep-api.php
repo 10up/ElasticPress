@@ -1001,7 +1001,7 @@ class EP_API {
 		 *
 		 * @since 2.0
 		 */
-		if ( ! empty( $args['post_parent'] ) && 'any' !== strtolower( $args['post_parent'] ) ) {
+		if ( isset( $args['post_parent'] ) && '' !== $args['post_parent'] && 'any' !== strtolower( $args['post_parent'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'term' => array(
 					'post_parent' => $args['post_parent'],
