@@ -165,8 +165,12 @@ class EP_API {
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args );
-
-		if ( ! is_wp_error( $request ) ) {
+		
+		$allowed_res_codes = apply_filters( 'ep_remote_request_allowed_response_codes', array( 200 ), $request );
+		
+		$is_valid_res = in_array( intval( wp_remote_retrieve_response_code( $request ) ), $allowed_res_codes );
+		
+		if ( ! is_wp_error( $request ) && $is_valid_res ) {
 
 			// Allow for direct response retrieval
 			do_action( 'ep_retrieve_raw_response', $request, $args, $scope, $query_args );

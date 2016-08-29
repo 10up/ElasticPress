@@ -96,4 +96,38 @@ class EPTestSearchModule extends EP_Test_Base {
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 	}
+	
+	/**
+	 * Test case for when index is deleted, request for Elasticsearch should fall back to WP Query
+	 */
+	public function testSearchIndexDeleted(){
+		global $wpdb;
+		
+		ep_activate_module( 'search' );
+		EP_Modules::factory()->setup_modules();
+		
+		$post_ids = array();
+		
+		ep_create_and_sync_post();
+		ep_create_and_sync_post();
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+		
+		ep_refresh_index();
+		
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+		
+		$args = array(
+			's' => 'findme',
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertTrue( "SELECT * FROM {$wpdb->posts} WHERE 1=0" == $query->request );
+		
+		ep_delete_index();
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertTrue( "SELECT * FROM {$wpdb->posts} WHERE 1=0" != $query->request );
+	}
 }
