@@ -42,7 +42,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 			$deps_met = $module->dependencies_met();
 			if ( is_wp_error( $deps_met ) ) {
-				$module_classes .= 'module-dependencies-unmet';
+				$module_classes .= ' module-dependencies-unmet';
 			}
 			ob_start();
 			?>
@@ -65,7 +65,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 						
 						<a data-module="<?php echo esc_attr( $module->slug ); ?>" class="js-toggle-module deactivate button"><?php esc_html_e( 'Deactivate', 'elasticpress' ); ?></a>
 						<a data-module="<?php echo esc_attr( $module->slug ); ?>" class="js-toggle-module activate button button-primary"><?php esc_html_e( 'Activate', 'elasticpress' ); ?></a>
-						<button disabled data-module="<?php echo esc_attr( $module->slug ); ?>" class="js-toggle-module syncing-placeholder button"><?php esc_html_e( 'Syncing...', 'elasticpress' ); ?></a>
+						<a disabled data-module="<?php echo esc_attr( $module->slug ); ?>" class="js-toggle-module syncing-placeholder button"><?php esc_html_e( 'Syncing...', 'elasticpress' ); ?></a>
 					</div>
 				</div>
 			</div>
