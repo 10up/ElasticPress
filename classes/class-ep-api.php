@@ -1613,7 +1613,17 @@ class EP_API {
 		) );
 		
 		if ( function_exists( 'get_sites' ) ) {
-			$sites = get_sites( $args );
+			$site_objects = get_sites( $args );
+			$sites = array();
+
+			foreach ( $site_objects as $site ) {
+				$sites[] = array(
+					'blog_id' => $site->blog_id,
+					'domain'  => $site->domain,
+					'path'    => $site->path,
+					'site_id' => $site->site_id,
+				);
+			}
 		} else {
 			$sites = wp_get_sites( $args );
 		}
