@@ -321,6 +321,17 @@ class EP_Dashboard {
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					if ( empty( $index_meta['site_stack'] ) ) {
 						delete_site_option( 'ep_index_meta' );
+
+						$sites   = ep_get_sites();
+						$indexes = array();
+
+						foreach ( $sites as $site ) {
+							switch_to_blog( $site['blog_id'] );
+							$indexes[] = ep_get_index_name();
+							restore_current_blog();
+						}
+						
+						ep_create_network_alias( $indexes );
 					} else {
 						$index_meta['offset'] = (int) $query->found_posts;
 					}
