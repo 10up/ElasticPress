@@ -964,6 +964,12 @@ class EP_API {
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['terms'] ) ) {
+
+					// Skip NOT IN queries
+					if ( ! empty( $single_tax_query['operator'] ) && 'NOT IN' === $single_tax_query['operator'] ) {
+						continue;
+					}
+
 					$terms = (array) $single_tax_query['terms'];
 
 					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
