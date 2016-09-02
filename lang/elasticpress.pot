@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-08-31 14:44:06+00:00\n"
+"POT-Creation-Date: 2016-08-02 05:05:34+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -137,27 +137,27 @@ msgstr ""
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1924
+#: classes/class-ep-api.php:1867
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1937
+#: classes/class-ep-api.php:1880
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1941
+#: classes/class-ep-api.php:1884
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1979 classes/class-ep-api.php:2038
-#: classes/class-ep-api.php:2078 classes/class-ep-api.php:2129
+#: classes/class-ep-api.php:1922 classes/class-ep-api.php:1981
+#: classes/class-ep-api.php:2021 classes/class-ep-api.php:2072
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -177,36 +177,40 @@ msgid ""
 "need to <a href=\"%s\">fix it</a> for ElasticPress to work."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:474
+#: classes/class-ep-dashboard.php:454
+msgid "No posts to sync"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:455
 msgid "Sync complete"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:475
+#: classes/class-ep-dashboard.php:456
 msgid "Sync paused"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:476
+#: classes/class-ep-dashboard.php:457
 msgid "Syncing"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:477
+#: classes/class-ep-dashboard.php:458
 msgid "WP CLI sync is occuring. Refresh the page to see if it's finished"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:478
+#: classes/class-ep-dashboard.php:459
 msgid "An error occured while syncing"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:498
+#: classes/class-ep-dashboard.php:479
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:607 classes/class-ep-dashboard.php:608
+#: classes/class-ep-dashboard.php:588 classes/class-ep-dashboard.php:589
 #: includes/settings-page.php:27
 msgid "Settings"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:616 classes/class-ep-dashboard.php:617
+#: classes/class-ep-dashboard.php:597 classes/class-ep-dashboard.php:598
 msgid "Welcome"
 msgstr ""
 
@@ -295,31 +299,54 @@ msgstr ""
 msgid "Save Changes"
 msgstr ""
 
-#: modules/admin/admin.php:81
+#: modules/admin/admin.php:83
 msgid ""
 "The posts table can be painfully slow to load, especially when trying to "
-"filter by date, taxonomy, or meta. This module makes posts and pages lists "
-"run fast no matter what."
-msgstr ""
-
-#: modules/admin/admin.php:92
-msgid ""
-"Within the admin panel, posts and pages are shown in a standarized easy to "
-"use table format. After activating an SEO plugin, increasing post per "
-"pages, and making other modifications, that table view loads very slowly."
+"filter by date, taxonomy, or meta. This module makes post, page, and custom "
+"post type lists run fast no matter what."
 msgstr ""
 
 #: modules/admin/admin.php:94
+msgid ""
+"Within the admin panel, posts, pages, and custom post types are shown in a "
+"standarized easy to use table format. After activating an SEO plugin, "
+"increasing post per pages, and making other modifications, that table view "
+"loads very slowly."
+msgstr ""
+
+#: modules/admin/admin.php:96
 msgid ""
 "ElasticPress admin will make your admin curation experience much faster and "
 "easier. No longer will you have to wait 60 seconds to do things that should "
 "be easy such as viewing 200 posts at once."
 msgstr ""
 
-#: modules/admin/admin.php:96
+#: modules/admin/admin.php:98
 msgid ""
 "Using the search module in conjunction with this module will supercharge "
 "your admin search."
+msgstr ""
+
+#: modules/bbpress/bbpress.php:79
+msgid ""
+"Speed up bbPress and improve forum search relevancy. Enable forums users to "
+"more quickly and effectively find useful content."
+msgstr ""
+
+#: modules/bbpress/bbpress.php:90
+msgid ""
+"This module will improve bbPress forum search relevancy by enabling search "
+"to scan authors, topic tags, weight recent results, etc."
+msgstr ""
+
+#: modules/bbpress/bbpress.php:91
+msgid ""
+"Additionally, overall bbPress performance will improve with faster page "
+"load times."
+msgstr ""
+
+#: modules/bbpress/bbpress.php:105
+msgid "bbPress must be active to use this module."
 msgstr ""
 
 #: modules/related-posts/related-posts.php:85
@@ -376,13 +403,30 @@ msgid ""
 "it's activated by default."
 msgstr ""
 
-#: modules/woocommerce/woocommerce.php:529
+#: modules/the-events-calendar/the-events-calendar.php:99
+msgid "Dramatically increase the performance of The Events Calendar plugin."
+msgstr ""
+
+#: modules/the-events-calendar/the-events-calendar.php:110
+msgid ""
+"The Events Calendar runs some very tough queries to find out which events "
+"fall on which day, which events fall in which venue, who organized what "
+"event, etc. MySQL has a tough time handling these queries - especially as "
+"the number of events gets larger. This module will dramatically improve the "
+"performance of your calendars."
+msgstr ""
+
+#: modules/the-events-calendar/the-events-calendar.php:124
+msgid "The Events Calendar must be active to use this module."
+msgstr ""
+
+#: modules/woocommerce/woocommerce.php:619
 msgid ""
 "Dramatically increase the performance of WooCommerce product rivers, "
 "product searches, product filters, order searches, and more."
 msgstr ""
 
-#: modules/woocommerce/woocommerce.php:540
+#: modules/woocommerce/woocommerce.php:630
 msgid ""
 "Running eCommerce stores is hard enough already. You should not have to "
 "worry about slow load times. ElasticPress WooCommerce supercharges all "
@@ -391,14 +435,14 @@ msgid ""
 "fast."
 msgstr ""
 
-#: modules/woocommerce/woocommerce.php:542
+#: modules/woocommerce/woocommerce.php:632
 msgid ""
 "In the admin, order management and fulfillment is supercharged. Finding "
 "orders is much easier with more relevant searches. View order lists is "
 "easier since they load faster."
 msgstr ""
 
-#: modules/woocommerce/woocommerce.php:556
+#: modules/woocommerce/woocommerce.php:646
 msgid "WooCommerce must be active to use this module."
 msgstr ""
 
