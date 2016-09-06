@@ -42,7 +42,9 @@
 			setTimeout( function() {
 				$button.removeClass( 'processing' );
 
-				$module.toggleClass( 'module-active' );
+				if( ! response.data.active_error ) {
+					$module.toggleClass( 'module-active' );
+				}
 				
 				if ( response.data.active && response.data.reindex ) {
 					syncStatus = 'sync';

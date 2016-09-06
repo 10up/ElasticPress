@@ -398,8 +398,10 @@ class EP_Dashboard {
 		}
 
 		$data = array();
-
-		if ( $module->is_active() ) {
+		
+		if ( $module->is_active()
+		     || ( ! $module->is_active() && is_wp_error( $module->dependencies_met() ) )
+		) {
 			$key = array_search( $_POST['module'], $active_modules );
 
 			if ( false !== $key ) {
@@ -407,6 +409,7 @@ class EP_Dashboard {
 			}
 
 			$data['active'] = false;
+			$data['active_error'] = false;
 		} else {
 			$active_modules[] = $module->slug;
 
@@ -417,6 +420,12 @@ class EP_Dashboard {
 			$module->post_activation();
 
 			$data['active'] = true;
+			$data['active_error'] = false;
+		}
+		
+		// If try to activate the module but it doesn't meet dependency requirement
+		if( ! $module->is_active() && is_wp_error( $module->dependencies_met() ) ){
+			$data['active_error'] = true;
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
