@@ -178,4 +178,41 @@ class EPTestAdminModule extends EP_Test_Base {
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
+	
+	/**
+	 * Check posts filter by category in dashboard
+	 */
+	public function testAdminCategories() {
+		set_current_screen( 'edit.php' );
+		
+		ep_activate_module( 'admin' );
+		EP_Modules::factory()->setup_modules();
+		
+		$cat1 =  wp_create_category( 'category one' );
+		$cat2 =  wp_create_category( 'category two' );
+		
+		ep_create_and_sync_post( array( 'post_category' => array( $cat1 ) ) );
+		ep_create_and_sync_post( array( 'post_category' => array( $cat2 ) ) );
+		ep_create_and_sync_post( array( 'post_category' => array( $cat1 ) ) );
+		
+		ep_refresh_index();
+		
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+		
+		$query = new WP_Query();
+		
+		global $wp_the_query;
+		
+		$wp_the_query = $query;
+		
+		$args = array(
+			'category_name' => 'category one',
+		);
+		
+		$query->query( $args );
+		
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
 }
