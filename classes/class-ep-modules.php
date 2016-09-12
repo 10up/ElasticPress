@@ -26,7 +26,7 @@ class EP_Modules {
 	 * @since 2.1
 	 */
 	public function setup() {
-		add_action( 'after_setup_theme', array( $this, 'setup_modules' ) );
+		add_action( 'plugins_loaded', array( $this, 'setup_modules' ) );
 	}
 
 	/**
