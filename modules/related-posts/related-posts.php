@@ -62,7 +62,7 @@ function ep_find_related( $post_id, $return = 4 ) {
 		's'				 => ''
 	);
 
-	$query = new WP_Query( $args );
+	$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
 
 	if ( ! $query->have_posts() ) {
 		return false;
