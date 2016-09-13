@@ -209,7 +209,7 @@ class EP_API {
 			 * @param object $response The response body retrieved from Elasticsearch.
 			 */
 
-			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response );
+			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response, $args, $scope );
 		}
 
 		return false;
