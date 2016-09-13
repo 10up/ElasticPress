@@ -2291,3 +2291,8 @@ function ep_get_cluster_status() {
 function ep_elasticsearch_can_connect() {
 	return EP_API::factory()->elasticsearch_can_connect();
 }
+
+function ep_parse_site_id( $index_name ) {
+	return EP_API::factory()->parse_site_id( $index_name );
+}
+
