@@ -372,6 +372,8 @@ class EP_API {
 			'actions' => array(),
 		);
 
+		$indexes = apply_filters( 'ep_create_network_alias_indexes', $indexes );
+
 		foreach ( $indexes as $index ) {
 			$args['actions'][] = array(
 				'add' => array(
