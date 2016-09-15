@@ -124,4 +124,38 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_related_html_attached'] ) );
 	}
+	
+	/**
+	 * Test for related post args filter
+	 */
+	public function testFindRelatedPostFilter(){
+		$post_id = ep_create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
+		
+		ep_refresh_index();
+		
+		ep_activate_module( 'related_posts' );
+		
+		EP_Modules::factory()->setup_modules();
+		
+		add_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
+		$related = ep_find_related( $post_id );
+		$this->assertEquals( 2, sizeof( $related ) );
+		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ) );
+		
+		$related = ep_find_related( $post_id );
+		$this->assertEquals( 3, sizeof( $related ) );
+	}
+	
+	/**
+	 * @param $args
+	 *
+	 * @return mixed
+	 */
+	public function find_related_posts_filter( $args ){
+		$args['post_type'] = 'post';
+		
+		return $args;
+	}
 }
