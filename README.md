@@ -1,15 +1,15 @@
 ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
 =============
 
-Supercharge WordPress performance and search with Elasticsearch.
+A fast and flexible search and query engine for WordPress.
 
 **Please note:** master is the stable branch
 
 **Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1 require re-syncing.
 
-ElasticPress is a simple plugin to dramatically improve WordPress performance and search. By integrating with [Elasticsearch](https://elastic.co), ElasticPress can speed up search queries, post/page/etc look ups, complex meta and taxonomy queries, improve search relevancy, support search misspellings, support search filters, and more. If you have struggled with slow load times when showing a list of posts or irrelevant search results, this plugin is for you. If you want to facet search results with filters, this plugin is for you.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
 
-ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins. ElasticPress will make your WooCommerce product pages load much faster even when using filters.
+ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins.
 
 <p align="center">
 <a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/08/10up_github_banner-2.png" width="850"></a>
@@ -39,27 +39,19 @@ Once syncing finishes, your site is officially supercharged. You also have acces
 
 ### Search
 
-The search module will integrate with all search queries to run searches through Elasticsearch. The module will improve the relevancy of your results and weight them by recency.
-
-### Admin
-
-The admin module integrates all post listing queries (used here `/wp-admin/edit.php`) with Elasticsearch. This will make editing and browsing your content much easier.
-
-### Related Posts
-
-Related Posts finds similiar content by comparing terms and post fields. A posts related content is appended to the single view of that post. The module is super performant unlike many Wordpress counterparts.
+Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
 
 ### WooCommerce
 
-This module runs all WooCommerce product and orders queries through Elasticsearch. Product queries (filters especially) run much faster. In the back end, browsing products and orders is much faster.
+Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
 
-### bbPress
+### Related Posts
 
-This module runs bbPress search through Elasticsearch. Topic, forum, and replies will be searched much more effectively - post content, excerpt, title, taxonomies, recency weighting, etc.
+Help users easily find related content by adding related posts to the end of each post.
 
-### The Events Calendar
+### Admin
 
-The Events Calendar runs some very complex MySQL queries to find out which events fall on what day. This module will make your calendars load much faster.
+Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You'll need to make sure your Elasticsearch instance is properly secured.
 
 ## `WP_Query` and the ElasticPress Query Integration
 
