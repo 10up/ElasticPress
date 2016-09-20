@@ -124,7 +124,7 @@ function ep_related_posts_setup() {
  */
 function ep_related_posts_module_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Show related content below each post. Related content is queried performantly and effectively.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Help users easily find related content by adding related posts to the end of each post.', 'elasticpress' ); ?></p>
 	<?php
 }
 

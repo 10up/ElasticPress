@@ -23,7 +23,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 <div class="wrap">
 	<h1><?php esc_html_e( 'ElasticPress', 'elasticpress' ); ?></h1>
 
-	<h2><?php esc_html_e( "ElasticPress let's you supercharge your WordPress website with various modules. Activate the ones you need below.", 'elasticpress' ); ?></h2>
+	<h2><?php esc_html_e( "ElasticPress, the fast and flexible query engine for WordPress, let's you supercharge your website through a variety of modules. Activate the ones you need below:", 'elasticpress' ); ?></h2>
 
 	<div class="ep-modules metabox-holder">
 		<?php $modules = EP_Modules::factory()->registered_modules; ?>
