@@ -21,13 +21,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
-<<<<<<< HEAD
-define( 'EP_VERSION', '2.0.1' );
-=======
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_VERSION', '2.1' );
 define( 'EP_MODULES_DIR', dirname( __FILE__ ) . '/modules' );
->>>>>>> develop
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
@@ -68,37 +64,10 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
  */
 function ep_on_activate() {
 	$active_modules = get_option( 'ep_active_modules', false );
-
-<<<<<<< HEAD
-	if ( class_exists( 'EP_Config' ) ) {
-
-		load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
-
-		// Load the settings page.
-		if( is_admin() && is_user_logged_in() ) {
-			require_once( dirname( __FILE__ ) . '/classes/class-ep-settings.php' );
-			new EP_Settings();
-		}
-
-		// Load the indexing GUI.
-		if ( true === apply_filters( 'ep_load_index_gui', true ) ) {
-
-			require_once( dirname( __FILE__ ) . '/classes/class-ep-index-gui.php' );
-			new EP_Index_GUI();
-
-		}
-
-		// Load index statuses.
-		if ( true === apply_filters( 'ep_load_index_status', true ) ) {
-
-			require_once( dirname( __FILE__ ) . '/classes/class-ep-index-status.php' );
-			new EP_Index_Status();
-=======
+	
 	if ( false === $active_modules ) {
 		$active_modules = array( 'search' );
 	}
->>>>>>> develop
-
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		update_site_option( 'ep_active_modules', $active_modules );
 		delete_site_option( 'ep_index_meta' );
