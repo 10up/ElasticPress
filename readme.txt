@@ -42,6 +42,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Bundle existing modules into plugin
 * Support `meta_key` and `meta_value`
 * Order by `meta_value_num`
+* Properly support `post_parent = 0`. Props [tuanmh](https://github.com/tuanmh)
+* Add search scope file. Props [rveitch](https://github.com/rveitch)
+* Support WP_Query `post_status`. Props [sc0ttclark](https://github.com/sc0ttkclark)
 
 ### Backward compat breaks:
 
@@ -49,11 +52,12 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Remove `keep alive` setting
 * Remove setting to integrate with search (just activate the module instead)
 * Back up hosts code removed
-* Remove active/inactive state. Rather just check if an index is going on our not
+* Remove active/inactive state. Rather just check if an index is going on our not.
 
 ### Bug fixes
 * Fix `post__in` support
 * Fix `paged` overwriting `offset`
+* Fix integer and comma separated string `sites` WP_Query processing. Props [jaisgit](https://github.com/jaisgit).
 
 = 2.0 =
 
