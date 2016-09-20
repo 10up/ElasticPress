@@ -1,84 +1,63 @@
 === ElasticPress ===
-Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
+Contributors: tlovett1, aaronholbrook, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
-Tags: search, elasticsearch, fuzzy, facet, searching, autosuggest, suggest, elastic, advanced search
+Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 4.6
+Tested up to: 4.7
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Integrate Elasticsearch with WordPress.
+A fast and flexible search and query engine for WordPress.
 
 == Description ==
-ElasticPress is a WordPress-Elasticsearch integration that overrides default `WP_Query` behavior to give you search results from Elasticsearch instead of MySQL. The plugin is built to be managed entirely via the command line. ElasticPress supports cross-site search in multi-site WordPress installs.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
 
-Out of the box, WordPress search is rudimentary at best: Poor performance, inflexible and rigid matching algorithms, inability to search metadata and taxonomy information, no way to determine categories of your results, and most importantly overall poor result relevancy.
+Pick and choose the modules that makes sense for your website:
 
-Elasticsearch is a search server based on [Lucene](http://lucene.apache.org/). It provides a distributed, multitenant-capable full-text search engine with a [REST](http://en.wikipedia.org/wiki/Representational_state_transfer)ful web interface and schema-free [JSON](http://json.org/) documents.
+__Search__: Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
 
-Coupling WordPress with Elasticsearch allows us to do amazing things with search including:
+__WooCommerce__: Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
 
-* Relevant results
-* Autosuggest
-* Fuzzy matching (catch misspellings as well as 'close' queries)
-* Proximity and geographic queries
-* Search metadata
-* Search taxonomies
-* Facets/aggregations
-* Search all sites on a multisite install
-* [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
+__Related Posts__: Help users easily find related content by adding related posts to the end of each post.
 
-_Note:_ Requires [Elasticsearch](http://www.elasticsearch.org/) and [WP-CLI](http://wp-cli.org/), if using WP-CLI for indexing.
+__Admin__: Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You'll need to make sure your Elasticsearch instance is properly secured.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
 1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
-2. Install [WP-CLI](http://wp-cli.org/), if using for indexing.
-3. Install the plugin in WordPress.
-
-= Configuration Using WP-CLI =
-
-First, make sure you have Elasticsearch configured properly and WP-CLI setup.
-
-Before configuring the WordPress plugin, you need to decide how you want to run the plugin. The processes for
-configuring single site and multi-site cross-site search are slightly different.
-
-= Single Site =
-1. Activate the plugin.
-2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
-3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
-4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup`.
-
-= Multi-site Cross-site Search =
-1. Network activate the plugin
-2. Define the constant `EP_HOST` in your wp-config.php file with the connection (and port) of your Elasticsearch application.
-3. If you would like to define backup servers in case EP_HOST fails enter `global $ep_backup_host` in wp-config.php and then instantiate the variable with an array of backup hosts to use.
-4. Using WP-CLI, do an initial sync (with mapping) with your ES server by running: `wp elasticpress index --setup --network-wide`.
-
-= Configuration Using the Admin GUI (requires ElasticPress >= 1.9) =
-
-First, make sure you have Elasticsearch configured properly.
-
-= Single Site (stand-alone or a single site on a network) =
-
-1. Activate the plugin on the single site you want to index.
-2. Go to the settings page, found at Settings > ElasticPress.
-3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
-
-= Multisite Cross-site Search =
-
-1. Network activate the plugin
-2. Go to the settings page, found at Settings > ElasticPress, in the Network Admin.
-3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application.
-
-= Indexing =
-1. Once a proper host is set, you can now click the Run Index button to start the indexing process.
-2. Once indexing is done, refresh this page to view the status and some stats.
+2. Activate the plugin in WordPress.
+3. In the ElasticPress settings page, input your Elasticsearch host.
+4. Activate the ElasticPress modules you need from the dashboard.
 
 == Changelog ==
+
+= 2.1 =
+
+* Redo UI
+* Make plugin modular
+* Remove unnecessary back up hosts code
+* Bundle existing modules into plugin
+* Support `meta_key` and `meta_value`
+* Order by `meta_value_num`
+* Properly support `post_parent = 0`. Props [tuanmh](https://github.com/tuanmh)
+* Add search scope file. Props [rveitch](https://github.com/rveitch)
+* Support WP_Query `post_status`. Props [sc0ttclark](https://github.com/sc0ttkclark)
+
+### Backward compat breaks:
+
+* Move ep_admin_wp_query_integration to search integration only. EP integration by default is available everywhere.
+* Remove `keep alive` setting
+* Remove setting to integrate with search (just activate the module instead)
+* Back up hosts code removed
+* Remove active/inactive state. Rather just check if an index is going on our not.
+
+### Bug fixes
+* Fix `post__in` support
+* Fix `paged` overwriting `offset`
+* Fix integer and comma separated string `sites` WP_Query processing. Props [jaisgit](https://github.com/jaisgit).
 
 = 2.0.1 =
 

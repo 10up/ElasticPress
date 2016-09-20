@@ -1,9 +1,9 @@
 {
   "name": "10up/elasticpress",
-  "description": "Integrate Elasticsearch with WordPress.",
+  "description": "Supercharge WordPress with Elasticsearch.",
   "type": "wordpress-plugin",
   "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
-  "license": ["MIT"],
+  "license": ["GPLv2"],
   "authors": [
     {
       "name": "Aaron Holbrook",
@@ -19,17 +19,28 @@
       "homepage": "http://10up.com"
     }
   ],
+  "repositories": [
+    {
+      "type":"composer",
+      "url":"https://wpackagist.org"
+    }
+  ],
   "require": {
     "php": ">=5.2"
   },
   "require-dev": {
-    "codeclimate/php-test-reporter": "dev-master",
     "phpunit/phpunit": "*@stable",
-    "wp-cli/wp-cli": "*@stable"
+    "wp-cli/wp-cli": "*@stable",
+    "wpackagist-plugin/woocommerce": "dev-trunk"
   },
   "config": {
     "platform": {
       "php": "5.3.29"
     }
+  },
+  "extra": {
+    "installer-paths": {
+          "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]
+      }
   }
 }

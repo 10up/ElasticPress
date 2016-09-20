@@ -76,6 +76,15 @@ class EP_Test_Base extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Helper function to test whether a meta sync has happened
+	 *
+	 * @since 2.0
+	 */
+	public function action_sync_on_meta_update() {
+		$this->fired_actions['ep_sync_on_meta_update'] = true;
+	}
+
+	/**
 	 * Setup a few post types for testing
 	 *
 	 * @since 1.0

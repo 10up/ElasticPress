@@ -25,6 +25,7 @@ function _manually_load_plugin() {
 
 	define( 'EP_HOST', $host );
 
+	require( dirname( __FILE__ ) . '/../vendor/woocommerce/woocommerce.php' );
 	require( dirname( __FILE__ ) . '/../elasticpress.php' );
 
 	add_filter( 'ep_config_mapping', 'ep_test_shard_number' );
@@ -49,6 +50,18 @@ function _manually_load_plugin() {
 	require_once( dirname( __FILE__ ) . '/includes/functions.php' );
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
+
+function _setup_theme() {
+	define( 'WP_UNINSTALL_PLUGIN', true );
+
+	update_option( 'woocommerce_status_options', array( 'uninstall_data' => 1 ) );
+	include( dirname( __FILE__ ) . '/../vendor/woocommerce/uninstall.php' );
+	WC_Install::install();
+
+	$GLOBALS['wp_roles']->reinit();
+	echo "Installing WooCommerce..." . PHP_EOL;
+}
+tests_add_filter( 'setup_theme', '_setup_theme' );
 
 require( $_tests_dir . '/includes/bootstrap.php' );
 require_once( dirname( __FILE__ ) . '/includes/class-ep-test-base.php' );

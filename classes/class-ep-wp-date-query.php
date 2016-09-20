@@ -1,7 +1,13 @@
 <?php
+/**
+ * Support date query integration
+ *
+ * @package elasticpress
+ * @since   1.3
+ */
 
- if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
 class EP_WP_Date_Query extends WP_Date_Query {

@@ -1,131 +1,98 @@
 ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
 =============
 
-Integrate [Elasticsearch](http://www.elasticsearch.org/) with [WordPress](http://wordpress.org/).
+A fast and flexible search and query engine for WordPress.
 
-**Please note:** the master branch is the stable
+**Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, and 1.8 require re-indexing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1 require re-syncing.
 
-## Background
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
 
-Let's face it, WordPress search is rudimentary at best. Poor performance, inflexible and rigid matching algorithms (which means no comprehension of 'close' queries), the inability to search metadata and taxonomy information, no way to determine categories of your results and most importantly the overall relevancy of results is poor.
-
-Elasticsearch is a search server based on [Lucene](http://lucene.apache.org/). It provides a distributed, multitenant-capable full-text search engine with a [REST](http://en.wikipedia.org/wiki/Representational_state_transfer)ful web interface and schema-free [JSON](http://json.org/) documents.
-
-Coupling WordPress with Elasticsearch allows us to do amazing things with search including:
-
-* Relevant results
-* Autosuggest
-* Fuzzy matching (catch misspellings as well as 'close' queries)
-* Proximity and geographic queries
-* Search metadata
-* Search taxonomies
-* Facets
-* Search all sites on a multisite install
-* [The list goes on...](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search.html)
+ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins.
 
 <p align="center">
-<a href="http://10up.com/contact/#request_quote"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/05/ghbadge-with-font.svg" width="700"></a>
+<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/08/10up_github_banner-2.png" width="850"></a>
 </p>
 
-## Purpose
+## How Does it Work
 
-The goal of ElasticPress is to integrate WordPress with Elasticsearch. This plugin integrates with the [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query) object returning results from Elasticsearch instead of MySQL.
-
-There are other Elasticsearch integration plugins available for WordPress. ElasticPress, unlike others, offers multi-site search. Elasticsearch is a complex topic and integration results in complex problems. Rather than providing a limited, clunky UI, we elected to instead provide full control via [WP-CLI](http://wp-cli.org/).
+ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query) object returning results from Elasticsearch instead of MySQL.
 
 ## Requirements
 
 * [Elasticsearch](https://www.elastic.co) 1.3+
 * [WordPress](http://wordpress.org) 3.7.1+
-* [WP-CLI](http://wp-cli.org/) 0.13+, if using WP-CLI for indexing
 
 ## Installation
 
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
-2. ElasticPress requires WP-CLI, if you want to use WP-CLI for indexing. Install it by following [these instructions](http://wp-cli.org).
-3. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WP plugin uploader.
+2. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
+3. Activate the plugin (network activate for multisite). Navigate to the settings page. You should see an ElasticPress icon in your admin menu.
+4. Input your Elasticsearch host. Your host must begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
+5. Activate the ElasticPress modules you want to use. Search is activated by default.
+6. Sync your content by clicking the sync icon.
 
-## Configuration Using WP-CLI
+Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful WP_Query integration API.
 
-First, make sure you have Elasticsearch and WP-CLI configured properly.
+## Available Modules
 
-1. Define the constant ```EP_HOST``` in your ```wp-config.php``` file with the connection (and port) of your Elasticsearch application. For example:
+### Search
 
-```php
-define( 'EP_HOST', 'http://192.168.50.4:9200' );
-```
+Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
 
-**Note:** The URL for `EP_HOST` *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
+### WooCommerce
 
-The proceeding sets depend on whether you are configuring for single site or multi-site with cross-site search capabilities.
+Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
 
-### Single Site
+### Related Posts
 
-2. Activate the plugin.
-3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running the following commands:
+Help users easily find related content by adding related posts to the end of each post.
 
-```bash
-wp elasticpress index --setup
-```
+### Admin
 
-### Multisite Cross-site Search
+Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You'll need to make sure your Elasticsearch instance is properly secured.
 
-2. Network activate the plugin
-3. Using WP-CLI, do an initial sync (with mapping) with your ES server by running the following commands:
+## `WP_Query` and the ElasticPress Query Integration
 
-```bash
-wp elasticpress index --setup --network-wide
-```
-
-## Configuration Using the Admin GUI (requires ElasticPress >= 1.9)
-
-First, make sure you have Elasticsearch configured properly.
-
-### Single Site (stand-alone or a single site on a network)
-
-1. Activate the plugin on the single site you want to index.
-2. Go to the settings page, found at Settings > ElasticPress.
-3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application. For example:
-
-```
-http://192.168.50.4:9200
-```
-
-**Note:** The URL for the Elasticsearch host *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
-
-### Multisite Cross-site Search
-
-1. Network activate the plugin
-2. Go to the settings page, found at Settings > ElasticPress, in the Network Admin.
-3. Set the Elasticsearch host in the proper input, with the connection (and port) of your Elasticsearch application. For example:
-
-```
-http://192.168.50.4:9200
-```
-
-**Note:** The URL for the Elasticsearch host *must* begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
-
-#### Indexing
-1. Once a proper host is set, you can now click the Run Index button to start the indexing process.
-2. Once indexing is done, refresh this page to view the status and some stats.
-
-After your index finishes, ```WP_Query``` will be integrated with Elasticsearch and support a few special parameters.
-
-### Creating Elasticsearch Indices
-
-Creating indices is handled automatically by ElasticPress. Index names are automatically generated based on site URL.
-
-## Usage
-
-After running an index, ElasticPress integrates with `WP_Query` if and only if the query is a search or the `ep_integrate` parameter is passed (see below). The end goal is to support all the parameters available to WP_Query so the transition is completely transparent. Right now, our WP_Query integration supports *many* of the relevant WP_Query parameters and adds a couple special ones.
+ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search module is activated, all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
 
 ### Supported WP_Query Parameters
 
+* ```ep_integrate``` (*bool*)
+
+    Allows you to run queries through Elasticsearch instead of MySQL. This parameter is the meat of the plugin. For example:
+
+    Get 20 of the latest posts
+    ```php
+    new WP_Query( array(
+        'ep_integrate'   => true,
+        'post_type'      => 'post',
+        'posts_per_page' => 20,
+    ) );
+    ```
+    
+    Get all posts with a specific category slug
+    ```php
+    new WP_Query( array(
+        'ep_integrate'   => true,
+        'post_type'      => 'post',
+        'posts_per_page' => -1,
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'category',
+                'terms'    => array( 'term-slug' ),
+                'field'    => 'slug',
+            ),
+        ),
+    ) );
+    ```
+
+    Setting `ep_integrate` to `false` will override the `s` parameter if provided.
+
 * ```s``` (*string*)
 
-    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```.
+    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```. (Requires search module)
 
 * ```posts_per_page``` (*int*)
 
@@ -332,6 +299,17 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
     is very rarely needed to be used.
 
+* ```meta_key``` (*string*)
+
+    Allows you to query meta with the defined key. Requires `meta_value` or `meta_value_num` be used as well.
+
+* ```meta_value``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
+
+* ```meta_value_num``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
 
 * ```post_type``` (*string*/*array*)
 
@@ -363,7 +341,7 @@ After running an index, ElasticPress integrates with `WP_Query` if and only if t
     
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
+    Order results by field name instead of relevance. Supports: ```title```, ```modified```, `meta_value`, `meta_value_num`, ```type```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
 
 * ```order``` (*string*)
 
@@ -505,36 +483,7 @@ The following are special parameters that are only supported by ElasticPress.
 
     _Note:_ Nesting cross-site `WP_Query` loops can result in unexpected behavior.
 
-* ```ep_integrate``` (*bool*)
-
-    Allows you to perform queries without passing a search parameter. This is pretty powerful as you can leverage Elasticsearch to retrieve queries that are too complex for MySQL (such as a 5-dimensional taxonomy query). For example:
-
-    Get 20 of the latest posts
-    ```php
-    new WP_Query( array(
-        'ep_integrate'   => true,
-        'post_type'      => 'post',
-        'posts_per_page' => 20,
-    ) );
-    ```
-    
-    Get all posts with a specific category slug
-    ```php
-    new WP_Query( array(
-        'ep_integrate'   => true,
-        'post_type'      => 'post',
-        'posts_per_page' => -1,
-        'tax_query' => array(
-            array(
-                'taxonomy' => 'category',
-                'terms'    => array( 'term-slug' ),
-                'field'    => 'slug',
-            ),
-        ),
-    ) );
-    ```
-
-### Supported WP-CLI Commands
+## WP-CLI Commands
 
 The following commands are supported by ElasticPress:
 
@@ -549,23 +498,10 @@ The following commands are supported by ElasticPress:
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
     * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
-    * `--keep-active` let's you keep ElasticPress active during indexing (cannot be used with `--setup`).
-
-* `wp elasticpress activate`
-
-  Turns on ElasticPress integration. Integration is automatically deactivated during indexing if `--keep-active` isn't passed or `--setup` is passed.
-
-* `wp elasticpress deactivate`
-
-  Turns off ElasticPress integration. Integration is automatically deactivated during indexing if `--keep-active` isn't passed or `--setup` is passed.
 
 * `wp elasticpress delete-index [--network-wide]`
 
   Deletes the current blog index. `--network-wide` will force every index on the network to be deleted.
-
-* `wp elasticpress is-active`
-
-  Checks whether ElasticPress is currently integration active. This is different than whether the plugin is WordPress active or not. During indexing, integration will be deactivated automatically.
 
 * `wp elasticpress put-mapping [--network-wide]`
 
@@ -575,13 +511,25 @@ The following commands are supported by ElasticPress:
 
   Recreates the alias index which points to every index in the network.
 
+* `wp elasticpress activate-module <module-slug> [--network-wide]`
+
+  Activate a module. If a re-indexing is required, you will need to do it manually. `--network-wide` will affect network activated ElasticPress.
+
+* `wp elasticpress deactivate-module <module-slug> [--network-wide]`
+
+  Deactivate a module. `--network-wide` will affect network activated ElasticPress.
+
+* `wp elasticpress list-modules [--all] [--network-wide]`
+
+  Lists active modules. `--all` will show all registered modules. `--network-wide` will force checking network options as opposed to a single sites options.
+
 * `wp elasticpress stats`
 
   Returns basic stats on Elasticsearch instance i.e. number of documents in current index as well as disk space used.
 
 * `wp elasticpress status`
 
-### Other Supported Params
+## Security
 
 * ElasticPress can be used with the [Elasticsearch Shield](https://www.elastic.co/products/shield) plugin
 
@@ -590,6 +538,36 @@ The following commands are supported by ElasticPress:
 ```php
 define( 'ES_SHIELD', 'username:password' );
 ```
+
+## Custom Modules
+
+ElasticPress has a robust API for registering your own modules. Refer to the code within each module for detailed examples. To register a module, you will need to call the `ep_register_module()` function like so:
+
+```php
+add_action( 'plugins_loaded', function() {
+    ep_register_module( 'slug', array(
+        'title' => 'Pretty Title',
+        'setup_cb' => 'setup_callback_function',
+        'module_box_summary_cb' => 'summary_callback_function',
+        'module_box_long_cb' => 'long_summary_callback_function',
+        'requires_install_reindex' => true,
+        'dependencies_met_cb' => 'dependencies_meta_callback_function',
+        'post_activation_cb' => 'post_activation_callback_function',
+    ) );
+} );
+```
+
+The only arguments that are really required are the `slug` and `title` of the associative arguments array. Here are descriptions of each of the associative arguments:
+
+* `title` (string) - Pretty title for module
+* `requires_install_reindex` (boolean) - Setting to true will force a reindex after the module is activated.
+* `setup_cb` (callback) - Callback to a function to be called on each page load when the module is activated.
+* `post_activation_cb` (callback) - Callback to a function to be called after a module is first activated.
+* `module_box_summary_cb` (callback) - Callback to a function that outputs HTML module box summary (short description of module).
+* `module_box_long_cb` (callback) - Callback to a function that outputs HTML module box full description.
+* `dependencies_met_cb` (callback) - Callback to a function that determines if the modules dependencies are met. True means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
+
+If you build an open source custom module, let us know! We'd be happy to list the module within ElasticPress documentation.
 
 ## Development
 
