@@ -155,7 +155,7 @@ class EP_Dashboard {
 		 * If we are on the setting screen and a host has never been set in the options table or defined, then let's
 		 * assume this is our first time and not show an obvious message.
 		 */
-		if ( ! empty( $_GET['page'] ) && 'elasticpress-settings' === $_GET['page'] && false === $options_host && ( ! defined( 'EP_HOST' ) || empty( EP_HOST ) ) ) {
+		if ( ! empty( $_GET['page'] ) && 'elasticpress-settings' === $_GET['page'] && false === $options_host && ( ! defined( 'EP_HOST' ) || ! EP_HOST ) ) {
 			return;
 		}
 
