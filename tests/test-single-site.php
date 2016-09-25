@@ -3177,8 +3177,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 	}
-
-	/**
+	
+	/*
 	 * Test a post_parent query
 	 * @group testPostParentQuery
 	 * @since 2.0

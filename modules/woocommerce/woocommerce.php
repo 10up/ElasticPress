@@ -526,7 +526,7 @@ function ep_wc_setup() {
  */
 function ep_wc_module_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Dramatically increase the performance of WooCommerce product rivers, product searches, product filters, order searches, and more.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.', 'elasticpress' ); ?></p>
 	<?php
 }
 

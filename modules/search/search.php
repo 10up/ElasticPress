@@ -13,7 +13,7 @@
  */
 function ep_search_module_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Dramatically improve the relevancy of search results and performance of searches. Weight search results by recency.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.', 'elasticpress' ); ?></p>
 	<?php
 }
 

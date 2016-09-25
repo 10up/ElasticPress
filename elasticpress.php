@@ -2,9 +2,9 @@
 
 /**
  * Plugin Name: ElasticPress
- * Description: Supercharge WordPress performance and search with Elasticsearch.
+ * Description: A fast and flexible search and query engine for WordPress.
  * Version:     2.1
- * Author:      Aaron Holbrook, Taylor Lovett, Matt Gross, 10up
+ * Author:      Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
  * Text Domain: elasticpress
@@ -64,11 +64,10 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
  */
 function ep_on_activate() {
 	$active_modules = get_option( 'ep_active_modules', false );
-
+	
 	if ( false === $active_modules ) {
 		$active_modules = array( 'search' );
 	}
-
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		update_site_option( 'ep_active_modules', $active_modules );
 		delete_site_option( 'ep_index_meta' );

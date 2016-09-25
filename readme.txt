@@ -1,20 +1,28 @@
 === ElasticPress ===
-Contributors: aaronholbrook, tlovett1, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
+Contributors: tlovett1, aaronholbrook, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
-Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search
+Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 4.6
+Tested up to: 4.7
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Supercharge WordPress performance and search with Elasticsearch.
+A fast and flexible search and query engine for WordPress.
 
 == Description ==
-ElasticPress is a simple plugin to dramatically improve WordPress performance and search. By integrating with [Elasticsearch](https://elastic.co), ElasticPress can speed up search queries, post/page/etc. look ups, improve search relevancy, support search misspellings, support search filters, and more. If you have struggled with slow load times when showing a list of posts or irrelevant search results, this plugin is for you. If you want to facet search results with filters, this plugin is for you.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
 
-ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins (right now [WooCommerce](http://wordpress.org/plugins/woocommerce) only). ElasticPress will make your WooCommerce product pages load much faster even when using filters.
+Pick and choose the modules that makes sense for your website:
+
+__Search__: Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
+
+__WooCommerce__: Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
+
+__Related Posts__: Help users easily find related content by adding related posts to the end of each post.
+
+__Admin__: Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You'll need to make sure your Elasticsearch instance is properly secured.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
@@ -34,6 +42,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Bundle existing modules into plugin
 * Support `meta_key` and `meta_value`
 * Order by `meta_value_num`
+* Properly support `post_parent = 0`. Props [tuanmh](https://github.com/tuanmh)
+* Add search scope file. Props [rveitch](https://github.com/rveitch)
+* Support WP_Query `post_status`. Props [sc0ttclark](https://github.com/sc0ttkclark)
 
 ### Backward compat breaks:
 
@@ -41,11 +52,17 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Remove `keep alive` setting
 * Remove setting to integrate with search (just activate the module instead)
 * Back up hosts code removed
-* Remove active/inactive state. Rather just check if an index is going on our not
+* Remove active/inactive state. Rather just check if an index is going on our not.
 
 ### Bug fixes
 * Fix `post__in` support
 * Fix `paged` overwriting `offset`
+* Fix integer and comma separated string `sites` WP_Query processing. Props [jaisgit](https://github.com/jaisgit).
+
+= 2.0.1 =
+
+### Bug fixes
+* Don't load settings on front end. This fixes a critical bug causing ElasticPress to check the Elasticsearch connection on the front end.
 
 = 2.0 =
 

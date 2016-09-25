@@ -78,7 +78,7 @@ function ep_admin_integrate( $query ) {
  */
 function ep_admin_module_box_summary() {
 	?>
-	<p><?php esc_html_e( 'The posts table can be painfully slow to load, especially when trying to filter by date, taxonomy, or meta. This module makes posts and pages lists run fast no matter what.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You want to make sure your Elasticsearch instance is properly secured.', 'elasticpress' ); ?></p>
 	<?php
 }
 
