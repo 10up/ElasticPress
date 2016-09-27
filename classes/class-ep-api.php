@@ -963,6 +963,10 @@ class EP_API {
 
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
+			$tax_must_not_filter  = array();
+			
+			// Main tax_query array for ES
+			$es_tax_query = array();
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['terms'] ) ) {
@@ -978,14 +982,24 @@ class EP_API {
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
-
-					// Use the AND operator if passed
-					if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
-						$terms_obj['execution'] = 'and';
+					
+					/*
+					 * add support for "NOT IN" operator
+					 *
+					 * @since 2.1
+					 */
+					if ( ! empty( $single_tax_query['operator'] ) && 'NOT IN' === $single_tax_query['operator'] ) {
+						// If "NOT IN" than it should filter as must_not
+						$tax_must_not_filter[]['terms'] = $terms_obj;
+					} else {
+						// Use the AND operator if passed
+						if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
+							$terms_obj['execution'] = 'and';
+						}
+						
+						// Add the tax query filter
+						$tax_filter[]['terms'] = $terms_obj;
 					}
-
-					// Add the tax query filter
-					$tax_filter[]['terms'] = $terms_obj;
 				}
 			}
 
@@ -995,10 +1009,18 @@ class EP_API {
 				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
 					$relation = 'should';
 				}
-
-				$filter['and'][]['bool'][$relation] = $tax_filter;
+				
+				$es_tax_query[$relation] = $tax_filter;
 			}
-
+			
+			if( ! empty( $tax_must_not_filter ) ) {
+				$es_tax_query['must_not'] = $tax_must_not_filter;
+			}
+			
+			if( ! empty( $es_tax_query ) ) {
+				$filter['and'][]['bool'] = $es_tax_query;
+			}
+			
 			$use_filters = true;
 		}
 
