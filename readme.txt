@@ -34,6 +34,11 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.1.1 =
+
+* Fix PHP 5.3 errors
+* Properly show syncing button module placeholder during sync
+
 = 2.1 =
 
 * Redo UI
