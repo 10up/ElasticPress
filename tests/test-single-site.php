@@ -1974,6 +1974,32 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
 	}
+	
+	/**
+	 * Test orderby random
+	 *
+	 * @since 2.1.1
+	 */
+	public function testRandOrderby() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 1' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 2' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 3' ) );
+		
+		ep_refresh_index();
+		
+		$args = array(
+			'ep_integrate'  => true,
+			'orderby'       => 'rand',
+		);
+		
+		$query = new WP_Query( $args );
+		
+		/* Since it's test for random order, can't check against exact post ID or content
+			but only found posts and post count.
+		*/
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
 
 	/**
 	 * Test a normal post trash
