@@ -3237,4 +3237,54 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertTrue( $module->is_active() );
 	}
+	
+	/**
+	 * Test Tax Query NOT IN operator
+	 *
+	 * @since 2.1
+	 */
+	public function testTaxQueryNotIn() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+		
+		ep_refresh_index();
+		
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'one' ),
+					'field'    => 'slug',
+				)
+			)
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'one' ),
+					'field'    => 'slug',
+				),
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'two' ),
+					'field'    => 'slug',
+					'operator' => 'NOT IN',
+				)
+			)
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
 }
