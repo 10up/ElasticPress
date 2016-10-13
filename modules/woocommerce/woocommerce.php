@@ -506,19 +506,21 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
  * @since  2.1
  */
 function ep_wc_setup() {
-	add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
-	add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
-	add_filter( 'ep_indexable_post_types', 'ep_wc_post_types', 10, 1 );
-	add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
-	add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields' );
-	add_filter( 'woocommerce_layered_nav_query_post_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
-	add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
-	add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
-	add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
-	add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
-	add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-	add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
-	add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
+	if( function_exists( 'WC' ) ) {
+		add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
+		add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
+		add_filter( 'ep_indexable_post_types', 'ep_wc_post_types', 10, 1 );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
+		add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields' );
+		add_filter( 'woocommerce_layered_nav_query_post_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
+		add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
+		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
+		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
+		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
+		add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
+		add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
+	}
 }
 
 /**
