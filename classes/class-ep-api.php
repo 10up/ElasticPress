@@ -2271,7 +2271,9 @@ function ep_elasticpress_enabled( $query ) {
 }
 
 function ep_elasticsearch_alive( $host = null ) {
-	return EP_API::factory()->elasticsearch_alive( $host );
+	_deprecated_function( __FUNCTION__, 'ElasticPress 2.1', 'ep_elasticsearch_can_connect()' );
+
+	return EP_API::factory()->elasticsearch_can_connect();
 }
 
 function ep_index_exists( $index_name = null ) {
