@@ -2270,10 +2270,6 @@ function ep_elasticpress_enabled( $query ) {
 	return EP_API::factory()->elasticpress_enabled( $query );
 }
 
-function ep_elasticsearch_alive( $host = null ) {
-	return EP_API::factory()->elasticsearch_alive( $host );
-}
-
 function ep_index_exists( $index_name = null ) {
 	return EP_API::factory()->index_exists( $index_name );
 }
