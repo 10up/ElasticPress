@@ -1352,6 +1352,19 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+		
+		 // Only check for fields which are provided in search_fields.
+		$args = array(
+			's'             => 'findme',
+			'search_fields' => array(
+				'meta' => 'test_key'
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
