@@ -66,10 +66,9 @@ class EP_Modules {
 	 * @since  2.1
 	 */
 	public function activate_module( $slug ) {
+		$modules = get_option( 'ep_active_modules', array() );
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$modules = get_site_option( 'ep_active_modules', array() );
-		} else {
-			$modules = get_option( 'ep_active_modules', array() );
+			$modules = array_merge( $modules, get_site_option( 'ep_active_modules', array() ) );
 		}
 
 		if ( false === array_search( $slug, $modules ) ) {
