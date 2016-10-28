@@ -458,9 +458,9 @@ class EP_Dashboard {
 				$data = array( 'nonce' => wp_create_nonce( 'ep_nonce' ) );
 
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					$index_meta = get_site_option( 'ep_index_meta' );
+					$index_meta = get_site_transient( 'ep_index_meta' );
 				} else {
-					$index_meta = get_option( 'ep_index_meta' );
+					$index_meta = get_transient( 'ep_index_meta' );
 				}
 
 				if ( ! empty( $index_meta ) ) {

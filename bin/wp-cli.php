@@ -29,6 +29,27 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 1.7
 	 */
 	private $failed_posts_message = array();
+	
+	/**
+	 * Holds timestamp of last time transient was set
+	 *
+	 * @since 2.1.1
+	 */
+	private $last_transient_set_time = false;
+	
+	/**
+	 * Holds whether it's network transient or not
+	 *
+	 * @since 2.1.1
+	 */
+	private $is_network_transient = false;
+	
+	/**
+	 * Holds time until transient expires
+	 *
+	 * @since 2.1.1
+	 */
+	private $transient_expiration = 15 * MINUTE_IN_SECONDS;
 
 	/**
 	 * Activate a module.
@@ -338,12 +359,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
-			update_site_option( 'ep_index_meta', array( 'wpcli' => true ) );
+			$this->is_network_transient = true;
+			set_site_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
 		} else {
-			update_option( 'ep_index_meta', array( 'wpcli' => true ) );
+			set_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
 		}
 
 		timer_start();
+		
+		$this->last_transient_set_time = time();
 
 		// Run setup if flag was passed
 		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
@@ -398,10 +422,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		WP_CLI::log( WP_CLI::colorize( '%Y' . __( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
 
-		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
-			delete_site_option( 'ep_index_meta' );
+		if ( $this->is_network_transient ) {
+			delete_site_transient( 'ep_index_meta' );
 		} else {
-			delete_option( 'ep_index_meta' );
+			delete_transient( 'ep_index_meta' );
 		}
 
 		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
@@ -480,6 +504,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					if ( $no_bulk ) {
 						// index the posts one-by-one. not sure why someone may want to do this.
 						$result = ep_sync_post( get_the_ID() );
+						
+						$this->maybe_reset_transient();
 
 						do_action( 'ep_cli_post_index', get_the_ID() );
 					} else {
@@ -622,6 +648,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// decode the response
 		$response = ep_bulk_index_posts( $body );
+		
+		$this->maybe_reset_transient();
 
 		do_action( 'ep_cli_post_bulk_index', $this->posts );
 
@@ -802,6 +830,23 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( __( 'There is no Elasticsearch host set up. Either add one through the dashboard or define one in wp-config.php', 'elasticpress' ) );
 		} elseif ( ! ep_elasticsearch_can_connect() ) {
 			WP_CLI::error( __( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
+		}
+	}
+	
+	/**
+	 * Maybe reset transient while indexing
+	 *
+	 * @since 2.1.1
+	 */
+	private function maybe_reset_transient() {
+		if( ( time() - $this->last_transient_set_time ) >= ( $this->transient_expiration ) ) {
+			$this->last_transient_set_time = time();
+			
+			if( $this->is_network_transient ) {
+				set_site_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
+			} else {
+				set_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
+			}
 		}
 	}
 }
