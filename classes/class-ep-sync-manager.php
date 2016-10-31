@@ -174,10 +174,7 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		$indexable_post_statuses = ep_get_indexable_post_status();
-		$post_type               = get_post_type( $post_ID );
-
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_revision( $post_ID ) ) {
 			// Bypass saving if doing autosave or post type is revision
 			return;
 		}
@@ -187,13 +184,6 @@ class EP_Sync_Manager {
 				// Bypass saving if user does not have access to edit post and we're not in a cron process
 				return;
 			}
-		}
-
-		$post = get_post( $post_ID );
-
-		// If the post is an auto-draft - let's abort.
-		if ( 'auto-draft' == $post->post_status ) {
-			return;
 		}
 
 		// If post is indexable go ahead and index it
@@ -218,7 +208,13 @@ class EP_Sync_Manager {
 		$post_type = get_post_type( $post_ID );
 		$post_status = get_post_status( $post_ID );
 
-		if ( ! in_array( $post_type, $indexable_post_types ) || ! in_array( $post_status, $indexable_post_statuses ) ) {
+		if (
+			! in_array( $post_type, $indexable_post_types )
+			||
+			! in_array( $post_status, $indexable_post_statuses )
+			||
+			$post_status == 'auto-draft'
+		) {
 			return false;
 		}
 
