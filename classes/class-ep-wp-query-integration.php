@@ -217,6 +217,8 @@ class EP_WP_Query_Integration {
 
 		$new_posts = apply_filters( 'ep_wp_query_search_cached_posts', array(), $query );
 
+		$ep_query = array();
+
 		if( count( $new_posts ) < 1 ) {
 
 			$scope = 'current';
@@ -300,7 +302,7 @@ class EP_WP_Query_Integration {
 
 		$this->posts_by_query[spl_object_hash( $query )] = $new_posts;
 
-		do_action( 'ep_wp_query_search', $new_posts, (isset($ep_query) ? $ep_query : null), $query );
+		do_action( 'ep_wp_query_search', $new_posts, $ep_query, $query );
 
 		global $wpdb;
 
