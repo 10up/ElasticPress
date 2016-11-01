@@ -2320,3 +2320,16 @@ function ep_parse_site_id( $index_name ) {
 	return EP_API::factory()->parse_site_id( $index_name );
 }
 
+if( ! function_exists( 'ep_search' ) ) {
+	/**
+	 * Backward compatibility for ep_search
+	 *
+	 * @param $args
+	 * @param string $scope
+	 *
+	 * @return array
+	 */
+	function ep_search( $args, $scope = 'current' ) {
+		return ep_query( $args, array(), $scope );
+	}
+}
