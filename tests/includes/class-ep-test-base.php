@@ -2,6 +2,8 @@
 
 class EP_Test_Base extends WP_UnitTestCase {
 
+	private $_test_groups = array();
+
 	/**
 	 * Prevents weird MySQLi error.
 	 *
@@ -12,6 +14,16 @@ class EP_Test_Base extends WP_UnitTestCase {
 			self::$ignore_files = true;
 		}
 		$this->plugin_path = str_replace( '/tests/includes', '', dirname( __FILE__ ) );
+	}
+
+	public function setUp() {
+		parent::setUp();
+		$this->maybe_set_up_user_index_tests();
+	}
+
+	public function tearDown() {
+		parent::tearDown();
+		$this->maybe_tear_down_user_index_tests();
 	}
 
 	/**
@@ -113,4 +125,58 @@ class EP_Test_Base extends WP_UnitTestCase {
 
 		register_post_type( 'ep_test_not_public', $args );
 	}
+
+	private function maybe_set_up_user_index_tests() {
+		$this->_test_groups = PHPUnit_Util_Test::getGroups( get_class( $this ), $this->getName( false ) );
+		if ( ! in_array( 'users', $this->_test_groups ) ) {
+			return;
+		}
+		if ( in_array( 'users-index-not-registered', $this->_test_groups ) ) {
+			$user = ep_get_object_type( 'user' );
+			if ( $user ) {
+				EP_Object_Manager::factory()->unregister_object( $user );
+			}
+		} else {
+			if ( ! ep_get_object_type( 'user' ) ) {
+				ep_register_object_type( new EP_User_Index() );
+			}
+		}
+		if ( ! in_array( 'users-indexing-inactive', $this->_test_groups ) ) {
+			add_filter( 'ep_user_indexing_active', '__return_true', 0 );
+		}
+	}
+
+	private function maybe_tear_down_user_index_tests(){
+		remove_all_filters( 'ep_user_indexing_active' );
+		if ( ! in_array( 'users', (array) $this->_test_groups ) ) {
+			return;
+		}
+		$user = ep_get_object_type( 'user' );
+		if ( $user ) {
+			EP_Object_Manager::factory()->unregister_object( $user );
+		}
+	}
+
+	public function assertEqualSetsWithIndex( $expected, $actual ) {
+		if ( method_exists( 'WP_UnitTestCase', 'assertEqualSetsWithIndex' ) ) {
+			parent::assertEqualSetsWithIndex( $expected, $actual );
+
+			return;
+		}
+		ksort( $expected );
+		ksort( $actual );
+		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * @return WP_UnitTest_Factory
+	 */
+	protected function getFactory() {
+		if ( method_exists( $this, 'factory' ) ) {
+			return $this->factory();
+		} else {
+			return $this->factory;
+		}
+	}
+
 }

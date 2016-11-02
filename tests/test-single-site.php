@@ -3300,4 +3300,675 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
+
+	/**
+	 * @group users
+	 * @group users-index-not-registered
+	 */
+	public function testUserObjectIndexNotRegistered() {
+		$this->assertNull(ep_get_object_type('user'));
+	}
+
+	/**
+	 * @group users
+	 * @group users-indexing-inactive
+	 */
+	public function testUserIndexingInactive() {
+		$this->assertFalse(ep_get_object_type('user')->active());
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserIndexInactiveWhenElasticPressDeactivated() {
+		$users = ep_get_object_type( 'user' );
+		$this->assertTrue( $users->active() );
+		ep_deactivate();
+		$this->assertFalse( $users->active() );
+		ep_activate();
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserIndexInactiveWhenFilterReturnsFalse() {
+		$users = ep_get_object_type( 'user' );
+		$this->assertTrue( $users->active() );
+		add_filter( 'ep_user_indexing_active', '__return_false' );
+		$this->assertFalse( $users->active() );
+	}
+
+	/**
+	 * @group users
+	 * @group users-index-not-registered
+	 */
+	public function testUserIndexNoSyncWithoutSetup() {
+		$users = new EP_User_Index();
+		$this->assertFalse( has_action( 'profile_update', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertFalse( has_action( 'user_register', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertFalse( has_action( 'add_user_to_blog', array( $users, 'action_add_user_to_blog' ) ) );
+		$this->assertFalse( has_action( 'delete_user', array( $users, 'action_delete_user_from_site' ) ) );
+		$this->assertFalse( has_action( 'remove_user_from_blog', array( $users, 'action_delete_user_from_site' ) ) );
+	}
+
+	/**
+	 * @group users
+	 * @group users-index-not-registered
+	 */
+	public function testUserIndexSyncSetUpAndTearDown() {
+		$users = new EP_User_Index();
+		$users->sync_setup();
+		$this->assertEquals( 999999, has_action( 'profile_update', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertEquals( 999999, has_action( 'user_register', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertEquals( 999999, has_action( 'add_user_to_blog', array( $users, 'action_add_user_to_blog' ) ) );
+		$this->assertEquals( 10, has_action( 'delete_user', array( $users, 'action_delete_user_from_site' ) ) );
+		$this->assertEquals( 10, has_action( 'remove_user_from_blog', array( $users, 'action_delete_user_from_site' ) ) );
+		$users->sync_teardown();
+		$this->assertFalse( has_action( 'profile_update', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertFalse( has_action( 'user_register', array( $users, 'action_update_on_sync' ) ) );
+		$this->assertFalse( has_action( 'add_user_to_blog', array( $users, 'action_add_user_to_blog' ) ) );
+		$this->assertFalse( has_action( 'delete_user', array( $users, 'action_delete_user_from_site' ) ) );
+		$this->assertFalse( has_action( 'remove_user_from_blog', array( $users, 'action_delete_user_from_site' ) ) );
+	}
+
+	/**
+	 * @group users
+	 * @group users-index-not-registered
+	 */
+	public function testUserMappingNotSentWhenInactive() {
+		$data = $this->getIndexData();
+		if ( ! $data || ! is_array( $data ) || ! isset( $data[ ep_get_index_name() ]['mappings'] ) ) {
+			$this->fail( 'Could not retrieve information about the current index.' );
+		}
+		$this->assertArrayNotHasKey( 'user', $data[ ep_get_index_name() ]['mappings'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMappingSentInGlobalMapping() {
+		$data = $this->getIndexData();
+		if ( ! $data || ! is_array( $data ) || ! isset( $data[ ep_get_index_name() ]['mappings'] ) ) {
+			$this->fail( 'Could not retrieve information about the current index.' );
+		}
+		$this->assertArrayHasKey( 'user', $data[ ep_get_index_name() ]['mappings'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserQueryLooksUpUsersByRole() {
+		EP_User_Query_Integration::factory(ep_get_object_type('user'))->setup();
+		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
+		$user_ids = $this->getFactory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
+		$this->assertTrue( ! empty( $user_query->query_vars['elasticpress'] ) );
+		$this->assertEquals( $user_ids, $user_query->get_results() );
+		foreach ( $user_ids as $user_id ) {
+			wp_delete_user( $user_id );
+		}
+		ep_refresh_index();
+		remove_role( 'ep_test_role' );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserQuerySkipsWhenFilterSaysSo() {
+		EP_User_Query_Integration::factory(ep_get_object_type('user'))->setup();
+		add_filter( 'ep_skip_user_query_integration', '__return_true' );
+		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
+		$user_ids = $this->getFactory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array( 'role' => 'ep_test_role', 'fields' => 'ID' ) );
+		$this->assertArrayNotHasKey( 'elasticpress', $user_query->query_vars );
+		$this->assertEquals( $user_ids, $user_query->get_results() );
+		foreach ( $user_ids as $user_id ) {
+			wp_delete_user( $user_id );
+		}
+		ep_refresh_index();
+		remove_filter( 'ep_skip_user_query_integration', '__return_true' );
+		remove_role( 'ep_test_role' );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserQueryIntegrationSkippedForBasicQueries() {
+		EP_User_Query_Integration::factory(ep_get_object_type('user'))->setup();
+		$user_ids   = $this->getFactory()->user->create_many( 5 );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array(
+			'include' => $user_ids,
+			'fields'  => 'ID',
+			'orderby' => 'ID',
+			'order'   => 'ASC',
+			'blog_id' => 0,
+		) );
+		$this->assertArrayNotHasKey( 'elasticpress', $user_query->query_vars );
+		$this->assertEquals( 5, count( $user_query->get_results() ) );
+		foreach ( $user_ids as $user_id ) {
+			wp_delete_user( $user_id );
+		}
+		ep_refresh_index();
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserQueryGetsKilledIfNoResultsFromES() {
+		$integration = EP_User_Query_Integration::factory(ep_get_object_type('user'));
+		$integration->setup();
+		$user_query  = new WP_User_Query( array(
+			'role' => 'fictional_role',
+		) );
+		$this->assertEmpty( $user_query->get_results() );
+		$this->assertFalse( has_action( 'pre_user_query', array( $integration, 'kill_query' ) ) );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserQueryIntegrationNumberAndOffset() {
+		EP_User_Query_Integration::factory(ep_get_object_type('user'))->setup();
+		add_role( 'ep_test_role', 'EP Test Role', array( 'read' ) );
+		$user_ids = $this->getFactory()->user->create_many( 5, array( 'role' => 'ep_test_role' ) );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array(
+			'role'   => 'ep_test_role',
+			'offset' => 2,
+			'number' => 2,
+			'fields' => 'ID',
+		) );
+		$this->assertEquals( $user_query->get_results(), array_slice( $user_ids, 2, 2 ) );
+		$this->assertTrue( $user_query->query_vars['elasticpress'] );
+		foreach ( $user_ids as $user_id ) {
+			wp_delete_user( $user_id );
+		}
+		ep_refresh_index();
+		remove_role( 'ep_test_role' );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserQueryIntegrationHasPublishedPostsAndInclude() {
+		if ( version_compare( $GLOBALS['wp_version'], '4.3', '<' ) ) {
+			$this->markTestSkipped( 'has_published_posts was added in 4.3' );
+		}
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 2, array( 'role' => 'author' ) );
+		$this->getFactory()->post->create( array( 'post_author' => $ids[0] ) );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array(
+			'include'             => $ids,
+			'has_published_posts' => true,
+			'fields'              => 'ID',
+		) );
+		$this->assertTrue( $user_query->query_vars['elasticpress'] );
+		$this->assertEquals( array( $ids[0] ), $user_query->get_results() );
+		foreach ( $ids as $id ) {
+			wp_delete_user( $id );
+		}
+		ep_refresh_index();
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserQueryIntegrationExcludeAndLoginSearch() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 5 );
+		ep_refresh_index();
+		$user_query = new WP_User_Query( array(
+			'number'  => 5,
+			'exclude' => array( $ids[0] ),
+			'orderby' => 'ID',
+			'order'   => 'DESC',
+			'fields'  => 'ID',
+		) );
+		$this->assertTrue( $user_query->query_vars['elasticpress'] );
+		$this->assertNotContains( $ids[0], $user_query->get_results() );
+		$this->assertCount( 4, array_intersect( array_slice( $ids, 1 ), $user_query->get_results() ) );
+		foreach ( $ids as $id ) {
+			wp_delete_user( $id );
+		}
+		ep_refresh_index();
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserSearchMetaQuery() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3 );
+
+		wp_update_user( array( 'ID' => $ids[1], 'display_name' => 'display name findme' ) );
+
+		update_user_meta( $ids[2], 'test_key', 'findme' );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'         => 'findme',
+			'search_columns' => array(
+				'display_name',
+				'meta' => 'test_key',
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+		$this->assertEquals(
+			array(
+				new WP_User( $ids[1] ),
+				new WP_User( $ids[2] ),
+			),
+			$query->get_results()
+		);
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryEquals() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3 );
+
+		wp_update_user( array( 'ID' => $ids[1], 'display_name' => 'display name findme' ) );
+
+		update_user_meta( $ids[2], 'test_key', 'value' );
+		wp_update_user( array( 'ID' => $ids[2], 'display_name' => 'john doe findme' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'   => 'test_key',
+					'value' => 'value',
+				)
+			),
+		);
+
+		$query = new WP_user_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[2] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryNotEquals() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3, array( 'display_name' => 'jane doe findme' ) );
+
+		update_user_meta( $ids[2], 'test_key', 'value' );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => 'value',
+					'compare' => '!=',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[0] ), new WP_User( $ids[1] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryExists() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3, array( 'display_name' => 'display name findme' ) );
+
+		update_user_meta( $ids[1], 'test_key', 'value' );
+		wp_update_user( array( 'ID' => $ids[1] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'compare' => 'exists',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[1] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryNotExists() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3, array( 'display_name' => 'display name findme' ) );
+
+		update_user_meta( $ids[0], 'test_key', 'value' );
+		wp_update_user( array( 'ID' => $ids[0] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'compare' => 'not exists',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[1] ), new WP_User( $ids[2] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryGreaterThan() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 4, array( 'display_name' => 'john doe findme' ) );
+
+		$find_mark = rand( 0, 2 );
+
+		update_user_meta( $ids[ $find_mark ], 'test_key', '100' );
+		update_user_meta( $ids[ $find_mark + 1 ], 'test_key', '101' );
+		wp_update_user( array( 'ID' => $ids[ $find_mark ] ) );
+		wp_update_user( array( 'ID' => $ids[ $find_mark + 1 ] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => '100',
+					'compare' => '>',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[ $find_mark + 1 ] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryGreaterThanEqual() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 4, array( 'display_name' => 'john doe findme' ) );
+
+		$find_mark = rand( 0, 2 );
+
+		update_user_meta( $ids[ $find_mark ], 'test_key', '100' );
+		update_user_meta( $ids[ $find_mark + 1 ], 'test_key', '101' );
+		wp_update_user( array( 'ID' => $ids[ $find_mark ] ) );
+		wp_update_user( array( 'ID' => $ids[ $find_mark + 1 ] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => '100',
+					'compare' => '>=',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals(
+			array(
+				new WP_User( $ids[ $find_mark ] ),
+				new WP_User( $ids[ $find_mark + 1 ] ),
+			),
+			$query->get_results()
+		);
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryLessThan() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 4, array( 'display_name' => 'john doe findme' ) );
+
+		$find_mark = rand( 0, 2 );
+
+		update_user_meta( $ids[ $find_mark ], 'test_key', '100' );
+		update_user_meta( $ids[ $find_mark + 1 ], 'test_key', '101' );
+		wp_update_user( array( 'ID' => $ids[ $find_mark ] ) );
+		wp_update_user( array( 'ID' => $ids[ $find_mark + 1 ] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => '101',
+					'compare' => '<',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[ $find_mark ] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryLessThanEqual() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 4, array( 'display_name' => 'john doe findme' ) );
+
+		$find_mark = rand( 0, 2 );
+
+		update_user_meta( $ids[ $find_mark ], 'test_key', '100' );
+		update_user_meta( $ids[ $find_mark + 1 ], 'test_key', '101' );
+		wp_update_user( array( 'ID' => $ids[ $find_mark ] ) );
+		wp_update_user( array( 'ID' => $ids[ $find_mark + 1 ] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => '101',
+					'compare' => '<=',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals(
+			array(
+				new WP_User( $ids[ $find_mark ] ),
+				new WP_User( $ids[ $find_mark + 1 ] ),
+			),
+			$query->get_results()
+		);
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryOrRelation() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3, array( 'display_name' => 'john doe findme' ) );
+
+		update_user_meta( $ids[0], 'test_key5', 'value1' );
+		update_user_meta( $ids[1], 'test_key', 'value1' );
+		update_user_meta( $ids[1], 'test_key2', 'value' );
+		update_user_meta( $ids[2], 'test_key6', 'value' );
+		update_user_meta( $ids[2], 'test_key2', 'value2' );
+		update_user_meta( $ids[2], 'test_key3', 'value' );
+
+		wp_update_user( array( 'ID' => $ids[0] ) );
+		wp_update_user( array( 'ID' => $ids[1] ) );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key5',
+					'compare' => 'exists',
+				),
+				array(
+					'key'     => 'test_key6',
+					'value'   => 'value',
+					'compare' => '=',
+				),
+				'relation' => 'or',
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array( new WP_User( $ids[0] ), new WP_User( $ids[2] ) ), $query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryAdvanced() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 3, array( 'display_name' => 'jane doe findme' ) );
+
+		update_user_meta( $ids[0], 'test_key', 'value1' );
+		update_user_meta( $ids[1], 'test_key', 'value1' );
+		update_user_meta( $ids[1], 'test_key2', 'value' );
+		update_user_meta( $ids[2], 'test_key', 'value' );
+		update_user_meta( $ids[2], 'test_key2', 'value2' );
+		update_user_meta( $ids[2], 'test_key3', 'value' );
+
+		wp_update_user( array( 'ID' => $ids[0] ) );
+		wp_update_user( array( 'ID' => $ids[1] ) );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'test_key3',
+					'compare' => 'exists',
+				),
+				array(
+					'key' => 'test_key2',
+					'value' => 'value2',
+					'compare' => '=',
+				),
+				array(
+					'key' => 'test_key',
+					'value' => 'value1',
+					'compare' => '!=',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals( array(new WP_User($ids[2])),$query->get_results() );
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	/**
+	 * @group users
+	 */
+	public function testUserMetaQueryLike() {
+		EP_User_Query_Integration::factory( ep_get_object_type( 'user' ) )->setup();
+		$ids = $this->getFactory()->user->create_many( 5, array( 'display_name' => 'jane doe findme' ) );
+
+		update_user_meta( $ids[2], 'test_key', 'ALICE in wonderland' );
+		update_user_meta( $ids[3], 'test_key', 'alice in melbourne' );
+		update_user_meta( $ids[4], 'test_key', 'AlicE in america' );
+		wp_update_user( array( 'ID' => $ids[2] ) );
+		wp_update_user( array( 'ID' => $ids[3] ) );
+		wp_update_user( array( 'ID' => $ids[4] ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			'search'     => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => 'alice',
+					'compare' => 'LIKE',
+				)
+			),
+		);
+
+		$query = new WP_User_Query( $args );
+
+		$this->assertEquals(
+			array(
+				new WP_User( $ids[2] ),
+				new WP_User( $ids[3] ),
+				new WP_User( $ids[4] ),
+			),
+			$query->get_results()
+		);
+		$this->assertTrue( $query->query_vars['elasticpress'] );
+	}
+
+	private function getIndexData() {
+		$response = ep_remote_request( ep_get_index_name(), array() );
+		if ( ! $response || is_wp_error( $response ) ) {
+			$data = false;
+		} elseif ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			$data = false;
+		} else {
+			$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		}
+
+		return $data;
+	}
+
 }

@@ -1676,6 +1676,8 @@ class EPTestMultisite extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertTrue( empty( $query->posts ) );
+
+		remove_filter( 'ep_skip_query_integration', '__return_true' );
 	}
 
 	/**
@@ -1706,7 +1708,6 @@ class EPTestMultisite extends EP_Test_Base {
 		);
 
 		$query = new WP_Query( $args );
-
 
 		$this->assertEquals( 6, $query->post_count );
 		$this->assertEquals( 6, $query->found_posts );
@@ -1935,5 +1936,29 @@ class EPTestMultisite extends EP_Test_Base {
 
 		}
 	}
-	
+
+	/**
+	 * Test put mapping function
+	 *
+	 * Tests the index put mapping function.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @return void
+	 */
+	function testPutMapping() {
+
+		$mapping_indexed = ep_process_site_mappings();
+
+		ep_delete_index();
+
+		$mapping_unindexed = ep_process_site_mappings();
+
+		$this->setUp();
+
+		$this->assertTrue( $mapping_indexed );
+		$this->assertTrue( $mapping_unindexed );
+
+	}
+
 }

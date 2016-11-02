@@ -27,6 +27,11 @@ define( 'EP_MODULES_DIR', dirname( __FILE__ ) . '/modules' );
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
+require_once( 'classes/interface-ep-object-index.php' );
+require_once( 'classes/class-ep-abstract-object-index.php' );
+require_once( 'classes/class-ep-post-index.php' );
+require_once( 'classes/class-ep-user-index.php' );
+require_once( 'classes/class-ep-object-manager.php' );
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
 $network_activated = ep_is_network_activated( plugin_basename( __FILE__ ) );
@@ -37,6 +42,7 @@ if ( $network_activated ) {
 
 require_once( 'classes/class-ep-sync-manager.php' );
 require_once( 'classes/class-ep-wp-query-integration.php' );
+require_once( 'classes/class-ep-user-query-integration.php' );
 require_once( 'classes/class-ep-wp-date-query.php' );
 require_once( 'classes/class-ep-module.php' );
 require_once( 'classes/class-ep-modules.php' );
