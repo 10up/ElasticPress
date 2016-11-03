@@ -1501,6 +1501,21 @@ class EP_API {
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array();
 		}
+		
+		/**
+		 * Order by 'rand' support
+		 *
+		 * Ref: https://github.com/elastic/elasticsearch/issues/1170
+		 */
+		if ( ! empty( $args['orderby'] ) ) {
+			$orderbys = $this->get_orderby_array( $args['orderby'] );
+			if( in_array( 'rand', $orderbys ) ) {
+				$formatted_args_query = $formatted_args['query'];
+				$formatted_args['query'] = array();
+				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+				$formatted_args['query']['function_score']['random_score'] = (object) array();
+			}
+		}
 
 		/**
 		 * If not set default to post. If search and not set, default to "any".
@@ -1743,9 +1758,7 @@ class EP_API {
 	 * @return array
 	 */
 	protected function parse_orderby( $orderbys, $default_order, $args ) {
-		if ( ! is_array( $orderbys ) ) {
-			$orderbys = explode( ' ', $orderbys );
-		}
+		$orderbys = $this->get_orderby_array( $orderbys );
 
 		$sort = array();
 
@@ -1758,7 +1771,7 @@ class EP_API {
 				$order = $default_order;
 			}
 
-			if ( ! empty( $orderby_clause ) ) {
+			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
 				if ( 'relevance' === $orderby_clause ) {
 					$sort[] = array(
 						'_score' => array(
@@ -1822,6 +1835,22 @@ class EP_API {
 		}
 
 		return $sort;
+	}
+	
+	/**
+	 * Get Order by args Array
+	 *
+	 * @param $orderbys
+	 *
+	 * @since 2.1
+	 * @return array
+	 */
+	protected function get_orderby_array( $orderbys ){
+		if ( ! is_array( $orderbys ) ) {
+			$orderbys = explode( ' ', $orderbys );
+		}
+		
+		return $orderbys;
 	}
 
 	/**
