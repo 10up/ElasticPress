@@ -1493,7 +1493,7 @@ class EP_API {
 		 * @since 1.3
 		 */
 
-		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
+		if ( ! empty( $args['s'] ) ) {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
