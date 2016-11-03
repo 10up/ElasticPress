@@ -347,7 +347,7 @@ function ep_wc_translate_args( $query ) {
 		if ( ! empty( $orderby ) && 'rand' === $orderby ) {
 			$query->set( 'orderby', false ); // Just order by relevance.
 		}
-		
+
 		$s = $query->get( 's' );
 
 		if ( empty( $s ) ) {
@@ -470,7 +470,7 @@ function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
 
 /**
  * Make search coupons don't go through ES
- * 
+ *
  * @param  bool $enabled
  * @param  object $query
  * @since  2.1
@@ -525,7 +525,7 @@ function ep_wc_setup() {
 
 /**
  * Output module box summary
- * 
+ *
  * @since 2.1
  */
 function ep_wc_module_box_summary() {
@@ -536,7 +536,7 @@ function ep_wc_module_box_summary() {
 
 /**
  * Output module box long
- * 
+ *
  * @since 2.1
  */
 function ep_wc_module_box_long() {
