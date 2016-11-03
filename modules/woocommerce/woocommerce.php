@@ -288,11 +288,14 @@ function ep_wc_translate_args( $query ) {
 	/**
 	 * Force ElasticPress if product post type query
 	 */
-	$supported_post_types = array(
-		'product',
-		'shop_order',
-		'shop_order_refund',
-		'product_variation'
+	$supported_post_types = array_intersect(
+		array(
+			'product',
+			'shop_order',
+			'shop_order_refund',
+			'product_variation'
+		),
+		ep_get_indexable_post_types()
 	);
 
 	// For orders it queries an array of shop_order and shop_order_refund post types, hence an array_diff
