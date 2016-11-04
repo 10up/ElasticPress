@@ -1,8 +1,15 @@
 <?php
+/**
+ * ElasticPress config functions
+ *
+ * @since  1.0
+ * @package elasticpress
+ */
 
- if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
+
 class EP_Config {
 
 	/**
@@ -31,64 +38,70 @@ class EP_Config {
 	}
 
 	/**
-	 * Retrieve the appropriate EP_HOST
+	 * Determine if ElasticPress is in the middle of an index
 	 *
-	 * Looks at the defined EP_HOST or a backup global should the defined host failed.
-	 * Priority is given to the EP_HOST constant with the backups only used when needed.
-	 *
-	 * @since 1.6
-	 *
-	 * @global array $ep_backup_host   array of backup hosts
-	 *
-	 * @param bool   $force            Whether to force a new lookup or not
-	 * @param bool   $use_only_backups Forces the use of only the backup array, no others
-	 *
-	 * @return string|WP_Error the host to use or an error
+	 * @since  2.1
+	 * @return boolean
 	 */
-	public function get_ep_host( $force = false, $use_only_backups = false ) {
-
-		global $ep_backup_host;
-
-		// Delete the transient if we want to force a new good host lookup
-		if ( true === $force ) {
-			delete_site_transient( 'ep_last_good_host' );
+	public function is_indexing() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$index_meta = get_site_option( 'ep_index_meta', false );
+		} else {
+			$index_meta = get_option( 'ep_index_meta', false );
 		}
 
-		$last_good_host = get_site_transient( 'ep_last_good_host' );
+		return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) ) );
+	}
 
-		if ( $last_good_host ) {
-			return $last_good_host;
+	/**
+	 * Check if wpcli indexing is occuring
+	 *
+	 * @since  2.1
+	 * @return boolean
+	 */
+	public function is_indexing_wpcli() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$index_meta = get_site_option( 'ep_index_meta', false );
+		} else {
+			$index_meta = get_option( 'ep_index_meta', false );
 		}
 
-		// If nothing is defined just return an error
-		if ( ! defined( 'EP_HOST' ) && ! $ep_backup_host ) {
-			return new WP_Error( 'elasticpress', __( 'No running host available.', 'elasticpress' ) );
+		return apply_filters( 'ep_is_indexing_wpcli', ( ! empty( $index_meta ) && ! empty( $index_meta['wpcli'] ) ) );
+	}
+
+	/**
+	 * Retrieve the appropriate host. Will default to EP_HOST constant if it exists
+	 *
+	 * @since 2.1
+	 * @return string|bool
+	 */
+	public function get_host() {
+
+		if ( defined( 'EP_HOST' ) && EP_HOST ) {
+			$host = EP_HOST;
+		} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$host = get_site_option( 'ep_host', false );
+		} else {
+			$host = get_option( 'ep_host', false );
 		}
 
-		$hosts = array();
+		return $host;
+	}
 
-		if ( defined( 'EP_HOST' ) && false === $use_only_backups ) {
-			$hosts[] = EP_HOST;
+	/**
+	 * Determine if host is set in options rather than a constant
+	 *
+	 * @since  2.1
+	 * @return bool
+	 */
+	public function host_by_option() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$host = get_site_option( 'ep_host', false );
+		} else {
+			$host = get_option( 'ep_host', false );
 		}
 
-		// If no backups are defined just return the host
-		if ( $ep_backup_host && is_array( $ep_backup_host ) ) {
-			$hosts = array_merge( $hosts, $ep_backup_host );
-		}
-
-		foreach ( $hosts as $host ) {
-
-			if ( true === ep_elasticsearch_alive( $host ) ) {
-
-				set_site_transient( 'ep_last_good_host', $host, apply_filters( 'ep_last_good_host_timeout', 3600 ) );
-
-				return $host;
-
-			}
-		}
-
-		return new WP_Error( 'elasticpress', __( 'No running host available.', 'elasticpress' ) );
-
+		return ( ! empty( $host ) );
 	}
 
 	/**
@@ -122,21 +135,9 @@ class EP_Config {
 	 * @return mixed|void
 	 */
 	public function get_indexable_post_types() {
-		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
+		$post_types = get_post_types( array( 'public' => true ) );
 
 		return apply_filters( 'ep_indexable_post_types', $post_types );
-	}
-
-	/**
-	 * Returns searchable post types for the current site
-	 *
-	 * @since 1.9
-	 * @return mixed|void
-	 */
-	public function get_searchable_post_types() {
-		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
-
-		return apply_filters( 'ep_searchable_post_types', $post_types );
 	}
 
 	/**
@@ -163,84 +164,6 @@ class EP_Config {
 		$alias = $slug . '-global';
 
 		return apply_filters( 'ep_global_alias', $alias );
-	}
-
-	/**
-	 * Check if connection is alive.
-	 *
-	 * Provide better error messaging for common connection errors
-	 *
-	 * @since 1.7
-	 *
-	 * @return bool|WP_Error true on success or WP_Error
-	 */
-	public function check_host() {
-
-		global $ep_backup_host;
-
-		if ( ! defined( 'EP_HOST' ) && ! is_array( $ep_backup_host ) ) {
-			ep_set_host();
-		}
-
-		if ( ! defined( 'EP_HOST' ) && ! is_array( $ep_backup_host ) ) {
-			return new WP_Error( 'elasticpress', esc_html__( 'EP_HOST is not defined! Check wp-config.php', 'elasticpress' ) );
-		}
-
-		if ( false === ep_elasticsearch_alive() ) {
-			return new WP_Error( 'elasticpress', esc_html__( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
-		}
-
-		return true;
-
-	}
-
-	/**
-	 * Set EP_HOST if needed
-	 *
-	 * Retrieves the value set in options the host and defines EP_HOST constant.
-	 *
-	 * @since 1.7
-	 *
-	 * @return string The set host.
-	 */
-	public function set_host() {
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			$ep_host = get_site_option( 'ep_host' );
-
-		} else {
-
-			$ep_host = get_option( 'ep_host' );
-
-		}
-
-		if ( $ep_host && ! defined( 'EP_HOST' ) ) {
-			$this->option_host = true;
-			define( 'EP_HOST', $ep_host );
-		}
-
-		if ( defined( 'EP_HOST' ) ) {
-			return EP_HOST;
-		}
-
-		return '';
-
-	}
-
-	/**
-	 * Tracks how EP_HOST was set
-	 *
-	 * Tracks how EP_HOST was set for easer use.
-	 *
-	 * @since 1.8
-	 *
-	 * @return bool True if option is used to set host or false.
-	 */
-	public function host_by_option() {
-
-		return $this->option_host;
-
 	}
 
 	/**
@@ -273,8 +196,20 @@ EP_Config::factory();
  * Accessor functions for methods in above class. See doc blocks above for function details.
  */
 
-function ep_get_host( $force = false, $use_only_backups = false ) {
-	return EP_Config::factory()->get_ep_host( $force, $use_only_backups );
+function ep_get_host() {
+	return EP_Config::factory()->get_host();
+}
+
+function ep_host_by_option() {
+	return EP_Config::factory()->host_by_option();
+}
+
+function ep_is_indexing() {
+	return EP_Config::factory()->is_indexing();
+}
+
+function ep_is_indexing_wpcli() {
+	return EP_Config::factory()->is_indexing_wpcli();
 }
 
 function ep_get_index_name( $blog_id = null ) {
@@ -285,28 +220,12 @@ function ep_get_indexable_post_types() {
 	return EP_Config::factory()->get_indexable_post_types();
 }
 
-function ep_get_searchable_post_types() {
-	return EP_Config::factory()->get_searchable_post_types();
-}
-
 function ep_get_indexable_post_status() {
 	return EP_Config::factory()->get_indexable_post_status();
 }
 
 function ep_get_network_alias() {
 	return EP_Config::factory()->get_network_alias();
-}
-
-function ep_check_host() {
-	return EP_Config::factory()->check_host();
-}
-
-function ep_set_host() {
-	return EP_Config::factory()->set_host();
-}
-
-function ep_host_by_option() {
-	return EP_Config::factory()->host_by_option();
 }
 
 function ep_is_network_activated( $plugin ) {

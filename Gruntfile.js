@@ -19,8 +19,8 @@ module.exports = function ( grunt ) {
 					},
 
 					files : {
-						'assets/js/elasticpress-admin.min.js' : [
-							'assets/js/elasticpress-admin.js'
+						'assets/js/admin.min.js' : [
+							'assets/js/admin.js'
 						]
 					}
 
@@ -38,7 +38,7 @@ module.exports = function ( grunt ) {
 				files : {
 					expand  : true,
 					flatten : true,
-					src     : ['assets/css/elasticpress.css'],
+					src     : ['assets/css/admin.css'],
 					dest    : 'assets/css'
 				}
 
@@ -51,7 +51,7 @@ module.exports = function ( grunt ) {
 					files : [{
 						expand : true,
 						cwd    : 'assets/css',
-						src    : ['elasticpress.css'],
+						src    : ['admin.css'],
 						dest   : 'assets/css',
 						ext    : '.min.css'
 					}]
@@ -71,7 +71,7 @@ module.exports = function ( grunt ) {
 					},
 
 					files : {
-						'assets/css/elasticpress.css'            : 'assets/css/elasticpress.scss',
+						'assets/css/admin.css'            : 'assets/css/admin.scss',
 					}
 
 				}
@@ -99,7 +99,7 @@ module.exports = function ( grunt ) {
 				scripts : {
 
 					files : [
-						'assets/js/**/*'
+						'assets/js/admin.js'
 					],
 
 					tasks : ['uglify:production']

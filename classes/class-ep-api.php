@@ -1,7 +1,15 @@
 <?php
- if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+/**
+ * ElasticPress-Elasticsearch API functionas
+ *
+ * @since  1.0
+ * @package elasticpress
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
+
 class EP_API {
 
 	/**
@@ -124,18 +132,19 @@ class EP_API {
 	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
-	 * @param array $args
-	 * @param string $scope
-	 * @since 0.1.0
+	 * @param  array  $args
+	 * @param  array  $query_args Strictly for debugging
+	 * @param  string $scope
+	 * @since  0.1.0
 	 * @return array
 	 */
-	public function search( $args, $scope = 'current' ) {
+	public function query( $args, $query_args, $scope = 'current' ) {
 		$index = null;
 
 		if ( 'all' === $scope ) {
 			$index = ep_get_network_alias();
-		} elseif ( is_int( $scope ) ) {
-			$index = ep_get_index_name( $scope );
+		} elseif ( is_numeric( $scope ) ) {
+			$index = ep_get_index_name( (int) $scope );
 		} elseif ( is_array( $scope ) ) {
 			$index = array();
 
@@ -148,25 +157,29 @@ class EP_API {
 			$index = ep_get_index_name();
 		}
 
-		$path = apply_filters( 'ep_search_request_path', $index . '/post/_search', $args, $scope );
+		$path = apply_filters( 'ep_search_request_path', $index . '/post/_search', $args, $scope, $query_args );
 
 		$request_args = array(
-			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope ) ),
+			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope, $query_args ) ),
 			'method'  => 'POST',
 		);
 
-		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope ) );
-
-		if ( ! is_wp_error( $request ) ) {
+		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args );
+		
+		$remote_req_res_code = intval( wp_remote_retrieve_response_code( $request ) );
+		
+		$is_valid_res = ( $remote_req_res_code >= 200 && $remote_req_res_code <= 299 );
+		
+		if ( ! is_wp_error( $request ) && apply_filters( 'ep_remote_request_is_valid_res', $is_valid_res, $request ) ) {
 
 			// Allow for direct response retrieval
-			do_action( 'ep_retrieve_raw_response', $request, $args, $scope );
+			do_action( 'ep_retrieve_raw_response', $request, $args, $scope, $query_args );
 
 			$response_body = wp_remote_retrieve_body( $request );
 
 			$response = json_decode( $response_body, true );
 
-			if ( $this->is_empty_search( $response ) ) {
+			if ( $this->is_empty_query( $response ) ) {
 				return array( 'found_posts' => 0, 'posts' => array() );
 			}
 
@@ -174,7 +187,7 @@ class EP_API {
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
-				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope );
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $query_args );
 			}
 
 			$posts = array();
@@ -196,7 +209,7 @@ class EP_API {
 			 * @param object $response The response body retrieved from Elasticsearch.
 			 */
 
-			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response );
+			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response, $args, $scope );
 		}
 
 		return false;
@@ -209,7 +222,7 @@ class EP_API {
 	 * @since 0.1.2
 	 * @return bool
 	 */
-	public function is_empty_search( $response ) {
+	public function is_empty_query( $response ) {
 
 		if ( ! is_array( $response ) ) {
 			return true;
@@ -358,6 +371,8 @@ class EP_API {
 		$args = array(
 			'actions' => array(),
 		);
+
+		$indexes = apply_filters( 'ep_create_network_alias_indexes', $indexes );
 
 		foreach ( $indexes as $index ) {
 			$args['actions'][] = array(
@@ -694,7 +709,7 @@ class EP_API {
 				}
 			}
 
-			if ( true === $allow_index ) {
+			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
@@ -896,7 +911,7 @@ class EP_API {
 
 		// Set sort type
 		if ( ! empty( $args['orderby'] ) ) {
-			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order );
+			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order, $args );
 		} else {
 			// Default sort is to use the score (based on relevance)
 			$default_sort = array(
@@ -948,6 +963,10 @@ class EP_API {
 
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
+			$tax_must_not_filter  = array();
+			
+			// Main tax_query array for ES
+			$es_tax_query = array();
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['terms'] ) ) {
@@ -963,14 +982,24 @@ class EP_API {
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
-
-					// Use the AND operator if passed
-					if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
-						$terms_obj['execution'] = 'and';
+					
+					/*
+					 * add support for "NOT IN" operator
+					 *
+					 * @since 2.1
+					 */
+					if ( ! empty( $single_tax_query['operator'] ) && 'NOT IN' === $single_tax_query['operator'] ) {
+						// If "NOT IN" than it should filter as must_not
+						$tax_must_not_filter[]['terms'] = $terms_obj;
+					} else {
+						// Use the AND operator if passed
+						if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
+							$terms_obj['execution'] = 'and';
+						}
+						
+						// Add the tax query filter
+						$tax_filter[]['terms'] = $terms_obj;
 					}
-
-					// Add the tax query filter
-					$tax_filter[]['terms'] = $terms_obj;
 				}
 			}
 
@@ -980,10 +1009,18 @@ class EP_API {
 				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
 					$relation = 'should';
 				}
-
-				$filter['and'][]['bool'][$relation] = $tax_filter;
+				
+				$es_tax_query[$relation] = $tax_filter;
 			}
-
+			
+			if( ! empty( $tax_must_not_filter ) ) {
+				$es_tax_query['must_not'] = $tax_must_not_filter;
+			}
+			
+			if( ! empty( $es_tax_query ) ) {
+				$filter['and'][]['bool'] = $es_tax_query;
+			}
+			
 			$use_filters = true;
 		}
 
@@ -992,7 +1029,7 @@ class EP_API {
 		 *
 		 * @since 2.0
 		 */
-		if ( ! empty( $args['post_parent'] ) ) {
+		if ( isset( $args['post_parent'] ) && '' !== $args['post_parent'] && 'any' !== strtolower( $args['post_parent'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'term' => array(
 					'post_parent' => $args['post_parent'],
@@ -1010,7 +1047,7 @@ class EP_API {
 		if ( ! empty( $args['post__in'] ) ) {
 			$filter['and'][]['bool']['must'] = array(
 				'terms' => array(
-					'post_id' => (array) $args['post__in'],
+					'post_id' => array_values( (array) $args['post__in'] ),
 				),
 			);
 
@@ -1082,6 +1119,32 @@ class EP_API {
 
 		}
 
+		$meta_queries = array();
+
+		/**
+		 * Support meta_key
+		 *
+		 * @since  2.1
+		 */
+		if ( ! empty( $args['meta_key'] ) ) {
+			if ( ! empty( $args['meta_value'] ) ) {
+				$meta_value = $args['meta_value'];
+			} elseif ( ! empty( $args['meta_value_num'] ) ) {
+				$meta_value = $args['meta_value_num'];
+			}
+
+			if ( ! empty( $meta_value ) ) {
+				$meta_queries[] = array(
+					'key' => $args['meta_key'],
+					'value' => $meta_value,
+				);
+			}
+		}
+
+		/**
+		 * Todo: Support meta_type
+		 */
+
 		/**
 		 * 'meta_query' arg support.
 		 *
@@ -1091,10 +1154,14 @@ class EP_API {
 		 * @since 1.3
 		 */
 		if ( ! empty( $args['meta_query'] ) ) {
+			$meta_queries = array_merge( $meta_queries, $args['meta_query'] );
+		}
+
+		if ( ! empty( $meta_queries ) ) {
 			$meta_filter = array();
 
 			$relation = 'must';
-			if ( ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
+			if ( ! empty( $args['meta_query'] ) && ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
 				$relation = 'should';
 			}
 
@@ -1110,7 +1177,32 @@ class EP_API {
 				'unsigned' => 'long',
 			);
 
-			foreach( $args['meta_query'] as $single_meta_query ) {
+			foreach( $meta_queries as $single_meta_query ) {
+
+				/**
+				 * There is a strange case where meta_query looks like this:
+				 * array(
+				 * 	"something" => array(
+				 * 	 array(
+				 * 	 	'key' => ...
+				 * 	 	...
+				 * 	 )
+				 * 	)
+				 * )
+				 *
+				 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
+				 *
+				 * @since  2.1
+				 */
+				if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
+					reset( $single_meta_query );
+					$first_key = key( $single_meta_query );
+
+					if ( is_array( $single_meta_query[$first_key] ) ) {
+						$single_meta_query = $single_meta_query[$first_key];
+					}
+				}
+
 				if ( ! empty( $single_meta_query['key'] ) ) {
 
 					$terms_obj = false;
@@ -1142,6 +1234,7 @@ class EP_API {
 					}
 
 					switch ( $compare ) {
+						case 'not in':
 						case '!=':
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
@@ -1400,7 +1493,7 @@ class EP_API {
 		 * @since 1.3
 		 */
 
-		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
+		if ( ! empty( $args['s'] ) ) {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
@@ -1408,12 +1501,24 @@ class EP_API {
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array();
 		}
+		
+		/**
+		 * Order by 'rand' support
+		 *
+		 * Ref: https://github.com/elastic/elasticsearch/issues/1170
+		 */
+		if ( ! empty( $args['orderby'] ) ) {
+			$orderbys = $this->get_orderby_array( $args['orderby'] );
+			if( in_array( 'rand', $orderbys ) ) {
+				$formatted_args_query = $formatted_args['query'];
+				$formatted_args['query'] = array();
+				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+				$formatted_args['query']['function_score']['random_score'] = (object) array();
+			}
+		}
 
 		/**
-		 * Like WP_Query in search context, if no post_type is specified we default to "any". To
-		 * be safe you should ALWAYS specify the post_type parameter UNLIKE with WP_Query.
-		 *
-		 * @since 1.3
+		 * If not set default to post. If search and not set, default to "any".
 		 */
 		if ( ! empty( $args['post_type'] ) ) {
 			// should NEVER be "any" but just in case
@@ -1433,15 +1538,56 @@ class EP_API {
 
 				$use_filters = true;
 			}
+		} elseif ( empty( $args['s'] ) ) {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_type.raw' => 'post',
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Like WP_Query in search context, if no post_status is specified we default to "any". To
+		 * be safe you should ALWAYS specify the post_status parameter UNLIKE with WP_Query.
+		 *
+		 * @since 2.1
+		 */
+		if ( ! empty( $args['post_status'] ) ) {
+			// should NEVER be "any" but just in case
+			if ( 'any' !== $args['post_status'] ) {
+				$post_status = (array) $args['post_status'];
+				$terms_map_name = 'terms';
+				if ( count( $post_status ) < 2 ) {
+					$terms_map_name = 'term';
+					$post_status = $post_status[0];
+ 				}
+
+				$filter['and'][] = array(
+					$terms_map_name => array(
+						'post_status' => $post_status,
+					),
+				);
+
+				$use_filters = true;
+			}
+		} else {
+			$filter['and'][] = array(
+				'term' => array(
+					'post_status' => 'publish',
+				),
+			);
+
+			$use_filters = true;
 		}
 
 		if ( isset( $args['offset'] ) ) {
 			$formatted_args['from'] = $args['offset'];
 		}
 
-		if ( isset( $args['paged'] ) ) {
-			$paged = ( $args['paged'] <= 1 ) ? 0 : $args['paged'] - 1;
-			$formatted_args['from'] = $args['posts_per_page'] * $paged;
+		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
+			$formatted_args['from'] = $args['posts_per_page'] * ( $args['paged'] - 1 );
 		}
 
 		if ( $use_filters ) {
@@ -1498,7 +1644,7 @@ class EP_API {
 	}
 
 	/**
-	 * Wrapper function for wp_get_sites - allows us to have one central place for the `ep_indexable_sites` filter
+	 * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
 	 *
 	 * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites
 	 *
@@ -1508,8 +1654,24 @@ class EP_API {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
 			'limit' => $limit,
 		) );
+		
+		if ( function_exists( 'get_sites' ) ) {
+			$site_objects = get_sites( $args );
+			$sites = array();
 
-		return apply_filters( 'ep_indexable_sites', wp_get_sites( $args ) );
+			foreach ( $site_objects as $site ) {
+				$sites[] = array(
+					'blog_id' => $site->blog_id,
+					'domain'  => $site->domain,
+					'path'    => $site->path,
+					'site_id' => $site->site_id,
+				);
+			}
+		} else {
+			$sites = wp_get_sites( $args );
+		}
+
+		return apply_filters( 'ep_indexable_sites', $sites );
 	}
 
 	/**
@@ -1554,58 +1716,13 @@ class EP_API {
 	public function elasticpress_enabled( $query ) {
 		$enabled = false;
 
-		if ( method_exists( $query, 'is_search' ) && $query->is_search() ) {
-			$enabled = true;
-		} elseif ( ! empty( $query->query_vars['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
+		if ( ! empty( $query->query_vars['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
 			$enabled = true;
 		} elseif ( ! empty( $query->query_vars['ep_integrate'] ) ) {
 			$enabled = true;
 		}
 
 		return apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
-	}
-
-	/**
-	 * Deactivate ElasticPress. Disallow EP to override the main WP_Query for search queries
-	 *
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public function deactivate() {
-
-		ep_check_host();
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			return delete_site_option( 'ep_is_active' );
-
-		} else {
-
-			return delete_option( 'ep_is_active' );
-
-		}
-
-	}
-
-	/**
-	 * Activate ElasticPress. Allow EP to override the main WP_Query for search queries
-	 *
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public function activate() {
-
-		ep_check_host();
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			return update_site_option( 'ep_is_active', true );
-
-		} else {
-
-			return update_option( 'ep_is_active', true );
-
-		}
 	}
 
 	/**
@@ -1635,16 +1752,26 @@ class EP_API {
 	 * @since 1.1
 	 * @access protected
 	 *
-	 * @param string $orderby Alias or path for the field to order by.
+	 * @param string $orderbys Alias or path for the field to order by.
 	 * @param string $order
+	 * @param  array $args
 	 * @return array
 	 */
-	protected function parse_orderby( $orderby, $order ) {
-		$orderbys = explode( ' ', $orderby );
+	protected function parse_orderby( $orderbys, $default_order, $args ) {
+		$orderbys = $this->get_orderby_array( $orderbys );
+
 		$sort = array();
 
-		foreach ( $orderbys as $orderby_clause ) {
-			if ( ! empty( $orderby_clause ) ) {
+		foreach ( $orderbys as $key => $value ) {
+			if ( is_string( $key ) ) {
+				$orderby_clause = $key;
+				$order = $value;
+			} else {
+				$orderby_clause = $value;
+				$order = $default_order;
+			}
+
+			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
 				if ( 'relevance' === $orderby_clause ) {
 					$sort[] = array(
 						'_score' => array(
@@ -1654,6 +1781,18 @@ class EP_API {
 		 		} elseif ( 'date' === $orderby_clause ) {
 					$sort[] = array(
 						'post_date' => array(
+							'order' => $order,
+						),
+					);
+				} elseif ( 'type' === $orderby_clause ) {
+					$sort[] = array(
+						'post_type' => array(
+							'order' => $order,
+						),
+					);
+				} elseif ( 'modified' === $orderby_clause ) {
+					$sort[] = array(
+						'post_modified' => array(
 							'order' => $order,
 						),
 					);
@@ -1669,6 +1808,22 @@ class EP_API {
 							'order' => $order,
 						),
 					);
+				} elseif ( 'meta_value' === $orderby_clause ) {
+					if ( ! empty( $args['meta_key'] ) ) {
+						$sort[] = array(
+							'meta.' . $args['meta_key'] . '.value' => array(
+								'order' => $order,
+							),
+						);
+					}
+				} elseif ( 'meta_value_num' === $orderby_clause ) {
+					if ( ! empty( $args['meta_key'] ) ) {
+						$sort[] = array(
+							'meta.' . $args['meta_key'] . '.long' => array(
+								'order' => $order,
+							),
+						);
+					}
 				} else {
 					$sort[] = array(
 						$orderby_clause => array(
@@ -1681,62 +1836,48 @@ class EP_API {
 
 		return $sort;
 	}
-
+	
 	/**
-	 * Check to see if ElasticPress is currently active (can be disabled during syncing, etc)
+	 * Get Order by args Array
 	 *
-	 * @return mixed
-	 * @since 0.9.2
+	 * @param $orderbys
+	 *
+	 * @since 2.1
+	 * @return array
 	 */
-	public function is_activated() {
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			return get_site_option( 'ep_is_active', false, false );
-
-		} else {
-
-			return get_option( 'ep_is_active', false, false );
+	protected function get_orderby_array( $orderbys ){
+		if ( ! is_array( $orderbys ) ) {
+			$orderbys = explode( ' ', $orderbys );
 		}
+		
+		return $orderbys;
 	}
 
 	/**
-	 * This function checks two things - that the plugin is currently 'activated' and that it can successfully reach the
-	 * server.
+	 * This function checks if we can connect to Elasticsearch
 	 *
-	 * @since 1.1.0
-	 *
-	 * @param string $host The host to check
-	 *
+	 * @since 2.1
 	 * @return bool
 	 */
-	public function elasticsearch_alive( $host = null ) {
+	public function elasticsearch_can_connect() {
 
-		$elasticsearch_alive = false;
+		$host = ep_get_host();
 
-		$host = null !== $host ? $host : ep_get_host(); //fallback to EP_HOST if no other host provided
-
-		//If we get a WP_Error try again for backups and return false if we still get an error
-		if ( is_wp_error( $host ) ) {
-			$host = ep_get_host( true );
-		}
-
-		if ( is_wp_error( $host ) ) {
-			return $elasticsearch_alive;
+		if ( empty( $host ) ) {
+			return false;
 		}
 
 		$request_args = array( 'headers' => $this->format_request_headers() );
-		$url = $host;
 
-		$request = wp_remote_request( $url, apply_filters( 'ep_es_alive_request_args', $request_args ) );
+		$request = wp_remote_request( $host, apply_filters( 'ep_es_can_connect_args', $request_args ) );
 
 		if ( ! is_wp_error( $request ) ) {
 			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$elasticsearch_alive = true;
+				return true;
 			}
 		}
 
-		return $elasticsearch_alive;
+		return false;
 	}
 
 	/**
@@ -1752,17 +1893,17 @@ class EP_API {
 	/**
 	 * Wrapper for wp_remote_request
 	 *
-	 * This is a wrapper function for wp_remote_request that will switch to a backup server
-	 * (if present) should the primary EP host fail.
+	 * This is a wrapper function for wp_remote_request to account for request failures.
 	 *
 	 * @since 1.6
 	 *
 	 * @param string $path Site URL to retrieve.
 	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @param array  $query_args Optional. The query args originally passed to WP_Query
 	 *
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
-	public function remote_request( $path, $args = array() ) {
+	public function remote_request( $path, $args = array(), $query_args = array() ) {
 
 		$query = array(
 			'time_start'   => microtime( true ),
@@ -1771,36 +1912,32 @@ class EP_API {
 			'blocking'     => true,
 			'failed_hosts' => array(),
 			'request'      => false,
-			'host'         => false,
+			'host'         => ep_get_host(),
+			'query_args'   => $query_args,
 		);
-
-		//The allowance of these variables makes testing easier.
-		$force       = false;
-		$use_backups = false;
 
 		//Add the API Header
 		$args['headers'] = $this->format_request_headers();
 
-		if ( defined( 'EP_FORCE_HOST_REFRESH' ) && true === EP_FORCE_HOST_REFRESH ) {
-			$force = true;
-		}
-
-		if ( defined( 'EP_HOST_USE_ONLY_BACKUPS' ) && true === EP_HOST_USE_ONLY_BACKUPS ) {
-			$use_backups = true;
-		}
-
-		$host    = ep_get_host( $force, $use_backups );
 		$request = false;
+		$failures = 0;
 
-		if ( ! is_wp_error( $host ) ) { // probably only reachable in testing but just to be safe
-			$request_url   = esc_url( trailingslashit( $host ) . $path );
+		// Optionally let us try back up hosts and account for failures
+		while ( true ) {
+			$query['host'] = apply_filters( 'ep_pre_request_host', $query['host'], $failures, $path, $args );
+			$query['url'] = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
 
-			$query['url']  = $request_url;
-			$query['host'] = $host;
+			$request = wp_remote_request( $query['url'], $args ); //try the existing host to avoid unnecessary calls
 
-			$request = wp_remote_request( $request_url, $args ); //try the existing host to avoid unnecessary calls
-		} else {
-			$query['failed_hosts'][] = $host;
+			if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 0 !== strpos( $request['response']['code'], '20' ) ) ) {
+				$failures++;
+
+				if ( $failures >= apply_filters( 'ep_max_remote_request_tries', 1, $path, $args ) ) {
+					break;
+				}
+			} else {
+				break;
+			}
 		}
 
 		// Return now if we're not blocking, since we won't have a response yet
@@ -1812,28 +1949,8 @@ class EP_API {
 			return $request;
 		}
 
-		//If we have a failure we'll try it again with a backup host
-		if ( false === $request || is_wp_error( $request ) || ( isset( $request['response']['code'] ) && 0 !== strpos( $request['response']['code'], '20' ) ) ) {
-
-			$host = ep_get_host( true, $use_backups );
-
-			if ( is_wp_error( $host ) ) {
-				$query['failed_hosts'][] = $host;
-				$query['time_finish']    = microtime( true );
-				$this->_add_query_log( $query );
-
-				return $host;
-			}
-
-			$request_url = esc_url( trailingslashit( $host ) . $path );
-			$request = wp_remote_request( $request_url, $args );
-
-		}
-
 		$query['time_finish'] = microtime( true );
 		$query['request'] = $request;
-		$query['url']     = $request_url;
-		$query['host']    = $host;
 		$this->_add_query_log( $query );
 
 		return $request;
@@ -2101,32 +2218,6 @@ class EP_API {
 	}
 
 	/**
-	 * Add the document mapping
-	 *
-	 * Creates the document mapping for the index.
-	 *
-	 * @since      1.9
-	 *
-	 * @return bool true on success or false
-	 */
-	public function process_site_mappings() {
-
-		ep_check_host();
-
-		// Deletes index first.
-		ep_delete_index();
-
-		$result = ep_put_mapping();
-
-		if ( $result ) {
-			return true;
-		}
-
-		return false;
-
-	}
-
-	/**
 	 * Query logging. Don't log anything to the queries property when
 	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
 	 * want to access the query outside of the ElasticPress plugin. This
@@ -2156,8 +2247,8 @@ function ep_index_post( $post, $blocking = true ) {
 	return EP_API::factory()->index_post( $post, $blocking );
 }
 
-function ep_search( $args, $scope = 'current' ) {
-	return EP_API::factory()->search( $args, $scope );
+function ep_query( $args, $query_args, $scope = 'current' ) {
+	return EP_API::factory()->query( $args, $query_args, $scope );
 }
 
 function ep_get_post( $post_id ) {
@@ -2208,20 +2299,10 @@ function ep_elasticpress_enabled( $query ) {
 	return EP_API::factory()->elasticpress_enabled( $query );
 }
 
-function ep_activate() {
-	return EP_API::factory()->activate();
-}
-
-function ep_deactivate() {
-	return EP_API::factory()->deactivate();
-}
-
-function ep_is_activated() {
-	return EP_API::factory()->is_activated();
-}
-
 function ep_elasticsearch_alive( $host = null ) {
-	return EP_API::factory()->elasticsearch_alive( $host );
+	_deprecated_function( __FUNCTION__, 'ElasticPress 2.1', 'ep_elasticsearch_can_connect()' );
+
+	return EP_API::factory()->elasticsearch_can_connect();
 }
 
 function ep_index_exists( $index_name = null ) {
@@ -2232,8 +2313,8 @@ function ep_format_request_headers() {
 	return EP_API::factory()->format_request_headers();
 }
 
-function ep_remote_request( $path, $args ) {
-	return EP_API::factory()->remote_request( $path, $args );
+function ep_remote_request( $path, $args = array(), $query_args = array() ) {
+	return EP_API::factory()->remote_request( $path, $args, $query_args );
 }
 
 function ep_get_query_log() {
@@ -2260,6 +2341,24 @@ function ep_get_cluster_status() {
 	return EP_API::factory()->get_cluster_status();
 }
 
-function ep_process_site_mappings() {
-	return EP_API::factory()->process_site_mappings();
+function ep_elasticsearch_can_connect() {
+	return EP_API::factory()->elasticsearch_can_connect();
+}
+
+function ep_parse_site_id( $index_name ) {
+	return EP_API::factory()->parse_site_id( $index_name );
+}
+
+if( ! function_exists( 'ep_search' ) ) {
+	/**
+	 * Backward compatibility for ep_search
+	 *
+	 * @param $args
+	 * @param string $scope
+	 *
+	 * @return array
+	 */
+	function ep_search( $args, $scope = 'current' ) {
+		return ep_query( $args, array(), $scope );
+	}
 }

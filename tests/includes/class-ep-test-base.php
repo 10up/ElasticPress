@@ -11,7 +11,15 @@ class EP_Test_Base extends WP_UnitTestCase {
 		if ( property_exists( __CLASS__, 'ignore_files' ) ) {
 			self::$ignore_files = true;
 		}
+		$this->plugin_path = str_replace( '/tests/includes', '', dirname( __FILE__ ) );
 	}
+
+	/**
+	 * Stores the root path for the plugin
+	 *
+	 * @var string
+	 */
+	protected $plugin_path = '';
 
 	/**
 	 * Helps us keep track of actions that have fired
@@ -65,6 +73,15 @@ class EP_Test_Base extends WP_UnitTestCase {
 		$this->applied_filters['ep_post_sync_args'] = $post_args;
 
 		return $post_args;
+	}
+
+	/**
+	 * Helper function to test whether a meta sync has happened
+	 *
+	 * @since 2.0
+	 */
+	public function action_sync_on_meta_update() {
+		$this->fired_actions['ep_sync_on_meta_update'] = true;
 	}
 
 	/**

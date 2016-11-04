@@ -1,10 +1,11 @@
 <phpunit
 	bootstrap="tests/bootstrap.php"
-	backupGlobals="true"
+	backupGlobals="false"
 	colors="true"
 	convertErrorsToExceptions="true"
 	convertNoticesToExceptions="true"
 	convertWarningsToExceptions="true"
+	stopOnFailure="true"
 	>
     <php>
         <const name="WP_TESTS_MULTISITE" value="1" />
