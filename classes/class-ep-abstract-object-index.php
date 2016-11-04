@@ -183,134 +183,144 @@ abstract class EP_Abstract_Object_Index implements EP_Object_Index {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function search( $args, $scope = 'current' ) {
-		$index = null;
+   /**
+ 	 * Search for posts under a specific site index or the global index ($site_id = 0).
+ 	 *
+ 	 * @param  array  $args
+ 	 * @param  array  $query_args Strictly for debugging
+ 	 * @param  string $scope
+ 	 * @since  0.1.0
+ 	 * @return array
+ 	 */
+ 	public function query( $args, $query_args, $scope = 'current' ) {
+ 		$index = null;
 
-		if ( 'all' === $scope ) {
-			$index = ep_get_network_alias();
-		} elseif ( is_int( $scope ) ) {
-			$index = ep_get_index_name( $scope );
-		} elseif ( is_array( $scope ) ) {
-			$index = array();
+ 		if ( 'all' === $scope ) {
+ 			$index = ep_get_network_alias();
+ 		} elseif ( is_numeric( $scope ) ) {
+ 			$index = ep_get_index_name( (int) $scope );
+ 		} elseif ( is_array( $scope ) ) {
+ 			$index = array();
 
-			foreach ( $scope as $site_id ) {
-				$index[] = ep_get_index_name( $site_id );
-			}
+ 			foreach ( $scope as $site_id ) {
+ 				$index[] = ep_get_index_name( $site_id );
+ 			}
 
-			$index = implode( ',', $index );
-		} else {
-			$index = ep_get_index_name();
-		}
+ 			$index = implode( ',', $index );
+ 		} else {
+ 			$index = ep_get_index_name();
+ 		}
 
-		$path = $index . "/{$this->name}/_search";
+ 		$path = $index . "/{$this->name}/_search";
 
-		if ( 'post' === $this->name ) {
-			/**
-			 * Backwards compatibility: when posts were the only type, these were the filters. This filter is deprecated
-			 * in favor of ep_post_search_request_path and ep_search_post_args
-			 */
-			$path = apply_filters( 'ep_search_request_path', $path, $args, $scope );
-			$args = apply_filters( 'ep_search_args', $args, $scope );
-		}
-		$path = apply_filters( "ep_{$this->name}_search_request_path", $path, $args, $scope );
-		$request_args = array(
-			/**
-			 * Filter the body of the search request
-			 *
-			 * @since 1.7
-			 *
-			 * @param array      $args  The body of the search request
-			 * @param string|int $scope The site context within which to search
-			 */
-			'body'   => json_encode( apply_filters( "ep_search_{$this->name}_args", $args, $scope ) ),
-			'method' => 'POST',
-		);
+ 		if ( 'post' === $this->name ) {
+ 			/**
+ 			 * Backwards compatibility: when posts were the only type, these were the filters. This filter is deprecated
+ 			 * in favor of ep_post_search_request_path and ep_search_post_args
+ 			 */
+ 			$path = apply_filters( 'ep_search_request_path', $path, $args, $scope, $query_args );
+ 			$args = apply_filters( 'ep_search_args', $args, $scope, $query_args );
+ 		}
+ 		$path = apply_filters( "ep_{$this->name}_search_request_path", $path, $args, $scope, $query_args );
+ 		$request_args = array(
+ 			/**
+ 			 * Filter the body of the search request
+ 			 *
+ 			 * @since 1.7
+ 			 *
+ 			 * @param array      $args  The body of the search request
+ 			 * @param string|int $scope The site context within which to search
+ 			 */
+ 			'body'   => json_encode( apply_filters( "ep_search_{$this->name}_args", $args, $scope, $query_args ) ),
+ 			'method' => 'POST',
+ 		);
 
-		if ( 'post' === $this->name ) {
-			/**
-			 * Backwards compatibility: when posts were the only type, this was the filter. This filter is deprecated in
-			 * favor of ep_search_post_request_args
-			 */
-			$request_args = apply_filters( 'ep_search_request_args', $request_args, $args, $scope );
-		}
-		$request = ep_remote_request(
-			$path,
-			/**
-			 * Filter the request args for the search request
-			 *
-			 * @since 1.7
-			 *
-			 * @param array      $request_args The search request args
-			 * @param array      $args         The body of the search request
-			 * @param string|int $scope        The site context within which to search
-			 */
-			apply_filters( "ep_search_{$this->name}_request_args", $request_args, $args, $scope )
-		);
+ 		if ( 'post' === $this->name ) {
+ 			/**
+ 			 * Backwards compatibility: when posts were the only type, this was the filter. This filter is deprecated in
+ 			 * favor of ep_search_post_request_args
+ 			 */
+ 			$request_args = apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args );
+ 		}
+    /**
+     * Filter the request args for the search request
+     *
+     * @since 1.7
+     *
+     * @param array      $request_args The search request args
+     * @param array      $args         The body of the search request
+     * @param string|int $scope        The site context within which to search
+     */
+    $request_args = apply_filters( "ep_search_{$this->name}_request_args", $request_args, $args, $scope, $query_args );
 
-		if ( ! is_wp_error( $request ) ) {
+    $request = ep_remote_request( $path, $request_args, $query_args );
 
-			// Allow for direct response retrieval
-			do_action( 'ep_retrieve_raw_response', $request, $args, $scope, $this->name );
+ 		$remote_req_res_code = intval( wp_remote_retrieve_response_code( $request ) );
+ 		$is_valid_res = $remote_req_res_code >= 200 && $remote_req_res_code <= 299 ? true : false;
 
-			$response_body = wp_remote_retrieve_body( $request );
+ 		if ( ! is_wp_error( $request ) && apply_filters( 'ep_remote_request_is_valid_res', $is_valid_res, $request ) ) {
 
-			$response = json_decode( $response_body, true );
+ 			// Allow for direct response retrieval
+ 			do_action( 'ep_retrieve_raw_response', $request, $args, $scope, $this->name, $query_args );
 
-			if ( $this->api->is_empty_search( $response ) ) {
-				return array( 'found_objects' => 0, 'objects' => array() );
-			}
+ 			$response_body = wp_remote_retrieve_body( $request );
 
-			$hits = $response['hits']['hits'];
+ 			$response = json_decode( $response_body, true );
 
-			// Check for and store aggregations
-			if ( ! empty( $response['aggregations'] ) ) {
-				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $this->name );
-			}
+ 			if ( $this->api->is_empty_query( $response ) ) {
+ 				return array( 'found_objects' => 0, 'objects' => array() );
+ 			}
 
-			$objects = array();
+ 			$hits = $response['hits']['hits'];
 
-			foreach ( $hits as $hit ) {
-				$object            = $hit['_source'];
-				$object['site_id'] = $this->api->parse_site_id( $hit['_index'] );
-				$objects[]         = apply_filters( "ep_retrieve_the_{$this->name}", $object, $hit );
-			}
+ 			// Check for and store aggregations
+ 			if ( ! empty( $response['aggregations'] ) ) {
+ 				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $this->name, $query_args );
+ 			}
 
-			$results = array( 'found_objects' => $response['hits']['total'], 'objects' => $objects );
-			if ( 'post' === $this->name ) {
-				/**
-				 * Filter search results.
-				 *
-				 * Allows more complete use of filtering request variables by allowing for filtering of results.
-				 *
-				 * @since 1.6.0
-				 *
-				 * @param array $results The unfiltered search results.
-				 * @param object $response The response body retrieved from ElasticSearch.
-				 */
-				$posts_results = apply_filters(
-					'ep_search_results_array',
-					array( 'found_posts' => $results['found_objects'], 'posts' => $results['objects'] ),
-					$response
-				);
+ 			$objects = array();
 
-				$results['found_objects'] = $posts_results['found_posts'];
-				$results['objects']       = $posts_results['posts'];
-			}
+ 			foreach ( $hits as $hit ) {
+ 				$object            = $hit['_source'];
+ 				$object['site_id'] = $this->api->parse_site_id( $hit['_index'] );
+ 				$objects[]         = apply_filters( "ep_retrieve_the_{$this->name}", $object, $hit );
+ 			}
 
-			/**
-			 * Filter the search results
-			 *
-			 * @since 1.7
-			 *
-			 * @param array $results The search results
-			 * @param array $response The raw response
-			 */
+ 			$results = array( 'found_objects' => $response['hits']['total'], 'objects' => $objects );
+ 			if ( 'post' === $this->name ) {
+ 				/**
+ 				 * Filter search results.
+ 				 *
+ 				 * Allows more complete use of filtering request variables by allowing for filtering of results.
+ 				 *
+ 				 * @since 1.6.0
+ 				 *
+ 				 * @param array $results The unfiltered search results.
+ 				 * @param object $response The response body retrieved from ElasticSearch.
+ 				 */
+ 				$posts_results = apply_filters(
+ 					'ep_search_results_array',
+ 					array( 'found_posts' => $results['found_objects'], 'posts' => $results['objects'] ),
+ 					$response
+ 				);
 
-			return apply_filters( "ep_search_{$this->name}_results_array", $results, $response );
-		}
+ 				$results['found_objects'] = $posts_results['found_posts'];
+ 				$results['objects']       = $posts_results['posts'];
+ 			}
 
-		return false;
-	}
+ 			/**
+ 			 * Filter the search results
+ 			 *
+ 			 * @since 1.7
+ 			 *
+ 			 * @param array $results The search results
+ 			 * @param array $response The raw response
+ 			 */
+ 			return apply_filters( "ep_search_{$this->name}_results_array", $results, $response, $args, $scope );
+ 		}
+
+ 		return false;
+ 	}
 
 	/**
 	 * {@inheritdoc}

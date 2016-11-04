@@ -129,7 +129,7 @@ interface EP_Object_Index {
 	 *
 	 * @return array|bool
 	 */
-	public function search( $args, $scope = 'current' );
+	public function query( $args, $query_args, $scope = 'current' );
 
 
 	/**

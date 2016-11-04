@@ -26,12 +26,6 @@ define( 'EP_VERSION', '2.1.1' );
 define( 'EP_MODULES_DIR', dirname( __FILE__ ) . '/modules' );
 
 require_once( 'classes/class-ep-config.php' );
-require_once( 'classes/class-ep-api.php' );
-require_once( 'classes/interface-ep-object-index.php' );
-require_once( 'classes/class-ep-abstract-object-index.php' );
-require_once( 'classes/class-ep-post-index.php' );
-require_once( 'classes/class-ep-user-index.php' );
-require_once( 'classes/class-ep-object-manager.php' );
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
 $network_activated = ep_is_network_activated( plugin_basename( __FILE__ ) );
@@ -40,6 +34,12 @@ if ( $network_activated ) {
 	define( 'EP_IS_NETWORK', true );
 }
 
+require_once( 'classes/class-ep-api.php' );
+require_once( 'classes/interface-ep-object-index.php' );
+require_once( 'classes/class-ep-abstract-object-index.php' );
+require_once( 'classes/class-ep-post-index.php' );
+require_once( 'classes/class-ep-user-index.php' );
+require_once( 'classes/class-ep-object-manager.php' );
 require_once( 'classes/class-ep-sync-manager.php' );
 require_once( 'classes/class-ep-wp-query-integration.php' );
 require_once( 'classes/class-ep-user-query-integration.php' );
@@ -70,7 +70,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
  */
 function ep_on_activate() {
 	$active_modules = get_option( 'ep_active_modules', false );
-	
+
 	if ( false === $active_modules ) {
 		$active_modules = array( 'search' );
 	}
@@ -89,7 +89,7 @@ register_activation_hook( __FILE__, 'ep_on_activate' );
  */
 function ep_loader() {
 	load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
-	
+
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );

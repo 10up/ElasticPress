@@ -80,8 +80,12 @@ class EP_Post_Index extends EP_Abstract_Object_Index {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function search( $args, $scope = 'current' ) {
-		$results = parent::search( $args, $scope );
+	public function query( $args, $query_args, $scope = 'current' ) {
+		$results = parent::query( $args, $query_args, $scope );
+
+    if ( $results === false ) {
+      return $results;
+    }
 
 		return array(
 			'found_posts' => $results['found_objects'],

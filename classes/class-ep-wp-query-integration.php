@@ -211,6 +211,10 @@ class EP_WP_Query_Integration {
 		 */
 		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'], $query );
 
+    if ( false === $query_vars['post_type'] ) { // there are no searchable post types
+			return $request;
+		}
+
 		if ( 'any' === $query_vars['post_type'] ) {
 			unset( $query_vars['post_type'] );
 		}

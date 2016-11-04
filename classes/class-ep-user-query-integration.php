@@ -145,7 +145,7 @@ class EP_User_Query_Integration {
 			$scope = array_filter( wp_parse_id_list( $scope ) );
 		}
 		try {
-			$results = ep_search( $this->format_args( $wp_user_query, $scope ), $scope ? $scope : 'current', 'user' );
+			$results = ep_query( $this->format_args( $wp_user_query, $scope ), $scope ? $scope : 'current', 'user' );
 		} catch ( Exception $e ) {
 			/**
 			 * Allow visibility into any exceptions that we catch here
@@ -609,7 +609,7 @@ class EP_User_Query_Integration {
 	 */
 	private function is_user_indexing_active() {
 		return (
-			( ep_is_activated() || ( defined( 'WP_CLI' ) && WP_CLI ) ) &&
+			( defined( 'WP_CLI' ) && WP_CLI ) &&
 			$this->user_index &&
 			$this->user_index->active()
 		);
@@ -829,7 +829,7 @@ class EP_User_Query_Integration {
 		);
 		$this->aggregations = null;
 		add_action( 'ep_retrieve_aggregations', array( $this, 'intercept_aggregations' ) );
-		ep_search( $author_search, $scope ? $scope : 'current', 'post' );
+		ep_query( $author_search, $scope ? $scope : 'current', 'post' );
 		remove_action( 'ep_retrieve_aggregations', array( $this, 'intercept_aggregations' ) );
 		if (
 			! $this->aggregations ||

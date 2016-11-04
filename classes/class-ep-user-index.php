@@ -33,7 +33,7 @@ class EP_User_Index extends EP_Abstract_Object_Index {
 	 */
 	public function active() {
 		return (
-			( ep_is_activated() || ( defined( 'WP_CLI' ) && WP_CLI ) ) &&
+			( defined( 'WP_CLI' ) && WP_CLI ) &&
 			apply_filters( 'ep_user_indexing_active', false )
 		);
 	}

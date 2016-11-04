@@ -85,7 +85,7 @@ class Test_EP_Object_Manager extends EP_Test_Base {
 				'get_document',
 				'delete_document',
 				'prepare_object',
-				'search',
+				'query',
 				'bulk_index',
 			)
 		);

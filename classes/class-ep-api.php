@@ -110,10 +110,10 @@ class EP_API {
 	 * @since 0.1.0
 	 * @return array
 	 */
-	public function query( $args, $scope = 'current', $type = 'post' ) {
+	public function query( $args, $query_args, $scope = 'current', $type = 'post' ) {
 		$index_type = ep_get_object_type( $type );
 
-		return $index_type ? $index_type->search( $args, $scope ) : array();
+		return $index_type ? $index_type->query( $args, $query_args, $scope ) : array();
 	}
 
 	/**
@@ -688,7 +688,7 @@ class EP_API {
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
 			$tax_must_not_filter  = array();
-			
+
 			// Main tax_query array for ES
 			$es_tax_query = array();
 
@@ -706,7 +706,7 @@ class EP_API {
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
-					
+
 					/*
 					 * add support for "NOT IN" operator
 					 *
@@ -720,7 +720,7 @@ class EP_API {
 						if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
 							$terms_obj['execution'] = 'and';
 						}
-						
+
 						// Add the tax query filter
 						$tax_filter[]['terms'] = $terms_obj;
 					}
@@ -733,18 +733,18 @@ class EP_API {
 				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
 					$relation = 'should';
 				}
-				
+
 				$es_tax_query[$relation] = $tax_filter;
 			}
-			
+
 			if( ! empty( $tax_must_not_filter ) ) {
 				$es_tax_query['must_not'] = $tax_must_not_filter;
 			}
-			
+
 			if( ! empty( $es_tax_query ) ) {
 				$filter['and'][]['bool'] = $es_tax_query;
 			}
-			
+
 			$use_filters = true;
 		}
 
@@ -778,12 +778,12 @@ class EP_API {
 			$use_filters = true;
 		}
 
-	        /**
-	         * 'post__not_in' arg support.
-	         *
-	         * @since x.x
-	         */
-	        if ( ! empty( $args['post__not_in'] ) ) {
+    /**
+     * 'post__not_in' arg support.
+     *
+     * @since x.x
+     */
+    if ( ! empty( $args['post__not_in'] ) ) {
 			$filter['and'][]['bool']['must_not'] = array(
 				'terms' => array(
 					'post_id' => (array) $args['post__not_in'],
@@ -791,7 +791,7 @@ class EP_API {
 			);
 
 			$use_filters = true;
-	        }
+    }
 
 		/**
 		 * Author query support
@@ -1217,13 +1217,28 @@ class EP_API {
 		 * @since 1.3
 		 */
 
-		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
+		if ( ! empty( $args['s'] ) ) {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array();
+		}
+
+		/**
+		 * Order by 'rand' support
+		 *
+		 * Ref: https://github.com/elastic/elasticsearch/issues/1170
+		 */
+		if ( ! empty( $args['orderby'] ) ) {
+			$orderbys = $this->get_orderby_array( $args['orderby'] );
+			if( in_array( 'rand', $orderbys ) ) {
+				$formatted_args_query = $formatted_args['query'];
+				$formatted_args['query'] = array();
+				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+				$formatted_args['query']['function_score']['random_score'] = (object) array();
+			}
 		}
 
 		/**
@@ -1363,7 +1378,7 @@ class EP_API {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
 			'limit' => $limit,
 		) );
-		
+
 		if ( function_exists( 'get_sites' ) ) {
 			$site_objects = get_sites( $args );
 			$sites = array();
@@ -1465,9 +1480,7 @@ class EP_API {
 	 * @return array
 	 */
 	protected function parse_orderby( $orderbys, $default_order, $args ) {
-		if ( ! is_array( $orderbys ) ) {
-			$orderbys = explode( ' ', $orderbys );
-		}
+		$orderbys = $this->get_orderby_array( $orderbys );
 
 		$sort = array();
 
@@ -1480,7 +1493,7 @@ class EP_API {
 				$order = $default_order;
 			}
 
-			if ( ! empty( $orderby_clause ) ) {
+			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
 				if ( 'relevance' === $orderby_clause ) {
 					$sort[] = array(
 						'_score' => array(
@@ -1544,6 +1557,22 @@ class EP_API {
 		}
 
 		return $sort;
+	}
+
+	/**
+	 * Get Order by args Array
+	 *
+	 * @param $orderbys
+	 *
+	 * @since 2.1
+	 * @return array
+	 */
+	protected function get_orderby_array( $orderbys ){
+		if ( ! is_array( $orderbys ) ) {
+			$orderbys = explode( ' ', $orderbys );
+		}
+
+		return $orderbys;
 	}
 
 	/**
@@ -1992,8 +2021,8 @@ function ep_index_post( $post, $blocking = true ) {
 	return EP_API::factory()->index_post( $post, $blocking );
 }
 
-function ep_query( $args, $scope = 'current', $type = 'post' ) {
-	return EP_API::factory()->search( $args, $scope, $type );
+function ep_query( $args, $query_args, $scope = 'current', $type = 'post' ) {
+	return EP_API::factory()->query( $args, $query_args, $scope, $type );
 }
 
 function ep_get_post( $post_id ) {
@@ -2093,4 +2122,3 @@ function ep_elasticsearch_can_connect() {
 function ep_parse_site_id( $index_name ) {
 	return EP_API::factory()->parse_site_id( $index_name );
 }
-

@@ -1224,15 +1224,15 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		ep_refresh_index();
 
-		// post_type defaults to "any"
+		// post_type defaults to "post"
 		$args = array(
 			'ep_integrate' => true,
 		);
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( 3, $query->post_count );
-		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -1352,7 +1352,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-		
+
 		 // Only check for fields which are provided in search_fields.
 		$args = array(
 			's'             => 'findme',
@@ -1568,14 +1568,14 @@ class EPTestSingleSite extends EP_Test_Base {
 	 */
 	public function testSearchPostMetaStringOrderbyQueryAdvanced() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c', 'test_key2' => 'c' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'd', 'test_key2' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 'd', 'test_key2' => 'c' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'd', 'test_key2' => 'd' ) );
 
 		ep_refresh_index();
 
 		$args = array(
 			's'       => 'ordertest',
-			'orderby' => array( 'meta.test_key.value.sortable' => 'asc', 'meta.test_key.value.sortable' => 'desc' ),
+			'orderby' => array( 'meta.test_key.value.sortable' => 'asc', 'meta.test_key2.value.sortable' => 'desc' ),
 			'order'   => 'ASC',
 		);
 
@@ -1584,7 +1584,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
-		$this->assertEquals( 'Ordertest 111', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 222', $query->posts[2]->post_title );
 	}
 
@@ -2490,11 +2490,11 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$post_ids = array();
 
-		$post_ids[0] = ep_create_and_sync_post();
-		$post_ids[1] = ep_create_and_sync_post();
-		$post_ids[2] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
-		$post_ids[3] = ep_create_and_sync_post();
-		$post_ids[4] = ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+    ep_create_and_sync_post();
+    ep_create_and_sync_post();
+    ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
+    ep_create_and_sync_post();
+    ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
 
 		ep_refresh_index();
 
@@ -3190,7 +3190,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 	}
-	
+
 	/*
 	 * Test a post_parent query
 	 * @group testPostParentQuery
@@ -3216,7 +3216,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test register module
-	 * 
+	 *
 	 * @since 2.1
 	 */
 	public function testRegisterModule() {
@@ -3230,7 +3230,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test setup modules
-	 * 
+	 *
 	 * @since 2.1
 	 */
 	public function testSetupModules() {
@@ -3250,7 +3250,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertTrue( $module->is_active() );
 	}
-	
+
 	/**
 	 * Test Tax Query NOT IN operator
 	 *
@@ -3259,9 +3259,9 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testTaxQueryNotIn() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
-		
+
 		ep_refresh_index();
-		
+
 		$args = array(
 			's'         => 'findme',
 			'tax_query' => array(
@@ -3272,12 +3272,12 @@ class EPTestSingleSite extends EP_Test_Base {
 				)
 			)
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-		
+
 		$args = array(
 			's'         => 'findme',
 			'tax_query' => array(
@@ -3294,9 +3294,9 @@ class EPTestSingleSite extends EP_Test_Base {
 				)
 			)
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}

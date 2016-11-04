@@ -8,7 +8,7 @@
 
 /**
  * Output module box summary
- * 
+ *
  * @since 2.1
  */
 function ep_search_module_box_summary() {
@@ -19,7 +19,7 @@ function ep_search_module_box_summary() {
 
 /**
  * Output module box long
- * 
+ *
  * @since 2.1
  */
 function ep_search_module_box_long() {
@@ -33,7 +33,7 @@ function ep_search_module_box_long() {
 	<p>
 		<?php _e( "This module is a <strong>must have</strong> for all websites which is why it's activated by default.", 'elasticpress' ); ?>
 	</p>
-	
+
 	<?php
 }
 
@@ -85,9 +85,9 @@ function ep_improve_default_search( $query ) {
 	if ( ! ep_elasticpress_enabled( $query ) || ! $query->is_search() ) {
 		return;
 	}
-	
+
 	$search_fields = $query->get( 'search_fields' );
-	
+
 	// Set search fields if they are not set
 	if( empty( $search_fields ) ) {
 		$query->set( 'search_fields', array(
@@ -105,12 +105,13 @@ function ep_improve_default_search( $query ) {
 
 /**
  * Make sure we don't search for "any" on a search query
- * 
+ *
  * @param  string $post_type
  * @param  WP_Query $query
  * @return string|array
  */
 function ep_filter_query_post_type_for_search( $post_type, $query ) {
+
 	if ( 'any' === $post_type && $query->is_search() ) {
 		$searchable_post_types = ep_get_searchable_post_types();
 
@@ -150,7 +151,7 @@ function ep_get_searchable_post_types() {
 
 /**
  * Weight more recent content in searches
- * 
+ *
  * @param  array $formatted_args
  * @param  array $args
  * @since  2.1
@@ -179,7 +180,7 @@ function ep_weight_recent( $formatted_args, $args ) {
 
 /**
  * Make sure we search all relevant post types
- * 
+ *
  * @param  string $post_type
  * @param  WP_Query $query
  * @since  2.1
@@ -218,7 +219,7 @@ function ep_use_searchable_post_types_on_any( $post_type, $query ) {
 
 /**
  * Enable integration on search queries
- * 
+ *
  * @param  bool $enabled
  * @param  WP_Query $query
  * @since  2.1
