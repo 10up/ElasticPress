@@ -94,6 +94,10 @@ class EP_Sync_Manager {
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
 		global $importer;
 
+		if ( ! ep_elasticsearch_alive() ) {
+			return;
+		}
+
 		// If we have an importer we must be doing an import - let's abort
 		if ( ! empty( $importer ) ) {
 			return;
