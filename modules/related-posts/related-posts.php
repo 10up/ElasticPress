@@ -59,7 +59,8 @@ function ep_find_related( $post_id, $return = 4 ) {
 	$args = array(
 		'more_like'		 => $post_id,
 		'posts_per_page' => $return,
-		's'				 => ''
+		's'				 => '',
+		'ep_integrate'   => true,
 	);
 
 	$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
