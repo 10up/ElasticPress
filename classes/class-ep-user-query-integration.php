@@ -145,7 +145,7 @@ class EP_User_Query_Integration {
 			$scope = array_filter( wp_parse_id_list( $scope ) );
 		}
 		try {
-			$results = ep_query( $this->format_args( $wp_user_query, $scope ), $scope ? $scope : 'current', 'user' );
+			$results = ep_query( $this->format_args( $wp_user_query, $scope ), $qv ,$scope ? $scope : 'current', 'user' );
 		} catch ( Exception $e ) {
 			/**
 			 * Allow visibility into any exceptions that we catch here
@@ -608,11 +608,7 @@ class EP_User_Query_Integration {
 	 * @return bool
 	 */
 	private function is_user_indexing_active() {
-		return (
-			( defined( 'WP_CLI' ) && WP_CLI ) &&
-			$this->user_index &&
-			$this->user_index->active()
-		);
+		return ( $this->user_index && $this->user_index->active() );
 	}
 
 	/**
