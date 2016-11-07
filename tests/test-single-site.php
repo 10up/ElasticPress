@@ -2479,17 +2479,10 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @since 1.3
 	 */
 	public function testNoAvailablePostTypesToSearch() {
-		$GLOBALS['wp_post_types'];
 
-		$backup_post_types = $GLOBALS['wp_post_types'];
+    add_filter( 'ep_indexable_post_types', function(){ return array();} );
 
-		// Set all post types to be excluded from search
-		foreach ( $GLOBALS['wp_post_types'] as $post_type ) {
-			$post_type->exclude_from_search = true;
-		}
-
-		$post_ids = array();
-
+    $post_ids = array();
     ep_create_and_sync_post();
     ep_create_and_sync_post();
     ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
@@ -2507,10 +2500,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 0, $query->post_count );
 		$this->assertEquals( 0, $query->found_posts );
 
-		wp_reset_postdata();
-
-		// Reset the main $wp_post_types item
-		$GLOBALS['wp_post_types'] = $backup_post_types;
 	}
 
 	/**
@@ -3317,16 +3306,6 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertFalse(ep_get_object_type('user')->active());
 	}
 
-	/**
-	 * @group users
-	 */
-	public function testUserIndexInactiveWhenElasticPressDeactivated() {
-		$users = ep_get_object_type( 'user' );
-		$this->assertTrue( $users->active() );
-		ep_deactivate();
-		$this->assertFalse( $users->active() );
-		ep_activate();
-	}
 
 	/**
 	 * @group users
