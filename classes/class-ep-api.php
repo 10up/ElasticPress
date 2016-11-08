@@ -1441,7 +1441,6 @@ class EP_API {
 							'type' => 'phrase',
 							'fields' => $search_fields,
 							'boost' => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
-							'fuzziness' => 0,
 						)
 					),
 					array(
