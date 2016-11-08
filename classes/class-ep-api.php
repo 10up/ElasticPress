@@ -130,6 +130,37 @@ class EP_API {
 	}
 
 	/**
+	 * Get Elasticsearch version
+	 *
+	 * @since 2.1.2
+	 * @return string
+	 */
+	public function get_elasticsearch_version() {
+
+		$request_args = array( 'method' => 'GET' );
+
+		$request = ep_remote_request( '', apply_filters( 'ep_elasticsearch_version_request_args', $request_args ) );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$response_body = wp_remote_retrieve_body( $request );
+
+				$response = json_decode( $response_body, true );
+
+				try {
+					$version = $response['version']['number'];
+				} catch ( Exception $e ) {
+					return false;
+				}
+
+				return $version;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
 	 * @param  array  $args
@@ -406,7 +437,33 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		$mapping = require( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' ) );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { 
+			$es_version = get_site_option( 'ep_es_version', false );
+		} else {
+			$es_version = get_option( 'ep_es_version', false );
+		}
+
+		if ( empty( $es_version ) ) {
+			$es_version = $this->get_elasticsearch_version();
+
+			if ( ! empty( $es_version ) ) {
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { 
+					update_site_option( 'ep_es_version', sanitize_text_field( $es_version ) );
+				} else {
+					update_option( 'ep_es_version', sanitize_text_field( $es_version ) );
+				}
+			} else {
+				$es_version = apply_filters( 'ep_default_elasticsearch_version', '2.0' );
+			}
+		}
+
+		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
+			$mapping_file = 'pre-5-0.php';
+		} else {
+			$mapping_file = '5-0.php';
+		}
+
+		$mapping = require( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings/' . $mapping_file ) );
 
 		/**
 		 * We are removing shard/replica defaults but need to maintain the filters

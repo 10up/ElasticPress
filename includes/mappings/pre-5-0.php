@@ -1,6 +1,6 @@
 <?php
 /**
- * Elasticsearch mapping
+ * Elasticsearch mapping for pre 2.0 ES installs
  *
  * @since  1.3
  * @package elasticpress
@@ -61,7 +61,7 @@ return array(
 					'template_meta' => array(
 						'path_match' => 'post_meta.*',
 						'mapping' => array(
-							'type' => 'string',
+							'type' => 'multi_field',
 							'path' => 'full',
 							'fields' => array(
 								'{name}' => array(
@@ -244,7 +244,7 @@ return array(
 					'include_in_all' => false,
 				),
 				'post_title' => array(
-					'type' => 'string',
+					'type' => 'multi_field',
 					'fields' => array(
 						'post_title' => array(
 							'type' => 'string',
@@ -275,7 +275,7 @@ return array(
 					'index' => 'not_analyzed',
 				),
 				'post_name' => array(
-					'type' => 'string',
+					'type' => 'multi_field',
 					'fields' => array(
 						'post_name' => array(
 							'type' => 'string',
@@ -303,7 +303,7 @@ return array(
 					'include_in_all' => false,
 				),
 				'post_type' => array(
-					'type' => 'string',
+					'type' => 'multi_field',
 					'fields' => array(
 						'post_type' => array(
 							'type' => 'string',
