@@ -276,9 +276,9 @@ function ep_wc_translate_args( $query ) {
 
 		if ( empty( $post_type ) ) {
 			$post_type = 'product';
-		} elseif ( is_array( $post_type ) ) {
+		} elseif ( is_array( $post_type ) && ! in_array( 'product', $post_type, true ) ) {
 			$post_type[] = 'product';
-		} else {
+		} elseif ( $post_type !== 'product' ) {
 			$post_type = array( $post_type, 'product' );
 		}
 
