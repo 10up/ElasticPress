@@ -347,8 +347,10 @@ function ep_wc_translate_args( $query ) {
 		if ( ! empty( $orderby ) && 'rand' === $orderby ) {
 			$query->set( 'orderby', false ); // Just order by relevance.
 		}
+		
+		$s = $query->get( 's' );
 
-		if ( empty( $query->get( 's' ) ) ) {
+		if ( empty( $s ) ) {
 			$query->query_vars['ep_integrate'] = true;
 			$query->query['ep_integrate'] = true;
 		} else {
