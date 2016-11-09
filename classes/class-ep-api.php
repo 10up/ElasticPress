@@ -1535,7 +1535,9 @@ class EP_API {
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
-			$formatted_args['query']['match_all'] = array();
+			$formatted_args['query']['match_all'] = array(
+				'boost' => 1,
+			);
 		}
 
 		/**
