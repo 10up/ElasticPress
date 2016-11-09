@@ -196,7 +196,7 @@ return array(
 								),
 								'sortable' => array(
 									'type' => 'text',
-									'search_analyzer' => 'ewp_lowercase',
+									'analyzer' => 'ewp_lowercase',
 								),
 							),
 						),
@@ -228,7 +228,7 @@ return array(
 						),
 						'sortable' => array(
 							'type' => 'text',
-							'search_analyzer' => 'ewp_lowercase',
+							'analyzer' => 'ewp_lowercase',
 						),
 					),
 				),

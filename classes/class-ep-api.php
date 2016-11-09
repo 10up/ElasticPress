@@ -453,7 +453,7 @@ class EP_API {
 					update_option( 'ep_es_version', sanitize_text_field( $es_version ) );
 				}
 			} else {
-				$es_version = apply_filters( 'ep_default_elasticsearch_version', '2.0' );
+				$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 			}
 		}
 
