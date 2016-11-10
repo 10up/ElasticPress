@@ -443,18 +443,10 @@ class EP_API {
 			$es_version = get_option( 'ep_es_version', false );
 		}
 
-		if ( empty( $es_version ) ) {
-			$es_version = $this->get_elasticsearch_version();
+		$es_version = $this->get_elasticsearch_version();
 
-			if ( ! empty( $es_version ) ) {
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { 
-					update_site_option( 'ep_es_version', sanitize_text_field( $es_version ) );
-				} else {
-					update_option( 'ep_es_version', sanitize_text_field( $es_version ) );
-				}
-			} else {
-				$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
-			}
+		if ( empty( $es_version ) ) {
+			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
 
 		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
