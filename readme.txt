@@ -37,7 +37,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 = 2.1.2 (Requires re-index) =
 
 * Separate mapping for ES 5.0+
-* Fix some tests
+* Fix some unit tests
 
 = 2.1.1 =
 
