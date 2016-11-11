@@ -97,7 +97,7 @@ class EPTestAdminModule extends EP_Test_Base {
 
 		$wp_the_query = $query;
 
-		$query->query( array() );
+		$wp_the_query->query( array() );
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 	}

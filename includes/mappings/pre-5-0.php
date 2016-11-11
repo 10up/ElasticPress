@@ -1,6 +1,6 @@
 <?php
 /**
- * Elasticsearch mapping
+ * Elasticsearch mapping for pre 2.0 ES installs
  *
  * @since  1.3
  * @package elasticpress

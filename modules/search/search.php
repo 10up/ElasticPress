@@ -163,9 +163,9 @@ function ep_weight_recent( $formatted_args, $args ) {
 				'query' => $formatted_args['query'],
 				'exp' => array(
 					'post_date_gmt' => array(
-						'scale' => apply_filters( 'epwr_scale', '4w', $formatted_args, $args ),
+						'scale' => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
 						'decay' => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
-						'offset' => apply_filters( 'epwr_offset', '1w', $formatted_args, $args ),
+						'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
 					),
 				),
 			),
