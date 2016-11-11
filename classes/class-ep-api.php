@@ -130,6 +130,37 @@ class EP_API {
 	}
 
 	/**
+	 * Get Elasticsearch version
+	 *
+	 * @since 2.1.2
+	 * @return string
+	 */
+	public function get_elasticsearch_version() {
+
+		$request_args = array( 'method' => 'GET' );
+
+		$request = ep_remote_request( '', apply_filters( 'ep_elasticsearch_version_request_args', $request_args ) );
+
+		if ( ! is_wp_error( $request ) ) {
+			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				$response_body = wp_remote_retrieve_body( $request );
+
+				$response = json_decode( $response_body, true );
+
+				try {
+					$version = $response['version']['number'];
+				} catch ( Exception $e ) {
+					return false;
+				}
+
+				return $version;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Search for posts under a specific site index or the global index ($site_id = 0).
 	 *
 	 * @param  array  $args
@@ -406,7 +437,25 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		$mapping = require( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings.php' ) );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { 
+			$es_version = get_site_option( 'ep_es_version', false );
+		} else {
+			$es_version = get_option( 'ep_es_version', false );
+		}
+
+		$es_version = $this->get_elasticsearch_version();
+
+		if ( empty( $es_version ) ) {
+			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
+		}
+
+		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
+			$mapping_file = 'pre-5-0.php';
+		} else {
+			$mapping_file = '5-0.php';
+		}
+
+		$mapping = require( apply_filters( 'ep_config_mapping_file', dirname( __FILE__ ) . '/../includes/mappings/' . $mapping_file ) );
 
 		/**
 		 * We are removing shard/replica defaults but need to maintain the filters
@@ -928,7 +977,9 @@ class EP_API {
 		}
 
 		$filter = array(
-			'and' => array(),
+			'bool' => array(
+				'must' => array(),
+			),
 		);
 		$use_filters = false;
 
@@ -996,7 +1047,7 @@ class EP_API {
 					$relation = 'should';
 				}
 
-				$filter['and'][]['bool'][$relation] = $tax_filter;
+				$filter['bool']['must'][]['bool'][$relation] = $tax_filter;
 			}
 
 			$use_filters = true;
@@ -1008,7 +1059,7 @@ class EP_API {
 		 * @since 2.0
 		 */
 		if ( isset( $args['post_parent'] ) && '' !== $args['post_parent'] && 'any' !== strtolower( $args['post_parent'] ) ) {
-			$filter['and'][]['bool']['must'] = array(
+			$filter['bool']['must'][]['bool']['must'] = array(
 				'term' => array(
 					'post_parent' => $args['post_parent'],
 				),
@@ -1023,7 +1074,7 @@ class EP_API {
 		 * @since x.x
 		 */
 		if ( ! empty( $args['post__in'] ) ) {
-			$filter['and'][]['bool']['must'] = array(
+			$filter['bool']['must'][]['bool']['must'] = array(
 				'terms' => array(
 					'post_id' => array_values( (array) $args['post__in'] ),
 				),
@@ -1038,7 +1089,7 @@ class EP_API {
 	         * @since x.x
 	         */
 	        if ( ! empty( $args['post__not_in'] ) ) {
-			$filter['and'][]['bool']['must_not'] = array(
+			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(
 					'post_id' => (array) $args['post__not_in'],
 				),
@@ -1053,7 +1104,7 @@ class EP_API {
 		 * @since 1.0
 		 */
 		if ( ! empty( $args['author'] ) ) {
-			$filter['and'][] = array(
+			$filter['bool']['must'][] = array(
 				'term' => array(
 					'post_author.id' => $args['author'],
 				),
@@ -1061,7 +1112,7 @@ class EP_API {
 
 			$use_filters = true;
 		} elseif ( ! empty( $args['author_name'] ) ) {
-			$filter['and'][] = array(
+			$filter['bool']['must'][] = array(
 				'term' => array(
 					'post_author.raw' => $args['author'],
 				),
@@ -1076,7 +1127,7 @@ class EP_API {
 		 * @since 1.3
 		 */
 		if ( $date_filter = EP_WP_Date_Query::simple_es_date_filter( $args ) ) {
-			$filter['and'][] = $date_filter;
+			$filter['bool']['must'][] = $date_filter;
 			$use_filters = true;
 		}
 
@@ -1091,7 +1142,7 @@ class EP_API {
 			$date_filter = $date_query->get_es_filter();
 
 			if( array_key_exists('and', $date_filter ) ) {
-				$filter['and'][] = $date_filter['and'];
+				$filter['bool']['must'][] = $date_filter['and'];
 				$use_filters = true;
 			}
 
@@ -1380,7 +1431,7 @@ class EP_API {
 			}
 
 			if ( ! empty( $meta_filter ) ) {
-				$filter['and'][]['bool'][$relation] = $meta_filter;
+				$filter['bool']['must'][]['bool'][$relation] = $meta_filter;
 
 				$use_filters = true;
 			}
@@ -1441,7 +1492,6 @@ class EP_API {
 							'type' => 'phrase',
 							'fields' => $search_fields,
 							'boost' => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
-							'fuzziness' => 0,
 						)
 					),
 					array(
@@ -1477,7 +1527,9 @@ class EP_API {
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
 			$formatted_args['query'] = $query;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
-			$formatted_args['query']['match_all'] = array();
+			$formatted_args['query']['match_all'] = array(
+				'boost' => 1,
+			);
 		}
 
 		/**
@@ -1493,7 +1545,7 @@ class EP_API {
 					$post_types = $post_types[0];
  				}
 
-				$filter['and'][] = array(
+				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
 						'post_type.raw' => $post_types,
 					),
@@ -1502,7 +1554,7 @@ class EP_API {
 				$use_filters = true;
 			}
 		} elseif ( empty( $args['s'] ) ) {
-			$filter['and'][] = array(
+			$filter['bool']['must'][] = array(
 				'term' => array(
 					'post_type.raw' => 'post',
 				),
@@ -1527,7 +1579,7 @@ class EP_API {
 					$post_status = $post_status[0];
  				}
 
-				$filter['and'][] = array(
+				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
 						'post_status' => $post_status,
 					),
@@ -1536,7 +1588,7 @@ class EP_API {
 				$use_filters = true;
 			}
 		} else {
-			$filter['and'][] = array(
+			$filter['bool']['must'][] = array(
 				'term' => array(
 					'post_status' => 'publish',
 				),
@@ -1554,7 +1606,7 @@ class EP_API {
 		}
 
 		if ( $use_filters ) {
-			$formatted_args['filter'] = $filter;
+			$formatted_args['post_filter'] = $filter;
 		}
 
 		/**

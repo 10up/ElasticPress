@@ -34,6 +34,11 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.1.2 (Requires re-index) =
+
+* Separate mapping for ES 5.0+
+* Fix some unit tests
+
 = 2.1.1 =
 
 * Fix PHP 5.3 errors
