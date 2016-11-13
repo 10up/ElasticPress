@@ -7,9 +7,7 @@ A fast and flexible search and query engine for WordPress.
 
 **Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2 require re-syncing.
 
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
-
-ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 <p align="center">
 <a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/10/10up-Github-Banner.png" width="850"></a>
@@ -30,12 +28,11 @@ ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Ref
 2. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
 3. Activate the plugin (network activate for multisite). Navigate to the settings page. You should see an ElasticPress icon in your admin menu.
 4. Input your Elasticsearch host. Your host must begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
-5. Activate the ElasticPress modules you want to use. Search is activated by default.
-6. Sync your content by clicking the sync icon.
+5. Sync your content by clicking the sync icon.
 
 Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful WP_Query integration API.
 
-## Available Modules
+## Features
 
 ### Search
 
@@ -43,7 +40,7 @@ Beef up your search to be more accurate, search tags, categories, and other taxo
 
 ### WooCommerce
 
-Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
+Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This feature will increase your sales bottom line and reduce administrative costs.
 
 ### Related Posts
 
@@ -55,7 +52,7 @@ Help editors more effectively browse through content. Load long lists of posts f
 
 ## `WP_Query` and the ElasticPress Query Integration
 
-ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search module is activated, all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
+ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
 
 ### Supported WP_Query Parameters
 
@@ -92,7 +89,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
 * ```s``` (*string*)
 
-    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```. (Requires search module)
+    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```. (Requires search feature)
 
 * ```posts_per_page``` (*int*)
 
