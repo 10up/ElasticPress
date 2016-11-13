@@ -30,21 +30,26 @@ class EP_Modules {
 	}
 
 	/**
-	 * [ep_register_module description]
+	 * Registers a module for use in ElasticPress
+	 * 
 	 * @param  string $slug
 	 * @param  array  $module_args
 	 * 
 	 *         Supported array parameters:
 	 *         
 	 *         "title" (string) - Pretty title for module
-	 *         "requires_install_reindex" (boolean) - Setting to true will force a reindex after the module is activated
+	 *         "default_settings" (array) - Array of default settings. Only needed if you plan on adding custom settings
+	 *         "requirements_status_cb" (callback) - Callback to a function that determines the "requirements" status of
+	 *         		the given module. 0 means everything is okay. 1 means the module can be used but there is a warning. 
+	 *         		2 means the module cannot be active. This callback needs to return an EP_Module_Requirements_Status 
+	 *         		object where the "code" property is one of the values above.
 	 *         "setup_cb" (callback) - Callback to a function to be called on each page load when the module is activated
 	 *         "post_activation_cb" (callback) - Callback to a function to be called after a module is first activated
 	 *         "module_box_summary_cb" (callback) - Callback to a function that outputs HTML module box summary (short description of module)
 	 *         "module_box_long_cb" (callback) - Callback to a function that outputs HTML module box full description
-	 *         "dependencies_met_cb" (callback) - Callback to a function that determines if the modules dependencies are met. True 
-	 *         		means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
-	 *         
+	 *         "module_box_settings_cb" (callback) - Callback to a function that outputs custom module settings fields
+	 * 
+	 * @since  2.1 
 	 * @return boolean
 	 */
 	public function register_module( $slug, $module_args ) {
@@ -60,65 +65,15 @@ class EP_Modules {
 	}
 
 	/**
-	 * A convenient function to programmatically activate a module
-	 *
-	 * @param  string $slug
-	 * @since  2.1
-	 */
-	public function activate_module( $slug ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$modules = get_site_option( 'ep_active_modules', array() );
-		} else {
-			$modules = get_option( 'ep_active_modules', array() );
-		}
-
-		if ( false === array_search( $slug, $modules ) ) {
-			$modules[] = $slug;
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_active_modules', $modules );
-			} else {
-				update_option( 'ep_active_modules', $modules );
-			}
-		}
-	}
-
-	/**
-	 * Returns all active modules
-	 *
-	 * @since  2.1
-	 * @return array Array of slugs mapped to EP_Module objects
-	 */
-	public function get_active_modules() {
-		$active = array();
-
-		foreach ( $this->registered_modules as $module ) {
-			if ( $module->active ) {
-				$active[$module->slug] = $module;
-			}
-		}
-
-		return $active;
-	}
-
-	/**
-	 * Set up all active modules that are stored in options
+	 * Set up all active modules
 	 *
 	 * @since  2.1
 	 */
 	public function setup_modules() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$modules = get_site_option( 'ep_active_modules', array() );
-		} else {
-			$modules = get_option( 'ep_active_modules', array() );
-		}
-		$modules = apply_filters( 'ep_active_modules', $modules );
-
-		foreach ( $modules as $module_slug ) {
-			if ( empty( $this->registered_modules[$module_slug] ) ) {
-				continue;
+		foreach ( $this->registered_modules as $module_slug => $module ) {
+			if ( $module->is_active() ) {
+				$module->setup();
 			}
-
-			$this->registered_modules[$module_slug]->setup();
 		}
 	}
 
@@ -152,10 +107,6 @@ EP_Modules::factory();
  */
 function ep_register_module( $slug, $module_args ) {
 	return EP_Modules::factory()->register_module( $slug, $module_args );
-}
-
-function ep_activate_module( $slug ) {
-	return EP_Modules::factory()->activate_module( $slug );
 }
 
 /**
