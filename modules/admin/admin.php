@@ -93,7 +93,6 @@ function ep_admin_module_box_long() {
 
 	<p><?php _e( 'ElasticPress admin will make your admin curation experience much faster and easier. No longer will you have to wait 60 seconds to do things that should be easy such as viewing 200 posts at once.', 'elasticpress' ); ?></p>
 
-	<p><?php _e( 'Using the search module in conjunction with this module will supercharge your admin search.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -113,11 +112,30 @@ function ep_admin_get_statuses( $statuses ) {
 }
 
 /**
+ * Determine WC module reqs status
+ *
+ * @param  EP_Module_Requirements_Status $status
+ * @since  2.2
+ * @return EP_Module_Requirements_Status
+ */
+function ep_admin_requirements_status( $status ) {
+	$host = ep_get_host();
+
+	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
+		$status->code = 1;
+		$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
+	}
+
+	return $status;
+}
+
+/**
  * Register the module
  */
 ep_register_module( 'admin', array(
 	'title' => 'Admin',
 	'setup_cb' => 'ep_admin_setup',
+	'requirements_status_cb' => 'ep_admin_requirements_status',
 	'module_box_summary_cb' => 'ep_admin_module_box_summary',
 	'module_box_long_cb' => 'ep_admin_module_box_long',
 	'requires_install_reindex' => true,

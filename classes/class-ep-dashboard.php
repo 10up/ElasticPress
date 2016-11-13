@@ -36,7 +36,7 @@ class EP_Dashboard {
 			add_action( 'admin_menu', array( $this, 'action_admin_menu' ) );
 		}
 
-		add_action( 'wp_ajax_ep_toggle_module', array( $this, 'action_wp_ajax_ep_toggle_module' ) );
+		add_action( 'wp_ajax_ep_save_module', array( $this, 'action_wp_ajax_ep_save_module' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
@@ -379,59 +379,42 @@ class EP_Dashboard {
 	}
 
 	/**
-	 * Toggle module active or inactive
+	 * Save individual module settings
 	 *
-	 * @since  2.1
+	 * @since  2.2
 	 */
-	public function action_wp_ajax_ep_toggle_module() {
-		if ( empty( $_POST['module'] ) || ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
+	public function action_wp_ajax_ep_save_module() {
+		if ( empty( $_POST['module'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
 			wp_send_json_error();
 			exit;
 		}
 
 		$module = ep_get_registered_module( $_POST['module'] );
+		$original_state = $module->is_active();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$active_modules = get_site_option( 'ep_active_modules', array() );
+			$module_settings = get_site_option( 'ep_module_settings', array() );
 		} else {
-			$active_modules = get_option( 'ep_active_modules', array() );
+			$module_settings = get_option( 'ep_module_settings', array() );
 		}
 
-		$data = array();
-		
-		if ( $module->is_active()
-		     || ( ! $module->is_active() && is_wp_error( $module->dependencies_met() ) )
-		) {
-			$key = array_search( $_POST['module'], $active_modules );
+		$module_settings[ $_POST['module'] ] = wp_parse_args( $_POST['settings'], $module->default_settings );
+		$module_settings[ $_POST['module'] ]['active'] = (bool) $module_settings[ $_POST['module'] ]['active'];
 
-			if ( false !== $key ) {
-				unset( $active_modules[$key] );
-			}
-
-			$data['active'] = false;
-			$data['active_error'] = false;
-		} else {
-			$active_modules[] = $module->slug;
-
-			if ( $module->requires_install_reindex ) {
-				$data['reindex'] = true;
-			}
-
-			$module->post_activation();
-
-			$data['active'] = true;
-			$data['active_error'] = false;
-		}
-		
-		// If try to activate the module but it doesn't meet dependency requirement
-		if( ! $module->is_active() && is_wp_error( $module->dependencies_met() ) ){
-			$data['active_error'] = true;
-		}
+		$sanitize_module_settings = apply_filters( 'ep_sanitize_module_settings', $module_settings, $module );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_active_modules', $active_modules );
+			update_site_option( 'ep_module_settings', $sanitize_module_settings );
 		} else {
-			update_option( 'ep_active_modules', $active_modules );
+			update_option( 'ep_module_settings', $sanitize_module_settings );
+		}
+
+		$data = array(
+			'reindex' => false,
+		);
+
+		if ( $module_settings[ $_POST['module'] ]['active'] && ! $original_state ) {
+			$data['reindex'] = true;
 		}
 
 		wp_send_json_success( $data );

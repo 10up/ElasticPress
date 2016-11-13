@@ -1,13 +1,13 @@
 ( function( $ ) {
 	var $modules = $( document.getElementsByClassName( 'ep-modules' ) );
-	var $errorOverlay = $( '.error-overlay' );
+	var $errorOverlay = $( document.getElementsByClassName( 'error-overlay' ) );
 
-	var $progressBar = $( '.progress-bar' );
-	var $syncStatusText = $( '.sync-status' );
-	var $startSyncButton = $( '.start-sync' );
-	var $resumeSyncButton = $( '.resume-sync' );
-	var $pauseSyncButton = $( '.pause-sync' );
-	var $cancelSyncButton = $( '.cancel-sync' );
+	var $progressBar = $(document.getElementsByClassName( 'progress-bar' ) );
+	var $syncStatusText = $(document.getElementsByClassName( 'sync-status' ) );
+	var $startSyncButton = $(document.getElementsByClassName( 'start-sync' ) );
+	var $resumeSyncButton = $(document.getElementsByClassName( 'resume-sync' ) );
+	var $pauseSyncButton = $(document.getElementsByClassName( 'pause-sync' ) );
+	var $cancelSyncButton = $(document.getElementsByClassName( 'cancel-sync' ) );
 
 	var syncStatus = 'sync';
 	var moduleSync = false;
@@ -18,35 +18,58 @@
 
 	$modules.on( 'click', '.learn-more, .collapse', function( event ) {
 		$module = $( this ).parents( '.ep-module' );
-		$module.toggleClass( 'show-all' );
+		$module.toggleClass( 'show-full' );
 	} );
 
-	$modules.on( 'click', '.js-toggle-module', function( event ) {
+	$modules.on( 'click', '.settings-button', function( event ) {
+		$module = $( this ).parents( '.ep-module' );
+		$module.toggleClass( 'show-settings' );
+	} );
+
+	$modules.on( 'click', '.save-settings', function( event ) {
 		event.preventDefault();
 
 		var module = event.target.getAttribute( 'data-module' );
-
-		var $button = $( this );
-		$button.addClass( 'processing' );
 		var $module = $modules.find( '.ep-module-' + module );
+
+		var settings = {};
+
+		var $settings = $module.find('.setting-field');
+
+		$settings.each(function() {
+			var type = $( this ).attr( 'type' );
+			var name = $( this ).attr( 'data-field-name' );
+			var value = $( this ).attr( 'value' );
+
+			if ( 'radio' === type ) {
+				if ( $( this ).attr( 'checked' ) ) {
+					settings[ name ] = value;
+				}
+			}
+		});
+
+		$module.addClass( 'saving' );
 
 		$.ajax( {
 			method: 'post',
 			url: ajaxurl,
 			data: {
-				action: 'ep_toggle_module',
+				action: 'ep_save_module',
 				module: module,
-				nonce: ep.nonce
+				nonce: ep.nonce,
+				settings: settings
 			}
 		} ).done( function( response ) {
 			setTimeout( function() {
-				$button.removeClass( 'processing' );
+				$module.removeClass( 'saving' );
 
-				if( ! response.data.active_error ) {
-					$module.toggleClass( 'module-active' );
+				if ( '1' === settings.active ) {
+					$module.addClass( 'module-active' );
+				} else {
+					$module.removeClass( 'module-active' );
 				}
 				
-				if ( response.data.active && response.data.reindex ) {
+				if ( response.data.reindex ) {
 					syncStatus = 'sync';
 
 					$module.addClass( 'module-syncing' );
@@ -58,7 +81,7 @@
 			}, 700 );
 		} ).error( function() {
 			setTimeout( function() {
-				$button.removeClass( 'processing' );
+				$module.removeClass( 'saving' );
 				$module.removeClass( 'module-active' );
 				$module.removeClass( 'module-syncing' );
 			}, 700 );

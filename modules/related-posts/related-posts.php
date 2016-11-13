@@ -10,41 +10,16 @@ function ep_related_posts_formatted_args( $formatted_args, $args ) {
 	if ( ! empty( $args[ 'more_like' ] ) ) {
 		$formatted_args[ 'query' ] = array(
 			'more_like_this' => array(
-				'ids'				 => is_array( $args[ 'more_like' ] ) ? $args[ 'more_like' ] : array( $args[ 'more_like' ] ),
-				'fields'			 => apply_filters( 'ep_related_posts_fields', array( 'post_title', 'post_content', 'terms.post_tag.name' ) ),
-				'min_term_freq'		 => 1,
-				'max_query_terms'	 => 12,
-				'min_doc_freq'		 => 1,
+				'ids'			  => is_array( $args[ 'more_like' ] ) ? $args[ 'more_like' ] : array( $args[ 'more_like' ] ),
+				'fields'		  => apply_filters( 'ep_related_posts_fields', array( 'post_title', 'post_content', 'terms.post_tag.name' ) ),
+				'min_term_freq'	  => 1,
+				'max_query_terms' => 12,
+				'min_doc_freq'	  => 1,
 			)
 		);
 	}
 	
 	return $formatted_args;
-}
-
-/**
- * Add related posts HTML to the content
- * 
- * @param  string $content
- * @since  2.1
- * @return string
- */
-function ep_related_posts_filter_content( $content ) {
-	if ( is_search() || is_home() || is_archive() || is_category() ) {
-		return $content;
-	}
-	$post_id		 = get_the_ID();
-	$cache_key		 = md5( 'related_posts_' . $post_id );
-	$related_posts	 = wp_cache_get( $cache_key, 'ep-related-posts' );
-
-	if ( false === $related_posts ) {
-		$related_posts = ep_find_related( $post_id );
-		wp_cache_set( $cache_key, $related_posts, 'ep-related-posts', 300 );
-	}
-
-	$html = ep_related_get_html( $related_posts )
-	;
-	return $content . "\n" . $html;
 }
 
 /**
@@ -55,11 +30,10 @@ function ep_related_posts_filter_content( $content ) {
  * @since  2.1
  * @return array|bool
  */
-function ep_find_related( $post_id, $return = 4 ) {
+function ep_find_related( $post_id, $return = 5 ) {
 	$args = array(
 		'more_like'		 => $post_id,
 		'posts_per_page' => $return,
-		's'				 => '',
 		'ep_integrate'   => true,
 	);
 
@@ -72,50 +46,24 @@ function ep_find_related( $post_id, $return = 4 ) {
 }
 
 /**
- * Generate related posts html
- * 
- * @param  array $posts
- * @since  2.1
- * @return string
- */
-function ep_related_get_html( $posts ) {
-	if ( false === $posts ) {
-		return '';
-	}
-
-	$html = '<h3>' . esc_html__( 'Related Posts', 'elasticpress' ) . '</h3>';
-	$html .= '<ul>';
-
-	foreach ( $posts as $post ) {
-		$html.=sprintf(
-		'<li><a href="%s">%s</a></li>', esc_url( get_permalink( $post->ID ) ), esc_html( $post->post_title )
-		);
-	}
-
-	$html .= '</ul>';
-
-	do_action( 'ep_related_html_attached', $posts );
-
-	/**
-	 * Filter the display HTML for related posts.
-	 * 
-	 * If developers want to customize the returned HTML for related posts or
-	 * write their own HTML, they have the power to do so.
-	 * 
-	 * @param string $html Default Generated HTML 
-	 * @param array $posts Array of WP_Post objects.
-	 */
-	return apply_filters( 'ep_related_html', $html, $posts );
-}
-
-/**
  * Setup all module filters
  *
  * @since  2.1
  */
 function ep_related_posts_setup() {
+	add_action( 'widgets_init', 'ep_related_posts_register_widget' );
 	add_filter( 'ep_formatted_args', 'ep_related_posts_formatted_args', 10, 2 );
-	add_filter( 'the_content', 'ep_related_posts_filter_content' );
+}
+
+/**
+ * Register related posts widget
+ *
+ * @since  2.2
+ */
+function ep_related_posts_register_widget() {
+	require_once( dirname( __FILE__ ) . '/widget.php' );
+
+	register_widget( 'EP_Related_Posts_Widget' );
 }
 
 /**
@@ -125,7 +73,7 @@ function ep_related_posts_setup() {
  */
 function ep_related_posts_module_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Help users easily find related content by adding related posts to the end of each post.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Help users easily find related content with a widget that just works.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -136,9 +84,9 @@ function ep_related_posts_module_box_summary() {
  */
 function ep_related_posts_module_box_long() {
 	?>
-	<p><?php esc_html_e( 'Showing users related content is a quick way to improve readership and loyalty. There a number of plugins that show related content, most of which are ineffective and slow.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Showing users related content is a quick way to improve readership and loyalty. There are a number of plugins that show related content, most of which are ineffective and slow.', 'elasticpress' ); ?></p>
 
-	<p><?php esc_html_e( 'ElasticPress has a powerful content matching algorithm that lets it find related content very effectively. This module will show three related posts after the post content.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'ElasticPress has a powerful content matching algorithm that lets it find related content very effectively. This module will create a widget for you to place into any sidebar or widgetized area.', 'elasticpress' ); ?></p>
 	<?php
 }
 

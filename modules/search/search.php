@@ -29,10 +29,6 @@ function ep_search_module_box_long() {
 	<p>
 		<?php esc_html_e( 'The search module allows you to do all these things and more. Just activating the module will make your search experience much better. Your users will be able to more effectively browse your website and find the content they desire. Misspellings will be accounted for, categories searched, and results weighted by recency. If activated in conjunction with the admin module, admin search will be improved as well.', 'elasticpress' ); ?>
 	</p>
-
-	<p>
-		<?php _e( "This module is a <strong>must have</strong> for all websites which is why it's activated by default.", 'elasticpress' ); ?>
-	</p>
 	
 	<?php
 }

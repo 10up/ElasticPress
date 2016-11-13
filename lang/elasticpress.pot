@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.1\n"
+"Project-Id-Version: ElasticPress 2.1.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-09-20 20:13:21+00:00\n"
+"POT-Creation-Date: 2016-11-13 22:19:22+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -127,37 +127,37 @@ msgid ""
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:800
+#: bin/wp-cli.php:802
 msgid ""
 "There is no Elasticsearch host set up. Either add one through the dashboard "
 "or define one in wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:802
+#: bin/wp-cli.php:804
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1926
+#: classes/class-ep-api.php:1948
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1939
+#: classes/class-ep-api.php:1961
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1943
+#: classes/class-ep-api.php:1965
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1981 classes/class-ep-api.php:2040
-#: classes/class-ep-api.php:2080 classes/class-ep-api.php:2131
+#: classes/class-ep-api.php:2003 classes/class-ep-api.php:2062
+#: classes/class-ep-api.php:2102 classes/class-ep-api.php:2153
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -177,32 +177,32 @@ msgid ""
 "need to <a href=\"%s\">fix it</a> for ElasticPress to work."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:474
+#: classes/class-ep-dashboard.php:457
 msgid "Sync complete"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:475
+#: classes/class-ep-dashboard.php:458
 msgid "Sync paused"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:476
+#: classes/class-ep-dashboard.php:459
 msgid "Syncing"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:477
+#: classes/class-ep-dashboard.php:460
 msgid "WP CLI sync is occuring. Refresh the page to see if it's finished"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:478
+#: classes/class-ep-dashboard.php:461
 msgid "An error occured while syncing"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:498
+#: classes/class-ep-dashboard.php:481
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:607 classes/class-ep-dashboard.php:608
-#: includes/settings-page.php:27
+#: classes/class-ep-dashboard.php:590 classes/class-ep-dashboard.php:591
+#: classes/class-ep-module.php:254 includes/settings-page.php:27
 #: vendor/woocommerce/includes/admin/class-wc-admin-menus.php:80
 #: vendor/woocommerce/includes/admin/settings/class-wc-settings-api.php:45
 #: vendor/woocommerce/includes/admin/settings/views/html-admin-page-shipping-zone-methods.php:52
@@ -211,18 +211,52 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:616 classes/class-ep-dashboard.php:617
+#: classes/class-ep-dashboard.php:599 classes/class-ep-dashboard.php:600
 msgid "Welcome"
 msgstr ""
 
-#: classes/class-ep-module.php:160
+#: classes/class-ep-module.php:218
 #: vendor/woocommerce/includes/admin/meta-boxes/class-wc-meta-box-product-data.php:616
 #: vendor/woocommerce/includes/gateways/simplify-commerce/class-wc-gateway-simplify-commerce.php:98
 msgid "Learn more"
 msgstr ""
 
-#: classes/class-ep-module.php:165
+#: classes/class-ep-module.php:223
 msgid "Collapse"
+msgstr ""
+
+#: classes/class-ep-module.php:257
+#: vendor/woocommerce/includes/admin/class-wc-admin-post-types.php:272
+#: vendor/woocommerce/includes/admin/class-wc-admin-webhooks-table-list.php:41
+#: vendor/woocommerce/includes/admin/meta-boxes/class-wc-meta-box-product-data.php:671
+#: vendor/woocommerce/includes/admin/settings/views/html-webhook-log.php:25
+#: vendor/woocommerce/includes/admin/settings/views/html-webhooks-edit.php:24
+#: vendor/woocommerce/includes/wc-account-functions.php:178
+#: vendor/woocommerce/templates/myaccount/my-orders.php:15
+msgid "Status"
+msgstr ""
+
+#: classes/class-ep-module.php:259
+#: vendor/woocommerce/includes/admin/meta-boxes/views/html-variation-admin.php:76
+#: vendor/woocommerce/includes/admin/settings/class-wc-settings-checkout.php:292
+#: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:269
+#: vendor/woocommerce/includes/admin/settings/views/html-admin-page-shipping-zone-methods.php:20
+#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:31
+#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:42
+#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:53
+msgid "Enabled"
+msgstr ""
+
+#: classes/class-ep-module.php:260
+#: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:271
+#: vendor/woocommerce/includes/wc-webhook-functions.php:25
+msgid "Disabled"
+msgstr ""
+
+#: classes/class-ep-module.php:273
+#: vendor/woocommerce/includes/admin/meta-boxes/views/html-order-items.php:246
+#: vendor/woocommerce/templates/myaccount/form-reset-password.php:47
+msgid "Save"
 msgstr ""
 
 #: classes/class-ep-wp-date-query.php:494
@@ -243,27 +277,12 @@ msgstr ""
 msgid "The following values do not describe a valid date: month %1$s, day %2$s."
 msgstr ""
 
-#. Plugin Name of the plugin/theme
-msgid "ElasticPress"
+#: includes/dashboard-page.php:24
+msgid "List of modules"
 msgstr ""
 
-#: includes/dashboard-page.php:26
-msgid ""
-"ElasticPress, the fast and flexible query engine for WordPress, let's you "
-"supercharge your website through a variety of modules. Activate the ones "
-"you need below:"
-msgstr ""
-
-#: includes/dashboard-page.php:66
-msgid "Deactivate"
-msgstr ""
-
-#: includes/dashboard-page.php:67
-msgid "Activate"
-msgstr ""
-
-#: includes/dashboard-page.php:68
-msgid "Syncing..."
+#: includes/dashboard-page.php:53
+msgid "settings"
 msgstr ""
 
 #: includes/intro-page.php:24
@@ -332,28 +351,46 @@ msgid ""
 "your admin search."
 msgstr ""
 
-#: modules/related-posts/related-posts.php:85
-msgid "Related Posts"
-msgstr ""
-
-#: modules/related-posts/related-posts.php:127
+#: modules/admin/admin.php:127
 msgid ""
-"Help users easily find related content by adding related posts to the end "
-"of each post."
+"You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
+"we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
-#: modules/related-posts/related-posts.php:138
+#: modules/related-posts/related-posts.php:76
+msgid "Help users easily find related content with a widget that just works."
+msgstr ""
+
+#: modules/related-posts/related-posts.php:87
 msgid ""
 "Showing users related content is a quick way to improve readership and "
-"loyalty. There a number of plugins that show related content, most of which "
-"are ineffective and slow."
+"loyalty. There are a number of plugins that show related content, most of "
+"which are ineffective and slow."
 msgstr ""
 
-#: modules/related-posts/related-posts.php:140
+#: modules/related-posts/related-posts.php:89
 msgid ""
 "ElasticPress has a powerful content matching algorithm that lets it find "
-"related content very effectively. This module will show three related posts "
-"after the post content."
+"related content very effectively. This module will create a widget for you "
+"to place into any sidebar or widgetized area."
+msgstr ""
+
+#: modules/related-posts/widget.php:17
+msgid ""
+"Show related posts using ElasticPress. This widget will only appear on "
+"single post, page, and custom type pages."
+msgstr ""
+
+#: modules/related-posts/widget.php:18
+msgid "ElasticPress - Related Posts"
+msgstr ""
+
+#: modules/related-posts/widget.php:88
+msgid "Title:"
+msgstr ""
+
+#: modules/related-posts/widget.php:96
+msgid "Number of Posts to Show:"
 msgstr ""
 
 #: modules/search/search.php:16
@@ -386,7 +423,7 @@ msgid ""
 "it's activated by default."
 msgstr ""
 
-#: modules/woocommerce/woocommerce.php:529
+#: modules/woocommerce/woocommerce.php:533
 msgid ""
 "Allow customers to filter through products faster and improve product "
 "search relevancy. Enable editors to find orders and products more "
@@ -394,7 +431,7 @@ msgid ""
 "and reduce administrative costs."
 msgstr ""
 
-#: modules/woocommerce/woocommerce.php:540
+#: modules/woocommerce/woocommerce.php:544
 msgid ""
 "Running eCommerce stores is hard enough already. You should not have to "
 "worry about slow load times. ElasticPress WooCommerce supercharges all "
@@ -403,15 +440,15 @@ msgid ""
 "fast."
 msgstr ""
 
-#: modules/woocommerce/woocommerce.php:542
+#: modules/woocommerce/woocommerce.php:546
 msgid ""
 "In the admin, order management and fulfillment is supercharged. Finding "
 "orders is much easier with more relevant searches. View order lists is "
 "easier since they load faster."
 msgstr ""
 
-#: modules/woocommerce/woocommerce.php:556
-msgid "WooCommerce must be active to use this module."
+#: modules/woocommerce/woocommerce.php:560
+msgid "WooCommerce not installed."
 msgstr ""
 
 #: vendor/woocommerce/i18n/continents.php:19
@@ -7180,16 +7217,6 @@ msgstr ""
 msgid "Expiry date"
 msgstr ""
 
-#: vendor/woocommerce/includes/admin/class-wc-admin-post-types.php:272
-#: vendor/woocommerce/includes/admin/class-wc-admin-webhooks-table-list.php:41
-#: vendor/woocommerce/includes/admin/meta-boxes/class-wc-meta-box-product-data.php:671
-#: vendor/woocommerce/includes/admin/settings/views/html-webhook-log.php:25
-#: vendor/woocommerce/includes/admin/settings/views/html-webhooks-edit.php:24
-#: vendor/woocommerce/includes/wc-account-functions.php:178
-#: vendor/woocommerce/templates/myaccount/my-orders.php:15
-msgid "Status"
-msgstr ""
-
 #: vendor/woocommerce/includes/admin/class-wc-admin-post-types.php:273
 #: vendor/woocommerce/includes/admin/meta-boxes/class-wc-meta-box-order-data.php:165
 #: vendor/woocommerce/includes/gateways/paypal/includes/class-wc-gateway-paypal-request.php:195
@@ -9729,11 +9756,6 @@ msgstr ""
 msgid "Add shipping cost"
 msgstr ""
 
-#: vendor/woocommerce/includes/admin/meta-boxes/views/html-order-items.php:246
-#: vendor/woocommerce/templates/myaccount/form-reset-password.php:47
-msgid "Save"
-msgstr ""
-
 #: vendor/woocommerce/includes/admin/meta-boxes/views/html-order-items.php:256
 msgid "Restock refunded items"
 msgstr ""
@@ -9871,16 +9893,6 @@ msgstr ""
 
 #: vendor/woocommerce/includes/admin/meta-boxes/views/html-variation-admin.php:68
 msgid "Enter a SKU for this variation or leave blank to use the parent product SKU."
-msgstr ""
-
-#: vendor/woocommerce/includes/admin/meta-boxes/views/html-variation-admin.php:76
-#: vendor/woocommerce/includes/admin/settings/class-wc-settings-checkout.php:292
-#: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:269
-#: vendor/woocommerce/includes/admin/settings/views/html-admin-page-shipping-zone-methods.php:20
-#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:31
-#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:42
-#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:53
-msgid "Enabled"
 msgstr ""
 
 #: vendor/woocommerce/includes/admin/meta-boxes/views/html-variation-admin.php:78
@@ -10843,11 +10855,6 @@ msgstr ""
 
 #: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:267
 msgid "Manual"
-msgstr ""
-
-#: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:271
-#: vendor/woocommerce/includes/wc-webhook-functions.php:25
-msgid "Disabled"
 msgstr ""
 
 #: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:283
@@ -20955,6 +20962,10 @@ msgstr ""
 
 #: vendor/wp-cli/wp-cli/php/utils-wp.php:143
 msgid "Drag widgets here to remove them from the sidebar but keep their settings."
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "ElasticPress"
 msgstr ""
 
 #. Description of the plugin/theme

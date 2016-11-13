@@ -11,6 +11,45 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Just an easy way to represent a module requirements status
+ */
+class EP_Module_Requirements_Status {
+
+	/**
+	 * Initialize class
+	 * 
+	 * @param int $code
+	 * @param string $message
+	 * @since  2.2
+	 */
+	public function __construct( $code, $message = null ) {
+		$this->code = $code;
+
+		$this->message = $message;
+	}
+
+	/**
+	 * Returns the status of a module
+	 *
+	 * 1 is no issues (hollow green)
+	 * 2 is usable but there are warnngs (hollow yellow)
+	 * 3 is not usable (hollow red)
+	 *
+	 * @var    int
+	 * @since  2.2
+	 */
+	public $code;
+
+	/**
+	 * Optional message to describe status code
+	 * 
+	 * @var    string
+	 * @since  2.2
+	 */
+	public $message;
+}
+
 class EP_Module {
 	/**
 	 * Module slug
@@ -27,6 +66,14 @@ class EP_Module {
 	 * @since  2.1
 	 */
 	public $title;
+
+	/**
+	 * Optional module default settings
+	 *
+	 * @since  2.2
+	 * @var  array
+	 */
+	public $default_settings = array();
 
 	/**
 	 * Contains registered callback to execute after setup
@@ -53,12 +100,12 @@ class EP_Module {
 	public $module_box_long_cb;
 
 	/**
-	 * Contains registered callback to determine if a modules dependencies are met
-	 * 
-	 * @since 2.1
+	 * Output optional extra settings fields
+	 *
+	 * @since  2.2
 	 * @var callback
 	 */
-	public $dependencies_met_cb;
+	public $module_box_settings_cb;
 
 	/**
 	 * Contains registered callback to execute after activation
@@ -77,14 +124,6 @@ class EP_Module {
 	public $requires_install_reindex;
 
 	/**
-	 * True if the module is active
-	 * 
-	 * @since 2.1
-	 * @var boolean
-	 */
-	public $active;
-
-	/**
 	 * Initiate the module, setting all relevant instance variables
 	 *
 	 * @since  2.1
@@ -98,35 +137,54 @@ class EP_Module {
 	}
 
 	/**
-	 * Ran after a function is activated
+	 * Run on every page load for module to set itself up
 	 *
 	 * @since  2.1
 	 */
 	public function setup() {
 		if ( ! empty( $this->setup_cb ) ) {
-			call_user_func( $this->setup_cb );
+			call_user_func( $this->setup_cb, $this );
 		}
-
-		$this->active = true;
 
 		do_action( 'ep_module_setup', $this->slug, $this );
 	}
 
 	/**
-	 * Ran to see if dependencies are met. Returns true or a WP_Error containing an error message
-	 * to display
+	 * Returns requirements status of module
 	 *
-	 * @since  2.1
-	 * @return  bool|WP_Error
+	 * @since  2.2
+	 * @return EP_Module_Requirements_Status
 	 */
-	public function dependencies_met() {
-		$ret = true;
+	public function requirements_status() {
+		$status = new EP_Module_Requirements_Status( 0 );
 
-		if ( ! empty( $this->dependencies_met_cb ) ) {
-			$ret = apply_filters( 'ep_module_dependencies_met', call_user_func( $this->dependencies_met_cb ) );
+		if ( ! empty( $this->requirements_status_cb ) ) {
+			$status = call_user_func( $this->requirements_status_cb, $status, $this );
 		}
 
-		return $ret;
+		return apply_filters( 'ep_module_requirements_status', $status, $this );
+	}
+
+	/**
+	 * Returns true if module is active
+	 *
+	 * @since  2.2
+	 * @return boolean
+	 */
+	public function is_active() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$module_settings = get_site_option( 'ep_module_settings', array() );
+		} else {
+			$module_settings = get_option( 'ep_module_settings', array() );
+		}
+
+		$active = false;
+
+		if ( ! empty( $module_settings[ $this->slug ] ) && $module_settings[ $this->slug ]['active'] ) {
+			$active = true;
+		}
+
+		return apply_filters( 'ep_module_active', $active, $module_settings, $this );
 	}
 
 	/**
@@ -136,7 +194,7 @@ class EP_Module {
 	 */
 	public function post_activation() {
 		if ( ! empty( $this->post_activation_cb ) ) {
-			call_user_func( $this->post_activation_cb );
+			call_user_func( $this->post_activation_cb, $this );
 		}
 
 		do_action( 'ep_module_post_activation', $this->slug, $this );
@@ -149,7 +207,7 @@ class EP_Module {
 	 */
 	public function output_module_box() {
 		if ( ! empty( $this->module_box_summary_cb ) ) {
-			call_user_func( $this->module_box_summary_cb );
+			call_user_func( $this->module_box_summary_cb, $this );
 		}
 
 		do_action( 'ep_module_box_summary', $this->slug, $this );
@@ -160,7 +218,7 @@ class EP_Module {
 			<a class="learn-more"><?php esc_html_e( 'Learn more', 'elasticpress' ); ?></a>
 
 			<div class="long">
-				<?php call_user_func( $this->module_box_long_cb ); ?>
+				<?php call_user_func( $this->module_box_long_cb, $this ); ?>
 
 				<p><a class="collapse"><?php esc_html_e( 'Collapse', 'elasticpress' ); ?></a></p>
 				<?php do_action( 'ep_module_box_long', $this->slug, $this ); ?>
@@ -177,19 +235,43 @@ class EP_Module {
 	 */
 	public function output_module_box_full() {
 		if ( ! empty( $this->module_box_full_cb ) ) {
-			call_user_func( $this->module_box_full_cb );
+			call_user_func( $this->module_box_full_cb, $this );
 		}
 
 		do_action( 'ep_module_box_full', $this->slug, $this );
 	}
 
-	/**
-	 * Returns true if the module is active
-	 *
-	 * @since  2.1
-	 * @return boolean
-	 */
-	public function is_active() {
-		return ( ! empty( $this->active ) );
+	public function output_settings_box() {
+		$requirements_status = $this->requirements_status();
+		?>
+
+		<?php if ( ! empty( $requirements_status->message ) ) : ?>
+			<div class="requirements-status-notice">
+				<?php echo wp_kses_post( $requirements_status->message ); ?>
+			</div>
+		<?php endif; ?>
+
+		<h3><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h3>
+
+		<div class="field js-toggle-module" data-module="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Status', 'elasticpress' ); ?></div>
+			<div class="input-wrap <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?>">
+				<label for="module_active_<?php echo esc_attr( $this->slug ); ?>_enabled"><input name="module_active_<?php echo esc_attr( $this->slug ); ?>" id="module_active_<?php echo esc_attr( $this->slug ); ?>_enabled" data-field-name="active" class="setting-field" <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?> type="radio" <?php if ( $this->is_active() ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="module_active_<?php echo esc_attr( $this->slug ); ?>_disabled"><input name="module_active_<?php echo esc_attr( $this->slug ); ?>" id="module_active_<?php echo esc_attr( $this->slug ); ?>_disabled" data-field-name="active" class="setting-field" <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?> type="radio" <?php if ( ! $this->is_active() ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+			</div>
+		</div>
+
+		<?php
+		if ( ! empty( $this->module_box_settings_cb ) ) {
+			call_user_func( $this->module_box_settings_cb, $this );
+			return;
+		}
+		do_action( 'ep_module_box_settings', $this->slug, $this );
+		?>
+
+		<div class="action-wrap">
+			<a data-module="<?php echo esc_attr( $this->slug ); ?>" class="button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
+		</div>
+		<?php
 	}
 }
