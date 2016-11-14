@@ -21,46 +21,46 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! ep_elasticsearch_can_connect() ) : ?>cant-connect<?php endif; ?>"></div>
 <div class="wrap">
-	<h2 class="ep-list-modules"><?php esc_html_e( 'List of modules', 'elasticpress' ); // We use this since WP inserts warnings after the first h2. This will be hidden. ?></h2>
-	<div class="ep-modules metabox-holder">
-		<?php $modules = EP_Modules::factory()->registered_modules; ?>
+	<h2 class="ep-list-features"><?php esc_html_e( 'List of features', 'elasticpress' ); // We use this since WP inserts warnings after the first h2. This will be hidden. ?></h2>
+	<div class="ep-features metabox-holder">
+		<?php $features = EP_Features::factory()->registered_features; ?>
 
 		<?php 
 		$left = '';
 		$right = '';
 		$i = 0;
-		foreach ( $modules as $module ) :
+		foreach ( $features as $feature ) :
 			$i++;
-			$requirements_status = $module->requirements_status();
-			$active = $module->is_active();
+			$requirements_status = $feature->requirements_status();
+			$active = $feature->is_active();
 
-			$module_classes = 'module-requirements-status-' . (int) $requirements_status->code;
+			$feature_classes = 'feature-requirements-status-' . (int) $requirements_status->code;
 
 			if ( ! empty( $active ) ) {
-				$module_classes .= ' module-active';
+				$feature_classes .= ' feature-active';
 			}
 
-			if ( ! empty( $index_meta ) && ! empty( $index_meta['module_sync'] ) && $module->slug === $index_meta['module_sync'] ) {
-				$module_classes .= ' module-syncing';
+			if ( ! empty( $index_meta ) && ! empty( $index_meta['feature_sync'] ) && $feature->slug === $index_meta['feature_sync'] ) {
+				$feature_classes .= ' feature-syncing';
 			}
 
 			ob_start();
 			?>
-			<div class="ep-module ep-module-<?php echo esc_attr( $module->slug ); ?> <?php echo esc_attr( $module_classes ); ?>">
+			<div class="ep-feature ep-feature-<?php echo esc_attr( $feature->slug ); ?> <?php echo esc_attr( $feature_classes ); ?>">
 				<div class="postbox">
 					<h2 class="hndle">
-						<span><?php echo esc_html( $module->title ); ?></span>
+						<span><?php echo esc_html( $feature->title ); ?></span>
 						<a class="settings-button"><?php esc_html_e( 'settings', 'elasticpress' ); ?></a>
 					</h2>
 
 					<div class="description inside">
 
-						<?php $module->output_module_box(); ?>
+						<?php $feature->output_feature_box(); ?>
 
 					</div>
 
 					<div class="settings inside">
-						<?php $module->output_settings_box(); ?>
+						<?php $feature->output_settings_box(); ?>
 					</div>
 				</div>
 			</div>

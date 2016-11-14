@@ -33,8 +33,8 @@ class EPTestSingleSite extends EP_Test_Base {
 		/**
 		 * Most of our search test are bundled into core tests for legacy reasons
 		 */
-		ep_activate_module( 'search' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'search' );
+		EP_Features::factory()->setup_features();
 	}
 
 	/**
@@ -3241,40 +3241,40 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test register module
+	 * Test register feature
 	 * 
 	 * @since 2.1
 	 */
-	public function testRegisterModule() {
-		ep_register_module( 'test', array(
+	public function testRegisterFeature() {
+		ep_register_feature( 'test', array(
 			'title' => 'Test',
 		) );
 
-		$this->assertTrue( ! empty( EP_Modules::factory()->registered_modules['test'] ) );
-		$this->assertTrue( ! empty( ep_get_registered_module( 'test' ) ) );
+		$this->assertTrue( ! empty( EP_Features::factory()->registered_features['test'] ) );
+		$this->assertTrue( ! empty( ep_get_registered_feature( 'test' ) ) );
 	}
 
 	/**
-	 * Test setup modules
+	 * Test setup features
 	 * 
 	 * @since 2.1
 	 */
-	public function testSetupModules() {
-		ep_register_module( 'test', array(
+	public function testSetupFeatures() {
+		ep_register_feature( 'test', array(
 			'title' => 'Test',
 		) );
 
-		ep_activate_module( 'test' );
+		ep_activate_feature( 'test' );
 
-		$module = ep_get_registered_module( 'test' );
+		$feature = ep_get_registered_feature( 'test' );
 
-		$this->assertTrue( ! empty( $module ) );
+		$this->assertTrue( ! empty( $feature ) );
 
-		$this->assertTrue( ! $module->is_active() );
+		$this->assertTrue( ! $feature->is_active() );
 
-		EP_Modules::factory()->setup_modules();
+		EP_Features::factory()->setup_features();
 
-		$this->assertTrue( $module->is_active() );
+		$this->assertTrue( $feature->is_active() );
 	}
 	
 	/**

@@ -18,7 +18,7 @@
   margin-top: 0;
   margin-bottom: 20px; }
 
-h2.ep-list-modules {
+h2.ep-list-features {
   display: none; }
 
 /**
@@ -93,9 +93,9 @@ h2.ep-list-modules {
   background-color: #D84440; }
 
 /**
- * Modules
+ * Features
  */
-.ep-modules {
+.ep-features {
   overflow: auto; }
 
 .error-overlay.cant-connect,
@@ -118,13 +118,13 @@ h2.ep-list-modules {
     top: 32px;
     left: 160px; } }
 
-.ep-module .postbox {
+.ep-feature .postbox {
   margin-bottom: 0; }
 
-.ep-module .postbox .hndle {
+.ep-feature .postbox .hndle {
   cursor: inherit; }
 
-.ep-module .postbox .hndle .settings-button {
+.ep-feature .postbox .hndle .settings-button {
   float: right;
   display: inline-block;
   font-size: 13px;
@@ -137,7 +137,7 @@ h2.ep-list-modules {
   position: relative;
   padding-left: 23px; }
 
-.ep-module .settings-button:before {
+.ep-feature .settings-button:before {
   content: "\f140";
   font: 400 19px/1 dashicons;
   display: inline-block;
@@ -148,7 +148,7 @@ h2.ep-list-modules {
   position: absolute;
   left: 1px; }
 
-.ep-module .settings-button:after {
+.ep-feature .settings-button:after {
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -158,39 +158,39 @@ h2.ep-list-modules {
   margin-left: 10px;
   margin-top: -2px; }
 
-.module-requirements-status-2.ep-module .postbox .hndle .settings-button:after {
+.feature-requirements-status-2.ep-feature .postbox .hndle .settings-button:after {
   background-color: transparent;
   border: 1px solid #ff0000; }
 
-.module-requirements-status-2.ep-module .settings .requirements-status-notice {
+.feature-requirements-status-2.ep-feature .settings .requirements-status-notice {
   border-color: #ff0000; }
 
-.module-requirements-status-1.ep-module .postbox .hndle .settings-button:after {
+.feature-requirements-status-1.ep-feature .postbox .hndle .settings-button:after {
   background-color: transparent;
   border: 1px solid #e3e600; }
 
-.module-requirements-status-1.ep-module.module-active .postbox .hndle .settings-button:after {
+.feature-requirements-status-1.ep-feature.feature-active .postbox .hndle .settings-button:after {
   background-color: #e3e600; }
 
-.module-requirements-status-1.ep-module .settings .requirements-status-notice {
+.feature-requirements-status-1.ep-feature .settings .requirements-status-notice {
   border-color: #e3e600; }
 
-.module-requirements-status-0.ep-module .postbox .hndle .settings-button:after {
+.feature-requirements-status-0.ep-feature .postbox .hndle .settings-button:after {
   background-color: transparent;
   border: 1px solid #6aa000; }
 
-.module-requirements-status-0.ep-module.module-active .postbox .hndle .settings-button:after {
+.feature-requirements-status-0.ep-feature.feature-active .postbox .hndle .settings-button:after {
   background-color: #6aa000; }
 
-.module-requirements-status-0.ep-module .settings .requirements-status-notice {
+.feature-requirements-status-0.ep-feature .settings .requirements-status-notice {
   border-color: #6aa000; }
 
-.ep-module {
+.ep-feature {
   position: relative;
   vertical-align: top;
   margin-bottom: 20px; }
 
-.ep-module.saving .action-wrap:before {
+.ep-feature.saving .action-wrap:before {
   content: ' ';
   vertical-align: middle;
   margin-right: 1.4em;
@@ -212,78 +212,78 @@ h2.ep-list-modules {
   -webkit-animation: load8 1.1s infinite linear;
   animation: load8 1.1s infinite linear; }
 
-.ep-module .description,
-.ep-module .settings {
+.ep-feature .description,
+.ep-feature .settings {
   margin-bottom: 0;
   text-align: left; }
 
-.ep-module .settings {
+.ep-feature .settings {
   display: none;
   overflow: auto; }
-  .ep-module .settings h3 {
+  .ep-feature .settings h3 {
     margin-top: 0;
     font-size: inherit;
     font-weight: bold; }
 
-.ep-module.show-settings .settings {
+.ep-feature.show-settings .settings {
   display: block; }
 
-.ep-module.show-settings .description {
+.ep-feature.show-settings .description {
   display: none; }
 
-.ep-module.show-settings .settings-button:before {
+.ep-feature.show-settings .settings-button:before {
   content: "\f142"; }
 
-.ep-module .settings .requirements-status-notice {
+.ep-feature .settings .requirements-status-notice {
   border-left: 4px solid #6aa000;
   background-color: #efefef;
   padding: 8px 12px;
   margin-bottom: 10px; }
 
-.ep-module .settings .action-wrap {
+.ep-feature .settings .action-wrap {
   clear: both;
   text-align: right;
   margin-top: 10px;
   vertical-align: middle; }
-  .ep-module .settings .action-wrap a {
+  .ep-feature .settings .action-wrap a {
     cursor: pointer;
     display: inline-block; }
-  .ep-module .settings .action-wrap .cancel {
+  .ep-feature .settings .action-wrap .cancel {
     margin-top: 4px;
     margin-right: 6px; }
 
-.ep-module .settings .field {
+.ep-feature .settings .field {
   clear: both;
   overflow: auto; }
-  .ep-module .settings .field > label,
-  .ep-module .settings .field .field-name {
+  .ep-feature .settings .field > label,
+  .ep-feature .settings .field .field-name {
     display: block;
     float: left;
     margin-right: 3em; }
-  .ep-module .settings .field .input-wrap {
+  .ep-feature .settings .field .input-wrap {
     display: block;
     float: left; }
-  .ep-module .settings .field .disabled {
+  .ep-feature .settings .field .disabled {
     color: #c4c4c4; }
-    .ep-module .settings .field .disabled input {
+    .ep-feature .settings .field .disabled input {
       cursor: default; }
 
-.ep-module .long {
+.ep-feature .long {
   display: none; }
-  .ep-module .long p:last-child {
+  .ep-feature .long p:last-child {
     margin-bottom: 0; }
 
-.ep-module.show-full .long {
+.ep-feature.show-full .long {
   display: block; }
 
-.ep-module .learn-more,
-.ep-module .collapse {
+.ep-feature .learn-more,
+.ep-feature .collapse {
   cursor: pointer; }
 
-.ep-module.show-full .learn-more {
+.ep-feature.show-full .learn-more {
   display: none; }
 
-.ep-module .learn-more:after {
+.ep-feature .learn-more:after {
   content: "\f140";
   font-family: dashicons;
   font-size: 1.5em;
@@ -291,7 +291,7 @@ h2.ep-list-modules {
   top: -.07em;
   position: relative; }
 
-.ep-module .collapse:after {
+.ep-feature .collapse:after {
   content: "\f142";
   font-family: dashicons;
   font-size: 1.5em;
@@ -315,7 +315,7 @@ h2.ep-list-modules {
   .wrap.intro .is-dismissible {
     display: none !important; }
 
-.modules-screenshot {
+.features-screenshot {
   display: none; }
 
 .setup-message {
@@ -362,26 +362,26 @@ h2.ep-list-modules {
   .intro .left {
     float: left;
     width: 30%; }
-  .modules-screenshot {
+  .features-screenshot {
     margin: 0 auto;
     max-width: 1000px;
     width: 70%;
     display: block;
     height: auto;
     float: right; }
-  .ep-modules .left {
+  .ep-features .left {
     display: block;
     float: left;
     box-sizing: border-box;
     padding-right: 10px;
     width: 50%; }
-  .ep-modules .right {
+  .ep-features .right {
     display: block;
     float: right;
     box-sizing: border-box;
     padding-left: 10px;
     width: 50%; }
-  .ep-module .module-message {
+  .ep-feature .feature-message {
     float: left;
     padding: 0;
     vertical-align: middle;

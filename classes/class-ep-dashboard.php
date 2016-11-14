@@ -36,7 +36,7 @@ class EP_Dashboard {
 			add_action( 'admin_menu', array( $this, 'action_admin_menu' ) );
 		}
 
-		add_action( 'wp_ajax_ep_save_module', array( $this, 'action_wp_ajax_ep_save_module' ) );
+		add_action( 'wp_ajax_ep_save_feature', array( $this, 'action_wp_ajax_ep_save_feature' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
@@ -218,8 +218,8 @@ class EP_Dashboard {
 				}
 			}
 
-			if ( ! empty( $_POST['module_sync'] ) ) {
-				$index_meta['module_sync'] = esc_attr( $_POST['module_sync'] );
+			if ( ! empty( $_POST['feature_sync'] ) ) {
+				$index_meta['feature_sync'] = esc_attr( $_POST['feature_sync'] );
 			}
 		} else if ( ! empty( $index_meta['site_stack'] ) && $index_meta['offset'] >= $index_meta['found_posts'] ) {
 			$status = 'start';
@@ -379,41 +379,41 @@ class EP_Dashboard {
 	}
 
 	/**
-	 * Save individual module settings
+	 * Save individual feature settings
 	 *
 	 * @since  2.2
 	 */
-	public function action_wp_ajax_ep_save_module() {
-		if ( empty( $_POST['module'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
+	public function action_wp_ajax_ep_save_feature() {
+		if ( empty( $_POST['feature'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
 			wp_send_json_error();
 			exit;
 		}
 
-		$module = ep_get_registered_module( $_POST['module'] );
-		$original_state = $module->is_active();
+		$feature = ep_get_registered_feature( $_POST['feature'] );
+		$original_state = $feature->is_active();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$module_settings = get_site_option( 'ep_module_settings', array() );
+			$feature_settings = get_site_option( 'ep_feature_settings', array() );
 		} else {
-			$module_settings = get_option( 'ep_module_settings', array() );
+			$feature_settings = get_option( 'ep_feature_settings', array() );
 		}
 
-		$module_settings[ $_POST['module'] ] = wp_parse_args( $_POST['settings'], $module->default_settings );
-		$module_settings[ $_POST['module'] ]['active'] = (bool) $module_settings[ $_POST['module'] ]['active'];
+		$feature_settings[ $_POST['feature'] ] = wp_parse_args( $_POST['settings'], $feature->default_settings );
+		$feature_settings[ $_POST['feature'] ]['active'] = (bool) $feature_settings[ $_POST['feature'] ]['active'];
 
-		$sanitize_module_settings = apply_filters( 'ep_sanitize_module_settings', $module_settings, $module );
+		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_module_settings', $sanitize_module_settings );
+			update_site_option( 'ep_feature_settings', $sanitize_feature_settings );
 		} else {
-			update_option( 'ep_module_settings', $sanitize_module_settings );
+			update_option( 'ep_feature_settings', $sanitize_feature_settings );
 		}
 
 		$data = array(
 			'reindex' => false,
 		);
 
-		if ( $module_settings[ $_POST['module'] ]['active'] && ! $original_state ) {
+		if ( $feature_settings[ $_POST['feature'] ]['active'] && ! $original_state ) {
 			$data['reindex'] = true;
 		}
 

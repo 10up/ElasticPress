@@ -27,7 +27,7 @@ $status-error: #ff0000;
 	margin-bottom: 20px;
 }
 
-h2.ep-list-modules {
+h2.ep-list-features {
 	display: none; // We use this since WP inserts warnings after the first h2
 }
 
@@ -114,10 +114,10 @@ h2.ep-list-modules {
 }
 
 /**
- * Modules
+ * Features
  */
 
-.ep-modules {
+.ep-features {
 	overflow: auto;
 }
 
@@ -144,15 +144,15 @@ h2.ep-list-modules {
 	}
 }
 
-.ep-module .postbox {
+.ep-feature .postbox {
 	margin-bottom: 0;
 }
 
-.ep-module .postbox .hndle {
+.ep-feature .postbox .hndle {
 	cursor: inherit;
 }
 
-.ep-module .postbox .hndle .settings-button {
+.ep-feature .postbox .hndle .settings-button {
 	float: right;
 	display: inline-block;
 	font-size: 13px;
@@ -166,7 +166,7 @@ h2.ep-list-modules {
     padding-left: 23px;
 }
 
-.ep-module .settings-button:before {
+.ep-feature .settings-button:before {
 	content: "\f140";
 	font: 400 19px/1 dashicons;
 	display: inline-block;
@@ -178,7 +178,7 @@ h2.ep-list-modules {
 	left: 1px;
 }
 
-.ep-module .settings-button:after {
+.ep-feature .settings-button:after {
 	border-radius: 50%;
 	content: ' ';
 	display: inline-block;
@@ -189,7 +189,7 @@ h2.ep-list-modules {
 	margin-top: -2px;
 }
 
-.module-requirements-status-2.ep-module {
+.feature-requirements-status-2.ep-feature {
 	.postbox .hndle .settings-button:after {
 		background-color: transparent;
 		border: 1px solid $status-error;
@@ -200,13 +200,13 @@ h2.ep-list-modules {
 	}
 }
 
-.module-requirements-status-1.ep-module {
+.feature-requirements-status-1.ep-feature {
 	.postbox .hndle .settings-button:after {
 		background-color: transparent;
 		border: 1px solid $status-warning;
 	}
 
-	&.module-active .postbox .hndle .settings-button:after {
+	&.feature-active .postbox .hndle .settings-button:after {
 		background-color: $status-warning;
 	}
 
@@ -215,13 +215,13 @@ h2.ep-list-modules {
 	}
 }
 
-.module-requirements-status-0.ep-module {
+.feature-requirements-status-0.ep-feature {
 	.postbox .hndle .settings-button:after {
 		background-color: transparent;
 		border: 1px solid $status-ok;
 	}
 
-	&.module-active .postbox .hndle .settings-button:after {
+	&.feature-active .postbox .hndle .settings-button:after {
 		background-color: $status-ok;
 	}
 
@@ -230,13 +230,13 @@ h2.ep-list-modules {
 	}
 }
 
-.ep-module {
+.ep-feature {
 	position: relative;
 	vertical-align: top;
 	margin-bottom: 20px;
 }
 
-.ep-module.saving .action-wrap:before {
+.ep-feature.saving .action-wrap:before {
 	content: ' ';
 	vertical-align: middle;
 	margin-right: 1.4em;
@@ -259,13 +259,13 @@ h2.ep-list-modules {
 	animation: load8 1.1s infinite linear;
 }
 
-.ep-module .description,
-.ep-module .settings {
+.ep-feature .description,
+.ep-feature .settings {
 	margin-bottom: 0;
 	text-align: left;
 }
 
-.ep-module .settings {
+.ep-feature .settings {
 	display: none;
 	overflow: auto;
 
@@ -276,7 +276,7 @@ h2.ep-list-modules {
 	}
 }
 
-.ep-module.show-settings {
+.ep-feature.show-settings {
 
 	.settings {
 		display: block;
@@ -291,14 +291,14 @@ h2.ep-list-modules {
 	}
 }
 
-.ep-module .settings .requirements-status-notice {
+.ep-feature .settings .requirements-status-notice {
 	border-left: 4px solid $status-ok;
 	background-color: #efefef;
 	padding: 8px 12px;
 	margin-bottom: 10px;
 }
 
-.ep-module .settings .action-wrap {
+.ep-feature .settings .action-wrap {
 	clear: both;
 	text-align: right;
 	margin-top: 10px;
@@ -315,7 +315,7 @@ h2.ep-list-modules {
 	}
 }
 
-.ep-module .settings .field {
+.ep-feature .settings .field {
 	clear: both;
 	overflow: auto;
 
@@ -340,7 +340,7 @@ h2.ep-list-modules {
 	}
 }
 
-.ep-module .long {
+.ep-feature .long {
 	display: none;
 
 	p:last-child {
@@ -348,20 +348,20 @@ h2.ep-list-modules {
 	}
 }
 
-.ep-module.show-full .long {
+.ep-feature.show-full .long {
 	display: block;
 }
 
-.ep-module .learn-more,
-.ep-module .collapse {
+.ep-feature .learn-more,
+.ep-feature .collapse {
 	cursor: pointer;
 }
 
-.ep-module.show-full .learn-more {
+.ep-feature.show-full .learn-more {
 	display: none;
 }
 
-.ep-module .learn-more:after {
+.ep-feature .learn-more:after {
 	content: "\f140";
 	font-family: dashicons;
 	font-size: 1.5em;
@@ -370,7 +370,7 @@ h2.ep-list-modules {
 	position: relative;
 }
 
-.ep-module .collapse:after {
+.ep-feature .collapse:after {
 	content: "\f142";
 	font-family: dashicons;
 	font-size: 1.5em;
@@ -401,7 +401,7 @@ h2.ep-list-modules {
 	}
 }
 
-.modules-screenshot {
+.features-screenshot {
 	display: none;
 }
 
@@ -461,7 +461,7 @@ h2.ep-list-modules {
 		width: 30%;
 	}
 
-	.modules-screenshot {
+	.features-screenshot {
 		margin: 0 auto;
 		max-width: 1000px;
 		width: 70%;
@@ -470,7 +470,7 @@ h2.ep-list-modules {
 		float: right;
 	}
 
-	.ep-modules .left {
+	.ep-features .left {
 		display: block;
 		float: left;
 		box-sizing: border-box;
@@ -478,7 +478,7 @@ h2.ep-list-modules {
 		width: 50%;
 	}
 
-	.ep-modules .right {
+	.ep-features .right {
 		display: block;
 		float: right;
 		box-sizing: border-box;
@@ -486,7 +486,7 @@ h2.ep-list-modules {
 		width: 50%;
 	}
 
-	.ep-module .module-message {
+	.ep-feature .feature-message {
 		float: left;
 		padding: 0;
 		vertical-align: middle;

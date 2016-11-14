@@ -1,6 +1,6 @@
 <?php
 /**
- * ElasticPress admin module
+ * ElasticPress admin feature
  *
  * @since  2.1
  * @package elasticpress
@@ -8,7 +8,7 @@
 
 
 /**
- * Setup all module filters
+ * Setup all feature filters
  *
  * @since  2.1
  */
@@ -38,7 +38,7 @@ function ep_admin_integrate( $query ) {
 	}
 
 	/**
-	 * We limit to these post types to not conflict with other modules like WooCommerce
+	 * We limit to these post types to not conflict with other features like WooCommerce
 	 *
 	 * @since  2.1
 	 * @var array
@@ -72,22 +72,22 @@ function ep_admin_integrate( $query ) {
 }
 
 /**
- * Output module box summary
+ * Output feature box summary
  * 
  * @since 2.1
  */
-function ep_admin_module_box_summary() {
+function ep_admin_feature_box_summary() {
 	?>
 	<p><?php esc_html_e( 'Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You want to make sure your Elasticsearch instance is properly secured.', 'elasticpress' ); ?></p>
 	<?php
 }
 
 /**
- * Output module box long
+ * Output feature box long
  * 
  * @since 2.1
  */
-function ep_admin_module_box_long() {
+function ep_admin_feature_box_long() {
 	?>
 	<p><?php _e( 'Within the admin panel, posts and pages are shown in a standarized easy to use table format. After activating an SEO plugin, increasing post per pages, and making other modifications, that table view loads very slowly.', 'elasticpress' ); ?></p>
 
@@ -112,11 +112,11 @@ function ep_admin_get_statuses( $statuses ) {
 }
 
 /**
- * Determine WC module reqs status
+ * Determine WC feature reqs status
  *
- * @param  EP_Module_Requirements_Status $status
+ * @param  EP_Feature_Requirements_Status $status
  * @since  2.2
- * @return EP_Module_Requirements_Status
+ * @return EP_Feature_Requirements_Status
  */
 function ep_admin_requirements_status( $status ) {
 	$host = ep_get_host();
@@ -130,14 +130,14 @@ function ep_admin_requirements_status( $status ) {
 }
 
 /**
- * Register the module
+ * Register the feature
  */
-ep_register_module( 'admin', array(
+ep_register_feature( 'admin', array(
 	'title' => 'Admin',
 	'setup_cb' => 'ep_admin_setup',
 	'requirements_status_cb' => 'ep_admin_requirements_status',
-	'module_box_summary_cb' => 'ep_admin_module_box_summary',
-	'module_box_long_cb' => 'ep_admin_module_box_long',
+	'feature_box_summary_cb' => 'ep_admin_feature_box_summary',
+	'feature_box_long_cb' => 'ep_admin_feature_box_long',
 	'requires_install_reindex' => true,
 ) );
 

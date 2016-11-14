@@ -1,6 +1,6 @@
 <?php
 
-class EPTestSearchModule extends EP_Test_Base {
+class EPTestSearchFeature extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
@@ -48,7 +48,7 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * @group search
 	 */
 	public function testSearchOff() {
-		EP_Modules::factory()->setup_modules();
+		EP_Features::factory()->setup_features();
 		$post_ids = array();
 
 		ep_create_and_sync_post();
@@ -75,8 +75,8 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * @group search
 	 */
 	public function testSearchOn() {
-		ep_activate_module( 'search' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'search' );
+		EP_Features::factory()->setup_features();
 
 		$post_ids = array();
 
@@ -103,8 +103,8 @@ class EPTestSearchModule extends EP_Test_Base {
 	public function testSearchIndexDeleted(){
 		global $wpdb;
 		
-		ep_activate_module( 'search' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'search' );
+		EP_Features::factory()->setup_features();
 		
 		$post_ids = array();
 		

@@ -23,7 +23,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_VERSION', '2.2' );
-define( 'EP_MODULES_DIR', dirname( __FILE__ ) . '/modules' );
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
@@ -38,15 +37,15 @@ if ( $network_activated ) {
 require_once( 'classes/class-ep-sync-manager.php' );
 require_once( 'classes/class-ep-wp-query-integration.php' );
 require_once( 'classes/class-ep-wp-date-query.php' );
-require_once( 'classes/class-ep-module.php' );
-require_once( 'classes/class-ep-modules.php' );
+require_once( 'classes/class-ep-feature.php' );
+require_once( 'classes/class-ep-features.php' );
 require_once( 'classes/class-ep-dashboard.php' );
 
-// Include core modules
-require_once( 'modules/search/search.php' );
-require_once( 'modules/related-posts/related-posts.php' );
-require_once( 'modules/admin/admin.php' );
-require_once( 'modules/woocommerce/woocommerce.php' );
+// Include core features
+require_once( 'features/search/search.php' );
+require_once( 'features/related-posts/related-posts.php' );
+require_once( 'features/admin/admin.php' );
+require_once( 'features/woocommerce/woocommerce.php' );
 
 /**
  * WP CLI Commands
@@ -56,35 +55,35 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
- * On activate, all modules that meet their requirements with no warnings should be activated.
+ * On activate, all features that meet their requirements with no warnings should be activated.
  *
  * @since  2.1
  */
 function ep_on_activate() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$module_settings = get_site_option( 'ep_module_settings', false );
+		$feature_settings = get_site_option( 'ep_feature_settings', false );
 	} else {
-		$module_settings = get_option( 'ep_module_settings', false );
+		$feature_settings = get_option( 'ep_feature_settings', false );
 	}
 
-	if ( false === $module_settings ) {
-		$registered_modules = EP_Modules::factory()->registered_modules;
+	if ( false === $feature_settings ) {
+		$registered_features = EP_Features::factory()->registered_features;
 		
-		foreach ( $registered_modules as $slug => $module ) {
-			if ( 0 === $module->requirements_status()->code ) {
-				$module_settings[ $slug ] = ( ! empty( $module->default_settings ) ) ? $module->default_settings : array();
-				$module_settings[ $slug ]['active'] = true;
+		foreach ( $registered_features as $slug => $feature ) {
+			if ( 0 === $feature->requirements_status()->code ) {
+				$feature_settings[ $slug ] = ( ! empty( $feature->default_settings ) ) ? $feature->default_settings : array();
+				$feature_settings[ $slug ]['active'] = true;
 
-				$module->post_activation();
+				$feature->post_activation();
 			}
 		}
 	}
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		update_site_option( 'ep_module_settings', $module_settings );
+		update_site_option( 'ep_feature_settings', $feature_settings );
 		delete_site_option( 'ep_index_meta' );
 	} else {
-		update_option( 'ep_module_settings', $module_settings );
+		update_option( 'ep_feature_settings', $feature_settings );
 		delete_option( 'ep_index_meta' );
 	}
 }

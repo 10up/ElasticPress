@@ -1,5 +1,5 @@
 ( function( $ ) {
-	var $modules = $( document.getElementsByClassName( 'ep-modules' ) );
+	var $features = $( document.getElementsByClassName( 'ep-features' ) );
 	var $errorOverlay = $( document.getElementsByClassName( 'error-overlay' ) );
 
 	var $progressBar = $(document.getElementsByClassName( 'progress-bar' ) );
@@ -10,31 +10,31 @@
 	var $cancelSyncButton = $(document.getElementsByClassName( 'cancel-sync' ) );
 
 	var syncStatus = 'sync';
-	var moduleSync = false;
+	var featureSync = false;
 	var currentSite;
 	var siteStack;
 	var processed = 0;
 	var toProcess = 0;
 
-	$modules.on( 'click', '.learn-more, .collapse', function( event ) {
-		$module = $( this ).parents( '.ep-module' );
-		$module.toggleClass( 'show-full' );
+	$features.on( 'click', '.learn-more, .collapse', function( event ) {
+		$feature = $( this ).parents( '.ep-feature' );
+		$feature.toggleClass( 'show-full' );
 	} );
 
-	$modules.on( 'click', '.settings-button', function( event ) {
-		$module = $( this ).parents( '.ep-module' );
-		$module.toggleClass( 'show-settings' );
+	$features.on( 'click', '.settings-button', function( event ) {
+		$feature = $( this ).parents( '.ep-feature' );
+		$feature.toggleClass( 'show-settings' );
 	} );
 
-	$modules.on( 'click', '.save-settings', function( event ) {
+	$features.on( 'click', '.save-settings', function( event ) {
 		event.preventDefault();
 
-		var module = event.target.getAttribute( 'data-module' );
-		var $module = $modules.find( '.ep-module-' + module );
+		var feature = event.target.getAttribute( 'data-feature' );
+		var $feature = $features.find( '.ep-feature-' + feature );
 
 		var settings = {};
 
-		var $settings = $module.find('.setting-field');
+		var $settings = $feature.find('.setting-field');
 
 		$settings.each(function() {
 			var type = $( this ).attr( 'type' );
@@ -48,42 +48,42 @@
 			}
 		});
 
-		$module.addClass( 'saving' );
+		$feature.addClass( 'saving' );
 
 		$.ajax( {
 			method: 'post',
 			url: ajaxurl,
 			data: {
-				action: 'ep_save_module',
-				module: module,
+				action: 'ep_save_feature',
+				feature: feature,
 				nonce: ep.nonce,
 				settings: settings
 			}
 		} ).done( function( response ) {
 			setTimeout( function() {
-				$module.removeClass( 'saving' );
+				$feature.removeClass( 'saving' );
 
 				if ( '1' === settings.active ) {
-					$module.addClass( 'module-active' );
+					$feature.addClass( 'feature-active' );
 				} else {
-					$module.removeClass( 'module-active' );
+					$feature.removeClass( 'feature-active' );
 				}
 				
 				if ( response.data.reindex ) {
 					syncStatus = 'sync';
 
-					$module.addClass( 'module-syncing' );
+					$feature.addClass( 'feature-syncing' );
 
-					moduleSync = module;
+					featureSync = feature;
 
 					sync();
 				}
 			}, 700 );
 		} ).error( function() {
 			setTimeout( function() {
-				$module.removeClass( 'saving' );
-				$module.removeClass( 'module-active' );
-				$module.removeClass( 'module-syncing' );
+				$feature.removeClass( 'saving' );
+				$feature.removeClass( 'feature-active' );
+				$feature.removeClass( 'feature-syncing' );
 			}, 700 );
 		} );
 	} );
@@ -96,8 +96,8 @@
 			processed = ep.index_meta.offset;
 			toProcess = ep.index_meta['found_posts'];
 
-			if ( ep.index_meta.module_sync ) {
-				moduleSync = ep.index_meta.module_sync;
+			if ( ep.index_meta.feature_sync ) {
+				featureSync = ep.index_meta.feature_sync;
 			}
 
 			if ( ep.index_meta.current_site ) {
@@ -203,12 +203,12 @@
 			$errorOverlay.removeClass( 'syncing' );
 			$progressBar.hide();
 
-			if ( moduleSync ) {
-				var $module = $modules.find( '.ep-module-' + moduleSync );
-				$module.removeClass( 'module-syncing' );
+			if ( featureSync ) {
+				var $feature = $features.find( '.ep-feature-' + featureSync );
+				$feature.removeClass( 'feature-syncing' );
 			}
 
-			moduleSync = null;
+			featureSync = null;
 
 			setTimeout( function() {
 				$syncStatusText.hide();
@@ -223,12 +223,12 @@
 			$resumeSyncButton.hide();
 			$startSyncButton.show();
 
-			if ( moduleSync ) {
-				var $module = $modules.find( '.ep-module-' + moduleSync );
-				$module.removeClass( 'module-syncing' );
+			if ( featureSync ) {
+				var $feature = $features.find( '.ep-feature-' + featureSync );
+				$feature.removeClass( 'feature-syncing' );
 			}
 
-			moduleSync = null;
+			featureSync = null;
 		} else if ( 'finished' === syncStatus ) {
 			$syncStatusText.text( ep.sync_complete );
 
@@ -240,12 +240,12 @@
 			$startSyncButton.show();
 			$errorOverlay.removeClass( 'syncing' );
 
-			if ( moduleSync ) {
-				var $module = $modules.find( '.ep-module-' + moduleSync );
-				$module.removeClass( 'module-syncing' );
+			if ( featureSync ) {
+				var $feature = $features.find( '.ep-feature-' + featureSync );
+				$feature.removeClass( 'feature-syncing' );
 			}
 
-			moduleSync = null;
+			featureSync = null;
 
 			setTimeout( function() {
 				$syncStatusText.hide();
@@ -270,7 +270,7 @@
 			url: ajaxurl,
 			data: {
 				action: 'ep_index',
-				module_sync: moduleSync,
+				feature_sync: featureSync,
 				nonce: ep.nonce
 			}
 		} ).done( function( response ) {

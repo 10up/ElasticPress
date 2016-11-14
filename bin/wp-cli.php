@@ -31,117 +31,117 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private $failed_posts_message = array();
 
 	/**
-	 * Activate a module.
+	 * Activate a feature.
 	 *
-	 * @synopsis <module> [--network-wide]
-	 * @subcommand activate-module
+	 * @synopsis <feature> [--network-wide]
+	 * @subcommand activate-feature
 	 * @since      2.1
 	 * @param array $args
 	 * @param array $assoc_args
 	 */
-	public function activate_module( $args, $assoc_args ) {
-		$module = ep_get_registered_module( $args[0] );
+	public function activate_feature( $args, $assoc_args ) {
+		$feature = ep_get_registered_feature( $args[0] );
 
-		if ( empty( $module ) ) {
-			WP_CLI::error( __( 'No module with that slug is registered', 'elasticpress' ) );
+		if ( empty( $feature ) ) {
+			WP_CLI::error( __( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$active_modules = get_site_option( 'ep_active_modules', array() );
+			$active_features = get_site_option( 'ep_active_features', array() );
 		} else {
-			$active_modules = get_option( 'ep_active_modules', array() );
+			$active_features = get_option( 'ep_active_features', array() );
 		}
 
-		if ( $module->is_active() ) {
-			WP_CLI::error( __( 'This module is already active', 'elasticpress' ) );
+		if ( $feature->is_active() ) {
+			WP_CLI::error( __( 'This feature is already active', 'elasticpress' ) );
 		}
 
-		if ( is_wp_error( $module->dependencies_met() ) ) {
-			WP_CLI::error( __( 'Module depedencies are not met', 'elasticpress' ) );
+		if ( is_wp_error( $feature->dependencies_met() ) ) {
+			WP_CLI::error( __( 'Feature depedencies are not met', 'elasticpress' ) );
 		}
 
-		$active_modules[] = $module->slug;
+		$active_features[] = $feature->slug;
 
-		$module->post_activation();
+		$feature->post_activation();
 
-		if ( $module->requires_install_reindex ) {
-			WP_CLI::warning( __( 'This module requires a re-index. You may want to run the index command next.', 'elasticpress' ) );
+		if ( $feature->requires_install_reindex ) {
+			WP_CLI::warning( __( 'This feature requires a re-index. You may want to run the index command next.', 'elasticpress' ) );
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			update_site_option( 'ep_active_modules', $active_modules );
+			update_site_option( 'ep_active_features', $active_features );
 		} else {
-			update_option( 'ep_active_modules', $active_modules );
+			update_option( 'ep_active_features', $active_features );
 		}
 
-		WP_CLI::success( __( 'Module activated', 'elasticpress' ) );
+		WP_CLI::success( __( 'Feature activated', 'elasticpress' ) );
 	}
 
 	/**
-	 * Dectivate a module.
+	 * Dectivate a feature.
 	 *
-	 * @synopsis <module> [--network-wide]
-	 * @subcommand deactivate-module
+	 * @synopsis <feature> [--network-wide]
+	 * @subcommand deactivate-feature
 	 * @since      2.1
 	 * @param array $args
 	 * @param array $assoc_args
 	 */
-	public function deactivate_module( $args, $assoc_args ) {
-		$module = ep_get_registered_module( $args[0] );
+	public function deactivate_feature( $args, $assoc_args ) {
+		$feature = ep_get_registered_feature( $args[0] );
 
-		if ( empty( $module ) ) {
-			WP_CLI::error( __( 'No module with that slug is registered', 'elasticpress' ) );
+		if ( empty( $feature ) ) {
+			WP_CLI::error( __( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$active_modules = get_site_option( 'ep_active_modules', array() );
+			$active_features = get_site_option( 'ep_active_features', array() );
 		} else {
-			$active_modules = get_option( 'ep_active_modules', array() );
+			$active_features = get_option( 'ep_active_features', array() );
 		}
 
-		$key = array_search( $module->slug, $active_modules );
+		$key = array_search( $feature->slug, $active_features );
 
 		if ( false !== $key ) {
-			unset( $active_modules[$key] );
+			unset( $active_features[$key] );
 		} else {
-			WP_CLI::error( __( 'Module is not active', 'elasticpress' ) );
+			WP_CLI::error( __( 'Feature is not active', 'elasticpress' ) );
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			update_site_option( 'ep_active_modules', $active_modules );
+			update_site_option( 'ep_active_features', $active_features );
 		} else {
-			update_option( 'ep_active_modules', $active_modules );
+			update_option( 'ep_active_features', $active_features );
 		}
 
-		WP_CLI::success( __( 'Module deactivated', 'elasticpress' ) );
+		WP_CLI::success( __( 'Feature deactivated', 'elasticpress' ) );
 	}
 
 	/**
-	 * List modules (either active or all)
+	 * List features (either active or all)
 	 *
 	 * @synopsis [--all] [--network-wide]
-	 * @subcommand list-modules
+	 * @subcommand list-features
 	 * @since      2.1
 	 * @param array $args
 	 * @param array $assoc_args
 	 */
-	public function list_modules( $args, $assoc_args ) {
+	public function list_features( $args, $assoc_args ) {
 
 		if ( empty( $assoc_args['all'] ) ) {
 			if ( ! empty( $assoc_args['network-wide'] ) ) {
-				$modules = get_site_option( 'ep_active_modules', array() );
+				$features = get_site_option( 'ep_active_features', array() );
 			} else {
-				$modules = get_option( 'ep_active_modules', array() );
+				$features = get_option( 'ep_active_features', array() );
 			}
 
-			WP_CLI::line( __( 'Active modules:', 'elasticpress' ) );
+			WP_CLI::line( __( 'Active features:', 'elasticpress' ) );
 		} else {
-			WP_CLI::line( __( 'Registered modules:', 'elasticpress' ) );
-			$modules = wp_list_pluck( EP_Modules::factory()->registered_modules, 'slug' );
+			WP_CLI::line( __( 'Registered features:', 'elasticpress' ) );
+			$features = wp_list_pluck( EP_Features::factory()->registered_features, 'slug' );
 		}
 
-		foreach ( $modules as $module ) {
-			WP_CLI::line( $module );
+		foreach ( $features as $feature ) {
+			WP_CLI::line( $feature );
 		}
 	}
 
