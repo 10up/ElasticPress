@@ -1071,14 +1071,12 @@ class EP_API {
 				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
 					$relation = 'should';
 				}
+				
+				$es_tax_query[$relation] = $tax_filter;
 			}
 			
 			if ( ! empty( $tax_must_not_filter ) ) {
 				$es_tax_query['must_not'] = $tax_must_not_filter;
-			}
-
-			if ( ! empty( $tax_filter ) ) {
-				$es_tax_query['must'] = $tax_filter;
 			}
 			
 			if( ! empty( $es_tax_query ) ) {
