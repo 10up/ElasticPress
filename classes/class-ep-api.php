@@ -1062,9 +1062,6 @@ class EP_API {
 				}
 			}
 
-			/**
-			 * Todo: This needs to be fixed
-			 */
 			if ( ! empty( $tax_filter ) ) {
 				$relation = 'must';
 
