@@ -196,11 +196,11 @@ class EP_API {
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args );
-		
+
 		$remote_req_res_code = intval( wp_remote_retrieve_response_code( $request ) );
-		
+
 		$is_valid_res = ( $remote_req_res_code >= 200 && $remote_req_res_code <= 299 );
-		
+
 		if ( ! is_wp_error( $request ) && apply_filters( 'ep_remote_request_is_valid_res', $is_valid_res, $request ) ) {
 
 			// Allow for direct response retrieval
@@ -437,7 +437,7 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { 
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$es_version = get_site_option( 'ep_es_version', false );
 		} else {
 			$es_version = get_option( 'ep_es_version', false );
@@ -1023,7 +1023,7 @@ class EP_API {
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
 			$tax_must_not_filter  = array();
-			
+
 			// Main tax_query array for ES
 			$es_tax_query = array();
 
@@ -1041,7 +1041,7 @@ class EP_API {
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
-					
+
 					/*
 					 * add support for "NOT IN" operator
 					 *
@@ -1055,7 +1055,7 @@ class EP_API {
 						if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
 							$terms_obj['execution'] = 'and';
 						}
-						
+
 						// Add the tax query filter
 						$tax_filter[]['terms'] = $terms_obj;
 					}
@@ -1072,7 +1072,7 @@ class EP_API {
 					$relation = 'should';
 				}
 			}
-			
+
 			if ( ! empty( $tax_must_not_filter ) ) {
 				$es_tax_query['must_not'] = $tax_must_not_filter;
 			}
@@ -1080,11 +1080,11 @@ class EP_API {
 			if ( ! empty( $tax_filter ) ) {
 				$es_tax_query['must'] = $tax_filter;
 			}
-			
+
 			if( ! empty( $es_tax_query ) ) {
 				$filter['bool']['must'][]['bool'] = $es_tax_query;
 			}
-			
+
 			$use_filters = true;
 		}
 
@@ -1566,7 +1566,7 @@ class EP_API {
 				'boost' => 1,
 			);
 		}
-		
+
 		/**
 		 * Order by 'rand' support
 		 *
@@ -1662,14 +1662,27 @@ class EP_API {
 		/**
 		 * Aggregations
 		 */
-		if ( isset( $args['aggs'] ) && ! empty( $args['aggs']['aggs'] ) ) {
-			$agg_obj = $args['aggs'];
+		/**
+		 * Check aggregations argument and convert it from old format to array of arrays if needed.
+		 *
+		 * @since 2.3
+		 */
+		if ( isset( $args['aggs'], $args['aggs']['aggs'] ) ) {
+			$args['aggs'] = array( $args['aggs'] );
+		}
+		$aggregation_name_index = 1;
+		foreach ( $args['aggs'] as $agg_obj ) {
+			if ( empty( $agg_obj['aggs'] ) ) {
+				continue;
+			}
 
+			$agg_name_suffix = ( $aggregation_name_index > 1 ) ? ( '_' . $aggregation_name_index ) : '';
 			// Add a name to the aggregation if it was passed through
 			if ( ! empty( $agg_obj['name'] ) ) {
 				$agg_name = $agg_obj['name'];
 			} else {
-				$agg_name = 'aggregation_name';
+				$agg_name = 'aggregation_name' . $agg_name_suffix;
+				$aggregation_name_index++;
 			}
 
 			// Add/use the filter if warranted
@@ -1677,9 +1690,9 @@ class EP_API {
 
 				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
-				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+				$formatted_args['aggs'][ $agg_name ]['aggs']   = $agg_obj['aggs'];
 			} else {
-				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
+				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
 			}
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
@@ -1696,7 +1709,7 @@ class EP_API {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
 			'limit' => $limit,
 		) );
-		
+
 		if ( function_exists( 'get_sites' ) ) {
 			$site_objects = get_sites( $args );
 			$sites = array();
@@ -1878,7 +1891,7 @@ class EP_API {
 
 		return $sort;
 	}
-	
+
 	/**
 	 * Get Order by args Array
 	 *
@@ -1891,7 +1904,7 @@ class EP_API {
 		if ( ! is_array( $orderbys ) ) {
 			$orderbys = explode( ' ', $orderbys );
 		}
-		
+
 		return $orderbys;
 	}
 
