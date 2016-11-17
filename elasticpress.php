@@ -55,17 +55,17 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
- * On activate, all features that meet their requirements with no warnings should be activated.
+ * All features that meet their requirements with no warnings should be activated.
  *
- * @since  2.1
+ * @since 2.2
  */
-function ep_on_activate() {
+function ep_auto_activate_features() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$feature_settings = get_site_option( 'ep_feature_settings', false );
 	} else {
 		$feature_settings = get_option( 'ep_feature_settings', false );
 	}
-
+	
 	if ( false === $feature_settings ) {
 		$registered_features = EP_Features::factory()->registered_features;
 		
@@ -73,19 +73,28 @@ function ep_on_activate() {
 			if ( 0 === $feature->requirements_status()->code ) {
 				$feature_settings[ $slug ] = ( ! empty( $feature->default_settings ) ) ? $feature->default_settings : array();
 				$feature_settings[ $slug ]['active'] = true;
-
+				
 				$feature->post_activation();
 			}
 		}
+		
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_feature_settings', $feature_settings );
+			delete_site_option( 'ep_index_meta' );
+		} else {
+			update_option( 'ep_feature_settings', $feature_settings );
+			delete_option( 'ep_index_meta' );
+		}
 	}
+}
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		update_site_option( 'ep_feature_settings', $feature_settings );
-		delete_site_option( 'ep_index_meta' );
-	} else {
-		update_option( 'ep_feature_settings', $feature_settings );
-		delete_option( 'ep_index_meta' );
-	}
+/**
+ * Run on ElasticPress activation
+ *
+ * @since  2.1
+ */
+function ep_on_activate() {
+	ep_auto_activate_features();
 }
 register_activation_hook( __FILE__, 'ep_on_activate' );
 
@@ -101,3 +110,16 @@ function ep_loader() {
 	}
 }
 add_action( 'plugins_loaded', 'ep_loader' );
+
+if( is_admin() && ! defined( 'DOING_AJAX' )  ) {
+	
+	/**
+	 * Set features option.
+	 *
+	 * This is basically required in case of plugin update which won't run activation hook.
+	 * This option is getting set in plugin activation hook as well.
+	 *
+	 * @since 2.2
+	 */
+	add_filter( 'plugins_loaded', 'ep_auto_activate_features' );
+}
