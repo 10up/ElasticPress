@@ -217,6 +217,8 @@ class EP_WP_Query_Integration {
 
 		$new_posts = apply_filters( 'ep_wp_query_search_cached_posts', array(), $query );
 
+		$ep_query = array();
+
 		if( count( $new_posts ) < 1 ) {
 
 			$scope = 'current';

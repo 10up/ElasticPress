@@ -5,14 +5,12 @@ A fast and flexible search and query engine for WordPress.
 
 **Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1 require re-syncing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2 require re-syncing.
 
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
-
-ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 <p align="center">
-<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/08/10up_github_banner-2.png" width="850"></a>
+<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/10/10up-Github-Banner.png" width="850"></a>
 </p>
 
 ## How Does it Work
@@ -30,12 +28,11 @@ ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Ref
 2. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
 3. Activate the plugin (network activate for multisite). Navigate to the settings page. You should see an ElasticPress icon in your admin menu.
 4. Input your Elasticsearch host. Your host must begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
-5. Activate the ElasticPress modules you want to use. Search is activated by default.
-6. Sync your content by clicking the sync icon.
+5. Sync your content by clicking the sync icon.
 
 Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful WP_Query integration API.
 
-## Available Modules
+## Features
 
 ### Search
 
@@ -43,7 +40,7 @@ Beef up your search to be more accurate, search tags, categories, and other taxo
 
 ### WooCommerce
 
-Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
+Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This feature will increase your sales bottom line and reduce administrative costs.
 
 ### Related Posts
 
@@ -55,7 +52,7 @@ Help editors more effectively browse through content. Load long lists of posts f
 
 ## `WP_Query` and the ElasticPress Query Integration
 
-ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search module is activated, all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
+ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
 
 ### Supported WP_Query Parameters
 
@@ -92,7 +89,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
 * ```s``` (*string*)
 
-    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```. (Requires search module)
+    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```. (Requires search feature)
 
 * ```posts_per_page``` (*int*)
 
@@ -511,17 +508,17 @@ The following commands are supported by ElasticPress:
 
   Recreates the alias index which points to every index in the network.
 
-* `wp elasticpress activate-module <module-slug> [--network-wide]`
+* `wp elasticpress activate-feature <feature-slug> [--network-wide]`
 
-  Activate a module. If a re-indexing is required, you will need to do it manually. `--network-wide` will affect network activated ElasticPress.
+  Activate a feature. If a re-indexing is required, you will need to do it manually. `--network-wide` will affect network activated ElasticPress.
 
-* `wp elasticpress deactivate-module <module-slug> [--network-wide]`
+* `wp elasticpress deactivate-feature <feature-slug> [--network-wide]`
 
-  Deactivate a module. `--network-wide` will affect network activated ElasticPress.
+  Deactivate a feature. `--network-wide` will affect network activated ElasticPress.
 
-* `wp elasticpress list-modules [--all] [--network-wide]`
+* `wp elasticpress list-features [--all] [--network-wide]`
 
-  Lists active modules. `--all` will show all registered modules. `--network-wide` will force checking network options as opposed to a single sites options.
+  Lists active features. `--all` will show all registered features. `--network-wide` will force checking network options as opposed to a single sites options.
 
 * `wp elasticpress stats`
 
@@ -539,17 +536,17 @@ The following commands are supported by ElasticPress:
 define( 'ES_SHIELD', 'username:password' );
 ```
 
-## Custom Modules
+## Custom Features
 
-ElasticPress has a robust API for registering your own modules. Refer to the code within each module for detailed examples. To register a module, you will need to call the `ep_register_module()` function like so:
+ElasticPress has a robust API for registering your own features. Refer to the code within each feature for detailed examples. To register a feature, you will need to call the `ep_register_feature()` function like so:
 
 ```php
 add_action( 'plugins_loaded', function() {
-    ep_register_module( 'slug', array(
+    ep_register_feature( 'slug', array(
         'title' => 'Pretty Title',
         'setup_cb' => 'setup_callback_function',
-        'module_box_summary_cb' => 'summary_callback_function',
-        'module_box_long_cb' => 'long_summary_callback_function',
+        'feature_box_summary_cb' => 'summary_callback_function',
+        'feature_box_long_cb' => 'long_summary_callback_function',
         'requires_install_reindex' => true,
         'dependencies_met_cb' => 'dependencies_meta_callback_function',
         'post_activation_cb' => 'post_activation_callback_function',
@@ -559,15 +556,15 @@ add_action( 'plugins_loaded', function() {
 
 The only arguments that are really required are the `slug` and `title` of the associative arguments array. Here are descriptions of each of the associative arguments:
 
-* `title` (string) - Pretty title for module
-* `requires_install_reindex` (boolean) - Setting to true will force a reindex after the module is activated.
-* `setup_cb` (callback) - Callback to a function to be called on each page load when the module is activated.
-* `post_activation_cb` (callback) - Callback to a function to be called after a module is first activated.
-* `module_box_summary_cb` (callback) - Callback to a function that outputs HTML module box summary (short description of module).
-* `module_box_long_cb` (callback) - Callback to a function that outputs HTML module box full description.
-* `dependencies_met_cb` (callback) - Callback to a function that determines if the modules dependencies are met. True means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
+* `title` (string) - Pretty title for feature
+* `requires_install_reindex` (boolean) - Setting to true will force a reindex after the feature is activated.
+* `setup_cb` (callback) - Callback to a function to be called on each page load when the feature is activated.
+* `post_activation_cb` (callback) - Callback to a function to be called after a feature is first activated.
+* `feature_box_summary_cb` (callback) - Callback to a function that outputs HTML feature box summary (short description of feature).
+* `feature_box_long_cb` (callback) - Callback to a function that outputs HTML feature box full description.
+* `dependencies_met_cb` (callback) - Callback to a function that determines if the features dependencies are met. True means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
 
-If you build an open source custom module, let us know! We'd be happy to list the module within ElasticPress documentation.
+If you build an open source custom feature, let us know! We'd be happy to list the feature within ElasticPress documentation.
 
 ## Development
 

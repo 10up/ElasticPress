@@ -1,6 +1,6 @@
 <?php
 
-class EPTestAdminModule extends EP_Test_Base {
+class EPTestAdminFeature extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
@@ -26,7 +26,7 @@ class EPTestAdminModule extends EP_Test_Base {
 
 		$this->setup_test_post_type();
 
-		delete_option( 'ep_active_modules' );
+		delete_option( 'ep_active_features' );
 	}
 
 	/**
@@ -46,7 +46,7 @@ class EPTestAdminModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test main query isn't integrated when module isn't on
+	 * Test main query isn't integrated when feature isn't on
 	 *
 	 * @since 2.1
 	 * @group admin
@@ -54,7 +54,7 @@ class EPTestAdminModule extends EP_Test_Base {
 	public function testAdminNotOn() {
 		set_current_screen( 'edit.php' );
 
-		EP_Modules::factory()->setup_modules();
+		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
 
@@ -74,7 +74,7 @@ class EPTestAdminModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test main query is integrated with module on
+	 * Test main query is integrated with feature on
 	 *
 	 * @since 2.1
 	 * @group admin
@@ -82,8 +82,8 @@ class EPTestAdminModule extends EP_Test_Base {
 	public function testAdminOn() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_module( 'admin' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'admin' );
+		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
 
@@ -97,13 +97,13 @@ class EPTestAdminModule extends EP_Test_Base {
 
 		$wp_the_query = $query;
 
-		$query->query( array() );
+		$wp_the_query->query( array() );
 
 		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 	}
 
 	/**
-	 * Test main query on is integrated on drafts with module on
+	 * Test main query on is integrated on drafts with feature on
 	 *
 	 * @since 2.1
 	 * @group admin
@@ -111,8 +111,8 @@ class EPTestAdminModule extends EP_Test_Base {
 	public function testAdminOnDraft() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_module( 'admin' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'admin' );
+		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
 		ep_create_and_sync_post( array( 'post_status' => 'draft' ) );
@@ -147,8 +147,8 @@ class EPTestAdminModule extends EP_Test_Base {
 	public function testAdminOnDraftUpdated() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_module( 'admin' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'admin' );
+		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
 		$post_id = ep_create_and_sync_post();
@@ -185,8 +185,8 @@ class EPTestAdminModule extends EP_Test_Base {
 	public function testAdminCategories() {
 		set_current_screen( 'edit.php' );
 		
-		ep_activate_module( 'admin' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'admin' );
+		EP_Features::factory()->setup_features();
 		
 		$cat1 =  wp_create_category( 'category one' );
 		$cat2 =  wp_create_category( 'category two' );

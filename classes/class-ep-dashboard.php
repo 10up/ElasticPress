@@ -36,7 +36,7 @@ class EP_Dashboard {
 			add_action( 'admin_menu', array( $this, 'action_admin_menu' ) );
 		}
 
-		add_action( 'wp_ajax_ep_toggle_module', array( $this, 'action_wp_ajax_ep_toggle_module' ) );
+		add_action( 'wp_ajax_ep_save_feature', array( $this, 'action_wp_ajax_ep_save_feature' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
@@ -218,8 +218,8 @@ class EP_Dashboard {
 				}
 			}
 
-			if ( ! empty( $_POST['module_sync'] ) ) {
-				$index_meta['module_sync'] = esc_attr( $_POST['module_sync'] );
+			if ( ! empty( $_POST['feature_sync'] ) ) {
+				$index_meta['feature_sync'] = esc_attr( $_POST['feature_sync'] );
 			}
 		} else if ( ! empty( $index_meta['site_stack'] ) && $index_meta['offset'] >= $index_meta['found_posts'] ) {
 			$status = 'start';
@@ -379,59 +379,42 @@ class EP_Dashboard {
 	}
 
 	/**
-	 * Toggle module active or inactive
+	 * Save individual feature settings
 	 *
-	 * @since  2.1
+	 * @since  2.2
 	 */
-	public function action_wp_ajax_ep_toggle_module() {
-		if ( empty( $_POST['module'] ) || ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
+	public function action_wp_ajax_ep_save_feature() {
+		if ( empty( $_POST['feature'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
 			wp_send_json_error();
 			exit;
 		}
 
-		$module = ep_get_registered_module( $_POST['module'] );
+		$feature = ep_get_registered_feature( $_POST['feature'] );
+		$original_state = $feature->is_active();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$active_modules = get_site_option( 'ep_active_modules', array() );
+			$feature_settings = get_site_option( 'ep_feature_settings', array() );
 		} else {
-			$active_modules = get_option( 'ep_active_modules', array() );
+			$feature_settings = get_option( 'ep_feature_settings', array() );
 		}
 
-		$data = array();
-		
-		if ( $module->is_active()
-		     || ( ! $module->is_active() && is_wp_error( $module->dependencies_met() ) )
-		) {
-			$key = array_search( $_POST['module'], $active_modules );
+		$feature_settings[ $_POST['feature'] ] = wp_parse_args( $_POST['settings'], $feature->default_settings );
+		$feature_settings[ $_POST['feature'] ]['active'] = (bool) $feature_settings[ $_POST['feature'] ]['active'];
 
-			if ( false !== $key ) {
-				unset( $active_modules[$key] );
-			}
-
-			$data['active'] = false;
-			$data['active_error'] = false;
-		} else {
-			$active_modules[] = $module->slug;
-
-			if ( $module->requires_install_reindex ) {
-				$data['reindex'] = true;
-			}
-
-			$module->post_activation();
-
-			$data['active'] = true;
-			$data['active_error'] = false;
-		}
-		
-		// If try to activate the module but it doesn't meet dependency requirement
-		if( ! $module->is_active() && is_wp_error( $module->dependencies_met() ) ){
-			$data['active_error'] = true;
-		}
+		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_active_modules', $active_modules );
+			update_site_option( 'ep_feature_settings', $sanitize_feature_settings );
 		} else {
-			update_option( 'ep_active_modules', $active_modules );
+			update_option( 'ep_feature_settings', $sanitize_feature_settings );
+		}
+
+		$data = array(
+			'reindex' => false,
+		);
+
+		if ( $feature_settings[ $_POST['feature'] ]['active'] && ! $original_state ) {
+			$data['reindex'] = true;
 		}
 
 		wp_send_json_success( $data );
@@ -598,8 +581,7 @@ class EP_Dashboard {
 			$capability,
 			'elasticpress',
 			array( $this, 'dashboard_page' ),
-			'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiLz48L3N2Zz4=',
-			3
+			'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiLz48L3N2Zz4='
 		);
 
 		add_submenu_page(

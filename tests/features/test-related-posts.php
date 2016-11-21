@@ -1,6 +1,6 @@
 <?php
 
-class EPTestRelatedPostsModule extends EP_Test_Base {
+class EPTestRelatedPostsFeature extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
@@ -58,7 +58,7 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 	 * @group related_posts
 	 */
 	public function testRelatedPostsOff() {
-		delete_option( 'ep_active_modules' );
+		delete_option( 'ep_active_features' );
 
 		$post_ids = array();
 
@@ -100,9 +100,9 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 
 		ep_refresh_index();
 
-		ep_activate_module( 'related_posts' );
+		ep_activate_feature( 'related_posts' );
 
-		EP_Modules::factory()->setup_modules();
+		EP_Features::factory()->setup_features();
 
 		add_action( 'ep_related_html_attached', array( $this, 'action_ep_related_html_attached' ), 10 );
 
@@ -135,9 +135,9 @@ class EPTestRelatedPostsModule extends EP_Test_Base {
 		
 		ep_refresh_index();
 		
-		ep_activate_module( 'related_posts' );
+		ep_activate_feature( 'related_posts' );
 		
-		EP_Modules::factory()->setup_modules();
+		EP_Features::factory()->setup_features();
 		
 		add_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 		$related = ep_find_related( $post_id );

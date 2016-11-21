@@ -33,8 +33,8 @@ class EPTestSingleSite extends EP_Test_Base {
 		/**
 		 * Most of our search test are bundled into core tests for legacy reasons
 		 */
-		ep_activate_module( 'search' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'search' );
+		EP_Features::factory()->setup_features();
 	}
 
 	/**
@@ -1352,6 +1352,19 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+		
+		 // Only check for fields which are provided in search_fields.
+		$args = array(
+			's'             => 'findme',
+			'search_fields' => array(
+				'meta' => 'test_key'
+			),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
@@ -1973,6 +1986,32 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
+	}
+	
+	/**
+	 * Test orderby random
+	 *
+	 * @since 2.1.1
+	 */
+	public function testRandOrderby() {
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 1' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 2' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 3' ) );
+		
+		ep_refresh_index();
+		
+		$args = array(
+			'ep_integrate'  => true,
+			'orderby'       => 'rand',
+		);
+		
+		$query = new WP_Query( $args );
+		
+		/* Since it's test for random order, can't check against exact post ID or content
+			but only found posts and post count.
+		*/
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
 	}
 
 	/**
@@ -3202,40 +3241,40 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test register module
+	 * Test register feature
 	 * 
 	 * @since 2.1
 	 */
-	public function testRegisterModule() {
-		ep_register_module( 'test', array(
+	public function testRegisterFeature() {
+		ep_register_feature( 'test', array(
 			'title' => 'Test',
 		) );
 
-		$this->assertTrue( ! empty( EP_Modules::factory()->registered_modules['test'] ) );
-		$this->assertTrue( ! empty( ep_get_registered_module( 'test' ) ) );
+		$this->assertTrue( ! empty( EP_Features::factory()->registered_features['test'] ) );
+		$this->assertTrue( ! empty( ep_get_registered_feature( 'test' ) ) );
 	}
 
 	/**
-	 * Test setup modules
+	 * Test setup features
 	 * 
 	 * @since 2.1
 	 */
-	public function testSetupModules() {
-		ep_register_module( 'test', array(
+	public function testSetupFeatures() {
+		ep_register_feature( 'test', array(
 			'title' => 'Test',
 		) );
 
-		ep_activate_module( 'test' );
+		ep_activate_feature( 'test' );
 
-		$module = ep_get_registered_module( 'test' );
+		$feature = ep_get_registered_feature( 'test' );
 
-		$this->assertTrue( ! empty( $module ) );
+		$this->assertTrue( ! empty( $feature ) );
 
-		$this->assertTrue( ! $module->is_active() );
+		$this->assertTrue( ! $feature->is_active() );
 
-		EP_Modules::factory()->setup_modules();
+		EP_Features::factory()->setup_features();
 
-		$this->assertTrue( $module->is_active() );
+		$this->assertTrue( $feature->is_active() );
 	}
 	
 	/**

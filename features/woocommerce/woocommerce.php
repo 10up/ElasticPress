@@ -1,6 +1,6 @@
 <?php
 /**
- * ElasticPress WooCommerce module
+ * ElasticPress WooCommerce feature
  *
  * @since  2.1
  * @package elasticpress
@@ -173,7 +173,7 @@ function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 }
 
 /**
- * Translate args to ElasticPress compat format. This is the meat of what the module does
+ * Translate args to ElasticPress compat format. This is the meat of what the feature does
  *
  * @param  WP_Query $query
  * @since  2.1
@@ -501,43 +501,45 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
 }
 
 /**
- * Setup all module filters
+ * Setup all feature filters
  *
  * @since  2.1
  */
 function ep_wc_setup() {
-	add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
-	add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
-	add_filter( 'ep_indexable_post_types', 'ep_wc_post_types', 10, 1 );
-	add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
-	add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields' );
-	add_filter( 'woocommerce_layered_nav_query_post_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
-	add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
-	add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
-	add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
-	add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
-	add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-	add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
-	add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
+	if( function_exists( 'WC' ) ) {
+		add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
+		add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
+		add_filter( 'ep_indexable_post_types', 'ep_wc_post_types', 10, 1 );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
+		add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields', 9999 );
+		add_filter( 'woocommerce_layered_nav_query_post_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
+		add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
+		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
+		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
+		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
+		add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
+		add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
+	}
 }
 
 /**
- * Output module box summary
+ * Output feature box summary
  * 
  * @since 2.1
  */
-function ep_wc_module_box_summary() {
+function ep_wc_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This feature will increase your sales bottom line and reduce administrative costs.', 'elasticpress' ); ?></p>
 	<?php
 }
 
 /**
- * Output module box long
+ * Output feature box long
  * 
  * @since 2.1
  */
-function ep_wc_module_box_long() {
+function ep_wc_feature_box_long() {
 	?>
 	<p><?php esc_html_e( 'Running eCommerce stores is hard enough already. You should not have to worry about slow load times. ElasticPress WooCommerce supercharges all product queries, product sorts, and filters both on the front end and the admin. No matter how many products or filters you have, your site will load fast.', 'elasticpress' ); ?></p>
 
@@ -546,27 +548,30 @@ function ep_wc_module_box_long() {
 }
 
 /**
- * Make sure WC is activated
+ * Determine WC feature reqs status
  *
- * @since  2.1
- * @return bool|WP_Error
+ * @param  EP_Feature_Requirements_Status $status
+ * @since  2.2
+ * @return EP_Feature_Requirements_Status
  */
-function wc_dependencies_met_cb() {
-	if ( class_exists( 'WooCommerce' ) ) {
-		return true;
-	} else {
-		return new WP_Error( 'ep-no-woocommerce', esc_html__( 'WooCommerce must be active to use this module.','elasticpress' ) );
+function ep_wc_requirements_status( $status ) {
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		$status->code = 2;
+		$status->message = esc_html__( 'WooCommerce not installed.', 'elasticpress' );
 	}
+
+	return $status;
 }
 
 /**
- * Register the module
+ * Register the feature
  */
-ep_register_module( 'woocommerce', array(
+ep_register_feature( 'woocommerce', array(
 	'title' => 'WooCommerce',
 	'setup_cb' => 'ep_wc_setup',
-	'module_box_summary_cb' => 'ep_wc_module_box_summary',
-	'module_box_long_cb' => 'ep_wc_module_box_long',
+	'requirements_status_cb' => 'ep_wc_requirements_status',
+	'feature_box_summary_cb' => 'ep_wc_feature_box_summary',
+	'feature_box_long_cb' => 'ep_wc_feature_box_long',
 	'requires_install_reindex' => true,
 	'dependencies_met_cb' => 'wc_dependencies_met_cb',
 ) );
