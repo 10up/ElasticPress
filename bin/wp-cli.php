@@ -31,13 +31,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private $failed_posts_message = array();
 	
 	/**
-	 * Holds timestamp of last time transient was set
-	 *
-	 * @since 2.1.1
-	 */
-	private $last_transient_set_time = false;
-	
-	/**
 	 * Holds whether it's network transient or not
 	 *
 	 * @since 2.1.1
@@ -366,8 +359,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		timer_start();
-		
-		$this->last_transient_set_time = time();
 
 		// Run setup if flag was passed
 		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
@@ -505,7 +496,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 						// index the posts one-by-one. not sure why someone may want to do this.
 						$result = ep_sync_post( get_the_ID() );
 						
-						$this->maybe_reset_transient();
+						$this->reset_transient();
 
 						do_action( 'ep_cli_post_index', get_the_ID() );
 					} else {
@@ -649,7 +640,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		// decode the response
 		$response = ep_bulk_index_posts( $body );
 		
-		$this->maybe_reset_transient();
+		$this->reset_transient();
 
 		do_action( 'ep_cli_post_bulk_index', $this->posts );
 
@@ -834,19 +825,15 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 	
 	/**
-	 * Maybe reset transient while indexing
+	 * Reset transient while indexing
 	 *
 	 * @since 2.1.1
 	 */
-	private function maybe_reset_transient() {
-		if( ( time() - $this->last_transient_set_time ) >= ( $this->transient_expiration ) ) {
-			$this->last_transient_set_time = time();
-			
-			if( $this->is_network_transient ) {
-				set_site_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
-			} else {
-				set_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
-			}
+	private function reset_transient() {
+		if( $this->is_network_transient ) {
+			set_site_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
+		} else {
+			set_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
 		}
 	}
 }
