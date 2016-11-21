@@ -55,40 +55,6 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
- * All features that meet their requirements with no warnings should be activated.
- *
- * @since 2.2
- */
-function ep_auto_activate_features() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$feature_settings = get_site_option( 'ep_feature_settings', false );
-	} else {
-		$feature_settings = get_option( 'ep_feature_settings', false );
-	}
-	
-	if ( false === $feature_settings ) {
-		$registered_features = EP_Features::factory()->registered_features;
-		
-		foreach ( $registered_features as $slug => $feature ) {
-			if ( 0 === $feature->requirements_status()->code ) {
-				$feature_settings[ $slug ] = ( ! empty( $feature->default_settings ) ) ? $feature->default_settings : array();
-				$feature_settings[ $slug ]['active'] = true;
-				
-				$feature->post_activation();
-			}
-		}
-		
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_feature_settings', $feature_settings );
-			delete_site_option( 'ep_index_meta' );
-		} else {
-			update_option( 'ep_feature_settings', $feature_settings );
-			delete_option( 'ep_index_meta' );
-		}
-	}
-}
-
-/**
  * Run on ElasticPress activation
  *
  * @since  2.1
