@@ -1622,7 +1622,7 @@ class EP_API {
 		if ( ! empty( $args['post_status'] ) ) {
 			// should NEVER be "any" but just in case
 			if ( 'any' !== $args['post_status'] ) {
-				$post_status = (array) $args['post_status'];
+				$post_status = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
 				$terms_map_name = 'terms';
 				if ( count( $post_status ) < 2 ) {
 					$terms_map_name = 'term';
