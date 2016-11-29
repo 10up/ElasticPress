@@ -130,11 +130,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		if ( empty( $assoc_args['all'] ) ) {
 			if ( ! empty( $assoc_args['network-wide'] ) ) {
-				$features = get_site_option( 'ep_active_features', array() );
+				$features = get_site_option( 'ep_feature_settings', array() );
 			} else {
-				$features = get_option( 'ep_active_features', array() );
+				$features = get_option( 'ep_feature_settings', array() );
 			}
-
+			$features = array_keys( $features );
 			WP_CLI::line( __( 'Active features:', 'elasticpress' ) );
 		} else {
 			WP_CLI::line( __( 'Registered features:', 'elasticpress' ) );
