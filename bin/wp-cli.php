@@ -103,7 +103,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		$key = array_search( $feature->slug, array_keys( $active_features ) );
 
 		if ( false !== $key ) {
-			$active_features[$feature->slug]['active'] = false;
+			$active_features[ $feature->slug ]['active'] = false;
 		} else {
 			WP_CLI::error( __( 'Feature is not active', 'elasticpress' ) );
 		}
