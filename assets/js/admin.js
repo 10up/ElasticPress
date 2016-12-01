@@ -112,6 +112,9 @@
 				// We are mid sync
 				if ( ep.auto_start_index ) {
 					syncStatus = 'sync';
+					
+					history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
+
 					updateSyncDash();
 					sync();
 				} else {
@@ -127,6 +130,9 @@
 					// We are mid sync
 					if ( ep.auto_start_index ) {
 						syncStatus = 'sync';
+
+						history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
+
 						updateSyncDash();
 						sync();
 					} else {
@@ -135,6 +141,16 @@
 					}
 				}
 			}
+		}
+	} else {
+		// Start a new sync automatically
+		if ( ep.auto_start_index ) {
+			syncStatus = 'sync';
+
+			history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
+
+			updateSyncDash();
+			sync();
 		}
 	}
 

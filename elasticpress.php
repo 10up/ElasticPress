@@ -62,10 +62,15 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 function ep_on_activate() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$feature_settings = get_site_option( 'ep_feature_settings', false );
+		$old_version = get_site_option( 'ep_version', false );
 	} else {
 		$feature_settings = get_option( 'ep_feature_settings', false );
+		$old_version = get_option( 'ep_version', false );
 	}
 
+	/**
+	 * Run feature post activation hooks
+	 */
 	if ( false === $feature_settings ) {
 		$registered_features = EP_Features::factory()->registered_features;
 		
@@ -79,12 +84,41 @@ function ep_on_activate() {
 		}
 	}
 
+	/**
+	 * Reindex if we cross a reindex version in the upgrade
+	 */
+	$reindex_versions = apply_filters( 'ep_reindex_versions', array(
+		'2.2',
+	) );
+
+	$need_upgrade_sync = false;
+
+	if ( false === $old_version ) {
+		$need_upgrade_sync = true;
+	} else {
+		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
+
+		if ( ( -1 === version_compare( $old_version, $last_reindex_version ) && 1 === version_compare( EP_VERSION , $last_reindex_version ) ) || 0 === version_compare( EP_VERSION , $last_reindex_version ) )  {
+			$last_reindex_version = true;
+		}
+	}
+
+	if ( $need_upgrade_sync ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_need_upgrade_sync', true );
+		} else {
+			update_option( 'ep_need_upgrade_sync', true );
+		}
+	}
+
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		update_site_option( 'ep_feature_settings', $feature_settings );
 		delete_site_option( 'ep_index_meta' );
+		update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 	} else {
 		update_option( 'ep_feature_settings', $feature_settings );
 		delete_option( 'ep_index_meta' );
+		update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 	}
 }
 register_activation_hook( __FILE__, 'ep_on_activate' );
