@@ -1915,7 +1915,12 @@ class EP_API {
 
 		if ( ! is_wp_error( $request ) ) {
 			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				return true;
+
+				$response_body = json_decode( wp_remote_retrieve_body( $request ), true );
+
+				if ( ! empty( $response_body ) && ! empty( $response_body['name']) ) {
+					return true;
+				}
 			}
 		}
 
