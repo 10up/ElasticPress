@@ -42,10 +42,8 @@ class EP_Dashboard {
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
 		add_action( 'wp_ajax_ep_index', array( $this, 'action_wp_ajax_ep_index' ) );
 		add_action( 'wp_ajax_ep_cancel_index', array( $this, 'action_wp_ajax_ep_cancel_index' ) );
-		add_action( 'admin_notices', array( $this, 'action_mid_index_notice' ) );
-		add_action( 'network_admin_notices', array( $this, 'action_mid_index_notice' ) );
-		add_action( 'admin_notices', array( $this, 'action_bad_host_notice' ) );
-		add_action( 'network_admin_notices', array( $this, 'action_bad_host_notice' ) );
+		add_action( 'admin_notices', array( $this, 'maybe_notice' ) );
+		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
 		add_filter( 'plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 	}
@@ -84,89 +82,157 @@ class EP_Dashboard {
 	}
 
 	/**
-	 * Print out mid sync warning notice
+	 * Output variety of dashboard notices. Only one at a time :)
 	 *
-	 * @since  2.1
+	 * @since  2.2
 	 */
-	public function action_mid_index_notice() {
-		if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'elasticpress' ) !== false ) {
-			return;
-		}
-
+	public function maybe_notice() {
+		// Admins only
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			if ( ! is_network_admin() ) {
+			if ( ! is_super_admin() ) {
 				return;
 			}
-
-			$url = admin_url( 'network/admin.php?page=elasticpress&resume_sync' );
-			$index_meta = get_site_option( 'ep_index_meta', false );
 		} else {
-			if ( is_network_admin() ) {
+			if ( ! current_user_can( 'manage_options' ) ) {
 				return;
 			}
-
-			$url = admin_url( 'admin.php?page=elasticpress&resume_sync' );
-			$index_meta = get_option( 'ep_index_meta', false );
 		}
-
-		if ( empty( $index_meta ) || ep_is_indexing_wpcli() ) {
-			return;
-		}
-
-		?>
-		<div class="notice notice-warning">
-			<p><?php printf( __( 'ElasticPress is in the middle of a sync. The plugin wont work until it finishes. Want to <a href="%s">go back and finish it</a>?', 'elasticpress' ), esc_url( $url ) ); ?></p>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Print out mid sync warning notice
-	 *
-	 * @since  2.1
-	 */
-	public function action_bad_host_notice() {
-		if ( ! isset( get_current_screen()->id ) || strpos( get_current_screen()->id, 'elasticpress' ) === false ) {
-			return;
-		}
-
-		// Don't show message on intro page
+		// Don't show notice on intro page ever
 		if ( ! empty( $_GET['page'] ) && 'elasticpress-intro' === $_GET['page'] ) {
 			return;
 		}
 
+		// If in network mode, don't output notice in admin and vice-versa
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			if ( ! is_network_admin() ) {
 				return;
 			}
-
-			$url = admin_url( 'network/admin.php?page=elasticpress-settings' );
-			$options_host = get_site_option( 'ep_host' );
 		} else {
 			if ( is_network_admin() ) {
 				return;
 			}
-
-			$url = admin_url( 'admin.php?page=elasticpress-settings' );
-			$options_host = get_option( 'ep_host' );
 		}
 
-		/**
-		 * If we are on the setting screen and a host has never been set in the options table or defined, then let's
-		 * assume this is our first time and not show an obvious message.
-		 */
-		if ( ! empty( $_GET['page'] ) && 'elasticpress-settings' === $_GET['page'] && false === $options_host && ( ! defined( 'EP_HOST' ) || ! EP_HOST ) ) {
-			return;
-		}
+		$notice = false;
+
+		$on_settings_page = ( ! empty( $_GET['page'] ) && 'elasticpress-settings' === $_GET['page'] );
 
 		$host = ep_get_host();
 
+		/**
+		 * Bad host notice checks
+		 */
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$options_host = get_site_option( 'ep_host' );
+		} else {
+			$options_host = get_option( 'ep_host' );
+		}
+
 		if ( empty( $host ) || ! ep_elasticsearch_can_connect() ) {
-			?>
-			<div class="notice notice-warning">
-				<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. You will need to <a href="%s">fix it</a> for ElasticPress to work.', 'elasticpress' ), esc_url( $url ) ); ?></p>
-			</div>
-			<?php
+			if ( $on_settings_page ) {
+				if ( false !== $options_host || ( defined( 'EP_HOST' ) && EP_HOST ) ) {
+					$notice = 'bad-host';
+				}
+			} else {
+				$notice = 'bad-host';
+			}
+		}
+
+		/**
+		 * Never synced notice check
+		 */
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( false === $last_sync && ! isset( $_GET['do_sync'] ) ) {
+			$notice = 'no-sync';
+		}
+
+		/**
+		 * Upgrade sync notice check
+		 */
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
+		} else {
+			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
+		}
+
+		if ( $need_upgrade_sync && ! isset( $_GET['do_sync'] ) ) {
+			$notice = 'upgrade-sync';
+		}
+
+		/**
+		 * Need setup up notice check
+		 */
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$intro_shown = get_site_option( 'ep_intro_shown', false );
+		} else {
+			$intro_shown = get_option( 'ep_intro_shown', false );
+		}
+
+		if ( ! $intro_shown && false === $options_host && ( ! defined( 'EP_HOST' ) || ! EP_HOST ) ) {
+			$notice = 'need-setup';
+		}
+
+		switch ( $notice ) {
+			case 'bad-host':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					$url = admin_url( 'network/admin.php?page=elasticpress-settings' );
+					$options_host = get_site_option( 'ep_host' );
+				} else {
+					$url = admin_url( 'admin.php?page=elasticpress-settings' );
+					$options_host = get_option( 'ep_host' );
+				}
+
+				?>
+				<div class="notice notice-error">
+					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. You will need to <a href="%s">fix it</a> for ElasticPress to work.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'need-setup':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					$url = admin_url( 'network/admin.php?page=elasticpress-intro' );
+				} else {
+					$url = admin_url( 'admin.php?page=elasticpress-intro' );
+				}
+
+				?>
+				<div class="notice notice-info">
+					<p><?php printf( __( 'Thanks for installing ElasticPress! You will need to run through a <a href="%s">quick set up process</a> to get the plugin working.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'no-sync':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				} else {
+					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				}
+
+				?>
+				<div class="notice notice-info">
+					<p><?php printf( __( 'ElasticPress is almost ready. You will need to complete a <a href="%s">sync</a> to get the plugin working.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'upgrade-sync':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				} else {
+					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				}
+
+				?>
+				<div class="notice notice-warning">
+					<p><?php printf( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+				</div>
+				<?php
+				break;
 		}
 	}
 
@@ -210,12 +276,18 @@ class EP_Dashboard {
 				}
 
 				$index_meta['current_site'] = array_shift( $index_meta['site_stack'] );
+
+				update_site_option( 'ep_last_sync', time() );
+				delete_site_option( 'ep_need_upgrade_sync' );
 			} else {
 				if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
 					ep_delete_index();
 
 					ep_put_mapping();
 				}
+
+				update_option( 'ep_last_sync', time() );
+				delete_option( 'ep_need_upgrade_sync' );
 			}
 
 			if ( ! empty( $_POST['feature_sync'] ) ) {
@@ -446,12 +518,12 @@ class EP_Dashboard {
 					$index_meta = get_option( 'ep_index_meta' );
 				}
 
+				if ( isset( $_GET['do_sync'] ) ) {
+					$data['auto_start_index'] = true;
+				}
+
 				if ( ! empty( $index_meta ) ) {
 					$data['index_meta'] = $index_meta;
-
-					if ( isset( $_GET['resume_sync'] ) ) {
-						$data['auto_start_index'] = true;
-					}
 				}
 				
 				$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );

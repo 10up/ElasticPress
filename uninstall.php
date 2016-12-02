@@ -64,6 +64,14 @@ class EP_Uninstaller {
 		delete_option( 'ep_index_meta' );
 		delete_site_option( 'ep_feature_settings' );
 		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_version' );
+		delete_option( 'ep_version' );
+		delete_option( 'ep_intro_shown' );
+		delete_site_option( 'ep_intro_shown' );
+		delete_option( 'ep_last_sync' );
+		delete_site_option( 'ep_last_sync' );
+		delete_option( 'ep_need_upgrade_sync' );
+		delete_site_option( 'ep_need_upgrade_sync' );
 	}
 
 	/**
