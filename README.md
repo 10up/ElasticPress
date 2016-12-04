@@ -548,7 +548,7 @@ add_action( 'plugins_loaded', function() {
         'feature_box_summary_cb' => 'summary_callback_function',
         'feature_box_long_cb' => 'long_summary_callback_function',
         'requires_install_reindex' => true,
-        'dependencies_met_cb' => 'dependencies_meta_callback_function',
+        'requirements_status_cb' => 'requirements_status_callback_function',
         'post_activation_cb' => 'post_activation_callback_function',
     ) );
 } );
@@ -562,7 +562,7 @@ The only arguments that are really required are the `slug` and `title` of the as
 * `post_activation_cb` (callback) - Callback to a function to be called after a feature is first activated.
 * `feature_box_summary_cb` (callback) - Callback to a function that outputs HTML feature box summary (short description of feature).
 * `feature_box_long_cb` (callback) - Callback to a function that outputs HTML feature box full description.
-* `dependencies_met_cb` (callback) - Callback to a function that determines if the features dependencies are met. True means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
+* `requirements_status_cb` (callback) - Callback to a function that determines if the features requirements are met. This function needs to return a `EP_Feature_Requirements_Status` object. `EP_Feature_Requirements_Status` is a simple class with a `code` and a `message` property. Code 0 means there are no requirement issues; code 1 means there are issues with warnings; code 2 means the feature does not have it's requirements met and cannot be used. The message property of the object can be used to store warnings.
 
 If you build an open source custom feature, let us know! We'd be happy to list the feature within ElasticPress documentation.
 
