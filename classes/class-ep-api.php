@@ -196,11 +196,11 @@ class EP_API {
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args );
-		
+
 		$remote_req_res_code = intval( wp_remote_retrieve_response_code( $request ) );
-		
+
 		$is_valid_res = ( $remote_req_res_code >= 200 && $remote_req_res_code <= 299 );
-		
+
 		if ( ! is_wp_error( $request ) && apply_filters( 'ep_remote_request_is_valid_res', $is_valid_res, $request ) ) {
 
 			// Allow for direct response retrieval
@@ -437,7 +437,7 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { 
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$es_version = get_site_option( 'ep_es_version', false );
 		} else {
 			$es_version = get_option( 'ep_es_version', false );
@@ -1679,7 +1679,7 @@ class EP_API {
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
 				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
 			} else {
-				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
+				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
 			}
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
@@ -1696,7 +1696,7 @@ class EP_API {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
 			'limit' => $limit,
 		) );
-		
+
 		if ( function_exists( 'get_sites' ) ) {
 			$site_objects = get_sites( $args );
 			$sites = array();
