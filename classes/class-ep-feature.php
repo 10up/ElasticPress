@@ -32,9 +32,9 @@ class EP_Feature_Requirements_Status {
 	/**
 	 * Returns the status of a feature
 	 *
-	 * 1 is no issues (hollow green)
-	 * 2 is usable but there are warnngs (hollow yellow)
-	 * 3 is not usable (hollow red)
+	 * 0 is no issues
+	 * 1 is usable but there are warnngs
+	 * 2 is not usable
 	 *
 	 * @var    int
 	 * @since  2.2

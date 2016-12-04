@@ -573,6 +573,5 @@ ep_register_feature( 'woocommerce', array(
 	'feature_box_summary_cb' => 'ep_wc_feature_box_summary',
 	'feature_box_long_cb' => 'ep_wc_feature_box_long',
 	'requires_install_reindex' => true,
-	'dependencies_met_cb' => 'wc_dependencies_met_cb',
 ) );
 

@@ -70,8 +70,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( __( 'This feature is already active', 'elasticpress' ) );
 		}
 
-		if ( is_wp_error( $feature->dependencies_met() ) ) {
-			WP_CLI::error( __( 'Feature depedencies are not met', 'elasticpress' ) );
+		$status = $feature->requirements_status();
+
+		if ( 2 === $status->code ) {
+			WP_CLI::error( __( 'Feature requirements are not met', 'elasticpress' ) );
+		} elseif ( 1 === $status->code ) {
+			WP_CLI::warning( printf( __( 'Feature is usable but there are warnings: %s', 'elasticpress' ), $status->message ) );
 		}
 
 		$active_features[] = $feature->slug;
