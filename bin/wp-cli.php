@@ -61,9 +61,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$active_features = get_site_option( 'ep_active_features', array() );
+			$active_features = get_site_option( 'ep_feature_settings', array() );
 		} else {
-			$active_features = get_option( 'ep_active_features', array() );
+			$active_features = get_option( 'ep_feature_settings', array() );
 		}
 
 		if ( $feature->is_active() ) {
@@ -78,7 +78,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::warning( printf( __( 'Feature is usable but there are warnings: %s', 'elasticpress' ), $status->message ) );
 		}
 
-		$active_features[] = $feature->slug;
+		$active_features[ $feature->slug ]           = wp_parse_args( $active_features[ $feature->slug ], $feature->default_settings );
+		$active_features[ $feature->slug ]['active'] = true;
 
 		$feature->post_activation();
 
@@ -87,9 +88,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			update_site_option( 'ep_active_features', $active_features );
+			update_site_option( 'ep_feature_settings', $active_features );
 		} else {
-			update_option( 'ep_active_features', $active_features );
+			update_option( 'ep_feature_settings', $active_features );
 		}
 
 		WP_CLI::success( __( 'Feature activated', 'elasticpress' ) );
@@ -112,23 +113,23 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$active_features = get_site_option( 'ep_active_features', array() );
+			$active_features = get_site_option( 'ep_feature_settings', array() );
 		} else {
-			$active_features = get_option( 'ep_active_features', array() );
+			$active_features = get_option( 'ep_feature_settings', array() );
 		}
 
-		$key = array_search( $feature->slug, $active_features );
+		$key = array_search( $feature->slug, array_keys( $active_features ) );
 
 		if ( false !== $key ) {
-			unset( $active_features[$key] );
+			$active_features[ $feature->slug ]['active'] = false;
 		} else {
 			WP_CLI::error( __( 'Feature is not active', 'elasticpress' ) );
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			update_site_option( 'ep_active_features', $active_features );
+			update_site_option( 'ep_feature_settings', $active_features );
 		} else {
-			update_option( 'ep_active_features', $active_features );
+			update_option( 'ep_feature_settings', $active_features );
 		}
 
 		WP_CLI::success( __( 'Feature deactivated', 'elasticpress' ) );
@@ -147,11 +148,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		if ( empty( $assoc_args['all'] ) ) {
 			if ( ! empty( $assoc_args['network-wide'] ) ) {
-				$features = get_site_option( 'ep_active_features', array() );
+				$features = get_site_option( 'ep_feature_settings', array() );
 			} else {
-				$features = get_option( 'ep_active_features', array() );
+				$features = get_option( 'ep_feature_settings', array() );
 			}
-
+			$features = array_keys( $features );
 			WP_CLI::line( __( 'Active features:', 'elasticpress' ) );
 		} else {
 			WP_CLI::line( __( 'Registered features:', 'elasticpress' ) );
@@ -820,7 +821,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	private function _connect_check() {
 		$host = ep_get_host();
-		
+
 		if ( empty( $host) ) {
 			WP_CLI::error( __( 'There is no Elasticsearch host set up. Either add one through the dashboard or define one in wp-config.php', 'elasticpress' ) );
 		} elseif ( ! ep_elasticsearch_can_connect() ) {
