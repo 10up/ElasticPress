@@ -118,6 +118,12 @@ class EP_Features {
 		$feature_settings[ $slug ] = ( ! empty( $feature->default_settings ) ) ? $feature->default_settings : array();
 		$feature_settings[ $slug ]['active'] = (bool) $active;
 
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_feature_settings', $feature_settings );
+		} else {
+			update_option( 'ep_feature_settings', $feature_settings );
+		}
+
 		if ( $active ) {
 			$feature->post_activation();
 		}
