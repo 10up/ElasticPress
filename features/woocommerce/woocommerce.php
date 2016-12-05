@@ -271,7 +271,7 @@ function ep_wc_translate_args( $query ) {
 
 	$post_type = $query->get( 'post_type', false );
 
-	if ( ! empty( $tax_query ) ) {
+	if ( $integrate ) {
 		$query->set( 'tax_query', $tax_query );
 
 		if ( empty( $post_type ) ) {
