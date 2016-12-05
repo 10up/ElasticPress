@@ -128,40 +128,60 @@ class EP_Dashboard {
 			$options_host = get_option( 'ep_host' );
 		}
 
+		$never_set_host = true;
+		if ( false !== $options_host || ( defined( 'EP_HOST' ) && EP_HOST ) ) {
+			$never_set_host = false;
+		}
+
+		if ( ! $never_set_host ) {
+			/**
+			 * Feature auto-activated sync notice check
+			 */
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$auto_activate_sync = get_site_option( 'ep_feature_auto_activated_sync', false );
+			} else {
+				$auto_activate_sync = get_option( 'ep_feature_auto_activated_sync', false );
+			}
+
+			if ( ! empty( $auto_activate_sync ) && ! isset( $_GET['do_sync'] ) ) {
+				$notice = 'auto-activate-sync';
+			}
+
+			/**
+			 * Upgrade sync notice check
+			 */
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
+			} else {
+				$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
+			}
+
+			if ( $need_upgrade_sync && ! isset( $_GET['do_sync'] ) ) {
+				$notice = 'upgrade-sync';
+			}
+
+			/**
+			 * Never synced notice check
+			 */
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$last_sync = get_site_option( 'ep_last_sync', false );
+			} else {
+				$last_sync = get_option( 'ep_last_sync', false );
+			}
+
+			if ( false === $last_sync && ! isset( $_GET['do_sync'] ) ) {
+				$notice = 'no-sync';
+			}
+		}
+
 		if ( empty( $host ) || ! ep_elasticsearch_can_connect() ) {
 			if ( $on_settings_page ) {
-				if ( false !== $options_host || ( defined( 'EP_HOST' ) && EP_HOST ) ) {
+				if ( ! $never_set_host ) {
 					$notice = 'bad-host';
 				}
 			} else {
 				$notice = 'bad-host';
 			}
-		}
-
-		/**
-		 * Never synced notice check
-		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
-
-		if ( false === $last_sync && ! isset( $_GET['do_sync'] ) ) {
-			$notice = 'no-sync';
-		}
-
-		/**
-		 * Upgrade sync notice check
-		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
-		} else {
-			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
-		}
-
-		if ( $need_upgrade_sync && ! isset( $_GET['do_sync'] ) ) {
-			$notice = 'upgrade-sync';
 		}
 
 		/**
@@ -233,6 +253,21 @@ class EP_Dashboard {
 				</div>
 				<?php
 				break;
+			case 'auto-activate-sync':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				} else {
+					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				}
+
+				$feature = ep_get_registered_feature( $auto_activate_sync );
+
+				?>
+				<div class="notice notice-warning">
+					<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
+				</div>
+				<?php
+				break;
 		}
 	}
 
@@ -279,6 +314,7 @@ class EP_Dashboard {
 
 				update_site_option( 'ep_last_sync', time() );
 				delete_site_option( 'ep_need_upgrade_sync' );
+				delete_site_option( 'ep_feature_auto_activated_sync' );
 			} else {
 				if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
 					ep_delete_index();
@@ -288,6 +324,7 @@ class EP_Dashboard {
 
 				update_option( 'ep_last_sync', time() );
 				delete_option( 'ep_need_upgrade_sync' );
+				delete_option( 'ep_feature_auto_activated_sync' );
 			}
 
 			if ( ! empty( $_POST['feature_sync'] ) ) {
@@ -614,6 +651,12 @@ class EP_Dashboard {
 	 * @since  2.1
 	 */
 	public function settings_page() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_intro_shown', true );
+		} else {
+			update_option( 'ep_intro_shown', true );
+		}
+
 		include( dirname( __FILE__ ) . '/../includes/settings-page.php' );
 	}
 

@@ -69,20 +69,23 @@ function ep_on_activate() {
 	}
 
 	/**
-	 * Run feature post activation hooks
+	 * Activate necessary features if this is the first time activating
+	 * the plugin.
 	 */
 	if ( false === $feature_settings ) {
 		$registered_features = EP_Features::factory()->registered_features;
 		
 		foreach ( $registered_features as $slug => $feature ) {
 			if ( 0 === $feature->requirements_status()->code ) {
-				$feature_settings[ $slug ] = ( ! empty( $feature->default_settings ) ) ? $feature->default_settings : array();
-				$feature_settings[ $slug ]['active'] = true;
-
-				$feature->post_activation();
+				ep_activate_feature( $slug );
 			}
 		}
 	}
+
+	/**
+	 * Cache requirement statuses so we can detect changes later
+	 */
+	EP_Features::factory()->get_requirement_statuses( true );
 
 	/**
 	 * Reindex if we cross a reindex version in the upgrade
