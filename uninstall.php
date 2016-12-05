@@ -76,6 +76,8 @@ class EP_Uninstaller {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_option( 'ep_feature_auto_activated_sync' );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
 	}
 
 	/**

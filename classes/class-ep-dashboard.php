@@ -37,10 +37,12 @@ class EP_Dashboard {
 		}
 
 		add_action( 'wp_ajax_ep_save_feature', array( $this, 'action_wp_ajax_ep_save_feature' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_dashboard_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_admin_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
 		add_action( 'wp_ajax_ep_index', array( $this, 'action_wp_ajax_ep_index' ) );
+		add_action( 'wp_ajax_ep_notice_dismiss', array( $this, 'action_wp_ajax_ep_notice_dismiss' ) );
 		add_action( 'wp_ajax_ep_cancel_index', array( $this, 'action_wp_ajax_ep_cancel_index' ) );
 		add_action( 'admin_notices', array( $this, 'maybe_notice' ) );
 		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
@@ -190,11 +192,13 @@ class EP_Dashboard {
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$intro_shown = get_site_option( 'ep_intro_shown', false );
+			$skip_intro_shown_notice = get_site_option( 'ep_hide_intro_shown_notice', false );
 		} else {
 			$intro_shown = get_option( 'ep_intro_shown', false );
+			$skip_intro_shown_notice = get_option( 'ep_hide_intro_shown_notice', false );
 		}
 
-		if ( ! $intro_shown && false === $options_host && ( ! defined( 'EP_HOST' ) || ! EP_HOST ) ) {
+		if ( ! $skip_intro_shown_notice && ! $intro_shown && false === $options_host && ( ! defined( 'EP_HOST' ) || ! EP_HOST ) ) {
 			$notice = 'need-setup';
 		}
 
@@ -222,7 +226,7 @@ class EP_Dashboard {
 				}
 
 				?>
-				<div class="notice notice-info">
+				<div data-ep-notice="need-setup" class="notice notice-info is-dismissible">
 					<p><?php printf( __( 'Thanks for installing ElasticPress! You will need to run through a <a href="%s">quick set up process</a> to get the plugin working.', 'elasticpress' ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
@@ -235,7 +239,7 @@ class EP_Dashboard {
 				}
 
 				?>
-				<div class="notice notice-info">
+				<div data-ep-notice="no-sync" class="notice notice-info is-dismissible">
 					<p><?php printf( __( 'ElasticPress is almost ready. You will need to complete a <a href="%s">sync</a> to get the plugin working.', 'elasticpress' ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
@@ -248,7 +252,7 @@ class EP_Dashboard {
 				}
 
 				?>
-				<div class="notice notice-warning">
+				<div data-ep-notice="upgrade-sync" class="notice notice-warning is-dismissible">
 					<p><?php printf( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
@@ -263,7 +267,7 @@ class EP_Dashboard {
 				$feature = ep_get_registered_feature( $auto_activate_sync );
 
 				?>
-				<div class="notice notice-warning">
+				<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
 					<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
@@ -272,12 +276,67 @@ class EP_Dashboard {
 	}
 
 	/**
+	 * Dismiss notice via ajax
+	 *
+	 * @since 2.2
+	 */
+	public function action_wp_ajax_ep_notice_dismiss() {
+		if ( empty( $_POST['notice'] ) || ! check_ajax_referer( 'ep_admin_nonce', 'nonce', false ) ) {
+			wp_send_json_error();
+			exit;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error();
+			exit;
+		}
+
+		switch ( $_POST['notice'] ) {
+			case 'need-setup':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					update_site_option( 'ep_hide_intro_shown_notice', true );
+				} else {
+					update_option( 'ep_hide_intro_shown_notice', true );
+				}
+
+				break;
+			case 'no-sync':
+				// We use 'never' here as a placeholder value to trick EP into thinking a sync has happened
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					update_site_option( 'ep_last_sync', 'never' );
+				} else {
+					update_option( 'ep_last_sync', 'never' );
+				}
+
+				break;
+			case 'upgrade-sync':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					delete_site_option( 'ep_need_upgrade_sync' );
+				} else {
+					delete_option( 'ep_need_upgrade_sync' );
+				}
+
+				break;
+			case 'auto-activate-sync':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					delete_site_option( 'ep_feature_auto_activated_sync' );
+				} else {
+					delete_option( 'ep_feature_auto_activated_sync' );
+				}
+
+				break;
+		}
+
+		wp_send_json_success();
+	}
+
+	/**
 	 * Continue index
 	 *
 	 * @since  2.1
 	 */
 	public function action_wp_ajax_ep_index() {
-		if ( ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
+		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
 			wp_send_json_error();
 			exit;
 		}
@@ -473,7 +532,7 @@ class EP_Dashboard {
 	 * @since  2.1
 	 */
 	public function action_wp_ajax_ep_cancel_index() {
-		if ( ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
+		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
 			wp_send_json_error();
 			exit;
 		}
@@ -493,7 +552,7 @@ class EP_Dashboard {
 	 * @since  2.2
 	 */
 	public function action_wp_ajax_ep_save_feature() {
-		if ( empty( $_POST['feature'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_nonce', 'nonce', false ) ) {
+		if ( empty( $_POST['feature'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
 			wp_send_json_error();
 			exit;
 		}
@@ -530,24 +589,26 @@ class EP_Dashboard {
 	}
 
 	/**
-	 * Register and Enqueue JavaScripts
-	 *
-	 * Registers and enqueues the necessary JavaScripts for the interface.
-	 *
-	 * @since 1.9
-	 * @return void
+	 * Register and Enqueue JavaScripts for dashboard
+	 * 
+	 * @since 2.2
 	 */
-	public function action_admin_enqueue_scripts() {
-		// Only add the following to the settings page.
+	public function action_admin_enqueue_dashboard_scripts() {
 		if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'elasticpress' ) !== false ) {
-			$maybe_min = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-
-			wp_enqueue_style( 'ep_admin_styles', EP_URL . 'assets/css/admin' . $maybe_min . '.css', array(), EP_VERSION );
+			if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+				wp_enqueue_style( 'ep_admin_styles', EP_URL . 'assets/css/admin.css', array(), EP_VERSION );
+			} else {
+				wp_enqueue_style( 'ep_admin_styles', EP_URL . 'assets/css/admin.min.css', array(), EP_VERSION );
+			}
 
 			if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) {
-				wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'assets/js/admin' . $maybe_min . '.js', array( 'jquery' ), EP_VERSION, true );
+				if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+					wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'assets/js/src/dashboard.js', array( 'jquery' ), EP_VERSION, true );
+				} else {
+					wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'assets/js/dashboard.min.js', array( 'jquery' ), EP_VERSION, true );
+				}
 
-				$data = array( 'nonce' => wp_create_nonce( 'ep_nonce' ) );
+				$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					$index_meta = get_site_option( 'ep_index_meta' );
@@ -569,9 +630,26 @@ class EP_Dashboard {
 				$data['sync_wpcli'] = esc_html__( "WP CLI sync is occuring. Refresh the page to see if it's finished", 'elasticpress' );
 				$data['sync_error'] = esc_html__( 'An error occured while syncing', 'elasticpress' );
 
-				wp_localize_script( 'ep_admin_scripts', 'ep', $data );
+				wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 			}
 		}
+	}
+
+	/**
+	 * Enqueue scripts to be used across all of WP admin
+	 * 
+	 * @since 2.2
+	 */
+	public function action_admin_enqueue_admin_scripts() {
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'assets/js/src/admin.js', array( 'jquery' ), EP_VERSION, true );
+		} else {
+			wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'assets/js/admin.min.js', array( 'jquery' ), EP_VERSION, true );
+		}
+
+		wp_localize_script( 'ep_admin_scripts', 'epAdmin', array(
+			'nonce' => wp_create_nonce( 'ep_admin_nonce' ),
+		) );
 	}
 
 	/**
