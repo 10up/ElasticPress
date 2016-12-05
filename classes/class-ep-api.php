@@ -1638,9 +1638,29 @@ class EP_API {
 				$use_filters = true;
 			}
 		} else {
+			$statuses = get_post_stati( array( 'public' => true ) );
+
+			if ( is_admin() ) {
+				/**
+				 * In the admin we will add protected and private post statuses to the default query
+				 * per WP default behavior.
+				 */
+				$statuses = array_merge( $statuses, get_post_stati( array( 'protected' => true, 'show_in_admin_all_list' => true ) ) );
+
+				if ( is_user_logged_in() ) {
+					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
+				}
+			}
+
+			$post_status_filter_type = 'term';
+
+			if ( 1 < count( $statuses ) ) {
+				$post_status_filter_type = 'terms';
+			}
+
 			$filter['bool']['must'][] = array(
-				'term' => array(
-					'post_status' => 'publish',
+				$post_status_filter_type => array(
+					'post_status' => array_values( $statuses ),
 				),
 			);
 
