@@ -27,6 +27,7 @@ class EP_Features {
 	 */
 	public function setup() {
 		add_action( 'plugins_loaded', array( $this, 'setup_features' ) );
+		add_action( 'plugins_loaded', array( $this, 'auto_activate_features' ) );
 		add_action( 'plugins_loaded', array( $this, 'maybe_activate_deactivate_feature' ) );
 	}
 
@@ -97,6 +98,42 @@ class EP_Features {
 		}
 
 		return $requirement_statuses;
+	}
+
+	/**
+	 * Auto activate features
+	 * 
+	 * @since  2.2
+	 */
+	public function auto_activate_features() {
+		if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
+			return;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$feature_settings = get_site_option( 'ep_feature_settings', false );
+		} else {
+			$feature_settings = get_option( 'ep_feature_settings', false );
+		}
+
+		/**
+		 * Activate necessary features if this is the first time activating
+		 * the plugin.
+		 */
+		if ( false === $feature_settings ) {
+			$registered_features = $this->registered_features;
+			
+			foreach ( $registered_features as $slug => $feature ) {
+				if ( 0 === $feature->requirements_status()->code ) {
+					ep_activate_feature( $slug );
+				}
+			}
+		}
+
+		/**
+		 * Cache requirement statuses so we can detect changes later
+		 */
+		$this->get_requirement_statuses( true );
 	}
 
 	/**

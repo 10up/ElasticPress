@@ -55,81 +55,62 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
- * On activate, all features that meet their requirements with no warnings should be activated.
+ * Handle upgrades
  *
- * @since  2.1
+ * @since  2.2
  */
-function ep_on_activate() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$feature_settings = get_site_option( 'ep_feature_settings', false );
-		$old_version = get_site_option( 'ep_version', false );
-	} else {
-		$feature_settings = get_option( 'ep_feature_settings', false );
-		$old_version = get_option( 'ep_version', false );
-	}
+function ep_handle_upgrades() {
+		if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
+			return;
+		}
 
-	/**
-	 * Activate necessary features if this is the first time activating
-	 * the plugin.
-	 */
-	if ( false === $feature_settings ) {
-		$registered_features = EP_Features::factory()->registered_features;
-		
-		foreach ( $registered_features as $slug => $feature ) {
-			if ( 0 === $feature->requirements_status()->code ) {
-				ep_activate_feature( $slug );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$old_version = get_site_option( 'ep_version', false );
+		} else {
+			$old_version = get_option( 'ep_version', false );
+		}
+
+		/**
+		 * Reindex if we cross a reindex version in the upgrade
+		 */
+		$reindex_versions = apply_filters( 'ep_reindex_versions', array(
+			'2.2',
+		) );
+
+		$need_upgrade_sync = false;
+
+		if ( false === $old_version ) {
+			$need_upgrade_sync = true;
+		} else {
+			$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
+
+			if ( ( -1 === version_compare( $old_version, $last_reindex_version ) && 1 === version_compare( EP_VERSION , $last_reindex_version ) ) || 0 === version_compare( EP_VERSION , $last_reindex_version ) )  {
+				$last_reindex_version = true;
 			}
 		}
-	}
 
-	/**
-	 * Cache requirement statuses so we can detect changes later
-	 */
-	EP_Features::factory()->get_requirement_statuses( true );
-
-	/**
-	 * Reindex if we cross a reindex version in the upgrade
-	 */
-	$reindex_versions = apply_filters( 'ep_reindex_versions', array(
-		'2.2',
-	) );
-
-	$need_upgrade_sync = false;
-
-	if ( false === $old_version ) {
-		$need_upgrade_sync = true;
-	} else {
-		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
-
-		if ( ( -1 === version_compare( $old_version, $last_reindex_version ) && 1 === version_compare( EP_VERSION , $last_reindex_version ) ) || 0 === version_compare( EP_VERSION , $last_reindex_version ) )  {
-			$last_reindex_version = true;
+		if ( $need_upgrade_sync ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				update_site_option( 'ep_need_upgrade_sync', true );
+			} else {
+				update_option( 'ep_need_upgrade_sync', true );
+			}
 		}
-	}
 
-	if ( $need_upgrade_sync ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_need_upgrade_sync', true );
+			update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 		} else {
-			update_option( 'ep_need_upgrade_sync', true );
+			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 		}
-	}
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		update_site_option( 'ep_feature_settings', $feature_settings );
-		delete_site_option( 'ep_index_meta' );
-		update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-	} else {
-		update_option( 'ep_feature_settings', $feature_settings );
-		delete_option( 'ep_index_meta' );
-		update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-	}
 }
-register_activation_hook( __FILE__, 'ep_on_activate' );
+add_action( 'plugins_loaded', 'ep_handle_upgrades' );
 
 /**
  * Load text domain and handle debugging
+ *
+ * @since  2.2
  */
-function ep_loader() {
+function ep_setup_misc() {
 	load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
 	
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
@@ -137,4 +118,4 @@ function ep_loader() {
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
 	}
 }
-add_action( 'plugins_loaded', 'ep_loader' );
+add_action( 'plugins_loaded', 'ep_setup_misc' );
