@@ -1653,15 +1653,18 @@ class EP_API {
 				}
 			}
 
-			$post_status_filter_type = 'term';
+			$statuses = array_values( $statuses );
 
-			if ( 1 < count( $statuses ) ) {
-				$post_status_filter_type = 'terms';
+			$post_status_filter_type = 'terms';
+
+			if ( 1 === count( $statuses ) ) {
+				$post_status_filter_type = 'term';
+				$statuses = $statuses[0];
 			}
 
 			$filter['bool']['must'][] = array(
 				$post_status_filter_type => array(
-					'post_status' => array_values( $statuses ),
+					'post_status' => $statuses,
 				),
 			);
 
