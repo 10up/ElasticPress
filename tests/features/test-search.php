@@ -1,12 +1,11 @@
 <?php
 
-class EPTestSearchModule extends EP_Test_Base {
+class EPTestSearchFeature extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
 	 *
 	 * @since 2.1
-	 * @group search
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -31,7 +30,6 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 2.1
-	 * @group search
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -48,7 +46,7 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * @group search
 	 */
 	public function testSearchOff() {
-		EP_Modules::factory()->setup_modules();
+		EP_Features::factory()->setup_features();
 		$post_ids = array();
 
 		ep_create_and_sync_post();
@@ -75,8 +73,8 @@ class EPTestSearchModule extends EP_Test_Base {
 	 * @group search
 	 */
 	public function testSearchOn() {
-		ep_activate_module( 'search' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'search' );
+		EP_Features::factory()->setup_features();
 
 		$post_ids = array();
 
@@ -99,12 +97,14 @@ class EPTestSearchModule extends EP_Test_Base {
 	
 	/**
 	 * Test case for when index is deleted, request for Elasticsearch should fall back to WP Query
+	 * 
+	 * @group search
 	 */
 	public function testSearchIndexDeleted(){
 		global $wpdb;
 		
-		ep_activate_module( 'search' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'search' );
+		EP_Features::factory()->setup_features();
 		
 		$post_ids = array();
 		

@@ -1,6 +1,6 @@
 <?php
 /**
- * ElasticPress admin module
+ * ElasticPress admin feature
  *
  * @since  2.1
  * @package elasticpress
@@ -8,7 +8,7 @@
 
 
 /**
- * Setup all module filters
+ * Setup all feature filters
  *
  * @since  2.1
  */
@@ -38,7 +38,7 @@ function ep_admin_integrate( $query ) {
 	}
 
 	/**
-	 * We limit to these post types to not conflict with other modules like WooCommerce
+	 * We limit to these post types to not conflict with other features like WooCommerce
 	 *
 	 * @since  2.1
 	 * @var array
@@ -72,28 +72,27 @@ function ep_admin_integrate( $query ) {
 }
 
 /**
- * Output module box summary
+ * Output feature box summary
  * 
  * @since 2.1
  */
-function ep_admin_module_box_summary() {
+function ep_admin_feature_box_summary() {
 	?>
 	<p><?php esc_html_e( 'Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You want to make sure your Elasticsearch instance is properly secured.', 'elasticpress' ); ?></p>
 	<?php
 }
 
 /**
- * Output module box long
+ * Output feature box long
  * 
  * @since 2.1
  */
-function ep_admin_module_box_long() {
+function ep_admin_feature_box_long() {
 	?>
 	<p><?php _e( 'Within the admin panel, posts and pages are shown in a standarized easy to use table format. After activating an SEO plugin, increasing post per pages, and making other modifications, that table view loads very slowly.', 'elasticpress' ); ?></p>
 
 	<p><?php _e( 'ElasticPress admin will make your admin curation experience much faster and easier. No longer will you have to wait 60 seconds to do things that should be easy such as viewing 200 posts at once.', 'elasticpress' ); ?></p>
 
-	<p><?php _e( 'Using the search module in conjunction with this module will supercharge your admin search.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -113,13 +112,32 @@ function ep_admin_get_statuses( $statuses ) {
 }
 
 /**
- * Register the module
+ * Determine WC feature reqs status
+ *
+ * @param  EP_Feature_Requirements_Status $status
+ * @since  2.2
+ * @return EP_Feature_Requirements_Status
  */
-ep_register_module( 'admin', array(
+function ep_admin_requirements_status( $status ) {
+	$host = ep_get_host();
+
+	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
+		$status->code = 1;
+		$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
+	}
+
+	return $status;
+}
+
+/**
+ * Register the feature
+ */
+ep_register_feature( 'admin', array(
 	'title' => 'Admin',
 	'setup_cb' => 'ep_admin_setup',
-	'module_box_summary_cb' => 'ep_admin_module_box_summary',
-	'module_box_long_cb' => 'ep_admin_module_box_long',
+	'requirements_status_cb' => 'ep_admin_requirements_status',
+	'feature_box_summary_cb' => 'ep_admin_feature_box_summary',
+	'feature_box_long_cb' => 'ep_admin_feature_box_long',
 	'requires_install_reindex' => true,
 ) );
 
