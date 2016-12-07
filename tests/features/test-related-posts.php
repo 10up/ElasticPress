@@ -64,11 +64,14 @@ class EPTestRelatedPostsFeature extends EP_Test_Base {
 		ep_activate_feature( 'related_posts' );
 		
 		EP_Features::factory()->setup_features();
-		
+
+		$related = ep_find_related( $post_id );
+		$this->assertEquals( 1, sizeof( $related ) );
+
 		add_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 		$related = ep_find_related( $post_id );
 		$this->assertEquals( 2, sizeof( $related ) );
-		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ) );
+		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 	}
 	
 	/**
@@ -78,7 +81,7 @@ class EPTestRelatedPostsFeature extends EP_Test_Base {
 	 * @return mixed
 	 */
 	public function find_related_posts_filter( $args ){
-		$args['post_type'] = 'post';
+		$args['post_type'] = array( 'post', 'page' );
 		
 		return $args;
 	}
