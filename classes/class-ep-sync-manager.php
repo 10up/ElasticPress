@@ -21,7 +21,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * Save posts for indexing later
-	 *
+	 * 
 	 * @since  2.0
 	 * @var    array
 	 */
@@ -45,7 +45,7 @@ class EP_Sync_Manager {
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
-
+	
 	/**
 	 * Remove actions and filters
 	 *
@@ -84,7 +84,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
-	 *
+	 * 
 	 * @param  int $meta_id
 	 * @param  int $object_id
 	 * @param  string $meta_key
@@ -102,7 +102,7 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-
+		
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
@@ -182,7 +182,7 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-
+		
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
 
@@ -205,35 +205,23 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		// If post is indexable go ahead and index it
-		// If post not indexable, remove it's existance from index
-		if ( $this->is_post_indexable( $post_ID ) ) {
-			do_action( 'ep_sync_on_transition', $post_ID );
-			$this->sync_post( $post_ID, false );
-		} else {
+		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
+		if ( ! in_array( $post->post_status, $indexable_post_statuses ) ) {
 			$this->action_delete_post( $post_ID );
+		} else {
+			$post_type = get_post_type( $post_ID );
+
+			$indexable_post_types = ep_get_indexable_post_types();
+
+			if ( in_array( $post_type, $indexable_post_types ) ) {
+
+				do_action( 'ep_sync_on_transition', $post_ID );
+
+				$this->sync_post( $post_ID, false );
+			}
 		}
 	}
-
-	/**
-	 * Check if post matches the criterias to be indexed
-	 *
-	 * @param  int  $post_ID    The post id to check
-	 * @return boolean
-	 */
-	public function is_post_indexable( $post_ID ) {
-		$indexable_post_types = ep_get_indexable_post_types();
-		$indexable_post_statuses = ep_get_indexable_post_status();
-		$post_type = get_post_type( $post_ID );
-		$post_status = get_post_status( $post_ID );
-
-		if ( ! in_array( $post_type, $indexable_post_types ) || ! in_array( $post_status, $indexable_post_statuses ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
+	
 	/**
 	 * Return a singleton instance of the current class
 	 *
