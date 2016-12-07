@@ -27,7 +27,7 @@ class EP_Features {
 	 */
 	public function setup() {
 		add_action( 'plugins_loaded', array( $this, 'setup_features' ) );
-		add_action( 'plugins_loaded', array( $this, 'auto_activate_features' ) );
+		add_action( 'plugins_loaded', array( $this, 'initial_auto_activate_features' ) );
 		add_action( 'plugins_loaded', array( $this, 'maybe_activate_deactivate_feature' ) );
 	}
 
@@ -101,11 +101,11 @@ class EP_Features {
 	}
 
 	/**
-	 * Auto activate features
+	 * Auto activate features for the first time
 	 * 
 	 * @since  2.2
 	 */
-	public function auto_activate_features() {
+	public function initial_auto_activate_features() {
 		if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
 			return;
 		}
