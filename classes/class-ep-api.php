@@ -133,7 +133,7 @@ class EP_API {
 	 * Get Elasticsearch version
 	 *
 	 * @since 2.1.2
-	 * @return string
+	 * @return string|bool
 	 */
 	public function get_elasticsearch_version() {
 
@@ -1909,38 +1909,6 @@ class EP_API {
 	}
 
 	/**
-	 * This function checks if we can connect to Elasticsearch
-	 *
-	 * @since 2.1
-	 * @return bool
-	 */
-	public function elasticsearch_can_connect() {
-
-		$host = ep_get_host();
-
-		if ( empty( $host ) ) {
-			return false;
-		}
-
-		$request_args = array( 'headers' => $this->format_request_headers() );
-
-		$request = wp_remote_request( $host, apply_filters( 'ep_es_can_connect_args', $request_args ) );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-
-				$response_body = json_decode( wp_remote_retrieve_body( $request ), true );
-
-				if ( ! empty( $response_body ) && ! empty( $response_body['name']) ) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * Return queries for debugging
 	 *
 	 * @since  1.8
@@ -2402,11 +2370,15 @@ function ep_get_cluster_status() {
 }
 
 function ep_elasticsearch_can_connect() {
-	return EP_API::factory()->elasticsearch_can_connect();
+	return (bool) EP_API::factory()->get_elasticsearch_version();
 }
 
 function ep_parse_site_id( $index_name ) {
 	return EP_API::factory()->parse_site_id( $index_name );
+}
+
+function ep_get_elasticsearch_version() {
+	return EP_API::factory()->get_elasticsearch_version();
 }
 
 if( ! function_exists( 'ep_search' ) ) {

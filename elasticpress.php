@@ -24,6 +24,18 @@ define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_VERSION', '2.2' );
 
+/**
+ * We compare the current ES version to this compatibility version number. Compatibility is true when:
+ *
+ * EP_ES_VERSION_MIN <= YOUR ES VERSION <= EP_ES_VERSION_MAX
+ * 
+ * We don't check minor releases so if your ES version if 5.1.1, we consider that 5.1 in our comparison.
+ *
+ * @since  2.2
+ */
+define( 'EP_ES_VERSION_MAX', '5.1' );
+define( 'EP_ES_VERSION_MIN', '1.3' );
+
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
 
@@ -60,48 +72,48 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
  * @since  2.2
  */
 function ep_handle_upgrades() {
-		if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
-			return;
-		}
+	if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
+		return;
+	}
 
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$old_version = get_site_option( 'ep_version', false );
+	} else {
+		$old_version = get_option( 'ep_version', false );
+	}
+
+	/**
+	 * Reindex if we cross a reindex version in the upgrade
+	 */
+	$reindex_versions = apply_filters( 'ep_reindex_versions', array(
+		'2.2',
+	) );
+
+	$need_upgrade_sync = false;
+
+	if ( false === $old_version ) {
+		$need_upgrade_sync = true;
+	} else {
+		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
+
+		if ( ( -1 === version_compare( $old_version, $last_reindex_version ) && 1 === version_compare( EP_VERSION , $last_reindex_version ) ) || 0 === version_compare( EP_VERSION , $last_reindex_version ) )  {
+			$last_reindex_version = true;
+		}
+	}
+
+	if ( $need_upgrade_sync ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$old_version = get_site_option( 'ep_version', false );
+			update_site_option( 'ep_need_upgrade_sync', true );
 		} else {
-			$old_version = get_option( 'ep_version', false );
+			update_option( 'ep_need_upgrade_sync', true );
 		}
+	}
 
-		/**
-		 * Reindex if we cross a reindex version in the upgrade
-		 */
-		$reindex_versions = apply_filters( 'ep_reindex_versions', array(
-			'2.2',
-		) );
-
-		$need_upgrade_sync = false;
-
-		if ( false === $old_version ) {
-			$need_upgrade_sync = true;
-		} else {
-			$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
-
-			if ( ( -1 === version_compare( $old_version, $last_reindex_version ) && 1 === version_compare( EP_VERSION , $last_reindex_version ) ) || 0 === version_compare( EP_VERSION , $last_reindex_version ) )  {
-				$last_reindex_version = true;
-			}
-		}
-
-		if ( $need_upgrade_sync ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_need_upgrade_sync', true );
-			} else {
-				update_option( 'ep_need_upgrade_sync', true );
-			}
-		}
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		} else {
-			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		}
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
+	} else {
+		update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
+	}
 }
 add_action( 'plugins_loaded', 'ep_handle_upgrades' );
 

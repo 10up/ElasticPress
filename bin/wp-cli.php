@@ -829,7 +829,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		
 		if ( empty( $host) ) {
 			WP_CLI::error( __( 'There is no Elasticsearch host set up. Either add one through the dashboard or define one in wp-config.php', 'elasticpress' ) );
-		} elseif ( ! ep_elasticsearch_can_connect() ) {
+		} elseif ( ! ep_get_elasticsearch_version() ) {
 			WP_CLI::error( __( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
 		}
 	}

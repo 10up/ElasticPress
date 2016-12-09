@@ -176,7 +176,24 @@ class EP_Dashboard {
 			}
 		}
 
-		if ( empty( $host ) || ! ep_elasticsearch_can_connect() ) {
+		$es_version = ep_get_elasticsearch_version();
+
+		/**
+		 * Check Elasticsearch version compat
+		 */
+
+		if ( ! empty( $es_version ) ) {
+			// First reduce version to major version i.e. 5.1 not 5.1.1
+			$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
+
+			if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
+				$notice = 'above-es-compat';
+			} elseif ( 1 === version_compare( EP_ES_VERSION_MIN, $major_es_version ) ) {
+				$notice = 'below-es-compat';
+			}
+		}
+
+		if ( empty( $host ) || ! $es_version ) {
 			if ( $on_settings_page ) {
 				if ( ! $never_set_host ) {
 					$notice = 'bad-host';
@@ -215,6 +232,20 @@ class EP_Dashboard {
 				?>
 				<div class="notice notice-error">
 					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. You will need to <a href="%s">fix it</a> for ElasticPress to work.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'above-es-compat':
+				?>
+				<div class="notice notice-error">
+					<p><?php printf( __( 'Your Elasticsearch version %s is above the maximum required Elasticsearch version %s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'below-es-compat':
+				?>
+				<div class="notice notice-error">
+					<p><?php printf( __( 'Your Elasticsearch version %s is below the minimum required Elasticsearch version %s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ); ?></p>
 				</div>
 				<?php
 				break;
