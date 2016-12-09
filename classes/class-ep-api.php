@@ -437,12 +437,6 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$es_version = get_site_option( 'ep_es_version', false );
-		} else {
-			$es_version = get_option( 'ep_es_version', false );
-		}
-
 		$es_version = $this->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
