@@ -180,12 +180,6 @@ class EP_Features {
 
 		$new_requirement_statuses = $this->get_requirement_statuses( true );
 
-		if ( false === $old_requirement_statuses ) {
-			// Really weird situation here. Let's just run the EP activation hook function
-			ep_on_activate();
-			return;
-		}
-
 		foreach ( $new_requirement_statuses as $slug => $code ) {
 			$feature = ep_get_registered_feature( $slug );
 
