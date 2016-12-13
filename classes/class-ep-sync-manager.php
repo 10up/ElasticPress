@@ -21,7 +21,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * Save posts for indexing later
-	 *
+	 * 
 	 * @since  2.0
 	 * @var    array
 	 */
@@ -45,7 +45,7 @@ class EP_Sync_Manager {
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
-
+	
 	/**
 	 * Remove actions and filters
 	 *
@@ -84,7 +84,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
-	 *
+	 * 
 	 * @param  int $meta_id
 	 * @param  int $object_id
 	 * @param  string $meta_key
@@ -102,9 +102,14 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-
+		
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
+
+		// Allow inherit as post status if post type is attachment
+		if ( $post_type === 'attachment' ) {
+			$indexable_post_statuses[] = 'inherit';
+		}
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
 			// Bypass saving if doing autosave or post type is revision
@@ -177,7 +182,7 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-
+		
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
 
@@ -216,7 +221,7 @@ class EP_Sync_Manager {
 			}
 		}
 	}
-
+	
 	/**
 	 * Return a singleton instance of the current class
 	 *
