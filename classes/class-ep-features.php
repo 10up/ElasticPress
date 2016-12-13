@@ -26,9 +26,8 @@ class EP_Features {
 	 * @since 2.1
 	 */
 	public function setup() {
-		add_action( 'plugins_loaded', array( $this, 'setup_features' ) );
-		add_action( 'plugins_loaded', array( $this, 'initial_auto_activate_features' ) );
-		add_action( 'plugins_loaded', array( $this, 'maybe_activate_deactivate_feature' ) );
+		add_action( 'plugins_loaded', array( $this, 'handle_feature_activation' ), 5 );
+		add_action( 'plugins_loaded', array( $this, 'setup_features' ), 5 );
 	}
 
 	/**
@@ -67,76 +66,6 @@ class EP_Features {
 	}
 
 	/**
-	 * This function lets us get all feature requirement statuses and save them in an option. We 
-	 * need this info saved so that when changes occur in WP, i.e. plugin activated, we can recheck 
-	 * requirement statuses and determine if a change has occured in which case a reindex is needed.
-	 * 
-	 * @param  boolean $force
-	 * @since  2.2
-	 * @return array
-	 */
-	public function get_requirement_statuses( $force = false ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$requirement_statuses = get_site_option( 'ep_feature_requirement_statuses', false );
-		} else {
-			$requirement_statuses = get_option( 'ep_feature_requirement_statuses', false );
-		}
-
-		if ( $force || false === $requirement_statuses ) {
-			$requirement_statuses = array();
-
-			foreach ( $this->registered_features as $slug => $feature ) {
-				$status = $feature->requirements_status();
-				$requirement_statuses[ $slug ] = (int) $status->code;
-			}
-
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_feature_requirement_statuses', $requirement_statuses );
-			} else {
-				update_option( 'ep_feature_requirement_statuses', $requirement_statuses );
-			}
-		}
-
-		return $requirement_statuses;
-	}
-
-	/**
-	 * Auto activate features for the first time
-	 * 
-	 * @since  2.2
-	 */
-	public function initial_auto_activate_features() {
-		if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
-			return;
-		}
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', false );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', false );
-		}
-
-		/**
-		 * Activate necessary features if this is the first time activating
-		 * the plugin.
-		 */
-		if ( false === $feature_settings ) {
-			$registered_features = $this->registered_features;
-			
-			foreach ( $registered_features as $slug => $feature ) {
-				if ( 0 === $feature->requirements_status()->code ) {
-					ep_activate_feature( $slug );
-				}
-			}
-		}
-
-		/**
-		 * Cache requirement statuses so we can detect changes later
-		 */
-		$this->get_requirement_statuses( true );
-	}
-
-	/**
 	 * Activate or deactivate a feature
 	 * 
 	 * @param  string  $slug
@@ -171,38 +100,68 @@ class EP_Features {
 	 * 
 	 * @since 2.2
 	 */
-	public function maybe_activate_deactivate_feature( $plugin ) {
+	public function handle_feature_activation() {
+		/**
+		 * Save our current requirement statuses for later
+		 */
+
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$old_requirement_statuses = get_site_option( 'ep_feature_requirement_statuses', false );
 		} else {
 			$old_requirement_statuses = get_option( 'ep_feature_requirement_statuses', false );
 		}
 
-		$new_requirement_statuses = $this->get_requirement_statuses( true );
+		$new_requirement_statuses = array();
 
-		foreach ( $new_requirement_statuses as $slug => $code ) {
-			$feature = ep_get_registered_feature( $slug );
+		foreach ( $this->registered_features as $slug => $feature ) {
+			$status = $feature->requirements_status();
+			$new_requirement_statuses[ $slug ] = (int) $status->code;
+		}
 
-			// This is a new feature
-			if ( ! empty( $old_requirement_statuses[ $slug ] ) ) {
-				if ( 0 === $code ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
+		} else {
+			update_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
+		}
+
+		/**
+		 * If feature settings aren't created, let's create them and finish
+		 */
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$feature_settings = get_site_option( 'ep_feature_settings', false );
+		} else {
+			$feature_settings = get_option( 'ep_feature_settings', false );
+		}
+
+		if ( false === $feature_settings ) {
+			$registered_features = $this->registered_features;
+			
+			foreach ( $registered_features as $slug => $feature ) {
+				if ( 0 === $feature->requirements_status()->code ) {
 					ep_activate_feature( $slug );
-
-					if ( $feature->requires_install_reindex ) {
-						if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-							update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-						} else {
-							update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-						}
-					}
 				}
-			} else {
-				// This feature has a 0 "ok" code when it did not before
-				if ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
-					$active = ( 0 === $code );
+			}
 
-					if ( ! $feature->is_active() && $active ) {
-						// Need to activate and maybe set a sync notice
+			/**
+			 * Nothing else to do since we are doing initial activation
+			 */
+			return;
+		}
+
+		/**
+		 * If a requirement status changes, we need to handle that by activating/deactivating/showing notification
+		 */
+
+		if ( ! empty( $old_requirement_statuses ) ) {
+			foreach ( $new_requirement_statuses as $slug => $code ) {
+				$feature = ep_get_registered_feature( $slug );
+
+				// This is a new feature
+				if ( ! isset( $old_requirement_statuses[ $slug ] ) ) {
+					if ( 0 === $code ) {
+						ep_activate_feature( $slug );
+
 						if ( $feature->requires_install_reindex ) {
 							if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 								update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
@@ -210,12 +169,27 @@ class EP_Features {
 								update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
 							}
 						}
-						
-						ep_activate_feature( $slug, $active );
-					} elseif ( $feature->is_active() && ! $active ) {
-						// Just deactivate
-						
-						ep_activate_feature( $slug, $active );
+					}
+				} else {
+					// This feature has a 0 "ok" code when it did not before
+					if ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
+						$active = ( 0 === $code );
+
+						if ( ! $feature->is_active() && $active ) {
+							// Need to activate and maybe set a sync notice
+							if ( $feature->requires_install_reindex ) {
+								if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+									update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
+								} else {
+									update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
+								}
+							}
+							
+							ep_activate_feature( $slug, $active );
+						} elseif ( $feature->is_active() && ! $active ) {
+							// Just deactivate
+							ep_activate_feature( $slug, $active );
+						}
 					}
 				}
 			}
@@ -271,10 +245,11 @@ function ep_register_feature( $slug, $feature_args ) {
  * Activate a feature
  * 
  * @param  string $slug
+ * @param  bool   $active
  * @since  2.2
  */
-function ep_activate_feature( $slug ) {
-	EP_Features::factory()->activate_feature( $slug );
+function ep_activate_feature( $slug, $active = true ) {
+	EP_Features::factory()->activate_feature( $slug, $active );
 }
 
 /**

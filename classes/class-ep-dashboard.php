@@ -304,6 +304,8 @@ class EP_Dashboard {
 				<?php
 				break;
 		}
+
+		return $notice;
 	}
 
 	/**

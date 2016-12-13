@@ -23,7 +23,8 @@ function _manually_load_plugin() {
 		$host = 'http://localhost:9200';
 	}
 
-	define( 'EP_HOST', $host );
+	update_option( 'ep_host', $host );
+	update_site_option( 'ep_host', $host );
 
 	require( dirname( __FILE__ ) . '/../vendor/woocommerce/woocommerce.php' );
 	require( dirname( __FILE__ ) . '/../elasticpress.php' );
@@ -33,7 +34,7 @@ function _manually_load_plugin() {
 	$tries = 5;
 	$sleep = 3;
 	do {
-		$response = wp_remote_get( EP_HOST );
+		$response = wp_remote_get( $host );
 		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 			// Looks good!
 			break;

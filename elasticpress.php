@@ -115,7 +115,7 @@ function ep_handle_upgrades() {
 		update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 	}
 }
-add_action( 'plugins_loaded', 'ep_handle_upgrades' );
+add_action( 'plugins_loaded', 'ep_handle_upgrades', 5 );
 
 /**
  * Load text domain and handle debugging
