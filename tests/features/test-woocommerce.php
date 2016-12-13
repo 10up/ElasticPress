@@ -184,7 +184,7 @@ class EPTestWooCommerceFeature extends EP_Test_Base {
 	}
 
 	/**
-	 * Test search integration is on in general
+	 * Test search integration is on in general for product searches
 	 *
 	 * @since 2.1
 	 * @group woocommerce
@@ -193,10 +193,13 @@ class EPTestWooCommerceFeature extends EP_Test_Base {
 		ep_activate_feature( 'woocommerce' );
 		EP_Features::factory()->setup_features();
 
+		ep_refresh_index();
+
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$args = array(
 			's' => 'findme',
+			'post_type' => 'product',
 		);
 
 		$query = new WP_Query( $args );

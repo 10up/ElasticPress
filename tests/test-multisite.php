@@ -1026,7 +1026,7 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a post type query non-search where no post type is specified
+	 * Test a post type query non-search where no post type is specified. Defaults to `post` post type
 	 *
 	 * @since 1.3
 	 */
@@ -1058,8 +1058,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( $query->post_count, 5 );
-		$this->assertEquals( $query->found_posts, 5 );
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
 	}
 
 	/**

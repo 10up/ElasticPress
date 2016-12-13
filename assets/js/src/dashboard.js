@@ -56,7 +56,7 @@
 			data: {
 				action: 'ep_save_feature',
 				feature: feature,
-				nonce: ep.nonce,
+				nonce: epDash.nonce,
 				settings: settings
 			}
 		} ).done( function( response ) {
@@ -88,30 +88,33 @@
 		} );
 	} );
 
-	if ( ep.index_meta ) {
-		if ( ep.index_meta.wpcli ) {
+	if ( epDash.index_meta ) {
+		if ( epDash.index_meta.wpcli ) {
 			syncStatus = 'wpcli';
 			updateSyncDash();
 		} else {
-			processed = ep.index_meta.offset;
-			toProcess = ep.index_meta['found_posts'];
+			processed = epDash.index_meta.offset;
+			toProcess = epDash.index_meta['found_posts'];
 
-			if ( ep.index_meta.feature_sync ) {
-				featureSync = ep.index_meta.feature_sync;
+			if ( epDash.index_meta.feature_sync ) {
+				featureSync = epDash.index_meta.feature_sync;
 			}
 
-			if ( ep.index_meta.current_site ) {
-				currentSite = ep.index_meta.current_site;
+			if ( epDash.index_meta.current_site ) {
+				currentSite = epDash.index_meta.current_site;
 			}
 
-			if ( ep.index_meta.site_stack ) {
-				siteStack = ep.index_meta.site_stack;
+			if ( epDash.index_meta.site_stack ) {
+				siteStack = epDash.index_meta.site_stack;
 			}
 
 			if ( siteStack && siteStack.length ) {
 				// We are mid sync
-				if ( ep.auto_start_index ) {
+				if ( epDash.auto_start_index ) {
 					syncStatus = 'sync';
+					
+					history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
+
 					updateSyncDash();
 					sync();
 				} else {
@@ -119,14 +122,17 @@
 					updateSyncDash();
 				}
 			} else {
-				if ( 0 === toProcess && ! ep.index_meta.start ) {
+				if ( 0 === toProcess && ! epDash.index_meta.start ) {
 					// Sync finished
 					syncStatus = 'finished';
 					updateSyncDash();
 				} else {
 					// We are mid sync
-					if ( ep.auto_start_index ) {
+					if ( epDash.auto_start_index ) {
 						syncStatus = 'sync';
+
+						history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
+
 						updateSyncDash();
 						sync();
 					} else {
@@ -135,6 +141,16 @@
 					}
 				}
 			}
+		}
+	} else {
+		// Start a new sync automatically
+		if ( epDash.auto_start_index ) {
+			syncStatus = 'sync';
+
+			history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
+
+			updateSyncDash();
+			sync();
 		}
 	}
 
@@ -147,7 +163,7 @@
 		}
 
 		if ( 'sync' === syncStatus ) {
-			var text = ep.sync_syncing + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
+			var text = epDash.sync_syncing + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
 
 			if ( currentSite ) {
 				text += ' (' + currentSite.url + ')'
@@ -164,7 +180,7 @@
 			$resumeSyncButton.hide();
 			$startSyncButton.hide();
 		} else if ( 'pause' === syncStatus ) {
-			var text = ep.sync_paused + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
+			var text = epDash.sync_paused + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
 
 			if ( currentSite ) {
 				text += ' (' + currentSite.url + ')'
@@ -181,7 +197,7 @@
 			$resumeSyncButton.show();
 			$startSyncButton.hide();
 		} else if ( 'wpcli' === syncStatus ) {
-			var text = ep.sync_wpcli;
+			var text = epDash.sync_wpcli;
 
 			$syncStatusText.text( text );
 
@@ -194,7 +210,7 @@
 			$resumeSyncButton.hide();
 			$startSyncButton.hide();
 		} else if ( 'error' === syncStatus ) {
-			$syncStatusText.text( ep.sync_error );
+			$syncStatusText.text( epDash.sync_error );
 			$syncStatusText.show();
 			$startSyncButton.show();
 			$cancelSyncButton.hide();
@@ -230,7 +246,7 @@
 
 			featureSync = null;
 		} else if ( 'finished' === syncStatus ) {
-			$syncStatusText.text( ep.sync_complete );
+			$syncStatusText.text( epDash.sync_complete );
 
 			$syncStatusText.show();
 			$progressBar.hide();
@@ -259,7 +275,7 @@
 			url: ajaxurl,
 			data: {
 				action: 'ep_cancel_index',
-				nonce: ep.nonce
+				nonce: epDash.nonce
 			}
 		} );
 	}
@@ -271,7 +287,7 @@
 			data: {
 				action: 'ep_index',
 				feature_sync: featureSync,
-				nonce: ep.nonce
+				nonce: epDash.nonce
 			}
 		} ).done( function( response ) {
 			if ( 'sync' !== syncStatus ) {

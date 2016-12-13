@@ -303,7 +303,7 @@ function ep_wc_translate_args( $query ) {
 	/**
 	 * If we have a WooCommerce specific query, lets hook it to ElasticPress and make the query ElasticSearch friendly
 	 */
-	if ( $integrate || $query->is_search() ) {
+	if ( $integrate ) {
 
 		// Handles the WC Top Rated Widget
 		if ( has_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) ) ) {
@@ -350,10 +350,10 @@ function ep_wc_translate_args( $query ) {
 		
 		$s = $query->get( 's' );
 
-		if ( empty( $s ) ) {
-			$query->query_vars['ep_integrate'] = true;
-			$query->query['ep_integrate'] = true;
-		} else {
+		$query->query_vars['ep_integrate'] = true;
+		$query->query['ep_integrate'] = true;
+
+		if ( ! empty( $s ) ) {
 			$query->set( 'orderby', false ); // Just order by relevance.
 
 			// Search query
@@ -384,7 +384,7 @@ function ep_wc_translate_args( $query ) {
 				) ) );
 
 				$query->set( 'search_fields', $search_fields );
-			} elseif ( empty( $post_type ) || 'product' === $post_type ) {
+			} elseif ( 'product' === $post_type ) {
 				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 				// Make sure we search skus on the front end
@@ -573,6 +573,5 @@ ep_register_feature( 'woocommerce', array(
 	'feature_box_summary_cb' => 'ep_wc_feature_box_summary',
 	'feature_box_long_cb' => 'ep_wc_feature_box_long',
 	'requires_install_reindex' => true,
-	'dependencies_met_cb' => 'wc_dependencies_met_cb',
 ) );
 

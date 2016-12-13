@@ -133,7 +133,7 @@ class EP_API {
 	 * Get Elasticsearch version
 	 *
 	 * @since 2.1.2
-	 * @return string
+	 * @return string|bool
 	 */
 	public function get_elasticsearch_version() {
 
@@ -196,11 +196,11 @@ class EP_API {
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args );
-		
+
 		$remote_req_res_code = intval( wp_remote_retrieve_response_code( $request ) );
-		
+
 		$is_valid_res = ( $remote_req_res_code >= 200 && $remote_req_res_code <= 299 );
-		
+
 		if ( ! is_wp_error( $request ) && apply_filters( 'ep_remote_request_is_valid_res', $is_valid_res, $request ) ) {
 
 			// Allow for direct response retrieval
@@ -437,12 +437,6 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { 
-			$es_version = get_site_option( 'ep_es_version', false );
-		} else {
-			$es_version = get_option( 'ep_es_version', false );
-		}
-
 		$es_version = $this->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -1062,23 +1056,18 @@ class EP_API {
 				}
 			}
 
-			/**
-			 * Todo: This needs to be fixed
-			 */
 			if ( ! empty( $tax_filter ) ) {
 				$relation = 'must';
 
 				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
 					$relation = 'should';
 				}
+
+				$es_tax_query[$relation] = $tax_filter;
 			}
 			
 			if ( ! empty( $tax_must_not_filter ) ) {
 				$es_tax_query['must_not'] = $tax_must_not_filter;
-			}
-
-			if ( ! empty( $tax_filter ) ) {
-				$es_tax_query['must'] = $tax_filter;
 			}
 			
 			if( ! empty( $es_tax_query ) ) {
@@ -1622,7 +1611,8 @@ class EP_API {
 		if ( ! empty( $args['post_status'] ) ) {
 			// should NEVER be "any" but just in case
 			if ( 'any' !== $args['post_status'] ) {
-				$post_status = (array) $args['post_status'];
+				$post_status = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
+				$post_status = array_map( 'trim', $post_status );
 				$terms_map_name = 'terms';
 				if ( count( $post_status ) < 2 ) {
 					$terms_map_name = 'term';
@@ -1638,9 +1628,32 @@ class EP_API {
 				$use_filters = true;
 			}
 		} else {
+			$statuses = get_post_stati( array( 'public' => true ) );
+
+			if ( is_admin() ) {
+				/**
+				 * In the admin we will add protected and private post statuses to the default query
+				 * per WP default behavior.
+				 */
+				$statuses = array_merge( $statuses, get_post_stati( array( 'protected' => true, 'show_in_admin_all_list' => true ) ) );
+
+				if ( is_user_logged_in() ) {
+					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
+				}
+			}
+
+			$statuses = array_values( $statuses );
+
+			$post_status_filter_type = 'terms';
+
+			if ( 1 === count( $statuses ) ) {
+				$post_status_filter_type = 'term';
+				$statuses = $statuses[0];
+			}
+
 			$filter['bool']['must'][] = array(
-				'term' => array(
-					'post_status' => 'publish',
+				$post_status_filter_type => array(
+					'post_status' => $statuses,
 				),
 			);
 
@@ -1679,7 +1692,7 @@ class EP_API {
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
 				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
 			} else {
-				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
+				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
 			}
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
@@ -1696,7 +1709,7 @@ class EP_API {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
 			'limit' => $limit,
 		) );
-		
+
 		if ( function_exists( 'get_sites' ) ) {
 			$site_objects = get_sites( $args );
 			$sites = array();
@@ -1893,33 +1906,6 @@ class EP_API {
 		}
 		
 		return $orderbys;
-	}
-
-	/**
-	 * This function checks if we can connect to Elasticsearch
-	 *
-	 * @since 2.1
-	 * @return bool
-	 */
-	public function elasticsearch_can_connect() {
-
-		$host = ep_get_host();
-
-		if ( empty( $host ) ) {
-			return false;
-		}
-
-		$request_args = array( 'headers' => $this->format_request_headers() );
-
-		$request = wp_remote_request( $host, apply_filters( 'ep_es_can_connect_args', $request_args ) );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	/**
@@ -2384,11 +2370,15 @@ function ep_get_cluster_status() {
 }
 
 function ep_elasticsearch_can_connect() {
-	return EP_API::factory()->elasticsearch_can_connect();
+	return (bool) EP_API::factory()->get_elasticsearch_version();
 }
 
 function ep_parse_site_id( $index_name ) {
 	return EP_API::factory()->parse_site_id( $index_name );
+}
+
+function ep_get_elasticsearch_version() {
+	return EP_API::factory()->get_elasticsearch_version();
 }
 
 if( ! function_exists( 'ep_search' ) ) {

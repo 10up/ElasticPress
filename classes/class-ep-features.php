@@ -26,7 +26,8 @@ class EP_Features {
 	 * @since 2.1
 	 */
 	public function setup() {
-		add_action( 'plugins_loaded', array( $this, 'setup_features' ) );
+		add_action( 'plugins_loaded', array( $this, 'handle_feature_activation' ), 5 );
+		add_action( 'plugins_loaded', array( $this, 'setup_features' ), 5 );
 	}
 
 	/**
@@ -62,6 +63,137 @@ class EP_Features {
 		$this->registered_features[$slug] = new EP_Feature( $feature_args );
 
 		return true;
+	}
+
+	/**
+	 * Activate or deactivate a feature
+	 * 
+	 * @param  string  $slug
+	 * @param  boolean $active
+	 * @since  2.2
+	 */
+	public function activate_feature( $slug, $active = true ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$feature_settings = get_site_option( 'ep_feature_settings', array() );
+		} else {
+			$feature_settings = get_option( 'ep_feature_settings', array() );
+		}
+
+		$feature = $this->registered_features[ $slug ];
+
+		$feature_settings[ $slug ] = ( ! empty( $feature->default_settings ) ) ? $feature->default_settings : array();
+		$feature_settings[ $slug ]['active'] = (bool) $active;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_feature_settings', $feature_settings );
+		} else {
+			update_option( 'ep_feature_settings', $feature_settings );
+		}
+
+		if ( $active ) {
+			$feature->post_activation();
+		}
+	}
+
+	/**
+	 * When plugins are adjusted, we need to determine how to activate/deactivate features
+	 * 
+	 * @since 2.2
+	 */
+	public function handle_feature_activation() {
+		/**
+		 * Save our current requirement statuses for later
+		 */
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$old_requirement_statuses = get_site_option( 'ep_feature_requirement_statuses', false );
+		} else {
+			$old_requirement_statuses = get_option( 'ep_feature_requirement_statuses', false );
+		}
+
+		$new_requirement_statuses = array();
+
+		foreach ( $this->registered_features as $slug => $feature ) {
+			$status = $feature->requirements_status();
+			$new_requirement_statuses[ $slug ] = (int) $status->code;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
+		} else {
+			update_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
+		}
+
+		/**
+		 * If feature settings aren't created, let's create them and finish
+		 */
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$feature_settings = get_site_option( 'ep_feature_settings', false );
+		} else {
+			$feature_settings = get_option( 'ep_feature_settings', false );
+		}
+
+		if ( false === $feature_settings ) {
+			$registered_features = $this->registered_features;
+			
+			foreach ( $registered_features as $slug => $feature ) {
+				if ( 0 === $feature->requirements_status()->code ) {
+					ep_activate_feature( $slug );
+				}
+			}
+
+			/**
+			 * Nothing else to do since we are doing initial activation
+			 */
+			return;
+		}
+
+		/**
+		 * If a requirement status changes, we need to handle that by activating/deactivating/showing notification
+		 */
+
+		if ( ! empty( $old_requirement_statuses ) ) {
+			foreach ( $new_requirement_statuses as $slug => $code ) {
+				$feature = ep_get_registered_feature( $slug );
+
+				// This is a new feature
+				if ( ! isset( $old_requirement_statuses[ $slug ] ) ) {
+					if ( 0 === $code ) {
+						ep_activate_feature( $slug );
+
+						if ( $feature->requires_install_reindex ) {
+							if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+								update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
+							} else {
+								update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
+							}
+						}
+					}
+				} else {
+					// This feature has a 0 "ok" code when it did not before
+					if ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
+						$active = ( 0 === $code );
+
+						if ( ! $feature->is_active() && $active ) {
+							// Need to activate and maybe set a sync notice
+							if ( $feature->requires_install_reindex ) {
+								if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+									update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
+								} else {
+									update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
+								}
+							}
+							
+							ep_activate_feature( $slug, $active );
+						} elseif ( $feature->is_active() && ! $active ) {
+							// Just deactivate
+							ep_activate_feature( $slug, $active );
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -107,6 +239,27 @@ EP_Features::factory();
  */
 function ep_register_feature( $slug, $feature_args ) {
 	return EP_Features::factory()->register_feature( $slug, $feature_args );
+}
+
+/**
+ * Activate a feature
+ * 
+ * @param  string $slug
+ * @param  bool   $active
+ * @since  2.2
+ */
+function ep_activate_feature( $slug, $active = true ) {
+	EP_Features::factory()->activate_feature( $slug, $active );
+}
+
+/**
+ * Dectivate a feature
+ * 
+ * @param  string $slug
+ * @since  2.2
+ */
+function ep_deactivate_feature( $slug ) {
+	EP_Features::factory()->activate_feature( $slug, false );
 }
 
 /**

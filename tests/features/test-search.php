@@ -6,7 +6,6 @@ class EPTestSearchFeature extends EP_Test_Base {
 	 * Setup each test.
 	 *
 	 * @since 2.1
-	 * @group search
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -31,7 +30,6 @@ class EPTestSearchFeature extends EP_Test_Base {
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 2.1
-	 * @group search
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -99,6 +97,8 @@ class EPTestSearchFeature extends EP_Test_Base {
 	
 	/**
 	 * Test case for when index is deleted, request for Elasticsearch should fall back to WP Query
+	 * 
+	 * @group search
 	 */
 	public function testSearchIndexDeleted(){
 		global $wpdb;
