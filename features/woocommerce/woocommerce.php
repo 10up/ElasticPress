@@ -271,9 +271,7 @@ function ep_wc_translate_args( $query ) {
 
 	$post_type = $query->get( 'post_type', false );
 
-	if ( ! empty( $tax_query ) ) {
-		$query->set( 'tax_query', $tax_query );
-
+	if ( $integrate ) {
 		if ( empty( $post_type ) ) {
 			$post_type = 'product';
 		} elseif ( is_array( $post_type ) ) {
@@ -281,8 +279,6 @@ function ep_wc_translate_args( $query ) {
 		} else {
 			$post_type = array( $post_type, 'product' );
 		}
-
-		$query->set( 'post_type', $post_type );
 	}
 
 	/**
@@ -304,6 +300,10 @@ function ep_wc_translate_args( $query ) {
 	 * If we have a WooCommerce specific query, lets hook it to ElasticPress and make the query ElasticSearch friendly
 	 */
 	if ( $integrate ) {
+		
+		// Set query params only if we have WooCommerce specific query.
+		$query->set( 'tax_query', $tax_query );
+		$query->set( 'post_type', $post_type );
 
 		// Handles the WC Top Rated Widget
 		if ( has_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) ) ) {
