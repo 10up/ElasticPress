@@ -59,6 +59,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - No sync has occured
 	 * - No upgrade sync is needed
 	 * - Not feature auto activate sync is needed
+	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show setup notification
 	 * 
@@ -91,6 +92,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - No sync has occured
 	 * - No upgrade sync is needed
 	 * - Not feature auto activate sync is needed
+	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show need first sync notification
 	 * 
@@ -122,6 +124,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - Sync has occured
 	 * - No upgrade sync is needed
 	 * - Not feature auto activate sync is needed
+	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show no notifications
 	 * 
@@ -153,6 +156,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - No sync has occured
 	 * - Upgrade sync is needed
 	 * - Feature auto activate sync is needed
+	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show setup notification
 	 * 
@@ -185,6 +189,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - No sync has occured
 	 * - Upgrade sync is needed
 	 * - Feature auto activate sync is needed
+	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show no sync notification
 	 * 
@@ -215,6 +220,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - No sync has occured
 	 * - No upgrade sync is needed
 	 * - No feature auto activate sync is needed
+	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show bad host notification
 	 * 
@@ -247,6 +253,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - Sync has occured
 	 * - Upgrade sync is needed
 	 * - No feature auto activate sync is needed
+	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show upgrade sync notification
 	 * 
@@ -277,6 +284,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - Sync has occured
 	 * - No upgrade sync is needed
 	 * - Feature auto activate sync is needed
+	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show upgrade sync notification
 	 * 
@@ -296,5 +304,95 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		ob_get_clean();
 
 		$this->assertEquals( 'auto-activate-sync', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - On edit screan
+	 * - Host set
+	 * - Index page shown and notice not hidden
+	 * - Sync has occured
+	 * - No upgrade sync is needed
+	 * - No feature auto activate sync is needed
+	 * - Elasticsearch version above bounds
+	 *
+	 * Do: Show upgrade sync notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.2
+	 */
+	public function testAboveESCompatNotification() {
+		set_current_screen( 'edit.php' );
+		update_option( 'ep_intro_shown', true );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		update_option( 'ep_last_sync', time() );
+		delete_option( 'ep_need_upgrade_sync' );
+		delete_option( 'ep_feature_auto_activated_sync' );
+
+		add_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_above' ) );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice();
+		ob_get_clean();
+
+		remove_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_above' ) );
+
+		$this->assertEquals( 'above-es-compat', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - On edit screan
+	 * - Host set
+	 * - Index page shown and notice not hidden
+	 * - Sync has occured
+	 * - No upgrade sync is needed
+	 * - No feature auto activate sync is needed
+	 * - Elasticsearch version above bounds
+	 *
+	 * Do: Show upgrade sync notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.2
+	 */
+	public function testBelowESCompatNotification() {
+		set_current_screen( 'edit.php' );
+		update_option( 'ep_intro_shown', true );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		update_option( 'ep_last_sync', time() );
+		delete_option( 'ep_need_upgrade_sync' );
+		delete_option( 'ep_feature_auto_activated_sync' );
+
+		add_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_below' ) );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice();
+		ob_get_clean();
+
+		remove_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_below' ) );
+
+		$this->assertEquals( 'below-es-compat', $notice );
+	}
+
+	/**
+	 * Filter in ES version that is too high
+	 *
+	 * @since  2.2
+	 * @return int
+	 */
+	public function _filter_es_version_above() {
+		return ( (int) EP_ES_VERSION_MAX ) + 1;
+	}
+
+	/**
+	 * Filter in ES version that is too low
+	 *
+	 * @since  2.2
+	 * @return int
+	 */
+	public function _filter_es_version_below() {
+		return ( (int) EP_ES_VERSION_MIN ) - 1;
 	}
 }

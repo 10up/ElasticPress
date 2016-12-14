@@ -182,7 +182,7 @@ class EP_Dashboard {
 		 * Check Elasticsearch version compat
 		 */
 
-		if ( ! empty( $es_version ) ) {
+		if ( false !== $es_version ) {
 			// First reduce version to major version i.e. 5.1 not 5.1.1
 			$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
@@ -193,7 +193,7 @@ class EP_Dashboard {
 			}
 		}
 
-		if ( empty( $host ) || ! $es_version ) {
+		if ( empty( $host ) || false === $es_version ) {
 			if ( $on_settings_page ) {
 				if ( ! $never_set_host ) {
 					$notice = 'bad-host';

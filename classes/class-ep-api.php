@@ -141,6 +141,8 @@ class EP_API {
 
 		$request = ep_remote_request( '', apply_filters( 'ep_elasticsearch_version_request_args', $request_args ) );
 
+		$version = false;
+
 		if ( ! is_wp_error( $request ) ) {
 			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
 				$response_body = wp_remote_retrieve_body( $request );
@@ -148,16 +150,16 @@ class EP_API {
 				$response = json_decode( $response_body, true );
 
 				try {
-					$version = $response['version']['number'];
+					if ( ! empty( $response['version']['number'] ) ) {
+						$version = $response['version']['number'];
+					}
 				} catch ( Exception $e ) {
-					return false;
+					$version = false;
 				}
-
-				return $version;
 			}
 		}
 
-		return false;
+		return apply_filters( 'ep_elasticsearch_version', $version );
 	}
 
 	/**
