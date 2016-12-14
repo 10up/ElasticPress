@@ -815,7 +815,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			 * WordPress 4.7 has a new Hook infrastructure, so we need to make sure
 			 * we're accessing the global array properly
 			 */
-			if ( $wp_filter['get_term_metadata'] instanceof \WP_Hook ) {
+			if ( class_exists( 'WP_Hook' ) && $wp_filter['get_term_metadata'] instanceof WP_Hook ) {
 				$filter_callbacks   = &$wp_filter['get_term_metadata']->callbacks;
 			} else {
 				$filter_callbacks   = &$wp_filter['get_term_metadata'];
