@@ -13,6 +13,7 @@ class EPTestMultisite extends EP_Test_Base {
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		grant_super_admin( $admin_id );
 
 		$this->factory->blog->create_many( 2, array( 'user_id' => $admin_id ) );
 
@@ -91,46 +92,6 @@ class EPTestMultisite extends EP_Test_Base {
 
 			$post = ep_get_post( $post_id );
 			$this->assertTrue( ! empty( $post ) );
-
-			$this->fired_actions = array();
-
-			restore_current_blog();
-		}
-	}
-
-	/**
-	 * Test that a post becoming unpublished correctly gets removed from the Elasticsearch index
-	 *
-	 * @since 0.9.3
-	 */
-	public function testPostUnpublish() {
-		$sites = ep_get_sites();
-
-		foreach( $sites as $site ) {
-			switch_to_blog( $site['blog_id'] );
-
-			add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
-
-			$post_id = ep_create_and_sync_post();
-
-			ep_refresh_index();
-
-			$post = ep_get_post( $post_id );
-
-			// Ensure that our post made it over to elasticsearch
-			$this->assertTrue( ! empty( $post ) );
-
-			// Let's transition the post status from published to draft
-			wp_update_post( array( 'ID' => $post_id, 'post_status' => 'draft' ) );
-
-			ep_refresh_index();
-
-			$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
-
-			$post = ep_get_post( $post_id );
-
-			// Alright, now the post has been removed from the index, so this should be empty
-			$this->assertTrue( empty( $post ) );
 
 			$this->fired_actions = array();
 

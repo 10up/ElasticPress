@@ -19,6 +19,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		grant_super_admin( $admin_id );
 
 		wp_set_current_user( $admin_id );
 
@@ -32,6 +33,10 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		$this->setup_test_post_type();
 
 		$this->current_host = get_option( 'ep_host' );
+
+		global $hook_suffix;
+		$hook_suffix = 'sites.php';
+		set_current_screen();
 	}
 
 	/**
@@ -47,13 +52,13 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		$this->fired_actions = array();
 
 		// Update since we are deleting to test notifications
-		update_option( 'ep_host', $this->current_host );
+		update_site_option( 'ep_host', $this->current_host );
 	}
 
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - No host set
 	 * - Index page not shown and notice not hidden
 	 * - No sync has occured
@@ -67,14 +72,12 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testInitialSetupNotification() {
-		set_current_screen( 'edit.php' );
-
-		delete_option( 'ep_host' );
-		delete_option( 'ep_intro_shown' );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		delete_option( 'ep_last_sync' );
-		delete_option( 'ep_need_upgrade_sync' );
-		delete_option( 'ep_feature_auto_activated_sync' );
+		delete_site_option( 'ep_host' );
+		delete_site_option( 'ep_intro_shown' );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		delete_site_option( 'ep_last_sync' );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice();
@@ -86,7 +89,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - Host set
 	 * - Index page not shown and notice not hidden
 	 * - No sync has occured
@@ -100,13 +103,11 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testFirstSyncNotification() {
-		set_current_screen( 'edit.php' );
-
-		delete_option( 'ep_intro_shown' );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		delete_option( 'ep_last_sync' );
-		delete_option( 'ep_need_upgrade_sync' );
-		delete_option( 'ep_feature_auto_activated_sync' );
+		delete_site_option( 'ep_intro_shown' );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		delete_site_option( 'ep_last_sync' );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice();
@@ -118,7 +119,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites screan
 	 * - Host set
 	 * - Index page shown
 	 * - Sync has occured
@@ -132,13 +133,11 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testNoNotifications() {
-		set_current_screen( 'edit.php' );
-
-		update_option( 'ep_intro_shown', true );
-		update_option( 'ep_hide_intro_shown_notice', true );
-		update_option( 'ep_last_sync', time() );
-		delete_option( 'ep_need_upgrade_sync' );
-		delete_option( 'ep_feature_auto_activated_sync' );
+		update_site_option( 'ep_intro_shown', true );
+		update_site_option( 'ep_hide_intro_shown_notice', true );
+		update_site_option( 'ep_last_sync', time() );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice();
@@ -150,7 +149,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - No host set
 	 * - Index page not shown and notice not hidden
 	 * - No sync has occured
@@ -164,14 +163,12 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testNotificationPrioritySetup() {
-		set_current_screen( 'edit.php' );
-
-		delete_option( 'ep_host' );
-		delete_option( 'ep_intro_shown' );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		delete_option( 'ep_last_sync' );
-		update_option( 'ep_need_upgrade_sync', true );
-		update_option( 'ep_feature_auto_activated_sync', true );
+		delete_site_option( 'ep_host' );
+		delete_site_option( 'ep_intro_shown' );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		delete_site_option( 'ep_last_sync' );
+		update_site_option( 'ep_need_upgrade_sync', true );
+		update_site_option( 'ep_feature_auto_activated_sync', true );
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice();
@@ -183,7 +180,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - Host set
 	 * - Index page shown and notice not hidden
 	 * - No sync has occured
@@ -197,12 +194,11 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testNotificationPrioritySync() {
-		set_current_screen( 'edit.php' );
-		update_option( 'ep_intro_shown', true );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		delete_option( 'ep_last_sync' );
-		update_option( 'ep_need_upgrade_sync', true );
-		update_option( 'ep_feature_auto_activated_sync', true );
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		delete_site_option( 'ep_last_sync' );
+		update_site_option( 'ep_need_upgrade_sync', true );
+		update_site_option( 'ep_feature_auto_activated_sync', true );
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice();
@@ -214,7 +210,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - Bad host set
 	 * - Index page  shown and notice not hidden
 	 * - No sync has occured
@@ -228,14 +224,12 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testBadHostNotification() {
-		set_current_screen( 'edit.php' );
-
-		update_option( 'ep_host', 'bad' );
-		update_option( 'ep_intro_shown', true );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		delete_option( 'ep_last_sync' );
-		delete_option( 'ep_need_upgrade_sync' );
-		delete_option( 'ep_feature_auto_activated_sync' );
+		update_site_option( 'ep_host', 'bad' );
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		delete_site_option( 'ep_last_sync' );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice();
@@ -247,7 +241,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - Host set
 	 * - Index page shown and notice not hidden
 	 * - Sync has occured
@@ -261,12 +255,11 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testUpgradeSyncNotification() {
-		set_current_screen( 'edit.php' );
-		update_option( 'ep_intro_shown', true );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		update_option( 'ep_last_sync', time() );
-		update_option( 'ep_need_upgrade_sync', true );
-		delete_option( 'ep_feature_auto_activated_sync' );
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		update_site_option( 'ep_last_sync', time() );
+		update_site_option( 'ep_need_upgrade_sync', true );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice();
@@ -278,7 +271,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - Host set
 	 * - Index page shown and notice not hidden
 	 * - Sync has occured
@@ -292,12 +285,11 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testFeatureSyncNotification() {
-		set_current_screen( 'edit.php' );
-		update_option( 'ep_intro_shown', true );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		update_option( 'ep_last_sync', time() );
-		delete_option( 'ep_need_upgrade_sync' );
-		update_option( 'ep_feature_auto_activated_sync', 'woocommerce' );
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		update_site_option( 'ep_last_sync', time() );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		update_site_option( 'ep_feature_auto_activated_sync', 'woocommerce' );
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice();
@@ -309,7 +301,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - Host set
 	 * - Index page shown and notice not hidden
 	 * - Sync has occured
@@ -323,12 +315,11 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testAboveESCompatNotification() {
-		set_current_screen( 'edit.php' );
-		update_option( 'ep_intro_shown', true );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		update_option( 'ep_last_sync', time() );
-		delete_option( 'ep_need_upgrade_sync' );
-		delete_option( 'ep_feature_auto_activated_sync' );
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		update_site_option( 'ep_last_sync', time() );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		add_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_above' ) );
 
@@ -344,7 +335,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screan
+	 * - On sites secreen
 	 * - Host set
 	 * - Index page shown and notice not hidden
 	 * - Sync has occured
@@ -358,12 +349,11 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * @since 2.2
 	 */
 	public function testBelowESCompatNotification() {
-		set_current_screen( 'edit.php' );
-		update_option( 'ep_intro_shown', true );
-		delete_option( 'ep_hide_intro_shown_notice' );
-		update_option( 'ep_last_sync', time() );
-		delete_option( 'ep_need_upgrade_sync' );
-		delete_option( 'ep_feature_auto_activated_sync' );
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		update_site_option( 'ep_last_sync', time() );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		add_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_below' ) );
 

@@ -26,6 +26,9 @@ function _manually_load_plugin() {
 	update_option( 'ep_host', $host );
 	update_site_option( 'ep_host', $host );
 
+	define( 'EP_IS_NETWORK', true );
+	define( 'WP_NETWORK_ADMIN', true );
+
 	require( dirname( __FILE__ ) . '/../vendor/woocommerce/woocommerce.php' );
 	require( dirname( __FILE__ ) . '/../elasticpress.php' );
 

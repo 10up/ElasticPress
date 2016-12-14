@@ -52,8 +52,8 @@ class EPTestFeatureActivation extends EP_Test_Base {
 	 * @since  2.2
 	 */
 	public function testNoActiveFeatures() {
-		delete_option( 'ep_feature_requirement_statuses' );
-		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_feature_requirement_statuses' );
+		delete_site_option( 'ep_feature_settings' );
 
 		EP_Features::factory()->setup_features();
 
@@ -69,8 +69,8 @@ class EPTestFeatureActivation extends EP_Test_Base {
 	 * @since  2.2
 	 */
 	public function testAutoActivated() {
-		delete_option( 'ep_feature_requirement_statuses' );
-		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_feature_requirement_statuses' );
+		delete_site_option( 'ep_feature_settings' );
 
 		EP_Features::factory()->handle_feature_activation();
 		EP_Features::factory()->setup_features();
@@ -95,13 +95,13 @@ class EPTestFeatureActivation extends EP_Test_Base {
 	 * @since  2.2
 	 */
 	public function testRequirementStatuses() {
-		delete_option( 'ep_feature_requirement_statuses' );
-		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_feature_requirement_statuses' );
+		delete_site_option( 'ep_feature_settings' );
 
 		EP_Features::factory()->handle_feature_activation();
 		EP_Features::factory()->setup_features();
 
-		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
+		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( 0, $requirements_statuses['search'] );
 		$this->assertEquals( 1, $requirements_statuses['admin'] );
@@ -116,8 +116,8 @@ class EPTestFeatureActivation extends EP_Test_Base {
 	 * @since  2.2
 	 */
 	public function testAutoActivateWithSimpleFeature() {
-		delete_option( 'ep_feature_requirement_statuses' );
-		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_feature_requirement_statuses' );
+		delete_site_option( 'ep_feature_settings' );
 
 		ep_register_feature( 'test', array(
 			'title' => 'Test',
@@ -132,7 +132,7 @@ class EPTestFeatureActivation extends EP_Test_Base {
 	}
 
 	public function simple_feature_requirements_status_cb() {
-		$on = get_option( 'ep_test_feature_on', 2 );
+		$on = get_site_option( 'ep_test_feature_on', 2 );
 
 		$status = new EP_Feature_Requirements_Status( $on );
 
@@ -147,8 +147,8 @@ class EPTestFeatureActivation extends EP_Test_Base {
 	 * @since  2.2
 	 */
 	public function testAutoActivateWithFeature() {
-		delete_option( 'ep_feature_requirement_statuses' );
-		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_feature_requirement_statuses' );
+		delete_site_option( 'ep_feature_settings' );
 
 		ep_register_feature( 'test', array(
 			'title' => 'Test',
@@ -159,17 +159,17 @@ class EPTestFeatureActivation extends EP_Test_Base {
 		EP_Features::factory()->handle_feature_activation();
 		EP_Features::factory()->setup_features();
 
-		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
+		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( false, EP_Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 2, EP_Features::factory()->registered_features['test']->requirements_status()->code );
 		$this->assertEquals( 2, $requirements_statuses['test'] );
 
-		update_option( 'ep_test_feature_on', 0 );
+		update_site_option( 'ep_test_feature_on', 0 );
 
 		EP_Features::factory()->handle_feature_activation();
 
-		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
+		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, EP_Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 0, EP_Features::factory()->registered_features['test']->requirements_status()->code );
@@ -184,8 +184,8 @@ class EPTestFeatureActivation extends EP_Test_Base {
 	 * @since  2.2
 	 */
 	public function testAutoDeactivateWithFeature() {
-		delete_option( 'ep_feature_requirement_statuses' );
-		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_feature_requirement_statuses' );
+		delete_site_option( 'ep_feature_settings' );
 
 		ep_register_feature( 'test', array(
 			'title' => 'Test',
@@ -193,22 +193,22 @@ class EPTestFeatureActivation extends EP_Test_Base {
 			'requirements_status_cb' => array( $this, 'simple_feature_requirements_status_cb' ),
 		) );
 
-		update_option( 'ep_test_feature_on', 0 );
+		update_site_option( 'ep_test_feature_on', 0 );
 
 		EP_Features::factory()->handle_feature_activation();
 		EP_Features::factory()->setup_features();
 
-		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
+		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, EP_Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 0, EP_Features::factory()->registered_features['test']->requirements_status()->code );
 		$this->assertEquals( 0, $requirements_statuses['test'] );
 
-		update_option( 'ep_test_feature_on', 2 );
+		update_site_option( 'ep_test_feature_on', 2 );
 
 		EP_Features::factory()->handle_feature_activation();
 
-		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
+		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( false, EP_Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 2, EP_Features::factory()->registered_features['test']->requirements_status()->code );
@@ -223,8 +223,8 @@ class EPTestFeatureActivation extends EP_Test_Base {
 	 * @since  2.2
 	 */
 	public function testReqChangeNothingWithFeature() {
-		delete_option( 'ep_feature_requirement_statuses' );
-		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_feature_requirement_statuses' );
+		delete_site_option( 'ep_feature_settings' );
 
 		ep_register_feature( 'test', array(
 			'title' => 'Test',
@@ -232,22 +232,22 @@ class EPTestFeatureActivation extends EP_Test_Base {
 			'requirements_status_cb' => array( $this, 'simple_feature_requirements_status_cb' ),
 		) );
 
-		update_option( 'ep_test_feature_on', 0 );
+		update_site_option( 'ep_test_feature_on', 0 );
 
 		EP_Features::factory()->handle_feature_activation();
 		EP_Features::factory()->setup_features();
 
-		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
+		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, EP_Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 0, EP_Features::factory()->registered_features['test']->requirements_status()->code );
 		$this->assertEquals( 0, $requirements_statuses['test'] );
 
-		update_option( 'ep_test_feature_on', 1 );
+		update_site_option( 'ep_test_feature_on', 1 );
 
 		EP_Features::factory()->handle_feature_activation();
 
-		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
+		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, EP_Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 1, EP_Features::factory()->registered_features['test']->requirements_status()->code );
