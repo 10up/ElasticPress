@@ -53,7 +53,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screem
+	 * - On edit screan
 	 * - No host set
 	 * - Index page not shown and notice not hidden
 	 * - No sync has occured
@@ -85,7 +85,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On edit screem
+	 * - On edit screan
 	 * - Host set
 	 * - Index page not shown and notice not hidden
 	 * - No sync has occured
@@ -111,5 +111,190 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		ob_get_clean();
 
 		$this->assertEquals( 'no-sync', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - On edit screan
+	 * - Host set
+	 * - Index page shown
+	 * - Sync has occured
+	 * - No upgrade sync is needed
+	 * - Not feature auto activate sync is needed
+	 *
+	 * Do: Show no notifications
+	 * 
+	 * @group admin-notifications
+	 * @since 2.2
+	 */
+	public function testNoNotifications() {
+		set_current_screen( 'edit.php' );
+
+		update_option( 'ep_intro_shown', true );
+		update_option( 'ep_hide_intro_shown_notice', true );
+		update_option( 'ep_last_sync', time() );
+		delete_option( 'ep_need_upgrade_sync' );
+		delete_option( 'ep_feature_auto_activated_sync' );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice();
+		ob_get_clean();
+
+		$this->assertFalse( $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - On edit screan
+	 * - No host set
+	 * - Index page not shown and notice not hidden
+	 * - No sync has occured
+	 * - Upgrade sync is needed
+	 * - Feature auto activate sync is needed
+	 *
+	 * Do: Show setup notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.2
+	 */
+	public function testNotificationPrioritySetup() {
+		set_current_screen( 'edit.php' );
+
+		delete_option( 'ep_host' );
+		delete_option( 'ep_intro_shown' );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		delete_option( 'ep_last_sync' );
+		update_option( 'ep_need_upgrade_sync', true );
+		update_option( 'ep_feature_auto_activated_sync', true );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice();
+		ob_get_clean();
+
+		$this->assertEquals( 'need-setup', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - On edit screan
+	 * - Host set
+	 * - Index page shown and notice not hidden
+	 * - No sync has occured
+	 * - Upgrade sync is needed
+	 * - Feature auto activate sync is needed
+	 *
+	 * Do: Show no sync notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.2
+	 */
+	public function testNotificationPrioritySync() {
+		set_current_screen( 'edit.php' );
+		update_option( 'ep_intro_shown', true );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		delete_option( 'ep_last_sync' );
+		update_option( 'ep_need_upgrade_sync', true );
+		update_option( 'ep_feature_auto_activated_sync', true );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice();
+		ob_get_clean();
+
+		$this->assertEquals( 'no-sync', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - On edit screan
+	 * - Bad host set
+	 * - Index page  shown and notice not hidden
+	 * - No sync has occured
+	 * - No upgrade sync is needed
+	 * - No feature auto activate sync is needed
+	 *
+	 * Do: Show bad host notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.2
+	 */
+	public function testBadHostNotification() {
+		set_current_screen( 'edit.php' );
+
+		update_option( 'ep_host', 'bad' );
+		update_option( 'ep_intro_shown', true );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		delete_option( 'ep_last_sync' );
+		delete_option( 'ep_need_upgrade_sync' );
+		delete_option( 'ep_feature_auto_activated_sync' );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice();
+		ob_get_clean();
+
+		$this->assertEquals( 'bad-host', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - On edit screan
+	 * - Host set
+	 * - Index page shown and notice not hidden
+	 * - Sync has occured
+	 * - Upgrade sync is needed
+	 * - No feature auto activate sync is needed
+	 *
+	 * Do: Show upgrade sync notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.2
+	 */
+	public function testUpgradeSyncNotification() {
+		set_current_screen( 'edit.php' );
+		update_option( 'ep_intro_shown', true );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		update_option( 'ep_last_sync', time() );
+		update_option( 'ep_need_upgrade_sync', true );
+		delete_option( 'ep_feature_auto_activated_sync' );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice();
+		ob_get_clean();
+
+		$this->assertEquals( 'upgrade-sync', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - On edit screan
+	 * - Host set
+	 * - Index page shown and notice not hidden
+	 * - Sync has occured
+	 * - No upgrade sync is needed
+	 * - Feature auto activate sync is needed
+	 *
+	 * Do: Show upgrade sync notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.2
+	 */
+	public function testFeatureSyncNotification() {
+		set_current_screen( 'edit.php' );
+		update_option( 'ep_intro_shown', true );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		update_option( 'ep_last_sync', time() );
+		delete_option( 'ep_need_upgrade_sync' );
+		update_option( 'ep_feature_auto_activated_sync', 'woocommerce' );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice();
+		ob_get_clean();
+
+		$this->assertEquals( 'auto-activate-sync', $notice );
 	}
 }
