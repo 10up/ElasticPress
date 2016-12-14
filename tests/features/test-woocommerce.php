@@ -44,31 +44,6 @@ class EPTestWooCommerceFeature extends EP_Test_Base {
 	}
 
 	/**
-	 * Test products post type query doesn't get integrated when the feature is not active
-	 *
-	 * @since 2.1
-	 * @group Wwoocommerce
-	 */
-	public function testProductsPostTypeQueryOff() {
-		EP_Features::factory()->setup_features();
-
-		ep_create_and_sync_post();
-		ep_create_and_sync_post( array( 'post_content' => 'product 1', 'post_type' => 'product' ) );
-
-		ep_refresh_index();
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
-		$args = array(
-			'post_type' => 'product',
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertTrue( empty( $this->fired_actions['ep_wp_query_search'] ) );
-	}
-
-	/**
 	 * Test products post type query does get integrated when the feature is not active
 	 *
 	 * @since 2.1
