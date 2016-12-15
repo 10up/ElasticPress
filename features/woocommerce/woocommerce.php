@@ -291,7 +291,7 @@ function ep_wc_translate_args( $query ) {
 	 */
 	if ( $integrate ) {
 		// Set tax_query again since we may have added things
-		$query->set( 'tax_query', 'tax_query' );
+		$query->set( 'tax_query', $tax_query );
 
 		// Default to product if no post type is set
 		if ( empty( $post_type ) ) {
