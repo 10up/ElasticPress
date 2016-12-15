@@ -471,7 +471,7 @@ function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
  * @return bool
  */
 function ep_wc_blacklist_coupons( $enabled, $query ) {
-	if ( 'shop_coupon' === $query->get( 'post_type' ) ) {
+	if ( method_exists( $query, 'get' ) && 'shop_coupon' === $query->get( 'post_type' ) ) {
 		return false;
 	}
 
