@@ -62,7 +62,8 @@ function _setup_theme() {
 	include( dirname( __FILE__ ) . '/../vendor/woocommerce/uninstall.php' );
 	WC_Install::install();
 
-	$GLOBALS['wp_roles']->reinit();
+	$GLOBALS['wp_roles'] = new WP_Roles();
+
 	echo "Installing WooCommerce..." . PHP_EOL;
 }
 tests_add_filter( 'setup_theme', '_setup_theme' );
