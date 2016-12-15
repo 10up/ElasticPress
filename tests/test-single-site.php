@@ -1151,33 +1151,11 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test meta mapping for complex arrays. All complex arrays are serialized
+	 * Test meta shows up in EP post object
 	 *
 	 * @since 1.7
 	 */
-	public function testSearchMetaMappingComplexArray() {
-		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => array( 'test' ) ) );
-
-		ep_refresh_index();
-		$args = array(
-			'ep_integrate' => true,
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 1, $query->post_count );
-
-		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
-
-		$this->assertTrue( is_array( unserialize( $query->posts[0]->post_meta['test_key'][0] ) ) ); // Make sure value is properly serialized
-	}
-
-	/**
-	 * Test meta mapping for complex objects. All complex objects are serialized
-	 *
-	 * @since 1.7
-	 */
-	public function testSearchMetaMappingComplexObject() {
+	public function testSearchMetaInPostObject() {
 		$object = new stdClass();
 		$object->test = 'hello';
 
@@ -1192,7 +1170,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 
-		$this->assertEquals( 1, count( $query->posts[0]->meta['test_key'] ) ); // Make sure there is only one value
+		$this->assertEquals( 1, count( $query->posts[0]->meta['test_key'] ) );
 	}
 
 	/**
