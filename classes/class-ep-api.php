@@ -281,11 +281,11 @@ class EP_API {
 	 * @since 0.1.0
 	 * @return bool
 	 */
-	public function delete_post( $post_id, $blocking = true  ) {
+	public function delete_post( $post_id, $blocking = true, $post_type  ) {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . 'post/' . $post_id;
+		$path = $index . $post_type . '/' . $post_id;
 
 		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
 
@@ -2285,7 +2285,7 @@ function ep_get_post( $post_id ) {
 	return EP_API::factory()->get_post( $post_id );
 }
 
-function ep_delete_post( $post_id, $blocking = true ) {
+function ep_delete_post( $post_id, $blocking = true, $post_type = 'post' ) {
 	return EP_API::factory()->delete_post( $post_id, $blocking );
 }
 
