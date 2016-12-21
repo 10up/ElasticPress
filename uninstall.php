@@ -62,8 +62,22 @@ class EP_Uninstaller {
 		delete_option( 'ep_host' );
 		delete_site_option( 'ep_index_meta' );
 		delete_option( 'ep_index_meta' );
-		delete_site_option( 'ep_active_modules' );
-		delete_option( 'ep_active_modules' );
+		delete_site_option( 'ep_feature_settings' );
+		delete_option( 'ep_feature_settings' );
+		delete_site_option( 'ep_version' );
+		delete_option( 'ep_version' );
+		delete_option( 'ep_intro_shown' );
+		delete_site_option( 'ep_intro_shown' );
+		delete_option( 'ep_last_sync' );
+		delete_site_option( 'ep_last_sync' );
+		delete_option( 'ep_need_upgrade_sync' );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		delete_option( 'ep_feature_requirement_statuses' );
+		delete_site_option( 'ep_feature_requirement_statuses' );
+		delete_option( 'ep_feature_auto_activated_sync' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
+		delete_option( 'ep_hide_intro_shown_notice' );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
 	}
 
 	/**

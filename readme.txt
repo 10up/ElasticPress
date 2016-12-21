@@ -12,13 +12,13 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 A fast and flexible search and query engine for WordPress.
 
 == Description ==
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
 
-Pick and choose the modules that makes sense for your website:
+Here is a list of the amazing ElasticPress features included in the plugin:
 
 __Search__: Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
 
-__WooCommerce__: Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
+__WooCommerce__: Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This feature will increase your sales bottom line and reduce administrative costs.
 
 __Related Posts__: Help users easily find related content by adding related posts to the end of each post.
 
@@ -30,9 +30,22 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
 2. Activate the plugin in WordPress.
 3. In the ElasticPress settings page, input your Elasticsearch host.
-4. Activate the ElasticPress modules you need from the dashboard.
+4. Enjoy!
 
 == Changelog ==
+
+= 2.2 =
+
+Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality to improve speed and relevancy on their website? Modules can of course be overriden and disabled. Also, modules that don't have their minimum requirements met are still auto-disabled.
+
+### Enhancements
+* (Breaking change) Module registration API changed. See `register_module` in `classes/class-ep-modules.php`.
+* (Breaking change) Related posts are now in a widget instead of automatically being appending to content.
+
+= 2.1.2 (Requires re-index) =
+
+* Separate mapping for ES 5.0+
+* Fix some unit tests
 
 = 2.1.1 =
 

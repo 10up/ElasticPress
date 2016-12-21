@@ -22,7 +22,7 @@ $base_url =  ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'netwo
 			<a class="dashicons pause-sync dashicons-controls-pause"></a>
 			<a class="dashicons resume-sync dashicons-controls-play"></a>
 			<a class="dashicons cancel-sync dashicons-no"></a>
-			<?php if ( ep_elasticsearch_can_connect() ) : ?>
+			<?php if ( ep_get_elasticsearch_version() ) : ?>
 				<a class="dashicons start-sync dashicons-update"></a>
 			<?php endif; ?>
 		<?php endif; ?>
