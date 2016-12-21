@@ -274,11 +274,15 @@ function ep_wc_translate_args( $query ) {
 	 */
 	$post_type = $query->get( 'post_type', false );
 
-	$supported_post_types = array(
-		'product',
-		'shop_order',
-		'shop_order_refund',
-		'product_variation'
+	// Act only on a defined subset of all indexable post types here
+	$supported_post_types = array_intersect(
+		array(
+			'product',
+			'shop_order',
+			'shop_order_refund',
+			'product_variation'
+		),
+		ep_get_indexable_post_types()
 	);
 
 	// For orders it queries an array of shop_order and shop_order_refund post types, hence an array_diff
@@ -341,7 +345,7 @@ function ep_wc_translate_args( $query ) {
 		if ( ! empty( $orderby ) && 'rand' === $orderby ) {
 			$query->set( 'orderby', false ); // Just order by relevance.
 		}
-		
+
 		$s = $query->get( 's' );
 
 		$query->query_vars['ep_integrate'] = true;
@@ -464,7 +468,7 @@ function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
 
 /**
  * Make search coupons don't go through ES
- * 
+ *
  * @param  bool $enabled
  * @param  object $query
  * @since  2.1
