@@ -2064,7 +2064,7 @@ class EP_API {
 
 		}
 
-		$path = '/_nodes?plugin=true';
+		$path = '_nodes/plugins';
 
 		$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
