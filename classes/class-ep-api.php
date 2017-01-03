@@ -1019,7 +1019,7 @@ class EP_API {
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
 			$tax_must_not_filter  = array();
-			
+
 			// Main tax_query array for ES
 			$es_tax_query = array();
 
@@ -1037,7 +1037,7 @@ class EP_API {
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
-					
+
 					/*
 					 * add support for "NOT IN" operator
 					 *
@@ -1051,7 +1051,7 @@ class EP_API {
 						if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
 							$terms_obj['execution'] = 'and';
 						}
-						
+
 						// Add the tax query filter
 						$tax_filter[]['terms'] = $terms_obj;
 					}
@@ -1067,15 +1067,15 @@ class EP_API {
 
 				$es_tax_query[$relation] = $tax_filter;
 			}
-			
+
 			if ( ! empty( $tax_must_not_filter ) ) {
 				$es_tax_query['must_not'] = $tax_must_not_filter;
 			}
-			
+
 			if( ! empty( $es_tax_query ) ) {
 				$filter['bool']['must'][]['bool'] = $es_tax_query;
 			}
-			
+
 			$use_filters = true;
 		}
 
@@ -1557,7 +1557,7 @@ class EP_API {
 				'boost' => 1,
 			);
 		}
-		
+
 		/**
 		 * Order by 'rand' support
 		 *
@@ -1779,6 +1779,10 @@ class EP_API {
 			$enabled = true;
 		}
 
+		if (!ep_get_host()) {
+			$enabled = false;
+		}
+
 		return apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
 	}
 
@@ -1893,7 +1897,7 @@ class EP_API {
 
 		return $sort;
 	}
-	
+
 	/**
 	 * Get Order by args Array
 	 *
@@ -1906,7 +1910,7 @@ class EP_API {
 		if ( ! is_array( $orderbys ) ) {
 			$orderbys = explode( ' ', $orderbys );
 		}
-		
+
 		return $orderbys;
 	}
 
