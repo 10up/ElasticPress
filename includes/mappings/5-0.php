@@ -325,6 +325,9 @@ return array(
 						),
 					),
 				),
+				'attachment.data' => array(
+					'type' => 'text',
+				),
 			),
 		),
 	),
