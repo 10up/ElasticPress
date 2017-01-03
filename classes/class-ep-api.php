@@ -65,7 +65,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . 'post/' . $post['post_id'];
+		$path = apply_filters( 'ep_index_post_request_path', $index . 'post/' . $post['post_id'], $post );
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 
