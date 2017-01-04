@@ -2383,7 +2383,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		// Set all post types to be excluded from search
 		foreach ( $GLOBALS['wp_post_types'] as $key => $post_type ) {
 			$backup_post_types[ $key ] = clone $post_type;
-			
+
 			$post_type->exclude_from_search = true;
 		}
 
@@ -3139,8 +3139,10 @@ class EPTestSingleSite extends EP_Test_Base {
 			'title' => 'Test',
 		) );
 
+		$feature = ep_get_registered_feature( 'test' );
+
 		$this->assertTrue( ! empty( EP_Features::factory()->registered_features['test'] ) );
-		$this->assertTrue( ! empty( ep_get_registered_feature( 'test' ) ) );
+		$this->assertTrue( ! empty( $feature ) );
 	}
 
 	/**
