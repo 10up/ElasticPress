@@ -18,6 +18,8 @@ function ep_test_shard_number( $mapping ) {
 }
 
 function _manually_load_plugin() {
+	global $wp_version;
+
 	$host = getenv( 'EP_HOST' );
 	if ( empty( $host ) ) {
 		$host = 'http://localhost:9200';
@@ -52,6 +54,8 @@ function _manually_load_plugin() {
 	}
 
 	require_once( dirname( __FILE__ ) . '/includes/functions.php' );
+
+	echo 'WordPress version ' . $wp_version . "\n";
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
@@ -64,7 +68,7 @@ function _setup_theme() {
 
 	$GLOBALS['wp_roles'] = new WP_Roles();
 
-	echo "Installing WooCommerce..." . PHP_EOL;
+	echo 'Installing WooCommerce version ' . WC()->version . ' ...' . PHP_EOL;
 }
 tests_add_filter( 'setup_theme', '_setup_theme' );
 
