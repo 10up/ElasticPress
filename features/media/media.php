@@ -15,6 +15,7 @@ function ep_media_setup() {
 	add_filter( 'ep_index_post_request_path', 'ep_media_index_post_request_path', 999, 2 );
 	add_filter( 'ep_post_sync_args', 'ep_media_post_sync_args', 999, 2 );
 	add_filter( 'ep_admin_supported_post_types', 'ep_media_admin_supported_post_types', 999 , 1 );
+	add_filter( 'ep_indexable_post_status', 'ep_media_indexable_post_status', 999, 1 );
 }
 
 /**
@@ -90,6 +91,21 @@ function ep_media_admin_supported_post_types( $post_types ) {
 	}
 	
 	return $post_types;
+}
+
+/**
+ * Add "inherit" post status for indexable post status
+ *
+ * @param $statuses
+ *
+ * @return array
+ */
+function ep_media_indexable_post_status( $statuses ) {
+	if( ! array_search( 'inherit', $statuses ) ) {
+		$statuses[] = 'inherit';
+	}
+	
+	return $statuses;
 }
 
 /**
