@@ -2381,7 +2381,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		$backup_post_types = $GLOBALS['wp_post_types'];
 
 		// Set all post types to be excluded from search
-		foreach ( $GLOBALS['wp_post_types'] as $post_type ) {
+		foreach ( $GLOBALS['wp_post_types'] as $key => $post_type ) {
+			$backup_post_types[ $key ] = clone $post_type;
+			
 			$post_type->exclude_from_search = true;
 		}
 
