@@ -13,8 +13,8 @@
  * @since  2.1
  */
 function ep_admin_setup() {
+	add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
 	if ( is_admin() ) {
-		add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
 		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
 		add_action( 'pre_get_posts', 'ep_admin_integrate' );
 	}
