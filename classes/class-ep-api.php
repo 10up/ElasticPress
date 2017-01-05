@@ -1551,7 +1551,7 @@ class EP_API {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$formatted_args['query'] = $query;
+			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args ) ;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,

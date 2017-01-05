@@ -325,8 +325,19 @@ return array(
 						),
 					),
 				),
-				'attachment.data' => array(
-					'type' => 'text',
+				'attachments' => array(
+					'type' => 'nested',
+					'properties' => array(
+						'ID' => array(
+							'type' => 'long',
+						),
+						'content' => array(
+							'type' => 'text',
+						),
+					)
+				),
+				'attachment' => array(
+					'type' => 'object',
 				),
 			),
 		),

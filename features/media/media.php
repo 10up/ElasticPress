@@ -16,6 +16,7 @@ function ep_media_setup() {
 	add_filter( 'ep_post_sync_args', 'ep_media_post_sync_args', 999, 2 );
 	add_filter( 'ep_admin_supported_post_types', 'ep_media_admin_supported_post_types', 999 , 1 );
 	add_filter( 'ep_indexable_post_status', 'ep_media_indexable_post_status', 999, 1 );
+	add_filter( 'ep_formatted_args_query', 'ep_media_formatted_args_query', 999, 2 );
 }
 
 /**
@@ -47,8 +48,9 @@ function ep_media_index_post_request_path( $path, $post ) {
 function ep_media_post_sync_args( $post_args, $post_id ) {
 	global $wp_filesystem;
 	
-	// Allowed mimes only and should have filesystem access
-	if( in_array( get_post_mime_type( $post_id ), ep_media_get_allowed_mime_types() ) && WP_Filesystem() ) {
+	// Add "data" field if it's supported mime types attachment and have direct filesystem access to read file data
+	// Following block is basically for attachments
+	if( 'attachment' == get_post_type( $post_id ) && in_array( get_post_mime_type( $post_id ), ep_media_get_allowed_mime_types() ) && WP_Filesystem() ) {
 		$file_name = get_attached_file( $post_id );
 		$exist = $wp_filesystem->exists( $file_name, false, 'f' );
 		if( $exist ) {
@@ -58,7 +60,55 @@ function ep_media_post_sync_args( $post_args, $post_id ) {
 		}
 	}
 	
+	// Fetch child posts to put nested attachments in post object.
+	// Doing so will allow us to search into post's attachments using Elasticsearch nested objects
+	// This is basically for posts who has attachments attached.
+	$child_args = array(
+		'ep_integrate' => true,
+		'post_parent' => intval( $post_id ),
+		'post_type'   => 'attachment',
+		'post_mime_type' => array_values( ep_media_get_allowed_mime_types() ),
+		'post_status' => 'inherit',
+	);
+	
+	// Filter to add attachment data in post object when search data is returned
+	add_filter( 'ep_search_post_return_args', 'ep_media_search_post_args_add_attachments', 10, 1 );
+	
+	$child_attachment_query = new WP_Query( $child_args );
+	
+	remove_filter( 'ep_search_post_return_args', 'ep_media_search_post_args_add_attachments', 10 );
+	
+	$child_attachments = $child_attachment_query->posts;
+	
+	// Put attachment data into post
+	if( ! empty( $child_attachment_query->found_posts ) ) {
+		$post_args['attachments'] = array();
+		foreach( $child_attachments as $single_child ) {
+			if( ! empty( $single_child->attachment['content'] ) ) {
+				$post_args['attachments'][] = array(
+					'ID' => $single_child->ID,
+					'content' => $single_child->attachment['content'],
+				);
+			}
+		}
+	}
+	
 	return $post_args;
+}
+
+/**
+ * Add post's attachment data in search return post
+ *
+ * By default returned post will have post data which can filtered using ep_search_post_return_args filter.
+ *
+ * @param $search_return_args
+ *
+ * @return array
+ */
+function ep_media_search_post_args_add_attachments( $search_return_args ) {
+	$search_return_args[] = 'attachment';
+	
+	return $search_return_args;
 }
 
 /**
@@ -106,6 +156,38 @@ function ep_media_indexable_post_status( $statuses ) {
 	}
 	
 	return $statuses;
+}
+
+/**
+ * Add nested query to search in attachment content in Elasticsearch formatted args query
+ *
+ * @param $formatted_args
+ * @param $args
+ *
+ * @return mixed
+ */
+function ep_media_formatted_args_query( $formatted_args, $args ) {
+	
+	if( ! empty( $formatted_args['bool']['should'] ) && ! empty( $args['s'] ) ) {
+		$formatted_args['bool']['should'][] = array(
+			'nested' => array(
+				'path' => 'attachments',
+				'query' => array(
+					'bool' => array(
+						'must' => [
+							array(
+								'match' => array(
+									'attachments.content' => $args['s'],
+								),
+							),
+						],
+					),
+				),
+			),
+		);
+	}
+	
+	return $formatted_args;
 }
 
 /**
