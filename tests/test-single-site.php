@@ -3221,4 +3221,42 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
+	
+	/**
+	 * Test post_mime_type query
+	 *
+	 * @since 2.3
+	 */
+	function testPostMimeTypeQuery() {
+		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ) );
+		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ) );
+		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'application/pdf', 'post_status' => 'inherit' ) );
+		
+		ep_refresh_index();
+		
+		$args = array(
+			'ep_integrate' => true,
+			'post_mime_type' => 'image',
+			'post_type' => 'attachment',
+			'post_status' => 'inherit'
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 2, $query->post_count );
+		
+		$args = array(
+			'ep_integrate' => true,
+			'post_mime_type' => array(
+				'image/jpeg',
+				'application/pdf',
+			),
+			'post_type' => 'attachment',
+			'post_status' => 'inherit'
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 3, $query->found_posts );
+	}
 }
