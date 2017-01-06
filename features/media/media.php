@@ -200,10 +200,16 @@ function ep_media_formatted_args_query( $formatted_args, $args ) {
 function ep_media_requirements_status( $status ) {
 	$plugins = ep_get_plugins();
 	
-	// Ingest attachment plugin should be exist and Elaticsearch version should be 5.x
-	if ( ( ! array_key_exists( 'ingest-attachment', $plugins ) ) && version_compare( ep_get_elasticsearch_version(),'5.0', '>=' ) ) {
+	// Ingest attachment plugin is required for this feature
+	if ( ( ! array_key_exists( 'ingest-attachment', $plugins ) ) ) {
 		$status->code = 2;
 		$status->message = esc_html__( 'Elasticsearch Ingest Attachment plugin is not installed.', 'elasticpress' );
+	}
+	
+	// Elasticsearch version needs to be 5.0 or later
+	if( ! version_compare( ep_get_elasticsearch_version(),'5.0', '>=' ) ) {
+		$status->code = 2;
+		$status->message = esc_html__( 'This feature requires Elasticsearch 5.0 or later.', 'elasticpress' );
 	}
 	
 	return $status;
