@@ -224,7 +224,7 @@ class EP_WP_Query_Integration {
 			if ( empty( $query_vars['s'] ) ) {
 				$query_vars['post_type'] = 'post';
 			} else {
-				$query_vars['post_type'] = get_post_types( array( 'exclude_from_search' => false ) );
+				$query_vars['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
 			}
 		}
 
