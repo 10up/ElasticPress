@@ -615,7 +615,9 @@ class EP_Dashboard {
 		);
 
 		if ( $feature_settings[ $_POST['feature'] ]['active'] && ! $original_state ) {
-			$data['reindex'] = true;
+			if ( ! empty( $feature->requires_install_reindex ) ) {
+				$data['reindex'] = true;
+			}
 		}
 
 		wp_send_json_success( $data );
