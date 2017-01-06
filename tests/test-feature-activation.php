@@ -86,6 +86,17 @@ class EPTestFeatureActivation extends EP_Test_Base {
 
 		$this->assertEquals( true, EP_Features::factory()->registered_features['related_posts']->is_active() );
 		$this->assertEquals( 0, EP_Features::factory()->registered_features['related_posts']->requirements_status()->code );
+		
+		$plugins = ep_get_plugins();
+		$ep_version = ep_get_elasticsearch_version();
+		
+		if ( ! array_key_exists( 'ingest-attachment', $plugins ) && ! version_compare( $ep_version,'5.0', '>=' ) ) {
+			$this->assertEquals( false, EP_Features::factory()->registered_features['media']->is_active() );
+			$this->assertEquals( 2, EP_Features::factory()->registered_features['media']->requirements_status()->code );
+		} else {
+			$this->assertEquals( true, EP_Features::factory()->registered_features['media']->is_active() );
+			$this->assertEquals( 0, EP_Features::factory()->registered_features['media']->requirements_status()->code );
+		}
 	}
 
 	/**
