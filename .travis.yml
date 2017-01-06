@@ -7,7 +7,7 @@ notifications:
 
 php:
   - "7.0"
-  - "5.3"
+  - "5.5"
 
 env:
   - WP_VERSION=latest WP_MULTISITE=1

@@ -34,13 +34,25 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 2.2 =
+= 2.2 (Requires re-index) =
 
-Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality to improve speed and relevancy on their website? Modules can of course be overriden and disabled. Also, modules that don't have their minimum requirements met are still auto-disabled.
+Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overriden and disabled. Also, features that don't have their minimum requirements met are still auto-disabled.
 
 ### Enhancements
+
 * (Breaking change) Module registration API changed. See `register_module` in `classes/class-ep-modules.php`.
 * (Breaking change) Related posts are now in a widget instead of automatically being appending to content.
+* Admin warning if current Elasticsearch version is not between the min/max supported version. Version 2.2 supports versions 1.3 - 5.1.
+* Auto-reindex on versions requiring reindex.
+* User friendly admin notifications for ElasticPress not set up, first sync needed, and feature auto activation.
+
+### Bug Fixes
+
+* Back compat with old `ep_search` function.
+* Respect indexable post types in WooCommerce feature
+* New product drafts not showing in WooCommerce admin list
+* WooCommerce feature breaking image search in media library. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* WooCommerce order search broken
 
 = 2.1.2 (Requires re-index) =
 

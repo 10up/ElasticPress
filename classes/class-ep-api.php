@@ -1146,6 +1146,35 @@ class EP_API {
 
 			$use_filters = true;
 		}
+		
+		/**
+		 * Add support for post_mime_type
+		 *
+		 * If we have array, it will be fool text search filter.
+		 * If we have string(like filter images in media screen), we will have mime type "image" so need to check it as
+		 * regexp filter.
+		 *
+		 * @since 2.3
+		 */
+		if( ! empty( $args['post_mime_type'] ) ) {
+			if( is_array( $args['post_mime_type'] ) ) {
+				$filter['bool']['must'][] = array(
+					'terms' => array(
+						'post_mime_type' => (array)$args['post_mime_type'],
+					),
+				);
+				
+				$use_filters = true;
+			} elseif( is_string( $args['post_mime_type'] ) ) {
+				$filter['bool']['must'][] = array(
+					'regexp' => array(
+						'post_mime_type' => $args['post_mime_type'] . ".*",
+					),
+				);
+				
+				$use_filters = true;
+			}
+		}
 
 		/**
 		 * Simple date params support

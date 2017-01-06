@@ -1,11 +1,11 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress)
 =============
 
 A fast and flexible search and query engine for WordPress.
 
 **Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2 require re-syncing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2 require re-syncing.
 
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
