@@ -26,8 +26,8 @@ class EP_Features {
 	 * @since 2.1
 	 */
 	public function setup() {
-		add_action( 'plugins_loaded', array( $this, 'handle_feature_activation' ), 5 );
-		add_action( 'plugins_loaded', array( $this, 'setup_features' ), 5 );
+		add_action( 'plugins_loaded', array( $this, 'handle_feature_activation' ), 12 );
+		add_action( 'plugins_loaded', array( $this, 'setup_features' ), 11 );
 	}
 
 	/**
@@ -202,6 +202,8 @@ class EP_Features {
 	 * @since  2.1
 	 */
 	public function setup_features() {
+		do_action( 'ep_setup_features' );
+
 		foreach ( $this->registered_features as $feature_slug => $feature ) {
 			if ( $feature->is_active() ) {
 				$feature->setup();
