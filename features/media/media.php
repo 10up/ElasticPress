@@ -11,12 +11,14 @@
  * Setup feature filters
  */
 function ep_media_setup() {
+	//todo bulk index in dashboard
 	add_filter( 'ep_search_fields', 'ep_filter_ep_search_fields' );
 	add_filter( 'ep_index_post_request_path', 'ep_media_index_post_request_path', 999, 2 );
 	add_filter( 'ep_post_sync_args', 'ep_media_post_sync_args', 999, 2 );
 	add_filter( 'ep_admin_supported_post_types', 'ep_media_admin_supported_post_types', 999 , 1 );
 	add_filter( 'ep_indexable_post_status', 'ep_media_indexable_post_status', 999, 1 );
 	add_filter( 'ep_formatted_args_query', 'ep_media_formatted_args_query', 999, 2 );
+	add_action( 'ep_after_index_post', 'ep_media_update_parent_after_index_post', 999, 2 );
 }
 
 /**
@@ -188,6 +190,26 @@ function ep_media_formatted_args_query( $formatted_args, $args ) {
 	}
 	
 	return $formatted_args;
+}
+
+/**
+ * Index parent post once attachment is updated.
+ *
+ * This is needed because parent post will
+ *
+ * @param $post
+ * @param $index_res
+ */
+function ep_media_update_parent_after_index_post( $post, $index_res ) {
+	
+	if( is_array( $post )
+	    && ! empty( $post['post_type'] ) && 'attachment' == $post['post_type']
+	    && ! empty( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], ep_media_get_allowed_mime_types() )
+	    && ! empty( $post['post_parent'] )
+	) {
+		ep_sync_post( intval( $post['post_parent'] ) );
+	}
+	
 }
 
 /**

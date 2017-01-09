@@ -91,10 +91,14 @@ class EP_API {
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
-			return json_decode( $response_body );
+			$return = json_decode( $response_body );
+		} else {
+			$return = false;
 		}
+		
+		do_action( 'ep_after_index_post', $post, $return );
 
-		return false;
+		return $return;
 	}
 
 	/**
