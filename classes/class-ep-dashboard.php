@@ -32,6 +32,7 @@ class EP_Dashboard {
 	public function setup() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { // Must be network admin in multisite.
 			add_action( 'network_admin_menu', array( $this, 'action_admin_menu' ) );
+			add_action( 'admin_bar_menu', array( $this, 'action_network_admin_bar_menu' ), 50 );
 		} else {
 			add_action( 'admin_menu', array( $this, 'action_admin_menu' ) );
 		}
@@ -48,6 +49,21 @@ class EP_Dashboard {
 		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
 		add_filter( 'plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
+	}
+
+	/**
+	 * Show ElasticPress in network admin menu bar
+	 * 
+	 * @param  object $admin_bar
+	 * @since  2.2
+	 */
+	public function action_network_admin_bar_menu( $admin_bar ) {
+		$admin_bar->add_menu( array(
+			'id'     => 'network-admin-elasticpress',
+			'parent' => 'network-admin',
+			'title'  => 'ElasticPress',
+			'href'   => esc_url( network_admin_url( 'admin.php?page=elasticpress' ) ),
+		) );
 	}
 
 	/**
