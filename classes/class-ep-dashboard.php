@@ -634,6 +634,8 @@ class EP_Dashboard {
 			if ( ! empty( $feature->requires_install_reindex ) ) {
 				$data['reindex'] = true;
 			}
+
+			$feature->post_activation();
 		}
 
 		wp_send_json_success( $data );
