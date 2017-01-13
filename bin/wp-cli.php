@@ -78,7 +78,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::warning( printf( __( 'Feature is usable but there are warnings: %s', 'elasticpress' ), $status->message ) );
 		}
 
-		$active_features[ $feature->slug ] = wp_parse_args( $active_features[ $feature->slug ], $feature->default_settings );
+		$feature_settings = ( ! empty( $active_features[ $feature->slug ] ) ) ? $active_features[ $feature->slug ] : array();
+
+		$active_features[ $feature->slug ] = wp_parse_args( $feature_settings, $feature->default_settings );
 		$active_features[ $feature->slug ]['active'] = true;
 		
 		$feature->post_activation();
