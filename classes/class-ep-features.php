@@ -81,7 +81,9 @@ class EP_Features {
 
 		$feature = $this->registered_features[ $slug ];
 
-		$feature_settings[ $slug ] = ( ! empty( $feature->default_settings ) ) ? $feature->default_settings : array();
+		$current_feature_settings = ( ! empty( $feature_settings[ $slug ] ) ) ? $feature_settings[ $slug ] : array();
+
+		$feature_settings[ $slug ] = wp_parse_args( $current_feature_settings, $feature->default_settings );
 		$feature_settings[ $slug ]['active'] = (bool) $active;
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
