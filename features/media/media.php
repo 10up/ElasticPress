@@ -19,6 +19,7 @@ function ep_media_setup() {
 	add_filter( 'ep_indexable_post_status', 'ep_media_indexable_post_status', 999, 1 );
 	add_filter( 'ep_formatted_args_query', 'ep_media_formatted_args_query', 999, 2 );
 	add_action( 'ep_after_index_post', 'ep_media_update_parent_after_index_post', 999, 2 );
+	add_filter( 'ep_bulk_index_post_request_path', 'ep_media_bulk_index_post_request_path', 999, 1 );
 }
 
 /**
@@ -50,8 +51,10 @@ function ep_media_index_post_request_path( $path, $post ) {
 function ep_media_post_sync_args( $post_args, $post_id ) {
 	global $wp_filesystem;
 	
-	// Add "data" field if it's supported mime types attachment and have direct filesystem access to read file data
-	// Following block is basically for attachments
+	// Add "data" field
+	// if it's supported mime types attachment and have direct filesystem set file into data
+	// Need to set empty data string for others or it will throw field not present error in bulk index
+	$post_args['data'] = '';
 	if( 'attachment' == get_post_type( $post_id ) && in_array( get_post_mime_type( $post_id ), ep_media_get_allowed_mime_types() ) && WP_Filesystem() ) {
 		$file_name = get_attached_file( $post_id );
 		$exist = $wp_filesystem->exists( $file_name, false, 'f' );
@@ -210,6 +213,20 @@ function ep_media_update_parent_after_index_post( $post, $index_res ) {
 		ep_sync_post( intval( $post['post_parent'] ) );
 	}
 	
+}
+
+/**
+ * Set attachment pipeline in Elaticsearch request path for bulk index
+ *
+ * @param $path
+ *
+ * @return string
+ */
+function ep_media_bulk_index_post_request_path( $path ) {
+	
+	return add_query_arg( $path, array(
+		'pipeline' => 'attachment',
+	) );
 }
 
 /**
