@@ -224,9 +224,9 @@ function ep_media_update_parent_after_index_post( $post, $index_res ) {
  */
 function ep_media_bulk_index_post_request_path( $path ) {
 	
-	return add_query_arg( $path, array(
+	return add_query_arg( array(
 		'pipeline' => 'attachment',
-	) );
+	), $path );
 }
 
 /**
