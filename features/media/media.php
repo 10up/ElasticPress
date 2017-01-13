@@ -20,6 +20,7 @@ function ep_media_setup() {
 	add_filter( 'ep_formatted_args_query', 'ep_media_formatted_args_query', 999, 2 );
 	add_action( 'ep_after_index_post', 'ep_media_update_parent_after_index_post', 999, 2 );
 	add_filter( 'ep_bulk_index_post_request_path', 'ep_media_bulk_index_post_request_path', 999, 1 );
+	add_filter( 'ep_index_posts_args', 'ep_media_index_posts_args', 999, 1 );
 }
 
 /**
@@ -81,14 +82,27 @@ function ep_media_post_sync_args( $post_args, $post_id ) {
 	
 	$child_attachment_query = new WP_Query( $child_args );
 	
-	remove_filter( 'ep_search_post_return_args', 'ep_media_search_post_args_add_attachments', 10 );
+	// If indexing is in progress, default WP_Query integration won't work. Need to go manually now.
+	if( ep_is_indexing() ) {
+		$formatted_args = ep_format_args( $child_attachment_query->query_vars );
+		$ep_query = ep_query( $formatted_args, $child_attachment_query->query_vars, 'current' );
+		$child_attachment_query = (object) $ep_query;
+	}
 	
 	$child_attachments = $child_attachment_query->posts;
 	
+	remove_filter( 'ep_search_post_return_args', 'ep_media_search_post_args_add_attachments', 10 );
+	
 	// Put attachment data into post
-	if( ! empty( $child_attachment_query->found_posts ) ) {
+	if( ! empty( $child_attachments ) && is_array( $child_attachments ) ) {
 		$post_args['attachments'] = array();
 		foreach( $child_attachments as $single_child ) {
+			
+			// If indexing in progress, we have raw data from ES which will be array.
+			if( is_array( $single_child ) ) {
+				$single_child = (object) $single_child;
+			}
+			
 			if( ! empty( $single_child->attachment['content'] ) ) {
 				$post_args['attachments'][] = array(
 					'ID' => $single_child->ID,
@@ -227,6 +241,22 @@ function ep_media_bulk_index_post_request_path( $path ) {
 	return add_query_arg( array(
 		'pipeline' => 'attachment',
 	), $path );
+}
+
+/**
+ * Order by post_type ascending if doing bulk index.
+ * We need attachments to be indexed first so that posts to whom they are attached can have attachment data.
+ *
+ * @param $args
+ *
+ * @return mixed
+ */
+function ep_media_index_posts_args( $args ) {
+	
+	$args['orderby'] = 'post_type';
+	$args['order'] = 'ASC';
+	
+	return $args;
 }
 
 /**
