@@ -11,7 +11,6 @@
  * Setup feature filters
  */
 function ep_media_setup() {
-	//todo bulk index in dashboard
 	add_filter( 'ep_search_fields', 'ep_filter_ep_search_fields' );
 	add_filter( 'ep_index_post_request_path', 'ep_media_index_post_request_path', 999, 2 );
 	add_filter( 'ep_post_sync_args', 'ep_media_post_sync_args', 999, 2 );
