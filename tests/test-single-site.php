@@ -2327,6 +2327,60 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 	}
+	
+	public function testMetaQueryMultipleArray() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_2' => '4' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_2' => '0' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_3' => '4' ) );
+		
+		ep_refresh_index();
+		
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'meta_key_2',
+					'value' => '0',
+					'compare' => '>=',
+				)
+			),
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				'relation' => 'AND',
+				array(
+					'key' => 'meta_key_1',
+					'value' => '1',
+				),
+				array(
+					'relation' => 'OR',
+					array(
+						'key' => 'meta_key_2',
+						'value' => '2',
+						'compare' => '>=',
+					),
+					array(
+						'key' => 'meta_key_3',
+						'value' => '4',
+					),
+				),
+			),
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
 
 	/**
 	 * Test exclude_from_search post type flag

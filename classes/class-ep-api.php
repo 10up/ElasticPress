@@ -1242,248 +1242,14 @@ class EP_API {
 		}
 
 		if ( ! empty( $meta_queries ) ) {
-			$meta_filter = array();
 
 			$relation = 'must';
 			if ( ! empty( $args['meta_query'] ) && ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
 				$relation = 'should';
 			}
-
-			$meta_query_type_mapping = array(
-				'numeric'  => 'long',
-				'binary'   => 'raw',
-				'char'     => 'raw',
-				'date'     => 'date',
-				'datetime' => 'datetime',
-				'decimal'  => 'double',
-				'signed'   => 'long',
-				'time'     => 'time',
-				'unsigned' => 'long',
-			);
-
-			foreach( $meta_queries as $single_meta_query ) {
-
-				/**
-				 * There is a strange case where meta_query looks like this:
-				 * array(
-				 * 	"something" => array(
-				 * 	 array(
-				 * 	 	'key' => ...
-				 * 	 	...
-				 * 	 )
-				 * 	)
-				 * )
-				 *
-				 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
-				 *
-				 * @since  2.1
-				 */
-				if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
-					reset( $single_meta_query );
-					$first_key = key( $single_meta_query );
-
-					if ( is_array( $single_meta_query[$first_key] ) ) {
-						$single_meta_query = $single_meta_query[$first_key];
-					}
-				}
-
-				if ( ! empty( $single_meta_query['key'] ) ) {
-
-					$terms_obj = false;
-
-					$compare = '=';
-					if ( ! empty( $single_meta_query['compare'] ) ) {
-						$compare = strtolower( $single_meta_query['compare'] );
-					}
-
-					$type = null;
-					if ( ! empty( $single_meta_query['type'] ) ) {
-						$type = strtolower( $single_meta_query['type'] );
-					}
-
-					// Comparisons need to look at different paths
-					if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
-						$meta_key_path = 'meta.' . $single_meta_query['key'];
-					} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
-					} elseif ( 'like' === $compare ) {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
-					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
-						// Map specific meta field types to different Elasticsearch core types
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
-					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between' ) ) ) {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
-					} else {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
-					}
-
-					switch ( $compare ) {
-						case 'not in':
-						case '!=':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must_not' => array(
-											array(
-												'terms' => array(
-													$meta_key_path => (array) $single_meta_query['value'],
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case 'exists':
-							$terms_obj = array(
-								'exists' => array(
-									'field' => $meta_key_path,
-								),
-							);
-
-							break;
-						case 'not exists':
-							$terms_obj = array(
-								'bool' => array(
-									'must_not' => array(
-										array(
-											'exists' => array(
-												'field' => $meta_key_path,
-											),
-										),
-									),
-								),
-							);
-
-							break;
-						case '>=':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														"gte" => $single_meta_query['value'],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case 'between':
-							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														"gte" => $single_meta_query['value'][0],
-													),
-												),
-											),
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														"lte" => $single_meta_query['value'][1],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case '<=':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														'lte' => $single_meta_query['value'],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case '>':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														'gt' => $single_meta_query['value'],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case '<':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														'lt' => $single_meta_query['value'],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case 'like':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'query' => array(
-										'match' => array(
-											$meta_key_path => $single_meta_query['value'],
-										)
-									),
-								);
-							}
-							break;
-						case '=':
-						default:
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'terms' => array(
-										$meta_key_path => (array) $single_meta_query['value'],
-									),
-								);
-							}
-
-							break;
-					}
-
-					// Add the meta query filter
-					if ( false !== $terms_obj ) {
-						$meta_filter[] = $terms_obj;
-					}
-				}
-			}
+			
+			// get meta query filter
+			$meta_filter = $this->build_meta_query( $meta_queries );
 
 			if ( ! empty( $meta_filter ) ) {
 				$filter['bool']['must'][]['bool'][$relation] = $meta_filter;
@@ -1727,6 +1493,294 @@ class EP_API {
 			}
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
+	}
+	
+	/**
+	 * Build Elasticsearch filter query for WP meta_query
+	 *
+	 * @since 2.2
+	 *
+	 * @param $meta_queries
+	 *
+	 * @return array
+	 */
+	public function build_meta_query( $meta_queries ){
+		$meta_filter = array();
+		
+		if ( ! empty( $meta_queries ) ) {
+			$meta_filter = array();
+			
+			$meta_query_type_mapping = array(
+				'numeric'  => 'long',
+				'binary'   => 'raw',
+				'char'     => 'raw',
+				'date'     => 'date',
+				'datetime' => 'datetime',
+				'decimal'  => 'double',
+				'signed'   => 'long',
+				'time'     => 'time',
+				'unsigned' => 'long',
+			);
+			
+			foreach( $meta_queries as $single_meta_query ) {
+				
+				/**
+				 * There is a strange case where meta_query looks like this:
+				 * array(
+				 * 	"something" => array(
+				 * 	 array(
+				 * 	 	'key' => ...
+				 * 	 	...
+				 * 	 )
+				 * 	)
+				 * )
+				 *
+				 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
+				 *
+				 * @since  2.1
+				 */
+				if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
+					reset( $single_meta_query );
+					$first_key = key( $single_meta_query );
+					
+					if ( is_array( $single_meta_query[$first_key] ) ) {
+						$single_meta_query = $single_meta_query[$first_key];
+					}
+				}
+				
+				if ( ! empty( $single_meta_query['key'] ) ) {
+					
+					$terms_obj = false;
+					
+					$compare = '=';
+					if ( ! empty( $single_meta_query['compare'] ) ) {
+						$compare = strtolower( $single_meta_query['compare'] );
+					}
+					
+					$type = null;
+					if ( ! empty( $single_meta_query['type'] ) ) {
+						$type = strtolower( $single_meta_query['type'] );
+					}
+					
+					// Comparisons need to look at different paths
+					if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'];
+					} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+					} elseif ( 'like' === $compare ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
+					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
+						// Map specific meta field types to different Elasticsearch core types
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
+					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between' ) ) ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
+					} else {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+					}
+					
+					switch ( $compare ) {
+						case 'not in':
+						case '!=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must_not' => array(
+											array(
+												'terms' => array(
+													$meta_key_path => (array) $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case 'exists':
+							$terms_obj = array(
+								'exists' => array(
+									'field' => $meta_key_path,
+								),
+							);
+							
+							break;
+						case 'not exists':
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'exists' => array(
+												'field' => $meta_key_path,
+											),
+										),
+									),
+								),
+							);
+							
+							break;
+						case '>=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"gte" => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case 'between':
+							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"gte" => $single_meta_query['value'][0],
+													),
+												),
+											),
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"lte" => $single_meta_query['value'][1],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case '<=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														'lte' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case '>':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														'gt' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case '<':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														'lt' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case 'like':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'query' => array(
+										'match' => array(
+											$meta_key_path => $single_meta_query['value'],
+										)
+									),
+								);
+							}
+							break;
+						case '=':
+						default:
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'terms' => array(
+										$meta_key_path => (array) $single_meta_query['value'],
+									),
+								);
+							}
+							
+							break;
+					}
+					
+					// Add the meta query filter
+					if ( false !== $terms_obj ) {
+						$meta_filter[] = $terms_obj;
+					}
+				} elseif ( is_array( $single_meta_query ) && isset( $single_meta_query[0] ) && is_array( $single_meta_query[0] ) ) {
+					/*
+					 * Handle multidimensional array. Something like:
+					 *
+					 * 'meta_query' => array(
+					 *      'relation' => 'AND',
+					 *      array(
+					 *          'key' => 'meta_key_1',
+					 *          'value' => '1',
+					 *      ),
+					 *      array(
+					 *          'relation' => 'OR',
+					 *          array(
+					 *              'key' => 'meta_key_2',
+					 *              'value' => '2',
+					 *          ),
+					 *          array(
+					 *              'key' => 'meta_key_3',
+					 *              'value' => '4',
+					 *          ),
+					 *      ),
+					 *  ),
+					 */
+					$relation = 'must';
+					if ( ! empty( $single_meta_query['relation'] ) && 'or' === strtolower( $single_meta_query['relation'] ) ) {
+						$relation = 'should';
+					}
+					
+					$meta_filter[] = array(
+						'bool' => array(
+							$relation => $this->build_meta_query( $single_meta_query ),
+						),
+					);
+				}
+			}
+		}
+		
+		return $meta_filter;
 	}
 
 	/**
