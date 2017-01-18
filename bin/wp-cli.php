@@ -42,7 +42,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @since 2.1.1
 	 */
-	private $transient_expiration = 15 * MINUTE_IN_SECONDS;
+	private $transient_expiration = 900; // 15 min
 
 	/**
 	 * Activate a feature.
