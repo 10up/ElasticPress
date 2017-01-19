@@ -1508,7 +1508,6 @@ class EP_API {
 		$meta_filter = array();
 		
 		if ( ! empty( $meta_queries ) ) {
-			$meta_filter = array();
 			
 			$meta_query_type_mapping = array(
 				'numeric'  => 'long',
