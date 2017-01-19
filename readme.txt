@@ -45,6 +45,7 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 * Admin warning if current Elasticsearch version is not between the min/max supported version. Version 2.2 supports versions 1.3 - 5.1.
 * Auto-reindex on versions requiring reindex.
 * User friendly admin notifications for ElasticPress not set up, first sync needed, and feature auto activation.
+* Admin feature applies to all features. This means if Admin isn't active, search or WooCommerce integration won't happen in the admin.
 
 ### Bug Fixes
 

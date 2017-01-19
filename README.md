@@ -40,7 +40,7 @@ Beef up your search to be more accurate, search tags, categories, and other taxo
 
 ### WooCommerce
 
-Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This feature will increase your sales bottom line and reduce administrative costs.
+Allow customers to filter through products faster and improve product search relevancy. This feature will increase your sales bottom line and reduce administrative costs.
 
 ### Related Posts
 
