@@ -1792,6 +1792,7 @@ class EP_API {
 	public function get_sites( $limit = 0 ) {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
 			'limit' => $limit,
+			'number' => $limit,
 		) );
 
 		if ( function_exists( 'get_sites' ) ) {
