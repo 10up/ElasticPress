@@ -40,6 +40,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$this->setup_test_post_type();
 
+		set_current_screen( 'front' );
+
 		/**
 		 * Most of our search test are bundled into core tests for legacy reasons
 		 */
