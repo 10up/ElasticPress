@@ -131,3 +131,5 @@ function ep_setup_misc() {
 	}
 }
 add_action( 'plugins_loaded', 'ep_setup_misc' );
+
+do_action( 'elasticpress_loaded' );
