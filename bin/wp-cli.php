@@ -769,7 +769,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Resets some values to reduce memory footprint.
 	 */
-	public function stop_the_insanity() {
+	private function stop_the_insanity() {
 		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
 
 		$wpdb->queries = array();
