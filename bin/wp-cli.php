@@ -372,6 +372,17 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		timer_start();
 
+		// This clears away dashboard notifications
+		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+			update_site_option( 'ep_last_sync', time() );
+			delete_site_option( 'ep_need_upgrade_sync' );
+			delete_site_option( 'ep_feature_auto_activated_sync' );
+		} else {
+			update_option( 'ep_last_sync', time() );
+			delete_option( 'ep_need_upgrade_sync' );
+			delete_option( 'ep_feature_auto_activated_sync' );
+		}
+
 		// Run setup if flag was passed
 		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
 
