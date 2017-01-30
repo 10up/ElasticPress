@@ -698,6 +698,27 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Formatting bulk error message recursively
+	 * 
+	 * @param  array $message_array
+	 * @since  2.2
+	 * @return string
+	 */
+	private function format_bulk_error_message( $message_array ) {
+		$message = '';
+
+		foreach ( $message_array as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$message .= $this->format_bulk_error_message( $value );
+			} else {
+				$message .= "$key: $value" . PHP_EOL;
+			}
+		}
+
+		return $message;
+	}
+
+	/**
 	 * Send any bulk indexing errors
 	 *
 	 * @since 0.9.2
@@ -705,12 +726,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private function send_bulk_errors() {
 		if ( ! empty( $this->failed_posts ) ) {
 			$error_text = __( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
+
 			foreach ( $this->failed_posts as $failed ) {
 				$failed_post = get_post( $failed );
 				if ( $failed_post ) {
 					$error_text .= "- {$failed}: " . $failed_post->post_title . "\r\n";
-					if ( array_key_exists( $failed, $this->failed_posts_message ) ) {
-						$error_text .= "\t" . $this->failed_posts_message[ $failed ] . PHP_EOL;
+
+					if ( ! empty( $this->failed_posts_message[ $failed ] ) ) {
+						$error_text .= $this->format_bulk_error_message( $this->failed_posts_message[ $failed ] ) . PHP_EOL;
 					}
 				}
 			}
