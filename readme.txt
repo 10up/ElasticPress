@@ -58,6 +58,9 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 * Stop the insansity made private. Props (sc0ttclark)[https://github.com/sc0ttclark]
 * Fix multidimensional meta querys. Props (Ritesh-patel)[https://github.com/Ritesh-patel].
 * Properly show bulk index errors in WP-CLI
+* Update ep_delete_post, include $post_type argument. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* Fix post_type product getting set in any WP_Query if tax_query is provided in WooCommerce feature. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* Adds 'number' param to satisfy WP v4.6+ fixing get_sites call. Props (rveitch)[https://github.com/rveitch]
 
 = 2.1.2 (Requires re-index) =
 
