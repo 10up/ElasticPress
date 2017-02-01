@@ -81,7 +81,7 @@ class EP_Related_Posts_Widget extends WP_Widget {
 	 */
 	public function form( $instance ) {
 		$title = ( isset( $instance['title'] ) ) ? $instance['title'] : '';
-		$num_posts = ( isset( $instance['form_id'] ) ) ? $instance['form_id'] : 5;
+		$num_posts = ( isset( $instance['num_posts'] ) ) ? $instance['num_posts'] : 5;
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>">
