@@ -46,6 +46,7 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 * Auto-reindex on versions requiring reindex.
 * User friendly admin notifications for ElasticPress not set up, first sync needed, and feature auto activation.
 * Admin feature applies to all features. This means if Admin isn't active, search or WooCommerce integration won't happen in the admin.
+* Add support for post_mime_type. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 
 ### Bug Fixes
 
@@ -54,6 +55,9 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 * New product drafts not showing in WooCommerce admin list
 * WooCommerce feature breaking image search in media library. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 * WooCommerce order search broken
+* Stop the insansity made private. Props (sc0ttclark)[https://github.com/sc0ttclark]
+* Fix multidimensional meta querys. Props (Ritesh-patel)[https://github.com/Ritesh-patel].
+* Properly show bulk index errors in WP-CLI
 
 = 2.1.2 (Requires re-index) =
 
