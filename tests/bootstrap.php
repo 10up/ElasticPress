@@ -9,6 +9,8 @@ require_once( $_tests_dir . '/includes/functions.php' );
 
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
+define( 'EP_DIR_TESTDATA', __DIR__  . '/data' );
+
 function ep_test_shard_number( $mapping ) {
 	$mapping['settings']['index'] = array(
 		'number_of_shards' => 1,

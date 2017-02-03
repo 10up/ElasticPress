@@ -128,3 +128,44 @@ function ep_count_indexes() {
 		'last_blog_id_with_index' => $last_blog_id_with_index,
 	);
 }
+
+/**
+ * Upload and create pdf attachment.
+ *
+ * @param array $post_args
+ *
+ * @return bool|int|WP_Error
+ */
+function ep_media_upload_pdf( $post_args = array() ) {
+	$filename = ( EP_DIR_TESTDATA . '/test_pdf.pdf' );
+	$contents = file_get_contents( $filename );
+	
+	$upload = wp_upload_bits( basename( $filename ), null, $contents );
+	
+	$type = '';
+	if ( !empty( $upload['type'] ) ) {
+		$type = $upload['type'];
+	} else {
+		$mime = wp_check_filetype( $upload['file'] );
+		if ( $mime ) {
+			$type = $mime['type'];
+		}
+	}
+	
+	if( ! empty( $upload['error'] ) ) {
+		return false;
+	}
+	
+	$attachment = wp_parse_args( $post_args, array(
+		'post_title' => basename( $upload['file'] ),
+		'post_content' => '',
+		'post_type' => 'attachment',
+		'post_mime_type' => $type,
+	) );
+	
+	// Save attachment
+	$id = wp_insert_attachment( $attachment, $upload['file'] );
+	wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $upload['file'] ) );
+	
+	return $id;
+}

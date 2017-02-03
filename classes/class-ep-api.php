@@ -65,7 +65,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . 'post/' . $post['post_id'];
+		$path = apply_filters( 'ep_index_post_request_path', $index . 'post/' . $post['post_id'], $post );
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 
@@ -91,10 +91,14 @@ class EP_API {
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
-			return json_decode( $response_body );
+			$return = json_decode( $response_body );
+		} else {
+			$return = false;
 		}
+		
+		do_action( 'ep_after_index_post', $post, $return );
 
-		return false;
+		return $return;
 	}
 
 	/**
@@ -1360,7 +1364,7 @@ class EP_API {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$formatted_args['query'] = $query;
+			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args ) ;
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
@@ -1837,7 +1841,7 @@ class EP_API {
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-		$path = trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+		$path = apply_filters( 'ep_bulk_index_post_request_path', trailingslashit( ep_get_index_name() ) . 'post/_bulk' );
 
 		$request_args = array(
 			'method'  => 'POST',
@@ -2161,7 +2165,7 @@ class EP_API {
 
 		}
 
-		$path = '/_nodes?plugin=true';
+		$path = '_nodes/plugins';
 
 		$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
