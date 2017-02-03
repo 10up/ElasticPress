@@ -47,8 +47,12 @@ class EP_WP_Query_Integration {
 		// Nukes the FOUND_ROWS() database query
 		add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
 
-		// Query and filter in EP_Posts to WP_Query
-		add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
+	        // Query and filter in EP_Posts to WP_Query
+		if ( version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) ) {
+			add_filter( 'posts_pre_query', array( $this, 'filter_the_posts' ), 10, 2 );
+		} else {
+			add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
+		}
 
 		// Ensure we're in a loop before we allow blog switching
 		add_action( 'loop_start', array( $this, 'action_loop_start' ), 10, 1 );
