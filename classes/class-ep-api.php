@@ -559,9 +559,9 @@ class EP_API {
 			'post_author'       => $user_data,
 			'post_date'         => $post_date,
 			'post_date_gmt'     => $post_date_gmt,
-			'post_title'        => get_the_title( $post_id ),
-			'post_excerpt'      => $post->post_excerpt,
-			'post_content'      => apply_filters( 'the_content', $post->post_content ),
+			'post_title'        => $this->prepare_text_content( get_the_title( $post_id ) ),
+			'post_excerpt'      => $this->prepare_text_content( $post->post_excerpt ),
+			'post_content'      => $this->prepare_text_content( apply_filters( 'the_content', $post->post_content ) ),
 			'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
@@ -591,6 +591,20 @@ class EP_API {
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
 		return $post_args;
+	}
+
+	/**
+	 * Prepare text for ES: Strip html, strip line breaks, etc.
+	 * 
+	 * @param  string $content
+	 * @since  2.2
+	 * @return string
+	 */
+	private function prepare_text_content( $content ) {
+		$content = strip_tags( $content );
+		$content = preg_replace( '#[\n\r]+#s', ' ', $content );
+
+		return $content;
 	}
 
 	/**
