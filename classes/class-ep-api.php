@@ -65,7 +65,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . 'post/' . $post['post_id'];
+		$path = apply_filters( 'ep_index_post_request_path', $index . 'post/' . $post['post_id'], $post );
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 
@@ -91,10 +91,14 @@ class EP_API {
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
-			return json_decode( $response_body );
+			$return = json_decode( $response_body );
+		} else {
+			$return = false;
 		}
 
-		return false;
+		do_action( 'ep_after_index_post', $post, $return );
+
+		return $return;
 	}
 
 	/**
@@ -1837,7 +1841,7 @@ class EP_API {
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-		$path = trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+		$path = apply_filters( 'ep_bulk_index_post_request_path', trailingslashit( ep_get_index_name() ) . 'post/_bulk', $body );
 
 		$request_args = array(
 			'method'  => 'POST',
@@ -2161,7 +2165,7 @@ class EP_API {
 
 		}
 
-		$path = '/_nodes?plugin=true';
+		$path = '/_nodes/plugins';
 
 		$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
