@@ -184,6 +184,11 @@ class EP_Sync_Manager {
 		}
 		
 		$indexable_post_statuses = ep_get_indexable_post_status();
+		
+		if ( 'attachment' === $post_type ) {
+			$indexable_post_statuses[] = 'inherit';
+		}
+
 		$post_type               = get_post_type( $post_ID );
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
