@@ -184,6 +184,7 @@ class EP_Sync_Manager {
 		}
 		
 		$indexable_post_statuses = ep_get_indexable_post_status();
+		$post_type               = get_post_type( $post_ID );
 		
 		if ( 'attachment' === $post_type ) {
 			$indexable_post_statuses[] = 'inherit';
