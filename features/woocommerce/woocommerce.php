@@ -168,7 +168,7 @@ function ep_wc_translate_args( $query ) {
 		return;
 	}
 
-	if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 		return;
 	}
 
