@@ -2162,29 +2162,27 @@ class EP_API {
 			if ( is_wp_error( $request ) ) {
 				$this->elasticsearch_version = false;
 				$this->elasticsearch_plugins = false;
+			} else {
+				$response = json_decode( wp_remote_retrieve_body( $request ), true );
 
-				return false;
-			}
+				$this->elasticsearch_plugins = array();
+				$this->elasticsearch_version = false;
 
-			$response = json_decode( wp_remote_retrieve_body( $request ), true );
+				if ( isset( $response['nodes'] ) ) {
 
-			$this->elasticsearch_plugins = array();
-			$this->elasticsearch_version = false;
+					foreach ( $response['nodes'] as $node ) {
+						// Save version of last node. We assume all nodes are same version
+						$this->elasticsearch_version = $node['version'];
 
-			if ( isset( $response['nodes'] ) ) {
+						if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
 
-				foreach ( $response['nodes'] as $node ) {
-					// Save version of last node. We assume all nodes are same version
-					$this->elasticsearch_version = $node['version'];
+							foreach ( $node['plugins'] as $plugin ) {
 
-					if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
+								$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+							}
 
-						foreach ( $node['plugins'] as $plugin ) {
-
-							$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+							break;
 						}
-
-						break;
 					}
 				}
 			}
