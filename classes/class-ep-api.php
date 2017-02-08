@@ -159,7 +159,7 @@ class EP_API {
 
 		$info = $this->get_elasticsearch_info();
 
-		return $info['version'];
+		return isset( $info['version'] )? $info['version'] : false;
 	}
 
 	/**
