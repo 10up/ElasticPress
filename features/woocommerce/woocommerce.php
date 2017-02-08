@@ -168,6 +168,10 @@ function ep_wc_translate_args( $query ) {
 		return;
 	}
 
+	if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+		return;
+	}
+
 	$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
 
 	if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
