@@ -80,7 +80,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		$this->assertEquals( 'need-setup', $notice );
@@ -110,7 +110,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		$this->assertEquals( 'no-sync', $notice );
@@ -140,7 +140,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		$this->assertFalse( $notice );
@@ -171,7 +171,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		update_site_option( 'ep_feature_auto_activated_sync', true );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		$this->assertEquals( 'need-setup', $notice );
@@ -201,7 +201,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		update_site_option( 'ep_feature_auto_activated_sync', true );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		$this->assertEquals( 'no-sync', $notice );
@@ -232,7 +232,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		$this->assertEquals( 'bad-host', $notice );
@@ -262,7 +262,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		$this->assertEquals( 'upgrade-sync', $notice );
@@ -292,7 +292,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		update_site_option( 'ep_feature_auto_activated_sync', 'woocommerce' );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		$this->assertEquals( 'auto-activate-sync', $notice );
@@ -324,7 +324,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		add_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_above' ) );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		remove_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_above' ) );
@@ -358,7 +358,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 		add_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_below' ) );
 
 		ob_start();
-		$notice = EP_Dashboard::factory()->maybe_notice();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
 		ob_get_clean();
 
 		remove_filter( 'ep_elasticsearch_version', array( $this, '_filter_es_version_below' ) );

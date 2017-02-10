@@ -102,9 +102,10 @@ class EP_Dashboard {
 	/**
 	 * Output variety of dashboard notices. Only one at a time :)
 	 *
+	 * @param  bool $force
 	 * @since  2.2
 	 */
-	public function maybe_notice() {
+	public function maybe_notice( $force = false ) {
 		// Admins only
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			if ( ! is_super_admin() ) {
@@ -192,7 +193,7 @@ class EP_Dashboard {
 			}
 		}
 
-		$es_version = ep_get_elasticsearch_version();
+		$es_version = ep_get_elasticsearch_version( $force );
 
 		/**
 		 * Check Elasticsearch version compat

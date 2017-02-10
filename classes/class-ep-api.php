@@ -152,27 +152,29 @@ class EP_API {
 	/**
 	 * Get Elasticsearch version
 	 *
-	 * @since 2.1.2
+	 * @param  bool $force
+	 * @since  2.1.2
 	 * @return string|bool
 	 */
-	public function get_elasticsearch_version() {
+	public function get_elasticsearch_version( $force = false ) {
 
-		$info = $this->get_elasticsearch_info();
+		$info = $this->get_elasticsearch_info( $force );
 
-		return $info['version'];
+		return apply_filters( 'ep_elasticsearch_version', $info['version'] );
 	}
 
 	/**
 	 * Get Elasticsearch plugins
 	 *
-	 * @since 2.2
+	 * @param  bool $force
+	 * @since  2.2
 	 * @return string|bool
 	 */
-	public function get_elasticsearch_plugins() {
+	public function get_elasticsearch_plugins( $force = false ) {
 
-		$info = $this->get_elasticsearch_info();
+		$info = $this->get_elasticsearch_info( $force );
 
-		return $info['plugins'];
+		return apply_filters( 'ep_elasticsearch_plugins', $info['plugins'] );
 	}
 
 	/**
@@ -2149,12 +2151,13 @@ class EP_API {
 	/**
 	 * Get ES plugins and version, cache everything
 	 *
+	 * @param  bool $force
 	 * @since 2.2
 	 * @return array
 	 */
-	public function get_elasticsearch_info() {
+	public function get_elasticsearch_info( $force = false ) {
 
-		if ( null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) {
+		if ( $force || null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) {
 			$path = '_nodes/plugins';
 
 			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
@@ -2446,7 +2449,7 @@ function ep_parse_api_response( $response ) {
 	return EP_API::factory()->parse_api_response( $response );
 }
 
-function ep_get_elasticsearch_plugins() {
+function ep_get_elasticsearch_plugins( $force = false ) {
 	return EP_API::factory()->get_elasticsearch_plugins();
 }
 
@@ -2470,8 +2473,8 @@ function ep_parse_site_id( $index_name ) {
 	return EP_API::factory()->parse_site_id( $index_name );
 }
 
-function ep_get_elasticsearch_version() {
-	return EP_API::factory()->get_elasticsearch_version();
+function ep_get_elasticsearch_version( $force = false ) {
+	return EP_API::factory()->get_elasticsearch_version( $force );
 }
 
 if( ! function_exists( 'ep_search' ) ) {
