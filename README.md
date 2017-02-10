@@ -1,4 +1,4 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress) [![Build Status](http://cijenkins.10uplabs.com:8080/buildStatus/icon?job=ElasticPress)](http://cijenkins.10uplabs.com:8080/job/ElasticPress)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress)  [![Build Status](http://cijenkins.10uplabs.com:8080/buildStatus/icon?job=ElasticPress)](http://cijenkins.10uplabs.com:8080/job/ElasticPress)
 =============
 
 A fast and flexible search and query engine for WordPress.
