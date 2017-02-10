@@ -27,6 +27,22 @@ class EP_API {
 	private $queries = array();
 
 	/**
+	 * ES plugins
+	 * 
+	 * @var array
+	 * @since  2.2
+	 */
+	public $elasticsearch_plugins = null;
+
+	/**
+	 * ES version number
+	 * 
+	 * @var string
+	 * @since  2.2
+	 */
+	public $elasticsearch_version = null;
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return EP_API
@@ -65,7 +81,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . 'post/' . $post['post_id'];
+		$path = apply_filters( 'ep_index_post_request_path', $index . 'post/' . $post['post_id'], $post );
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 
@@ -91,10 +107,14 @@ class EP_API {
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
-			return json_decode( $response_body );
+			$return = json_decode( $response_body );
+		} else {
+			$return = false;
 		}
 
-		return false;
+		do_action( 'ep_after_index_post', $post, $return );
+
+		return $return;
 	}
 
 	/**
@@ -137,29 +157,22 @@ class EP_API {
 	 */
 	public function get_elasticsearch_version() {
 
-		$request_args = array( 'method' => 'GET' );
+		$info = $this->get_elasticsearch_info();
 
-		$request = ep_remote_request( '', apply_filters( 'ep_elasticsearch_version_request_args', $request_args ) );
+		return $info['version'];
+	}
 
-		$version = false;
+	/**
+	 * Get Elasticsearch plugins
+	 *
+	 * @since 2.2
+	 * @return string|bool
+	 */
+	public function get_elasticsearch_plugins() {
 
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$response_body = wp_remote_retrieve_body( $request );
+		$info = $this->get_elasticsearch_info();
 
-				$response = json_decode( $response_body, true );
-
-				try {
-					if ( ! empty( $response['version']['number'] ) ) {
-						$version = $response['version']['number'];
-					}
-				} catch ( Exception $e ) {
-					$version = false;
-				}
-			}
-		}
-
-		return apply_filters( 'ep_elasticsearch_version', $version );
+		return $info['plugins'];
 	}
 
 	/**
@@ -559,9 +572,9 @@ class EP_API {
 			'post_author'       => $user_data,
 			'post_date'         => $post_date,
 			'post_date_gmt'     => $post_date_gmt,
-			'post_title'        => get_the_title( $post_id ),
-			'post_excerpt'      => $post->post_excerpt,
-			'post_content'      => apply_filters( 'the_content', $post->post_content ),
+			'post_title'        => $this->prepare_text_content( get_the_title( $post_id ) ),
+			'post_excerpt'      => $this->prepare_text_content( $post->post_excerpt ),
+			'post_content'      => $this->prepare_text_content( apply_filters( 'the_content', $post->post_content ) ),
 			'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
@@ -591,6 +604,20 @@ class EP_API {
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
 		return $post_args;
+	}
+
+	/**
+	 * Prepare text for ES: Strip html, strip line breaks, etc.
+	 * 
+	 * @param  string $content
+	 * @since  2.2
+	 * @return string
+	 */
+	private function prepare_text_content( $content ) {
+		$content = strip_tags( $content );
+		$content = preg_replace( '#[\n\r]+#s', ' ', $content );
+
+		return $content;
 	}
 
 	/**
@@ -1346,7 +1373,7 @@ class EP_API {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$formatted_args['query'] = $query;
+			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args );
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
@@ -1823,7 +1850,7 @@ class EP_API {
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-		$path = trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+		$path = apply_filters( 'ep_bulk_index_post_request_path', trailingslashit( ep_get_index_name() ) . 'post/_bulk', $body );
 
 		$request_args = array(
 			'method'  => 'POST',
@@ -2120,70 +2147,51 @@ class EP_API {
 	}
 
 	/**
-	 * Get Elasticsearch plugins
+	 * Get ES plugins and version, cache everything
 	 *
-	 * Gets a list of available Elasticearch plugins.
-	 *
-	 * @since 1.9
-	 *
-	 * @return array Array of plugins and their version or error message
+	 * @since 2.2
+	 * @return array
 	 */
-	public function get_plugins() {
+	public function get_elasticsearch_info() {
 
-		$plugins = get_transient( 'ep_installed_plugins' );
+		if ( null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) {
+			$path = '_nodes/plugins';
 
-		if ( is_array( $plugins ) ) {
-			return $plugins;
-		}
+			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
-		$plugins = array();
+			if ( is_wp_error( $request ) ) {
+				$this->elasticsearch_version = false;
+				$this->elasticsearch_plugins = false;
+			} else {
+				$response = json_decode( wp_remote_retrieve_body( $request ), true );
 
-		if ( is_wp_error( ep_get_host() ) ) {
+				$this->elasticsearch_plugins = array();
+				$this->elasticsearch_version = false;
 
-			return array(
-				'status' => false,
-				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
-			);
+				if ( isset( $response['nodes'] ) ) {
 
-		}
+					foreach ( $response['nodes'] as $node ) {
+						// Save version of last node. We assume all nodes are same version
+						$this->elasticsearch_version = $node['version'];
 
-		$path = '/_nodes?plugin=true';
+						if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
 
-		$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
+							foreach ( $node['plugins'] as $plugin ) {
 
-		if ( ! is_wp_error( $request ) ) {
+								$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+							}
 
-			$response = json_decode( wp_remote_retrieve_body( $request ), true );
-
-			if ( isset( $response['nodes'] ) ) {
-
-				foreach ( $response['nodes'] as $node ) {
-
-					if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
-
-						foreach ( $node['plugins'] as $plugin ) {
-
-							$plugins[ $plugin['name'] ] = $plugin['version'];
-
+							break;
 						}
-
-						break;
-
 					}
 				}
 			}
-
-			set_transient( 'ep_installed_plugins', $plugins, apply_filters( 'ep_installed_plugins_exp', 3600 ) );
-
-			return $plugins;
-
 		}
 
 		return array(
-			'status' => false,
-			'msg'    => $request->get_error_message(),
+			'plugins' => $this->elasticsearch_plugins,
+			'version' => $this->elasticsearch_version,
 		);
-
 	}
 
 	/**
@@ -2438,8 +2446,8 @@ function ep_parse_api_response( $response ) {
 	return EP_API::factory()->parse_api_response( $response );
 }
 
-function ep_get_plugins() {
-	return EP_API::factory()->get_plugins();
+function ep_get_elasticsearch_plugins() {
+	return EP_API::factory()->get_elasticsearch_plugins();
 }
 
 function ep_get_search_status( $blog_id = null ) {
