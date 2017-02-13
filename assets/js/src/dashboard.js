@@ -338,6 +338,9 @@
 	$startSyncButton.on( 'click', function() {
 		syncStatus = 'sync';
 
+		// On initial sync, remove dashboard warnings that dont make sense
+		$( '[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]').remove();
+
 		sync();
 	} );
 
