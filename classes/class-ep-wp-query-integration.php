@@ -159,10 +159,10 @@ class EP_WP_Query_Integration {
 	 * Filter the posts array to contain ES query results in EP_Post form. Pull previously queried posts.
 	 *
 	 * @param array $posts
-	 * @param object &$query
+	 * @param object $query
 	 * @return array
 	 */
-	public function filter_the_posts( $posts, &$query ) {
+	public function filter_the_posts( $posts, $query ) {
 		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
 			return $posts;
 		}
@@ -224,7 +224,7 @@ class EP_WP_Query_Integration {
 			if ( empty( $query_vars['s'] ) ) {
 				$query_vars['post_type'] = 'post';
 			} else {
-				$query_vars['post_type'] = get_post_types( array( 'exclude_from_search' => false ) );
+				$query_vars['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
 			}
 		}
 

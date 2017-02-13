@@ -32,6 +32,7 @@ class EP_Dashboard {
 	public function setup() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { // Must be network admin in multisite.
 			add_action( 'network_admin_menu', array( $this, 'action_admin_menu' ) );
+			add_action( 'admin_bar_menu', array( $this, 'action_network_admin_bar_menu' ), 50 );
 		} else {
 			add_action( 'admin_menu', array( $this, 'action_admin_menu' ) );
 		}
@@ -48,6 +49,21 @@ class EP_Dashboard {
 		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
 		add_filter( 'plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
+	}
+
+	/**
+	 * Show ElasticPress in network admin menu bar
+	 * 
+	 * @param  object $admin_bar
+	 * @since  2.2
+	 */
+	public function action_network_admin_bar_menu( $admin_bar ) {
+		$admin_bar->add_menu( array(
+			'id'     => 'network-admin-elasticpress',
+			'parent' => 'network-admin',
+			'title'  => 'ElasticPress',
+			'href'   => esc_url( network_admin_url( 'admin.php?page=elasticpress' ) ),
+		) );
 	}
 
 	/**
@@ -86,9 +102,10 @@ class EP_Dashboard {
 	/**
 	 * Output variety of dashboard notices. Only one at a time :)
 	 *
+	 * @param  bool $force
 	 * @since  2.2
 	 */
-	public function maybe_notice() {
+	public function maybe_notice( $force = false ) {
 		// Admins only
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			if ( ! is_super_admin() ) {
@@ -176,7 +193,7 @@ class EP_Dashboard {
 			}
 		}
 
-		$es_version = ep_get_elasticsearch_version();
+		$es_version = ep_get_elasticsearch_version( $force );
 
 		/**
 		 * Check Elasticsearch version compat
@@ -615,7 +632,11 @@ class EP_Dashboard {
 		);
 
 		if ( $feature_settings[ $_POST['feature'] ]['active'] && ! $original_state ) {
-			$data['reindex'] = true;
+			if ( ! empty( $feature->requires_install_reindex ) ) {
+				$data['reindex'] = true;
+			}
+
+			$feature->post_activation();
 		}
 
 		wp_send_json_success( $data );

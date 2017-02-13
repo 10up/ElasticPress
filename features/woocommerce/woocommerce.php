@@ -7,23 +7,6 @@
  */
 
 /**
- * Index Woocommerce post types
- *
- * @param   array $post_types Existing post types.
- * @since   2.1
- * @return  array
- */
-function ep_wc_post_types( $post_types ) {
-	return array_unique( array_merge( $post_types, array(
-		'shop_order' => 'shop_order',
-		'shop_coupon' => 'shop_coupon',
-		'shop_order_refund' => 'shop_order_refund',
-		'product_variation' => 'product_variation',
-		'product' => 'product',
-	) ) );
-}
-
-/**
  * Index Woocommerce meta
  *
  * @param   array $meta Existing post meta.
@@ -58,7 +41,7 @@ function ep_wc_whitelist_meta_keys( $meta, $post ) {
 		'_sold_individually',
 		'_manage_stock',
 		'_backorders',
-		'_stock	',
+		'_stock',
 		'_upsell_ids',
 		'_crosssell_ids',
 		'_stock_status',
@@ -182,6 +165,24 @@ function ep_wc_translate_args( $query ) {
 
 	// Lets make sure this doesn't interfere with the CLI
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+
+	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+		return;
+	}
+
+	$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
+
+	if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+		if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
+			return;
+		} else {
+			$admin_integration = true;
+		}
+	}
+
+	if ( is_admin() && ! $admin_integration ) {
 		return;
 	}
 
@@ -507,7 +508,6 @@ function ep_wc_setup() {
 	if( function_exists( 'WC' ) ) {
 		add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
 		add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
-		add_filter( 'ep_indexable_post_types', 'ep_wc_post_types', 10, 1 );
 		add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
 		add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields', 9999 );
 		add_filter( 'woocommerce_layered_nav_query_post_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
@@ -515,9 +515,6 @@ function ep_wc_setup() {
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
-		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-		add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
-		add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
 	}
 }
 
@@ -539,9 +536,9 @@ function ep_wc_feature_box_summary() {
  */
 function ep_wc_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Running eCommerce stores is hard enough already. You should not have to worry about slow load times. ElasticPress WooCommerce supercharges all product queries, product sorts, and filters both on the front end and the admin. No matter how many products or filters you have, your site will load fast.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Running eCommerce stores is hard enough already. You should not have to worry about slow load times. ElasticPress WooCommerce supercharges all product queries, product sorts, and filters. No matter how many products or filters you have, your site will load fast.', 'elasticpress' ); ?></p>
 
-	<p><?php esc_html_e( 'In the admin, order management and fulfillment is supercharged. Finding orders is much easier with more relevant searches. View order lists is easier since they load faster.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'If used in conjunction with the Admin feature, order management and fulfillment is supercharged. Finding orders is much easier with more relevant searches. Viewing order lists is easier since they load faster.', 'elasticpress' ); ?></p>
 	<?php
 }
 
