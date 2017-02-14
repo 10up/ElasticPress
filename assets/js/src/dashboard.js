@@ -89,7 +89,7 @@
 	} );
 
 	if ( epDash.index_meta ) {
-		if ( epDash.index_meta.wpcli ) {
+		if ( epDash.index_meta.wpcli_sync ) {
 			syncStatus = 'wpcli';
 			updateSyncDash();
 		} else {

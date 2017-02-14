@@ -665,9 +665,15 @@ class EP_Dashboard {
 				$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					$index_meta = get_site_option( 'ep_index_meta' );
+					$index_meta = get_site_option( 'ep_index_meta', array() );
+					$wpcli_sync = (bool) get_site_transient( 'ep_wpcli_sync' );
 				} else {
-					$index_meta = get_option( 'ep_index_meta' );
+					$index_meta = get_option( 'ep_index_meta', array() );
+					$wpcli_sync = (bool) get_transient( 'ep_wpcli_sync' );
+				}
+
+				if ( ! empty( $wpcli_sync ) ) {
+					$index_meta['wpcli_sync'] = true;
 				}
 
 				if ( isset( $_GET['do_sync'] ) ) {
