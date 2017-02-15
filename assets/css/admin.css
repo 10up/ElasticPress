@@ -254,7 +254,7 @@ h2.ep-list-features {
 
 .ep-feature .settings .field {
   clear: both;
-  overflow: auto; }
+  overflow: initial; }
   .ep-feature .settings .field > label,
   .ep-feature .settings .field .field-name {
     display: block;
@@ -264,7 +264,7 @@ h2.ep-list-features {
     display: block;
     float: left; }
   .ep-feature .settings .field .disabled {
-    color: #c4c4c4; }
+    color: #c4c3c3; }
     .ep-feature .settings .field .disabled input {
       cursor: default; }
 
@@ -387,4 +387,5 @@ h2.ep-list-features {
     vertical-align: middle;
     display: inline-block;
     padding-top: .5em; } }
+
 /*# sourceMappingURL=admin.css.map */

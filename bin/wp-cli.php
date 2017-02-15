@@ -365,9 +365,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			$this->is_network_transient = true;
-			set_site_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
+			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
-			set_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
+			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		}
 
 		timer_start();
@@ -437,9 +437,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		WP_CLI::log( WP_CLI::colorize( '%Y' . __( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
 
 		if ( $this->is_network_transient ) {
-			delete_site_transient( 'ep_index_meta' );
+			delete_site_transient( 'ep_wpcli_sync' );
 		} else {
-			delete_transient( 'ep_index_meta' );
+			delete_transient( 'ep_wpcli_sync' );
 		}
 
 		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
@@ -884,13 +884,13 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Reset transient while indexing
 	 *
-	 * @since 2.1.1
+	 * @since 2.2
 	 */
 	private function reset_transient() {
 		if( $this->is_network_transient ) {
-			set_site_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
+			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
-			set_transient( 'ep_index_meta', array( 'wpcli' => true ), $this->transient_expiration );
+			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		}
 	}
 }

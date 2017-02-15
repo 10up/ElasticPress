@@ -89,7 +89,7 @@
 	} );
 
 	if ( epDash.index_meta ) {
-		if ( epDash.index_meta.wpcli ) {
+		if ( epDash.index_meta.wpcli_sync ) {
 			syncStatus = 'wpcli';
 			updateSyncDash();
 		} else {
@@ -337,6 +337,9 @@
 
 	$startSyncButton.on( 'click', function() {
 		syncStatus = 'sync';
+
+		// On initial sync, remove dashboard warnings that dont make sense
+		$( '[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]').remove();
 
 		sync();
 	} );

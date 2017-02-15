@@ -102,9 +102,10 @@ class EP_Dashboard {
 	/**
 	 * Output variety of dashboard notices. Only one at a time :)
 	 *
+	 * @param  bool $force
 	 * @since  2.2
 	 */
-	public function maybe_notice() {
+	public function maybe_notice( $force = false ) {
 		// Admins only
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			if ( ! is_super_admin() ) {
@@ -192,7 +193,7 @@ class EP_Dashboard {
 			}
 		}
 
-		$es_version = ep_get_elasticsearch_version();
+		$es_version = ep_get_elasticsearch_version( $force );
 
 		/**
 		 * Check Elasticsearch version compat
@@ -664,9 +665,15 @@ class EP_Dashboard {
 				$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					$index_meta = get_site_option( 'ep_index_meta' );
+					$index_meta = get_site_option( 'ep_index_meta', array() );
+					$wpcli_sync = (bool) get_site_transient( 'ep_wpcli_sync' );
 				} else {
-					$index_meta = get_option( 'ep_index_meta' );
+					$index_meta = get_option( 'ep_index_meta', array() );
+					$wpcli_sync = (bool) get_transient( 'ep_wpcli_sync' );
+				}
+
+				if ( ! empty( $wpcli_sync ) ) {
+					$index_meta['wpcli_sync'] = true;
 				}
 
 				if ( isset( $_GET['do_sync'] ) ) {

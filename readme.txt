@@ -27,7 +27,7 @@ __Admin__: Help editors more effectively browse through content. Load long lists
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
-1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
+1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. Activate the plugin in WordPress.
 3. In the ElasticPress settings page, input your Elasticsearch host.
 4. Enjoy!
@@ -46,6 +46,7 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 * Auto-reindex on versions requiring reindex.
 * User friendly admin notifications for ElasticPress not set up, first sync needed, and feature auto activation.
 * Admin feature applies to all features. This means if Admin isn't active, search or WooCommerce integration won't happen in the admin.
+* Add support for post_mime_type. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 
 ### Bug Fixes
 
@@ -54,6 +55,12 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 * New product drafts not showing in WooCommerce admin list
 * WooCommerce feature breaking image search in media library. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 * WooCommerce order search broken
+* Stop the insansity made private. Props (sc0ttclark)[https://github.com/sc0ttclark]
+* Fix multidimensional meta querys. Props (Ritesh-patel)[https://github.com/Ritesh-patel].
+* Properly show bulk index errors in WP-CLI
+* Update ep_delete_post, include $post_type argument. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* Fix post_type product getting set in any WP_Query if tax_query is provided in WooCommerce feature. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* Adds 'number' param to satisfy WP v4.6+ fixing get_sites call. Props (rveitch)[https://github.com/rveitch]
 
 = 2.1.2 (Requires re-index) =
 
