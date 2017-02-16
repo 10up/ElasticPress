@@ -56,7 +56,7 @@ require_once( 'classes/class-ep-dashboard.php' );
 // Include core features
 require_once( 'features/search/search.php' );
 require_once( 'features/related-posts/related-posts.php' );
-require_once( 'features/admin/admin.php' );
+require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
 
 /**

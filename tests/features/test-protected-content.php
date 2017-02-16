@@ -1,12 +1,12 @@
 <?php
 
-class EPTestAdminFeature extends EP_Test_Base {
+class EPTestProtectedContentFeature extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -33,7 +33,7 @@ class EPTestAdminFeature extends EP_Test_Base {
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -49,7 +49,7 @@ class EPTestAdminFeature extends EP_Test_Base {
 	 * Test main query isn't integrated when feature isn't on
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function testAdminNotOn() {
 		set_current_screen( 'edit.php' );
@@ -77,12 +77,12 @@ class EPTestAdminFeature extends EP_Test_Base {
 	 * Test main query is integrated with feature on
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function testAdminOn() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_feature( 'admin' );
+		ep_activate_feature( 'protected-content' );
 		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
@@ -106,12 +106,12 @@ class EPTestAdminFeature extends EP_Test_Base {
 	 * Test main query on is integrated on drafts with feature on
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function testAdminOnDraft() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_feature( 'admin' );
+		ep_activate_feature( 'protected-content' );
 		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
@@ -142,12 +142,12 @@ class EPTestAdminFeature extends EP_Test_Base {
 	 * Check post updated to draft shows up
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function testAdminOnDraftUpdated() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_feature( 'admin' );
+		ep_activate_feature( 'protected-content' );
 		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();

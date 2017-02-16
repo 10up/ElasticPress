@@ -22,7 +22,7 @@ __WooCommerce__: Allow customers to filter through products faster and improve p
 
 __Related Posts__: Help users easily find related content by adding related posts to the end of each post.
 
-__Admin__: Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. Enabling this feature will allow other ElasticPress features to work within the admin (i.e. WooCommerce and Search). You'll need to make sure your Elasticsearch instance is properly secured.
+__Protected Content__: Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. Enabling this feature will allow other ElasticPress features to work within the admin (i.e. WooCommerce and Search). You'll need to make sure your Elasticsearch instance is properly secured.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
@@ -42,6 +42,7 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 
 * (Breaking change) Module registration API changed. See `register_module` in `classes/class-ep-modules.php`.
 * (Breaking change) Related posts are now in a widget instead of automatically being appending to content.
+* (Breaking change) Admin module renamed to Protected Content.
 * Admin warning if current Elasticsearch version is not between the min/max supported version. Version 2.2 supports versions 1.3 - 5.1.
 * Auto-reindex on versions requiring reindex.
 * User friendly admin notifications for ElasticPress not set up, first sync needed, and feature auto activation.
