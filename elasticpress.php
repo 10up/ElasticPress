@@ -33,8 +33,8 @@ define( 'EP_VERSION', '2.2' );
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '5.1' );
-define( 'EP_ES_VERSION_MIN', '1.3' );
+define( 'EP_ES_VERSION_MAX', '5.2' );
+define( 'EP_ES_VERSION_MIN', '1.7' );
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );

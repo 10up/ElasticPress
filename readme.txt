@@ -36,7 +36,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 2.2 (Requires re-index) =
 
-Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overriden and disabled. Also, features that don't have their minimum requirements met are still auto-disabled.
+Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overriden and disabled. Features that don't have their minimum requirements met, such as a plugin dependency, are auto-disabled.
+
+We've bumped the minimum Elasticsearch version to 1.7 (although we strongly recommend 2+). The maximum tested version of Elasticsearch is version 5.2. If you are running Elasticsearch outside this version range, you will see a warning in the dashboard.
 
 ### Enhancements
 
@@ -46,7 +48,7 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 * Admin warning if current Elasticsearch version is not between the min/max supported version. Version 2.2 supports versions 1.3 - 5.1.
 * Auto-reindex on versions requiring reindex.
 * User friendly admin notifications for ElasticPress not set up, first sync needed, and feature auto activation.
-* Admin feature applies to all features. This means if Admin isn't active, search or WooCommerce integration won't happen in the admin.
+* Protected Content feature applies to all features. This means if Protected Content isn't active, search or WooCommerce integration won't happen in the admin.
 * Add support for post_mime_type. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 
 ### Bug Fixes

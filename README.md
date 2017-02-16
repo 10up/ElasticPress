@@ -19,7 +19,7 @@ ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Ref
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.3+
+* [Elasticsearch](https://www.elastic.co) 1.7 - 5.2 (2.0+ highly recommended)
 * [WordPress](http://wordpress.org) 3.7.1+
 
 ## Installation
