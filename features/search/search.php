@@ -164,6 +164,8 @@ function ep_weight_recent( $formatted_args, $args ) {
 						'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
 					),
 				),
+				'score_mode' => 'avg',
+				'boost_mode' => 'sum'
 			),
 		);
 
