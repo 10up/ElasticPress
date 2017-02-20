@@ -63,7 +63,6 @@ function ep_pc_integrate( $query ) {
 	 */
 	$post_types = array(
 		'post' => 'post',
-		'page' => 'page',
 	);
 
 	// Backwards compat
