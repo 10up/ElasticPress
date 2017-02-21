@@ -71,10 +71,15 @@ class EP_Features {
 	 * @param  string  $slug
 	 * @param  array   $settings
 	 * @since  2.2
-	 * @return array
+	 * @return array|bool
 	 */
 	public function update_feature( $slug, $settings ) {
 		$feature = ep_get_registered_feature( $slug );
+
+		if ( empty( $feature ) ) {
+			return false;
+		}
+		
 		$original_state = $feature->is_active();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
