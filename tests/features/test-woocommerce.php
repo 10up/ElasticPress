@@ -138,7 +138,7 @@ class EPTestWooCommerceFeature extends EP_Test_Base {
 	 * @group woocommerce
 	 */
 	public function testSearchOnShopOrderAdmin() {
-		ep_activate_feature( 'admin' );
+		ep_activate_feature( 'protected_content' );
 		ep_activate_feature( 'woocommerce' );
 		EP_Features::factory()->setup_features();
 
