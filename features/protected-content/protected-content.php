@@ -152,7 +152,7 @@ function ep_pc_requirements_status( $status ) {
 /**
  * Register the feature
  */
-ep_register_feature( 'protected-content', array(
+ep_register_feature( 'protected_content', array(
 	'title' => esc_html__( 'Protected Content', 'elasticpress' ),
 	'setup_cb' => 'ep_pc_setup',
 	'requirements_status_cb' => 'ep_pc_requirements_status',

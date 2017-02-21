@@ -60,12 +60,6 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( __( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$active_features = get_site_option( 'ep_feature_settings', array() );
-		} else {
-			$active_features = get_option( 'ep_feature_settings', array() );
-		}
-
 		if ( $feature->is_active() ) {
 			WP_CLI::error( __( 'This feature is already active', 'elasticpress' ) );
 		}
@@ -78,21 +72,10 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::warning( printf( __( 'Feature is usable but there are warnings: %s', 'elasticpress' ), $status->message ) );
 		}
 
-		$feature_settings = ( ! empty( $active_features[ $feature->slug ] ) ) ? $active_features[ $feature->slug ] : array();
-
-		$active_features[ $feature->slug ] = wp_parse_args( $feature_settings, $feature->default_settings );
-		$active_features[ $feature->slug ]['active'] = true;
-		
-		$feature->post_activation();
+		ep_activate_feature( $feature->slug );
 
 		if ( $feature->requires_install_reindex ) {
 			WP_CLI::warning( __( 'This feature requires a re-index. You may want to run the index command next.', 'elasticpress' ) );
-		}
-
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			update_site_option( 'ep_feature_settings', $active_features );
-		} else {
-			update_option( 'ep_feature_settings', $active_features );
 		}
 
 		WP_CLI::success( __( 'Feature activated', 'elasticpress' ) );
@@ -122,17 +105,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$key = array_search( $feature->slug, array_keys( $active_features ) );
 
-		if ( false !== $key && $active_features[ $feature->slug ]['active'] ) {
-			$active_features[ $feature->slug ]['active'] = false;
-		} else {
+		if ( false === $key || empty( $active_features[ $feature->slug ]['active'] ) ) {
 			WP_CLI::error( __( 'Feature is not active', 'elasticpress' ) );
 		}
 
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			update_site_option( 'ep_feature_settings', $active_features );
-		} else {
-			update_option( 'ep_feature_settings', $active_features );
-		}
+		ep_deactivate_feature( $feature->slug );
 
 		WP_CLI::success( __( 'Feature deactivated', 'elasticpress' ) );
 	}

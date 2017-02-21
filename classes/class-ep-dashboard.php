@@ -607,36 +607,15 @@ class EP_Dashboard {
 			exit;
 		}
 
-		$feature = ep_get_registered_feature( $_POST['feature'] );
-		$original_state = $feature->is_active();
+		$data = ep_update_feature( $_POST['feature'], $_POST['settings'] );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', array() );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', array() );
-		}
-
-		$feature_settings[ $_POST['feature'] ] = wp_parse_args( $_POST['settings'], $feature->default_settings );
-		$feature_settings[ $_POST['feature'] ]['active'] = (bool) $feature_settings[ $_POST['feature'] ]['active'];
-
-		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_feature_settings', $sanitize_feature_settings );
-		} else {
-			update_option( 'ep_feature_settings', $sanitize_feature_settings );
-		}
-
-		$data = array(
-			'reindex' => false,
-		);
-
-		if ( $feature_settings[ $_POST['feature'] ]['active'] && ! $original_state ) {
-			if ( ! empty( $feature->requires_install_reindex ) ) {
-				$data['reindex'] = true;
+		// Since we deactivated, delete auto activate notice
+		if ( empty( $_POST['settings']['active'] ) ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				delete_site_option( 'ep_feature_auto_activated_sync' );
+			} else {
+				delete_option( 'ep_feature_auto_activated_sync' );
 			}
-
-			$feature->post_activation();
 		}
 
 		wp_send_json_success( $data );
