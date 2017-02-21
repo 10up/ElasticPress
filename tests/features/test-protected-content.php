@@ -82,7 +82,7 @@ class EPTestProtectedContentFeature extends EP_Test_Base {
 	public function testAdminOn() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_feature( 'protected-content' );
+		ep_activate_feature( 'protected_content' );
 		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
@@ -111,7 +111,7 @@ class EPTestProtectedContentFeature extends EP_Test_Base {
 	public function testAdminOnDraft() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_feature( 'protected-content' );
+		ep_activate_feature( 'protected_content' );
 		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
@@ -147,7 +147,7 @@ class EPTestProtectedContentFeature extends EP_Test_Base {
 	public function testAdminOnDraftUpdated() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_feature( 'protected-content' );
+		ep_activate_feature( 'protected_content' );
 		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
@@ -185,7 +185,7 @@ class EPTestProtectedContentFeature extends EP_Test_Base {
 	public function testAdminCategories() {
 		set_current_screen( 'edit.php' );
 		
-		ep_activate_feature( 'protected-content' );
+		ep_activate_feature( 'protected_content' );
 		EP_Features::factory()->setup_features();
 		
 		$cat1 =  wp_create_category( 'category one' );
