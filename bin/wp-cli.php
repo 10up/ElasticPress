@@ -45,6 +45,13 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private $transient_expiration = 900; // 15 min
 
 	/**
+	 * Holds temporary wp_actions when indexing with pagination
+	 *
+	 * @since 2.2
+	 */
+	private $temporary_wp_actions = array();
+
+	/**
 	 * Activate a feature.
 	 *
 	 * @synopsis <feature> [--network-wide]
@@ -312,6 +319,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
+		global $wp_actions;
+
 		$this->_connect_check();
 
 		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
@@ -331,6 +340,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		$total_indexed = 0;
+
+		//Hold original wp_actions
+		$this->temporary_wp_actions = $wp_actions;
 
 		/**
 		 * Prior to the index command invoking
@@ -814,7 +826,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		// Prevent wp_actions from growing out of control
-		$wp_actions = array();
+		$wp_actions = $this->temporary_wp_actions;
 
 		// WP_Query class adds filter get_term_metadata using its own instance
 		// what prevents WP_Query class from being destructed by PHP gc.
