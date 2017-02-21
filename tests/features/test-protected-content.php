@@ -185,7 +185,7 @@ class EPTestProtectedContentFeature extends EP_Test_Base {
 	public function testAdminCategories() {
 		set_current_screen( 'edit.php' );
 		
-		ep_activate_feature( 'admin' );
+		ep_activate_feature( 'protected-content' );
 		EP_Features::factory()->setup_features();
 		
 		$cat1 =  wp_create_category( 'category one' );
