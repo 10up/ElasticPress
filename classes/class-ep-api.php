@@ -944,6 +944,16 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_args( $args ) {
+
+		/**
+		 * Filter formatted arguments specifically for ElasticPress to use
+		 *
+		 * @since x.x.x
+		 *
+		 * @param array $args Arguments to format
+		 */
+		$args = apply_filters( 'ep_pre_formatted_args', $args );
+
 		if ( isset( $args['post_per_page'] ) ) {
 			// For backwards compatibility for those using this since EP 1.4
 			$args['posts_per_page'] = $args['post_per_page'];
