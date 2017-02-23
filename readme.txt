@@ -22,12 +22,12 @@ __WooCommerce__: Allow customers to filter through products faster and improve p
 
 __Related Posts__: Help users easily find related content by adding related posts to the end of each post.
 
-__Admin__: Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You'll need to make sure your Elasticsearch instance is properly secured.
+__Protected Content__: Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. Enabling this feature will allow other ElasticPress features to work within the admin (i.e. WooCommerce and Search). You'll need to make sure your Elasticsearch instance is properly secured.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
-1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
+1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. Activate the plugin in WordPress.
 3. In the ElasticPress settings page, input your Elasticsearch host.
 4. Enjoy!
@@ -36,16 +36,20 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 2.2 (Requires re-index) =
 
-Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overriden and disabled. Also, features that don't have their minimum requirements met are still auto-disabled.
+Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overriden and disabled. Features that don't have their minimum requirements met, such as a plugin dependency, are auto-disabled.
+
+We've bumped the minimum Elasticsearch version to 1.7 (although we strongly recommend 2+). The maximum tested version of Elasticsearch is version 5.2. If you are running Elasticsearch outside this version range, you will see a warning in the dashboard.
 
 ### Enhancements
 
 * (Breaking change) Module registration API changed. See `register_module` in `classes/class-ep-modules.php`.
 * (Breaking change) Related posts are now in a widget instead of automatically being appending to content.
+* (Breaking change) Admin module renamed to Protected Content.
 * Admin warning if current Elasticsearch version is not between the min/max supported version. Version 2.2 supports versions 1.3 - 5.1.
 * Auto-reindex on versions requiring reindex.
 * User friendly admin notifications for ElasticPress not set up, first sync needed, and feature auto activation.
-* Admin feature applies to all features. This means if Admin isn't active, search or WooCommerce integration won't happen in the admin.
+* Protected Content feature applies to all features. This means if Protected Content isn't active, search or WooCommerce integration won't happen in the admin.
+* Add support for post_mime_type. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 
 ### Bug Fixes
 
@@ -54,6 +58,12 @@ Version 2.2 rethinks the module process to make ElasticPress a more complete que
 * New product drafts not showing in WooCommerce admin list
 * WooCommerce feature breaking image search in media library. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 * WooCommerce order search broken
+* Stop the insansity made private. Props (sc0ttclark)[https://github.com/sc0ttclark]
+* Fix multidimensional meta querys. Props (Ritesh-patel)[https://github.com/Ritesh-patel].
+* Properly show bulk index errors in WP-CLI
+* Update ep_delete_post, include $post_type argument. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* Fix post_type product getting set in any WP_Query if tax_query is provided in WooCommerce feature. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* Adds 'number' param to satisfy WP v4.6+ fixing get_sites call. Props (rveitch)[https://github.com/rveitch]
 
 = 2.1.2 (Requires re-index) =
 

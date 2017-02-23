@@ -89,7 +89,7 @@
 	} );
 
 	if ( epDash.index_meta ) {
-		if ( epDash.index_meta.wpcli ) {
+		if ( epDash.index_meta.wpcli_sync ) {
 			syncStatus = 'wpcli';
 			updateSyncDash();
 		} else {
@@ -162,7 +162,20 @@
 			$progressBar.css( { width: width + '%' } );
 		}
 
-		if ( 'sync' === syncStatus ) {
+		if ( 'initialsync' === syncStatus ) {
+			var text = epDash.sync_initial;
+
+			$syncStatusText.text( text );
+
+			$syncStatusText.show();
+			$progressBar.show();
+			$pauseSyncButton.show();
+			$errorOverlay.addClass( 'syncing' );
+
+			$cancelSyncButton.hide();
+			$resumeSyncButton.hide();
+			$startSyncButton.hide();
+		} else if ( 'sync' === syncStatus ) {
 			var text = epDash.sync_syncing + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
 
 			if ( currentSite ) {
@@ -180,7 +193,11 @@
 			$resumeSyncButton.hide();
 			$startSyncButton.hide();
 		} else if ( 'pause' === syncStatus ) {
-			var text = epDash.sync_paused + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
+			var text = epDash.sync_paused;
+
+			if ( toProcess && 0 !== toProcess ) {
+				text += ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
+			}
 
 			if ( currentSite ) {
 				text += ' (' + currentSite.url + ')'
@@ -336,8 +353,14 @@
 	}
 
 	$startSyncButton.on( 'click', function() {
-		syncStatus = 'sync';
+		syncStatus = 'initialsync';
 
+		updateSyncDash();
+
+		// On initial sync, remove dashboard warnings that dont make sense
+		$( '[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]').remove();
+
+		syncStatus = 'sync';
 		sync();
 	} );
 

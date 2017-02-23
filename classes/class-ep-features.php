@@ -69,32 +69,57 @@ class EP_Features {
 	 * Activate or deactivate a feature
 	 * 
 	 * @param  string  $slug
-	 * @param  boolean $active
+	 * @param  array   $settings
 	 * @since  2.2
+	 * @return array|bool
 	 */
-	public function activate_feature( $slug, $active = true ) {
+	public function update_feature( $slug, $settings ) {
+		$feature = ep_get_registered_feature( $slug );
+
+		if ( empty( $feature ) ) {
+			return false;
+		}
+		
+		$original_state = $feature->is_active();
+
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$feature_settings = get_site_option( 'ep_feature_settings', array() );
 		} else {
 			$feature_settings = get_option( 'ep_feature_settings', array() );
 		}
 
-		$feature = $this->registered_features[ $slug ];
+		if ( empty( $feature_settings[ $slug ] ) ) {
+			// If doesn't exist, merge with feature defaults
+			$feature_settings[ $slug ] = wp_parse_args( $settings, $feature->default_settings );
+		} else {
+			// If exist just merge changed values into current
+			$feature_settings[ $slug ] = wp_parse_args( $settings, $feature_settings[ $slug ] );
+		}
 
-		$current_feature_settings = ( ! empty( $feature_settings[ $slug ] ) ) ? $feature_settings[ $slug ] : array();
+		// Make sure active is a proper bool
+		$feature_settings[ $slug ]['active'] = (bool) $feature_settings[ $slug ]['active'];
 
-		$feature_settings[ $slug ] = wp_parse_args( $current_feature_settings, $feature->default_settings );
-		$feature_settings[ $slug ]['active'] = (bool) $active;
+		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_feature_settings', $feature_settings );
+			update_site_option( 'ep_feature_settings', $sanitize_feature_settings );
 		} else {
-			update_option( 'ep_feature_settings', $feature_settings );
+			update_option( 'ep_feature_settings', $sanitize_feature_settings );
 		}
 
-		if ( $active ) {
+		$data = array(
+			'reindex' => false,
+		);
+
+		if ( $feature_settings[ $slug ]['active'] && ! $original_state ) {
+			if ( ! empty( $feature->requires_install_reindex ) ) {
+				$data['reindex'] = true;
+			}
+
 			$feature->post_activation();
 		}
+
+		return $data;
 	}
 
 	/**
@@ -178,6 +203,8 @@ class EP_Features {
 						$active = ( 0 === $code );
 
 						if ( ! $feature->is_active() && $active ) {
+							ep_activate_feature( $slug );
+
 							// Need to activate and maybe set a sync notice
 							if ( $feature->requires_install_reindex ) {
 								if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -186,11 +213,9 @@ class EP_Features {
 									update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
 								}
 							}
-							
-							ep_activate_feature( $slug, $active );
 						} elseif ( $feature->is_active() && ! $active ) {
 							// Just deactivate
-							ep_activate_feature( $slug, $active );
+							ep_deactivate_feature( $slug );
 						}
 					}
 				}
@@ -246,14 +271,26 @@ function ep_register_feature( $slug, $feature_args ) {
 }
 
 /**
+ * Update a feature
+ * 
+ * @param  string $slug
+ * @param  array $settings
+ * @since  2.2
+ * @return array
+ */
+function ep_update_feature( $slug, $settings ) {
+	return EP_Features::factory()->update_feature( $slug, $settings );
+}
+
+/**
  * Activate a feature
  * 
  * @param  string $slug
  * @param  bool   $active
  * @since  2.2
  */
-function ep_activate_feature( $slug, $active = true ) {
-	EP_Features::factory()->activate_feature( $slug, $active );
+function ep_activate_feature( $slug ) {
+	EP_Features::factory()->update_feature( $slug, array( 'active' => true ) );
 }
 
 /**
@@ -263,7 +300,7 @@ function ep_activate_feature( $slug, $active = true ) {
  * @since  2.2
  */
 function ep_deactivate_feature( $slug ) {
-	EP_Features::factory()->activate_feature( $slug, false );
+	EP_Features::factory()->update_feature( $slug, array( 'active' => false ) );
 }
 
 /**

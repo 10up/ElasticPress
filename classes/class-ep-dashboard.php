@@ -102,9 +102,10 @@ class EP_Dashboard {
 	/**
 	 * Output variety of dashboard notices. Only one at a time :)
 	 *
+	 * @param  bool $force
 	 * @since  2.2
 	 */
-	public function maybe_notice() {
+	public function maybe_notice( $force = false ) {
 		// Admins only
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			if ( ! is_super_admin() ) {
@@ -192,7 +193,7 @@ class EP_Dashboard {
 			}
 		}
 
-		$es_version = ep_get_elasticsearch_version();
+		$es_version = ep_get_elasticsearch_version( $force );
 
 		/**
 		 * Check Elasticsearch version compat
@@ -606,36 +607,15 @@ class EP_Dashboard {
 			exit;
 		}
 
-		$feature = ep_get_registered_feature( $_POST['feature'] );
-		$original_state = $feature->is_active();
+		$data = ep_update_feature( $_POST['feature'], $_POST['settings'] );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', array() );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', array() );
-		}
-
-		$feature_settings[ $_POST['feature'] ] = wp_parse_args( $_POST['settings'], $feature->default_settings );
-		$feature_settings[ $_POST['feature'] ]['active'] = (bool) $feature_settings[ $_POST['feature'] ]['active'];
-
-		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_feature_settings', $sanitize_feature_settings );
-		} else {
-			update_option( 'ep_feature_settings', $sanitize_feature_settings );
-		}
-
-		$data = array(
-			'reindex' => false,
-		);
-
-		if ( $feature_settings[ $_POST['feature'] ]['active'] && ! $original_state ) {
-			if ( ! empty( $feature->requires_install_reindex ) ) {
-				$data['reindex'] = true;
+		// Since we deactivated, delete auto activate notice
+		if ( empty( $_POST['settings']['active'] ) ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				delete_site_option( 'ep_feature_auto_activated_sync' );
+			} else {
+				delete_option( 'ep_feature_auto_activated_sync' );
 			}
-
-			$feature->post_activation();
 		}
 
 		wp_send_json_success( $data );
@@ -664,9 +644,15 @@ class EP_Dashboard {
 				$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					$index_meta = get_site_option( 'ep_index_meta' );
+					$index_meta = get_site_option( 'ep_index_meta', array() );
+					$wpcli_sync = (bool) get_site_transient( 'ep_wpcli_sync' );
 				} else {
-					$index_meta = get_option( 'ep_index_meta' );
+					$index_meta = get_option( 'ep_index_meta', array() );
+					$wpcli_sync = (bool) get_transient( 'ep_wpcli_sync' );
+				}
+
+				if ( ! empty( $wpcli_sync ) ) {
+					$index_meta['wpcli_sync'] = true;
 				}
 
 				if ( isset( $_GET['do_sync'] ) ) {
@@ -680,6 +666,7 @@ class EP_Dashboard {
 				$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );
 				$data['sync_paused'] = esc_html__( 'Sync paused', 'elasticpress' );
 				$data['sync_syncing'] = esc_html__( 'Syncing', 'elasticpress' );
+				$data['sync_initial'] = esc_html__( 'Starting sync', 'elasticpress' );
 				$data['sync_wpcli'] = esc_html__( "WP CLI sync is occuring. Refresh the page to see if it's finished", 'elasticpress' );
 				$data['sync_error'] = esc_html__( 'An error occured while syncing', 'elasticpress' );
 

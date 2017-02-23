@@ -1,8 +1,8 @@
 <?php
 /**
- * ElasticPress admin feature
+ * ElasticPress Protected Content feature
  *
- * @since  2.1
+ * @since  2.2
  * @package elasticpress
  */
 
@@ -12,13 +12,13 @@
  *
  * @since  2.1
  */
-function ep_admin_setup() {
-	add_filter( 'ep_indexable_post_status', 'ep_admin_get_statuses' );
-	add_filter( 'ep_indexable_post_types', 'ep_admin_post_types', 10, 1 );
+function ep_pc_setup() {
+	add_filter( 'ep_indexable_post_status', 'ep_pc_get_statuses' );
+	add_filter( 'ep_indexable_post_types', 'ep_pc_post_types', 10, 1 );
 
 	if ( is_admin() ) {
 		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-		add_action( 'pre_get_posts', 'ep_admin_integrate' );
+		add_action( 'pre_get_posts', 'ep_pc_integrate' );
 	}
 }
 
@@ -29,7 +29,7 @@ function ep_admin_setup() {
  * @since   2.2
  * @return  array
  */
-function ep_admin_post_types( $post_types ) {
+function ep_pc_post_types( $post_types ) {
 	$all_post_types = get_post_types();
 
 	// We don't want to deal with nav menus
@@ -44,7 +44,7 @@ function ep_admin_post_types( $post_types ) {
  * @param  WP_Query $query
  * @since  2.1
  */
-function ep_admin_integrate( $query ) {
+function ep_pc_integrate( $query ) {
 
 	// Lets make sure this doesn't interfere with the CLI
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -63,10 +63,12 @@ function ep_admin_integrate( $query ) {
 	 */
 	$post_types = array(
 		'post' => 'post',
-		'page' => 'page',
 	);
 
+	// Backwards compat
 	$supported_post_types = apply_filters( 'ep_admin_supported_post_types', $post_types );
+
+	$supported_post_types = apply_filters( 'ep_pc_supported_post_types', $post_types );
 
 	$post_type = $query->get( 'post_type' );
 
@@ -94,7 +96,7 @@ function ep_admin_integrate( $query ) {
  * 
  * @since 2.1
  */
-function ep_admin_feature_box_summary() {
+function ep_pc_feature_box_summary() {
 	?>
 	<p><?php esc_html_e( 'Power your admin with ElasticPress. Please note this syncs unpublished content to Elasticsearch. You want to make sure your Elasticsearch instance is properly secured.', 'elasticpress' ); ?></p>
 	<?php
@@ -105,11 +107,11 @@ function ep_admin_feature_box_summary() {
  * 
  * @since 2.1
  */
-function ep_admin_feature_box_long() {
+function ep_pc_feature_box_long() {
 	?>
 	<p><?php _e( 'This feature compliments other features turning on all the ElasticPress goodness in the admin.', 'elasticpress' ); ?></p>
 
-	<p><?php _e( 'The Admin feature also will speed up your post table queries. After activating an SEO plugin, increasing post per pages, and making other modifications, that table view loads very slowly. No longer will you have to wait 60 seconds to do things that should be easy such as viewing 200 posts at once.', 'elasticpress' ); ?></p>
+	<p><?php _e( 'The Protected Content feature also will speed up your post table queries. After activating an SEO plugin, increasing post per pages, and making other modifications, that table view loads very slowly. No longer will you have to wait 60 seconds to do things that should be easy such as viewing 200 posts at once.', 'elasticpress' ); ?></p>
 
 	<?php
 }
@@ -121,7 +123,7 @@ function ep_admin_feature_box_long() {
  * @param  array $statuses
  * @return array
  */
-function ep_admin_get_statuses( $statuses ) {
+function ep_pc_get_statuses( $statuses ) {
 	$post_statuses = get_post_stati();
 
 	unset( $post_statuses['auto-draft'] );
@@ -136,7 +138,7 @@ function ep_admin_get_statuses( $statuses ) {
  * @since  2.2
  * @return EP_Feature_Requirements_Status
  */
-function ep_admin_requirements_status( $status ) {
+function ep_pc_requirements_status( $status ) {
 	$host = ep_get_host();
 
 	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
@@ -150,12 +152,12 @@ function ep_admin_requirements_status( $status ) {
 /**
  * Register the feature
  */
-ep_register_feature( 'admin', array(
-	'title' => 'Admin',
-	'setup_cb' => 'ep_admin_setup',
-	'requirements_status_cb' => 'ep_admin_requirements_status',
-	'feature_box_summary_cb' => 'ep_admin_feature_box_summary',
-	'feature_box_long_cb' => 'ep_admin_feature_box_long',
+ep_register_feature( 'protected_content', array(
+	'title' => esc_html__( 'Protected Content', 'elasticpress' ),
+	'setup_cb' => 'ep_pc_setup',
+	'requirements_status_cb' => 'ep_pc_requirements_status',
+	'feature_box_summary_cb' => 'ep_pc_feature_box_summary',
+	'feature_box_long_cb' => 'ep_pc_feature_box_long',
 	'requires_install_reindex' => true,
 ) );
 

@@ -317,7 +317,7 @@ h2.ep-list-features {
 
 .ep-feature .settings .field {
 	clear: both;
-	overflow: auto;
+	overflow: initial;
 
 	> label,
 	.field-name {

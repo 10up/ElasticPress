@@ -41,7 +41,7 @@ function ep_wc_whitelist_meta_keys( $meta, $post ) {
 		'_sold_individually',
 		'_manage_stock',
 		'_backorders',
-		'_stock	',
+		'_stock',
 		'_upsell_ids',
 		'_crosssell_ids',
 		'_stock_status',
@@ -165,6 +165,10 @@ function ep_wc_translate_args( $query ) {
 
 	// Lets make sure this doesn't interfere with the CLI
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+
+	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 		return;
 	}
 
