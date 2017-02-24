@@ -323,6 +323,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		$this->_connect_check();
 
+		$this->_dashboard_sync_check();
+
 		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
 			$assoc_args['posts-per-page'] = absint( $assoc_args['posts-per-page'] );
 		} else {
@@ -880,6 +882,23 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+		}
+	}
+
+	/**
+	 * Check if dasboard sync is currently running
+	 *
+	 * @since 2.2
+	 */
+	private function _dashboard_sync_check() {
+		if( $this->is_network_transient ) {
+			$ep_dashboard_sync = get_site_transient( 'ep_dashboard_sync' );
+		} else {
+			$ep_dashboard_sync = get_transient( 'ep_dashboard_sync' );
+		}
+
+		if( $ep_dashboard_sync ){
+			WP_CLI::error( __( 'ElasticPress Dashboard sync is occuring.', 'elasticpress' ) );
 		}
 	}
 }

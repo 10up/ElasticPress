@@ -409,6 +409,14 @@ class EP_Dashboard {
 
 		$status = false;
 
+		//Set transient when dashboard sync, it will prevent wpcli to do indexing.
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			set_site_transient( 'ep_dashboard_sync', true, 900 );
+		} else {
+			set_transient( 'ep_dashboard_sync', true, 900 );
+		}
+
+
 		// No current index going on. Let's start over
 		if ( false === $index_meta ) {
 			$status = 'start';
@@ -549,6 +557,7 @@ class EP_Dashboard {
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					if ( empty( $index_meta['site_stack'] ) ) {
 						delete_site_option( 'ep_index_meta' );
+						delete_site_transient( 'ep_dashboard_sync' );
 
 						$sites   = ep_get_sites();
 						$indexes = array();
@@ -568,6 +577,7 @@ class EP_Dashboard {
 					$index_meta['offset'] = (int) $query->found_posts;
 
 					delete_option( 'ep_index_meta' );
+					delete_transient( 'ep_dashboard_sync' );
 				}
 			}
 		} else {
@@ -599,8 +609,10 @@ class EP_Dashboard {
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_option( 'ep_index_meta' );
+			delete_site_transient( 'ep_dashboard_sync' );
 		} else {
 			delete_option( 'ep_index_meta' );
+			delete_transient( 'ep_dashboard_sync' );
 		}
 
 		wp_send_json_success();
