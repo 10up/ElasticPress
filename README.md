@@ -19,7 +19,7 @@ ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Ref
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.3+
+* [Elasticsearch](https://www.elastic.co) 1.7 - 5.2 (2.0+ highly recommended)
 * [WordPress](http://wordpress.org) 3.7.1+
 
 ## Installation
@@ -46,7 +46,7 @@ Allow customers to filter through products faster and improve product search rel
 
 Help users easily find related content by adding related posts to the end of each post.
 
-### Admin
+### Protected Content
 
 Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. Enabling this feature will allow other ElasticPress features to work within the admin (i.e. WooCommerce and Search). You'll need to make sure your Elasticsearch instance is properly secured.
 

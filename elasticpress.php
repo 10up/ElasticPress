@@ -33,8 +33,8 @@ define( 'EP_VERSION', '2.2' );
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '5.1' );
-define( 'EP_ES_VERSION_MIN', '1.3' );
+define( 'EP_ES_VERSION_MAX', '5.2' );
+define( 'EP_ES_VERSION_MIN', '1.7' );
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
@@ -56,7 +56,7 @@ require_once( 'classes/class-ep-dashboard.php' );
 // Include core features
 require_once( 'features/search/search.php' );
 require_once( 'features/related-posts/related-posts.php' );
-require_once( 'features/admin/admin.php' );
+require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
 
 /**
