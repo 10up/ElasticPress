@@ -68,7 +68,7 @@ function ep_pc_integrate( $query ) {
 	// Backwards compat
 	$supported_post_types = apply_filters( 'ep_admin_supported_post_types', $post_types );
 
-	$supported_post_types = apply_filters( 'ep_pc_supported_post_types', $post_types );
+	$supported_post_types = apply_filters( 'ep_pc_supported_post_types', $supported_post_types );
 
 	$post_type = $query->get( 'post_type' );
 
