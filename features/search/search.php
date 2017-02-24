@@ -34,6 +34,16 @@ function ep_search_feature_box_long() {
 }
 
 /**
+ * We need to delay search setup up since it will fire after protected content and protected
+ * content filters into the search setup
+ * 
+ * @since 2.2
+ */
+function ep_delay_search_setup() {
+	add_action( 'init', 'ep_search_setup' );
+}
+
+/**
  * Setup all feature filters
  *
  * @since  2.1
@@ -237,7 +247,7 @@ function ep_integrate_search_queries( $enabled, $query ) {
  */
 ep_register_feature( 'search', array(
 	'title' => 'Search',
-	'setup_cb' => 'ep_search_setup',
+	'setup_cb' => 'ep_delay_search_setup',
 	'feature_box_summary_cb' => 'ep_search_feature_box_summary',
 	'feature_box_long_cb' => 'ep_search_feature_box_long',
 	'requires_install_reindex' => false,
