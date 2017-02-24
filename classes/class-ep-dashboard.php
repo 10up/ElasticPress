@@ -397,6 +397,16 @@ class EP_Dashboard {
 			$index_meta = get_option( 'ep_index_meta', false );
 		}
 
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$wpcli_sync = (bool) get_site_transient( 'ep_wpcli_sync' );
+		} else {
+			$wpcli_sync = (bool) get_transient( 'ep_wpcli_sync' );
+		}
+
+		if ( ! empty( $wpcli_sync ) ) {
+			wp_send_json_success( [ 'wpcli_sync' => true ] );
+		}
+
 		$status = false;
 
 		// No current index going on. Let's start over

@@ -311,6 +311,12 @@
 				return;
 			}
 
+			if ( response.data.wpcli_sync ) {
+				syncStatus = 'wpcli';
+				updateSyncDash();
+				return;
+			}
+
 			toProcess = response.data.found_posts;
 			processed = response.data.offset;
 
