@@ -46,6 +46,12 @@ Allow customers to filter through products faster and improve product search rel
 
 Help users easily find related content by adding related posts to the end of each post.
 
+Available API functions:
+
+* `ep_find_related( $post_id, $return = 5 )`
+
+  Get related posts for a given `$post_id`. Use this in a theme or plugin to get related content.
+
 ### Protected Content
 
 Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. Enabling this feature will allow other ElasticPress features to work within the admin (i.e. WooCommerce and Search). You'll need to make sure your Elasticsearch instance is properly secured.
