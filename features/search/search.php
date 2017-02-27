@@ -13,7 +13,7 @@
  */
 function ep_search_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -24,11 +24,7 @@ function ep_search_feature_box_summary() {
  */
 function ep_search_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Search is a long neglected piece of WordPress. Result relevancy is poor; performance is poor; there is no handling of misspellings; there is no way to search categories, tags, or custom taxonomies as WordPress by default only searches post content, excerpt, and title.', 'elasticpress' ); ?></p>
-
-	<p>
-		<?php esc_html_e( 'The search feature allows you to do all these things and more. Just activating the feature will make your search experience much better. Your users will be able to more effectively browse your website and find the content they desire. Misspellings will be accounted for, categories searched, and results weighted by recency. If activated in conjunction with the admin feature, admin search will be improved as well.', 'elasticpress' ); ?>
-	</p>
+	<p><?php esc_html_e( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ); ?></p>
 	
 	<?php
 }
