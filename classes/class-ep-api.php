@@ -568,6 +568,9 @@ class EP_API {
 			}
 		}
 
+		// Turn off oEmbed auto discovery as this will create an error while indexing
+		add_filter( 'embed_oembed_discover', '__return_false' );
+
 		$post_args = array(
 			'post_id'           => $post_id,
 			'ID'                => $post_id,
