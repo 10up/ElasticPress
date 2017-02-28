@@ -423,6 +423,15 @@ function ep_wc_translate_args( $query ) {
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 			}
 		}
+
+		/**
+		 * Default order when doing search in woocommerce is 'ASC'
+         * These lines will change it to 'DESC' as we want to most relevant result
+		 */
+		if ( empty( $_GET['orderby'] ) && ! empty( $_GET['s'] ) && $query->is_main_query() ) {
+			$query->set( 'order', 'DESC' );
+		}
+
 	}
 }
 
