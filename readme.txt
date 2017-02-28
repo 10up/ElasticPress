@@ -64,6 +64,7 @@ We've bumped the minimum Elasticsearch version to 1.7 (although we strongly reco
 * Update ep_delete_post, include $post_type argument. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 * Fix post_type product getting set in any WP_Query if tax_query is provided in WooCommerce feature. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
 * Adds 'number' param to satisfy WP v4.6+ fixing get_sites call. Props (rveitch)[https://github.com/rveitch]
+* Order by proper relevancy in WooCommerce product search. Props (ivankristianto)[https://github.com/ivankristianto]
 
 = 2.1.2 (Requires re-index) =
 
