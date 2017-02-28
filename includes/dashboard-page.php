@@ -19,53 +19,48 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <?php require_once( dirname( __FILE__ ) . '/header.php' ); ?>
 
-<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! ep_elasticsearch_can_connect() ) : ?>cant-connect<?php endif; ?>"></div>
+<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! ep_get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>
 <div class="wrap">
-	<h1><?php esc_html_e( 'ElasticPress', 'elasticpress' ); ?></h1>
-
-	<h2><?php esc_html_e( "ElasticPress, the fast and flexible query engine for WordPress, let's you supercharge your website through a variety of modules. Activate the ones you need below:", 'elasticpress' ); ?></h2>
-
-	<div class="ep-modules metabox-holder">
-		<?php $modules = EP_Modules::factory()->registered_modules; ?>
+	<h2 class="ep-list-features"><?php esc_html_e( 'List of features', 'elasticpress' ); // We use this since WP inserts warnings after the first h2. This will be hidden. ?></h2>
+	<div class="ep-features metabox-holder">
+		<?php $features = EP_Features::factory()->registered_features; ?>
 
 		<?php 
 		$left = '';
 		$right = '';
 		$i = 0;
-		foreach ( $modules as $module ) :
+		foreach ( $features as $feature ) :
 			$i++;
-			$module_classes = ( $module->is_active() ) ? 'module-active' : '';
+			$requirements_status = $feature->requirements_status();
+			$active = $feature->is_active();
 
-			if ( ! empty( $index_meta ) && ! empty( $index_meta['module_sync'] ) && $module->slug === $index_meta['module_sync'] ) {
-				$module_classes .= ' module-syncing';
+			$feature_classes = 'feature-requirements-status-' . (int) $requirements_status->code;
+
+			if ( ! empty( $active ) ) {
+				$feature_classes .= ' feature-active';
 			}
 
-			$deps_met = $module->dependencies_met();
-			if ( is_wp_error( $deps_met ) ) {
-				$module_classes .= ' module-dependencies-unmet';
+			if ( ! empty( $index_meta ) && ! empty( $index_meta['feature_sync'] ) && $feature->slug === $index_meta['feature_sync'] ) {
+				$feature_classes .= ' feature-syncing';
 			}
+
 			ob_start();
 			?>
-			<div class="ep-module ep-module-<?php echo esc_attr( $module->slug ); ?> <?php echo esc_attr( $module_classes ); ?>">
+			<div class="ep-feature ep-feature-<?php echo esc_attr( $feature->slug ); ?> <?php echo esc_attr( $feature_classes ); ?>">
 				<div class="postbox">
-					<h2 class="hndle"><span><?php echo esc_html( $module->title ); ?></span></h2>
+					<h2 class="hndle">
+						<span><?php echo esc_html( $feature->title ); ?></span>
+						<a class="settings-button"><?php esc_html_e( 'settings', 'elasticpress' ); ?></a>
+					</h2>
 
-					<div class="inside activity-block">
+					<div class="description inside">
 
-						<?php $module->output_module_box(); ?>
+						<?php $feature->output_feature_box(); ?>
 
 					</div>
 
-					<div class="action">
-						<div class="module-message module-error">
-							<?php if ( is_wp_error( $deps_met ) ) : ?>
-								<?php echo esc_html( $deps_met->get_error_message() ); ?>
-							<?php endif; ?>
-						</div>
-						
-						<a data-module="<?php echo esc_attr( $module->slug ); ?>" class="js-toggle-module deactivate button"><?php esc_html_e( 'Deactivate', 'elasticpress' ); ?></a>
-						<a data-module="<?php echo esc_attr( $module->slug ); ?>" class="js-toggle-module activate button button-primary"><?php esc_html_e( 'Activate', 'elasticpress' ); ?></a>
-						<a disabled data-module="<?php echo esc_attr( $module->slug ); ?>" class="js-toggle-module syncing-placeholder button"><?php esc_html_e( 'Syncing...', 'elasticpress' ); ?></a>
+					<div class="settings inside">
+						<?php $feature->output_settings_box(); ?>
 					</div>
 				</div>
 			</div>

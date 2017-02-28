@@ -13,6 +13,7 @@ class EPTestMultisite extends EP_Test_Base {
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		grant_super_admin( $admin_id );
 
 		$this->factory->blog->create_many( 2, array( 'user_id' => $admin_id ) );
 
@@ -39,11 +40,13 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$this->setup_test_post_type();
 
+		set_current_screen( 'front' );
+
 		/**
 		 * Most of our search test are bundled into core tests for legacy reasons
 		 */
-		ep_activate_module( 'search' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'search' );
+		EP_Features::factory()->setup_features();
 	}
 
 	/**
@@ -74,6 +77,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
+	 * @group multisite
 	 */
 	public function testPostSync() {
 		$sites = ep_get_sites();
@@ -99,49 +103,10 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test that a post becoming unpublished correctly gets removed from the Elasticsearch index
-	 *
-	 * @since 0.9.3
-	 */
-	public function testPostUnpublish() {
-		$sites = ep_get_sites();
-
-		foreach( $sites as $site ) {
-			switch_to_blog( $site['blog_id'] );
-
-			add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
-
-			$post_id = ep_create_and_sync_post();
-
-			ep_refresh_index();
-
-			$post = ep_get_post( $post_id );
-
-			// Ensure that our post made it over to elasticsearch
-			$this->assertTrue( ! empty( $post ) );
-
-			// Let's transition the post status from published to draft
-			wp_update_post( array( 'ID' => $post_id, 'post_status' => 'draft' ) );
-
-			ep_refresh_index();
-
-			$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
-
-			$post = ep_get_post( $post_id );
-
-			// Alright, now the post has been removed from the index, so this should be empty
-			$this->assertTrue( empty( $post ) );
-
-			$this->fired_actions = array();
-
-			restore_current_blog();
-		}
-	}
-
-	/**
 	 * Test a simple post content search
 	 *
 	 * @since 0.9
+	 * @group multisite
 	 */
 	public function testWPQuerySearchContent() {
 		$sites = ep_get_sites();
@@ -207,6 +172,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a simple post content search on a subset of network sites
 	 *
 	 * @since 0.9.2
+	 * @group multisite
 	 */
 	public function testWPQuerySearchContentSiteSubset() {
 		$sites = ep_get_sites();
@@ -238,6 +204,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test to ensure that if we pass an invalid blog_id to the 'sites' parameter that it doesn't break the search
 	 *
 	 * @since 0.9.2
+	 * @group multisite
 	 */
 	public function testInvalidSubsites() {
 		$sites = ep_get_sites();
@@ -270,6 +237,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a simple post content search on a single site on the network
 	 *
 	 * @since 0.9.2
+	 * @group multisite
 	 */
 	public function testWPQuerySearchContentSingleSite() {
 		$sites = ep_get_sites();
@@ -301,6 +269,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test that post data is setup correctly after switch_to_blog()
 	 *
 	 * @since 0.9.2
+	 * @group multisite
 	 */
 	public function testWPQueryPostDataSetup() {
 		$sites = ep_get_sites();
@@ -350,6 +319,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a simple post title search
 	 *
 	 * @since 0.9
+	 * @group multisite
 	 */
 	public function testWPQuerySearchTitle() {
 		$sites = ep_get_sites();
@@ -384,6 +354,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a simple post excerpt search
 	 *
 	 * @since 0.9
+	 * @group multisite
 	 */
 	public function testWPQuerySearchExcerpt() {
 		$sites = ep_get_sites();
@@ -424,6 +395,7 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a simple date param search by date and monthnum
 	 *
+	 * @group multisite
 	 */
 	public function testSimpleDateMonthNum() {
 		ep_create_date_query_posts();
@@ -454,6 +426,7 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a simple date param search by day number of week
 	 *
+	 * @group multisite
 	 */
 	public function testSimpleDateDay() {
 		ep_create_date_query_posts();
@@ -473,6 +446,7 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a date query with before and after range
 	 *
+	 * @group multisite
 	 */
 	public function testDateQueryBeforeAfter() {
 		ep_create_date_query_posts();
@@ -505,6 +479,7 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a date query with multiple column range comparison
 	 *
+	 * @group multisite
 	 */
 	public function testDateQueryMultiColumn() {
 		ep_create_date_query_posts();
@@ -533,6 +508,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Test a date query with multiple column range comparison inclusive
+	 * 
+	 * @group multisite
 	 */
 	public function testDateQueryMultiColumnInclusive() {
 		ep_create_date_query_posts();
@@ -562,6 +539,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Test a date query with multiple eltries
+	 * 
+	 * @group multisite
 	 */
 	public function testDateQueryWorkingHours() {
 		ep_create_date_query_posts();
@@ -594,6 +573,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Test a date query with multiple column range comparison not inclusive
+	 * 
+	 * @group multisite
 	 */
 	public function testDateQueryMultiColumnNotInclusive() {
 		ep_create_date_query_posts();
@@ -622,7 +603,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Test a simple date query search by year, monthnum and day of week
-	 *
+	 * 
+	 * @group multisite
 	 */
 	public function testDateQuerySimple() {
 		ep_create_date_query_posts();
@@ -648,6 +630,7 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a date query with BETWEEN comparison
 	 *
+	 * @group multisite
 	 */
 	public function testDateQueryBetween() {
 		ep_create_date_query_posts();
@@ -672,6 +655,7 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a date query with NOT BETWEEN comparison
 	 *
+	 * @group multisite
 	 */
 	public function testDateQueryNotBetween() {
 		ep_create_date_query_posts();
@@ -696,6 +680,7 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a date query with BETWEEN comparison on 1 day range
 	 *
+	 * @group multisite
 	 */
 	public function testDateQueryShortBetween() {
 		ep_create_date_query_posts();
@@ -724,6 +709,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Currently created posts don't have that many date based differences
 	 * for this test
 	 *
+	 * @group multisite
 	 */
 	public function testDateQueryCompare() {
 		ep_create_date_query_posts();
@@ -756,6 +742,8 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a date query with multiple range comparisons where before and after are
 	 * structured differently. Test inclusive range.
+	 * 
+	 * @group multisite
 	 */
 	public function testDateQueryInclusiveTypeMix() {
 		ep_create_date_query_posts();
@@ -788,6 +776,8 @@ class EPTestMultisite extends EP_Test_Base {
 	/**
 	 * Test a date query with multiple range comparisons where before and after are
 	 * structured differently. Test exclusive range.
+	 * 
+	 * @group multisite
 	 */
 	public function testDateQueryExclusiveTypeMix() {
 		ep_create_date_query_posts();
@@ -816,6 +806,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Test another date query with multiple range comparisons
+	 * 
+	 * @group multisite
 	 */
 	public function testDateQueryCompare2() {
 		ep_create_date_query_posts();
@@ -847,6 +839,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Test date query where posts are only pulled from weekdays
+	 * 
+	 * @group multisite
 	 */
 	public function testDateQueryWeekdayRange() {
 		ep_create_date_query_posts();
@@ -872,6 +866,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a tax query search
 	 *
 	 * @since 1.0
+	 * @group multisite
 	 */
 	public function testTaxQuery() {
 		$sites = ep_get_sites();
@@ -916,6 +911,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a post type query search for pages
 	 *
 	 * @since 1.3
+	 * @group multisite
 	 */
 	public function testPostTypeSearchQueryPage() {
 		$sites = ep_get_sites();
@@ -954,6 +950,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a post type query search for posts
 	 *
 	 * @since 1.3
+	 * @group multisite
 	 */
 	public function testPostTypeSearchQueryPost() {
 		$sites = ep_get_sites();
@@ -992,6 +989,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a post type query search where no post type is specified
 	 *
 	 * @since 1.3
+	 * @group multisite
 	 */
 	public function testNoPostTypeSearchQuery() {
 		$sites = ep_get_sites();
@@ -1026,9 +1024,10 @@ class EPTestMultisite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a post type query non-search where no post type is specified
+	 * Test a post type query non-search where no post type is specified. Defaults to `post` post type
 	 *
 	 * @since 1.3
+	 * @group multisite
 	 */
 	public function testNoPostTypeNoSearchQuery() {
 		$sites = ep_get_sites();
@@ -1058,14 +1057,15 @@ class EPTestMultisite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( $query->post_count, 5 );
-		$this->assertEquals( $query->found_posts, 5 );
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
 	}
 
 	/**
 	 * Test an author ID query
 	 *
 	 * @since 1.0
+	 * @group multisite
 	 */
 	public function testAuthorIDQuery() {
 		$sites = ep_get_sites();
@@ -1106,6 +1106,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test an author name query
 	 *
 	 * @since 1.0
+	 * @group multisite
 	 */
 	public function testAuthorNameQuery() {
 		$sites = ep_get_sites();
@@ -1146,6 +1147,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a fuzzy search on meta
 	 *
 	 * @since 1.0
+	 * @group multisite
 	 */
 	public function testSearchMetaQuery() {
 		$sites = ep_get_sites();
@@ -1189,6 +1191,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a search with a filter on meta
 	 *
 	 * @since 1.3
+	 * @group multisite
 	 */
 	public function testFilterMetaQuery() {
 		$sites = ep_get_sites();
@@ -1241,6 +1244,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0
+	 * @group multisite
 	 */
 	public function testSearchTaxQuery() {
 		$sites = ep_get_sites();
@@ -1284,6 +1288,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a fuzzy search on author names
 	 *
 	 * @since 1.0
+	 * @group multisite
 	 */
 	public function testSearchAuthorQuery() {
 		$sites = ep_get_sites();
@@ -1329,6 +1334,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0
+	 * @group multisite
 	 */
 	public function testAdvancedQuery() {
 		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
@@ -1401,6 +1407,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test pagination
 	 *
 	 * @since 0.9
+	 * @group multisite
 	 */
 	public function testPagination() {
 		$sites = ep_get_sites();
@@ -1454,6 +1461,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test query restoration after wp_reset_postdata
 	 *
 	 * @since 0.9.2
+	 * @group multisite
 	 */
 	public function testQueryRestorationResetPostData() {
 		$old_blog_id = get_current_blog_id();
@@ -1508,6 +1516,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test query restoration after wp_reset_query
 	 *
 	 * @since 0.9.2
+	 * @group multisite
 	 */
 	public function testQueryRestorationResetQuery() {
 		$old_blog_id = get_current_blog_id();
@@ -1565,6 +1574,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test query stack with nested queries
 	 *
 	 * @since 1.2
+	 * @group multisite
 	 */
 	public function testQueryStack() {
 		$old_blog_id = get_current_blog_id();
@@ -1636,6 +1646,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test filter for skipping query integration
 	 *
 	 * @since 1.2
+	 * @group multisite
 	 */
 	public function testQueryIntegrationSkip() {
 		$main_post_id = $this->factory->post->create();
@@ -1682,6 +1693,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test post object data
 	 *
 	 * @since 1.4
+	 * @group multisite
 	 */
 	public function testPostObject() {
 		$sites = ep_get_sites();
@@ -1724,6 +1736,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Test index_exists helper function
+	 * 
+	 * @group multisite
 	 */
 	public function testIndexExists() {
 		$sites = ep_get_sites();
@@ -1738,6 +1752,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Tests Deletion of index when a blog is deleted
+	 * 
+	 * @group multisite
 	 */
 	public function testDeleteIndex( ) {
 		$index_count = ep_count_indexes();
@@ -1755,8 +1771,9 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Tests deletion of index when a blog is deleted
-	 * @group 392
+	 * 
 	 * @link https://github.com/10up/ElasticPress/issues/392
+	 * @group multisite
 	 */
 	public function testDeactivateSite( ) {
 		$index_count = ep_count_indexes();
@@ -1775,7 +1792,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Tests deletion of index when a blog is marked as spam
-	 * @group 392
+	 * 
+	 * @group multisite
 	 * @link https://github.com/10up/ElasticPress/issues/392
 	 */
 	public function testSpamSite( ) {
@@ -1794,7 +1812,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Tests deletion of index when a blog is marked as archived
-	 * @group 392
+	 * 
+	 * @group multisite
 	 * @link https://github.com/10up/ElasticPress/issues/392
 	 */
 	public function testArchivedSite( ) {
@@ -1824,7 +1843,8 @@ class EPTestMultisite extends EP_Test_Base {
 
 	/**
 	 * Check if elasticpress_enabled() properly handles an object with the is_search() method.
-	 * @group 285
+	 * 
+	 * @group multisite
 	 * @link https://github.com/10up/ElasticPress/issues/285
 	 */
 	public function testQueryWithIsSearch() {
@@ -1843,10 +1863,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Tests index status when site is and is not indexed.
 	 *
 	 * @since 0.1.0
-	 *
-	 * @group BBPE-251
-	 *
-	 * @return void
+	 * @group multisite
 	 */
 	function testGetIndexStatus() {
 
@@ -1871,10 +1888,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test search status.
 	 *
 	 * @since 0.1.0
-	 *
-	 * @group BBPE-251
-	 *
-	 * @return void
+	 * @group multisite
 	 */
 	function testGetSearchStatus() {
 
@@ -1899,10 +1913,7 @@ class EPTestMultisite extends EP_Test_Base {
 	 * Test cluster status.
 	 *
 	 * @since 0.1.0
-	 *
-	 * @group BBPE-251
-	 *
-	 * @return void
+	 * @group multisite
 	 */
 	function testGetClusterStatus() {
 

@@ -1,12 +1,12 @@
 <?php
 
-class EPTestAdminModule extends EP_Test_Base {
+class EPTestProtectedContentFeature extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -26,14 +26,14 @@ class EPTestAdminModule extends EP_Test_Base {
 
 		$this->setup_test_post_type();
 
-		delete_option( 'ep_active_modules' );
+		delete_option( 'ep_active_features' );
 	}
 
 	/**
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -46,15 +46,15 @@ class EPTestAdminModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test main query isn't integrated when module isn't on
+	 * Test main query isn't integrated when feature isn't on
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function testAdminNotOn() {
 		set_current_screen( 'edit.php' );
 
-		EP_Modules::factory()->setup_modules();
+		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
 
@@ -74,16 +74,16 @@ class EPTestAdminModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test main query is integrated with module on
+	 * Test main query is integrated with feature on
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function testAdminOn() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_module( 'admin' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'protected_content' );
+		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
 
@@ -103,16 +103,16 @@ class EPTestAdminModule extends EP_Test_Base {
 	}
 
 	/**
-	 * Test main query on is integrated on drafts with module on
+	 * Test main query on is integrated on drafts with feature on
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function testAdminOnDraft() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_module( 'admin' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'protected_content' );
+		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
 		ep_create_and_sync_post( array( 'post_status' => 'draft' ) );
@@ -142,13 +142,13 @@ class EPTestAdminModule extends EP_Test_Base {
 	 * Check post updated to draft shows up
 	 *
 	 * @since 2.1
-	 * @group admin
+	 * @group protected-content
 	 */
 	public function testAdminOnDraftUpdated() {
 		set_current_screen( 'edit.php' );
 
-		ep_activate_module( 'admin' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'protected_content' );
+		EP_Features::factory()->setup_features();
 
 		ep_create_and_sync_post();
 		$post_id = ep_create_and_sync_post();
@@ -185,8 +185,8 @@ class EPTestAdminModule extends EP_Test_Base {
 	public function testAdminCategories() {
 		set_current_screen( 'edit.php' );
 		
-		ep_activate_module( 'admin' );
-		EP_Modules::factory()->setup_modules();
+		ep_activate_feature( 'protected_content' );
+		EP_Features::factory()->setup_features();
 		
 		$cat1 =  wp_create_category( 'category one' );
 		$cat2 =  wp_create_category( 'category two' );

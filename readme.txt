@@ -12,27 +12,60 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 A fast and flexible search and query engine for WordPress.
 
 == Description ==
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
 
-Pick and choose the modules that makes sense for your website:
+Here is a list of the amazing ElasticPress features included in the plugin:
 
-__Search__: Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
+__Search__: Instantly find the content you’re looking for. The first time.
 
-__WooCommerce__: Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
+__WooCommerce__: “I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
 
-__Related Posts__: Help users easily find related content by adding related posts to the end of each post.
+__Related Posts__: ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
 
-__Admin__: Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You'll need to make sure your Elasticsearch instance is properly secured.
+__Protected Content__: Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
-1. First, you will need to properly [install and configure](http://www.elasticsearch.org/guide/en/elasticsearch/guide/current/_installing_elasticsearch.html) Elasticsearch.
+1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. Activate the plugin in WordPress.
 3. In the ElasticPress settings page, input your Elasticsearch host.
-4. Activate the ElasticPress modules you need from the dashboard.
+4. Enjoy!
 
 == Changelog ==
+
+= 2.2 (Requires re-index) =
+
+Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overriden and disabled. Features that don't have their minimum requirements met, such as a plugin dependency, are auto-disabled.
+
+We've bumped the minimum Elasticsearch version to 1.7 (although we strongly recommend 2+). The maximum tested version of Elasticsearch is version 5.2. If you are running Elasticsearch outside this version range, you will see a warning in the dashboard.
+
+### Enhancements
+
+* (Breaking change) Module registration API changed. See `register_module` in `classes/class-ep-modules.php`.
+* (Breaking change) Related posts are now in a widget instead of automatically being appending to content.
+* (Breaking change) Admin module renamed to Protected Content.
+* Admin warning if current Elasticsearch version is not between the min/max supported version. Version 2.2 supports versions 1.3 - 5.1.
+* Auto-reindex on versions requiring reindex.
+* User friendly admin notifications for ElasticPress not set up, first sync needed, and feature auto activation.
+* Protected Content feature applies to all features. This means if Protected Content isn't active, search or WooCommerce integration won't happen in the admin.
+* Add support for post_mime_type. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+
+### Bug Fixes
+
+* Back compat with old `ep_search` function.
+* Respect indexable post types in WooCommerce feature
+* New product drafts not showing in WooCommerce admin list
+* WooCommerce feature breaking image search in media library. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* WooCommerce order search broken
+* Stop the insansity made private. Props (sc0ttclark)[https://github.com/sc0ttclark]
+* Fix multidimensional meta querys. Props (Ritesh-patel)[https://github.com/Ritesh-patel].
+* Properly show bulk index errors in WP-CLI
+* Update ep_delete_post, include $post_type argument. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* Fix post_type product getting set in any WP_Query if tax_query is provided in WooCommerce feature. Props (Ritesh-patel)[https://github.com/Ritesh-patel]
+* Adds 'number' param to satisfy WP v4.6+ fixing get_sites call. Props (rveitch)[https://github.com/rveitch]
+* Order by proper relevancy in WooCommerce product search. Props (ivankristianto)[https://github.com/ivankristianto]
+* Fix recursion fatal error due to oembed discovery during syncing. Props (ivankristianto)[https://github.com/ivankristianto]
 
 = 2.1.2 (Requires re-index) =
 

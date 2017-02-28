@@ -27,6 +27,22 @@ class EP_API {
 	private $queries = array();
 
 	/**
+	 * ES plugins
+	 * 
+	 * @var array
+	 * @since  2.2
+	 */
+	public $elasticsearch_plugins = null;
+
+	/**
+	 * ES version number
+	 * 
+	 * @var string
+	 * @since  2.2
+	 */
+	public $elasticsearch_version = null;
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return EP_API
@@ -65,7 +81,7 @@ class EP_API {
 
 		$index = trailingslashit( ep_get_index_name() );
 
-		$path = $index . 'post/' . $post['post_id'];
+		$path = apply_filters( 'ep_index_post_request_path', $index . 'post/' . $post['post_id'], $post );
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 
@@ -91,10 +107,14 @@ class EP_API {
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
-			return json_decode( $response_body );
+			$return = json_decode( $response_body );
+		} else {
+			$return = false;
 		}
 
-		return false;
+		do_action( 'ep_after_index_post', $post, $return );
+
+		return $return;
 	}
 
 	/**
@@ -132,32 +152,29 @@ class EP_API {
 	/**
 	 * Get Elasticsearch version
 	 *
-	 * @since 2.1.2
-	 * @return string
+	 * @param  bool $force
+	 * @since  2.1.2
+	 * @return string|bool
 	 */
-	public function get_elasticsearch_version() {
+	public function get_elasticsearch_version( $force = false ) {
 
-		$request_args = array( 'method' => 'GET' );
+		$info = $this->get_elasticsearch_info( $force );
 
-		$request = ep_remote_request( '', apply_filters( 'ep_elasticsearch_version_request_args', $request_args ) );
+		return apply_filters( 'ep_elasticsearch_version', $info['version'] );
+	}
 
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				$response_body = wp_remote_retrieve_body( $request );
+	/**
+	 * Get Elasticsearch plugins
+	 *
+	 * @param  bool $force
+	 * @since  2.2
+	 * @return string|bool
+	 */
+	public function get_elasticsearch_plugins( $force = false ) {
 
-				$response = json_decode( $response_body, true );
+		$info = $this->get_elasticsearch_info( $force );
 
-				try {
-					$version = $response['version']['number'];
-				} catch ( Exception $e ) {
-					return false;
-				}
-
-				return $version;
-			}
-		}
-
-		return false;
+		return apply_filters( 'ep_elasticsearch_plugins', $info['plugins'] );
 	}
 
 	/**
@@ -196,11 +213,11 @@ class EP_API {
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args );
-		
+
 		$remote_req_res_code = intval( wp_remote_retrieve_response_code( $request ) );
-		
+
 		$is_valid_res = ( $remote_req_res_code >= 200 && $remote_req_res_code <= 299 );
-		
+
 		if ( ! is_wp_error( $request ) && apply_filters( 'ep_remote_request_is_valid_res', $is_valid_res, $request ) ) {
 
 			// Allow for direct response retrieval
@@ -437,12 +454,6 @@ class EP_API {
 	 * @return array|bool|mixed
 	 */
 	public function put_mapping() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { 
-			$es_version = get_site_option( 'ep_es_version', false );
-		} else {
-			$es_version = get_option( 'ep_es_version', false );
-		}
-
 		$es_version = $this->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -557,15 +568,18 @@ class EP_API {
 			}
 		}
 
+		// Turn off oEmbed auto discovery as this will create an error while indexing
+		add_filter( 'embed_oembed_discover', '__return_false' );
+
 		$post_args = array(
 			'post_id'           => $post_id,
 			'ID'                => $post_id,
 			'post_author'       => $user_data,
 			'post_date'         => $post_date,
 			'post_date_gmt'     => $post_date_gmt,
-			'post_title'        => get_the_title( $post_id ),
-			'post_excerpt'      => $post->post_excerpt,
-			'post_content'      => apply_filters( 'the_content', $post->post_content ),
+			'post_title'        => $this->prepare_text_content( get_the_title( $post_id ) ),
+			'post_excerpt'      => $this->prepare_text_content( $post->post_excerpt ),
+			'post_content'      => $this->prepare_text_content( apply_filters( 'the_content', $post->post_content ) ),
 			'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
@@ -594,7 +608,24 @@ class EP_API {
 
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
+		// Turn back on oEmbed discovery
+		remove_filter( 'embed_oembed_discover', '__return_false' );
+
 		return $post_args;
+	}
+
+	/**
+	 * Prepare text for ES: Strip html, strip line breaks, etc.
+	 * 
+	 * @param  string $content
+	 * @since  2.2
+	 * @return string
+	 */
+	private function prepare_text_content( $content ) {
+		$content = strip_tags( $content );
+		$content = preg_replace( '#[\n\r]+#s', ' ', $content );
+
+		return $content;
 	}
 
 	/**
@@ -997,23 +1028,35 @@ class EP_API {
 		//set tax_query if it's implicitly set in the query
 		//e.g. $args['tag'], $args['category_name']
 		if ( empty( $args['tax_query'] ) ) {
+			if ( ! empty( $args['category_name'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms' =>  array( $args['category_name'] ),
+					'field' => 'slug'
+				);
+			} elseif ( ! empty( $args['cat'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms' =>  array( $args['cat'] ),
+					'field' => 'id'
+				);
+			}
 
-			$taxonomies = get_taxonomies();
-			$taxonomies = $this->sanitize_taxonomy_names($taxonomies); //fix it up
-
-			foreach( $taxonomies as $tax => $taxName ){
-				if( isset( $args[ $taxName ] ) && ! empty( $args[ $taxName ] ) ){
-					$args['tax_query'][] = array(
-						'taxonomy' => $tax,
-						'terms' =>  array($args[ $taxName ]),
-						'field' => 'slug'
-					);
-				}
+			if ( ! empty( $args['tag'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'post_tag',
+					'terms' =>  array( $args['tag'] ),
+					'field' => 'slug'
+				);
 			}
 		}
 
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
+			$tax_must_not_filter  = array();
+			
+			// Main tax_query array for ES
+			$es_tax_query = array();
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['terms'] ) ) {
@@ -1029,14 +1072,24 @@ class EP_API {
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
-
-					// Use the AND operator if passed
-					if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
-						$terms_obj['execution'] = 'and';
+					
+					/*
+					 * add support for "NOT IN" operator
+					 *
+					 * @since 2.1
+					 */
+					if ( ! empty( $single_tax_query['operator'] ) && 'NOT IN' === $single_tax_query['operator'] ) {
+						// If "NOT IN" than it should filter as must_not
+						$tax_must_not_filter[]['terms'] = $terms_obj;
+					} else {
+						// Use the AND operator if passed
+						if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
+							$terms_obj['execution'] = 'and';
+						}
+						
+						// Add the tax query filter
+						$tax_filter[]['terms'] = $terms_obj;
 					}
-
-					// Add the tax query filter
-					$tax_filter[]['terms'] = $terms_obj;
 				}
 			}
 
@@ -1047,9 +1100,17 @@ class EP_API {
 					$relation = 'should';
 				}
 
-				$filter['bool']['must'][]['bool'][$relation] = $tax_filter;
+				$es_tax_query[$relation] = $tax_filter;
 			}
-
+			
+			if ( ! empty( $tax_must_not_filter ) ) {
+				$es_tax_query['must_not'] = $tax_must_not_filter;
+			}
+			
+			if( ! empty( $es_tax_query ) ) {
+				$filter['bool']['must'][]['bool'] = $es_tax_query;
+			}
+			
 			$use_filters = true;
 		}
 
@@ -1120,6 +1181,35 @@ class EP_API {
 
 			$use_filters = true;
 		}
+		
+		/**
+		 * Add support for post_mime_type
+		 *
+		 * If we have array, it will be fool text search filter.
+		 * If we have string(like filter images in media screen), we will have mime type "image" so need to check it as
+		 * regexp filter.
+		 *
+		 * @since 2.3
+		 */
+		if( ! empty( $args['post_mime_type'] ) ) {
+			if( is_array( $args['post_mime_type'] ) ) {
+				$filter['bool']['must'][] = array(
+					'terms' => array(
+						'post_mime_type' => (array)$args['post_mime_type'],
+					),
+				);
+				
+				$use_filters = true;
+			} elseif( is_string( $args['post_mime_type'] ) ) {
+				$filter['bool']['must'][] = array(
+					'regexp' => array(
+						'post_mime_type' => $args['post_mime_type'] . ".*",
+					),
+				);
+				
+				$use_filters = true;
+			}
+		}
 
 		/**
 		 * Simple date params support
@@ -1187,248 +1277,14 @@ class EP_API {
 		}
 
 		if ( ! empty( $meta_queries ) ) {
-			$meta_filter = array();
 
 			$relation = 'must';
 			if ( ! empty( $args['meta_query'] ) && ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
 				$relation = 'should';
 			}
-
-			$meta_query_type_mapping = array(
-				'numeric'  => 'long',
-				'binary'   => 'raw',
-				'char'     => 'raw',
-				'date'     => 'date',
-				'datetime' => 'datetime',
-				'decimal'  => 'double',
-				'signed'   => 'long',
-				'time'     => 'time',
-				'unsigned' => 'long',
-			);
-
-			foreach( $meta_queries as $single_meta_query ) {
-
-				/**
-				 * There is a strange case where meta_query looks like this:
-				 * array(
-				 * 	"something" => array(
-				 * 	 array(
-				 * 	 	'key' => ...
-				 * 	 	...
-				 * 	 )
-				 * 	)
-				 * )
-				 *
-				 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
-				 *
-				 * @since  2.1
-				 */
-				if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
-					reset( $single_meta_query );
-					$first_key = key( $single_meta_query );
-
-					if ( is_array( $single_meta_query[$first_key] ) ) {
-						$single_meta_query = $single_meta_query[$first_key];
-					}
-				}
-
-				if ( ! empty( $single_meta_query['key'] ) ) {
-
-					$terms_obj = false;
-
-					$compare = '=';
-					if ( ! empty( $single_meta_query['compare'] ) ) {
-						$compare = strtolower( $single_meta_query['compare'] );
-					}
-
-					$type = null;
-					if ( ! empty( $single_meta_query['type'] ) ) {
-						$type = strtolower( $single_meta_query['type'] );
-					}
-
-					// Comparisons need to look at different paths
-					if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
-						$meta_key_path = 'meta.' . $single_meta_query['key'];
-					} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
-					} elseif ( 'like' === $compare ) {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
-					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
-						// Map specific meta field types to different Elasticsearch core types
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
-					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between' ) ) ) {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
-					} else {
-						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
-					}
-
-					switch ( $compare ) {
-						case 'not in':
-						case '!=':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must_not' => array(
-											array(
-												'terms' => array(
-													$meta_key_path => (array) $single_meta_query['value'],
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case 'exists':
-							$terms_obj = array(
-								'exists' => array(
-									'field' => $meta_key_path,
-								),
-							);
-
-							break;
-						case 'not exists':
-							$terms_obj = array(
-								'bool' => array(
-									'must_not' => array(
-										array(
-											'exists' => array(
-												'field' => $meta_key_path,
-											),
-										),
-									),
-								),
-							);
-
-							break;
-						case '>=':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														"gte" => $single_meta_query['value'],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case 'between':
-							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														"gte" => $single_meta_query['value'][0],
-													),
-												),
-											),
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														"lte" => $single_meta_query['value'][1],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case '<=':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														'lte' => $single_meta_query['value'],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case '>':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														'gt' => $single_meta_query['value'],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case '<':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'bool' => array(
-										'must' => array(
-											array(
-												'range' => array(
-													$meta_key_path => array(
-														'lt' => $single_meta_query['value'],
-													),
-												),
-											),
-										),
-									),
-								);
-							}
-
-							break;
-						case 'like':
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'query' => array(
-										'match' => array(
-											$meta_key_path => $single_meta_query['value'],
-										)
-									),
-								);
-							}
-							break;
-						case '=':
-						default:
-							if ( isset( $single_meta_query['value'] ) ) {
-								$terms_obj = array(
-									'terms' => array(
-										$meta_key_path => (array) $single_meta_query['value'],
-									),
-								);
-							}
-
-							break;
-					}
-
-					// Add the meta query filter
-					if ( false !== $terms_obj ) {
-						$meta_filter[] = $terms_obj;
-					}
-				}
-			}
+			
+			// get meta query filter
+			$meta_filter = $this->build_meta_query( $meta_queries );
 
 			if ( ! empty( $meta_filter ) ) {
 				$filter['bool']['must'][]['bool'][$relation] = $meta_filter;
@@ -1521,15 +1377,30 @@ class EP_API {
 		 * @since 1.3
 		 */
 
-		if ( ! empty( $args['s'] ) && empty( $args['ep_match_all'] ) && empty( $args['ep_integrate'] ) ) {
+		if ( ! empty( $args['s'] ) ) {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$formatted_args['query'] = $query;
+			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args );
 		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
 			);
+		}
+		
+		/**
+		 * Order by 'rand' support
+		 *
+		 * Ref: https://github.com/elastic/elasticsearch/issues/1170
+		 */
+		if ( ! empty( $args['orderby'] ) ) {
+			$orderbys = $this->get_orderby_array( $args['orderby'] );
+			if( in_array( 'rand', $orderbys ) ) {
+				$formatted_args_query = $formatted_args['query'];
+				$formatted_args['query'] = array();
+				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+				$formatted_args['query']['function_score']['random_score'] = (object) array();
+			}
 		}
 
 		/**
@@ -1572,7 +1443,8 @@ class EP_API {
 		if ( ! empty( $args['post_status'] ) ) {
 			// should NEVER be "any" but just in case
 			if ( 'any' !== $args['post_status'] ) {
-				$post_status = (array) $args['post_status'];
+				$post_status = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
+				$post_status = array_map( 'trim', $post_status );
 				$terms_map_name = 'terms';
 				if ( count( $post_status ) < 2 ) {
 					$terms_map_name = 'term';
@@ -1588,9 +1460,32 @@ class EP_API {
 				$use_filters = true;
 			}
 		} else {
+			$statuses = get_post_stati( array( 'public' => true ) );
+
+			if ( is_admin() ) {
+				/**
+				 * In the admin we will add protected and private post statuses to the default query
+				 * per WP default behavior.
+				 */
+				$statuses = array_merge( $statuses, get_post_stati( array( 'protected' => true, 'show_in_admin_all_list' => true ) ) );
+
+				if ( is_user_logged_in() ) {
+					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
+				}
+			}
+
+			$statuses = array_values( $statuses );
+
+			$post_status_filter_type = 'terms';
+
+			if ( 1 === count( $statuses ) ) {
+				$post_status_filter_type = 'term';
+				$statuses = $statuses[0];
+			}
+
 			$filter['bool']['must'][] = array(
-				'term' => array(
-					'post_status' => 'publish',
+				$post_status_filter_type => array(
+					'post_status' => $statuses,
 				),
 			);
 
@@ -1629,33 +1524,297 @@ class EP_API {
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
 				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
 			} else {
-				$formatted_args['aggs'][ $agg_name ] = $args['aggs'];
+				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
 			}
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
-
+	
 	/**
-	 * WP is using 'weird' taxonomy name, for example: 'category' but in query using 'category_name', 'post_tag' but in queries using 'tag'
-	 * Map taxonomy name in db to taxonomy in query
-	 * @param $taxonomies
+	 * Build Elasticsearch filter query for WP meta_query
+	 *
+	 * @since 2.2
+	 *
+	 * @param $meta_queries
+	 *
 	 * @return array
 	 */
-	protected function sanitize_taxonomy_names( $taxonomies ){
-		$taxes = array();
-		foreach( $taxonomies as $tax => $taxName ){
-			switch( $tax ){
-				case "category":
-					$taxes["category"] = "category_name";
-					break;
-				case "post_tag":
-					$taxes["post_tag"] = "tag";
-					break;
-				default:
-					$taxes[ $tax ] = $taxName;
+	public function build_meta_query( $meta_queries ){
+		$meta_filter = array();
+		
+		if ( ! empty( $meta_queries ) ) {
+			
+			$meta_query_type_mapping = array(
+				'numeric'  => 'long',
+				'binary'   => 'raw',
+				'char'     => 'raw',
+				'date'     => 'date',
+				'datetime' => 'datetime',
+				'decimal'  => 'double',
+				'signed'   => 'long',
+				'time'     => 'time',
+				'unsigned' => 'long',
+			);
+			
+			foreach( $meta_queries as $single_meta_query ) {
+				
+				/**
+				 * There is a strange case where meta_query looks like this:
+				 * array(
+				 * 	"something" => array(
+				 * 	 array(
+				 * 	 	'key' => ...
+				 * 	 	...
+				 * 	 )
+				 * 	)
+				 * )
+				 *
+				 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
+				 *
+				 * @since  2.1
+				 */
+				if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
+					reset( $single_meta_query );
+					$first_key = key( $single_meta_query );
+					
+					if ( is_array( $single_meta_query[$first_key] ) ) {
+						$single_meta_query = $single_meta_query[$first_key];
+					}
+				}
+				
+				if ( ! empty( $single_meta_query['key'] ) ) {
+					
+					$terms_obj = false;
+					
+					$compare = '=';
+					if ( ! empty( $single_meta_query['compare'] ) ) {
+						$compare = strtolower( $single_meta_query['compare'] );
+					}
+					
+					$type = null;
+					if ( ! empty( $single_meta_query['type'] ) ) {
+						$type = strtolower( $single_meta_query['type'] );
+					}
+					
+					// Comparisons need to look at different paths
+					if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'];
+					} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+					} elseif ( 'like' === $compare ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
+					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
+						// Map specific meta field types to different Elasticsearch core types
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
+					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between' ) ) ) {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
+					} else {
+						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+					}
+					
+					switch ( $compare ) {
+						case 'not in':
+						case '!=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must_not' => array(
+											array(
+												'terms' => array(
+													$meta_key_path => (array) $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case 'exists':
+							$terms_obj = array(
+								'exists' => array(
+									'field' => $meta_key_path,
+								),
+							);
+							
+							break;
+						case 'not exists':
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'exists' => array(
+												'field' => $meta_key_path,
+											),
+										),
+									),
+								),
+							);
+							
+							break;
+						case '>=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"gte" => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case 'between':
+							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"gte" => $single_meta_query['value'][0],
+													),
+												),
+											),
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"lte" => $single_meta_query['value'][1],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case '<=':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														'lte' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case '>':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														'gt' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case '<':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'must' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														'lt' => $single_meta_query['value'],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+							
+							break;
+						case 'like':
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'query' => array(
+										'match' => array(
+											$meta_key_path => $single_meta_query['value'],
+										)
+									),
+								);
+							}
+							break;
+						case '=':
+						default:
+							if ( isset( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'terms' => array(
+										$meta_key_path => (array) $single_meta_query['value'],
+									),
+								);
+							}
+							
+							break;
+					}
+					
+					// Add the meta query filter
+					if ( false !== $terms_obj ) {
+						$meta_filter[] = $terms_obj;
+					}
+				} elseif ( is_array( $single_meta_query ) && isset( $single_meta_query[0] ) && is_array( $single_meta_query[0] ) ) {
+					/*
+					 * Handle multidimensional array. Something like:
+					 *
+					 * 'meta_query' => array(
+					 *      'relation' => 'AND',
+					 *      array(
+					 *          'key' => 'meta_key_1',
+					 *          'value' => '1',
+					 *      ),
+					 *      array(
+					 *          'relation' => 'OR',
+					 *          array(
+					 *              'key' => 'meta_key_2',
+					 *              'value' => '2',
+					 *          ),
+					 *          array(
+					 *              'key' => 'meta_key_3',
+					 *              'value' => '4',
+					 *          ),
+					 *      ),
+					 *  ),
+					 */
+					$relation = 'must';
+					if ( ! empty( $single_meta_query['relation'] ) && 'or' === strtolower( $single_meta_query['relation'] ) ) {
+						$relation = 'should';
+					}
+					
+					$meta_filter[] = array(
+						'bool' => array(
+							$relation => $this->build_meta_query( $single_meta_query ),
+						),
+					);
+				}
 			}
 		}
-		return $taxes;
+		
+		return $meta_filter;
 	}
 
 	/**
@@ -1668,8 +1827,9 @@ class EP_API {
 	public function get_sites( $limit = 0 ) {
 		$args = apply_filters( 'ep_indexable_sites_args', array(
 			'limit' => $limit,
+			'number' => $limit,
 		) );
-		
+
 		if ( function_exists( 'get_sites' ) ) {
 			$site_objects = get_sites( $args );
 			$sites = array();
@@ -1698,7 +1858,7 @@ class EP_API {
 	 */
 	public function bulk_index_posts( $body ) {
 		// create the url with index name and type so that we don't have to repeat it over and over in the request (thereby reducing the request size)
-		$path = trailingslashit( ep_get_index_name() ) . 'post/_bulk';
+		$path = apply_filters( 'ep_bulk_index_post_request_path', trailingslashit( ep_get_index_name() ) . 'post/_bulk', $body );
 
 		$request_args = array(
 			'method'  => 'POST',
@@ -1773,9 +1933,7 @@ class EP_API {
 	 * @return array
 	 */
 	protected function parse_orderby( $orderbys, $default_order, $args ) {
-		if ( ! is_array( $orderbys ) ) {
-			$orderbys = explode( ' ', $orderbys );
-		}
+		$orderbys = $this->get_orderby_array( $orderbys );
 
 		$sort = array();
 
@@ -1788,7 +1946,7 @@ class EP_API {
 				$order = $default_order;
 			}
 
-			if ( ! empty( $orderby_clause ) ) {
+			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
 				if ( 'relevance' === $orderby_clause ) {
 					$sort[] = array(
 						'_score' => array(
@@ -1853,32 +2011,21 @@ class EP_API {
 
 		return $sort;
 	}
-
+	
 	/**
-	 * This function checks if we can connect to Elasticsearch
+	 * Get Order by args Array
+	 *
+	 * @param $orderbys
 	 *
 	 * @since 2.1
-	 * @return bool
+	 * @return array
 	 */
-	public function elasticsearch_can_connect() {
-
-		$host = ep_get_host();
-
-		if ( empty( $host ) ) {
-			return false;
+	protected function get_orderby_array( $orderbys ){
+		if ( ! is_array( $orderbys ) ) {
+			$orderbys = explode( ' ', $orderbys );
 		}
-
-		$request_args = array( 'headers' => $this->format_request_headers() );
-
-		$request = wp_remote_request( $host, apply_filters( 'ep_es_can_connect_args', $request_args ) );
-
-		if ( ! is_wp_error( $request ) ) {
-			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
-				return true;
-			}
-		}
-
-		return false;
+		
+		return $orderbys;
 	}
 
 	/**
@@ -2008,70 +2155,52 @@ class EP_API {
 	}
 
 	/**
-	 * Get Elasticsearch plugins
+	 * Get ES plugins and version, cache everything
 	 *
-	 * Gets a list of available Elasticearch plugins.
-	 *
-	 * @since 1.9
-	 *
-	 * @return array Array of plugins and their version or error message
+	 * @param  bool $force
+	 * @since 2.2
+	 * @return array
 	 */
-	public function get_plugins() {
+	public function get_elasticsearch_info( $force = false ) {
 
-		$plugins = get_transient( 'ep_installed_plugins' );
+		if ( $force || null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) {
+			$path = '_nodes/plugins';
 
-		if ( is_array( $plugins ) ) {
-			return $plugins;
-		}
+			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
-		$plugins = array();
+			if ( is_wp_error( $request ) ) {
+				$this->elasticsearch_version = false;
+				$this->elasticsearch_plugins = false;
+			} else {
+				$response = json_decode( wp_remote_retrieve_body( $request ), true );
 
-		if ( is_wp_error( ep_get_host() ) ) {
+				$this->elasticsearch_plugins = array();
+				$this->elasticsearch_version = false;
 
-			return array(
-				'status' => false,
-				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
-			);
+				if ( isset( $response['nodes'] ) ) {
 
-		}
+					foreach ( $response['nodes'] as $node ) {
+						// Save version of last node. We assume all nodes are same version
+						$this->elasticsearch_version = $node['version'];
 
-		$path = '/_nodes?plugin=true';
+						if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
 
-		$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
+							foreach ( $node['plugins'] as $plugin ) {
 
-		if ( ! is_wp_error( $request ) ) {
+								$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+							}
 
-			$response = json_decode( wp_remote_retrieve_body( $request ), true );
-
-			if ( isset( $response['nodes'] ) ) {
-
-				foreach ( $response['nodes'] as $node ) {
-
-					if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
-
-						foreach ( $node['plugins'] as $plugin ) {
-
-							$plugins[ $plugin['name'] ] = $plugin['version'];
-
+							break;
 						}
-
-						break;
-
 					}
 				}
 			}
-
-			set_transient( 'ep_installed_plugins', $plugins, apply_filters( 'ep_installed_plugins_exp', 3600 ) );
-
-			return $plugins;
-
 		}
 
 		return array(
-			'status' => false,
-			'msg'    => $request->get_error_message(),
+			'plugins' => $this->elasticsearch_plugins,
+			'version' => $this->elasticsearch_version,
 		);
-
 	}
 
 	/**
@@ -2301,7 +2430,9 @@ function ep_elasticpress_enabled( $query ) {
 }
 
 function ep_elasticsearch_alive( $host = null ) {
-	return EP_API::factory()->elasticsearch_alive( $host );
+	_deprecated_function( __FUNCTION__, 'ElasticPress 2.1', 'ep_elasticsearch_can_connect()' );
+
+	return EP_API::factory()->elasticsearch_can_connect();
 }
 
 function ep_index_exists( $index_name = null ) {
@@ -2324,8 +2455,8 @@ function ep_parse_api_response( $response ) {
 	return EP_API::factory()->parse_api_response( $response );
 }
 
-function ep_get_plugins() {
-	return EP_API::factory()->get_plugins();
+function ep_get_elasticsearch_plugins( $force = false ) {
+	return EP_API::factory()->get_elasticsearch_plugins();
 }
 
 function ep_get_search_status( $blog_id = null ) {
@@ -2341,10 +2472,27 @@ function ep_get_cluster_status() {
 }
 
 function ep_elasticsearch_can_connect() {
-	return EP_API::factory()->elasticsearch_can_connect();
+	return (bool) EP_API::factory()->get_elasticsearch_version();
 }
 
 function ep_parse_site_id( $index_name ) {
 	return EP_API::factory()->parse_site_id( $index_name );
 }
 
+function ep_get_elasticsearch_version( $force = false ) {
+	return EP_API::factory()->get_elasticsearch_version( $force );
+}
+
+if( ! function_exists( 'ep_search' ) ) {
+	/**
+	 * Backward compatibility for ep_search
+	 *
+	 * @param $args
+	 * @param string $scope
+	 *
+	 * @return array
+	 */
+	function ep_search( $args, $scope = 'current' ) {
+		return ep_query( $args, array(), $scope );
+	}
+}

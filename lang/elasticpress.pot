@@ -1,208 +1,248 @@
-# Copyright (C) 2016 Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
+# Copyright (C) 2017 Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.1\n"
+"Project-Id-Version: ElasticPress 2.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2016-09-20 20:13:21+00:00\n"
+"POT-Creation-Date: 2017-02-27 19:00:10+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2016-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2017-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "X-Generator: grunt-wp-i18n 0.5.4\n"
 
-#: bin/wp-cli.php:46 bin/wp-cli.php:93
-msgid "No module with that slug is registered"
+#: bin/wp-cli.php:67 bin/wp-cli.php:104
+msgid "No feature with that slug is registered"
 msgstr ""
 
-#: bin/wp-cli.php:56
-msgid "This module is already active"
-msgstr ""
-
-#: bin/wp-cli.php:60
-msgid "Module depedencies are not met"
-msgstr ""
-
-#: bin/wp-cli.php:68
-msgid "This module requires a re-index. You may want to run the index command next."
+#: bin/wp-cli.php:71
+msgid "This feature is already active"
 msgstr ""
 
 #: bin/wp-cli.php:77
-msgid "Module activated"
+msgid "Feature requirements are not met"
 msgstr ""
 
-#: bin/wp-cli.php:107
-msgid "Module is not active"
+#: bin/wp-cli.php:79
+msgid "Feature is usable but there are warnings: %s"
+msgstr ""
+
+#: bin/wp-cli.php:85
+msgid ""
+"This feature requires a re-index. You may want to run the index command "
+"next."
+msgstr ""
+
+#: bin/wp-cli.php:88
+msgid "Feature activated"
 msgstr ""
 
 #: bin/wp-cli.php:116
-msgid "Module deactivated"
+msgid "Feature is not active"
 msgstr ""
 
-#: bin/wp-cli.php:137
-msgid "Active modules:"
+#: bin/wp-cli.php:121
+msgid "Feature deactivated"
 msgstr ""
 
-#: bin/wp-cli.php:139
-msgid "Registered modules:"
+#: bin/wp-cli.php:141
+msgid "Active features:"
 msgstr ""
 
-#: bin/wp-cli.php:170
+#: bin/wp-cli.php:149
+msgid "Registered features:"
+msgstr ""
+
+#: bin/wp-cli.php:180
 msgid "Adding mapping for site %d..."
 msgstr ""
 
-#: bin/wp-cli.php:180 bin/wp-cli.php:198
+#: bin/wp-cli.php:190 bin/wp-cli.php:208
 msgid "Mapping sent"
 msgstr ""
 
-#: bin/wp-cli.php:182 bin/wp-cli.php:200
+#: bin/wp-cli.php:192 bin/wp-cli.php:210
 msgid "Mapping failed"
 msgstr ""
 
-#: bin/wp-cli.php:188
+#: bin/wp-cli.php:198
 msgid "Adding mapping..."
 msgstr ""
 
-#: bin/wp-cli.php:228
+#: bin/wp-cli.php:238
 msgid "Deleting index for site %d..."
 msgstr ""
 
-#: bin/wp-cli.php:233 bin/wp-cli.php:246
+#: bin/wp-cli.php:243 bin/wp-cli.php:256
 msgid "Index deleted"
 msgstr ""
 
-#: bin/wp-cli.php:235
+#: bin/wp-cli.php:245
 msgid "Delete index failed"
 msgstr ""
 
-#: bin/wp-cli.php:241
+#: bin/wp-cli.php:251
 msgid "Deleting index..."
 msgstr ""
 
-#: bin/wp-cli.php:248
+#: bin/wp-cli.php:258
 msgid "Index delete failed"
 msgstr ""
 
-#: bin/wp-cli.php:266 bin/wp-cli.php:380
+#: bin/wp-cli.php:276 bin/wp-cli.php:407
 msgid "Recreating network alias..."
 msgstr ""
 
-#: bin/wp-cli.php:273 bin/wp-cli.php:407
+#: bin/wp-cli.php:283 bin/wp-cli.php:434
 msgid "Done!"
 msgstr ""
 
-#: bin/wp-cli.php:275
+#: bin/wp-cli.php:285
 msgid "An error occurred"
 msgstr ""
 
-#: bin/wp-cli.php:360
+#: bin/wp-cli.php:387
 msgid "Indexing posts network-wide..."
 msgstr ""
 
-#: bin/wp-cli.php:371 bin/wp-cli.php:392
+#: bin/wp-cli.php:398 bin/wp-cli.php:419
 msgid "Number of posts indexed on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:374 bin/wp-cli.php:395
+#: bin/wp-cli.php:401 bin/wp-cli.php:422
 msgid "Number of post index errors on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:384
+#: bin/wp-cli.php:411
 msgid "Total number of posts indexed: %d"
 msgstr ""
 
-#: bin/wp-cli.php:388
+#: bin/wp-cli.php:415
 msgid "Indexing posts..."
 msgstr ""
 
-#: bin/wp-cli.php:399
+#: bin/wp-cli.php:426
 msgid "Total time elapsed: "
 msgstr ""
 
-#: bin/wp-cli.php:665
+#: bin/wp-cli.php:717
 msgid ""
 "The following posts failed to index:\r\n"
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:800
+#: bin/wp-cli.php:867
 msgid ""
 "There is no Elasticsearch host set up. Either add one through the dashboard "
 "or define one in wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:802
+#: bin/wp-cli.php:869
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:1926
+#: classes/class-ep-api.php:2119
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:1939
+#: classes/class-ep-api.php:2132
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1943
+#: classes/class-ep-api.php:2136
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:1981 classes/class-ep-api.php:2040
-#: classes/class-ep-api.php:2080 classes/class-ep-api.php:2131
+#: classes/class-ep-api.php:2215 classes/class-ep-api.php:2255
+#: classes/class-ep-api.php:2306
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:80
+#: classes/class-ep-dashboard.php:96
 msgid "<a href=\"%s\">Dashboard</a>"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:118
-msgid ""
-"ElasticPress is in the middle of a sync. The plugin wont work until it "
-"finishes. Want to <a href=\"%s\">go back and finish it</a>?"
-msgstr ""
-
-#: classes/class-ep-dashboard.php:167
+#: classes/class-ep-dashboard.php:251
 msgid ""
 "There is a problem with connecting to your Elasticsearch host. You will "
 "need to <a href=\"%s\">fix it</a> for ElasticPress to work."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:474
+#: classes/class-ep-dashboard.php:258
+msgid ""
+"Your Elasticsearch version %s is above the maximum required Elasticsearch "
+"version %s. ElasticPress may or may not work properly."
+msgstr ""
+
+#: classes/class-ep-dashboard.php:265
+msgid ""
+"Your Elasticsearch version %s is below the minimum required Elasticsearch "
+"version %s. ElasticPress may or may not work properly."
+msgstr ""
+
+#: classes/class-ep-dashboard.php:278
+msgid ""
+"Thanks for installing ElasticPress! You will need to run through a <a "
+"href=\"%s\">quick set up process</a> to get the plugin working."
+msgstr ""
+
+#: classes/class-ep-dashboard.php:291
+msgid ""
+"ElasticPress is almost ready. You will need to complete a <a "
+"href=\"%s\">sync</a> to get the plugin working."
+msgstr ""
+
+#: classes/class-ep-dashboard.php:304
+msgid ""
+"The new version of ElasticPress requires that you <a href=\"%s\">run a "
+"sync</a>."
+msgstr ""
+
+#: classes/class-ep-dashboard.php:319
+msgid ""
+"The ElasticPress %s feature has been auto-activated! You will need to <a "
+"href=\"%s\">run a sync</a> for it to work."
+msgstr ""
+
+#: classes/class-ep-dashboard.php:666
 msgid "Sync complete"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:475
+#: classes/class-ep-dashboard.php:667
 msgid "Sync paused"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:476
+#: classes/class-ep-dashboard.php:668
 msgid "Syncing"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:477
+#: classes/class-ep-dashboard.php:669
+msgid "Starting sync"
+msgstr ""
+
+#: classes/class-ep-dashboard.php:670
 msgid "WP CLI sync is occuring. Refresh the page to see if it's finished"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:478
+#: classes/class-ep-dashboard.php:671
 msgid "An error occured while syncing"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:498
+#: classes/class-ep-dashboard.php:708
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:607 classes/class-ep-dashboard.php:608
-#: includes/settings-page.php:27
+#: classes/class-ep-dashboard.php:822 classes/class-ep-dashboard.php:823
+#: classes/class-ep-feature.php:254 includes/settings-page.php:27
 #: vendor/woocommerce/includes/admin/class-wc-admin-menus.php:80
 #: vendor/woocommerce/includes/admin/settings/class-wc-settings-api.php:45
 #: vendor/woocommerce/includes/admin/settings/views/html-admin-page-shipping-zone-methods.php:52
@@ -211,18 +251,52 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:616 classes/class-ep-dashboard.php:617
+#: classes/class-ep-dashboard.php:831 classes/class-ep-dashboard.php:832
 msgid "Welcome"
 msgstr ""
 
-#: classes/class-ep-module.php:160
+#: classes/class-ep-feature.php:218
 #: vendor/woocommerce/includes/admin/meta-boxes/class-wc-meta-box-product-data.php:616
 #: vendor/woocommerce/includes/gateways/simplify-commerce/class-wc-gateway-simplify-commerce.php:98
 msgid "Learn more"
 msgstr ""
 
-#: classes/class-ep-module.php:165
+#: classes/class-ep-feature.php:223
 msgid "Collapse"
+msgstr ""
+
+#: classes/class-ep-feature.php:257
+#: vendor/woocommerce/includes/admin/class-wc-admin-post-types.php:272
+#: vendor/woocommerce/includes/admin/class-wc-admin-webhooks-table-list.php:41
+#: vendor/woocommerce/includes/admin/meta-boxes/class-wc-meta-box-product-data.php:671
+#: vendor/woocommerce/includes/admin/settings/views/html-webhook-log.php:25
+#: vendor/woocommerce/includes/admin/settings/views/html-webhooks-edit.php:24
+#: vendor/woocommerce/includes/wc-account-functions.php:178
+#: vendor/woocommerce/templates/myaccount/my-orders.php:15
+msgid "Status"
+msgstr ""
+
+#: classes/class-ep-feature.php:259
+#: vendor/woocommerce/includes/admin/meta-boxes/views/html-variation-admin.php:76
+#: vendor/woocommerce/includes/admin/settings/class-wc-settings-checkout.php:292
+#: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:269
+#: vendor/woocommerce/includes/admin/settings/views/html-admin-page-shipping-zone-methods.php:20
+#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:31
+#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:42
+#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:53
+msgid "Enabled"
+msgstr ""
+
+#: classes/class-ep-feature.php:260
+#: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:271
+#: vendor/woocommerce/includes/wc-webhook-functions.php:25
+msgid "Disabled"
+msgstr ""
+
+#: classes/class-ep-feature.php:273
+#: vendor/woocommerce/includes/admin/meta-boxes/views/html-order-items.php:246
+#: vendor/woocommerce/templates/myaccount/form-reset-password.php:47
+msgid "Save"
 msgstr ""
 
 #: classes/class-ep-wp-date-query.php:494
@@ -243,27 +317,104 @@ msgstr ""
 msgid "The following values do not describe a valid date: month %1$s, day %2$s."
 msgstr ""
 
-#. Plugin Name of the plugin/theme
-msgid "ElasticPress"
-msgstr ""
-
-#: includes/dashboard-page.php:26
+#: features/protected-content/protected-content.php:101
 msgid ""
-"ElasticPress, the fast and flexible query engine for WordPress, let's you "
-"supercharge your website through a variety of modules. Activate the ones "
-"you need below:"
+"Optionally index all of your content, including private and unpublished "
+"content, to speed up searches and queries in places like the administrative "
+"dashboard."
 msgstr ""
 
-#: includes/dashboard-page.php:66
-msgid "Deactivate"
+#: features/protected-content/protected-content.php:112
+msgid ""
+"Securely indexes unpublished content—including private, draft, and "
+"scheduled posts —improving load times in places like the administrative "
+"dashboard where WordPress needs to include protected content in a query. "
+"<em>We recommend using a secured Elasticsearch setup, such as "
+"ElasticPress.io, to prevent potential exposure of content not intended for "
+"the public.</em>"
 msgstr ""
 
-#: includes/dashboard-page.php:67
-msgid "Activate"
+#: features/protected-content/protected-content.php:143
+msgid ""
+"You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
+"we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
-#: includes/dashboard-page.php:68
-msgid "Syncing..."
+#: features/protected-content/protected-content.php:153
+msgid "Protected Content"
+msgstr ""
+
+#: features/related-posts/related-posts.php:76
+msgid ""
+"ElasticPress understands data in real time, so it can instantly deliver "
+"engaging and precise related content with no impact on site performance."
+msgstr ""
+
+#: features/related-posts/related-posts.php:87
+msgid ""
+"Output related content using our Widget or directly in your theme using our "
+"<a href=\"https://github.com/10up/ElasticPress/#related-posts\">API "
+"functions.</a>"
+msgstr ""
+
+#: features/related-posts/widget.php:17
+msgid ""
+"Show related posts using ElasticPress. This widget will only appear on "
+"single post, page, and custom type pages."
+msgstr ""
+
+#: features/related-posts/widget.php:18
+msgid "ElasticPress - Related Posts"
+msgstr ""
+
+#: features/related-posts/widget.php:88
+msgid "Title:"
+msgstr ""
+
+#: features/related-posts/widget.php:96
+msgid "Number of Posts to Show:"
+msgstr ""
+
+#: features/search/search.php:16
+msgid "Instantly find the content you’re looking for. The first time."
+msgstr ""
+
+#: features/search/search.php:27
+msgid ""
+"Overcome higher-end performance and functional limits posed by the "
+"traditional WordPress structured (SQL) database to deliver superior keyword "
+"search, instantly. ElasticPress indexes custom fields, tags, and other "
+"metadata to improve search results. Fuzzy matching accounts for "
+"misspellings and verb tenses."
+msgstr ""
+
+#: features/woocommerce/woocommerce.php:528
+msgid ""
+"“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted "
+"product browsing strains servers and increases load times. Your buyers can "
+"find the perfect product quickly, and buy it quickly."
+msgstr ""
+
+#: features/woocommerce/woocommerce.php:539
+msgid ""
+"Most caching and performance tools can’t keep up with the nearly infinite "
+"ways your visitors might filter or navigate your products. No matter how "
+"many products, filters, or customers you have, ElasticPress will keep your "
+"online store performing quickly. If used in combination with the Protected "
+"Content feature, ElasticPress will also accelerate order searches and back "
+"end product management."
+msgstr ""
+
+#: features/woocommerce/woocommerce.php:553
+msgid "WooCommerce not installed."
+msgstr ""
+
+#: includes/dashboard-page.php:24
+msgid "List of features"
+msgstr ""
+
+#: includes/dashboard-page.php:53
+msgid "settings"
 msgstr ""
 
 #: includes/intro-page.php:24
@@ -302,116 +453,6 @@ msgstr ""
 
 #: includes/settings-page.php:50
 msgid "Save Changes"
-msgstr ""
-
-#: modules/admin/admin.php:81
-msgid ""
-"Help editors more effectively browse through content. Load long lists of "
-"posts faster. Filter posts faster. Please note this syncs draft content to "
-"Elasticsearch. You want to make sure your Elasticsearch instance is "
-"properly secured."
-msgstr ""
-
-#: modules/admin/admin.php:92
-msgid ""
-"Within the admin panel, posts and pages are shown in a standarized easy to "
-"use table format. After activating an SEO plugin, increasing post per "
-"pages, and making other modifications, that table view loads very slowly."
-msgstr ""
-
-#: modules/admin/admin.php:94
-msgid ""
-"ElasticPress admin will make your admin curation experience much faster and "
-"easier. No longer will you have to wait 60 seconds to do things that should "
-"be easy such as viewing 200 posts at once."
-msgstr ""
-
-#: modules/admin/admin.php:96
-msgid ""
-"Using the search module in conjunction with this module will supercharge "
-"your admin search."
-msgstr ""
-
-#: modules/related-posts/related-posts.php:85
-msgid "Related Posts"
-msgstr ""
-
-#: modules/related-posts/related-posts.php:127
-msgid ""
-"Help users easily find related content by adding related posts to the end "
-"of each post."
-msgstr ""
-
-#: modules/related-posts/related-posts.php:138
-msgid ""
-"Showing users related content is a quick way to improve readership and "
-"loyalty. There a number of plugins that show related content, most of which "
-"are ineffective and slow."
-msgstr ""
-
-#: modules/related-posts/related-posts.php:140
-msgid ""
-"ElasticPress has a powerful content matching algorithm that lets it find "
-"related content very effectively. This module will show three related posts "
-"after the post content."
-msgstr ""
-
-#: modules/search/search.php:16
-msgid ""
-"Beef up your search to be more accurate, search tags, categories, and other "
-"taxonomies, catch misspellings, weight content by recency and more."
-msgstr ""
-
-#: modules/search/search.php:27
-msgid ""
-"Search is a long neglected piece of WordPress. Result relevancy is poor; "
-"performance is poor; there is no handling of misspellings; there is no way "
-"to search categories, tags, or custom taxonomies as WordPress by default "
-"only searches post content, excerpt, and title."
-msgstr ""
-
-#: modules/search/search.php:30
-msgid ""
-"The search module allows you to do all these things and more. Just "
-"activating the module will make your search experience much better. Your "
-"users will be able to more effectively browse your website and find the "
-"content they desire. Misspellings will be accounted for, categories "
-"searched, and results weighted by recency. If activated in conjunction with "
-"the admin module, admin search will be improved as well."
-msgstr ""
-
-#: modules/search/search.php:34
-msgid ""
-"This module is a <strong>must have</strong> for all websites which is why "
-"it's activated by default."
-msgstr ""
-
-#: modules/woocommerce/woocommerce.php:529
-msgid ""
-"Allow customers to filter through products faster and improve product "
-"search relevancy. Enable editors to find orders and products more "
-"effectively in the admin. This module will increase your sales bottom line "
-"and reduce administrative costs."
-msgstr ""
-
-#: modules/woocommerce/woocommerce.php:540
-msgid ""
-"Running eCommerce stores is hard enough already. You should not have to "
-"worry about slow load times. ElasticPress WooCommerce supercharges all "
-"product queries, product sorts, and filters both on the front end and the "
-"admin. No matter how many products or filters you have, your site will load "
-"fast."
-msgstr ""
-
-#: modules/woocommerce/woocommerce.php:542
-msgid ""
-"In the admin, order management and fulfillment is supercharged. Finding "
-"orders is much easier with more relevant searches. View order lists is "
-"easier since they load faster."
-msgstr ""
-
-#: modules/woocommerce/woocommerce.php:556
-msgid "WooCommerce must be active to use this module."
 msgstr ""
 
 #: vendor/woocommerce/i18n/continents.php:19
@@ -7180,16 +7221,6 @@ msgstr ""
 msgid "Expiry date"
 msgstr ""
 
-#: vendor/woocommerce/includes/admin/class-wc-admin-post-types.php:272
-#: vendor/woocommerce/includes/admin/class-wc-admin-webhooks-table-list.php:41
-#: vendor/woocommerce/includes/admin/meta-boxes/class-wc-meta-box-product-data.php:671
-#: vendor/woocommerce/includes/admin/settings/views/html-webhook-log.php:25
-#: vendor/woocommerce/includes/admin/settings/views/html-webhooks-edit.php:24
-#: vendor/woocommerce/includes/wc-account-functions.php:178
-#: vendor/woocommerce/templates/myaccount/my-orders.php:15
-msgid "Status"
-msgstr ""
-
 #: vendor/woocommerce/includes/admin/class-wc-admin-post-types.php:273
 #: vendor/woocommerce/includes/admin/meta-boxes/class-wc-meta-box-order-data.php:165
 #: vendor/woocommerce/includes/gateways/paypal/includes/class-wc-gateway-paypal-request.php:195
@@ -9729,11 +9760,6 @@ msgstr ""
 msgid "Add shipping cost"
 msgstr ""
 
-#: vendor/woocommerce/includes/admin/meta-boxes/views/html-order-items.php:246
-#: vendor/woocommerce/templates/myaccount/form-reset-password.php:47
-msgid "Save"
-msgstr ""
-
 #: vendor/woocommerce/includes/admin/meta-boxes/views/html-order-items.php:256
 msgid "Restock refunded items"
 msgstr ""
@@ -9871,16 +9897,6 @@ msgstr ""
 
 #: vendor/woocommerce/includes/admin/meta-boxes/views/html-variation-admin.php:68
 msgid "Enter a SKU for this variation or leave blank to use the parent product SKU."
-msgstr ""
-
-#: vendor/woocommerce/includes/admin/meta-boxes/views/html-variation-admin.php:76
-#: vendor/woocommerce/includes/admin/settings/class-wc-settings-checkout.php:292
-#: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:269
-#: vendor/woocommerce/includes/admin/settings/views/html-admin-page-shipping-zone-methods.php:20
-#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:31
-#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:42
-#: vendor/woocommerce/includes/admin/views/html-admin-page-status-tools.php:53
-msgid "Enabled"
 msgstr ""
 
 #: vendor/woocommerce/includes/admin/meta-boxes/views/html-variation-admin.php:78
@@ -10843,11 +10859,6 @@ msgstr ""
 
 #: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:267
 msgid "Manual"
-msgstr ""
-
-#: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:271
-#: vendor/woocommerce/includes/wc-webhook-functions.php:25
-msgid "Disabled"
 msgstr ""
 
 #: vendor/woocommerce/includes/admin/settings/class-wc-settings-emails.php:283
@@ -20850,83 +20861,67 @@ msgstr ""
 msgid "Only logged in customers who have purchased this product may leave a review."
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithTerms.php:211
-msgid "Invalid Taxonomy"
-msgstr ""
-
-#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithUpgrade.php:446
+#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithUpgrade.php:473
 msgid " Try again"
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithUpgrade.php:451
+#: vendor/wp-cli/wp-cli/php/WP_CLI/CommandWithUpgrade.php:478
 msgid "API error. Try Again."
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/commands/core.php:818
+#: vendor/wp-cli/wp-cli/php/commands/core.php:752
 msgid "Wildcard DNS may not be configured correctly."
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:424
+#: vendor/wp-cli/wp-cli/php/commands/cron-event.php:424
 msgid "%s year"
 msgid_plural "%s years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:425
+#: vendor/wp-cli/wp-cli/php/commands/cron-event.php:425
 msgid "%s month"
 msgid_plural "%s months"
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:426
+#: vendor/wp-cli/wp-cli/php/commands/cron-event.php:426
 msgid "%s week"
 msgid_plural "%s weeks"
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:427
+#: vendor/wp-cli/wp-cli/php/commands/cron-event.php:427
 msgid "%s day"
 msgid_plural "%s days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:428
+#: vendor/wp-cli/wp-cli/php/commands/cron-event.php:428
 msgid "%s hour"
 msgid_plural "%s hours"
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:429
+#: vendor/wp-cli/wp-cli/php/commands/cron-event.php:429
 msgid "%s minute"
 msgid_plural "%s minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/wp-cli/wp-cli/php/commands/cron.php:430
+#: vendor/wp-cli/wp-cli/php/commands/cron-event.php:430
 msgid "%s second"
 msgid_plural "%s seconds"
 msgstr[0] ""
 msgstr[1] ""
 
-#: vendor/wp-cli/wp-cli/php/commands/export.php:296
+#: vendor/wp-cli/wp-cli/php/commands/export.php:300
 msgid "Invalid start ID: %d"
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/commands/media.php:90
+#: vendor/wp-cli/wp-cli/php/commands/media.php:100
 msgid "image"
 msgid_plural "images"
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/media.php:100
-msgid "An error occurred with image regeneration."
-msgid_plural "An error occurred regenerating one or more images."
-msgstr[0] ""
-msgstr[1] ""
-
-#: vendor/wp-cli/wp-cli/php/commands/media.php:104
-msgid "the image"
-msgid_plural "all images"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -20949,12 +20944,16 @@ msgstr ""
 msgid "WP Export: error writing to export file."
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/utils-wp.php:140
+#: vendor/wp-cli/wp-cli/php/utils-wp.php:150
 msgid "Inactive Widgets"
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/utils-wp.php:143
+#: vendor/wp-cli/wp-cli/php/utils-wp.php:153
 msgid "Drag widgets here to remove them from the sidebar but keep their settings."
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "ElasticPress"
 msgstr ""
 
 #. Description of the plugin/theme
@@ -21573,8 +21572,8 @@ msgctxt "submit button"
 msgid "Search"
 msgstr ""
 
-#: vendor/wp-cli/wp-cli/php/commands/core.php:616
-#: vendor/wp-cli/wp-cli/php/commands/core.php:679
+#: vendor/wp-cli/wp-cli/php/commands/core.php:542
+#: vendor/wp-cli/wp-cli/php/commands/core.php:609
 msgctxt "Default network name"
 msgid "%s Sites"
 msgstr ""

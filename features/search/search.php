@@ -1,44 +1,46 @@
 <?php
 /**
- * ElasticPress search module
+ * ElasticPress search feature
  *
  * @since  2.1
  * @package elasticpress
  */
 
 /**
- * Output module box summary
+ * Output feature box summary
  * 
  * @since 2.1
  */
-function ep_search_module_box_summary() {
+function ep_search_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ); ?></p>
 	<?php
 }
 
 /**
- * Output module box long
+ * Output feature box long
  * 
  * @since 2.1
  */
-function ep_search_module_box_long() {
+function ep_search_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Search is a long neglected piece of WordPress. Result relevancy is poor; performance is poor; there is no handling of misspellings; there is no way to search categories, tags, or custom taxonomies as WordPress by default only searches post content, excerpt, and title.', 'elasticpress' ); ?></p>
-
-	<p>
-		<?php esc_html_e( 'The search module allows you to do all these things and more. Just activating the module will make your search experience much better. Your users will be able to more effectively browse your website and find the content they desire. Misspellings will be accounted for, categories searched, and results weighted by recency. If activated in conjunction with the admin module, admin search will be improved as well.', 'elasticpress' ); ?>
-	</p>
-
-	<p>
-		<?php _e( "This module is a <strong>must have</strong> for all websites which is why it's activated by default.", 'elasticpress' ); ?>
-	</p>
+	<p><?php esc_html_e( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ); ?></p>
 	
 	<?php
 }
 
 /**
- * Setup all module filters
+ * We need to delay search setup up since it will fire after protected content and protected
+ * content filters into the search setup
+ * 
+ * @since 2.2
+ */
+function ep_delay_search_setup() {
+	add_action( 'init', 'ep_search_setup' );
+}
+
+/**
+ * Setup all feature filters
  *
  * @since  2.1
  */
@@ -85,17 +87,22 @@ function ep_improve_default_search( $query ) {
 	if ( ! ep_elasticpress_enabled( $query ) || ! $query->is_search() ) {
 		return;
 	}
-
-	$query->set( 'search_fields', array(
-		'post_title',
-		'post_content',
-		'post_excerpt',
-		'author_name',
-		'taxonomies' => array(
-			'post_tag',
-			'category',
-		),
-    ) );
+	
+	$search_fields = $query->get( 'search_fields' );
+	
+	// Set search fields if they are not set
+	if( empty( $search_fields ) ) {
+		$query->set( 'search_fields', array(
+			'post_title',
+			'post_content',
+			'post_excerpt',
+			'author_name',
+			'taxonomies' => array(
+				'post_tag',
+				'category',
+			),
+		) );
+	}
 }
 
 /**
@@ -163,6 +170,8 @@ function ep_weight_recent( $formatted_args, $args ) {
 						'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
 					),
 				),
+				'score_mode' => 'avg',
+				'boost_mode' => 'sum'
 			),
 		);
 
@@ -224,18 +233,24 @@ function ep_integrate_search_queries( $enabled, $query ) {
 		$enabled = false;
 	} else if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 		$enabled = true;
+
+		$fields = $query->get( 'fields' );
+
+		if ( ! empty( $fields ) ) {
+			$enabled = false;
+		}
 	}
 
 	return $enabled;
 }
 
 /**
- * Register the module
+ * Register the feature
  */
-ep_register_module( 'search', array(
+ep_register_feature( 'search', array(
 	'title' => 'Search',
-	'setup_cb' => 'ep_search_setup',
-	'module_box_summary_cb' => 'ep_search_module_box_summary',
-	'module_box_long_cb' => 'ep_search_module_box_long',
+	'setup_cb' => 'ep_delay_search_setup',
+	'feature_box_summary_cb' => 'ep_search_feature_box_summary',
+	'feature_box_long_cb' => 'ep_search_feature_box_long',
 	'requires_install_reindex' => false,
 ) );
