@@ -78,8 +78,8 @@ class EPTestFeatureActivation extends EP_Test_Base {
 		$this->assertEquals( true, EP_Features::factory()->registered_features['search']->is_active() );
 		$this->assertEquals( 0, EP_Features::factory()->registered_features['search']->requirements_status()->code );
 
-		$this->assertEquals( false, EP_Features::factory()->registered_features['admin']->is_active() );
-		$this->assertEquals( 1, EP_Features::factory()->registered_features['admin']->requirements_status()->code );
+		$this->assertEquals( false, EP_Features::factory()->registered_features['protected_content']->is_active() );
+		$this->assertEquals( 1, EP_Features::factory()->registered_features['protected_content']->requirements_status()->code );
 
 		$this->assertEquals( true, EP_Features::factory()->registered_features['woocommerce']->is_active() );
 		$this->assertEquals( 0, EP_Features::factory()->registered_features['woocommerce']->requirements_status()->code );
@@ -104,7 +104,7 @@ class EPTestFeatureActivation extends EP_Test_Base {
 		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( 0, $requirements_statuses['search'] );
-		$this->assertEquals( 1, $requirements_statuses['admin'] );
+		$this->assertEquals( 1, $requirements_statuses['protected_content'] );
 		$this->assertEquals( 0, $requirements_statuses['related_posts'] );
 		$this->assertEquals( 0, $requirements_statuses['woocommerce'] );
 	}
