@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 4.7
+Tested up to: 4.8
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -33,6 +33,10 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 4. Enjoy!
 
 == Changelog ==
+
+= 2.2.1 =
+
+* Fix dashboard syncing delayed start issues.
 
 = 2.2 (Requires re-index) =
 
