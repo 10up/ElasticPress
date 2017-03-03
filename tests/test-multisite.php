@@ -47,6 +47,9 @@ class EPTestMultisite extends EP_Test_Base {
 		 */
 		ep_activate_feature( 'search' );
 		EP_Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ep_search_setup();
 	}
 
 	/**
