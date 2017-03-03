@@ -568,6 +568,9 @@ class EP_API {
 			}
 		}
 
+		// Turn off oEmbed auto discovery as this will create an error while indexing
+		add_filter( 'embed_oembed_discover', '__return_false' );
+
 		$post_args = array(
 			'post_id'           => $post_id,
 			'ID'                => $post_id,
@@ -604,6 +607,9 @@ class EP_API {
 		$post_args['meta'] = $this->prepare_meta_types( $post_args['post_meta'] );
 
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
+
+		// Turn back on oEmbed discovery
+		remove_filter( 'embed_oembed_discover', '__return_false' );
 
 		return $post_args;
 	}

@@ -98,7 +98,7 @@ function ep_pc_integrate( $query ) {
  */
 function ep_pc_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Power your admin with ElasticPress. Please note this syncs unpublished content to Elasticsearch. You want to make sure your Elasticsearch instance is properly secured.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -109,10 +109,7 @@ function ep_pc_feature_box_summary() {
  */
 function ep_pc_feature_box_long() {
 	?>
-	<p><?php _e( 'This feature compliments other features turning on all the ElasticPress goodness in the admin.', 'elasticpress' ); ?></p>
-
-	<p><?php _e( 'The Protected Content feature also will speed up your post table queries. After activating an SEO plugin, increasing post per pages, and making other modifications, that table view loads very slowly. No longer will you have to wait 60 seconds to do things that should be easy such as viewing 200 posts at once.', 'elasticpress' ); ?></p>
-
+	<p><?php _e( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ); ?></p>
 	<?php
 }
 
