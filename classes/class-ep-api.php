@@ -570,6 +570,7 @@ class EP_API {
 
 		// Turn off oEmbed auto discovery as this will create an error while indexing
 		add_filter( 'embed_oembed_discover', '__return_false' );
+		remove_filter( 'the_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 8 );
 
 		$post_args = array(
 			'post_id'           => $post_id,
@@ -610,6 +611,7 @@ class EP_API {
 
 		// Turn back on oEmbed discovery
 		remove_filter( 'embed_oembed_discover', '__return_false' );
+		add_filter( 'the_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 8 );
 
 		return $post_args;
 	}
