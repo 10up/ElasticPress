@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.2\n"
+"Project-Id-Version: ElasticPress 2.2.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2017-02-24 15:46:12+00:00\n"
+"POT-Creation-Date: 2017-03-06 11:56:14+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -147,27 +147,27 @@ msgstr ""
 msgid "ElasticPress Dashboard sync is occuring."
 msgstr ""
 
-#: classes/class-ep-api.php:2119
+#: classes/class-ep-api.php:2125
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:2132
+#: classes/class-ep-api.php:2138
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2136
+#: classes/class-ep-api.php:2142
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2215 classes/class-ep-api.php:2255
-#: classes/class-ep-api.php:2306
+#: classes/class-ep-api.php:2221 classes/class-ep-api.php:2261
+#: classes/class-ep-api.php:2312
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -321,52 +321,42 @@ msgstr ""
 
 #: features/protected-content/protected-content.php:101
 msgid ""
-"Power your admin with ElasticPress. Please note this syncs unpublished "
-"content to Elasticsearch. You want to make sure your Elasticsearch instance "
-"is properly secured."
+"Optionally index all of your content, including private and unpublished "
+"content, to speed up searches and queries in places like the administrative "
+"dashboard."
 msgstr ""
 
 #: features/protected-content/protected-content.php:112
 msgid ""
-"This feature compliments other features turning on all the ElasticPress "
-"goodness in the admin."
+"Securely indexes unpublished content—including private, draft, and "
+"scheduled posts —improving load times in places like the administrative "
+"dashboard where WordPress needs to include protected content in a query. "
+"<em>We recommend using a secured Elasticsearch setup, such as "
+"ElasticPress.io, to prevent potential exposure of content not intended for "
+"the public.</em>"
 msgstr ""
 
-#: features/protected-content/protected-content.php:114
-msgid ""
-"The Protected Content feature also will speed up your post table queries. "
-"After activating an SEO plugin, increasing post per pages, and making other "
-"modifications, that table view loads very slowly. No longer will you have "
-"to wait 60 seconds to do things that should be easy such as viewing 200 "
-"posts at once."
-msgstr ""
-
-#: features/protected-content/protected-content.php:146
+#: features/protected-content/protected-content.php:143
 msgid ""
 "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
 "we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
-#: features/protected-content/protected-content.php:156
+#: features/protected-content/protected-content.php:153
 msgid "Protected Content"
 msgstr ""
 
 #: features/related-posts/related-posts.php:76
-msgid "Help users easily find related content with a widget that just works."
+msgid ""
+"ElasticPress understands data in real time, so it can instantly deliver "
+"engaging and precise related content with no impact on site performance."
 msgstr ""
 
 #: features/related-posts/related-posts.php:87
 msgid ""
-"Showing users related content is a quick way to improve readership and "
-"loyalty. There are a number of plugins that show related content, most of "
-"which are ineffective and slow."
-msgstr ""
-
-#: features/related-posts/related-posts.php:89
-msgid ""
-"ElasticPress has a powerful content matching algorithm that lets it find "
-"related content very effectively. This feature will create a widget for you "
-"to place into any sidebar or widgetized area."
+"Output related content using our Widget or directly in your theme using our "
+"<a href=\"https://github.com/10up/ElasticPress/#related-posts\">API "
+"functions.</a>"
 msgstr ""
 
 #: features/related-posts/widget.php:17
@@ -388,53 +378,36 @@ msgid "Number of Posts to Show:"
 msgstr ""
 
 #: features/search/search.php:16
-msgid ""
-"Beef up your search to be more accurate, search tags, categories, and other "
-"taxonomies, catch misspellings, weight content by recency and more."
+msgid "Instantly find the content you’re looking for. The first time."
 msgstr ""
 
 #: features/search/search.php:27
 msgid ""
-"Search is a long neglected piece of WordPress. Result relevancy is poor; "
-"performance is poor; there is no handling of misspellings; there is no way "
-"to search categories, tags, or custom taxonomies as WordPress by default "
-"only searches post content, excerpt, and title."
+"Overcome higher-end performance and functional limits posed by the "
+"traditional WordPress structured (SQL) database to deliver superior keyword "
+"search, instantly. ElasticPress indexes custom fields, tags, and other "
+"metadata to improve search results. Fuzzy matching accounts for "
+"misspellings and verb tenses."
 msgstr ""
 
-#: features/search/search.php:30
+#: features/woocommerce/woocommerce.php:537
 msgid ""
-"The search feature allows you to do all these things and more. Just "
-"activating the feature will make your search experience much better. Your "
-"users will be able to more effectively browse your website and find the "
-"content they desire. Misspellings will be accounted for, categories "
-"searched, and results weighted by recency. If activated in conjunction with "
-"the admin feature, admin search will be improved as well."
+"“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted "
+"product browsing strains servers and increases load times. Your buyers can "
+"find the perfect product quickly, and buy it quickly."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:528
+#: features/woocommerce/woocommerce.php:548
 msgid ""
-"Allow customers to filter through products faster and improve product "
-"search relevancy. Enable editors to find orders and products more "
-"effectively in the admin. This feature will increase your sales bottom line "
-"and reduce administrative costs."
+"Most caching and performance tools can’t keep up with the nearly infinite "
+"ways your visitors might filter or navigate your products. No matter how "
+"many products, filters, or customers you have, ElasticPress will keep your "
+"online store performing quickly. If used in combination with the Protected "
+"Content feature, ElasticPress will also accelerate order searches and back "
+"end product management."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:539
-msgid ""
-"Running eCommerce stores is hard enough already. You should not have to "
-"worry about slow load times. ElasticPress WooCommerce supercharges all "
-"product queries, product sorts, and filters. No matter how many products or "
-"filters you have, your site will load fast."
-msgstr ""
-
-#: features/woocommerce/woocommerce.php:541
-msgid ""
-"If used in conjunction with the Admin feature, order management and "
-"fulfillment is supercharged. Finding orders is much easier with more "
-"relevant searches. Viewing order lists is easier since they load faster."
-msgstr ""
-
-#: features/woocommerce/woocommerce.php:555
+#: features/woocommerce/woocommerce.php:562
 msgid "WooCommerce not installed."
 msgstr ""
 

@@ -70,6 +70,13 @@
 				}
 				
 				if ( response.data.reindex ) {
+					syncStatus = 'initialsync';
+
+					updateSyncDash();
+
+					// On initial sync, remove dashboard warnings that dont make sense
+					$( '[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]').remove();
+					
 					syncStatus = 'sync';
 
 					$feature.addClass( 'feature-syncing' );
@@ -145,11 +152,14 @@
 	} else {
 		// Start a new sync automatically
 		if ( epDash.auto_start_index ) {
+			syncStatus = 'initialsync';
+
+			updateSyncDash();
+
 			syncStatus = 'sync';
 
 			history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
 
-			updateSyncDash();
 			sync();
 		}
 	}

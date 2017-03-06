@@ -355,6 +355,14 @@ function ep_wc_translate_args( $query ) {
 		if ( ! empty( $s ) ) {
 			$query->set( 'orderby', false ); // Just order by relevance.
 
+			/**
+			 * Default order when doing search in Woocommerce is 'ASC'
+			 * These lines will change it to 'DESC' as we want to most relevant result
+			 */
+			if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+				$query->set( 'order', 'DESC' );
+			}
+
 			// Search query
 			if ( 'shop_order' === $post_type ) {
 				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
@@ -423,6 +431,7 @@ function ep_wc_translate_args( $query ) {
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 			}
 		}
+
 	}
 }
 
@@ -525,7 +534,7 @@ function ep_wc_setup() {
  */
 function ep_wc_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This feature will increase your sales bottom line and reduce administrative costs.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( '“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -536,9 +545,7 @@ function ep_wc_feature_box_summary() {
  */
 function ep_wc_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Running eCommerce stores is hard enough already. You should not have to worry about slow load times. ElasticPress WooCommerce supercharges all product queries, product sorts, and filters. No matter how many products or filters you have, your site will load fast.', 'elasticpress' ); ?></p>
-
-	<p><?php esc_html_e( 'If used in conjunction with the Admin feature, order management and fulfillment is supercharged. Finding orders is much easier with more relevant searches. Viewing order lists is easier since they load faster.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ); ?></p>
 	<?php
 }
 

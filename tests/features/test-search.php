@@ -49,6 +49,9 @@ class EPTestSearchFeature extends EP_Test_Base {
 		ep_activate_feature( 'search' );
 		EP_Features::factory()->setup_features();
 
+		// Need to call this since it's hooked to init
+		ep_search_setup();
+
 		$post_ids = array();
 
 		ep_create_and_sync_post();
@@ -78,6 +81,9 @@ class EPTestSearchFeature extends EP_Test_Base {
 		
 		ep_activate_feature( 'search' );
 		EP_Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ep_search_setup();
 		
 		$post_ids = array();
 		

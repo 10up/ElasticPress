@@ -73,7 +73,7 @@ function ep_related_posts_register_widget() {
  */
 function ep_related_posts_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Help users easily find related content with a widget that just works.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -84,9 +84,7 @@ function ep_related_posts_feature_box_summary() {
  */
 function ep_related_posts_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Showing users related content is a quick way to improve readership and loyalty. There are a number of plugins that show related content, most of which are ineffective and slow.', 'elasticpress' ); ?></p>
-
-	<p><?php esc_html_e( 'ElasticPress has a powerful content matching algorithm that lets it find related content very effectively. This feature will create a widget for you to place into any sidebar or widgetized area.', 'elasticpress' ); ?></p>
+	<p><?php _e( 'Output related content using our Widget or directly in your theme using our <a href="https://github.com/10up/ElasticPress/#related-posts">API functions.</a>', 'elasticpress' ); ?></p>
 	<?php
 }
 
