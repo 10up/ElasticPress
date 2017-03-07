@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 return array(
 	'settings' => array(
+	    'index.mapping.total_fields.limit' => apply_filters( 'ep_total_field_limit', 1000 ),
 		'analysis' => array(
 			'analyzer' => array(
 				'default' => array(
