@@ -958,8 +958,20 @@ class EP_API {
 		if ( ! empty( $args['posts_per_page'] ) ) {
 			$posts_per_page = (int) $args['posts_per_page'];
 
+			// ES have a maximum size allowed so we have to convert "-1" to a maximum size.
 			if ( -1 === $posts_per_page ) {
-				$posts_per_page = 10000; // -1 does not work, use max result window for ES
+				/**
+				 * Set the maximum results window size.
+				 *
+				 * The request will return a HTTP 500 Internal Error if the size of the
+				 * request is larger than the [index.max_result_window] parameter in ES.
+				 * See the scroll api for a more efficient way to request large data sets.
+				 *
+				 * @return int The max results window size.
+				 *
+				 * @since 2.2.1
+				 */
+				$posts_per_page = apply_filters( 'ep_max_results_window', 10000 );
 			}
 		} else {
 			$posts_per_page = (int) get_option( 'posts_per_page' );
