@@ -125,6 +125,10 @@ class EP_Config {
 			$index_name = false;
 		}
 
+		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
+			$index_name = EP_INDEX_PREFIX . $index_name;
+		}
+
 		return apply_filters( 'ep_index_name', $index_name, $blog_id );
 	}
 
@@ -162,6 +166,10 @@ class EP_Config {
 		$slug = preg_replace( '#[^\w]#', '', $slug );
 
 		$alias = $slug . '-global';
+
+		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
+			$alias = EP_INDEX_PREFIX . $alias;
+		}
 
 		return apply_filters( 'ep_global_alias', $alias );
 	}
