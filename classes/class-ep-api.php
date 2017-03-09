@@ -2168,7 +2168,7 @@ class EP_API {
 
 			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
-			if ( is_wp_error( $request ) ) {
+			if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
 				$this->elasticsearch_version = false;
 				$this->elasticsearch_plugins = false;
 
@@ -2180,16 +2180,14 @@ class EP_API {
 
 				$request = ep_remote_request( '', array( 'method' => 'GET' ) );
 
-				if ( ! is_wp_error( $request ) ) {
-					if ( 200 === wp_remote_retrieve_response_code( $request ) ) {
-						$response_body = wp_remote_retrieve_body( $request );
-						$response = json_decode( $response_body, true );
+				if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
+					$response_body = wp_remote_retrieve_body( $request );
+					$response = json_decode( $response_body, true );
 
-						try {
-							$version = $response['version']['number'];
-						} catch ( Exception $e ) {
-							// Do nothing
-						}
+					try {
+						$this->elasticsearch_version = $response['version']['number'];
+					} catch ( Exception $e ) {
+						// Do nothing
 					}
 				}
 			} else {
