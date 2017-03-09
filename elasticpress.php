@@ -67,6 +67,18 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
+ * Set the availability of dashboard sync functionality. Defaults to true (enabled).
+ *
+ * Sync can be disabled by defining EP_DASHBOARD_SYNC as false in wp-config.php.
+ * NOTE: Must be defined BEFORE `require_once(ABSPATH . 'wp-settings.php');` in wp-config.php.
+ *
+ * @since  2.3
+ */
+if ( ! defined( 'EP_DASHBOARD_SYNC' ) ) {
+	define( 'EP_DASHBOARD_SYNC', true );
+}
+
+/**
  * Handle upgrades
  *
  * @since  2.2
