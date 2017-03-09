@@ -312,14 +312,6 @@ function ep_wc_translate_args( $query ) {
 		}
 
 		/**
-		 * We can't support any special fields parameters
-		 */
-		$fields = $query->get( 'fields', false );
-		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
-			$query->set( 'fields', 'default' );
-		}
-
-		/**
 		 * Handle meta queries
 		 */
 		$meta_query = $query->get( 'meta_query', array() );

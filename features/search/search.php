@@ -233,12 +233,6 @@ function ep_integrate_search_queries( $enabled, $query ) {
 		$enabled = false;
 	} else if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 		$enabled = true;
-
-		$fields = $query->get( 'fields' );
-
-		if ( ! empty( $fields ) ) {
-			$enabled = false;
-		}
 	}
 
 	return $enabled;
