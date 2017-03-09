@@ -37,6 +37,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 = 2.2.1 =
 
 * Fix dashboard syncing delayed start issues.
+* If plugins endpoint errors, try root endpoint to get the ES version.
 
 = 2.2 (Requires re-index) =
 
