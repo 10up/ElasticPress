@@ -405,6 +405,26 @@ function ep_wc_translate_args( $query ) {
 		}
 
 		/**
+		 * For default sorting by popularity (total_sales) and rating
+         * Woocommerce doesn't set the orderby correctly.
+         * These lines will check the meta_key and correct the orderby based on that.
+         * And this won't run in search result and only run in main query
+		 */
+		$meta_key = $query->get( 'meta_key', false );
+		if ( $meta_key && empty( $s ) && $query->is_main_query() ){
+			switch ( $meta_key ){
+				case 'total_sales':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+				case '_wc_average_rating':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+			}
+		}
+
+		/**
 		 * Set orderby from GET param
 		 * Also make sure the orderby param affects only the main query
 		 */
@@ -413,6 +433,7 @@ function ep_wc_translate_args( $query ) {
 			switch ( $_GET['orderby'] ) {
 				case 'popularity':
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
+					$query->set( 'order', 'DESC' );
 					break;
 				case 'price':
 				case 'price-desc':
@@ -420,6 +441,7 @@ function ep_wc_translate_args( $query ) {
 					break;
 				case 'rating' :
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
+					$query->set( 'order', 'DESC' );
 					break;
 				case 'date':
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
