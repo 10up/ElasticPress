@@ -1082,11 +1082,6 @@ class EP_API {
 						// If "NOT IN" than it should filter as must_not
 						$tax_must_not_filter[]['terms'] = $terms_obj;
 					} else {
-						// Use the AND operator if passed
-						if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
-							$terms_obj['execution'] = 'and';
-						}
-						
 						// Add the tax query filter
 						$tax_filter[]['terms'] = $terms_obj;
 					}
