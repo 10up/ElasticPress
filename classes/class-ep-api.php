@@ -969,7 +969,7 @@ class EP_API {
 				 *
 				 * @return int The max results window size.
 				 *
-				 * @since 2.2.1
+				 * @since 2.3.0
 				 */
 				$posts_per_page = apply_filters( 'ep_max_results_window', 10000 );
 			}
