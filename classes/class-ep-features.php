@@ -99,6 +99,11 @@ class EP_Features {
 		// Make sure active is a proper bool
 		$feature_settings[ $slug ]['active'] = (bool) $feature_settings[ $slug ]['active'];
 
+		//The feature is turn back on, we unset the manual_deactivate flag
+		if( true === $feature_settings[ $slug ]['active'] ){
+			unset( $feature_settings[ $slug ]['manual_deactivate'] );
+		}
+
 		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -201,6 +206,11 @@ class EP_Features {
 					// This feature has a 0 "ok" code when it did not before
 					if ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
 						$active = ( 0 === $code );
+
+						// If this feature has been deactivate manually before, don't auto activate it
+						if( isset( $feature_settings[ $slug ]['manual_deactivate'] ) && true === $feature_settings[ $slug ]['manual_deactivate'] ){
+							$active = 0;
+						}
 
 						if ( ! $feature->is_active() && $active ) {
 							ep_activate_feature( $slug );
