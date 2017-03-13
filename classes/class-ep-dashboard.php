@@ -519,7 +519,12 @@ class EP_Dashboard {
 					// make sure to add a new line at the end or the request will fail
 					$body = rtrim( implode( "\n", $flatten ) ) . "\n";
 
-					ep_bulk_index_posts( $body );
+					$return = ep_bulk_index_posts( $body );
+					if( is_wp_error( $return ) ){
+						header("HTTP/1.1 500 Internal Server Error");
+						wp_send_json_error(  );
+						exit;
+					}
 				}
 
 				$index_meta['offset'] = absint( $index_meta['offset'] + $posts_per_page );
