@@ -436,7 +436,11 @@ function ep_wc_translate_args( $query ) {
 					$query->set( 'order', 'DESC' );
 					break;
 				case 'price':
+					$query->set( 'order', 'ASC' );
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
+					break;
 				case 'price-desc':
+					$query->set( 'order', 'DESC' );
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
 					break;
 				case 'rating' :
@@ -453,7 +457,6 @@ function ep_wc_translate_args( $query ) {
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 			}
 		}
-
 	}
 }
 
