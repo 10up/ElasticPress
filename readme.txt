@@ -40,6 +40,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * If plugins endpoint errors, try root endpoint to get the ES version.
 * Make sure orderby is correct for default WooCommerce sorting. Props [ivankristianto](https://github.com/ivankristianto).
 * Remove operator=>AND unneed execution code.
+* Stop dashboard sync if error occurs in the middle. Props [ivankristianto](https://github.com/ivankristianto).
 
 = 2.2 (Requires re-index) =
 
