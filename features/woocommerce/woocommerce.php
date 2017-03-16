@@ -229,6 +229,8 @@ function ep_wc_translate_args( $query ) {
 	/**
 	 * Add support for custom taxonomies.
 	 *
+	 * @param array $supported_taxonomies An array of default taxonomies.
+	 *
 	 * @since 2.3.0
 	 */
 	$supported_taxonomies = apply_filters( 'ep_woocommerce_supported_taxonomies', $supported_taxonomies );
