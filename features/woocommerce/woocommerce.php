@@ -223,6 +223,7 @@ function ep_wc_translate_args( $query ) {
 		'product_cat',
 		'pa_brand',
 		'product_tag',
+		'product_type',
 		'pa_sort-by',
 	);
 
