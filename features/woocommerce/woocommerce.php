@@ -226,6 +226,13 @@ function ep_wc_translate_args( $query ) {
 		'pa_sort-by',
 	);
 
+	/**
+	 * Add support for custom taxonomies.
+	 *
+	 * @since 2.3.0
+	 */
+	$supported_taxonomies = apply_filters( 'ep_woocommerce_supported_taxonomies', $supported_taxonomies );
+
 	if ( ! empty( $tax_query ) ) {
 
 		/**
