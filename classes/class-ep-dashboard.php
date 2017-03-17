@@ -612,10 +612,14 @@ class EP_Dashboard {
 			exit;
 		}
 
-		$data = ep_update_feature( $_POST['feature'], $_POST['settings'] );
+		$settings = $_POST['settings'];
+		if ( empty( $settings['active'] ) && false === (bool) $settings['active'] ) {
+			$settings['manual_deactivate'] = true;
+		}
+		$data = ep_update_feature( $_POST['feature'], $settings );
 
 		// Since we deactivated, delete auto activate notice
-		if ( empty( $_POST['settings']['active'] ) ) {
+		if ( empty( $settings['active'] ) ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				delete_site_option( 'ep_feature_auto_activated_sync' );
 			} else {
