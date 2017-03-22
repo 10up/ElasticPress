@@ -162,6 +162,12 @@ class EP_Feature {
 			$status = call_user_func( $this->requirements_status_cb, $status, $this );
 		}
 
+		if ( true === $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
+      $status->code = 2;
+      $status->message = "Dashboard sync is disabled.
+      Features that require content reindexing after activation must be enabled/disabled using WP-CLI."; 
+    }
+
 		return apply_filters( 'ep_feature_requirements_status', $status, $this );
 	}
 
