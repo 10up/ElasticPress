@@ -166,6 +166,22 @@ class EP_Feature {
 	}
 
 	/**
+	 * Return feature settings
+	 *
+	 * @since  2.2.1
+	 * @return array|bool
+	 */
+	public function get_settings() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$feature_settings = get_site_option( 'ep_feature_settings', array() );
+		} else {
+			$feature_settings = get_option( 'ep_feature_settings', array() );
+		}
+
+		return ( ! empty( $feature_settings[ $this->slug ] ) ) ? $feature_settings[ $this->slug ] : false;
+	}
+
+	/**
 	 * Returns true if feature is active
 	 *
 	 * @since  2.2
