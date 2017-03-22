@@ -43,6 +43,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Stop dashboard sync if error occurs in the middle. Props [ivankristianto](https://github.com/ivankristianto).
 * Add `EP_INDEX_PREFIX` constant. If set, index names will be prefixed with the constant. Props [allan23](https://github.com/allan23).
 * Increase total field limit to 5000 and add filter. Props [ssorathia](https://github.com/ssorathia).
+* Prevent EP from auto-activating a feature that was force deactivated
 
 = 2.2 (Requires re-index) =
 
