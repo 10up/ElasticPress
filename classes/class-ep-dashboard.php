@@ -191,6 +191,16 @@ class EP_Dashboard {
 			if ( false === $last_sync && ! isset( $_GET['do_sync'] ) ) {
 				$notice = 'no-sync';
 			}
+
+			if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
+				if ( 'auto-activate-sync' == $notice ) {
+					$notice = 'sync-disabled-auto-activate';
+				} elseif ( 'upgrade-sync' == $notice ) {
+					$notice = 'sync-disabled-upgrade';
+				} elseif ( 'no-sync' == $notice ) {
+					$notice = 'sync-disabled-no-sync';
+				}
+			}
 		}
 
 		$es_version = ep_get_elasticsearch_version( $force );
@@ -320,6 +330,28 @@ class EP_Dashboard {
 				</div>
 				<?php
 				break;
+			case 'sync-disabled-auto-activate':
+				$feature = ep_get_registered_feature( $auto_activate_sync );
+				?>
+				<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
+					<p><?php printf( __( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'sync-disabled-upgrade':
+				?>
+				<div data-ep-notice="sync-disabled-upgrade" class="notice notice-warning is-dismissible">
+					<p><?php printf( __( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'sync-disabled-no-sync':
+				?>
+				<div data-ep-notice="sync-disabled-no-sync" class="notice notice-warning is-dismissible">
+					<p><?php printf( __( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
+				</div>
+				<?php
+				break;
 		}
 
 		return $notice;
@@ -368,6 +400,30 @@ class EP_Dashboard {
 
 				break;
 			case 'auto-activate-sync':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					delete_site_option( 'ep_feature_auto_activated_sync' );
+				} else {
+					delete_option( 'ep_feature_auto_activated_sync' );
+				}
+
+				break;
+			case 'sync-disabled-no-sync':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					update_site_option( 'ep_last_sync', 'never' );
+				} else {
+					update_option( 'ep_last_sync', 'never' );
+				}
+
+				break;
+			case 'sync-disabled-upgrade':
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					delete_site_option( 'ep_need_upgrade_sync' );
+				} else {
+					delete_option( 'ep_need_upgrade_sync' );
+				}
+
+				break;
+			case 'sync-disabled-auto-activate':
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					delete_site_option( 'ep_feature_auto_activated_sync' );
 				} else {
