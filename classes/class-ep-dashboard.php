@@ -660,7 +660,7 @@ class EP_Dashboard {
 					$index_meta['wpcli_sync'] = true;
 				}
 
-				if ( isset( $_GET['do_sync'] ) ) {
+				if ( isset( $_GET['do_sync'] ) && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC ) {
 					$data['auto_start_index'] = true;
 				}
 
