@@ -118,7 +118,7 @@ class EP_Config {
 
 		$site_url = get_site_url( $blog_id );
 
-		if ( ! empty( $site_url ) && ! defined( 'EP_INDEX_NAME') ) ) {
+		if ( ! empty( $site_url ) && ! defined( 'EP_INDEX_NAME') ) {
 			$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
 			$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id;
 		} elseif(EP_INDEX_NAME) {
