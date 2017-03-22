@@ -121,7 +121,7 @@ class EP_Config {
 		if ( ! empty( $site_url ) && ! defined( 'EP_INDEX_NAME') ) {
 			$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
 			$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $blog_id;
-		} elseif(EP_INDEX_NAME) {
+		} elseif ( defined( 'EP_INDEX_NAME') ) {
 			$index_name = EP_INDEX_NAME;
 		} else {
 			$index_name = false;
