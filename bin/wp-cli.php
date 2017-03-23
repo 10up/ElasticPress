@@ -224,6 +224,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @param array $assoc_args
 	 */
 	public function delete_index( $args, $assoc_args ) {
+        if ( get_site_option( 'ep_read_only') ) {
+            WP_CLI::error( 'Read-only mode is currently activated via the settings page. Please disable in order to delete this index.');
+        } elseif ( defined('EP_READ_ONLY') && EP_READ_ONLY ) {
+            WP_CLI::error( 'Read-only mode is currently activated via the wp-config file. Please remove or set to false in order to delete this index.');
+        }
+
 		$this->_connect_check();
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
@@ -320,6 +326,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
+
+		if ( get_site_option( 'ep_read_only') ) {
+		    WP_CLI::error( 'Read-only mode is currently activated via the admin settings page. Please disable to enable indexing.');
+        } elseif ( defined('EP_READ_ONLY') && EP_READ_ONLY ) {
+            WP_CLI::error( 'Read-only mode is currently activated via the wp-config.php file. Please remove or set to false to enable indexing.');
+        }
 
 		$this->_connect_check();
 
