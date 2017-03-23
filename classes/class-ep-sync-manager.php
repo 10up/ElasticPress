@@ -44,6 +44,7 @@ class EP_Sync_Manager {
 		add_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
+		add_action( 'init', array( $this, 'maybe_destroy') );
 	}
 	
 	/**
@@ -64,6 +65,7 @@ class EP_Sync_Manager {
 		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		remove_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
+
 
 	/**
 	 * Sync queued posts on shutdown. We do this in case a post is updated multiple times.
@@ -271,6 +273,27 @@ class EP_Sync_Manager {
 
 		return $response;
 	}
+
+    /**
+     * Check if read-only option is set
+     *
+     * @return bool
+     */
+	public function is_read_only() {
+	    return get_site_option( 'ep_read_only' ) == 1 ? true : false;
+    }
+
+    /**
+     * Disable post syncing if read-only option is set
+     *
+     * @return void
+     */
+    public function maybe_destroy() {
+        if ( $this->is_read_only() ) {
+            $this->destroy();
+        }
+    }
+
 }
 
 $ep_sync_manager = EP_Sync_Manager::factory();
@@ -281,4 +304,8 @@ $ep_sync_manager = EP_Sync_Manager::factory();
 
 function ep_sync_post( $post_id, $blocking = true ) {
 	return EP_Sync_Manager::factory()->sync_post( $post_id, $blocking );
+}
+
+function ep_is_read_only() {
+    return EP_Sync_Manager::factory()->is_read_only();
 }
