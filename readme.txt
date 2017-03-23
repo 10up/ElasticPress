@@ -45,6 +45,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Increase total field limit to 5000 and add filter. Props [ssorathia](https://github.com/ssorathia).
 * Prevent EP from auto-activating a feature that was force deactivated
 * Prevent massive field Elasticsearch error when indexing large strings
+* Increase max result window size to 1000000 and add filter.
 
 = 2.2 (Requires re-index) =
 
