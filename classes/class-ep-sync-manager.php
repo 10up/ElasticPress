@@ -289,7 +289,7 @@ class EP_Sync_Manager {
      * @return void
      */
     public function maybe_destroy() {
-        if ( $this->is_read_only() ) {
+        if ( $this->is_read_only() || ( defined( 'EP_READ_ONLY' ) && EP_READ_ONLY ) ) {
             $this->destroy();
         }
     }
