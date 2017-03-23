@@ -37,6 +37,15 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 = 2.2.1 =
 
 * Fix dashboard syncing delayed start issues.
+* If plugins endpoint errors, try root endpoint to get the ES version.
+* Make sure orderby is correct for default WooCommerce sorting. Props [ivankristianto](https://github.com/ivankristianto).
+* Remove operator=>AND unneed execution code.
+* Stop dashboard sync if error occurs in the middle. Props [ivankristianto](https://github.com/ivankristianto).
+* Add `EP_INDEX_PREFIX` constant. If set, index names will be prefixed with the constant. Props [allan23](https://github.com/allan23).
+* Increase total field limit to 5000 and add filter. Props [ssorathia](https://github.com/ssorathia).
+* Prevent EP from auto-activating a feature that was force deactivated
+* Prevent massive field Elasticsearch error when indexing large strings
+* Increase max result window size to 1000000 and add filter.
 
 = 2.2 (Requires re-index) =
 
