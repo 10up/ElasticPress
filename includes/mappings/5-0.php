@@ -70,6 +70,7 @@ return array(
 								),
 								'raw' => array(
 									'type' => 'keyword',
+									'ignore_above' => 10922,
 								),
 							),
 						),
@@ -87,14 +88,17 @@ return array(
 									'fields' => array(
 										'sortable' => array(
 											'type' => 'keyword',
+											'ignore_above' => 10922,
 										),
 										'raw' => array(
 											'type' => 'keyword',
+											'ignore_above' => 10922,
 										),
 									),
 								),
 								'raw' => array( /* Left for backwards compat */
 									'type' => 'keyword',
+									'ignore_above' => 10922,
 								),
 								'long' => array(
 									'type' => 'long',
@@ -222,9 +226,11 @@ return array(
 						),
 						'raw' => array(
 							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 						'sortable' => array(
 							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 					),
 				),
@@ -245,6 +251,7 @@ return array(
 						),
 						'raw' => array(
 							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 					),
 				),
