@@ -36,6 +36,8 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 2.2.1 =
 
+Version 2.2.1 is a bug fix release. Here are a listed of issues that have been resolved:
+
 * Fix dashboard syncing delayed start issues.
 * If plugins endpoint errors, try root endpoint to get the ES version.
 * Make sure orderby is correct for default WooCommerce sorting. Props [ivankristianto](https://github.com/ivankristianto).
