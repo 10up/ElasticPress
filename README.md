@@ -490,7 +490,7 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type]`
 
     Index all posts in the current blog.
 
