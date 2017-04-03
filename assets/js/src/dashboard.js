@@ -94,7 +94,7 @@
 			}, 700 );
 		} );
 	} );
-	console.log(epDash);
+	
 	if ( epDash.index_meta ) {
 		if ( epDash.index_meta.read_only ) {
       syncStatus = 'read_only';
