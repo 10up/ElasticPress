@@ -568,8 +568,8 @@ class EP_API {
 			}
 		}
 
-		// Turn off oEmbed auto discovery as this will create an error while indexing
-		add_filter( 'embed_oembed_discover', '__return_false' );
+		// To prevent infinite loop, we don't queue when updated_postmeta
+		remove_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ) );
 
 		$post_args = array(
 			'post_id'           => $post_id,
@@ -608,8 +608,8 @@ class EP_API {
 
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
-		// Turn back on oEmbed discovery
-		remove_filter( 'embed_oembed_discover', '__return_false' );
+		// Turn back on updated_postmeta hook
+		add_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ) );
 
 		return $post_args;
 	}
