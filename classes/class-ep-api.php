@@ -569,7 +569,7 @@ class EP_API {
 		}
 
 		// To prevent infinite loop, we don't queue when updated_postmeta
-		remove_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ) );
+		remove_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ), 10 );
 
 		$post_args = array(
 			'post_id'           => $post_id,
@@ -609,7 +609,7 @@ class EP_API {
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
 		// Turn back on updated_postmeta hook
-		add_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ) );
+		add_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ), 10, 4 );
 
 		return $post_args;
 	}
