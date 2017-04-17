@@ -247,19 +247,20 @@ function ep_wc_translate_args( $query ) {
 		if ( ! empty( $term ) ) {
 			$integrate = true;
 
-			$terms = array( $term );
+			$terms = explode( ',', $term );
 
 			// to add child terms to the tax query
 			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
-				$term_object = get_term_by( 'slug', $term, $taxonomy );
-				$children    = get_term_children( $term_object->term_id, $taxonomy );
-				if ( $children ) {
-					foreach ( $children as $child ) {
-						$child_object = get_term( $child, $taxonomy );
-						$terms[]      = $child_object->slug;
+				foreach ( $terms as $term ) {
+					$term_object = get_term_by( 'slug', $term, $taxonomy );
+					$children    = get_term_children( $term_object->term_id, $taxonomy );
+					if ( $children ) {
+						foreach ( $children as $child ) {
+							$child_object = get_term( $child, $taxonomy );
+							$terms[]      = $child_object->slug;
+						}
 					}
 				}
-
 			}
 
 			$tax_query[] = array(
