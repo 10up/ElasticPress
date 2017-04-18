@@ -44,7 +44,7 @@ class EPTestMediaFeature extends EP_Test_Base {
 	/**
 	 * Test that search is integrating with allowed mime type
 	 *
-	 * @since 2.1
+	 * @since 2.3
 	 * @group media
 	 */
 	public function testSearchAllowedMimeType() {
@@ -77,7 +77,7 @@ class EPTestMediaFeature extends EP_Test_Base {
 	/**
 	 * Test that search isn't integrating with disallowed mime type
 	 *
-	 * @since 2.1
+	 * @since 2.3
 	 * @group media
 	 */
 	public function testSearchDisallowedMimeType() {
@@ -105,5 +105,38 @@ class EPTestMediaFeature extends EP_Test_Base {
 		$query = new WP_Query( $args );
 
 		$this->assertEquals( 0, count( $query->posts ) );
+	}
+
+	/**
+	 * Test finding only a normal post
+	 *
+	 * @since 2.3
+	 * @group media
+	 */
+	public function testSearchNormalPost() {
+		ep_activate_feature( 'search' );
+		ep_activate_feature( 'media' );
+		EP_Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ep_search_setup();
+		ep_media_setup();
+
+		$post_ids = array();
+
+		ep_create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'post' ) );
+		ep_create_and_sync_post( array( 'post_content' => '', 'post_type' => 'attachment', 'post_mime_type' => 'image' ) );
+		ep_create_and_sync_post( array( 'post_content' => '', 'post_type' => 'attachment', 'post_mime_type' => 'bad' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's' => 'findme',
+			'post_type' => array( 'post', 'attachment' ),
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, count( $query->posts ) );
 	}
 }
