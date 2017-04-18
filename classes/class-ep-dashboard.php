@@ -383,6 +383,7 @@ class EP_Dashboard {
 
 				break;
 			case 'no-sync':
+			case 'sync-disabled-no-sync':
 				// We use 'never' here as a placeholder value to trick EP into thinking a sync has happened
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					update_site_option( 'ep_last_sync', 'never' );
@@ -392,29 +393,6 @@ class EP_Dashboard {
 
 				break;
 			case 'upgrade-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					delete_site_option( 'ep_need_upgrade_sync' );
-				} else {
-					delete_option( 'ep_need_upgrade_sync' );
-				}
-
-				break;
-			case 'auto-activate-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					delete_site_option( 'ep_feature_auto_activated_sync' );
-				} else {
-					delete_option( 'ep_feature_auto_activated_sync' );
-				}
-
-				break;
-			case 'sync-disabled-no-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					update_site_option( 'ep_last_sync', 'never' );
-				} else {
-					update_option( 'ep_last_sync', 'never' );
-				}
-
-				break;
 			case 'sync-disabled-upgrade':
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					delete_site_option( 'ep_need_upgrade_sync' );
@@ -423,6 +401,7 @@ class EP_Dashboard {
 				}
 
 				break;
+			case 'auto-activate-sync':
 			case 'sync-disabled-auto-activate':
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					delete_site_option( 'ep_feature_auto_activated_sync' );
