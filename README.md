@@ -550,8 +550,7 @@ Dashboard sync can be disabled by defining the constant `EP_DASHBOARD_SYNC` as `
 define( 'EP_DASHBOARD_SYNC', false );
 ```
 
-* This can be helpful for managed sites where users initiating a sync from the dashboard could potentially cause issues such as deleting the index and limiting this control to WP-CLI is preferred.
-* When disabled, features that would require reindexing are also prevented from being enabled/disabled from the dashboard.
+This can be helpful for managed sites where users initiating a sync from the dashboard could potentially cause issues such as deleting the index and limiting this control to WP-CLI is preferred. When disabled, features that would require reindexing are also prevented from being enabled/disabled from the dashboard.
 
 ## Custom Features
 
