@@ -223,8 +223,18 @@ function ep_wc_translate_args( $query ) {
 		'product_cat',
 		'pa_brand',
 		'product_tag',
+		'product_type',
 		'pa_sort-by',
 	);
+
+	/**
+	 * Add support for custom taxonomies.
+	 *
+	 * @param array $supported_taxonomies An array of default taxonomies.
+	 *
+	 * @since 2.3.0
+	 */
+	$supported_taxonomies = apply_filters( 'ep_woocommerce_supported_taxonomies', $supported_taxonomies );
 
 	if ( ! empty( $tax_query ) ) {
 
