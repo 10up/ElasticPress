@@ -32,7 +32,8 @@ function attachments_mapping( $mapping ) {
 /**
  * This is some complex logic to handle the front end search query. If we have a search query,
  * add the attachment post type to post_type and inherit to post_status. If post_status is not set,
- * we assume publish, inherit is wanted. post_type should always be set.
+ * we assume publish/inherit is wanted. post_type should always be set. We also add allowed mime types.
+ * If mime types are already set, append.
  * 
  * @param  WP_Query $query
  * @since  2.3
@@ -50,10 +51,7 @@ function search_attachment_post_type( $query ) {
 
 	$post_status = $query->get( 'post_status' , array() );
 	$post_type = $query->get( 'post_type' , array() );
-
-	if ( is_string( $post_status ) ) {
-		$post_status = explode( ' ', $post_status );
-	}
+	$mime_types = $query->get( 'post_mime_type' , array() );
 
 	if ( ! empty( $post_type ) ) {
 		if ( 'any' !== $post_type ) {
@@ -61,7 +59,7 @@ function search_attachment_post_type( $query ) {
 				$post_type = explode( ' ', $post_type );
 				$post_type[] = 'attachment';
 
-				$query->set( 'post_status', array_unique( $post_status ) );
+				$query->set( 'post_type', array_unique( $post_type ) );
 			}
 		}
 	}
@@ -77,13 +75,22 @@ function search_attachment_post_type( $query ) {
 	}
 
 	$query->set( 'post_status', array_unique( $post_status ) );
+
+	if ( ! empty( $mime_types ) && is_string( $mime_types ) ) {
+		$mime_types = explode( ' ', $mime_types );
+	}
+
+	$mime_types = array_merge( $mime_types, ep_media_get_allowed_ingest_mime_types() );
+	$mime_types[] = ''; // This let's us query non-attachments as well as attachments
+
+	$query->set( 'post_mime_type', array_unique( array_values( $mime_types ) ) );
 }
 
 /**
  * Change Elasticsearch request path if processing attachment
  *
- * @param $path
- * @param $post
+ * @param string $path
+ * @param array $post
  * @since  2.3
  * @return string
  */
@@ -101,8 +108,8 @@ function ep_media_index_post_request_path( $path, $post ) {
 /**
  * Add attachment data in post sync args
  *
- * @param $post_args
- * @param $post_id
+ * @param array $post_args
+ * @param int $post_id
  * @since  2.3
  * @return mixed
  */
@@ -272,7 +279,7 @@ function ep_media_post_activation( $feature_obj ) {
  * Get allowed mime types for feature
  *
  * @since  2.3
- * @return mixed|void
+ * @return array
  */
 function ep_media_get_allowed_ingest_mime_types() {
 	return apply_filters( 'ep_allowed_media_ingest_mime_types', array(
