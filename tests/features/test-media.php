@@ -5,8 +5,8 @@ class EPTestMediaFeature extends EP_Test_Base {
 	/**
 	 * Setup each test.
 	 *
-	 * @since 2.1
-	 * @group woocommerce
+	 * @since 2.3
+	 * @group media
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -32,8 +32,8 @@ class EPTestMediaFeature extends EP_Test_Base {
 	/**
 	 * Clean up after each test. Reset our mocks
 	 *
-	 * @since 2.1
-	 * @group woocommerce
+	 * @since 2.3
+	 * @group media
 	 */
 	public function tearDown() {
 		parent::tearDown();
