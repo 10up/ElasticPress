@@ -243,6 +243,9 @@ class EP_WP_Query_Integration {
 			$scope = 'current';
 			if ( ! empty( $query_vars['sites'] ) ) {
 				$scope = $query_vars['sites'];
+				if( is_numeric( $scope ) ) {
+					$scope = (int) $scope;
+				}
 			}
 
 			$formatted_args = ep_format_args( $query_vars );
