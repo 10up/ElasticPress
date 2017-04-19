@@ -322,6 +322,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		global $wp_actions;
 
 		$this->_connect_check();
+		$was_active = $this->is_activated();
 
 		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
 			$assoc_args['posts-per-page'] = absint( $assoc_args['posts-per-page'] );
@@ -429,6 +430,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			delete_site_transient( 'ep_wpcli_sync' );
 		} else {
 			delete_transient( 'ep_wpcli_sync' );
+		}
+
+		if ( $was_active ) {
+			$this->activate();
+		} else {
+			WP_CLI::warning( __( 'ElasticPress is deactivated', 'elasticpress' ) );
 		}
 
 		WP_CLI::success( __( 'Done!', 'elasticpress' ) );
