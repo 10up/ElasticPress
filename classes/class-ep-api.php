@@ -284,6 +284,10 @@ class EP_API {
 			return true;
 		}
 
+		if ( isset( $response['hits']['total'] ) && 0 === (int)$response['hits']['total'] ) {
+			return true;
+		}
+
 		return false;
 	}
 
