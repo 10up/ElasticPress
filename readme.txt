@@ -36,6 +36,16 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.3 =
+
+Version 2.3 introduces the Media feature which empowers users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.
+
+### Enhancements
+* Media feature
+* Enable multiple feature status messages
+
+### Bug Fixes
+
 = 2.2.1 =
 
 Version 2.2.1 is a bug fix release. Here are a listed of issues that have been resolved:
