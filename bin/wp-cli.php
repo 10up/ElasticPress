@@ -76,7 +76,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		if ( 2 === $status->code ) {
 			WP_CLI::error( __( 'Feature requirements are not met', 'elasticpress' ) );
 		} elseif ( 1 === $status->code ) {
-			WP_CLI::warning( printf( __( 'Feature is usable but there are warnings: %s', 'elasticpress' ), $status->message ) );
+			WP_CLI::warning( sprintf( __( 'Feature is usable but there are warnings: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
 		}
 
 		ep_activate_feature( $feature->slug );
