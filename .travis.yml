@@ -15,6 +15,9 @@ env:
 services:
   - elasticsearch
 
+before_install:
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.2.2.deb && sudo dpkg -i --force-confnew elasticsearch-5.2.2.deb && sudo service elasticsearch restart
+
 before_script:
   - composer install --dev
   - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
