@@ -197,20 +197,20 @@ function ep_media_requirements_status( $status ) {
 	$plugins = ep_get_elasticsearch_plugins();
 
 	$status->code = 1;
-	$status->message = '';
+	$status->message = [];
 	
 	// Ingest attachment plugin is required for this feature
 	if ( empty( $plugins ) || empty( $plugins['ingest-attachment'] ) ) {
 		$status->code = 2;
-		$status->message .= esc_html__( 'Elasticsearch Ingest Attachment plugin is not installed.', 'elasticpress' );
+		$status->message[] = esc_html__( 'Elasticsearch Ingest Attachment plugin is not installed.', 'elasticpress' );
 	} else {
 		$host = ep_get_host();
 
 		if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
-			$status->message .= __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is optimized for handling media files.<br><br>", 'elasticpress' );
+			$status->message[] = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is optimized for handling media files.", 'elasticpress' );
 		}
 
-		$status->message .= esc_html__( "This feature will force front-end searches to include attachments (ppt, pptx, doc, docx, xls, xlsx, and pdf).", 'elasticpress' );
+		$status->message[] = esc_html__( "This feature will force front-end searches to include attachments (ppt, pptx, doc, docx, xls, xlsx, and pdf).", 'elasticpress' );
 	}
 	
 	return $status;
