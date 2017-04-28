@@ -28,7 +28,7 @@ define( 'EP_VERSION', '2.3' );
  * We compare the current ES version to this compatibility version number. Compatibility is true when:
  *
  * EP_ES_VERSION_MIN <= YOUR ES VERSION <= EP_ES_VERSION_MAX
- * 
+ *
  * We don't check minor releases so if your ES version if 5.1.1, we consider that 5.1 in our comparison.
  *
  * @since  2.2
@@ -59,6 +59,7 @@ require_once( 'features/related-posts/related-posts.php' );
 require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
 require_once( 'features/media/media.php' );
+require_once( 'features/media-search/media-search.php' );
 
 /**
  * WP CLI Commands
@@ -137,7 +138,7 @@ add_action( 'plugins_loaded', 'ep_handle_upgrades', 5 );
  */
 function ep_setup_misc() {
 	load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
-	
+
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
