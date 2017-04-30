@@ -359,8 +359,10 @@ function ep_wc_translate_args( $query ) {
 
 		$s = $query->get( 's' );
 
-		$query->query_vars['ep_integrate'] = true;
-		$query->query['ep_integrate'] = true;
+		if( ! isset( $query->query_vars['ep_integrate'] ) || ! isset( $query->query['ep_integrate'] ) ){
+			$query->query_vars['ep_integrate'] = true;
+			$query->query['ep_integrate'] = true;
+		}
 
 		if ( ! empty( $s ) ) {
 			$query->set( 'orderby', false ); // Just order by relevance.
