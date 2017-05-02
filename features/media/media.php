@@ -184,7 +184,7 @@ function ep_media_indexable_post_status( $statuses ) {
  */
 function ep_media_bulk_index_post_request_path( $path ) {
 	return add_query_arg( array(
-		'pipeline' => apply_filters( 'ep_media_pipeline_id', ep_get_index_name() . 'attachment' ),
+		'pipeline' => apply_filters( 'ep_media_pipeline_id', ep_get_index_name() . '-attachment' ),
 	), $path );
 }
 
