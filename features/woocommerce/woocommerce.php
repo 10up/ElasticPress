@@ -168,7 +168,8 @@ function ep_wc_translate_args( $query ) {
 		return;
 	}
 
-	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
+	     ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
 		return;
 	}
 
@@ -359,10 +360,8 @@ function ep_wc_translate_args( $query ) {
 
 		$s = $query->get( 's' );
 
-		if( ! isset( $query->query_vars['ep_integrate'] ) || ! isset( $query->query['ep_integrate'] ) ){
-			$query->query_vars['ep_integrate'] = true;
-			$query->query['ep_integrate'] = true;
-		}
+		$query->query_vars['ep_integrate'] = true;
+		$query->query['ep_integrate'] = true;
 
 		if ( ! empty( $s ) ) {
 			$query->set( 'orderby', false ); // Just order by relevance.
