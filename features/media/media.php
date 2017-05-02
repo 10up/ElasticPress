@@ -12,6 +12,8 @@ function ep_media_setup() {
 	add_filter( 'ep_bulk_index_post_request_path', 'ep_media_bulk_index_post_request_path', 999, 1 );
 	add_filter( 'pre_get_posts', 'search_attachment_post_type' );
 	add_filter( 'ep_config_mapping', 'attachments_mapping' );
+	add_action( 'ep_wp_cli_pre_index', 'ep_media_create_pipeline' );
+	add_action( 'ep_dashboard_start_index', 'ep_media_create_pipeline' );
 }
 
 /**
@@ -98,7 +100,7 @@ function ep_media_index_post_request_path( $path, $post ) {
 	if ( 'attachment' === $post['post_type'] ) {
 		if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], ep_media_get_allowed_ingest_mime_types() ) ) {
 			$index = ep_get_index_name();
-			$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=attachment';
+			$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_media_pipeline_id', ep_get_index_name() . '-attachment' );
 		}
 	}
 	
@@ -182,7 +184,7 @@ function ep_media_indexable_post_status( $statuses ) {
  */
 function ep_media_bulk_index_post_request_path( $path ) {
 	return add_query_arg( array(
-		'pipeline' => 'attachment',
+		'pipeline' => apply_filters( 'ep_media_pipeline_id', ep_get_index_name() . 'attachment' ),
 	), $path );
 }
 
@@ -239,13 +241,11 @@ function ep_media_feature_box_long() {
 }
 
 /**
- * Put attachment pipeline once feature is activate
+ * Put attachment pipeline
  *
- * @param EP_Feature $feature_obj
  * @since  2.3
  */
-function ep_media_post_activation( $feature_obj ) {
-	//put attachment pipeline once
+function ep_media_create_pipeline() {
 	$args = array(
 		'description' => 'Extract attachment information',
 		'processors' => array(
@@ -265,14 +265,7 @@ function ep_media_post_activation( $feature_obj ) {
 		),
 	);
 	
-	$path = '_ingest/pipeline/attachment';
-	
-	$request_args = array(
-		'body'    => json_encode( $args ),
-		'method'  => 'PUT',
-	);
-	
-	$request = ep_remote_request( $path, apply_filters( 'ep_put_attachment_pipeline_args', $request_args ) );
+	ep_create_pipeline( apply_filters( 'ep_media_pipeline_id', ep_get_index_name() . '-attachment' ), $args );
 }
 
 /**
@@ -302,7 +295,7 @@ ep_register_feature( 'media', array(
 	'title' => 'Media',
 	'requirements_status_cb' => 'ep_media_requirements_status',
 	'setup_cb' => 'ep_media_setup',
-	'post_activation_cb' => 'ep_media_post_activation',
+	'post_activation_cb' => 'ep_media_create_pipeline',
 	'feature_box_summary_cb' => 'ep_media_feature_box_summary',
 	'feature_box_long_cb' => 'ep_media_feature_box_long',
 	'requires_install_reindex' => true,
