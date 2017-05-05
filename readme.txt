@@ -43,8 +43,15 @@ Version 2.3 introduces the Media feature which empowers users to search ppt, ppt
 ### Enhancements
 * Media feature
 * Enable multiple feature status messages
+* Disable dashboard sync via constant: `define( 'EP_DASHBOARD_SYNC', false );`. Props [rveitch](https://github.com/rveitch).
+* Add filter for custom WooCommerce taxonomies. Props [kallehauge](https://github.com/kallehauge).
+* Support WooCommerce `product_type` taxonomy. Props [kallehauge](https://github.com/kallehauge).
 
 ### Bug Fixes
+* Fix WP-CLI `--no-bulk` number of posts indexed message. Props [ivankristianto](https://github.com/ivankristianto).
+* Honor `ep_integrate` in WooCommerce queries. Props [ivankristianto](https://github.com/ivankristianto).
+* Properly check when ES results are empty. Props [lukaspawlik](https://github.com/lukaspawlik)
+* Incorrect `found_posts` set in query when ES is unavailable. Props [lukaspawlik](https://github.com/lukaspawlik)
 
 = 2.2.1 =
 
