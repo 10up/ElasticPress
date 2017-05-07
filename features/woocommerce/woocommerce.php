@@ -168,7 +168,8 @@ function ep_wc_translate_args( $query ) {
 		return;
 	}
 
-	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
+	     ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
 		return;
 	}
 

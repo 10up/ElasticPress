@@ -284,6 +284,10 @@ class EP_API {
 			return true;
 		}
 
+		if ( isset( $response['hits']['total'] ) && 0 === (int)$response['hits']['total'] ) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -2268,6 +2272,78 @@ class EP_API {
 	}
 
 	/**
+	 * Get a pipeline
+	 * 
+	 * @param  string $id
+	 * @since  2.3
+	 * @return WP_Error|bool|array
+	 */
+	public function get_pipeline( $id ) {
+		$path = '_ingest/pipeline/' . $id;
+
+		$request_args = array(
+			'method'  => 'GET',
+		);
+
+		$request = ep_remote_request( $path, apply_filters( 'ep_get_pipeline_args', $request_args ) );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_response_code( $request );
+
+		if ( 200 !== $response ) {
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $request ), true );
+
+		if ( empty( $body ) ) {
+			return false;
+		}
+
+		return $body;
+	}
+
+	/**
+	 * Put a pipeline
+	 * 
+	 * @param  string $id
+	 * @param array $args
+	 * @since  2.3
+	 * @return WP_Error|bool
+	 */
+	public function create_pipeline( $id, $args ) {
+		$path = '_ingest/pipeline/' . $id;
+
+		$request_args = array(
+			'body'    => json_encode( $args ),
+			'method'  => 'PUT',
+		);
+
+		$request = ep_remote_request( $path, apply_filters( 'ep_get_pipeline_args', $request_args ) );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_response_code( $request );
+
+		if ( 200 > $response || 300 <= $response ) {
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $request ), true );
+
+		if ( empty( $body ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Get index status
 	 *
 	 * Retrieves index stats from Elasticsearch.
@@ -2417,6 +2493,14 @@ function ep_delete_post( $post_id, $blocking = true ) {
 
 function ep_put_mapping() {
 	return EP_API::factory()->put_mapping();
+}
+
+function ep_get_pipeline( $id ) {
+	return EP_API::factory()->get_pipeline( $id );
+}
+
+function ep_create_pipeline( $id, $args ) {
+	return EP_API::factory()->create_pipeline( $id, $args );
 }
 
 function ep_delete_index( $index_name = null ) {

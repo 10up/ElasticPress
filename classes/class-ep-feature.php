@@ -20,7 +20,7 @@ class EP_Feature_Requirements_Status {
 	 * Initialize class
 	 * 
 	 * @param int $code
-	 * @param string $message
+	 * @param string|array $message
 	 * @since  2.2
 	 */
 	public function __construct( $code, $message = null ) {
@@ -44,7 +44,7 @@ class EP_Feature_Requirements_Status {
 	/**
 	 * Optional message to describe status code
 	 * 
-	 * @var    string
+	 * @var    string|array
 	 * @since  2.2
 	 */
 	public $message;
@@ -270,12 +270,16 @@ class EP_Feature {
 
 	public function output_settings_box() {
 		$requirements_status = $this->requirements_status();
+
+
 		?>
 
-		<?php if ( ! empty( $requirements_status->message ) ) : ?>
-			<div class="requirements-status-notice">
-				<?php echo wp_kses_post( $requirements_status->message ); ?>
-			</div>
+		<?php if ( ! empty( $requirements_status->message ) ) : $messages = (array) $requirements_status->message; ?>
+			<?php foreach ( $messages as $message ) : ?>
+				<div class="requirements-status-notice">
+					<?php echo wp_kses_post( $message ); ?>
+				</div>
+			<?php endforeach; ?>
 		<?php endif; ?>
 
 		<h3><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h3>

@@ -474,6 +474,8 @@ class EP_Dashboard {
 			if ( ! empty( $_POST['feature_sync'] ) ) {
 				$index_meta['feature_sync'] = esc_attr( $_POST['feature_sync'] );
 			}
+
+			do_action( 'ep_dashboard_start_index', $index_meta );
 		} else if ( ! empty( $index_meta['site_stack'] ) && $index_meta['offset'] >= $index_meta['found_posts'] ) {
 			$status = 'start';
 
