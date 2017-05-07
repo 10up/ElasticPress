@@ -546,6 +546,10 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
 
 /**
  * Enhance WooCommerce search order by order id, email, phone number, name, etc..
+ * What this function does:
+ * 1. Reverse the woocommerce shop_order_search_custom_fields query
+ * 2. If the search key is integer and it is an Order Id, just query with post__in
+ * 3. If the search key is integer but not an order id ( might be phone number ), use ES to find it
  *
  * @param $wp
  */
@@ -553,7 +557,7 @@ function ep_wc_search_order( $wp ){
 	global $pagenow;
 
 	if ( 'edit.php' != $pagenow || 'shop_order' !== $wp->query_vars['post_type'] ||
-	     ! isset( $wp->query_vars['shop_order_search'] ) || true !== $wp->query_vars['shop_order_search'] ) {
+	     ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 		return;
 	}
 
@@ -561,10 +565,15 @@ function ep_wc_search_order( $wp ){
 	$order    = wc_get_order( absint( $search_key_safe ) );
 
 	//If the order doesn't exist, fallback to other fields
-	if( ! $order ){
+	if ( ! $order ) {
 		unset( $wp->query_vars['shop_order_search'] );
 		unset( $wp->query_vars['post__in'] );
 		$wp->query_vars['s'] = $search_key_safe;
+	} else {
+		//we found the order. don't query ES
+		unset( $wp->query_vars['s'] );
+		$wp->query_vars['post__in'] = array( $order->get_id() );
+		$wp->query_vars['ep_integrate'] = true;
 	}
 }
 
@@ -584,6 +593,8 @@ function ep_wc_setup() {
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
+
+		add_filter( 'woocommerce_shop_order_search_fields', '__return_empty_array' );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
 	}
 }
