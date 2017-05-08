@@ -206,6 +206,13 @@ function ep_wc_translate_args( $query ) {
 	}
 
 	/**
+	 * If this is just a preview, let's not use Elasticsearch.
+	 */
+	if ( isset( $_GET['preview'] ) ) {
+		return;
+	}
+
+	/**
 	 * Cant hook into WC API yet
 	 */
 	if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
