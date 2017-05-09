@@ -307,7 +307,9 @@ class EP_WP_Query_Integration {
 				foreach ( $post_return_args as $key ) {
 					if( $key === 'post_author' ) {
 						$post->$key = $post_array[$key]['id'];
-					} elseif ( isset( $post_array[ $key ] ) ) {
+					} elseif($key === 'post_content' && !empty($post_array['post_content_raw'])) {
+                        $post->$key = $post_array['post_content_raw'];
+                    } elseif ( isset( $post_array[ $key ] ) ) {
 						$post->$key = $post_array[$key];
 					}
 				}

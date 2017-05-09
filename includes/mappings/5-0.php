@@ -241,6 +241,9 @@ return array(
 				'post_content' => array(
 					'type' => 'text',
 				),
+				'post_content_raw' => array(
+					'type' => 'keyword',
+				),
 				'post_status' => array(
 					'type' => 'keyword',
 				),

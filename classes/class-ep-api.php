@@ -584,7 +584,8 @@ class EP_API {
 			'post_title'        => $this->prepare_text_content( get_the_title( $post_id ) ),
 			'post_excerpt'      => $this->prepare_text_content( $post->post_excerpt ),
 			'post_content'      => $this->prepare_text_content( apply_filters( 'the_content', $post->post_content ) ),
-			'post_status'       => $post->post_status,
+			'post_content_raw'  => apply_filters( 'the_content', $post->post_content ),
+            'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
 			'post_modified_gmt' => $post_modified_gmt,
@@ -1538,6 +1539,17 @@ class EP_API {
 				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
 			}
 		}
+
+        // remove all formatted args except post_name
+		if(!empty($args['name'])){
+			unset($formatted_args['query']);
+			unset($formatted_args['from']);
+			unset($formatted_args['size']);
+			unset($formatted_args['post_filter']);
+			unset($formatted_args['sort']);
+			$formatted_args['query']['constant_score']['filter']['term']['post_name.raw'] = $args['name'];
+		}
+
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
 	
