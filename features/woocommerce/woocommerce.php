@@ -572,7 +572,7 @@ function ep_wc_search_order( $wp ){
 	} else {
 		//we found the order. don't query ES
 		unset( $wp->query_vars['s'] );
-		$wp->query_vars['post__in'] = array( $order->get_id() );
+		$wp->query_vars['post__in'] = array( absint( $search_key_safe ) );
 	}
 }
 
