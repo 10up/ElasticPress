@@ -567,7 +567,6 @@ function ep_wc_search_order( $wp ){
 
 	//If the order doesn't exist, fallback to other fields
 	if ( ! $order ) {
-		unset( $wp->query_vars['shop_order_search'] );
 		unset( $wp->query_vars['post__in'] );
 		$wp->query_vars['s'] = $search_key_safe;
 	} else {
