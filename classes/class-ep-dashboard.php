@@ -464,6 +464,8 @@ class EP_Dashboard {
 					ep_delete_index();
 
 					ep_put_mapping();
+
+					do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
 				}
 
 				update_option( 'ep_last_sync', time() );
@@ -496,13 +498,13 @@ class EP_Dashboard {
 					ep_delete_index();
 
 					ep_put_mapping();
+
+					do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
 				}
 			}
 		}
 
 		$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
-
-		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
 		$args = apply_filters( 'ep_index_posts_args', array(
 			'posts_per_page'         => $posts_per_page,

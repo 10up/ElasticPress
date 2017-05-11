@@ -13,7 +13,7 @@ function ep_media_setup() {
 	add_filter( 'pre_get_posts', 'search_attachment_post_type' );
 	add_filter( 'ep_config_mapping', 'attachments_mapping' );
 	add_action( 'ep_cli_put_mapping', 'ep_media_create_pipeline' );
-	add_action( 'ep_dashboard_start_index', 'ep_media_create_pipeline' );
+	add_action( 'ep_dashboard_put_mapping', 'ep_media_create_pipeline' );
 }
 
 /**
