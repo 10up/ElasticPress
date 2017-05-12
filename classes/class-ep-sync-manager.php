@@ -94,7 +94,7 @@ class EP_Sync_Manager {
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
 		global $importer;
 
-		if ( ! ep_elasticsearch_alive() ) {
+		if ( ! ep_get_elasticsearch_version() ) {
 			return;
 		}
 
@@ -105,6 +105,11 @@ class EP_Sync_Manager {
 		
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
+
+		// Allow inherit as post status if post type is attachment
+		if ( $post_type === 'attachment' ) {
+			$indexable_post_statuses[] = 'inherit';
+		}
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
 			// Bypass saving if doing autosave or post type is revision
@@ -180,6 +185,12 @@ class EP_Sync_Manager {
 		
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
+		
+		if ( 'attachment' === $post_type ) {
+			$indexable_post_statuses[] = 'inherit';
+		}
+
+		$post_type               = get_post_type( $post_ID );
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
 			// Bypass saving if doing autosave or post type is revision
@@ -244,10 +255,16 @@ class EP_Sync_Manager {
 	 */
 	public function sync_post( $post_id, $blocking = true ) {
 
+		$post = get_post( $post_id );
+
+		if ( empty( $post ) ) {
+			return false;
+		}
+
 		$post_args = ep_prepare_post( $post_id );
 
 		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
-			return;
+			return false;
 		}
 
 		$response = ep_index_post( $post_args, $blocking );

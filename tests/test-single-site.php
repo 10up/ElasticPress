@@ -35,6 +35,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		 */
 		ep_activate_feature( 'search' );
 		EP_Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ep_search_setup();
 	}
 
 	/**
@@ -54,6 +57,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
+	 * @group single-site
 	 */
 	public function testPostSync() {
 		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
@@ -72,6 +76,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a post sync on meta add
 	 *
 	 * @since 2.0
+	 * @group single-site
 	 */
 	public function testPostSyncOnMetaAdd() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
@@ -96,6 +101,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a post sync on meta update
 	 *
 	 * @since 2.0
+	 * @group single-site
 	 */
 	public function testPostSyncOnMetaUpdate() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
@@ -122,6 +128,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test pagination with offset
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testPaginationWithOffset() {
 		ep_create_and_sync_post( array( 'post_title' => 'one' ) );
@@ -141,41 +148,10 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test that a post becoming unpublished correctly gets removed from the Elasticsearch index
-	 *
-	 * @since 0.9.3
-	 */
-	public function testPostUnpublish() {
-		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
-
-		$post_id = ep_create_and_sync_post();
-
-		ep_refresh_index();
-
-		$post = ep_get_post( $post_id );
-
-		// Ensure that our post made it over to elasticsearch
-		$this->assertTrue( ! empty( $post ) );
-
-		// Let's transition the post status from published to draft
-		wp_update_post( array( 'ID' => $post_id, 'post_status' => 'draft' ) );
-
-		ep_refresh_index();
-
-		$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
-
-		$post = ep_get_post( $post_id );
-
-		// Alright, now the post has been removed from the index, so this should be empty
-		$this->assertTrue( empty( $post ) );
-
-		$this->fired_actions = array();
-	}
-
-	/**
 	 * Test WP Query search on post content
 	 *
 	 * @since 0.9
+	 * @group single-site
 	 */
 	public function testWPQuerySearchContent() {
 		$post_ids = array();
@@ -227,6 +203,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test WP Query search on post title
 	 *
 	 * @since 0.9
+	 * @group single-site
 	 */
 	public function testWPQuerySearchTitle() {
 		$post_ids = array();
@@ -257,6 +234,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Make sure proper taxonomies are synced with post. Hidden taxonomies should be skipped!
 	 *
 	 * @since 0.1.1
+	 * @group single-site
 	 */
 	public function testPostTermSync() {
 
@@ -277,8 +255,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * @group testPostTermSyncHierarchy
-	 *
+	 * @group single-site
 	 */
 	public function testPostTermSyncSingleLevel(){
 
@@ -322,8 +299,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * @group testPostTermSyncHierarchy
-	 *
+	 * @group single-site
 	 */
 	public function testPostTermSyncHierarchyMultipleLevel(){
 
@@ -364,8 +340,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * @group testPostTermSyncHierarchy
-	 *
+	 * @group single-site
 	 */
 	public function testPostTermSyncHierarchyMultipleLevelQuery(){
 
@@ -412,8 +387,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * @group testPostTermSyncHierarchy
-	 *
+	 * @group single-site
 	 */
 	public function testPostTermSyncSingleLevelQuery(){
 
@@ -460,8 +434,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * @group testPostImplicitTaxonomyQuery
-	 *
+	 * @group single-site
 	 */
 	public function testPostImplicitTaxonomyQueryCustomTax(){
 
@@ -493,8 +466,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 
 	/**
-	 * @group testPostImplicitTaxonomyQuery
-	 *
+	 * @group single-site
 	 */
 	public function testPostImplicitTaxonomyQueryCategoryName(){
 
@@ -521,8 +493,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * @group testPostImplicitTaxonomyQuery
-	 *
+	 * @group single-site
 	 */
 	public function testPostImplicitTaxonomyQueryTag(){
 
@@ -552,6 +523,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test WP Query search on post excerpt
 	 *
 	 * @since 0.9
+	 * @group single-site
 	 */
 	public function testWPQuerySearchExcerpt() {
 		$post_ids = array();
@@ -582,6 +554,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test pagination
 	 *
 	 * @since 0.9
+	 * @group single-site
 	 */
 	public function testPagination() {
 		ep_create_and_sync_post( array( 'post_excerpt' => 'findme test 1' ) );
@@ -656,6 +629,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a taxonomy query with slug field
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testTaxQuerySlug() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
@@ -685,6 +659,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a taxonomy query with OR relation
 	 *
 	 * @since 2.0
+	 * @group single-site
 	 */
 	public function testTaxQueryOrRelation() {
 		$cat1 =  wp_create_category( 'category one' );
@@ -723,6 +698,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a taxonomy query with term id field
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testTaxQueryTermId() {
 		$post = ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
@@ -776,6 +752,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a taxonomy query with term name field
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testTaxQueryTermName() {
 		$cat1 =  wp_create_category( 'category one' );
@@ -809,6 +786,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a category_name query
 	 *
 	 * @since 1.5
+	 * @group single-site
 	 */
 	public function testCategoryNameQuery() {
 		$cat_one = wp_insert_category( array( 'cat_name' => 'one') );
@@ -835,6 +813,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a post__in query
 	 *
 	 * @since 1.5
+	 * @group single-site
 	 */
 	public function testPostInQuery() {
 		$post_ids = array();
@@ -860,6 +839,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a post__not_in query
 	 *
 	 * @since 1.5
+	 * @group single-site
 	 */
 	public function testPostNotInQuery() {
 		$post_ids = array();
@@ -885,6 +865,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test an author ID query
 	 *
 	 * @since 1.0
+	 * @group single-site
 	 */
 	public function testAuthorIDQuery() {
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -910,6 +891,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test an author name query
 	 *
 	 * @since 1.0
+	 * @group single-site
 	 */
 	public function testAuthorNameQuery() {
 		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
@@ -935,6 +917,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a post type query for pages
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testPostTypeQueryPage() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
@@ -959,6 +942,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a post type query for posts
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testPostTypeQueryPost() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
@@ -982,6 +966,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query with no post type
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testNoPostTypeSearchQuery() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
@@ -1005,6 +990,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a post status query for published posts
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testPostStatusQueryPublish() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
@@ -1028,6 +1014,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a post status query for draft posts
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testPostStatusQueryDraft() {
 		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
@@ -1052,35 +1039,10 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a post status query for published or draft posts without 'draft' allowed as indexable status
-	 *
-	 * @since 2.1
-	 */
-	public function testPostStatusQueryMultiDefault() {
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
-
-		ep_refresh_index();
-
-		$args = array(
-			's'         => 'findme',
-			'post_status' => array(
-				'draft',
-				'publish',
-			),
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 1, $query->post_count );
-		$this->assertEquals( 1, $query->found_posts );
-	}
-
-	/**
 	 * Test a post status query for published or draft posts with 'draft' whitelisted as indexable status
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testPostStatusQueryMulti() {
 		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
@@ -1103,56 +1065,6 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
-	}
-
-	/**
-	 * Test a query with no post status without 'draft' indexable status. Post status should default to publish.
-	 *
-	 * @since 2.1
-	 */
-	public function testNoPostStatusSearchQueryDefault() {
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
-
-		ep_refresh_index();
-
-		// post_status defaults to "publish"
-		$args = array(
-			's' => 'findme',
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 1, $query->post_count );
-		$this->assertEquals( 1, $query->found_posts );
-	}
-
-	/**
-	 * Test a query with no post status with 'draft' as indexable status. Post status should default to publish
-	 *
-	 * @since 2.1
-	 */
-	public function testNoPostStatusSearchQuery() {
-		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
-
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_status' => 'draft' ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_status' => 'draft' ) );
-
-		ep_refresh_index();
-
-		// post_status defaults to "publish"
-		$args = array(
-			's' => 'findme',
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 1, $query->post_count );
-		$this->assertEquals( 1, $query->found_posts );
 
 		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10);
 	}
@@ -1185,6 +1097,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test an attachment query
 	 *
 	 * @since 1.6
+	 * @group single-site
 	 */
 	public function testAttachmentQuery() {
 		add_filter( 'ep_indexable_post_types', array( $this, '_add_attachment_post_type' ) );
@@ -1213,9 +1126,10 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a query with no post type on non-search query
+	 * Test a query with no post type on non-search query. Should default to `post` post type
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testNoPostTypeNonSearchQuery() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
@@ -1231,14 +1145,15 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
-		$this->assertEquals( 3, $query->post_count );
-		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
 	 * Test a query with "any" post type
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testAnyPostTypeQuery() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'post_type' => 'page' ) );
@@ -1259,33 +1174,12 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test meta mapping for complex arrays. All complex arrays are serialized
+	 * Test meta shows up in EP post object
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
-	public function testSearchMetaMappingComplexArray() {
-		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => array( 'test' ) ) );
-
-		ep_refresh_index();
-		$args = array(
-			'ep_integrate' => true,
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 1, $query->post_count );
-
-		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
-
-		$this->assertTrue( is_array( unserialize( $query->posts[0]->post_meta['test_key'][0] ) ) ); // Make sure value is properly serialized
-	}
-
-	/**
-	 * Test meta mapping for complex objects. All complex objects are serialized
-	 *
-	 * @since 1.7
-	 */
-	public function testSearchMetaMappingComplexObject() {
+	public function testSearchMetaInPostObject() {
 		$object = new stdClass();
 		$object->test = 'hello';
 
@@ -1300,37 +1194,14 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 
-		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
-
-		$this->assertEquals( 'hello', unserialize( $query->posts[0]->post_meta['test_key'][0] )->test ); // Make sure value is properly serialized
-	}
-
-	/**
-	 * Test meta mapping for simple string
-	 *
-	 * @since 1.7
-	 */
-	public function testSearchMetaMappingString() {
-		ep_create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 'test' ) );
-
-		ep_refresh_index();
-		$args = array(
-			'ep_integrate' => true,
-		);
-
-		$query = new WP_Query( $args );
-
-		$this->assertEquals( 1, $query->post_count );
-
-		$this->assertEquals( 1, count( $query->posts[0]->post_meta['test_key'] ) ); // Make sure there is only one value
-
-		$this->assertEquals( 'test', $query->posts[0]->post_meta['test_key'][0] );
+		$this->assertEquals( 1, count( $query->posts[0]->meta['test_key'] ) );
 	}
 
 	/**
 	 * Test a query that fuzzy searches meta
 	 *
 	 * @since 1.0
+	 * @group single-site
 	 */
 	public function testSearchMetaQuery() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content' ) );
@@ -1371,6 +1242,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that fuzzy searches taxonomy terms
 	 *
 	 * @since 1.0
+	 * @group single-site
 	 */
 	public function testSearchTaxQuery() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content' ) );
@@ -1398,6 +1270,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a fuzzy author name query
 	 *
 	 * @since 1.0
+	 * @group single-site
 	 */
 	public function testSearchAuthorQuery() {
 		$user_id = $this->factory->user->create( array( 'user_login' => 'john', 'role' => 'administrator' ) );
@@ -1428,6 +1301,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a crazy advanced query
 	 *
 	 * @since 1.0
+	 * @group single-site
 	 */
 	public function testAdvancedQuery() {
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -1483,6 +1357,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post_title orderby query
 	 *
 	 * @since 1.1
+	 * @group single-site
 	 */
 	public function testSearchPostTitleOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
@@ -1510,6 +1385,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post meta string orderby query asc
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testSearchPostMetaStringOrderbyQueryAsc() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
@@ -1537,6 +1413,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post meta string orderby query asc array
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testSearchPostMetaStringOrderbyQueryAscArray() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
@@ -1565,18 +1442,18 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * like array( 'key' => 'order direction ' )
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testSearchPostMetaStringOrderbyQueryAdvanced() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c', 'test_key2' => 'c' ) );
-		ep_create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'd', 'test_key2' => 'c' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertest 222' ), array( 'test_key' => 'f', 'test_key2' => 'c' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'd', 'test_key2' => 'd' ) );
 
 		ep_refresh_index();
 
 		$args = array(
 			's'       => 'ordertest',
-			'orderby' => array( 'meta.test_key.value.sortable' => 'asc', 'meta.test_key.value.sortable' => 'desc' ),
-			'order'   => 'ASC',
+			'orderby' => array( 'meta.test_key.value.sortable' => 'asc', ),
 		);
 
 		$query = new WP_Query( $args );
@@ -1584,7 +1461,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
-		$this->assertEquals( 'Ordertest 111', $query->posts[1]->post_title );
+		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertest 222', $query->posts[2]->post_title );
 	}
 
@@ -1592,6 +1469,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Sort by an author login
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testAuthorLoginOrderbyQueryAsc() {
 		$bob = $this->factory->user->create( array( 'user_login' => 'Bob', 'role' => 'administrator' ) );
@@ -1624,6 +1502,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Sort by an author display name
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testAuthorDisplayNameOrderbyQueryAsc() {
 		$bob = $this->factory->user->create( array( 'display_name' => 'Bob', 'role' => 'administrator' ) );
@@ -1656,6 +1535,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post meta number orderby query asc
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testSearchPostMetaNumOrderbyQueryAsc() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
@@ -1685,6 +1565,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post category orderby query asc
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testSearchTaxNameOrderbyQueryAsc() {
 		$cat1 =  wp_create_category( 'Category 1' );
@@ -1719,6 +1600,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post meta number orderby query desc
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testSearchPostMetaNumOrderbyQueryDesc() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
@@ -1748,6 +1630,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post meta num multiple fields orderby query asc
 	 *
 	 * @since 1.8
+	 * @group single-site
 	 */
 	public function testSearchPostMetaNumMultipleOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 3, 'test_key2' => 2 ) );
@@ -1777,6 +1660,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post_date orderby query
 	 *
 	 * @since 1.4
+	 * @group single-site
 	 */
 	public function testSearchPostDateOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertes 333' ) );
@@ -1808,6 +1692,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post_date default order for ep_integrate query with no search
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testSearchPostDateOrderbyQueryEPIntegrate() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
@@ -1838,6 +1723,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test relevance orderby query advanced
 	 *
 	 * @since 1.2
+	 * @group single-site
 	 */
 	public function testSearchRelevanceOrderbyQueryAdvanced() {
 		$posts = array();
@@ -1886,6 +1772,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test relevance orderby query
 	 *
 	 * @since 1.1
+	 * @group single-site
 	 */
 	public function testSearchRelevanceOrderbyQuery() {
 		ep_create_and_sync_post();
@@ -1911,6 +1798,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test post_name orderby query
 	 *
 	 * @since 1.1
+	 * @group single-site
 	 */
 	public function testSearchPostNameOrderbyQuery() {
 		ep_create_and_sync_post( array( 'post_title' => 'postname-ordertest-333' ) );
@@ -1941,6 +1829,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Default is to use _score and 'desc'
 	 *
 	 * @since 1.1
+	 * @group single-site
 	 */
 	public function testSearchDefaultOrderbyQuery() {
 		ep_create_and_sync_post();
@@ -1967,6 +1856,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Default is to use _score orderby; using 'asc' order
 	 *
 	 * @since 1.1
+	 * @group single-site
 	 */
 	public function testSearchDefaultOrderbyASCOrderQuery() {
 		ep_create_and_sync_post();
@@ -1992,6 +1882,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test orderby random
 	 *
 	 * @since 2.1.1
+	 * @group single-site
 	 */
 	public function testRandOrderby() {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 1' ) );
@@ -2015,43 +1906,10 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
-	 * Test a normal post trash
-	 *
-	 * @since 1.2
-	 */
-	public function testPostDelete() {
-		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
-		$post_id = ep_create_and_sync_post();
-
-		ep_refresh_index();
-
-		$post = ep_get_post( $post_id );
-
-		// Ensure that our post made it over to elasticsearch
-		$this->assertTrue( ! empty( $post ) );
-
-		// Let's normally trash the post
-		wp_delete_post( $post_id );
-
-		ep_refresh_index();
-
-		$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
-
-		$post = ep_get_post( $post_id );
-
-		// The post, although it still should exist in WP's trash, should not be in our index
-		$this->assertTrue( empty( $post ) );
-
-		$post = get_post( $post_id );
-		$this->assertTrue( ! empty( $post ) );
-
-		$this->fired_actions = array();
-	}
-
-	/**
 	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
 	 *
 	 * @since 1.2
+	 * @group single-site
 	 */
 	public function testPostForceDelete() {
 		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
@@ -2088,6 +1946,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test that empty search string returns all results
 	 *
 	 * @since 1.2
+	 * @group single-site
 	 */
 	public function testEmptySearchString() {
 		ep_create_and_sync_post();
@@ -2109,6 +1968,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that searches and filters by a meta equal query
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testMetaQueryEquals() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content' ) );
@@ -2136,6 +1996,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that searches and filters by a meta not equal query
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testMetaQueryNotEquals() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2164,6 +2025,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that searches and filters by a meta exists query
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testMetaQueryExists() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2190,6 +2052,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test a query that searches and filters by a meta not exists query
 	 *
+	 * @group single-site
 	 * @since 1.3
 	 */
 	public function testMetaQueryNotExists() {
@@ -2218,6 +2081,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that searches and filters by a meta greater than to query
 	 *
 	 * @since 1.4
+	 * @group single-site
 	 */
 	public function testMetaQueryGreaterThan() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2247,6 +2111,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that searches and filters by a meta between query
 	 *
 	 * @since 2.0
+	 * @group single-site
 	 */
 	public function testMetaQueryBetween() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2277,6 +2142,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that searches and filters by a meta greater than or equal to query
 	 *
 	 * @since 1.4
+	 * @group single-site
 	 */
 	public function testMetaQueryGreaterThanEqual() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2306,6 +2172,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that searches and filters by a meta less than to query
 	 *
 	 * @since 1.4
+	 * @group single-site
 	 */
 	public function testMetaQueryLessThan() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2335,6 +2202,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test a query that searches and filters by a meta less than or equal to query
 	 *
 	 * @since 1.4
+	 * @group single-site
 	 */
 	public function testMetaQueryLessThanEqual() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2364,6 +2232,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test an advanced meta filter query
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testMetaQueryOrRelation() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key5' => 'value1' )  );
@@ -2397,6 +2266,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test an advanced meta filter query
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testMetaQueryAdvanced() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1' )  );
@@ -2432,7 +2302,9 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test a query that searches and filters by a meta value like the query
+	 * 
 	 * @since 1.5
+	 * @group single-site
 	 */
 	public function testMetaQueryLike() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -2458,12 +2330,67 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 	}
+	
+	public function testMetaQueryMultipleArray() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_2' => '4' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_2' => '0' ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_3' => '4' ) );
+		
+		ep_refresh_index();
+		
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				array(
+					'key' => 'meta_key_2',
+					'value' => '0',
+					'compare' => '>=',
+				)
+			),
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		
+		$args = array(
+			's'             => 'findme',
+			'meta_query' => array(
+				'relation' => 'AND',
+				array(
+					'key' => 'meta_key_1',
+					'value' => '1',
+				),
+				array(
+					'relation' => 'OR',
+					array(
+						'key' => 'meta_key_2',
+						'value' => '2',
+						'compare' => '>=',
+					),
+					array(
+						'key' => 'meta_key_3',
+						'value' => '4',
+					),
+				),
+			),
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
 
 	/**
 	 * Test exclude_from_search post type flag
 	 * Ensure that we do not search that post type when all post types are searched
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testExcludeFromSearch() {
 		$post_ids = array();
@@ -2503,6 +2430,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test what happens when no post types are available to be searched
 	 *
 	 * @since 1.3
+	 * @group single-site
 	 */
 	public function testNoAvailablePostTypesToSearch() {
 		$GLOBALS['wp_post_types'];
@@ -2510,7 +2438,9 @@ class EPTestSingleSite extends EP_Test_Base {
 		$backup_post_types = $GLOBALS['wp_post_types'];
 
 		// Set all post types to be excluded from search
-		foreach ( $GLOBALS['wp_post_types'] as $post_type ) {
+		foreach ( $GLOBALS['wp_post_types'] as $key => $post_type ) {
+			$backup_post_types[ $key ] = clone $post_type;
+
 			$post_type->exclude_from_search = true;
 		}
 
@@ -2543,6 +2473,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test cache_results is off by default
 	 *
 	 * @since 1.5
+	 * @group single-site
 	 */
 	public function testCacheResultsDefaultOff() {
 		ep_create_and_sync_post();
@@ -2562,6 +2493,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test cache_results can be turned on
 	 *
 	 * @since 1.5
+	 * @group single-site
 	 */
 	public function testCacheResultsOn() {
 		ep_create_and_sync_post();
@@ -2582,6 +2514,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test using cache_results actually populates the cache
 	 *
 	 * @since 1.5
+	 * @group single-site
 	 */
 	public function testCachedResultIsInCache() {
 		ep_create_and_sync_post();
@@ -2606,6 +2539,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test setting cache results to false doesn't store anything in the cache
 	 *
 	 * @since 1.5
+	 * @group single-site
 	 */
 	public function testCachedResultIsNotInCache() {
 		ep_create_and_sync_post();
@@ -2628,8 +2562,9 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
-	 * @group 306
+	 * 
 	 * @link https://github.com/10up/ElasticPress/issues/306
+	 * @group single-site
 	 */
 	public function testPostReturnArgs() {
 		add_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
@@ -2665,9 +2600,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test invalid post date time
-	 *
-	 * @param   array $post_statuses
-	 * @return  array
+	 * 
+	 * @group single-site
 	 */
 	public function testPostInvalidDateTime(){
 		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
@@ -2698,7 +2632,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test to verify that a post type that is set to exclude_from_search isn't indexable.
 	 *
 	 * @since 1.6
-	 * @link https://github.com/10up/ElasticPress/issues/321
+	 * @group single-site
 	 */
 	public function testExcludeIndexablePostType() {
 		$post_types = ep_get_indexable_post_types();
@@ -2711,6 +2645,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 *
 	 * @since 1.6
 	 * @link https://github.com/10up/ElasticPress/issues/343
+	 * @group single-site
 	 */
 	public function testAutoDraftPostStatus() {
 		// Let's test inserting an 'auto-draft' post.
@@ -2748,6 +2683,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test to verify meta array is built correctly.
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testPrepareMeta() {
 
@@ -2817,9 +2753,8 @@ class EPTestSingleSite extends EP_Test_Base {
 	/**
 	 * Test meta preparation
 	 *
-	 * Tests meta perparation
-	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testMetaValueTypes() {
 
@@ -2851,6 +2786,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test meta key query
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testMetaKeyQuery() {
 
@@ -2858,6 +2794,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'test' ) );
 
 		ep_refresh_index();
+
 		$args = array(
 			's' => 'findme',
 			'meta_key' => 'test_key',
@@ -2875,6 +2812,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test meta key query with num
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testMetaKeyQueryNum() {
 
@@ -2899,6 +2837,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test mix meta_key with meta_query
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testMetaKeyQueryMix() {
 
@@ -2929,6 +2868,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test numeric integer meta queries
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testMetaValueTypeQueryNumeric() {
 
@@ -2995,6 +2935,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test decimal meta queries
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testMetaValueTypeQueryDecimal() {
 
@@ -3043,6 +2984,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test character meta queries. Really just defaults to a normal string query
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testMetaValueTypeQueryChar() {
 
@@ -3074,6 +3016,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test date meta queries
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testMetaValueTypeQueryDate() {
 		ep_create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '11/13/15' ) );
@@ -3119,6 +3062,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test time meta queries
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testMetaValueTypeQueryTime() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -3162,6 +3106,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test date time meta queries
 	 *
 	 * @since 1.7
+	 * @group single-site
 	 */
 	public function testMetaValueTypeQueryDatetime() {
 		ep_create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
@@ -3219,7 +3164,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	
 	/*
 	 * Test a post_parent query
-	 * @group testPostParentQuery
+	 * @group single-site
 	 * @since 2.0
 	 */
 	public function testPostParentQuery() {
@@ -3244,33 +3189,39 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test register feature
 	 * 
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testRegisterFeature() {
 		ep_register_feature( 'test', array(
 			'title' => 'Test',
 		) );
 
+		$feature = ep_get_registered_feature( 'test' );
+
 		$this->assertTrue( ! empty( EP_Features::factory()->registered_features['test'] ) );
-		$this->assertTrue( ! empty( ep_get_registered_feature( 'test' ) ) );
+		$this->assertTrue( ! empty( $feature ) );
 	}
 
 	/**
 	 * Test setup features
 	 * 
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testSetupFeatures() {
+		delete_option( 'ep_active_features' );
+
 		ep_register_feature( 'test', array(
 			'title' => 'Test',
 		) );
-
-		ep_activate_feature( 'test' );
 
 		$feature = ep_get_registered_feature( 'test' );
 
 		$this->assertTrue( ! empty( $feature ) );
 
 		$this->assertTrue( ! $feature->is_active() );
+
+		ep_activate_feature( 'test' );
 
 		EP_Features::factory()->setup_features();
 
@@ -3281,6 +3232,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * Test Tax Query NOT IN operator
 	 *
 	 * @since 2.1
+	 * @group single-site
 	 */
 	public function testTaxQueryNotIn() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
@@ -3325,5 +3277,43 @@ class EPTestSingleSite extends EP_Test_Base {
 		
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+	
+	/**
+	 * Test post_mime_type query
+	 *
+	 * @since 2.3
+	 */
+	function testPostMimeTypeQuery() {
+		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ) );
+		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ) );
+		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'application/pdf', 'post_status' => 'inherit' ) );
+		
+		ep_refresh_index();
+		
+		$args = array(
+			'ep_integrate' => true,
+			'post_mime_type' => 'image',
+			'post_type' => 'attachment',
+			'post_status' => 'inherit'
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 2, $query->post_count );
+		
+		$args = array(
+			'ep_integrate' => true,
+			'post_mime_type' => array(
+				'image/jpeg',
+				'application/pdf',
+			),
+			'post_type' => 'attachment',
+			'post_status' => 'inherit'
+		);
+		
+		$query = new WP_Query( $args );
+		
+		$this->assertEquals( 3, $query->found_posts );
 	}
 }

@@ -20,7 +20,7 @@ class EP_Feature_Requirements_Status {
 	 * Initialize class
 	 * 
 	 * @param int $code
-	 * @param string $message
+	 * @param string|array $message
 	 * @since  2.2
 	 */
 	public function __construct( $code, $message = null ) {
@@ -32,9 +32,9 @@ class EP_Feature_Requirements_Status {
 	/**
 	 * Returns the status of a feature
 	 *
-	 * 1 is no issues (hollow green)
-	 * 2 is usable but there are warnngs (hollow yellow)
-	 * 3 is not usable (hollow red)
+	 * 0 is no issues
+	 * 1 is usable but there are warnngs
+	 * 2 is not usable
 	 *
 	 * @var    int
 	 * @since  2.2
@@ -44,7 +44,7 @@ class EP_Feature_Requirements_Status {
 	/**
 	 * Optional message to describe status code
 	 * 
-	 * @var    string
+	 * @var    string|array
 	 * @since  2.2
 	 */
 	public $message;
@@ -162,7 +162,34 @@ class EP_Feature {
 			$status = call_user_func( $this->requirements_status_cb, $status, $this );
 		}
 
+		if ( true === $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
+			$status->code = 2;
+			$status->message = '';
+
+			if ( ! empty( $status->message ) ) {
+				$status->message .= '<br><br>';
+			}
+
+			$status->message .= esc_html__( 'Dashboard sync is disabled. Features that require content reindexing after activation must be enabled/disabled using WP-CLI.', 'elasticpress' ); 
+		}
+
 		return apply_filters( 'ep_feature_requirements_status', $status, $this );
+	}
+
+	/**
+	 * Return feature settings
+	 *
+	 * @since  2.2.1
+	 * @return array|bool
+	 */
+	public function get_settings() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$feature_settings = get_site_option( 'ep_feature_settings', array() );
+		} else {
+			$feature_settings = get_option( 'ep_feature_settings', array() );
+		}
+
+		return ( ! empty( $feature_settings[ $this->slug ] ) ) ? $feature_settings[ $this->slug ] : false;
 	}
 
 	/**
@@ -243,12 +270,16 @@ class EP_Feature {
 
 	public function output_settings_box() {
 		$requirements_status = $this->requirements_status();
+
+
 		?>
 
-		<?php if ( ! empty( $requirements_status->message ) ) : ?>
-			<div class="requirements-status-notice">
-				<?php echo wp_kses_post( $requirements_status->message ); ?>
-			</div>
+		<?php if ( ! empty( $requirements_status->message ) ) : $messages = (array) $requirements_status->message; ?>
+			<?php foreach ( $messages as $message ) : ?>
+				<div class="requirements-status-notice">
+					<?php echo wp_kses_post( $message ); ?>
+				</div>
+			<?php endforeach; ?>
 		<?php endif; ?>
 
 		<h3><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h3>

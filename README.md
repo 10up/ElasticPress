@@ -1,11 +1,11 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress)
 =============
 
 A fast and flexible search and query engine for WordPress.
 
 **Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2 require re-syncing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2 require re-syncing.
 
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
@@ -19,7 +19,7 @@ ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Ref
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.3+
+* [Elasticsearch](https://www.elastic.co) 1.7 - 5.2 (2.0+ highly recommended)
 * [WordPress](http://wordpress.org) 3.7.1+
 
 ## Installation
@@ -36,19 +36,29 @@ Once syncing finishes, your site is officially supercharged. You also have acces
 
 ### Search
 
-Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
+Instantly find the content you’re looking for. The first time.
 
 ### WooCommerce
 
-Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This feature will increase your sales bottom line and reduce administrative costs.
+“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
 
 ### Related Posts
 
-Help users easily find related content by adding related posts to the end of each post.
+ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
 
-### Admin
+Available API functions:
 
-Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You'll need to make sure your Elasticsearch instance is properly secured.
+* `ep_find_related( $post_id, $return = 5 )`
+
+  Get related posts for a given `$post_id`. Use this in a theme or plugin to get related content.
+
+### Protected Content
+
+Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
+
+### Media
+
+Empower users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.
 
 ## `WP_Query` and the ElasticPress Query Integration
 
@@ -484,7 +494,7 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type]`
 
     Index all posts in the current blog.
 
@@ -536,6 +546,16 @@ The following commands are supported by ElasticPress:
 define( 'ES_SHIELD', 'username:password' );
 ```
 
+## Disable Dashboard Sync
+
+Dashboard sync can be disabled by defining the constant `EP_DASHBOARD_SYNC` as `false` in your wp-config.php file.
+
+```php
+define( 'EP_DASHBOARD_SYNC', false );
+```
+
+This can be helpful for managed sites where users initiating a sync from the dashboard could potentially cause issues such as deleting the index and limiting this control to WP-CLI is preferred. When disabled, features that would require reindexing are also prevented from being enabled/disabled from the dashboard.
+
 ## Custom Features
 
 ElasticPress has a robust API for registering your own features. Refer to the code within each feature for detailed examples. To register a feature, you will need to call the `ep_register_feature()` function like so:
@@ -548,7 +568,7 @@ add_action( 'plugins_loaded', function() {
         'feature_box_summary_cb' => 'summary_callback_function',
         'feature_box_long_cb' => 'long_summary_callback_function',
         'requires_install_reindex' => true,
-        'dependencies_met_cb' => 'dependencies_meta_callback_function',
+        'requirements_status_cb' => 'requirements_status_callback_function',
         'post_activation_cb' => 'post_activation_callback_function',
     ) );
 } );
@@ -562,7 +582,7 @@ The only arguments that are really required are the `slug` and `title` of the as
 * `post_activation_cb` (callback) - Callback to a function to be called after a feature is first activated.
 * `feature_box_summary_cb` (callback) - Callback to a function that outputs HTML feature box summary (short description of feature).
 * `feature_box_long_cb` (callback) - Callback to a function that outputs HTML feature box full description.
-* `dependencies_met_cb` (callback) - Callback to a function that determines if the features dependencies are met. True means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
+* `requirements_status_cb` (callback) - Callback to a function that determines if the features requirements are met. This function needs to return a `EP_Feature_Requirements_Status` object. `EP_Feature_Requirements_Status` is a simple class with a `code` and a `message` property. Code 0 means there are no requirement issues; code 1 means there are issues with warnings; code 2 means the feature does not have it's requirements met and cannot be used. The message property of the object can be used to store warnings.
 
 If you build an open source custom feature, let us know! We'd be happy to list the feature within ElasticPress documentation.
 

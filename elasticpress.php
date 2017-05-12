@@ -3,7 +3,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     2.2
+ * Version:     2.3
  * Author:      Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -22,7 +22,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '2.2' );
+define( 'EP_VERSION', '2.3' );
+
+/**
+ * We compare the current ES version to this compatibility version number. Compatibility is true when:
+ *
+ * EP_ES_VERSION_MIN <= YOUR ES VERSION <= EP_ES_VERSION_MAX
+ * 
+ * We don't check minor releases so if your ES version if 5.1.1, we consider that 5.1 in our comparison.
+ *
+ * @since  2.2
+ */
+define( 'EP_ES_VERSION_MAX', '5.3' );
+define( 'EP_ES_VERSION_MIN', '1.7' );
 
 require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
@@ -44,8 +56,9 @@ require_once( 'classes/class-ep-dashboard.php' );
 // Include core features
 require_once( 'features/search/search.php' );
 require_once( 'features/related-posts/related-posts.php' );
-require_once( 'features/admin/admin.php' );
+require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
+require_once( 'features/media/media.php' );
 
 /**
  * WP CLI Commands
@@ -55,44 +68,74 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
- * On activate, all features that meet their requirements with no warnings should be activated.
+ * Set the availability of dashboard sync functionality. Defaults to true (enabled).
  *
- * @since  2.1
+ * Sync can be disabled by defining EP_DASHBOARD_SYNC as false in wp-config.php.
+ * NOTE: Must be defined BEFORE `require_once(ABSPATH . 'wp-settings.php');` in wp-config.php.
+ *
+ * @since  2.3
  */
-function ep_on_activate() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$feature_settings = get_site_option( 'ep_feature_settings', false );
-	} else {
-		$feature_settings = get_option( 'ep_feature_settings', false );
+if ( ! defined( 'EP_DASHBOARD_SYNC' ) ) {
+	define( 'EP_DASHBOARD_SYNC', true );
+}
+
+/**
+ * Handle upgrades
+ *
+ * @since  2.2
+ */
+function ep_handle_upgrades() {
+	if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
+		return;
 	}
 
-	if ( false === $feature_settings ) {
-		$registered_features = EP_Features::factory()->registered_features;
-		
-		foreach ( $registered_features as $slug => $feature ) {
-			if ( 0 === $feature->requirements_status()->code ) {
-				$feature_settings[ $slug ] = ( ! empty( $feature->default_settings ) ) ? $feature->default_settings : array();
-				$feature_settings[ $slug ]['active'] = true;
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$old_version = get_site_option( 'ep_version', false );
+	} else {
+		$old_version = get_option( 'ep_version', false );
+	}
 
-				$feature->post_activation();
-			}
+	/**
+	 * Reindex if we cross a reindex version in the upgrade
+	 */
+	$reindex_versions = apply_filters( 'ep_reindex_versions', array(
+		'2.2',
+	) );
+
+	$need_upgrade_sync = false;
+
+	if ( false === $old_version ) {
+		$need_upgrade_sync = true;
+	} else {
+		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
+
+		if ( ( -1 === version_compare( $old_version, $last_reindex_version ) && 1 === version_compare( EP_VERSION , $last_reindex_version ) ) || 0 === version_compare( EP_VERSION , $last_reindex_version ) )  {
+			$last_reindex_version = true;
+		}
+	}
+
+	if ( $need_upgrade_sync ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_need_upgrade_sync', true );
+		} else {
+			update_option( 'ep_need_upgrade_sync', true );
 		}
 	}
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		update_site_option( 'ep_feature_settings', $feature_settings );
-		delete_site_option( 'ep_index_meta' );
+		update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 	} else {
-		update_option( 'ep_feature_settings', $feature_settings );
-		delete_option( 'ep_index_meta' );
+		update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 	}
 }
-register_activation_hook( __FILE__, 'ep_on_activate' );
+add_action( 'plugins_loaded', 'ep_handle_upgrades', 5 );
 
 /**
  * Load text domain and handle debugging
+ *
+ * @since  2.2
  */
-function ep_loader() {
+function ep_setup_misc() {
 	load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
 	
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
@@ -100,4 +143,6 @@ function ep_loader() {
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
 	}
 }
-add_action( 'plugins_loaded', 'ep_loader' );
+add_action( 'plugins_loaded', 'ep_setup_misc' );
+
+do_action( 'elasticpress_loaded' );

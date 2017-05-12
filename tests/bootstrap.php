@@ -18,12 +18,18 @@ function ep_test_shard_number( $mapping ) {
 }
 
 function _manually_load_plugin() {
+	global $wp_version;
+
 	$host = getenv( 'EP_HOST' );
 	if ( empty( $host ) ) {
 		$host = 'http://localhost:9200';
 	}
 
-	define( 'EP_HOST', $host );
+	update_option( 'ep_host', $host );
+	update_site_option( 'ep_host', $host );
+
+	define( 'EP_IS_NETWORK', true );
+	define( 'WP_NETWORK_ADMIN', true );
 
 	require( dirname( __FILE__ ) . '/../vendor/woocommerce/woocommerce.php' );
 	require( dirname( __FILE__ ) . '/../elasticpress.php' );
@@ -33,7 +39,7 @@ function _manually_load_plugin() {
 	$tries = 5;
 	$sleep = 3;
 	do {
-		$response = wp_remote_get( EP_HOST );
+		$response = wp_remote_get( $host );
 		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 			// Looks good!
 			break;
@@ -48,6 +54,8 @@ function _manually_load_plugin() {
 	}
 
 	require_once( dirname( __FILE__ ) . '/includes/functions.php' );
+
+	echo 'WordPress version ' . $wp_version . "\n";
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
@@ -58,8 +66,9 @@ function _setup_theme() {
 	include( dirname( __FILE__ ) . '/../vendor/woocommerce/uninstall.php' );
 	WC_Install::install();
 
-	$GLOBALS['wp_roles']->reinit();
-	echo "Installing WooCommerce..." . PHP_EOL;
+	$GLOBALS['wp_roles'] = new WP_Roles();
+
+	echo 'Installing WooCommerce version ' . WC()->version . ' ...' . PHP_EOL;
 }
 tests_add_filter( 'setup_theme', '_setup_theme' );
 

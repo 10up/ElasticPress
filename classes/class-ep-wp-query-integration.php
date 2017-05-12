@@ -159,10 +159,10 @@ class EP_WP_Query_Integration {
 	 * Filter the posts array to contain ES query results in EP_Post form. Pull previously queried posts.
 	 *
 	 * @param array $posts
-	 * @param object &$query
+	 * @param object $query
 	 * @return array
 	 */
-	public function filter_the_posts( $posts, &$query ) {
+	public function filter_the_posts( $posts, $query ) {
 		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
 			return $posts;
 		}
@@ -181,7 +181,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
+		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) )  ) {
 			return $sql;
 		}
 
@@ -198,6 +198,8 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_posts_request( $request, $query ) {
+		global $wpdb;
+
 		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return $request;
 		}
@@ -213,6 +215,23 @@ class EP_WP_Query_Integration {
 
 		if ( 'any' === $query_vars['post_type'] ) {
 			unset( $query_vars['post_type'] );
+		}
+
+		/**
+		 * If not search and not set default to post. If not set and is search, use searchable post tpyes
+		 */
+		if ( empty( $query_vars['post_type'] ) ) {
+			if ( empty( $query_vars['s'] ) ) {
+				$query_vars['post_type'] = 'post';
+			} else {
+				$query_vars['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
+			}
+		}
+
+		if ( empty( $query_vars['post_type'] ) ) {
+			$this->posts_by_query[spl_object_hash( $query )] = array();
+
+			return "SELECT * FROM $wpdb->posts WHERE 1=0";
 		}
 
 		$new_posts = apply_filters( 'ep_wp_query_search_cached_posts', array(), $query );
@@ -241,11 +260,13 @@ class EP_WP_Query_Integration {
 			$ep_query = ep_query( $formatted_args, $query->query_vars, $scope );
 
 			if ( false === $ep_query ) {
+				$query->elasticsearch_success = false;
 				return $request;
 			}
 
 			$query->found_posts = $ep_query['found_posts'];
 			$query->max_num_pages = ceil( $ep_query['found_posts'] / $query->get( 'posts_per_page' ) );
+			$query->elasticsearch_success = true;
 
 			foreach ( $ep_query['posts'] as $post_array ) {
 				$post = new stdClass();
@@ -278,9 +299,10 @@ class EP_WP_Query_Integration {
 						'menu_order',
 						'permalink',
 						'terms',
-						'post_meta'
-						)
-					);
+						'post_meta',
+						'meta',
+					)
+				);
 
 				foreach ( $post_return_args as $key ) {
 					if( $key === 'post_author' ) {
@@ -303,8 +325,6 @@ class EP_WP_Query_Integration {
 		$this->posts_by_query[spl_object_hash( $query )] = $new_posts;
 
 		do_action( 'ep_wp_query_search', $new_posts, $ep_query, $query );
-
-		global $wpdb;
 
 		return "SELECT * FROM $wpdb->posts WHERE 1=0";
 	}

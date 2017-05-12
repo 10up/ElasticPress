@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 return array(
 	'settings' => array(
+	    'index.mapping.total_fields.limit' => apply_filters( 'ep_total_field_limit', 5000 ),
+	    'index.max_result_window' => apply_filters( 'ep_max_result_window', 1000000 ),
 		'analysis' => array(
 			'analyzer' => array(
 				'default' => array(
@@ -69,6 +71,7 @@ return array(
 								),
 								'raw' => array(
 									'type' => 'keyword',
+									'ignore_above' => 10922,
 								),
 							),
 						),
@@ -85,16 +88,18 @@ return array(
 									'type' => 'text',
 									'fields' => array(
 										'sortable' => array(
-											'type' => 'text',
-											'analyzer' => 'ewp_lowercase',
+											'type' => 'keyword',
+											'ignore_above' => 10922,
 										),
 										'raw' => array(
 											'type' => 'keyword',
+											'ignore_above' => 10922,
 										),
 									),
 								),
 								'raw' => array( /* Left for backwards compat */
 									'type' => 'keyword',
+									'ignore_above' => 10922,
 								),
 								'long' => array(
 									'type' => 'long',
@@ -135,8 +140,7 @@ return array(
 											'type' => 'keyword',
 										),
 										'sortable' => array(
-											'type' => 'text',
-											'analyzer' => 'ewp_lowercase',
+											'type' => 'keyword',
 										),
 									),
 								),
@@ -183,8 +187,7 @@ return array(
 									'type' => 'keyword',
 								),
 								'sortable' => array(
-									'type' => 'text',
-									'analyzer' => 'ewp_lowercase',
+									'type' => 'keyword',
 								),
 							),
 						),
@@ -195,8 +198,7 @@ return array(
 									'type' => 'keyword',
 								),
 								'sortable' => array(
-									'type' => 'text',
-									'analyzer' => 'ewp_lowercase',
+									'type' => 'keyword',
 								),
 							),
 						),
@@ -225,10 +227,11 @@ return array(
 						),
 						'raw' => array(
 							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 						'sortable' => array(
-							'type' => 'text',
-							'analyzer' => 'ewp_lowercase',
+							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 					),
 				),
@@ -249,6 +252,7 @@ return array(
 						),
 						'raw' => array(
 							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 					),
 				),
