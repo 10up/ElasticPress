@@ -1518,14 +1518,27 @@ class EP_API {
 		/**
 		 * Aggregations
 		 */
-		if ( isset( $args['aggs'] ) && ! empty( $args['aggs']['aggs'] ) ) {
-			$agg_obj = $args['aggs'];
+		/**
+		 * Check aggregations argument and convert it from old format to array of arrays if needed.
+		 *
+		 * @since 2.3
+		 */
+		if ( isset( $args['aggs'], $args['aggs']['aggs'] ) ) {
+			$args['aggs'] = array( $args['aggs'] );
+		}
+		$aggregation_name_index = 1;
+		foreach ( $args['aggs'] as $agg_obj ) {
+			if ( empty( $agg_obj['aggs'] ) ) {
+				continue;
+			}
 
+			$agg_name_suffix = ( $aggregation_name_index > 1 ) ? ( '_' . $aggregation_name_index ) : '';
 			// Add a name to the aggregation if it was passed through
 			if ( ! empty( $agg_obj['name'] ) ) {
 				$agg_name = $agg_obj['name'];
 			} else {
-				$agg_name = 'aggregation_name';
+				$agg_name = 'aggregation_name' . $agg_name_suffix;
+				$aggregation_name_index++;
 			}
 
 			// Add/use the filter if warranted
@@ -1533,7 +1546,7 @@ class EP_API {
 
 				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
-				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+				$formatted_args['aggs'][ $agg_name ]['aggs']   = $agg_obj['aggs'];
 			} else {
 				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
 			}
