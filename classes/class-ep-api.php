@@ -1527,28 +1527,30 @@ class EP_API {
 			$args['aggs'] = array( $args['aggs'] );
 		}
 		$aggregation_name_index = 1;
-		foreach ( $args['aggs'] as $agg_obj ) {
-			if ( empty( $agg_obj['aggs'] ) ) {
-				continue;
-			}
+		if ( isset( $args['aggs'] ) ) {
+			foreach ( $args['aggs'] as $agg_obj ) {
+				if ( empty( $agg_obj['aggs'] ) ) {
+					continue;
+				}
 
-			$agg_name_suffix = ( $aggregation_name_index > 1 ) ? ( '_' . $aggregation_name_index ) : '';
-			// Add a name to the aggregation if it was passed through
-			if ( ! empty( $agg_obj['name'] ) ) {
-				$agg_name = $agg_obj['name'];
-			} else {
-				$agg_name = 'aggregation_name' . $agg_name_suffix;
-				$aggregation_name_index++;
-			}
+				$agg_name_suffix = ( $aggregation_name_index > 1 ) ? ( '_' . $aggregation_name_index ) : '';
+				// Add a name to the aggregation if it was passed through
+				if ( ! empty( $agg_obj['name'] ) ) {
+					$agg_name = $agg_obj['name'];
+				} else {
+					$agg_name = 'aggregation_name' . $agg_name_suffix;
+					$aggregation_name_index ++;
+				}
 
-			// Add/use the filter if warranted
-			if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && $use_filters ) {
+				// Add/use the filter if warranted
+				if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && $use_filters ) {
 
-				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
-				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
-				$formatted_args['aggs'][ $agg_name ]['aggs']   = $agg_obj['aggs'];
-			} else {
-				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
+					// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
+					$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
+					$formatted_args['aggs'][ $agg_name ]['aggs']   = $agg_obj['aggs'];
+				} else {
+					$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
+				}
 			}
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );

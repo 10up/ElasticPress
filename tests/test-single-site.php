@@ -8,6 +8,15 @@ class EPTestSingleSite extends EP_Test_Base {
 	var $is_404 = false;
 
 	/**
+	 * Store aggregations results.
+	 *
+	 * @since 2.4
+	 *
+	 * @var array
+	 */
+	protected $aggregations = array();
+
+	/**
 	 * Setup each test.
 	 *
 	 * @since 0.1.0
@@ -38,6 +47,8 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		// Need to call this since it's hooked to init
 		ep_search_setup();
+		// Clear any aggregations data.
+		$this->aggregations = array();
 	}
 
 	/**
@@ -51,6 +62,8 @@ class EPTestSingleSite extends EP_Test_Base {
 		//make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
+		// Clear any aggregations data.
+		$this->aggregations  = array();
 	}
 
 	/**
@@ -3316,4 +3329,229 @@ class EPTestSingleSite extends EP_Test_Base {
 		
 		$this->assertEquals( 3, $query->found_posts );
 	}
+
+	/**
+	 * Test old aggregations.
+	 *
+	 * @since 2.4
+	 */
+	function testOldAggregation() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'aggs' => array(
+				'name' => 'aggregation',
+				'aggs' => array(
+					'terms' => array(
+						'field' => 'terms.post_tag.slug',
+					),
+				),
+			),
+		);
+
+		add_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+		$query = new WP_Query( $args );
+		remove_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertTrue( isset( $this->fired_actions['ep_retrieve_aggregations'] ) );
+		$this->assertTrue( $this->fired_actions['ep_retrieve_aggregations'] );
+		$this->assertTrue( isset( $this->aggregations['aggregation'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation']['buckets'] ) );
+		$this->assertNotEmpty( $this->aggregations['aggregation']['buckets'] );
+		$this->assertEquals( 2, count( $this->aggregations['aggregation']['buckets'] ) );
+
+	}
+
+	/**
+	 * Test old aggregations with default name.
+	 *
+	 * @since 2.4
+	 */
+	function testOldAggregationDefaultName() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'aggs' => array(
+				'aggs' => array(
+					'terms' => array(
+						'field' => 'terms.post_tag.slug',
+					),
+				),
+			),
+		);
+
+		add_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+		$query = new WP_Query( $args );
+		remove_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertTrue( isset( $this->fired_actions['ep_retrieve_aggregations'] ) );
+		$this->assertTrue( $this->fired_actions['ep_retrieve_aggregations'] );
+		$this->assertTrue( isset( $this->aggregations['aggregation_name'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation_name']['buckets'] ) );
+		$this->assertNotEmpty( $this->aggregations['aggregation_name']['buckets'] );
+		$this->assertEquals( 2, count( $this->aggregations['aggregation_name']['buckets'] ) );
+
+	}
+
+	/**
+	 * Test single aggregation.
+	 *
+	 * @since 2.4
+	 */
+	function testSingleAggregation() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'aggs' => array(
+				array(
+					'name' => 'aggregation',
+					'aggs' => array(
+						'terms' => array(
+							'field' => 'terms.post_tag.slug',
+						),
+					),
+				),
+			),
+		);
+
+		add_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+		$query = new WP_Query( $args );
+		remove_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertTrue( isset( $this->fired_actions['ep_retrieve_aggregations'] ) );
+		$this->assertTrue( $this->fired_actions['ep_retrieve_aggregations'] );
+		$this->assertTrue( isset( $this->aggregations['aggregation'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation']['buckets'] ) );
+		$this->assertNotEmpty( $this->aggregations['aggregation']['buckets'] );
+		$this->assertEquals( 2, count( $this->aggregations['aggregation']['buckets'] ) );
+
+	}
+
+	/**
+	 * Test multiple aggregations.
+	 *
+	 * @since 2.4
+	 */
+	function testMultipleAggregations() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'aggs' => array(
+				array(
+					'name' => 'aggregation',
+					'aggs' => array(
+						'terms' => array(
+							'field' => 'terms.post_tag.slug',
+						),
+					),
+				),
+				array(
+					'name' => 'aggregation2',
+					'aggs' => array(
+						'terms' => array(
+							'field' => 'terms.post_tag.term_id',
+						),
+					),
+				),
+			),
+		);
+
+		add_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+		$query = new WP_Query( $args );
+		remove_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertTrue( isset( $this->fired_actions['ep_retrieve_aggregations'] ) );
+		$this->assertTrue( $this->fired_actions['ep_retrieve_aggregations'] );
+		$this->assertTrue( isset( $this->aggregations['aggregation'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation']['buckets'] ) );
+		$this->assertNotEmpty( $this->aggregations['aggregation']['buckets'] );
+		$this->assertEquals( 2, count( $this->aggregations['aggregation']['buckets'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation2'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation2']['buckets'] ) );
+		$this->assertNotEmpty( $this->aggregations['aggregation2']['buckets'] );
+		$this->assertEquals( 2, count( $this->aggregations['aggregation2']['buckets'] ) );
+
+	}
+
+	/**
+	 * Test multiple aggregations with default names.
+	 *
+	 * @since 2.4
+	 */
+	function testMultipleAggregationsDefaultNames() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'aggs' => array(
+				array(
+					'aggs' => array(
+						'terms' => array(
+							'field' => 'terms.post_tag.slug',
+						),
+					),
+				),
+				array(
+					'aggs' => array(
+						'terms' => array(
+							'field' => 'terms.post_tag.term_id',
+						),
+					),
+				),
+			),
+		);
+
+		add_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+		$query = new WP_Query( $args );
+		remove_action( 'ep_retrieve_aggregations', array( $this, 'retrieve_aggregations' ) );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertTrue( isset( $this->fired_actions['ep_retrieve_aggregations'] ) );
+		$this->assertTrue( $this->fired_actions['ep_retrieve_aggregations'] );
+		$this->assertTrue( isset( $this->aggregations['aggregation_name'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation_name']['buckets'] ) );
+		$this->assertNotEmpty( $this->aggregations['aggregation_name']['buckets'] );
+		$this->assertEquals( 2, count( $this->aggregations['aggregation_name']['buckets'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation_name_2'] ) );
+		$this->assertTrue( isset( $this->aggregations['aggregation_name_2']['buckets'] ) );
+		$this->assertNotEmpty( $this->aggregations['aggregation_name_2']['buckets'] );
+		$this->assertEquals( 2, count( $this->aggregations['aggregation_name_2']['buckets'] ) );
+
+	}
+
+	/**
+	 * Helper for retrieving aggregations from WP_Query.
+	 *
+	 * @since 2.4
+	 *
+	 * @param array $aggregations Aggregations array.
+	 */
+	function retrieve_aggregations( $aggregations ) {
+		$this->aggregations                              = $aggregations;
+		$this->fired_actions['ep_retrieve_aggregations'] = true;
+	}
+
 }
