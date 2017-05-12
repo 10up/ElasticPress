@@ -69,7 +69,6 @@ function ep_search_setup() {
 	add_filter( 'ep_formatted_args', 'ep_weight_recent', 10, 2 );
 	add_filter( 'ep_query_post_type', 'ep_filter_query_post_type_for_search', 10, 2 );
 	add_action( 'pre_get_posts', 'ep_improve_default_search', 10, 1 );
-
 }
 
 /**
@@ -162,7 +161,8 @@ function ep_get_searchable_post_types() {
  */
 function ep_weight_recent( $formatted_args, $args ) {
 	if ( ! empty( $args['s'] ) ) {
-		$feature = ep_get_registered_feature( 'search' );
+		$feature  = ep_get_registered_feature( 'search' );
+		$settings = array();
 		if ( $feature ) {
 			$settings = $feature->get_settings();
 		}
@@ -259,10 +259,19 @@ function ep_integrate_search_queries( $enabled, $query ) {
 	return $enabled;
 }
 
+/**
+ * Display decaying settings on dashboard.
+ *
+ * @since 2.4
+ *
+ * @param EP_Feature $feature Feature object.
+ *
+ * @return void
+ */
 function ep_integrate_search_box_settings( $feature ) {
 	$decaying_settings = $feature->get_settings();
 	if ( ! $decaying_settings ) {
-		$decaying_settings = [];
+		$decaying_settings = array();
 	}
 	$decaying_settings = wp_parse_args( $decaying_settings, $feature->default_settings );
 	?>
