@@ -37,6 +37,7 @@ function ep_search_feature_box_long() {
  */
 function ep_delay_search_setup() {
 	add_action( 'init', 'ep_search_setup' );
+	add_action( 'ep_feature_box_settings_search', 'ep_integrate_search_box_settings', 10, 1 );
 }
 
 /**
@@ -68,6 +69,7 @@ function ep_search_setup() {
 	add_filter( 'ep_formatted_args', 'ep_weight_recent', 10, 2 );
 	add_filter( 'ep_query_post_type', 'ep_filter_query_post_type_for_search', 10, 2 );
 	add_action( 'pre_get_posts', 'ep_improve_default_search', 10, 1 );
+
 }
 
 /**
@@ -160,22 +162,35 @@ function ep_get_searchable_post_types() {
  */
 function ep_weight_recent( $formatted_args, $args ) {
 	if ( ! empty( $args['s'] ) ) {
-		$date_score = array(
-			'function_score' => array(
-				'query' => $formatted_args['query'],
-				'exp' => array(
-					'post_date_gmt' => array(
-						'scale' => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
-						'decay' => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
-						'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
-					),
-				),
-				'score_mode' => 'avg',
-				'boost_mode' => 'sum'
-			),
-		);
+		$feature = ep_get_registered_feature( 'search' );
+		if ( $feature ) {
+			$settings = $feature->get_settings();
+		}
 
-		$formatted_args['query'] = $date_score;
+		$settings = wp_parse_args( $settings, array(
+			'decaying_enabled' => true,
+			'decaying_decay'   => 0.25,
+			'decaying_scale'   => 14,
+			'decaying_offset'  => 7,
+		) );
+		if ( (bool)$settings['decaying_enabled'] ) {
+			$date_score = array(
+				'function_score' => array(
+					'query'      => $formatted_args['query'],
+					'exp'        => array(
+						'post_date_gmt' => array(
+							'scale'  => apply_filters( 'epwr_scale', sprintf( '%dd', (int) $settings['decaying_scale'] ), $formatted_args, $args ),
+							'decay'  => apply_filters( 'epwr_decay', sprintf( '%f', (float) $settings['decaying_decay'] ), $formatted_args, $args ),
+							'offset' => apply_filters( 'epwr_offset', sprintf( '%dd', (int) $settings['decaying_offset'] ), $formatted_args, $args ),
+						),
+					),
+					'score_mode' => 'avg',
+					'boost_mode' => 'sum'
+				),
+			);
+
+			$formatted_args['query'] = $date_score;
+		}
 	}
 
 	return $formatted_args;
@@ -244,6 +259,48 @@ function ep_integrate_search_queries( $enabled, $query ) {
 	return $enabled;
 }
 
+function ep_integrate_search_box_settings( $feature ) {
+	$decaying_settings = $feature->get_settings();
+	if ( ! $decaying_settings ) {
+		$decaying_settings = [];
+	}
+	$decaying_settings = wp_parse_args( $decaying_settings, $feature->default_settings );
+	?>
+	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
+		<div class="field-name status"><?php esc_html_e( 'Decaying enabled', 'elasticpress' ); ?></div>
+		<div class="input-wrap">
+			<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool)$decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+			<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool)$decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+		</div>
+	</div>
+	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
+		<div class="field-name decaying-scale"><?php esc_html_e( 'Scale (in days)', 'elasticpress' ); ?></div>
+		<div class="input-wrap ">
+			<input name="feature_decaying_scale" id="feature_decaying_scale" data-field-name="decaying_scale"
+			       class="setting-field"
+			       value="<?php echo esc_attr( (int)$decaying_settings['decaying_scale'] ); ?>">
+		</div>
+	</div>
+	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
+		<div class="field-name decaying-offset"><?php esc_html_e( 'Offset (in days)', 'elasticpress' ); ?></div>
+		<div class="input-wrap ">
+			<input name="feature_decaying_offset" id="feature_decaying_offset" data-field-name="decaying_offset"
+			       class="setting-field"
+			       value="<?php echo esc_attr( (int)$decaying_settings['decaying_offset'] ); ?>">
+		</div>
+	</div>
+	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
+		<div class="field-name decaying-decay"><?php esc_html_e( 'Decay', 'elasticpress' ); ?></div>
+		<div class="input-wrap ">
+			<input name="feature_decaying_decay" id="feature_decaying_decay"
+			       data-field-name="decaying_decay"
+			       class="setting-field"
+			       value="<?php echo esc_attr( (float)$decaying_settings['decaying_decay'] ); ?>">
+		</div>
+	</div>
+<?php
+}
+
 /**
  * Register the feature
  */
@@ -253,4 +310,10 @@ ep_register_feature( 'search', array(
 	'feature_box_summary_cb' => 'ep_search_feature_box_summary',
 	'feature_box_long_cb' => 'ep_search_feature_box_long',
 	'requires_install_reindex' => false,
+	'default_settings'         => array(
+		'decaying_enabled' => true,
+		'decaying_decay'   => 0.25,
+		'decaying_scale'   => 14,
+		'decaying_offset'  => 7,
+	),
 ) );

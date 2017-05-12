@@ -319,11 +319,16 @@ h2.ep-list-features {
 	clear: both;
 	overflow: initial;
 
+	div {
+		padding-top: 5px;
+	}
+
 	> label,
 	.field-name {
 		display: block;
 		float: left;
 		margin-right: 3em;
+		min-width: 115px;
 	}
 
 	.input-wrap {

@@ -298,6 +298,10 @@ class EP_Feature {
 			return;
 		}
 		do_action( 'ep_feature_box_settings', $this->slug, $this );
+		/**
+		 * @since 2.4
+		 */
+		do_action( "ep_feature_box_settings_{$this->slug}", $this );
 		?>
 
 		<div class="action-wrap">

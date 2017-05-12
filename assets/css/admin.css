@@ -255,11 +255,14 @@ h2.ep-list-features {
 .ep-feature .settings .field {
   clear: both;
   overflow: initial; }
+  .ep-feature .settings .field div {
+    padding-top: 5px; }
   .ep-feature .settings .field > label,
   .ep-feature .settings .field .field-name {
     display: block;
     float: left;
-    margin-right: 3em; }
+    margin-right: 3em;
+    min-width: 115px; }
   .ep-feature .settings .field .input-wrap {
     display: block;
     float: left; }
