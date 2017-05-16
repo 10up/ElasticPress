@@ -208,7 +208,7 @@ function ep_wc_translate_args( $query ) {
 	/**
 	 * If this is just a preview, let's not use Elasticsearch.
 	 */
-	if ( isset( $_GET['preview'] ) ) {
+	if ( $query->get( 'preview', false ) ) {
 		return;
 	}
 
