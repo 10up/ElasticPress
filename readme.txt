@@ -41,7 +41,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 Version 2.3 introduces the Documents feature which empowers users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.
 
 ### Enhancements
-* Media feature
+* Documents feature
 * Enable multiple feature status messages
 * Disable dashboard sync via constant: `define( 'EP_DASHBOARD_SYNC', false );`. Props [rveitch](https://github.com/rveitch).
 * Add filter for custom WooCommerce taxonomies. Props [kallehauge](https://github.com/kallehauge).
