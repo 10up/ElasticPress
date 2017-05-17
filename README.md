@@ -58,7 +58,7 @@ Optionally index all of your content, including private and unpublished content,
 
 ### Media
 
-Empower users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.
+Indexes text inside of popular file types, and adds those files types to search results.
 
 ## `WP_Query` and the ElasticPress Query Integration
 

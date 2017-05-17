@@ -204,15 +204,9 @@ function ep_media_requirements_status( $status ) {
 	// Ingest attachment plugin is required for this feature
 	if ( empty( $plugins ) || empty( $plugins['ingest-attachment'] ) ) {
 		$status->code = 2;
-		$status->message[] = esc_html__( 'Elasticsearch Ingest Attachment plugin is not installed.', 'elasticpress' );
+		$status->message[] = __( 'The <a href="https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html">Ingest Attachment plugin</a> for Elasticsearch is not installed. To get the most out of ElasticPress, without the hassle of Elasticsearch management, check out <a href="https://elasticpress.io">ElasticPress.io</a> hosting.', 'elasticpress' );
 	} else {
-		$host = ep_get_host();
-
-		if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
-			$status->message[] = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is optimized for handling media files.", 'elasticpress' );
-		}
-
-		$status->message[] = esc_html__( "This feature will force front-end searches to include attachments (ppt, pptx, doc, docx, xls, xlsx, and pdf).", 'elasticpress' );
+		$status->message[] = __( "This feature modifies the default user experience for your visitors by adding popular document file types to search results. <strong>All supported documents</strong> uploaded to your media library will appear in search results.", 'elasticpress' );
 	}
 	
 	return $status;
@@ -225,7 +219,7 @@ function ep_media_requirements_status( $status ) {
  */
 function ep_media_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Empower users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.', 'elasticpress' ) ?></p>
+	<p><?php esc_html_e( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' ) ?></p>
 	<?php
 }
 
@@ -236,7 +230,7 @@ function ep_media_feature_box_summary() {
  */
 function ep_media_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Users searching on the front-end of your website will now be able to discover important media types (ppt, pptx, doc, docx, xls, xlsx, and pdf).', 'elasticpress' ) ?></p>
+	<p><?php esc_html_e( 'Website search results will include popular document /media file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf.', 'elasticpress' ) ?></p>
 	<?php
 }
 
