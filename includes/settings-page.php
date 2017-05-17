@@ -43,7 +43,18 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 						<?php endif; ?>
 					</td>
 				</tr>
-				<tr>
+                <tr>
+                    <th scope="row"><label for="ep_read_only"><?php esc_html_e( 'Enable Read Only Mode', 'elasticpress' ); ?></label></th>
+                    <td>
+                        <?php $checked = 1 == get_site_option( 'ep_read_only' ) || ( defined( 'EP_READ_ONLY' ) && EP_READ_ONLY ) ?>
+                        <input <?php if ( defined( 'EP_READ_ONLY' ) && EP_READ_ONLY ) : ?>disabled<?php endif; ?> type="checkbox" name="ep_read_only" id="ep_read_only" value="1" <?php checked( $checked, true )?>>
+                        <?php if ( defined( 'EP_READ_ONLY' ) && EP_READ_ONLY ) : ?>
+                            <span class="description"><?php esc_html_e( 'Read-only is currently set in wp-config.php' ) ?></span>
+                        <?php else : ?>
+                            <span class="description"><?php esc_html_e( 'Checking this will disable index syncing. Useful for development evnironments.') ?></span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
 			</tbody>
 		</table>
 

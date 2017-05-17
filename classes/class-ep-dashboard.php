@@ -695,6 +695,10 @@ class EP_Dashboard {
 					$wpcli_sync = (bool) get_transient( 'ep_wpcli_sync' );
 				}
 
+				if ( ep_is_read_only() || ( defined('EP_READ_ONLY') && EP_READ_ONLY ) ) {
+				    $index_meta['read_only'] = true;
+                }
+
 				if ( ! empty( $wpcli_sync ) ) {
 					$index_meta['wpcli_sync'] = true;
 				}
@@ -713,6 +717,7 @@ class EP_Dashboard {
 				$data['sync_initial'] = esc_html__( 'Starting sync', 'elasticpress' );
 				$data['sync_wpcli'] = esc_html__( "WP CLI sync is occuring. Refresh the page to see if it's finished", 'elasticpress' );
 				$data['sync_error'] = esc_html__( 'An error occured while syncing', 'elasticpress' );
+				$data['sync_read_only'] = esc_html__( 'Syncing is disabled in read-only mode', 'elasticpress' );
 
 				wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 			}
@@ -754,8 +759,12 @@ class EP_Dashboard {
 
 			$host = esc_url_raw( $_POST['ep_host'] );
 			update_site_option( 'ep_host', $host );
+
+			$read_only = absint( $_POST['ep_read_only'] );
+			update_site_option( 'ep_read_only', $read_only );
 		} else {
 			register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
+			register_setting( 'elasticpress', 'ep_read_only', 'absint');
 		}
 	}
 

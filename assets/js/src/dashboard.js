@@ -94,9 +94,12 @@
 			}, 700 );
 		} );
 	} );
-
+	
 	if ( epDash.index_meta ) {
-		if ( epDash.index_meta.wpcli_sync ) {
+		if ( epDash.index_meta.read_only ) {
+      syncStatus = 'read_only';
+      updateSyncDash();
+		} else if ( epDash.index_meta.wpcli_sync ) {
 			syncStatus = 'wpcli';
 			updateSyncDash();
 		} else {
@@ -223,7 +226,19 @@
 			$cancelSyncButton.show();
 			$resumeSyncButton.show();
 			$startSyncButton.hide();
-		} else if ( 'wpcli' === syncStatus ) {
+		} else if ( 'read_only' === syncStatus ) {
+      var text = epDash.sync_read_only;
+
+      $syncStatusText.text( text );
+
+      $syncStatusText.show();
+      $progressBar.hide();
+      $pauseSyncButton.hide();
+
+      $cancelSyncButton.hide();
+      $resumeSyncButton.hide();
+      $startSyncButton.hide();
+    } else if ( 'wpcli' === syncStatus ) {
 			var text = epDash.sync_wpcli;
 
 			$syncStatusText.text( text );
