@@ -56,7 +56,7 @@ Available API functions:
 
 Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
 
-### Media
+### Documents (requires [Ingest Attachment plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html))
 
 Indexes text inside of popular file types, and adds those files types to search results.
 

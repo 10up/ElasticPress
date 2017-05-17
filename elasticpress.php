@@ -58,7 +58,7 @@ require_once( 'features/search/search.php' );
 require_once( 'features/related-posts/related-posts.php' );
 require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
-require_once( 'features/media/media.php' );
+require_once( 'features/documents/documents.php' );
 
 /**
  * WP CLI Commands
