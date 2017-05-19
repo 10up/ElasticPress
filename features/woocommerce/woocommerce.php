@@ -255,13 +255,6 @@ function ep_wc_translate_args( $query ) {
 				$integrate = true;
 			}
 		}
-
-		//If tax_query exist and it does use term_taxonomy_id, We need to translate that to term_id so it will work with EP map
-		$tax_query = array_map( function( $tax_query_el) {
-			return is_array( $tax_query_el )? array_map( function( $value ){
-				return ( 'term_taxonomy_id' === $value )? 'term_id' : $value;
-			}, $tax_query_el ) : $tax_query_el;
-		}, $tax_query );
 	}
 
 	/**

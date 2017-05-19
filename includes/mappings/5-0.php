@@ -147,6 +147,9 @@ return array(
 								'term_id' => array(
 									'type' => 'long',
 								),
+								'term_taxonomy_id' => array(
+									'type' => 'long',
+								),
 								'parent' => array(
 									'type' => 'long',
 								),
