@@ -247,7 +247,14 @@ function ep_wc_translate_args( $query ) {
 		if ( ! empty( $term ) ) {
 			$integrate = true;
 
-			$terms = explode( ',', $term );
+			// Shorthand taxonomies can be one of two data types: array and
+			// string. So we assume that if the provided value is not a string,
+			// then it must be an array.
+			// If it is a string then we convert it to an array with one or more
+			// values to handle it with the same logic.
+			if ( is_string( $term ) ) {
+				$terms = explode( ',', $term );
+			}
 
 			// to add child terms to the tax query
 			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
