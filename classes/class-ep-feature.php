@@ -162,7 +162,7 @@ class EP_Feature {
 			$status = call_user_func( $this->requirements_status_cb, $status, $this );
 		}
 
-		if ( true === $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
+		if ( true === $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
 			$status->code = 2;
 			$status->message = '';
 
