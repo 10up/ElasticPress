@@ -193,11 +193,11 @@ class EP_Dashboard {
 			}
 
 			if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
-				if ( 'auto-activate-sync' === $notice ) {
+				if ( 'auto-activate-sync' == $notice ) {
 					$notice = 'sync-disabled-auto-activate';
-				} elseif ( 'upgrade-sync' === $notice ) {
+				} elseif ( 'upgrade-sync' == $notice ) {
 					$notice = 'sync-disabled-upgrade';
-				} elseif ( 'no-sync' === $notice ) {
+				} elseif ( 'no-sync' == $notice ) {
 					$notice = 'sync-disabled-no-sync';
 				}
 			}

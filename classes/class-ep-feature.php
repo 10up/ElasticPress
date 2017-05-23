@@ -162,17 +162,6 @@ class EP_Feature {
 			$status = call_user_func( $this->requirements_status_cb, $status, $this );
 		}
 
-		if ( true === $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC && ( ! defined( 'WP_CLI' ) || ! WP_CLI ) ) {
-			$status->code = 2;
-			$status->message = '';
-
-			if ( ! empty( $status->message ) ) {
-				$status->message .= '<br><br>';
-			}
-
-			$status->message .= esc_html__( 'Dashboard sync is disabled. Features that require content reindexing after activation must be enabled/disabled using WP-CLI.', 'elasticpress' ); 
-		}
-
 		return apply_filters( 'ep_feature_requirements_status', $status, $this );
 	}
 
@@ -301,6 +290,10 @@ class EP_Feature {
 		?>
 
 		<div class="action-wrap">
+			<span class="no-dash-sync">
+				<?php esc_html_e('Setting adjustments to this feature require a re-sync. Use WP-CLI.', 'elasticpress' ); ?>
+			</span>
+
 			<a data-feature="<?php echo esc_attr( $this->slug ); ?>" class="button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
 		</div>
 		<?php
