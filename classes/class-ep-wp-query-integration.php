@@ -216,9 +216,9 @@ class EP_WP_Query_Integration {
 		$fields = $query->get( 'fields', '' );
 		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
 			return $this->posts_by_query[ spl_object_hash( $query ) ];
-		} else {
-			return $posts;
 		}
+
+		return $posts;
 	}
 
 	/**
