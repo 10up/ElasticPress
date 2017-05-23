@@ -302,14 +302,18 @@ class EP_WP_Query_Integration {
 			// Determine how we should format the results from ES based on the fields
 			// parameter.
 			$fields = $query->get( 'fields', '' );
-			if ( $fields === 'ids' ) {
-				$new_posts = $this->format_hits_as_ids( $ep_query['posts'], $new_posts );
-			}
-			elseif ( $fields === 'id=>parent' ) {
-				$new_posts = $this->format_hits_as_id_parents( $ep_query['posts'], $new_posts );
-			}
-			else {
-				$new_posts = $this->format_hits_as_posts( $ep_query['posts'], $new_posts );
+			switch ( $fields ) {
+				case 'ids' :
+					$new_posts = $this->format_hits_as_ids( $ep_query['posts'], $new_posts );
+					break;
+
+				case 'id=>parent' :
+					$new_posts = $this->format_hits_as_id_parents( $ep_query['posts'], $new_posts );
+					break;
+
+				default:
+					$new_posts = $this->format_hits_as_posts( $ep_query['posts'], $new_posts );
+					break;
 			}
 
 			do_action( 'ep_wp_query_non_cached_search', $new_posts, $ep_query, $query );
