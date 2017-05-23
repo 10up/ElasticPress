@@ -214,7 +214,7 @@ class EP_WP_Query_Integration {
 		// Determine how we should return the posts. The official WP_Query
 		// supports: ids, id=>parent and post objects.
 		$fields = $query->get( 'fields', '' );
-		if ( $fields === 'ids' || $fields === 'id=>parent' ) {
+		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
 			return $this->posts_by_query[ spl_object_hash( $query ) ];
 		} else {
 			return $posts;
