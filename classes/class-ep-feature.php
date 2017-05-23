@@ -294,7 +294,7 @@ class EP_Feature {
 				<?php esc_html_e('Setting adjustments to this feature require a re-sync. Use WP-CLI.', 'elasticpress' ); ?>
 			</span>
 
-			<a data-feature="<?php echo esc_attr( $this->slug ); ?>" class="button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
+			<a data-feature="<?php echo esc_attr( $this->slug ); ?>" class="<?php if ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) : ?>disabled<?php endif; ?> button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
 		</div>
 		<?php
 	}
