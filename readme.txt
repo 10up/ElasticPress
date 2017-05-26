@@ -38,7 +38,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 2.3 =
 
-Version 2.3 introduces the Documents feature which empowers users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.
+Version 2.3 introduces the Documents feature which indexes text inside of popular file types, and adds those files types to search results. We've also officially added support for Elasticsearch 5.3.
 
 ### Enhancements
 * Documents feature
