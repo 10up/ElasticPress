@@ -56,6 +56,10 @@ Available API functions:
 
 Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
 
+### Documents (requires [Ingest Attachment plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html))
+
+Indexes text inside of popular file types, and adds those files types to search results.
+
 ## `WP_Query` and the ElasticPress Query Integration
 
 ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
@@ -252,15 +256,15 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
     ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), 
     ```type``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
-
-      * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
-      * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
-      * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
-      * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
-      * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
-      * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
-      * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
-      * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+    
+    * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
+    * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+    * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
+    * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
+    * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
+    * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
+    * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
+    * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
 
     The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
     ```php
@@ -541,6 +545,16 @@ The following commands are supported by ElasticPress:
 ```php
 define( 'ES_SHIELD', 'username:password' );
 ```
+
+## Disable Dashboard Sync
+
+Dashboard sync can be disabled by defining the constant `EP_DASHBOARD_SYNC` as `false` in your wp-config.php file.
+
+```php
+define( 'EP_DASHBOARD_SYNC', false );
+```
+
+This can be helpful for managed sites where users initiating a sync from the dashboard could potentially cause issues such as deleting the index and limiting this control to WP-CLI is preferred. When disabled, features that would require reindexing are also prevented from being enabled/disabled from the dashboard.
 
 ## Custom Features
 

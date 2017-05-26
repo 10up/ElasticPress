@@ -74,9 +74,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		$status = $feature->requirements_status();
 
 		if ( 2 === $status->code ) {
-			WP_CLI::error( __( 'Feature requirements are not met', 'elasticpress' ) );
+			WP_CLI::error( sprintf( __( 'Feature requirements are not met: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
 		} elseif ( 1 === $status->code ) {
-			WP_CLI::warning( printf( __( 'Feature is usable but there are warnings: %s', 'elasticpress' ), $status->message ) );
+			WP_CLI::warning( sprintf( __( 'Feature is usable but there are warnings: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
 		}
 
 		ep_activate_feature( $feature->slug );
@@ -517,7 +517,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 					if ( ! $result ) {
 						$errors[] = get_the_ID();
-					} elseif ( true === $result ) {
+					} elseif ( true === $result || isset( $result->_index ) ) {
 						$synced ++;
 					}
 				}
