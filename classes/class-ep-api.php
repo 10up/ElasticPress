@@ -284,6 +284,10 @@ class EP_API {
 			return true;
 		}
 
+		if ( isset( $response['hits']['total'] ) && 0 === (int)$response['hits']['total'] ) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -568,8 +572,8 @@ class EP_API {
 			}
 		}
 
-		// Turn off oEmbed auto discovery as this will create an error while indexing
-		add_filter( 'embed_oembed_discover', '__return_false' );
+		// To prevent infinite loop, we don't queue when updated_postmeta
+		remove_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ), 10 );
 
 		$post_args = array(
 			'post_id'           => $post_id,
@@ -608,8 +612,8 @@ class EP_API {
 
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
-		// Turn back on oEmbed discovery
-		remove_filter( 'embed_oembed_discover', '__return_false' );
+		// Turn back on updated_postmeta hook
+		add_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ), 10, 4 );
 
 		return $post_args;
 	}
@@ -958,8 +962,20 @@ class EP_API {
 		if ( ! empty( $args['posts_per_page'] ) ) {
 			$posts_per_page = (int) $args['posts_per_page'];
 
+			// ES have a maximum size allowed so we have to convert "-1" to a maximum size.
 			if ( -1 === $posts_per_page ) {
-				$posts_per_page = 10000; // -1 does not work, use max result window for ES
+				/**
+				 * Set the maximum results window size.
+				 *
+				 * The request will return a HTTP 500 Internal Error if the size of the
+				 * request is larger than the [index.max_result_window] parameter in ES.
+				 * See the scroll api for a more efficient way to request large data sets.
+				 *
+				 * @return int The max results window size.
+				 *
+				 * @since 2.3.0
+				 */
+				$posts_per_page = apply_filters( 'ep_max_results_window', 10000 );
 			}
 		} else {
 			$posts_per_page = (int) get_option( 'posts_per_page' );
@@ -1082,11 +1098,6 @@ class EP_API {
 						// If "NOT IN" than it should filter as must_not
 						$tax_must_not_filter[]['terms'] = $terms_obj;
 					} else {
-						// Use the AND operator if passed
-						if ( ! empty( $single_tax_query['operator'] ) && 'AND' === $single_tax_query['operator'] ) {
-							$terms_obj['execution'] = 'and';
-						}
-						
 						// Add the tax query filter
 						$tax_filter[]['terms'] = $terms_obj;
 					}
@@ -2168,9 +2179,28 @@ class EP_API {
 
 			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
-			if ( is_wp_error( $request ) ) {
+			if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
 				$this->elasticsearch_version = false;
 				$this->elasticsearch_plugins = false;
+
+				/**
+				 * Try a different endpoint in case the plugins url is restricted
+				 * 
+				 * @since 2.2.1
+				 */
+
+				$request = ep_remote_request( '', array( 'method' => 'GET' ) );
+
+				if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
+					$response_body = wp_remote_retrieve_body( $request );
+					$response = json_decode( $response_body, true );
+
+					try {
+						$this->elasticsearch_version = $response['version']['number'];
+					} catch ( Exception $e ) {
+						// Do nothing
+					}
+				}
 			} else {
 				$response = json_decode( wp_remote_retrieve_body( $request ), true );
 
@@ -2239,6 +2269,78 @@ class EP_API {
 			);
 
 		}
+	}
+
+	/**
+	 * Get a pipeline
+	 * 
+	 * @param  string $id
+	 * @since  2.3
+	 * @return WP_Error|bool|array
+	 */
+	public function get_pipeline( $id ) {
+		$path = '_ingest/pipeline/' . $id;
+
+		$request_args = array(
+			'method'  => 'GET',
+		);
+
+		$request = ep_remote_request( $path, apply_filters( 'ep_get_pipeline_args', $request_args ) );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_response_code( $request );
+
+		if ( 200 !== $response ) {
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $request ), true );
+
+		if ( empty( $body ) ) {
+			return false;
+		}
+
+		return $body;
+	}
+
+	/**
+	 * Put a pipeline
+	 * 
+	 * @param  string $id
+	 * @param array $args
+	 * @since  2.3
+	 * @return WP_Error|bool
+	 */
+	public function create_pipeline( $id, $args ) {
+		$path = '_ingest/pipeline/' . $id;
+
+		$request_args = array(
+			'body'    => json_encode( $args ),
+			'method'  => 'PUT',
+		);
+
+		$request = ep_remote_request( $path, apply_filters( 'ep_get_pipeline_args', $request_args ) );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_response_code( $request );
+
+		if ( 200 > $response || 300 <= $response ) {
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $request ), true );
+
+		if ( empty( $body ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -2391,6 +2493,14 @@ function ep_delete_post( $post_id, $blocking = true ) {
 
 function ep_put_mapping() {
 	return EP_API::factory()->put_mapping();
+}
+
+function ep_get_pipeline( $id ) {
+	return EP_API::factory()->get_pipeline( $id );
+}
+
+function ep_create_pipeline( $id, $args ) {
+	return EP_API::factory()->create_pipeline( $id, $args );
 }
 
 function ep_delete_index( $index_name = null ) {

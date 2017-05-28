@@ -168,7 +168,8 @@ function ep_wc_translate_args( $query ) {
 		return;
 	}
 
-	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
+	     ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
 		return;
 	}
 
@@ -205,6 +206,13 @@ function ep_wc_translate_args( $query ) {
 	}
 
 	/**
+	 * If this is just a preview, let's not use Elasticsearch.
+	 */
+	if ( $query->get( 'preview', false ) ) {
+		return;
+	}
+
+	/**
 	 * Cant hook into WC API yet
 	 */
 	if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
@@ -223,8 +231,18 @@ function ep_wc_translate_args( $query ) {
 		'product_cat',
 		'pa_brand',
 		'product_tag',
+		'product_type',
 		'pa_sort-by',
 	);
+
+	/**
+	 * Add support for custom taxonomies.
+	 *
+	 * @param array $supported_taxonomies An array of default taxonomies.
+	 *
+	 * @since 2.3.0
+	 */
+	$supported_taxonomies = apply_filters( 'ep_woocommerce_supported_taxonomies', $supported_taxonomies );
 
 	if ( ! empty( $tax_query ) ) {
 
@@ -402,6 +420,26 @@ function ep_wc_translate_args( $query ) {
 
 				$query->set( 'search_fields', $search_fields );
 			}
+		} else {
+			/**
+			 * For default sorting by popularity (total_sales) and rating
+	         * Woocommerce doesn't set the orderby correctly.
+	         * These lines will check the meta_key and correct the orderby based on that.
+	         * And this won't run in search result and only run in main query
+			 */
+			$meta_key = $query->get( 'meta_key', false );
+			if ( $meta_key && $query->is_main_query() ){
+				switch ( $meta_key ){
+					case 'total_sales':
+						$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
+						$query->set( 'order', 'DESC' );
+						break;
+					case '_wc_average_rating':
+						$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
+						$query->set( 'order', 'DESC' );
+						break;
+				}
+			}
 		}
 
 		/**
@@ -413,13 +451,19 @@ function ep_wc_translate_args( $query ) {
 			switch ( $_GET['orderby'] ) {
 				case 'popularity':
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
+					$query->set( 'order', 'DESC' );
 					break;
 				case 'price':
+					$query->set( 'order', 'ASC' );
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
+					break;
 				case 'price-desc':
+					$query->set( 'order', 'DESC' );
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
 					break;
 				case 'rating' :
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
+					$query->set( 'order', 'DESC' );
 					break;
 				case 'date':
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
@@ -431,7 +475,6 @@ function ep_wc_translate_args( $query ) {
 					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 			}
 		}
-
 	}
 }
 
@@ -509,6 +552,38 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
 }
 
 /**
+ * Enhance WooCommerce search order by order id, email, phone number, name, etc..
+ * What this function does:
+ * 1. Reverse the woocommerce shop_order_search_custom_fields query
+ * 2. If the search key is integer and it is an Order Id, just query with post__in
+ * 3. If the search key is integer but not an order id ( might be phone number ), use ES to find it
+ *
+ * @param WP_Query $wp
+ * @since  2.3
+ */
+function ep_wc_search_order( $wp ){
+	global $pagenow;
+	if ( 'edit.php' != $pagenow || 'shop_order' !== $wp->query_vars['post_type'] ||
+	     ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
+		return;
+	}
+
+	$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+
+	$order = wc_get_order( absint( $search_key_safe ) );
+
+	//If the order doesn't exist, fallback to other fields
+	if ( ! $order ) {
+		unset( $wp->query_vars['post__in'] );
+		$wp->query_vars['s'] = $search_key_safe;
+	} else {
+		//we found the order. don't query ES
+		unset( $wp->query_vars['s'] );
+		$wp->query_vars['post__in'] = array( absint( $search_key_safe ) );
+	}
+}
+
+/**
  * Setup all feature filters
  *
  * @since  2.1
@@ -523,8 +598,10 @@ function ep_wc_setup() {
 		add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
-		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_filter( 'woocommerce_related_products_args', 'ep_wc_related_products_args', 10, 2 );
+
+		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
+		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
 	}
 }
 
@@ -570,16 +647,16 @@ function ep_wc_requirements_status( $status ) {
  * Change the query for WC related product
  *
  * @param $args
- * @since 2.2
+ * @since 2.3
  * @return mixed
  */
-function ep_wc_related_products_args( $args ){
+function ep_wc_related_products_args( $args ) {
 	global $product;
 
-	$args[ 'more_like' ] = $product->id;
-	$args[ 'ep_integrate' ] = true;
-	unset( $args[ 'post__in' ] );
-	unset( $args[ 'post__not_in' ] );
+	$args['more_like']    = $product->id;
+	$args['ep_integrate'] = true;
+	unset( $args['post__in'] );
+	unset( $args['post__not_in'] );
 
 	return $args;
 }

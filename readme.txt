@@ -24,6 +24,8 @@ __Related Posts__: ElasticPress understands data in real time, so it can instant
 
 __Protected Content__: Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
 
+__Documents__: Indexes text inside of popular file types, and adds those files types to search results.
+
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
@@ -34,9 +36,37 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.3 =
+
+Version 2.3 introduces the Documents feature which indexes text inside of popular file types, and adds those files types to search results. We've also officially added support for Elasticsearch 5.3.
+
+### Enhancements
+* Documents feature
+* Enable multiple feature status messages
+* Disable dashboard sync via constant: `define( 'EP_DASHBOARD_SYNC', false );`. Props [rveitch](https://github.com/rveitch).
+* Add filter for custom WooCommerce taxonomies. Props [kallehauge](https://github.com/kallehauge).
+* Support WooCommerce `product_type` taxonomy. Props [kallehauge](https://github.com/kallehauge).
+
+### Bug Fixes
+* Fix WP-CLI `--no-bulk` number of posts indexed message. Props [ivankristianto](https://github.com/ivankristianto).
+* Honor `ep_integrate` in WooCommerce queries. Props [ivankristianto](https://github.com/ivankristianto).
+* Properly check when ES results are empty. Props [lukaspawlik](https://github.com/lukaspawlik)
+* Incorrect `found_posts` set in query when ES is unavailable. Props [lukaspawlik](https://github.com/lukaspawlik)
+
 = 2.2.1 =
 
+Version 2.2.1 is a bug fix release. Here are a listed of issues that have been resolved:
+
 * Fix dashboard syncing delayed start issues.
+* If plugins endpoint errors, try root endpoint to get the ES version.
+* Make sure orderby is correct for default WooCommerce sorting. Props [ivankristianto](https://github.com/ivankristianto).
+* Remove operator=>AND unneed execution code.
+* Stop dashboard sync if error occurs in the middle. Props [ivankristianto](https://github.com/ivankristianto).
+* Add `EP_INDEX_PREFIX` constant. If set, index names will be prefixed with the constant. Props [allan23](https://github.com/allan23).
+* Increase total field limit to 5000 and add filter. Props [ssorathia](https://github.com/ssorathia).
+* Prevent EP from auto-activating a feature that was force deactivated
+* Prevent massive field Elasticsearch error when indexing large strings
+* Increase max result window size to 1000000 and add filter.
 
 = 2.2 (Requires re-index) =
 
