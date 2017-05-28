@@ -584,6 +584,60 @@ function ep_wc_search_order( $wp ){
 }
 
 /**
+ * Register related products widget
+ *
+ * @since  2.4
+ */
+function ep_related_products_register_widget() {
+	require_once( dirname( __FILE__ ) . '/widget.php' );
+
+	register_widget( 'EP_Related_Products_Widget' );
+}
+
+/**
+ * Search Elasticsearch for related product
+ *
+ * @param  int $product_id
+ * @param  int $return
+ * @since  2.4
+ * @return array|bool
+ */
+function ep_wc_get_related_products( $product_id, $limit = 5, $exclude_ids = array() ) {
+	$product_id     = absint( $product_id );
+	$exclude_ids    = array_merge( array( 0, $product_id ), $exclude_ids );
+
+	$cats_array = apply_filters( 'woocommerce_product_related_posts_relate_by_category', true, $product_id ) ? apply_filters( 'woocommerce_get_related_product_cat_terms', wc_get_product_term_ids( $product_id, 'product_cat' ), $product_id ) : array();
+	$tags_array = apply_filters( 'woocommerce_product_related_posts_relate_by_tag', true, $product_id ) ? apply_filters( 'woocommerce_get_related_product_tag_terms', wc_get_product_term_ids( $product_id, 'product_tag' ), $product_id ) : array();
+
+	$args = array(
+		'more_like'      => $product_id,
+		'posts_per_page' => $limit,
+		'ep_integrate'   => true,
+		'post__not_in'   => $exclude_ids,
+		'tax_query'      => array(
+			'relation' => 'OR',
+			array(
+				'taxonomy' => 'product_cat',
+				'field'    => 'term_id',
+				'terms'    => $cats_array,
+			),
+			array(
+				'taxonomy' => 'product_tag',
+				'field'    => 'term_id',
+				'terms'    => $tags_array,
+			),
+		),
+	);
+
+	$query = new WP_Query( apply_filters( 'ep_wc_get_related_products_args', $args ) );
+
+	if ( ! $query->have_posts() ) {
+		return false;
+	}
+	return $query->posts;
+}
+
+/**
  * Setup all feature filters
  *
  * @since  2.1
@@ -600,6 +654,7 @@ function ep_wc_setup() {
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
+		add_action( 'widgets_init', 'ep_related_products_register_widget' );
 	}
 }
 
