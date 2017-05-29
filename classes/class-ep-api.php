@@ -1522,17 +1522,17 @@ class EP_API {
 			$agg_obj = $args['aggs'];
 
 			// Add a name to the aggregation if it was passed through
-			if ( ! empty( $agg_obj['name'] ) ) {
-				$agg_name = $agg_obj['name'];
-			} else {
-				$agg_name = 'aggregation_name';
-			}
+			$agg_name = empty( $agg_obj['name'] )? 'aggregation_name' : $agg_obj['name'];
 
 			// Add/use the filter if warranted
 			if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && $use_filters ) {
 
 				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
+				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+			} elseif ( ! isset( $agg_obj['aggs']['terms'] ) ) {
+				//We check if the aggregation rule has more than 1
+				$formatted_args['aggs'][ $agg_name ]['filter'] = new stdClass();
 				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
 			} else {
 				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
