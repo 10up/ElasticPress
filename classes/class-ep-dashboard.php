@@ -224,6 +224,8 @@ class EP_Dashboard {
 			if ( $on_settings_page ) {
 				if ( ! $never_set_host ) {
 					$notice = 'bad-host';
+				} else {
+					$notice = 'no-host';
 				}
 			} else {
 				$notice = 'bad-host';
@@ -259,6 +261,13 @@ class EP_Dashboard {
 				?>
 				<div class="notice notice-error">
 					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. You will need to <a href="%s">fix it</a> for ElasticPress to work.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'no-host':
+				?>
+				<div class="notice notice-info">
+					<p><?php printf( __( 'Please set the Elasticsearch host to make ElasticPress work properly.', 'elasticpress' ) ); ?></p>
 				</div>
 				<?php
 				break;
