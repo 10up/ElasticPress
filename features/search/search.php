@@ -279,31 +279,6 @@ function ep_integrate_search_box_settings( $feature ) {
 			<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool)$decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 		</div>
 	</div>
-	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
-		<div class="field-name decaying-scale"><?php esc_html_e( 'Scale (in days)', 'elasticpress' ); ?></div>
-		<div class="input-wrap ">
-			<input name="feature_decaying_scale" id="feature_decaying_scale" data-field-name="decaying_scale"
-			       class="setting-field"
-			       value="<?php echo esc_attr( (int)$decaying_settings['decaying_scale'] ); ?>">
-		</div>
-	</div>
-	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
-		<div class="field-name decaying-offset"><?php esc_html_e( 'Offset (in days)', 'elasticpress' ); ?></div>
-		<div class="input-wrap ">
-			<input name="feature_decaying_offset" id="feature_decaying_offset" data-field-name="decaying_offset"
-			       class="setting-field"
-			       value="<?php echo esc_attr( (int)$decaying_settings['decaying_offset'] ); ?>">
-		</div>
-	</div>
-	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
-		<div class="field-name decaying-decay"><?php esc_html_e( 'Decay', 'elasticpress' ); ?></div>
-		<div class="input-wrap ">
-			<input name="feature_decaying_decay" id="feature_decaying_decay"
-			       data-field-name="decaying_decay"
-			       class="setting-field"
-			       value="<?php echo esc_attr( (float)$decaying_settings['decaying_decay'] ); ?>">
-		</div>
-	</div>
 <?php
 }
 
@@ -318,8 +293,5 @@ ep_register_feature( 'search', array(
 	'requires_install_reindex' => false,
 	'default_settings'         => array(
 		'decaying_enabled' => true,
-		'decaying_decay'   => 0.25,
-		'decaying_scale'   => 14,
-		'decaying_offset'  => 7,
 	),
 ) );
