@@ -69,9 +69,6 @@ class EPTestDecayingConfiguration extends EP_Test_Base {
 		ep_update_feature( 'search', array(
 			'active'           => true,
 			'decaying_enabled' => true,
-			'decaying_decay'   => 0.55,
-			'decaying_scale'   => 22,
-			'decaying_offset'  => 9,
 		) );
 
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
@@ -91,9 +88,9 @@ class EPTestDecayingConfiguration extends EP_Test_Base {
 			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
 			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
 		) );
-		$this->assertEquals( '22d', $this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'] );
-		$this->assertEquals( '9d', $this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset'] );
-		$this->assertEquals( 0.55, (float)$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'] );
+		$this->assertEquals( '14d', $this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'] );
+		$this->assertEquals( '7d', $this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset'] );
+		$this->assertEquals( 0.25, (float)$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'] );
 	}
 
 	/**
@@ -111,9 +108,6 @@ class EPTestDecayingConfiguration extends EP_Test_Base {
 		ep_update_feature( 'search', array(
 			'active'           => true,
 			'decaying_enabled' => false,
-			'decaying_decay'   => 0.55,
-			'decaying_scale'   => 22,
-			'decaying_offset'  => 9,
 		) );
 
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
