@@ -24,7 +24,7 @@ __Related Posts__: ElasticPress understands data in real time, so it can instant
 
 __Protected Content__: Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
 
-__Media__: Empower users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.
+__Documents__: Indexes text inside of popular file types, and adds those files types to search results.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
@@ -38,10 +38,10 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 2.3 =
 
-Version 2.3 introduces the Media feature which empowers users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.
+Version 2.3 introduces the Documents feature which indexes text inside of popular file types, and adds those files types to search results. We've also officially added support for Elasticsearch 5.3.
 
 ### Enhancements
-* Media feature
+* Documents feature
 * Enable multiple feature status messages
 * Disable dashboard sync via constant: `define( 'EP_DASHBOARD_SYNC', false );`. Props [rveitch](https://github.com/rveitch).
 * Add filter for custom WooCommerce taxonomies. Props [kallehauge](https://github.com/kallehauge).

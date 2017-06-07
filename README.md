@@ -56,9 +56,9 @@ Available API functions:
 
 Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
 
-### Media
+### Documents (requires [Ingest Attachment plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html))
 
-Empower users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.
+Indexes text inside of popular file types, and adds those files types to search results.
 
 ## `WP_Query` and the ElasticPress Query Integration
 
@@ -256,15 +256,15 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
     ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), 
     ```type``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
-
-      * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
-      * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
-      * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
-      * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
-      * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
-      * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
-      * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
-      * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+    
+    * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
+    * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+    * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
+    * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
+    * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
+    * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
+    * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
+    * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
 
     The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
     ```php

@@ -206,6 +206,13 @@ function ep_wc_translate_args( $query ) {
 	}
 
 	/**
+	 * If this is just a preview, let's not use Elasticsearch.
+	 */
+	if ( $query->get( 'preview', false ) ) {
+		return;
+	}
+
+	/**
 	 * Cant hook into WC API yet
 	 */
 	if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
@@ -572,7 +579,7 @@ function ep_wc_search_order( $wp ){
 	} else {
 		//we found the order. don't query ES
 		unset( $wp->query_vars['s'] );
-		$wp->query_vars['post__in'] = array( $order->get_id() );
+		$wp->query_vars['post__in'] = array( absint( $search_key_safe ) );
 	}
 }
 

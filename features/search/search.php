@@ -169,9 +169,6 @@ function ep_weight_recent( $formatted_args, $args ) {
 
 		$settings = wp_parse_args( $settings, array(
 			'decaying_enabled' => true,
-			'decaying_decay'   => 0.25,
-			'decaying_scale'   => 14,
-			'decaying_offset'  => 7,
 		) );
 		if ( (bool)$settings['decaying_enabled'] ) {
 			$date_score = array(
@@ -179,13 +176,13 @@ function ep_weight_recent( $formatted_args, $args ) {
 					'query'      => $formatted_args['query'],
 					'exp'        => array(
 						'post_date_gmt' => array(
-							'scale'  => apply_filters( 'epwr_scale', sprintf( '%dd', (int) $settings['decaying_scale'] ), $formatted_args, $args ),
-							'decay'  => apply_filters( 'epwr_decay', sprintf( '%f', (float) $settings['decaying_decay'] ), $formatted_args, $args ),
-							'offset' => apply_filters( 'epwr_offset', sprintf( '%dd', (int) $settings['decaying_offset'] ), $formatted_args, $args ),
+							'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
+							'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
+							'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
 						),
 					),
 					'score_mode' => 'avg',
-					'boost_mode' => 'sum'
+					'boost_mode' => apply_filters( 'epwr_boost_mode', 'sum', $formatted_args, $args ),
 				),
 			);
 

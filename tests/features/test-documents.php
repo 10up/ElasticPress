@@ -1,6 +1,6 @@
 <?php
 
-class EPTestMediaFeature extends EP_Test_Base {
+class EPTestDocumentsFeature extends EP_Test_Base {
 
 	/**
 	 * Setup each test.
@@ -45,16 +45,16 @@ class EPTestMediaFeature extends EP_Test_Base {
 	 * Test that search is integrating with allowed mime type
 	 *
 	 * @since 2.3
-	 * @group media
+	 * @group documents
 	 */
 	public function testSearchAllowedMimeType() {
 		ep_activate_feature( 'search' );
-		ep_activate_feature( 'media' );
+		ep_activate_feature( 'documents' );
 		EP_Features::factory()->setup_features();
 
 		// Need to call this since it's hooked to init
 		ep_search_setup();
-		ep_media_setup();
+		ep_documents_setup();
 
 		$post_ids = array();
 
@@ -78,16 +78,16 @@ class EPTestMediaFeature extends EP_Test_Base {
 	 * Test that search isn't integrating with disallowed mime type
 	 *
 	 * @since 2.3
-	 * @group media
+	 * @group documents
 	 */
 	public function testSearchDisallowedMimeType() {
 		ep_activate_feature( 'search' );
-		ep_activate_feature( 'media' );
+		ep_activate_feature( 'documents' );
 		EP_Features::factory()->setup_features();
 
 		// Need to call this since it's hooked to init
 		ep_search_setup();
-		ep_media_setup();
+		ep_documents_setup();
 
 		$post_ids = array();
 
@@ -111,16 +111,16 @@ class EPTestMediaFeature extends EP_Test_Base {
 	 * Test finding only a normal post
 	 *
 	 * @since 2.3
-	 * @group media
+	 * @group documents
 	 */
 	public function testSearchNormalPost() {
 		ep_activate_feature( 'search' );
-		ep_activate_feature( 'media' );
+		ep_activate_feature( 'documents' );
 		EP_Features::factory()->setup_features();
 
 		// Need to call this since it's hooked to init
 		ep_search_setup();
-		ep_media_setup();
+		ep_documents_setup();
 
 		$post_ids = array();
 

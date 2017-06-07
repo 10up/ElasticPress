@@ -309,9 +309,26 @@ h2.ep-list-features {
 		display: inline-block;
 	}
 
+	.no-dash-sync {
+		color: #aaa;
+		line-height: 27px;
+		padding-right: 8px;
+		display: none;
+	}
+
+	a.disabled {
+		cursor: default;
+	}
+
 	.cancel {
 		margin-top: 4px;
 		margin-right: 6px;
+	}
+}
+
+.ep-feature.dash-sync-disabled .settings .action-wrap {
+	.no-dash-sync {
+		display: inline;
 	}
 }
 

@@ -4,16 +4,16 @@
  *
  * @since  2.3
  */
-function ep_media_setup() {
+function ep_documents_setup() {
 	add_filter( 'ep_search_fields', 'ep_filter_ep_search_fields' );
-	add_filter( 'ep_index_post_request_path', 'ep_media_index_post_request_path', 999, 2 );
-	add_filter( 'ep_post_sync_args', 'ep_media_post_sync_args', 999, 2 );
-	add_filter( 'ep_indexable_post_status', 'ep_media_indexable_post_status', 999, 1 );
-	add_filter( 'ep_bulk_index_post_request_path', 'ep_media_bulk_index_post_request_path', 999, 1 );
+	add_filter( 'ep_index_post_request_path', 'ep_documents_index_post_request_path', 999, 2 );
+	add_filter( 'ep_post_sync_args', 'ep_documents_post_sync_args', 999, 2 );
+	add_filter( 'ep_indexable_post_status', 'ep_documents_indexable_post_status', 999, 1 );
+	add_filter( 'ep_bulk_index_post_request_path', 'ep_documents_bulk_index_post_request_path', 999, 1 );
 	add_filter( 'pre_get_posts', 'search_attachment_post_type' );
 	add_filter( 'ep_config_mapping', 'attachments_mapping' );
-	add_action( 'ep_cli_put_mapping', 'ep_media_create_pipeline' );
-	add_action( 'ep_dashboard_put_mapping', 'ep_media_create_pipeline' );
+	add_action( 'ep_cli_put_mapping', 'ep_documents_create_pipeline' );
+	add_action( 'ep_dashboard_put_mapping', 'ep_documents_create_pipeline' );
 }
 
 /**
@@ -82,7 +82,7 @@ function search_attachment_post_type( $query ) {
 		$mime_types = explode( ' ', $mime_types );
 	}
 
-	$mime_types = array_merge( $mime_types, ep_media_get_allowed_ingest_mime_types() );
+	$mime_types = array_merge( $mime_types, ep_documents_get_allowed_ingest_mime_types() );
 	$mime_types[] = ''; // This let's us query non-attachments as well as attachments
 
 	$query->set( 'post_mime_type', array_unique( array_values( $mime_types ) ) );
@@ -96,11 +96,11 @@ function search_attachment_post_type( $query ) {
  * @since  2.3
  * @return string
  */
-function ep_media_index_post_request_path( $path, $post ) {
+function ep_documents_index_post_request_path( $path, $post ) {
 	if ( 'attachment' === $post['post_type'] ) {
-		if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], ep_media_get_allowed_ingest_mime_types() ) ) {
+		if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], ep_documents_get_allowed_ingest_mime_types() ) ) {
 			$index = ep_get_index_name();
-			$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_media_pipeline_id', ep_get_index_name() . '-attachment' );
+			$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', ep_get_index_name() . '-attachment' );
 		}
 	}
 	
@@ -115,7 +115,7 @@ function ep_media_index_post_request_path( $path, $post ) {
  * @since  2.3
  * @return mixed
  */
-function ep_media_post_sync_args( $post_args, $post_id ) {
+function ep_documents_post_sync_args( $post_args, $post_id ) {
 	global $wp_filesystem;
 
 	require_once( ABSPATH . 'wp-admin/includes/file.php' );
@@ -126,7 +126,7 @@ function ep_media_post_sync_args( $post_args, $post_id ) {
 		return $post_args;
 	}
 
-	$allowed_ingest_mime_types = ep_media_get_allowed_ingest_mime_types();
+	$allowed_ingest_mime_types = ep_documents_get_allowed_ingest_mime_types();
 	
 	if ( 'attachment' == get_post_type( $post_id ) && in_array( get_post_mime_type( $post_id ), $allowed_ingest_mime_types ) ) {
 		$file_name = get_attached_file( $post_id );
@@ -167,7 +167,7 @@ function ep_filter_ep_search_fields( $search_fields ) {
  * @since  2.3
  * @return array
  */
-function ep_media_indexable_post_status( $statuses ) {
+function ep_documents_indexable_post_status( $statuses ) {
 	if ( ! array_search( 'inherit', $statuses ) ) {
 		$statuses[] = 'inherit';
 	}
@@ -182,20 +182,20 @@ function ep_media_indexable_post_status( $statuses ) {
  * @since  2.3
  * @return string
  */
-function ep_media_bulk_index_post_request_path( $path ) {
+function ep_documents_bulk_index_post_request_path( $path ) {
 	return add_query_arg( array(
-		'pipeline' => apply_filters( 'ep_media_pipeline_id', ep_get_index_name() . '-attachment' ),
+		'pipeline' => apply_filters( 'ep_documents_pipeline_id', ep_get_index_name() . '-attachment' ),
 	), $path );
 }
 
 /**
- * Determine Media feature requirement status
+ * Determine Documents feature requirement status
  *
  * @param $status
  * @since  2.3
  * @return mixed
  */
-function ep_media_requirements_status( $status ) {
+function ep_documents_requirements_status( $status ) {
 	$plugins = ep_get_elasticsearch_plugins();
 
 	$status->code = 1;
@@ -204,15 +204,9 @@ function ep_media_requirements_status( $status ) {
 	// Ingest attachment plugin is required for this feature
 	if ( empty( $plugins ) || empty( $plugins['ingest-attachment'] ) ) {
 		$status->code = 2;
-		$status->message[] = esc_html__( 'Elasticsearch Ingest Attachment plugin is not installed.', 'elasticpress' );
+		$status->message[] = __( 'The <a href="https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html">Ingest Attachment plugin</a> for Elasticsearch is not installed. To get the most out of ElasticPress, without the hassle of Elasticsearch management, check out <a href="https://elasticpress.io">ElasticPress.io</a> hosting.', 'elasticpress' );
 	} else {
-		$host = ep_get_host();
-
-		if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
-			$status->message[] = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is optimized for handling media files.", 'elasticpress' );
-		}
-
-		$status->message[] = esc_html__( "This feature will force front-end searches to include attachments (ppt, pptx, doc, docx, xls, xlsx, and pdf).", 'elasticpress' );
+		$status->message[] = __( "This feature modifies the default user experience for your visitors by adding popular document file types to search results. <strong>All supported documents</strong> uploaded to your media library will appear in search results.", 'elasticpress' );
 	}
 	
 	return $status;
@@ -223,9 +217,9 @@ function ep_media_requirements_status( $status ) {
  *
  * @since  2.3
  */
-function ep_media_feature_box_summary() {
+function ep_documents_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Empower users to search ppt, pptx, doc, docx, xls, xlsx, and pdf files.', 'elasticpress' ) ?></p>
+	<p><?php esc_html_e( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' ) ?></p>
 	<?php
 }
 
@@ -234,9 +228,9 @@ function ep_media_feature_box_summary() {
  * 
  * @since  2.3
  */
-function ep_media_feature_box_long() {
+function ep_documents_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Users searching on the front-end of your website will now be able to discover important media types (ppt, pptx, doc, docx, xls, xlsx, and pdf).', 'elasticpress' ) ?></p>
+	<p><?php esc_html_e( 'Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf.', 'elasticpress' ) ?></p>
 	<?php
 }
 
@@ -245,7 +239,7 @@ function ep_media_feature_box_long() {
  *
  * @since  2.3
  */
-function ep_media_create_pipeline() {
+function ep_documents_create_pipeline() {
 	$args = array(
 		'description' => 'Extract attachment information',
 		'processors' => array(
@@ -265,7 +259,7 @@ function ep_media_create_pipeline() {
 		),
 	);
 	
-	ep_create_pipeline( apply_filters( 'ep_media_pipeline_id', ep_get_index_name() . '-attachment' ), $args );
+	ep_create_pipeline( apply_filters( 'ep_documents_pipeline_id', ep_get_index_name() . '-attachment' ), $args );
 }
 
 /**
@@ -274,8 +268,8 @@ function ep_media_create_pipeline() {
  * @since  2.3
  * @return array
  */
-function ep_media_get_allowed_ingest_mime_types() {
-	return apply_filters( 'ep_allowed_media_ingest_mime_types', array(
+function ep_documents_get_allowed_ingest_mime_types() {
+	return apply_filters( 'ep_allowed_documents_ingest_mime_types', array(
 		'pdf'  => 'application/pdf',
 		'ppt'  => 'application/vnd.ms-powerpoint',
 		'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -291,13 +285,13 @@ function ep_media_get_allowed_ingest_mime_types() {
  *
  * @since  2.3
  */
-ep_register_feature( 'media', array(
-	'title' => 'Media',
-	'requirements_status_cb' => 'ep_media_requirements_status',
-	'setup_cb' => 'ep_media_setup',
-	'post_activation_cb' => 'ep_media_create_pipeline',
-	'feature_box_summary_cb' => 'ep_media_feature_box_summary',
-	'feature_box_long_cb' => 'ep_media_feature_box_long',
+ep_register_feature( 'documents', array(
+	'title' => 'Documents',
+	'requirements_status_cb' => 'ep_documents_requirements_status',
+	'setup_cb' => 'ep_documents_setup',
+	'post_activation_cb' => 'ep_documents_create_pipeline',
+	'feature_box_summary_cb' => 'ep_documents_feature_box_summary',
+	'feature_box_long_cb' => 'ep_documents_feature_box_long',
 	'requires_install_reindex' => true,
 ) );
 

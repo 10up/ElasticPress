@@ -29,6 +29,10 @@
 	$features.on( 'click', '.save-settings', function( event ) {
 		event.preventDefault();
 
+		if ( $( this ).hasClass( 'disabled' ) ) {
+			return;
+		}
+
 		var feature = event.target.getAttribute( 'data-feature' );
 		var $feature = $features.find( '.ep-feature-' + feature );
 
