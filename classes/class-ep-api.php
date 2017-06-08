@@ -698,10 +698,11 @@ class EP_API {
 			foreach ( $object_terms as $term ) {
 				if( ! isset( $terms_dic[ $term->term_id ] ) ) {
 					$terms_dic[ $term->term_id ] = array(
-						'term_id'  => $term->term_id,
-						'slug'     => $term->slug,
-						'name'     => $term->name,
-						'parent'   => $term->parent
+						'term_id'          => $term->term_id,
+						'slug'             => $term->slug,
+						'name'             => $term->name,
+						'parent'           => $term->parent,
+						'term_taxonomy_id' => $term->term_taxonomy_id,
 					);
 					if( $allow_hierarchy ){
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name );
