@@ -599,6 +599,8 @@ function ep_wc_setup() {
 		add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
+		add_filter( 'woocommerce_related_products_args', 'ep_wc_related_products_args', 10, 2 );
+
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
 	}
@@ -640,6 +642,24 @@ function ep_wc_requirements_status( $status ) {
 	}
 
 	return $status;
+}
+
+/**
+ * Change the query for WC related product
+ *
+ * @param $args
+ * @since 2.3
+ * @return mixed
+ */
+function ep_wc_related_products_args( $args ) {
+	global $product;
+
+	$args['more_like']    = $product->id;
+	$args['ep_integrate'] = true;
+	unset( $args['post__in'] );
+	unset( $args['post__not_in'] );
+
+	return $args;
 }
 
 /**
