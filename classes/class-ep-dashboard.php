@@ -505,6 +505,8 @@ class EP_Dashboard {
 		}
 
 		$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
+		
+		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
 		$args = apply_filters( 'ep_index_posts_args', array(
 			'posts_per_page'         => $posts_per_page,
