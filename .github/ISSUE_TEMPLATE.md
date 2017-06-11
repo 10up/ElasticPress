@@ -1,6 +1,6 @@
 - Did you search for similar issues before submitting this one?
 
-- Is this an issue, question or feature request:
+- Is this a bug, question or feature request:
 
 - Describe the issue you encountered:
 
