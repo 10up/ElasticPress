@@ -1,18 +1,18 @@
-- Did you search for similar issues before submitting this one?
+- Have you search for similar issues before submitting this one?
 
 - Is this a bug, question or feature request:
 
 - Describe the issue you encountered:
 
-- Tell me your WordPress version:
+- Current WordPress version:
 
-- Tell me your ElasticPress version:
+- Current ElasticPress version:
 
-- Tell me your Elasticsearch version:
+- Current Elasticsearch version:
 
 - Where do you host your Elasticsearch server:
 
-- Other plugins installed (woocommerce, cache plugins, etc..):
+- Other plugins installed (WooCommerce, Simple Redirect Manager, etc..):
     1.
     2.
     3.
@@ -22,4 +22,4 @@
     2.
     3.
 
-- Screenshots if needed:
+- Screenshots, if needed:
