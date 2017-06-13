@@ -1,18 +1,16 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress)
 =============
 
-Supercharge WordPress performance and search with Elasticsearch.
+A fast and flexible search and query engine for WordPress.
 
 **Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1 require re-syncing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2 require re-syncing.
 
-ElasticPress is a simple plugin to dramatically improve WordPress performance and search. By integrating with [Elasticsearch](https://elastic.co), ElasticPress can speed up search queries, post/page/etc. look ups, improve search relevancy, support search misspellings, support search filters, and more. If you have struggled with slow load times when showing a list of posts or irrelevant search results, this plugin is for you. If you want to facet search results with filters, this plugin is for you.
-
-ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins (right now [WooCommerce](http://wordpress.org/plugins/woocommerce) only). ElasticPress will make your WooCommerce product pages load much faster even when using filters.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 <p align="center">
-<a href="http://10up.com/contact/#request_quote"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/05/ghbadge-with-font.svg" width="700"></a>
+<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/10/10up-Github-Banner.png" width="850"></a>
 </p>
 
 ## How Does it Work
@@ -21,57 +19,87 @@ ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Ref
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.3+
+* [Elasticsearch](https://www.elastic.co) 1.7 - 5.2 (2.0+ highly recommended)
 * [WordPress](http://wordpress.org) 3.7.1+
 
 ## Installation
 
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
-
-### Single Site
-
-3. Activate the plugin. Navigate to `/wp-admin/admin.php?page=elasticpress-settings`.
-
-### Multisite Cross-site Search
-
-3. Network activate the plugin. Navigate to `/wp-admin/network/admin.php?page=elasticpress-settings`.
-
+3. Activate the plugin (network activate for multisite). Navigate to the settings page. You should see an ElasticPress icon in your admin menu.
 4. Input your Elasticsearch host. Your host must begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
+5. Sync your content by clicking the sync icon.
 
-5. Activate the ElasticPress modules you want to use.
+Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful WP_Query integration API.
 
-6. Sync your content by clicking the sync icon.
-
-After your index finishes, modules will properly run and the ElasticPress Query Integration will be available.
-
-## Available Modules
+## Features
 
 ### Search
 
-The search module will integrate with all search queries to run searches through Elasticsearch. The module will improve the relevancy of your results and weight them by recency.
-
-### Admin
-
-The admin module integrates all post listing queries (used here `/wp-admin/edit.php`) with Elasticsearch. This will make editing your content much easier.
-
-### Related Posts
-
-Related Posts finds similiar content by comparing terms and post fields. A posts related content is appended to the single view of that post.
+Instantly find the content you’re looking for. The first time.
 
 ### WooCommerce
 
-This module runs all WooCommerce product and orders queries through Elasticsearch. Product queries (filters especially) run much faster. In the back end, browsing products and orders is much faster.
+“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
+
+### Related Posts
+
+ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
+
+Available API functions:
+
+* `ep_find_related( $post_id, $return = 5 )`
+
+  Get related posts for a given `$post_id`. Use this in a theme or plugin to get related content.
+
+### Protected Content
+
+Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
+
+### Documents (requires [Ingest Attachment plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html))
+
+Indexes text inside of popular file types, and adds those files types to search results.
 
 ## `WP_Query` and the ElasticPress Query Integration
 
-ElasticPress integrates with `WP_Query` if and only if the `ep_integrate` parameter is passed (see below) to the query object. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
+ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
 
 ### Supported WP_Query Parameters
 
+* ```ep_integrate``` (*bool*)
+
+    Allows you to run queries through Elasticsearch instead of MySQL. This parameter is the meat of the plugin. For example:
+
+    Get 20 of the latest posts
+    ```php
+    new WP_Query( array(
+        'ep_integrate'   => true,
+        'post_type'      => 'post',
+        'posts_per_page' => 20,
+    ) );
+    ```
+    
+    Get all posts with a specific category slug
+    ```php
+    new WP_Query( array(
+        'ep_integrate'   => true,
+        'post_type'      => 'post',
+        'posts_per_page' => -1,
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'category',
+                'terms'    => array( 'term-slug' ),
+                'field'    => 'slug',
+            ),
+        ),
+    ) );
+    ```
+
+    Setting `ep_integrate` to `false` will override the `s` parameter if provided.
+
 * ```s``` (*string*)
 
-    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```.
+    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```. (Requires search feature)
 
 * ```posts_per_page``` (*int*)
 
@@ -228,15 +256,15 @@ ElasticPress integrates with `WP_Query` if and only if the `ep_integrate` parame
 
     ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), 
     ```type``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
-
-      * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
-      * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
-      * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
-      * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
-      * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
-      * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
-      * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
-      * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+    
+    * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
+    * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+    * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
+    * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
+    * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
+    * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
+    * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
+    * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
 
     The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
     ```php
@@ -278,6 +306,17 @@ ElasticPress integrates with `WP_Query` if and only if the `ep_integrate` parame
     If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
     is very rarely needed to be used.
 
+* ```meta_key``` (*string*)
+
+    Allows you to query meta with the defined key. Requires `meta_value` or `meta_value_num` be used as well.
+
+* ```meta_value``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
+
+* ```meta_value_num``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
 
 * ```post_type``` (*string*/*array*)
 
@@ -309,7 +348,7 @@ ElasticPress integrates with `WP_Query` if and only if the `ep_integrate` parame
     
 * ```orderby``` (*string*)
 
-    Order results by field name instead of relevance. Supports: ```title```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
+    Order results by field name instead of relevance. Supports: ```title```, ```modified```, `meta_value`, `meta_value_num`, ```type```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
 
 * ```order``` (*string*)
 
@@ -451,40 +490,11 @@ The following are special parameters that are only supported by ElasticPress.
 
     _Note:_ Nesting cross-site `WP_Query` loops can result in unexpected behavior.
 
-* ```ep_integrate``` (*bool*)
-
-    Allows you to perform queries without passing a search parameter. This is pretty powerful as you can leverage Elasticsearch to retrieve queries that are too complex for MySQL (such as a 5-dimensional taxonomy query). For example:
-
-    Get 20 of the latest posts
-    ```php
-    new WP_Query( array(
-        'ep_integrate'   => true,
-        'post_type'      => 'post',
-        'posts_per_page' => 20,
-    ) );
-    ```
-    
-    Get all posts with a specific category slug
-    ```php
-    new WP_Query( array(
-        'ep_integrate'   => true,
-        'post_type'      => 'post',
-        'posts_per_page' => -1,
-        'tax_query' => array(
-            array(
-                'taxonomy' => 'category',
-                'terms'    => array( 'term-slug' ),
-                'field'    => 'slug',
-            ),
-        ),
-    ) );
-    ```
-
-### Supported WP-CLI Commands
+## WP-CLI Commands
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type]`
 
     Index all posts in the current blog.
 
@@ -495,7 +505,6 @@ The following commands are supported by ElasticPress:
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
     * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
-    * `--keep-active` let's you keep ElasticPress active during indexing (cannot be used with `--setup`).
 
 * `wp elasticpress delete-index [--network-wide]`
 
@@ -509,13 +518,25 @@ The following commands are supported by ElasticPress:
 
   Recreates the alias index which points to every index in the network.
 
+* `wp elasticpress activate-feature <feature-slug> [--network-wide]`
+
+  Activate a feature. If a re-indexing is required, you will need to do it manually. `--network-wide` will affect network activated ElasticPress.
+
+* `wp elasticpress deactivate-feature <feature-slug> [--network-wide]`
+
+  Deactivate a feature. `--network-wide` will affect network activated ElasticPress.
+
+* `wp elasticpress list-features [--all] [--network-wide]`
+
+  Lists active features. `--all` will show all registered features. `--network-wide` will force checking network options as opposed to a single sites options.
+
 * `wp elasticpress stats`
 
   Returns basic stats on Elasticsearch instance i.e. number of documents in current index as well as disk space used.
 
 * `wp elasticpress status`
 
-### Other Supported Params
+## Security
 
 * ElasticPress can be used with the [Elasticsearch Shield](https://www.elastic.co/products/shield) plugin
 
@@ -524,6 +545,46 @@ The following commands are supported by ElasticPress:
 ```php
 define( 'ES_SHIELD', 'username:password' );
 ```
+
+## Disable Dashboard Sync
+
+Dashboard sync can be disabled by defining the constant `EP_DASHBOARD_SYNC` as `false` in your wp-config.php file.
+
+```php
+define( 'EP_DASHBOARD_SYNC', false );
+```
+
+This can be helpful for managed sites where users initiating a sync from the dashboard could potentially cause issues such as deleting the index and limiting this control to WP-CLI is preferred. When disabled, features that would require reindexing are also prevented from being enabled/disabled from the dashboard.
+
+## Custom Features
+
+ElasticPress has a robust API for registering your own features. Refer to the code within each feature for detailed examples. To register a feature, you will need to call the `ep_register_feature()` function like so:
+
+```php
+add_action( 'plugins_loaded', function() {
+    ep_register_feature( 'slug', array(
+        'title' => 'Pretty Title',
+        'setup_cb' => 'setup_callback_function',
+        'feature_box_summary_cb' => 'summary_callback_function',
+        'feature_box_long_cb' => 'long_summary_callback_function',
+        'requires_install_reindex' => true,
+        'requirements_status_cb' => 'requirements_status_callback_function',
+        'post_activation_cb' => 'post_activation_callback_function',
+    ) );
+} );
+```
+
+The only arguments that are really required are the `slug` and `title` of the associative arguments array. Here are descriptions of each of the associative arguments:
+
+* `title` (string) - Pretty title for feature
+* `requires_install_reindex` (boolean) - Setting to true will force a reindex after the feature is activated.
+* `setup_cb` (callback) - Callback to a function to be called on each page load when the feature is activated.
+* `post_activation_cb` (callback) - Callback to a function to be called after a feature is first activated.
+* `feature_box_summary_cb` (callback) - Callback to a function that outputs HTML feature box summary (short description of feature).
+* `feature_box_long_cb` (callback) - Callback to a function that outputs HTML feature box full description.
+* `requirements_status_cb` (callback) - Callback to a function that determines if the features requirements are met. This function needs to return a `EP_Feature_Requirements_Status` object. `EP_Feature_Requirements_Status` is a simple class with a `code` and a `message` property. Code 0 means there are no requirement issues; code 1 means there are issues with warnings; code 2 means the feature does not have it's requirements met and cannot be used. The message property of the object can be used to store warnings.
+
+If you build an open source custom feature, let us know! We'd be happy to list the feature within ElasticPress documentation.
 
 ## Development
 

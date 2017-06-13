@@ -77,7 +77,7 @@ class EP_Config {
 	 */
 	public function get_host() {
 
-		if ( defined( 'EP_HOST' ) && ! empty( EP_HOST ) ) {
+		if ( defined( 'EP_HOST' ) && EP_HOST ) {
 			$host = EP_HOST;
 		} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$host = get_site_option( 'ep_host', false );
@@ -125,6 +125,10 @@ class EP_Config {
 			$index_name = false;
 		}
 
+		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
+			$index_name = EP_INDEX_PREFIX . $index_name;
+		}
+
 		return apply_filters( 'ep_index_name', $index_name, $blog_id );
 	}
 
@@ -135,7 +139,7 @@ class EP_Config {
 	 * @return mixed|void
 	 */
 	public function get_indexable_post_types() {
-		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
+		$post_types = get_post_types( array( 'public' => true ) );
 
 		return apply_filters( 'ep_indexable_post_types', $post_types );
 	}
@@ -162,6 +166,10 @@ class EP_Config {
 		$slug = preg_replace( '#[^\w]#', '', $slug );
 
 		$alias = $slug . '-global';
+
+		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
+			$alias = EP_INDEX_PREFIX . $alias;
+		}
 
 		return apply_filters( 'ep_global_alias', $alias );
 	}

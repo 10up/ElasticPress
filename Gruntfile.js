@@ -9,7 +9,6 @@ module.exports = function ( grunt ) {
 			uglify : {
 
 				production : {
-
 					options : {
 						beautify         : false,
 						preserveComments : false,
@@ -19,11 +18,13 @@ module.exports = function ( grunt ) {
 					},
 
 					files : {
+						'assets/js/dashboard.min.js' : [
+							'assets/js/src/dashboard.js'
+						],
 						'assets/js/admin.min.js' : [
-							'assets/js/admin.js'
+							'assets/js/src/admin.js'
 						]
 					}
-
 				}
 
 			},
@@ -97,23 +98,18 @@ module.exports = function ( grunt ) {
 				},
 
 				scripts : {
-
 					files : [
-						'assets/js/admin.js'
+						'assets/js/src/*.js'
 					],
-
 					tasks : ['uglify:production']
 
 				},
 
 				styles : {
-
 					files : [
 						'assets/css/*.scss'
 					],
-
 					tasks : ['sass', 'autoprefixer', 'cssmin']
-
 				}
 
 			}

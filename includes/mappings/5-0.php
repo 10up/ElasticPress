@@ -1,8 +1,8 @@
 <?php
 /**
- * Elasticsearch mapping
+ * Elasticsearch mapping for ES 5.0
  *
- * @since  1.3
+ * @since  2.1.2
  * @package elasticpress
  */
 
@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 return array(
 	'settings' => array(
+	    'index.mapping.total_fields.limit' => apply_filters( 'ep_total_field_limit', 5000 ),
+	    'index.max_result_window' => apply_filters( 'ep_max_result_window', 1000000 ),
 		'analysis' => array(
 			'analyzer' => array(
 				'default' => array(
@@ -61,17 +63,15 @@ return array(
 					'template_meta' => array(
 						'path_match' => 'post_meta.*',
 						'mapping' => array(
-							'type' => 'multi_field',
+							'type' => 'text',
 							'path' => 'full',
 							'fields' => array(
 								'{name}' => array(
-									'type' => 'string',
-									'index' => 'analyzed',
+									'type' => 'text',
 								),
 								'raw' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed',
-									'include_in_all' => false,
+									'type' => 'keyword',
+									'ignore_above' => 10922,
 								),
 							),
 						),
@@ -85,51 +85,42 @@ return array(
 							'path' => 'full',
 							'properties' => array(
 								'value' => array(
-									'type' => 'string',
+									'type' => 'text',
 									'fields' => array(
 										'sortable' => array(
-											'type' => 'string',
-											'analyzer' => 'ewp_lowercase',
-											'include_in_all' => false,
+											'type' => 'keyword',
+											'ignore_above' => 10922,
 										),
 										'raw' => array(
-											'type' => 'string',
-											'index' => 'not_analyzed',
-											'include_in_all' => false,
+											'type' => 'keyword',
+											'ignore_above' => 10922,
 										),
 									),
 								),
 								'raw' => array( /* Left for backwards compat */
-									'type' => 'string',
-									'index' => 'not_analyzed',
-									'include_in_all' => false,
+									'type' => 'keyword',
+									'ignore_above' => 10922,
 								),
 								'long' => array(
 									'type' => 'long',
-									'index' => 'not_analyzed',
 								),
 								'double' => array(
 									'type' => 'double',
-									'index' => 'not_analyzed',
 								),
 								'boolean' => array(
 									'type' => 'boolean',
-									'index' => 'not_analyzed',
 								),
 								'date' => array(
 									'type' => 'date',
 									'format' => 'yyyy-MM-dd',
-									'index' => 'not_analyzed',
 								),
 								'datetime' => array(
 									'type' => 'date',
 									'format' => 'yyyy-MM-dd HH:mm:ss',
-									'index' => 'not_analyzed',
 								),
 								'time' => array(
 									'type' => 'date',
 									'format' => 'HH:mm:ss',
-									'index' => 'not_analyzed',
 								),
 							),
 						),
@@ -143,27 +134,27 @@ return array(
 							'path' => 'full',
 							'properties' => array(
 								'name' => array(
-									'type' => 'string',
+									'type' => 'text',
 									'fields' => array(
 										'raw' => array(
-											'type' => 'string',
-											'index' => 'not_analyzed',
+											'type' => 'keyword',
 										),
 										'sortable' => array(
-											'type' => 'string',
-											'analyzer' => 'ewp_lowercase',
+											'type' => 'keyword',
 										),
 									),
 								),
 								'term_id' => array(
 									'type' => 'long',
 								),
+								'term_taxonomy_id' => array(
+									'type' => 'long',
+								),
 								'parent' => array(
 									'type' => 'long',
 								),
 								'slug' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed',
+									'type' => 'keyword',
 								),
 							),
 						),
@@ -185,147 +176,119 @@ return array(
 			'properties' => array(
 				'post_id' => array(
 					'type' => 'long',
-					'index' => 'not_analyzed',
-					'include_in_all' => false,
 				),
 				'ID' => array(
 					'type' => 'long',
-					'index' => 'not_analyzed',
-					'include_in_all' => false,
 				),
 				'post_author' => array(
 					'type' => 'object',
 					'properties' => array(
 						'display_name' => array(
-							'type' => 'string',
+							'type' => 'text',
 							'fields' => array(
 								'raw' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed',
+									'type' => 'keyword',
 								),
 								'sortable' => array(
-									'type' => 'string',
-									'analyzer' => 'ewp_lowercase',
+									'type' => 'keyword',
 								),
 							),
 						),
 						'login' => array(
-							'type' => 'string',
+							'type' => 'text',
 							'fields' => array(
 								'raw' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed',
+									'type' => 'keyword',
 								),
 								'sortable' => array(
-									'type' => 'string',
-									'analyzer' => 'ewp_lowercase',
+									'type' => 'keyword',
 								),
 							),
 						),
 						'id' => array(
 							'type' => 'long',
-							'index' => 'not_analyzed',
 						),
 						'raw' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
-							'include_in_all' => false,
+							'type' => 'keyword',
 						),
 					),
 				),
 				'post_date' => array(
 					'type' => 'date',
 					'format' => 'YYYY-MM-dd HH:mm:ss',
-					'include_in_all' => false,
 				),
 				'post_date_gmt' => array(
 					'type' => 'date',
 					'format' => 'YYYY-MM-dd HH:mm:ss',
-					'include_in_all' => false,
 				),
 				'post_title' => array(
-					'type' => 'multi_field',
+					'type' => 'text',
 					'fields' => array(
 						'post_title' => array(
-							'type' => 'string',
+							'type' => 'text',
 							'analyzer' => 'standard',
-							'store' => 'yes',
 						),
 						'raw' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
-							'include_in_all' => false,
+							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 						'sortable' => array(
-							'type' => 'string',
-							'analyzer' => 'ewp_lowercase',
-							'include_in_all' => false,
+							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 					),
 				),
 				'post_excerpt' => array(
-					'type' => 'string',
+					'type' => 'text',
 				),
 				'post_content' => array(
-					'type' => 'string',
-					'analyzer' => 'default',
+					'type' => 'text',
 				),
 				'post_status' => array(
-					'type' => 'string',
-					'index' => 'not_analyzed',
+					'type' => 'keyword',
 				),
 				'post_name' => array(
-					'type' => 'multi_field',
+					'type' => 'text',
 					'fields' => array(
 						'post_name' => array(
-							'type' => 'string',
+							'type' => 'text',
 						),
 						'raw' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
-							'include_in_all' => false,
+							'type' => 'keyword',
+							'ignore_above' => 10922,
 						),
 					),
 				),
 				'post_modified' => array(
 					'type' => 'date',
 					'format' => 'YYYY-MM-dd HH:mm:ss',
-					'include_in_all' => false,
 				),
 				'post_modified_gmt' => array(
 					'type' => 'date',
 					'format' => 'YYYY-MM-dd HH:mm:ss',
-					'include_in_all' => false,
 				),
 				'post_parent' => array(
 					'type' => 'long',
-					'index' => 'not_analyzed',
-					'include_in_all' => false,
 				),
 				'post_type' => array(
-					'type' => 'multi_field',
+					'type' => 'text',
 					'fields' => array(
 						'post_type' => array(
-							'type' => 'string',
+							'type' => 'text',
 						),
 						'raw' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
-							'include_in_all' => false,
+							'type' => 'keyword',
 						),
 					),
 				),
 				'post_mime_type' => array(
-					'type' => 'string',
-					'index' => 'not_analyzed',
-					'include_in_all' => false,
+					'type' => 'keyword',
 				),
 				'permalink' => array(
-					'type' => 'string',
+					'type' => 'keyword',
 				),
 				'guid' => array(
-					'type' => 'string',
-					'index' => 'not_analyzed'
+					'type' => 'keyword',
 				),
 				'terms' => array(
 					'type' => 'object',

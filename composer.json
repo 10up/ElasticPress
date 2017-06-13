@@ -21,16 +21,8 @@
   ],
   "repositories": [
     {
-      "type": "package",
-      "package": {
-        "name": "woothemes/woocommerce",
-        "version": "master",
-        "source": {
-          "url": "https://github.com/woothemes/woocommerce.git",
-          "type": "git",
-          "reference": "master"
-        }
-      }
+      "type":"composer",
+      "url":"https://wpackagist.org"
     }
   ],
   "require": {
@@ -39,11 +31,16 @@
   "require-dev": {
     "phpunit/phpunit": "*@stable",
     "wp-cli/wp-cli": "*@stable",
-    "woothemes/woocommerce": "@dev"
+    "wpackagist-plugin/woocommerce": "dev-trunk"
   },
   "config": {
     "platform": {
       "php": "5.3.29"
     }
+  },
+  "extra": {
+    "installer-paths": {
+          "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]
+      }
   }
 }

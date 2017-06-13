@@ -24,7 +24,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?>"></div>
 <div class="wrap">
-	<h2><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h2>
+	<h1><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h1>
 	
 	<form action="<?php echo esc_attr( $action ); ?>" method="post">
 		<?php settings_fields( 'elasticpress' ); ?>
@@ -35,9 +35,11 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				<tr>
 					<th scope="row"><label for="ep_host"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ); ?></label></th>
 					<td>
-						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST && ! ep_host_by_option() ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( ep_get_host() ); ?>" name="ep_host" id="ep_host">
-						<?php if ( defined( 'EP_HOST' ) && EP_HOST && ! ep_host_by_option() ) : ?>
-							<?php esc_html_e( 'Your Elasticsearch host is set in wp-config.php', 'elasticpress' ); ?>
+						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( ep_get_host() ); ?>" name="ep_host" id="ep_host">
+						<?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>
+							<span class="description"><?php esc_html_e( 'Your Elasticsearch host is set in wp-config.php', 'elasticpress' ); ?></span>
+						<?php else : ?>
+							<span class="description"><?php _e( 'Plug in your Elasticsearch server here!', 'elasticpress' ); ?></span>
 						<?php endif; ?>
 					</td>
 				</tr>

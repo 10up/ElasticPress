@@ -1,27 +1,10 @@
 <?php
 /**
- * ElasticPress WooCommerce module
+ * ElasticPress WooCommerce feature
  *
  * @since  2.1
  * @package elasticpress
  */
-
-/**
- * Index Woocommerce post types
- *
- * @param   array $post_types Existing post types.
- * @since   2.1
- * @return  array
- */
-function ep_wc_post_types( $post_types ) {
-	return array_unique( array_merge( $post_types, array(
-		'shop_order' => 'shop_order',
-		'shop_coupon' => 'shop_coupon',
-		'shop_order_refund' => 'shop_order_refund',
-		'product_variation' => 'product_variation',
-		'product' => 'product',
-	) ) );
-}
 
 /**
  * Index Woocommerce meta
@@ -58,7 +41,7 @@ function ep_wc_whitelist_meta_keys( $meta, $post ) {
 		'_sold_individually',
 		'_manage_stock',
 		'_backorders',
-		'_stock	',
+		'_stock',
 		'_upsell_ids',
 		'_crosssell_ids',
 		'_stock_status',
@@ -150,10 +133,10 @@ function ep_wc_convert_post_object_to_id( $posts ) {
  * @return  array
  */
 function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
-	$woo_taxonomies = array();
-	$product_type = get_taxonomy( 'product_type' );
+	$product_type       = get_taxonomy( 'product_type' );
+	$product_visibility = get_taxonomy( 'product_visibility' );
 
-	$woo_taxonomies[] = $product_type;
+	$woo_taxonomies = array( $product_type, $product_visibility );
 
 	/**
 	 * Note product_shipping_class, product_cat, and product_tag are already public. Make
@@ -173,7 +156,7 @@ function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 }
 
 /**
- * Translate args to ElasticPress compat format. This is the meat of what the module does
+ * Translate args to ElasticPress compat format. This is the meat of what the feature does
  *
  * @param  WP_Query $query
  * @since  2.1
@@ -182,6 +165,25 @@ function ep_wc_translate_args( $query ) {
 
 	// Lets make sure this doesn't interfere with the CLI
 	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+
+	if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
+	     ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
+		return;
+	}
+
+	$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
+
+	if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+		if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
+			return;
+		} else {
+			$admin_integration = true;
+		}
+	}
+
+	if ( is_admin() && ! $admin_integration ) {
 		return;
 	}
 
@@ -204,6 +206,13 @@ function ep_wc_translate_args( $query ) {
 	}
 
 	/**
+	 * If this is just a preview, let's not use Elasticsearch.
+	 */
+	if ( $query->get( 'preview', false ) ) {
+		return;
+	}
+
+	/**
 	 * Cant hook into WC API yet
 	 */
 	if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
@@ -222,8 +231,19 @@ function ep_wc_translate_args( $query ) {
 		'product_cat',
 		'pa_brand',
 		'product_tag',
+		'product_type',
 		'pa_sort-by',
+		'product_visibility',
 	);
+
+	/**
+	 * Add support for custom taxonomies.
+	 *
+	 * @param array $supported_taxonomies An array of default taxonomies.
+	 *
+	 * @since 2.3.0
+	 */
+	$supported_taxonomies = apply_filters( 'ep_woocommerce_supported_taxonomies', $supported_taxonomies );
 
 	if ( ! empty( $tax_query ) ) {
 
@@ -269,21 +289,21 @@ function ep_wc_translate_args( $query ) {
 		}
 	}
 
-	if ( ! empty( $tax_query ) ) {
-		$query->set( 'tax_query', $tax_query );
-	}
-
 	/**
 	 * Force ElasticPress if product post type query
 	 */
-	$supported_post_types = array(
-		'product',
-		'shop_order',
-		'shop_order_refund',
-		'product_variation'
-	);
-
 	$post_type = $query->get( 'post_type', false );
+
+	// Act only on a defined subset of all indexable post types here
+	$supported_post_types = array_intersect(
+		array(
+			'product',
+			'shop_order',
+			'shop_order_refund',
+			'product_variation'
+		),
+		ep_get_indexable_post_types()
+	);
 
 	// For orders it queries an array of shop_order and shop_order_refund post types, hence an array_diff
 	if ( ! empty( $post_type ) && ( in_array( $post_type, $supported_post_types ) || ( is_array( $post_type ) && ! array_diff( $post_type, $supported_post_types ) ) ) ) {
@@ -293,7 +313,15 @@ function ep_wc_translate_args( $query ) {
 	/**
 	 * If we have a WooCommerce specific query, lets hook it to ElasticPress and make the query ElasticSearch friendly
 	 */
-	if ( $integrate || $query->is_search() ) {
+	if ( $integrate ) {
+		// Set tax_query again since we may have added things
+		$query->set( 'tax_query', $tax_query );
+
+		// Default to product if no post type is set
+		if ( empty( $post_type ) ) {
+			$post_type = 'product';
+			$query->set( 'post_type', 'product' );
+		}
 
 		// Handles the WC Top Rated Widget
 		if ( has_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) ) ) {
@@ -332,95 +360,57 @@ function ep_wc_translate_args( $query ) {
 		$query->query['suppress_filters'] = false;
 		$query->set( 'suppress_filters', false );
 
-		/**
-		 * This stuff will mess up search queries
-		 */
-		if ( ! $query->is_search() ) {
-			$query->query_vars['ep_integrate'] = true;
-			$query->query['ep_integrate'] = true;
+		$orderby = $query->get( 'orderby' );
 
-			// Assuming $post_type to be product if empty
-			if ( empty( $post_type ) || 'product' === $post_type ) {
+		if ( ! empty( $orderby ) && 'rand' === $orderby ) {
+			$query->set( 'orderby', false ); // Just order by relevance.
+		}
 
-				/**
-				 * Set orderby from GET param
-				 * Also make sure the orderby param affects only the main query
-				 */
-				if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+		$s = $query->get( 's' );
 
-					switch ( $_GET['orderby'] ) {
-						case 'popularity':
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
-							$query->set( 'order', 'desc' );
-							break;
-						case 'price':
-						case 'price-desc':
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
-							break;
-						case 'rating' :
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
-							$query->set( 'order', 'desc' );
-							break;
-						case 'date':
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
-							break;
-						default:
-							$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
-					}
-				} else {
-					$orderby = $query->get( 'orderby', 'date' ); // Default to date
-					if ( in_array( $orderby, array( 'meta_value_num', 'meta_value' ) ) ) {
-						$orderby = $query->get( 'meta_key', 'date' ); // Default to date
-					}
-					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( $orderby ) );
-				}
-			} // Conditional check for orders
-			elseif ( in_array( $post_type, array( 'shop_order', 'shop_order_refund' ) ) || $post_type === array( 'shop_order', 'shop_order_refund' ) ) {
-				$query->set( 'order', 'desc' );
-			} elseif ( 'product_variation' === $post_type ) {
-				$query->set( 'orderby', 'menu_order' );
-				$query->set( 'order', 'asc' );
+		$query->query_vars['ep_integrate'] = true;
+		$query->query['ep_integrate'] = true;
+
+		if ( ! empty( $s ) ) {
+			$query->set( 'orderby', false ); // Just order by relevance.
+
+			/**
+			 * Default order when doing search in Woocommerce is 'ASC'
+			 * These lines will change it to 'DESC' as we want to most relevant result
+			 */
+			if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+				$query->set( 'order', 'DESC' );
 			}
 
-			$orderby = $query->get( 'orderby' );
-
-			if ( ! empty( $orderby ) && 'rand' === $orderby ) {
-				$query->set( 'orderby', false ); // Just order by relevance.
-			}
-		} else {
 			// Search query
-			if ( is_admin() ) {
-				if ( 'shop_order' === $post_type ) {
-					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
+			if ( 'shop_order' === $post_type ) {
+				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
-					$search_fields['meta'] = array_map( 'wc_clean', apply_filters( 'shop_order_search_fields', array(
-						'_order_key',
-						'_billing_company',
-						'_billing_address_1',
-						'_billing_address_2',
-						'_billing_city',
-						'_billing_postcode',
-						'_billing_country',
-						'_billing_state',
-						'_billing_email',
-						'_billing_phone',
-						'_shipping_address_1',
-						'_shipping_address_2',
-						'_shipping_city',
-						'_shipping_postcode',
-						'_shipping_country',
-						'_shipping_state',
-						'_billing_last_name',
-						'_billing_first_name',
-						'_shipping_first_name',
-						'_shipping_last_name',
-					) ) );
+				$search_fields['meta'] = array_map( 'wc_clean', apply_filters( 'shop_order_search_fields', array(
+					'_order_key',
+					'_billing_company',
+					'_billing_address_1',
+					'_billing_address_2',
+					'_billing_city',
+					'_billing_postcode',
+					'_billing_country',
+					'_billing_state',
+					'_billing_email',
+					'_billing_phone',
+					'_shipping_address_1',
+					'_shipping_address_2',
+					'_shipping_city',
+					'_shipping_postcode',
+					'_shipping_country',
+					'_shipping_state',
+					'_billing_last_name',
+					'_billing_first_name',
+					'_shipping_first_name',
+					'_shipping_last_name',
+				) ) );
 
-					$query->set( 'search_fields', $search_fields );
-				}
-			}
-
-			if ( empty( $post_type ) || 'product' === $post_type ) {
+				$query->set( 'search_fields', $search_fields );
+			} elseif ( 'product' === $post_type ) {
 				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 				// Make sure we search skus on the front end
@@ -430,6 +420,60 @@ function ep_wc_translate_args( $query ) {
 				$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
 
 				$query->set( 'search_fields', $search_fields );
+			}
+		} else {
+			/**
+			 * For default sorting by popularity (total_sales) and rating
+	         * Woocommerce doesn't set the orderby correctly.
+	         * These lines will check the meta_key and correct the orderby based on that.
+	         * And this won't run in search result and only run in main query
+			 */
+			$meta_key = $query->get( 'meta_key', false );
+			if ( $meta_key && $query->is_main_query() ){
+				switch ( $meta_key ){
+					case 'total_sales':
+						$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
+						$query->set( 'order', 'DESC' );
+						break;
+					case '_wc_average_rating':
+						$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
+						$query->set( 'order', 'DESC' );
+						break;
+				}
+			}
+		}
+
+		/**
+		 * Set orderby from GET param
+		 * Also make sure the orderby param affects only the main query
+		 */
+		if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+
+			switch ( $_GET['orderby'] ) {
+				case 'popularity':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+				case 'price':
+					$query->set( 'order', 'ASC' );
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
+					break;
+				case 'price-desc':
+					$query->set( 'order', 'DESC' );
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
+					break;
+				case 'rating' :
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_wc_average_rating' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+				case 'date':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'date' ) );
+					break;
+				case 'ID':
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'ID' ) );
+					break;
+				default:
+					$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 			}
 		}
 	}
@@ -445,6 +489,7 @@ function ep_wc_translate_args( $query ) {
 function ep_wc_get_orderby_meta_mapping( $meta_key ) {
 	$mapping = apply_filters( 'orderby_meta_mapping',
 		array(
+			'ID'				 => 'ID',
 			'menu_order'         => 'menu_order title date',
 			'menu_order title'   => 'menu_order title date',
 			'total_sales'        => 'meta.total_sales.long date',
@@ -476,99 +521,15 @@ function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
 }
 
 /**
- * Fetches all necessary WooCommerce related post statuses
- *
- * @since  2.1
- * @return  array
- */
-function ep_wc_get_statuses() {
-	$post_statuses = get_post_stati();
-
-	unset( $post_statuses['auto-draft'] );
-
-	return array_values( $post_statuses );
-}
-
-/**
- * Handle Woo Commerce related formatted args
- *
- * @since  2.1
- * @param  array $formatted_args The formatted WP query arguments
- * @return array
- */
-function ep_wc_formatted_args( $formatted_args, $args ) {
-
-	if ( is_admin() ) {
-		if ( isset( $_GET['post_status'] ) && 'all' !== $_GET['post_status'] ) {
-			$post_status = array( $_GET['post_status'] );
-		} else {
-			$post_status = ep_wc_get_statuses();
-
-			// Lets make sure the thrashed posts are not accounted for in the default edit post listing
-			$trash_index = array_search( 'trash', $post_status );
-			if ( $trash_index ) {
-				unset( $post_status[ $trash_index ] );
-			}
-
-			$post_status = array_values( $post_status );
-		}
-	} else {
-
-		// Setting a collection of post status for the front-end display
-		$post_status = array(
-			'publish',
-			'wc-cancelled',
-			'wc-completed',
-			'wp-failed',
-			'wc-on-hold',
-			'wc-pending',
-			'wc-processing',
-			'wc-refunded',
-		);
-
-		// Include Custom WooCommerce Order Statuses to this list of front-end display post statuses
-		if ( function_exists( 'wc_get_order_statuses' ) ) {
-
-			$woo_order_statuses = wc_get_order_statuses();
-			if ( ! empty( $woo_order_statuses ) ) {
-				$woo_order_statuses = array_keys( $woo_order_statuses );
-
-				$post_status = array_values( array_unique( array_merge( $post_status, $woo_order_statuses ) ) );
-			}
-		}
-
-		$post_status = apply_filters( 'valid_front_end_post_statuses', $post_status, $formatted_args, $args );
-
-		// Narrow down to the post parent for product variations
-		if ( ! empty( $args['post_type'] ) && 'product_variation' == $args['post_type'] ) {
-			if ( isset( $args['post_parent'] ) && $args['post_parent'] ) {
-				$formatted_args['filter']['and'][] = array(
-					'term' => array( 'post_parent' => $args['post_parent'] ),
-				);
-			}
-		}
-	}
-
-	// Add post status detail to the query.
-	if ( $post_status ) {
-		$formatted_args['filter']['and'][] = array(
-			'terms' => array( 'post_status' => $post_status ),
-		);
-	}
-
-	return $formatted_args;
-}
-
-/**
  * Make search coupons don't go through ES
- * 
+ *
  * @param  bool $enabled
  * @param  object $query
  * @since  2.1
  * @return bool
  */
 function ep_wc_blacklist_coupons( $enabled, $query ) {
-	if ( 'shop_coupon' === $query->get( 'post_type' ) ) {
+	if ( method_exists( $query, 'get' ) && 'shop_coupon' === $query->get( 'post_type' ) ) {
 		return false;
 	}
 
@@ -592,74 +553,104 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
 }
 
 /**
- * Setup all module filters
+ * Enhance WooCommerce search order by order id, email, phone number, name, etc..
+ * What this function does:
+ * 1. Reverse the woocommerce shop_order_search_custom_fields query
+ * 2. If the search key is integer and it is an Order Id, just query with post__in
+ * 3. If the search key is integer but not an order id ( might be phone number ), use ES to find it
  *
- * @since  2.1
+ * @param WP_Query $wp
+ * @since  2.3
  */
-function ep_wc_setup() {
-	add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
-	add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
-	add_filter( 'ep_formatted_args', 'ep_wc_formatted_args', 10, 2 );
-	add_filter( 'ep_indexable_post_types', 'ep_wc_post_types', 10, 1 );
-	add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
-	add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields' );
-	add_filter( 'woocommerce_layered_nav_query_post_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
-	add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
-	add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
-	add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
-	add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
-	add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-	add_filter( 'ep_indexable_post_status', 'ep_wc_get_statuses' );
-	add_filter( 'ep_elasticpress_enabled', 'ep_integrate_search_queries', 10, 2 );
-}
+function ep_wc_search_order( $wp ){
+	global $pagenow;
+	if ( 'edit.php' != $pagenow || 'shop_order' !== $wp->query_vars['post_type'] ||
+	     ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
+		return;
+	}
 
-/**
- * Output module box summary
- * 
- * @since 2.1
- */
-function ep_wc_module_box_summary() {
-	?>
-	<p><?php esc_html_e( 'Dramatically increase the performance of WooCommerce product rivers, product searches, product filters, order searches, and more.', 'elasticpress' ); ?></p>
-	<?php
-}
+	$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
 
-/**
- * Output module box long
- * 
- * @since 2.1
- */
-function ep_wc_module_box_long() {
-	?>
-	<p><?php esc_html_e( 'Running eCommerce stores is hard enough already. You should not have to worry about slow load times. ElasticPress WooCommerce supercharges all product queries, product sorts, and filters both on the front end and the admin. No matter how many products or filters you have, your site will load fast.', 'elasticpress' ); ?></p>
+	$order = wc_get_order( absint( $search_key_safe ) );
 
-	<p><?php esc_html_e( 'In the admin, order management and fulfillment is supercharged. Finding orders is much easier with more relevant searches. View order lists is easier since they load faster.', 'elasticpress' ); ?></p>
-	<?php
-}
-
-/**
- * Make sure WC is activated
- *
- * @since  2.1
- * @return bool|WP_Error
- */
-function wc_dependencies_met_cb() {
-	if ( class_exists( 'WooCommerce' ) ) {
-		return true;
+	//If the order doesn't exist, fallback to other fields
+	if ( ! $order ) {
+		unset( $wp->query_vars['post__in'] );
+		$wp->query_vars['s'] = $search_key_safe;
 	} else {
-		return new WP_Error( 'ep-no-woocommerce', esc_html__( 'WooCommerce must be active to use this module.','elasticpress' ) );
+		//we found the order. don't query ES
+		unset( $wp->query_vars['s'] );
+		$wp->query_vars['post__in'] = array( absint( $search_key_safe ) );
 	}
 }
 
 /**
- * Register the module
+ * Setup all feature filters
+ *
+ * @since  2.1
  */
-ep_register_module( 'woocommerce', array(
+function ep_wc_setup() {
+	if( function_exists( 'WC' ) ) {
+		add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
+		add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
+		add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields', 9999 );
+		add_filter( 'woocommerce_layered_nav_query_post_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
+		add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
+		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
+		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
+		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
+	}
+}
+
+/**
+ * Output feature box summary
+ * 
+ * @since 2.1
+ */
+function ep_wc_feature_box_summary() {
+	?>
+	<p><?php esc_html_e( '“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.', 'elasticpress' ); ?></p>
+	<?php
+}
+
+/**
+ * Output feature box long
+ * 
+ * @since 2.1
+ */
+function ep_wc_feature_box_long() {
+	?>
+	<p><?php esc_html_e( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ); ?></p>
+	<?php
+}
+
+/**
+ * Determine WC feature reqs status
+ *
+ * @param  EP_Feature_Requirements_Status $status
+ * @since  2.2
+ * @return EP_Feature_Requirements_Status
+ */
+function ep_wc_requirements_status( $status ) {
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		$status->code = 2;
+		$status->message = esc_html__( 'WooCommerce not installed.', 'elasticpress' );
+	}
+
+	return $status;
+}
+
+/**
+ * Register the feature
+ */
+ep_register_feature( 'woocommerce', array(
 	'title' => 'WooCommerce',
 	'setup_cb' => 'ep_wc_setup',
-	'module_box_summary_cb' => 'ep_wc_module_box_summary',
-	'module_box_long_cb' => 'ep_wc_module_box_long',
+	'requirements_status_cb' => 'ep_wc_requirements_status',
+	'feature_box_summary_cb' => 'ep_wc_feature_box_summary',
+	'feature_box_long_cb' => 'ep_wc_feature_box_long',
 	'requires_install_reindex' => true,
-	'dependencies_met_cb' => 'wc_dependencies_met_cb',
 ) );
 
