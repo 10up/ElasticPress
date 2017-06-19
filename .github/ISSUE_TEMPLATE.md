@@ -4,11 +4,11 @@ Is this a bug, question or feature request:
 
 Describe the issue you encountered:
 
-Tell me your WordPress version:
-
-Tell me your ElasticPress version:
-
-Tell me your Elasticsearch version:
+Tell me your Environment settings:
+- WordPress version:
+- ElasticPress version:
+- Elasticsearch version:
+- Woocommerce version (if applicable):
 
 Where do you host your Elasticsearch server:
 
@@ -16,4 +16,4 @@ Other plugins installed (woocommerce, cache plugins, etc..):
 
 Steps to reproduce:
 
-Screenshots if needed:
+Screenshots if applicable:
