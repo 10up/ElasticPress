@@ -8,7 +8,6 @@ Tell me your Environment settings:
 - WordPress version:
 - ElasticPress version:
 - Elasticsearch version:
-- Woocommerce version (if applicable):
 
 Where do you host your Elasticsearch server:
 
