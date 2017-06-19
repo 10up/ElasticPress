@@ -1,6 +1,6 @@
-Did you search for similar issues before submitting this one (Yes/No)?
+Did you search for similar issues before submitting this one?
 
-Is this a bug, question or feature request:
+Is this a bug, question or feature request?
 
 Describe the issue you encountered:
 
@@ -12,8 +12,8 @@ Tell me your Environment settings:
 
 Where do you host your Elasticsearch server:
 
-Other plugins installed (woocommerce, cache plugins, etc..):
+Other plugins installed (WooCommerce, Simple Redirect Manager, etc..):
 
 Steps to reproduce:
 
-Screenshots if applicable:
+Screenshots, if needed:
