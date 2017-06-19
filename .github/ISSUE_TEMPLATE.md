@@ -1,25 +1,19 @@
-- Did you search for similar issues before submitting this one?
+Did you search for similar issues before submitting this one (Yes/No)?
 
-- Is this a bug, question or feature request:
+Is this a bug, question or feature request:
 
-- Describe the issue you encountered:
+Describe the issue you encountered:
 
-- Tell me your WordPress version:
+Tell me your WordPress version:
 
-- Tell me your ElasticPress version:
+Tell me your ElasticPress version:
 
-- Tell me your Elasticsearch version:
+Tell me your Elasticsearch version:
 
-- Where do you host your Elasticsearch server:
+Where do you host your Elasticsearch server:
 
-- Other plugins installed (woocommerce, cache plugins, etc..):
-    1.
-    2.
-    3.
+Other plugins installed (woocommerce, cache plugins, etc..):
 
-- Steps to reproduce:
-    1.
-    2.
-    3.
+Steps to reproduce:
 
-- Screenshots if needed:
+Screenshots if needed:
