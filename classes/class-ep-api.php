@@ -1337,7 +1337,8 @@ class EP_API {
 			if ( in_array( 'author_name', $search_field_args ) ) {
 				$search_fields[] = 'post_author.login';
 
-				unset( $search_field_args['author_name'] );
+				$author_name_index = array_search( 'author_name', $search_field_args );
+				unset( $search_field_args[ $author_name_index ] );
 			}
 
 			$search_fields = array_merge( $search_field_args, $search_fields );
