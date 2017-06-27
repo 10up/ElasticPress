@@ -1321,7 +1321,8 @@ class EP_API {
 					$search_fields[] = 'terms.' . $tax . '.name';
 				}
 
-				unset( $search_field_args['taxonomies'] );
+				$taxonomies_index = array_search( 'taxonomies', $search_field_args );
+				unset( $search_field_args[ $taxonomies_index ] );
 			}
 
 			if ( ! empty( $search_field_args['meta'] ) ) {
@@ -1331,7 +1332,8 @@ class EP_API {
 					$search_fields[] = 'meta.' . $meta . '.value';
 				}
 
-				unset( $search_field_args['meta'] );
+				$meta_index = array_search( 'meta', $search_field_args );
+				unset( $search_field_args[ $meta_index ] );
 			}
 
 			if ( in_array( 'author_name', $search_field_args ) ) {
