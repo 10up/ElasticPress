@@ -15,8 +15,9 @@ Where do you host your Elasticsearch server:
 Other plugins installed (WooCommerce, Simple Redirect Manager, etc..):
 
 Steps to reproduce:
-1.
-2.
-3.
+
+1. 
+2. 
+3. 
 
 Screenshots, if needed:
