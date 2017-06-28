@@ -1,4 +1,4 @@
-Have you search for similar issues before submitting this one?
+Have you searched for similar issues before submitting this one?
 
 Is this a bug, question or feature request?
 
