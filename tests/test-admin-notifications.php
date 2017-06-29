@@ -271,6 +271,89 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
+	 * - In admin
+	 * - Old version not set
+	 *
+	 * Do: Show upgrade sync notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.3.1
+	 */
+	public function testUpgradeSyncNotificationNoOldVersion() {
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		update_site_option( 'ep_last_sync', time() );
+		update_site_option( 'ep_need_upgrade_sync', false );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
+
+		ep_handle_upgrades();
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
+		ob_get_clean();
+
+		$this->assertEquals( 'upgrade-sync', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - In admin
+	 * - Old version set to current version
+	 *
+	 * Do: Don't show notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.3.1
+	 */
+	public function testUpgradeSyncNotificationNone() {
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		update_site_option( 'ep_last_sync', time() );
+		update_site_option( 'ep_need_upgrade_sync', false );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
+		update_site_option( 'ep_version', EP_VERSION );
+
+		ep_handle_upgrades();
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
+		ob_get_clean();
+
+		$this->assertTrue( empty( $notice ) );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - In admin
+	 * - Old version is below a reindex version (2.1)
+	 *
+	 * Do: Show upgrade sync notification
+	 * 
+	 * @group admin-notifications
+	 * @since 2.3.1
+	 */
+	public function testUpgradeSyncNotificationCrossedIndexVersion() {
+		update_site_option( 'ep_intro_shown', true );
+		delete_site_option( 'ep_hide_intro_shown_notice' );
+		update_site_option( 'ep_last_sync', time() );
+		update_site_option( 'ep_need_upgrade_sync', false );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
+		update_site_option( 'ep_version', '2.1' );
+
+		ep_handle_upgrades();
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
+		ob_get_clean();
+
+		$this->assertEquals( 'upgrade-sync', $notice );
+	}
+
+	/**
+	 * Conditions:
+	 *
 	 * - On sites secreen
 	 * - Host set
 	 * - Index page shown and notice not hidden
@@ -279,7 +362,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - Feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
-	 * Do: Show upgrade sync notification
+	 * Do: Show auto activate sync notification
 	 * 
 	 * @group admin-notifications
 	 * @since 2.2
@@ -309,7 +392,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - No feature auto activate sync is needed
 	 * - Elasticsearch version above bounds
 	 *
-	 * Do: Show upgrade sync notification
+	 * Do: Show above es compat notification
 	 * 
 	 * @group admin-notifications
 	 * @since 2.2
@@ -343,7 +426,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - No feature auto activate sync is needed
 	 * - Elasticsearch version above bounds
 	 *
-	 * Do: Show upgrade sync notification
+	 * Do: Show below es compat notification
 	 * 
 	 * @group admin-notifications
 	 * @since 2.2

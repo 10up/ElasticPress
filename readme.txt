@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 4.8
+Tested up to: 4.9
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -24,6 +24,8 @@ __Related Posts__: ElasticPress understands data in real time, so it can instant
 
 __Protected Content__: Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
 
+__Documents__: Indexes text inside of popular file types, and adds those files types to search results.
+
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
@@ -33,6 +35,30 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 4. Enjoy!
 
 == Changelog ==
+
+= 2.3.1 =
+
+Version 2.3.1 is a bug fix release. Here are a listed of issues that have been resolved:
+
+* Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes.
+* Fix broken upgrade sync notification.
+
+= 2.3 =
+
+Version 2.3 introduces the Documents feature which indexes text inside of popular file types, and adds those files types to search results. We've also officially added support for Elasticsearch 5.3.
+
+### Enhancements
+* Documents feature
+* Enable multiple feature status messages
+* Disable dashboard sync via constant: `define( 'EP_DASHBOARD_SYNC', false );`. Props [rveitch](https://github.com/rveitch).
+* Add filter for custom WooCommerce taxonomies. Props [kallehauge](https://github.com/kallehauge).
+* Support WooCommerce `product_type` taxonomy. Props [kallehauge](https://github.com/kallehauge).
+
+### Bug Fixes
+* Fix WP-CLI `--no-bulk` number of posts indexed message. Props [ivankristianto](https://github.com/ivankristianto).
+* Honor `ep_integrate` in WooCommerce queries. Props [ivankristianto](https://github.com/ivankristianto).
+* Properly check when ES results are empty. Props [lukaspawlik](https://github.com/lukaspawlik)
+* Incorrect `found_posts` set in query when ES is unavailable. Props [lukaspawlik](https://github.com/lukaspawlik)
 
 = 2.2.1 =
 

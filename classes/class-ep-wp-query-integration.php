@@ -181,7 +181,7 @@ class EP_WP_Query_Integration {
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
-		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
+		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) )  ) {
 			return $sql;
 		}
 
@@ -260,11 +260,13 @@ class EP_WP_Query_Integration {
 			$ep_query = ep_query( $formatted_args, $query->query_vars, $scope );
 
 			if ( false === $ep_query ) {
+				$query->elasticsearch_success = false;
 				return $request;
 			}
 
 			$query->found_posts = $ep_query['found_posts'];
 			$query->max_num_pages = ceil( $ep_query['found_posts'] / $query->get( 'posts_per_page' ) );
+			$query->elasticsearch_success = true;
 
 			foreach ( $ep_query['posts'] as $post_array ) {
 				$post = new stdClass();
