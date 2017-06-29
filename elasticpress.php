@@ -110,7 +110,7 @@ function ep_handle_upgrades() {
 		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
 
 		if ( ( -1 === version_compare( $old_version, $last_reindex_version ) && 1 === version_compare( EP_VERSION , $last_reindex_version ) ) || 0 === version_compare( EP_VERSION , $last_reindex_version ) )  {
-			$last_reindex_version = true;
+			$need_upgrade_sync = true;
 		}
 	}
 
