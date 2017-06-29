@@ -2176,54 +2176,91 @@ class EP_API {
 	public function get_elasticsearch_info( $force = false ) {
 
 		if ( $force || null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) {
-			$path = '_nodes/plugins';
 
-			$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
-
-			if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
-				$this->elasticsearch_version = false;
-				$this->elasticsearch_plugins = false;
-
-				/**
-				 * Try a different endpoint in case the plugins url is restricted
-				 * 
-				 * @since 2.2.1
-				 */
-
-				$request = ep_remote_request( '', array( 'method' => 'GET' ) );
-
-				if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
-					$response_body = wp_remote_retrieve_body( $request );
-					$response = json_decode( $response_body, true );
-
-					try {
-						$this->elasticsearch_version = $response['version']['number'];
-					} catch ( Exception $e ) {
-						// Do nothing
-					}
-				}
+			// Get ES info from cache if available. If we are forcing, then skip cache check
+			if ( $force ) {
+				$es_info = false;
 			} else {
-				$response = json_decode( wp_remote_retrieve_body( $request ), true );
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					$es_info = get_site_transient( 'ep_es_info' );
+				} else {
+					$es_info = get_transient( 'ep_es_info' );
+				}
+			}
 
-				$this->elasticsearch_plugins = array();
-				$this->elasticsearch_version = false;
+			if ( ! empty( $es_info ) ) {
+				// Set ES info from cache
+				$this->elasticsearch_version = $es_info['version'];
+				$this->elasticsearch_plugins = $es_info['plugins'];
+			} else {
+				$path = '_nodes/plugins';
 
-				if ( isset( $response['nodes'] ) ) {
+				$request = ep_remote_request( $path, array( 'method' => 'GET' ) );
 
-					foreach ( $response['nodes'] as $node ) {
-						// Save version of last node. We assume all nodes are same version
-						$this->elasticsearch_version = $node['version'];
+				if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
+					$this->elasticsearch_version = false;
+					$this->elasticsearch_plugins = false;
 
-						if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
+					/**
+					 * Try a different endpoint in case the plugins url is restricted
+					 * 
+					 * @since 2.2.1
+					 */
 
-							foreach ( $node['plugins'] as $plugin ) {
+					$request = ep_remote_request( '', array( 'method' => 'GET' ) );
 
-								$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
-							}
+					if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
+						$response_body = wp_remote_retrieve_body( $request );
+						$response = json_decode( $response_body, true );
 
-							break;
+						try {
+							$this->elasticsearch_version = $response['version']['number'];
+						} catch ( Exception $e ) {
+							// Do nothing
 						}
 					}
+				} else {
+					$response = json_decode( wp_remote_retrieve_body( $request ), true );
+
+					$this->elasticsearch_plugins = array();
+					$this->elasticsearch_version = false;
+
+					if ( isset( $response['nodes'] ) ) {
+
+						foreach ( $response['nodes'] as $node ) {
+							// Save version of last node. We assume all nodes are same version
+							$this->elasticsearch_version = $node['version'];
+
+							if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
+
+								foreach ( $node['plugins'] as $plugin ) {
+
+									$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+								}
+
+								break;
+							}
+						}
+					}
+				}
+
+				/**
+				 * Cache ES info
+				 *
+				 * @since  2.3.1
+				 */
+				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+					set_site_transient(
+						'ep_es_info',
+						array( 'version' => $this->elasticsearch_version, 'plugins' => $this->elasticsearch_plugins, ),
+						apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) )
+					);
+				} else {
+					set_transient(
+						'ep_es_info',
+						array( 'version' => $this->elasticsearch_version, 'plugins' => $this->elasticsearch_plugins, ),
+						apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) )
+					);
 				}
 			}
 		}
