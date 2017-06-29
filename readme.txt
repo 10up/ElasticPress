@@ -42,6 +42,7 @@ Version 2.3.1 is a bug fix release. Here are a listed of issues that have been r
 
 * Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes.
 * Fix broken upgrade sync notification.
+* Properly respect WC product visibility. Props [ivankristianto](https://github.com/ivankristianto).
 
 = 2.3 =
 
