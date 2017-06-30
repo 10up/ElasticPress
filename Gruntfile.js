@@ -86,7 +86,8 @@ module.exports = function ( grunt ) {
 						mainFile: 'elasticpress.php',
 						potFilename: 'elasticpress.pot',
 						type: 'wp-plugin',
-						potHeaders: true
+						potHeaders: true,
+						exclude: [ 'vendor', 'node_modules', 'tests' ]
 					}
 				}
 			},
