@@ -53,7 +53,8 @@ class EP_Dashboard {
 	}
 
 	/**
-	 * Clear ES info cache whenever EP dash or settings page is viewed
+	 * Clear ES info cache whenever EP dash or settings page is viewed. Also clear cache
+	 * when "try again" notification link is clicked.
 	 *
 	 * @since  2.3.1
 	 */
@@ -62,12 +63,18 @@ class EP_Dashboard {
 			return;
 		}
 
-		if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				delete_site_transient( 'ep_es_info' );
-			} else {
-				delete_transient( 'ep_es_info' );
-			}
+		if ( empty( $_GET['ep-retry'] ) && ( empty( $_GET['page'] ) || ( 'elasticpress' !== $_GET['page'] && 'elasticpress-settings' !== $_GET['page'] ) ) ) {
+			return;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( 'ep_es_info' );
+		} else {
+			delete_transient( 'ep_es_info' );
+		}
+
+		if ( ! empty( $_GET['ep-retry'] ) ) {
+			wp_redirect( remove_query_arg( 'ep-retry' ) );
 		}
 	}
 
@@ -278,7 +285,7 @@ class EP_Dashboard {
 
 				?>
 				<div class="notice notice-error">
-					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. You will need to <a href="%s">fix it</a> for ElasticPress to work.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%s">try your host again</a>, or you may need to <a href="%s">change your settings</a>.', 'elasticpress' ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
 				break;
