@@ -36,11 +36,11 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 2.3.1 =
+= 2.3.1, 2.3.2 =
 
-Version 2.3.1 is a bug fix release. Here are a listed of issues that have been resolved:
+Version 2.3.1-2.3.2 is a bug fix release. Here are a listed of issues that have been resolved:
 
-* Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes.
+* Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes. If ES isn't available, show admin notification that allows you to retry the host.
 * Fix broken upgrade sync notification.
 * Properly respect WC product visibility. Props [ivankristianto](https://github.com/ivankristianto). This requires a re-index if you are using the WooCommerce feature.
 
