@@ -42,6 +42,7 @@ class EP_Dashboard {
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_admin_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
+		add_action( 'plugins_loaded', array( $this, 'maybe_clear_es_info_cache' ) );
 		add_action( 'wp_ajax_ep_index', array( $this, 'action_wp_ajax_ep_index' ) );
 		add_action( 'wp_ajax_ep_notice_dismiss', array( $this, 'action_wp_ajax_ep_notice_dismiss' ) );
 		add_action( 'wp_ajax_ep_cancel_index', array( $this, 'action_wp_ajax_ep_cancel_index' ) );
@@ -49,6 +50,25 @@ class EP_Dashboard {
 		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
 		add_filter( 'plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
+	}
+
+	/**
+	 * Clear ES info cache whenever EP dash or settings page is viewed
+	 *
+	 * @since  2.3.1
+	 */
+	public function maybe_clear_es_info_cache() {
+		if ( ! is_admin() && ! is_network_admin() ) {
+			return;
+		}
+
+		if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				delete_site_transient( 'ep_es_info' );
+			} else {
+				delete_transient( 'ep_es_info' );
+			}
+		}
 	}
 
 	/**
