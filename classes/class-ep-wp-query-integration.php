@@ -424,6 +424,7 @@ class EP_WP_Query_Integration {
 			$post = new stdClass();
 			$post->ID = $post_array['post_id'];
 			$post->post_parent = $post_array['post_parent'];
+			$post->elasticsearch = true; // Super useful for debugging
 			$new_posts[] = $post;
 		}
 		return $new_posts;
