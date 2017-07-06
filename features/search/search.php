@@ -233,6 +233,17 @@ function ep_integrate_search_queries( $enabled, $query ) {
 		$enabled = false;
 	} else if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 		$enabled = true;
+
+		/**
+		 * WordPress have to be version 4.6 or newer to have "fields" support
+		 * since it requires the "posts_pre_query" filter.
+		 *
+		 * @see WP_Query::get_posts
+		 */
+		$fields = $query->get( 'fields' );
+		if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ! empty( $fields ) ) {
+			$enabled = false;
+		}
 	}
 
 	return $enabled;
