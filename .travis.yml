@@ -17,9 +17,6 @@ php:
 env:
   - WP_VERSION=latest WP_MULTISITE=1
 
-services:
-  - elasticsearch
-
 before_install:
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.2.2.deb && sudo dpkg -i --force-confnew elasticsearch-5.2.2.deb && sudo service elasticsearch restart
 
