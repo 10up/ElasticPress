@@ -159,7 +159,7 @@ function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 		}
 	}
 
-	return array_merge( $taxonomies, $woo_taxonomies, array( false ) );
+	return array_merge( $taxonomies, $woo_taxonomies );
 }
 
 /**
