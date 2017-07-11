@@ -1,5 +1,7 @@
 language: php
 
+sudo: true
+
 addons:
   apt:
     packages:
