@@ -671,7 +671,7 @@ class EP_API {
 		$selected_taxonomies = array();
 
 		foreach ( $taxonomies as $taxonomy ) {
-			if ( $taxonomy->public ) {
+			if ( $taxonomy->public || $taxonomy->publicly_queryable ) {
 				$selected_taxonomies[] = $taxonomy;
 			}
 		}
