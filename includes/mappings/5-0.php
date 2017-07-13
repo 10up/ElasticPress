@@ -12,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 return array(
 	'settings' => array(
-	    'index.mapping.total_fields.limit' => apply_filters( 'ep_total_field_limit', 5000 ),
-	    'index.max_result_window' => apply_filters( 'ep_max_result_window', 1000000 ),
+		'index.mapping.total_fields.limit' => apply_filters( 'ep_total_field_limit', 5000 ),
+		'index.max_result_window' => apply_filters( 'ep_max_result_window', 1000000 ),
 		'analysis' => array(
 			'analyzer' => array(
 				'default' => array(
@@ -53,6 +53,12 @@ return array(
 					'type' => 'edgeNGram',
 				),
 			),
+			'normalizer' => array(
+				'lowerasciinormalizer' => array(
+					'type'   => 'custom',
+					'filter' => array( 'lowercase', 'asciifolding' ),
+				),
+			),
 		),
 	),
 	'mappings' => array(
@@ -90,6 +96,7 @@ return array(
 										'sortable' => array(
 											'type' => 'keyword',
 											'ignore_above' => 10922,
+											'normalizer' => 'lowerasciinormalizer',
 										),
 										'raw' => array(
 											'type' => 'keyword',
@@ -141,6 +148,7 @@ return array(
 										),
 										'sortable' => array(
 											'type' => 'keyword',
+											'normalizer' => 'lowerasciinormalizer',
 										),
 									),
 								),
@@ -191,6 +199,7 @@ return array(
 								),
 								'sortable' => array(
 									'type' => 'keyword',
+									'normalizer' => 'lowerasciinormalizer',
 								),
 							),
 						),
@@ -235,6 +244,7 @@ return array(
 						'sortable' => array(
 							'type' => 'keyword',
 							'ignore_above' => 10922,
+							'normalizer' => 'lowerasciinormalizer',
 						),
 					),
 				),
