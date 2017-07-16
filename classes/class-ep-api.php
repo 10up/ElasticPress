@@ -1523,10 +1523,12 @@ class EP_API {
 			$agg_obj = $args['aggs'];
 
 			// Add a name to the aggregation if it was passed through
-			if ( ! empty( $agg_obj['name'] ) ) {
-				$agg_name = $agg_obj['name'];
-			} else {
-				$agg_name = 'aggregation_name';
+			$agg_name     = empty( $agg_obj['name'] ) ? 'aggregation_name' : $agg_obj['name'];
+
+			$sub_agg_name = 'sub_aggregation_name';
+			if ( isset( $agg_obj['aggs']['name'] ) ) {
+				$sub_agg_name = $agg_obj['aggs']['name'];
+				unset( $agg_obj['aggs']['name'] );
 			}
 
 			// Add/use the filter if warranted
@@ -1534,11 +1536,12 @@ class EP_API {
 
 				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
-				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+				$formatted_args['aggs'][ $agg_name ]['aggs'][$sub_agg_name] = $agg_obj['aggs'];
 			} else {
 				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
 			}
 		}
+
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
 	
