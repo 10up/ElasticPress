@@ -42,6 +42,7 @@ class EP_Dashboard {
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_admin_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
+		add_action( 'plugins_loaded', array( $this, 'maybe_clear_es_info_cache' ) );
 		add_action( 'wp_ajax_ep_index', array( $this, 'action_wp_ajax_ep_index' ) );
 		add_action( 'wp_ajax_ep_notice_dismiss', array( $this, 'action_wp_ajax_ep_notice_dismiss' ) );
 		add_action( 'wp_ajax_ep_cancel_index', array( $this, 'action_wp_ajax_ep_cancel_index' ) );
@@ -49,6 +50,32 @@ class EP_Dashboard {
 		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
 		add_filter( 'plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
+	}
+
+	/**
+	 * Clear ES info cache whenever EP dash or settings page is viewed. Also clear cache
+	 * when "try again" notification link is clicked.
+	 *
+	 * @since  2.3.1
+	 */
+	public function maybe_clear_es_info_cache() {
+		if ( ! is_admin() && ! is_network_admin() ) {
+			return;
+		}
+
+		if ( empty( $_GET['ep-retry'] ) && ( empty( $_GET['page'] ) || ( 'elasticpress' !== $_GET['page'] && 'elasticpress-settings' !== $_GET['page'] ) ) ) {
+			return;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( 'ep_es_info' );
+		} else {
+			delete_transient( 'ep_es_info' );
+		}
+
+		if ( ! empty( $_GET['ep-retry'] ) ) {
+			wp_redirect( remove_query_arg( 'ep-retry' ) );
+		}
 	}
 
 	/**
@@ -258,7 +285,7 @@ class EP_Dashboard {
 
 				?>
 				<div class="notice notice-error">
-					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. You will need to <a href="%s">fix it</a> for ElasticPress to work.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%s">try your host again</a>, or you may need to <a href="%s">change your settings</a>.', 'elasticpress' ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
 				break;
@@ -505,6 +532,8 @@ class EP_Dashboard {
 		}
 
 		$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
+		
+		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
 		$args = apply_filters( 'ep_index_posts_args', array(
 			'posts_per_page'         => $posts_per_page,
