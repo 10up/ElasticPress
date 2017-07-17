@@ -42,6 +42,7 @@ class EP_Dashboard {
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_admin_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
+		add_action( 'plugins_loaded', array( $this, 'maybe_clear_es_info_cache' ) );
 		add_action( 'wp_ajax_ep_index', array( $this, 'action_wp_ajax_ep_index' ) );
 		add_action( 'wp_ajax_ep_notice_dismiss', array( $this, 'action_wp_ajax_ep_notice_dismiss' ) );
 		add_action( 'wp_ajax_ep_cancel_index', array( $this, 'action_wp_ajax_ep_cancel_index' ) );
@@ -49,6 +50,32 @@ class EP_Dashboard {
 		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
 		add_filter( 'plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
+	}
+
+	/**
+	 * Clear ES info cache whenever EP dash or settings page is viewed. Also clear cache
+	 * when "try again" notification link is clicked.
+	 *
+	 * @since  2.3.1
+	 */
+	public function maybe_clear_es_info_cache() {
+		if ( ! is_admin() && ! is_network_admin() ) {
+			return;
+		}
+
+		if ( empty( $_GET['ep-retry'] ) && ( empty( $_GET['page'] ) || ( 'elasticpress' !== $_GET['page'] && 'elasticpress-settings' !== $_GET['page'] ) ) ) {
+			return;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( 'ep_es_info' );
+		} else {
+			delete_transient( 'ep_es_info' );
+		}
+
+		if ( ! empty( $_GET['ep-retry'] ) ) {
+			wp_redirect( remove_query_arg( 'ep-retry' ) );
+		}
 	}
 
 	/**
@@ -191,6 +218,16 @@ class EP_Dashboard {
 			if ( false === $last_sync && ! isset( $_GET['do_sync'] ) ) {
 				$notice = 'no-sync';
 			}
+
+			if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
+				if ( 'auto-activate-sync' == $notice ) {
+					$notice = 'sync-disabled-auto-activate';
+				} elseif ( 'upgrade-sync' == $notice ) {
+					$notice = 'sync-disabled-upgrade';
+				} elseif ( 'no-sync' == $notice ) {
+					$notice = 'sync-disabled-no-sync';
+				}
+			}
 		}
 
 		$es_version = ep_get_elasticsearch_version( $force );
@@ -248,7 +285,7 @@ class EP_Dashboard {
 
 				?>
 				<div class="notice notice-error">
-					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. You will need to <a href="%s">fix it</a> for ElasticPress to work.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%s">try your host again</a>, or you may need to <a href="%s">change your settings</a>.', 'elasticpress' ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
 				break;
@@ -320,6 +357,28 @@ class EP_Dashboard {
 				</div>
 				<?php
 				break;
+			case 'sync-disabled-auto-activate':
+				$feature = ep_get_registered_feature( $auto_activate_sync );
+				?>
+				<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
+					<p><?php printf( __( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'sync-disabled-upgrade':
+				?>
+				<div data-ep-notice="sync-disabled-upgrade" class="notice notice-warning is-dismissible">
+					<p><?php printf( __( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' ) ); ?></p>
+				</div>
+				<?php
+				break;
+			case 'sync-disabled-no-sync':
+				?>
+				<div data-ep-notice="sync-disabled-no-sync" class="notice notice-warning is-dismissible">
+					<p><?php printf( __( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
+				</div>
+				<?php
+				break;
 		}
 
 		return $notice;
@@ -351,6 +410,7 @@ class EP_Dashboard {
 
 				break;
 			case 'no-sync':
+			case 'sync-disabled-no-sync':
 				// We use 'never' here as a placeholder value to trick EP into thinking a sync has happened
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					update_site_option( 'ep_last_sync', 'never' );
@@ -360,6 +420,7 @@ class EP_Dashboard {
 
 				break;
 			case 'upgrade-sync':
+			case 'sync-disabled-upgrade':
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					delete_site_option( 'ep_need_upgrade_sync' );
 				} else {
@@ -368,6 +429,7 @@ class EP_Dashboard {
 
 				break;
 			case 'auto-activate-sync':
+			case 'sync-disabled-auto-activate':
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					delete_site_option( 'ep_feature_auto_activated_sync' );
 				} else {
@@ -429,6 +491,8 @@ class EP_Dashboard {
 					ep_delete_index();
 
 					ep_put_mapping();
+
+					do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
 				}
 
 				update_option( 'ep_last_sync', time() );
@@ -439,6 +503,8 @@ class EP_Dashboard {
 			if ( ! empty( $_POST['feature_sync'] ) ) {
 				$index_meta['feature_sync'] = esc_attr( $_POST['feature_sync'] );
 			}
+
+			do_action( 'ep_dashboard_start_index', $index_meta );
 		} else if ( ! empty( $index_meta['site_stack'] ) && $index_meta['offset'] >= $index_meta['found_posts'] ) {
 			$status = 'start';
 
@@ -459,12 +525,14 @@ class EP_Dashboard {
 					ep_delete_index();
 
 					ep_put_mapping();
+
+					do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
 				}
 			}
 		}
 
 		$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
-
+		
 		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
 		$args = apply_filters( 'ep_index_posts_args', array(
@@ -519,7 +587,12 @@ class EP_Dashboard {
 					// make sure to add a new line at the end or the request will fail
 					$body = rtrim( implode( "\n", $flatten ) ) . "\n";
 
-					ep_bulk_index_posts( $body );
+					$return = ep_bulk_index_posts( $body );
+					if( is_wp_error( $return ) ){
+						header("HTTP/1.1 500 Internal Server Error");
+						wp_send_json_error(  );
+						exit;
+					}
 				}
 
 				$index_meta['offset'] = absint( $index_meta['offset'] + $posts_per_page );
@@ -655,7 +728,7 @@ class EP_Dashboard {
 					$index_meta['wpcli_sync'] = true;
 				}
 
-				if ( isset( $_GET['do_sync'] ) ) {
+				if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) {
 					$data['auto_start_index'] = true;
 				}
 

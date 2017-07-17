@@ -70,10 +70,11 @@ class EP_Features {
 	 * 
 	 * @param  string  $slug
 	 * @param  array   $settings
+	 * @param  bool    $force
 	 * @since  2.2
 	 * @return array|bool
 	 */
-	public function update_feature( $slug, $settings ) {
+	public function update_feature( $slug, $settings, $force = true ) {
 		$feature = ep_get_registered_feature( $slug );
 
 		if ( empty( $feature ) ) {
@@ -98,6 +99,17 @@ class EP_Features {
 
 		// Make sure active is a proper bool
 		$feature_settings[ $slug ]['active'] = (bool) $feature_settings[ $slug ]['active'];
+
+		if ( $feature_settings[ $slug ]['active'] ) {
+			$feature_settings[ $slug ]['force_inactive'] = false;
+		}
+
+		// This means someone has explicitly deactivated the feature
+		if ( $force ) {
+			if ( ! (bool) $settings['active'] && $original_state ) {
+				$feature_settings[ $slug ]['force_inactive'] = true;
+			}
+		}
 
 		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
@@ -184,6 +196,12 @@ class EP_Features {
 			foreach ( $new_requirement_statuses as $slug => $code ) {
 				$feature = ep_get_registered_feature( $slug );
 
+				// If a feature is forced inactive, do nothing
+				$feature_settings = $feature->get_settings();
+				if ( is_array( $feature_settings ) && ! empty( $feature_settings['force_inactive'] ) ) {
+					continue;
+				}
+
 				// This is a new feature
 				if ( ! isset( $old_requirement_statuses[ $slug ] ) ) {
 					if ( 0 === $code ) {
@@ -214,8 +232,8 @@ class EP_Features {
 								}
 							}
 						} elseif ( $feature->is_active() && ! $active ) {
-							// Just deactivate
-							ep_deactivate_feature( $slug );
+							// Just deactivate, don't force
+							ep_deactivate_feature( $slug, false );
 						}
 					}
 				}
@@ -275,18 +293,18 @@ function ep_register_feature( $slug, $feature_args ) {
  * 
  * @param  string $slug
  * @param  array $settings
+ * @param  bool  $force
  * @since  2.2
  * @return array
  */
-function ep_update_feature( $slug, $settings ) {
-	return EP_Features::factory()->update_feature( $slug, $settings );
+function ep_update_feature( $slug, $settings, $force = true ) {
+	return EP_Features::factory()->update_feature( $slug, $settings, $force );
 }
 
 /**
  * Activate a feature
  * 
  * @param  string $slug
- * @param  bool   $active
  * @since  2.2
  */
 function ep_activate_feature( $slug ) {
@@ -297,10 +315,11 @@ function ep_activate_feature( $slug ) {
  * Dectivate a feature
  * 
  * @param  string $slug
+ * @param  bool  $force
  * @since  2.2
  */
-function ep_deactivate_feature( $slug ) {
-	EP_Features::factory()->update_feature( $slug, array( 'active' => false ) );
+function ep_deactivate_feature( $slug, $force = true ) {
+	EP_Features::factory()->update_feature( $slug, array( 'active' => false ), $force );
 }
 
 /**

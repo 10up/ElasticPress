@@ -3,7 +3,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     2.2
+ * Version:     2.3.2
  * Author:      Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '2.2' );
+define( 'EP_VERSION', '2.3.2' );
 
 /**
  * We compare the current ES version to this compatibility version number. Compatibility is true when:
@@ -33,7 +33,7 @@ define( 'EP_VERSION', '2.2' );
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '5.2' );
+define( 'EP_ES_VERSION_MAX', '5.3' );
 define( 'EP_ES_VERSION_MIN', '1.7' );
 
 require_once( 'classes/class-ep-config.php' );
@@ -58,12 +58,25 @@ require_once( 'features/search/search.php' );
 require_once( 'features/related-posts/related-posts.php' );
 require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
+require_once( 'features/documents/documents.php' );
 
 /**
  * WP CLI Commands
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once( 'bin/wp-cli.php' );
+}
+
+/**
+ * Set the availability of dashboard sync functionality. Defaults to true (enabled).
+ *
+ * Sync can be disabled by defining EP_DASHBOARD_SYNC as false in wp-config.php.
+ * NOTE: Must be defined BEFORE `require_once(ABSPATH . 'wp-settings.php');` in wp-config.php.
+ *
+ * @since  2.3
+ */
+if ( ! defined( 'EP_DASHBOARD_SYNC' ) ) {
+	define( 'EP_DASHBOARD_SYNC', true );
 }
 
 /**
@@ -87,6 +100,7 @@ function ep_handle_upgrades() {
 	 */
 	$reindex_versions = apply_filters( 'ep_reindex_versions', array(
 		'2.2',
+		'2.3.1',
 	) );
 
 	$need_upgrade_sync = false;
@@ -96,8 +110,8 @@ function ep_handle_upgrades() {
 	} else {
 		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
 
-		if ( ( -1 === version_compare( $old_version, $last_reindex_version ) && 1 === version_compare( EP_VERSION , $last_reindex_version ) ) || 0 === version_compare( EP_VERSION , $last_reindex_version ) )  {
-			$last_reindex_version = true;
+		if ( -1 === version_compare( $old_version, $last_reindex_version ) && 0 <= version_compare( EP_VERSION , $last_reindex_version ) )  {
+			$need_upgrade_sync = true;
 		}
 	}
 

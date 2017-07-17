@@ -36,19 +36,29 @@ Once syncing finishes, your site is officially supercharged. You also have acces
 
 ### Search
 
-Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
+Instantly find the content you’re looking for. The first time.
 
 ### WooCommerce
 
-Allow customers to filter through products faster and improve product search relevancy. This feature will increase your sales bottom line and reduce administrative costs.
+“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
 
 ### Related Posts
 
-Help users easily find related content by adding related posts to the end of each post.
+ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
+
+Available API functions:
+
+* `ep_find_related( $post_id, $return = 5 )`
+
+  Get related posts for a given `$post_id`. Use this in a theme or plugin to get related content.
 
 ### Protected Content
 
-Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. Enabling this feature will allow other ElasticPress features to work within the admin (i.e. WooCommerce and Search). You'll need to make sure your Elasticsearch instance is properly secured.
+Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
+
+### Documents (requires [Ingest Attachment plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html))
+
+Indexes text inside of popular file types, and adds those files types to search results.
 
 ## `WP_Query` and the ElasticPress Query Integration
 
@@ -246,15 +256,15 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
     ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), 
     ```type``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
-
-      * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
-      * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
-      * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
-      * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
-      * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
-      * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
-      * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
-      * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+    
+    * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
+    * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+    * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
+    * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
+    * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
+    * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
+    * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
+    * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
 
     The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
     ```php
@@ -484,7 +494,7 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type]`
 
     Index all posts in the current blog.
 
@@ -535,6 +545,16 @@ The following commands are supported by ElasticPress:
 ```php
 define( 'ES_SHIELD', 'username:password' );
 ```
+
+## Disable Dashboard Sync
+
+Dashboard sync can be disabled by defining the constant `EP_DASHBOARD_SYNC` as `false` in your wp-config.php file.
+
+```php
+define( 'EP_DASHBOARD_SYNC', false );
+```
+
+This can be helpful for managed sites where users initiating a sync from the dashboard could potentially cause issues such as deleting the index and limiting this control to WP-CLI is preferred. When disabled, features that would require reindexing are also prevented from being enabled/disabled from the dashboard.
 
 ## Custom Features
 

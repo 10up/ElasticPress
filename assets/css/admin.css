@@ -248,9 +248,19 @@ h2.ep-list-features {
   .ep-feature .settings .action-wrap a {
     cursor: pointer;
     display: inline-block; }
+  .ep-feature .settings .action-wrap .no-dash-sync {
+    color: #aaa;
+    line-height: 27px;
+    padding-right: 8px;
+    display: none; }
+  .ep-feature .settings .action-wrap a.disabled {
+    cursor: default; }
   .ep-feature .settings .action-wrap .cancel {
     margin-top: 4px;
     margin-right: 6px; }
+
+.ep-feature.dash-sync-disabled .settings .action-wrap .no-dash-sync {
+  display: inline; }
 
 .ep-feature .settings .field {
   clear: both;
@@ -387,5 +397,4 @@ h2.ep-list-features {
     vertical-align: middle;
     display: inline-block;
     padding-top: .5em; } }
-
 /*# sourceMappingURL=admin.css.map */
