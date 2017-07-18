@@ -740,7 +740,7 @@ class EP_Dashboard {
 				$data['sync_paused'] = esc_html__( 'Sync paused', 'elasticpress' );
 				$data['sync_syncing'] = esc_html__( 'Syncing', 'elasticpress' );
 				$data['sync_initial'] = esc_html__( 'Starting sync', 'elasticpress' );
-				$data['sync_wpcli'] = esc_html__( "WP CLI sync is occuring. Refresh the page to see if it's finished", 'elasticpress' );
+				$data['sync_wpcli'] = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
 				$data['sync_error'] = esc_html__( 'An error occured while syncing', 'elasticpress' );
 
 				wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
