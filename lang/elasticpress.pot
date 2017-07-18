@@ -249,7 +249,7 @@ msgid "Starting sync"
 msgstr ""
 
 #: classes/class-ep-dashboard.php:743
-msgid "WP CLI sync is occuring. Refresh the page to see if it's finished"
+msgid "WP CLI sync is occurring. Refresh the page to see if it's finished"
 msgstr ""
 
 #: classes/class-ep-dashboard.php:744
