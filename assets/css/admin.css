@@ -272,7 +272,7 @@ h2.ep-list-features {
     display: block;
     float: left;
     margin-right: 3em;
-    min-width: 115px; }
+    min-width: 135px; }
   .ep-feature .settings .field .input-wrap {
     display: block;
     float: left; }
@@ -400,4 +400,5 @@ h2.ep-list-features {
     vertical-align: middle;
     display: inline-block;
     padding-top: .5em; } }
+
 /*# sourceMappingURL=admin.css.map */
