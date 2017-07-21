@@ -535,10 +535,21 @@ class EP_Dashboard {
 		
 		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
+		$indexable_post_types = ep_get_indexable_post_types();
+		$indexable_post_status = ep_get_indexable_post_status();
+		/**
+		 * Ensures that the "inherit" post status is included if one of the
+		 * indexable post types is "attachment". Not doing this means the rest
+		 * of the plugin indexes attachments but the main sync process in the
+		 * Settings page in the Admin does not.
+		 */
+		if ( array_key_exists( 'attachment', $indexable_post_types ) && ! in_array( 'inherit', $indexable_post_status ) ) {
+			$indexable_post_status[] = 'inherit';
+		}
 		$args = apply_filters( 'ep_index_posts_args', array(
 			'posts_per_page'         => $posts_per_page,
-			'post_type'              => ep_get_indexable_post_types(),
-			'post_status'            => ep_get_indexable_post_status(),
+			'post_type'              => $indexable_post_types,
+			'post_status'            => $indexable_post_status,
 			'offset'                 => $index_meta['offset'],
 			'ignore_sticky_posts'    => true,
 			'orderby'                => 'ID',
