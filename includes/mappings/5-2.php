@@ -211,6 +211,7 @@ return array(
 								),
 								'sortable' => array(
 									'type' => 'keyword',
+									'normalizer' => 'lowerasciinormalizer',
 								),
 							),
 						),
