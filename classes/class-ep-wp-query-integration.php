@@ -194,7 +194,7 @@ class EP_WP_Query_Integration {
 	/**
 	 * Workaround for when WP_Query short circuits for special fields arguments.
 	 *
-	 * @since 2.2.1
+	 * @since 2.4.0
 	 *
 	 * @param array $posts
 	 *   Return an array of post data to short-circuit WP's query,
@@ -329,7 +329,7 @@ class EP_WP_Query_Integration {
 	/**
 	 * Format the ES hits/results as post objects.
 	 *
-	 * @since 2.2.1
+	 * @since 2.4.0
 	 *
 	 * @param array $posts The posts that should be formatted.
 	 * @param array $new_posts Array of posts from cache.
@@ -394,7 +394,7 @@ class EP_WP_Query_Integration {
 	/**
 	 * Format the ES hits/results as an array of ids.
 	 *
-	 * @since 2.2.1
+	 * @since 2.4.0
 	 *
 	 * @param array $posts The posts that should be formatted.
 	 * @param array $new_posts Array of posts from cache.
@@ -412,7 +412,7 @@ class EP_WP_Query_Integration {
 	/**
 	 * Format the ES hits/results as objects containing id and parent id.
 	 *
-	 * @since 2.2.1
+	 * @since 2.4.0
 	 *
 	 * @param array $posts The posts that should be formatted.
 	 * @param array $new_posts Array of posts from cache.
