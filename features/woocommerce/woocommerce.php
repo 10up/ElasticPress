@@ -601,7 +601,7 @@ function ep_wc_delete_product_variation_orphans_before_index_cli( $args, $assoc_
 		$woo_tools = new WC_REST_System_Status_Tools_Controller();
 		$delete_orphaned_variations = $woo_tools->execute_tool( 'delete_orphaned_variations' );
 
-		WP_CLI::log( __( 'Try to delete product variation orphans before indexing.', 'cx-search' ) );
+		WP_CLI::log( __( 'Try to delete product variation orphans before indexing.', 'elasticpress' ) );
 		if ( is_array( $delete_orphaned_variations ) && isset( $delete_orphaned_variations['success'] ) && $delete_orphaned_variations['success'] ) {
 			WP_CLI::log( $delete_orphaned_variations['message'] );
 		}
