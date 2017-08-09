@@ -585,6 +585,51 @@ function ep_wc_search_order( $wp ){
 }
 
 /**
+ * Clear WooCommerce product variations orphans before indexing (WP CLI).
+ *
+ * We do this since it is possible for product variations without parents to
+ * crash the EP index sync. The most "popular" error is when fetching the
+ * permalink for the variation.
+ *
+ * @since TBD
+ *
+ * @param array $args
+ * @param array $assoc_args
+ */
+function ep_wc_delete_product_variation_orphans_before_index_cli( $args, $assoc_args ) {
+	if ( class_exists( 'WC_REST_System_Status_Tools_Controller' ) ) {
+		$woo_tools = new WC_REST_System_Status_Tools_Controller();
+		$delete_orphaned_variations = $woo_tools->execute_tool( 'delete_orphaned_variations' );
+
+		WP_CLI::log( __( 'Try to delete product variation orphans before indexing.', 'cx-search' ) );
+		if ( is_array( $delete_orphaned_variations ) && isset( $delete_orphaned_variations['success'] ) && $delete_orphaned_variations['success'] ) {
+			WP_CLI::log( $delete_orphaned_variations['message'] );
+		}
+	}
+}
+
+/**
+ * Clear WooCommerce product variations orphans before indexing (Dashboard).
+ *
+ * @TODO Add some sort of notice.
+ *
+ * We do this since it is possible for product variations without parents to
+ * crash the EP index sync. The most "popular" error is when fetching the
+ * permalink for the variation.
+ *
+ * @since TBD
+ *
+ * @param array $index_meta
+ * @param string|boolean $status
+ */
+function ep_wc_delete_product_variation_orphans_before_index_dashboard( $index_meta, $status ) {
+	if ( is_string( $status ) && 'start' === $status && class_exists( 'WC_REST_System_Status_Tools_Controller' ) ) {
+		$woo_tools = new WC_REST_System_Status_Tools_Controller();
+		$woo_tools->execute_tool( 'delete_orphaned_variations' );
+	}
+}
+
+/**
  * Setup all feature filters
  *
  * @since  2.1
@@ -601,6 +646,8 @@ function ep_wc_setup() {
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
+		add_action( 'ep_pre_dashboard_index', 'ep_wc_delete_product_variation_orphans_before_index_dashboard', 5, 2 );
+		add_action( 'ep_wp_cli_pre_index', 'ep_wc_delete_product_variation_orphans_before_index_cli', 5, 2 );
 	}
 }
 
