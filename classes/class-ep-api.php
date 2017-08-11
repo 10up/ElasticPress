@@ -595,7 +595,7 @@ class EP_API {
 			'post_mime_type'    => $post->post_mime_type,
 			'permalink'         => get_permalink( $post_id ),
 			'terms'             => $this->prepare_terms( $post ),
-			'post_meta'         => $this->prepare_meta( $post ),
+			'meta'              => $this->prepare_meta_types( $this->prepare_meta( $post ) ), // post_meta removed in 2.4
 			'date_terms'        => $this->prepare_date_terms( $post_date ),
 			'comment_count'     => $comment_count,
 			'comment_status'    => $comment_status,
@@ -609,8 +609,6 @@ class EP_API {
 		 * This filter is named poorly but has to stay to keep backwards compat
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
-
-		$post_args['meta'] = $this->prepare_meta_types( $post_args['post_meta'] );
 
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
