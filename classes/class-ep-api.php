@@ -466,6 +466,8 @@ class EP_API {
 
 		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
 			$mapping_file = 'pre-5-0.php';
+		} elseif ( version_compare( $es_version, '5.2' ) >= 0 ) {
+			$mapping_file = '5-2.php';
 		} else {
 			$mapping_file = '5-0.php';
 		}
