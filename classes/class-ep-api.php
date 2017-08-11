@@ -1523,6 +1523,30 @@ class EP_API {
 		}
 
 		/**
+		 * Support fields.
+		 */
+		if ( isset( $args['fields'] ) ) {
+			switch ( $args['fields'] ) {
+				case 'ids':
+					$formatted_args['_source'] = array(
+						'include' => array(
+							'post_id',
+						),
+					);
+					break;
+
+				case 'id=>parent':
+					$formatted_args['_source'] = array(
+						'include' => array(
+							'post_id',
+							'post_parent',
+						),
+					);
+					break;
+			}
+		}
+
+		/**
 		 * Aggregations
 		 */
 		if ( isset( $args['aggs'] ) && ! empty( $args['aggs']['aggs'] ) ) {

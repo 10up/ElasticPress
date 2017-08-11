@@ -47,6 +47,9 @@ class EP_WP_Query_Integration {
 		// Nukes the FOUND_ROWS() database query
 		add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
 
+		// Support "fields".
+		add_filter( 'posts_pre_query', array( $this, 'posts_fields' ), 10, 2 );
+
 		// Query and filter in EP_Posts to WP_Query
 		add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
 
@@ -189,6 +192,36 @@ class EP_WP_Query_Integration {
 	}
 
 	/**
+	 * Workaround for when WP_Query short circuits for special fields arguments.
+	 *
+	 * @since 2.4.0
+	 *
+	 * @param array $posts
+	 *   Return an array of post data to short-circuit WP's query,
+	 *   or null to allow WP to run its normal queries.
+	 * @param WP_Query $query
+	 *   WP_Query object.
+	 *
+	 * @return array
+	 *   An array of fields.
+	 */
+	public function posts_fields( $posts, $query ) {
+		// Make sure the query is EP enabled.
+		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[ spl_object_hash( $query ) ] ) ) {
+			return $posts;
+		}
+
+		// Determine how we should return the posts. The official WP_Query
+		// supports: ids, id=>parent and post objects.
+		$fields = $query->get( 'fields', '' );
+		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
+			return $this->posts_by_query[ spl_object_hash( $query ) ];
+		}
+
+		return $posts;
+	}
+
+	/**
 	 * Filter query string used for get_posts(). Query for posts and save for later.
 	 * Return a query that will return nothing.
 	 *
@@ -268,55 +301,21 @@ class EP_WP_Query_Integration {
 			$query->max_num_pages = ceil( $ep_query['found_posts'] / $query->get( 'posts_per_page' ) );
 			$query->elasticsearch_success = true;
 
-			foreach ( $ep_query['posts'] as $post_array ) {
-				$post = new stdClass();
+			// Determine how we should format the results from ES based on the fields
+			// parameter.
+			$fields = $query->get( 'fields', '' );
+			switch ( $fields ) {
+				case 'ids' :
+					$new_posts = $this->format_hits_as_ids( $ep_query['posts'], $new_posts );
+					break;
 
-				$post->ID = $post_array['post_id'];
-				$post->site_id = get_current_blog_id();
+				case 'id=>parent' :
+					$new_posts = $this->format_hits_as_id_parents( $ep_query['posts'], $new_posts );
+					break;
 
-				if ( ! empty( $post_array['site_id'] ) ) {
-					$post->site_id = $post_array['site_id'];
-				}
-				// ep_search_request_args
-				$post_return_args = apply_filters( 'ep_search_post_return_args',
-					array(
-						'post_type',
-						'post_author',
-						'post_name',
-						'post_status',
-						'post_title',
-						'post_parent',
-						'post_content',
-						'post_excerpt',
-						'post_date',
-						'post_date_gmt',
-						'post_modified',
-						'post_modified_gmt',
-						'post_mime_type',
-						'comment_count',
-						'comment_status',
-						'ping_status',
-						'menu_order',
-						'permalink',
-						'terms',
-						'post_meta',
-						'meta',
-					)
-				);
-
-				foreach ( $post_return_args as $key ) {
-					if( $key === 'post_author' ) {
-						$post->$key = $post_array[$key]['id'];
-					} elseif ( isset( $post_array[ $key ] ) ) {
-						$post->$key = $post_array[$key];
-					}
-				}
-
-				$post->elasticsearch = true; // Super useful for debugging
-
-				if ( $post ) {
-					$new_posts[] = $post;
-				}
+				default:
+					$new_posts = $this->format_hits_as_posts( $ep_query['posts'], $new_posts );
+					break;
 			}
 
 			do_action( 'ep_wp_query_non_cached_search', $new_posts, $ep_query, $query );
@@ -329,6 +328,109 @@ class EP_WP_Query_Integration {
 		return "SELECT * FROM $wpdb->posts WHERE 1=0";
 	}
 
+	/**
+	 * Format the ES hits/results as post objects.
+	 *
+	 * @since 2.4.0
+	 *
+	 * @param array $posts The posts that should be formatted.
+	 * @param array $new_posts Array of posts from cache.
+	 *
+	 * @return array
+	 */
+	protected function format_hits_as_posts( $posts, $new_posts ) {
+		foreach ( $posts as $post_array ) {
+			$post = new stdClass();
+
+			$post->ID = $post_array['post_id'];
+			$post->site_id = get_current_blog_id();
+
+			if ( ! empty( $post_array['site_id'] ) ) {
+				$post->site_id = $post_array['site_id'];
+			}
+			// ep_search_request_args
+			$post_return_args = apply_filters( 'ep_search_post_return_args',
+				array(
+					'post_type',
+					'post_author',
+					'post_name',
+					'post_status',
+					'post_title',
+					'post_parent',
+					'post_content',
+					'post_excerpt',
+					'post_date',
+					'post_date_gmt',
+					'post_modified',
+					'post_modified_gmt',
+					'post_mime_type',
+					'comment_count',
+					'comment_status',
+					'ping_status',
+					'menu_order',
+					'permalink',
+					'terms',
+					'post_meta',
+					'meta',
+				)
+			);
+
+			foreach ( $post_return_args as $key ) {
+				if( $key === 'post_author' ) {
+					$post->$key = $post_array[$key]['id'];
+				} elseif ( isset( $post_array[ $key ] ) ) {
+					$post->$key = $post_array[$key];
+				}
+			}
+
+			$post->elasticsearch = true; // Super useful for debugging
+
+			if ( $post ) {
+				$new_posts[] = $post;
+			}
+		}
+
+		return $new_posts;
+	}
+
+	/**
+	 * Format the ES hits/results as an array of ids.
+	 *
+	 * @since 2.4.0
+	 *
+	 * @param array $posts The posts that should be formatted.
+	 * @param array $new_posts Array of posts from cache.
+	 *
+	 * @return array
+	 */
+	protected function format_hits_as_ids( $posts, $new_posts ) {
+		foreach ( $posts as $post_array ) {
+			$new_posts[] = $post_array['post_id'];
+		}
+
+		return $new_posts;
+	}
+
+	/**
+	 * Format the ES hits/results as objects containing id and parent id.
+	 *
+	 * @since 2.4.0
+	 *
+	 * @param array $posts The posts that should be formatted.
+	 * @param array $new_posts Array of posts from cache.
+	 *
+	 * @return array
+	 */
+	protected function format_hits_as_id_parents( $posts, $new_posts ) {
+		foreach ( $posts as $post_array ) {
+			$post = new stdClass();
+			$post->ID = $post_array['post_id'];
+			$post->post_parent = $post_array['post_parent'];
+			$post->elasticsearch = true; // Super useful for debugging
+			$new_posts[] = $post;
+		}
+		return $new_posts;
+	}
 
 	/**
 	 * Return a singleton instance of the current class

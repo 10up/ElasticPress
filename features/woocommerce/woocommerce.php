@@ -338,10 +338,13 @@ function ep_wc_translate_args( $query ) {
 		}
 
 		/**
-		 * We can't support any special fields parameters
+		 * WordPress have to be version 4.6 or newer to have "fields" support
+		 * since it requires the "posts_pre_query" filter.
+		 *
+		 * @see WP_Query::get_posts
 		 */
 		$fields = $query->get( 'fields', false );
-		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
+		if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ( 'ids' === $fields || 'id=>parent' === $fields ) ) {
 			$query->set( 'fields', 'default' );
 		}
 
