@@ -3374,4 +3374,50 @@ class EPTestSingleSite extends EP_Test_Base {
 		
 		$this->assertEquals( 3, $query->found_posts );
 	}
+
+	/**
+	 * If a taxonomy is not public but is publicly queryable, it should return a result.
+	 *
+	 * @link https://github.com/10up/ElasticPress/issues/890
+	 * @group single-site
+	 * @since 2.4
+	 */
+	public function testCustomTaxonomyPublic() {
+
+		$post_id = ep_create_and_sync_post();
+		$post    = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, array( 'label'              => $taxName,
+		                                                      'public'             => false,
+		                                                      'publicly_queryable' => true
+		) );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1     = wp_insert_term( $term1Name, $taxName );
+
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'test',
+			'tax_query' => array(
+				array(
+					'taxonomy' => $taxName,
+					'terms'    => array( $term1Name ),
+					'field'    => 'name',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
+	}
+
 }

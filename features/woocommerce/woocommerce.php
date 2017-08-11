@@ -133,10 +133,17 @@ function ep_wc_convert_post_object_to_id( $posts ) {
  * @return  array
  */
 function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
-	$product_type       = get_taxonomy( 'product_type' );
-	$product_visibility = get_taxonomy( 'product_visibility' );
+	$woo_taxonomies = array();
 
-	$woo_taxonomies = array( $product_type, $product_visibility );
+	$product_type       = get_taxonomy( 'product_type' );
+	if( false !== $product_type ){
+		$woo_taxonomies[] = $product_type;
+	}
+
+	$product_visibility = get_taxonomy( 'product_visibility' );
+	if( false !== $product_visibility ){
+		$woo_taxonomies[] = $product_visibility;
+	}
 
 	/**
 	 * Note product_shipping_class, product_cat, and product_tag are already public. Make
@@ -331,10 +338,13 @@ function ep_wc_translate_args( $query ) {
 		}
 
 		/**
-		 * We can't support any special fields parameters
+		 * WordPress have to be version 4.6 or newer to have "fields" support
+		 * since it requires the "posts_pre_query" filter.
+		 *
+		 * @see WP_Query::get_posts
 		 */
 		$fields = $query->get( 'fields', false );
-		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
+		if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ( 'ids' === $fields || 'id=>parent' === $fields ) ) {
 			$query->set( 'fields', 'default' );
 		}
 
