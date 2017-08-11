@@ -47,10 +47,10 @@ class EP_WP_Query_Integration {
 		// Nukes the FOUND_ROWS() database query
 		add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
 
-		// Support "fields".
-		add_filter( 'posts_pre_query', array( $this, 'posts_fields' ), 10, 2 );
+		// Query and filter in EP_Posts to WP_Query (WP 4.6+)
+		add_filter( 'posts_pre_query', array( $this, 'filter_the_posts' ), 10, 2 );
 
-		// Query and filter in EP_Posts to WP_Query
+		// Query and filter in EP_Posts to WP_Query (WP 4.5 and earlier)
 		add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
 
 		// Ensure we're in a loop before we allow blog switching
@@ -168,6 +168,9 @@ class EP_WP_Query_Integration {
 	public function filter_the_posts( $posts, $query ) {
 		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
 			return $posts;
+		} elseif ( current_filter( 'the_posts' ) && ! did_action( 'posts_pre_query' ) ) {
+			// Only filter on the_posts if the posts_pre_query was never run (WP 4.5 and earlier)
+			return $posts;
 		}
 
 		$new_posts = $this->posts_by_query[spl_object_hash( $query )];
@@ -189,36 +192,6 @@ class EP_WP_Query_Integration {
 		}
 
 		return '';
-	}
-
-	/**
-	 * Workaround for when WP_Query short circuits for special fields arguments.
-	 *
-	 * @since 2.4.0
-	 *
-	 * @param array $posts
-	 *   Return an array of post data to short-circuit WP's query,
-	 *   or null to allow WP to run its normal queries.
-	 * @param WP_Query $query
-	 *   WP_Query object.
-	 *
-	 * @return array
-	 *   An array of fields.
-	 */
-	public function posts_fields( $posts, $query ) {
-		// Make sure the query is EP enabled.
-		if ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[ spl_object_hash( $query ) ] ) ) {
-			return $posts;
-		}
-
-		// Determine how we should return the posts. The official WP_Query
-		// supports: ids, id=>parent and post objects.
-		$fields = $query->get( 'fields', '' );
-		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
-			return $this->posts_by_query[ spl_object_hash( $query ) ];
-		}
-
-		return $posts;
 	}
 
 	/**
