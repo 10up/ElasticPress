@@ -133,10 +133,17 @@ function ep_wc_convert_post_object_to_id( $posts ) {
  * @return  array
  */
 function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
-	$product_type       = get_taxonomy( 'product_type' );
-	$product_visibility = get_taxonomy( 'product_visibility' );
+	$woo_taxonomies = array();
 
-	$woo_taxonomies = array( $product_type, $product_visibility );
+	$product_type       = get_taxonomy( 'product_type' );
+	if( false !== $product_type ){
+		$woo_taxonomies[] = $product_type;
+	}
+
+	$product_visibility = get_taxonomy( 'product_visibility' );
+	if( false !== $product_visibility ){
+		$woo_taxonomies[] = $product_visibility;
+	}
 
 	/**
 	 * Note product_shipping_class, product_cat, and product_tag are already public. Make

@@ -689,6 +689,10 @@ class EP_API {
 		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
+			if( ! is_a( $taxonomy, 'WP_Taxonomy' ) ){
+				continue;
+			}
+
 			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
 
 			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
