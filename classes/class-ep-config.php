@@ -54,7 +54,7 @@ class EP_Config {
 	}
 
 	/**
-	 * Check if wpcli indexing is occuring
+	 * Check if wpcli indexing is occurring
 	 *
 	 * @since  2.1
 	 * @return boolean
