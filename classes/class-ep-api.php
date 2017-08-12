@@ -2151,9 +2151,7 @@ class EP_API {
 		$query['request'] = $request;
 		$this->_add_query_log( $query );
 
-		if ( false === $request || is_wp_error( $request ) || ! $is_valid_res ) {
-			do_action( 'ep_remote_request_error', $query, $type );
-		}
+		do_action( 'ep_remote_request', $query, $type );
 
 		return $request;
 
