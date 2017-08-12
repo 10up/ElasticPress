@@ -2095,6 +2095,10 @@ class EP_API {
 	 */
 	public function remote_request( $path, $args = array(), $query_args = array(), $type = null ) {
 
+		if ( empty( $args['method'] ) ) {
+			$args['method'] = 'GET';
+		}
+
 		$query = array(
 			'time_start'   => microtime( true ),
 			'time_finish'  => false,
