@@ -612,15 +612,15 @@ function ep_wc_add_order_items_search( $post_args, $post_id ) {
 	}
 
 	// Get order items.
-	$order = wc_get_order( $post_id );
+	$order     = wc_get_order( $post_id );
 	$item_meta = array();
-	foreach( $order->get_items() as $delta => $product_item ) {
+	foreach ( $order->get_items() as $delta => $product_item ) {
 		$item_meta['_items'][] = $product_item->get_name( 'edit' );
 	}
 
 	// Prepare order items.
 	$item_meta['_items'] = implode( '|', $item_meta['_items'] );
-	$post_args['meta'] = array_merge( $post_args['meta'], EP_API::factory()->prepare_meta_types( $item_meta ) );
+	$post_args['meta']   = array_merge( $post_args['meta'], EP_API::factory()->prepare_meta_types( $item_meta ) );
 
 	return $post_args;
 }
