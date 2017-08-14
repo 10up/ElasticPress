@@ -241,6 +241,7 @@ function ep_wc_translate_args( $query ) {
 		'product_type',
 		'pa_sort-by',
 		'product_visibility',
+		'product_shipping_class',
 	);
 
 	/**
