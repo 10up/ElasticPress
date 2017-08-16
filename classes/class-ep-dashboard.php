@@ -273,6 +273,8 @@ class EP_Dashboard {
 			$notice = 'need-setup';
 		}
 
+		$notice = apply_filters( 'ep_admin_notice_type', $notice );
+
 		switch ( $notice ) {
 			case 'bad-host':
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
