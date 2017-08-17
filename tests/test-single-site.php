@@ -1663,7 +1663,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @group single-site
 	 */
 	public function testSearchPostDateOrderbyQuery() {
-		ep_create_and_sync_post( array( 'post_title' => 'ordertes 333' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertesr' ) );
 		sleep( 3 );
 
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
@@ -1685,7 +1685,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
-		$this->assertEquals( 'ordertes 333', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertesr', $query->posts[2]->post_title );
 	}
 
 	/**
