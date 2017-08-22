@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.3.2\n"
+"Project-Id-Version: ElasticPress 2.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2017-06-30 17:19:05+00:00\n"
+"POT-Creation-Date: 2017-08-22 04:41:20+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -143,27 +143,27 @@ msgstr ""
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:2137
+#: classes/class-ep-api.php:2165
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:2150
+#: classes/class-ep-api.php:2178
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2154
+#: classes/class-ep-api.php:2182
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2289 classes/class-ep-api.php:2401
-#: classes/class-ep-api.php:2452
+#: classes/class-ep-api.php:2317 classes/class-ep-api.php:2429
+#: classes/class-ep-api.php:2480
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -171,101 +171,101 @@ msgstr ""
 msgid "<a href=\"%s\">Dashboard</a>"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:288
+#: classes/class-ep-dashboard.php:290
 msgid ""
 "There is a problem with connecting to your Elasticsearch host. ElasticPress "
 "can <a href=\"%s\">try your host again</a>, or you may need to <a "
 "href=\"%s\">change your settings</a>."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:295
+#: classes/class-ep-dashboard.php:297
 msgid ""
 "Your Elasticsearch version %s is above the maximum required Elasticsearch "
 "version %s. ElasticPress may or may not work properly."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:302
+#: classes/class-ep-dashboard.php:304
 msgid ""
 "Your Elasticsearch version %s is below the minimum required Elasticsearch "
 "version %s. ElasticPress may or may not work properly."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:315
+#: classes/class-ep-dashboard.php:317
 msgid ""
 "Thanks for installing ElasticPress! You will need to run through a <a "
 "href=\"%s\">quick set up process</a> to get the plugin working."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:328
+#: classes/class-ep-dashboard.php:330
 msgid ""
 "ElasticPress is almost ready. You will need to complete a <a "
 "href=\"%s\">sync</a> to get the plugin working."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:341
+#: classes/class-ep-dashboard.php:343
 msgid ""
 "The new version of ElasticPress requires that you <a href=\"%s\">run a "
 "sync</a>."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:356
+#: classes/class-ep-dashboard.php:358
 msgid ""
 "The ElasticPress %s feature has been auto-activated! You will need to <a "
 "href=\"%s\">run a sync</a> for it to work."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:364
+#: classes/class-ep-dashboard.php:366
 msgid ""
 "Dashboard sync is disabled. The ElasticPress %s feature has been "
 "auto-activated! You will need to reindex using WP-CLI for it to work."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:371
+#: classes/class-ep-dashboard.php:373
 msgid ""
 "Dashboard sync is disabled. The new version of ElasticPress requires that "
 "you to reindex using WP-CLI."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:378
+#: classes/class-ep-dashboard.php:380
 msgid ""
 "Dashboard sync is disabled. You will need to index using WP-CLI to finish "
 "setup."
 msgstr ""
 
-#: classes/class-ep-dashboard.php:739
+#: classes/class-ep-dashboard.php:741
 msgid "Sync complete"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:740
+#: classes/class-ep-dashboard.php:742
 msgid "Sync paused"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:741
+#: classes/class-ep-dashboard.php:743
 msgid "Syncing"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:742
+#: classes/class-ep-dashboard.php:744
 msgid "Starting sync"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:743
+#: classes/class-ep-dashboard.php:745
 msgid "WP CLI sync is occurring. Refresh the page to see if it's finished"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:744
+#: classes/class-ep-dashboard.php:746
 msgid "An error occured while syncing"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:781
+#: classes/class-ep-dashboard.php:783
 msgid "Security error!"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:895 classes/class-ep-dashboard.php:896
+#: classes/class-ep-dashboard.php:897 classes/class-ep-dashboard.php:898
 #: classes/class-ep-feature.php:274 includes/settings-page.php:27
 msgid "Settings"
 msgstr ""
 
-#: classes/class-ep-dashboard.php:904 classes/class-ep-dashboard.php:905
+#: classes/class-ep-dashboard.php:906 classes/class-ep-dashboard.php:907
 msgid "Welcome"
 msgstr ""
 
@@ -277,23 +277,23 @@ msgstr ""
 msgid "Collapse"
 msgstr ""
 
-#: classes/class-ep-feature.php:277
+#: classes/class-ep-feature.php:278
 msgid "Status"
 msgstr ""
 
-#: classes/class-ep-feature.php:279
+#: classes/class-ep-feature.php:280
 msgid "Enabled"
 msgstr ""
 
-#: classes/class-ep-feature.php:280
+#: classes/class-ep-feature.php:281
 msgid "Disabled"
 msgstr ""
 
-#: classes/class-ep-feature.php:294
+#: classes/class-ep-feature.php:297
 msgid "Setting adjustments to this feature require a re-sync. Use WP-CLI."
 msgstr ""
 
-#: classes/class-ep-feature.php:297
+#: classes/class-ep-feature.php:300
 msgid "Save"
 msgstr ""
 
@@ -313,6 +313,29 @@ msgstr ""
 #: classes/class-ep-wp-date-query.php:541
 #. translators: 1: month, 2: day of month
 msgid "The following values do not describe a valid date: month %1$s, day %2$s."
+msgstr ""
+
+#: features/autosuggest/autosuggest.php:10
+msgid "Add autosuggest to ElasticPress powered search fields on the front end."
+msgstr ""
+
+#: features/autosuggest/autosuggest.php:21
+msgid ""
+"Autosuggest is a very powerful search feature. As a user types a search "
+"query, they are automatically suggested items. Autosuggest dramatically "
+"increases that users will find what they are looking for on your site, "
+"improving overall experience."
+msgstr ""
+
+#: features/autosuggest/autosuggest.php:54
+msgid "Endpoint Address"
+msgstr ""
+
+#: features/autosuggest/autosuggest.php:173
+#: features/protected-content/protected-content.php:143
+msgid ""
+"You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
+"we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
 #: features/documents/documents.php:207
@@ -363,12 +386,6 @@ msgid ""
 "the public.</em>"
 msgstr ""
 
-#: features/protected-content/protected-content.php:143
-msgid ""
-"You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
-"we can't be sure your Elasticsearch instance is secure."
-msgstr ""
-
 #: features/protected-content/protected-content.php:153
 msgid "Protected Content"
 msgstr ""
@@ -417,14 +434,14 @@ msgid ""
 "misspellings and verb tenses."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:614
+#: features/woocommerce/woocommerce.php:625
 msgid ""
 "“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted "
 "product browsing strains servers and increases load times. Your buyers can "
 "find the perfect product quickly, and buy it quickly."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:625
+#: features/woocommerce/woocommerce.php:636
 msgid ""
 "Most caching and performance tools can’t keep up with the nearly infinite "
 "ways your visitors might filter or navigate your products. No matter how "
@@ -434,7 +451,7 @@ msgid ""
 "end product management."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:639
+#: features/woocommerce/woocommerce.php:650
 msgid "WooCommerce not installed."
 msgstr ""
 

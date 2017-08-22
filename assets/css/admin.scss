@@ -301,7 +301,7 @@ h2.ep-list-features {
 .ep-feature .settings .action-wrap {
 	clear: both;
 	text-align: right;
-	margin-top: 10px;
+	padding-top: 15px;
 	vertical-align: middle;
 
 	a {
@@ -335,12 +335,18 @@ h2.ep-list-features {
 .ep-feature .settings .field {
 	clear: both;
 	overflow: initial;
+	padding-top: 15px;
+
+	&:first-child {
+		padding-top: 0;
+	}
 
 	> label,
 	.field-name {
 		display: block;
 		float: left;
-		margin-right: 3em;
+		width: 25%;
+		margin-right: 1.5em;
 	}
 
 	.input-wrap {

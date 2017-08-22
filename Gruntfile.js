@@ -9,20 +9,15 @@ module.exports = function ( grunt ) {
 			uglify : {
 
 				production : {
-					options : {
-						beautify         : false,
-						preserveComments : false,
-						mangle           : {
-							except : ['jQuery']
-						}
-					},
-
 					files : {
 						'assets/js/dashboard.min.js' : [
 							'assets/js/src/dashboard.js'
 						],
 						'assets/js/admin.min.js' : [
 							'assets/js/src/admin.js'
+						],
+						'features/autosuggest/assets/js/autosuggest.min.js': [
+							'features/autosuggest/assets/js/src/autosuggest.js'
 						]
 					}
 				}
@@ -39,7 +34,7 @@ module.exports = function ( grunt ) {
 				files : {
 					expand  : true,
 					flatten : true,
-					src     : ['assets/css/admin.css'],
+					src     : ['assets/css/admin.css', 'features/autosuggest/assets/css/autosuggest.css'],
 					dest    : 'assets/css'
 				}
 
@@ -52,7 +47,7 @@ module.exports = function ( grunt ) {
 					files : [{
 						expand : true,
 						cwd    : 'assets/css',
-						src    : ['admin.css'],
+						src    : ['admin.css', 'autosuggest.css'],
 						dest   : 'assets/css',
 						ext    : '.min.css'
 					}]
@@ -72,7 +67,8 @@ module.exports = function ( grunt ) {
 					},
 
 					files : {
-						'assets/css/admin.css'            : 'assets/css/admin.scss',
+						'assets/css/admin.css': 'assets/css/admin.scss',
+						'features/autosuggest/assets/css/autosuggest.css': 'features/autosuggest/assets/css/autosuggest.scss'
 					}
 
 				}
@@ -100,7 +96,8 @@ module.exports = function ( grunt ) {
 
 				scripts : {
 					files : [
-						'assets/js/src/*.js'
+						'assets/js/src/*.js',
+						'features/autosuggest/assets/js/src/*.js'
 					],
 					tasks : ['uglify:production']
 
@@ -108,7 +105,8 @@ module.exports = function ( grunt ) {
 
 				styles : {
 					files : [
-						'assets/css/*.scss'
+						'assets/css/*.scss',
+						'features/autosuggest/assets/css/*.scss'
 					],
 					tasks : ['sass', 'autoprefixer', 'cssmin']
 				}

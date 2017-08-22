@@ -243,7 +243,7 @@ h2.ep-list-features {
 .ep-feature .settings .action-wrap {
   clear: both;
   text-align: right;
-  margin-top: 10px;
+  padding-top: 15px;
   vertical-align: middle; }
   .ep-feature .settings .action-wrap a {
     cursor: pointer;
@@ -264,12 +264,16 @@ h2.ep-list-features {
 
 .ep-feature .settings .field {
   clear: both;
-  overflow: initial; }
+  overflow: initial;
+  padding-top: 15px; }
+  .ep-feature .settings .field:first-child {
+    padding-top: 0; }
   .ep-feature .settings .field > label,
   .ep-feature .settings .field .field-name {
     display: block;
     float: left;
-    margin-right: 3em; }
+    width: 25%;
+    margin-right: 1.5em; }
   .ep-feature .settings .field .input-wrap {
     display: block;
     float: left; }
