@@ -30,6 +30,32 @@
 	}
 
 	/**
+	 * Navigate to the selected item
+	 * @param event
+	 */
+	function goToAutosuggestItem( $localInput, url ) {
+		return window.location.href = url;
+	}
+
+	/**
+	 * Respond to an item selection based on the predefined behavior.
+	 * If epas.action is set to "navigate", redirects the browser to the URL of the selected item
+	 * If epas.action is set to any other value (default "search"), fill in the value and perform the search
+	 *
+	 * @param $localInput
+	 * @param element
+	 */
+	function selectItem( $localInput, element ) {
+
+		if ( 'navigate' === epas.action ) {
+			return goToAutosuggestItem( $localInput, element.dataset.url );
+		}
+
+		selectAutosuggestItem( $localInput, element.innerText );
+		submitSearchForm( $localInput );
+	}
+
+	/**
 	 * Simple throttling function for waiting a set amount of time after the last keypress
 	 * So we don't overload the server with too many requests at once
 	 *
@@ -129,15 +155,15 @@
 		}
 
 		for ( i = 0; i < options.length; ++i ) {
-			var item = options[i].toLowerCase();
-			itemString = '<li><span class="autosuggest-item" data-search="' + item + '">' + item + '</span></li>';
+			var text = options[i].text.toLowerCase();
+			var url = options[i].url;
+			itemString = '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>';
 			$( itemString ).appendTo( $localSuggestList );
 		}
 
 		// Listen to items to auto-fill search box and submit form
 		$( '.autosuggest-item' ).on( 'click', function( event ) {
-			selectAutosuggestItem( $localInput, event.srcElement.innerText );
-			submitSearchForm( $localInput );
+			selectItem( $localInput, event.srcElement );
 		} );
 
 		$localInput.off( 'keydown' );
@@ -163,8 +189,7 @@
 						break;
 					case 13: // Enter
 						if ( $results.hasClass( 'selected' ) ) {
-							selectAutosuggestItem( $localInput, $current.find('span').text() );
-							submitSearchForm( $localInput );
+							selectItem( $localInput, $current.get(1) );
 							return false;
 						} else {
 							// No item selected
@@ -277,17 +302,22 @@
 
 						var options = titleOptions.concat( termOptions );
 						var filteredOptions = [];
+						var filteredObjects = [];
 
 						$.each( options, function( index, element ){
 							if( $.inArray( element.text, filteredOptions ) === -1 ) {
 								filteredOptions.push( element.text );
+								filteredObjects.push( {
+									'text': element.text,
+									'url': element._source.permalink
+								} );
 							}
 						} );
 
-						if ( 0 === filteredOptions.length ) {
+						if ( 0 === filteredObjects.length ) {
 							hideAutosuggestBox();
 						} else {
-							updateAutosuggestBox( filteredOptions, $localInput );
+							updateAutosuggestBox( filteredObjects, $localInput );
 						}
 					} else {
 						hideAutosuggestBox();
