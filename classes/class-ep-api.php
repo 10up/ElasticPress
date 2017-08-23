@@ -438,6 +438,7 @@ class EP_API {
 		$request_args = array(
 			'body'    => json_encode( $args ),
 			'method'  => 'POST',
+			'timeout' => 25,
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_create_network_alias_request_args', $request_args, $args, $indexes ), array(), 'create_network_alias' );
