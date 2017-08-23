@@ -159,8 +159,8 @@ function ep_autosuggest_enqueue_scripts() {
 	 */
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', array(
 		'index' => ep_get_index_name( get_current_blog_id() ),
-		'host'  => apply_filters( 'epas_host', ep_get_host() ),
-		'postType' => apply_filters( 'epas_term_suggest_post_type', 'all' ),
+		'host'  => apply_filters( 'ep_host', ep_get_host() ),
+		'postType' => apply_filters( 'ep_term_suggest_post_type', 'all' ),
 		'action' => apply_filters( 'epas_click_action', 'search' ),
 	) );
 }
