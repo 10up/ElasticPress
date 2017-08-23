@@ -267,6 +267,16 @@ class EP_WP_Query_Integration {
 			return "SELECT * FROM $wpdb->posts WHERE 1=0";
 		}
 
+		/**
+		 * Filter WP_Query query vars specifically for ElasticPress to use
+		 *
+		 * @since x.x.x
+		 *
+		 * @param array     $query_vars WP_Query->query_vars to use
+		 * @param \WP_Query $query      WP_Query object
+		 */
+		$query_vars = apply_filters( 'ep_wp_query_vars', $query_vars, $query );
+
 		$new_posts = apply_filters( 'ep_wp_query_search_cached_posts', array(), $query );
 
 		$ep_query = array();
