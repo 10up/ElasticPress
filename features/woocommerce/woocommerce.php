@@ -575,7 +575,7 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
  */
 function ep_wc_search_order( $wp ){
 	global $pagenow;
-	if ( 'edit.php' != $pagenow || 'shop_order' !== $wp->query_vars['post_type'] ||
+	if ( 'edit.php' != $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
 	     ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 		return;
 	}
