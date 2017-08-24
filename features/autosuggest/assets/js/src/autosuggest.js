@@ -289,19 +289,17 @@
 
 				request.done( function( response ) {
 					if ( response._shards.successful > 0 ) {
-						var titleOptions = response.suggest['post-suggest'][0]['options'];
-						var termOptions = response.suggest['term-suggest'][0]['options'];
-
-						var options = titleOptions.concat( termOptions );
 						var filteredOptions = [];
 						var filteredObjects = [];
 
-						$.each( options, function( index, element ){
-							if( $.inArray( element.text, filteredOptions ) === -1 ) {
-								filteredOptions.push( element.text );
+						$.each( response.hits.hits, function( index, element ){
+							var text = element._source.post_title;
+							var url = element._source.permalink;
+							if( $.inArray( text, filteredOptions ) === -1 ) {
+								filteredOptions.push( text );
 								filteredObjects.push( {
-									'text': element.text,
-									'url': element._source.permalink
+									'text': text,
+									'url': url
 								} );
 							}
 						} );
