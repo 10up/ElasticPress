@@ -31,11 +31,9 @@ module.exports = function ( grunt ) {
 					map      : true
 				},
 
-				files : {
-					expand  : true,
-					flatten : true,
-					src     : ['assets/css/admin.css', 'features/autosuggest/assets/css/autosuggest.css'],
-					dest    : 'assets/css'
+				files: {
+					'assets/css/admin.css': ['assets/css/admin.css'],
+					'features/autosuggest/assets/css/autosuggest.min.css': ['features/autosuggest/assets/css/autosuggest.css']
 				}
 
 			},
@@ -44,13 +42,10 @@ module.exports = function ( grunt ) {
 
 				target : {
 
-					files : [{
-						expand : true,
-						cwd    : 'assets/css',
-						src    : ['admin.css', 'autosuggest.css'],
-						dest   : 'assets/css',
-						ext    : '.min.css'
-					}]
+					files: {
+						'assets/css/admin.min.css': ['assets/css/admin.css'],
+						'features/autosuggest/assets/css/autosuggest.min.css': ['features/autosuggest/assets/css/autosuggest.css']
+					}
 
 				}
 
