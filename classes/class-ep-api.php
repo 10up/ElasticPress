@@ -210,6 +210,9 @@ class EP_API {
 		$request_args = array(
 			'body'    => json_encode( apply_filters( 'ep_search_args', $args, $scope, $query_args ) ),
 			'method'  => 'POST',
+			'headers' => array(
+				'Content-Type' => 'application/json',
+			),
 		);
 
 		$request = ep_remote_request( $path, apply_filters( 'ep_search_request_args', $request_args, $args, $scope, $query_args ), $query_args, 'query' );
