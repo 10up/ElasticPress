@@ -90,18 +90,10 @@
 		}
 		// TODO: check comma separated
 		var query = {
-			suggest: {
-				'post-suggest': {
-					text: searchText,
-					completion: {
-						field: 'post_title.completion'
-					}
-				},
-				'term-suggest': {
-					text: searchText,
-					completion: {
-						field: 'term_suggest'
-					}
+			query: {
+				multi_match: {
+					query: searchText,
+					fields: [ 'post_title.suggest', 'term_suggest' ]
 				}
 			}
 		};

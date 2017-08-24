@@ -29,10 +29,8 @@ function ep_autosuggest_feature_box_long() {
  */
 function ep_autosuggest_setup() {
 	add_action( 'wp_enqueue_scripts', 'ep_autosuggest_enqueue_scripts' );
-	add_filter( 'ep_config_mapping', 'ep_autosuggest_completion_mapping' );
+	add_filter( 'ep_config_mapping', 'ep_autosuggest_suggest_mapping' );
 	add_filter( 'ep_post_sync_args', 'ep_autosuggest_filter_term_suggest', 10, 2 );
-	add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_autosuggest_no_blank_title', 10, 2 );
-	add_action( 'ep_feature_box_settings_autosuggest', 'ep_autosugguest_settings', 10, 1 );
 }
 
 /**
@@ -47,13 +45,14 @@ function ep_autosugguest_settings( $feature ) {
 	if ( ! $settings ) {
 		$settings = array();
 	}
+
 	$settings = wp_parse_args( $settings, $feature->default_settings );
 	?>
 
 	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
-		<div class="field-name status"><label for="feature_autosuggest_endpoint"><?php esc_html_e( 'Endpoint Address', 'elasticpress' ); ?></label></div>
+		<div class="field-name status"><label for="feature_autosuggest_host"><?php esc_html_e( 'Host', 'elasticpress' ); ?></label></div>
 		<div class="input-wrap">
-			<input value="<?php echo esc_url( $settings['endpoint'] ); ?>" type="text" data-field-name="endpoint" class="setting-field" id="feature_autosuggest_endpoint">
+			<input value="<?php echo esc_url( $settings['host'] ); ?>" type="text" data-field-name="host" class="setting-field" id="feature_autosuggest_host">
 		</div>
 	</div>
 
@@ -61,39 +60,32 @@ function ep_autosugguest_settings( $feature ) {
 }
 
 /**
- * Blank titles dont work with the completion mapping type
- *
- * @param  array $post_args
- * @param  int $post_id
- * @since  2.4
- * @return array
- */
-function ep_autosuggest_no_blank_title( $post_args, $post_id ) {
-	if ( empty( $post_args['post_title'] ) ) {
-		unset( $post_args['post_title'] );
-	}
-
-	return $post_args;
-}
-
-/**
- * Add mapping for completion fields
+ * Add mapping for suggest fields
  * 
  * @param  array $mapping
  * @since  2.4
  * @return array
  */
-function ep_autosuggest_completion_mapping( $mapping ) {
-	$mapping['mappings']['post']['properties']['post_title']['fields']['completion'] = array(
-		'type' => 'completion',
-		'analyzer' => 'simple',
-		'search_analyzer' => 'simple',
+function ep_autosuggest_suggest_mapping( $mapping ) {
+	$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
+		'type' => 'text',
+		'analyzer' => 'edge_ngram_analyzer',
+		'search_analyzer' => 'standard',
+	);
+
+	$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
+		'type' => 'custom',
+		'tokenizer' => 'standard',
+		'filter' => array(
+			'lowercase',
+			'edge_ngram',
+		),
 	);
 
 	$mapping['mappings']['post']['properties']['term_suggest'] = array(
-		'type' => 'completion',
-		'analyzer' => 'simple',
-		'search_analyzer' => 'simple',
+		'type' => 'text',
+		'analyzer' => 'edge_ngram_analyzer',
+		'search_analyzer' => 'standard',
 	);
 
 	return $mapping;
@@ -131,6 +123,19 @@ function ep_autosuggest_filter_term_suggest( $post_args, $post_id ) {
  * @since  2.4
  */
 function ep_autosuggest_enqueue_scripts() {
+	$feature = ep_get_registered_feature( 'autosuggest' );
+
+	$settings = $feature->get_settings();
+
+	if ( ! $settings ) {
+		$settings = array();
+	}
+
+	$settings = wp_parse_args( $settings, $feature->default_settings );
+
+	if ( empty( $settings['host'] ) ) {
+		return;
+	}
 
 	$js_url = ( defined( 'SCRIPT_DEBUG' ) && true === SCRIPT_DEBUG ) ? EP_URL . 'features/autosuggest/assets/js/src/autosuggest.js' : EP_URL . 'features/autosuggest/assets/js/autosuggest.min.js';
 	$css_url = ( defined( 'SCRIPT_DEBUG' ) && true === SCRIPT_DEBUG ) ? EP_URL . 'features/autosuggest/assets/css/autosuggest.css' : EP_URL . 'features/autosuggest/assets/css/autosuggest.min.css';
@@ -159,7 +164,7 @@ function ep_autosuggest_enqueue_scripts() {
 	 */
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', array(
 		'index' => ep_get_index_name( get_current_blog_id() ),
-		'host'  => apply_filters( 'ep_host', ep_get_host() ),
+		'host'  => apply_filters( 'ep_autosuggest_host', esc_url( untrailingslashit( $settings['host'] ) ) ),
 		'postType' => apply_filters( 'ep_term_suggest_post_type', 'all' ),
 		'action' => apply_filters( 'epas_click_action', 'search' ),
 	) );
@@ -175,13 +180,24 @@ function ep_autosuggest_enqueue_scripts() {
 function ep_autosuggest_requirements_status( $status ) {
 	$host = ep_get_host();
 
+	$status->code = 1;
+
 	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
-		$status->code = 1;
-		$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
+		$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. An insecure or misconfigured autosuggest host poses a <strong>severe</strong> security risk to your website.", 'elasticpress' );
 	}
 
 	return $status;
 }
+
+/**
+ * Add autosuggest setting fields
+ * 
+ * @since 2.4
+ */
+function ep_autosuggest_setup_settings() {
+	add_action( 'ep_feature_box_settings_autosuggest', 'ep_autosugguest_settings', 10, 1 );
+}
+add_action( 'admin_init', 'ep_autosuggest_setup_settings' );
 
 /**
  * Register the feature
@@ -196,6 +212,6 @@ ep_register_feature( 'autosuggest', array(
 	'requires_install_reindex' => true,
 	'requirements_status_cb' => 'ep_autosuggest_requirements_status',
 	'default_settings' => array(
-		'endpoint' => '',
+		'host' => ep_get_host(),
 	),
 ) );
