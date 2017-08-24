@@ -155,11 +155,18 @@ function ep_autosuggest_enqueue_scripts() {
 		EP_VERSION
 	);
 
-	// Output some variables for our JS to use - namely the index name and the post type to use for suggestions
+	/**
+	 * Output variables to use in Javascript
+	 * index: the Elasticsearch index name
+	 * host:  the Elasticsearch host
+	 * postType: which post types to use for suggestions
+	 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
+	 */
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', array(
 		'index' => ep_get_index_name( get_current_blog_id() ),
 		'host'  => apply_filters( 'ep_autosuggest_host', esc_url( untrailingslashit( $settings['host'] ) ) ),
 		'postType' => apply_filters( 'ep_term_suggest_post_type', 'all' ),
+		'action' => apply_filters( 'epas_click_action', 'search' ),
 	) );
 }
 
