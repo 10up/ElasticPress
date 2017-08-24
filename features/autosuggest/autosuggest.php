@@ -162,12 +162,12 @@ function ep_autosuggest_enqueue_scripts() {
 	 * postType: which post types to use for suggestions
 	 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 	 */
-	wp_localize_script( 'elasticpress-autosuggest', 'epas', array(
+	wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
 		'index' => ep_get_index_name( get_current_blog_id() ),
-		'host'  => apply_filters( 'ep_autosuggest_host', esc_url( untrailingslashit( $settings['host'] ) ) ),
-		'postType' => apply_filters( 'ep_term_suggest_post_type', 'all' ),
-		'action' => apply_filters( 'epas_click_action', 'search' ),
-	) );
+		'host'  => esc_url( untrailingslashit( $settings['host'] ) ),
+		'postType' => 'all',
+		'action' => 'navigate',
+	) ) );
 }
 
 /**
