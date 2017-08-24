@@ -289,14 +289,17 @@
 
 				request.done( function( response ) {
 					if ( response._shards.successful > 0 ) {
-						var filteredOptions = [];
+						var usedPosts = {};
 						var filteredObjects = [];
 
 						$.each( response.hits.hits, function( index, element ){
 							var text = element._source.post_title;
 							var url = element._source.permalink;
-							if( $.inArray( text, filteredOptions ) === -1 ) {
-								filteredOptions.push( text );
+							var postId = element._source.post_id;
+
+							if( ! usedPosts[ postId ] ) {
+								usedPosts[ postId ] = true;
+
 								filteredObjects.push( {
 									'text': text,
 									'url': url
