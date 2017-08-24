@@ -88,8 +88,15 @@
 		if ( postType === 'all' || typeof( postType ) === 'undefined' || postType === '' ) {
 			postType = 'all';
 		}
-		// TODO: check comma separated
+
 		var query = {
+			sort: [
+				{
+					_score: {
+						order: 'desc'
+					}
+				}
+			],
 			query: {
 				multi_match: {
 					query: searchText,
@@ -319,7 +326,7 @@
 			} else if ( 0 === val.length ) {
 				hideAutosuggestBox();
 			}
-		}, 100 ) );
+		}, 200 ) );
 	} );
 
 	// Publically expose API
