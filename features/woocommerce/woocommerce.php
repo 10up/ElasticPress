@@ -598,6 +598,10 @@ function ep_wc_search_order( $wp ){
 /**
  * Add order items as a searchable string.
  *
+ * This mimics how WooCommerce currently does in the order_itemmeta
+ * table. They combine the titles of the products and put them in a
+ * meta field called "Items".
+ *
  * @since TBD
  *
  * @param array $post_args
