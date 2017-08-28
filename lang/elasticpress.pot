@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2017-08-24 03:29:36+00:00\n"
+"POT-Creation-Date: 2017-08-28 14:59:15+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -316,26 +316,34 @@ msgid "The following values do not describe a valid date: month %1$s, day %2$s."
 msgstr ""
 
 #: features/autosuggest/autosuggest.php:10
-msgid "Add autosuggest to ElasticPress powered search fields on the front end."
+msgid "Suggest relevant content to users as they type search text."
 msgstr ""
 
 #: features/autosuggest/autosuggest.php:21
 msgid ""
-"Autosuggest is a very powerful search feature. As a user types a search "
-"query, they are automatically suggested items. Autosuggest dramatically "
-"increases that users will find what they are looking for on your site, "
-"improving overall experience."
+"Input fields of type \"search\" or with the CSS class \"search-field\" or "
+"\"ep-autosuggest\" will be enhanced with autosuggest functionality. As "
+"users type, a dropdown will be shown containing results relevant to their "
+"current search. Clicking a suggestion will take a user directly to that "
+"piece of content."
 msgstr ""
 
-#: features/autosuggest/autosuggest.php:54
-msgid "Endpoint Address"
+#: features/autosuggest/autosuggest.php:53
+msgid "Host"
 msgstr ""
 
-#: features/autosuggest/autosuggest.php:173
-#: features/protected-content/protected-content.php:143
+#: features/autosuggest/autosuggest.php:187
+msgid ""
+"This feature modifies the default user experience of users by showing a "
+"dropdown of suggestions as users type in search boxes."
+msgstr ""
+
+#: features/autosuggest/autosuggest.php:190
 msgid ""
 "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
-"we can't be sure your Elasticsearch instance is secure."
+"we can't be sure your host is properly secured. An insecure or "
+"misconfigured autosuggest host poses a <strong>severe</strong> security "
+"risk to your website."
 msgstr ""
 
 #: features/documents/documents.php:207
@@ -384,6 +392,12 @@ msgid ""
 "<em>We recommend using a secured Elasticsearch setup, such as "
 "ElasticPress.io, to prevent potential exposure of content not intended for "
 "the public.</em>"
+msgstr ""
+
+#: features/protected-content/protected-content.php:143
+msgid ""
+"You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
+"we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
 #: features/protected-content/protected-content.php:153

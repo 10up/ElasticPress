@@ -226,7 +226,7 @@
 		$( '.ep-autosuggest' ).hide();
 	}
 
-	var $epInput       = $( 'input.elasticpress-autosuggest, input[type="search"]' );
+	var $epInput       = $( '.ep-autosuggest, input[type="search"], .search-field' );
 	var $epAutosuggest = $( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
