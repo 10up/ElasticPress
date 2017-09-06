@@ -165,7 +165,7 @@ function ep_autosuggest_enqueue_scripts() {
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
 		'index' => ep_get_index_name( get_current_blog_id() ),
 		'host'  => esc_url( untrailingslashit( $settings['host'] ) ),
-		'postType' => 'all',
+		'postType' => apply_filters( 'ep_term_suggest_post_type', 'all' ),
 		'action' => 'navigate',
 	) ) );
 }
