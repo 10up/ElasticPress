@@ -89,7 +89,6 @@
 			postType = 'all';
 		}
 
-		// TODO: check comma separated
 		var query = {
 			sort: [
 				{
