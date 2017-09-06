@@ -88,6 +88,7 @@
 		if ( postType === 'all' || typeof( postType ) === 'undefined' || postType === '' ) {
 			postType = 'all';
 		}
+
 		// TODO: check comma separated
 		var query = {
 			query: {
@@ -97,6 +98,22 @@
 				}
 			}
 		};
+
+		// If we're specifying post types, do it in an array
+		if ( typeof postType === 'string' && postType !== 'all' ) {
+			postType = postType.split(',');
+		}
+
+		// Then add it as a filter to the end of the query
+		if ( $.isArray( postType ) ) {
+			query.post_filter = {
+				bool: {
+					must: [{
+						terms: { 'post_type.raw': postType }
+					}]
+				}
+			};
+		}
 
 		return query;
 	}
