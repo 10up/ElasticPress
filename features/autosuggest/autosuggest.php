@@ -2,23 +2,23 @@
 
 /**
  * Output feature box summary
- * 
+ *
  * @since 2.4
  */
 function ep_autosuggest_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Add autosuggest to ElasticPress powered search fields on the front end.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Suggest relevant content to users as they type search text.', 'elasticpress' ); ?></p>
 	<?php
 }
 
 /**
  * Output feature box long
- * 
+ *
  * @since 2.4
  */
 function ep_autosuggest_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Autosuggest is a very powerful search feature. As a user types a search query, they are automatically suggested items. Autosuggest dramatically increases that users will find what they are looking for on your site, improving overall experience.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As users type, a dropdown will be shown containing results relevant to their current search. Clicking a suggestion will take a user directly to that piece of content.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -61,7 +61,7 @@ function ep_autosugguest_settings( $feature ) {
 
 /**
  * Add mapping for suggest fields
- * 
+ *
  * @param  array $mapping
  * @since  2.4
  * @return array
@@ -162,12 +162,12 @@ function ep_autosuggest_enqueue_scripts() {
 	 * postType: which post types to use for suggestions
 	 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 	 */
-	wp_localize_script( 'elasticpress-autosuggest', 'epas', array(
+	wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
 		'index' => ep_get_index_name( get_current_blog_id() ),
-		'host'  => apply_filters( 'ep_autosuggest_host', esc_url( untrailingslashit( $settings['host'] ) ) ),
-		'postType' => apply_filters( 'ep_term_suggest_post_type', 'all' ),
-		'action' => apply_filters( 'epas_click_action', 'search' ),
-	) );
+		'host'  => esc_url( untrailingslashit( $settings['host'] ) ),
+		'postType' => 'all',
+		'action' => 'navigate',
+	) ) );
 }
 
 /**
@@ -182,8 +182,12 @@ function ep_autosuggest_requirements_status( $status ) {
 
 	$status->code = 1;
 
+	$status->message = array();
+
+	$status->message[] = esc_html__( 'This feature modifies the default user experience of users by showing a dropdown of suggestions as users type in search boxes.', 'elasticpress' );
+
 	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
-		$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. An insecure or misconfigured autosuggest host poses a <strong>severe</strong> security risk to your website.", 'elasticpress' );
+		$status->message[] = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. An insecure or misconfigured autosuggest host poses a <strong>severe</strong> security risk to your website.", 'elasticpress' );
 	}
 
 	return $status;
@@ -191,7 +195,7 @@ function ep_autosuggest_requirements_status( $status ) {
 
 /**
  * Add autosuggest setting fields
- * 
+ *
  * @since 2.4
  */
 function ep_autosuggest_setup_settings() {
