@@ -623,8 +623,8 @@ function ep_wc_add_order_items_search( $post_args, $post_id ) {
 	}
 
 	// Prepare order items.
-	$item_meta['_items'] = implode( '|', $item_meta['_items'] );
-	$post_args['meta']   = array_merge( $post_args['meta'], EP_API::factory()->prepare_meta_types( $item_meta ) );
+	$item_meta['_items'] = empty( $item_meta['_items'] ) ? '' : implode( '|', $item_meta['_items'] );
+	$post_args['meta'] = array_merge( $post_args['meta'], EP_API::factory()->prepare_meta_types( $item_meta ) );
 
 	return $post_args;
 }
