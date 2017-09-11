@@ -612,7 +612,7 @@ class EP_API {
 			'post_date_gmt'     => $post_date_gmt,
 			'post_title'        => $this->prepare_text_content( get_the_title( $post_id ) ),
 			'post_excerpt'      => $this->prepare_text_content( $post->post_excerpt ),
-			'post_content'      => $this->prepare_text_content( self::apply_filters_recursion_guarded( 'the_content', $post->post_content ) ),
+			'post_content'      => $this->prepare_text_content( self::apply_filters_recursion_guarded( 2, 'the_content', $post->post_content ) ),
 			'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
