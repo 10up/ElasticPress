@@ -84,7 +84,7 @@
 	 * @param searchText
 	 * @returns object
 	 */
-	function buildSearchQuery( searchText, postType ) {
+	function buildSearchQuery( searchText, postType, searchFields ) {
 		if ( postType === 'all' || typeof( postType ) === 'undefined' || postType === '' ) {
 			postType = 'all';
 		}
@@ -100,7 +100,7 @@
 			query: {
 				multi_match: {
 					query: searchText,
-					fields: [ 'post_title.suggest', 'term_suggest' ]
+					fields: searchFields
 				}
 			}
 		};
@@ -305,9 +305,10 @@
 			var query;
 			var request;
 			var postType = epas.postType;
+			var searchFields = epas.searchFields;
 
 			if ( val.length >= 2 ) {
-				query = buildSearchQuery( val, postType );
+				query = buildSearchQuery( val, postType, searchFields );
 				request = esSearch( query );
 
 				request.done( function( response ) {
