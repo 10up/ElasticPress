@@ -532,9 +532,9 @@ class EP_API {
 	 */
 	private function apply_filters_recursion_guarded( $max_levels = 1, $tag, $value ) {
 
-		$rg = new EP_RecursionGuard( $max_levels, 'the_content' );
+		$rg = new EP_RecursionGuard( $max_levels, $tag );
 		try {
-			$value = apply_filters( 'the_content', $value );
+			$value = apply_filters( $tag, $value );
 		} catch ( EP_RecursionTooDeepException $e ) {
 			$value = $e->value();
 		} finally {
