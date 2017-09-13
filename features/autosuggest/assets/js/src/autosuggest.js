@@ -204,7 +204,7 @@
 						break;
 					case 13: // Enter
 						if ( $results.hasClass( 'selected' ) ) {
-							selectItem( $localInput, $current.get(1) );
+							selectItem( $localInput, $current.children('span').get(0) );
 							return false;
 						} else {
 							// No item selected
