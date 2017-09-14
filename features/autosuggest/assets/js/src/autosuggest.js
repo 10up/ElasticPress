@@ -88,8 +88,15 @@
 		if ( postType === 'all' || typeof( postType ) === 'undefined' || postType === '' ) {
 			postType = 'all';
 		}
-		// TODO: check comma separated
+
 		var query = {
+			sort: [
+				{
+					_score: {
+						order: 'desc'
+					}
+				}
+			],
 			query: {
 				multi_match: {
 					query: searchText,
@@ -219,7 +226,7 @@
 		$( '.ep-autosuggest' ).hide();
 	}
 
-	var $epInput       = $( 'input.elasticpress-autosuggest, input[type="search"]' );
+	var $epInput       = $( '.ep-autosuggest, input[type="search"], .search-field' );
 	var $epAutosuggest = $( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
@@ -289,14 +296,17 @@
 
 				request.done( function( response ) {
 					if ( response._shards.successful > 0 ) {
-						var filteredOptions = [];
+						var usedPosts = {};
 						var filteredObjects = [];
 
 						$.each( response.hits.hits, function( index, element ){
 							var text = element._source.post_title;
 							var url = element._source.permalink;
-							if( $.inArray( text, filteredOptions ) === -1 ) {
-								filteredOptions.push( text );
+							var postId = element._source.post_id;
+
+							if( ! usedPosts[ postId ] ) {
+								usedPosts[ postId ] = true;
+
 								filteredObjects.push( {
 									'text': text,
 									'url': url
@@ -316,7 +326,7 @@
 			} else if ( 0 === val.length ) {
 				hideAutosuggestBox();
 			}
-		}, 100 ) );
+		}, 200 ) );
 	} );
 
 	// Publically expose API
