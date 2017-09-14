@@ -53,6 +53,7 @@ function ep_autosugguest_settings( $feature ) {
 		<div class="field-name status"><label for="feature_autosuggest_host"><?php esc_html_e( 'Host', 'elasticpress' ); ?></label></div>
 		<div class="input-wrap">
 			<input value="<?php echo esc_url( $settings['host'] ); ?>" type="text" data-field-name="host" class="setting-field" id="feature_autosuggest_host">
+			<p class="field-description"><?php esc_html_e( 'For many hosting setups, a separate host should be used for autosuggest. Note that this address will be exposed to the public.', 'elasticpress' ); ?></p>
 		</div>
 	</div>
 

@@ -268,15 +268,24 @@ h2.ep-list-features {
   padding-top: 15px; }
   .ep-feature .settings .field:first-child {
     padding-top: 0; }
-  .ep-feature .settings .field > label,
+  .ep-feature .settings .field label {
+    margin: 0.25em 0 0.5em;
+    display: inline-block; }
   .ep-feature .settings .field .field-name {
     display: block;
     float: left;
     width: 25%;
-    margin-right: 1.5em; }
+    padding-right: 1.5em;
+    box-sizing: border-box; }
   .ep-feature .settings .field .input-wrap {
+    width: 75%;
     display: block;
-    float: left; }
+    float: right; }
+  .ep-feature .settings .field .field-description {
+    font-style: italic;
+    margin-top: 4px;
+    margin-bottom: 0;
+    color: #666; }
   .ep-feature .settings .field .disabled {
     color: #c4c3c3; }
     .ep-feature .settings .field .disabled input {

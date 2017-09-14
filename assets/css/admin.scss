@@ -341,17 +341,30 @@ h2.ep-list-features {
 		padding-top: 0;
 	}
 
-	> label,
+	label {
+		margin: 0.25em 0 0.5em;
+		display: inline-block;
+	}
+
 	.field-name {
 		display: block;
 		float: left;
 		width: 25%;
-		margin-right: 1.5em;
+		padding-right: 1.5em;
+		box-sizing: border-box;
 	}
 
 	.input-wrap {
+		width: 75%;
 		display: block;
-		float: left;
+		float: right;
+	}
+
+	.field-description {
+		font-style: italic;
+		margin-top: 4px;
+		margin-bottom: 0;
+		color: #666;
 	}
 
 	.disabled {
