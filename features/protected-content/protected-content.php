@@ -109,7 +109,7 @@ function ep_pc_feature_box_summary() {
  */
 function ep_pc_feature_box_long() {
 	?>
-	<p><?php _e( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ); ?></p>
+    <p><?php wp_kses_post( _e( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ) ); ?></p>
 	<?php
 }
 
