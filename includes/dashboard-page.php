@@ -73,10 +73,10 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			?>
 		<?php endforeach; ?>
 		<div class="left">
-			<?php echo $left; ?>
+			<?php echo wp_kses_post( $left ); ?>
 		</div>
 		<div class="right">
-			<?php echo $right; ?>
+			<?php echo wp_kses_post( $right ); ?>
 		</div>
 	</div>
 </div>
