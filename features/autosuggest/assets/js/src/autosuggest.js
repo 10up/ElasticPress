@@ -84,7 +84,7 @@
 	 * @param searchText
 	 * @returns object
 	 */
-	function buildSearchQuery( searchText, postType ) {
+	function buildSearchQuery( searchText, postType, searchFields ) {
 		if ( postType === 'all' || typeof( postType ) === 'undefined' || postType === '' ) {
 			postType = 'all';
 		}
@@ -100,10 +100,26 @@
 			query: {
 				multi_match: {
 					query: searchText,
-					fields: [ 'post_title.suggest', 'term_suggest' ]
+					fields: searchFields
 				}
 			}
 		};
+
+		// If we're specifying post types, do it in an array
+		if ( typeof postType === 'string' && postType !== 'all' ) {
+			postType = postType.split(',');
+		}
+
+		// Then add it as a filter to the end of the query
+		if ( $.isArray( postType ) ) {
+			query.post_filter = {
+				bool: {
+					must: [{
+						terms: { 'post_type.raw': postType }
+					}]
+				}
+			};
+		}
 
 		return query;
 	}
@@ -188,7 +204,7 @@
 						break;
 					case 13: // Enter
 						if ( $results.hasClass( 'selected' ) ) {
-							selectItem( $localInput, $current.get(1) );
+							selectItem( $localInput, $current.children('span').get(0) );
 							return false;
 						} else {
 							// No item selected
@@ -289,9 +305,10 @@
 			var query;
 			var request;
 			var postType = epas.postType;
+			var searchFields = epas.searchFields;
 
 			if ( val.length >= 2 ) {
-				query = buildSearchQuery( val, postType );
+				query = buildSearchQuery( val, postType, searchFields );
 				request = esSearch( query );
 
 				request.done( function( response ) {
