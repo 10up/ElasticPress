@@ -189,10 +189,10 @@ function ep_autosuggest_requirements_status( $status ) {
 
 	$status->message = array();
 
-	$status->message[] = esc_html__( 'This feature modifies the default user experience of users by showing a dropdown of suggestions as users type in search boxes.', 'elasticpress' );
+	$status->message[] = esc_html__( 'This feature modifies the default user experience on the front-end by showing a dropdown of suggestions as users type in search boxes.', 'elasticpress' );
 
 	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
-		$status->message[] = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. An insecure or misconfigured autosuggest host poses a <strong>severe</strong> security risk to your website.", 'elasticpress' );
+		$status->message[] = wp_kses_post( __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. An insecure or misconfigured autosuggest host poses a <strong>severe</strong> security threat to your website.", 'elasticpress' ) );
 	}
 
 	return $status;
