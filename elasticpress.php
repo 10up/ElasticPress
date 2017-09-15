@@ -59,6 +59,7 @@ require_once( 'features/related-posts/related-posts.php' );
 require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
 require_once( 'features/documents/documents.php' );
+require_once( 'features/autosuggest/autosuggest.php' );
 
 /**
  * WP CLI Commands

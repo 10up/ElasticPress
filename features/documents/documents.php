@@ -10,8 +10,8 @@ function ep_documents_setup() {
 	add_filter( 'ep_post_sync_args', 'ep_documents_post_sync_args', 999, 2 );
 	add_filter( 'ep_indexable_post_status', 'ep_documents_indexable_post_status', 999, 1 );
 	add_filter( 'ep_bulk_index_post_request_path', 'ep_documents_bulk_index_post_request_path', 999, 1 );
-	add_filter( 'pre_get_posts', 'search_attachment_post_type' );
-	add_filter( 'ep_config_mapping', 'attachments_mapping' );
+	add_filter( 'pre_get_posts', 'ep_documents_search_attachment_post_type' );
+	add_filter( 'ep_config_mapping', 'ep_documents_attachments_mapping' );
 	add_action( 'ep_cli_put_mapping', 'ep_documents_create_pipeline' );
 	add_action( 'ep_dashboard_put_mapping', 'ep_documents_create_pipeline' );
 }
@@ -23,7 +23,7 @@ function ep_documents_setup() {
  * @since  2.3
  * @return array
  */
-function attachments_mapping( $mapping ) {
+function ep_documents_attachments_mapping( $mapping ) {
 	$mapping['mappings']['post']['properties']['attachments'] = array(
 		'type' => 'object',
 	);
@@ -40,7 +40,7 @@ function attachments_mapping( $mapping ) {
  * @param  WP_Query $query
  * @since  2.3
  */
-function search_attachment_post_type( $query ) {
+function ep_documents_search_attachment_post_type( $query ) {
 	if ( is_admin() ) {
 		return;
 	}
