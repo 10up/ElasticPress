@@ -25,7 +25,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	<div class="ep-features metabox-holder">
 		<?php $features = EP_Features::factory()->registered_features; ?>
 
-		<?php 
+		<?php
 		$left = '';
 		$right = '';
 		$i = 0;
@@ -73,10 +73,10 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			?>
 		<?php endforeach; ?>
 		<div class="left">
-			<?php echo wp_kses_post( $left ); ?>
+			<?php echo $left; ?>
 		</div>
 		<div class="right">
-			<?php echo wp_kses_post( $right ); ?>
+			<?php echo $right; ?>
 		</div>
 	</div>
 </div>
