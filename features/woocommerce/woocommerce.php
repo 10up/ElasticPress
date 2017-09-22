@@ -201,7 +201,7 @@ function ep_wc_translate_args( $query ) {
 	/**
 	 * Do nothing for single product queries
 	 */
-	if ( ! empty( $product_name ) ) {
+	if ( ! empty( $product_name ) || $query->is_single() ) {
 		return;
 	}
 
