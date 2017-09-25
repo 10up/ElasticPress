@@ -28,7 +28,7 @@ class EP_API {
 
 	/**
 	 * ES plugins
-	 * 
+	 *
 	 * @var array
 	 * @since  2.2
 	 */
@@ -36,7 +36,7 @@ class EP_API {
 
 	/**
 	 * ES version number
-	 * 
+	 *
 	 * @var string
 	 * @since  2.2
 	 */
@@ -625,7 +625,7 @@ class EP_API {
 
 	/**
 	 * Prepare text for ES: Strip html, strip line breaks, etc.
-	 * 
+	 *
 	 * @param  string $content
 	 * @since  2.2
 	 * @return string
@@ -692,10 +692,6 @@ class EP_API {
 		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
-			if( ! is_a( $taxonomy, 'WP_Taxonomy' ) ){
-				continue;
-			}
-
 			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
 
 			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
@@ -1080,7 +1076,7 @@ class EP_API {
 		if ( ! empty( $args['tax_query'] ) ) {
 			$tax_filter = array();
 			$tax_must_not_filter  = array();
-			
+
 			// Main tax_query array for ES
 			$es_tax_query = array();
 
@@ -1098,7 +1094,7 @@ class EP_API {
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
-					
+
 					/*
 					 * add support for "NOT IN" operator
 					 *
@@ -1123,15 +1119,15 @@ class EP_API {
 
 				$es_tax_query[$relation] = $tax_filter;
 			}
-			
+
 			if ( ! empty( $tax_must_not_filter ) ) {
 				$es_tax_query['must_not'] = $tax_must_not_filter;
 			}
-			
+
 			if( ! empty( $es_tax_query ) ) {
 				$filter['bool']['must'][]['bool'] = $es_tax_query;
 			}
-			
+
 			$use_filters = true;
 		}
 
@@ -1202,7 +1198,7 @@ class EP_API {
 
 			$use_filters = true;
 		}
-		
+
 		/**
 		 * Add support for post_mime_type
 		 *
@@ -1219,7 +1215,7 @@ class EP_API {
 						'post_mime_type' => (array)$args['post_mime_type'],
 					),
 				);
-				
+
 				$use_filters = true;
 			} elseif( is_string( $args['post_mime_type'] ) ) {
 				$filter['bool']['must'][] = array(
@@ -1227,7 +1223,7 @@ class EP_API {
 						'post_mime_type' => $args['post_mime_type'] . ".*",
 					),
 				);
-				
+
 				$use_filters = true;
 			}
 		}
@@ -1303,7 +1299,7 @@ class EP_API {
 			if ( ! empty( $args['meta_query'] ) && ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
 				$relation = 'should';
 			}
-			
+
 			// get meta query filter
 			$meta_filter = $this->build_meta_query( $meta_queries );
 
@@ -1408,7 +1404,7 @@ class EP_API {
 				'boost' => 1,
 			);
 		}
-		
+
 		/**
 		 * Order by 'rand' support
 		 *
@@ -1574,7 +1570,7 @@ class EP_API {
 		}
 		return apply_filters( 'ep_formatted_args', $formatted_args, $args );
 	}
-	
+
 	/**
 	 * Build Elasticsearch filter query for WP meta_query
 	 *
@@ -1586,9 +1582,9 @@ class EP_API {
 	 */
 	public function build_meta_query( $meta_queries ){
 		$meta_filter = array();
-		
+
 		if ( ! empty( $meta_queries ) ) {
-			
+
 			$meta_query_type_mapping = array(
 				'numeric'  => 'long',
 				'binary'   => 'raw',
@@ -1600,9 +1596,9 @@ class EP_API {
 				'time'     => 'time',
 				'unsigned' => 'long',
 			);
-			
+
 			foreach( $meta_queries as $single_meta_query ) {
-				
+
 				/**
 				 * There is a strange case where meta_query looks like this:
 				 * array(
@@ -1621,26 +1617,26 @@ class EP_API {
 				if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
 					reset( $single_meta_query );
 					$first_key = key( $single_meta_query );
-					
+
 					if ( is_array( $single_meta_query[$first_key] ) ) {
 						$single_meta_query = $single_meta_query[$first_key];
 					}
 				}
-				
+
 				if ( ! empty( $single_meta_query['key'] ) ) {
-					
+
 					$terms_obj = false;
-					
+
 					$compare = '=';
 					if ( ! empty( $single_meta_query['compare'] ) ) {
 						$compare = strtolower( $single_meta_query['compare'] );
 					}
-					
+
 					$type = null;
 					if ( ! empty( $single_meta_query['type'] ) ) {
 						$type = strtolower( $single_meta_query['type'] );
 					}
-					
+
 					// Comparisons need to look at different paths
 					if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'];
@@ -1656,7 +1652,7 @@ class EP_API {
 					} else {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
 					}
-					
+
 					switch ( $compare ) {
 						case 'not in':
 						case '!=':
@@ -1673,7 +1669,7 @@ class EP_API {
 									),
 								);
 							}
-							
+
 							break;
 						case 'exists':
 							$terms_obj = array(
@@ -1681,7 +1677,7 @@ class EP_API {
 									'field' => $meta_key_path,
 								),
 							);
-							
+
 							break;
 						case 'not exists':
 							$terms_obj = array(
@@ -1695,7 +1691,7 @@ class EP_API {
 									),
 								),
 							);
-							
+
 							break;
 						case '>=':
 							if ( isset( $single_meta_query['value'] ) ) {
@@ -1713,7 +1709,7 @@ class EP_API {
 									),
 								);
 							}
-							
+
 							break;
 						case 'between':
 							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
@@ -1738,7 +1734,7 @@ class EP_API {
 									),
 								);
 							}
-							
+
 							break;
 						case '<=':
 							if ( isset( $single_meta_query['value'] ) ) {
@@ -1756,7 +1752,7 @@ class EP_API {
 									),
 								);
 							}
-							
+
 							break;
 						case '>':
 							if ( isset( $single_meta_query['value'] ) ) {
@@ -1774,7 +1770,7 @@ class EP_API {
 									),
 								);
 							}
-							
+
 							break;
 						case '<':
 							if ( isset( $single_meta_query['value'] ) ) {
@@ -1792,7 +1788,7 @@ class EP_API {
 									),
 								);
 							}
-							
+
 							break;
 						case 'like':
 							if ( isset( $single_meta_query['value'] ) ) {
@@ -1814,10 +1810,10 @@ class EP_API {
 									),
 								);
 							}
-							
+
 							break;
 					}
-					
+
 					// Add the meta query filter
 					if ( false !== $terms_obj ) {
 						$meta_filter[] = $terms_obj;
@@ -1849,7 +1845,7 @@ class EP_API {
 					if ( ! empty( $single_meta_query['relation'] ) && 'or' === strtolower( $single_meta_query['relation'] ) ) {
 						$relation = 'should';
 					}
-					
+
 					$meta_filter[] = array(
 						'bool' => array(
 							$relation => $this->build_meta_query( $single_meta_query ),
@@ -1858,7 +1854,7 @@ class EP_API {
 				}
 			}
 		}
-		
+
 		return $meta_filter;
 	}
 
@@ -2056,7 +2052,7 @@ class EP_API {
 
 		return $sort;
 	}
-	
+
 	/**
 	 * Get Order by args Array
 	 *
@@ -2069,7 +2065,7 @@ class EP_API {
 		if ( ! is_array( $orderbys ) ) {
 			$orderbys = explode( ' ', $orderbys );
 		}
-		
+
 		return $orderbys;
 	}
 
@@ -2247,7 +2243,7 @@ class EP_API {
 
 					/**
 					 * Try a different endpoint in case the plugins url is restricted
-					 * 
+					 *
 					 * @since 2.2.1
 					 */
 
@@ -2355,7 +2351,7 @@ class EP_API {
 
 	/**
 	 * Get a pipeline
-	 * 
+	 *
 	 * @param  string $id
 	 * @since  2.3
 	 * @return WP_Error|bool|array
@@ -2390,7 +2386,7 @@ class EP_API {
 
 	/**
 	 * Put a pipeline
-	 * 
+	 *
 	 * @param  string $id
 	 * @param array $args
 	 * @since  2.3
