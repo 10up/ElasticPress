@@ -1988,7 +1988,7 @@ class EP_API {
 			}
 
 			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
-				if ( 'relevance' === $orderby_clause ) {
+				if ( 'relevance' === $orderby_clause || 'post__in' === $orderby_clause ) {
 					$sort[] = array(
 						'_score' => array(
 							'order' => $order,
