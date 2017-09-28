@@ -1,6 +1,6 @@
 <?php
 /**
- * Elasticsearch mapping for pre 2.0 ES installs
+ * Elasticsearch mapping for pre 5.0 ES installs
  *
  * @since  1.3
  * @package elasticpress
@@ -156,6 +156,9 @@ return array(
 									),
 								),
 								'term_id' => array(
+									'type' => 'long',
+								),
+								'term_taxonomy_id' => array(
 									'type' => 'long',
 								),
 								'parent' => array(

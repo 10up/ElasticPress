@@ -134,9 +134,16 @@ function ep_wc_convert_post_object_to_id( $posts ) {
  */
 function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 	$woo_taxonomies = array();
-	$product_type = get_taxonomy( 'product_type' );
 
-	$woo_taxonomies[] = $product_type;
+	$product_type       = get_taxonomy( 'product_type' );
+	if( false !== $product_type ){
+		$woo_taxonomies[] = $product_type;
+	}
+
+	$product_visibility = get_taxonomy( 'product_visibility' );
+	if( false !== $product_visibility ){
+		$woo_taxonomies[] = $product_visibility;
+	}
 
 	/**
 	 * Note product_shipping_class, product_cat, and product_tag are already public. Make
@@ -233,6 +240,8 @@ function ep_wc_translate_args( $query ) {
 		'product_tag',
 		'product_type',
 		'pa_sort-by',
+		'product_visibility',
+		'product_shipping_class',
 	);
 
 	/**
@@ -330,10 +339,13 @@ function ep_wc_translate_args( $query ) {
 		}
 
 		/**
-		 * We can't support any special fields parameters
+		 * WordPress have to be version 4.6 or newer to have "fields" support
+		 * since it requires the "posts_pre_query" filter.
+		 *
+		 * @see WP_Query::get_posts
 		 */
 		$fields = $query->get( 'fields', false );
-		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
+		if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ( 'ids' === $fields || 'id=>parent' === $fields ) ) {
 			$query->set( 'fields', 'default' );
 		}
 
@@ -563,7 +575,7 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
  */
 function ep_wc_search_order( $wp ){
 	global $pagenow;
-	if ( 'edit.php' != $pagenow || 'shop_order' !== $wp->query_vars['post_type'] ||
+	if ( 'edit.php' != $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
 	     ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 		return;
 	}
