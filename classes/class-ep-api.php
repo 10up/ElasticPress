@@ -692,6 +692,11 @@ class EP_API {
 		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
+			// We check if the $taxonomy object as name property. Backward compatibility since WP_Taxonomy introduced in WP 4.7
+			if ( ! property_exists( $taxonomy, 'name' ) ) {
+				continue;
+			}
+
 			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
 
 			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
