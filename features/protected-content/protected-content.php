@@ -40,7 +40,7 @@ function ep_pc_post_types( $post_types ) {
 
 /**
  * Integrate EP into proper queries
- * 
+ *
  * @param  WP_Query $query
  * @since  2.1
  */
@@ -89,11 +89,18 @@ function ep_pc_integrate( $query ) {
 			$query->set( 'ep_integrate', true );
 		}
 	}
+
+	/**
+	 * Remove articles weighting by date in admin.
+	 *
+	 * @since 2.4
+	 */
+	remove_filter( 'ep_formatted_args', 'ep_weight_recent', 10 );
 }
 
 /**
  * Output feature box summary
- * 
+ *
  * @since 2.1
  */
 function ep_pc_feature_box_summary() {
@@ -104,7 +111,7 @@ function ep_pc_feature_box_summary() {
 
 /**
  * Output feature box long
- * 
+ *
  * @since 2.1
  */
 function ep_pc_feature_box_long() {
