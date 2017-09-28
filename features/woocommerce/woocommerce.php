@@ -580,6 +580,22 @@ function ep_wc_sync_variation_parent( $post_args, $post_id ) {
 }
 
 /**
+ * Handle product variation deletion.
+ *
+ * @since 2.4
+ *
+ * @param int $post_id Post ID.
+ */
+function ep_wc_delete_variation( $post_id ) {
+	if ( 'product_variation' !== get_post_type( $post_id ) ) {
+		return;
+	}
+
+	$post = get_post( $post_id );
+	ep_sync_post( $post->post_parent, false );
+}
+
+/**
  * Make search coupons don't go through ES
  *
  * @param  bool $enabled
@@ -684,6 +700,7 @@ function ep_wc_setup() {
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
 		add_filter( 'ep_search_fields', 'ep_wc_support_variations_skus_search', 9999, 2 );
+		add_action( 'delete_post', 'ep_wc_delete_variation', 10, 1 );
 	}
 }
 
