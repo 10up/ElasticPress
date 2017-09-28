@@ -559,6 +559,27 @@ function ep_wc_add_variations_skus( $post_args, $post_id ) {
 }
 
 /**
+ * Trigger parent syncing when product variation meta are updated. Parent has to be synced if product variation SKU changes.
+ *
+ * @since 2.4
+ *
+ * @param array $post_args Post arguments.
+ * @param int   $post_id   Post ID.
+ *
+ * @return array
+ */
+function ep_wc_sync_variation_parent( $post_args, $post_id ) {
+	if ( 'product_variation' !== get_post_type( $post_id ) ) {
+		return $post_args;
+	}
+
+	$post = get_post( $post_id );
+	ep_sync_post( $post->post_parent, false );
+
+	return $post_args;
+}
+
+/**
  * Make search coupons don't go through ES
  *
  * @param  bool $enabled
@@ -659,6 +680,7 @@ function ep_wc_setup() {
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_add_variations_skus', 11, 2 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_sync_variation_parent', 12, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
 		add_filter( 'ep_search_fields', 'ep_wc_support_variations_skus_search', 9999, 2 );
