@@ -18,7 +18,7 @@ class EP_Feature_Requirements_Status {
 
 	/**
 	 * Initialize class
-	 * 
+	 *
 	 * @param int $code
 	 * @param string|array $message
 	 * @since  2.2
@@ -43,7 +43,7 @@ class EP_Feature_Requirements_Status {
 
 	/**
 	 * Optional message to describe status code
-	 * 
+	 *
 	 * @var    string|array
 	 * @since  2.2
 	 */
@@ -53,7 +53,7 @@ class EP_Feature_Requirements_Status {
 class EP_Feature {
 	/**
 	 * Feature slug
-	 * 
+	 *
 	 * @var string
 	 * @since  2.1
 	 */
@@ -61,7 +61,7 @@ class EP_Feature {
 
 	/**
 	 * Feature pretty title
-	 * 
+	 *
 	 * @var string
 	 * @since  2.1
 	 */
@@ -77,7 +77,7 @@ class EP_Feature {
 
 	/**
 	 * Contains registered callback to execute after setup
-	 * 
+	 *
 	 * @since 2.1
 	 * @var callback
 	 */
@@ -85,7 +85,7 @@ class EP_Feature {
 
 	/**
 	 * Contains registered callback to output feature summary in feature box
-	 * 
+	 *
 	 * @since 2.1
 	 * @var callback
 	 */
@@ -93,7 +93,7 @@ class EP_Feature {
 
 	/**
 	 * Contains registered callback to output feature long description in feature box
-	 * 
+	 *
 	 * @since 2.1
 	 * @var callback
 	 */
@@ -109,7 +109,7 @@ class EP_Feature {
 
 	/**
 	 * Contains registered callback to execute after activation
-	 * 
+	 *
 	 * @since 2.1
 	 * @var callback
 	 */
@@ -117,7 +117,7 @@ class EP_Feature {
 
 	/**
 	 * True if the feature requires content reindexing after activating
-	 * 
+	 *
 	 * @since 2.1
 	 * @var [type]
 	 */
@@ -289,6 +289,7 @@ class EP_Feature {
 			}
 
 			do_action( 'ep_feature_box_settings_' . $this->slug, $this );
+
 			?>
 		</div>
 

@@ -271,6 +271,9 @@ h2.ep-list-features {
   .ep-feature .settings .field label {
     margin: 0.25em 0 0.5em;
     display: inline-block; }
+  .ep-feature .settings .field div {
+    padding-top: 5px; }
+  .ep-feature .settings .field > label,
   .ep-feature .settings .field .field-name {
     display: block;
     float: left;

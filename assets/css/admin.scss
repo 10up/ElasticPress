@@ -346,6 +346,11 @@ h2.ep-list-features {
 		display: inline-block;
 	}
 
+	div {
+		padding-top: 5px;
+	}
+
+	> label,
 	.field-name {
 		display: block;
 		float: left;
