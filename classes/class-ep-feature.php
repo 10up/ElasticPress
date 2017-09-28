@@ -289,7 +289,7 @@ class EP_Feature {
 			}
 
 			do_action( 'ep_feature_box_settings_' . $this->slug, $this );
-			
+
 			?>
 		</div>
 
