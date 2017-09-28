@@ -532,6 +532,33 @@ function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
 }
 
 /**
+ * Create artificial meta key used for searching products by their variations SKUs.
+ *
+ * @since 2.4
+ *
+ * @param array $post_args Post arguments.
+ * @param int   $post_id   Post ID.
+ *
+ * @return array
+ */
+function ep_wc_add_variations_skus( $post_args, $post_id ) {
+	global $wpdb;
+	if ( 'product' !== get_post_type( $post_id ) ) {
+		return $post_args;
+	}
+	$skus = $wpdb->get_results(
+		$wpdb->prepare( "SELECT {$wpdb->posts}.ID, {$wpdb->postmeta}.meta_value FROM {$wpdb->posts} LEFT JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID = {$wpdb->postmeta}.post_id  WHERE {$wpdb->postmeta}.meta_key = '_sku' AND wp_postmeta.meta_value != '' AND wp_posts.post_parent = %d", $post_id )
+	);
+	$skus = wp_list_pluck( $skus, 'meta_value' );
+	if ( ! empty( $skus ) ) {
+		$api                                          = new EP_API();
+		$post_args['meta']['__wc_ep_variations_skus'] = array_map( array( $api, 'prepare_meta_value_types' ), $skus );
+	}
+
+	return $post_args;
+}
+
+/**
  * Make search coupons don't go through ES
  *
  * @param  bool $enabled
@@ -596,6 +623,27 @@ function ep_wc_search_order( $wp ){
 }
 
 /**
+ * Enhance WooCommerce search by adding search by artificial meta key containing list of product variations SKUs.
+ *
+ * @since 2.4
+ *
+ * @param array $search_fields Search fields.
+ * @param array $args          Query args.
+ *
+ * @return array
+ */
+function ep_wc_support_variations_skus_search( $search_fields, $args ) {
+	global $pagenow;
+	if ( 'edit.php' != $pagenow || empty( $args['post_type'] ) || 'product' !== $args['post_type'] || empty( $args['s'] ) ) {
+		return;
+	}
+
+	$search_fields[] = 'meta.__wc_ep_variations_skus.value';
+
+	return $search_fields;
+}
+
+/**
  * Setup all feature filters
  *
  * @since  2.1
@@ -610,14 +658,16 @@ function ep_wc_setup() {
 		add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_add_variations_skus', 11, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
+		add_filter( 'ep_search_fields', 'ep_wc_support_variations_skus_search', 9999, 2 );
 	}
 }
 
 /**
  * Output feature box summary
- * 
+ *
  * @since 2.1
  */
 function ep_wc_feature_box_summary() {
@@ -628,7 +678,7 @@ function ep_wc_feature_box_summary() {
 
 /**
  * Output feature box long
- * 
+ *
  * @since 2.1
  */
 function ep_wc_feature_box_long() {
