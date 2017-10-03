@@ -603,7 +603,7 @@ function ep_wc_search_order( $wp ){
  * table. They combine the titles of the products and put them in a
  * meta field called "Items".
  *
- * @since TBD
+ * @since 2.4
  *
  * @param array $post_args
  * @param string|int $post_id
@@ -653,7 +653,7 @@ function ep_wc_setup() {
 
 /**
  * Output feature box summary
- * 
+ *
  * @since 2.1
  */
 function ep_wc_feature_box_summary() {
@@ -664,7 +664,7 @@ function ep_wc_feature_box_summary() {
 
 /**
  * Output feature box long
- * 
+ *
  * @since 2.1
  */
 function ep_wc_feature_box_long() {
