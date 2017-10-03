@@ -242,9 +242,9 @@ function ep_wc_translate_args( $query ) {
 	 * Next check if any taxonomies are in the root of query vars (shorthand form)
 	 */
 	foreach ( $supported_taxonomies as $taxonomy ) {
-		$term = $query->get( $taxonomy, false );
+		$terms = $query->get( $taxonomy, NULL );
 
-		if ( ! empty( $term ) ) {
+		if ( ! empty( $terms ) ) {
 			$integrate = true;
 
 			// Shorthand taxonomies can be one of two data types: array and
@@ -252,8 +252,8 @@ function ep_wc_translate_args( $query ) {
 			// then it must be an array.
 			// If it is a string then we convert it to an array with one or more
 			// values to handle it with the same logic.
-			if ( is_string( $term ) ) {
-				$terms = explode( ',', $term );
+			if ( is_string( $terms ) ) {
+				$terms = explode( ',', $terms );
 			}
 
 			// to add child terms to the tax query
