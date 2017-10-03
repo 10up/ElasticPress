@@ -418,6 +418,7 @@ function ep_wc_translate_args( $query ) {
 					'_billing_first_name',
 					'_shipping_first_name',
 					'_shipping_last_name',
+					'_items',
 				) ) );
 
 				$query->set( 'search_fields', $search_fields );
@@ -596,6 +597,40 @@ function ep_wc_search_order( $wp ){
 }
 
 /**
+ * Add order items as a searchable string.
+ *
+ * This mimics how WooCommerce currently does in the order_itemmeta
+ * table. They combine the titles of the products and put them in a
+ * meta field called "Items".
+ *
+ * @since TBD
+ *
+ * @param array $post_args
+ * @param string|int $post_id
+ *
+ * @return array
+ */
+function ep_wc_add_order_items_search( $post_args, $post_id ) {
+	// Make sure it is only WooCommerce orders we touch.
+	if ( 'shop_order' !== $post_args['post_type'] ) {
+		return $post_args;
+	}
+
+	// Get order items.
+	$order     = wc_get_order( $post_id );
+	$item_meta = array();
+	foreach ( $order->get_items() as $delta => $product_item ) {
+		$item_meta['_items'][] = $product_item->get_name( 'edit' );
+	}
+
+	// Prepare order items.
+	$item_meta['_items'] = empty( $item_meta['_items'] ) ? '' : implode( '|', $item_meta['_items'] );
+	$post_args['meta'] = array_merge( $post_args['meta'], EP_API::factory()->prepare_meta_types( $item_meta ) );
+
+	return $post_args;
+}
+
+/**
  * Setup all feature filters
  *
  * @since  2.1
@@ -610,6 +645,7 @@ function ep_wc_setup() {
 		add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_add_order_items_search', 20, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
 	}
