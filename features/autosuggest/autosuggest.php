@@ -7,7 +7,7 @@
  */
 function ep_autosuggest_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Suggest relevant content to users as they type search text.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -18,7 +18,7 @@ function ep_autosuggest_feature_box_summary() {
  */
 function ep_autosuggest_feature_box_long() {
 	?>
-	<p><?php esc_html_e( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As users type, a dropdown will be shown containing results relevant to their current search. Clicking a suggestion will take a user directly to that piece of content.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -189,10 +189,10 @@ function ep_autosuggest_requirements_status( $status ) {
 
 	$status->message = array();
 
-	$status->message[] = esc_html__( 'This feature modifies the default user experience on the front-end by showing a dropdown of suggestions as users type in search boxes.', 'elasticpress' );
+	$status->message[] = esc_html__( 'This feature modifies the site’s default user experience by presenting a list of suggestions below detected search fields as text is entered into the field.', 'elasticpress' );
 
 	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
-		$status->message[] = wp_kses_post( __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. An insecure or misconfigured autosuggest host poses a <strong>severe</strong> security threat to your website.", 'elasticpress' ) );
+		$status->message[] = wp_kses_post( __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured.", 'elasticpress' ) );
 	}
 
 	return $status;

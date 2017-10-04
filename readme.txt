@@ -26,6 +26,8 @@ __Protected Content__: Optionally index all of your content, including private a
 
 __Documents__: Indexes text inside of popular file types, and adds those files types to search results.
 
+__Autosuggest__: Suggest relevant content as text is entered into the search field.
+
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
