@@ -9,7 +9,7 @@
 	'use strict';
 
 	// No host/index set
-	if ( ! epas.host || '' === epas.host || ! epas.index || '' === epas.index ) {
+	if ( ! epas.endpointUrl || '' === epas.endpointUrl ) {
 		return;
 	}
 
@@ -131,14 +131,12 @@
 	 * @returns AJAX object request
 	 */
 	function esSearch( query ) {
-		// @todo support multiple different post type search boxes on the same page
-		var url = epas.host + '/' + epas.index + '/post/_search';
 
 		// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
 		jQuery.support.cors = true;
 
 		return $.ajax( {
-			url: url,
+			url: epas.endpointUrl,
 			type: 'post',
 			dataType: 'json',
 			crossDomain: true,

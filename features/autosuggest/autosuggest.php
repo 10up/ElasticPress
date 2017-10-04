@@ -40,6 +40,7 @@ function ep_autosuggest_setup() {
  * @since 2.4
  */
 function ep_autosugguest_settings( $feature ) {
+	$host = ep_get_host();
 	$settings = $feature->get_settings();
 
 	if ( ! $settings ) {
@@ -47,17 +48,21 @@ function ep_autosugguest_settings( $feature ) {
 	}
 
 	$settings = wp_parse_args( $settings, $feature->default_settings );
+
+	if ( preg_match( '#elasticpress\.io#i', $host ) ) {
+		return;
+	}
 	?>
 
 	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
-		<div class="field-name status"><label for="feature_autosuggest_host"><?php esc_html_e( 'Host', 'elasticpress' ); ?></label></div>
+		<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Endpoint URL', 'elasticpress' ); ?></label></div>
 		<div class="input-wrap">
-			<input value="<?php echo esc_url( $settings['host'] ); ?>" type="text" data-field-name="host" class="setting-field" id="feature_autosuggest_host">
-			<p class="field-description"><?php esc_html_e( 'For many hosting setups, a separate host should be used for autosuggest. Note that this address will be exposed to the public.', 'elasticpress' ); ?></p>
+			<input value="<?php echo esc_url( $settings['endpoint_url'] ); ?>" type="text" data-field-name="endpoint_url" class="setting-field" id="feature_autosuggest_endpoint_url">
+			<p class="field-description"><?php esc_html_e( 'This address will be exposed to the public.', 'elasticpress' ); ?></p>
 		</div>
 	</div>
 
-<?php
+	<?php
 }
 
 /**
@@ -126,16 +131,26 @@ function ep_autosuggest_filter_term_suggest( $post_args, $post_id ) {
 function ep_autosuggest_enqueue_scripts() {
 	$feature = ep_get_registered_feature( 'autosuggest' );
 
-	$settings = $feature->get_settings();
+	$host = ep_get_host();
 
-	if ( ! $settings ) {
-		$settings = array();
-	}
+	$endpoint_url = false;
 
-	$settings = wp_parse_args( $settings, $feature->default_settings );
+	if ( preg_match( '#elasticpress\.io#i', $host ) ) {
+		$endpoint_url = $host . '/' . ep_get_index_name() . '/post/_search';
+	} else {
+		$settings = $feature->get_settings();
 
-	if ( empty( $settings['host'] ) ) {
-		return;
+		if ( ! $settings ) {
+			$settings = array();
+		}
+
+		$settings = wp_parse_args( $settings, $feature->default_settings );
+
+		if ( empty( $settings['endpoint_url'] ) ) {
+			return;
+		}
+
+		$endpoint_url = $settings['endpoint_url'];
 	}
 
 	$js_url = ( defined( 'SCRIPT_DEBUG' ) && true === SCRIPT_DEBUG ) ? EP_URL . 'features/autosuggest/assets/js/src/autosuggest.js' : EP_URL . 'features/autosuggest/assets/js/autosuggest.min.js';
@@ -159,13 +174,12 @@ function ep_autosuggest_enqueue_scripts() {
 	/**
 	 * Output variables to use in Javascript
 	 * index: the Elasticsearch index name
-	 * host:  the Elasticsearch host
+	 * endpointUrl:  the Elasticsearch autosuggest endpoint url
 	 * postType: which post types to use for suggestions
 	 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 	 */
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
-		'index'        => ep_get_index_name( get_current_blog_id() ),
-		'host'         => esc_url( untrailingslashit( $settings['host'] ) ),
+		'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
 		'postType'     => apply_filters( 'ep_term_suggest_post_type', 'all' ),
 		'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
 			'post_title.suggest',
@@ -221,6 +235,6 @@ ep_register_feature( 'autosuggest', array(
 	'requires_install_reindex' => true,
 	'requirements_status_cb' => 'ep_autosuggest_requirements_status',
 	'default_settings' => array(
-		'host' => ep_get_host(),
+		'endpoint_url' => '',
 	),
 ) );
