@@ -279,11 +279,15 @@ function ep_wc_translate_args( $query ) {
 			// to add child terms to the tax query
 			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
 				$term_object = get_term_by( 'slug', $term, $taxonomy );
-				$children    = get_term_children( $term_object->term_id, $taxonomy );
-				if ( $children ) {
-					foreach ( $children as $child ) {
-						$child_object = get_term( $child, $taxonomy );
-						$terms[]      = $child_object->slug;
+				if ( $term_object && property_exists( $term_object, 'term_id' ) ) {
+					$children = get_term_children( $term_object->term_id, $taxonomy );
+					if ( $children ) {
+						foreach ( $children as $child ) {
+							$child_object = get_term( $child, $taxonomy );
+							if ( $child_object && ! is_wp_error( $child_object ) && property_exists( $child_object, 'slug' ) ) {
+								$terms[] = $child_object->slug;
+							}
+						}
 					}
 				}
 
