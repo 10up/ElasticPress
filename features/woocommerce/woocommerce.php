@@ -613,8 +613,12 @@ function ep_wc_search_order( $wp ){
 	}
 
 	$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+	$order_id        = absint( $search_key_safe );
 
-	$order = wc_get_order( absint( $search_key_safe ) );
+	/**
+	 * Order ID 0 is not valid value.
+	 */
+	$order = $order_id > 0 ? wc_get_order( $order_id ) : false;
 
 	//If the order doesn't exist, fallback to other fields
 	if ( ! $order ) {
