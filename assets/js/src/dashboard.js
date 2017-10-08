@@ -49,6 +49,8 @@
 				if ( $( this ).attr( 'checked' ) ) {
 					settings[ name ] = value;
 				}
+			} else {
+				settings[ name ] = value;
 			}
 		});
 

@@ -134,9 +134,16 @@ function ep_wc_convert_post_object_to_id( $posts ) {
  */
 function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 	$woo_taxonomies = array();
-	$product_type = get_taxonomy( 'product_type' );
 
-	$woo_taxonomies[] = $product_type;
+	$product_type       = get_taxonomy( 'product_type' );
+	if( false !== $product_type ){
+		$woo_taxonomies[] = $product_type;
+	}
+
+	$product_visibility = get_taxonomy( 'product_visibility' );
+	if( false !== $product_visibility ){
+		$woo_taxonomies[] = $product_visibility;
+	}
 
 	/**
 	 * Note product_shipping_class, product_cat, and product_tag are already public. Make
@@ -233,6 +240,8 @@ function ep_wc_translate_args( $query ) {
 		'product_tag',
 		'product_type',
 		'pa_sort-by',
+		'product_visibility',
+		'product_shipping_class',
 	);
 
 	/**
@@ -330,10 +339,13 @@ function ep_wc_translate_args( $query ) {
 		}
 
 		/**
-		 * We can't support any special fields parameters
+		 * WordPress have to be version 4.6 or newer to have "fields" support
+		 * since it requires the "posts_pre_query" filter.
+		 *
+		 * @see WP_Query::get_posts
 		 */
 		$fields = $query->get( 'fields', false );
-		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
+		if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ( 'ids' === $fields || 'id=>parent' === $fields ) ) {
 			$query->set( 'fields', 'default' );
 		}
 
@@ -406,6 +418,7 @@ function ep_wc_translate_args( $query ) {
 					'_billing_first_name',
 					'_shipping_first_name',
 					'_shipping_last_name',
+					'_items',
 				) ) );
 
 				$query->set( 'search_fields', $search_fields );
@@ -563,7 +576,7 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
  */
 function ep_wc_search_order( $wp ){
 	global $pagenow;
-	if ( 'edit.php' != $pagenow || 'shop_order' !== $wp->query_vars['post_type'] ||
+	if ( 'edit.php' != $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
 	     ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 		return;
 	}
@@ -581,6 +594,40 @@ function ep_wc_search_order( $wp ){
 		unset( $wp->query_vars['s'] );
 		$wp->query_vars['post__in'] = array( absint( $search_key_safe ) );
 	}
+}
+
+/**
+ * Add order items as a searchable string.
+ *
+ * This mimics how WooCommerce currently does in the order_itemmeta
+ * table. They combine the titles of the products and put them in a
+ * meta field called "Items".
+ *
+ * @since 2.4
+ *
+ * @param array $post_args
+ * @param string|int $post_id
+ *
+ * @return array
+ */
+function ep_wc_add_order_items_search( $post_args, $post_id ) {
+	// Make sure it is only WooCommerce orders we touch.
+	if ( 'shop_order' !== $post_args['post_type'] ) {
+		return $post_args;
+	}
+
+	// Get order items.
+	$order     = wc_get_order( $post_id );
+	$item_meta = array();
+	foreach ( $order->get_items() as $delta => $product_item ) {
+		$item_meta['_items'][] = $product_item->get_name( 'edit' );
+	}
+
+	// Prepare order items.
+	$item_meta['_items'] = empty( $item_meta['_items'] ) ? '' : implode( '|', $item_meta['_items'] );
+	$post_args['meta'] = array_merge( $post_args['meta'], EP_API::factory()->prepare_meta_types( $item_meta ) );
+
+	return $post_args;
 }
 
 /**
@@ -652,6 +699,7 @@ function ep_wc_setup() {
 		add_filter( 'woocommerce_unfiltered_product_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_add_order_items_search', 20, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
 		add_action( 'widgets_init', 'ep_related_products_register_widget' );
@@ -660,7 +708,7 @@ function ep_wc_setup() {
 
 /**
  * Output feature box summary
- * 
+ *
  * @since 2.1
  */
 function ep_wc_feature_box_summary() {
@@ -671,7 +719,7 @@ function ep_wc_feature_box_summary() {
 
 /**
  * Output feature box long
- * 
+ *
  * @since 2.1
  */
 function ep_wc_feature_box_long() {

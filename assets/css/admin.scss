@@ -301,7 +301,7 @@ h2.ep-list-features {
 .ep-feature .settings .action-wrap {
 	clear: both;
 	text-align: right;
-	margin-top: 10px;
+	padding-top: 15px;
 	vertical-align: middle;
 
 	a {
@@ -335,17 +335,41 @@ h2.ep-list-features {
 .ep-feature .settings .field {
 	clear: both;
 	overflow: initial;
+	padding-top: 15px;
+
+	&:first-child {
+		padding-top: 0;
+	}
+
+	label {
+		margin: 0.25em 0 0.5em;
+		display: inline-block;
+	}
+
+	div {
+		padding-top: 5px;
+	}
 
 	> label,
 	.field-name {
 		display: block;
 		float: left;
-		margin-right: 3em;
+		width: 25%;
+		padding-right: 1.5em;
+		box-sizing: border-box;
 	}
 
 	.input-wrap {
+		width: 75%;
 		display: block;
-		float: left;
+		float: right;
+	}
+
+	.field-description {
+		font-style: italic;
+		margin-top: 4px;
+		margin-bottom: 0;
+		color: #666;
 	}
 
 	.disabled {

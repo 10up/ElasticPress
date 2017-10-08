@@ -1,8 +1,8 @@
 <?php
 /**
- * Elasticsearch mapping for ES 5.0
+ * Elasticsearch mapping for ES 5.2
  *
- * @since  2.1.2
+ * @since  2.4
  * @package elasticpress
  */
 
@@ -53,6 +53,12 @@ return array(
 					'type' => 'edgeNGram',
 				),
 			),
+			'normalizer' => array(
+				'lowerasciinormalizer' => array(
+					'type'   => 'custom',
+					'filter' => array( 'lowercase', 'asciifolding' ),
+				),
+			),
 		),
 	),
 	'mappings' => array(
@@ -90,6 +96,7 @@ return array(
 										'sortable' => array(
 											'type' => 'keyword',
 											'ignore_above' => 10922,
+											'normalizer' => 'lowerasciinormalizer',
 										),
 										'raw' => array(
 											'type' => 'keyword',
@@ -141,6 +148,7 @@ return array(
 										),
 										'sortable' => array(
 											'type' => 'keyword',
+											'normalizer' => 'lowerasciinormalizer',
 										),
 									),
 								),
@@ -191,6 +199,7 @@ return array(
 								),
 								'sortable' => array(
 									'type' => 'keyword',
+									'normalizer' => 'lowerasciinormalizer',
 								),
 							),
 						),
@@ -202,6 +211,7 @@ return array(
 								),
 								'sortable' => array(
 									'type' => 'keyword',
+									'normalizer' => 'lowerasciinormalizer',
 								),
 							),
 						),
@@ -235,6 +245,7 @@ return array(
 						'sortable' => array(
 							'type' => 'keyword',
 							'ignore_above' => 10922,
+							'normalizer' => 'lowerasciinormalizer',
 						),
 					),
 				),
