@@ -620,7 +620,12 @@ function ep_wc_add_order_items_search( $post_args, $post_id ) {
 	$order     = wc_get_order( $post_id );
 	$item_meta = array();
 	foreach ( $order->get_items() as $delta => $product_item ) {
-		$item_meta['_items'][] = $product_item->get_name( 'edit' );
+		// WooCommerce 3.x uses WC_Order_Item_Product instance while 2.x an array
+		if ( is_object( $product_item ) && method_exists( $product_item, 'get_name' ) ) {
+			$item_meta['_items'][] = $product_item->get_name( 'edit' );
+		} elseif ( is_array( $product_item ) && isset( $product_item[ 'name' ] ) ) {
+			$item_meta['_items'][] = $product_item[ 'name' ];
+		}
 	}
 
 	// Prepare order items.
