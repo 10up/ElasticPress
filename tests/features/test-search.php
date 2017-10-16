@@ -114,6 +114,7 @@ class EPTestSearchFeature extends EP_Test_Base {
 	 * Test if decaying is enabled.
 	 *
 	 * @since 2.4
+	 * @group search
 	 */
 	public function testDecayingEnabled() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
@@ -150,6 +151,7 @@ class EPTestSearchFeature extends EP_Test_Base {
 	 * Test if decaying is disabled.
 	 *
 	 * @since 2.4
+	 * @group search
 	 */
 	public function testDecayingDisabled() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
@@ -188,6 +190,7 @@ class EPTestSearchFeature extends EP_Test_Base {
 	/**
 	 * Catch ES query args.
 	 *
+	 * @group search
 	 * @param array $args ES query args.
 	 */
 	public function catch_ep_formatted_args( $args ) {
