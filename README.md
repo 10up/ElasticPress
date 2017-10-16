@@ -126,8 +126,10 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     ) );
     ```
 
-    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), and
-    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s).
+    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), `operator` (string), and
+    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s). `operator` defaults to `in` and also supports `not in` and `and`.
+
+    The outer array supports the `relation` parameter. Acceptable values are `and` and `or`. The default is `and`.
 
 * The following shorthand parameters can be used for querying posts by specific dates:
 

@@ -3364,6 +3364,37 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test Tax Query and operator
+	 *
+	 * @since 2.4
+	 * @group single-site
+	 */
+	public function testTaxQueryOperatorAnd() {
+		$this->assertEquals( 1, 1 );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'one', 'two' ),
+					'field'    => 'slug',
+					'operator' => 'and',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
 	 * If a taxonomy is not public but is publicly queryable, it should return a result.
 	 *
 	 * @link https://github.com/10up/ElasticPress/issues/890
