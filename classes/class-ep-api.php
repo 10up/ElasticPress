@@ -1100,15 +1100,44 @@ class EP_API {
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
 
-					/*
-					 * add support for "NOT IN" operator
-					 *
-					 * @since 2.1
-					 */
-					if ( ! empty( $single_tax_query['operator'] ) && 'NOT IN' === $single_tax_query['operator'] ) {
+					$operator = ( ! empty( $single_tax_query['operator'] ) ) ? strtolower( $single_tax_query['operator'] ) : 'in';
+
+					if ( 'not in' === $operator ) {
+						/**
+						 * add support for "NOT IN" operator
+						 *
+						 * @since 2.1
+						 */
+
 						// If "NOT IN" than it should filter as must_not
 						$tax_must_not_filter[]['terms'] = $terms_obj;
+					} elseif ( 'and' === $operator ) {
+						/**
+						 * add support for "and" operator
+						 *
+						 * @since 2.4
+						 */
+
+						$and_nest = array(
+							'bool' => array(
+								'must' => array()
+							),
+						);
+
+						foreach ( $terms as $term ) {
+							$and_nest['bool']['must'][] = array(
+								'terms' => array(
+									'terms.' . $single_tax_query['taxonomy'] . '.' . $field => (array) $term,
+								)
+							);
+						}
+
+						$tax_filter[] = $and_nest;
 					} else {
+						/**
+						 * Default to IN operator
+						 */
+
 						// Add the tax query filter
 						$tax_filter[]['terms'] = $terms_obj;
 					}
