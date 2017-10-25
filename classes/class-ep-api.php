@@ -528,10 +528,12 @@ class EP_API {
 	 * Prepare a post for syncing
 	 *
 	 * @param int $post_id
+	 * @param bool $filter_content Whether we should use post_content and filter it via the_content filter.
+	 *
 	 * @since 0.9.1
 	 * @return bool|array
 	 */
-	public function prepare_post( $post_id ) {
+	public function prepare_post( $post_id, $filter_content = true ) {
 		$post = get_post( $post_id );
 
 		$user = get_userdata( $post->post_author );
@@ -590,7 +592,6 @@ class EP_API {
 			'post_date_gmt'     => $post_date_gmt,
 			'post_title'        => $this->prepare_text_content( get_the_title( $post_id ) ),
 			'post_excerpt'      => $this->prepare_text_content( $post->post_excerpt ),
-			'post_content'      => $this->prepare_text_content( apply_filters( 'the_content', $post->post_content ) ),
 			'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
@@ -609,6 +610,10 @@ class EP_API {
 			'guid'				=> $post->guid
 			//'site_id'         => get_current_blog_id(),
 		);
+
+		if ( $filter_content ) {
+			$post_args['post_content'] = $this->prepare_text_content( apply_filters( 'the_content', $post->post_content ) );
+		}
 
 		/**
 		 * This filter is named poorly but has to stay to keep backwards compat
@@ -2636,8 +2641,8 @@ function ep_refresh_index() {
 	return EP_API::factory()->refresh_index();
 }
 
-function ep_prepare_post( $post_id ) {
-	return EP_API::factory()->prepare_post( $post_id );
+function ep_prepare_post( $post_id, $filter_content = true ) {
+	return EP_API::factory()->prepare_post( $post_id, $filter_content );
 }
 
 function ep_get_sites( $limit = 0 ) {
