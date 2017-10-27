@@ -780,8 +780,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			if (isset( $body['indices'][$current_index] ) ) {
 				WP_CLI::log( '====== Stats for: ' . $current_index . " ======" );
-				WP_CLI::log( 'Documents:  ' . $body['indices'][$current_index]['total']['docs']['count'] );
-				WP_CLI::log( 'Index Size: ' . size_format($body['indices'][$current_index]['total']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( 'Documents:  ' . $body['indices'][$current_index]['primaries']['docs']['count'] );
+				WP_CLI::log( 'Index Size: ' . size_format($body['indices'][$current_index]['primaries']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( 'Index Size (including replicas): ' . size_format($body['indices'][$current_index]['total']['store']['size_in_bytes'], 2 ) );
 				WP_CLI::log( '====== End Stats ======' );
 			} else {
 				WP_CLI::warning( $current_index . ' is not currently indexed.' );
