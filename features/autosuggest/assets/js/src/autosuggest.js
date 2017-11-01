@@ -84,9 +84,13 @@
 	 * @param searchText
 	 * @returns object
 	 */
-	function buildSearchQuery( searchText, postType, searchFields ) {
+	function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 		if ( postType === 'all' || typeof( postType ) === 'undefined' || postType === '' ) {
 			postType = 'all';
+		}
+
+		if ( postStatus === '' ) {
+			postType = 'publish';
 		}
 
 		var query = {
@@ -105,20 +109,30 @@
 			}
 		};
 
-		// If we're specifying post types, do it in an array
+		// If we're specifying post types/statuses, do it in an array
 		if ( typeof postType === 'string' && postType !== 'all' ) {
-			postType = postType.split(',');
+			postType = postType.split( ',' );
+		}
+
+		if ( typeof postStatus === 'string' ) {
+			postStatus = postStatus.split( ',' );
 		}
 
 		// Then add it as a filter to the end of the query
-		if ( $.isArray( postType ) ) {
-			query.post_filter = {
-				bool: {
-					must: [{
-						terms: { 'post_type.raw': postType }
-					}]
-				}
-			};
+		query.post_filter = {
+			bool: {
+				must: [
+					{
+						terms: { post_status: postStatus }
+					}
+				]
+			}
+		};
+
+		if ( 'all' !== postType ) {
+			query.post_filter.bool.must.push( {
+				terms: { 'post_type.raw': postType }
+			} );
 		}
 
 		return query;
@@ -168,7 +182,7 @@
 		}
 
 		for ( i = 0; i < options.length; ++i ) {
-			var text = options[i].text.toLowerCase();
+			var text = options[i].text;
 			var url = options[i].url;
 			itemString = '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>';
 			$( itemString ).appendTo( $localSuggestList );
@@ -303,10 +317,11 @@
 			var query;
 			var request;
 			var postType = epas.postType;
+			var postStatus = epas.postStatus;
 			var searchFields = epas.searchFields;
 
 			if ( val.length >= 2 ) {
-				query = buildSearchQuery( val, postType, searchFields );
+				query = buildSearchQuery( val, postType, postStatus, searchFields );
 				request = esSearch( query );
 
 				request.done( function( response ) {
