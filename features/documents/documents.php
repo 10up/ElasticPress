@@ -10,20 +10,20 @@ function ep_documents_setup() {
 	add_filter( 'ep_post_sync_args', 'ep_documents_post_sync_args', 999, 2 );
 	add_filter( 'ep_indexable_post_status', 'ep_documents_indexable_post_status', 999, 1 );
 	add_filter( 'ep_bulk_index_post_request_path', 'ep_documents_bulk_index_post_request_path', 999, 1 );
-	add_filter( 'pre_get_posts', 'search_attachment_post_type' );
-	add_filter( 'ep_config_mapping', 'attachments_mapping' );
+	add_filter( 'pre_get_posts', 'ep_documents_search_attachment_post_type' );
+	add_filter( 'ep_config_mapping', 'ep_documents_attachments_mapping' );
 	add_action( 'ep_cli_put_mapping', 'ep_documents_create_pipeline' );
 	add_action( 'ep_dashboard_put_mapping', 'ep_documents_create_pipeline' );
 }
 
 /**
  * Add attachments mapping
- * 
+ *
  * @param  array $mapping
  * @since  2.3
  * @return array
  */
-function attachments_mapping( $mapping ) {
+function ep_documents_attachments_mapping( $mapping ) {
 	$mapping['mappings']['post']['properties']['attachments'] = array(
 		'type' => 'object',
 	);
@@ -36,11 +36,11 @@ function attachments_mapping( $mapping ) {
  * add the attachment post type to post_type and inherit to post_status. If post_status is not set,
  * we assume publish/inherit is wanted. post_type should always be set. We also add allowed mime types.
  * If mime types are already set, append.
- * 
+ *
  * @param  WP_Query $query
  * @since  2.3
  */
-function search_attachment_post_type( $query ) {
+function ep_documents_search_attachment_post_type( $query ) {
 	if ( is_admin() ) {
 		return;
 	}
@@ -103,7 +103,7 @@ function ep_documents_index_post_request_path( $path, $post ) {
 			$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', ep_get_index_name() . '-attachment' );
 		}
 	}
-	
+
 	return $path;
 }
 
@@ -127,19 +127,19 @@ function ep_documents_post_sync_args( $post_args, $post_id ) {
 	}
 
 	$allowed_ingest_mime_types = ep_documents_get_allowed_ingest_mime_types();
-	
+
 	if ( 'attachment' == get_post_type( $post_id ) && in_array( get_post_mime_type( $post_id ), $allowed_ingest_mime_types ) ) {
 		$file_name = get_attached_file( $post_id );
 		$exist = $wp_filesystem->exists( $file_name, false, 'f' );
 		if ( $exist ) {
 			$file_content = $wp_filesystem->get_contents( $file_name );
-			
+
 			$post_args['attachments'][] = array(
 				'data' => base64_encode( $file_content ),
 			);
 		}
 	}
-	
+
 	return $post_args;
 }
 
@@ -154,9 +154,9 @@ function ep_filter_ep_search_fields( $search_fields ) {
 	if ( ! is_array( $search_fields ) ) {
 		return $search_fields;
 	}
-	
+
 	$search_fields[] = 'attachments.attachment.content';
-	
+
 	return $search_fields;
 }
 
@@ -171,7 +171,7 @@ function ep_documents_indexable_post_status( $statuses ) {
 	if ( ! array_search( 'inherit', $statuses ) ) {
 		$statuses[] = 'inherit';
 	}
-	
+
 	return $statuses;
 }
 
@@ -199,8 +199,8 @@ function ep_documents_requirements_status( $status ) {
 	$plugins = ep_get_elasticsearch_plugins();
 
 	$status->code = 1;
-	$status->message = [];
-	
+	$status->message = array();
+
 	// Ingest attachment plugin is required for this feature
 	if ( empty( $plugins ) || empty( $plugins['ingest-attachment'] ) ) {
 		$status->code = 2;
@@ -208,7 +208,7 @@ function ep_documents_requirements_status( $status ) {
 	} else {
 		$status->message[] = __( "This feature modifies the default user experience for your visitors by adding popular document file types to search results. <strong>All supported documents</strong> uploaded to your media library will appear in search results.", 'elasticpress' );
 	}
-	
+
 	return $status;
 }
 
@@ -225,7 +225,7 @@ function ep_documents_feature_box_summary() {
 
 /**
  * Output feature box long
- * 
+ *
  * @since  2.3
  */
 function ep_documents_feature_box_long() {
@@ -258,7 +258,7 @@ function ep_documents_create_pipeline() {
 			),
 		),
 	);
-	
+
 	ep_create_pipeline( apply_filters( 'ep_documents_pipeline_id', ep_get_index_name() . '-attachment' ), $args );
 }
 

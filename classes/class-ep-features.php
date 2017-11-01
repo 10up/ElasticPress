@@ -27,7 +27,7 @@ class EP_Features {
 	 */
 	public function setup() {
 		add_action( 'plugins_loaded', array( $this, 'handle_feature_activation' ), 12 );
-		add_action( 'plugins_loaded', array( $this, 'setup_features' ), 11 );
+		add_action( 'init', array( $this, 'setup_features' ), 0 );
 	}
 
 	/**

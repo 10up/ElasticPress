@@ -1223,7 +1223,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-		
+
 		 // Only check for fields which are provided in search_fields.
 		$args = array(
 			's'             => 'findme',
@@ -1663,7 +1663,7 @@ class EPTestSingleSite extends EP_Test_Base {
 	 * @group single-site
 	 */
 	public function testSearchPostDateOrderbyQuery() {
-		ep_create_and_sync_post( array( 'post_title' => 'ordertes 333' ) );
+		ep_create_and_sync_post( array( 'post_title' => 'ordertesr' ) );
 		sleep( 3 );
 
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
@@ -1685,7 +1685,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
-		$this->assertEquals( 'ordertes 333', $query->posts[2]->post_title );
+		$this->assertEquals( 'ordertesr', $query->posts[2]->post_title );
 	}
 
 	/**
@@ -1877,7 +1877,7 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
 	}
-	
+
 	/**
 	 * Test orderby random
 	 *
@@ -1888,16 +1888,16 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 1' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 2' ) );
 		ep_create_and_sync_post( array( 'post_title' => 'ordertest 3' ) );
-		
+
 		ep_refresh_index();
-		
+
 		$args = array(
 			'ep_integrate'  => true,
 			'orderby'       => 'rand',
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		/* Since it's test for random order, can't check against exact post ID or content
 			but only found posts and post count.
 		*/
@@ -2302,7 +2302,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test a query that searches and filters by a meta value like the query
-	 * 
+	 *
 	 * @since 1.5
 	 * @group single-site
 	 */
@@ -2330,16 +2330,16 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 	}
-	
+
 	public function testMetaQueryMultipleArray() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_2' => '4' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_2' => '0' ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1', 'meta_key_3' => '4' ) );
-		
+
 		ep_refresh_index();
-		
+
 		$args = array(
 			's'             => 'findme',
 			'meta_query' => array(
@@ -2350,12 +2350,12 @@ class EPTestSingleSite extends EP_Test_Base {
 				)
 			),
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-		
+
 		$args = array(
 			's'             => 'findme',
 			'meta_query' => array(
@@ -2378,9 +2378,9 @@ class EPTestSingleSite extends EP_Test_Base {
 				),
 			),
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -2562,7 +2562,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
-	 * 
+	 *
 	 * @link https://github.com/10up/ElasticPress/issues/306
 	 * @group single-site
 	 */
@@ -2600,7 +2600,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test invalid post date time
-	 * 
+	 *
 	 * @group single-site
 	 */
 	public function testPostInvalidDateTime(){
@@ -3161,7 +3161,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertEquals( 1, $query->post_count );
 	}
-	
+
 	/*
 	 * Test a post_parent query
 	 * @group single-site
@@ -3187,7 +3187,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test register feature
-	 * 
+	 *
 	 * @since 2.1
 	 * @group single-site
 	 */
@@ -3204,7 +3204,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 	/**
 	 * Test setup features
-	 * 
+	 *
 	 * @since 2.1
 	 * @group single-site
 	 */
@@ -3227,7 +3227,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$this->assertTrue( $feature->is_active() );
 	}
-	
+
 	/**
 	 * Test Tax Query NOT IN operator
 	 *
@@ -3237,9 +3237,9 @@ class EPTestSingleSite extends EP_Test_Base {
 	public function testTaxQueryNotIn() {
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
 		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
-		
+
 		ep_refresh_index();
-		
+
 		$args = array(
 			's'         => 'findme',
 			'tax_query' => array(
@@ -3250,12 +3250,12 @@ class EPTestSingleSite extends EP_Test_Base {
 				)
 			)
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-		
+
 		$args = array(
 			's'         => 'findme',
 			'tax_query' => array(
@@ -3272,13 +3272,13 @@ class EPTestSingleSite extends EP_Test_Base {
 				)
 			)
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
-	
+
 	/**
 	 * Test post_mime_type query
 	 *
@@ -3288,20 +3288,20 @@ class EPTestSingleSite extends EP_Test_Base {
 		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ) );
 		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit' ) );
 		ep_create_and_sync_post( array( 'post_type' => 'attachment', 'post_mime_type' => 'application/pdf', 'post_status' => 'inherit' ) );
-		
+
 		ep_refresh_index();
-		
+
 		$args = array(
 			'ep_integrate' => true,
 			'post_mime_type' => 'image',
 			'post_type' => 'attachment',
 			'post_status' => 'inherit'
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		$this->assertEquals( 2, $query->post_count );
-		
+
 		$args = array(
 			'ep_integrate' => true,
 			'post_mime_type' => array(
@@ -3311,9 +3311,132 @@ class EPTestSingleSite extends EP_Test_Base {
 			'post_type' => 'attachment',
 			'post_status' => 'inherit'
 		);
-		
+
 		$query = new WP_Query( $args );
-		
+
 		$this->assertEquals( 3, $query->found_posts );
 	}
+
+	/**
+	 * Test Tax Query IN operator
+	 *
+	 * @since 2.4
+	 * @group single-site
+	 */
+	public function testTaxQueryOperatorIn() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'one', 'two' ),
+					'field'    => 'slug',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'one', 'two' ),
+					'field'    => 'slug',
+					'operator' => 'in',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test Tax Query and operator
+	 *
+	 * @since 2.4
+	 * @group single-site
+	 */
+	public function testTaxQueryOperatorAnd() {
+		$this->assertEquals( 1, 1 );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'one', 'two' ),
+					'field'    => 'slug',
+					'operator' => 'and',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * If a taxonomy is not public but is publicly queryable, it should return a result.
+	 *
+	 * @link https://github.com/10up/ElasticPress/issues/890
+	 * @group single-site
+	 * @since 2.4
+	 */
+	public function testCustomTaxonomyPublic() {
+
+		$post_id = ep_create_and_sync_post();
+		$post    = get_post( $post_id );
+
+		$taxName = rand_str( 32 );
+		register_taxonomy( $taxName, $post->post_type, array( 'label'              => $taxName,
+		                                                      'public'             => false,
+		                                                      'publicly_queryable' => true
+		) );
+		register_taxonomy_for_object_type( $taxName, $post->post_type );
+
+		$term1Name = rand_str( 32 );
+		$term1     = wp_insert_term( $term1Name, $taxName );
+
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $taxName, true );
+
+		ep_sync_post( $post_id );
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'test',
+			'tax_query' => array(
+				array(
+					'taxonomy' => $taxName,
+					'terms'    => array( $term1Name ),
+					'field'    => 'name',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
+		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
+	}
+
 }

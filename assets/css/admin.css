@@ -243,7 +243,7 @@ h2.ep-list-features {
 .ep-feature .settings .action-wrap {
   clear: both;
   text-align: right;
-  margin-top: 10px;
+  padding-top: 15px;
   vertical-align: middle; }
   .ep-feature .settings .action-wrap a {
     cursor: pointer;
@@ -264,15 +264,31 @@ h2.ep-list-features {
 
 .ep-feature .settings .field {
   clear: both;
-  overflow: initial; }
+  overflow: initial;
+  padding-top: 15px; }
+  .ep-feature .settings .field:first-child {
+    padding-top: 0; }
+  .ep-feature .settings .field label {
+    margin: 0.25em 0 0.5em;
+    display: inline-block; }
+  .ep-feature .settings .field div {
+    padding-top: 5px; }
   .ep-feature .settings .field > label,
   .ep-feature .settings .field .field-name {
     display: block;
     float: left;
-    margin-right: 3em; }
+    width: 25%;
+    padding-right: 1.5em;
+    box-sizing: border-box; }
   .ep-feature .settings .field .input-wrap {
+    width: 75%;
     display: block;
-    float: left; }
+    float: right; }
+  .ep-feature .settings .field .field-description {
+    font-style: italic;
+    margin-top: 4px;
+    margin-bottom: 0;
+    color: #666; }
   .ep-feature .settings .field .disabled {
     color: #c4c3c3; }
     .ep-feature .settings .field .disabled input {
@@ -397,4 +413,5 @@ h2.ep-list-features {
     vertical-align: middle;
     display: inline-block;
     padding-top: .5em; } }
+
 /*# sourceMappingURL=admin.css.map */

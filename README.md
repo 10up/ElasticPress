@@ -19,7 +19,7 @@ ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Ref
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.7 - 5.2 (2.0+ highly recommended)
+* [Elasticsearch](https://www.elastic.co) 1.7+ (5.0+ highly recommended)
 * [WordPress](http://wordpress.org) 3.7.1+
 
 ## Installation
@@ -60,6 +60,10 @@ Optionally index all of your content, including private and unpublished content,
 
 Indexes text inside of popular file types, and adds those files types to search results.
 
+### Autosuggest
+
+Suggest relevant content as text is entered into the search field.
+
 ## `WP_Query` and the ElasticPress Query Integration
 
 ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
@@ -78,7 +82,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
         'posts_per_page' => 20,
     ) );
     ```
-    
+
     Get all posts with a specific category slug
     ```php
     new WP_Query( array(
@@ -122,8 +126,10 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     ) );
     ```
 
-    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), and
-    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s).
+    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), `operator` (string), and
+    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s). `operator` defaults to `in` and also supports `not in` and `and`.
+
+    The outer array supports the `relation` parameter. Acceptable values are `and` and `or`. The default is `and`.
 
 * The following shorthand parameters can be used for querying posts by specific dates:
 
@@ -157,7 +163,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     containing the following parameters ```after```, ```before```, ```inclusive```, ```compare```, ```column```, and
     ```relation```. ```column``` is used to query specific columns from the ```wp_posts``` table. This will return posts
     which are created after January 1st 2012 and January 3rd 2012 8AM GMT:
-    
+
     ```php
     new WP_Query( array(
         's' => 'search phrase',
@@ -173,7 +179,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
         ),
     ) );
     ```
-    
+
     Currently only the ```AND``` value is supported for the ```relation``` parameter.
 
     ```inclusive``` is used on after/before options to determine whether exact value should be matched or not. If inclusive is used
@@ -254,9 +260,9 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     ) );
     ```
 
-    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), 
+    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string),
     ```type``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
-    
+
     * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
     * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
     * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
@@ -288,9 +294,9 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
     Possible values for ```relation``` are ```OR``` and ```AND```. If ```relation``` is set to ```AND```, all inner queries must be true for a post to be returned. If ```relation``` is set to ```OR```, only one of the inner meta queries must be true for the post to be returned.
 
-    ```type``` supports the following values:  'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 
-    'DECIMAL', 'SIGNED', 'TIME', and 'UNSIGNED'. By default WordPress casts meta values to these types 
-    in MySQL so some of these don't make sense in the context of Elasticsearch. ElasticPress does no "runtime" 
+    ```type``` supports the following values:  'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME',
+    'DECIMAL', 'SIGNED', 'TIME', and 'UNSIGNED'. By default WordPress casts meta values to these types
+    in MySQL so some of these don't make sense in the context of Elasticsearch. ElasticPress does no "runtime"
     casting but instead compares the value to a different type compiled during indexing
 
     * `NUMERIC` - Compares query `value` to integer version of stored meta value.
@@ -303,7 +309,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     * `DATETIME` - Compares query `value` to date/time version of stored meta value. Query `value` must be formatted like `2012-01-02 05:00:00` or `yyyy:mm:dd hh:mm:ss`.
     * `TIME` - Compares query `value` to time version of stored meta value. Query `value` must be formatted like `17:00:00` or `hh:mm:ss`.
 
-    If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
+    If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type```
     is very rarely needed to be used.
 
 * ```meta_key``` (*string*)
@@ -341,11 +347,11 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 * ```author``` (*int*)
 
     Show posts associated with certain author ID.
-    
+
 * ```author_name``` (*string*)
 
     Show posts associated with certain author. Use ```user_nicename``` (NOT name).
-    
+
 * ```orderby``` (*string*)
 
     Order results by field name instead of relevance. Supports: ```title```, ```modified```, `meta_value`, `meta_value_num`, ```type```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
@@ -353,11 +359,11 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 * ```order``` (*string*)
 
     Which direction to order results in. Accepts ```ASC``` and ```DESC```. Default is ```DESC```.
-  
+
 * ```post_parent``` (*int*)
 
     Show posts that have the specified post parent.
-  
+
 
 The following are special parameters that are only supported by ElasticPress.
 
@@ -428,7 +434,7 @@ The following are special parameters that are only supported by ElasticPress.
 * ```aggs``` (*array*)
 
     Add aggregation results to your search result. For example:
-    
+
     ```php
     new WP_Query( array(
         's'    => 'search phrase',

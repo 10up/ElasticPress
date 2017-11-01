@@ -26,6 +26,8 @@ __Protected Content__: Optionally index all of your content, including private a
 
 __Documents__: Indexes text inside of popular file types, and adds those files types to search results.
 
+__Autosuggest__: Suggest relevant content as text is entered into the search field.
+
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
@@ -43,6 +45,34 @@ Version 2.3.1-2.3.2 is a bug fix release. Here are a listed of issues that have 
 * Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes. If ES isn't available, show admin notification that allows you to retry the host.
 * Fix broken upgrade sync notification.
 * Properly respect WC product visibility. Props [ivankristianto](https://github.com/ivankristianto). This requires a re-index if you are using the WooCommerce feature.
+
+= 2.4 =
+
+Version 2.4 introduces the Autosuggest feature. When enabled, input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.
+
+We also added hooks and filters to ElasticPress that make query logging possible. The [Debug Bar ElasticPress](https://github.com/10up/debug-bar-elasticpress) plugin now adds a Query Log screen to the ElasticPress admin menu. The Query Log is an extremely powerful tool for diagnosing search and indexing issues.
+
+Here is a comphrensive list of changes:
+
+### Enhancements
+* Autosuggest feature
+* Hooks for query log functionality in [Debug Bar ElasticPress](https://github.com/10up/debug-bar-elasticpress)
+* Support `WP_Query` `fields` parameter. Props [kallehauge](https://github.com/kallehauge).
+* Add setting for enabling/disabling date weighting in search. Props [lukaspawlik](https://github.com/kallehauge).
+* Remove extra post meta storage key from Elasticsearch
+* Add shipping class as indexed WooCommerce taxonomy. Props [kallehauge](https://github.com/kallehauge).
+* Allow WooCommerce orders to be searched by items. Props [kallehauge](https://github.com/kallehauge).
+* Support Elasticsearch 5.6
+* Add filter to granularly control admin notices. Props [mattonomics](https://github.com/mattonomics).
+* Support ES 5.5+ strict content type checking. Props [sc0ttclark](https://github.com/sc0ttclark)
+
+### Bug Fixes
+* Fix `author_name` search field. Props [ivankristianto](https://github.com/ivankristianto).
+* Fix unavailable taxonomy issue in WooCommerce. Props [ivankristianto](https://github.com/ivankristianto).
+* Index all publicly queryable taxonomies. Props [allan23](https://github.com/allan23).
+* Resolve case insensitive sorting issues. Props [allan23](https://github.com/allan23).
+* Add escaping per VIP standards. Props [jasonbahl](https://github.com/jasonbahl).
+* Fix WooCommerce post type warnings.
 
 = 2.3 =
 
