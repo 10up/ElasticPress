@@ -180,7 +180,8 @@ function ep_autosuggest_enqueue_scripts() {
 	 */
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
 		'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-		'postType'     => apply_filters( 'ep_term_suggest_post_type', 'all' ),
+		'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
+		'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
 		'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
 			'post_title.suggest',
 			'term_suggest',
