@@ -117,11 +117,11 @@ class EPTestSearchFeature extends EP_Test_Base {
 	 * @group search
 	 */
 	public function testDecayingEnabled() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
-
-		EP_Features::factory()->handle_feature_activation();
+		ep_activate_feature( 'search' );
 		EP_Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ep_search_setup();
 
 		ep_update_feature( 'search', array(
 			'active'           => true,
@@ -135,6 +135,7 @@ class EPTestSearchFeature extends EP_Test_Base {
 		$query = new WP_Query( array(
 			's' => 'test',
 		) );
+
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
 		$this->assertTrue( isset(
 			$this->fired_actions['ep_formatted_args']['query'],
@@ -154,11 +155,11 @@ class EPTestSearchFeature extends EP_Test_Base {
 	 * @group search
 	 */
 	public function testDecayingDisabled() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
-
-		EP_Features::factory()->handle_feature_activation();
+		ep_activate_feature( 'search' );
 		EP_Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ep_search_setup();
 
 		ep_update_feature( 'search', array(
 			'active'           => true,
