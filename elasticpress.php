@@ -102,6 +102,7 @@ function ep_handle_upgrades() {
 	$reindex_versions = apply_filters( 'ep_reindex_versions', array(
 		'2.2',
 		'2.3.1',
+		'2.4',
 	) );
 
 	$need_upgrade_sync = false;
