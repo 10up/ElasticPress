@@ -693,7 +693,7 @@ class EP_API {
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
 			// We check if the $taxonomy object as name property. Backward compatibility since WP_Taxonomy introduced in WP 4.7
-			if ( ! property_exists( $taxonomy, 'name' ) ) {
+			if ( ( ! is_object( $taxonomy ) && ! class_exists( (string) $taxonomy ) ) || ! property_exists( $taxonomy, 'name' ) ) {
 				continue;
 			}
 
