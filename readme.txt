@@ -5,7 +5,7 @@ Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
 Tested up to: 4.9
-Stable tag: trunk
+Stable tag: 2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -38,13 +38,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 2.3.1, 2.3.2 =
+= 2.5 =
 
-Version 2.3.1-2.3.2 is a bug fix release. Here are a listed of issues that have been resolved:
-
-* Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes. If ES isn't available, show admin notification that allows you to retry the host.
-* Fix broken upgrade sync notification.
-* Properly respect WC product visibility. Props [ivankristianto](https://github.com/ivankristianto). This requires a re-index if you are using the WooCommerce feature.
+* 
 
 = 2.4 =
 
@@ -73,6 +69,14 @@ Here is a comphrensive list of changes:
 * Resolve case insensitive sorting issues. Props [allan23](https://github.com/allan23).
 * Add escaping per VIP standards. Props [jasonbahl](https://github.com/jasonbahl).
 * Fix WooCommerce post type warnings.
+
+= 2.3.1, 2.3.2 =
+
+Version 2.3.1-2.3.2 is a bug fix release. Here are a listed of issues that have been resolved:
+
+* Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes. If ES isn't available, show admin notification that allows you to retry the host.
+* Fix broken upgrade sync notification.
+* Properly respect WC product visibility. Props [ivankristianto](https://github.com/ivankristianto). This requires a re-index if you are using the WooCommerce feature.
 
 = 2.3 =
 
