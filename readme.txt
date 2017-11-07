@@ -40,7 +40,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 2.5 =
 
-* 
+* Fix taxonomy check issue when ep_sync_taxonomies filter returns unexpected results
 
 = 2.4 =
 
