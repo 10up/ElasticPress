@@ -334,6 +334,7 @@ class EP_API {
 	 */
 	public function format_request_headers() {
 		$headers = array();
+		$headers['Content-Type'] = 'application/json';
 
 		// Check for ElasticPress API key and add to header if needed.
 		if ( defined( 'EP_API_KEY' ) && EP_API_KEY ) {
