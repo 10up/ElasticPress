@@ -44,6 +44,7 @@ Version 2.4.1 is a bug fix release. Here are a listed of issues that have been r
 
 * Updated stats cli command to properly display index size.
 * Updated WooCommerce feature to properly detect signle product page.
+* Added "inherit" post status if attachment post type is indexable.
 
 = 2.4 =
 
