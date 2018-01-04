@@ -1459,23 +1459,23 @@ class EP_API {
 		 * If not set default to post. If search and not set, default to "any".
 		 */
 		if ( ! empty( $args['post_type'] ) ) {
-			// should NEVER be "any" but just in case
-			if ( 'any' !== $args['post_type'] ) {
-				$post_types = (array) $args['post_type'];
-				$terms_map_name = 'terms';
-				if ( count( $post_types ) < 2 ) {
-					$terms_map_name = 'term';
-					$post_types = $post_types[0];
- 				}
+			$post_types = 'any' == $args['post_type']
+				? ep_get_indexable_post_types()
+				: (array) $args['post_type'];
 
-				$filter['bool']['must'][] = array(
-					$terms_map_name => array(
-						'post_type.raw' => $post_types,
-					),
-				);
-
-				$use_filters = true;
+			$terms_map_name = 'terms';
+			if ( count( $post_types ) < 2 ) {
+				$terms_map_name = 'term';
+				$post_types = current( $post_types );
 			}
+
+			$filter['bool']['must'][] = array(
+				$terms_map_name => array(
+					'post_type.raw' => $post_types,
+				),
+			);
+
+			$use_filters = true;
 		} elseif ( empty( $args['s'] ) ) {
 			$filter['bool']['must'][] = array(
 				'term' => array(
