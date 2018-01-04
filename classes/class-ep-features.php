@@ -26,8 +26,8 @@ class EP_Features {
 	 * @since 2.1
 	 */
 	public function setup() {
-		add_action( 'init', array( $this, 'handle_feature_activation' ), 1 );
-		add_action( 'init', array( $this, 'setup_features' ), 2 );
+		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
+		add_action( 'init', array( $this, 'setup_features' ), 0 );
 	}
 
 	/**
