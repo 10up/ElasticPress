@@ -40,7 +40,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 2.5 =
 
-* 
+* Added "Content-Type: application/json" header to work properly with ES 6+
 
 = 2.4 =
 
