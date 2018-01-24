@@ -1459,7 +1459,6 @@ class EP_API {
 		 * If not set default to post. If search and not set, default to "any".
 		 */
 		if ( ! empty( $args['post_type'] ) ) {
-			// should NEVER be "any" but just in case
 			if ( 'any' !== $args['post_type'] ) {
 				$post_types = (array) $args['post_type'];
 				$terms_map_name = 'terms';

@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 4.9.1
+Tested up to: 4.9
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -12,13 +12,13 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 A fast and flexible search and query engine for WordPress.
 
 == Description ==
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or "query" relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
 
 Here is a list of the amazing ElasticPress features included in the plugin:
 
-__Search__: Instantly find the content you’re looking for. The first time.
+__Search__: Instantly find the content you're looking for. The first time.
 
-__WooCommerce__: “I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
+__WooCommerce__: "I want a cotton, woman's t-shirt, for under $15 that's in stock." Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
 
 __Related Posts__: ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
 
@@ -38,12 +38,13 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 2.4.1 =
+= 2.3.1, 2.3.2 =
 
-Version 2.4.1 is a bug fix release. Here are a listed of issues that have been resolved:
+Version 2.3.1-2.3.2 is a bug fix release. Here are a listed of issues that have been resolved:
 
-* Updated stats cli command to properly display index size.
-* Updated WooCommerce feature to properly detect signle product page.
+* Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes. If ES isn't available, show admin notification that allows you to retry the host.
+* Fix broken upgrade sync notification.
+* Properly respect WC product visibility. Props [ivankristianto](https://github.com/ivankristianto). This requires a re-index if you are using the WooCommerce feature.
 
 = 2.4 =
 
@@ -72,14 +73,6 @@ Here is a comphrensive list of changes:
 * Resolve case insensitive sorting issues. Props [allan23](https://github.com/allan23).
 * Add escaping per VIP standards. Props [jasonbahl](https://github.com/jasonbahl).
 * Fix WooCommerce post type warnings.
-
-= 2.3.1, 2.3.2 =
-
-Version 2.3.1-2.3.2 is a bug fix release. Here are a listed of issues that have been resolved:
-
-* Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes. If ES isn't available, show admin notification that allows you to retry the host.
-* Fix broken upgrade sync notification.
-* Properly respect WC product visibility. Props [ivankristianto](https://github.com/ivankristianto). This requires a re-index if you are using the WooCommerce feature.
 
 = 2.3 =
 
