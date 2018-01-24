@@ -333,23 +333,25 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_request_headers() {
-		$headers = array();
+		$headers = array(
+			'Content-Type' => 'application/json',
+		);
 
 		// Check for ElasticPress API key and add to header if needed.
 		if ( defined( 'EP_API_KEY' ) && EP_API_KEY ) {
 			$headers['X-ElasticPress-API-Key'] = EP_API_KEY;
 		}
 
-    /**
-     * ES Shield Username & Password
-     * Adds username:password basic authentication headers
-     *
-     * Define the constant ES_SHIELD in your wp-config.php
-     * Format: 'username:password' (colon separated)
-     * Example: define( 'ES_SHIELD', 'es_admin:password' );
-     *
-     * @since 1.9
-     */
+		/**
+		 * ES Shield Username & Password
+		 * Adds username:password basic authentication headers
+		 *
+		 * Define the constant ES_SHIELD in your wp-config.php
+		 * Format: 'username:password' (colon separated)
+		 * Example: define( 'ES_SHIELD', 'es_admin:password' );
+		 *
+		 * @since 1.9
+		 */
 		if ( defined( 'ES_SHIELD' ) && ES_SHIELD ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( ES_SHIELD );
 		}
