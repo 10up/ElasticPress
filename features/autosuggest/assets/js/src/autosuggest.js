@@ -190,7 +190,7 @@
 
 		// Listen to items to auto-fill search box and submit form
 		$( '.autosuggest-item' ).on( 'click', function( event ) {
-			selectItem( $localInput, event.srcElement );
+			selectItem( $localInput, event.target );
 		} );
 
 		$localInput.off( 'keydown' );
