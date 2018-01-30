@@ -12,13 +12,13 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 A fast and flexible search and query engine for WordPress.
 
 == Description ==
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or "query" relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
 
 Here is a list of the amazing ElasticPress features included in the plugin:
 
-__Search__: Instantly find the content you’re looking for. The first time.
+__Search__: Instantly find the content you're looking for. The first time.
 
-__WooCommerce__: “I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
+__WooCommerce__: "I want a cotton, woman's t-shirt, for under $15 that's in stock." Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
 
 __Related Posts__: ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
 
