@@ -151,14 +151,7 @@ class EP_Config {
 	 * @return array
 	 */
 	public function get_indexable_post_status() {
-		$statuses = array( 'publish' );
-
-		$post_types = ep_get_indexable_post_types();
-		if ( in_array( 'attachment', $post_types ) ) {
-			$statuses[] = 'inherit';
-		}
-
-		return apply_filters( 'ep_indexable_post_status', $statuses );
+		return apply_filters( 'ep_indexable_post_status', array( 'publish' ) );
 	}
 
 	/**
