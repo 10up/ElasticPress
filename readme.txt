@@ -46,6 +46,7 @@ Version 2.4.1 is a bug fix and maintenance release. Here are a listed of issues 
 * Fix autosuggest event target issue bug. Props [eugene-manuilov](https://github.com/eugene-manuilov).
 * Fix widget init bug. Props [eugene-manuilov](https://github.com/eugene-manuilov).
 * Fix taxonomy sync parameter warning. Props [eugene-manuilov](https://github.com/eugene-manuilov).
+* Increase maximum Elasticsearch compatibility to 6.1
 
 = 2.4 =
 
