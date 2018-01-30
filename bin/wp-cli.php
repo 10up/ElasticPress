@@ -1,7 +1,9 @@
 <?php
- if ( ! defined( 'ABSPATH' ) ) {
+
+if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
+
 WP_CLI::add_command( 'elasticpress', 'ElasticPress_CLI_Command' );
 
 /**
@@ -29,14 +31,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 * @since 1.7
 	 */
 	private $failed_posts_message = array();
-	
+
 	/**
 	 * Holds whether it's network transient or not
 	 *
 	 * @since 2.1.1
 	 */
 	private $is_network_transient = false;
-	
+
 	/**
 	 * Holds time until transient expires
 	 *
@@ -139,7 +141,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				$features = get_option( 'ep_feature_settings', array() );
 			}
 			WP_CLI::line( __( 'Active features:', 'elasticpress' ) );
-			
+
 			foreach ( $features as $key => $feature ) {
 				if( $feature['active'] ) {
 					WP_CLI::line( $key );
@@ -148,7 +150,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		} else {
 			WP_CLI::line( __( 'Registered features:', 'elasticpress' ) );
 			$features = wp_list_pluck( EP_Features::factory()->registered_features, 'slug' );
-			
+
 			foreach ( $features as $feature ) {
 				WP_CLI::line( $feature );
 			}
@@ -507,7 +509,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 					if ( $no_bulk ) {
 						// index the posts one-by-one. not sure why someone may want to do this.
 						$result = ep_sync_post( get_the_ID() );
-						
+
 						$this->reset_transient();
 
 						do_action( 'ep_cli_post_index', get_the_ID() );
@@ -651,7 +653,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		// decode the response
 		$response = ep_bulk_index_posts( $body );
-		
+
 		$this->reset_transient();
 
 		do_action( 'ep_cli_post_bulk_index', $this->posts );
@@ -688,7 +690,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 	/**
 	 * Formatting bulk error message recursively
-	 * 
+	 *
 	 * @param  array $message_array
 	 * @since  2.2
 	 * @return string
@@ -780,8 +782,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			if (isset( $body['indices'][$current_index] ) ) {
 				WP_CLI::log( '====== Stats for: ' . $current_index . " ======" );
-				WP_CLI::log( 'Documents:  ' . $body['indices'][$current_index]['total']['docs']['count'] );
-				WP_CLI::log( 'Index Size: ' . size_format($body['indices'][$current_index]['total']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( 'Documents:  ' . $body['indices'][$current_index]['primaries']['docs']['count'] );
+				WP_CLI::log( 'Index Size: ' . size_format($body['indices'][$current_index]['primaries']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( 'Index Size (including replicas): ' . size_format($body['indices'][$current_index]['total']['store']['size_in_bytes'], 2 ) );
 				WP_CLI::log( '====== End Stats ======' );
 			} else {
 				WP_CLI::warning( $current_index . ' is not currently indexed.' );
@@ -862,14 +865,14 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	private function _connect_check() {
 		$host = ep_get_host();
-		
+
 		if ( empty( $host) ) {
 			WP_CLI::error( __( 'There is no Elasticsearch host set up. Either add one through the dashboard or define one in wp-config.php', 'elasticpress' ) );
 		} elseif ( ! ep_get_elasticsearch_version( true ) ) {
 			WP_CLI::error( __( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
 		}
 	}
-	
+
 	/**
 	 * Reset transient while indexing
 	 *

@@ -247,18 +247,7 @@ class EP_WP_Query_Integration {
 		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'], $query );
 
 		if ( 'any' === $query_vars['post_type'] ) {
-			unset( $query_vars['post_type'] );
-		}
-
-		/**
-		 * If not search and not set default to post. If not set and is search, use searchable post tpyes
-		 */
-		if ( empty( $query_vars['post_type'] ) ) {
-			if ( empty( $query_vars['s'] ) ) {
-				$query_vars['post_type'] = 'post';
-			} else {
-				$query_vars['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
-			}
+			$query_vars['post_type'] = 'post';
 		}
 
 		if ( empty( $query_vars['post_type'] ) ) {

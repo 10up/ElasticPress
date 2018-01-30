@@ -333,23 +333,25 @@ class EP_API {
 	 * @return array
 	 */
 	public function format_request_headers() {
-		$headers = array();
+		$headers = array(
+			'Content-Type' => 'application/json',
+		);
 
 		// Check for ElasticPress API key and add to header if needed.
 		if ( defined( 'EP_API_KEY' ) && EP_API_KEY ) {
 			$headers['X-ElasticPress-API-Key'] = EP_API_KEY;
 		}
 
-    /**
-     * ES Shield Username & Password
-     * Adds username:password basic authentication headers
-     *
-     * Define the constant ES_SHIELD in your wp-config.php
-     * Format: 'username:password' (colon separated)
-     * Example: define( 'ES_SHIELD', 'es_admin:password' );
-     *
-     * @since 1.9
-     */
+		/**
+		 * ES Shield Username & Password
+		 * Adds username:password basic authentication headers
+		 *
+		 * Define the constant ES_SHIELD in your wp-config.php
+		 * Format: 'username:password' (colon separated)
+		 * Example: define( 'ES_SHIELD', 'es_admin:password' );
+		 *
+		 * @since 1.9
+		 */
 		if ( defined( 'ES_SHIELD' ) && ES_SHIELD ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( ES_SHIELD );
 		}
@@ -692,8 +694,13 @@ class EP_API {
 		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
+			// If we get a taxonomy name, we need to convert it to taxonomy object
+			if ( ! is_object( $taxonomy ) && taxonomy_exists( (string) $taxonomy ) ) {
+				$taxonomy = get_taxonomy( $taxonomy );
+			}
+
 			// We check if the $taxonomy object as name property. Backward compatibility since WP_Taxonomy introduced in WP 4.7
-			if ( ! property_exists( $taxonomy, 'name' ) ) {
+			if ( ! is_a( $taxonomy, '\WP_Taxonomy' ) || ! property_exists( $taxonomy, 'name' ) ) {
 				continue;
 			}
 
