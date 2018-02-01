@@ -39,6 +39,11 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 == Changelog ==
 
 = 2.4.1 =
+Version 2.4.1 is a bug fix version.
+
+* Fix related posts not showing up bug.
+
+= 2.4.1 =
 
 Version 2.4.1 is a bug fix and maintenance release. Here are a listed of issues that have been resolved:
 
