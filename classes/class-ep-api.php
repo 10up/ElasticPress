@@ -527,6 +527,31 @@ class EP_API {
 	}
 
 	/**
+	 * Call the functions added to a filter hook but with protection against deep recursion.
+	 *
+	 * @see           apply_filters() This function works effectively the same, but with extra prevention against recursion.
+	 * @param  int    $max_levels The maximum level of recursion permitted.
+	 * @param  string $tag The name of the filter hook.
+	 * @param  mixed  $value The value on which the filters hooked to `$tag` are applied on.
+	 * @return mixed  The filtered value after all hooked functions are applied to it.
+	 */
+	private function apply_filters_recursion_guarded( $max_levels = 1, $tag, $value ) {
+
+		$rg = new EP_RecursionGuard( $max_levels, $tag );
+		try {
+			$value = apply_filters( $tag, $value );
+		} catch ( EP_RecursionTooDeepException $e ) {
+			$value = $e->value();
+		} finally {
+			$rg->cleanup();
+			unset( $rg );
+		}
+
+		return $value;
+
+	}
+
+	/**
 	 * Prepare a post for syncing
 	 *
 	 * @param int $post_id
@@ -592,7 +617,7 @@ class EP_API {
 			'post_date_gmt'     => $post_date_gmt,
 			'post_title'        => $this->prepare_text_content( get_the_title( $post_id ) ),
 			'post_excerpt'      => $this->prepare_text_content( $post->post_excerpt ),
-			'post_content'      => $this->prepare_text_content( apply_filters( 'the_content', $post->post_content ) ),
+			'post_content'      => $this->prepare_text_content( self::apply_filters_recursion_guarded( 2, 'the_content', $post->post_content ) ),
 			'post_status'       => $post->post_status,
 			'post_name'         => $post->post_name,
 			'post_modified'     => $post_modified,
