@@ -1098,7 +1098,7 @@ class EP_API {
 
 					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
 					
-					if (!empty($single_tax_query['include_children'])) {
+					if (!isset($single_tax_query['include_children']) || $single_tax_query['include_children']) {
 						$terms = [$terms];
 
 						if (\is_array($single_tax_query['terms'])) {
