@@ -1097,6 +1097,42 @@ class EP_API {
 					$terms = (array) $single_tax_query['terms'];
 
 					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
+					
+					if (!empty($single_tax_query['include_children'])) {
+						$terms = [$terms];
+
+						if (\is_array($single_tax_query['terms'])) {
+							foreach ($single_tax_query['terms'] as $term) {
+								$terms[] = get_term_children($term, $single_tax_query['taxonomy']);
+							}
+						}
+
+						if (\is_string($single_tax_query['terms'])) {
+							foreach (preg_split('/[,]+/', $single_tax_query['terms']) as $term) {
+								$terms[] = get_term_children($term, $single_tax_query['taxonomy']);
+							}
+						}
+
+						if (\is_int($single_tax_query['terms'])) {
+							$terms[] = get_term_children($single_tax_query['terms'], $single_tax_query['taxonomy']);
+						}
+
+						$terms = array_merge(...$terms);
+
+						if ($field !== 'term_id') {
+							$_term_fields = array(
+								'name' => 'names',
+								'slug' => 'slugs',
+							);
+
+							$terms = get_terms(array(
+								'taxonomy'         => $single_tax_query['taxonomy'],
+								'fields'           => in_array($field, $_term_fields, true) ? $_term_fields[$field] : 'term_id',
+								'term_taxonomy_id' => $terms,
+								'hide_empty'       => false,
+							));
+						}
+					}
 
 					if ( 'name' === $field ) {
 						$field = 'name.raw';
