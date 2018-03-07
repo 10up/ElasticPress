@@ -1,0 +1,11 @@
+.widget_ep-facet .facet-title {
+  font-weight: bold;
+  margin-bottom: .5em; }
+
+.widget_ep-facet .terms {
+  margin-bottom: 1em; }
+
+.widget_ep-facet .terms:last-child {
+  margin-bottom: 0; }
+
+/*# sourceMappingURL=facets.css.map */
