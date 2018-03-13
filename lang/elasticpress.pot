@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.4.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2018-03-02 20:46:48+00:00\n"
+"POT-Creation-Date: 2018-03-13 03:59:43+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -390,35 +390,54 @@ msgstr ""
 msgid "ElasticPress Facet"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:73
+#: features/facets/class-ep-facet-widget.php:100
+msgid "Search %s"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:129
+msgid "Filter"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:129
+msgid "Clear"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:153
 #: features/related-posts/widget.php:88
 msgid "Title:"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:83
-#: features/facets/class-ep-facet-widget.php:96
+#: features/facets/class-ep-facet-widget.php:162 features/facets/facets.php:28
+msgid "Order Facets"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:165 features/facets/facets.php:31
 msgid "Taxonomy:"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:104
-msgid "Delete facet"
+#: features/facets/class-ep-facet-widget.php:174 features/facets/facets.php:40
+msgid "Delete Facet"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:109
+#: features/facets/class-ep-facet-widget.php:187
 msgid "Add Facet"
 msgstr ""
 
-#: features/facets/facets.php:183
+#: features/facets/class-ep-facet-widget.php:189
+msgid "ElasticPress does not yet support taxonomies with over 1000 terms."
+msgstr ""
+
+#: features/facets/facets.php:252
 msgid "Empower users to filter content by taxonomy."
 msgstr ""
 
-#: features/facets/facets.php:194
+#: features/facets/facets.php:263
 msgid ""
 "This feature creates a Facet widget that when added to a sidebar enables "
 "users to filter down archives by taxonomies."
 msgstr ""
 
-#: features/facets/facets.php:217
+#: features/facets/facets.php:286
 msgid "Faceting Enabled Post Types"
 msgstr ""
 

@@ -24,6 +24,9 @@
 		return queryParams;
 	}
 
+	/**
+	 * Drill down facet choices
+	 */
 	$( facetTerms ).on( 'keyup', '.facet-search', _.debounce( function( event ) {
 		if ( 13 === event.keyCode ) {
 			return;
