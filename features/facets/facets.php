@@ -85,7 +85,7 @@ function ep_facets_front_scripts() {
 	wp_enqueue_script(
 		'elasticpress-facets',
 		$js_url,
-		array( 'jquery' ),
+		array( 'jquery', 'underscore' ),
 		EP_VERSION,
 		true
 	);

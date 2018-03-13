@@ -8,4 +8,14 @@
 .widget_ep-facet .terms:last-child {
   margin-bottom: 0; }
 
+.widget_ep-facet input[type="search"] {
+  margin-bottom: 10px; }
+
+.widget_ep-facet .searchable .inner {
+  max-height: 20em;
+  overflow: scroll; }
+
+.widget_ep-facet .term.hide {
+  display: none; }
+
 /*# sourceMappingURL=facets.css.map */
