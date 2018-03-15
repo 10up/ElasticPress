@@ -102,6 +102,10 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
+
+		if ($meta_key === '_edit_lock') {
+			return;
+		}
 		
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
