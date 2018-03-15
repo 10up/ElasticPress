@@ -89,7 +89,15 @@ class EP_Facet_Widget extends WP_Widget {
 			}
 
 			$terms = get_terms( array( 'taxonomy' => $taxonomy ) );
+			$terms_by_slug = array();
+
+			foreach ( $terms as $term ) {
+				$terms_by_slug[ $term->slug ] = $term;
+			}
+
 			$taxonomy_object = get_taxonomy( $taxonomy );
+
+			arsort( $GLOBALS['ep_facet_aggs'][ $taxonomy ] );
 			?>
 
 			<div class="facet-title">
@@ -101,22 +109,32 @@ class EP_Facet_Widget extends WP_Widget {
 				<?php endif; ?>
 
 				<div class="inner">
-					<?php foreach ( $terms as $term ) :
-						if ( empty( $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ] ) ) {
+					<?php if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) ) : ?>
+						<?php foreach ( $selected_filters['taxonomies'][ $taxonomy ] as $term_slug => $value ) : ?>
+							<div class="term" data-term-name="<?php echo esc_attr( strtolower( $terms_by_slug[ $term_slug ]->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
+								<input class="facet-input" name="filter_taxonomy_<?php echo esc_attr( $taxonomy ); ?>" value="<?php echo esc_attr( $term_slug ); ?>" id="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term_slug ); ?>" checked type="checkbox">
+
+								<label for="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term_slug ); ?>">
+									<?php echo esc_html( $terms_by_slug[ $term_slug ]->name ); ?> (<?php echo (int) $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term_slug ]; ?>)
+								</label>
+							</div>
+						<?php endforeach ; ?>
+					<?php endif; ?>
+
+					<?php foreach ( $GLOBALS['ep_facet_aggs'][ $taxonomy ] as $term_slug => $count ) :
+						if ( empty( $terms_by_slug[ $term_slug ] ) ) {
 							continue;
 						}
 
-						$checked = false;
-
 						if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ][ $term->slug ] ) ) {
-							$checked = true;
+							continue;
 						}
 						?>
-						<div class="term" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-							<input class="facet-input" name="filter_taxonomy_<?php echo esc_attr( $taxonomy ); ?>" value="<?php echo esc_attr( $term->slug ); ?>" id="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term->slug ); ?>" <?php checked( true, $checked ); ?> type="checkbox">
+						<div class="term" data-term-name="<?php echo esc_attr( strtolower( $terms_by_slug[ $term_slug ]->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
+							<input class="facet-input" name="filter_taxonomy_<?php echo esc_attr( $taxonomy ); ?>" value="<?php echo esc_attr( $term_slug ); ?>" id="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term_slug ); ?>" type="checkbox">
 
-							<label for="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term->slug ); ?>">
-								<?php echo esc_html( $term->name ); ?> (<?php echo (int) $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ]; ?>)
+							<label for="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term_slug ); ?>">
+								<?php echo esc_html( $terms_by_slug[ $term_slug ]->name ); ?> (<?php echo (int) $count; ?>)
 							</label>
 						</div>
 					<?php endforeach; ?>
