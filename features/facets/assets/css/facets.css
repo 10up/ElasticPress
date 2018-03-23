@@ -1,15 +1,15 @@
 .widget_ep-facet .facet-title {
   font-weight: bold;
-  margin-bottom: .5em; }
+  margin-bottom: 1rem; }
 
 .widget_ep-facet .terms {
-  margin-bottom: 1em; }
+  margin-bottom: 2rem; }
 
 .widget_ep-facet .terms:last-child {
   margin-bottom: 0; }
 
 .widget_ep-facet input[type="search"] {
-  margin-bottom: 10px; }
+  margin-bottom: 1rem; }
 
 .widget_ep-facet .searchable .inner {
   max-height: 20em;

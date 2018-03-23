@@ -104,7 +104,7 @@ class EP_Facet_Widget extends WP_Widget {
 				<?php echo esc_html( $taxonomy_object->labels->name ); ?>
 			</div>
 			<div class="terms <?php if ( $term_totals[ $taxonomy ] > 2 ) : ?>searchable<?php endif; ?>">
-				<?php if ( $term_totals[ $taxonomy ] > 2 ) : ?>
+				<?php if ( $term_totals[ $taxonomy ] > apply_filters( 'ep_facet_search_threshold', 15, $taxonomy ) ) : ?>
 					<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
 				<?php endif; ?>
 
@@ -204,7 +204,6 @@ class EP_Facet_Widget extends WP_Widget {
 
 		<a class="add-facet"><?php esc_html_e( 'Add Facet', 'elasticpress' ); ?></a>
 
-		<p><em><?php esc_html_e( 'ElasticPress does not yet support taxonomies with over 1000 terms.', 'elastipress' ); ?></em></p>
 		<?php
 	}
 

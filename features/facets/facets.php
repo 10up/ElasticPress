@@ -7,7 +7,6 @@
  */
 function ep_facets_setup() {
 	add_action( 'widgets_init', 'ep_facets_register_widgets' );
-	add_action( 'ep_feature_box_settings_facets', 'ep_facets_feature_settings', 10, 1 );
 	add_action( 'ep_retrieve_raw_response', 'ep_facets_get_aggs' );
 	add_action( 'pre_get_posts', 'ep_facets_facet_query' );
 	add_action( 'admin_enqueue_scripts', 'ep_facets_admin_scripts' );
@@ -265,35 +264,6 @@ function ep_facets_feature_box_long() {
 }
 
 /**
- * Display decaying settings on dashboard.
- *
- * @since 2.5
- *
- * @param EP_Feature $feature Feature object.
- */
-function ep_facets_feature_settings( $feature ) {
-	$settings = $feature->get_settings();
-
-	if ( ! $settings ) {
-		$settings = array();
-	}
-
-	$settings = wp_parse_args( $settings, $feature->default_settings );
-
-	$post_types = get_post_types( array( 'public' => true ), 'object' );
-	?>
-	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
-		<div class="field-name status"><?php esc_html_e( 'Faceting Enabled Post Types', 'elasticpress' ); ?></div>
-		<div class="input-wrap">
-			<?php foreach ( $post_types as $post_type ) : ?>
-				<input name="post_types[]" id="post_types-<?php echo esc_attr( $post_type->name ); ?>" data-field-name="post_types" class="setting-field" type="checkbox" <?php if ( in_array( $post_type->name, $settings['post_types'], true ) ) : ?>checked<?php endif; ?> value="<?php echo esc_attr( $post_type->name ); ?>"> <label for="post_types-<?php echo esc_attr( $post_type->name ); ?>"><?php echo esc_html( $post_type->labels->name ); ?></label><br>
-			<?php endforeach; ?>
-		</div>
-	</div>
-<?php
-}
-
-/**
  * Register the feature
  *
  * @since  2.5
@@ -304,7 +274,4 @@ ep_register_feature( 'facets', array(
 	'feature_box_summary_cb'   => 'ep_facets_feature_box_summary',
 	'feature_box_long_cb'      => 'ep_facets_feature_box_long',
 	'requires_install_reindex' => false,
-	'default_settings'         => array(
-		'post_types' => get_post_types( array( 'public' => true ) ),
-	),
 ) );
