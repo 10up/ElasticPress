@@ -230,10 +230,6 @@ class EP_API {
 
 			$response = json_decode( $response_body, true );
 
-			if ( !$this->is_empty_query( $response ) ) {
-				return array( 'found_posts' => 0, 'posts' => array() );
-			}
-
 			$hits = $this->get_hits_from_query($response);
 			$total_hits = $this->get_total_hits_from_query($response);
 
