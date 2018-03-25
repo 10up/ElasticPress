@@ -312,7 +312,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type]
+	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--post-ids]
 	 *
 	 * @param array $args
 	 *
@@ -483,6 +483,17 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$post_type = array_values( $post_type );
 		}
 
+		$post_in = null;
+
+		if ( ! empty( $args['post-ids'] ) ) {
+			$post_in = explode( ',', $args['post-ids'] );
+			$post_in = array_map( 'trim', $post_in );
+			$post_in = array_map( 'absint', $post_in );
+			$post_in = array_filter( $post_in );
+
+			$posts_per_page = count($post_in);
+		}
+
 		/**
 		 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
 		 */
@@ -499,6 +510,11 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				'orderby'                => 'ID',
 				'order'                  => 'DESC',
 			) );
+
+			if ( $post_in ) {
+				$args['post__in'] = $post_in;
+			}
+
 			$query->query( $args );
 
 			if ( $query->have_posts() ) {
