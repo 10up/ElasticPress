@@ -230,11 +230,12 @@ class EP_API {
 
 			$response = json_decode( $response_body, true );
 
-			if ( $this->is_empty_query( $response ) ) {
+			if ( !$this->is_empty_query( $response ) ) {
 				return array( 'found_posts' => 0, 'posts' => array() );
 			}
 
-			$hits = $response['hits']['hits'];
+			$hits = $this->get_hits_from_query($response);
+			$total_hits = $this->get_total_hits_from_query($response);
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
@@ -260,11 +261,41 @@ class EP_API {
 			 * @param object $response The response body retrieved from Elasticsearch.
 			 */
 
-			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response, $args, $scope );
+			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $total_hits, 'posts' => $posts ), $response, $args, $scope );
 		}
 
 		return false;
 	}
+
+    /**
+     * Returns the number of total results that ElasticSearch found for the given query
+     *
+     * @param array $response
+     * @return int
+     */
+	public function get_total_hits_from_query( $response ) {
+
+	    if( $this->is_empty_query( $response )) {
+	        return 0;
+        }
+
+        return $response['hits']['total'];
+    }
+
+    /**
+     * Returns array containing hits returned from query, if such exist
+     *
+     * @param array $response
+     * @return array
+     */
+	public function get_hits_from_query( $response ) {
+
+        if($this->is_empty_query( $response )) {
+            return [];
+        }
+
+        return $response['hits']['hits'];
+    }
 
 	/**
 	 * Check if a response array contains results or not
