@@ -248,7 +248,7 @@ function ep_facets_register_widgets() {
  */
 function ep_facets_feature_box_summary() {
 	?>
-	<p><?php esc_html_e( 'Empower users to filter content by taxonomy.', 'elasticpress' ); ?></p>
+	<p><?php esc_html_e( 'Add controls to your website to filter content by one or more taxonomies.', 'elasticpress' ); ?></p>
 	<?php
 }
 
@@ -259,7 +259,7 @@ function ep_facets_feature_box_summary() {
  */
 function ep_facets_feature_box_long() {
 	?>
-	<p><?php _e( 'This feature creates a Facet widget that when added to a sidebar enables users to filter down archives by taxonomies.', 'elasticpress' ); ?></p>
+	<p><?php echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) ); ?></p>
 	<?php
 }
 
