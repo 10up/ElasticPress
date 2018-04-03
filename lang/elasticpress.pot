@@ -253,7 +253,7 @@ msgid "WP CLI sync is occurring. Refresh the page to see if it's finished"
 msgstr ""
 
 #: classes/class-ep-dashboard.php:746
-msgid "An error occured while syncing"
+msgid "An error occurred while syncing"
 msgstr ""
 
 #: classes/class-ep-dashboard.php:783
