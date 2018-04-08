@@ -24,13 +24,8 @@ function ep_facets_widget_js_templates() {
 	?>
 	<script type="text/html" id="tmpl-ep-facets-widget-facet">
 		<p class="facet">
-			<a class="order-facet" title="<?php esc_attr_e( 'Order Facets', 'elasticpress' ); ?>"></a>
-
-			<label for="{{{ data.fieldId }}}">
-				<?php esc_html_e( 'Taxonomy:', 'elasticpress' ); ?>
-			</label>
-
 			<select id="{{{ data.fieldId }}}" name="{{{ data.fieldName }}}">
+				<option value="0"><?php esc_html_e( 'Choose Taxonomy', 'elasticpress' ); ?>
 				<?php foreach ( $taxonomies as $slug => $taxonomy_object ) : ?>
 					<option value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
 				<?php endforeach; ?>

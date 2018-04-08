@@ -18,4 +18,19 @@
 .widget_ep-facet .term.hide {
   display: none; }
 
+.widget_ep-facet .empty-term {
+  position: relative;
+  opacity: .5; }
+
+.widget_ep-facet .empty-term:after {
+  z-index: 2;
+  content: ' ';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%; }
+
 /*# sourceMappingURL=facets.css.map */

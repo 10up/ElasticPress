@@ -6,7 +6,7 @@ class EP_Facet_Widget extends WP_Widget {
 	 */
 	public function __construct() {
 		$options = array( 'description' => esc_html__( 'Add a facet to an archive or search results page.', 'elasticpress' ) );
-		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress Facet', 'elasticpress' ), $options );
+		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Facet', 'elasticpress' ), $options );
 	}
 
 	/**
@@ -19,15 +19,19 @@ class EP_Facet_Widget extends WP_Widget {
 	public function widget( $args, $instance ) {
 		global $wp_query;
 
-		if ( ! ( is_archive() || is_search() || ( is_home() && empty( $wp_query->get( 'page_id' ) ) ) ) ) {
+		if ( $wp_query->get( 'ep_facet', false ) ) {
+			if ( ! ( is_archive() || is_search() || ( is_home() && empty( $wp_query->get( 'page_id' ) ) ) ) ) {
+				return;
+			}
+		}
+
+		$es_success = ( ! empty( $wp_query->elasticsearch_success ) ) ? true : false;
+
+		if ( ! $es_success ) {
 			return;
 		}
 
 		if ( empty( $instance['facets'] ) ) {
-			return;
-		}
-
-		if ( empty( $GLOBALS['ep_facet_aggs'] ) ) {
 			return;
 		}
 
@@ -36,29 +40,14 @@ class EP_Facet_Widget extends WP_Widget {
 		/**
 		 * Get all the terms so we know if we should output the widget
 		 */
-
-		$tax_terms = array();
-		$term_totals = array();
 		$all_facets_total = 0;
 
 		foreach ( $instance['facets'] as $taxonomy ) {
-			if ( empty( $GLOBALS['ep_facet_aggs'][ $taxonomy ] ) ) {
-				continue;
-			}
+			$tax_terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => true, ) );
 
-			$tax_terms[ $taxonomy ] = get_terms( array( 'taxonomy' => $taxonomy ) );
-			$term_total = 0;
-
-			foreach ( $tax_terms[ $taxonomy ] as $term ) {
-				if ( empty( $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ] ) ) {
-					continue;
-				}
-
-				$term_total++;
+			foreach ( $tax_terms as $term ) {
 				$all_facets_total++;
 			}
-
-			$term_totals[ $taxonomy ] = $term_total;
 		}
 
 		/**
@@ -80,31 +69,36 @@ class EP_Facet_Widget extends WP_Widget {
 		<?php
 
 		foreach ( $instance['facets'] as $taxonomy ) {
-			if ( empty( $GLOBALS['ep_facet_aggs'][ $taxonomy ] ) ) {
+			$terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => true, ) );
+
+			if ( empty( $terms ) ) {
 				continue;
 			}
 
-			if ( empty( $tax_terms[ $taxonomy ] ) ) {
-				continue;
-			}
-
-			$terms = get_terms( array( 'taxonomy' => $taxonomy ) );
 			$terms_by_slug = array();
+			$term_slugs_by_count = array();
 
 			foreach ( $terms as $term ) {
 				$terms_by_slug[ $term->slug ] = $term;
+				$term_slugs_by_count[ $term->slug ] = 0;
+
+				if ( ! empty( $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ] ) ) {
+					$term_slugs_by_count[ $term->slug ] = $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ];
+				}
 			}
 
 			$taxonomy_object = get_taxonomy( $taxonomy );
 
-			arsort( $GLOBALS['ep_facet_aggs'][ $taxonomy ] );
+			$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
+
+			arsort( $term_slugs_by_count );
 			?>
 
 			<div class="facet-title">
 				<?php echo esc_html( $taxonomy_object->labels->name ); ?>
 			</div>
-			<div class="terms <?php if ( $term_totals[ $taxonomy ] > 2 ) : ?>searchable<?php endif; ?>">
-				<?php if ( $term_totals[ $taxonomy ] > apply_filters( 'ep_facet_search_threshold', 15, $taxonomy ) ) : ?>
+			<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
+				<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
 					<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
 				<?php endif; ?>
 
@@ -115,22 +109,18 @@ class EP_Facet_Widget extends WP_Widget {
 								<input class="facet-input" name="filter_taxonomy_<?php echo esc_attr( $taxonomy ); ?>" value="<?php echo esc_attr( $term_slug ); ?>" id="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term_slug ); ?>" checked type="checkbox">
 
 								<label for="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term_slug ); ?>">
-									<?php echo esc_html( $terms_by_slug[ $term_slug ]->name ); ?> (<?php echo (int) $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term_slug ]; ?>)
+									<?php echo esc_html( $terms_by_slug[ $term_slug ]->name ); ?> (<?php echo (int) $term_slugs_by_count[ $term_slug ] ?>)
 								</label>
 							</div>
 						<?php endforeach ; ?>
 					<?php endif; ?>
 
-					<?php foreach ( $GLOBALS['ep_facet_aggs'][ $taxonomy ] as $term_slug => $count ) :
-						if ( empty( $terms_by_slug[ $term_slug ] ) ) {
-							continue;
-						}
-
-						if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ][ $term->slug ] ) ) {
+					<?php foreach ( $term_slugs_by_count as $term_slug => $count ) :
+						if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ][ $term_slug ] ) ) {
 							continue;
 						}
 						?>
-						<div class="term" data-term-name="<?php echo esc_attr( strtolower( $terms_by_slug[ $term_slug ]->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
+						<div class="term <?php if ( empty( $count ) ) : ?>empty-term<?php endif; ?>" data-term-name="<?php echo esc_attr( strtolower( $terms_by_slug[ $term_slug ]->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
 							<input class="facet-input" name="filter_taxonomy_<?php echo esc_attr( $taxonomy ); ?>" value="<?php echo esc_attr( $term_slug ); ?>" id="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term_slug ); ?>" type="checkbox">
 
 							<label for="filter-<?php echo esc_attr( $taxonomy ); ?>-<?php echo esc_attr( $term_slug ); ?>">
@@ -177,13 +167,8 @@ class EP_Facet_Widget extends WP_Widget {
 			<?php if ( ! empty( $facets ) ) : ?>
 				<?php foreach ( $facets as $i => $facet ) : ?>
 					<p class="facet">
-						<a class="order-facet" title="<?php esc_attr_e( 'Order Facets', 'elasticpress' ); ?>"></a>
-
-						<label for="<?php echo $this->get_field_id( 'facets' ); ?>-<?php echo (int) $i; ?>">
-							<?php esc_html_e( 'Taxonomy:', 'elasticpress' ); ?>
-						</label>
-
 						<select id="<?php echo $this->get_field_id( 'facets' ); ?>-<?php echo (int) $i; ?>" name="<?php echo $this->get_field_name( 'facets' ); ?>[]">
+							<option value="0"><?php esc_html_e( 'Choose Taxonomy', 'elasticpress' ); ?>
 							<?php foreach ( $taxonomies as $slug => $taxonomy_object ) : ?>
 								<option <?php selected( $facet, $taxonomy_object->name ); ?> value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
 							<?php endforeach; ?>
@@ -197,7 +182,6 @@ class EP_Facet_Widget extends WP_Widget {
 
 		<script type="text/javascript">
 			jQuery( '.facets-<?php echo (int) $id; ?>' ).sortable( {
-				handle: '.order-facet',
 				items: '> p'
 			} );
 		</script>
@@ -220,13 +204,14 @@ class EP_Facet_Widget extends WP_Widget {
 		$instance['title'] = sanitize_text_field( $new_instance['title'] );
 		$instance['taxonomy'] = sanitize_text_field( $new_instance['taxonomy'] );
 
-		$instance['facets'] = $new_instance['facets'];
+		$new_instance['facets'] = array_unique( $new_instance['facets'] );
+		$instance['facets'] = array();
 
-		if ( empty( $instance['facets'] ) ) {
-			$instance['facets'] = array();
+		foreach ( $new_instance['facets'] as $facet ) {
+			if ( ! empty( $facet ) ) {
+				$instance['facets'][] = sanitize_text_field( $facet );
+			}
 		}
-
-		$instance['facets'] = array_map( 'sanitize_text_field', $instance['facets'] );
 
 		return $instance;
 	}

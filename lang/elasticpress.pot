@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.4.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2018-03-23 14:45:47+00:00\n"
+"POT-Creation-Date: 2018-04-08 04:09:32+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -387,50 +387,47 @@ msgid "Add a facet to an archive or search results page."
 msgstr ""
 
 #: features/facets/class-ep-facet-widget.php:9
-msgid "ElasticPress Facet"
+msgid "ElasticPress - Facet"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:108
+#: features/facets/class-ep-facet-widget.php:102
 msgid "Search %s"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:147
+#: features/facets/class-ep-facet-widget.php:137
 msgid "Filter"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:147
+#: features/facets/class-ep-facet-widget.php:137
 msgid "Clear"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:171
+#: features/facets/class-ep-facet-widget.php:161
 #: features/related-posts/widget.php:88
 msgid "Title:"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:180 features/facets/facets.php:27
-msgid "Order Facets"
+#: features/facets/class-ep-facet-widget.php:171 features/facets/facets.php:28
+msgid "Choose Taxonomy"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:183 features/facets/facets.php:30
-msgid "Taxonomy:"
-msgstr ""
-
-#: features/facets/class-ep-facet-widget.php:192 features/facets/facets.php:39
+#: features/facets/class-ep-facet-widget.php:177 features/facets/facets.php:34
 msgid "Delete Facet"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:205
+#: features/facets/class-ep-facet-widget.php:189
 msgid "Add Facet"
 msgstr ""
 
-#: features/facets/facets.php:251
-msgid "Empower users to filter content by taxonomy."
+#: features/facets/facets.php:246
+msgid "Add controls to your website to filter content by one or more taxonomies."
 msgstr ""
 
-#: features/facets/facets.php:262
+#: features/facets/facets.php:257
 msgid ""
-"This feature creates a Facet widget that when added to a sidebar enables "
-"users to filter down archives by taxonomies."
+"Adds a <a href='%s'>Facet widget</a> that administrators can add to the "
+"website's sidebars (widgetized areas), so that visitors can filter "
+"applicable content and search results by one or more taxonomy terms."
 msgstr ""
 
 #: features/protected-content/protected-content.php:101
