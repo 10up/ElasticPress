@@ -230,8 +230,8 @@ class EP_API {
 
 			$response = json_decode( $response_body, true );
 
-			$hits = $this->get_hits_from_query($response);
-			$total_hits = $this->get_total_hits_from_query($response);
+			$hits = $this->get_hits_from_query( $response );
+			$total_hits = $this->get_total_hits_from_query( $response );
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
@@ -267,11 +267,12 @@ class EP_API {
      * Returns the number of total results that ElasticSearch found for the given query
      *
      * @param array $response
+     * @since  2.5
      * @return int
      */
 	public function get_total_hits_from_query( $response ) {
 
-	    if( $this->is_empty_query( $response )) {
+	    if ( $this->is_empty_query( $response ) ) {
 	        return 0;
         }
 
@@ -282,11 +283,12 @@ class EP_API {
      * Returns array containing hits returned from query, if such exist
      *
      * @param array $response
+     * @since  2.5
      * @return array
      */
 	public function get_hits_from_query( $response ) {
 
-        if($this->is_empty_query( $response )) {
+        if ( $this->is_empty_query( $response ) ) {
             return [];
         }
 
