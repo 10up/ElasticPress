@@ -19,9 +19,6 @@ module.exports = function ( grunt ) {
 						'features/autosuggest/assets/js/autosuggest.min.js': [
 							'features/autosuggest/assets/js/src/autosuggest.js'
 						],
-						'features/facets/assets/js/admin.min.js': [
-							'features/facets/assets/js/src/admin.js'
-						],
 						'features/facets/assets/js/facets.min.js': [
 							'features/facets/assets/js/src/facets.js'
 						]
