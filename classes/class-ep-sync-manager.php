@@ -21,7 +21,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * Save posts for indexing later
-	 * 
+	 *
 	 * @since  2.0
 	 * @var    array
 	 */
@@ -45,7 +45,7 @@ class EP_Sync_Manager {
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
-	
+
 	/**
 	 * Remove actions and filters
 	 *
@@ -75,7 +75,24 @@ class EP_Sync_Manager {
 			return;
 		}
 
-		foreach ( $this->sync_post_queue as $post_id => $value ) {
+		foreach ( $this->sync_post_queue as $post_id => $meta_keys ) {
+
+			if( empty( $meta_keys ) || ! is_array( $meta_keys ) ) {
+				continue;
+			}
+
+			$prepared_post = ep_prepare_post( $post_id );
+
+			if( empty( $prepared_post['meta'] ) || ! is_array( $prepared_post['meta'] ) ) {
+				continue;
+			}
+
+			$meta_to_index = array_intersect( $meta_keys, array_keys( $prepared_post['meta'] ) );
+
+			if( empty( $meta_to_index ) ) {
+				continue;
+			}
+
 			do_action( 'ep_sync_on_meta_update', $post_id );
 
 			$this->sync_post( $post_id, false );
@@ -84,7 +101,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
-	 * 
+	 *
 	 * @param  int $meta_id
 	 * @param  int $object_id
 	 * @param  string $meta_key
@@ -102,7 +119,7 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-		
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
@@ -127,16 +144,10 @@ class EP_Sync_Manager {
 			$indexable_post_types = ep_get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types ) ) {
-
-				// Using this function to hook in after all the meta applicable filters
-				$prepared_post = ep_prepare_post( $object_id );
-
-				// Make sure meta key that was changed is actually relevant
-				if ( ! isset( $prepared_post['meta'][$meta_key] ) ) {
-					return;
+				if( ! isset( $this->sync_post_queue[$object_id] ) ) {
+					$this->sync_post_queue[$object_id] = array();
 				}
-
-				$this->sync_post_queue[$object_id] = true;
+				$this->sync_post_queue[$object_id][] = $meta_key;
 			}
 		}
 	}
@@ -182,10 +193,10 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-		
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
-		
+
 		if ( 'attachment' === $post_type ) {
 			$indexable_post_statuses[] = 'inherit';
 		}
@@ -227,7 +238,7 @@ class EP_Sync_Manager {
 			}
 		}
 	}
-	
+
 	/**
 	 * Return a singleton instance of the current class
 	 *
