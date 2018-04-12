@@ -142,7 +142,7 @@ class EP_Facet_Widget extends WP_Widget {
 		$dashboard_url = admin_url( 'admin.php?page=elasticpress' );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dashboard_url = network_admin_url( 'network/admin.php?page=elasticpress' );
+			$dashboard_url = network_admin_url( 'admin.php?page=elasticpress' );
 		}
 
 		$feature  = ep_get_registered_feature( 'facets' );
