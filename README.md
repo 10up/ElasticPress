@@ -271,6 +271,8 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
     * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
     * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+    * ```BETWEEN``` - Must pass an array to value such that the array[0] is the lower bound and array[1] is the upper bound. Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than array[0] and less than array[1].
+    * ```NOT BETWEEN``` - Must pass an array to `value` such that the array[0] is the lower bound and array[1] is the upper bound. Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than array[0] and less than array[1].
 
     The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
     ```php
