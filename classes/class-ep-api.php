@@ -1718,7 +1718,7 @@ class EP_API {
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 						// Map specific meta field types to different Elasticsearch core types
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
-					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between' ) ) ) {
+					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between', 'not between' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
 					} else {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
@@ -1798,6 +1798,31 @@ class EP_API {
 												'range' => array(
 													$meta_key_path => array(
 														"lte" => $single_meta_query['value'][1],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case 'not between':
+							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'should' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"lte" => $single_meta_query['value'][0],
+													),
+												),
+											),
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"gte" => $single_meta_query['value'][1],
 													),
 												),
 											),
