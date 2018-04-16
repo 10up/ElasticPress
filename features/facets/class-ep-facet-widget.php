@@ -189,7 +189,7 @@ class EP_Facet_Widget extends WP_Widget {
 				</select>
 			</p>
 
-			<p><?php echo wp_kses_post( sprintf( __( 'Faceting is set to match %s terms; you change to match %s terms in <a href="%s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
+			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%s</strong> content tagged to <strong>%s</strong> selected term in <a href="%s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
 		</div>
 
 		<?php
