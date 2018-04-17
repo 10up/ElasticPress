@@ -66,6 +66,9 @@ class EP_Facet_Widget extends WP_Widget {
 		}
 
 		$terms = ep_get_term_tree( $terms, 'count', 'desc', true );
+		$term_tree = ep_get_term_tree( $terms, 'count', 'desc', false );
+
+		$outputted_terms = array();
 
 		echo $args['before_widget'];
 
@@ -86,25 +89,97 @@ class EP_Facet_Widget extends WP_Widget {
 			<div class="inner">
 				<?php if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) ) : ?>
 					<?php foreach ( $selected_filters['taxonomies'][ $taxonomy ]['terms'] as $term_slug => $value ) :
+						if ( ! empty( $outputted_terms[ $term_slug ] ) ) {
+							continue;
+						}
+
 						$term = $terms_by_slug[ $term_slug ];
 
-						$new_filters = $selected_filters;
+						if ( empty( $term->parent ) && empty( $term->children ) ) {
+							$outputted_terms[ $term_slug ] = $term;
+							$new_filters = $selected_filters;
 
-						if ( ! empty( $new_filters['taxonomies'][ $taxonomy ] ) && ! empty( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] ) ) {
-							unset( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] );
+							if ( ! empty( $new_filters['taxonomies'][ $taxonomy ] ) && ! empty( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] ) ) {
+								unset( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] );
+							}
+							?>
+							<div class="term selected level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
+								<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
+									<input type="checkbox" checked>
+									<?php echo esc_html( $term->name ); ?>
+								</a>
+							</div>
+						<?php
+						} else {
+							/**
+							 * This code is so that when we encounter a selected child/parent term, we push it's whole branch
+							 * to the top. Very very painful.
+							 */
+							$top_of_tree = $term;
+							$i = 0;
+
+							/**
+							 * Get top of tree
+							 */
+							while ( true && $i < 10 ) {
+								if ( ! empty( $term->parent_slug ) ) {
+									$top_of_tree = $terms_by_slug[ $term->parent_slug ];
+								} else {
+									break;
+								}
+
+								$i++;
+							}
+
+							$flat_ordered_terms = array();
+
+							$flat_ordered_terms[] = $top_of_tree;
+
+							$to_process = $this->_order_by_selected( $top_of_tree->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] );
+
+							while ( ! empty( $to_process ) ) {
+								$term = array_shift( $to_process );
+
+								$flat_ordered_terms[] = $term;
+
+								if ( ! empty( $term->children ) ) {
+									$to_process = array_merge( $this->_order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] ), $to_process );
+								}
+							}
+
+							foreach ( $flat_ordered_terms as $term ) {
+								$selected = ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] );
+								$outputted_terms[ $term->slug ] = $term;
+								$new_filters = $selected_filters;
+
+								if ( $selected ) {
+									if ( ! empty( $new_filters['taxonomies'][ $taxonomy ] ) && ! empty( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] ) ) {
+										unset( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] );
+									}
+								} else {
+									if ( empty( $new_filters['taxonomies'][ $taxonomy ] ) ) {
+										$new_filters['taxonomies'][ $taxonomy ] = array(
+											'terms' => array(),
+										);
+									}
+
+									$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
+								}
+								?>
+								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
+									<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
+										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?>>
+										<?php echo esc_html( $term->name ); ?>
+									</a>
+								</div>
+								<?php
+							}
 						}
-						?>
-						<div class="term selected" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
-							<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
-								<input type="checkbox" checked>
-								<?php echo esc_html( $term->name ); ?>
-							</a>
-						</div>
-					<?php endforeach ; ?>
+					endforeach ; ?>
 				<?php endif; ?>
 
 				<?php foreach ( $terms as $term ) :
-					if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] ) ) {
+					if ( ! empty( $outputted_terms[ $term->slug ] ) ) {
 						continue;
 					}
 
@@ -130,6 +205,40 @@ class EP_Facet_Widget extends WP_Widget {
 		<?php
 
 		echo $args['after_widget'];
+	}
+
+	/**
+	 * Order terms putting selected at the top
+	 *
+	 * @param  array $terms
+	 * @param  array $selected_terms
+	 * @since  2.5
+	 * @return array
+	 */
+	private function _order_by_selected( $terms, $selected_terms ) {
+		$ordered_terms = array();
+		$terms_by_slug = array();
+
+		foreach ( $terms as $term ) {
+			$terms_by_slug[ $term->slug ] = $term;
+		}
+
+		ksort( $selected_terms );
+		ksort( $terms_by_slug );
+
+		foreach ( $selected_terms as $term_slug => $nothing ) {
+			if ( ! empty( $terms_by_slug[ $term_slug ] ) ) {
+				$ordered_terms[ $term_slug ] = $terms_by_slug[ $term_slug ];
+			}
+		}
+
+		foreach ( $terms_by_slug as $term_slug => $term ) {
+			if ( empty( $ordered_terms[ $term_slug ] ) ) {
+				$ordered_terms[ $term_slug ] = $terms_by_slug[ $term_slug ];
+			}
+		}
+
+		return array_values( $ordered_terms );
 	}
 
 	/**

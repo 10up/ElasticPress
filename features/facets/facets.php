@@ -71,6 +71,8 @@ function ep_get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $fla
 						$terms_map[ $term->parent ]->children[ $term->name ] = $term;
 					}
 
+					$term->parent_slug = $terms_map[ $term->parent ]->slug;
+
 					$term->level = $terms_map[ $term->parent ]->level + 1;
 
 					unset( $all_terms[ $key ] );
