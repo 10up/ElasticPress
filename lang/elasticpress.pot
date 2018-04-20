@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.4.2\n"
+"Project-Id-Version: ElasticPress 2.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2018-04-08 04:09:32+00:00\n"
+"POT-Creation-Date: 2018-04-20 15:37:52+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -143,27 +143,27 @@ msgstr ""
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:2219
+#: classes/class-ep-api.php:2273
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:2232
+#: classes/class-ep-api.php:2286
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2236
+#: classes/class-ep-api.php:2290
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2371 classes/class-ep-api.php:2483
-#: classes/class-ep-api.php:2534
+#: classes/class-ep-api.php:2425 classes/class-ep-api.php:2537
+#: classes/class-ep-api.php:2588
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -390,40 +390,60 @@ msgstr ""
 msgid "ElasticPress - Facet"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:102
+#: features/facets/class-ep-facet-widget.php:86
 msgid "Search %s"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:137
-msgid "Filter"
+#: features/facets/class-ep-facet-widget.php:268
+#: features/facets/class-ep-facet-widget.php:273
+msgid "all"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:137
-msgid "Clear"
+#: features/facets/class-ep-facet-widget.php:269
+#: features/facets/class-ep-facet-widget.php:272
+msgid "any"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:161
+#: features/facets/class-ep-facet-widget.php:284
 #: features/related-posts/widget.php:88
 msgid "Title:"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:171 features/facets/facets.php:28
-msgid "Choose Taxonomy"
+#: features/facets/class-ep-facet-widget.php:291
+msgid "Taxonomy:"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:177 features/facets/facets.php:34
-msgid "Delete Facet"
+#: features/facets/class-ep-facet-widget.php:301
+msgid ""
+"Faceting will  filter out any content that is not tagged to all selected "
+"terms; change this to show <strong>%s</strong> content tagged to "
+"<strong>%s</strong> selected term in <a href=\"%s\">ElasticPress "
+"settings</a>."
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:189
-msgid "Add Facet"
+#: features/facets/facets.php:157
+msgid "Match Type"
 msgstr ""
 
-#: features/facets/facets.php:246
+#: features/facets/facets.php:159
+msgid "Show any content tagged to <strong>all</strong> selected terms"
+msgstr ""
+
+#: features/facets/facets.php:160
+msgid "Show all content tagged to <strong>any</strong> selected term"
+msgstr ""
+
+#: features/facets/facets.php:161
+msgid ""
+"\"All\" will only show content that matches all facets. \"Any\" will show "
+"content that matches any facet."
+msgstr ""
+
+#: features/facets/facets.php:465
 msgid "Add controls to your website to filter content by one or more taxonomies."
 msgstr ""
 
-#: features/facets/facets.php:257
+#: features/facets/facets.php:476
 msgid ""
 "Adds a <a href='%s'>Facet widget</a> that administrators can add to the "
 "website's sidebars (widgetized areas), so that visitors can filter "
