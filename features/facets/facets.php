@@ -25,12 +25,8 @@
  * @return array
  */
 function ep_get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat = false ) {
-
 	$terms_map = array();
 	$terms_tree = array();
-
-	$first_run = true;
-
 	$iteration_id = 0;
 
 	while ( true ) {
@@ -41,9 +37,13 @@ function ep_get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $fla
 		foreach ( $all_terms as $key => $term ) {
 			$iteration_id++;
 
-			$term->children = array();
+			if ( ! isset( $term->children ) ) {
+				$term->children = array();
+			}
 
-			$terms_map[ $term->term_id ] = $term;
+			if ( ! isset( $terms_map[ $term->term_id ] ) ) {
+				$terms_map[ $term->term_id ] = $term;
+			}
 
 			if ( empty( $term->parent ) ) {
 				$term->level = 0;
@@ -61,7 +61,7 @@ function ep_get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $fla
 
 				unset( $all_terms[ $key ] );
 			} else {
-				if ( ! empty( $terms_map[ $term->parent ] ) ) {
+				if ( ! empty( $terms_map[ $term->parent ] ) && isset( $terms_map[ $term->parent ]->level ) ) {
 
 					if ( empty( $orderby ) ) {
 						$terms_map[ $term->parent ]->children[] = $term;
@@ -71,24 +71,15 @@ function ep_get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $fla
 						$terms_map[ $term->parent ]->children[ $term->name ] = $term;
 					}
 
-					$term->parent_slug = $terms_map[ $term->parent ]->slug;
+					$parent_level = ( $terms_map[ $term->parent ]->level ) ? $terms_map[ $term->parent ]->level : 0;
 
-					$term->level = $terms_map[ $term->parent ]->level + 1;
+					$term->level = $parent_level + 1;
+					$term->parent_term = $terms_map[ $term->parent ];
 
-					unset( $all_terms[ $key ] );
-				}
-
-				/**
-				 * We do this in case a term has a parent set but it isn't in the array. It
-				 * prevents infinite loops
-				 */
-				if ( ! $first_run ) {
 					unset( $all_terms[ $key ] );
 				}
 			}
 		}
-
-		$first_run = false;
 	}
 
 	if ( ! empty( $orderby ) ) {
@@ -104,7 +95,11 @@ function ep_get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $fla
 			} else {
 				krsort( $term->children );
 			}
+
+			$term->children = array_values( $term->children );
 		}
+
+		$terms_tree = array_values( $terms_tree );
 	}
 
 	if ( $flat ) {
@@ -112,12 +107,9 @@ function ep_get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $fla
 
 		foreach ( $terms_tree as $term ) {
 			$flat_tree[] = $term;
-
 			$to_process = $term->children;
-
 			while ( ! empty( $to_process ) ) {
 				$term = array_shift( $to_process );
-
 				$flat_tree[] = $term;
 
 				if ( ! empty( $term->children ) ) {
