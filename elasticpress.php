@@ -60,6 +60,7 @@ require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
 require_once( 'features/documents/documents.php' );
 require_once( 'features/autosuggest/autosuggest.php' );
+require_once( 'features/facets/facets.php' );
 
 /**
  * WP CLI Commands
