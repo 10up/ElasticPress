@@ -3,7 +3,7 @@
 class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Checking if HTTP request returns 404 status code.
-	 * 
+	 *
 	 * @var boolean
 	 */
 	public $is_404 = false;
@@ -61,13 +61,13 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - On sites secreen
 	 * - No host set
 	 * - Index page not shown and notice not hidden
-	 * - No sync has occured
+	 * - No sync has occurred
 	 * - No upgrade sync is needed
 	 * - Not feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show setup notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -89,16 +89,16 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On sites secreen
+	 * - On sites screen
 	 * - Host set
 	 * - Index page not shown and notice not hidden
-	 * - No sync has occured
+	 * - No sync has occurred
 	 * - No upgrade sync is needed
 	 * - Not feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show need first sync notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -122,13 +122,13 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - On sites screan
 	 * - Host set
 	 * - Index page shown
-	 * - Sync has occured
+	 * - Sync has occurred
 	 * - No upgrade sync is needed
 	 * - Not feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show no notifications
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -149,16 +149,16 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On sites secreen
+	 * - On sites screen
 	 * - No host set
 	 * - Index page not shown and notice not hidden
-	 * - No sync has occured
+	 * - No sync has occurred
 	 * - Upgrade sync is needed
 	 * - Feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show setup notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -180,16 +180,16 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On sites secreen
+	 * - On sites screen
 	 * - Host set
 	 * - Index page shown and notice not hidden
-	 * - No sync has occured
+	 * - No sync has occurred
 	 * - Upgrade sync is needed
 	 * - Feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show no sync notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -210,16 +210,16 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On sites secreen
+	 * - On sites screen
 	 * - Bad host set
 	 * - Index page  shown and notice not hidden
-	 * - No sync has occured
+	 * - No sync has occurred
 	 * - No upgrade sync is needed
 	 * - No feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show bad host notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -241,16 +241,16 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On sites secreen
+	 * - On sites screen
 	 * - Host set
 	 * - Index page shown and notice not hidden
-	 * - Sync has occured
+	 * - Sync has occurred
 	 * - Upgrade sync is needed
 	 * - No feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show upgrade sync notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -275,7 +275,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - Old version not set
 	 *
 	 * Do: Show upgrade sync notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.3.1
 	 */
@@ -302,7 +302,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - Old version set to current version
 	 *
 	 * Do: Don't show notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.3.1
 	 */
@@ -330,7 +330,7 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	 * - Old version is below a reindex version (2.1)
 	 *
 	 * Do: Show upgrade sync notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.3.1
 	 */
@@ -354,16 +354,16 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On sites secreen
+	 * - On sites screen
 	 * - Host set
 	 * - Index page shown and notice not hidden
-	 * - Sync has occured
+	 * - Sync has occurred
 	 * - No upgrade sync is needed
 	 * - Feature auto activate sync is needed
 	 * - Elasticsearch version within bounds
 	 *
 	 * Do: Show auto activate sync notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -384,16 +384,16 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On sites secreen
+	 * - On sites screen
 	 * - Host set
 	 * - Index page shown and notice not hidden
-	 * - Sync has occured
+	 * - Sync has occurred
 	 * - No upgrade sync is needed
 	 * - No feature auto activate sync is needed
 	 * - Elasticsearch version above bounds
 	 *
 	 * Do: Show above es compat notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */
@@ -418,16 +418,16 @@ class EPTestAdminNotifications extends EP_Test_Base {
 	/**
 	 * Conditions:
 	 *
-	 * - On sites secreen
+	 * - On sites screen
 	 * - Host set
 	 * - Index page shown and notice not hidden
-	 * - Sync has occured
+	 * - Sync has occurred
 	 * - No upgrade sync is needed
 	 * - No feature auto activate sync is needed
 	 * - Elasticsearch version above bounds
 	 *
 	 * Do: Show below es compat notification
-	 * 
+	 *
 	 * @group admin-notifications
 	 * @since 2.2
 	 */

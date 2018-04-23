@@ -1,169 +1,169 @@
-# Copyright (C) 2017 Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
+# Copyright (C) 2018 Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.4\n"
+"Project-Id-Version: ElasticPress 2.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2017-11-01 20:37:24+00:00\n"
+"POT-Creation-Date: 2018-04-20 15:37:52+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2017-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "X-Generator: grunt-wp-i18n 0.5.4\n"
 
-#: bin/wp-cli.php:67 bin/wp-cli.php:104
+#: bin/wp-cli.php:69 bin/wp-cli.php:106
 msgid "No feature with that slug is registered"
 msgstr ""
 
-#: bin/wp-cli.php:71
+#: bin/wp-cli.php:73
 msgid "This feature is already active"
 msgstr ""
 
-#: bin/wp-cli.php:77
+#: bin/wp-cli.php:79
 msgid "Feature requirements are not met: %s"
 msgstr ""
 
-#: bin/wp-cli.php:79
+#: bin/wp-cli.php:81
 msgid "Feature is usable but there are warnings: %s"
 msgstr ""
 
-#: bin/wp-cli.php:85
+#: bin/wp-cli.php:87
 msgid ""
 "This feature requires a re-index. You may want to run the index command "
 "next."
 msgstr ""
 
-#: bin/wp-cli.php:88
+#: bin/wp-cli.php:90
 msgid "Feature activated"
 msgstr ""
 
-#: bin/wp-cli.php:116
+#: bin/wp-cli.php:118
 msgid "Feature is not active"
 msgstr ""
 
-#: bin/wp-cli.php:121
+#: bin/wp-cli.php:123
 msgid "Feature deactivated"
 msgstr ""
 
-#: bin/wp-cli.php:141
+#: bin/wp-cli.php:143
 msgid "Active features:"
 msgstr ""
 
-#: bin/wp-cli.php:149
+#: bin/wp-cli.php:151
 msgid "Registered features:"
 msgstr ""
 
-#: bin/wp-cli.php:180
+#: bin/wp-cli.php:182
 msgid "Adding mapping for site %d..."
 msgstr ""
 
-#: bin/wp-cli.php:190 bin/wp-cli.php:208
+#: bin/wp-cli.php:192 bin/wp-cli.php:210
 msgid "Mapping sent"
 msgstr ""
 
-#: bin/wp-cli.php:192 bin/wp-cli.php:210
+#: bin/wp-cli.php:194 bin/wp-cli.php:212
 msgid "Mapping failed"
 msgstr ""
 
-#: bin/wp-cli.php:198
+#: bin/wp-cli.php:200
 msgid "Adding mapping..."
 msgstr ""
 
-#: bin/wp-cli.php:238
+#: bin/wp-cli.php:240
 msgid "Deleting index for site %d..."
 msgstr ""
 
-#: bin/wp-cli.php:243 bin/wp-cli.php:256
+#: bin/wp-cli.php:245 bin/wp-cli.php:258
 msgid "Index deleted"
 msgstr ""
 
-#: bin/wp-cli.php:245
+#: bin/wp-cli.php:247
 msgid "Delete index failed"
 msgstr ""
 
-#: bin/wp-cli.php:251
+#: bin/wp-cli.php:253
 msgid "Deleting index..."
 msgstr ""
 
-#: bin/wp-cli.php:258
+#: bin/wp-cli.php:260
 msgid "Index delete failed"
 msgstr ""
 
-#: bin/wp-cli.php:276 bin/wp-cli.php:407
+#: bin/wp-cli.php:278 bin/wp-cli.php:409
 msgid "Recreating network alias..."
 msgstr ""
 
-#: bin/wp-cli.php:283 bin/wp-cli.php:434
+#: bin/wp-cli.php:285 bin/wp-cli.php:436
 msgid "Done!"
 msgstr ""
 
-#: bin/wp-cli.php:285
+#: bin/wp-cli.php:287
 msgid "An error occurred"
 msgstr ""
 
-#: bin/wp-cli.php:387
+#: bin/wp-cli.php:389
 msgid "Indexing posts network-wide..."
 msgstr ""
 
-#: bin/wp-cli.php:398 bin/wp-cli.php:419
+#: bin/wp-cli.php:400 bin/wp-cli.php:421
 msgid "Number of posts indexed on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:401 bin/wp-cli.php:422
+#: bin/wp-cli.php:403 bin/wp-cli.php:424
 msgid "Number of post index errors on site %d: %d"
 msgstr ""
 
-#: bin/wp-cli.php:411
+#: bin/wp-cli.php:413
 msgid "Total number of posts indexed: %d"
 msgstr ""
 
-#: bin/wp-cli.php:415
+#: bin/wp-cli.php:417
 msgid "Indexing posts..."
 msgstr ""
 
-#: bin/wp-cli.php:426
+#: bin/wp-cli.php:428
 msgid "Total time elapsed: "
 msgstr ""
 
-#: bin/wp-cli.php:717
+#: bin/wp-cli.php:719
 msgid ""
 "The following posts failed to index:\r\n"
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:867
+#: bin/wp-cli.php:870
 msgid ""
 "There is no Elasticsearch host set up. Either add one through the dashboard "
 "or define one in wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:869
+#: bin/wp-cli.php:872
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:2212
+#: classes/class-ep-api.php:2273
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:2225
+#: classes/class-ep-api.php:2286
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2229
+#: classes/class-ep-api.php:2290
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2364 classes/class-ep-api.php:2476
-#: classes/class-ep-api.php:2527
+#: classes/class-ep-api.php:2425 classes/class-ep-api.php:2537
+#: classes/class-ep-api.php:2588
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -253,7 +253,7 @@ msgid "WP CLI sync is occurring. Refresh the page to see if it's finished"
 msgstr ""
 
 #: classes/class-ep-dashboard.php:746
-msgid "An error occured while syncing"
+msgid "An error occurred while syncing"
 msgstr ""
 
 #: classes/class-ep-dashboard.php:783
@@ -382,6 +382,74 @@ msgid ""
 "doc, docx, xls, xlsx, pdf."
 msgstr ""
 
+#: features/facets/class-ep-facet-widget.php:8
+msgid "Add a facet to an archive or search results page."
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:9
+msgid "ElasticPress - Facet"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:86
+msgid "Search %s"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:268
+#: features/facets/class-ep-facet-widget.php:273
+msgid "all"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:269
+#: features/facets/class-ep-facet-widget.php:272
+msgid "any"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:284
+#: features/related-posts/widget.php:88
+msgid "Title:"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:291
+msgid "Taxonomy:"
+msgstr ""
+
+#: features/facets/class-ep-facet-widget.php:301
+msgid ""
+"Faceting will  filter out any content that is not tagged to all selected "
+"terms; change this to show <strong>%s</strong> content tagged to "
+"<strong>%s</strong> selected term in <a href=\"%s\">ElasticPress "
+"settings</a>."
+msgstr ""
+
+#: features/facets/facets.php:157
+msgid "Match Type"
+msgstr ""
+
+#: features/facets/facets.php:159
+msgid "Show any content tagged to <strong>all</strong> selected terms"
+msgstr ""
+
+#: features/facets/facets.php:160
+msgid "Show all content tagged to <strong>any</strong> selected term"
+msgstr ""
+
+#: features/facets/facets.php:161
+msgid ""
+"\"All\" will only show content that matches all facets. \"Any\" will show "
+"content that matches any facet."
+msgstr ""
+
+#: features/facets/facets.php:465
+msgid "Add controls to your website to filter content by one or more taxonomies."
+msgstr ""
+
+#: features/facets/facets.php:476
+msgid ""
+"Adds a <a href='%s'>Facet widget</a> that administrators can add to the "
+"website's sidebars (widgetized areas), so that visitors can filter "
+"applicable content and search results by one or more taxonomy terms."
+msgstr ""
+
 #: features/protected-content/protected-content.php:101
 msgid ""
 "Optionally index all of your content, including private and unpublished "
@@ -430,10 +498,6 @@ msgstr ""
 
 #: features/related-posts/widget.php:18
 msgid "ElasticPress - Related Posts"
-msgstr ""
-
-#: features/related-posts/widget.php:88
-msgid "Title:"
 msgstr ""
 
 #: features/related-posts/widget.php:96

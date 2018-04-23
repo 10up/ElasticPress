@@ -3,7 +3,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     2.4.2
+ * Version:     2.5
  * Author:      Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '2.4.2' );
+define( 'EP_VERSION', '2.5' );
 
 /**
  * We compare the current ES version to this compatibility version number. Compatibility is true when:
@@ -33,7 +33,7 @@ define( 'EP_VERSION', '2.4.2' );
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '6.1' );
+define( 'EP_ES_VERSION_MAX', '6.2' );
 define( 'EP_ES_VERSION_MIN', '1.7' );
 
 require_once( 'classes/class-ep-config.php' );
@@ -60,6 +60,7 @@ require_once( 'features/protected-content/protected-content.php' );
 require_once( 'features/woocommerce/woocommerce.php' );
 require_once( 'features/documents/documents.php' );
 require_once( 'features/autosuggest/autosuggest.php' );
+require_once( 'features/facets/facets.php' );
 
 /**
  * WP CLI Commands

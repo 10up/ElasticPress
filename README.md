@@ -64,6 +64,10 @@ Indexes text inside of popular file types, and adds those files types to search 
 
 Suggest relevant content as text is entered into the search field.
 
+### Facets
+
+Add controls to your website to filter content by one or more taxonomies.
+
 ## `WP_Query` and the ElasticPress Query Integration
 
 ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
@@ -271,6 +275,8 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
     * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
     * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+    * ```BETWEEN``` - Must pass an array to value such that the array[0] is the lower bound and array[1] is the upper bound. Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than array[0] and less than array[1].
+    * ```NOT BETWEEN``` - Must pass an array to `value` such that the array[0] is the lower bound and array[1] is the upper bound. Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than array[0] and less than array[1].
 
     The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
     ```php

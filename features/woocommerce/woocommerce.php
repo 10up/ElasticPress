@@ -163,6 +163,37 @@ function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 }
 
 /**
+ * Disallow duplicated ES queries on Orders page.
+ *
+ * @since 2.4
+ *
+ * @param array    $value Original filter values.
+ * @param WP_Query $query WP_Query
+ *
+ * @return array
+ */
+function ep_wc_disallow_duplicated_query( $value, $query ) {
+	global $pagenow;
+
+	/**
+	 * Make sure we're on edit.php in admin dashboard.
+	 */
+	if ( 'edit.php' !== $pagenow || ! is_admin() || 'shop_order' !== $query->get( 'post_type' ) ) {
+		return $value;
+	}
+
+	/**
+	 * Check if EP API request was already done. If request was sent return its results.
+	 */
+	if ( isset( $query->elasticsearch_success ) && $query->elasticsearch_success ) {
+		return $query->posts;
+	}
+
+	return $value;
+
+}
+
+/**
  * Translate args to ElasticPress compat format. This is the meat of what the feature does
  *
  * @param  WP_Query $query
@@ -588,8 +619,12 @@ function ep_wc_search_order( $wp ){
 	}
 
 	$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+	$order_id        = absint( $search_key_safe );
 
-	$order = wc_get_order( absint( $search_key_safe ) );
+	/**
+	 * Order ID 0 is not valid value.
+	 */
+	$order = $order_id > 0 ? wc_get_order( $order_id ) : false;
 
 	//If the order doesn't exist, fallback to other fields
 	if ( ! $order ) {
@@ -658,6 +693,7 @@ function ep_wc_setup() {
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_add_order_items_search', 20, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
+		add_action( 'ep_wp_query_search_cached_posts', 'ep_wc_disallow_duplicated_query', 10, 2 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
 	}
 }

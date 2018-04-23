@@ -230,11 +230,8 @@ class EP_API {
 
 			$response = json_decode( $response_body, true );
 
-			if ( $this->is_empty_query( $response ) ) {
-				return array( 'found_posts' => 0, 'posts' => array() );
-			}
-
-			$hits = $response['hits']['hits'];
+			$hits = $this->get_hits_from_query( $response );
+			$total_hits = $this->get_total_hits_from_query( $response );
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
@@ -260,11 +257,43 @@ class EP_API {
 			 * @param object $response The response body retrieved from Elasticsearch.
 			 */
 
-			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $response['hits']['total'], 'posts' => $posts ), $response, $args, $scope );
+			return apply_filters( 'ep_search_results_array', array( 'found_posts' => $total_hits, 'posts' => $posts ), $response, $args, $scope );
 		}
 
 		return false;
 	}
+
+    /**
+     * Returns the number of total results that ElasticSearch found for the given query
+     *
+     * @param array $response
+     * @since  2.5
+     * @return int
+     */
+	public function get_total_hits_from_query( $response ) {
+
+	    if ( $this->is_empty_query( $response ) ) {
+	        return 0;
+        }
+
+        return $response['hits']['total'];
+    }
+
+    /**
+     * Returns array containing hits returned from query, if such exist
+     *
+     * @param array $response
+     * @since  2.5
+     * @return array
+     */
+	public function get_hits_from_query( $response ) {
+
+        if ( $this->is_empty_query( $response ) ) {
+            return [];
+        }
+
+        return $response['hits']['hits'];
+    }
 
 	/**
 	 * Check if a response array contains results or not
@@ -1689,7 +1718,7 @@ class EP_API {
 					} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 						// Map specific meta field types to different Elasticsearch core types
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
-					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between' ) ) ) {
+					} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between', 'not between' ) ) ) {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
 					} else {
 						$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
@@ -1769,6 +1798,31 @@ class EP_API {
 												'range' => array(
 													$meta_key_path => array(
 														"lte" => $single_meta_query['value'][1],
+													),
+												),
+											),
+										),
+									),
+								);
+							}
+
+							break;
+						case 'not between':
+							if ( isset( $single_meta_query['value'] ) && is_array( $single_meta_query['value'] ) && 2 === count( $single_meta_query['value'] ) ) {
+								$terms_obj = array(
+									'bool' => array(
+										'should' => array(
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"lte" => $single_meta_query['value'][0],
+													),
+												),
+											),
+											array(
+												'range' => array(
+													$meta_key_path => array(
+														"gte" => $single_meta_query['value'][1],
 													),
 												),
 											),
