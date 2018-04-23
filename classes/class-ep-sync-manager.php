@@ -43,6 +43,7 @@ class EP_Sync_Manager {
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'delete_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
 
@@ -62,6 +63,7 @@ class EP_Sync_Manager {
 		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		remove_action( 'delete_post_meta', array( $this, 'action_queue_meta_sync' ), 10 );
 		remove_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
 
@@ -77,20 +79,23 @@ class EP_Sync_Manager {
 
 		foreach ( $this->sync_post_queue as $post_id => $meta_keys ) {
 
-			if( empty( $meta_keys ) || ! is_array( $meta_keys ) ) {
-				continue;
-			}
+			// If force update, skip meta check part
+			if( ! isset( $this->sync_post_queue[$post_id]['ep_force_sync'] ) || ! $this->sync_post_queue[$post_id]['ep_force_sync'] ) {
+				if( empty( $meta_keys ) || ! is_array( $meta_keys ) ) {
+					continue;
+				}
 
-			$prepared_post = ep_prepare_post( $post_id );
+				$prepared_post = ep_prepare_post( $post_id );
 
-			if( empty( $prepared_post['meta'] ) || ! is_array( $prepared_post['meta'] ) ) {
-				continue;
-			}
+				if( empty( $prepared_post['meta'] ) || ! is_array( $prepared_post['meta'] ) ) {
+					continue;
+				}
 
-			$meta_to_index = array_intersect( $meta_keys, array_keys( $prepared_post['meta'] ) );
+				$meta_to_index = array_intersect( $meta_keys, array_keys( $prepared_post['meta'] ) );
 
-			if( empty( $meta_to_index ) ) {
-				continue;
+				if( empty( $meta_to_index ) ) {
+					continue;
+				}
 			}
 
 			do_action( 'ep_sync_on_meta_update', $post_id );
@@ -148,6 +153,11 @@ class EP_Sync_Manager {
 					$this->sync_post_queue[$object_id] = array();
 				}
 				$this->sync_post_queue[$object_id][] = $meta_key;
+
+				// Force update for meta delete because we won't have this meta field available to check later
+				if( 'delete_post_meta' == current_action() ) {
+					$this->sync_post_queue[$object_id]['ep_force_sync'] = true;
+				}
 			}
 		}
 	}
