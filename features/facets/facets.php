@@ -376,7 +376,7 @@ function ep_facets_get_aggs( $response ) {
 
 	$GLOBALS['ep_facet_aggs'] = false;
 
-	if ( ! empty( $response['aggregations'] ) ) {
+	if ( ! empty( $response['aggregations']['terms'] ) ) {
 		$GLOBALS['ep_facet_aggs'] = array();
 
 		foreach ( $response['aggregations']['terms'] as $key => $agg ) {
