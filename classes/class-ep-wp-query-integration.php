@@ -278,7 +278,7 @@ class EP_WP_Query_Integration {
 				$scope = $query_vars['sites'];
 			}
 
-			$formatted_args = ep_format_args( $query_vars );
+			$formatted_args = EP_Post::factory()->format_args( $query_vars );
 
 			/**
 			 * Filter search scope
@@ -290,15 +290,15 @@ class EP_WP_Query_Integration {
 			 */
 			$scope = apply_filters( 'ep_search_scope', $scope );
 
-			$ep_query = ep_query( $formatted_args, $query->query_vars, $scope );
+			$ep_query = EP_Post::factory()->query( $formatted_args, $query->query_vars, $scope );
 
 			if ( false === $ep_query ) {
 				$query->elasticsearch_success = false;
 				return $request;
 			}
 
-			$query->found_posts = $ep_query['found_posts'];
-			$query->max_num_pages = ceil( $ep_query['found_posts'] / $query->get( 'posts_per_page' ) );
+			$query->found_posts = $ep_query['found_documents'];
+			$query->max_num_pages = ceil( $ep_query['found_documents'] / $query->get( 'posts_per_page' ) );
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields
@@ -306,15 +306,15 @@ class EP_WP_Query_Integration {
 			$fields = $query->get( 'fields', '' );
 			switch ( $fields ) {
 				case 'ids' :
-					$new_posts = $this->format_hits_as_ids( $ep_query['posts'], $new_posts );
+					$new_posts = $this->format_hits_as_ids( $ep_query['documents'], $new_posts );
 					break;
 
 				case 'id=>parent' :
-					$new_posts = $this->format_hits_as_id_parents( $ep_query['posts'], $new_posts );
+					$new_posts = $this->format_hits_as_id_parents( $ep_query['documents'], $new_posts );
 					break;
 
 				default:
-					$new_posts = $this->format_hits_as_posts( $ep_query['posts'], $new_posts );
+					$new_posts = $this->format_hits_as_posts( $ep_query['documents'], $new_posts );
 					break;
 			}
 

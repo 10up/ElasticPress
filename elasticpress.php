@@ -3,7 +3,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     2.5
+ * Version:     2.6
  * Author:      Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -22,7 +22,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '2.5' );
+define( 'EP_VERSION', '2.6' );
+
+/**
+ * PSR-4 autoloading
+ *
+ * @since  2.6
+ */
+spl_autoload_register(
+	function( $class ) {
+			// project-specific namespace prefix
+			$prefix = 'ElasticPress\\';
+
+			// base directory for the namespace prefix
+			$base_dir = __DIR__ . '/includes/classes/';
+
+			// does the class use the namespace prefix?
+			$len = strlen( $prefix );
+
+		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+			return;
+		}
+
+			$relative_class = substr( $class, $len );
+
+			$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
+
+			// if the file exists, require it
+		if ( file_exists( $file ) ) {
+			require $file;
+		}
+	}
+);
 
 /**
  * We compare the current ES version to this compatibility version number. Compatibility is true when:
@@ -36,8 +67,10 @@ define( 'EP_VERSION', '2.5' );
 define( 'EP_ES_VERSION_MAX', '6.2' );
 define( 'EP_ES_VERSION_MIN', '1.7' );
 
-require_once( 'classes/class-ep-config.php' );
 require_once( 'classes/class-ep-api.php' );
+require_once( 'classes/class-ep-config.php' );
+require_once( 'classes/abstract-ep-indexable.php' );
+require_once( 'classes/class-ep-post.php' );
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
 $network_activated = ep_is_network_activated( plugin_basename( __FILE__ ) );
