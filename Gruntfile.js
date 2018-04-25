@@ -16,11 +16,11 @@ module.exports = function ( grunt ) {
 						'assets/js/admin.min.js' : [
 							'assets/js/src/admin.js'
 						],
-						'features/autosuggest/assets/js/autosuggest.min.js': [
-							'features/autosuggest/assets/js/src/autosuggest.js'
+						'assets/js/autosuggest.min.js': [
+							'assets/js/src/autosuggest.js'
 						],
-						'features/facets/assets/js/facets.min.js': [
-							'features/facets/assets/js/src/facets.js'
+						'assets/js/facets.min.js': [
+							'assets/js/src/facets.js'
 						]
 					}
 				}
@@ -36,7 +36,9 @@ module.exports = function ( grunt ) {
 
 				files: {
 					'assets/css/admin.css': ['assets/css/admin.css'],
-					'features/autosuggest/assets/css/autosuggest.min.css': ['features/autosuggest/assets/css/autosuggest.css']
+					'assets/css/autosuggest.min.css': ['assets/css/autosuggest.css'],
+					'assets/css/facets.min.css': ['assets/css/facets.css'],
+					'assets/css/facets-admin.min.css': ['assets/css/facets-admin.css']
 				}
 
 			},
@@ -47,9 +49,9 @@ module.exports = function ( grunt ) {
 
 					files: {
 						'assets/css/admin.min.css': ['assets/css/admin.css'],
-						'features/autosuggest/assets/css/autosuggest.min.css': ['features/autosuggest/assets/css/autosuggest.css'],
-						'features/facets/assets/css/admin.min.css': ['features/facets/assets/css/admin.css'],
-						'features/facets/assets/css/facets.min.css': ['features/facets/assets/css/facets.css']
+						'assets/css/autosuggest.min.css': ['assets/css/autosuggest.css'],
+						'assets/css/facets-admin.min.css': ['assets/css/facetsadmin.css'],
+						'assets/css/facets.min.css': ['assets/css/facets.css']
 					}
 
 				}
@@ -68,9 +70,9 @@ module.exports = function ( grunt ) {
 
 					files : {
 						'assets/css/admin.css': 'assets/css/admin.scss',
-						'features/autosuggest/assets/css/autosuggest.css': 'features/autosuggest/assets/css/autosuggest.scss',
-						'features/facets/assets/css/admin.css': 'features/facets/assets/css/admin.scss',
-						'features/facets/assets/css/facets.css': 'features/facets/assets/css/facets.scss'
+						'assets/css/autosuggest.css': 'assets/css/autosuggest.scss',
+						'assets/css/facets-admin.css': 'assets/css/facets-admin.scss',
+						'assets/css/facets.css': 'assets/css/facets.scss'
 					}
 
 				}
@@ -98,9 +100,7 @@ module.exports = function ( grunt ) {
 
 				scripts : {
 					files : [
-						'assets/js/src/*.js',
-						'features/autosuggest/assets/js/src/*.js',
-						'features/facets/assets/js/src/*.js'
+						'assets/js/src/*.js'
 					],
 					tasks : ['uglify:production']
 
@@ -108,9 +108,7 @@ module.exports = function ( grunt ) {
 
 				styles : {
 					files : [
-						'assets/css/*.scss',
-						'features/autosuggest/assets/css/*.scss',
-						'features/facets/assets/css/*.scss'
+						'assets/css/*.scss'
 					],
 					tasks : ['sass', 'autoprefixer', 'cssmin']
 				}

@@ -67,33 +67,62 @@ spl_autoload_register(
 define( 'EP_ES_VERSION_MAX', '6.2' );
 define( 'EP_ES_VERSION_MIN', '1.7' );
 
-require_once( 'classes/class-ep-api.php' );
-require_once( 'classes/class-ep-config.php' );
-require_once( 'classes/abstract-ep-indexable.php' );
-require_once( 'classes/class-ep-post.php' );
+require_once __DIR__ . '/includes/utils.php';
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
-$network_activated = ep_is_network_activated( plugin_basename( __FILE__ ) );
+$network_activated = \ElasticPress\Utils\is_network_activated( plugin_basename( __FILE__ ) );
 
 if ( $network_activated ) {
 	define( 'EP_IS_NETWORK', true );
 }
 
-require_once( 'classes/class-ep-sync-manager.php' );
-require_once( 'classes/class-ep-wp-query-integration.php' );
-require_once( 'classes/class-ep-wp-date-query.php' );
-require_once( 'classes/class-ep-feature.php' );
-require_once( 'classes/class-ep-features.php' );
-require_once( 'classes/class-ep-dashboard.php' );
+/**
+ * Setup features framework
+ */
+\ElasticPress\Features::factory();
 
-// Include core features
-require_once( 'features/search/search.php' );
-require_once( 'features/related-posts/related-posts.php' );
-require_once( 'features/protected-content/protected-content.php' );
-require_once( 'features/woocommerce/woocommerce.php' );
-require_once( 'features/documents/documents.php' );
-require_once( 'features/autosuggest/autosuggest.php' );
-require_once( 'features/facets/facets.php' );
+/**
+ * Setup post indexable type
+ */
+\ElasticPress\Post\SyncManager::factory();
+\ElasticPress\Post\QueryIntegration::factory();
+
+/**
+ * Setup dashboard
+ */
+require_once __DIR__ . '/includes/dashboard.php';
+\ElasticPress\Dashboard\setup();
+
+/**
+ * Include core features
+ */
+\ElasticPress\Features::factory()->register_feature(
+	new \ElasticPress\Feature\Search\Search()
+);
+
+\ElasticPress\Features::factory()->register_feature(
+	new \ElasticPress\Feature\ProtectedContent\ProtectedContent()
+);
+
+\ElasticPress\Features::factory()->register_feature(
+	new \ElasticPress\Feature\Autosuggest\Autosuggest()
+);
+
+\ElasticPress\Features::factory()->register_feature(
+	new \ElasticPress\Feature\RelatedPosts\RelatedPosts()
+);
+
+\ElasticPress\Features::factory()->register_feature(
+	new \ElasticPress\Feature\WooCommerce\WooCommerce()
+);
+
+\ElasticPress\Features::factory()->register_feature(
+	new \ElasticPress\Feature\Facets\Facets()
+);
+
+\ElasticPress\Features::factory()->register_feature(
+	new \ElasticPress\Feature\Documents\Documents()
+);
 
 /**
  * WP CLI Commands

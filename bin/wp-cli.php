@@ -16,21 +16,21 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @since 0.9
 	 */
-	private $posts = array();
+	private $posts = [];
 
 	/**
 	 * Holds all of the posts that failed to index during a bulk index.
 	 *
 	 * @since 0.9
 	 */
-	private $failed_posts = array();
+	private $failed_posts = [];
 
 	/**
 	 * Holds error messages for individual posts that failed to index (assuming they're available).
 	 *
 	 * @since 1.7
 	 */
-	private $failed_posts_message = array();
+	private $failed_posts_message = [];
 
 	/**
 	 * Holds whether it's network transient or not
@@ -51,7 +51,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @since 2.2
 	 */
-	private $temporary_wp_actions = array();
+	private $temporary_wp_actions = [];
 
 	/**
 	 * Activate a feature.
@@ -107,9 +107,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
-			$active_features = get_site_option( 'ep_feature_settings', array() );
+			$active_features = get_site_option( 'ep_feature_settings', [] );
 		} else {
-			$active_features = get_option( 'ep_feature_settings', array() );
+			$active_features = get_option( 'ep_feature_settings', [] );
 		}
 
 		$key = array_search( $feature->slug, array_keys( $active_features ) );
@@ -136,9 +136,9 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 		if ( empty( $assoc_args['all'] ) ) {
 			if ( ! empty( $assoc_args['network-wide'] ) ) {
-				$features = get_site_option( 'ep_feature_settings', array() );
+				$features = get_site_option( 'ep_feature_settings', [] );
 			} else {
-				$features = get_option( 'ep_feature_settings', array() );
+				$features = get_option( 'ep_feature_settings', [] );
 			}
 			WP_CLI::line( __( 'Active features:', 'elasticpress' ) );
 
@@ -296,7 +296,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	private function _create_network_alias() {
 		$sites   = ep_get_sites();
-		$indexes = array();
+		$indexes = [];
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -446,7 +446,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	private function _index_helper( $args ) {
 		$synced = 0;
-		$errors = array();
+		$errors = [];
 
 		$no_bulk = false;
 
@@ -622,7 +622,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$killed_post_count = 0;
 
 			// reset the posts
-			$this->posts = array();
+			$this->posts = [];
 		}
 
 		if ( true === $killed_post ) {
@@ -652,7 +652,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::error( 'There are no posts to index.' );
 		}
 
-		$flatten = array();
+		$flatten = [];
 
 		foreach ( $this->posts as $post ) {
 			$flatten[] = $post[0];
@@ -748,8 +748,8 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			WP_CLI::log( $error_text );
 
 			// clear failed posts after printing to the screen
-			$this->failed_posts = array();
-			$this->failed_posts_message = array();
+			$this->failed_posts = [];
+			$this->failed_posts_message = [];
 		}
 	}
 
@@ -814,18 +814,18 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	private function stop_the_insanity() {
 		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
 
-		$wpdb->queries = array();
+		$wpdb->queries = [];
 
 		if ( is_object( $wp_object_cache ) ) {
-			$wp_object_cache->group_ops = array();
-			$wp_object_cache->stats = array();
-			$wp_object_cache->memcache_debug = array();
+			$wp_object_cache->group_ops = [];
+			$wp_object_cache->stats = [];
+			$wp_object_cache->memcache_debug = [];
 
 			// Make sure this is a public property, before trying to clear it
 			try {
 				$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
 				if ( $cache_property->isPublic() ) {
-					$wp_object_cache->cache = array();
+					$wp_object_cache->cache = [];
 				}
 				unset( $cache_property );
 			} catch ( ReflectionException $e ) {
