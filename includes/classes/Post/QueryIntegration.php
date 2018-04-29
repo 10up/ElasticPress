@@ -283,7 +283,7 @@ class QueryIntegration {
 				$scope = $query_vars['sites'];
 			}
 
-			$formatted_args = EP_Post::factory()->format_args( $query_vars );
+			$formatted_args = Post::factory()->format_args( $query_vars );
 
 			/**
 			 * Filter search scope
@@ -295,7 +295,7 @@ class QueryIntegration {
 			 */
 			$scope = apply_filters( 'ep_search_scope', $scope );
 
-			$ep_query = EP_Post::factory()->query( $formatted_args, $query->query_vars, $scope );
+			$ep_query = Post::factory()->query( $formatted_args, $query->query_vars, $scope );
 
 			if ( false === $ep_query ) {
 				$query->elasticsearch_success = false;

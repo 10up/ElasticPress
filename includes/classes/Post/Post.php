@@ -3,6 +3,7 @@
 namespace ElasticPress\Post;
 
 use ElasticPress\Indexable as Indexable;
+use ElasticPress\Elasticsearch as Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -13,21 +14,21 @@ class Post extends Indexable {
 	public $indexable_type = 'post';
 
 	public function delete( $post_id, $blocking = true  ) {
-		return EP_API::factory()->delete_document( $this->get_index_name(), 'post', $post_id, $blocking );
+		return Elasticsearch::factory()->delete_document( $this->get_index_name(), 'post', $post_id, $blocking );
 	}
 
 	public function get( $post_id ) {
-		return EP_API::factory()->get_document( $this->get_index_name(), 'post', $post_id );
+		return Elasticsearch::factory()->get_document( $this->get_index_name(), 'post', $post_id );
 	}
 
 	public function delete_index( $blog_id = null ) {
-		return EP_API::factory()->delete_index( $this->get_index_name( $blog_id ) );
+		return Elasticsearch::factory()->delete_index( $this->get_index_name( $blog_id ) );
 	}
 
 	public function index( $post, $blocking = false ) {
 		$post = apply_filters( 'ep_pre_index_post', $post );
 
-		$return = EP_API::factory()->index_document( $this->get_index_name(), 'post', $post['post_id'], $post, $blocking );
+		$return = Elasticsearch::factory()->index_document( $this->get_index_name(), 'post', $post['post_id'], $post, $blocking );
 
 		do_action( 'ep_after_index_post', $post, $return );
 
@@ -53,7 +54,7 @@ class Post extends Indexable {
 			$index = $this->get_index_name();
 		}
 
-		return EP_API::factory()->query( $index, 'post', $args, $query_args );
+		return Elasticsearch::factory()->query( $index, 'post', $args, $query_args );
 	}
 
 	/**
@@ -95,7 +96,7 @@ class Post extends Indexable {
 
 		$mapping = require( apply_filters( 'ep_post_mapping_file', dirname( __FILE__ ) . '/../includes/mappings/post/' . $mapping_file ) );
 
-		return EP_API::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
 
 	/**
@@ -787,7 +788,7 @@ class Post extends Indexable {
 		 *
 		 * @since 1.3
 		 */
-		if ( $date_filter = EP_WP_Date_Query::simple_es_date_filter( $args ) ) {
+		if ( $date_filter = DateQuery::simple_es_date_filter( $args ) ) {
 			$filter['bool']['must'][] = $date_filter;
 			$use_filters = true;
 		}
@@ -798,7 +799,7 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['date_query'] ) ) {
 
-			$date_query = new EP_WP_Date_Query( $args['date_query'] );
+			$date_query = new DateQuery( $args['date_query'] );
 
 			$date_filter = $date_query->get_es_filter();
 
@@ -1570,13 +1571,13 @@ class Post extends Indexable {
 	}
 
 	public function bulk_index( $body ) {
-		return EP_API::factory()->bulk_index( $this->get_index_name(), 'post', $body );
+		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), 'post', $body );
 	}
 
 	/**
 	 * Return singleton instance of class
 	 *
-	 * @return EP_API
+	 * @return Elasticsearch
 	 * @since 0.1.0
 	 */
 	public static function factory() {
