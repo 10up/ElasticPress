@@ -44,6 +44,17 @@ class Features {
 	}
 
 	/**
+	 * Dectivate a feature
+	 *
+	 * @param  string $slug
+	 * @param  bool  $force
+	 * @since  2.2
+	 */
+	public function deactivate_feature( $slug, $force = true ) {
+		$this->update_feature( $slug, array( 'active' => false ), $force );
+	}
+
+	/**
 	 * Registers a feature for use in ElasticPress
 	 *
 	 * @param  string $slug
@@ -257,7 +268,7 @@ class Features {
 							}
 						} elseif ( $feature->is_active() && ! $active ) {
 							// Just deactivate, don't force
-							ep_deactivate_feature( $slug, false );
+							$this->deactivate_feature( $slug, false );
 						}
 					}
 				}

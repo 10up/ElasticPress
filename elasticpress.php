@@ -128,7 +128,7 @@ require_once __DIR__ . '/includes/dashboard.php';
  * WP CLI Commands
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
-	require_once( 'bin/wp-cli.php' );
+	WP_CLI::add_command( 'elasticpress', '\ElasticPress\Command' );
 }
 
 /**
