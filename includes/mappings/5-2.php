@@ -19,6 +19,7 @@ return array(
 				'default' => array(
 					'tokenizer' => 'standard',
 					'filter' => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
+					'char_filter' => array( 'html_strip' ),
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				),
 				'shingle_analyzer' => array(
@@ -253,6 +254,9 @@ return array(
 					'type' => 'text',
 				),
 				'post_content' => array(
+					'type' => 'text',
+				),
+				'post_content_filtered' => array(
 					'type' => 'text',
 				),
 				'post_status' => array(
