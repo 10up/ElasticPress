@@ -40,6 +40,16 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.5.1 =
+
+This if a bug fix release.
+
+### Bug Fixes
+
+* Don't enable Facets by default as it can unexpectedly change the front end experience in edge cases.
+* Support PHP 5.2 backwards compat.
+* Don't show faceting widget if post type doesn't support taxonomy.
+
 = 2.5 =
 
 ElasticPress 2.5 includes a new Facets feature that makes it easy to add high performance content filtering controls to a website.
