@@ -62,9 +62,9 @@ class Elasticsearch {
 		return $instance;
 	}
 
-	public function index_document( $index, $type, $document_id, $document, $blocking = true ) {
+	public function index_document( $index, $type, $document, $blocking = true ) {
 
-		$path = $index . '/' . $type . '/' . $document_id;
+		$path = $index . '/' . $type . '/' . $document['ID'];
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );

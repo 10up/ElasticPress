@@ -6,6 +6,7 @@ use \WP_CLI_Command as WP_CLI_Command;
 use \WP_CLI as WP_CLI;
 use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
+use ElasticPress\Elasticsearch as Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
@@ -162,7 +163,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Add the document mapping
+	 * Add the document mappings
 	 *
 	 * @synopsis [--network-wide]
 	 * @subcommand put-mapping
@@ -174,46 +175,49 @@ class Command extends WP_CLI_Command {
 	public function put_mapping( $args, $assoc_args ) {
 		$this->_connect_check();
 
+		$indexables = Indexables::factory()->get();
+
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
 				$assoc_args['network-wide'] = 0;
 			}
+
 			$sites = Utils\get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				WP_CLI::line( sprintf( esc_html__( 'Adding mapping for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
+				foreach ( $indexables as $indexable ) {
+					WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping for site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
-				// Deletes index first
-				ep_delete_index();
+					$indexable->delete_index();
+					$result = $indexable->put_mapping();
 
-				$result = ep_put_mapping();
+					do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
-				do_action( 'ep_cli_put_mapping', $args, $assoc_args );
+					if ( $result ) {
+						WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
+					} else {
+						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+					}
+				}
+
+				restore_current_blog();
+			}
+		} else {
+			foreach ( $indexables as $indexable ) {
+				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
+
+				$indexable->delete_index();
+				$result = $indexable->put_mapping();
+
+				do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 				if ( $result ) {
 					WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 				} else {
 					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 				}
-
-				restore_current_blog();
-			}
-		} else {
-			WP_CLI::line( esc_html__( 'Adding mapping...', 'elasticpress' ) );
-
-			// Deletes index first
-			$this->delete_index( $args, $assoc_args );
-
-			$result = ep_put_mapping();
-
-			do_action( 'ep_cli_put_mapping', $args, $assoc_args );
-
-			if ( $result ) {
-				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
-			} else {
-				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 			}
 		}
 	}
@@ -767,7 +771,7 @@ class Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_recovery/?pretty', $request_args );
+		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . '_recovery/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -790,7 +794,7 @@ class Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_stats/', $request_args );
+		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . '_stats/', $request_args );
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}
@@ -884,11 +888,11 @@ class Command extends WP_CLI_Command {
 	 * @since 0.9.3
 	 */
 	private function _connect_check() {
-		$host = ep_get_host();
+		$host = Utils\get_host();
 
 		if ( empty( $host) ) {
 			WP_CLI::error( esc_html__( 'There is no Elasticsearch host set up. Either add one through the dashboard or define one in wp-config.php', 'elasticpress' ) );
-		} elseif ( ! ep_get_elasticsearch_version( true ) ) {
+		} elseif ( ! Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
 			WP_CLI::error( esc_html__( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );
 		}
 	}

@@ -8,8 +8,10 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Elasticsearch as Elasticsearch;
+
 /**
- * An extendable type is essentially a document type that can be indexed
+ * An indexable is essentially a document type that can be indexed
  * and queried against
  *
  * @since  2.6
@@ -58,17 +60,53 @@ abstract class Indexable {
 		return EP_API::factory()->create_network_alias( $indexes, $this->get_network_alias() );
 	}
 
-	abstract function index( $document, $blocking = false );
+	public function delete( $post_id, $blocking = true  ) {
+		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->indexable_type, $post_id, $blocking );
+	}
 
-	abstract function get( $document_id );
+	public function get( $post_id ) {
+		return Elasticsearch::factory()->get_document( $this->get_index_name(), $this->indexable_type, $post_id );
+	}
 
-	abstract function bulk_index( $body );
+	public function delete_index( $blog_id = null ) {
+		return Elasticsearch::factory()->delete_index( $this->get_index_name( $blog_id ) );
+	}
 
-	abstract function delete( $document_id, $blocking = true );
+	public function index( $document, $blocking = false ) {
+		$document = apply_filters( 'ep_pre_index_' . $this->indexable_type, $document );
 
-	abstract function query( $args, $query_args, $scope = 'current' );
+		$return = Elasticsearch::factory()->index_document( $this->get_index_name(), $this->indexable_type, $document, $blocking );
+
+		do_action( 'ep_after_index_' . $this->indexable_type, $document, $return );
+
+		return $return;
+	}
+
+	public function bulk_index( $body ) {
+		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->indexable_type, $body );
+	}
+
+	public function query( $args, $query_args, $scope = 'current' ) {
+		$index = null;
+
+		if ( 'all' === $scope ) {
+			$index = $this->get_network_alias();
+		} elseif ( is_numeric( $scope ) ) {
+			$index = $this->get_index_name( (int) $scope );
+		} elseif ( is_array( $scope ) ) {
+			$index = [];
+
+			foreach ( $scope as $site_id ) {
+				$index[] = $this->get_index_name( $site_id );
+			}
+
+			$index = implode( ',', $index );
+		} else {
+			$index = $this->get_index_name();
+		}
+
+		return Elasticsearch::factory()->query( $index, $this->indexable_type, $args, $query_args );
+	}
 
 	abstract function put_mapping();
-
-	abstract function delete_index();
 }

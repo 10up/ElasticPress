@@ -6,7 +6,7 @@
  * @since   1.3
  */
 
-namespace ElasticPress\Post;
+namespace ElasticPress\Indexable\Post;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

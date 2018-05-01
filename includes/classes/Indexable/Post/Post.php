@@ -1,9 +1,10 @@
 <?php
 
-namespace ElasticPress\Post;
+namespace ElasticPress\Indexable\Post;
 
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -13,48 +14,14 @@ class Post extends Indexable {
 
 	public $indexable_type = 'post';
 
-	public function delete( $post_id, $blocking = true  ) {
-		return Elasticsearch::factory()->delete_document( $this->get_index_name(), 'post', $post_id, $blocking );
-	}
+	public function __construct() {
+		$this->labels = [
+			'plural'   => esc_html__( 'Posts', 'elasticpress' ),
+			'singular' => esc_html__( 'Post', 'elasticpress' ),
+		];
 
-	public function get( $post_id ) {
-		return Elasticsearch::factory()->get_document( $this->get_index_name(), 'post', $post_id );
-	}
-
-	public function delete_index( $blog_id = null ) {
-		return Elasticsearch::factory()->delete_index( $this->get_index_name( $blog_id ) );
-	}
-
-	public function index( $post, $blocking = false ) {
-		$post = apply_filters( 'ep_pre_index_post', $post );
-
-		$return = Elasticsearch::factory()->index_document( $this->get_index_name(), 'post', $post['post_id'], $post, $blocking );
-
-		do_action( 'ep_after_index_post', $post, $return );
-
-		return $return;
-	}
-
-	public function query( $args, $query_args, $scope = 'current' ) {
-		$index = null;
-
-		if ( 'all' === $scope ) {
-			$index = $this->get_network_alias();
-		} elseif ( is_numeric( $scope ) ) {
-			$index = $this->get_index_name( (int) $scope );
-		} elseif ( is_array( $scope ) ) {
-			$index = [];
-
-			foreach ( $scope as $site_id ) {
-				$index[] = $this->get_index_name( $site_id );
-			}
-
-			$index = implode( ',', $index );
-		} else {
-			$index = $this->get_index_name();
-		}
-
-		return Elasticsearch::factory()->query( $index, 'post', $args, $query_args );
+		SyncManager::factory();
+		QueryIntegration::factory();
 	}
 
 	/**
@@ -80,7 +47,7 @@ class Post extends Indexable {
 	}
 
 	public function put_mapping() {
-		$es_version = $this->get_elasticsearch_version();
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
@@ -94,7 +61,7 @@ class Post extends Indexable {
 			$mapping_file = '5-0.php';
 		}
 
-		$mapping = require( apply_filters( 'ep_post_mapping_file', dirname( __FILE__ ) . '/../includes/mappings/post/' . $mapping_file ) );
+		$mapping = require( apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file ) );
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
@@ -1568,26 +1535,6 @@ class Post extends Indexable {
 		}
 
 		return $orderbys;
-	}
-
-	public function bulk_index( $body ) {
-		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), 'post', $body );
-	}
-
-	/**
-	 * Return singleton instance of class
-	 *
-	 * @return Elasticsearch
-	 * @since 0.1.0
-	 */
-	public static function factory() {
-		static $instance = false;
-
-		if ( ! $instance  ) {
-			$instance = new self();
-		}
-
-		return $instance;
 	}
 
 	/**

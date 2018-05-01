@@ -2,7 +2,8 @@
 
 namespace ElasticPress\Feature\Search;
 use ElasticPress\Feature as Feature;
-use ElasticPress\Post\Post as Post;
+use ElasticPress\Indexables as Indexables;
+use ElasticPress\Indexable\Post\Post as Post;
 
 class Search extends Feature {
 	public function __construct() {
@@ -85,7 +86,7 @@ class Search extends Feature {
 		/**
 		 * Make sure this is an ElasticPress search query
 		 */
-		if ( ! Post::factory()->elasticpress_enabled( $query ) || ! $query->is_search() ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || ! $query->is_search() ) {
 			return;
 		}
 

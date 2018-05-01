@@ -6,8 +6,9 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Post;
+namespace ElasticPress\Indexable\Post;
 
+use ElasticPress\Indexables as Indexables;
 use \WP_Query as WP_Query;
 use ElasticPress\Utils as Utils;
 
@@ -75,7 +76,7 @@ class QueryIntegration {
 	 * @since 0.9
 	 */
 	public function action_pre_get_posts( $query ) {
-		if ( ! Post::factory()->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return;
 		}
 

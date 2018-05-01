@@ -49,17 +49,6 @@ abstract class Feature {
 	public $requires_install_reindex;
 
 	/**
-	 * Initiate the feature, setting all relevant instance variables
-	 *
-	 * @since  2.1
-	 */
-	public function __construct( $args ) {
-		if ( ! empty( $this->slug ) ) {
-			throw \Exception('sdfdsf');
-		}
-	}
-
-	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1

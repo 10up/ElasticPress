@@ -16,6 +16,10 @@
  * Copyright (C) 2013 SearchPress
  */
 
+namespace ElasticPress;
+
+use \WP_CLI as WP_CLI;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -25,9 +29,9 @@ define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_VERSION', '2.6' );
 
 /**
- * PSR-4 autoloading
+ * PSR-4-ish autoloading
  *
- * @since  2.6
+ * @since 2.6
  */
 spl_autoload_register(
 	function( $class ) {
@@ -70,65 +74,60 @@ define( 'EP_ES_VERSION_MIN', '1.7' );
 require_once __DIR__ . '/includes/utils.php';
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
-$network_activated = \ElasticPress\Utils\is_network_activated( plugin_basename( __FILE__ ) );
+$network_activated = Utils\is_network_activated( plugin_basename( __FILE__ ) );
 
 if ( $network_activated ) {
 	define( 'EP_IS_NETWORK', true );
 }
 
 /**
- * Setup features framework
+ * Handle indexables
  */
-\ElasticPress\Features::factory();
+Indexables::factory()->register( new Indexable\Post\Post() );
+Indexables::factory()->register( new Indexable\User\User() );
 
 /**
- * Setup post indexable type
+ * Handle features
  */
-\ElasticPress\Post\SyncManager::factory();
-\ElasticPress\Post\QueryIntegration::factory();
+Features::factory()->register_feature(
+	new Feature\Search\Search()
+);
+
+Features::factory()->register_feature(
+	new Feature\ProtectedContent\ProtectedContent()
+);
+
+Features::factory()->register_feature(
+	new Feature\Autosuggest\Autosuggest()
+);
+
+Features::factory()->register_feature(
+	new Feature\RelatedPosts\RelatedPosts()
+);
+
+Features::factory()->register_feature(
+	new Feature\WooCommerce\WooCommerce()
+);
+
+Features::factory()->register_feature(
+	new Feature\Facets\Facets()
+);
+
+Features::factory()->register_feature(
+	new Feature\Documents\Documents()
+);
 
 /**
  * Setup dashboard
  */
 require_once __DIR__ . '/includes/dashboard.php';
-\ElasticPress\Dashboard\setup();
-
-/**
- * Include core features
- */
-\ElasticPress\Features::factory()->register_feature(
-	new \ElasticPress\Feature\Search\Search()
-);
-
-\ElasticPress\Features::factory()->register_feature(
-	new \ElasticPress\Feature\ProtectedContent\ProtectedContent()
-);
-
-\ElasticPress\Features::factory()->register_feature(
-	new \ElasticPress\Feature\Autosuggest\Autosuggest()
-);
-
-\ElasticPress\Features::factory()->register_feature(
-	new \ElasticPress\Feature\RelatedPosts\RelatedPosts()
-);
-
-\ElasticPress\Features::factory()->register_feature(
-	new \ElasticPress\Feature\WooCommerce\WooCommerce()
-);
-
-\ElasticPress\Features::factory()->register_feature(
-	new \ElasticPress\Feature\Facets\Facets()
-);
-
-\ElasticPress\Features::factory()->register_feature(
-	new \ElasticPress\Feature\Documents\Documents()
-);
+Dashboard\setup();
 
 /**
  * WP CLI Commands
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
-	WP_CLI::add_command( 'elasticpress', '\ElasticPress\Command' );
+	WP_CLI::add_command( 'elasticpress', __NAMESPACE__ . '\Command' );
 }
 
 /**
@@ -148,7 +147,7 @@ if ( ! defined( 'EP_DASHBOARD_SYNC' ) ) {
  *
  * @since  2.2
  */
-function ep_handle_upgrades() {
+function handle_upgrades() {
 	if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
 		return;
 	}
@@ -194,21 +193,21 @@ function ep_handle_upgrades() {
 		update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 	}
 }
-add_action( 'plugins_loaded', 'ep_handle_upgrades', 5 );
+add_action( 'plugins_loaded', __NAMESPACE__ . '\handle_upgrades', 5 );
 
 /**
  * Load text domain and handle debugging
  *
  * @since  2.2
  */
-function ep_setup_misc() {
-	load_plugin_textdomain( 'elasticpress', false, basename( dirname( __FILE__ ) ) . '/lang' ); // Load any available translations first.
+function setup_misc() {
+	load_plugin_textdomain( 'elasticpress', false, basename( __DIR__ ) . '/lang' ); // Load any available translations first.
 
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
 	}
 }
-add_action( 'plugins_loaded', 'ep_setup_misc' );
+add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
 
 do_action( 'elasticpress_loaded' );
