@@ -287,7 +287,9 @@ function ep_facets_is_facetable( $query ) {
 		return false;
 	}
 
-	if ( ! ( $query->is_archive() || $query->is_search() || ( is_home() && empty( $query->get( 'page_id' ) ) ) ) ) {
+	$page_id = $query->get( 'page_id' );
+
+	if ( ! ( $query->is_archive() || $query->is_search() || ( is_home() && empty( $page_id ) ) ) ) {
 		return false;
 	}
 

@@ -20,7 +20,9 @@ class EP_Facet_Widget extends WP_Widget {
 		global $wp_query;
 
 		if ( $wp_query->get( 'ep_facet', false ) ) {
-			if ( ! ( is_archive() || is_search() || ( is_home() && empty( $wp_query->get( 'page_id' ) ) ) ) ) {
+			$page_id = $wp_query->get( 'page_id' );
+
+			if ( ! ( is_archive() || is_search() || ( is_home() && empty( $page_id ) ) ) ) {
 				return;
 			}
 		}
