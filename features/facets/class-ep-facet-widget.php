@@ -39,6 +39,14 @@ class EP_Facet_Widget extends WP_Widget {
 
 		$taxonomy = $instance['facet'];
 
+		if ( ! is_search() ) {
+			$post_type = $wp_query->get( 'post_type' ); // No post type means post
+
+			if ( ! empty( $post_type ) && ! is_object_in_taxonomy( $post_type, $taxonomy ) ) {
+				return;
+			}
+		}
+
 		$selected_filters = ep_facets_get_selected();
 
 		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
