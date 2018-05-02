@@ -17,25 +17,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Command extends WP_CLI_Command {
 	/**
-	 * Holds the posts that will be bulk synced.
+	 * Holds the objects that will be bulk indexed.
 	 *
 	 * @since 0.9
 	 */
-	private $posts = [];
+	private $objects = [];
 
 	/**
-	 * Holds all of the posts that failed to index during a bulk index.
+	 * Holds all of the objects that failed to index during a bulk index.
 	 *
 	 * @since 0.9
 	 */
-	private $failed_posts = [];
+	private $failed_objects = [];
 
 	/**
-	 * Holds error messages for individual posts that failed to index (assuming they're available).
+	 * Holds error messages for individual objects that failed to index (assuming they're available).
 	 *
 	 * @since 1.7
 	 */
-	private $failed_posts_message = [];
+	private $failed_objects_message = [];
 
 	/**
 	 * Holds whether it's network transient or not
@@ -163,12 +163,11 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Add the document mappings
+	 * Add document mappings for every indexable
 	 *
 	 * @synopsis [--network-wide]
 	 * @subcommand put-mapping
 	 * @since      0.9
-	 *
 	 * @param array $args
 	 * @param array $assoc_args
 	 */
@@ -223,18 +222,19 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Delete the current index. !!Warning!! This removes your elasticsearch index for the entire site.
+	 * Delete the index for each indexable. !!Warning!! This removes your elasticsearch index(s)
+	 * for the entire site.
 	 *
-	 * @todo       replace this function with one that updates all rows with a --force option
 	 * @synopsis [--network-wide]
 	 * @subcommand delete-index
 	 * @since      0.9
-	 *
 	 * @param array $args
 	 * @param array $assoc_args
 	 */
 	public function delete_index( $args, $assoc_args ) {
 		$this->_connect_check();
+
+		$indexables = Indexables::factory()->get();
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
@@ -245,76 +245,84 @@ class Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				WP_CLI::line( sprintf( esc_html__( 'Deleting index for site %d...', 'elasticpress' ), (int) $site['blog_id'] ) );
+				foreach ( $indexables as $indexable ) {
 
-				$result = ep_delete_index();
+					WP_CLI::line( sprintf( esc_html__( 'Deleting %s index for site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
-				if ( $result ) {
-					WP_CLI::success( esc_html__( 'Index deleted', 'elasticpress' ) );
-				} else {
-					WP_CLI::error( esc_html__( 'Delete index failed', 'elasticpress' ) );
+					$result = $indexable->delete_index();
+
+					if ( $result ) {
+						WP_CLI::success( esc_html__( 'Index deleted', 'elasticpress' ) );
+					} else {
+						WP_CLI::error( esc_html__( 'Delete index failed', 'elasticpress' ) );
+					}
 				}
 
 				restore_current_blog();
 			}
 		} else {
-			WP_CLI::line( esc_html__( 'Deleting index...', 'elasticpress' ) );
+			foreach ( $indexables as $indexable ) {
+				WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
-			$result = ep_delete_index();
+				$result = $indexable->delete_index();
 
-			if ( $result ) {
-				WP_CLI::success( esc_html__( 'Index deleted', 'elasticpress' ) );
-			} else {
-				WP_CLI::error( esc_html__( 'Index delete failed', 'elasticpress' ) );
+				if ( $result ) {
+					WP_CLI::success( esc_html__( 'Index deleted', 'elasticpress' ) );
+				} else {
+					WP_CLI::error( esc_html__( 'Index delete failed', 'elasticpress' ) );
+				}
 			}
 		}
 	}
 
 	/**
-	 * Map network alias to every index in the network
+	 * Map network alias to every index in the network for every indexable
 	 *
 	 * @param array $args
-	 *
 	 * @subcommand recreate-network-alias
 	 * @since      0.9
-	 *
 	 * @param array $assoc_args
 	 */
 	public function recreate_network_alias( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		WP_CLI::line( esc_html__( 'Recreating network alias...', 'elasticpress' ) );
+		$indexables = Indexables::factory()->get();
 
-		ep_delete_network_alias();
+		foreach ( $indexables as $indexable ) {
+			WP_CLI::line( sprintf( esc_html__( 'Recreating %s network alias...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
-		$create_result = $this->_create_network_alias();
+			$indexable->delete_network_alias();
 
-		if ( $create_result ) {
-			WP_CLI::success( esc_html__( 'Done!', 'elasticpress' ) );
-		} else {
-			WP_CLI::error( esc_html__( 'An error occurred', 'elasticpress' ) );
+			$create_result = $this->_create_network_alias();
+
+			if ( $create_result ) {
+				WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+			} else {
+				WP_CLI::error( esc_html__( 'An error occurred', 'elasticpress' ) );
+			}
 		}
 	}
 
 	/**
-	 * Helper method for creating the network alias
+	 * Helper method for creating the network alias for an indeaable
 	 *
-	 * @since 0.9
+	 * @param  Indexable $indexable
+	 * @since  0.9
 	 * @return array|bool
 	 */
-	private function _create_network_alias() {
+	private function _create_network_alias( Indexable $indexable ) {
 		$sites   = Utils\get_sites();
 		$indexes = [];
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$indexes[] = ep_get_index_name();
+			$indexes[] = $indexable->get_index_name();
 
 			restore_current_blog();
 		}
 
-		return ep_create_network_alias( $indexes );
+		return $indexable->create_network_alias( $indexes );
 	}
 
 	/**
@@ -323,9 +331,7 @@ class Command extends WP_CLI_Command {
 	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexable] [--show-bulk-errors] [--post-type] [--include]
 	 *
 	 * @param array $args
-	 *
 	 * @since 0.1.2
-	 *
 	 * @param array $assoc_args
 	 */
 	public function index( $args, $assoc_args ) {
@@ -386,37 +392,40 @@ class Command extends WP_CLI_Command {
 				$assoc_args['network-wide'] = 0;
 			}
 
-			WP_CLI::log( esc_html__( 'Indexing posts network-wide...', 'elasticpress' ) );
+			WP_CLI::log( esc_html__( 'Indexing objects network-wide...', 'elasticpress' ) );
 
 			$sites = Utils\get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				$result = $this->_index_helper( $assoc_args );
+				foreach ( $indexable_objects as $indexable ) {
+					WP_CLI::log( sprintf( esc_html__( 'Indexing %s on site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), (int) $site['blog_id'] ) );
 
-				$total_indexed += $result['synced'];
+					$result = $this->_index_helper( $indexable, $assoc_args );
 
-				WP_CLI::log( sprintf( esc_html__( 'Number of posts indexed on site %d: %d', 'elasticpress' ), $site['blog_id'], $result['synced'] ) );
+					$total_indexed += $result['synced'];
 
-				if ( ! empty( $result['errors'] ) ) {
-					WP_CLI::error( sprintf( esc_html__( 'Number of post index errors on site %d: %d', 'elasticpress' ), $site['blog_id'], count( $result['errors'] ) ) );
+					WP_CLI::log( sprintf( esc_html__( 'Number of %s indexed on site %d: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
+
+					if ( ! empty( $result['errors'] ) ) {
+						WP_CLI::error( sprintf( esc_html__( 'Number of %s index errors on site %d: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], count( $result['errors'] ) ) );
+					}
 				}
 
 				restore_current_blog();
 			}
 
-			WP_CLI::log( esc_html__( 'Recreating network alias...', 'elasticpress' ) );
+			foreach ( $indexable_objects as $indexable ) {
+				WP_CLI::log( sprintf( esc_html__( 'Recreating network alias for %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
-			$this->_create_network_alias();
-
-			WP_CLI::log( sprintf( esc_html__( 'Total number of posts indexed: %d', 'elasticpress' ), $total_indexed ) );
+				$this->_create_network_alias( $indexable );
+			}
 
 		} else {
 			/**
 			 * Run indexing for each indexable one by one
 			 */
-
 			foreach ( $indexable_objects as $indexable ) {
 				/**
 				 * If user has called out specific indexables to be indexed, only do those
@@ -451,12 +460,12 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Helper method for indexing documents for an indexable
 	 *
-	 * @param array $args
-	 *
-	 * @since 0.9
+	 * @param  Indexable $indexable
+	 * @param  array     $args Query arguments to be based to object query
+	 * @since  0.9
 	 * @return array
 	 */
-	private function _index_helper( $indexable, $args ) {
+	private function _index_helper( Indexable $indexable, $args ) {
 		$synced = 0;
 		$errors = [];
 
@@ -499,6 +508,11 @@ class Command extends WP_CLI_Command {
 		while ( true ) {
 			$query = $indexable->query_db( $query_args );
 
+			/**
+			 * Reset bulk object queue
+			 */
+			$this->objects = [];
+
 			if ( ! empty( $query['objects'] ) ) {
 
 				foreach ( $query['objects'] as $object ) {
@@ -513,7 +527,7 @@ class Command extends WP_CLI_Command {
 
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
 					} else {
-						//$result = $this->queue_post( get_the_ID(), $query->post_count, $show_bulk_errors );
+						$result = $this->queue_object( $indexable, $object->ID, count( $query['objects'] ), $show_bulk_errors );
 					}
 
 					if ( ! $result ) {
@@ -543,71 +557,60 @@ class Command extends WP_CLI_Command {
 
 		wp_reset_postdata();
 
-		return array( 'synced' => $synced, 'errors' => $errors );
+		return [
+			'synced' => $synced,
+			'errors' => $errors,
+		];
 	}
 
 	/**
-	 * Queues up a post for bulk indexing
+	 * Queues up an object for bulk indexing
 	 *
-	 * @since 0.9.2
-	 *
-	 * @param $post_id
-	 * @param $bulk_trigger
-	 * @param bool $show_bulk_errors true to show individual post error messages for bulk errors
-	 *
-	 * @return bool|int true if successfully synced, false if not or 2 if post was killed before sync
+	 * @param  Indexable $indexable
+	 * @param  int       $object_id
+	 * @param  int       $bulk_trigger
+	 * @param  bool      $show_bulk_errors true to show individual post error messages for bulk
+	 * @since  2.6
+	 * @return bool|int true if successfully synced, false if not or 2 if object was killed before sync
 	 */
-	private function queue_post( $post_id, $bulk_trigger, $show_bulk_errors = false ) {
-		static $post_count = 0;
-		static $killed_post_count = 0;
+	private function queue_object( Indexable $indexable, $object_id, $bulk_trigger, $show_bulk_errors = false ) {
+		static $killed_object_count = 0;
 
-		$killed_post = false;
+		$killed_object = false;
 
-		$post_args = ep_prepare_post( $post_id );
+		/**
+		 * Kill switch to skip an object
+		 */
+		if ( apply_filters( 'ep_' . $indexable->indexable_type . '_index_kill', false, $object_id ) ) {
 
-		// Mimic EP_Sync_Manager::sync_post( $post_id ), otherwise posts can slip
-		// through the kill filter... that would be bad!
-		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
+			$killed_object_count++;
+			$killed_object = true; // Save status for return.
 
-			$killed_post_count++;
-			$killed_post = true; // Save status for return.
+		} else {
 
-		} else { // Post wasn't killed so process it.
-
-			// put the post into the queue
-			$this->posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
-
-			if ( function_exists( 'wp_json_encode' ) ) {
-
-				$this->posts[ $post_id ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
-
-			} else {
-
-				$this->posts[ $post_id ][] = addcslashes( json_encode( $post_args ), "\n" );
-
-			}
-
-			++$post_count;
+			/**
+			 * Put object in queue
+			 */
+			$this->objects[ $object_id ] = true;
 
 		}
 
 		// If we have hit the trigger, initiate the bulk request.
-		if ( ( $post_count + $killed_post_count ) === absint( $bulk_trigger ) ) {
+		if ( ( count( $this->objects ) + $killed_object_count ) === absint( $bulk_trigger ) ) {
 
 			// Don't waste time if we've killed all the posts.
-			if ( ! empty( $this->posts ) ) {
-				$this->bulk_index( $show_bulk_errors );
+			if ( ! empty( $this->objects ) ) {
+				$this->bulk_index( $indexable, $show_bulk_errors );
 			}
 
-			// reset the post count
-			$post_count = 0;
-			$killed_post_count = 0;
+			// reset killed count
+			$killed_object_count = 0;
 
-			// reset the posts
-			$this->posts = [];
+			// reset the objects
+			$this->objects = [];
 		}
 
-		if ( true === $killed_post ) {
+		if ( true === $killed_object ) {
 			return 2;
 		}
 
@@ -622,66 +625,55 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @since 0.9.2
 	 */
-	private function bulk_index( $show_bulk_errors = false ) {
+	private function bulk_index( Indexable $indexable, $show_bulk_errors = false ) {
 		// monitor how many times we attempt to add this particular bulk request
 		static $attempts = 0;
 
 		// augment the attempts
-		++$attempts;
+		$attempts++;
 
 		// make sure we actually have something to index
-		if ( empty( $this->posts ) ) {
-			WP_CLI::error( 'There are no posts to index.' );
+		if ( empty( $this->objects ) ) {
+			WP_CLI::error( 'There are no objects to index.' );
 		}
 
-		$flatten = [];
-
-		foreach ( $this->posts as $post ) {
-			$flatten[] = $post[0];
-			$flatten[] = $post[1];
-		}
-
-		// make sure to add a new line at the end or the request will fail
-		$body = rtrim( implode( "\n", $flatten ) ) . "\n";
-
-		// show the content length in bytes if in debug
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			WP_CLI::log( 'Request string length: ' . size_format( mb_strlen( $body, '8bit' ), 2 ) );
-		}
-
-		// decode the response
-		$response = ep_bulk_index_posts( $body );
+		$response = $indexable->bulk_index( array_keys( $this->objects ) );
 
 		$this->reset_transient();
 
-		do_action( 'ep_cli_post_bulk_index', $this->posts );
+		do_action( 'ep_cli_' . $indexable->indexable_type . '_bulk_index', $this->objects );
 
 		if ( is_wp_error( $response ) ) {
 			WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
 		}
 
-		// if we did have errors, try to add the documents again
+		/**
+		 * If we have errors, try broken documents up to 5 times. After 5 tries, log errors
+		 */
 		if ( isset( $response['errors'] ) && $response['errors'] === true ) {
 			if ( $attempts < 5 ) {
 				foreach ( $response['items'] as $item ) {
 					if ( empty( $item['index']['error'] ) ) {
-						unset( $this->posts[$item['index']['_id']] );
+						unset( $this->objects[ $item['index']['_id'] ] );
 					}
 				}
-				$this->bulk_index( $show_bulk_errors );
+
+				$this->bulk_index( $indexable, $show_bulk_errors );
 			} else {
 				foreach ( $response['items'] as $item ) {
 					if ( ! empty( $item['index']['_id'] ) ) {
-						$this->failed_posts[] = $item['index']['_id'];
-						if ( $show_bulk_errors ) {
-							$this->failed_posts_message[$item['index']['_id']] = $item['index']['error'];
-						}
+						$this->failed_objects[] = [
+							'ID'        => $item['index']['_id'],
+							'indexable' => $indexable,
+							'error'     => $item['index']['error'],
+						];
 					}
 				}
+
 				$attempts = 0;
 			}
 		} else {
-			// there were no errors, all the posts were added
+			// there were no errors, all the objects were added
 			$attempts = 0;
 		}
 	}
@@ -713,25 +705,21 @@ class Command extends WP_CLI_Command {
 	 * @since 0.9.2
 	 */
 	private function send_bulk_errors() {
-		if ( ! empty( $this->failed_posts ) ) {
-			$error_text = esc_html__( "The following posts failed to index:\r\n\r\n", 'elasticpress' );
+		if ( ! empty( $this->failed_objects ) ) {
+			$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
 
-			foreach ( $this->failed_posts as $failed ) {
-				$failed_post = get_post( $failed );
-				if ( $failed_post ) {
-					$error_text .= "- {$failed}: " . $failed_post->post_title . "\r\n";
+			foreach ( $this->failed_objects as $failed_array ) {
+				$error_text .= '- ' . $failed_array['ID'] . ' (' . $failed_array['indexable']->labels['singular'] . '): ' . "\r\n";
 
-					if ( ! empty( $this->failed_posts_message[ $failed ] ) ) {
-						$error_text .= $this->format_bulk_error_message( $this->failed_posts_message[ $failed ] ) . PHP_EOL;
-					}
+				if ( ! empty( $failed_array['error'] ) ) {
+					$error_text .= $this->format_bulk_error_message( $failed_array['error'] ) . PHP_EOL;
 				}
 			}
 
 			WP_CLI::log( $error_text );
 
-			// clear failed posts after printing to the screen
+			// clear failed objects after printing to the screen
 			$this->failed_posts = [];
-			$this->failed_posts_message = [];
 		}
 	}
 
@@ -743,7 +731,7 @@ class Command extends WP_CLI_Command {
 	public function status() {
 		$this->_connect_check();
 
-		$request_args = array( 'headers' => ep_format_request_headers() );
+		$request_args = [ 'headers' => ep_format_request_headers() ];
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . '_recovery/?pretty', $request_args );
 

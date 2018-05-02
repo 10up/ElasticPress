@@ -1,6 +1,8 @@
 <?php
 /**
- * Indexable abstract class
+ * Indexable abstract class.
+ *
+ * An indexable is a type of "data" in WP e.g. post type, term, user, etc.
  *
  * @since  2.6
  * @package elasticpress
@@ -17,6 +19,13 @@ use ElasticPress\Elasticsearch as Elasticsearch;
  * @since  2.6
  */
 abstract class Indexable {
+	/**
+	 * Get the name of the index. Each indexable needs a unique index name
+	 *
+	 * @param  int $blog_id `null` means current blog
+	 * @since  2.6
+	 * @return string
+	 */
 	public function get_index_name( $blog_id = null ) {
 		if ( ! $blog_id ) {
 			$blog_id = get_current_blog_id();
@@ -35,9 +44,15 @@ abstract class Indexable {
 			$index_name = EP_INDEX_PREFIX . $index_name;
 		}
 
-		return apply_filters( 'ep_index_name', $index_name, $blog_id );
+		return apply_filters( 'ep_index_name', $index_name, $blog_id, $this );
 	}
 
+	/**
+	 * Get unique indexable network alias
+	 *
+	 * @since  2.6
+	 * @return string
+	 */
 	public function get_network_alias() {
 		$url = network_site_url();
 		$slug = preg_replace( '#https?://(www\.)?#i', '', $url );
@@ -52,26 +67,68 @@ abstract class Indexable {
 		return apply_filters( 'ep_global_alias', $alias );
 	}
 
+	/**
+	 * Delete unique indexable network alias
+	 *
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function delete_network_alias() {
 		return Elasticsearch::factory()->delete_network_alias( $alias );
 	}
 
+	/**
+	 * Create unique indexable network alias
+	 *
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function create_network_alias( $indexes ) {
 		return Elasticsearch::factory()->create_network_alias( $indexes, $this->get_network_alias() );
 	}
 
+	/**
+	 * Delete an object within the indexable
+	 *
+	 * @param  int     $object_id
+	 * @param  boolean $blocking
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function delete( $object_id, $blocking = true  ) {
 		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->indexable_type, $object_id, $blocking );
 	}
 
+	/**
+	 * Get an object within the indexable
+	 *
+	 * @param  int     $object_id
+	 * @since  2.6
+	 * @return boolean|array
+	 */
 	public function get( $object_id ) {
 		return Elasticsearch::factory()->get_document( $this->get_index_name(), $this->indexable_type, $object_id );
 	}
 
+	/**
+	 * Delete an index within the indexable
+	 *
+	 * @param  int $blod_id `null` means current blog
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function delete_index( $blog_id = null ) {
 		return Elasticsearch::factory()->delete_index( $this->get_index_name( $blog_id ) );
 	}
 
+	/**
+	 * Index an object within the indexable. This calls prepare_document
+	 *
+	 * @param  int  $object_id
+	 * @param  boolean $blocking
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function index( $object_id, $blocking = false ) {
 		$document = $this->prepare_document( $object_id );
 
@@ -88,10 +145,41 @@ abstract class Indexable {
 		return $return;
 	}
 
-	public function bulk_index( $body ) {
+	/**
+	 * Bulk index objects. This calls prepare_document on each object
+	 *
+	 * @param  array $object_ids Array of object IDs
+	 * @since  2.6
+	 * @return WP_Error|array
+	 */
+	public function bulk_index( $object_ids ) {
+		$body = '';
+
+		foreach ( $object_ids as $object_id ) {
+			$body = '{ "index": { "_id": "' . absint( $object_id ) . '" } }' . "\n";
+
+			$document = $this->prepare_document( $object_id );
+
+			if ( function_exists( 'wp_json_encode' ) ) {
+				$body .= addcslashes( wp_json_encode( $document ), "\n" );
+			} else {
+				$body .= addcslashes( json_encode( $document ), "\n" );
+			}
+
+			$body .= "\n\n";
+		}
+
 		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->indexable_type, $body );
 	}
 
+	/**
+	 * Query Elasticsearch for documents
+	 *
+	 * @param  array $args Unprepared query arguments
+	 * @param  string $scope      [description]
+	 * @since  2.6
+	 * @return array
+	 */
 	public function query_es( $args, $query_args, $scope = 'current' ) {
 		$index = null;
 
@@ -114,32 +202,26 @@ abstract class Indexable {
 		return Elasticsearch::factory()->query( $index, $this->indexable_type, $args, $query_args );
 	}
 
-	abstract function put_mapping();
-
-	abstract function prepare_document( $object_id );
-
-	abstract function query_db( $args );
-
 	/**
-	 * Prepare post meta type values to send to ES
+	 * Prepare meta type values to send to ES
 	 *
-	 * @param array $post_meta
-	 *
+	 * @param array $meta
+	 * @since  2.6
 	 * @return array
 	 */
-	public function prepare_meta_types( $post_meta ) {
+	public function prepare_meta_types( $meta ) {
 
-		$meta = [];
+		$prepared_meta = [];
 
-		foreach ( $post_meta as $meta_key => $meta_values ) {
+		foreach ( $meta as $meta_key => $meta_values ) {
 			if ( ! is_array( $meta_values ) ) {
 				$meta_values = array( $meta_values );
 			}
 
-			$meta[ $meta_key ] = array_map( array( $this, 'prepare_meta_value_types' ), $meta_values );
+			$prepared_meta[ $meta_key ] = array_map( array( $this, 'prepare_meta_value_types' ), $meta_values );
 		}
 
-		return $meta;
+		return $prepared_meta;
 
 	}
 
@@ -147,7 +229,7 @@ abstract class Indexable {
 	 * Prepare meta types for meta value
 	 *
 	 * @param mixed $meta_value
-	 *
+	 * @since  2.6
 	 * @return array
 	 */
 	public function prepare_meta_value_types( $meta_value ) {
@@ -202,4 +284,28 @@ abstract class Indexable {
 
 		return $meta_types;
 	}
+
+	/**
+	 * Must implement a method that handles sending mapping to ES
+	 *
+	 * @return boolean
+	 */
+	abstract function put_mapping();
+
+	/**
+	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
+	 * document
+	 *
+	 * @return array
+	 */
+	abstract function prepare_document( $object_id );
+
+	/**
+	 * Must implement a method that queries MySQL for objects and returns them
+	 * in a standardized format. This is necessary so we can genericize the index
+	 * process across indexables.
+	 *
+	 * @return boolean
+	 */
+	abstract function query_db( $args );
 }

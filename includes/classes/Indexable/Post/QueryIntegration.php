@@ -346,7 +346,7 @@ class QueryIntegration {
 	 */
 	protected function format_hits_as_posts( $posts, $new_posts ) {
 		foreach ( $posts as $post_array ) {
-			$post = new stdClass();
+			$post = new \stdClass();
 
 			$post->ID = $post_array['post_id'];
 			$post->site_id = get_current_blog_id();
@@ -429,7 +429,7 @@ class QueryIntegration {
 	 */
 	protected function format_hits_as_id_parents( $posts, $new_posts ) {
 		foreach ( $posts as $post_array ) {
-			$post = new stdClass();
+			$post = new \stdClass();
 			$post->ID = $post_array['post_id'];
 			$post->post_parent = $post_array['post_parent'];
 			$post->elasticsearch = true; // Super useful for debugging

@@ -408,7 +408,7 @@ class Elasticsearch {
 	 * @param  array  $alias         Indexes to group under alias
 	 * @param  string $network_alias Name of network alias
 	 * @since  2.6
-	 * @return array|boolean
+	 * @return boolean
 	 */
 	public function create_network_alias( $indexes, $network_alias ) {
 
@@ -436,9 +436,7 @@ class Elasticsearch {
 		$request = $this->remote_request( $path, $request_args, [], 'create_network_alias' );
 
 		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
-
-			return json_decode( $response_body );
+			return true;
 		}
 
 		return false;
@@ -510,7 +508,9 @@ class Elasticsearch {
 	 */
 	public function index_exists( $index_name ) {
 
-		$request_args = [ 2'method' => 'HEAD' ];
+		$request_args = [
+			'method' => 'HEAD',
+		];
 
 		$request = $this->remote_request( $index, $request_args, [], 'index_exists' );
 
@@ -556,7 +556,7 @@ class Elasticsearch {
 		$response = wp_remote_retrieve_response_code( $request );
 
 		if ( 200 !== $response ) {
-			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+			return new \WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
 		}
 
 		return json_decode( wp_remote_retrieve_body( $request ), true );
