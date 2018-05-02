@@ -8,18 +8,14 @@
 
 namespace ElasticPress\Indexable\Post;
 
+use ElasticPress\Indexables as Indexables;
+use ElasticPress\Elasticsearch as Elasticsearch;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
 class SyncManager {
-
-	/**
-	 * Placeholder method
-	 *
-	 * @since 0.1.0
-	 */
-	public function __construct() { }
 
 	/**
 	 * Save posts for indexing later
@@ -80,7 +76,7 @@ class SyncManager {
 		foreach ( $this->sync_post_queue as $post_id => $value ) {
 			do_action( 'ep_sync_on_meta_update', $post_id );
 
-			$this->sync_post( $post_id, false );
+			Indexables::factory()->get( 'post' )->index( $post_id, false );
 		}
 	}
 
@@ -105,7 +101,9 @@ class SyncManager {
 			return;
 		}
 
-		$indexable_post_statuses = Post::factory()->get_indexable_post_status();
+		$indexable = Indexables::factory()->get( 'post' );
+
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
 		// Allow inherit as post status if post type is attachment
@@ -126,19 +124,19 @@ class SyncManager {
 		}
 
 		if ( in_array( $post->post_status, $indexable_post_statuses ) ) {
-			$indexable_post_types = Post::factory()->get_indexable_post_types();
+			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types ) ) {
 
 				// Using this function to hook in after all the meta applicable filters
-				$prepared_post = Post::factory()->prepare_post( $object_id );
+				$prepared_post = $indexable->prepare_document( $object_id );
 
 				// Make sure meta key that was changed is actually relevant
-				if ( ! isset( $prepared_post['meta'][$meta_key] ) ) {
+				if ( ! isset( $prepared_post['meta'][ $meta_key ] ) ) {
 					return;
 				}
 
-				$this->sync_post_queue[$object_id] = true;
+				$this->sync_post_queue[ $object_id ] = true;
 			}
 		}
 	}
@@ -149,8 +147,10 @@ class SyncManager {
 	 * @param $blog_id
 	 */
 	public function action_delete_blog_from_index( $blog_id ) {
-		if ( Elasticsearch::factory()->index_exists( Post::factory()->get_index_name( $blog_id ) ) && ! apply_filters( 'ep_keep_index', false ) ) {
-			Post::factory()->delete_index( Post::factory()->get_index_name( $blog_id ) );
+		$indexable = Indexables::factory()->get( 'post' );
+
+		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false ) ) {
+			$indexable->delete_index( $blog_id );
 		}
 	}
 
@@ -168,7 +168,7 @@ class SyncManager {
 
 		do_action( 'ep_delete_post', $post_id );
 
-		Post::factory()->delete( $post_id, false );
+		Indexables::factory()->get( 'post' )->delete( $post_id, false );
 	}
 
 	/**
@@ -185,14 +185,16 @@ class SyncManager {
 			return;
 		}
 
-		$indexable_post_statuses = Post::factory()->get_indexable_post_status();
+		$indexable = Indexables::factory()->get( 'post' );
+
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
 
 		if ( 'attachment' === $post_type ) {
 			$indexable_post_statuses[] = 'inherit';
 		}
 
-		$post_type               = get_post_type( $post_ID );
+		$post_type = get_post_type( $post_ID );
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
 			// Bypass saving if doing autosave or post type is revision
@@ -219,13 +221,12 @@ class SyncManager {
 		} else {
 			$post_type = get_post_type( $post_ID );
 
-			$indexable_post_types = Post::factory()->get_indexable_post_types();
+			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types ) ) {
-
 				do_action( 'ep_sync_on_transition', $post_ID );
 
-				$this->sync_post( $post_ID, false );
+				$indexable->index( $post_ID, false );
 			}
 		}
 	}

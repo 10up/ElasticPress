@@ -176,7 +176,7 @@ class QueryIntegration {
 			return $posts;
 		}
 
-		$new_posts = $this->posts_by_query[spl_object_hash( $query )];
+		$new_posts = $this->posts_by_query[ spl_object_hash( $query ) ];
 
 		return $new_posts;
 	}
@@ -268,7 +268,7 @@ class QueryIntegration {
 		}
 
 		if ( empty( $query_vars['post_type'] ) ) {
-			$this->posts_by_query[spl_object_hash( $query )] = [];
+			$this->posts_by_query[ spl_object_hash( $query ) ] = [];
 
 			return "SELECT * FROM $wpdb->posts WHERE 1=0";
 		}

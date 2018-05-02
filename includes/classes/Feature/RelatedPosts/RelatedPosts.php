@@ -13,6 +13,11 @@ use ElasticPress\Post\Post as Post;
 use \WP_Query as WP_Query;
 
 class RelatedPosts extends Feature {
+	/**
+	 * Initialize feature setting it's config
+	 *
+	 * @since  2.6
+	 */
 	public function __construct() {
 		$this->slug = 'related_posts';
 

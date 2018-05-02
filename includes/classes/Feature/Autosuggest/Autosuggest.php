@@ -12,6 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Autosuggest extends Feature {
 
+	/**
+	 * Initialize feature setting it's config
+	 *
+	 * @since  2.6
+	 */
 	public function __construct() {
 		$this->slug = 'autosuggest';
 

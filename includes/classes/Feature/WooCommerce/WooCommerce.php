@@ -17,7 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WooCommerce extends Feature {
-
+	/**
+	 * Initialize feature setting it's config
+	 *
+	 * @since  2.6
+	 */
 	public function __construct() {
 		$this->slug = 'woocommerce';
 

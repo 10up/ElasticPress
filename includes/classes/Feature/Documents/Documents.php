@@ -8,6 +8,11 @@ use ElasticPress\Post\Post as Post;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 
 class Documents extends Feature {
+	/**
+	 * Initialize feature setting it's config
+	 *
+	 * @since  2.6
+	 */
 	public function __construct() {
 		$this->slug = 'documents';
 

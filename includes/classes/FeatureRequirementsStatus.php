@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Feature class to be initiated for all features
+ * Simple class for tracking a features requirement status
  *
  * @since  2.1
  * @package elasticpress

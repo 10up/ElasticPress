@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Feature class to be initiated for all features
+ * Feature class to be initiated for all features.
+ *
+ * All features extend this class.
  *
  * @since  2.1
  * @package elasticpress
@@ -56,6 +58,20 @@ abstract class Feature {
 	abstract function setup();
 
 	/**
+	 * Implement to output feature box summary
+	 *
+	 * @since  2.6
+	 */
+	abstract function output_feature_box_summary();
+
+	/**
+	 * Implement to output feature box long text
+	 *
+	 * @since  2.6
+	 */
+	abstract function output_feature_box_long();
+
+	/**
 	 * Returns requirements status of feature
 	 *
 	 * @since  2.2
@@ -105,13 +121,13 @@ abstract class Feature {
 		return apply_filters( 'ep_feature_active', $active, $feature_settings, $this );
 	}
 
+	/**
+	 * [post_activation description]
+	 * @return [type] [description]
+	 */
 	public function post_activation() {
 		do_action( 'ep_feature_post_activation', $this->slug, $this );
 	}
-
-	abstract function output_feature_box_summary();
-
-	abstract function output_feature_box_long();
 
 	/**
 	 * Outputs feature box
@@ -136,12 +152,24 @@ abstract class Feature {
 		<?php
 	}
 
+	/**
+	 * Output extra feature box settings.
+	 *
+	 * By default this does nothing. Override to add additional settings.
+	 *
+	 * @since  2.6
+	 */
 	public function output_feature_box_settings() {
 		/**
 		 * Optionally override
 		 */
 	}
 
+	/**
+	 * Output feature settings
+	 *
+	 * @since  2.6
+	 */
 	public function output_settings_box() {
 		$requirements_status = $this->requirements_status();
 		?>

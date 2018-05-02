@@ -12,6 +12,10 @@ namespace ElasticPress;
 
 use ElasticPress\Elasticsearch as Elasticsearch;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * An indexable is essentially a document type that can be indexed
  * and queried against
@@ -143,6 +147,17 @@ abstract class Indexable {
 		do_action( 'ep_after_index_' . $this->indexable_type, $document, $return );
 
 		return $return;
+	}
+
+	/**
+	 * Determine if indexable index exists
+	 *
+	 * @param  int $blog_id
+	 * @since  2.6
+	 * @return boolean
+	 */
+	public function index_exists( $blog_id = null ) {
+		return Elasticsearch::factory()->index_exists( $this->get_index_name( $blog_id ) );
 	}
 
 	/**

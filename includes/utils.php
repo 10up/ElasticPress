@@ -84,7 +84,7 @@ function host_by_option() {
  *
  * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites
  * @since  2.6
- * @return mixed|void
+ * @return array
  */
 function get_sites( $limit = 0 ) {
 	$args = apply_filters( 'ep_indexable_sites_args', array(
@@ -157,7 +157,7 @@ function is_network_activated( $plugin ) {
  * @since  2.5
  * @return array
  */
-function ep_get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat = false ) {
+function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat = false ) {
 	$terms_map = [];
 	$terms_tree = [];
 	$iteration_id = 0;

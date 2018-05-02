@@ -1,6 +1,6 @@
 <?php
 /**
- * Feature loader
+ * Handles registering and storing feature instances
  *
  * @since  2.1
  * @package elasticpress

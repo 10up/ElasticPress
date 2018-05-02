@@ -1,4 +1,7 @@
 <?php
+/**
+ * Search feature
+ */
 
 namespace ElasticPress\Feature\Search;
 use ElasticPress\Feature as Feature;
@@ -6,6 +9,11 @@ use ElasticPress\Indexables as Indexables;
 use ElasticPress\Indexable\Post\Post as Post;
 
 class Search extends Feature {
+	/**
+	 * Initialize feature setting it's config
+	 *
+	 * @since  2.6
+	 */
 	public function __construct() {
 		$this->slug = 'search';
 
@@ -17,10 +25,21 @@ class Search extends Feature {
 		];
 	}
 
+	/**
+	 * Code to be called when feature is active on each page load. We have intentionally
+	 * separated out `search_setup`
+	 *
+	 * @since 2.6
+	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
 	}
 
+	/**
+	 * Setup feature on each page load
+	 *
+	 * @since  2.6
+	 */
 	public function search_setup() {
 		/**
 		 * By default EP will not integrate on admin or ajax requests. Since admin-ajax.php is
@@ -47,6 +66,12 @@ class Search extends Feature {
 		add_action( 'pre_get_posts', [ $this, 'improve_default_search' ], 10, 1 );
 	}
 
+	/**
+	 * Get searchable post types
+	 *
+	 * @since  2.6
+	 * @return array
+	 */
 	public function get_searchable_post_types() {
 		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
 
@@ -141,12 +166,22 @@ class Search extends Feature {
 		return $formatted_args;
 	}
 
+	/**
+	 * Output feature box summary
+	 *
+	 * @since 2.6
+	 */
 	public function output_feature_box_summary() {
 		?>
 		<p><?php esc_html_e( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ); ?></p>
 		<?php
 	}
 
+	/**
+	 * Output feature box long text
+	 *
+	 * @since 2.6
+	 */
 	public function output_feature_box_long() {
 		?>
 		<p><?php esc_html_e( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ); ?></p>

@@ -4,6 +4,7 @@ namespace ElasticPress\Feature\Facets;
 
 use \WP_Widget as WP_Widget;
 use ElasticPress\Features as Features;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -60,7 +61,7 @@ class Widget extends WP_Widget {
 			}
 		}
 
-		$selected_filters = ep_facets_get_selected();
+		$selected_filters = $feature->get_selected();
 
 		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
 

@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Facets feature
+ *
+ * @since  2.5
+ */
+
 namespace ElasticPress\Feature\Facets;
 
 use ElasticPress\Feature as Feature;
@@ -13,6 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Facets extends Feature {
 
+	/**
+	 * Initialize feature setting it's config
+	 *
+	 * @since  2.6
+	 */
 	public function __construct() {
 		$this->slug = 'facets';
 

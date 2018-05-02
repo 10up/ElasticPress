@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * WP-CLI command for ElasticPress
+ *
+ * @since  2.6
+ */
+
 namespace ElasticPress;
 
 use \WP_CLI_Command as WP_CLI_Command;
@@ -160,6 +166,17 @@ class Command extends WP_CLI_Command {
 				WP_CLI::line( $feature );
 			}
 		}
+	}
+
+	/**
+	 * Get default index per page number. We wrap this in a method so
+	 * people can filter it.
+	 *
+	 * @since  2.6
+	 * @return int
+	 */
+	private function get_default_index_per_page() {
+		return apply_filters( 'ep_default_index_per_page', 350 );
 	}
 
 	/**
@@ -489,7 +506,7 @@ class Command extends WP_CLI_Command {
 			$query_args['offset'] = absint( $args['offset'] );
 		}
 
-		$per_page = 350;
+		$per_page = $this->get_default_index_per_page();
 
 		if ( ! empty( $args['per-page'] ) ) {
 			$query_args['per_page'] = absint( $args['per-page'] );
