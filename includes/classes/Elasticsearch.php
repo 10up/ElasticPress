@@ -9,6 +9,7 @@
 namespace ElasticPress;
 
 use ElasticPress\Utils as Utils;
+use \WP_Error as WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -556,7 +557,7 @@ class Elasticsearch {
 		$response = wp_remote_retrieve_response_code( $request );
 
 		if ( 200 !== $response ) {
-			return new \WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
+			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
 		}
 
 		return json_decode( wp_remote_retrieve_body( $request ), true );
@@ -909,99 +910,6 @@ class Elasticsearch {
 		}
 
 		return true;
-	}
-
-	public function get_index_status( $index, $network_alias ) {
-
-		if ( is_wp_error( Utils\get_host( true ) ) ) {
-
-			return array(
-				'status' => false,
-				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
-			);
-
-		} else {
-
-			if ( is_multisite() && null === $blog_id && defined( 'EP_IS_NETWORK' ) && true == EP_IS_NETWORK ) {
-
-				$path = $network_alias . '/_stats/indexing/';
-
-			} else {
-
-				$path = $index . '/_stats/indexing/';
-
-			}
-
-			$request = $this->remote_request( $path, array( 'method' => 'GET' ), [], 'get_index_status' );
-
-		}
-
-		if ( ! is_wp_error( $request ) ) {
-
-			$response = json_decode( wp_remote_retrieve_body( $request ) );
-
-			return ep_parse_api_response( $response );
-
-		}
-
-		return array(
-			'status' => false,
-			'msg'    => $request->get_error_message(),
-		);
-
-	}
-
-	/**
-	 * Retrieves search stats from Elasticsearch.
-	 *
-	 * Retrieves various search statistics from the ES server.
-	 *
-	 * @since 1.9
-	 * @param int $blog_id Id of blog to get stats.
-	 * @return array Contains the status message or the returned statistics.
-	 */
-	public function get_search_status( $blog_id = null ) {
-
-		if ( is_wp_error( Utils\get_host() ) ) {
-
-			return array(
-				'status' => false,
-				'msg'    => esc_html__( 'Elasticsearch Host is not available.', 'elasticpress' ),
-			);
-
-		} else {
-
-			if ( is_multisite() && null === $blog_id ) {
-
-				$path = ep_get_network_alias() . '/_stats/search/';
-
-			} else {
-
-				$path = ep_get_index_name( $blog_id ) . '/_stats/search/';
-
-			}
-
-			$request = $this->remote_request( $path, array( 'method' => 'GET' ), [], 'get_search_status' );
-
-		}
-
-		if ( ! is_wp_error( $request ) ) {
-
-			$stats = json_decode( wp_remote_retrieve_body( $request ) );
-
-			if ( isset( $stats->_all ) ) {
-				return $stats->_all->primaries->search;
-			}
-
-			return false;
-
-		}
-
-		return array(
-			'status' => false,
-			'msg'    => $request->get_error_message(),
-		);
-
 	}
 
 	/**

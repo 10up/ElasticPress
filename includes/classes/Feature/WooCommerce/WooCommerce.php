@@ -147,7 +147,6 @@ class WooCommerce extends Feature {
 		return $new_posts;
 	}
 
-
 	/**
 	 * Index Woocommerce taxonomies
 	 *
