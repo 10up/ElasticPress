@@ -182,7 +182,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Add document mappings for every indexable
 	 *
-	 * @synopsis [--network-wide]
+	 * @synopsis [--network-wide] [--indexables]
 	 * @subcommand put-mapping
 	 * @since      0.9
 	 * @param array $args
@@ -191,7 +191,13 @@ class Command extends WP_CLI_Command {
 	public function put_mapping( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		$indexables = Indexables::factory()->get();
+		$indexables = null;
+
+		if ( ! empty( $assoc_args['indexables'] ) ) {
+			$indexables = explode( ',', str_replace( ' ', '', $assoc_args['indexables'] ) );
+		}
+
+		$indexable_objects = Indexables::factory()->get();
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
@@ -203,7 +209,14 @@ class Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				foreach ( $indexables as $indexable ) {
+				foreach ( $indexable_objects as $indexable ) {
+					/**
+					 * If user has called out specific indexables to be indexed, only do those
+					 */
+					if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+						continue;
+					}
+
 					WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping for site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$indexable->delete_index();
@@ -221,7 +234,14 @@ class Command extends WP_CLI_Command {
 				restore_current_blog();
 			}
 		} else {
-			foreach ( $indexables as $indexable ) {
+			foreach ( $indexable_objects as $indexable ) {
+				/**
+				 * If user has called out specific indexables to be indexed, only do those
+				 */
+				if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+					continue;
+				}
+
 				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 				$indexable->delete_index();
@@ -345,7 +365,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexable] [--show-bulk-errors] [--post-type] [--include]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]
 	 *
 	 * @param array $args
 	 * @since 0.1.2
@@ -417,6 +437,13 @@ class Command extends WP_CLI_Command {
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $indexable_objects as $indexable ) {
+					/**
+					 * If user has called out specific indexables to be indexed, only do those
+					 */
+					if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+						continue;
+					}
+
 					WP_CLI::log( sprintf( esc_html__( 'Indexing %s on site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), (int) $site['blog_id'] ) );
 
 					$result = $this->_index_helper( $indexable, $assoc_args );
@@ -434,7 +461,14 @@ class Command extends WP_CLI_Command {
 			}
 
 			foreach ( $indexable_objects as $indexable ) {
-				WP_CLI::log( sprintf( esc_html__( 'Recreating network alias for %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
+				/**
+				 * If user has called out specific indexables to be indexed, only do those
+				 */
+				if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+					continue;
+				}
+
+				WP_CLI::log( sprintf( esc_html__( 'Recreating %s network alias...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 				$this->_create_network_alias( $indexable );
 			}
@@ -614,7 +648,6 @@ class Command extends WP_CLI_Command {
 
 		// If we have hit the trigger, initiate the bulk request.
 		if ( ( count( $this->objects ) + $killed_object_count ) === absint( $bulk_trigger ) ) {
-
 			// Don't waste time if we've killed all the posts.
 			if ( ! empty( $this->objects ) ) {
 				$this->bulk_index( $indexable, $show_bulk_errors );

@@ -93,7 +93,7 @@ function get_sites( $limit = 0 ) {
 	) );
 
 	if ( function_exists( 'get_sites' ) ) {
-		$site_objects = get_sites( $args );
+		$site_objects = \get_sites( $args );
 		$sites = [];
 
 		foreach ( $site_objects as $site ) {

@@ -171,7 +171,7 @@ abstract class Indexable {
 		$body = '';
 
 		foreach ( $object_ids as $object_id ) {
-			$body = '{ "index": { "_id": "' . absint( $object_id ) . '" } }' . "\n";
+			$body .= '{ "index": { "_id": "' . absint( $object_id ) . '" } }' . "\n";
 
 			$document = $this->prepare_document( $object_id );
 
