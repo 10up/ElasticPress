@@ -86,6 +86,27 @@ abstract class Indexable {
 		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->indexable_type, $body );
 	}
 
+	/**
+	 * Sync a post for a specific site or globally.
+	 *
+	 * @param int $post_id
+	 * @param bool $blocking
+	 * @since 0.1.0
+	 * @return bool|array
+	 */
+	public function sync( $object_id, $blocking = true ) {
+
+		$args = $this->prepare_document( $object_id );
+
+		if ( apply_filters( 'ep_' . $this->indexable_type . '_sync_kill', false, $args, $object_id ) ) {
+			return false;
+		}
+
+		$response = $this->index( $post_args, $blocking );
+
+		return $response;
+	}
+
 	public function query( $args, $query_args, $scope = 'current' ) {
 		$index = null;
 
@@ -109,4 +130,89 @@ abstract class Indexable {
 	}
 
 	abstract function put_mapping();
+
+	abstract function prepare_document( $document_id );
+
+	/**
+	 * Prepare post meta type values to send to ES
+	 *
+	 * @param array $post_meta
+	 *
+	 * @return array
+	 */
+	public function prepare_meta_types( $post_meta ) {
+
+		$meta = [];
+
+		foreach ( $post_meta as $meta_key => $meta_values ) {
+			if ( ! is_array( $meta_values ) ) {
+				$meta_values = array( $meta_values );
+			}
+
+			$meta[ $meta_key ] = array_map( array( $this, 'prepare_meta_value_types' ), $meta_values );
+		}
+
+		return $meta;
+
+	}
+
+	/**
+	 * Prepare meta types for meta value
+	 *
+	 * @param mixed $meta_value
+	 *
+	 * @return array
+	 */
+	public function prepare_meta_value_types( $meta_value ) {
+
+		$max_java_int_value = 9223372036854775807;
+
+		$meta_types = [];
+
+		if ( is_array( $meta_value ) || is_object( $meta_value ) ) {
+			$meta_value = serialize( $meta_value );
+		}
+
+		$meta_types['value'] = $meta_value;
+		$meta_types['raw']   = $meta_value;
+
+		if ( is_numeric( $meta_value ) ) {
+			$long = intval( $meta_value );
+
+			if ( $max_java_int_value < $long ) {
+				$long = $max_java_int_value;
+			}
+
+			$double = floatval( $meta_value );
+
+			if ( ! is_finite( $double ) ) {
+				$double = 0;
+			}
+
+			$meta_types['long']   = $long;
+			$meta_types['double'] = $double;
+		}
+
+		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
+
+		if ( is_string( $meta_value ) ) {
+			$timestamp = strtotime( $meta_value );
+
+			$date     = '1971-01-01';
+			$datetime = '1971-01-01 00:00:01';
+			$time     = '00:00:01';
+
+			if ( false !== $timestamp ) {
+				$date     = date_i18n( 'Y-m-d', $timestamp );
+				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
+				$time     = date_i18n( 'H:i:s', $timestamp );
+			}
+
+			$meta_types['date']     = $date;
+			$meta_types['datetime'] = $datetime;
+			$meta_types['time']     = $time;
+		}
+
+		return $meta_types;
+	}
 }

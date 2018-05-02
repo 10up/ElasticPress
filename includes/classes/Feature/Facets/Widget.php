@@ -28,9 +28,11 @@ class Widget extends WP_Widget {
 	public function widget( $args, $instance ) {
 		global $wp_query;
 
+		$feature = Features::factory()->get_registered_feature( 'facets' );
+
 		if ( $wp_query->get( 'ep_facet', false ) ) {
-			if ( ! ( is_archive() || is_search() || ( is_home() && empty( $wp_query->get( 'page_id' ) ) ) ) ) {
-				return;
+			if ( ! $feature->is_facetable( $wp_query ) ) {
+				return false;
 			}
 		}
 
@@ -44,11 +46,21 @@ class Widget extends WP_Widget {
 			return;
 		}
 
-		$feature = Features::factory()->get_registered_feature( 'facets' );
-
 		$taxonomy = $instance['facet'];
 
-		$selected_filters = $feature->get_selected();
+		if ( ! is_search() ) {
+			$post_type = $wp_query->get( 'post_type' );
+
+			if ( empty( $post_type ) ) {
+				$post_type = 'post';
+			}
+
+			if ( ! is_object_in_taxonomy( $post_type, $taxonomy ) ) {
+				return;
+			}
+		}
+
+		$selected_filters = ep_facets_get_selected();
 
 		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
 
@@ -64,7 +76,7 @@ class Widget extends WP_Widget {
 			return;
 		}
 
-		$terms_by_slug = [];
+		$terms_by_slug = array();
 
 		foreach ( $terms as $term ) {
 			$terms_by_slug[ $term->slug ] = $term;
@@ -76,12 +88,24 @@ class Widget extends WP_Widget {
 			}
 		}
 
+		/**
+		 * Check to make sure all terms exist before proceeding
+		 */
+		if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'] ) ) {
+			foreach ( $selected_filters['taxonomies'][ $taxonomy ]['terms'] as $term_slug => $nothing ) {
+				if ( empty ( $terms_by_slug[ $term_slug ] ) ) {
+					/**
+					 * Term does not exist!
+					 */
+					return;
+				}
+			}
+		}
+
 		$terms = Utils\get_term_tree( $terms, 'count', 'desc', true );
 		$term_tree = Utils\get_term_tree( $terms, 'count', 'desc', false );
 
-		$feature = Features::factory()->get_registered_feature( 'facets' );
-
-		$outputted_terms = [];
+		$outputted_terms = array();
 
 		echo $args['before_widget'];
 
@@ -117,7 +141,7 @@ class Widget extends WP_Widget {
 							}
 							?>
 							<div class="term selected level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
-								<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
+								<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
 									<input type="checkbox" checked>
 									<?php echo esc_html( $term->name ); ?>
 								</a>
@@ -144,7 +168,7 @@ class Widget extends WP_Widget {
 								$i++;
 							}
 
-							$flat_ordered_terms = [];
+							$flat_ordered_terms = array();
 
 							$flat_ordered_terms[] = $top_of_tree;
 
@@ -172,7 +196,7 @@ class Widget extends WP_Widget {
 								} else {
 									if ( empty( $new_filters['taxonomies'][ $taxonomy ] ) ) {
 										$new_filters['taxonomies'][ $taxonomy ] = array(
-											'terms' => [],
+											'terms' => array(),
 										);
 									}
 
@@ -180,7 +204,7 @@ class Widget extends WP_Widget {
 								}
 								?>
 								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
+									<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
 										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?>>
 										<?php echo esc_html( $term->name ); ?>
 									</a>
@@ -200,14 +224,14 @@ class Widget extends WP_Widget {
 
 					if ( empty( $new_filters['taxonomies'][ $taxonomy ] ) ) {
 						$new_filters['taxonomies'][ $taxonomy ] = array(
-							'terms'      => [],
+							'terms'      => array(),
 						);
 					}
 
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 					?>
 					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
+						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
 							<input type="checkbox">
 							<?php echo esc_html( $term->name ); ?>
 						</a>

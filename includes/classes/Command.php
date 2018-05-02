@@ -351,7 +351,7 @@ class Command extends WP_CLI_Command {
 
 		$total_indexed = 0;
 
-		//Hold original wp_actions
+		// Hold original wp_actions
 		$this->temporary_wp_actions = $wp_actions;
 
 		/**
@@ -389,6 +389,8 @@ class Command extends WP_CLI_Command {
 			$this->put_mapping( $args, $assoc_args );
 		}
 
+		$indexables = Indexables::factory()->get();
+
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
 				$assoc_args['network-wide'] = 0;
@@ -422,14 +424,16 @@ class Command extends WP_CLI_Command {
 
 		} else {
 
-			WP_CLI::log( esc_html__( 'Indexing posts...', 'elasticpress' ) );
+			foreach ( $indexables as $indexable ) {
+				WP_CLI::log( sprintf( esc_html__( 'Indexing %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
-			$result = $this->_index_helper( $assoc_args );
+				$result = $this->_index_helper( $indexable, $assoc_args );
 
-			WP_CLI::log( sprintf( esc_html__( 'Number of posts indexed on site %d: %d', 'elasticpress' ), get_current_blog_id(), $result['synced'] ) );
+				WP_CLI::log( sprintf( esc_html__( 'Number of %s indexed on site %d: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), get_current_blog_id(), $result['synced'] ) );
 
-			if ( ! empty( $result['errors'] ) ) {
-				WP_CLI::error( sprintf( esc_html__( 'Number of post index errors on site %d: %d', 'elasticpress' ), get_current_blog_id(), count( $result['errors'] ) ) );
+				if ( ! empty( $result['errors'] ) ) {
+					WP_CLI::error( sprintf( esc_html__( 'Number of %s index errors on site %d: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), get_current_blog_id(), count( $result['errors'] ) ) );
+				}
 			}
 		}
 
@@ -445,14 +449,14 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Helper method for indexing posts
+	 * Helper method for indexing documents for an indexable
 	 *
 	 * @param array $args
 	 *
 	 * @since 0.9
 	 * @return array
 	 */
-	private function _index_helper( $args ) {
+	private function _index_helper( $indexable, $args ) {
 		$synced = 0;
 		$errors = [];
 
@@ -468,97 +472,102 @@ class Command extends WP_CLI_Command {
 			$show_bulk_errors = true;
 		}
 
-		$posts_per_page = 350;
-
-		if ( ! empty( $args['posts-per-page'] ) ) {
-			$posts_per_page = absint( $args['posts-per-page'] );
-		}
-
 		$offset = 0;
 
 		if ( ! empty( $args['offset'] ) ) {
 			$offset = absint( $args['offset'] );
 		}
 
-		$post_type = ep_get_indexable_post_types();
+			if ( 'post' === $indexable->indexable_type ) {
 
-		if ( ! empty( $args['post-type'] ) ) {
-			$post_type = explode( ',', $args['post-type'] );
-			$post_type = array_map( 'trim', $post_type );
-		}
+			$posts_per_page = 350;
 
-		if ( is_array( $post_type ) ) {
-			$post_type = array_values( $post_type );
-		}
-
-		$post_in = null;
-
-		if ( ! empty( $args['post-ids'] ) ) {
-			$post_in = explode( ',', $args['post-ids'] );
-			$post_in = array_map( 'trim', $post_in );
-			$post_in = array_map( 'absint', $post_in );
-			$post_in = array_filter( $post_in );
-
-			$posts_per_page = count($post_in);
-		}
-
-		/**
-		 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
-		 */
-		$query = new WP_Query();
-
-		while ( true ) {
-
-			$args = apply_filters( 'ep_index_posts_args', array(
-				'posts_per_page'         => $posts_per_page,
-				'post_type'              => $post_type,
-				'post_status'            => ep_get_indexable_post_status(),
-				'offset'                 => $offset,
-				'ignore_sticky_posts'    => true,
-				'orderby'                => 'ID',
-				'order'                  => 'DESC',
-			) );
-
-			if ( $post_in ) {
-				$args['post__in'] = $post_in;
+			if ( ! empty( $args['posts-per-page'] ) ) {
+				$posts_per_page = absint( $args['posts-per-page'] );
 			}
 
-			$query->query( $args );
+			$post_type = ep_get_indexable_post_types();
 
-			if ( $query->have_posts() ) {
+			if ( ! empty( $args['post-type'] ) ) {
+				$post_type = explode( ',', $args['post-type'] );
+				$post_type = array_map( 'trim', $post_type );
+			}
 
-				while ( $query->have_posts() ) {
-					$query->the_post();
+			if ( is_array( $post_type ) ) {
+				$post_type = array_values( $post_type );
+			}
 
-					if ( $no_bulk ) {
-						// index the posts one-by-one. not sure why someone may want to do this.
-						$result = ep_sync_post( get_the_ID() );
+			$post_in = null;
 
-						$this->reset_transient();
+			if ( ! empty( $args['post-ids'] ) ) {
+				$post_in = explode( ',', $args['post-ids'] );
+				$post_in = array_map( 'trim', $post_in );
+				$post_in = array_map( 'absint', $post_in );
+				$post_in = array_filter( $post_in );
 
-						do_action( 'ep_cli_post_index', get_the_ID() );
-					} else {
-						$result = $this->queue_post( get_the_ID(), $query->post_count, $show_bulk_errors );
-					}
+				$posts_per_page = count($post_in);
+			}
 
-					if ( ! $result ) {
-						$errors[] = get_the_ID();
-					} elseif ( true === $result || isset( $result->_index ) ) {
-						$synced ++;
-					}
+			/**
+			 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
+			 */
+			$query = new WP_Query();
+
+			while ( true ) {
+
+				$args = apply_filters( 'ep_index_posts_args', array(
+					'posts_per_page'         => $posts_per_page,
+					'post_type'              => $post_type,
+					'post_status'            => $indexable->get_indexable_post_status(),
+					'offset'                 => $offset,
+					'ignore_sticky_posts'    => true,
+					'orderby'                => 'ID',
+					'order'                  => 'DESC',
+				) );
+
+				if ( $post_in ) {
+					$args['post__in'] = $post_in;
 				}
-			} else {
-				break;
+
+				$query->query( $args );
+
+				if ( $query->have_posts() ) {
+
+					while ( $query->have_posts() ) {
+						$query->the_post();
+
+						if ( $no_bulk ) {
+							// index the posts one-by-one. not sure why someone may want to do this.
+							$result = ep_sync_post( get_the_ID() );
+
+							$this->reset_transient();
+
+							do_action( 'ep_cli_post_index', get_the_ID() );
+						} else {
+							$result = $this->queue_post( get_the_ID(), $query->post_count, $show_bulk_errors );
+						}
+
+						if ( ! $result ) {
+							$errors[] = get_the_ID();
+						} elseif ( true === $result || isset( $result->_index ) ) {
+							$synced ++;
+						}
+					}
+				} else {
+					break;
+				}
+
+				WP_CLI::log( 'Processed ' . ( $query->post_count + $offset ) . '/' . $query->found_posts . ' posts. . .' );
+
+				$offset += $posts_per_page;
+
+				usleep( 500 );
+
+				// Avoid running out of memory
+				$this->stop_the_insanity();
+
 			}
-
-			WP_CLI::log( 'Processed ' . ( $query->post_count + $offset ) . '/' . $query->found_posts . ' entries. . .' );
-
-			$offset += $posts_per_page;
-
-			usleep( 500 );
-
-			// Avoid running out of memory
-			$this->stop_the_insanity();
+		} elseif ( 'user' === $indexable->indexable_type ) {
 
 		}
 

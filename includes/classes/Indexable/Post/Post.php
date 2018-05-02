@@ -73,7 +73,7 @@ class Post extends Indexable {
 	 * @since 0.9.1
 	 * @return bool|array
 	 */
-	public function prepare_post( $post_id ) {
+	public function prepare_document( $post_id ) {
 		$post = get_post( $post_id );
 
 		$user = get_userdata( $post->post_author );
@@ -125,31 +125,31 @@ class Post extends Indexable {
 		remove_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ), 10 );
 
 		$post_args = array(
-			'post_id'           => $post_id,
-			'ID'                => $post_id,
-			'post_author'       => $user_data,
-			'post_date'         => $post_date,
-			'post_date_gmt'     => $post_date_gmt,
-			'post_title'        => $this->prepare_text_content( get_the_title( $post_id ) ),
-			'post_excerpt'      => $this->prepare_text_content( $post->post_excerpt ),
-			'post_content'      => $this->prepare_text_content( apply_filters( 'the_content', $post->post_content ) ),
-			'post_status'       => $post->post_status,
-			'post_name'         => $post->post_name,
-			'post_modified'     => $post_modified,
-			'post_modified_gmt' => $post_modified_gmt,
-			'post_parent'       => $post->post_parent,
-			'post_type'         => $post->post_type,
-			'post_mime_type'    => $post->post_mime_type,
-			'permalink'         => get_permalink( $post_id ),
-			'terms'             => $this->prepare_terms( $post ),
-			'meta'              => $this->prepare_meta_types( $this->prepare_meta( $post ) ), // post_meta removed in 2.4
-			'date_terms'        => $this->prepare_date_terms( $post_date ),
-			'comment_count'     => $comment_count,
-			'comment_status'    => $comment_status,
-			'ping_status'       => $ping_status,
-			'menu_order'        => $menu_order,
-			'guid'				=> $post->guid
-			//'site_id'         => get_current_blog_id(),
+			'post_id'               => $post_id,
+			'ID'                    => $post_id,
+			'post_author'           => $user_data,
+			'post_date'             => $post_date,
+			'post_date_gmt'         => $post_date_gmt,
+			'post_title'            => $post->post_title,
+			'post_excerpt'          => $post->post_excerpt,
+			'post_content_filtered' => apply_filters( 'the_content', $post->post_content ),
+			'post_content'          => $post->post_content,
+			'post_status'           => $post->post_status,
+			'post_name'             => $post->post_name,
+			'post_modified'         => $post_modified,
+			'post_modified_gmt'     => $post_modified_gmt,
+			'post_parent'           => $post->post_parent,
+			'post_type'             => $post->post_type,
+			'post_mime_type'        => $post->post_mime_type,
+			'permalink'             => get_permalink( $post_id ),
+			'terms'                 => $this->prepare_terms( $post ),
+			'meta'                  => $this->prepare_meta_types( $this->prepare_meta( $post ) ), // post_meta removed in 2.4
+			'date_terms'            => $this->prepare_date_terms( $post_date ),
+			'comment_count'         => $comment_count,
+			'comment_status'        => $comment_status,
+			'ping_status'           => $ping_status,
+			'menu_order'            => $menu_order,
+			'guid'                  => $post->guid,
 		);
 
 		/**
@@ -163,20 +163,6 @@ class Post extends Indexable {
 		add_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ), 10, 4 );
 
 		return $post_args;
-	}
-
-	/**
-	 * Prepare text for ES: Strip html, strip line breaks, etc.
-	 *
-	 * @param  string $content
-	 * @since  2.2
-	 * @return string
-	 */
-	private function prepare_text_content( $content ) {
-		$content = strip_tags( $content );
-		$content = preg_replace( '#[\n\r]+#s', ' ', $content );
-
-		return $content;
 	}
 
 	/**
@@ -358,91 +344,6 @@ class Post extends Indexable {
 
 		return $prepared_meta;
 
-	}
-
-	/**
-	 * Prepare post meta type values to send to ES
-	 *
-	 * @param array $post_meta
-	 *
-	 * @return array
-	 *
-	 * @since x.x.x
-	 */
-	public function prepare_meta_types( $post_meta ) {
-
-		$meta = [];
-
-		foreach ( $post_meta as $meta_key => $meta_values ) {
-			if ( ! is_array( $meta_values ) ) {
-				$meta_values = array( $meta_values );
-			}
-
-			$meta[ $meta_key ] = array_map( array( $this, 'prepare_meta_value_types' ), $meta_values );
-		}
-
-		return $meta;
-
-	}
-
-	/**
-	 * Prepare meta types for meta value
-	 *
-	 * @param mixed $meta_value
-	 *
-	 * @return array
-	 */
-	public function prepare_meta_value_types( $meta_value ) {
-
-		$max_java_int_value = 9223372036854775807;
-
-		$meta_types = [];
-
-		if ( is_array( $meta_value ) || is_object( $meta_value ) ) {
-			$meta_value = serialize( $meta_value );
-		}
-
-		$meta_types['value'] = $meta_value;
-		$meta_types['raw']   = $meta_value;
-
-		if ( is_numeric( $meta_value ) ) {
-			$long = intval( $meta_value );
-
-			if ( $max_java_int_value < $long ) {
-				$long = $max_java_int_value;
-			}
-
-			$double = floatval( $meta_value );
-
-			if ( ! is_finite( $double ) ) {
-				$double = 0;
-			}
-
-			$meta_types['long']   = $long;
-			$meta_types['double'] = $double;
-		}
-
-		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
-
-		if ( is_string( $meta_value ) ) {
-			$timestamp = strtotime( $meta_value );
-
-			$date     = '1971-01-01';
-			$datetime = '1971-01-01 00:00:01';
-			$time     = '00:00:01';
-
-			if ( false !== $timestamp ) {
-				$date     = date_i18n( 'Y-m-d', $timestamp );
-				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
-				$time     = date_i18n( 'H:i:s', $timestamp );
-			}
-
-			$meta_types['date']     = $date;
-			$meta_types['datetime'] = $datetime;
-			$meta_types['time']     = $time;
-		}
-
-		return $meta_types;
 	}
 
 	/**

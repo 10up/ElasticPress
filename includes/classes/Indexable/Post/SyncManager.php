@@ -246,31 +246,4 @@ class SyncManager {
 
 		return $instance;
 	}
-
-	/**
-	 * Sync a post for a specific site or globally.
-	 *
-	 * @param int $post_id
-	 * @param bool $blocking
-	 * @since 0.1.0
-	 * @return bool|array
-	 */
-	public function sync_post( $post_id, $blocking = true ) {
-
-		$post = get_post( $post_id );
-
-		if ( empty( $post ) ) {
-			return false;
-		}
-
-		$post_args = Post::factory()->prepare_post( $post_id );
-
-		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
-			return false;
-		}
-
-		$response = Post::factory()->index_post( $post_args, $blocking );
-
-		return $response;
-	}
 }

@@ -174,6 +174,18 @@ return array(
 						),
 					),
 				),
+				'display_name' => array(
+					'type' => 'text',
+					'fields' => array(
+						'display_name' => array(
+							'type' => 'text',
+						),
+						'raw' => array(
+							'type' => 'keyword',
+							'ignore_above' => 10922,
+						),
+					),
+				),
 				'user_email' => array(
 					'type' => 'text',
 					'fields' => array(
