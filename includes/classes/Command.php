@@ -320,7 +320,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--post-ids]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexable] [--show-bulk-errors] [--post-type] [--include]
 	 *
 	 * @param array $args
 	 *
@@ -333,20 +333,10 @@ class Command extends WP_CLI_Command {
 
 		$this->_connect_check();
 
-		if ( ! empty( $assoc_args['posts-per-page'] ) ) {
-			$assoc_args['posts-per-page'] = absint( $assoc_args['posts-per-page'] );
-		} else {
-			$assoc_args['posts-per-page'] = 350;
-		}
+		$indexables = null;
 
-		if ( ! empty( $assoc_args['offset'] ) ) {
-			$assoc_args['offset'] = absint( $assoc_args['offset'] );
-		} else {
-			$assoc_args['offset'] = 0;
-		}
-
-		if ( empty( $assoc_args['post-type'] ) ) {
-			$assoc_args['post-type'] = null;
+		if ( ! empty( $assoc_args['indexables'] ) ) {
+			$indexables = explode( ',', str_replace( ' ', '', $assoc_args['indexables'] ) );
 		}
 
 		$total_indexed = 0;
@@ -389,7 +379,7 @@ class Command extends WP_CLI_Command {
 			$this->put_mapping( $args, $assoc_args );
 		}
 
-		$indexables = Indexables::factory()->get();
+		$indexable_objects = Indexables::factory()->get();
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
@@ -423,8 +413,18 @@ class Command extends WP_CLI_Command {
 			WP_CLI::log( sprintf( esc_html__( 'Total number of posts indexed: %d', 'elasticpress' ), $total_indexed ) );
 
 		} else {
+			/**
+			 * Run indexing for each indexable one by one
+			 */
 
-			foreach ( $indexables as $indexable ) {
+			foreach ( $indexable_objects as $indexable ) {
+				/**
+				 * If user has called out specific indexables to be indexed, only do those
+				 */
+				if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+					continue;
+				}
+
 				WP_CLI::log( sprintf( esc_html__( 'Indexing %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 				$result = $this->_index_helper( $indexable, $assoc_args );
@@ -478,96 +478,67 @@ class Command extends WP_CLI_Command {
 			$offset = absint( $args['offset'] );
 		}
 
-			if ( 'post' === $indexable->indexable_type ) {
+		$query_args = [];
 
-			$posts_per_page = 350;
+		if ( ! empty( $args['offset'] ) ) {
+			$query_args['offset'] = absint( $args['offset'] );
+		}
 
-			if ( ! empty( $args['posts-per-page'] ) ) {
-				$posts_per_page = absint( $args['posts-per-page'] );
-			}
+		$per_page = 350;
 
-			$post_type = ep_get_indexable_post_types();
+		if ( ! empty( $args['per-page'] ) ) {
+			$query_args['per_page'] = absint( $args['per-page'] );
+			$per_page = $query_args['per_page'];
+		}
 
-			if ( ! empty( $args['post-type'] ) ) {
-				$post_type = explode( ',', $args['post-type'] );
-				$post_type = array_map( 'trim', $post_type );
-			}
+		if ( ! empty( $args['include'] ) ) {
+			$include = explode( ',', str_replace( ' ', '', $assoc_args['include'] ) );
+			$query_args['include'] = array_map( 'absint', $include );
+		}
 
-			if ( is_array( $post_type ) ) {
-				$post_type = array_values( $post_type );
-			}
+		if ( ! empty( $args['post_type'] ) ) {
+			$query_args['post_type'] = str_replace( ' ', '', $assoc_args['post_type'] );
+		}
 
-			$post_in = null;
+		while ( true ) {
 
-			if ( ! empty( $args['post-ids'] ) ) {
-				$post_in = explode( ',', $args['post-ids'] );
-				$post_in = array_map( 'trim', $post_in );
-				$post_in = array_map( 'absint', $post_in );
-				$post_in = array_filter( $post_in );
+			$query = $indexable->query_db( $query_args );
 
-				$posts_per_page = count($post_in);
-			}
+			if ( ! empty( $query['total_objects'] ) ) {
 
-			/**
-			 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
-			 */
-			$query = new WP_Query();
+				foreach ( $query['objects'] as $object ) {
 
-			while ( true ) {
+					if ( $no_bulk ) {
+						/**
+						 * Index objects one by one
+						 */
+						$result = $indexable->index( $object->ID );
 
-				$args = apply_filters( 'ep_index_posts_args', array(
-					'posts_per_page'         => $posts_per_page,
-					'post_type'              => $post_type,
-					'post_status'            => $indexable->get_indexable_post_status(),
-					'offset'                 => $offset,
-					'ignore_sticky_posts'    => true,
-					'orderby'                => 'ID',
-					'order'                  => 'DESC',
-				) );
+						$this->reset_transient();
 
-				if ( $post_in ) {
-					$args['post__in'] = $post_in;
-				}
-
-				$query->query( $args );
-
-				if ( $query->have_posts() ) {
-
-					while ( $query->have_posts() ) {
-						$query->the_post();
-
-						if ( $no_bulk ) {
-							// index the posts one-by-one. not sure why someone may want to do this.
-							$result = ep_sync_post( get_the_ID() );
-
-							$this->reset_transient();
-
-							do_action( 'ep_cli_post_index', get_the_ID() );
-						} else {
-							$result = $this->queue_post( get_the_ID(), $query->post_count, $show_bulk_errors );
-						}
-
-						if ( ! $result ) {
-							$errors[] = get_the_ID();
-						} elseif ( true === $result || isset( $result->_index ) ) {
-							$synced ++;
-						}
+						do_action( 'ep_cli_object_index', $object->ID, $indexable );
+					} else {
+						//$result = $this->queue_post( get_the_ID(), $query->post_count, $show_bulk_errors );
 					}
-				} else {
-					break;
+
+					if ( ! $result ) {
+						$errors[] = $object->ID;
+					} elseif ( true === $result || isset( $result->_index ) ) {
+						$synced ++;
+					}
 				}
-
-				WP_CLI::log( 'Processed ' . ( $query->post_count + $offset ) . '/' . $query->found_posts . ' posts. . .' );
-
-				$offset += $posts_per_page;
-
-				usleep( 500 );
-
-				// Avoid running out of memory
-				$this->stop_the_insanity();
-
+			} else {
+				break;
 			}
-		} elseif ( 'user' === $indexable->indexable_type ) {
+
+			WP_CLI::log( sprintf( esc_html__( 'Processed %d/%d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $offset ), (int) $query['total_objects'] ) );
+
+			$query_args['offset'] += $per_page;
+
+			usleep( 500 );
+
+			// Avoid running out of memory
+			$this->stop_the_insanity();
 
 		}
 
@@ -621,8 +592,7 @@ class Command extends WP_CLI_Command {
 
 			}
 
-			// augment the counter
-			++ $post_count;
+			++$post_count;
 
 		}
 
@@ -840,12 +810,12 @@ class Command extends WP_CLI_Command {
 
 			// Make sure this is a public property, before trying to clear it
 			try {
-				$cache_property = new ReflectionProperty( $wp_object_cache, 'cache' );
+				$cache_property = new \ReflectionProperty( $wp_object_cache, 'cache' );
 				if ( $cache_property->isPublic() ) {
 					$wp_object_cache->cache = [];
 				}
 				unset( $cache_property );
-			} catch ( ReflectionException $e ) {
+			} catch ( \ReflectionException $e ) {
 			}
 
 			/*
@@ -857,7 +827,7 @@ class Command extends WP_CLI_Command {
 			}
 
 			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
-				call_user_func( array( $wp_object_cache, '__remoteset' ) ); // important
+				call_user_func( [ $wp_object_cache, '__remoteset' ] ); // important
 			}
 		}
 
@@ -899,7 +869,7 @@ class Command extends WP_CLI_Command {
 	private function _connect_check() {
 		$host = Utils\get_host();
 
-		if ( empty( $host) ) {
+		if ( empty( $host ) ) {
 			WP_CLI::error( esc_html__( 'There is no Elasticsearch host set up. Either add one through the dashboard or define one in wp-config.php', 'elasticpress' ) );
 		} elseif ( ! Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
 			WP_CLI::error( esc_html__( 'Unable to reach Elasticsearch Server! Check that service is running.', 'elasticpress' ) );

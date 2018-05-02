@@ -53,26 +53,32 @@ abstract class Indexable {
 	}
 
 	public function delete_network_alias() {
-		return EP_API::factory()->delete_network_alias( $alias );
+		return Elasticsearch::factory()->delete_network_alias( $alias );
 	}
 
 	public function create_network_alias( $indexes ) {
-		return EP_API::factory()->create_network_alias( $indexes, $this->get_network_alias() );
+		return Elasticsearch::factory()->create_network_alias( $indexes, $this->get_network_alias() );
 	}
 
-	public function delete( $post_id, $blocking = true  ) {
-		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->indexable_type, $post_id, $blocking );
+	public function delete( $object_id, $blocking = true  ) {
+		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->indexable_type, $object_id, $blocking );
 	}
 
-	public function get( $post_id ) {
-		return Elasticsearch::factory()->get_document( $this->get_index_name(), $this->indexable_type, $post_id );
+	public function get( $object_id ) {
+		return Elasticsearch::factory()->get_document( $this->get_index_name(), $this->indexable_type, $object_id );
 	}
 
 	public function delete_index( $blog_id = null ) {
 		return Elasticsearch::factory()->delete_index( $this->get_index_name( $blog_id ) );
 	}
 
-	public function index( $document, $blocking = false ) {
+	public function index( $object_id, $blocking = false ) {
+		$document = $this->prepare_document( $object_id );
+
+		if ( apply_filters( 'ep_' . $this->indexable_type . '_index_kill', false, $object_id ) ) {
+			return false;
+		}
+
 		$document = apply_filters( 'ep_pre_index_' . $this->indexable_type, $document );
 
 		$return = Elasticsearch::factory()->index_document( $this->get_index_name(), $this->indexable_type, $document, $blocking );
@@ -86,28 +92,7 @@ abstract class Indexable {
 		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->indexable_type, $body );
 	}
 
-	/**
-	 * Sync a post for a specific site or globally.
-	 *
-	 * @param int $post_id
-	 * @param bool $blocking
-	 * @since 0.1.0
-	 * @return bool|array
-	 */
-	public function sync( $object_id, $blocking = true ) {
-
-		$args = $this->prepare_document( $object_id );
-
-		if ( apply_filters( 'ep_' . $this->indexable_type . '_sync_kill', false, $args, $object_id ) ) {
-			return false;
-		}
-
-		$response = $this->index( $post_args, $blocking );
-
-		return $response;
-	}
-
-	public function query( $args, $query_args, $scope = 'current' ) {
+	public function query_es( $args, $query_args, $scope = 'current' ) {
 		$index = null;
 
 		if ( 'all' === $scope ) {
@@ -131,7 +116,9 @@ abstract class Indexable {
 
 	abstract function put_mapping();
 
-	abstract function prepare_document( $document_id );
+	abstract function prepare_document( $object_id );
+
+	abstract function query_db( $args );
 
 	/**
 	 * Prepare post meta type values to send to ES

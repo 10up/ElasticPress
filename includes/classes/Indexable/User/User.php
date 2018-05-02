@@ -20,6 +20,30 @@ class User extends Indexable {
 		];
 	}
 
+	public function query_db( $args ) {
+		$defaults = [
+			'number'  => 350,
+			'offset'  => 0,
+			'orderby' => 'id',
+			'order'   => 'desc',
+		];
+
+		$parsed_args = $args;
+
+		if ( isset( $args['per_page'] ) ) {
+			$args['number'] = $args['per_page'];
+		}
+
+		$args = apply_filters( 'ep_user_query_db_args', wp_parse_args( $args, $defaults ) );
+
+		$query = new WP_Query( $args );
+
+		return [
+			'objects'       => $query->results,
+			'total_objects' => $query->total_users,
+		];
+	}
+
 	public function put_mapping() {
 		$mapping = require( apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/initial.php' ) );
 

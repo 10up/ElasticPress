@@ -114,7 +114,7 @@ class QueryIntegration {
 			return;
 		}
 
-		if ( ! Post::factory()->elasticpress_enabled( $this->query_stack[0] ) || apply_filters( 'ep_skip_query_integration', false, $this->query_stack[0] ) ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $this->query_stack[0] ) || apply_filters( 'ep_skip_query_integration', false, $this->query_stack[0] ) ) {
 			return;
 		}
 
@@ -155,7 +155,7 @@ class QueryIntegration {
 
 		array_pop( $this->query_stack );
 
-		if ( ! Post::factory()->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
 			return;
 		}
 
@@ -172,7 +172,7 @@ class QueryIntegration {
 	 * @return array
 	 */
 	public function filter_the_posts( $posts, $query ) {
-		if ( ! Post::factory()->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
 			return $posts;
 		}
 
@@ -190,7 +190,7 @@ class QueryIntegration {
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
-		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! Post::factory()->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) )  ) {
+		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) )  ) {
 			return $sql;
 		}
 
@@ -213,7 +213,7 @@ class QueryIntegration {
 	 */
 	public function posts_fields( $posts, $query ) {
 		// Make sure the query is EP enabled.
-		if ( ! Post::factory()->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[ spl_object_hash( $query ) ] ) ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[ spl_object_hash( $query ) ] ) ) {
 			return $posts;
 		}
 
@@ -239,7 +239,7 @@ class QueryIntegration {
 	public function filter_posts_request( $request, $query ) {
 		global $wpdb;
 
-		if ( ! Post::factory()->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return $request;
 		}
 
@@ -284,7 +284,7 @@ class QueryIntegration {
 				$scope = $query_vars['sites'];
 			}
 
-			$formatted_args = Post::factory()->format_args( $query_vars );
+			$formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_vars );
 
 			/**
 			 * Filter search scope
@@ -296,7 +296,7 @@ class QueryIntegration {
 			 */
 			$scope = apply_filters( 'ep_search_scope', $scope );
 
-			$ep_query = Post::factory()->query( $formatted_args, $query->query_vars, $scope );
+			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $scope );
 
 			if ( false === $ep_query ) {
 				$query->elasticsearch_success = false;
@@ -327,7 +327,7 @@ class QueryIntegration {
 			do_action( 'ep_wp_query_non_cached_search', $new_posts, $ep_query, $query );
 		}
 
-		$this->posts_by_query[spl_object_hash( $query )] = $new_posts;
+		$this->posts_by_query[ spl_object_hash( $query ) ] = $new_posts;
 
 		do_action( 'ep_wp_query_search', $new_posts, $ep_query, $query );
 

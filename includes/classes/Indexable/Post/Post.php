@@ -5,6 +5,7 @@ namespace ElasticPress\Indexable\Post;
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexables as Indexables;
+use \WP_Query as WP_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -22,6 +23,41 @@ class Post extends Indexable {
 
 		SyncManager::factory();
 		QueryIntegration::factory();
+	}
+
+	public function query_db( $args ) {
+		$defaults = [
+			'posts_per_page'         => 350,
+			'post_type'              => $this->get_indexable_post_types(),
+			'post_status'            => $this->get_indexable_post_status(),
+			'offset'                 => 0,
+			'ignore_sticky_posts'    => true,
+			'orderby'                => 'id',
+			'order'                  => 'desc',
+		];
+
+		$parsed_args = $args;
+
+		if ( isset( $args['per_page'] ) ) {
+			$args['posts_per_page'] = $args['per_page'];
+		}
+
+		if ( isset( $args['include'] ) ) {
+			$args['post__in'] = $args['include'];
+		}
+
+		if ( isset( $args['exclude'] ) ) {
+			$args['post__not_in'] = $args['exclude'];
+		}
+
+		$args = apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) );
+
+		$query = new WP_Query( $args );
+
+		return [
+			'objects'       => $query->posts,
+			'total_objects' => $query->found_posts,
+		];
 	}
 
 	/**
@@ -122,7 +158,7 @@ class Post extends Indexable {
 		}
 
 		// To prevent infinite loop, we don't queue when updated_postmeta
-		remove_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ), 10 );
+		remove_action( 'updated_postmeta', [ SyncManager::factory(), 'action_queue_meta_sync' ], 10 );
 
 		$post_args = array(
 			'post_id'               => $post_id,
@@ -160,7 +196,7 @@ class Post extends Indexable {
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
 		// Turn back on updated_postmeta hook
-		add_action( 'updated_postmeta', array( EP_Sync_Manager::factory(), 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'updated_postmeta', [ SyncManager::factory(), 'action_queue_meta_sync' ], 10, 4 );
 
 		return $post_args;
 	}

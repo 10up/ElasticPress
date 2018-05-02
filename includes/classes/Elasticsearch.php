@@ -17,13 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Elasticsearch {
 
 	/**
-	 * Placeholder method
-	 *
-	 * @since 0.1.0
-	 */
-	public function __construct() { }
-
-	/**
 	 * Logged queries for debugging
 	 *
 	 * @since  1.8
@@ -49,7 +42,7 @@ class Elasticsearch {
 	/**
 	 * Return singleton instance of class
 	 *
-	 * @return EP_API
+	 * @return object
 	 * @since 0.1.0
 	 */
 	public static function factory() {
@@ -62,6 +55,18 @@ class Elasticsearch {
 		return $instance;
 	}
 
+	/**
+	 * Index a document in Elasticsearch.
+	 *
+	 * We require $document to have ID set
+	 *
+	 * @param  string  $index
+	 * @param  string  $type
+	 * @param  array  $document Formatted Elasticsearch document
+	 * @param  boolean $blocking
+	 * @since  2.6
+	 * @return boolean|array
+	 */
 	public function index_document( $index, $type, $document, $blocking = true ) {
 
 		$path = $index . '/' . $type . '/' . $document['ID'];
@@ -73,11 +78,13 @@ class Elasticsearch {
 		}
 
 		$request_args = array(
-			'body'    => $encoded_document,
-			'method'  => 'PUT',
-			'timeout' => 15,
+			'body'     => $encoded_document,
+			'method'   => 'PUT',
+			'timeout'  => 15,
 			'blocking' => $blocking,
 		);
+
+		$request = $this->remote_request( $path, $request_args, [], 'index' );
 
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -101,11 +108,17 @@ class Elasticsearch {
 		return (int) preg_replace( '#^.*\-([0-9]+)$#', '$1', $index_name );
 	}
 
-	public function refresh_index( $path ) {
+	/**
+	 * Refresh all index. Sometimes useful if you need changes to show up instantly.
+	 *
+	 * @since  2.6
+	 * @return bool
+	 */
+	public function refresh_indices() {
 
 		$request_args = array( 'method' => 'POST' );
 
-		$request = $this->remote_request( '_refresh', apply_filters( 'ep_refresh_index_request_args', $request_args ), [], 'refresh_index' );
+		$request = $this->remote_request( '_refresh', $request_args, [], 'refresh_indices' );
 
 		if ( ! is_wp_error( $request ) ) {
 			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
@@ -117,7 +130,7 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Get Elasticsearch version
+	 * Get Elasticsearch version. We cache this so we don't have to do it every time.
 	 *
 	 * @param  bool $force
 	 * @since  2.1.2
@@ -131,7 +144,7 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Get Elasticsearch plugins
+	 * Get Elasticsearch plugins. We cache this so we don't have to do it every time.
 	 *
 	 * @param  bool $force
 	 * @since  2.2
@@ -144,11 +157,21 @@ class Elasticsearch {
 		return apply_filters( 'ep_elasticsearch_plugins', $info['plugins'] );
 	}
 
-	public function query( $index, $type, $args, $query_args ) {
+	/**
+	 * Run a query on Elasticsearch
+	 *
+	 * @param  string $index
+	 * @param  string $type
+	 * @param  array $query
+	 * @param  array $query_args WP query args. Used only for debugging
+	 * @since  2.6
+	 * @return bool|array
+	 */
+	public function query( $index, $type, $query, $query_args ) {
 		$path = $index . '/' . $type . '/_search';
 
 		$request_args = array(
-			'body'    => json_encode( apply_filters( 'ep_query_args', $args, $query_args ) ),
+			'body'    => json_encode( $query ),
 			'method'  => 'POST',
 			'headers' => array(
 				'Content-Type' => 'application/json',
@@ -157,14 +180,11 @@ class Elasticsearch {
 
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
 
-		$remote_req_res_code = intval( wp_remote_retrieve_response_code( $request ) );
+		$remote_req_res_code = absint( wp_remote_retrieve_response_code( $request ) );
 
 		$is_valid_res = ( $remote_req_res_code >= 200 && $remote_req_res_code <= 299 );
 
-		if ( ! is_wp_error( $request ) && apply_filters( '$this->remote_request_is_valid_res', $is_valid_res, $request ) ) {
-
-			// Allow for direct response retrieval
-			do_action( 'ep_retrieve_raw_response', $request, $args, $scope, $query_args );
+		if ( ! is_wp_error( $request ) && apply_filters( 'ep_remote_request_is_valid_res', $is_valid_res, $request ) ) {
 
 			$response_body = wp_remote_retrieve_body( $request );
 
@@ -175,7 +195,7 @@ class Elasticsearch {
 
 			// Check for and store aggregations
 			if ( ! empty( $response['aggregations'] ) ) {
-				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $args, $scope, $query_args );
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $query, $query_args );
 			}
 
 			$documents = [];
@@ -183,10 +203,14 @@ class Elasticsearch {
 			foreach ( $hits as $hit ) {
 				$document = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
-				$documents[] = apply_filters( 'ep_retrieve_the_post', $post, $hit );
+
+				$documents[] = $document;
 			}
 
-			return apply_filters( 'ep_query_results_array', array( 'found_documents' => $total_hits, 'documents' => $documents ), $response, $args );
+			return [
+				'found_documents' => $total_hits,
+				'documents' => $documents,
+			];
 		}
 
 		return false;
@@ -252,11 +276,25 @@ class Elasticsearch {
 		return false;
 	}
 
+	/**
+	 * Delete an Elasticsearch document
+	 *
+	 * @param  string  $index
+	 * @param  string  $type
+	 * @param  int     $document_id
+	 * @param  boolean $blocking
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function delete_document( $index, $type, $document_id, $blocking = true  ) {
 
 		$path = $index . '/' . $type . '/' . $document_id;
 
-		$request_args = array( 'method' => 'DELETE', 'timeout' => 15, 'blocking' => $blocking );
+		$request_args = [
+			'method' => 'DELETE',
+			'timeout' => 15,
+			'blocking' => $blocking,
+		];
 
 		$request = $this->remote_request( $path, $request_args, [], 'delete' );
 
@@ -274,7 +312,7 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Add appropriate request headers
+	 * Add appropriate headers to request
 	 *
 	 * @since 1.4
 	 * @return array
@@ -308,10 +346,19 @@ class Elasticsearch {
 		return $headers;
 	}
 
+	/**
+	 * Get a document from Elasticsearch given an id
+	 *
+	 * @param  string $index
+	 * @param  string $type
+	 * @param  int    $document_id
+	 * @since  2.6
+	 * @return boolean|array
+	 */
 	public function get_document( $index, $type, $document_id ) {
 		$path = $index . '/' . $type . '/' . $document_id;
 
-		$request_args = array( 'method' => 'GET' );
+		$request_args = [ 'method' => 'GET' ];
 
 		$request = $this->remote_request( $path, $request_args, [], 'get' );
 
@@ -400,11 +447,18 @@ class Elasticsearch {
 		return false;
 	}
 
+	/**
+	 * Delete an Elasticsearch index
+	 *
+	 * @param  string $index
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function delete_index( $index ) {
 
 		$request_args = array( 'method' => 'DELETE', 'timeout' => 30, );
 
-		$request = $this->remote_request( $index, apply_filters( 'ep_delete_index_request_args', $request_args ), [], 'delete_index' );
+		$request = $this->remote_request( $index, $request_args, [], 'delete_index' );
 
 		// 200 means the delete was successful
 		// 404 means the index was non-existent, but we should still pass this through as we will occasionally want to delete an already deleted index
@@ -417,11 +471,18 @@ class Elasticsearch {
 		return false;
 	}
 
+	/**
+	 * Check if an ES index exists
+	 *
+	 * @param  string $index
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function index_exists( $index_name ) {
 
-		$request_args = array( 'method' => 'HEAD' );
+		$request_args = [ 'method' => 'HEAD' ];
 
-		$request = $this->remote_request( $index, apply_filters( 'ep_index_exists_request_args', $request_args, $index_name ), [], 'index_exists' );
+		$request = $this->remote_request( $index, $request_args, [], 'index_exists' );
 
 		// 200 means the index exists
 		// 404 means the index was non-existent
