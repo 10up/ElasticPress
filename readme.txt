@@ -40,13 +40,13 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 2.5.1 =
+= 2.5.1 (Requires re-index) =
 
 This if a bug fix release.
 
 ### Bug Fixes
 
-* Don't enable Facets by default as it can unexpectedly change the front end experience in edge cases.
+* Don't pre-strip HTML before sending it to Elasticsearch.
 * Support PHP 5.2 backwards compat.
 * Don't show faceting widget if post type doesn't support taxonomy.
 
