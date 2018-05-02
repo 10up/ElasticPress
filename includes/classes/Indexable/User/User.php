@@ -4,6 +4,7 @@ namespace ElasticPress\Indexable\User;
 
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use \WP_User_Query as WP_User_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -28,15 +29,13 @@ class User extends Indexable {
 			'order'   => 'desc',
 		];
 
-		$parsed_args = $args;
-
 		if ( isset( $args['per_page'] ) ) {
 			$args['number'] = $args['per_page'];
 		}
 
 		$args = apply_filters( 'ep_user_query_db_args', wp_parse_args( $args, $defaults ) );
 
-		$query = new WP_Query( $args );
+		$query = new WP_User_Query( $args );
 
 		return [
 			'objects'       => $query->results,

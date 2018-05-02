@@ -472,13 +472,9 @@ class Command extends WP_CLI_Command {
 			$show_bulk_errors = true;
 		}
 
-		$offset = 0;
-
-		if ( ! empty( $args['offset'] ) ) {
-			$offset = absint( $args['offset'] );
-		}
-
 		$query_args = [];
+
+		$query_args['offset'] = 0;
 
 		if ( ! empty( $args['offset'] ) ) {
 			$query_args['offset'] = absint( $args['offset'] );
@@ -501,10 +497,9 @@ class Command extends WP_CLI_Command {
 		}
 
 		while ( true ) {
-
 			$query = $indexable->query_db( $query_args );
 
-			if ( ! empty( $query['total_objects'] ) ) {
+			if ( ! empty( $query['objects'] ) ) {
 
 				foreach ( $query['objects'] as $object ) {
 
@@ -512,7 +507,7 @@ class Command extends WP_CLI_Command {
 						/**
 						 * Index objects one by one
 						 */
-						$result = $indexable->index( $object->ID );
+						$result = $indexable->index( $object->ID, true );
 
 						$this->reset_transient();
 
@@ -531,7 +526,7 @@ class Command extends WP_CLI_Command {
 				break;
 			}
 
-			WP_CLI::log( sprintf( esc_html__( 'Processed %d/%d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $offset ), (int) $query['total_objects'] ) );
+			WP_CLI::log( sprintf( esc_html__( 'Processed %d/%d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] ) );
 
 			$query_args['offset'] += $per_page;
 

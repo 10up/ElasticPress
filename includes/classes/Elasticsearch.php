@@ -375,10 +375,19 @@ class Elasticsearch {
 		return false;
 	}
 
+	/**
+	 * Delete the network alias.
+	 *
+	 * Network aliases are used to query documents across blogs in a network.
+	 *
+	 * @param  string $alias
+	 * @since  2.6
+	 * @return array|boolean
+	 */
 	public function delete_network_alias( $alias ) {
 		$path = '*/_alias/' . $alias;
 
-		$request_args = array( 'method' => 'DELETE' );
+		$request_args = [ 'method' => 'DELETE' ];
 
 		$request = $this->remote_request( $path, $request_args, [], 'delete_network_alias' );
 
@@ -391,6 +400,16 @@ class Elasticsearch {
 		return false;
 	}
 
+	/**
+	 * Create the network alias.
+	 *
+	 * Network aliases are used to query documents across blogs in a network.
+	 *
+	 * @param  array  $alias         Indexes to group under alias
+	 * @param  string $network_alias Name of network alias
+	 * @since  2.6
+	 * @return array|boolean
+	 */
 	public function create_network_alias( $indexes, $network_alias ) {
 
 		$path = '_aliases';
@@ -414,7 +433,7 @@ class Elasticsearch {
 			'timeout' => 25,
 		);
 
-		$request = $this->remote_request( $path, apply_filters( 'ep_create_network_alias_request_args', $request_args, $args, $indexes ), [], 'create_network_alias' );
+		$request = $this->remote_request( $path, $request_args, [], 'create_network_alias' );
 
 		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -425,16 +444,24 @@ class Elasticsearch {
 		return false;
 	}
 
+	/**
+	 * Put a mapping into Elasticsearch
+	 *
+	 * @param  string $index
+	 * @param  array  $mapping
+	 * @since  2.6
+	 * @return array
+	 */
 	public function put_mapping( $index, $mapping ) {
 		$mapping = apply_filters( 'ep_config_mapping', $mapping );
 
-		$request_args = array(
+		$request_args = [
 			'body'    => json_encode( $mapping ),
 			'method'  => 'PUT',
 			'timeout' => 30,
-		);
+		];
 
-		$request = $this->remote_request( $index, apply_filters( 'ep_put_mapping_request_args', $request_args ), [], 'put_mapping' );
+		$request = $this->remote_request( $index, $request_args, [], 'put_mapping' );
 
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
 
@@ -456,7 +483,10 @@ class Elasticsearch {
 	 */
 	public function delete_index( $index ) {
 
-		$request_args = array( 'method' => 'DELETE', 'timeout' => 30, );
+		$request_args = [
+			'method' => 'DELETE',
+			'timeout' => 30,
+		];
 
 		$request = $this->remote_request( $index, $request_args, [], 'delete_index' );
 
@@ -480,7 +510,7 @@ class Elasticsearch {
 	 */
 	public function index_exists( $index_name ) {
 
-		$request_args = [ 'method' => 'HEAD' ];
+		$request_args = [ 2'method' => 'HEAD' ];
 
 		$request = $this->remote_request( $index, $request_args, [], 'index_exists' );
 
@@ -500,6 +530,14 @@ class Elasticsearch {
 		return false;
 	}
 
+	/**
+	 * Bulk index Elasticsearch documents
+	 * @param  string $index
+	 * @param  string $type
+	 * @param  string $body  Encoded JSON
+	 * @since  2.6
+	 * @return WP_Error|array
+	 */
 	public function bulk_index( $index, $type, $body ) {
 		$path = $index . '/' . $type . '/_bulk';
 
@@ -618,9 +656,7 @@ class Elasticsearch {
 	 * Determines if there is an issue or if the response is valid.
 	 *
 	 * @since 1.9
-	 *
 	 * @param object $response JSON decoded response from Elasticsearch.
-	 *
 	 * @return array Contains the status message or the returned statistics.
 	 */
 	public function parse_api_response( $response ) {
@@ -772,7 +808,6 @@ class Elasticsearch {
 	 * Retrieves cluster stats from Elasticsearch.
 	 *
 	 * @since 1.9
-	 *
 	 * @return array Contains the status message or the returned statistics.
 	 */
 	public function get_cluster_status() {
@@ -805,7 +840,7 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Get a pipeline
+	 * Get an Elasticsearch pipeline
 	 *
 	 * @param  string $id
 	 * @since  2.3
@@ -840,7 +875,7 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Put a pipeline
+	 * Put an Elasticsearch pipeline
 	 *
 	 * @param  string $id
 	 * @param array $args
@@ -922,9 +957,7 @@ class Elasticsearch {
 	 * Retrieves various search statistics from the ES server.
 	 *
 	 * @since 1.9
-	 *
 	 * @param int $blog_id Id of blog to get stats.
-	 *
 	 * @return array Contains the status message or the returned statistics.
 	 */
 	public function get_search_status( $blog_id = null ) {
@@ -978,7 +1011,6 @@ class Elasticsearch {
 	 * runs regardless of debufg settings.
 	 *
 	 * @param array $query Query.
-	 *
 	 * @return void Method does not return.
 	 */
 	protected function _add_query_log( $query ) {

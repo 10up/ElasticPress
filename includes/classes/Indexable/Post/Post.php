@@ -36,8 +36,6 @@ class Post extends Indexable {
 			'order'                  => 'desc',
 		];
 
-		$parsed_args = $args;
-
 		if ( isset( $args['per_page'] ) ) {
 			$args['posts_per_page'] = $args['per_page'];
 		}
