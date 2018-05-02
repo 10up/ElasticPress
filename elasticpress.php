@@ -118,6 +118,18 @@ Features::factory()->register_feature(
 );
 
 /**
+ * Set the availability of dashboard sync functionality. Defaults to true (enabled).
+ *
+ * Sync can be disabled by defining EP_DASHBOARD_SYNC as false in wp-config.php.
+ * NOTE: Must be defined BEFORE `require_once(ABSPATH . 'wp-settings.php');` in wp-config.php.
+ *
+ * @since  2.3
+ */
+if ( ! defined( 'EP_DASHBOARD_SYNC' ) ) {
+	define( 'EP_DASHBOARD_SYNC', true );
+}
+
+/**
  * Setup dashboard
  */
 require_once __DIR__ . '/includes/dashboard.php';
@@ -131,19 +143,7 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
- * Set the availability of dashboard sync functionality. Defaults to true (enabled).
- *
- * Sync can be disabled by defining EP_DASHBOARD_SYNC as false in wp-config.php.
- * NOTE: Must be defined BEFORE `require_once(ABSPATH . 'wp-settings.php');` in wp-config.php.
- *
- * @since  2.3
- */
-if ( ! defined( 'EP_DASHBOARD_SYNC' ) ) {
-	define( 'EP_DASHBOARD_SYNC', true );
-}
-
-/**
- * Handle upgrades
+ * Handle upgrades. Certain version require a re-sync on upgrade.
  *
  * @since  2.2
  */
@@ -165,6 +165,7 @@ function handle_upgrades() {
 		'2.2',
 		'2.3.1',
 		'2.4',
+		'2.5.1',
 	) );
 
 	$need_upgrade_sync = false;

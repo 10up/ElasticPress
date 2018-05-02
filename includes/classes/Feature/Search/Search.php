@@ -1,6 +1,8 @@
 <?php
 /**
  * Search feature
+ *
+ * @since  1.9
  */
 
 namespace ElasticPress\Feature\Search;
@@ -26,10 +28,10 @@ class Search extends Feature {
 	}
 
 	/**
-	 * Code to be called when feature is active on each page load. We have intentionally
-	 * separated out `search_setup`
+	 * We need to delay search setup up since it will fire after protected content and protected
+	 * content filters into the search setup
 	 *
-	 * @since 2.6
+	 * @since 2.2
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
@@ -67,10 +69,10 @@ class Search extends Feature {
 	}
 
 	/**
-	 * Get searchable post types
+	 * Returns searchable post types for the current site
 	 *
-	 * @since  2.6
-	 * @return array
+	 * @since 1.9
+	 * @return mixed|void
 	 */
 	public function get_searchable_post_types() {
 		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
@@ -78,6 +80,13 @@ class Search extends Feature {
 		return apply_filters( 'ep_searchable_post_types', $post_types );
 	}
 
+	/**
+	 * Make sure we don't search for "any" on a search query
+	 *
+	 * @param  string $post_type
+	 * @param  WP_Query $query
+	 * @return string|array
+	 */
 	public function filter_query_post_type_for_search( $post_type, $query ) {
 		if ( 'any' === $post_type && $query->is_search() ) {
 			$searchable_post_types = $this->get_searchable_post_types();
@@ -103,6 +112,12 @@ class Search extends Feature {
 		return $post_type;
 	}
 
+	/**
+	 * Integrate search with ElasticPress and enhance search fields
+	 *
+	 * @param  WP_Query $query
+	 * @since  2.6
+	 */
 	public function improve_default_search( $query ) {
 		if ( is_admin() ) {
 			return;
@@ -132,6 +147,14 @@ class Search extends Feature {
 		}
 	}
 
+	/**
+	 * Weight more recent content in searches
+	 *
+	 * @param  array $formatted_args
+	 * @param  array $args
+	 * @since  2.1
+	 * @return array
+	 */
 	public function weight_recent( $formatted_args, $args ) {
 		if ( ! empty( $args['s'] ) ) {
 			$feature  = ep_get_registered_feature( 'search' );
@@ -189,6 +212,14 @@ class Search extends Feature {
 		<?php
 	}
 
+	/**
+	 * Make sure we search all relevant post types
+	 *
+	 * @param  string $post_type
+	 * @param  WP_Query $query
+	 * @since  2.1
+	 * @return bool|string
+	 */
 	public function use_searchable_post_types_on_any( $post_type, $query ) {
 		if ( $query->is_search() && 'any' === $post_type ) {
 
@@ -220,6 +251,14 @@ class Search extends Feature {
 		return $post_type;
 	}
 
+	/**
+	 * Enable integration on search queries
+	 *
+	 * @param  bool $enabled
+	 * @param  WP_Query $query
+	 * @since  2.1
+	 * @return bool
+	 */
 	public function integrate_search_queries( $enabled, $query ) {
 		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
 			$enabled = false;
@@ -241,6 +280,11 @@ class Search extends Feature {
 		return $enabled;
 	}
 
+	/**
+	 * Display decaying settings on dashboard.
+	 *
+	 * @since 2.4
+	 */
 	public function output_feature_box_settings() {
 		$decaying_settings = $this->get_settings();
 

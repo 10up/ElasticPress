@@ -129,7 +129,6 @@ function is_network_activated( $plugin ) {
 	}
 
 	return false;
-
 }
 
 

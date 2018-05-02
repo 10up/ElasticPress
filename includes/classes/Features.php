@@ -28,7 +28,7 @@ class Features {
 	 * @since 2.1
 	 */
 	public function setup() {
-		// hooks order matters, please, make sure feature activation goes before features setup
+		// hooks order matters, make sure feature activation goes before features setup
 		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
 		add_action( 'init', array( $this, 'setup_features' ), 0 );
 	}
@@ -57,24 +57,8 @@ class Features {
 	/**
 	 * Registers a feature for use in ElasticPress
 	 *
-	 * @param  string $slug
-	 * @param  array  $feature_args
-	 *
-	 *         Supported array parameters:
-	 *
-	 *         "title" (string) - Pretty title for feature
-	 *         "default_settings" (array) - Array of default settings. Only needed if you plan on adding custom settings
-	 *         "requirements_status_cb" (callback) - Callback to a function that determines the "requirements" status of
-	 *         		the given feature. 0 means everything is okay. 1 means the feature can be used but there is a warning.
-	 *         		2 means the feature cannot be active. This callback needs to return an EP_Feature_Requirements_Status
-	 *         		object where the "code" property is one of the values above.
-	 *         "setup_cb" (callback) - Callback to a function to be called on each page load when the feature is activated
-	 *         "post_activation_cb" (callback) - Callback to a function to be called after a feature is first activated
-	 *         "feature_box_summary_cb" (callback) - Callback to a function that outputs HTML feature box summary (short description of feature)
-	 *         "feature_box_long_cb" (callback) - Callback to a function that outputs HTML feature box full description
-	 *         "feature_box_settings_cb" (callback) - Callback to a function that outputs custom feature settings fields
-	 *
-	 * @since  2.1
+	 * @param  Feature $feature An instance of the Feature class
+	 * @since  2.6
 	 * @return boolean
 	 */
 	public function register_feature( Feature $feature ) {
@@ -86,18 +70,18 @@ class Features {
 	}
 
 	/**
-	 * Easy access function to get a EP_Feature object from a slug
+	 * Easy access function to get a Feature object from a slug
 	 *
 	 * @param  string $slug
 	 * @since  2.1
-	 * @return EP_Feature
+	 * @return Feature
 	 */
 	public function get_registered_feature( $slug ) {
 		if ( empty( $this->registered_features[$slug] ) ) {
 			return false;
 		}
 
-		return $this->registered_features[$slug];
+		return $this->registered_features[ $slug ];
 	}
 
 	/**

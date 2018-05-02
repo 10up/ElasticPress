@@ -1,6 +1,6 @@
 <?php
 /**
- * Manage syncing of content between WP and Elasticsearch
+ * Manage syncing of content between WP and Elasticsearch for posts
  *
  * @since  1.0
  * @package elasticpress
@@ -23,7 +23,7 @@ class SyncManager {
 	 * @since  2.0
 	 * @var    array
 	 */
-	public $sync_post_queue = [];
+	public $sync_queue = [];
 
 	/**
 	 * Setup actions and filters
@@ -39,8 +39,13 @@ class SyncManager {
 		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
-		add_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+
+		/**
+		 * @todo Handle deleted meta
+		 */
+
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
 
@@ -58,7 +63,7 @@ class SyncManager {
 		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
-		remove_action( 'updated_postmeta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		remove_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		remove_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
@@ -69,11 +74,11 @@ class SyncManager {
 	 * @since  2.0
 	 */
 	public function action_index_sync_queue() {
-		if ( empty( $this->sync_post_queue ) ) {
+		if ( empty( $this->sync_queue ) ) {
 			return;
 		}
 
-		foreach ( $this->sync_post_queue as $post_id => $value ) {
+		foreach ( $this->sync_queue as $post_id => $value ) {
 			do_action( 'ep_sync_on_meta_update', $post_id );
 
 			Indexables::factory()->get( 'post' )->index( $post_id, false );
@@ -136,7 +141,7 @@ class SyncManager {
 					return;
 				}
 
-				$this->sync_post_queue[ $object_id ] = true;
+				$this->sync_queue[ $object_id ] = true;
 			}
 		}
 	}
@@ -226,7 +231,7 @@ class SyncManager {
 			if ( in_array( $post_type, $indexable_post_types ) ) {
 				do_action( 'ep_sync_on_transition', $post_ID );
 
-				$indexable->index( $post_ID, false );
+				$this->sync_queue[ $post_ID ] = true;
 			}
 		}
 	}

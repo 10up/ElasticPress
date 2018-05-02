@@ -1,6 +1,6 @@
 {
 	"name":            "ElasticPress",
-	"description":     "Grunt base for the ElasticPress Plugin.",
+	"description":     "A fast and flexible search and query engine for WordPress.",
 	"dependencies":    {},
 	"devDependencies": {
 		"grunt":                "*",

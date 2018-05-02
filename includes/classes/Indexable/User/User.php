@@ -19,6 +19,8 @@ class User extends Indexable {
 			'plural'   => esc_html__( 'Users', 'elasticpress' ),
 			'singular' => esc_html__( 'User', 'elasticpress' ),
 		];
+
+		SyncManager::factory();
 	}
 
 	public function query_db( $args ) {
