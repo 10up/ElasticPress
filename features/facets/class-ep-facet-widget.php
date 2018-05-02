@@ -20,8 +20,8 @@ class EP_Facet_Widget extends WP_Widget {
 		global $wp_query;
 
 		if ( $wp_query->get( 'ep_facet', false ) ) {
-			if ( ! ( is_archive() || is_search() || ( is_home() && empty( $wp_query->get( 'page_id' ) ) ) ) ) {
-				return;
+			if ( ! ep_facets_is_facetable( $wp_query ) ) {
+				return false;
 			}
 		}
 
@@ -36,6 +36,18 @@ class EP_Facet_Widget extends WP_Widget {
 		}
 
 		$taxonomy = $instance['facet'];
+
+		if ( ! is_search() ) {
+			$post_type = $wp_query->get( 'post_type' );
+
+			if ( empty( $post_type ) ) {
+				$post_type = 'post';
+			}
+
+			if ( ! is_object_in_taxonomy( $post_type, $taxonomy ) ) {
+				return;
+			}
+		}
 
 		$selected_filters = ep_facets_get_selected();
 
@@ -62,6 +74,20 @@ class EP_Facet_Widget extends WP_Widget {
 				$term->count = $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ];
 			} else {
 				$term->count = 0;
+			}
+		}
+
+		/**
+		 * Check to make sure all terms exist before proceeding
+		 */
+		if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'] ) ) {
+			foreach ( $selected_filters['taxonomies'][ $taxonomy ]['terms'] as $term_slug => $nothing ) {
+				if ( empty ( $terms_by_slug[ $term_slug ] ) ) {
+					/**
+					 * Term does not exist!
+					 */
+					return;
+				}
 			}
 		}
 

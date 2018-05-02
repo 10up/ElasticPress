@@ -287,7 +287,9 @@ function ep_facets_is_facetable( $query ) {
 		return false;
 	}
 
-	if ( ! ( $query->is_archive() || $query->is_search() || ( is_home() && empty( $query->get( 'page_id' ) ) ) ) ) {
+	$page_id = $query->get( 'page_id' );
+
+	if ( ! ( $query->is_post_type_archive() || $query->is_search() || ( is_home() && empty( $page_id ) ) ) ) {
 		return false;
 	}
 
@@ -427,15 +429,21 @@ function ep_facets_get_selected() {
 function ep_facets_build_query_url( $filters ) {
 	$query_string = '';
 
+	$s = get_search_query();
+
+	if ( ! empty( $s ) ) {
+		$query_string .= 's=' . $s;
+	}
+
 	if ( ! empty( $filters['taxonomies'] ) ) {
 		$tax_filters = $filters['taxonomies'];
 
 		foreach ( $tax_filters as $taxonomy => $filter ) {
-			if ( ! empty( $query_string ) ) {
-				$query_string .= '&';
-			}
-
 			if ( ! empty( $filter['terms'] ) ) {
+				if ( ! empty( $query_string ) ) {
+					$query_string .= '&';
+				}
+
 				$query_string .= 'filter_' . $taxonomy . '=' . implode( array_keys( $filter['terms'] ), ',' );
 			}
 		}
