@@ -35,16 +35,35 @@ class Indexables {
 	/**
 	 * Get an indexable instance given a slug
 	 *
-	 * @param  string $slug
+	 * @param  string  $slug Indexable type slug
 	 * @since  2.6
-	 * @return Indexable
+	 * @return Indexable|boolean
 	 */
-	public function get( $slug = null ) {
-		if ( null === $slug ) {
-			return $this->registered_indexables;
+	public function get( $slug ) {
+		return ( ! empty( $this->registered_indexables[ $slug ] ) ) ? $this->registered_indexables[ $slug ] : false;
+	}
+
+	/**
+	 * Get all indexable instances
+	 *
+	 * @param  boolean $global If true or false, will only get Indexables with that global property
+	 * @since  2.6
+	 * @return array
+	 */
+	public function get_all( $global = null ) {
+		$indexables = [];
+
+		foreach ( $this->registered_indexables as $indexable ) {
+			if ( null === $global ) {
+				$indexables[] = $indexable;
+			} else {
+				if ( $global === $indexable->global ) {
+					$indexables[] = $indexable;
+				}
+			}
 		}
 
-		return $this->registered_indexables[ $slug ];
+		return $indexables;
 	}
 
 	/**

@@ -110,6 +110,10 @@ class Post extends Indexable {
 	public function prepare_document( $post_id ) {
 		$post = get_post( $post_id );
 
+		if ( empty( $post ) ) {
+			return false;
+		}
+
 		$user = get_userdata( $post->post_author );
 
 		if ( $user instanceof WP_User ) {

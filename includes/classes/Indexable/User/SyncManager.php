@@ -32,7 +32,9 @@ class SyncManager {
 	 */
 	public function setup() {
 		add_action( 'shutdown', [ $this, 'action_index_sync_queue' ] );
+		add_filter( 'wp_redirect', [ $this, 'filter_index_sync_queue' ] );
 		add_action( 'delete_user', [ $this, 'action_delete_user' ] );
+		add_action( 'wpmu_delete_user', [ $this, 'action_delete_user' ] );
 		add_action( 'profile_update', [ $this, 'action_sync_on_update' ] );
 		add_action( 'user_register', [ $this, 'action_sync_on_update' ] );
 		add_action( 'updated_user_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
@@ -44,19 +46,33 @@ class SyncManager {
 	}
 
 	/**
+	 * Sync queued objects before a redirect occurs. Hackish but very important since
+	 * shutdown won't be firing
+	 *
+	 * @param  string $location
+	 * @since  2.6
+	 * @return string
+	 */
+	public function filter_index_sync_queue( $location ) {
+		foreach ( $this->sync_queue as $object_id => $value ) {
+			do_action( 'ep_sync_users_on_update', $object_id );
+
+			Indexables::factory()->get( 'user' )->index( $object_id, false );
+		}
+
+		return $location;
+	}
+
+	/**
 	 * Sync queued objects on shutdown. We do this in case a post is updated multiple times.
 	 *
 	 * @since  2.6
 	 */
 	public function action_index_sync_queue() {
-		if ( empty( $this->sync_queue ) ) {
-			return;
-		}
-
 		foreach ( $this->sync_queue as $object_id => $value ) {
-			do_action( 'ep_sync_users_on_meta_update', $object_id );
+			do_action( 'ep_sync_users_on_update', $object_id );
 
-			Indexables::factory()->get( 'user' )->index( $object_id, false );
+			$result = Indexables::factory()->get( 'user' )->index( $object_id, true );
 		}
 	}
 
@@ -125,7 +141,7 @@ class SyncManager {
 			return;
 		}
 
-		$this->sync_queue[ $object_id ] = true;
+		$this->sync_queue[ $user_id ] = true;
 	}
 
 	/**

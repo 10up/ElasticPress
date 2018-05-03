@@ -12,8 +12,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class User extends Indexable {
 
+	/**
+	 * We only need one user index
+	 *
+	 * @var boolean
+	 * @since  2.6
+	 */
+	public $global = true;
+
+	/**
+	 * Indexable slug
+	 *
+	 * @var string
+	 * @since  2.6
+	 */
 	public $indexable_type = 'user';
 
+	/**
+	 * Create indexable and setup dependencies
+	 *
+	 * @since  2.6
+	 */
 	public function __construct() {
 		$this->labels = [
 			'plural'   => esc_html__( 'Users', 'elasticpress' ),
@@ -23,7 +42,16 @@ class User extends Indexable {
 		SyncManager::factory();
 	}
 
+	/**
+	 * Query DB for users
+	 *
+	 * @param  array $args
+	 * @since  2.6
+	 * @return array
+	 */
 	public function query_db( $args ) {
+		global $wpdb;
+
 		$defaults = [
 			'number'  => 350,
 			'offset'  => 0,
@@ -37,22 +65,49 @@ class User extends Indexable {
 
 		$args = apply_filters( 'ep_user_query_db_args', wp_parse_args( $args, $defaults ) );
 
-		$query = new WP_User_Query( $args );
+		$args['order'] = trim( strtolower( $args['order'] ) );
+
+		if ( ! in_array( $args['order'], [ 'asc', 'desc' ], true ) ) {
+			$args['order'] = 'desc';
+		}
+
+		/**
+		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
+		 * way to do that.
+		 */
+		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->prefix}users ORDER BY %s %s LIMIT %d, %d", $args['orderby'], $args['orderby'], (int) $args['offset'], (int) $args['number'] ) );
 
 		return [
-			'objects'       => $query->results,
-			'total_objects' => $query->total_users,
+			'objects'       => $objects,
+			'total_objects' => (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' ),
 		];
 	}
 
+	/**
+	 * Put mapping for users
+	 *
+	 * @since  2.6
+	 * @return boolean
+	 */
 	public function put_mapping() {
 		$mapping = require( apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/initial.php' ) );
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
 
+	/**
+	 * Prepare a user document for indexing
+	 *
+	 * @param  int $user_id
+	 * @since  2.6
+	 * @return array
+	 */
 	public function prepare_document( $user_id ) {
 		$user = get_user_by( 'ID', $user_id );
+
+		if ( empty( $user ) ) {
+			return false;
+		}
 
 		$user_args = [
 			'ID'              => $user_id,
@@ -110,7 +165,9 @@ class User extends Indexable {
 		 * @param         array Array of public meta keys to exclude from index.
 		 * @param WP_Post $post The current post to be indexed.
 		 */
-		$excluded_public_keys = apply_filters( 'ep_prepare_user_meta_excluded_public_keys', [], $user_id );
+		$excluded_public_keys = apply_filters( 'ep_prepare_user_meta_excluded_public_keys', [
+			'session_tokens'
+		], $user_id );
 
 		foreach ( $meta as $key => $value ) {
 

@@ -23,6 +23,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since  2.6
  */
 abstract class Indexable {
+
+	/**
+	 * Declaring an Indexable global means it won't have an index for each blog in
+	 * the network. Instead it will just have one index. There will also be no
+	 * network alias.
+	 *
+	 * @var boolean
+	 * @since  2.6
+	 */
+	public $global = false;
+
 	/**
 	 * Get the name of the index. Each indexable needs a unique index name
 	 *
@@ -31,17 +42,28 @@ abstract class Indexable {
 	 * @return string
 	 */
 	public function get_index_name( $blog_id = null ) {
-		if ( ! $blog_id ) {
-			$blog_id = get_current_blog_id();
-		}
+		if ( $this->global ) {
+			$site_url = network_site_url();
 
-		$site_url = get_site_url( $blog_id );
-
-		if ( ! empty( $site_url ) ) {
-			$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
-			$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->indexable_type . '-' . $blog_id;
+			if ( ! empty( $site_url ) ) {
+				$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
+				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->indexable_type;
+			} else {
+				$index_name = false;
+			}
 		} else {
-			$index_name = false;
+			if ( ! $blog_id ) {
+				$blog_id = get_current_blog_id();
+			}
+
+			$site_url = get_site_url( $blog_id );
+
+			if ( ! empty( $site_url ) ) {
+				$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
+				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->indexable_type . '-' . $blog_id;
+			} else {
+				$index_name = false;
+			}
 		}
 
 		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
@@ -135,6 +157,10 @@ abstract class Indexable {
 	 */
 	public function index( $object_id, $blocking = false ) {
 		$document = $this->prepare_document( $object_id );
+
+		if ( false === $document ) {
+			return false;
+		}
 
 		if ( apply_filters( 'ep_' . $this->indexable_type . '_index_kill', false, $object_id ) ) {
 			return false;

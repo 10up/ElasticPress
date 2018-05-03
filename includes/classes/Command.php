@@ -197,7 +197,8 @@ class Command extends WP_CLI_Command {
 			$indexables = explode( ',', str_replace( ' ', '', $assoc_args['indexables'] ) );
 		}
 
-		$indexable_objects = Indexables::factory()->get();
+		$non_global_indexable_objects = Indexables::factory()->get_all( false );
+		$global_indexable_objects = Indexables::factory()->get_all( true );
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
@@ -209,7 +210,7 @@ class Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				foreach ( $indexable_objects as $indexable ) {
+				foreach ( $non_global_indexable_objects as $indexable ) {
 					/**
 					 * If user has called out specific indexables to be indexed, only do those
 					 */
@@ -234,7 +235,7 @@ class Command extends WP_CLI_Command {
 				restore_current_blog();
 			}
 		} else {
-			foreach ( $indexable_objects as $indexable ) {
+			foreach ( $non_global_indexable_objects as $indexable ) {
 				/**
 				 * If user has called out specific indexables to be indexed, only do those
 				 */
@@ -256,6 +257,31 @@ class Command extends WP_CLI_Command {
 				}
 			}
 		}
+
+		/**
+		 * Handle global indexables separately
+		 */
+		foreach ( $global_indexable_objects as $indexable ) {
+			/**
+			 * If user has called out specific indexables to be indexed, only do those
+			 */
+			if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+				continue;
+			}
+
+			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
+
+			$indexable->delete_index();
+			$result = $indexable->put_mapping();
+
+			do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
+
+			if ( $result ) {
+				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
+			} else {
+				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+			}
+		}
 	}
 
 	/**
@@ -271,7 +297,8 @@ class Command extends WP_CLI_Command {
 	public function delete_index( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		$indexables = Indexables::factory()->get();
+		$non_global_indexable_objects = Indexables::factory()->get_all( false );
+		$global_indexable_objects = Indexables::factory()->get_all( true );
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
@@ -282,7 +309,7 @@ class Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				foreach ( $indexables as $indexable ) {
+				foreach ( $non_global_indexable_objects as $indexable ) {
 
 					WP_CLI::line( sprintf( esc_html__( 'Deleting %s index for site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
@@ -298,7 +325,7 @@ class Command extends WP_CLI_Command {
 				restore_current_blog();
 			}
 		} else {
-			foreach ( $indexables as $indexable ) {
+			foreach ( $non_global_indexable_objects as $indexable ) {
 				WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 				$result = $indexable->delete_index();
@@ -310,10 +337,22 @@ class Command extends WP_CLI_Command {
 				}
 			}
 		}
+
+		foreach ( $global_indexable_objects as $indexable ) {
+			WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
+
+			$result = $indexable->delete_index();
+
+			if ( $result ) {
+				WP_CLI::success( esc_html__( 'Index deleted', 'elasticpress' ) );
+			} else {
+				WP_CLI::error( esc_html__( 'Index delete failed', 'elasticpress' ) );
+			}
+		}
 	}
 
 	/**
-	 * Map network alias to every index in the network for every indexable
+	 * Map network alias to every index in the network for every non-global indexable
 	 *
 	 * @param array $args
 	 * @subcommand recreate-network-alias
@@ -323,7 +362,7 @@ class Command extends WP_CLI_Command {
 	public function recreate_network_alias( $args, $assoc_args ) {
 		$this->_connect_check();
 
-		$indexables = Indexables::factory()->get();
+		$indexables = Indexables::factory()->get_all( false );
 
 		foreach ( $indexables as $indexable ) {
 			WP_CLI::line( sprintf( esc_html__( 'Recreating %s network alias...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
@@ -341,7 +380,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Helper method for creating the network alias for an indeaable
+	 * Helper method for creating the network alias for an indexable
 	 *
 	 * @param  Indexable $indexable
 	 * @since  0.9
@@ -422,7 +461,9 @@ class Command extends WP_CLI_Command {
 			$this->put_mapping( $args, $assoc_args );
 		}
 
-		$indexable_objects = Indexables::factory()->get();
+		$all_indexables = Indexables::factory()->get_all();
+		$non_global_indexable_objects = Indexables::factory()->get_all( false );
+		$global_indexable_objects = Indexables::factory()->get_all( true );
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
@@ -436,7 +477,7 @@ class Command extends WP_CLI_Command {
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
 
-				foreach ( $indexable_objects as $indexable ) {
+				foreach ( $non_global_indexable_objects as $indexable ) {
 					/**
 					 * If user has called out specific indexables to be indexed, only do those
 					 */
@@ -460,7 +501,34 @@ class Command extends WP_CLI_Command {
 				restore_current_blog();
 			}
 
-			foreach ( $indexable_objects as $indexable ) {
+			/**
+			 * Index global indexables e.g. useres
+			 */
+			foreach ( $global_indexable_objects as $indexable ) {
+				/**
+				 * If user has called out specific indexables to be indexed, only do those
+				 */
+				if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+					continue;
+				}
+
+				WP_CLI::log( sprintf( esc_html__( 'Indexing %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
+
+				$result = $this->_index_helper( $indexable, $assoc_args );
+
+				$total_indexed += $result['synced'];
+
+				WP_CLI::log( sprintf( esc_html__( 'Number of %s indexed: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
+
+				if ( ! empty( $result['errors'] ) ) {
+					WP_CLI::error( sprintf( esc_html__( 'Number of %s index errors: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
+				}
+			}
+
+			/**
+			 * Handle network aliases separately as they don't depend on blog ID
+			 */
+			foreach ( $non_global_indexable_objects as $indexable ) {
 				/**
 				 * If user has called out specific indexables to be indexed, only do those
 				 */
@@ -477,7 +545,7 @@ class Command extends WP_CLI_Command {
 			/**
 			 * Run indexing for each indexable one by one
 			 */
-			foreach ( $indexable_objects as $indexable ) {
+			foreach ( $all_indexables as $indexable ) {
 				/**
 				 * If user has called out specific indexables to be indexed, only do those
 				 */
@@ -489,10 +557,10 @@ class Command extends WP_CLI_Command {
 
 				$result = $this->_index_helper( $indexable, $assoc_args );
 
-				WP_CLI::log( sprintf( esc_html__( 'Number of %s indexed on site %d: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), get_current_blog_id(), $result['synced'] ) );
+				WP_CLI::log( sprintf( esc_html__( 'Number of %s indexed: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
-					WP_CLI::error( sprintf( esc_html__( 'Number of %s index errors on site %d: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), get_current_blog_id(), count( $result['errors'] ) ) );
+					WP_CLI::error( sprintf( esc_html__( 'Number of %s index errors: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
 				}
 			}
 		}
