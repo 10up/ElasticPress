@@ -695,18 +695,10 @@ function action_wp_ajax_ep_save_feature() {
  */
 function action_admin_enqueue_dashboard_scripts() {
 	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'elasticpress' ) !== false ) {
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-			wp_enqueue_style( 'ep_admin_styles', EP_URL . 'assets/css/admin.css', [], EP_VERSION );
-		} else {
-			wp_enqueue_style( 'ep_admin_styles', EP_URL . 'assets/css/admin.min.css', [], EP_VERSION );
-		}
+		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/admin.min.css', [], EP_VERSION );
 
 		if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) {
-			if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-				wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'assets/js/src/dashboard.js', [ 'jquery' ], EP_VERSION, true );
-			} else {
-				wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'assets/js/dashboard.min.js', [ 'jquery' ], EP_VERSION, true );
-			}
+			wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard.min.js', [ 'jquery' ], EP_VERSION, true );
 
 			$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
@@ -748,11 +740,7 @@ function action_admin_enqueue_dashboard_scripts() {
  * @since 2.2
  */
 function action_admin_enqueue_admin_scripts() {
-	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-		wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'assets/js/src/admin.js', array( 'jquery' ), EP_VERSION, true );
-	} else {
-		wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'assets/js/admin.min.js', array( 'jquery' ), EP_VERSION, true );
-	}
+	wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'dist/js/admin.min.js', [ 'jquery' ], EP_VERSION, true );
 
 	wp_localize_script( 'ep_admin_scripts', 'epAdmin', array(
 		'nonce' => wp_create_nonce( 'ep_admin_nonce' ),

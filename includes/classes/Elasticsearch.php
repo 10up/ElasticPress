@@ -449,7 +449,7 @@ class Elasticsearch {
 	 * @param  string $index
 	 * @param  array  $mapping
 	 * @since  2.6
-	 * @return array
+	 * @return boolean
 	 */
 	public function put_mapping( $index, $mapping ) {
 		$mapping = apply_filters( 'ep_config_mapping', $mapping );
@@ -467,7 +467,7 @@ class Elasticsearch {
 		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
-			return json_decode( $response_body );
+			return true;
 		}
 
 		return false;

@@ -1,7 +1,10 @@
-$tablet-width: 768px;
-$status-ok: #6aa000;
-$status-warning: #e3e600;
-$status-error: #ff0000;
+:root {
+	--statusOk: #6aa000;
+	--statusWarning: #e3e600;
+	--statusError: #ff0000;
+}
+
+@custom-media --tablet (min-width: 768px);
 
 /**
  * Layout
@@ -28,7 +31,7 @@ $status-error: #ff0000;
 }
 
 h2.ep-list-features {
-	display: none; // We use this since WP inserts warnings after the first h2
+	display: none;
 }
 
 /**
@@ -135,7 +138,7 @@ h2.ep-list-features {
 	z-index: 1;
 }
 
-@media (min-width: $tablet-width) {
+@media (--tablet) {
 	.error-overlay.cant-connect,
 	.error-overlay.syncing,
 	.error-overlay {
@@ -190,43 +193,43 @@ h2.ep-list-features {
 }
 
 .feature-requirements-status-2.ep-feature {
-	.postbox .hndle .settings-button:after {
+	& .postbox .hndle .settings-button:after {
 		background-color: transparent;
-		border: 1px solid $status-error;
+		border: 1px solid var(--statusError);
 	}
 
-	.settings .requirements-status-notice {
-		border-color: $status-error;
+	& .settings .requirements-status-notice {
+		border-color: var(--statusError);
 	}
 }
 
 .feature-requirements-status-1.ep-feature {
-	.postbox .hndle .settings-button:after {
+	& .postbox .hndle .settings-button:after {
 		background-color: transparent;
-		border: 1px solid $status-warning;
+		border: 1px solid var(--statusWarning);
 	}
 
 	&.feature-active .postbox .hndle .settings-button:after {
-		background-color: $status-warning;
+		background-color: var(--statusWarning);
 	}
 
-	.settings .requirements-status-notice {
-		border-color: $status-warning;
+	& .settings .requirements-status-notice {
+		border-color: var(--statusWarning);
 	}
 }
 
 .feature-requirements-status-0.ep-feature {
-	.postbox .hndle .settings-button:after {
+	& .postbox .hndle .settings-button:after {
 		background-color: transparent;
-		border: 1px solid $status-ok;
+		border: 1px solid var(--statusOk);
 	}
 
 	&.feature-active .postbox .hndle .settings-button:after {
-		background-color: $status-ok;
+		background-color: var(--statusOk);
 	}
 
-	.settings .requirements-status-notice {
-		border-color: $status-ok;
+	& .settings .requirements-status-notice {
+		border-color: var(--statusOk);
 	}
 }
 
@@ -252,10 +255,7 @@ h2.ep-list-features {
     border-right: 5px solid #ccc;
     border-bottom: 5px solid #ccc;
     border-left: 5px solid #999;
-	-webkit-transform: translateZ(0);
-	-ms-transform: translateZ(0);
 	transform: translateZ(0);
-	-webkit-animation: load8 1.1s infinite linear;
 	animation: load8 1.1s infinite linear;
 }
 
@@ -269,7 +269,7 @@ h2.ep-list-features {
 	display: none;
 	overflow: auto;
 
-	h3 {
+	& h3 {
 		margin-top: 0;
 		font-size: inherit;
     	font-weight: bold;
@@ -278,21 +278,21 @@ h2.ep-list-features {
 
 .ep-feature.show-settings {
 
-	.settings {
+	& .settings {
 		display: block;
 	}
 
-	.description {
+	& .description {
 		display: none;
 	}
 
-	.settings-button:before {
+	& .settings-button:before {
 		content: "\f142";
 	}
 }
 
 .ep-feature .settings .requirements-status-notice {
-	border-left: 4px solid $status-ok;
+	border-left: 4px solid var(--statusOk);
 	background-color: #efefef;
 	padding: 8px 12px;
 	margin-bottom: 10px;
@@ -304,30 +304,30 @@ h2.ep-list-features {
 	padding-top: 15px;
 	vertical-align: middle;
 
-	a {
+	& a {
 		cursor: pointer;
 		display: inline-block;
 	}
 
-	.no-dash-sync {
+	& .no-dash-sync {
 		color: #aaa;
 		line-height: 27px;
 		padding-right: 8px;
 		display: none;
 	}
 
-	a.disabled {
+	& a.disabled {
 		cursor: default;
 	}
 
-	.cancel {
+	& .cancel {
 		margin-top: 4px;
 		margin-right: 6px;
 	}
 }
 
 .ep-feature.dash-sync-disabled .settings .action-wrap {
-	.no-dash-sync {
+	& .no-dash-sync {
 		display: inline;
 	}
 }
@@ -341,16 +341,16 @@ h2.ep-list-features {
 		padding-top: 0;
 	}
 
-	label {
+	& label {
 		margin: 0.25em 0 0.5em;
 		display: inline-block;
 	}
 
-	div {
+	& div {
 		padding-top: 5px;
 	}
 
-	> label,
+	& > label,
 	.field-name {
 		display: block;
 		float: left;
@@ -359,23 +359,23 @@ h2.ep-list-features {
 		box-sizing: border-box;
 	}
 
-	.input-wrap {
+	& .input-wrap {
 		width: 75%;
 		display: block;
 		float: right;
 	}
 
-	.field-description {
+	& .field-description {
 		font-style: italic;
 		margin-top: 4px;
 		margin-bottom: 0;
 		color: #666;
 	}
 
-	.disabled {
-		color: lighten(#444, 50%);
+	& .disabled {
+		color: color(#444 lightness(50%));
 
-		input {
+		& input {
 			cursor: default;
 		}
 	}
@@ -384,7 +384,7 @@ h2.ep-list-features {
 .ep-feature .long {
 	display: none;
 
-	p:last-child {
+	& p:last-child {
 		margin-bottom: 0;
 	}
 }
@@ -434,10 +434,10 @@ h2.ep-list-features {
 	margin-bottom: 30px;
 	overflow: auto;
 
-	.updated,
-	.notice,
-	.error,
-	.is-dismissible {
+	& .updated,
+	& .notice,
+	& .error,
+	& .is-dismissible {
 		display: none !important;
 	}
 }
@@ -496,7 +496,7 @@ h2.ep-list-features {
 	}
 }
 
-@media (min-width: $tablet-width) {
+@media (--tablet) {
 	.intro .left {
 		float: left;
 		width: 30%;

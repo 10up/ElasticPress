@@ -28,11 +28,6 @@
   "require": {
     "php": ">=5.4"
   },
-  "require-dev": {
-    "phpunit/phpunit": "*@stable",
-    "wp-cli/wp-cli": "*@stable",
-    "wpackagist-plugin/woocommerce": "dev-trunk"
-  },
   "extra": {
     "installer-paths": {
           "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]

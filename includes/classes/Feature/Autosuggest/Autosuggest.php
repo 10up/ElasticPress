@@ -181,12 +181,9 @@ class Autosuggest extends Feature {
 			$endpoint_url = $settings['endpoint_url'];
 		}
 
-		$js_url = ( defined( 'SCRIPT_DEBUG' ) && true === SCRIPT_DEBUG ) ? EP_URL . 'assets/js/src/autosuggest.js' : EP_URL . 'assets/js/autosuggest.min.js';
-		$css_url = ( defined( 'SCRIPT_DEBUG' ) && true === SCRIPT_DEBUG ) ? EP_URL . 'assets/css/autosuggest.css' : EP_URL . 'assets/css/autosuggest.min.css';
-
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
-			$js_url,
+			EP_URL . 'dist/js/autosuggest.min.js',
 			array( 'jquery' ),
 			EP_VERSION,
 			true
@@ -194,7 +191,7 @@ class Autosuggest extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-autosuggest',
-			$css_url,
+			EP_URL . 'dist/css/autosuggest.min.css',
 			[],
 			EP_VERSION
 		);

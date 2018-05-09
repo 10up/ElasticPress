@@ -13,8 +13,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Post extends Indexable {
 
+	/**
+	 * Indexable slug used for identification
+	 *
+	 * @var   string
+	 * @since 2.6
+	 */
 	public $indexable_type = 'post';
 
+	/**
+	 * Create indexable and initialize dependencies
+	 *
+	 * @since  2.6
+	 */
 	public function __construct() {
 		$this->labels = [
 			'plural'   => esc_html__( 'Posts', 'elasticpress' ),
@@ -25,6 +36,13 @@ class Post extends Indexable {
 		QueryIntegration::factory();
 	}
 
+	/**
+	 * Query database for posts
+	 *
+	 * @param  array $args
+	 * @since  2.6
+	 * @return array
+	 */
 	public function query_db( $args ) {
 		$defaults = [
 			'posts_per_page'         => 350,
@@ -80,6 +98,12 @@ class Post extends Indexable {
 		return apply_filters( 'ep_indexable_post_status', array( 'publish' ) );
 	}
 
+	/**
+	 * Send mapping to Elasticsearch
+	 *
+	 * @since  2.6
+	 * @return [type] [description]
+	 */
 	public function put_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 

@@ -1,9 +1,0 @@
-{
-	"version": 3,
-	"file": "facets-admin.css",
-	"sources": [
-		"facets-admin.scss"
-	],
-	"names": [],
-	"mappings": "AAAA,AAAiB,gBAAD,CAAC,KAAK,CAAC;EACtB,YAAY,EAAE,GAAG,GACjB"
-}
