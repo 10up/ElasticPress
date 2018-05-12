@@ -46,6 +46,9 @@ class EP_WP_Query_Integration {
 
 		// Nukes the FOUND_ROWS() database query
 		add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
+		
+		// Override the pagination calculation if limits are set
+		add_action( 'found_posts' , array( $this, 'filter_found_posts' ), 10 , 2 );
 
 		// Support "fields".
 		add_filter( 'posts_pre_query', array( $this, 'posts_fields' ), 10, 2 );
@@ -189,6 +192,29 @@ class EP_WP_Query_Integration {
 		}
 
 		return '';
+	}
+	
+	/**
+	 * Override the found_posts calculation if a LIMIT clause is present in the SQL Query
+	 *
+	 * @param int $found_posts
+	 * @param object $query
+	 * @return int
+	 */
+	function filter_found_posts( $found_posts, $query ) {
+		
+		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! ep_elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) )  ) {
+			return $found_posts;
+		}
+		
+		if ( empty( $query->query_vars['nopaging'] ) && ! $query->is_singular ) {
+			
+			$new_posts = $this->posts_by_query[spl_object_hash( $query )];
+			return count( $new_posts );
+		}
+		
+		return $found_posts;
+		
 	}
 
 	/**
