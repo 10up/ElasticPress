@@ -142,7 +142,7 @@ class Widget extends WP_Widget {
 							}
 							?>
 							<div class="term selected level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
-								<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
+								<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
 									<input type="checkbox" checked>
 									<?php echo esc_html( $term->name ); ?>
 								</a>
@@ -205,7 +205,7 @@ class Widget extends WP_Widget {
 								}
 								?>
 								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-									<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
+									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
 										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?>>
 										<?php echo esc_html( $term->name ); ?>
 									</a>
@@ -232,7 +232,7 @@ class Widget extends WP_Widget {
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 					?>
 					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
+						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
 							<input type="checkbox">
 							<?php echo esc_html( $term->name ); ?>
 						</a>

@@ -558,7 +558,7 @@ function action_wp_ajax_ep_index() {
 			}
 
 			if ( ! empty( $queued_items ) ) {
-				$return = $indexable->bulk_index( $queued_items );
+				$return = $indexable->bulk_index( array_keys( $queued_items ) );
 
 				if( is_wp_error( $return ) ){
 					header( 'HTTP/1.1 500 Internal Server Error' );

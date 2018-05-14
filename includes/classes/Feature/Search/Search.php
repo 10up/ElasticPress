@@ -7,6 +7,7 @@
 
 namespace ElasticPress\Feature\Search;
 use ElasticPress\Feature as Feature;
+use ElasticPress\Features as Features;
 use ElasticPress\Indexables as Indexables;
 use ElasticPress\Indexable\Post\Post as Post;
 
@@ -157,15 +158,17 @@ class Search extends Feature {
 	 */
 	public function weight_recent( $formatted_args, $args ) {
 		if ( ! empty( $args['s'] ) ) {
-			$feature  = ep_get_registered_feature( 'search' );
+			$feature = Features::factory()->get_registered_feature( 'search' );
+
 			$settings = [];
 			if ( $feature ) {
 				$settings = $feature->get_settings();
 			}
 
-			$settings = wp_parse_args( $settings, array(
+			$settings = wp_parse_args( $settings, [
 				'decaying_enabled' => true,
-			) );
+			] );
+
 			if ( (bool)$settings['decaying_enabled'] ) {
 				$date_score = array(
 					'function_score' => array(

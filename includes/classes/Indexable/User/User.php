@@ -80,7 +80,7 @@ class User extends Indexable {
 
 		return [
 			'objects'       => $objects,
-			'total_objects' => (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' ),
+			'total_objects' => ( 0 === count( $objects ) ) ? 0 : (int) $wpdb->get_var( 'SELECT FOUND_ROWS()' ),
 		];
 	}
 

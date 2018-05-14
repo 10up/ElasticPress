@@ -122,8 +122,9 @@ abstract class Feature {
 	}
 
 	/**
-	 * [post_activation description]
-	 * @return [type] [description]
+	 * To be run after initial feature activation
+	 *
+	 * @since 2.1
 	 */
 	public function post_activation() {
 		do_action( 'ep_feature_post_activation', $this->slug, $this );

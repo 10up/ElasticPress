@@ -195,9 +195,7 @@ class Elasticsearch {
 			$total_hits = $this->get_total_hits_from_query( $response );
 
 			// Check for and store aggregations
-			if ( ! empty( $response['aggregations'] ) ) {
-				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $query, $query_args );
-			}
+			do_action( 'ep_valid_response', $response, $query, $query_args );
 
 			$documents = [];
 

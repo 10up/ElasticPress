@@ -4,7 +4,7 @@ namespace ElasticPress\Feature\Autosuggest;
 use ElasticPress\Feature as Feature;
 use ElasticPress\Utils as Utils;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Post\Post as Post;
+use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -164,7 +164,7 @@ class Autosuggest extends Feature {
 		$endpoint_url = false;
 
 		if ( preg_match( '#elasticpress\.io#i', $host ) ) {
-			$endpoint_url = $host . '/' . Post::factory()->get_index_name() . '/post/_search';
+			$endpoint_url = $host . '/' . Indexables::factory()->get( 'post' )->get_index_name() . '/post/_search';
 		} else {
 			$settings = $this->get_settings();
 
@@ -172,7 +172,7 @@ class Autosuggest extends Feature {
 				$settings = [];
 			}
 
-			$settings = wp_parse_args( $settings, $feature->default_settings );
+			$settings = wp_parse_args( $settings, $this->default_settings );
 
 			if ( empty( $settings['endpoint_url'] ) ) {
 				return;

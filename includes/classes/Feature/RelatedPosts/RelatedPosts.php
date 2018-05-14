@@ -26,6 +26,13 @@ class RelatedPosts extends Feature {
 		$this->requires_install_reindex = false;
 	}
 
+	/**
+	 * Format args for related posts
+	 *
+	 * @param  array $formatted_args
+	 * @param  array $args
+	 * @return array
+	 */
 	public function formatted_args( $formatted_args, $args ) {
 		if ( ! empty( $args[ 'more_like' ] ) ) {
 			$formatted_args[ 'query' ] = array(

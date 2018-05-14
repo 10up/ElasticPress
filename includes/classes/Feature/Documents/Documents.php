@@ -4,8 +4,8 @@ namespace ElasticPress\Feature\Documents;
 
 use ElasticPress\Feature as Feature;
 use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Post\Post as Post;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Indexables as Indexables;
 
 class Documents extends Feature {
 	/**
@@ -104,7 +104,7 @@ class Documents extends Feature {
 			$mime_types = explode( ' ', $mime_types );
 		}
 
-		$mime_types = array_merge( $mime_types, ep_documents_get_allowed_ingest_mime_types() );
+		$mime_types = array_merge( $mime_types, $this->get_allowed_ingest_mime_types() );
 		$mime_types[] = ''; // This let's us query non-attachments as well as attachments
 
 		$query->set( 'post_mime_type', array_unique( array_values( $mime_types ) ) );
@@ -120,9 +120,9 @@ class Documents extends Feature {
 	 */
 	public function index_post_request_path( $path, $post ) {
 		if ( 'attachment' === $post['post_type'] ) {
-			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], ep_documents_get_allowed_ingest_mime_types() ) ) {
-				$index = ep_get_index_name();
-				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', ep_get_index_name() . '-attachment' );
+			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types() ) ) {
+				$index = Indexables::factory()->get( 'post' )->get_index_name();
+				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
 			}
 		}
 
@@ -148,7 +148,7 @@ class Documents extends Feature {
 			return $post_args;
 		}
 
-		$allowed_ingest_mime_types = ep_documents_get_allowed_ingest_mime_types();
+		$allowed_ingest_mime_types = $this->get_allowed_ingest_mime_types();
 
 		if ( 'attachment' == get_post_type( $post_id ) && in_array( get_post_mime_type( $post_id ), $allowed_ingest_mime_types ) ) {
 			$file_name = get_attached_file( $post_id );
@@ -206,7 +206,7 @@ class Documents extends Feature {
 	 */
 	public function bulk_index_post_request_path( $path ) {
 		return add_query_arg( array(
-			'pipeline' => apply_filters( 'ep_documents_pipeline_id', ep_get_index_name() . '-attachment' ),
+			'pipeline' => apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ),
 		), $path );
 	}
 
@@ -258,6 +258,15 @@ class Documents extends Feature {
 	}
 
 	/**
+	 * Make sure to create pipeline after activation
+	 *
+	 * @since  2.6
+	 */
+	public function post_activation() {
+		$this->create_pipeline();
+	}
+
+	/**
 	 * Put attachment pipeline
 	 *
 	 * @since  2.3
@@ -282,7 +291,7 @@ class Documents extends Feature {
 			),
 		);
 
-		Elasticsearch::factory()->create_pipeline( apply_filters( 'ep_documents_pipeline_id', Post::factory()->get_index_name() . '-attachment' ), $args );
+		Elasticsearch::factory()->create_pipeline( apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ), $args );
 	}
 
 	/**

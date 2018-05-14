@@ -11,7 +11,7 @@ namespace ElasticPress\Feature\Facets;
 use ElasticPress\Feature as Feature;
 use ElasticPress\Utils as Utils;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Post\Post as Post;
+use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -42,8 +42,8 @@ class Facets extends Feature {
 	 */
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
-		add_action( 'ep_retrieve_raw_response', [ $this, 'get_aggs' ] );
-		add_action( 'ep_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+		add_action( 'ep_valid_response', [ $this, 'get_aggs' ] );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
@@ -107,7 +107,7 @@ class Facets extends Feature {
 		) );
 
 		if ( ! empty( $facet_query_args['tax_query'] ) ) {
-			remove_action( 'ep_formatted_args', 'ep_facets_set_agg_filters', 10, 2 );
+			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
 
 			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
 				if ( is_array( $taxonomy ) ) {
@@ -117,11 +117,11 @@ class Facets extends Feature {
 				}
 			}
 
-			$facet_formatted_args = Post::factory()->format_args( $facet_query_args );
+			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args );
 
 			$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
-			add_action( 'ep_post_formatted_args', 'set_agg_filters', 10, 2 );
+			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
 		}
 
 		return $args;
@@ -268,8 +268,6 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function get_aggs( $response ) {
-		$response_body = wp_remote_retrieve_body( $response );
-		$response = json_decode( $response_body, true );
 
 		$GLOBALS['ep_facet_aggs'] = false;
 
