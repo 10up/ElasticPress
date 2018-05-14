@@ -471,8 +471,6 @@ function action_wp_ajax_ep_index() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$sites = Utils\get_sites();
 
-			$index_meta['site_stack'] = [];
-
 			foreach ( $sites as $site ) {
 				foreach ( $non_global_indexables as $indexable ) {
 					$index_meta['sync_stack'][] = [
@@ -518,7 +516,7 @@ function action_wp_ajax_ep_index() {
 	$index_meta = apply_filters( 'ep_index_meta', $index_meta );
 	$indexable = Indexables::factory()->get( $index_meta['current_sync_item']['indexable'] );
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! empty( $index_meta['current_sync_item']['blog_id'] ) ) {
 		switch_to_blog( $index_meta['current_sync_item']['blog_id'] );
 	}
 
@@ -536,7 +534,7 @@ function action_wp_ajax_ep_index() {
 
 	do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
 
-	$args = apply_filters( 'ep_index_args', [
+	$args = apply_filters( 'ep_dashboard_index_args', [
 		'posts_per_page' => $per_page,
 		'offset'         => $index_meta['offset'],
 	] );
@@ -620,7 +618,7 @@ function action_wp_ajax_ep_index() {
 		}
 	}
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! empty( $index_meta['current_sync_item']['blog_id'] ) ) {
 		restore_current_blog();
 	}
 
