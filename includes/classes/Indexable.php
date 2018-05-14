@@ -47,7 +47,7 @@ abstract class Indexable {
 
 			if ( ! empty( $site_url ) ) {
 				$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
-				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->indexable_type;
+				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->slug;
 			} else {
 				$index_name = false;
 			}
@@ -60,7 +60,7 @@ abstract class Indexable {
 
 			if ( ! empty( $site_url ) ) {
 				$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
-				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->indexable_type . '-' . $blog_id;
+				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->slug . '-' . $blog_id;
 			} else {
 				$index_name = false;
 			}
@@ -84,7 +84,7 @@ abstract class Indexable {
 		$slug = preg_replace( '#https?://(www\.)?#i', '', $url );
 		$slug = preg_replace( '#[^\w]#', '', $slug );
 
-		$alias = $slug . '-' . $this->indexable_type . '-global';
+		$alias = $slug . '-' . $this->slug . '-global';
 
 		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
 			$alias = EP_INDEX_PREFIX . $alias;
@@ -122,7 +122,7 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	public function delete( $object_id, $blocking = true  ) {
-		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->indexable_type, $object_id, $blocking );
+		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
 	}
 
 	/**
@@ -133,7 +133,7 @@ abstract class Indexable {
 	 * @return boolean|array
 	 */
 	public function get( $object_id ) {
-		return Elasticsearch::factory()->get_document( $this->get_index_name(), $this->indexable_type, $object_id );
+		return Elasticsearch::factory()->get_document( $this->get_index_name(), $this->slug, $object_id );
 	}
 
 	/**
@@ -162,15 +162,15 @@ abstract class Indexable {
 			return false;
 		}
 
-		if ( apply_filters( 'ep_' . $this->indexable_type . '_index_kill', false, $object_id ) ) {
+		if ( apply_filters( 'ep_' . $this->slug . '_index_kill', false, $object_id ) ) {
 			return false;
 		}
 
-		$document = apply_filters( 'ep_pre_index_' . $this->indexable_type, $document );
+		$document = apply_filters( 'ep_pre_index_' . $this->slug, $document );
 
-		$return = Elasticsearch::factory()->index_document( $this->get_index_name(), $this->indexable_type, $document, $blocking );
+		$return = Elasticsearch::factory()->index_document( $this->get_index_name(), $this->slug, $document, $blocking );
 
-		do_action( 'ep_after_index_' . $this->indexable_type, $document, $return );
+		do_action( 'ep_after_index_' . $this->slug, $document, $return );
 
 		return $return;
 	}
@@ -210,7 +210,7 @@ abstract class Indexable {
 			$body .= "\n\n";
 		}
 
-		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->indexable_type, $body );
+		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
 	}
 
 	/**
@@ -240,7 +240,7 @@ abstract class Indexable {
 			$index = $this->get_index_name();
 		}
 
-		return Elasticsearch::factory()->query( $index, $this->indexable_type, $args, $query_args );
+		return Elasticsearch::factory()->query( $index, $this->slug, $args, $query_args );
 	}
 
 	/**

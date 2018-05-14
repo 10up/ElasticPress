@@ -10,39 +10,37 @@ const $resumeSyncButton = jQuery( document.getElementsByClassName( 'resume-sync'
 const $pauseSyncButton = jQuery( document.getElementsByClassName( 'pause-sync' ) )
 const $cancelSyncButton = jQuery( document.getElementsByClassName( 'cancel-sync' ) )
 
-var syncStatus = 'sync'
-var featureSync = false
-var currentSite
-var siteStack
-var processed = 0
-var toProcess = 0
+let syncStatus = 'sync',
+	featureSync = false,
+	currentSyncItem,
+	syncStack,
+	processed = 0,
+	toProcess = 0
 
-$features.on( 'click', '.learn-more, .collapse', () => {
+$features.on( 'click', '.learn-more, .collapse', function() {
 	jQuery( this ).parents( '.ep-feature' ).toggleClass( 'show-full' )
 } )
 
-$features.on( 'click', '.settings-button', () => {
+$features.on( 'click', '.settings-button', function() {
 	jQuery( this ).parents( '.ep-feature' ).toggleClass( 'show-settings' )
 } )
 
-$features.on( 'click', '.save-settings', ( event ) => {
+$features.on( 'click', '.save-settings', function( event ) {
 	event.preventDefault()
 
 	if ( jQuery( this ).hasClass( 'disabled' ) ) {
 		return
 	}
 
-	var feature = event.target.getAttribute( 'data-feature' )
-	var $feature = $features.find( '.ep-feature-' + feature )
+	const feature = event.target.getAttribute( 'data-feature' )
+	const $feature = $features.find( '.ep-feature-' + feature )
+	const settings = {}
+	const $settings = $feature.find( '.setting-field' )
 
-	var settings = {}
-
-	var $settings = $feature.find( '.setting-field' )
-
-	$settings.each( () => {
-		var type = jQuery( this ).attr( 'type' )
-		var name = jQuery( this ).attr( 'data-field-name' )
-		var value = jQuery( this ).attr( 'value' )
+	$settings.each( function() {
+		const type = jQuery( this ).attr( 'type' )
+		const name = jQuery( this ).attr( 'data-field-name' )
+		const value = jQuery( this ).attr( 'value' )
 
 		if ( type === 'radio' ) {
 			if ( jQuery( this ).attr( 'checked' ) ) {
@@ -106,21 +104,21 @@ if ( epDash.index_meta ) {
 		updateSyncDash()
 	} else {
 		processed = epDash.index_meta.offset
-		toProcess = epDash.index_meta['found_posts']
+		toProcess = epDash.index_meta['found_items']
 
 		if ( epDash.index_meta.feature_sync ) {
 			featureSync = epDash.index_meta.feature_sync
 		}
 
-		if ( epDash.index_meta.current_site ) {
-			currentSite = epDash.index_meta.current_site
+		if ( epDash.index_meta.current_sync_item ) {
+			currentSyncItem = epDash.index_meta.current_sync_item
 		}
 
 		if ( epDash.index_meta.site_stack ) {
-			siteStack = epDash.index_meta.site_stack
+			syncStack = epDash.index_meta.sync_stack
 		}
 
-		if ( siteStack && siteStack.length ) {
+		if ( syncStack && syncStack.length ) {
 			// We are mid sync
 			if ( epDash.auto_start_index ) {
 				syncStatus = 'sync'
@@ -175,7 +173,7 @@ function updateSyncDash() {
 	if ( processed === 0 ) {
 		$progressBar.css( { width: '1%' } )
 	} else {
-		var width = parseInt( processed ) / parseInt( toProcess ) * 100
+		let width = parseInt( processed ) / parseInt( toProcess ) * 100
 		$progressBar.css( { width: width + '%' } )
 	}
 
@@ -193,10 +191,10 @@ function updateSyncDash() {
 		$resumeSyncButton.hide()
 		$startSyncButton.hide()
 	} else if ( syncStatus === 'sync' ) {
-		text = epDash.sync_syncing + ' ' + parseInt( processed ) + '/' + parseInt( toProcess )
+		text = epDash.sync_syncing + ' ' + epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase() + ' ' + parseInt( processed ) + '/' + parseInt( toProcess )
 
-		if ( currentSite ) {
-			text += ' (' + currentSite.url + ')'
+		if ( currentSyncItem.url ) {
+			text += ' (' + currentSyncItem.url + ')'
 		}
 
 		$syncStatusText.text( text )
@@ -216,8 +214,8 @@ function updateSyncDash() {
 			text += ' ' + parseInt( processed ) + '/' + parseInt( toProcess )
 		}
 
-		if ( currentSite ) {
-			text += ' (' + currentSite.url + ')'
+		if ( currentSyncItem.url ) {
+			text += ' (' + currentSyncItem.url + ')'
 		}
 
 		$syncStatusText.text( text )
@@ -325,18 +323,18 @@ function sync() {
 			return
 		}
 
-		toProcess = response.data.found_posts
+		toProcess = response.data.found_items
 		processed = response.data.offset
 
-		if ( response.data.site_stack ) {
-			siteStack = response.data.site_stack
+		if ( response.data.sync_stack ) {
+			syncStack = response.data.sync_stack
 		}
 
-		if ( response.data.current_site ) {
-			currentSite = response.data.current_site
+		if ( response.data.current_sync_item ) {
+			currentSyncItem = response.data.current_sync_item
 		}
 
-		if ( siteStack && siteStack.length ) {
+		if ( syncStack && syncStack.length ) {
 			// We are mid multisite sync
 			syncStatus = 'sync'
 			updateSyncDash()
@@ -345,7 +343,7 @@ function sync() {
 			return
 		}
 
-		if ( response.data.found_posts === 0 && ! response.data.start ) {
+		if ( response.data.found_items === 0 && ! response.data.start ) {
 			// Sync finished
 			syncStatus = 'finished'
 			updateSyncDash()

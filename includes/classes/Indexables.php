@@ -29,7 +29,7 @@ class Indexables {
 	 * @since 2.6
 	 */
 	public function register( Indexable $indexable ) {
-		$this->registered_indexables[ $indexable->indexable_type ] = $indexable;
+		$this->registered_indexables[ $indexable->slug ] = $indexable;
 	}
 
 	/**
@@ -47,18 +47,27 @@ class Indexables {
 	 * Get all indexable instances
 	 *
 	 * @param  boolean $global If true or false, will only get Indexables with that global property
+	 * @param  boolean $slug_only True returns an array of only string slugs
 	 * @since  2.6
 	 * @return array
 	 */
-	public function get_all( $global = null ) {
+	public function get_all( $global = null, $slug_only = false ) {
 		$indexables = [];
 
-		foreach ( $this->registered_indexables as $indexable ) {
+		foreach ( $this->registered_indexables as $slug => $indexable ) {
 			if ( null === $global ) {
-				$indexables[] = $indexable;
+				if ( $slug_only ) {
+					$indexables[] = $slug;
+				} else {
+					$indexables[] = $indexable;
+				}
 			} else {
 				if ( $global === $indexable->global ) {
-					$indexables[] = $indexable;
+					if ( $slug_only ) {
+						$indexables[] = $slug;
+					} else {
+						$indexables[] = $indexable;
+					}
 				}
 			}
 		}

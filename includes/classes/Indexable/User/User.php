@@ -26,7 +26,7 @@ class User extends Indexable {
 	 * @var string
 	 * @since  2.6
 	 */
-	public $indexable_type = 'user';
+	public $slug = 'user';
 
 	/**
 	 * Create indexable and setup dependencies
@@ -40,6 +40,7 @@ class User extends Indexable {
 		];
 
 		SyncManager::factory();
+		//QueryManager::factory();
 	}
 
 	/**

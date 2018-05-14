@@ -11,9 +11,8 @@ jQuery( facetTerms ).on( 'keyup', '.facet-search', _.debounce( ( event ) => {
 		return
 	}
 
-	var searchTerm = event.currentTarget.value.replace( /\s/g, '' )
-
-	var terms = event.delegateTarget.querySelectorAll( '.term' )
+	const searchTerm = event.currentTarget.value.replace( /\s/g, '' )
+	const terms = event.delegateTarget.querySelectorAll( '.term' )
 
 	terms.forEach( ( term ) => {
 		var slug = term.getAttribute( 'data-term-slug' )

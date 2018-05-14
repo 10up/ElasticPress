@@ -52,10 +52,10 @@ function selectItem( $localInput, element ) {
  * @returns {Function}
  */
 function debounce( fn, delay ) {
-	var timer = null
+	let timer = null
 
 	return () => {
-		var context = this,
+		const context = this,
 			args = arguments
 
 		window.clearTimeout( timer )

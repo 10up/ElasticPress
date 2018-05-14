@@ -11,6 +11,7 @@ namespace ElasticPress\Dashboard;
 use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Features as Features;
+use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -453,15 +454,19 @@ function action_wp_ajax_ep_index() {
 		$index_meta = get_option( 'ep_index_meta', false );
 	}
 
+	$global_indexables = Indexables::factory()->get_all( true, true );
+	$non_global_indexables = Indexables::factory()->get_all( false, true );
+
 	$status = false;
 
 	// No current index going on. Let's start over
 	if ( false === $index_meta ) {
 		$status = 'start';
-		$index_meta = array(
-			'offset' => 0,
-			'start' => true,
-		);
+		$index_meta = [
+			'offset'     => 0,
+			'start'      => true,
+			'sync_stack' => [],
+		];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$sites = Utils\get_sites();
@@ -469,26 +474,21 @@ function action_wp_ajax_ep_index() {
 			$index_meta['site_stack'] = [];
 
 			foreach ( $sites as $site ) {
-				$index_meta['site_stack'][] = array(
-					'url' => untrailingslashit( $site['domain'] . $site['path'] ),
-					'id' => (int) $site['blog_id'],
-				);
+				foreach ( $non_global_indexables as $indexable ) {
+					$index_meta['sync_stack'][] = [
+						'url'       => untrailingslashit( $site['domain'] . $site['path'] ),
+						'blog_id'   => (int) $site['blog_id'],
+						'indexable' => $indexable,
+					];
+				}
 			}
 
-			$index_meta['current_site'] = array_shift( $index_meta['site_stack'] );
+			$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
 
 			update_site_option( 'ep_last_sync', time() );
 			delete_site_option( 'ep_need_upgrade_sync' );
 			delete_site_option( 'ep_feature_auto_activated_sync' );
 		} else {
-			if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
-				ep_delete_index();
-
-				ep_put_mapping();
-
-				do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
-			}
-
 			update_option( 'ep_last_sync', time() );
 			delete_option( 'ep_need_upgrade_sync' );
 			delete_option( 'ep_feature_auto_activated_sync' );
@@ -498,101 +498,81 @@ function action_wp_ajax_ep_index() {
 			$index_meta['feature_sync'] = esc_attr( $_POST['feature_sync'] );
 		}
 
+		foreach ( $global_indexables as $indexable ) {
+			$index_meta['sync_stack'][] = [
+				'indexable' => $indexable,
+			];
+		}
+
 		do_action( 'ep_dashboard_start_index', $index_meta );
-	} else if ( ! empty( $index_meta['site_stack'] ) && $index_meta['offset'] >= $index_meta['found_posts'] ) {
+	} else if ( ! empty( $index_meta['sync_stack'] ) && $index_meta['offset'] >= $index_meta['found_items'] ) {
 		$status = 'start';
 
 		$index_meta['start'] = true;
 		$index_meta['offset'] = 0;
-		$index_meta['current_site'] = array_shift( $index_meta['site_stack'] );
+		$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
 	} else {
 		$index_meta['start'] = false;
 	}
 
 	$index_meta = apply_filters( 'ep_index_meta', $index_meta );
+	$indexable = Indexables::factory()->get( $index_meta['current_sync_item']['indexable'] );
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		switch_to_blog( $index_meta['current_site']['id'] );
+		switch_to_blog( $index_meta['current_sync_item']['blog_id'] );
+	}
 
-		if ( ! empty( $index_meta['start'] ) ) {
-			if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
-				ep_delete_index();
+	if ( ! empty( $index_meta['start'] ) ) {
+		if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
+			$indexable->delete_index();
 
-				ep_put_mapping();
+			$indexable->put_mapping();
 
-				do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
-			}
+			do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
 		}
 	}
 
-	$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
+	$per_page = apply_filters( 'ep_index_default_per_page', 350 );
 
-	do_action( 'ep_pre_dashboard_index', $index_meta, $status );
+	do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
 
-	$args = apply_filters( 'ep_index_posts_args', array(
-		'posts_per_page'         => $posts_per_page,
-		'post_type'              => ep_get_indexable_post_types(),
-		'post_status'            => ep_get_indexable_post_status(),
-		'offset'                 => $index_meta['offset'],
-		'ignore_sticky_posts'    => true,
-		'orderby'                => 'ID',
-		'order'                  => 'DESC',
-		'fields' => 'all',
-	) );
+	$args = apply_filters( 'ep_index_args', [
+		'posts_per_page' => $per_page,
+		'offset'         => $index_meta['offset'],
+	] );
 
-	$query = new WP_Query( $args );
+	$query = $indexable->query_db( $args );
 
-	$index_meta['found_posts'] = $query->found_posts;
+	$index_meta['found_items'] = $query['total_objects'];
 
 	if ( $status !== 'start' ) {
-		if ( $query->have_posts() ) {
-			$queued_posts = [];
+		if ( ! empty( $query['objects'] ) ) {
+			$queued_items = [];
 
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				$killed_post_count = 0;
+			foreach ( $query['objects'] as $object ) {
+				$killed_item_count = 0;
 
-				$post_args = ep_prepare_post( get_the_ID() );
-
-				if ( apply_filters( 'ep_post_sync_kill', false, $post_args, get_the_ID() ) ) {
-
-					$killed_post_count++;
-
-				} else { // Post wasn't killed so process it.
-
-					$queued_posts[ get_the_ID() ][] = '{ "index": { "_id": "' . absint( get_the_ID() ) . '" } }';
-
-					if ( function_exists( 'wp_json_encode' ) ) {
-						$queued_posts[ get_the_ID() ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
-					} else {
-						$queued_posts[ get_the_ID() ][] = addcslashes( json_encode( $post_args ), "\n" );
-					}
+				if ( apply_filters( 'ep_item_sync_kill', false, $object, $indexable ) ) {
+					$killed_item_count++;
+				} else {
+					$queued_items[ $object->ID ] = true;
 				}
 			}
 
-			if ( ! empty( $queued_posts ) ) {
-				$flatten = [];
+			if ( ! empty( $queued_items ) ) {
+				$return = $indexable->bulk_index( $queued_items );
 
-				foreach ( $queued_posts as $post ) {
-					$flatten[] = $post[0];
-					$flatten[] = $post[1];
-				}
-
-				// make sure to add a new line at the end or the request will fail
-				$body = rtrim( implode( "\n", $flatten ) ) . "\n";
-
-				$return = ep_bulk_index_posts( $body );
 				if( is_wp_error( $return ) ){
-					header("HTTP/1.1 500 Internal Server Error");
+					header( 'HTTP/1.1 500 Internal Server Error' );
 					wp_send_json_error(  );
 					exit;
 				}
 			}
 
-			$index_meta['offset'] = absint( $index_meta['offset'] + $posts_per_page );
+			$index_meta['offset'] = absint( $index_meta['offset'] + $per_page );
 
-			if ( $index_meta['offset'] >= $index_meta['found_posts'] ) {
-				$index_meta['offset'] = $index_meta['found_posts'];
+			if ( $index_meta['offset'] >= $index_meta['found_items'] ) {
+				$index_meta['offset'] = $index_meta['found_items'];
 			}
 
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -604,25 +584,29 @@ function action_wp_ajax_ep_index() {
 			// We are done (with this site)
 
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				if ( empty( $index_meta['site_stack'] ) ) {
+				if ( empty( $index_meta['sync_stack'] ) ) {
 					delete_site_option( 'ep_index_meta' );
 
 					$sites   = Utils\get_sites();
-					$indexes = [];
 
-					foreach ( $sites as $site ) {
-						switch_to_blog( $site['blog_id'] );
-						$indexes[] = ep_get_index_name();
-						restore_current_blog();
+					foreach ( $non_global_indexables as $indexable_slug ) {
+						$indexes = [];
+						$indexable_object = Indexables::factory()->get( $indexable_slug );
+
+						foreach ( $sites as $site ) {
+							switch_to_blog( $site['blog_id'] );
+							$indexes[] = $indexable_object->get_index_name();
+							restore_current_blog();
+						}
+
+						$indexable_object->create_network_alias( $indexes );
 					}
-
-					ep_create_network_alias( $indexes );
 				} else {
-					$index_meta['offset'] = (int) $query->found_posts;
+					$index_meta['offset'] = (int) $query['total_objects'];
 				}
 
 			} else {
-				$index_meta['offset'] = (int) $query->found_posts;
+				$index_meta['offset'] = (int) $query['total_objects'];
 
 				delete_option( 'ep_index_meta' );
 			}
@@ -674,7 +658,7 @@ function action_wp_ajax_ep_save_feature() {
 		exit;
 	}
 
-	$data = ep_update_feature( $_POST['feature'], $_POST['settings'] );
+	$data = Features::factory()->update_feature( $_POST['feature'], $_POST['settings'] );
 
 	// Since we deactivated, delete auto activate notice
 	if ( empty( $_POST['settings']['active'] ) ) {
@@ -695,7 +679,7 @@ function action_wp_ajax_ep_save_feature() {
  */
 function action_admin_enqueue_dashboard_scripts() {
 	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'elasticpress' ) !== false ) {
-		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/admin.min.css', [], EP_VERSION );
+		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard.min.css', [], EP_VERSION );
 
 		if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) {
 			wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard.min.js', [ 'jquery' ], EP_VERSION, true );
@@ -720,6 +704,14 @@ function action_admin_enqueue_dashboard_scripts() {
 
 			if ( ! empty( $index_meta ) ) {
 				$data['index_meta'] = $index_meta;
+			}
+
+			$indexables = Indexables::factory()->get_all();
+
+			$data['sync_indexable_labels'] = [];
+
+			foreach ( $indexables as $indexable ) {
+				$data['sync_indexable_labels'][ $indexable->slug ] = $indexable->labels;
 			}
 
 			$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );

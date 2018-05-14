@@ -48,7 +48,7 @@ class QueryIntegration {
 		add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
 
 		// Add header
-		add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
+		add_action( 'pre_get_users', array( $this, 'action_pre_get_users' ), 5 );
 
 		// Nukes the FOUND_ROWS() database query
 		add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
@@ -72,22 +72,12 @@ class QueryIntegration {
 	/**
 	 * Disables cache_results, adds header.
 	 *
-	 * @param $query
-	 * @since 0.9
+	 * @param WP_User_Query $query
+	 * @since 2.6
 	 */
-	public function action_pre_get_posts( $query ) {
-		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+	public function action_pre_get_users( $query ) {
+		if ( ! Indexables::factory()->get( 'user' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return;
-		}
-
-		/**
-		 * `cache_results` defaults to false but can be enabled.
-		 *
-		 * @since 1.5
-		 */
-		$query->set( 'cache_results', false );
-		if ( ! empty( $query->query['cache_results'] ) ) {
-			$query->set( 'cache_results', true );
 		}
 
 		if ( ! headers_sent() ) {

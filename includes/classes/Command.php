@@ -176,7 +176,7 @@ class Command extends WP_CLI_Command {
 	 * @return int
 	 */
 	private function get_default_index_per_page() {
-		return apply_filters( 'ep_default_index_per_page', 350 );
+		return apply_filters( 'ep_index_default_per_page', 350 );
 	}
 
 	/**
@@ -214,7 +214,7 @@ class Command extends WP_CLI_Command {
 					/**
 					 * If user has called out specific indexables to be indexed, only do those
 					 */
-					if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+					if ( null !== $indexables && ! in_array( $indexable->slug, $indexables, true ) ) {
 						continue;
 					}
 
@@ -239,7 +239,7 @@ class Command extends WP_CLI_Command {
 				/**
 				 * If user has called out specific indexables to be indexed, only do those
 				 */
-				if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+				if ( null !== $indexables && ! in_array( $indexable->slug, $indexables, true ) ) {
 					continue;
 				}
 
@@ -265,7 +265,7 @@ class Command extends WP_CLI_Command {
 			/**
 			 * If user has called out specific indexables to be indexed, only do those
 			 */
-			if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+			if ( null !== $indexables && ! in_array( $indexable->slug, $indexables, true ) ) {
 				continue;
 			}
 
@@ -481,7 +481,7 @@ class Command extends WP_CLI_Command {
 					/**
 					 * If user has called out specific indexables to be indexed, only do those
 					 */
-					if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+					if ( null !== $indexables && ! in_array( $indexable->slug, $indexables, true ) ) {
 						continue;
 					}
 
@@ -508,7 +508,7 @@ class Command extends WP_CLI_Command {
 				/**
 				 * If user has called out specific indexables to be indexed, only do those
 				 */
-				if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+				if ( null !== $indexables && ! in_array( $indexable->slug, $indexables, true ) ) {
 					continue;
 				}
 
@@ -532,7 +532,7 @@ class Command extends WP_CLI_Command {
 				/**
 				 * If user has called out specific indexables to be indexed, only do those
 				 */
-				if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+				if ( null !== $indexables && ! in_array( $indexable->slug, $indexables, true ) ) {
 					continue;
 				}
 
@@ -549,7 +549,7 @@ class Command extends WP_CLI_Command {
 				/**
 				 * If user has called out specific indexables to be indexed, only do those
 				 */
-				if ( null !== $indexables && ! in_array( $indexable->indexable_type, $indexables, true ) ) {
+				if ( null !== $indexables && ! in_array( $indexable->slug, $indexables, true ) ) {
 					continue;
 				}
 
@@ -700,7 +700,7 @@ class Command extends WP_CLI_Command {
 		/**
 		 * Kill switch to skip an object
 		 */
-		if ( apply_filters( 'ep_' . $indexable->indexable_type . '_index_kill', false, $object_id ) ) {
+		if ( apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object_id ) ) {
 
 			$killed_object_count++;
 			$killed_object = true; // Save status for return.
@@ -759,7 +759,7 @@ class Command extends WP_CLI_Command {
 
 		$this->reset_transient();
 
-		do_action( 'ep_cli_' . $indexable->indexable_type . '_bulk_index', $this->objects );
+		do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $this->objects );
 
 		if ( is_wp_error( $response ) ) {
 			WP_CLI::error( implode( "\n", $response->get_error_messages() ) );

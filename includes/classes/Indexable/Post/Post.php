@@ -19,7 +19,7 @@ class Post extends Indexable {
 	 * @var   string
 	 * @since 2.6
 	 */
-	public $indexable_type = 'post';
+	public $slug = 'post';
 
 	/**
 	 * Create indexable and initialize dependencies
