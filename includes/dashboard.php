@@ -541,7 +541,7 @@ function action_wp_ajax_ep_index() {
 
 	$query = $indexable->query_db( $args );
 
-	$index_meta['found_items'] = $query['total_objects'];
+	$index_meta['found_items'] = (int) $query['total_objects'];
 
 	if ( $status !== 'start' ) {
 		if ( ! empty( $query['objects'] ) ) {
