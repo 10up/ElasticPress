@@ -40,6 +40,13 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.5.2 (Requires re-index) =
+
+This is a small bug fix release.
+
+* Removed unnecessary facet JavaScript
+* Fix facet aggregations warning
+
 = 2.5.1 (Requires re-index) =
 
 This if a bug fix release. This version requires a re-index as we change the way data is being sent to Elasticsearch.
