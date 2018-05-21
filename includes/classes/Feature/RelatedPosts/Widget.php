@@ -1,9 +1,9 @@
 <?php
-
 /**
  * Related posts widget
  *
  * @since  2.2
+ * @package  elasticpress
  */
 namespace ElasticPress\Feature\RelatedPosts;
 
@@ -14,6 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Related posts widget class
+ */
 class Widget extends WP_Widget {
 
 	/**

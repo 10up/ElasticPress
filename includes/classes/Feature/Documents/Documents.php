@@ -1,4 +1,9 @@
 <?php
+/**
+ * Documents feature
+ *
+ * @package elasticpress
+ */
 
 namespace ElasticPress\Feature\Documents;
 
@@ -7,6 +12,9 @@ use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
 
+/**
+ * Documents feature class.
+ */
 class Documents extends Feature {
 	/**
 	 * Initialize feature setting it's config
@@ -31,7 +39,7 @@ class Documents extends Feature {
 		add_filter( 'ep_index_post_request_path', [ $this, 'index_post_request_path' ], 999, 2 );
 		add_filter( 'ep_post_sync_args', [ $this, 'post_sync_args' ], 999, 2 );
 		add_filter( 'ep_indexable_post_status', [ $this, 'indexable_post_status' ], 999, 1 );
-		add_filter( 'ep_bulk_index_post_request_path', [ $this, 'bulk_index_post_request_path' ], 999, 1 );
+		add_filter( 'ep_bulk_index_request_path', [ $this, 'bulk_index_request_path' ], 999, 1 );
 		add_filter( 'pre_get_posts', [ $this, 'search_attachment_post_type' ] );
 		add_filter( 'ep_config_mapping', [ $this, 'attachments_mapping' ] );
 		add_action( 'ep_cli_put_mapping', [ $this, 'create_pipeline' ] );
@@ -41,7 +49,7 @@ class Documents extends Feature {
 	/**
 	 * Add attachments mapping
 	 *
-	 * @param  array $mapping
+	 * @param  array $mapping Mapping to add to.
 	 * @since  2.3
 	 * @return array
 	 */
@@ -59,7 +67,7 @@ class Documents extends Feature {
 	 * we assume publish/inherit is wanted. post_type should always be set. We also add allowed mime types.
 	 * If mime types are already set, append.
 	 *
-	 * @param  WP_Query $query
+	 * @param  WP_Query $query WP_Query to modify to search.
 	 * @since  2.3
 	 */
 	public function search_attachment_post_type( $query ) {
@@ -105,7 +113,7 @@ class Documents extends Feature {
 		}
 
 		$mime_types   = array_merge( $mime_types, $this->get_allowed_ingest_mime_types() );
-		$mime_types[] = ''; // This let's us query non-attachments as well as attachments
+		$mime_types[] = ''; // This let's us query non-attachments as well as attachments.
 
 		$query->set( 'post_mime_type', array_unique( array_values( $mime_types ) ) );
 	}
@@ -113,8 +121,8 @@ class Documents extends Feature {
 	/**
 	 * Change Elasticsearch request path if processing attachment
 	 *
-	 * @param string $path
-	 * @param array  $post
+	 * @param string $path Path to request.
+	 * @param array  $post Post array.
 	 * @since  2.3
 	 * @return string
 	 */
@@ -132,8 +140,8 @@ class Documents extends Feature {
 	/**
 	 * Add attachment data in post sync args
 	 *
-	 * @param array $post_args
-	 * @param int   $post_id
+	 * @param array $post_args Post arguments to be synced.
+	 * @param int   $post_id Post id.
 	 * @since  2.3
 	 * @return mixed
 	 */
@@ -168,7 +176,7 @@ class Documents extends Feature {
 	/**
 	 * Add attachment field for search
 	 *
-	 * @param $search_fields
+	 * @param array $search_fields Search fields.
 	 * @since  2.3
 	 * @return array
 	 */
@@ -185,7 +193,7 @@ class Documents extends Feature {
 	/**
 	 * Add "inherit" post status for indexable post status
 	 *
-	 * @param $statuses
+	 * @param array $statuses Array of post statuses.
 	 * @since  2.3
 	 * @return array
 	 */
@@ -200,11 +208,11 @@ class Documents extends Feature {
 	/**
 	 * Set attachment pipeline in Elaticsearch request path for bulk index
 	 *
-	 * @param $path
-	 * @since  2.3
+	 * @param string $path Existing request path.
+	 * @since  2.6
 	 * @return string
 	 */
-	public function bulk_index_post_request_path( $path ) {
+	public function bulk_index_request_path( $path ) {
 		return add_query_arg(
 			array(
 				'pipeline' => apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ),
@@ -226,7 +234,7 @@ class Documents extends Feature {
 		$status->code    = 1;
 		$status->message = [];
 
-		// Ingest attachment plugin is required for this feature
+		// Ingest attachment plugin is required for this feature.
 		if ( empty( $plugins ) || empty( $plugins['ingest-attachment'] ) ) {
 			$status->code      = 2;
 			$status->message[] = __( 'The <a href="https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html">Ingest Attachment plugin</a> for Elasticsearch is not installed. To get the most out of ElasticPress, without the hassle of Elasticsearch management, check out <a href="https://elasticpress.io">ElasticPress.io</a> hosting.', 'elasticpress' );

@@ -16,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * WooCommerce feature class
+ */
 class WooCommerce extends Feature {
 	/**
 	 * Initialize feature setting it's config

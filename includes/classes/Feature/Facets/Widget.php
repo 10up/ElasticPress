@@ -1,4 +1,9 @@
 <?php
+/**
+ * Facets widget
+ *
+ * @package elasticpress
+ */
 
 namespace ElasticPress\Feature\Facets;
 
@@ -10,6 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Facets widget class
+ */
 class Widget extends WP_Widget {
 	/**
 	 * Create widget

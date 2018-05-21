@@ -1,9 +1,9 @@
 <?php
-
 /**
  * Facets feature
  *
  * @since  2.5
+ * @package  elasticpress
  */
 
 namespace ElasticPress\Feature\Facets;
@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Facets feature class
+ */
 class Facets extends Feature {
 
 	/**

@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Class for storing and managing features
+ */
 class Features {
 
 	/**

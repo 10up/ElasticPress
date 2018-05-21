@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Feature abstract class
+ */
 abstract class Feature {
 	/**
 	 * Feature slug

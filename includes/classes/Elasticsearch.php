@@ -15,12 +15,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Elasticsearch API class
+ */
 class Elasticsearch {
 
 	/**
 	 * Logged queries for debugging
 	 *
 	 * @since  1.8
+	 * @var  array
 	 */
 	private $queries = [];
 
@@ -61,9 +65,9 @@ class Elasticsearch {
 	 *
 	 * We require $document to have ID set
 	 *
-	 * @param  string  $index
-	 * @param  string  $type
-	 * @param  array   $document Formatted Elasticsearch document
+	 * @param  string  $index Index name.
+	 * @param  string  $type Index type.
+	 * @param  array   $document Formatted Elasticsearch document.
 	 * @param  boolean $blocking
 	 * @since  2.6
 	 * @return boolean|array
@@ -101,7 +105,7 @@ class Elasticsearch {
 	/**
 	 * Pull the site id from the index name
 	 *
-	 * @param string $index_name
+	 * @param string $index_name Index name.
 	 * @since 0.9.0
 	 * @return int
 	 */
@@ -133,7 +137,7 @@ class Elasticsearch {
 	/**
 	 * Get Elasticsearch version. We cache this so we don't have to do it every time.
 	 *
-	 * @param  bool $force
+	 * @param  bool $force Bust cache or not.
 	 * @since  2.1.2
 	 * @return string|bool
 	 */
@@ -161,10 +165,10 @@ class Elasticsearch {
 	/**
 	 * Run a query on Elasticsearch
 	 *
-	 * @param  string $index
-	 * @param  string $type
-	 * @param  array  $query
-	 * @param  array  $query_args WP query args. Used only for debugging
+	 * @param  string $index Index name.
+	 * @param  string $type Index type.
+	 * @param  array  $query Prepared ES query.
+	 * @param  array  $query_args WP query args. Used only for debugging.
 	 * @since  2.6
 	 * @return bool|array
 	 */
@@ -218,7 +222,7 @@ class Elasticsearch {
 	/**
 	 * Returns the number of total results that ElasticSearch found for the given query
 	 *
-	 * @param array $response
+	 * @param array $response Response to get total hits from.
 	 * @since  2.5
 	 * @return int
 	 */
@@ -234,7 +238,7 @@ class Elasticsearch {
 	/**
 	 * Returns array containing hits returned from query, if such exist
 	 *
-	 * @param array $response
+	 * @param array $response Response to get hits from.
 	 * @since  2.5
 	 * @return array
 	 */
@@ -250,7 +254,7 @@ class Elasticsearch {
 	/**
 	 * Check if a response array contains results or not
 	 *
-	 * @param array $response
+	 * @param array $response Response to check.
 	 * @since 0.1.2
 	 * @return bool
 	 */
@@ -278,10 +282,10 @@ class Elasticsearch {
 	/**
 	 * Delete an Elasticsearch document
 	 *
-	 * @param  string  $index
-	 * @param  string  $type
-	 * @param  int     $document_id
-	 * @param  boolean $blocking
+	 * @param  string  $index Index name.
+	 * @param  string  $type Index type.
+	 * @param  int     $document_id Document id to delete.
+	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -348,9 +352,9 @@ class Elasticsearch {
 	/**
 	 * Get a document from Elasticsearch given an id
 	 *
-	 * @param  string $index
-	 * @param  string $type
-	 * @param  int    $document_id
+	 * @param  string $index Index name.
+	 * @param  string $type Index type.
+	 * @param  int    $document_id Document id to get.
 	 * @since  2.6
 	 * @return boolean|array
 	 */
@@ -379,7 +383,7 @@ class Elasticsearch {
 	 *
 	 * Network aliases are used to query documents across blogs in a network.
 	 *
-	 * @param  string $alias
+	 * @param  string $alias Alias to use.
 	 * @since  2.6
 	 * @return array|boolean
 	 */
@@ -404,8 +408,8 @@ class Elasticsearch {
 	 *
 	 * Network aliases are used to query documents across blogs in a network.
 	 *
-	 * @param  array  $alias         Indexes to group under alias
-	 * @param  string $network_alias Name of network alias
+	 * @param  array  $alias         Indexes to group under alias.
+	 * @param  string $network_alias Name of network alias.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -444,8 +448,8 @@ class Elasticsearch {
 	/**
 	 * Put a mapping into Elasticsearch
 	 *
-	 * @param  string $index
-	 * @param  array  $mapping
+	 * @param  string $index Index name.
+	 * @param  array  $mapping Mapping array.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -474,7 +478,7 @@ class Elasticsearch {
 	/**
 	 * Delete an Elasticsearch index
 	 *
-	 * @param  string $index
+	 * @param  string $index Index name.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -501,7 +505,7 @@ class Elasticsearch {
 	/**
 	 * Check if an ES index exists
 	 *
-	 * @param  string $index
+	 * @param  string $index Index name.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -513,8 +517,8 @@ class Elasticsearch {
 
 		$request = $this->remote_request( $index, $request_args, [], 'index_exists' );
 
-		// 200 means the index exists
-		// 404 means the index was non-existent
+		// 200 means the index exists.
+		// 404 means the index was non-existent.
 		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) || 404 === wp_remote_retrieve_response_code( $request ) ) ) {
 
 			if ( 404 === wp_remote_retrieve_response_code( $request ) ) {
@@ -532,14 +536,16 @@ class Elasticsearch {
 	/**
 	 * Bulk index Elasticsearch documents
 	 *
-	 * @param  string $index
-	 * @param  string $type
+	 * @param  string $index Index name.
+	 * @param  string $type Index type.
 	 * @param  string $body  Encoded JSON
 	 * @since  2.6
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $index, $type, $body ) {
 		$path = $index . '/' . $type . '/_bulk';
+
+		$path = apply_filters( 'ep_bulk_index_request_path', $path, $body );
 
 		$request_args = array(
 			'method'  => 'POST',
@@ -703,7 +709,7 @@ class Elasticsearch {
 	/**
 	 * Get ES plugins and version, cache everything
 	 *
-	 * @param  bool $force
+	 * @param  bool $force Bust cache or not.
 	 * @since 2.2
 	 * @return array
 	 */
@@ -711,7 +717,7 @@ class Elasticsearch {
 
 		if ( $force || null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) {
 
-			// Get ES info from cache if available. If we are forcing, then skip cache check
+			// Get ES info from cache if available. If we are forcing, then skip cache check.
 			if ( $force ) {
 				$es_info = false;
 			} else {
@@ -750,7 +756,7 @@ class Elasticsearch {
 						try {
 							$this->elasticsearch_version = $response['version']['number'];
 						} catch ( Exception $e ) {
-							// Do nothing
+							// Do nothing.
 						}
 					}
 				} else {
@@ -886,8 +892,8 @@ class Elasticsearch {
 	/**
 	 * Put an Elasticsearch pipeline
 	 *
-	 * @param  string $id
-	 * @param array  $args
+	 * @param  string $id Pipeline id.
+	 * @param array  $args Args to send to ES.
 	 * @since  2.3
 	 * @return WP_Error|bool
 	 */
@@ -926,8 +932,7 @@ class Elasticsearch {
 	 * want to access the query outside of the ElasticPress plugin. This
 	 * runs regardless of debufg settings.
 	 *
-	 * @param array $query Query.
-	 * @return void Method does not return.
+	 * @param array $query Query to log.
 	 */
 	protected function _add_query_log( $query ) {
 		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {

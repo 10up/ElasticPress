@@ -12,6 +12,9 @@ use ElasticPress\Feature as Feature;
 use ElasticPress\Post\Post as Post;
 use \WP_Query as WP_Query;
 
+/**
+ * Related posts feature class
+ */
 class RelatedPosts extends Feature {
 	/**
 	 * Initialize feature setting it's config

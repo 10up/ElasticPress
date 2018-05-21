@@ -3,6 +3,7 @@
  * Search feature
  *
  * @since  1.9
+ * @package  elasticpress
  */
 
 namespace ElasticPress\Feature\Search;
@@ -11,6 +12,9 @@ use ElasticPress\Features as Features;
 use ElasticPress\Indexables as Indexables;
 use ElasticPress\Indexable\Post\Post as Post;
 
+/**
+ * Search feature class
+ */
 class Search extends Feature {
 	/**
 	 * Initialize feature setting it's config

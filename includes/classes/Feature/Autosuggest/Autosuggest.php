@@ -1,4 +1,10 @@
 <?php
+/**
+ * Autosuggest feature
+ *
+ * @package elasticpress
+ */
+
 namespace ElasticPress\Feature\Autosuggest;
 
 use ElasticPress\Feature as Feature;
@@ -10,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Autosuggest feature class
+ */
 class Autosuggest extends Feature {
 
 	/**

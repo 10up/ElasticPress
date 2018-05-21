@@ -1,5 +1,4 @@
 <?php
-
 /**
  * WP-CLI command for ElasticPress
  *

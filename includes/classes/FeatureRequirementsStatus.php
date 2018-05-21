@@ -21,8 +21,8 @@ class FeatureRequirementsStatus {
 	/**
 	 * Initialize class
 	 *
-	 * @param int          $code
-	 * @param string|array $message
+	 * @param int          $code Status code.
+	 * @param string|array $message Message describing status.
 	 * @since  2.2
 	 */
 	public function __construct( $code, $message = null ) {
