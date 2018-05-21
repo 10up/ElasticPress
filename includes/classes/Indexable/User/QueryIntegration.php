@@ -22,60 +22,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 class QueryIntegration {
 
 	/**
-	 * Is set only when we are within a multisite loop
-	 *
-	 * @var bool|WP_Query
-	 */
-	private $query_stack = [];
-
-	private $posts_by_query = [];
-
-	/**
-	 * Placeholder method
-	 *
-	 * @since 0.9
-	 */
-	public function __construct() { }
-
-	/**
 	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
 	 *
 	 * @since 0.9
 	 */
-	public function setup() {
+	public function __construct() {
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
 		if ( Utils\is_indexing() ) {
 			return;
 		}
 
-		add_filter( 'users_pre_query', [ $this, 'maybe_filter_query' ] );
+		add_filter( 'users_pre_query', [ $this, 'maybe_filter_query' ], 10, 2 );
 
 		// Add header
 		add_action( 'pre_get_users', array( $this, 'action_pre_get_users' ), 5 );
-
-
-
-
-		// Make sure we return nothing for MySQL posts query
-		add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
-
-		// Nukes the FOUND_ROWS() database query
-		add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
-
-		// Support "fields".
-		add_filter( 'posts_pre_query', array( $this, 'posts_fields' ), 10, 2 );
-
-		// Query and filter in EP_Posts to WP_Query
-		add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
-
-		// Ensure we're in a loop before we allow blog switching
-		add_action( 'loop_start', array( $this, 'action_loop_start' ), 10, 1 );
-
-		// Properly restore blog if necessary
-		add_action( 'loop_end', array( $this, 'action_loop_end' ), 10, 1 );
-
-		// Properly switch to blog if necessary
-		add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 	}
 
 	/**
@@ -86,8 +46,8 @@ class QueryIntegration {
 	 * @since  2.6
 	 * @return array
 	 */
-	public function maybe_filter_query( array $results, WP_User_Query $query ) {
-		$user_indexable = Indexables::factory()->get( 'post' );
+	public function maybe_filter_query( $results, WP_User_Query $query ) {
+		$user_indexable = Indexables::factory()->get( 'user' );
 
 		if ( ! $user_indexable->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_user_query_integration', false, $query ) ) {
 			return $results;
@@ -110,6 +70,8 @@ class QueryIntegration {
 
 		$query->total_users = $ep_query['found_documents'];
 
+		var_dump($new_users);
+
 		return $new_users;
 	}
 
@@ -129,7 +91,7 @@ class QueryIntegration {
 			$user_return_args = apply_filters(
 				'ep_search_user_return_args',
 				[
-					'ID'
+					'ID',
 					'user_login',
 					'user_nicename',
 					'user_email',
@@ -145,7 +107,9 @@ class QueryIntegration {
 			);
 
 			foreach ( $user_return_args as $key ) {
-				$user->$key = $user_array[ $key ];
+				if ( isset( $user_array[ $key ] ) ) {
+					$user->$key = $user_array[ $key ];
+				}
 			}
 
 			$user->elasticsearch = true; // Super useful for debugging.

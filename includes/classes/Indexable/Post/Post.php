@@ -1511,23 +1511,4 @@ class Post extends Indexable {
 
 		return $orderbys;
 	}
-
-	/**
-	 * Check to see if we should allow elasticpress to override this query
-	 *
-	 * @param $query
-	 * @return bool
-	 * @since 0.9.2
-	 */
-	public function elasticpress_enabled( $query ) {
-		$enabled = false;
-
-		if ( ! empty( $query->query_vars['ep_match_all'] ) ) { // ep_match_all is supported for legacy reasons
-			$enabled = true;
-		} elseif ( ! empty( $query->query_vars['ep_integrate'] ) ) {
-			$enabled = true;
-		}
-
-		return apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
-	}
 }

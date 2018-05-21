@@ -263,6 +263,23 @@ abstract class Indexable {
 	}
 
 	/**
+	 * Check to see if we should allow elasticpress to override this query
+	 *
+	 * @param WP_Query $query WP_Query instance
+	 * @return bool
+	 * @since 2.6
+	 */
+	public function elasticpress_enabled( $query ) {
+		$enabled = false;
+
+		if ( ! empty( $query->query_vars['ep_integrate'] ) ) {
+			$enabled = true;
+		}
+
+		return apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
+	}
+
+	/**
 	 * Prepare meta type values to send to ES
 	 *
 	 * @param array $meta Array of meta.

@@ -164,10 +164,29 @@ class User extends Indexable {
 		}
 
 		/**
+		 * Support `login__not_in` query var
+		 */
+		if ( ! empty( $query_vars['login__not_in'] ) ) {
+			$filter['bool']['must'][] = [
+				'bool' => [
+					'must_not' => [
+						[
+							'terms' => [
+								'user_login' => (array) $query_vars['login__not_in'],
+							],
+						],
+					],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
 		 * Handle `offset` and `paged` query vars. Paged takes priority if both are set.
 		 */
 		if ( isset( $query_vars['offset'] ) ) {
-			$formatted_args['from'] = $query_vars['offset'];
+			$formatted_args['from'] = (int) $query_vars['offset'];
 		}
 
 		if ( isset( $query_vars['paged'] ) && $query_vars['paged'] > 1 ) {
@@ -358,6 +377,7 @@ class User extends Indexable {
 			'ID'              => $user_id,
 			'user_login'      => $user->user_login,
 			'user_email'      => $user->user_email,
+			'user_nicename'   => $user->user_nicename,
 			'spam'            => $user->spam,
 			'deleted'         => $user->spam,
 			'user_status'     => $user->user_status,
