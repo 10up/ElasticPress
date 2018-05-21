@@ -21,7 +21,7 @@ class FeatureRequirementsStatus {
 	/**
 	 * Initialize class
 	 *
-	 * @param int $code
+	 * @param int          $code
 	 * @param string|array $message
 	 * @since  2.2
 	 */

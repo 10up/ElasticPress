@@ -37,7 +37,7 @@ abstract class Indexable {
 	/**
 	 * Get the name of the index. Each indexable needs a unique index name
 	 *
-	 * @param  int $blog_id `null` means current blog
+	 * @param  int $blog_id `null` means current blog.
 	 * @since  2.6
 	 * @return string
 	 */
@@ -80,7 +80,7 @@ abstract class Indexable {
 	 * @return string
 	 */
 	public function get_network_alias() {
-		$url = network_site_url();
+		$url  = network_site_url();
 		$slug = preg_replace( '#https?://(www\.)?#i', '', $url );
 		$slug = preg_replace( '#[^\w]#', '', $slug );
 
@@ -106,6 +106,7 @@ abstract class Indexable {
 	/**
 	 * Create unique indexable network alias
 	 *
+	 * @param  array $indexes Array of indexes.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -116,19 +117,19 @@ abstract class Indexable {
 	/**
 	 * Delete an object within the indexable
 	 *
-	 * @param  int     $object_id
-	 * @param  boolean $blocking
+	 * @param  int     $object_id Object to delete.
+	 * @param  boolean $blocking Whether to issue blocking HTTP request or not.
 	 * @since  2.6
 	 * @return boolean
 	 */
-	public function delete( $object_id, $blocking = true  ) {
+	public function delete( $object_id, $blocking = true ) {
 		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
 	}
 
 	/**
 	 * Get an object within the indexable
 	 *
-	 * @param  int     $object_id
+	 * @param  int $object_id Object to get.
 	 * @since  2.6
 	 * @return boolean|array
 	 */
@@ -139,7 +140,7 @@ abstract class Indexable {
 	/**
 	 * Delete an index within the indexable
 	 *
-	 * @param  int $blod_id `null` means current blog
+	 * @param  int $blog_id `null` means current blog.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -150,8 +151,8 @@ abstract class Indexable {
 	/**
 	 * Index an object within the indexable. This calls prepare_document
 	 *
-	 * @param  int  $object_id
-	 * @param  boolean $blocking
+	 * @param  int     $object_id Object to index.
+	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -178,7 +179,7 @@ abstract class Indexable {
 	/**
 	 * Determine if indexable index exists
 	 *
-	 * @param  int $blog_id
+	 * @param  int $blog_id Blog to check index for.
 	 * @since  2.6
 	 * @return boolean
 	 */
@@ -189,7 +190,7 @@ abstract class Indexable {
 	/**
 	 * Bulk index objects. This calls prepare_document on each object
 	 *
-	 * @param  array $object_ids Array of object IDs
+	 * @param  array $object_ids Array of object IDs.
 	 * @since  2.6
 	 * @return WP_Error|array
 	 */
@@ -216,8 +217,9 @@ abstract class Indexable {
 	/**
 	 * Query Elasticsearch for documents
 	 *
-	 * @param  array $args Unprepared query arguments
-	 * @param  string $scope      [description]
+	 * @param  array  $args Unprepared query arguments.
+	 * @param  array  $query_args WP_Query args.
+	 * @param  string $scope Which blog(s) should we query against.
 	 * @since  2.6
 	 * @return array
 	 */
@@ -246,7 +248,7 @@ abstract class Indexable {
 	/**
 	 * Prepare meta type values to send to ES
 	 *
-	 * @param array $meta
+	 * @param array $meta Array of meta.
 	 * @since  2.6
 	 * @return array
 	 */
@@ -269,7 +271,7 @@ abstract class Indexable {
 	/**
 	 * Prepare meta types for meta value
 	 *
-	 * @param mixed $meta_value
+	 * @param mixed $meta_value Meta value to prepare.
 	 * @since  2.6
 	 * @return array
 	 */
@@ -337,6 +339,7 @@ abstract class Indexable {
 	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
 	 * document
 	 *
+	 * @param  int $object_id Object to prepare.
 	 * @return array
 	 */
 	abstract function prepare_document( $object_id );
@@ -346,6 +349,7 @@ abstract class Indexable {
 	 * in a standardized format. This is necessary so we can genericize the index
 	 * process across indexables.
 	 *
+	 * @param  array $args Array to query DB against.
 	 * @return boolean
 	 */
 	abstract function query_db( $args );

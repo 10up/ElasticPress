@@ -40,7 +40,7 @@ class User extends Indexable {
 		];
 
 		SyncManager::factory();
-		//QueryManager::factory();
+		// QueryManager::factory();
 	}
 
 	/**
@@ -166,9 +166,11 @@ class User extends Indexable {
 		 * @param         array Array of public meta keys to exclude from index.
 		 * @param WP_Post $post The current post to be indexed.
 		 */
-		$excluded_public_keys = apply_filters( 'ep_prepare_user_meta_excluded_public_keys', [
-			'session_tokens'
-		], $user_id );
+		$excluded_public_keys = apply_filters(
+			'ep_prepare_user_meta_excluded_public_keys', [
+				'session_tokens',
+			], $user_id
+		);
 
 		foreach ( $meta as $key => $value ) {
 
@@ -181,7 +183,7 @@ class User extends Indexable {
 				}
 			} else {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys )  ) {
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys ) ) {
 					$allow_index = true;
 				}
 			}

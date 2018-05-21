@@ -29,13 +29,13 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		<?php $features = Features::factory()->registered_features; ?>
 
 		<?php
-		$left = '';
-		$right = '';
-		$i = 0;
+		$left           = '';
+		$right          = '';
+		$i              = 0;
 		foreach ( $features as $feature ) :
 			$i++;
 			$requirements_status = $feature->requirements_status();
-			$active = $feature->is_active();
+			$active              = $feature->is_active();
 
 			$feature_classes = 'feature-requirements-status-' . (int) $requirements_status->code;
 
@@ -68,7 +68,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				</div>
 			</div>
 			<?php
-			if ( $i % 2 === 0 ) {
+			if ( 0 === $i % 2 ) {
 				$right .= ob_get_clean();
 			} else {
 				$left .= ob_get_clean();

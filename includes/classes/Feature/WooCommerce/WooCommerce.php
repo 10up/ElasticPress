@@ -39,81 +39,85 @@ class WooCommerce extends Feature {
 	 * @return  array
 	 */
 	public function whitelist_meta_keys( $meta, $post ) {
-		return array_unique( array_merge( $meta, array(
-			'_thumbnail_id',
-			'_product_attributes',
-			'_wpb_vc_js_status',
-			'_swatch_type',
-			'total_sales',
-			'_downloadable',
-			'_virtual',
-			'_regular_price',
-			'_sale_price',
-			'_tax_status',
-			'_tax_class',
-			'_purchase_note',
-			'_featured',
-			'_weight',
-			'_length',
-			'_width',
-			'_height',
-			'_visibility',
-			'_sku',
-			'_sale_price_dates_from',
-			'_sale_price_dates_to',
-			'_price',
-			'_sold_individually',
-			'_manage_stock',
-			'_backorders',
-			'_stock',
-			'_upsell_ids',
-			'_crosssell_ids',
-			'_stock_status',
-			'_product_version',
-			'_product_tabs',
-			'_override_tab_layout',
-			'_suggested_price',
-			'_min_price',
-			'_customer_user',
-			'_variable_billing',
-			'_wc_average_rating',
-			'_product_image_gallery',
-			'_bj_lazy_load_skip_post',
-			'_min_variation_price',
-			'_max_variation_price',
-			'_min_price_variation_id',
-			'_max_price_variation_id',
-			'_min_variation_regular_price',
-			'_max_variation_regular_price',
-			'_min_regular_price_variation_id',
-			'_max_regular_price_variation_id',
-			'_min_variation_sale_price',
-			'_max_variation_sale_price',
-			'_min_sale_price_variation_id',
-			'_max_sale_price_variation_id',
-			'_default_attributes',
-			'_swatch_type_options',
-			'_order_key',
-			'_billing_company',
-			'_billing_address_1',
-			'_billing_address_2',
-			'_billing_city',
-			'_billing_postcode',
-			'_billing_country',
-			'_billing_state',
-			'_billing_email',
-			'_billing_phone',
-			'_shipping_address_1',
-			'_shipping_address_2',
-			'_shipping_city',
-			'_shipping_postcode',
-			'_shipping_country',
-			'_shipping_state',
-			'_billing_last_name',
-			'_billing_first_name',
-			'_shipping_first_name',
-			'_shipping_last_name',
-		) ) );
+		return array_unique(
+			array_merge(
+				$meta, array(
+					'_thumbnail_id',
+					'_product_attributes',
+					'_wpb_vc_js_status',
+					'_swatch_type',
+					'total_sales',
+					'_downloadable',
+					'_virtual',
+					'_regular_price',
+					'_sale_price',
+					'_tax_status',
+					'_tax_class',
+					'_purchase_note',
+					'_featured',
+					'_weight',
+					'_length',
+					'_width',
+					'_height',
+					'_visibility',
+					'_sku',
+					'_sale_price_dates_from',
+					'_sale_price_dates_to',
+					'_price',
+					'_sold_individually',
+					'_manage_stock',
+					'_backorders',
+					'_stock',
+					'_upsell_ids',
+					'_crosssell_ids',
+					'_stock_status',
+					'_product_version',
+					'_product_tabs',
+					'_override_tab_layout',
+					'_suggested_price',
+					'_min_price',
+					'_customer_user',
+					'_variable_billing',
+					'_wc_average_rating',
+					'_product_image_gallery',
+					'_bj_lazy_load_skip_post',
+					'_min_variation_price',
+					'_max_variation_price',
+					'_min_price_variation_id',
+					'_max_price_variation_id',
+					'_min_variation_regular_price',
+					'_max_variation_regular_price',
+					'_min_regular_price_variation_id',
+					'_max_regular_price_variation_id',
+					'_min_variation_sale_price',
+					'_max_variation_sale_price',
+					'_min_sale_price_variation_id',
+					'_max_sale_price_variation_id',
+					'_default_attributes',
+					'_swatch_type_options',
+					'_order_key',
+					'_billing_company',
+					'_billing_address_1',
+					'_billing_address_2',
+					'_billing_city',
+					'_billing_postcode',
+					'_billing_country',
+					'_billing_state',
+					'_billing_email',
+					'_billing_phone',
+					'_shipping_address_1',
+					'_shipping_address_2',
+					'_shipping_city',
+					'_shipping_postcode',
+					'_shipping_country',
+					'_shipping_state',
+					'_billing_last_name',
+					'_billing_first_name',
+					'_shipping_first_name',
+					'_shipping_last_name',
+				)
+			)
+		);
 	}
 
 	/**
@@ -158,13 +162,13 @@ class WooCommerce extends Feature {
 	public function whitelist_taxonomies( $taxonomies, $post ) {
 		$woo_taxonomies = [];
 
-		$product_type       = get_taxonomy( 'product_type' );
-		if( false !== $product_type ){
+		$product_type = get_taxonomy( 'product_type' );
+		if ( false !== $product_type ) {
 			$woo_taxonomies[] = $product_type;
 		}
 
 		$product_visibility = get_taxonomy( 'product_visibility' );
-		if( false !== $product_visibility ){
+		if ( false !== $product_visibility ) {
 			$woo_taxonomies[] = $product_visibility;
 		}
 
@@ -175,7 +179,7 @@ class WooCommerce extends Feature {
 		if ( $attribute_taxonomies = wc_get_attribute_taxonomies() ) {
 			foreach ( $attribute_taxonomies as $tax ) {
 				if ( $name = wc_attribute_taxonomy_name( $tax->attribute_name ) ) {
-					if ( empty( $tax->attribute_) ) {
+					if ( empty( $tax->attribute_ ) ) {
 						$woo_taxonomies[] = get_taxonomy( $name );
 					}
 				}
@@ -230,7 +234,7 @@ class WooCommerce extends Feature {
 		}
 
 		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
-		     ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
+			 ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
 			return;
 		}
 
@@ -328,7 +332,7 @@ class WooCommerce extends Feature {
 			if ( ! empty( $term ) ) {
 				$integrate = true;
 
-				$terms          = (array)$term;
+				$terms          = (array) $term;
 				$children_terms = [];
 
 				// to add child terms to the tax query
@@ -348,7 +352,7 @@ class WooCommerce extends Feature {
 						}
 					}
 				}
-				$terms = array_merge( $terms, $children_terms );
+				$terms       = array_merge( $terms, $children_terms );
 				$tax_query[] = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
@@ -368,7 +372,7 @@ class WooCommerce extends Feature {
 				'product',
 				'shop_order',
 				'shop_order_refund',
-				'product_variation'
+				'product_variation',
 			),
 			Post::factory()->get_indexable_post_types()
 		);
@@ -413,12 +417,12 @@ class WooCommerce extends Feature {
 			 * Handle meta queries
 			 */
 			$meta_query = $query->get( 'meta_query', [] );
-			$meta_key = $query->get( 'meta_key', false );
+			$meta_key   = $query->get( 'meta_key', false );
 			$meta_value = $query->get( 'meta_value', false );
 
 			if ( ! empty( $meta_key ) && ! empty( $meta_value ) ) {
 				$meta_query[] = array(
-					'key' => $meta_key,
+					'key'   => $meta_key,
 					'value' => $meta_value,
 				);
 
@@ -440,7 +444,7 @@ class WooCommerce extends Feature {
 			$s = $query->get( 's' );
 
 			$query->query_vars['ep_integrate'] = true;
-			$query->query['ep_integrate'] = true;
+			$query->query['ep_integrate']      = true;
 
 			if ( ! empty( $s ) ) {
 				$query->set( 'orderby', false ); // Just order by relevance.
@@ -457,29 +461,33 @@ class WooCommerce extends Feature {
 				if ( 'shop_order' === $post_type ) {
 					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
-					$search_fields['meta'] = array_map( 'wc_clean', apply_filters( 'shop_order_search_fields', array(
-						'_order_key',
-						'_billing_company',
-						'_billing_address_1',
-						'_billing_address_2',
-						'_billing_city',
-						'_billing_postcode',
-						'_billing_country',
-						'_billing_state',
-						'_billing_email',
-						'_billing_phone',
-						'_shipping_address_1',
-						'_shipping_address_2',
-						'_shipping_city',
-						'_shipping_postcode',
-						'_shipping_country',
-						'_shipping_state',
-						'_billing_last_name',
-						'_billing_first_name',
-						'_shipping_first_name',
-						'_shipping_last_name',
-						'_items',
-					) ) );
+					$search_fields['meta'] = array_map(
+						'wc_clean', apply_filters(
+							'shop_order_search_fields', array(
+								'_order_key',
+								'_billing_company',
+								'_billing_address_1',
+								'_billing_address_2',
+								'_billing_city',
+								'_billing_postcode',
+								'_billing_country',
+								'_billing_state',
+								'_billing_email',
+								'_billing_phone',
+								'_shipping_address_1',
+								'_shipping_address_2',
+								'_shipping_city',
+								'_shipping_postcode',
+								'_shipping_country',
+								'_shipping_state',
+								'_billing_last_name',
+								'_billing_first_name',
+								'_shipping_first_name',
+								'_shipping_last_name',
+								'_items',
+							)
+						)
+					);
 
 					$query->set( 'search_fields', $search_fields );
 				} elseif ( 'product' === $post_type ) {
@@ -496,13 +504,13 @@ class WooCommerce extends Feature {
 			} else {
 				/**
 				 * For default sorting by popularity (total_sales) and rating
-		         * Woocommerce doesn't set the orderby correctly.
-		         * These lines will check the meta_key and correct the orderby based on that.
-		         * And this won't run in search result and only run in main query
+				 * Woocommerce doesn't set the orderby correctly.
+				 * These lines will check the meta_key and correct the orderby based on that.
+				 * And this won't run in search result and only run in main query
 				 */
 				$meta_key = $query->get( 'meta_key', false );
-				if ( $meta_key && $query->is_main_query() ){
-					switch ( $meta_key ){
+				if ( $meta_key && $query->is_main_query() ) {
+					switch ( $meta_key ) {
 						case 'total_sales':
 							$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
 							$query->set( 'order', 'DESC' );
@@ -534,7 +542,7 @@ class WooCommerce extends Feature {
 						$query->set( 'order', 'DESC' );
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
 						break;
-					case 'rating' :
+					case 'rating':
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_wc_average_rating' ) );
 						$query->set( 'order', 'DESC' );
 						break;
@@ -559,15 +567,17 @@ class WooCommerce extends Feature {
 	 * @return string    The mapped meta key.
 	 */
 	public function get_orderby_meta_mapping( $meta_key ) {
-		$mapping = apply_filters( 'orderby_meta_mapping',
+		$mapping = apply_filters(
+			'orderby_meta_mapping',
 			array(
-				'ID'				 => 'ID',
+				'ID'                 => 'ID',
 				'menu_order'         => 'menu_order title date',
 				'menu_order title'   => 'menu_order title date',
 				'total_sales'        => 'meta.total_sales.long date',
 				'_wc_average_rating' => 'meta._wc_average_rating.double date',
 				'_price'             => 'meta._price.long date',
-			) );
+			)
+		);
 
 		if ( isset( $mapping[ $meta_key ] ) ) {
 			return $mapping[ $meta_key ];
@@ -579,7 +589,7 @@ class WooCommerce extends Feature {
 	/**
 	 * Make search coupons don't go through ES
 	 *
-	 * @param  bool $enabled
+	 * @param  bool   $enabled
 	 * @param  object $query
 	 * @since  2.1
 	 * @return bool
@@ -597,7 +607,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @since  2.1
 	 * @param  bool $override
-	 * @param  int $post_id
+	 * @param  int  $post_id
 	 * @return bool
 	 */
 	function bypass_order_permissions_check( $override, $post_id ) {
@@ -618,10 +628,10 @@ class WooCommerce extends Feature {
 	 * @param WP_Query $wp
 	 * @since  2.3
 	 */
-	function search_order( $wp ){
+	function search_order( $wp ) {
 		global $pagenow;
 		if ( 'edit.php' != $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
-		     ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
+			 ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 			return;
 		}
 
@@ -633,12 +643,12 @@ class WooCommerce extends Feature {
 		 */
 		$order = $order_id > 0 ? wc_get_order( $order_id ) : false;
 
-		//If the order doesn't exist, fallback to other fields
+		// If the order doesn't exist, fallback to other fields
 		if ( ! $order ) {
 			unset( $wp->query_vars['post__in'] );
 			$wp->query_vars['s'] = $search_key_safe;
 		} else {
-			//we found the order. don't query ES
+			// we found the order. don't query ES
 			unset( $wp->query_vars['s'] );
 			$wp->query_vars['post__in'] = array( absint( $search_key_safe ) );
 		}
@@ -653,7 +663,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @since 2.4
 	 *
-	 * @param array $post_args
+	 * @param array      $post_args
 	 * @param string|int $post_id
 	 *
 	 * @return array
@@ -671,14 +681,14 @@ class WooCommerce extends Feature {
 			// WooCommerce 3.x uses WC_Order_Item_Product instance while 2.x an array
 			if ( is_object( $product_item ) && method_exists( $product_item, 'get_name' ) ) {
 				$item_meta['_items'][] = $product_item->get_name( 'edit' );
-			} elseif ( is_array( $product_item ) && isset( $product_item[ 'name' ] ) ) {
-				$item_meta['_items'][] = $product_item[ 'name' ];
+			} elseif ( is_array( $product_item ) && isset( $product_item['name'] ) ) {
+				$item_meta['_items'][] = $product_item['name'];
 			}
 		}
 
 		// Prepare order items.
 		$item_meta['_items'] = empty( $item_meta['_items'] ) ? '' : implode( '|', $item_meta['_items'] );
-		$post_args['meta'] = array_merge( $post_args['meta'], Post::factory()->prepare_meta_types( $item_meta ) );
+		$post_args['meta']   = array_merge( $post_args['meta'], Post::factory()->prepare_meta_types( $item_meta ) );
 
 		return $post_args;
 	}
@@ -689,9 +699,9 @@ class WooCommerce extends Feature {
 	 * @since  2.1
 	 */
 	public function setup() {
-		if( function_exists( 'WC' ) ) {
+		if ( function_exists( 'WC' ) ) {
 			add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
-			add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10 ,2 );
+			add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
 			add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
 			add_filter( 'woocommerce_shop_order_search_fields', [ $this, 'shop_order_search_fields' ], 9999 );
 			add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
@@ -736,7 +746,7 @@ class WooCommerce extends Feature {
 		$status = new FeatureRequirementsStatus( 0 );
 
 		if ( ! class_exists( 'WooCommerce' ) ) {
-			$status->code = 2;
+			$status->code    = 2;
 			$status->message = esc_html__( 'WooCommerce not installed.', 'elasticpress' );
 		}
 

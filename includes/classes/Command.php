@@ -15,7 +15,7 @@ use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch as Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+	exit; // Exit if accessed directly.
 }
 
 /**
@@ -154,7 +154,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
 
 			foreach ( $features as $key => $feature ) {
-				if( $feature['active'] ) {
+				if ( $feature['active'] ) {
 					WP_CLI::line( $key );
 				}
 			}
@@ -198,10 +198,10 @@ class Command extends WP_CLI_Command {
 		}
 
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
-		$global_indexable_objects = Indexables::factory()->get_all( true );
+		$global_indexable_objects     = Indexables::factory()->get_all( true );
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
-			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ) {
 				$assoc_args['network-wide'] = 0;
 			}
 
@@ -218,7 +218,7 @@ class Command extends WP_CLI_Command {
 						continue;
 					}
 
-					WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping for site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
+					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$indexable->delete_index();
 					$result = $indexable->put_mapping();
@@ -298,10 +298,10 @@ class Command extends WP_CLI_Command {
 		$this->_connect_check();
 
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
-		$global_indexable_objects = Indexables::factory()->get_all( true );
+		$global_indexable_objects     = Indexables::factory()->get_all( true );
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
-			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ) {
 				$assoc_args['network-wide'] = 0;
 			}
 			$sites = Utils\get_sites( $assoc_args['network-wide'] );
@@ -311,7 +311,7 @@ class Command extends WP_CLI_Command {
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
 
-					WP_CLI::line( sprintf( esc_html__( 'Deleting %s index for site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
+					WP_CLI::line( sprintf( esc_html__( 'Deleting %1$s index for site %2$d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$result = $indexable->delete_index();
 
@@ -461,12 +461,12 @@ class Command extends WP_CLI_Command {
 			$this->put_mapping( $args, $assoc_args );
 		}
 
-		$all_indexables = Indexables::factory()->get_all();
+		$all_indexables               = Indexables::factory()->get_all();
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
-		$global_indexable_objects = Indexables::factory()->get_all( true );
+		$global_indexable_objects     = Indexables::factory()->get_all( true );
 
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
-			if ( ! is_numeric( $assoc_args['network-wide'] ) ){
+			if ( ! is_numeric( $assoc_args['network-wide'] ) ) {
 				$assoc_args['network-wide'] = 0;
 			}
 
@@ -485,16 +485,16 @@ class Command extends WP_CLI_Command {
 						continue;
 					}
 
-					WP_CLI::log( sprintf( esc_html__( 'Indexing %s on site %d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), (int) $site['blog_id'] ) );
+					WP_CLI::log( sprintf( esc_html__( 'Indexing %1$s on site %2$d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), (int) $site['blog_id'] ) );
 
 					$result = $this->_index_helper( $indexable, $assoc_args );
 
 					$total_indexed += $result['synced'];
 
-					WP_CLI::log( sprintf( esc_html__( 'Number of %s indexed on site %d: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
+					WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
 
 					if ( ! empty( $result['errors'] ) ) {
-						WP_CLI::error( sprintf( esc_html__( 'Number of %s index errors on site %d: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], count( $result['errors'] ) ) );
+						WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], count( $result['errors'] ) ) );
 					}
 				}
 
@@ -518,10 +518,10 @@ class Command extends WP_CLI_Command {
 
 				$total_indexed += $result['synced'];
 
-				WP_CLI::log( sprintf( esc_html__( 'Number of %s indexed: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
+				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
-					WP_CLI::error( sprintf( esc_html__( 'Number of %s index errors: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
+					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
 				}
 			}
 
@@ -540,7 +540,6 @@ class Command extends WP_CLI_Command {
 
 				$this->_create_network_alias( $indexable );
 			}
-
 		} else {
 			/**
 			 * Run indexing for each indexable one by one
@@ -557,10 +556,10 @@ class Command extends WP_CLI_Command {
 
 				$result = $this->_index_helper( $indexable, $assoc_args );
 
-				WP_CLI::log( sprintf( esc_html__( 'Number of %s indexed: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
+				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
-					WP_CLI::error( sprintf( esc_html__( 'Number of %s index errors: %d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
+					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
 				}
 			}
 		}
@@ -612,11 +611,11 @@ class Command extends WP_CLI_Command {
 
 		if ( ! empty( $args['per-page'] ) ) {
 			$query_args['per_page'] = absint( $args['per-page'] );
-			$per_page = $query_args['per_page'];
+			$per_page               = $query_args['per_page'];
 		}
 
 		if ( ! empty( $args['include'] ) ) {
-			$include = explode( ',', str_replace( ' ', '', $assoc_args['include'] ) );
+			$include               = explode( ',', str_replace( ' ', '', $assoc_args['include'] ) );
 			$query_args['include'] = array_map( 'absint', $include );
 		}
 
@@ -659,7 +658,7 @@ class Command extends WP_CLI_Command {
 				break;
 			}
 
-			WP_CLI::log( sprintf( esc_html__( 'Processed %d/%d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] ) );
+			WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] ) );
 
 			$query_args['offset'] += $per_page;
 
@@ -884,11 +883,11 @@ class Command extends WP_CLI_Command {
 		foreach ( $sites as $site ) {
 			$current_index = ep_get_index_name( $site['blog_id'] );
 
-			if (isset( $body['indices'][$current_index] ) ) {
-				WP_CLI::log( '====== Stats for: ' . $current_index . " ======" );
-				WP_CLI::log( 'Documents:  ' . $body['indices'][$current_index]['primaries']['docs']['count'] );
-				WP_CLI::log( 'Index Size: ' . size_format($body['indices'][$current_index]['primaries']['store']['size_in_bytes'], 2 ) );
-				WP_CLI::log( 'Index Size (including replicas): ' . size_format($body['indices'][$current_index]['total']['store']['size_in_bytes'], 2 ) );
+			if ( isset( $body['indices'][ $current_index ] ) ) {
+				WP_CLI::log( '====== Stats for: ' . $current_index . ' ======' );
+				WP_CLI::log( 'Documents:  ' . $body['indices'][ $current_index ]['primaries']['docs']['count'] );
+				WP_CLI::log( 'Index Size: ' . size_format( $body['indices'][ $current_index ]['primaries']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( 'Index Size (including replicas): ' . size_format( $body['indices'][ $current_index ]['total']['store']['size_in_bytes'], 2 ) );
 				WP_CLI::log( '====== End Stats ======' );
 			} else {
 				WP_CLI::warning( $current_index . ' is not currently indexed.' );
@@ -905,8 +904,8 @@ class Command extends WP_CLI_Command {
 		$wpdb->queries = [];
 
 		if ( is_object( $wp_object_cache ) ) {
-			$wp_object_cache->group_ops = [];
-			$wp_object_cache->stats = [];
+			$wp_object_cache->group_ops      = [];
+			$wp_object_cache->stats          = [];
 			$wp_object_cache->memcache_debug = [];
 
 			// Make sure this is a public property, before trying to clear it
@@ -937,9 +936,9 @@ class Command extends WP_CLI_Command {
 
 		// WP_Query class adds filter get_term_metadata using its own instance
 		// what prevents WP_Query class from being destructed by PHP gc.
-		//    if ( $q['update_post_term_cache'] ) {
-		//        add_filter( 'get_term_metadata', array( $this, 'lazyload_term_meta' ), 10, 2 );
-		//    }
+		// if ( $q['update_post_term_cache'] ) {
+		// add_filter( 'get_term_metadata', array( $this, 'lazyload_term_meta' ), 10, 2 );
+		// }
 		// It's high memory consuming as WP_Query instance holds all query results inside itself
 		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
 		if ( isset( $wp_filter['get_term_metadata'] ) ) {
@@ -948,9 +947,9 @@ class Command extends WP_CLI_Command {
 			 * we're accessing the global array properly
 			 */
 			if ( class_exists( 'WP_Hook' ) && $wp_filter['get_term_metadata'] instanceof WP_Hook ) {
-				$filter_callbacks   = &$wp_filter['get_term_metadata']->callbacks;
+				$filter_callbacks = &$wp_filter['get_term_metadata']->callbacks;
 			} else {
-				$filter_callbacks   = &$wp_filter['get_term_metadata'];
+				$filter_callbacks = &$wp_filter['get_term_metadata'];
 			}
 			if ( isset( $filter_callbacks[10] ) ) {
 				foreach ( $filter_callbacks[10] as $hook => $content ) {
@@ -983,7 +982,7 @@ class Command extends WP_CLI_Command {
 	 * @since 2.2
 	 */
 	private function reset_transient() {
-		if( $this->is_network_transient ) {
+		if ( $this->is_network_transient ) {
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );

@@ -74,23 +74,25 @@ function maybe_clear_es_info_cache() {
 /**
  * Show ElasticPress in network admin menu bar
  *
- * @param  object $admin_bar
+ * @param  object $admin_bar WP_Admin Bar reference.
  * @since  2.2
  */
 function action_network_admin_bar_menu( $admin_bar ) {
-	$admin_bar->add_menu( array(
-		'id'     => 'network-admin-elasticpress',
-		'parent' => 'network-admin',
-		'title'  => 'ElasticPress',
-		'href'   => esc_url( network_admin_url( 'admin.php?page=elasticpress' ) ),
-	) );
+	$admin_bar->add_menu(
+		array(
+			'id'     => 'network-admin-elasticpress',
+			'parent' => 'network-admin',
+			'title'  => 'ElasticPress',
+			'href'   => esc_url( network_admin_url( 'admin.php?page=elasticpress' ) ),
+		)
+	);
 }
 
 /**
  * Output dashboard link in plugin actions
  *
- * @param  array $plugin_actions
- * @param  string $plugin_file
+ * @param  array  $plugin_actions Array of HTML.
+ * @param  string $plugin_file Path to plugin file.
  * @since  2.1
  * @return array
  */
@@ -122,11 +124,11 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
 /**
  * Output variety of dashboard notices. Only one at a time :)
  *
- * @param  bool $force
+ * @param  bool $force Force ES info hard lookup.
  * @since  2.2
  */
 function maybe_notice( $force = false ) {
-	// Admins only
+	// Admins only.
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		if ( ! is_super_admin() ) {
 			return;
@@ -136,12 +138,12 @@ function maybe_notice( $force = false ) {
 			return;
 		}
 	}
-	// Don't show notice on intro page ever
+	// Don't show notice on intro page ever.
 	if ( ! empty( $_GET['page'] ) && 'elasticpress-intro' === $_GET['page'] ) {
 		return;
 	}
 
-	// If in network mode, don't output notice in admin and vice-versa
+	// If in network mode, don't output notice in admin and vice-versa.
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		if ( ! is_network_admin() ) {
 			return;
@@ -230,7 +232,7 @@ function maybe_notice( $force = false ) {
 	 */
 
 	if ( false !== $es_version ) {
-		// First reduce version to major version i.e. 5.1 not 5.1.1
+		// First reduce version to major version i.e. 5.1 not 5.1.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
 		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
@@ -255,10 +257,10 @@ function maybe_notice( $force = false ) {
 	 */
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$intro_shown = get_site_option( 'ep_intro_shown', false );
+		$intro_shown             = get_site_option( 'ep_intro_shown', false );
 		$skip_intro_shown_notice = get_site_option( 'ep_hide_intro_shown_notice', false );
 	} else {
-		$intro_shown = get_option( 'ep_intro_shown', false );
+		$intro_shown             = get_option( 'ep_intro_shown', false );
 		$skip_intro_shown_notice = get_option( 'ep_hide_intro_shown_notice', false );
 	}
 
@@ -271,30 +273,30 @@ function maybe_notice( $force = false ) {
 	switch ( $notice ) {
 		case 'bad-host':
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress-settings' );
+				$url          = admin_url( 'network/admin.php?page=elasticpress-settings' );
 				$options_host = get_site_option( 'ep_host' );
 			} else {
-				$url = admin_url( 'admin.php?page=elasticpress-settings' );
+				$url          = admin_url( 'admin.php?page=elasticpress-settings' );
 				$options_host = get_option( 'ep_host' );
 			}
 
 			?>
 			<div class="notice notice-error">
-				<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%s">try your host again</a>, or you may need to <a href="%s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
-            </div>
+				<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%1$s">try your host again</a>, or you may need to <a href="%2$s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
+			</div>
 			<?php
 			break;
 		case 'above-es-compat':
 			?>
 			<div class="notice notice-error">
-                <p><?php printf( wp_kses_post( __( 'Your Elasticsearch version %s is above the maximum required Elasticsearch version %s. ElasticPress may or may not work properly.', 'elasticpress' ) ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ); ?></p>
-            </div>
+				<p><?php printf( wp_kses_post( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ) ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ); ?></p>
+			</div>
 			<?php
 			break;
 		case 'below-es-compat':
 			?>
 			<div class="notice notice-error">
-                <p><?php printf( wp_kses_post( __( 'Your Elasticsearch version %s is below the minimum required Elasticsearch version %s. ElasticPress may or may not work properly.', 'elasticpress' ) ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ); ?></p>
+				<p><?php printf( wp_kses_post( __( 'Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ) ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -307,7 +309,7 @@ function maybe_notice( $force = false ) {
 
 			?>
 			<div data-ep-notice="need-setup" class="notice notice-info is-dismissible">
-                <p><?php printf( wp_kses_post( __( 'Thanks for installing ElasticPress! You will need to run through a <a href="%s">quick set up process</a> to get the plugin working.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
+				<p><?php printf( wp_kses_post( __( 'Thanks for installing ElasticPress! You will need to run through a <a href="%s">quick set up process</a> to get the plugin working.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -320,8 +322,8 @@ function maybe_notice( $force = false ) {
 
 			?>
 			<div data-ep-notice="no-sync" class="notice notice-info is-dismissible">
-                <p><?php printf( wp_kses_post( __( 'ElasticPress is almost ready. You will need to complete a <a href="%s">sync</a> to get the plugin working.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
-            </div>
+				<p><?php printf( wp_kses_post( __( 'ElasticPress is almost ready. You will need to complete a <a href="%s">sync</a> to get the plugin working.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
+			</div>
 			<?php
 			break;
 		case 'upgrade-sync':
@@ -333,7 +335,7 @@ function maybe_notice( $force = false ) {
 
 			?>
 			<div data-ep-notice="upgrade-sync" class="notice notice-warning is-dismissible">
-                <p><?php printf( wp_kses_post( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
+				<p><?php printf( wp_kses_post( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -348,7 +350,7 @@ function maybe_notice( $force = false ) {
 
 			?>
 			<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
-				<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
+				<p><?php printf( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -356,22 +358,22 @@ function maybe_notice( $force = false ) {
 			$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
 			?>
 			<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
-                <p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
+				<p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
 			</div>
 			<?php
 			break;
 		case 'sync-disabled-upgrade':
 			?>
 			<div data-ep-notice="sync-disabled-upgrade" class="notice notice-warning is-dismissible">
-                <p><?php printf( esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' ) ); ?></p>
+				<p><?php printf( esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' ) ); ?></p>
 			</div>
 			<?php
 			break;
 		case 'sync-disabled-no-sync':
 			?>
 			<div data-ep-notice="sync-disabled-no-sync" class="notice notice-warning is-dismissible">
-                <p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
-            </div>
+				<p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
+			</div>
 			<?php
 			break;
 	}
@@ -406,7 +408,7 @@ function action_wp_ajax_ep_notice_dismiss() {
 			break;
 		case 'no-sync':
 		case 'sync-disabled-no-sync':
-			// We use 'never' here as a placeholder value to trick EP into thinking a sync has happened
+			// We use 'never' here as a placeholder value to trick EP into thinking a sync has happened.
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				update_site_option( 'ep_last_sync', 'never' );
 			} else {
@@ -454,14 +456,14 @@ function action_wp_ajax_ep_index() {
 		$index_meta = get_option( 'ep_index_meta', false );
 	}
 
-	$global_indexables = Indexables::factory()->get_all( true, true );
+	$global_indexables     = Indexables::factory()->get_all( true, true );
 	$non_global_indexables = Indexables::factory()->get_all( false, true );
 
 	$status = false;
 
-	// No current index going on. Let's start over
+	// No current index going on. Let's start over.
 	if ( false === $index_meta ) {
-		$status = 'start';
+		$status     = 'start';
 		$index_meta = [
 			'offset'     => 0,
 			'start'      => true,
@@ -503,18 +505,18 @@ function action_wp_ajax_ep_index() {
 		}
 
 		do_action( 'ep_dashboard_start_index', $index_meta );
-	} else if ( ! empty( $index_meta['sync_stack'] ) && $index_meta['offset'] >= $index_meta['found_items'] ) {
+	} elseif ( ! empty( $index_meta['sync_stack'] ) && $index_meta['offset'] >= $index_meta['found_items'] ) {
 		$status = 'start';
 
-		$index_meta['start'] = true;
-		$index_meta['offset'] = 0;
+		$index_meta['start']             = true;
+		$index_meta['offset']            = 0;
 		$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
 	} else {
 		$index_meta['start'] = false;
 	}
 
 	$index_meta = apply_filters( 'ep_index_meta', $index_meta );
-	$indexable = Indexables::factory()->get( $index_meta['current_sync_item']['indexable'] );
+	$indexable  = Indexables::factory()->get( $index_meta['current_sync_item']['indexable'] );
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! empty( $index_meta['current_sync_item']['blog_id'] ) ) {
 		switch_to_blog( $index_meta['current_sync_item']['blog_id'] );
@@ -534,16 +536,18 @@ function action_wp_ajax_ep_index() {
 
 	do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
 
-	$args = apply_filters( 'ep_dashboard_index_args', [
-		'posts_per_page' => $per_page,
-		'offset'         => $index_meta['offset'],
-	] );
+	$args = apply_filters(
+		'ep_dashboard_index_args', [
+			'posts_per_page' => $per_page,
+			'offset'         => $index_meta['offset'],
+		]
+	);
 
 	$query = $indexable->query_db( $args );
 
 	$index_meta['found_items'] = (int) $query['total_objects'];
 
-	if ( $status !== 'start' ) {
+	if ( 'start' !== $status ) {
 		if ( ! empty( $query['objects'] ) ) {
 			$queued_items = [];
 
@@ -560,9 +564,9 @@ function action_wp_ajax_ep_index() {
 			if ( ! empty( $queued_items ) ) {
 				$return = $indexable->bulk_index( array_keys( $queued_items ) );
 
-				if( is_wp_error( $return ) ){
+				if ( is_wp_error( $return ) ) {
 					header( 'HTTP/1.1 500 Internal Server Error' );
-					wp_send_json_error(  );
+					wp_send_json_error();
 					exit;
 				}
 			}
@@ -579,16 +583,15 @@ function action_wp_ajax_ep_index() {
 				update_option( 'ep_index_meta', $index_meta );
 			}
 		} else {
-			// We are done (with this site)
-
+			// We are done (with this site).
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				if ( empty( $index_meta['sync_stack'] ) ) {
 					delete_site_option( 'ep_index_meta' );
 
-					$sites   = Utils\get_sites();
+					$sites = Utils\get_sites();
 
 					foreach ( $non_global_indexables as $indexable_slug ) {
-						$indexes = [];
+						$indexes          = [];
 						$indexable_object = Indexables::factory()->get( $indexable_slug );
 
 						foreach ( $sites as $site ) {
@@ -602,7 +605,6 @@ function action_wp_ajax_ep_index() {
 				} else {
 					$index_meta['offset'] = (int) $query['total_objects'];
 				}
-
 			} else {
 				$index_meta['offset'] = (int) $query['total_objects'];
 
@@ -658,7 +660,7 @@ function action_wp_ajax_ep_save_feature() {
 
 	$data = Features::factory()->update_feature( $_POST['feature'], $_POST['settings'] );
 
-	// Since we deactivated, delete auto activate notice
+	// Since we deactivated, delete auto activate notice.
 	if ( empty( $_POST['settings']['active'] ) ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -713,11 +715,11 @@ function action_admin_enqueue_dashboard_scripts() {
 			}
 
 			$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );
-			$data['sync_paused'] = esc_html__( 'Sync paused', 'elasticpress' );
-			$data['sync_syncing'] = esc_html__( 'Syncing', 'elasticpress' );
-			$data['sync_initial'] = esc_html__( 'Starting sync', 'elasticpress' );
-			$data['sync_wpcli'] = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
-			$data['sync_error'] = esc_html__( 'An error occurred while syncing', 'elasticpress' );
+			$data['sync_paused']   = esc_html__( 'Sync paused', 'elasticpress' );
+			$data['sync_syncing']  = esc_html__( 'Syncing', 'elasticpress' );
+			$data['sync_initial']  = esc_html__( 'Starting sync', 'elasticpress' );
+			$data['sync_wpcli']    = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
+			$data['sync_error']    = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 
 			wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 		}
@@ -732,9 +734,11 @@ function action_admin_enqueue_dashboard_scripts() {
 function action_admin_enqueue_admin_scripts() {
 	wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'dist/js/admin.min.js', [ 'jquery' ], EP_VERSION, true );
 
-	wp_localize_script( 'ep_admin_scripts', 'epAdmin', array(
-		'nonce' => wp_create_nonce( 'ep_admin_nonce' ),
-	) );
+	wp_localize_script(
+		'ep_admin_scripts', 'epAdmin', array(
+			'nonce' => wp_create_nonce( 'ep_admin_nonce' ),
+		)
+	);
 }
 
 /**
@@ -747,7 +751,7 @@ function action_admin_enqueue_admin_scripts() {
  */
 function action_admin_init() {
 
-	//Save options for multisite
+	// Save options for multisite.
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $_POST['ep_host'] ) ) {
 		if ( ! check_admin_referer( 'elasticpress-options' ) ) {
 			die( esc_html__( 'Security error!', 'elasticpress' ) );
@@ -772,7 +776,7 @@ function intro_or_dashboard() {
 		return;
 	}
 
-	$host =  Utils\get_host();
+	$host = Utils\get_host();
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$intro_shown = get_site_option( 'ep_intro_shown', false );
@@ -847,10 +851,10 @@ function intro_page() {
  * @return void
  */
 function action_admin_menu() {
-	$capability  = 'manage_options';
+	$capability = 'manage_options';
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$capability  = 'manage_network';
+		$capability = 'manage_network';
 	}
 
 	add_menu_page(

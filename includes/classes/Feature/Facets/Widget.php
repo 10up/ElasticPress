@@ -68,7 +68,12 @@ class Widget extends WP_Widget {
 		/**
 		 * Get all the terms so we know if we should output the widget
 		 */
-		$terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => true, ) );
+		$terms = get_terms(
+			array(
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => true,
+			)
+		);
 
 		/**
 		 * No terms!
@@ -94,7 +99,7 @@ class Widget extends WP_Widget {
 		 */
 		if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'] ) ) {
 			foreach ( $selected_filters['taxonomies'][ $taxonomy ]['terms'] as $term_slug => $nothing ) {
-				if ( empty ( $terms_by_slug[ $term_slug ] ) ) {
+				if ( empty( $terms_by_slug[ $term_slug ] ) ) {
 					/**
 					 * Term does not exist!
 					 */
@@ -103,7 +108,7 @@ class Widget extends WP_Widget {
 			}
 		}
 
-		$terms = Utils\get_term_tree( $terms, 'count', 'desc', true );
+		$terms     = Utils\get_term_tree( $terms, 'count', 'desc', true );
 		$term_tree = Utils\get_term_tree( $terms, 'count', 'desc', false );
 
 		$outputted_terms = array();
@@ -126,7 +131,8 @@ class Widget extends WP_Widget {
 
 			<div class="inner">
 				<?php if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) ) : ?>
-					<?php foreach ( $selected_filters['taxonomies'][ $taxonomy ]['terms'] as $term_slug => $value ) :
+					<?php
+					foreach ( $selected_filters['taxonomies'][ $taxonomy ]['terms'] as $term_slug => $value ) :
 						if ( ! empty( $outputted_terms[ $term_slug ] ) ) {
 							continue;
 						}
@@ -135,7 +141,7 @@ class Widget extends WP_Widget {
 
 						if ( empty( $term->parent ) && empty( $term->children ) ) {
 							$outputted_terms[ $term_slug ] = $term;
-							$new_filters = $selected_filters;
+							$new_filters                   = $selected_filters;
 
 							if ( ! empty( $new_filters['taxonomies'][ $taxonomy ] ) && ! empty( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] ) ) {
 								unset( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] );
@@ -154,7 +160,7 @@ class Widget extends WP_Widget {
 							 * to the top. Very very painful.
 							 */
 							$top_of_tree = $term;
-							$i = 0;
+							$i           = 0;
 
 							/**
 							 * Get top of tree
@@ -186,9 +192,9 @@ class Widget extends WP_Widget {
 							}
 
 							foreach ( $flat_ordered_terms as $term ) {
-								$selected = ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] );
+								$selected                       = ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] );
 								$outputted_terms[ $term->slug ] = $term;
-								$new_filters = $selected_filters;
+								$new_filters                    = $selected_filters;
 
 								if ( $selected ) {
 									if ( ! empty( $new_filters['taxonomies'][ $taxonomy ] ) && ! empty( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] ) ) {
@@ -213,10 +219,12 @@ class Widget extends WP_Widget {
 								<?php
 							}
 						}
-					endforeach ; ?>
+					endforeach;
+					?>
 				<?php endif; ?>
 
-				<?php foreach ( $terms as $term ) :
+				<?php
+				foreach ( $terms as $term ) :
 					if ( ! empty( $outputted_terms[ $term->slug ] ) ) {
 						continue;
 					}
@@ -225,7 +233,7 @@ class Widget extends WP_Widget {
 
 					if ( empty( $new_filters['taxonomies'][ $taxonomy ] ) ) {
 						$new_filters['taxonomies'][ $taxonomy ] = array(
-							'terms'      => array(),
+							'terms' => array(),
 						);
 					}
 
@@ -292,22 +300,24 @@ class Widget extends WP_Widget {
 			$dashboard_url = network_admin_url( 'admin.php?page=elasticpress' );
 		}
 
-		$feature = Features::factory()->get_registered_feature( 'facets' );
+		$feature  = Features::factory()->get_registered_feature( 'facets' );
 		$settings = [];
 
 		if ( $feature ) {
 			$settings = $feature->get_settings();
 		}
 
-		$settings = wp_parse_args( $settings, array(
-			'match_type' => 'all',
-		) );
+		$settings = wp_parse_args(
+			$settings, array(
+				'match_type' => 'all',
+			)
+		);
 
-		$set = esc_html__( 'all', 'elasticpress' );
+		$set     = esc_html__( 'all', 'elasticpress' );
 		$not_set = esc_html__( 'any', 'elasticpress' );
 
 		if ( 'any' === $settings['match_type'] ) {
-			$set = esc_html__( 'any', 'elasticpress' );
+			$set     = esc_html__( 'any', 'elasticpress' );
 			$not_set = esc_html__( 'all', 'elasticpress' );
 		}
 
@@ -336,7 +346,7 @@ class Widget extends WP_Widget {
 				</select>
 			</p>
 
-			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%s</strong> content tagged to <strong>%s</strong> selected term in <a href="%s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
+			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
 		</div>
 
 		<?php

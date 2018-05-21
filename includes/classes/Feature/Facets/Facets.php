@@ -30,7 +30,7 @@ class Facets extends Feature {
 		$this->title = esc_html__( 'Facets', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
-		$this->default_settings = [
+		$this->default_settings         = [
 			'match_type' => 'all',
 		];
 	}
@@ -102,9 +102,11 @@ class Facets extends Feature {
 
 		$settings = $this->get_settings();
 
-		$settings = wp_parse_args( $settings, array(
-			'match_type' => 'all',
-		) );
+		$settings = wp_parse_args(
+			$settings, array(
+				'match_type' => 'all',
+			)
+		);
 
 		if ( ! empty( $facet_query_args['tax_query'] ) ) {
 			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
@@ -135,10 +137,10 @@ class Facets extends Feature {
 	 */
 	public function admin_scripts( $hook ) {
 		if ( 'widgets.php' !== $hook ) {
-	        return;
-	    }
+			return;
+		}
 
-	    wp_enqueue_style(
+		wp_enqueue_style(
 			'elasticpress-facets-admin',
 			EP_URL . 'dist/css/admin.min.css',
 			[],
@@ -216,22 +218,22 @@ class Facets extends Feature {
 		$query->set( 'ep_integrate', true );
 		$query->set( 'ep_facet', true );
 
-	    $facets = [];
+		$facets = [];
 
 		foreach ( $taxonomies as $slug ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
-					'size' => 10000,
+					'size'  => 10000,
 					'field' => 'terms.' . $slug . '.slug',
 				),
 			);
 		}
 
 		$aggs = array(
-			'name' => 'terms',
-	    	'use-filter' => true,
-	    	'aggs' => $facets,
-	    );
+			'name'       => 'terms',
+			'use-filter' => true,
+			'aggs'       => $facets,
+		);
 
 		$query->set( 'aggs', $aggs );
 
@@ -239,9 +241,11 @@ class Facets extends Feature {
 
 		$settings = $this->get_settings();
 
-		$settings = wp_parse_args( $settings, array(
-			'match_type' => 'all',
-		) );
+		$settings = wp_parse_args(
+			$settings, array(
+				'match_type' => 'all',
+			)
+		);
 
 		$tax_query = $query->get( 'tax_query', [] );
 
@@ -284,7 +288,6 @@ class Facets extends Feature {
 				foreach ( $agg['buckets'] as $bucket ) {
 					$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
 				}
-
 			}
 		}
 	}
@@ -305,7 +308,7 @@ class Facets extends Feature {
 				$taxonomy = str_replace( 'filter_', '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(
-					'terms'      => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
+					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
 				);
 			}
 		}

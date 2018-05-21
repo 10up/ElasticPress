@@ -14,63 +14,63 @@ return array(
 	'settings' => array(
 		'analysis' => array(
 			'analyzer' => array(
-				'default' => array(
+				'default'          => array(
 					'tokenizer' => 'standard',
-					'filter' => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-					'language' => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
+					'filter'    => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
+					'language'  => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				),
 				'shingle_analyzer' => array(
-					'type' => 'custom',
+					'type'      => 'custom',
 					'tokenizer' => 'standard',
-					'filter' => array( 'lowercase', 'shingle_filter' ),
+					'filter'    => array( 'lowercase', 'shingle_filter' ),
 				),
-				'ewp_lowercase' => array(
-					'type' => 'custom',
+				'ewp_lowercase'    => array(
+					'type'      => 'custom',
 					'tokenizer' => 'keyword',
-					'filter' => array( 'lowercase' ),
+					'filter'    => array( 'lowercase' ),
 				),
 			),
-			'filter' => array(
-				'shingle_filter' => array(
-					'type' => 'shingle',
+			'filter'   => array(
+				'shingle_filter'     => array(
+					'type'             => 'shingle',
 					'min_shingle_size' => 2,
 					'max_shingle_size' => 5,
 				),
 				'ewp_word_delimiter' => array(
-					'type' => 'word_delimiter',
+					'type'              => 'word_delimiter',
 					'preserve_original' => true,
 				),
-				'ewp_snowball' => array(
-					'type' => 'snowball',
+				'ewp_snowball'       => array(
+					'type'     => 'snowball',
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				),
-				'edge_ngram' => array(
-					'side' => 'front',
+				'edge_ngram'         => array(
+					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
-					'type' => 'edgeNGram',
+					'type'     => 'edgeNGram',
 				),
 			),
 		),
 	),
 	'mappings' => array(
 		'post' => array(
-			'date_detection' => false,
+			'date_detection'    => false,
 			'dynamic_templates' => array(
 				array(
 					'template_meta' => array(
 						'path_match' => 'post_meta.*',
-						'mapping' => array(
-							'type' => 'multi_field',
-							'path' => 'full',
+						'mapping'    => array(
+							'type'   => 'multi_field',
+							'path'   => 'full',
 							'fields' => array(
 								'{name}' => array(
-									'type' => 'string',
+									'type'  => 'string',
 									'index' => 'analyzed',
 								),
-								'raw' => array(
-									'type' => 'string',
-									'index' => 'not_analyzed',
+								'raw'    => array(
+									'type'           => 'string',
+									'index'          => 'not_analyzed',
 									'include_in_all' => false,
 								),
 							),
@@ -80,56 +80,56 @@ return array(
 				array(
 					'template_meta_types' => array(
 						'path_match' => 'meta.*',
-						'mapping' => array(
-							'type' => 'object',
-							'path' => 'full',
+						'mapping'    => array(
+							'type'       => 'object',
+							'path'       => 'full',
 							'properties' => array(
-								'value' => array(
-									'type' => 'string',
+								'value'    => array(
+									'type'   => 'string',
 									'fields' => array(
 										'sortable' => array(
-											'type' => 'string',
+											'type'     => 'string',
 											'analyzer' => 'ewp_lowercase',
 											'include_in_all' => false,
 										),
-										'raw' => array(
-											'type' => 'string',
+										'raw'      => array(
+											'type'  => 'string',
 											'index' => 'not_analyzed',
 											'include_in_all' => false,
 										),
 									),
 								),
-								'raw' => array( /* Left for backwards compat */
-									'type' => 'string',
-									'index' => 'not_analyzed',
+								'raw'      => array( /* Left for backwards compat. */
+									'type'           => 'string',
+									'index'          => 'not_analyzed',
 									'include_in_all' => false,
 								),
-								'long' => array(
-									'type' => 'long',
+								'long'     => array(
+									'type'  => 'long',
 									'index' => 'not_analyzed',
 								),
-								'double' => array(
-									'type' => 'double',
+								'double'   => array(
+									'type'  => 'double',
 									'index' => 'not_analyzed',
 								),
-								'boolean' => array(
-									'type' => 'boolean',
+								'boolean'  => array(
+									'type'  => 'boolean',
 									'index' => 'not_analyzed',
 								),
-								'date' => array(
-									'type' => 'date',
+								'date'     => array(
+									'type'   => 'date',
 									'format' => 'yyyy-MM-dd',
-									'index' => 'not_analyzed',
+									'index'  => 'not_analyzed',
 								),
 								'datetime' => array(
-									'type' => 'date',
+									'type'   => 'date',
 									'format' => 'yyyy-MM-dd HH:mm:ss',
-									'index' => 'not_analyzed',
+									'index'  => 'not_analyzed',
 								),
-								'time' => array(
-									'type' => 'date',
+								'time'     => array(
+									'type'   => 'date',
 									'format' => 'HH:mm:ss',
-									'index' => 'not_analyzed',
+									'index'  => 'not_analyzed',
 								),
 							),
 						),
@@ -138,34 +138,34 @@ return array(
 				array(
 					'template_terms' => array(
 						'path_match' => 'terms.*',
-						'mapping' => array(
-							'type' => 'object',
-							'path' => 'full',
+						'mapping'    => array(
+							'type'       => 'object',
+							'path'       => 'full',
 							'properties' => array(
-								'name' => array(
-									'type' => 'string',
+								'name'             => array(
+									'type'   => 'string',
 									'fields' => array(
-										'raw' => array(
-											'type' => 'string',
+										'raw'      => array(
+											'type'  => 'string',
 											'index' => 'not_analyzed',
 										),
 										'sortable' => array(
-											'type' => 'string',
+											'type'     => 'string',
 											'analyzer' => 'ewp_lowercase',
 										),
 									),
 								),
-								'term_id' => array(
+								'term_id'          => array(
 									'type' => 'long',
 								),
 								'term_taxonomy_id' => array(
 									'type' => 'long',
 								),
-								'parent' => array(
+								'parent'           => array(
 									'type' => 'long',
 								),
-								'slug' => array(
-									'type' => 'string',
+								'slug'             => array(
+									'type'  => 'string',
 									'index' => 'not_analyzed',
 								),
 							),
@@ -175,204 +175,204 @@ return array(
 				array(
 					'term_suggest' => array(
 						'path_match' => 'term_suggest_*',
-						'mapping' => array(
-							'type' => 'completion',
+						'mapping'    => array(
+							'type'     => 'completion',
 							'analyzer' => 'default',
 						),
 					),
 				),
 			),
-			'_all' => array(
+			'_all'              => array(
 				'analyzer' => 'simple',
 			),
-			'properties' => array(
-				'post_id' => array(
-					'type' => 'long',
-					'index' => 'not_analyzed',
+			'properties'        => array(
+				'post_id'           => array(
+					'type'           => 'long',
+					'index'          => 'not_analyzed',
 					'include_in_all' => false,
 				),
-				'ID' => array(
-					'type' => 'long',
-					'index' => 'not_analyzed',
+				'ID'                => array(
+					'type'           => 'long',
+					'index'          => 'not_analyzed',
 					'include_in_all' => false,
 				),
-				'post_author' => array(
-					'type' => 'object',
+				'post_author'       => array(
+					'type'       => 'object',
 					'properties' => array(
 						'display_name' => array(
-							'type' => 'string',
+							'type'   => 'string',
 							'fields' => array(
-								'raw' => array(
-									'type' => 'string',
+								'raw'      => array(
+									'type'  => 'string',
 									'index' => 'not_analyzed',
 								),
 								'sortable' => array(
-									'type' => 'string',
+									'type'     => 'string',
 									'analyzer' => 'ewp_lowercase',
 								),
 							),
 						),
-						'login' => array(
-							'type' => 'string',
+						'login'        => array(
+							'type'   => 'string',
 							'fields' => array(
-								'raw' => array(
-									'type' => 'string',
+								'raw'      => array(
+									'type'  => 'string',
 									'index' => 'not_analyzed',
 								),
 								'sortable' => array(
-									'type' => 'string',
+									'type'     => 'string',
 									'analyzer' => 'ewp_lowercase',
 								),
 							),
 						),
-						'id' => array(
-							'type' => 'long',
+						'id'           => array(
+							'type'  => 'long',
 							'index' => 'not_analyzed',
 						),
-						'raw' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
+						'raw'          => array(
+							'type'           => 'string',
+							'index'          => 'not_analyzed',
 							'include_in_all' => false,
 						),
 					),
 				),
-				'post_date' => array(
-					'type' => 'date',
-					'format' => 'YYYY-MM-dd HH:mm:ss',
+				'post_date'         => array(
+					'type'           => 'date',
+					'format'         => 'YYYY-MM-dd HH:mm:ss',
 					'include_in_all' => false,
 				),
-				'post_date_gmt' => array(
-					'type' => 'date',
-					'format' => 'YYYY-MM-dd HH:mm:ss',
+				'post_date_gmt'     => array(
+					'type'           => 'date',
+					'format'         => 'YYYY-MM-dd HH:mm:ss',
 					'include_in_all' => false,
 				),
-				'post_title' => array(
-					'type' => 'multi_field',
+				'post_title'        => array(
+					'type'   => 'multi_field',
 					'fields' => array(
 						'post_title' => array(
-							'type' => 'string',
+							'type'     => 'string',
 							'analyzer' => 'standard',
-							'store' => 'yes',
+							'store'    => 'yes',
 						),
-						'raw' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
+						'raw'        => array(
+							'type'           => 'string',
+							'index'          => 'not_analyzed',
 							'include_in_all' => false,
 						),
-						'sortable' => array(
-							'type' => 'string',
-							'analyzer' => 'ewp_lowercase',
+						'sortable'   => array(
+							'type'           => 'string',
+							'analyzer'       => 'ewp_lowercase',
 							'include_in_all' => false,
 						),
 					),
 				),
-				'post_excerpt' => array(
+				'post_excerpt'      => array(
 					'type' => 'string',
 				),
-				'post_content' => array(
-					'type' => 'string',
+				'post_content'      => array(
+					'type'     => 'string',
 					'analyzer' => 'default',
 				),
-				'post_status' => array(
-					'type' => 'string',
+				'post_status'       => array(
+					'type'  => 'string',
 					'index' => 'not_analyzed',
 				),
-				'post_name' => array(
-					'type' => 'multi_field',
+				'post_name'         => array(
+					'type'   => 'multi_field',
 					'fields' => array(
 						'post_name' => array(
 							'type' => 'string',
 						),
-						'raw' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
+						'raw'       => array(
+							'type'           => 'string',
+							'index'          => 'not_analyzed',
 							'include_in_all' => false,
 						),
 					),
 				),
-				'post_modified' => array(
-					'type' => 'date',
-					'format' => 'YYYY-MM-dd HH:mm:ss',
+				'post_modified'     => array(
+					'type'           => 'date',
+					'format'         => 'YYYY-MM-dd HH:mm:ss',
 					'include_in_all' => false,
 				),
 				'post_modified_gmt' => array(
-					'type' => 'date',
-					'format' => 'YYYY-MM-dd HH:mm:ss',
+					'type'           => 'date',
+					'format'         => 'YYYY-MM-dd HH:mm:ss',
 					'include_in_all' => false,
 				),
-				'post_parent' => array(
-					'type' => 'long',
-					'index' => 'not_analyzed',
+				'post_parent'       => array(
+					'type'           => 'long',
+					'index'          => 'not_analyzed',
 					'include_in_all' => false,
 				),
-				'post_type' => array(
-					'type' => 'multi_field',
+				'post_type'         => array(
+					'type'   => 'multi_field',
 					'fields' => array(
 						'post_type' => array(
 							'type' => 'string',
 						),
-						'raw' => array(
-							'type' => 'string',
-							'index' => 'not_analyzed',
+						'raw'       => array(
+							'type'           => 'string',
+							'index'          => 'not_analyzed',
 							'include_in_all' => false,
 						),
 					),
 				),
-				'post_mime_type' => array(
-					'type' => 'string',
-					'index' => 'not_analyzed',
+				'post_mime_type'    => array(
+					'type'           => 'string',
+					'index'          => 'not_analyzed',
 					'include_in_all' => false,
 				),
-				'permalink' => array(
+				'permalink'         => array(
 					'type' => 'string',
 				),
-				'guid' => array(
-					'type' => 'string',
-					'index' => 'not_analyzed'
+				'guid'              => array(
+					'type'  => 'string',
+					'index' => 'not_analyzed',
 				),
-				'terms' => array(
+				'terms'             => array(
 					'type' => 'object',
 				),
-				'post_meta' => array(
+				'post_meta'         => array(
 					'type' => 'object',
 				),
-				'meta' => array(
+				'meta'              => array(
 					'type' => 'object',
 				),
-				'date_terms' => array(
-					'type' => 'object',
+				'date_terms'        => array(
+					'type'       => 'object',
 					'properties' => array(
-						'year' => array( //4 digit year (e.g. 2011)
+						'year'          => array( // 4 digit year (e.g. 2011).
 							'type' => 'integer',
 						),
-						'month' => array( //Month number (from 1 to 12) alternate name 'monthnum'
+						'month'         => array( // Month number (from 1 to 12) alternate name 'monthnum'.
 							'type' => 'integer',
 						),
-						'm' => array( //YearMonth (For e.g.: 201307)
+						'm'             => array( // YearMonth (For e.g.: 201307).
 							'type' => 'integer',
 						),
-						'week' => array( //Week of the year (from 0 to 53) alternate name 'w'
+						'week'          => array( // Week of the year (from 0 to 53) alternate name 'w'.
 							'type' => 'integer',
 						),
-						'day' => array( //Day of the month (from 1 to 31)
+						'day'           => array( // Day of the month (from 1 to 31).
 							'type' => 'integer',
 						),
-						'dayofweek' => array( //Accepts numbers 1-7 (1 is Sunday)
+						'dayofweek'     => array( // Accepts numbers 1-7 (1 is Sunday).
 							'type' => 'integer',
 						),
-						'dayofweek_iso' => array( //Accepts numbers 1-7 (1 is Monday)
+						'dayofweek_iso' => array( // Accepts numbers 1-7 (1 is Monday).
 							'type' => 'integer',
 						),
-						'dayofyear' => array( //Accepts numbers 1-366
+						'dayofyear'     => array( // Accepts numbers 1-366.
 							'type' => 'integer',
 						),
-						'hour' => array( //Hour (from 0 to 23)
+						'hour'          => array( // Hour (from 0 to 23).
 							'type' => 'integer',
 						),
-						'minute' => array( //Minute (from 0 to 59)
+						'minute'        => array( // Minute (from 0 to 59).
 							'type' => 'integer',
 						),
-						'second' => array( //Second (0 to 59)
+						'second'        => array( // Second (0 to 59).
 							'type' => 'integer',
 						),
 					),

@@ -23,10 +23,9 @@ class Autosuggest extends Feature {
 		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
-		$this->default_settings = [
+		$this->default_settings         = [
 			'endpoint_url' => '',
 		];
-
 
 	}
 
@@ -70,7 +69,7 @@ class Autosuggest extends Feature {
 	 * @since 2.4
 	 */
 	public function output_feature_box_settings() {
-		$host = Utils\get_host();
+		$host     = Utils\get_host();
 		$settings = $this->get_settings();
 
 		if ( ! $settings ) {
@@ -104,23 +103,23 @@ class Autosuggest extends Feature {
 	 */
 	public function mapping( $mapping ) {
 		$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-			'type' => 'text',
-			'analyzer' => 'edge_ngram_analyzer',
+			'type'            => 'text',
+			'analyzer'        => 'edge_ngram_analyzer',
 			'search_analyzer' => 'standard',
 		);
 
 		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
-			'type' => 'custom',
+			'type'      => 'custom',
 			'tokenizer' => 'standard',
-			'filter' => array(
+			'filter'    => array(
 				'lowercase',
 				'edge_ngram',
 			),
 		);
 
 		$mapping['mappings']['post']['properties']['term_suggest'] = array(
-			'type' => 'text',
-			'analyzer' => 'edge_ngram_analyzer',
+			'type'            => 'text',
+			'analyzer'        => 'edge_ngram_analyzer',
 			'search_analyzer' => 'standard',
 		);
 
@@ -203,16 +202,22 @@ class Autosuggest extends Feature {
 		 * postType: which post types to use for suggestions
 		 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 		 */
-		wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
-			'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-			'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
-			'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
-			'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
-				'post_title.suggest',
-				'term_suggest',
-			) ),
-			'action'       => 'navigate',
-		) ) );
+		wp_localize_script(
+			'elasticpress-autosuggest', 'epas', apply_filters(
+				'ep_autosuggest_options', array(
+					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
+					'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
+					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
+					'searchFields' => apply_filters(
+						'ep_term_suggest_search_fields', array(
+							'post_title.suggest',
+							'term_suggest',
+						)
+					),
+					'action'       => 'navigate',
+				)
+			)
+		);
 	}
 
 	public function requirements_status() {

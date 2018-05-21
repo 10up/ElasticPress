@@ -47,7 +47,7 @@ class Features {
 	 * Dectivate a feature
 	 *
 	 * @param  string $slug
-	 * @param  bool  $force
+	 * @param  bool   $force
 	 * @since  2.2
 	 */
 	public function deactivate_feature( $slug, $force = true ) {
@@ -77,7 +77,7 @@ class Features {
 	 * @return Feature
 	 */
 	public function get_registered_feature( $slug ) {
-		if ( empty( $this->registered_features[$slug] ) ) {
+		if ( empty( $this->registered_features[ $slug ] ) ) {
 			return false;
 		}
 
@@ -87,9 +87,9 @@ class Features {
 	/**
 	 * Activate or deactivate a feature
 	 *
-	 * @param  string  $slug
-	 * @param  array   $settings
-	 * @param  bool    $force
+	 * @param  string $slug
+	 * @param  array  $settings
+	 * @param  bool   $force
 	 * @since  2.2
 	 * @return array|bool
 	 */
@@ -172,7 +172,7 @@ class Features {
 		$new_requirement_statuses = [];
 
 		foreach ( $this->registered_features as $slug => $feature ) {
-			$status = $feature->requirements_status();
+			$status                            = $feature->requirements_status();
 			$new_requirement_statuses[ $slug ] = (int) $status->code;
 		}
 
@@ -284,7 +284,7 @@ class Features {
 	public static function factory() {
 		static $instance = false;
 
-		if ( ! $instance  ) {
+		if ( ! $instance ) {
 			$instance = new self();
 			$instance->setup();
 		}

@@ -35,10 +35,10 @@ class SyncManager {
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
-		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
-		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
-		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
-		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
+		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 
@@ -59,10 +59,10 @@ class SyncManager {
 		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
-		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
-		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
-		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
-		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index' ) );
+		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
+		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 		remove_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		remove_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
@@ -88,8 +88,8 @@ class SyncManager {
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
 	 *
-	 * @param  int $meta_id
-	 * @param  int $object_id
+	 * @param  int    $meta_id
+	 * @param  int    $object_id
 	 * @param  string $meta_key
 	 * @param  string $meta_value
 	 * @since  2.0

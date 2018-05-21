@@ -41,7 +41,7 @@ class DateQuery extends \WP_Date_Query {
 
 	/**
 	 * @param $query array of date query clauses
-	 * @param int $depth unused but may be necessary if we do nested date queries
+	 * @param int                               $depth unused but may be necessary if we do nested date queries
 	 *
 	 * @since 0.1.4
 	 * @return array
@@ -56,7 +56,7 @@ class DateQuery extends \WP_Date_Query {
 		foreach ( $query as $key => $clause ) {
 			if ( 'relation' === $key ) {
 				$relation = $query['relation'];
-			} else if ( is_array( $clause ) ) {
+			} elseif ( is_array( $clause ) ) {
 
 				// This is a first-order clause.
 				if ( $this->is_first_order_clause( $clause ) ) {
@@ -72,13 +72,13 @@ class DateQuery extends \WP_Date_Query {
 
 					// This is a subquery, so we recurse.
 				} else {
-					//@todo WP_Date_Query supports nested date queries, revisit if necessary
-					//Removed because this implementation had incorrect results
+					// @todo WP_Date_Query supports nested date queries, revisit if necessary
+					// Removed because this implementation had incorrect results
 				}
 			}
 		}
 
-		//@todo implement OR filter relationships
+		// @todo implement OR filter relationships
 		if ( empty( $relation ) ) {
 			$relation = 'AND';
 		}
@@ -92,7 +92,7 @@ class DateQuery extends \WP_Date_Query {
 				$filter_type = key( $filter );
 				if ( 'date_terms' === $filter_type ) {
 					$term_filters[] = $filter['date_terms'];
-				} else if ( 'range_filters' === $filter_type ) {
+				} elseif ( 'range_filters' === $filter_type ) {
 					$range_filters[] = $filter['range_filters'];
 				}
 			}
@@ -117,7 +117,7 @@ class DateQuery extends \WP_Date_Query {
 	 * Takes array of date term filters and groups them into a filter based on
 	 * relationship type
 	 *
-	 * @param array $date_term_filters
+	 * @param array  $date_term_filters
 	 * @param string $type type of relationship between date term filters (AND, OR)
 	 *
 	 * @since 0.1.4
@@ -159,11 +159,11 @@ class DateQuery extends \WP_Date_Query {
 		foreach ( $range_filters as $key => $range_filter ) {
 			if ( 'not' === key( $range_filter ) ) {
 				$range_filter_array['must_not'][] = array(
-					'range' => $range_filter['not']
+					'range' => $range_filter['not'],
 				);
 			} else {
 				$range_filter_array['must'][] = array(
-					'range' => $range_filter
+					'range' => $range_filter,
 				);
 			}
 		}
@@ -198,14 +198,12 @@ class DateQuery extends \WP_Date_Query {
 			$gt .= 'e';
 		}
 
-
 		// Range queries.
-
 		if ( ! empty( $query['after'] ) ) {
 			$range_filters = array(
 				"{$column}" => array(
-					"{$gt}" => $this->build_mysql_datetime( $query['after'] )
-				)
+					"{$gt}" => $this->build_mysql_datetime( $query['after'] ),
+				),
 			);
 		}
 
@@ -218,9 +216,7 @@ class DateQuery extends \WP_Date_Query {
 			$filter_parts['range_filters'] = $range_filters;
 		}
 
-
 		// Specific value queries.
-
 		$date_parameters = array(
 			'year'          => ! empty( $query['year'] ) ? $query['year'] : false,
 			'month'         => ! empty( $query['month'] ) ? $query['month'] : false,
@@ -261,37 +257,37 @@ class DateQuery extends \WP_Date_Query {
 
 			foreach ( $date_parameters as $param => $value ) {
 				if ( '=' === $compare ) {
-					$date_terms['must'][]['term']["date_terms.{$param}"] = $value;
-				} else if ( '!=' === $compare ) {
-					$date_terms['must_not'][]['term']["date_terms.{$param}"] = $value;
-				} else if ( 'IN' === $compare ) {
+					$date_terms['must'][]['term'][ "date_terms.{$param}" ] = $value;
+				} elseif ( '!=' === $compare ) {
+					$date_terms['must_not'][]['term'][ "date_terms.{$param}" ] = $value;
+				} elseif ( 'IN' === $compare ) {
 					foreach ( $value as $in_value ) {
-						$date_terms['should'][]['term']["date_terms.{$param}"] = $in_value;
+						$date_terms['should'][]['term'][ "date_terms.{$param}" ] = $in_value;
 					}
-				} else if ( 'NOT IN' === $compare ) {
+				} elseif ( 'NOT IN' === $compare ) {
 					foreach ( $value as $in_value ) {
-						$date_terms['must_not'][]['term']["date_terms.{$param}"] = $in_value;
+						$date_terms['must_not'][]['term'][ "date_terms.{$param}" ] = $in_value;
 					}
-				} else if ( 'BETWEEN' === $compare ) {
-					$range_filter["date_terms.{$param}"]       = [];
-					$range_filter["date_terms.{$param}"]['gte'] = $value[0];
-					$range_filter["date_terms.{$param}"]['lte'] = $value[1];
-					$filter_parts['range_filters']             = $range_filter;
-				} else if ( 'NOT BETWEEN' === $compare ) {
-					$range_filter["date_terms.{$param}"]       = [];
-					$range_filter["date_terms.{$param}"]['gt'] = $value[0];
-					$range_filter["date_terms.{$param}"]['lt'] = $value[1];
-					$filter_parts['range_filters']             = array( 'not' => $range_filter );
-				} else if ( strpos( $compare, '>' ) !== false ) {
-					$range                                         = ( strpos( $compare, '=' ) !== false ) ? 'gte' : 'gt';
-					$range_filter["date_terms.{$param}"]           = [];
-					$range_filter["date_terms.{$param}"][ $range ] = $value;
-					$filter_parts['range_filters']                 = $range_filter;
-				} else if ( strpos( $compare, '<' ) !== false ) {
-					$range                                         = ( strpos( $compare, '=' ) !== false ) ? 'lte' : 'lt';
-					$range_filter["date_terms.{$param}"]           = [];
-					$range_filter["date_terms.{$param}"][ $range ] = $value;
-					$filter_parts['range_filters']                 = $range_filter;
+				} elseif ( 'BETWEEN' === $compare ) {
+					$range_filter[ "date_terms.{$param}" ]        = [];
+					$range_filter[ "date_terms.{$param}" ]['gte'] = $value[0];
+					$range_filter[ "date_terms.{$param}" ]['lte'] = $value[1];
+					$filter_parts['range_filters']                = $range_filter;
+				} elseif ( 'NOT BETWEEN' === $compare ) {
+					$range_filter[ "date_terms.{$param}" ]       = [];
+					$range_filter[ "date_terms.{$param}" ]['gt'] = $value[0];
+					$range_filter[ "date_terms.{$param}" ]['lt'] = $value[1];
+					$filter_parts['range_filters']               = array( 'not' => $range_filter );
+				} elseif ( strpos( $compare, '>' ) !== false ) {
+					$range                                 = ( strpos( $compare, '=' ) !== false ) ? 'gte' : 'gt';
+					$range_filter[ "date_terms.{$param}" ] = [];
+					$range_filter[ "date_terms.{$param}" ][ $range ] = $value;
+					$filter_parts['range_filters']                   = $range_filter;
+				} elseif ( strpos( $compare, '<' ) !== false ) {
+					$range                                 = ( strpos( $compare, '=' ) !== false ) ? 'lte' : 'lt';
+					$range_filter[ "date_terms.{$param}" ] = [];
+					$range_filter[ "date_terms.{$param}" ][ $range ] = $value;
+					$filter_parts['range_filters']                   = $range_filter;
 				}
 			}
 
@@ -345,24 +341,26 @@ class DateQuery extends \WP_Date_Query {
 
 		$date_terms = [];
 		foreach ( $date_parameters as $param => $value ) {
-			$date_terms[]['term']["date_terms.{$param}"] = $value;
+			$date_terms[]['term'][ "date_terms.{$param}" ] = $value;
 		}
 
 		return array(
 			'bool' => array(
 				'must' => $date_terms,
-			)
+			),
 		);
 	}
 
 	/**
 	 * Introduced in WP 4.1 added here for backwards compatibility
+	 *
 	 * @var array
 	 */
 	public $time_keys = array( 'after', 'before', 'year', 'month', 'monthnum', 'week', 'w', 'dayofyear', 'day', 'dayofweek', 'dayofweek_iso', 'hour', 'minute', 'second' );
 
 	/**
 	 * Introduced in WP 4.1 added here for backwards compatibility
+	 *
 	 * @var array
 	 */
 	protected function is_first_order_clause( $query ) {
@@ -372,6 +370,7 @@ class DateQuery extends \WP_Date_Query {
 
 	/**
 	 * Introduced in WP 4.1 added here for backwards compatibility
+	 *
 	 * @var array
 	 */
 	public function validate_date_values( $date_query = [] ) {
@@ -386,11 +385,11 @@ class DateQuery extends \WP_Date_Query {
 		 * validation routine continue to be sure that all invalid
 		 * values generate errors too.
 		 */
-		if ( array_key_exists( 'before', $date_query ) && is_array( $date_query['before'] ) ){
+		if ( array_key_exists( 'before', $date_query ) && is_array( $date_query['before'] ) ) {
 			$valid = $this->validate_date_values( $date_query['before'] );
 		}
 
-		if ( array_key_exists( 'after', $date_query ) && is_array( $date_query['after'] ) ){
+		if ( array_key_exists( 'after', $date_query ) && is_array( $date_query['after'] ) ) {
 			$valid = $this->validate_date_values( $date_query['after'] );
 		}
 
@@ -417,25 +416,25 @@ class DateQuery extends \WP_Date_Query {
 
 		$min_max_checks['dayofyear'] = array(
 			'min' => 1,
-			'max' => $max_days_of_year
+			'max' => $max_days_of_year,
 		);
 
 		// Days per week.
 		$min_max_checks['dayofweek'] = array(
 			'min' => 1,
-			'max' => 7
+			'max' => 7,
 		);
 
 		// Days per week.
 		$min_max_checks['dayofweek_iso'] = array(
 			'min' => 1,
-			'max' => 7
+			'max' => 7,
 		);
 
 		// Months per year.
 		$min_max_checks['month'] = array(
 			'min' => 1,
-			'max' => 12
+			'max' => 12,
 		);
 
 		// Weeks per year.
@@ -443,7 +442,7 @@ class DateQuery extends \WP_Date_Query {
 			// If we have a specific year, use it to calculate number of weeks.
 			$date = new DateTime();
 			$date->setISODate( $_year, 53 );
-			$week_count = $date->format( "W" ) === "53" ? 53 : 52;
+			$week_count = $date->format( 'W' ) === '53' ? 53 : 52;
 
 		} else {
 			// Otherwise set the week-count to a maximum of 53.
@@ -452,31 +451,31 @@ class DateQuery extends \WP_Date_Query {
 
 		$min_max_checks['week'] = array(
 			'min' => 1,
-			'max' => $week_count
+			'max' => $week_count,
 		);
 
 		// Days per month.
 		$min_max_checks['day'] = array(
 			'min' => 1,
-			'max' => 31
+			'max' => 31,
 		);
 
 		// Hours per day.
 		$min_max_checks['hour'] = array(
 			'min' => 0,
-			'max' => 23
+			'max' => 23,
 		);
 
 		// Minutes per hour.
 		$min_max_checks['minute'] = array(
 			'min' => 0,
-			'max' => 59
+			'max' => 59,
 		);
 
 		// Seconds per minute.
 		$min_max_checks['second'] = array(
 			'min' => 0,
-			'max' => 59
+			'max' => 59,
 		);
 
 		// Concatenate and throw a notice for each invalid value.
@@ -492,7 +491,7 @@ class DateQuery extends \WP_Date_Query {
 
 				if ( ! is_numeric( $_value ) || ! $is_between ) {
 					$error = sprintf(
-					/* translators: Date query invalid date message: 1: invalid value, 2: type of value, 3: minimum valid value, 4: maximum valid value */
+						/* translators: Date query invalid date message: 1: invalid value, 2: type of value, 3: minimum valid value, 4: maximum valid value */
 						__( 'Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s.' ),
 						'<code>' . esc_html( $_value ) . '</code>',
 						'<code>' . esc_html( $key ) . '</code>',
@@ -531,8 +530,7 @@ class DateQuery extends \WP_Date_Query {
 
 				$valid = false;
 			}
-
-		} else if ( $day_exists && $month_exists ) {
+		} elseif ( $day_exists && $month_exists ) {
 			/*
 			 * 2. checking day, month combination
 			 * We use 2012 because, as a leap year, it's the most permissive.

@@ -27,7 +27,7 @@ class Documents extends Feature {
 	 * @since  2.3
 	 */
 	public function setup() {
-		add_filter( 'ep_search_fields',  [ $this, 'search_fields' ] );
+		add_filter( 'ep_search_fields', [ $this, 'search_fields' ] );
 		add_filter( 'ep_index_post_request_path', [ $this, 'index_post_request_path' ], 999, 2 );
 		add_filter( 'ep_post_sync_args', [ $this, 'post_sync_args' ], 999, 2 );
 		add_filter( 'ep_indexable_post_status', [ $this, 'indexable_post_status' ], 999, 1 );
@@ -73,14 +73,14 @@ class Documents extends Feature {
 			return;
 		}
 
-		$post_status = $query->get( 'post_status' , [] );
-		$post_type = $query->get( 'post_type' , [] );
-		$mime_types = $query->get( 'post_mime_type' , [] );
+		$post_status = $query->get( 'post_status', [] );
+		$post_type   = $query->get( 'post_type', [] );
+		$mime_types  = $query->get( 'post_mime_type', [] );
 
 		if ( ! empty( $post_type ) ) {
 			if ( 'any' !== $post_type ) {
 				if ( is_string( $post_type ) ) {
-					$post_type = explode( ' ', $post_type );
+					$post_type   = explode( ' ', $post_type );
 					$post_type[] = 'attachment';
 
 					$query->set( 'post_type', array_unique( $post_type ) );
@@ -104,7 +104,7 @@ class Documents extends Feature {
 			$mime_types = explode( ' ', $mime_types );
 		}
 
-		$mime_types = array_merge( $mime_types, $this->get_allowed_ingest_mime_types() );
+		$mime_types   = array_merge( $mime_types, $this->get_allowed_ingest_mime_types() );
 		$mime_types[] = ''; // This let's us query non-attachments as well as attachments
 
 		$query->set( 'post_mime_type', array_unique( array_values( $mime_types ) ) );
@@ -114,7 +114,7 @@ class Documents extends Feature {
 	 * Change Elasticsearch request path if processing attachment
 	 *
 	 * @param string $path
-	 * @param array $post
+	 * @param array  $post
 	 * @since  2.3
 	 * @return string
 	 */
@@ -122,7 +122,7 @@ class Documents extends Feature {
 		if ( 'attachment' === $post['post_type'] ) {
 			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types() ) ) {
 				$index = Indexables::factory()->get( 'post' )->get_index_name();
-				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+				$path  = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
 			}
 		}
 
@@ -133,7 +133,7 @@ class Documents extends Feature {
 	 * Add attachment data in post sync args
 	 *
 	 * @param array $post_args
-	 * @param int $post_id
+	 * @param int   $post_id
 	 * @since  2.3
 	 * @return mixed
 	 */
@@ -152,7 +152,7 @@ class Documents extends Feature {
 
 		if ( 'attachment' == get_post_type( $post_id ) && in_array( get_post_mime_type( $post_id ), $allowed_ingest_mime_types ) ) {
 			$file_name = get_attached_file( $post_id );
-			$exist = $wp_filesystem->exists( $file_name, false, 'f' );
+			$exist     = $wp_filesystem->exists( $file_name, false, 'f' );
 			if ( $exist ) {
 				$file_content = $wp_filesystem->get_contents( $file_name );
 
@@ -205,9 +205,11 @@ class Documents extends Feature {
 	 * @return string
 	 */
 	public function bulk_index_post_request_path( $path ) {
-		return add_query_arg( array(
-			'pipeline' => apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ),
-		), $path );
+		return add_query_arg(
+			array(
+				'pipeline' => apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ),
+			), $path
+		);
 	}
 
 	/**
@@ -221,15 +223,15 @@ class Documents extends Feature {
 
 		$plugins = Elasticsearch::factory()->get_elasticsearch_plugins();
 
-		$status->code = 1;
+		$status->code    = 1;
 		$status->message = [];
 
 		// Ingest attachment plugin is required for this feature
 		if ( empty( $plugins ) || empty( $plugins['ingest-attachment'] ) ) {
-			$status->code = 2;
+			$status->code      = 2;
 			$status->message[] = __( 'The <a href="https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html">Ingest Attachment plugin</a> for Elasticsearch is not installed. To get the most out of ElasticPress, without the hassle of Elasticsearch management, check out <a href="https://elasticpress.io">ElasticPress.io</a> hosting.', 'elasticpress' );
 		} else {
-			$status->message[] = __( "This feature modifies the default user experience for your visitors by adding popular document file types to search results. <strong>All supported documents</strong> uploaded to your media library will appear in search results.", 'elasticpress' );
+			$status->message[] = __( 'This feature modifies the default user experience for your visitors by adding popular document file types to search results. <strong>All supported documents</strong> uploaded to your media library will appear in search results.', 'elasticpress' );
 		}
 
 		return $status;
@@ -242,7 +244,7 @@ class Documents extends Feature {
 	 */
 	public function output_feature_box_summary() {
 		?>
-		<p><?php esc_html_e( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' ) ?></p>
+		<p><?php esc_html_e( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' ); ?></p>
 		<?php
 	}
 
@@ -253,7 +255,7 @@ class Documents extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php esc_html_e( 'Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf.', 'elasticpress' ) ?></p>
+		<p><?php esc_html_e( 'Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf.', 'elasticpress' ); ?></p>
 		<?php
 	}
 
@@ -274,19 +276,19 @@ class Documents extends Feature {
 	public function create_pipeline() {
 		$args = array(
 			'description' => 'Extract attachment information',
-			'processors' => array(
+			'processors'  => array(
 				array(
 					'foreach' => array(
-						'field' => 'attachments',
+						'field'     => 'attachments',
 						'processor' => array(
 							'attachment' => array(
-								'target_field' => '_ingest._value.attachment',
-								'field' => '_ingest._value.data',
+								'target_field'   => '_ingest._value.attachment',
+								'field'          => '_ingest._value.data',
 								'ignore_missing' => true,
-								'indexed_chars' => -1,
-							)
-						)
-					)
+								'indexed_chars'  => -1,
+							),
+						),
+					),
 				),
 			),
 		);
@@ -301,15 +303,17 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function get_allowed_ingest_mime_types() {
-		return apply_filters( 'ep_allowed_documents_ingest_mime_types', array(
-			'pdf'  => 'application/pdf',
-			'ppt'  => 'application/vnd.ms-powerpoint',
-			'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-			'xls'  => 'application/vnd.ms-excel',
-			'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-			'doc'  => 'application/msword',
-			'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-		) );
+		return apply_filters(
+			'ep_allowed_documents_ingest_mime_types', array(
+				'pdf'  => 'application/pdf',
+				'ppt'  => 'application/vnd.ms-powerpoint',
+				'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+				'xls'  => 'application/vnd.ms-excel',
+				'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+				'doc'  => 'application/msword',
+				'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			)
+		);
 	}
 }
 

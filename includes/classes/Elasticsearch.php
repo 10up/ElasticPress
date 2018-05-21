@@ -49,7 +49,7 @@ class Elasticsearch {
 	public static function factory() {
 		static $instance = false;
 
-		if ( ! $instance  ) {
+		if ( ! $instance ) {
 			$instance = new self();
 		}
 
@@ -63,7 +63,7 @@ class Elasticsearch {
 	 *
 	 * @param  string  $index
 	 * @param  string  $type
-	 * @param  array  $document Formatted Elasticsearch document
+	 * @param  array   $document Formatted Elasticsearch document
 	 * @param  boolean $blocking
 	 * @since  2.6
 	 * @return boolean|array
@@ -163,8 +163,8 @@ class Elasticsearch {
 	 *
 	 * @param  string $index
 	 * @param  string $type
-	 * @param  array $query
-	 * @param  array $query_args WP query args. Used only for debugging
+	 * @param  array  $query
+	 * @param  array  $query_args WP query args. Used only for debugging
 	 * @since  2.6
 	 * @return bool|array
 	 */
@@ -191,7 +191,7 @@ class Elasticsearch {
 
 			$response = json_decode( $response_body, true );
 
-			$hits = $this->get_hits_from_query( $response );
+			$hits       = $this->get_hits_from_query( $response );
 			$total_hits = $this->get_total_hits_from_query( $response );
 
 			// Check for and store aggregations
@@ -200,7 +200,7 @@ class Elasticsearch {
 			$documents = [];
 
 			foreach ( $hits as $hit ) {
-				$document = $hit['_source'];
+				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
 				$documents[] = $document;
@@ -208,44 +208,44 @@ class Elasticsearch {
 
 			return [
 				'found_documents' => $total_hits,
-				'documents' => $documents,
+				'documents'       => $documents,
 			];
 		}
 
 		return false;
 	}
 
-    /**
-     * Returns the number of total results that ElasticSearch found for the given query
-     *
-     * @param array $response
-     * @since  2.5
-     * @return int
-     */
+	/**
+	 * Returns the number of total results that ElasticSearch found for the given query
+	 *
+	 * @param array $response
+	 * @since  2.5
+	 * @return int
+	 */
 	public function get_total_hits_from_query( $response ) {
 
-	    if ( $this->is_empty_query( $response ) ) {
-	        return 0;
-        }
+		if ( $this->is_empty_query( $response ) ) {
+			return 0;
+		}
 
-        return $response['hits']['total'];
-    }
+		return $response['hits']['total'];
+	}
 
-    /**
-     * Returns array containing hits returned from query, if such exist
-     *
-     * @param array $response
-     * @since  2.5
-     * @return array
-     */
+	/**
+	 * Returns array containing hits returned from query, if such exist
+	 *
+	 * @param array $response
+	 * @since  2.5
+	 * @return array
+	 */
 	public function get_hits_from_query( $response ) {
 
-        if ( $this->is_empty_query( $response ) ) {
-            return [];
-        }
+		if ( $this->is_empty_query( $response ) ) {
+			return [];
+		}
 
-        return $response['hits']['hits'];
-    }
+		return $response['hits']['hits'];
+	}
 
 	/**
 	 * Check if a response array contains results or not
@@ -268,7 +268,7 @@ class Elasticsearch {
 			return true;
 		}
 
-		if ( isset( $response['hits']['total'] ) && 0 === (int)$response['hits']['total'] ) {
+		if ( isset( $response['hits']['total'] ) && 0 === (int) $response['hits']['total'] ) {
 			return true;
 		}
 
@@ -285,13 +285,13 @@ class Elasticsearch {
 	 * @since  2.6
 	 * @return boolean
 	 */
-	public function delete_document( $index, $type, $document_id, $blocking = true  ) {
+	public function delete_document( $index, $type, $document_id, $blocking = true ) {
 
 		$path = $index . '/' . $type . '/' . $document_id;
 
 		$request_args = [
-			'method' => 'DELETE',
-			'timeout' => 15,
+			'method'   => 'DELETE',
+			'timeout'  => 15,
 			'blocking' => $blocking,
 		];
 
@@ -481,7 +481,7 @@ class Elasticsearch {
 	public function delete_index( $index ) {
 
 		$request_args = [
-			'method' => 'DELETE',
+			'method'  => 'DELETE',
 			'timeout' => 30,
 		];
 
@@ -531,6 +531,7 @@ class Elasticsearch {
 
 	/**
 	 * Bulk index Elasticsearch documents
+	 *
 	 * @param  string $index
 	 * @param  string $type
 	 * @param  string $body  Encoded JSON
@@ -578,9 +579,9 @@ class Elasticsearch {
 	 *
 	 * @since 1.6
 	 *
-	 * @param string $path Site URL to retrieve.
-	 * @param array  $args Optional. Request arguments. Default empty array.
-	 * @param array  $query_args Optional. The query args originally passed to WP_Query
+	 * @param string                                     $path Site URL to retrieve.
+	 * @param array                                      $args Optional. Request arguments. Default empty array.
+	 * @param array                                      $query_args Optional. The query args originally passed to WP_Query
 	 * @param string Type of request, used for debugging
 	 *
 	 * @return WP_Error|array The response or WP_Error on failure.
@@ -602,18 +603,18 @@ class Elasticsearch {
 			'query_args'   => $query_args,
 		);
 
-		//Add the API Header
+		// Add the API Header
 		$args['headers'] = $this->format_request_headers();
 
-		$request = false;
+		$request  = false;
 		$failures = 0;
 
 		// Optionally let us try back up hosts and account for failures
 		while ( true ) {
 			$query['host'] = apply_filters( 'ep_pre_request_host', $query['host'], $failures, $path, $args );
-			$query['url'] = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
+			$query['url']  = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
 
-			$request = wp_remote_request( $query['url'], $args ); //try the existing host to avoid unnecessary calls
+			$request = wp_remote_request( $query['url'], $args ); // try the existing host to avoid unnecessary calls
 
 			$request_response_code = (int) wp_remote_retrieve_response_code( $request );
 
@@ -631,7 +632,7 @@ class Elasticsearch {
 		}
 
 		// Return now if we're not blocking, since we won't have a response yet
-		if ( isset( $args['blocking'] ) && false === $args['blocking' ] ) {
+		if ( isset( $args['blocking'] ) && false === $args['blocking'] ) {
 			$query['blocking'] = true;
 			$query['request']  = $request;
 			$this->_add_query_log( $query );
@@ -640,7 +641,7 @@ class Elasticsearch {
 		}
 
 		$query['time_finish'] = microtime( true );
-		$query['request'] = $request;
+		$query['request']     = $request;
 		$this->_add_query_log( $query );
 
 		do_action( '$this->remote_request', $query, $type );
@@ -692,7 +693,10 @@ class Elasticsearch {
 
 		}
 
-		return array( 'status' => true, 'data' => $response->_all->primaries->indexing );
+		return array(
+			'status' => true,
+			'data'   => $response->_all->primaries->indexing,
+		);
 
 	}
 
@@ -741,7 +745,7 @@ class Elasticsearch {
 
 					if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 						$response_body = wp_remote_retrieve_body( $request );
-						$response = json_decode( $response_body, true );
+						$response      = json_decode( $response_body, true );
 
 						try {
 							$this->elasticsearch_version = $response['version']['number'];
@@ -782,13 +786,19 @@ class Elasticsearch {
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					set_site_transient(
 						'ep_es_info',
-						array( 'version' => $this->elasticsearch_version, 'plugins' => $this->elasticsearch_plugins, ),
+						array(
+							'version' => $this->elasticsearch_version,
+							'plugins' => $this->elasticsearch_plugins,
+						),
 						apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) )
 					);
 				} else {
 					set_transient(
 						'ep_es_info',
-						array( 'version' => $this->elasticsearch_version, 'plugins' => $this->elasticsearch_plugins, ),
+						array(
+							'version' => $this->elasticsearch_version,
+							'plugins' => $this->elasticsearch_plugins,
+						),
 						apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) )
 					);
 				}
@@ -849,7 +859,7 @@ class Elasticsearch {
 		$path = '_ingest/pipeline/' . $id;
 
 		$request_args = array(
-			'method'  => 'GET',
+			'method' => 'GET',
 		);
 
 		$request = $this->remote_request( $path, apply_filters( 'ep_get_pipeline_args', $request_args ), [], 'get_pipeline' );
@@ -877,7 +887,7 @@ class Elasticsearch {
 	 * Put an Elasticsearch pipeline
 	 *
 	 * @param  string $id
-	 * @param array $args
+	 * @param array  $args
 	 * @since  2.3
 	 * @return WP_Error|bool
 	 */
@@ -885,8 +895,8 @@ class Elasticsearch {
 		$path = '_ingest/pipeline/' . $id;
 
 		$request_args = array(
-			'body'    => json_encode( $args ),
-			'method'  => 'PUT',
+			'body'   => json_encode( $args ),
+			'method' => 'PUT',
 		);
 
 		$request = $this->remote_request( $path, apply_filters( 'ep_get_pipeline_args', $request_args ), [], 'create_pipeline' );

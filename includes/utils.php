@@ -82,19 +82,21 @@ function host_by_option() {
 /**
  * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
  *
- * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites
+ * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites.
  * @since  2.6
  * @return array
  */
 function get_sites( $limit = 0 ) {
-	$args = apply_filters( 'ep_indexable_sites_args', array(
-		'limit' => $limit,
-		'number' => $limit,
-	) );
+	$args = apply_filters(
+		'ep_indexable_sites_args', array(
+			'limit'  => $limit,
+			'number' => $limit,
+		)
+	);
 
 	if ( function_exists( 'get_sites' ) ) {
 		$site_objects = \get_sites( $args );
-		$sites = [];
+		$sites        = [];
 
 		foreach ( $site_objects as $site ) {
 			$sites[] = array(
@@ -118,11 +120,11 @@ function get_sites( $limit = 0 ) {
  *
  * @since 2.6
  * @param string $plugin the plugin base name.
- * @return bool True if network activated or false
+ * @return bool True if network activated or false.
  */
 function is_network_activated( $plugin ) {
 
-	$plugins = get_site_option( 'active_sitewide_plugins');
+	$plugins = get_site_option( 'active_sitewide_plugins' );
 
 	if ( is_multisite() && isset( $plugins[ $plugin ] ) ) {
 		return true;
@@ -137,28 +139,28 @@ function is_network_activated( $plugin ) {
  *
  * Tree will look like this:
  * [
- * 		WP_Term(
- * 	 		name
- * 	   		slug
- * 	     	children ->[
- * 	      		WP_Term()
- * 		    ]
- * 	    ),
- * 	    WP_Term()
+ *      WP_Term(
+ *          name
+ *          slug
+ *          children ->[
+ *              WP_Term()
+ *          ]
+ *      ),
+ *      WP_Term()
  * ]
  *
- * @param  array       $all_terms Pass get_terms() as this argument where terms are objects NOT arrays
- * @param  string|bool $orderby   Can be count|name|false. This is how each tree branch will be ordered
+ * @param  array       $all_terms Pass get_terms() as this argument where terms are objects NOT arrays.
+ * @param  string|bool $orderby   Can be count|name|false. This is how each tree branch will be ordered.
  * @param  string      $order     Can be asc|desc. This is the direction ordering will occur.
  * @param  bool        $flat      If false, a tree will be returned e.g. an array of top level terms
  *                                which children linked within each node. If true, the tree will be
- *                                "flattened"
+ *                                "flattened".
  * @since  2.5
  * @return array
  */
 function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat = false ) {
-	$terms_map = [];
-	$terms_tree = [];
+	$terms_map    = [];
+	$terms_tree   = [];
 	$iteration_id = 0;
 
 	while ( true ) {
@@ -205,7 +207,7 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 
 					$parent_level = ( $terms_map[ $term->parent ]->level ) ? $terms_map[ $term->parent ]->level : 0;
 
-					$term->level = $parent_level + 1;
+					$term->level       = $parent_level + 1;
 					$term->parent_term = $terms_map[ $term->parent ];
 
 					unset( $all_terms[ $key ] );
@@ -239,9 +241,9 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 
 		foreach ( $terms_tree as $term ) {
 			$flat_tree[] = $term;
-			$to_process = $term->children;
+			$to_process  = $term->children;
 			while ( ! empty( $to_process ) ) {
-				$term = array_shift( $to_process );
+				$term        = array_shift( $to_process );
 				$flat_tree[] = $term;
 
 				if ( ! empty( $term->children ) ) {

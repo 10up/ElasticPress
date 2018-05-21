@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
@@ -14,6 +13,8 @@
  *
  * Copyright (C) 2012-2013 Automattic
  * Copyright (C) 2013 SearchPress
+ *
+ * @package  elasticpress
  */
 
 namespace ElasticPress;
@@ -35,10 +36,10 @@ define( 'EP_VERSION', '2.6' );
  */
 spl_autoload_register(
 	function( $class ) {
-			// project-specific namespace prefix
+			// project-specific namespace prefix.
 			$prefix = 'ElasticPress\\';
 
-			// base directory for the namespace prefix
+			// base directory for the namespace prefix.
 			$base_dir = __DIR__ . '/includes/classes/';
 
 			// does the class use the namespace prefix?
@@ -52,7 +53,7 @@ spl_autoload_register(
 
 			$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
 
-			// if the file exists, require it
+			// if the file exists, require it.
 		if ( file_exists( $file ) ) {
 			require $file;
 		}
@@ -161,12 +162,14 @@ function handle_upgrades() {
 	/**
 	 * Reindex if we cross a reindex version in the upgrade
 	 */
-	$reindex_versions = apply_filters( 'ep_reindex_versions', array(
-		'2.2',
-		'2.3.1',
-		'2.4',
-		'2.5.1',
-	) );
+	$reindex_versions = apply_filters(
+		'ep_reindex_versions', array(
+			'2.2',
+			'2.3.1',
+			'2.4',
+			'2.5.1',
+		)
+	);
 
 	$need_upgrade_sync = false;
 
@@ -175,7 +178,7 @@ function handle_upgrades() {
 	} else {
 		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
 
-		if ( -1 === version_compare( $old_version, $last_reindex_version ) && 0 <= version_compare( EP_VERSION , $last_reindex_version ) )  {
+		if ( -1 === version_compare( $old_version, $last_reindex_version ) && 0 <= version_compare( EP_VERSION, $last_reindex_version ) ) {
 			$need_upgrade_sync = true;
 		}
 	}

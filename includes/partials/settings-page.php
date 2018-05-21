@@ -16,7 +16,7 @@ $action = 'options.php';
 
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$index_meta = get_site_option( 'ep_index_meta', false );
-	$action = '';
+	$action     = '';
 } else {
 	$index_meta = get_option( 'ep_index_meta', false );
 }
@@ -43,7 +43,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 						<?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>
 							<span class="description"><?php esc_html_e( 'Your Elasticsearch host is set in wp-config.php', 'elasticpress' ); ?></span>
 						<?php else : ?>
-                            <span class="description"><?php esc_html_e( 'Plug in your Elasticsearch server here!', 'elasticpress' ); ?></span>
+							<span class="description"><?php esc_html_e( 'Plug in your Elasticsearch server here!', 'elasticpress' ); ?></span>
 						<?php endif; ?>
 					</td>
 				</tr>

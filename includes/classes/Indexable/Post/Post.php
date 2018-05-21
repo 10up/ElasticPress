@@ -45,13 +45,13 @@ class Post extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'posts_per_page'         => 350,
-			'post_type'              => $this->get_indexable_post_types(),
-			'post_status'            => $this->get_indexable_post_status(),
-			'offset'                 => 0,
-			'ignore_sticky_posts'    => true,
-			'orderby'                => 'id',
-			'order'                  => 'desc',
+			'posts_per_page'      => 350,
+			'post_type'           => $this->get_indexable_post_types(),
+			'post_status'         => $this->get_indexable_post_status(),
+			'offset'              => 0,
+			'ignore_sticky_posts' => true,
+			'orderby'             => 'id',
+			'order'               => 'desc',
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -156,29 +156,29 @@ class Post extends Indexable {
 			);
 		}
 
-		$post_date = $post->post_date;
-		$post_date_gmt = $post->post_date_gmt;
-		$post_modified = $post->post_modified;
+		$post_date         = $post->post_date;
+		$post_date_gmt     = $post->post_date_gmt;
+		$post_modified     = $post->post_modified;
 		$post_modified_gmt = $post->post_modified_gmt;
-		$comment_count = absint( $post->comment_count );
-		$comment_status = absint( $post->comment_status );
-		$ping_status = absint( $post->ping_status );
-		$menu_order = absint( $post->menu_order );
+		$comment_count     = absint( $post->comment_count );
+		$comment_status    = absint( $post->comment_status );
+		$ping_status       = absint( $post->ping_status );
+		$menu_order        = absint( $post->menu_order );
 
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
-			if ( ! strtotime( $post_date ) || $post_date === "0000-00-00 00:00:00" ) {
+			if ( ! strtotime( $post_date ) || $post_date === '0000-00-00 00:00:00' ) {
 				$post_date = null;
 			}
 
-			if ( ! strtotime( $post_date_gmt ) || $post_date_gmt === "0000-00-00 00:00:00" ) {
+			if ( ! strtotime( $post_date_gmt ) || $post_date_gmt === '0000-00-00 00:00:00' ) {
 				$post_date_gmt = null;
 			}
 
-			if ( ! strtotime( $post_modified ) || $post_modified === "0000-00-00 00:00:00" ) {
+			if ( ! strtotime( $post_modified ) || $post_modified === '0000-00-00 00:00:00' ) {
 				$post_modified = null;
 			}
 
-			if ( ! strtotime( $post_modified_gmt ) || $post_modified_gmt === "0000-00-00 00:00:00" ) {
+			if ( ! strtotime( $post_modified_gmt ) || $post_modified_gmt === '0000-00-00 00:00:00' ) {
 				$post_modified_gmt = null;
 			}
 		}
@@ -236,19 +236,19 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	private function prepare_date_terms( $post_date_gmt ) {
-		$timestamp = strtotime( $post_date_gmt );
+		$timestamp  = strtotime( $post_date_gmt );
 		$date_terms = array(
-			'year' => (int) date( "Y", $timestamp),
-			'month' => (int) date( "m", $timestamp),
-			'week' => (int) date( "W", $timestamp),
-			'dayofyear' => (int) date( "z", $timestamp),
-			'day' => (int) date( "d", $timestamp),
-			'dayofweek' => (int) date( "w", $timestamp),
-			'dayofweek_iso' => (int) date( "N", $timestamp),
-			'hour' => (int) date( "H", $timestamp),
-			'minute' => (int) date( "i", $timestamp),
-			'second' => (int) date( "s", $timestamp),
-			'm' => (int) (date( "Y", $timestamp) . date( "m", $timestamp)), // yearmonth
+			'year'          => (int) date( 'Y', $timestamp ),
+			'month'         => (int) date( 'm', $timestamp ),
+			'week'          => (int) date( 'W', $timestamp ),
+			'dayofyear'     => (int) date( 'z', $timestamp ),
+			'day'           => (int) date( 'd', $timestamp ),
+			'dayofweek'     => (int) date( 'w', $timestamp ),
+			'dayofweek_iso' => (int) date( 'N', $timestamp ),
+			'hour'          => (int) date( 'H', $timestamp ),
+			'minute'        => (int) date( 'i', $timestamp ),
+			'second'        => (int) date( 's', $timestamp ),
+			'm'             => (int) ( date( 'Y', $timestamp ) . date( 'm', $timestamp ) ), // yearmonth
 		);
 		return $date_terms;
 	}
@@ -301,7 +301,7 @@ class Post extends Indexable {
 			$terms_dic = [];
 
 			foreach ( $object_terms as $term ) {
-				if( ! isset( $terms_dic[ $term->term_id ] ) ) {
+				if ( ! isset( $terms_dic[ $term->term_id ] ) ) {
 					$terms_dic[ $term->term_id ] = array(
 						'term_id'          => $term->term_id,
 						'slug'             => $term->slug,
@@ -309,7 +309,7 @@ class Post extends Indexable {
 						'parent'           => $term->parent,
 						'term_taxonomy_id' => $term->term_taxonomy_id,
 					);
-					if( $allow_hierarchy ){
+					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name );
 					}
 				}
@@ -322,6 +322,7 @@ class Post extends Indexable {
 
 	/**
 	 * Recursively get all the ancestor terms of the given term
+	 *
 	 * @param $terms
 	 * @param $term
 	 * @param $tax_name
@@ -329,14 +330,15 @@ class Post extends Indexable {
 	 */
 	private function get_parent_terms( $terms, $term, $tax_name ) {
 		$parent_term = get_term( $term->parent, $tax_name );
-		if( ! $parent_term || is_wp_error( $parent_term ) )
+		if ( ! $parent_term || is_wp_error( $parent_term ) ) {
 			return $terms;
-		if( ! isset( $terms[ $parent_term->term_id ] ) ) {
+		}
+		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
 			$terms[ $parent_term->term_id ] = array(
 				'term_id' => $parent_term->term_id,
 				'slug'    => $parent_term->slug,
 				'name'    => $parent_term->name,
-				'parent'  => $parent_term->parent
+				'parent'  => $parent_term->parent,
 			);
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name );
@@ -394,7 +396,7 @@ class Post extends Indexable {
 				}
 			} else {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys )  ) {
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys ) ) {
 					$allow_index = true;
 				}
 			}
@@ -485,7 +487,7 @@ class Post extends Indexable {
 			$formatted_args['sort'] = $default_sort;
 		}
 
-		$filter = array(
+		$filter      = array(
 			'bool' => array(
 				'must' => [],
 			),
@@ -503,40 +505,40 @@ class Post extends Indexable {
 		 * @since 0.9.1
 		 */
 
-		//set tax_query if it's implicitly set in the query
-		//e.g. $args['tag'], $args['category_name']
+		// set tax_query if it's implicitly set in the query
+		// e.g. $args['tag'], $args['category_name']
 		if ( empty( $args['tax_query'] ) ) {
 			if ( ! empty( $args['category_name'] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'category',
-					'terms' =>  array( $args['category_name'] ),
-					'field' => 'slug'
+					'terms'    => array( $args['category_name'] ),
+					'field'    => 'slug',
 				);
 			} elseif ( ! empty( $args['cat'] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'category',
-					'terms' =>  array( $args['cat'] ),
-					'field' => 'id'
+					'terms'    => array( $args['cat'] ),
+					'field'    => 'id',
 				);
 			}
 
 			if ( ! empty( $args['tag'] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'post_tag',
-					'terms' =>  array( $args['tag'] ),
-					'field' => 'slug'
+					'terms'    => array( $args['tag'] ),
+					'field'    => 'slug',
 				);
 			}
 		}
 
 		if ( ! empty( $args['tax_query'] ) ) {
-			$tax_filter = [];
-			$tax_must_not_filter  = [];
+			$tax_filter          = [];
+			$tax_must_not_filter = [];
 
 			// Main tax_query array for ES
 			$es_tax_query = [];
 
-			foreach( $args['tax_query'] as $single_tax_query ) {
+			foreach ( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['terms'] ) ) {
 					$terms = (array) $single_tax_query['terms'];
 
@@ -571,7 +573,7 @@ class Post extends Indexable {
 
 						$and_nest = array(
 							'bool' => array(
-								'must' => []
+								'must' => [],
 							),
 						);
 
@@ -579,7 +581,7 @@ class Post extends Indexable {
 							$and_nest['bool']['must'][] = array(
 								'terms' => array(
 									'terms.' . $single_tax_query['taxonomy'] . '.' . $field => (array) $term,
-								)
+								),
 							);
 						}
 
@@ -602,14 +604,14 @@ class Post extends Indexable {
 					$relation = 'should';
 				}
 
-				$es_tax_query[$relation] = $tax_filter;
+				$es_tax_query[ $relation ] = $tax_filter;
 			}
 
 			if ( ! empty( $tax_must_not_filter ) ) {
 				$es_tax_query['must_not'] = $tax_must_not_filter;
 			}
 
-			if( ! empty( $es_tax_query ) ) {
+			if ( ! empty( $es_tax_query ) ) {
 				$filter['bool']['must'][]['bool'] = $es_tax_query;
 			}
 
@@ -646,12 +648,12 @@ class Post extends Indexable {
 			$use_filters = true;
 		}
 
-	        /**
-	         * 'post__not_in' arg support.
-	         *
-	         * @since x.x
-	         */
-	        if ( ! empty( $args['post__not_in'] ) ) {
+			/**
+			 * 'post__not_in' arg support.
+			 *
+			 * @since x.x
+			 */
+		if ( ! empty( $args['post__not_in'] ) ) {
 			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(
 					'post_id' => (array) $args['post__not_in'],
@@ -659,7 +661,7 @@ class Post extends Indexable {
 			);
 
 			$use_filters = true;
-	        }
+		}
 
 		/**
 		 * Author query support
@@ -693,19 +695,19 @@ class Post extends Indexable {
 		 *
 		 * @since 2.3
 		 */
-		if( ! empty( $args['post_mime_type'] ) ) {
-			if( is_array( $args['post_mime_type'] ) ) {
+		if ( ! empty( $args['post_mime_type'] ) ) {
+			if ( is_array( $args['post_mime_type'] ) ) {
 				$filter['bool']['must'][] = array(
 					'terms' => array(
-						'post_mime_type' => (array)$args['post_mime_type'],
+						'post_mime_type' => (array) $args['post_mime_type'],
 					),
 				);
 
 				$use_filters = true;
-			} elseif( is_string( $args['post_mime_type'] ) ) {
+			} elseif ( is_string( $args['post_mime_type'] ) ) {
 				$filter['bool']['must'][] = array(
 					'regexp' => array(
-						'post_mime_type' => $args['post_mime_type'] . ".*",
+						'post_mime_type' => $args['post_mime_type'] . '.*',
 					),
 				);
 
@@ -720,12 +722,11 @@ class Post extends Indexable {
 		 */
 		if ( $date_filter = DateQuery::simple_es_date_filter( $args ) ) {
 			$filter['bool']['must'][] = $date_filter;
-			$use_filters = true;
+			$use_filters              = true;
 		}
 
 		/**
 		 * 'date_query' arg support.
-		 *
 		 */
 		if ( ! empty( $args['date_query'] ) ) {
 
@@ -733,11 +734,10 @@ class Post extends Indexable {
 
 			$date_filter = $date_query->get_es_filter();
 
-			if( array_key_exists('and', $date_filter ) ) {
+			if ( array_key_exists( 'and', $date_filter ) ) {
 				$filter['bool']['must'][] = $date_filter['and'];
-				$use_filters = true;
+				$use_filters              = true;
 			}
-
 		}
 
 		$meta_queries = [];
@@ -756,7 +756,7 @@ class Post extends Indexable {
 
 			if ( ! empty( $meta_value ) ) {
 				$meta_queries[] = array(
-					'key' => $args['meta_key'],
+					'key'   => $args['meta_key'],
 					'value' => $meta_value,
 				);
 			}
@@ -789,7 +789,7 @@ class Post extends Indexable {
 			$meta_filter = $this->build_meta_query( $meta_queries );
 
 			if ( ! empty( $meta_filter ) ) {
-				$filter['bool']['must'][]['bool'][$relation] = $meta_filter;
+				$filter['bool']['must'][]['bool'][ $relation ] = $meta_filter;
 
 				$use_filters = true;
 			}
@@ -802,7 +802,7 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['search_fields'] ) ) {
 			$search_field_args = $args['search_fields'];
-			$search_fields = [];
+			$search_fields     = [];
 
 			if ( ! empty( $search_field_args['taxonomies'] ) ) {
 				$taxes = (array) $search_field_args['taxonomies'];
@@ -847,28 +847,28 @@ class Post extends Indexable {
 				'should' => array(
 					array(
 						'multi_match' => array(
-							'query' => '',
-							'type' => 'phrase',
+							'query'  => '',
+							'type'   => 'phrase',
 							'fields' => $search_fields,
-							'boost' => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
-						)
+							'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+						),
 					),
 					array(
 						'multi_match' => array(
-							'query' => '',
-							'fields' => $search_fields,
-							'boost' => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
+							'query'     => '',
+							'fields'    => $search_fields,
+							'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
 							'fuzziness' => 0,
-							'operator' => 'and',
-						)
+							'operator'  => 'and',
+						),
 					),
 					array(
 						'multi_match' => array(
-							'fields' => $search_fields,
-							'query' => '',
+							'fields'    => $search_fields,
+							'query'     => '',
 							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
 						),
-					)
+					),
 				),
 			),
 		);
@@ -884,8 +884,8 @@ class Post extends Indexable {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args );
-		} else if ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
+			$formatted_args['query']                            = apply_filters( 'ep_formatted_args_query', $query, $args );
+		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
 			);
@@ -898,10 +898,10 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['orderby'] ) ) {
 			$orderbys = $this->get_orderby_array( $args['orderby'] );
-			if( in_array( 'rand', $orderbys ) ) {
-				$formatted_args_query = $formatted_args['query'];
-				$formatted_args['query'] = [];
-				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+			if ( in_array( 'rand', $orderbys ) ) {
+				$formatted_args_query                                      = $formatted_args['query'];
+				$formatted_args['query']                                   = [];
+				$formatted_args['query']['function_score']['query']        = $formatted_args_query;
 				$formatted_args['query']['function_score']['random_score'] = (object) [];
 			}
 		}
@@ -912,12 +912,12 @@ class Post extends Indexable {
 		if ( ! empty( $args['post_type'] ) ) {
 			// should NEVER be "any" but just in case
 			if ( 'any' !== $args['post_type'] ) {
-				$post_types = (array) $args['post_type'];
+				$post_types     = (array) $args['post_type'];
 				$terms_map_name = 'terms';
 				if ( count( $post_types ) < 2 ) {
 					$terms_map_name = 'term';
-					$post_types = $post_types[0];
- 				}
+					$post_types     = $post_types[0];
+				}
 
 				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
@@ -946,13 +946,13 @@ class Post extends Indexable {
 		if ( ! empty( $args['post_status'] ) ) {
 			// should NEVER be "any" but just in case
 			if ( 'any' !== $args['post_status'] ) {
-				$post_status = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
-				$post_status = array_map( 'trim', $post_status );
+				$post_status    = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
+				$post_status    = array_map( 'trim', $post_status );
 				$terms_map_name = 'terms';
 				if ( count( $post_status ) < 2 ) {
 					$terms_map_name = 'term';
-					$post_status = $post_status[0];
- 				}
+					$post_status    = $post_status[0];
+				}
 
 				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
@@ -970,7 +970,14 @@ class Post extends Indexable {
 				 * In the admin we will add protected and private post statuses to the default query
 				 * per WP default behavior.
 				 */
-				$statuses = array_merge( $statuses, get_post_stati( array( 'protected' => true, 'show_in_admin_all_list' => true ) ) );
+				$statuses = array_merge(
+					$statuses, get_post_stati(
+						array(
+							'protected'              => true,
+							'show_in_admin_all_list' => true,
+						)
+					)
+				);
 
 				if ( is_user_logged_in() ) {
 					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
@@ -983,7 +990,7 @@ class Post extends Indexable {
 
 			if ( 1 === count( $statuses ) ) {
 				$post_status_filter_type = 'term';
-				$statuses = $statuses[0];
+				$statuses                = $statuses[0];
 			}
 
 			$filter['bool']['must'][] = array(
@@ -1049,7 +1056,7 @@ class Post extends Indexable {
 
 				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
 				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
-				$formatted_args['aggs'][ $agg_name ]['aggs'] = $agg_obj['aggs'];
+				$formatted_args['aggs'][ $agg_name ]['aggs']   = $agg_obj['aggs'];
 			} else {
 				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
 			}
@@ -1069,7 +1076,7 @@ class Post extends Indexable {
 	 *
 	 * @return array
 	 */
-	public function build_meta_query( $meta_queries ){
+	public function build_meta_query( $meta_queries ) {
 		$meta_filter = [];
 
 		if ( ! empty( $meta_queries ) ) {
@@ -1086,17 +1093,17 @@ class Post extends Indexable {
 				'unsigned' => 'long',
 			);
 
-			foreach( $meta_queries as $single_meta_query ) {
+			foreach ( $meta_queries as $single_meta_query ) {
 
 				/**
 				 * There is a strange case where meta_query looks like this:
 				 * array(
-				 * 	"something" => array(
-				 * 	 array(
-				 * 	 	'key' => ...
-				 * 	 	...
-				 * 	 )
-				 * 	)
+				 *  "something" => array(
+				 *   array(
+				 *      'key' => ...
+				 *      ...
+				 *   )
+				 *  )
 				 * )
 				 *
 				 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
@@ -1107,8 +1114,8 @@ class Post extends Indexable {
 					reset( $single_meta_query );
 					$first_key = key( $single_meta_query );
 
-					if ( is_array( $single_meta_query[$first_key] ) ) {
-						$single_meta_query = $single_meta_query[$first_key];
+					if ( is_array( $single_meta_query[ $first_key ] ) ) {
+						$single_meta_query = $single_meta_query[ $first_key ];
 					}
 				}
 
@@ -1190,7 +1197,7 @@ class Post extends Indexable {
 											array(
 												'range' => array(
 													$meta_key_path => array(
-														"gte" => $single_meta_query['value'],
+														'gte' => $single_meta_query['value'],
 													),
 												),
 											),
@@ -1208,14 +1215,14 @@ class Post extends Indexable {
 											array(
 												'range' => array(
 													$meta_key_path => array(
-														"gte" => $single_meta_query['value'][0],
+														'gte' => $single_meta_query['value'][0],
 													),
 												),
 											),
 											array(
 												'range' => array(
 													$meta_key_path => array(
-														"lte" => $single_meta_query['value'][1],
+														'lte' => $single_meta_query['value'][1],
 													),
 												),
 											),
@@ -1233,14 +1240,14 @@ class Post extends Indexable {
 											array(
 												'range' => array(
 													$meta_key_path => array(
-														"lte" => $single_meta_query['value'][0],
+														'lte' => $single_meta_query['value'][0],
 													),
 												),
 											),
 											array(
 												'range' => array(
 													$meta_key_path => array(
-														"gte" => $single_meta_query['value'][1],
+														'gte' => $single_meta_query['value'][1],
 													),
 												),
 											),
@@ -1310,7 +1317,7 @@ class Post extends Indexable {
 									'query' => array(
 										'match' => array(
 											$meta_key_path => $single_meta_query['value'],
-										)
+										),
 									),
 								);
 							}
@@ -1401,7 +1408,7 @@ class Post extends Indexable {
 	 *
 	 * @param string $orderbys Alias or path for the field to order by.
 	 * @param string $order
-	 * @param  array $args
+	 * @param  array  $args
 	 * @return array
 	 */
 	protected function parse_orderby( $orderbys, $default_order, $args ) {
@@ -1412,10 +1419,10 @@ class Post extends Indexable {
 		foreach ( $orderbys as $key => $value ) {
 			if ( is_string( $key ) ) {
 				$orderby_clause = $key;
-				$order = $value;
+				$order          = $value;
 			} else {
 				$orderby_clause = $value;
-				$order = $default_order;
+				$order          = $default_order;
 			}
 
 			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
@@ -1425,7 +1432,7 @@ class Post extends Indexable {
 							'order' => $order,
 						),
 					);
-		 		} elseif ( 'date' === $orderby_clause ) {
+				} elseif ( 'date' === $orderby_clause ) {
 					$sort[] = array(
 						'post_date' => array(
 							'order' => $order,
@@ -1492,7 +1499,7 @@ class Post extends Indexable {
 	 * @since 2.1
 	 * @return array
 	 */
-	protected function get_orderby_array( $orderbys ){
+	protected function get_orderby_array( $orderbys ) {
 		if ( ! is_array( $orderbys ) ) {
 			$orderbys = explode( ' ', $orderbys );
 		}

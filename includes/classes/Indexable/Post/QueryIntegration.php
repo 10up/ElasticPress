@@ -36,6 +36,7 @@ class QueryIntegration {
 
 	/**
 	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
+	 *
 	 * @since 0.9
 	 */
 	public function setup() {
@@ -155,7 +156,7 @@ class QueryIntegration {
 
 		array_pop( $this->query_stack );
 
-		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query )  ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return;
 		}
 
@@ -167,12 +168,12 @@ class QueryIntegration {
 	/**
 	 * Filter the posts array to contain ES query results in EP_Post form. Pull previously queried posts.
 	 *
-	 * @param array $posts
+	 * @param array  $posts
 	 * @param object $query
 	 * @return array
 	 */
 	public function filter_the_posts( $posts, $query ) {
-		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[spl_object_hash( $query )] ) ) {
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[ spl_object_hash( $query ) ] ) ) {
 			return $posts;
 		}
 
@@ -190,7 +191,7 @@ class QueryIntegration {
 	 * @return string
 	 */
 	public function filter_found_posts_query( $sql, $query ) {
-		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) )  ) {
+		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) ) {
 			return $sql;
 		}
 
@@ -202,7 +203,7 @@ class QueryIntegration {
 	 *
 	 * @since 2.4.0
 	 *
-	 * @param array $posts
+	 * @param array    $posts
 	 *   Return an array of post data to short-circuit WP's query,
 	 *   or null to allow WP to run its normal queries.
 	 * @param WP_Query $query
@@ -277,7 +278,7 @@ class QueryIntegration {
 
 		$ep_query = [];
 
-		if( count( $new_posts ) < 1 ) {
+		if ( count( $new_posts ) < 1 ) {
 
 			$scope = 'current';
 			if ( ! empty( $query_vars['sites'] ) ) {
@@ -303,19 +304,19 @@ class QueryIntegration {
 				return $request;
 			}
 
-			$query->found_posts = $ep_query['found_documents'];
-			$query->max_num_pages = ceil( $ep_query['found_documents'] / $query->get( 'posts_per_page' ) );
+			$query->found_posts           = $ep_query['found_documents'];
+			$query->max_num_pages         = ceil( $ep_query['found_documents'] / $query->get( 'posts_per_page' ) );
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields
 			// parameter.
 			$fields = $query->get( 'fields', '' );
 			switch ( $fields ) {
-				case 'ids' :
+				case 'ids':
 					$new_posts = $this->format_hits_as_ids( $ep_query['documents'], $new_posts );
 					break;
 
-				case 'id=>parent' :
+				case 'id=>parent':
 					$new_posts = $this->format_hits_as_id_parents( $ep_query['documents'], $new_posts );
 					break;
 
@@ -348,14 +349,15 @@ class QueryIntegration {
 		foreach ( $posts as $post_array ) {
 			$post = new \stdClass();
 
-			$post->ID = $post_array['post_id'];
+			$post->ID      = $post_array['post_id'];
 			$post->site_id = get_current_blog_id();
 
 			if ( ! empty( $post_array['site_id'] ) ) {
 				$post->site_id = $post_array['site_id'];
 			}
 			// ep_search_request_args
-			$post_return_args = apply_filters( 'ep_search_post_return_args',
+			$post_return_args = apply_filters(
+				'ep_search_post_return_args',
 				array(
 					'post_type',
 					'post_author',
@@ -382,10 +384,10 @@ class QueryIntegration {
 			);
 
 			foreach ( $post_return_args as $key ) {
-				if( $key === 'post_author' ) {
-					$post->$key = $post_array[$key]['id'];
+				if ( $key === 'post_author' ) {
+					$post->$key = $post_array[ $key ]['id'];
 				} elseif ( isset( $post_array[ $key ] ) ) {
-					$post->$key = $post_array[$key];
+					$post->$key = $post_array[ $key ];
 				}
 			}
 
@@ -429,11 +431,11 @@ class QueryIntegration {
 	 */
 	protected function format_hits_as_id_parents( $posts, $new_posts ) {
 		foreach ( $posts as $post_array ) {
-			$post = new \stdClass();
-			$post->ID = $post_array['post_id'];
-			$post->post_parent = $post_array['post_parent'];
+			$post                = new \stdClass();
+			$post->ID            = $post_array['post_id'];
+			$post->post_parent   = $post_array['post_parent'];
 			$post->elasticsearch = true; // Super useful for debugging
-			$new_posts[] = $post;
+			$new_posts[]         = $post;
 		}
 		return $new_posts;
 	}

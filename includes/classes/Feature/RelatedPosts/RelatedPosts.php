@@ -34,15 +34,15 @@ class RelatedPosts extends Feature {
 	 * @return array
 	 */
 	public function formatted_args( $formatted_args, $args ) {
-		if ( ! empty( $args[ 'more_like' ] ) ) {
-			$formatted_args[ 'query' ] = array(
+		if ( ! empty( $args['more_like'] ) ) {
+			$formatted_args['query'] = array(
 				'more_like_this' => array(
-					'ids'			  => is_array( $args[ 'more_like' ] ) ? $args[ 'more_like' ] : array( $args[ 'more_like' ] ),
-					'fields'		  => apply_filters( 'ep_related_posts_fields', array( 'post_title', 'post_content', 'terms.post_tag.name' ) ),
-					'min_term_freq'	  => 1,
+					'ids'             => is_array( $args['more_like'] ) ? $args['more_like'] : array( $args['more_like'] ),
+					'fields'          => apply_filters( 'ep_related_posts_fields', array( 'post_title', 'post_content', 'terms.post_tag.name' ) ),
+					'min_term_freq'   => 1,
 					'max_query_terms' => 12,
-					'min_doc_freq'	  => 1,
-				)
+					'min_doc_freq'    => 1,
+				),
 			);
 		}
 
@@ -59,7 +59,7 @@ class RelatedPosts extends Feature {
 	 */
 	public function find_related( $post_id, $return = 5 ) {
 		$args = array(
-			'more_like'		 => $post_id,
+			'more_like'      => $post_id,
 			'posts_per_page' => $return,
 			'ep_integrate'   => true,
 		);

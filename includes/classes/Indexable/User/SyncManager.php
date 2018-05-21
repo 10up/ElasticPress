@@ -79,8 +79,8 @@ class SyncManager {
 	/**
 	 * When whitelisted meta is updated, queue the object for reindex
 	 *
-	 * @param  int $meta_id
-	 * @param  int $object_id
+	 * @param  int    $meta_id
+	 * @param  int    $object_id
 	 * @param  string $meta_key
 	 * @param  string $meta_value
 	 * @since  2.0

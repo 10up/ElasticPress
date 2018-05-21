@@ -23,7 +23,7 @@ class Search extends Feature {
 		$this->title = esc_html__( 'Search', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
-		$this->default_settings = [
+		$this->default_settings         = [
 			'decaying_enabled' => true,
 		];
 	}
@@ -84,7 +84,7 @@ class Search extends Feature {
 	/**
 	 * Make sure we don't search for "any" on a search query
 	 *
-	 * @param  string $post_type
+	 * @param  string   $post_type
 	 * @param  WP_Query $query
 	 * @return string|array
 	 */
@@ -102,7 +102,7 @@ class Search extends Feature {
 			// Conform the post types array to an acceptable format for ES
 			$post_types = [];
 
-			foreach( $searchable_post_types as $type ) {
+			foreach ( $searchable_post_types as $type ) {
 				$post_types[] = $type;
 			}
 
@@ -134,17 +134,19 @@ class Search extends Feature {
 		$search_fields = $query->get( 'search_fields' );
 
 		// Set search fields if they are not set
-		if( empty( $search_fields ) ) {
-			$query->set( 'search_fields', array(
-				'post_title',
-				'post_content',
-				'post_excerpt',
-				'author_name',
-				'taxonomies' => array(
-					'post_tag',
-					'category',
-				),
-			) );
+		if ( empty( $search_fields ) ) {
+			$query->set(
+				'search_fields', array(
+					'post_title',
+					'post_content',
+					'post_excerpt',
+					'author_name',
+					'taxonomies' => array(
+						'post_tag',
+						'category',
+					),
+				)
+			);
 		}
 	}
 
@@ -165,11 +167,13 @@ class Search extends Feature {
 				$settings = $feature->get_settings();
 			}
 
-			$settings = wp_parse_args( $settings, [
-				'decaying_enabled' => true,
-			] );
+			$settings = wp_parse_args(
+				$settings, [
+					'decaying_enabled' => true,
+				]
+			);
 
-			if ( (bool)$settings['decaying_enabled'] ) {
+			if ( (bool) $settings['decaying_enabled'] ) {
 				$date_score = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],
@@ -218,7 +222,7 @@ class Search extends Feature {
 	/**
 	 * Make sure we search all relevant post types
 	 *
-	 * @param  string $post_type
+	 * @param  string   $post_type
 	 * @param  WP_Query $query
 	 * @since  2.1
 	 * @return bool|string
@@ -243,7 +247,7 @@ class Search extends Feature {
 			// Conform the post types array to an acceptable format for ES
 			$post_types = [];
 
-			foreach( $searchable_post_types as $type ) {
+			foreach ( $searchable_post_types as $type ) {
 				$post_types[] = $type;
 			}
 
@@ -257,7 +261,7 @@ class Search extends Feature {
 	/**
 	 * Enable integration on search queries
 	 *
-	 * @param  bool $enabled
+	 * @param  bool     $enabled
 	 * @param  WP_Query $query
 	 * @since  2.1
 	 * @return bool
@@ -265,7 +269,7 @@ class Search extends Feature {
 	public function integrate_search_queries( $enabled, $query ) {
 		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
 			$enabled = false;
-		} else if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
+		} elseif ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 			$enabled = true;
 
 			/**
@@ -300,8 +304,8 @@ class Search extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool)$decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool)$decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 		</div>
 	<?php

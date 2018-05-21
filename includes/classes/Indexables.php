@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Class for handling all Indexable instances
+ */
 class Indexables {
 
 	/**
@@ -25,7 +28,7 @@ class Indexables {
 	/**
 	 * Register an indexable instance
 	 *
-	 * @param  Indexable $indexable
+	 * @param  Indexable $indexable Instance of Indexable.
 	 * @since 2.6
 	 */
 	public function register( Indexable $indexable ) {
@@ -35,7 +38,7 @@ class Indexables {
 	/**
 	 * Get an indexable instance given a slug
 	 *
-	 * @param  string  $slug Indexable type slug
+	 * @param  string $slug Indexable type slug.
 	 * @since  2.6
 	 * @return Indexable|boolean
 	 */
@@ -46,8 +49,8 @@ class Indexables {
 	/**
 	 * Get all indexable instances
 	 *
-	 * @param  boolean $global If true or false, will only get Indexables with that global property
-	 * @param  boolean $slug_only True returns an array of only string slugs
+	 * @param  boolean $global If true or false, will only get Indexables with that global property.
+	 * @param  boolean $slug_only True returns an array of only string slugs.
 	 * @since  2.6
 	 * @return array
 	 */
@@ -83,7 +86,7 @@ class Indexables {
 	public static function factory() {
 		static $instance = false;
 
-		if ( ! $instance  ) {
+		if ( ! $instance ) {
 			$instance = new self();
 		}
 

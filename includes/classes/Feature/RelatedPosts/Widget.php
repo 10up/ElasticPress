@@ -45,7 +45,7 @@ class Widget extends WP_Widget {
 			$related_posts = Features::factory()->get_registered_feature( 'related_posts' )->find_related( get_the_ID(), $instance['num_posts'] );
 
 			if ( empty( $related_posts ) ) {
-				if ( ! defined( 'WP_DEBUG') || ! WP_DEBUG ) {
+				if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
 					set_transient( 'ep_related_posts_' . get_the_ID(), '', HOUR_IN_SECONDS ); // Let's not spam
 				}
 				return;
@@ -61,7 +61,7 @@ class Widget extends WP_Widget {
 			?>
 
 			<ul>
-				<?php foreach ( $related_posts as $post ) :  ?>
+				<?php foreach ( $related_posts as $post ) : ?>
 					<li><a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>"><?php echo esc_html( get_the_title( $post->ID ) ); ?></a></li>
 				<?php endforeach; ?>
 			</ul>
@@ -73,7 +73,7 @@ class Widget extends WP_Widget {
 
 			$related_posts = ob_get_clean();
 
-			if ( ! defined( 'WP_DEBUG') || ! WP_DEBUG ) {
+			if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
 				set_transient( 'ep_related_posts_' . get_the_ID(), $related_posts, HOUR_IN_SECONDS );
 			}
 		}
@@ -88,7 +88,7 @@ class Widget extends WP_Widget {
 	 * @since  2.2
 	 */
 	public function form( $instance ) {
-		$title = ( isset( $instance['title'] ) ) ? $instance['title'] : '';
+		$title     = ( isset( $instance['title'] ) ) ? $instance['title'] : '';
 		$num_posts = ( isset( $instance['num_posts'] ) ) ? $instance['num_posts'] : 5;
 		?>
 		<p>
@@ -111,6 +111,7 @@ class Widget extends WP_Widget {
 
 	/**
 	 * Update widget settings
+	 *
 	 * @param  array $new_instance
 	 * @param  array $old_instance
 	 * @since  2.2
@@ -118,8 +119,8 @@ class Widget extends WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 
-		$instance = [];
-		$instance['title'] = sanitize_text_field( $new_instance['title'] );
+		$instance              = [];
+		$instance['title']     = sanitize_text_field( $new_instance['title'] );
 		$instance['num_posts'] = absint( $new_instance['num_posts'] );
 
 		return $instance;

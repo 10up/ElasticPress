@@ -102,14 +102,14 @@ class ProtectedContent extends Feature {
 
 		if ( is_array( $post_type ) ) {
 			foreach ( $post_type as $pt ) {
-				if ( empty( $supported_post_types[$pt] ) ) {
+				if ( empty( $supported_post_types[ $pt ] ) ) {
 					return;
 				}
 			}
 
 			$query->set( 'ep_integrate', true );
 		} else {
-			if ( ! empty( $supported_post_types[$post_type] ) ) {
+			if ( ! empty( $supported_post_types[ $post_type ] ) ) {
 				$query->set( 'ep_integrate', true );
 			}
 		}
@@ -133,7 +133,7 @@ class ProtectedContent extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-	    <p><?php wp_kses_post( _e( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ) ); ?></p>
+		<p><?php wp_kses_post( _e( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ) ); ?></p>
 		<?php
 	}
 
@@ -165,7 +165,7 @@ class ProtectedContent extends Feature {
 		$host = Utils\get_host();
 
 		if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
-			$status->code = 1;
+			$status->code    = 1;
 			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
 		}
 
