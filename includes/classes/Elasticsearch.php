@@ -74,7 +74,7 @@ class Elasticsearch {
 	 */
 	public function index_document( $index, $type, $document, $blocking = true ) {
 
-		$path = $index . '/' . $type . '/' . $document['ID'];
+		$path = apply_filters( 'ep_index_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );
@@ -543,9 +543,7 @@ class Elasticsearch {
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $index, $type, $body ) {
-		$path = $index . '/' . $type . '/_bulk';
-
-		$path = apply_filters( 'ep_bulk_index_request_path', $path, $body );
+		$path = apply_filters( 'ep_bulk_index_request_path', $index . '/' . $type . '/_bulk', $body, $type );
 
 		$request_args = array(
 			'method'  => 'POST',

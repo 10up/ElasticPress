@@ -7,12 +7,16 @@
  */
 
 namespace ElasticPress\Indexable\Post;
+use \WP_Date_Query as WP_Date_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class DateQuery extends \WP_Date_Query {
+/**
+ * Date query class
+ */
+class DateQuery extends WP_Date_Query {
 	/**
 	 * Like WP_Date_Query::get_sql
 	 * takes WP_Date_Query class queries and returns ES filter arrays
@@ -40,9 +44,10 @@ class DateQuery extends \WP_Date_Query {
 	}
 
 	/**
-	 * @param $query array of date query clauses
-	 * @param int                               $depth unused but may be necessary if we do nested date queries
+	 * Get Elaticsearch formatted filters
 	 *
+	 * @param $query array of date query clauses.
+	 * @param int                               $depth unused but may be necessary if we do nested date queries.
 	 * @since 0.1.4
 	 * @return array
 	 */
@@ -72,13 +77,13 @@ class DateQuery extends \WP_Date_Query {
 
 					// This is a subquery, so we recurse.
 				} else {
-					// @todo WP_Date_Query supports nested date queries, revisit if necessary
-					// Removed because this implementation had incorrect results
+					// @todo WP_Date_Query supports nested date queries, revisit if necessary.
+					// Removed because this implementation had incorrect results.
 				}
 			}
 		}
 
-		// @todo implement OR filter relationships
+		// @todo implement OR filter relationships.
 		if ( empty( $relation ) ) {
 			$relation = 'AND';
 		}
@@ -117,8 +122,8 @@ class DateQuery extends \WP_Date_Query {
 	 * Takes array of date term filters and groups them into a filter based on
 	 * relationship type
 	 *
-	 * @param array  $date_term_filters
-	 * @param string $type type of relationship between date term filters (AND, OR)
+	 * @param array  $date_term_filters Date term filters.
+	 * @param string $type type of relationship between date term filters (AND, OR).
 	 *
 	 * @since 0.1.4
 	 * @return array
@@ -144,7 +149,7 @@ class DateQuery extends \WP_Date_Query {
 	/**
 	 * Takes array of range filters and groups them into a single filter
 	 *
-	 * @param array $range_filters
+	 * @param array $range_filters Range filters.
 	 *
 	 * @since 0.1.4
 	 * @return array
@@ -174,9 +179,9 @@ class DateQuery extends \WP_Date_Query {
 	/**
 	 * Takes SQL query part, and translates it into an ES filter
 	 *
-	 * @param $query
+	 * @param $query SQL query piece.
 	 *
-	 * @return array ES filter
+	 * @return array ES filter.
 	 */
 	protected function get_es_filter_for_clause( $query ) {
 
@@ -305,7 +310,7 @@ class DateQuery extends \WP_Date_Query {
 	 * Takes WP_Query args, and returns ES filters for query
 	 * Support for older style WP_Query date params
 	 *
-	 * @param $args
+	 * @param array $args WP_Query args.
 	 *
 	 * @return array|bool
 	 */
@@ -410,7 +415,7 @@ class DateQuery extends \WP_Date_Query {
 
 			$max_days_of_year = date( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
 		} else {
-			// otherwise we use the max of 366 (leap-year)
+			// otherwise we use the max of 366 (leap-year).
 			$max_days_of_year = 366;
 		}
 

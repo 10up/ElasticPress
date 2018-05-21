@@ -16,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Query integration class
+ */
 class QueryIntegration {
 
 	/**
@@ -297,7 +300,23 @@ class QueryIntegration {
 			 */
 			$scope = apply_filters( 'ep_search_scope', $scope );
 
-			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $scope );
+			$index = null;
+
+			if ( 'all' === $scope ) {
+				$index = $this->get_network_alias();
+			} elseif ( is_numeric( $scope ) ) {
+				$index = $this->get_index_name( (int) $scope );
+			} elseif ( is_array( $scope ) ) {
+				$index = [];
+
+				foreach ( $scope as $site_id ) {
+					$index[] = $this->get_index_name( $site_id );
+				}
+
+				$index = implode( ',', $index );
+			}
+
+			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index );
 
 			if ( false === $ep_query ) {
 				$query->elasticsearch_success = false;

@@ -10,20 +10,16 @@ namespace ElasticPress\Indexable\Post;
 
 use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class SyncManager {
-
-	/**
-	 * Save posts for indexing later
-	 *
-	 * @since  2.0
-	 * @var    array
-	 */
-	public $sync_queue = [];
+/**
+ * Sync manager class
+ */
+class SyncManager extends SyncManagerAbstract {
 
 	/**
 	 * Setup actions and filters
@@ -45,53 +41,15 @@ class SyncManager {
 		/**
 		 * @todo Handle deleted meta
 		 */
-
-		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
-	}
-
-	/**
-	 * Remove actions and filters
-	 *
-	 * @since 1.4
-	 */
-	public function destroy() {
-		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
-		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
-		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
-		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index' ) );
-		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
-		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
-		remove_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-		remove_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
-	}
-
-	/**
-	 * Sync queued posts on shutdown. We do this in case a post is updated multiple times.
-	 *
-	 * @since  2.0
-	 */
-	public function action_index_sync_queue() {
-		if ( empty( $this->sync_queue ) ) {
-			return;
-		}
-
-		foreach ( $this->sync_queue as $post_id => $value ) {
-			do_action( 'ep_sync_on_meta_update', $post_id );
-
-			Indexables::factory()->get( 'post' )->index( $post_id, false );
-		}
 	}
 
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
 	 *
-	 * @param  int    $meta_id
-	 * @param  int    $object_id
-	 * @param  string $meta_key
-	 * @param  string $meta_value
+	 * @param  int    $meta_id Meta id.
+	 * @param  int    $object_id Object id.
+	 * @param  string $meta_key Meta key.
+	 * @param  string $meta_value Meta value.
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
@@ -101,7 +59,7 @@ class SyncManager {
 			return;
 		}
 
-		// If we have an importer we must be doing an import - let's abort
+		// If we have an importer we must be doing an import - let's abort.
 		if ( ! empty( $importer ) ) {
 			return;
 		}
@@ -111,13 +69,13 @@ class SyncManager {
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
-		// Allow inherit as post status if post type is attachment
+		// Allow inherit as post status if post type is attachment.
 		if ( $post_type === 'attachment' ) {
 			$indexable_post_statuses[] = 'inherit';
 		}
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
-			// Bypass saving if doing autosave or post type is revision
+			// Bypass saving if doing autosave or post type is revision.
 			return;
 		}
 
@@ -133,10 +91,10 @@ class SyncManager {
 
 			if ( in_array( $post_type, $indexable_post_types ) ) {
 
-				// Using this function to hook in after all the meta applicable filters
+				// Using this function to hook in after all the meta applicable filters.
 				$prepared_post = $indexable->prepare_document( $object_id );
 
-				// Make sure meta key that was changed is actually relevant
+				// Make sure meta key that was changed is actually relevant.
 				if ( ! isset( $prepared_post['meta'][ $meta_key ] ) ) {
 					return;
 				}
@@ -149,7 +107,7 @@ class SyncManager {
 	/**
 	 * Remove blog from index when a site is deleted, archived, or deactivated
 	 *
-	 * @param $blog_id
+	 * @param int $blog_id WP Blog ID.
 	 */
 	public function action_delete_blog_from_index( $blog_id ) {
 		$indexable = Indexables::factory()->get( 'post' );
@@ -162,7 +120,7 @@ class SyncManager {
 	/**
 	 * Delete ES post when WP post is deleted
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post id.
 	 * @since 0.1.0
 	 */
 	public function action_delete_post( $post_id ) {
@@ -179,13 +137,13 @@ class SyncManager {
 	/**
 	 * Sync ES index with what happened to the post being saved
 	 *
-	 * @param $post_ID
+	 * @param int $post_id Post id.
 	 * @since 0.1.0
 	 */
-	public function action_sync_on_update( $post_ID ) {
+	public function action_sync_on_update( $post_id ) {
 		global $importer;
 
-		// If we have an importer we must be doing an import - let's abort
+		// If we have an importer we must be doing an import - let's abort.
 		if ( ! empty( $importer ) ) {
 			return;
 		}
@@ -193,63 +151,46 @@ class SyncManager {
 		$indexable = Indexables::factory()->get( 'post' );
 
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
-		$post_type               = get_post_type( $post_ID );
+		$post_type               = get_post_type( $post_id );
 
 		if ( 'attachment' === $post_type ) {
 			$indexable_post_statuses[] = 'inherit';
 		}
 
-		$post_type = get_post_type( $post_ID );
+		$post_type = get_post_type( $post_id );
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
-			// Bypass saving if doing autosave or post type is revision
+			// Bypass saving if doing autosave or post type is revision.
 			return;
 		}
 
-		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_ID ) ) {
-			if ( ! current_user_can( 'edit_post', $post_ID ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
-				// Bypass saving if user does not have access to edit post and we're not in a cron process
+		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
+			if ( ! current_user_can( 'edit_post', $post_id ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
+				// Bypass saving if user does not have access to edit post and we're not in a cron process.
 				return;
 			}
 		}
 
-		$post = get_post( $post_ID );
+		$post = get_post( $post_id );
 
 		// If the post is an auto-draft - let's abort.
 		if ( 'auto-draft' == $post->post_status ) {
 			return;
 		}
 
-		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index
+		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index.
 		if ( ! in_array( $post->post_status, $indexable_post_statuses ) ) {
-			$this->action_delete_post( $post_ID );
+			$this->action_delete_post( $post_id );
 		} else {
-			$post_type = get_post_type( $post_ID );
+			$post_type = get_post_type( $post_id );
 
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types ) ) {
-				do_action( 'ep_sync_on_transition', $post_ID );
+				do_action( 'ep_sync_on_transition', $post_id );
 
-				$this->sync_queue[ $post_ID ] = true;
+				$this->sync_queue[ $post_id ] = true;
 			}
 		}
-	}
-
-	/**
-	 * Return a singleton instance of the current class
-	 *
-	 * @since 0.1.0
-	 * @return SyncManager
-	 */
-	public static function factory() {
-		static $instance = false;
-
-		if ( ! $instance ) {
-			$instance = new self();
-			$instance->setup();
-		}
-
-		return $instance;
 	}
 }

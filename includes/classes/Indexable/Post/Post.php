@@ -1,4 +1,10 @@
 <?php
+/**
+ * User indexable
+ *
+ * @since  2.6
+ * @package  elasticpress
+ */
 
 namespace ElasticPress\Indexable\Post;
 
@@ -11,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Post indexable class
+ */
 class Post extends Indexable {
 
 	/**
@@ -32,8 +41,8 @@ class Post extends Indexable {
 			'singular' => esc_html__( 'Post', 'elasticpress' ),
 		];
 
-		SyncManager::factory();
-		QueryIntegration::factory();
+		$this->sync_manager      = new SyncManager( $this->slug );
+		$this->query_integration = new QueryIntegration( $this->slug );
 	}
 
 	/**
@@ -127,7 +136,7 @@ class Post extends Indexable {
 	/**
 	 * Prepare a post for syncing
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @since 0.9.1
 	 * @return bool|array
 	 */
@@ -183,8 +192,8 @@ class Post extends Indexable {
 			}
 		}
 
-		// To prevent infinite loop, we don't queue when updated_postmeta
-		remove_action( 'updated_postmeta', [ SyncManager::factory(), 'action_queue_meta_sync' ], 10 );
+		// To prevent infinite loop, we don't queue when updated_postmeta.
+		remove_action( 'updated_postmeta', [ $this->sync_manager, 'action_queue_meta_sync' ], 10 );
 
 		$post_args = array(
 			'post_id'               => $post_id,
@@ -205,7 +214,7 @@ class Post extends Indexable {
 			'post_mime_type'        => $post->post_mime_type,
 			'permalink'             => get_permalink( $post_id ),
 			'terms'                 => $this->prepare_terms( $post ),
-			'meta'                  => $this->prepare_meta_types( $this->prepare_meta( $post ) ), // post_meta removed in 2.4
+			'meta'                  => $this->prepare_meta_types( $this->prepare_meta( $post ) ), // post_meta removed in 2.4.
 			'date_terms'            => $this->prepare_date_terms( $post_date ),
 			'comment_count'         => $comment_count,
 			'comment_status'        => $comment_status,
@@ -222,7 +231,7 @@ class Post extends Indexable {
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
 		// Turn back on updated_postmeta hook
-		add_action( 'updated_postmeta', [ SyncManager::factory(), 'action_queue_meta_sync' ], 10, 4 );
+		add_action( 'updated_postmeta', [ $this->sync_manager, 'action_queue_meta_sync' ], 10, 4 );
 
 		return $post_args;
 	}
@@ -413,16 +422,11 @@ class Post extends Indexable {
 	/**
 	 * Format WP query args for ES
 	 *
-	 * @param array $args
+	 * @param array $args WP_Query arguments.
 	 * @since 0.9.0
 	 * @return array
 	 */
 	public function format_args( $args ) {
-		if ( isset( $args['post_per_page'] ) ) {
-			// For backwards compatibility for those using this since EP 1.4
-			$args['posts_per_page'] = $args['post_per_page'];
-		}
-
 		if ( ! empty( $args['posts_per_page'] ) ) {
 			$posts_per_page = (int) $args['posts_per_page'];
 
@@ -457,23 +461,24 @@ class Post extends Indexable {
 		 *
 		 * @since 1.1
 		 */
-		// Set sort order, default is 'desc'
+
+		// Set sort order, default is 'desc'.
 		if ( ! empty( $args['order'] ) ) {
 			$order = $this->parse_order( $args['order'] );
 		} else {
 			$order = 'desc';
 		}
 
-		// Default sort for non-searches to date
+		// Default sort for non-searches to date.
 		if ( empty( $args['orderby'] ) && ( ! isset( $args['s'] ) || '' === $args['s'] ) ) {
 			$args['orderby'] = 'date';
 		}
 
-		// Set sort type
+		// Set sort type.
 		if ( ! empty( $args['orderby'] ) ) {
 			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order, $args );
 		} else {
-			// Default sort is to use the score (based on relevance)
+			// Default sort is to use the score (based on relevance).
 			$default_sort = array(
 				array(
 					'_score' => array(
@@ -505,8 +510,8 @@ class Post extends Indexable {
 		 * @since 0.9.1
 		 */
 
-		// set tax_query if it's implicitly set in the query
-		// e.g. $args['tag'], $args['category_name']
+		// set tax_query if it's implicitly set in the query.
+		// e.g. $args['tag'], $args['category_name'].
 		if ( empty( $args['tax_query'] ) ) {
 			if ( ! empty( $args['category_name'] ) ) {
 				$args['tax_query'][] = array(
@@ -535,7 +540,7 @@ class Post extends Indexable {
 			$tax_filter          = [];
 			$tax_must_not_filter = [];
 
-			// Main tax_query array for ES
+			// Main tax_query array for ES.
 			$es_tax_query = [];
 
 			foreach ( $args['tax_query'] as $single_tax_query ) {
@@ -548,7 +553,7 @@ class Post extends Indexable {
 						$field = 'name.raw';
 					}
 
-					// Set up our terms object
+					// Set up our terms object.
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
@@ -648,11 +653,11 @@ class Post extends Indexable {
 			$use_filters = true;
 		}
 
-			/**
-			 * 'post__not_in' arg support.
-			 *
-			 * @since x.x
-			 */
+		/**
+		 * 'post__not_in' arg support.
+		 *
+		 * @since x.x
+		 */
 		if ( ! empty( $args['post__not_in'] ) ) {
 			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(

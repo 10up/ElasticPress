@@ -10,20 +10,16 @@ namespace ElasticPress\Indexable\User;
 
 use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class SyncManager {
-
-	/**
-	 * Save objects for indexing later
-	 *
-	 * @since  2.6
-	 * @var    array
-	 */
-	public $sync_queue = [];
+/**
+ * Sync manager class
+ */
+class SyncManager extends SyncManagerAbstract {
 
 	/**
 	 * Setup actions and filters
@@ -31,14 +27,12 @@ class SyncManager {
 	 * @since 2.6
 	 */
 	public function setup() {
-		add_action( 'shutdown', [ $this, 'action_index_sync_queue' ] );
-		add_filter( 'wp_redirect', [ $this, 'filter_index_sync_queue' ] );
 		add_action( 'delete_user', [ $this, 'action_delete_user' ] );
 		add_action( 'wpmu_delete_user', [ $this, 'action_delete_user' ] );
 		add_action( 'profile_update', [ $this, 'action_sync_on_update' ] );
 		add_action( 'user_register', [ $this, 'action_sync_on_update' ] );
-		add_action( 'updated_user_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-		add_action( 'added_user_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'updated_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
+		add_action( 'added_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
 
 		/**
 		 * @todo Handle deleted meta
@@ -46,43 +40,12 @@ class SyncManager {
 	}
 
 	/**
-	 * Sync queued objects before a redirect occurs. Hackish but very important since
-	 * shutdown won't be firing
-	 *
-	 * @param  string $location
-	 * @since  2.6
-	 * @return string
-	 */
-	public function filter_index_sync_queue( $location ) {
-		foreach ( $this->sync_queue as $object_id => $value ) {
-			do_action( 'ep_sync_users_on_update', $object_id );
-
-			Indexables::factory()->get( 'user' )->index( $object_id, false );
-		}
-
-		return $location;
-	}
-
-	/**
-	 * Sync queued objects on shutdown. We do this in case a post is updated multiple times.
-	 *
-	 * @since  2.6
-	 */
-	public function action_index_sync_queue() {
-		foreach ( $this->sync_queue as $object_id => $value ) {
-			do_action( 'ep_sync_users_on_update', $object_id );
-
-			$result = Indexables::factory()->get( 'user' )->index( $object_id, true );
-		}
-	}
-
-	/**
 	 * When whitelisted meta is updated, queue the object for reindex
 	 *
-	 * @param  int    $meta_id
-	 * @param  int    $object_id
-	 * @param  string $meta_key
-	 * @param  string $meta_value
+	 * @param  int    $meta_id Meta id.
+	 * @param  int    $object_id Object id.
+	 * @param  string $meta_key Meta key.
+	 * @param  string $meta_value Meta value.
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
@@ -92,7 +55,7 @@ class SyncManager {
 			return;
 		}
 
-		// If we have an importer we must be doing an import - let's abort
+		// If we have an importer we must be doing an import - let's abort.
 		if ( ! empty( $importer ) ) {
 			return;
 		}
@@ -101,7 +64,7 @@ class SyncManager {
 
 		$prepared_document = $indexable->prepare_document( $object_id );
 
-		// Make sure meta key that was changed is actually relevant
+		// Make sure meta key that was changed is actually relevant.
 		if ( ! isset( $prepared_document['meta'][ $meta_key ] ) ) {
 			return;
 		}
@@ -112,7 +75,7 @@ class SyncManager {
 	/**
 	 * Delete ES user when WP user is deleted
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post ID.
 	 * @since 2.6
 	 */
 	public function action_delete_user( $user_id ) {
@@ -126,13 +89,13 @@ class SyncManager {
 	/**
 	 * Sync ES index with what happened to the user being saved
 	 *
-	 * @param $post_ID
+	 * @param int $user_id User id.
 	 * @since 2.6
 	 */
 	public function action_sync_on_update( $user_id ) {
 		global $importer;
 
-		// If we have an importer we must be doing an import - let's abort
+		// If we have an importer we must be doing an import - let's abort.
 		if ( ! empty( $importer ) ) {
 			return;
 		}
@@ -142,22 +105,5 @@ class SyncManager {
 		}
 
 		$this->sync_queue[ $user_id ] = true;
-	}
-
-	/**
-	 * Return a singleton instance of the current class
-	 *
-	 * @since 0.1.0
-	 * @return SyncManager
-	 */
-	public static function factory() {
-		static $instance = false;
-
-		if ( ! $instance ) {
-			$instance = new self();
-			$instance->setup();
-		}
-
-		return $instance;
 	}
 }

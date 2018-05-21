@@ -36,10 +36,10 @@ class Documents extends Feature {
 	 */
 	public function setup() {
 		add_filter( 'ep_search_fields', [ $this, 'search_fields' ] );
-		add_filter( 'ep_index_post_request_path', [ $this, 'index_post_request_path' ], 999, 2 );
+		add_filter( 'ep_index_request_path', [ $this, 'index_request_path' ], 999, 3 );
 		add_filter( 'ep_post_sync_args', [ $this, 'post_sync_args' ], 999, 2 );
 		add_filter( 'ep_indexable_post_status', [ $this, 'indexable_post_status' ], 999, 1 );
-		add_filter( 'ep_bulk_index_request_path', [ $this, 'bulk_index_request_path' ], 999, 1 );
+		add_filter( 'ep_bulk_index_request_path', [ $this, 'bulk_index_request_path' ], 999, 3 );
 		add_filter( 'pre_get_posts', [ $this, 'search_attachment_post_type' ] );
 		add_filter( 'ep_config_mapping', [ $this, 'attachments_mapping' ] );
 		add_action( 'ep_cli_put_mapping', [ $this, 'create_pipeline' ] );
@@ -123,10 +123,15 @@ class Documents extends Feature {
 	 *
 	 * @param string $path Path to request.
 	 * @param array  $post Post array.
-	 * @since  2.3
+	 * @param  string $type Type of document
+	 * @since  2.6
 	 * @return string
 	 */
-	public function index_post_request_path( $path, $post ) {
+	public function index_request_path( $path, $post, $type ) {
+		if ( 'post' !== $type ) {
+			return $path;
+		}
+
 		if ( 'attachment' === $post['post_type'] ) {
 			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types() ) ) {
 				$index = Indexables::factory()->get( 'post' )->get_index_name();
@@ -208,11 +213,17 @@ class Documents extends Feature {
 	/**
 	 * Set attachment pipeline in Elaticsearch request path for bulk index
 	 *
-	 * @param string $path Existing request path.
+	 * @param  string $path Existing request path.
+	 * @param  string $body JSON to index.
+	 * @param  string $type Type of documents.
 	 * @since  2.6
 	 * @return string
 	 */
-	public function bulk_index_request_path( $path ) {
+	public function bulk_index_request_path( $path, $body, $type ) {
+		if ( 'post' !== $type ) {
+			return $path;
+		}
+
 		return add_query_arg(
 			array(
 				'pipeline' => apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ),

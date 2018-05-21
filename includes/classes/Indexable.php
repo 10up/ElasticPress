@@ -11,6 +11,8 @@
 namespace ElasticPress;
 
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\SyncManager as SyncManager;
+use ElasticPress\QueryIntegration as QueryIntegration;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -33,6 +35,35 @@ abstract class Indexable {
 	 * @since  2.6
 	 */
 	public $global = false;
+
+	/**
+	 * Instance of SyncManager. This should handle automated syncing of indexable
+	 * objects.
+	 *
+	 * @var SyncManager
+	 * @since  2.6
+	 */
+	public $sync_manager;
+
+	/**
+	 * Instance of QueryIntegration. This should handle integrating with a default
+	 * WP query.
+	 *
+	 * @var QueryIntegration
+	 * @since  2.6
+	 */
+	public $query_integration;
+
+	/**
+	 * Create a new Indexable
+	 *
+	 * @since  2.6
+	 */
+	/*
+	public function __construct() {
+		$this->sync_manager = new SyncManager( $this->slug );
+		$this->query_integration = new QueryIntegration( $this->slug );
+	}*/
 
 	/**
 	 * Get the name of the index. Each indexable needs a unique index name
@@ -217,32 +248,18 @@ abstract class Indexable {
 	/**
 	 * Query Elasticsearch for documents
 	 *
-	 * @param  array  $args Unprepared query arguments.
+	 * @param  array  $formatted_args Formatted es query arguments.
 	 * @param  array  $query_args WP_Query args.
-	 * @param  string $scope Which blog(s) should we query against.
+	 * @param  string $index Index(es) to query. Comma separate for multiple. Defaults to current.
 	 * @since  2.6
 	 * @return array
 	 */
-	public function query_es( $args, $query_args, $scope = 'current' ) {
-		$index = null;
-
-		if ( 'all' === $scope ) {
-			$index = $this->get_network_alias();
-		} elseif ( is_numeric( $scope ) ) {
-			$index = $this->get_index_name( (int) $scope );
-		} elseif ( is_array( $scope ) ) {
-			$index = [];
-
-			foreach ( $scope as $site_id ) {
-				$index[] = $this->get_index_name( $site_id );
-			}
-
-			$index = implode( ',', $index );
-		} else {
+	public function query_es( $formatted_args, $query_args, $index = null ) {
+		if ( null === $index ) {
 			$index = $this->get_index_name();
 		}
 
-		return Elasticsearch::factory()->query( $index, $this->slug, $args, $query_args );
+		return Elasticsearch::factory()->query( $index, $this->slug, $formatted_args, $query_args );
 	}
 
 	/**

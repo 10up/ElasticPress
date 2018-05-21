@@ -1,4 +1,10 @@
 <?php
+/**
+ * User indexable
+ *
+ * @since  2.6
+ * @package  elasticpress
+ */
 
 namespace ElasticPress\Indexable\User;
 
@@ -10,6 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * User indexable class
+ */
 class User extends Indexable {
 
 	/**
@@ -39,8 +48,243 @@ class User extends Indexable {
 			'singular' => esc_html__( 'User', 'elasticpress' ),
 		];
 
-		SyncManager::factory();
-		// QueryManager::factory();
+		$this->sync_manager      = new SyncManager( $this->slug );
+		$this->query_integration = new QueryIntegration( $this->slug );
+	}
+
+	/**
+	 * Format query vars into ES query
+	 *
+	 * @param  array $query_vars WP_User_Query args.
+	 * @since  2.6
+	 * @return array
+	 */
+	public function format_args( $query_vars ) {
+		/**
+		 * Handle `number` query var
+		 */
+		if ( ! empty( $args['number'] ) ) {
+			$number = (int) $args['number'];
+
+			// ES have a maximum size allowed so we have to convert "-1" to a maximum size.
+			if ( -1 === $number ) {
+				/**
+				 * Set the maximum results window size.
+				 *
+				 * The request will return a HTTP 500 Internal Error if the size of the
+				 * request is larger than the [index.max_result_window] parameter in ES.
+				 * See the scroll api for a more efficient way to request large data sets.
+				 *
+				 * @return int The max results window size.
+				 *
+				 * @since 2.3.0
+				 */
+				$number = apply_filters( 'ep_max_results_window', 10000 );
+			}
+		} else {
+			$number = 10; // @todo Not sure what the default is.
+		}
+
+		$formatted_args = [
+			'from' => 0,
+			'size' => $number,
+		];
+
+		$filter =[
+			'bool' => [
+				'must' => [],
+			],
+		];
+
+		$use_filters = false;
+
+		/**
+		 * Support `fields` query var.
+		 */
+		if ( isset( $args['fields'] ) && 'all' !== $args['fields'] ) {
+			$formatted_args['_source'] = [
+				'include' => (array) $args['fields'],
+			];
+		}
+
+		/**
+		 * Support `nicename` query var
+		 */
+		if ( ! empty( $query_vars['nicename'] ) ) {
+			$filter['bool']['must'][] = array(
+				'terms' => array(
+					'user_nicename' => [
+						$query_vars['nicename'],
+					],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `nicename__in` query var
+		 */
+		if ( ! empty( $query_vars['nicename__in'] ) ) {
+			$filter['bool']['must'][] = array(
+				'terms' => array(
+					'user_nicename' => (array) $query_vars['nicename__in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `login` query var
+		 */
+		if ( ! empty( $query_vars['login'] ) ) {
+			$filter['bool']['must'][] = array(
+				'terms' => array(
+					'user_login' => [
+						$query_vars['login'],
+					],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `login__in` query var
+		 */
+		if ( ! empty( $query_vars['login__in'] ) ) {
+			$filter['bool']['must'][] = array(
+				'terms' => array(
+					'user_login' => (array) $query_vars['login__in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Handle `offset` and `paged` query vars. Paged takes priority if both are set.
+		 */
+		if ( isset( $query_vars['offset'] ) ) {
+			$formatted_args['from'] = $query_vars['offset'];
+		}
+
+		if ( isset( $query_vars['paged'] ) && $query_vars['paged'] > 1 ) {
+			$formatted_args['from'] = $number * ( $query_vars['paged'] - 1 );
+		}
+
+		/**
+		 * Handle `search` query_var
+		 */
+		if ( ! empty( $query_vars['search'] ) ) {
+
+			$search_fields = ( ! empty( $query_vars['search_columns'] ) ) ? $query_vars['search_columns'] : [];
+
+			if ( ! empty( $query_vars['search_fields'] ) ) {
+				$search_fields = array_merge( $search_fields, $query_vars['search_fields'] );
+			}
+
+			/**
+			 * Handle `search_fields` query var and `search_columns`. search_columns is a bit too
+			 * simplistic for our needs since we want to be able to search meta too. We just merge
+			 * search columns into search_fields. search_fields overwrites search_columns.
+			 */
+			if ( ! empty( $search_fields ) ) {
+				$prepared_search_fields = [];
+
+				// WP_User_Query uses shortened column names so we need to expand those.
+				if ( ! empty( $search_fields['login'] ) ) {
+					$prepared_search_fields['user_login'] = $search_fields['login'];
+
+					unset( $search_fields['login'] );
+				}
+
+				if ( ! empty( $search_fields['url'] ) ) {
+					$prepared_search_fields['user_url'] = $search_fields['url'];
+
+					unset( $search_fields['url'] );
+				}
+
+				if ( ! empty( $search_fields['nicename'] ) ) {
+					$prepared_search_fields['user_nicename'] = $search_fields['nicename'];
+
+					unset( $search_fields['nicename'] );
+				}
+
+				if ( ! empty( $search_fields['email'] ) ) {
+					$prepared_search_fields['user_email'] = $search_fields['email'];
+
+					unset( $search_fields['email'] );
+				}
+
+				if ( ! empty( $search_fields['meta'] ) ) {
+					$metas = (array) $search_fields['meta'];
+
+					foreach ( $metas as $meta ) {
+						$prepared_search_fields[] = 'meta.' . $meta . '.value';
+					}
+
+					unset( $search_fields['meta'] );
+				}
+
+				$prepared_search_fields = array_merge( $search_fields, $prepared_search_fields );
+			} else {
+				$prepared_search_fields = [
+					'user_login',
+					'user_nicename',
+					'user_url',
+					'user_email',
+					'ID',
+				];
+			}
+
+			$prepared_search_fields = apply_filters( 'ep_user_search_fields', $prepared_search_fields, $query_vars );
+
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $query_vars['search'],
+								'type'   => 'phrase',
+								'fields' => $prepared_search_fields,
+								'boost'  => apply_filters( 'ep_user_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $query_vars['search'],
+								'fields'    => $search_fields,
+								'boost'     => apply_filters( 'ep_user_match_boost', 2, $prepared_search_fields, $query_vars ),
+								'fuzziness' => 0,
+								'operator'  => 'and',
+							),
+						),
+						array(
+							'multi_match' => array(
+								'fields'    => $prepared_search_fields,
+								'query'     => $query_vars['search'],
+								'fuzziness' => apply_filters( 'ep_user_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
+							),
+						),
+					),
+				),
+			);
+
+			$formatted_args['query'] = apply_filters( 'ep_user_formatted_args_query', $query, $query_vars );
+
+		} else {
+			$formatted_args['query']['match_all'] = [
+				'boost' => 1,
+			];
+		}
+
+		if ( $use_filters ) {
+			$formatted_args['post_filter'] = $filter;
+		}
+
+		return apply_filters( 'ep_user_formatted_args', $formatted_args, $query_vars );
 	}
 
 	/**
