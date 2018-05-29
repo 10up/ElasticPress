@@ -62,7 +62,7 @@ return array(
 		),
 	),
 	'mappings' => array(
-		'post' => array(
+		'user' => array(
 			'date_detection'    => false,
 			'dynamic_templates' => array(
 				array(
