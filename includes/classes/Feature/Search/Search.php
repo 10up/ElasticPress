@@ -24,7 +24,7 @@ class Search extends Feature {
 	public function __construct() {
 		$this->slug = 'search';
 
-		$this->title = esc_html__( 'Search', 'elasticpress' );
+		$this->title = esc_html__( 'Post Search', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [

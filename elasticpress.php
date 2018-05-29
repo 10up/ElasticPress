@@ -118,6 +118,10 @@ Features::factory()->register_feature(
 	new Feature\Documents\Documents()
 );
 
+Features::factory()->register_feature(
+	new Feature\Users\Users()
+);
+
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
  *

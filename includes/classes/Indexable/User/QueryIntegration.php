@@ -70,8 +70,6 @@ class QueryIntegration {
 
 		$query->total_users = $ep_query['found_documents'];
 
-		var_dump($new_users);
-
 		return $new_users;
 	}
 

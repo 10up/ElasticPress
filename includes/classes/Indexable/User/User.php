@@ -60,11 +60,13 @@ class User extends Indexable {
 	 * @return array
 	 */
 	public function format_args( $query_vars ) {
+		global $wpdb;
+
 		/**
 		 * Handle `number` query var
 		 */
-		if ( ! empty( $args['number'] ) ) {
-			$number = (int) $args['number'];
+		if ( ! empty( $query_vars['number'] ) ) {
+			$number = (int) $query_vars['number'];
 
 			// ES have a maximum size allowed so we have to convert "-1" to a maximum size.
 			if ( -1 === $number ) {
@@ -90,7 +92,7 @@ class User extends Indexable {
 			'size' => $number,
 		];
 
-		$filter =[
+		$filter = [
 			'bool' => [
 				'must' => [],
 			],
@@ -98,13 +100,51 @@ class User extends Indexable {
 
 		$use_filters = false;
 
+		$blog_id = false;
+		if ( isset( $query_vars['blog_id'] ) ) {
+			$blog_id = (int) $query_vars['blog_id'];
+		}
+
+		if ( ! empty( $blog_id ) ) {
+			if ( ! empty( $query_vars['role'] ) ) {
+				$roles = (array) $query_vars['role'];
+
+				foreach ( $roles as $role ) {
+					$filter['bool']['must'][] = array(
+						'terms' => array(
+							'meta.' . $wpdb->get_blog_prefix( $blog_id ) . 'capabilities' => [
+								$role,
+							],
+						),
+					);
+				}
+
+				$use_filters = true;
+			}
+		}
+
 		/**
 		 * Support `fields` query var.
 		 */
-		if ( isset( $args['fields'] ) && 'all' !== $args['fields'] ) {
+		if ( isset( $query_vars['fields'] ) && 'all' !== $query_vars['fields'] ) {
 			$formatted_args['_source'] = [
-				'include' => (array) $args['fields'],
+				'include' => (array) $query_vars['fields'],
 			];
+		}
+
+		/**
+		 * Support `nicename` query var
+		 */
+		if ( ! empty( $query_vars['nicename'] ) ) {
+			$filter['bool']['must'][] = array(
+				'terms' => array(
+					'user_nicename' => [
+						$query_vars['nicename'],
+					],
+				),
+			);
+
+			$use_filters = true;
 		}
 
 		/**
