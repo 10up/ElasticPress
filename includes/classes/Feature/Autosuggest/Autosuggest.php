@@ -67,7 +67,7 @@ class Autosuggest extends Feature {
 	 */
 	public function setup() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-		add_filter( 'ep_config_mapping', [ $this, 'mapping' ] );
+		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10, 2 );
 	}
 

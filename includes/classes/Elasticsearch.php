@@ -454,7 +454,7 @@ class Elasticsearch {
 	 * @return boolean
 	 */
 	public function put_mapping( $index, $mapping ) {
-		$mapping = apply_filters( 'ep_config_mapping', $mapping );
+		$mapping = apply_filters( 'ep_config_mapping', $mapping, $index );
 
 		$request_args = [
 			'body'    => json_encode( $mapping ),

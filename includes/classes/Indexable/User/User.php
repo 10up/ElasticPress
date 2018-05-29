@@ -356,6 +356,8 @@ class User extends Indexable {
 	public function put_mapping() {
 		$mapping = require( apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/initial.php' ) );
 
+		$mapping = apply_filters( 'ep_user_mapping', $mapping );
+
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
 
