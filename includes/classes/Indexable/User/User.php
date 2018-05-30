@@ -121,6 +121,34 @@ class User extends Indexable {
 				}
 
 				$use_filters = true;
+			} else {
+				if ( ! empty( $query_vars['role__in'] ) ) {
+					$roles_in = (array) $query_vars['role__in'];
+
+					$filter['bool']['must'][] = array(
+						'terms' => array(
+							'capabilities.' . $blog_id . '.roles' => $roles_in,
+						),
+					);
+
+					$use_filters = true;
+				}
+
+				if ( ! empty( $query_vars['role__not_in'] ) ) {
+					$roles_not_in = (array) $query_vars['role__not_in'];
+
+					foreach ( $roles_not_in as $role ) {
+						$filter['bool']['must_not'][] = array(
+							'terms' => array(
+								'capabilities.' . $blog_id . '.roles' => [
+									$role,
+								],
+							),
+						);
+					}
+
+					$use_filters = true;
+				}
 			}
 		}
 
