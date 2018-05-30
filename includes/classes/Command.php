@@ -25,6 +25,7 @@ class Command extends WP_CLI_Command {
 	 * Holds the objects that will be bulk indexed.
 	 *
 	 * @since 0.9
+	 * @var  array
 	 */
 	private $objects = [];
 
@@ -32,6 +33,7 @@ class Command extends WP_CLI_Command {
 	 * Holds all of the objects that failed to index during a bulk index.
 	 *
 	 * @since 0.9
+	 * @var  array
 	 */
 	private $failed_objects = [];
 
@@ -39,6 +41,7 @@ class Command extends WP_CLI_Command {
 	 * Holds error messages for individual objects that failed to index (assuming they're available).
 	 *
 	 * @since 1.7
+	 * @var  array
 	 */
 	private $failed_objects_message = [];
 
@@ -46,6 +49,7 @@ class Command extends WP_CLI_Command {
 	 * Holds whether it's network transient or not
 	 *
 	 * @since 2.1.1
+	 * @var  array
 	 */
 	private $is_network_transient = false;
 
@@ -53,6 +57,7 @@ class Command extends WP_CLI_Command {
 	 * Holds time until transient expires
 	 *
 	 * @since 2.1.1
+	 * @var  array
 	 */
 	private $transient_expiration = 900; // 15 min
 
@@ -60,6 +65,7 @@ class Command extends WP_CLI_Command {
 	 * Holds temporary wp_actions when indexing with pagination
 	 *
 	 * @since 2.2
+	 * @var  array
 	 */
 	private $temporary_wp_actions = [];
 
@@ -69,8 +75,8 @@ class Command extends WP_CLI_Command {
 	 * @synopsis <feature> [--network-wide]
 	 * @subcommand activate-feature
 	 * @since      2.1
-	 * @param array $args
-	 * @param array $assoc_args
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function activate_feature( $args, $assoc_args ) {
 		$feature = Features::factory()->get_registered_feature( $args[0] );
@@ -106,8 +112,8 @@ class Command extends WP_CLI_Command {
 	 * @synopsis <feature> [--network-wide]
 	 * @subcommand deactivate-feature
 	 * @since      2.1
-	 * @param array $args
-	 * @param array $assoc_args
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function deactivate_feature( $args, $assoc_args ) {
 		$feature = Features::factory()->get_registered_feature( $args[0] );
@@ -139,8 +145,8 @@ class Command extends WP_CLI_Command {
 	 * @synopsis [--all] [--network-wide]
 	 * @subcommand list-features
 	 * @since      2.1
-	 * @param array $args
-	 * @param array $assoc_args
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function list_features( $args, $assoc_args ) {
 
@@ -184,8 +190,8 @@ class Command extends WP_CLI_Command {
 	 * @synopsis [--network-wide] [--indexables]
 	 * @subcommand put-mapping
 	 * @since      0.9
-	 * @param array $args
-	 * @param array $assoc_args
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function put_mapping( $args, $assoc_args ) {
 		$this->_connect_check();
@@ -290,8 +296,8 @@ class Command extends WP_CLI_Command {
 	 * @synopsis [--network-wide]
 	 * @subcommand delete-index
 	 * @since      0.9
-	 * @param array $args
-	 * @param array $assoc_args
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function delete_index( $args, $assoc_args ) {
 		$this->_connect_check();
@@ -353,10 +359,10 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Map network alias to every index in the network for every non-global indexable
 	 *
-	 * @param array $args
+	 * @param array $args Positional CLI args.
 	 * @subcommand recreate-network-alias
 	 * @since      0.9
-	 * @param array $assoc_args
+	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function recreate_network_alias( $args, $assoc_args ) {
 		$this->_connect_check();
@@ -381,7 +387,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Helper method for creating the network alias for an indexable
 	 *
-	 * @param  Indexable $indexable
+	 * @param  Indexable $indexable Instance of indexable.
 	 * @since  0.9
 	 * @return array|bool
 	 */
@@ -405,9 +411,9 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]
 	 *
-	 * @param array $args
+	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
-	 * @param array $assoc_args
+	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
@@ -422,7 +428,7 @@ class Command extends WP_CLI_Command {
 
 		$total_indexed = 0;
 
-		// Hold original wp_actions
+		// Hold original wp_actions.
 		$this->temporary_wp_actions = $wp_actions;
 
 		/**
@@ -442,7 +448,7 @@ class Command extends WP_CLI_Command {
 
 		timer_start();
 
-		// This clears away dashboard notifications
+		// This clears away dashboard notifications.
 		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
 			update_site_option( 'ep_last_sync', time() );
 			delete_site_option( 'ep_need_upgrade_sync' );
@@ -453,10 +459,10 @@ class Command extends WP_CLI_Command {
 			delete_option( 'ep_feature_auto_activated_sync' );
 		}
 
-		// Run setup if flag was passed
+		// Run setup if flag was passed.
 		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
 
-			// Right now setup is just the put_mapping command, as this also deletes the index(s) first
+			// Right now setup is just the put_mapping command, as this also deletes the index(s) first.
 			$this->put_mapping( $args, $assoc_args );
 		}
 
@@ -577,8 +583,8 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Helper method for indexing documents for an indexable
 	 *
-	 * @param  Indexable $indexable
-	 * @param  array     $args Query arguments to be based to object query
+	 * @param  Indexable $indexable Instance of indexable.
+	 * @param  array     $args Query arguments to be based to object query.
 	 * @since  0.9
 	 * @return array
 	 */
@@ -663,7 +669,7 @@ class Command extends WP_CLI_Command {
 
 			usleep( 500 );
 
-			// Avoid running out of memory
+			// Avoid running out of memory.
 			$this->stop_the_insanity();
 
 		}
@@ -683,10 +689,10 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Queues up an object for bulk indexing
 	 *
-	 * @param  Indexable $indexable
-	 * @param  int       $object_id
+	 * @param  Indexable $indexable Indexable instance.
+	 * @param  int       $object_id Object to queue.
 	 * @param  int       $bulk_trigger
-	 * @param  bool      $show_bulk_errors true to show individual post error messages for bulk
+	 * @param  bool      $show_bulk_errors True to show individual post error messages for bulk.
 	 * @since  2.6
 	 * @return bool|int true if successfully synced, false if not or 2 if object was killed before sync
 	 */
@@ -719,10 +725,10 @@ class Command extends WP_CLI_Command {
 				$this->bulk_index( $indexable, $show_bulk_errors );
 			}
 
-			// reset killed count
+			// reset killed count.
 			$killed_object_count = 0;
 
-			// reset the objects
+			// reset the objects.
 			$this->objects = [];
 		}
 
@@ -737,18 +743,18 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Perform the bulk index operation
 	 *
-	 * @param bool $show_bulk_errors true to show individual post error messages for bulk errors
+	 * @param bool $show_bulk_errors True to show individual post error messages for bulk errors.
 	 *
 	 * @since 0.9.2
 	 */
 	private function bulk_index( Indexable $indexable, $show_bulk_errors = false ) {
-		// monitor how many times we attempt to add this particular bulk request
+		// monitor how many times we attempt to add this particular bulk request.
 		static $attempts = 0;
 
-		// augment the attempts
+		// augment the attempts.
 		$attempts++;
 
-		// make sure we actually have something to index
+		// make sure we actually have something to index.
 		if ( empty( $this->objects ) ) {
 			WP_CLI::error( 'There are no objects to index.' );
 		}
@@ -789,7 +795,7 @@ class Command extends WP_CLI_Command {
 				$attempts = 0;
 			}
 		} else {
-			// there were no errors, all the objects were added
+			// there were no errors, all the objects were added.
 			$attempts = 0;
 		}
 	}
@@ -797,7 +803,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Formatting bulk error message recursively
 	 *
-	 * @param  array $message_array
+	 * @param  array $message_array Messages.
 	 * @since  2.2
 	 * @return string
 	 */
@@ -834,7 +840,7 @@ class Command extends WP_CLI_Command {
 
 			WP_CLI::log( $error_text );
 
-			// clear failed objects after printing to the screen
+			// clear failed objects after printing to the screen.
 			$this->failed_posts = [];
 		}
 	}
@@ -907,7 +913,7 @@ class Command extends WP_CLI_Command {
 			$wp_object_cache->stats          = [];
 			$wp_object_cache->memcache_debug = [];
 
-			// Make sure this is a public property, before trying to clear it
+			// Make sure this is a public property, before trying to clear it.
 			try {
 				$cache_property = new \ReflectionProperty( $wp_object_cache, 'cache' );
 				if ( $cache_property->isPublic() ) {
@@ -930,7 +936,7 @@ class Command extends WP_CLI_Command {
 			}
 		}
 
-		// Prevent wp_actions from growing out of control
+		// Prevent wp_actions from growing out of control.
 		$wp_actions = $this->temporary_wp_actions;
 
 		// WP_Query class adds filter get_term_metadata using its own instance

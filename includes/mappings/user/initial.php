@@ -116,34 +116,13 @@ return array(
 					),
 				),
 				array(
-					'template_terms' => array(
-						'path_match' => 'terms.*',
+					'template_capabilities' => array(
+						'path_match' => 'capabilities.*',
 						'mapping'    => array(
 							'type'       => 'object',
 							'path'       => 'full',
 							'properties' => array(
-								'name'             => array(
-									'type'   => 'text',
-									'fields' => array(
-										'raw'      => array(
-											'type' => 'keyword',
-										),
-										'sortable' => array(
-											'type'       => 'keyword',
-											'normalizer' => 'lowerasciinormalizer',
-										),
-									),
-								),
-								'term_id'          => array(
-									'type' => 'long',
-								),
-								'term_taxonomy_id' => array(
-									'type' => 'long',
-								),
-								'parent'           => array(
-									'type' => 'long',
-								),
-								'slug'             => array(
+								'roles'             => array(
 									'type' => 'keyword',
 								),
 							),
@@ -197,6 +176,9 @@ return array(
 							'ignore_above' => 10922,
 						),
 					),
+				),
+				'capabilities' => array(
+					'type' => 'object',
 				),
 				'user_url'        => array(
 					'type'   => 'text',

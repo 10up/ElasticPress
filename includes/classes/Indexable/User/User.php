@@ -11,6 +11,7 @@ namespace ElasticPress\Indexable\User;
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use \WP_User_Query as WP_User_Query;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -112,7 +113,7 @@ class User extends Indexable {
 				foreach ( $roles as $role ) {
 					$filter['bool']['must'][] = array(
 						'terms' => array(
-							'meta.' . $wpdb->get_blog_prefix( $blog_id ) . 'capabilities' => [
+							'capabilities.' . $blog_id . '.roles' => [
 								$role,
 							],
 						),
@@ -426,12 +427,40 @@ class User extends Indexable {
 			'display_name'    => $user->display_name,
 			'user_registered' => $user->user_registered,
 			'user_url'        => $user->user_url,
+			'capabilities'    => $this->prepare_capabilities( $user_id ),
 			'meta'            => $this->prepare_meta_types( $this->prepare_meta( $user_id ) ),
 		];
 
 		$user_args = apply_filters( 'ep_user_sync_args', $user_args, $user_id );
 
 		return $user_args;
+	}
+
+	/**
+	 * Prepare capabilities for indexing
+	 *
+	 * @param  int $user_id User ID
+	 * @since  2.6
+	 * @return array
+	 */
+	public function prepare_capabilities( $user_id ) {
+		global $wpdb;
+
+		$sites = Utils\get_sites();
+
+		$prepared_roles = [];
+
+		foreach ( $sites as $site ) {
+			$roles = get_user_meta( $user_id, $wpdb->get_blog_prefix( $site['blog_id'] ) . 'capabilities', true );
+
+			if ( ! empty( $roles ) ) {
+				$prepared_roles[ (int) $site['blog_id'] ] = [
+					'roles' => array_keys( $roles ),
+				];
+			}
+		}
+
+		return $prepared_roles;
 	}
 
 	/**
