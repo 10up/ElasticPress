@@ -24,18 +24,22 @@ class Users extends Feature {
 		$this->title = esc_html__( 'User Search', 'elasticpress' );
 	}
 
+	public function setup() {
+		add_action( 'init', [ $this, 'search_setup' ] );
+	}
+
 	/**
 	 * Setup feature on each page load
 	 *
 	 * @since  2.6
 	 */
-	public function setup() {
+	public function search_setup() {
 		/**
 		 * By default EP will not integrate on admin or ajax requests. Since admin-ajax.php is
 		 * technically an admin request, there is some weird logic here. If we are doing ajax
 		 * and ep_ajax_wp_query_integration is filtered true, then we skip the next admin check.
 		 */
-		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
+		$admin_integration = apply_filters( 'ep_admin_wp_user_query_integration', false );
 
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
@@ -84,6 +88,10 @@ class Users extends Feature {
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
+		if ( ! is_a( $query, 'WP_User_Query' ) ) {
+			return $enabled;
+		}
+
 		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
 			$enabled = false;
 		} elseif ( ! empty( $query->query_vars['search'] ) ) {

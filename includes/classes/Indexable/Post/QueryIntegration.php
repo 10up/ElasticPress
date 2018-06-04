@@ -28,21 +28,19 @@ class QueryIntegration {
 	 */
 	private $query_stack = [];
 
-	private $posts_by_query = [];
-
 	/**
-	 * Placeholder method
+	 * Hashed query mapped to query for storage
 	 *
-	 * @since 0.9
+	 * @var array
 	 */
-	public function __construct() { }
+	private $posts_by_query = [];
 
 	/**
 	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
 	 *
 	 * @since 0.9
 	 */
-	public function setup() {
+	public function __construct() {
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
 		if ( Utils\is_indexing() ) {
 			return;
@@ -457,22 +455,5 @@ class QueryIntegration {
 			$new_posts[]         = $post;
 		}
 		return $new_posts;
-	}
-
-	/**
-	 * Return a singleton instance of the current class
-	 *
-	 * @since 0.9
-	 * @return object
-	 */
-	public static function factory() {
-		static $instance = false;
-
-		if ( ! $instance ) {
-			$instance = new self();
-			add_action( 'init', array( $instance, 'setup' ) );
-		}
-
-		return $instance;
 	}
 }

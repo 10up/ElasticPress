@@ -265,7 +265,7 @@ abstract class Indexable {
 	/**
 	 * Check to see if we should allow elasticpress to override this query
 	 *
-	 * @param WP_Query $query WP_Query instance
+	 * @param WP_Query|WP_User_Query $query WP_Query or WP_User_Query instance
 	 * @return bool
 	 * @since 2.6
 	 */
@@ -276,7 +276,13 @@ abstract class Indexable {
 			$enabled = true;
 		}
 
-		return apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
+		$enabled = apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
+
+		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+			$enabled = false;
+		}
+
+		return $enabled;
 	}
 
 	/**

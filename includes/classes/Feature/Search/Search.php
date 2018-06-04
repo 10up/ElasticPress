@@ -271,9 +271,11 @@ class Search extends Feature {
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
-		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
-			$enabled = false;
-		} elseif ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
+		if ( ! is_a( $query, 'WP_Query' ) ) {
+			return $enabled;
+		}
+
+		if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 			$enabled = true;
 
 			/**

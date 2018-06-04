@@ -323,7 +323,6 @@ class User extends Indexable {
 					'user_nicename',
 					'user_url',
 					'user_email',
-					'ID',
 				];
 			}
 
@@ -343,7 +342,7 @@ class User extends Indexable {
 						array(
 							'multi_match' => array(
 								'query'     => $query_vars['search'],
-								'fields'    => $search_fields,
+								'fields'    => $prepared_search_fields,
 								'boost'     => apply_filters( 'ep_user_match_boost', 2, $prepared_search_fields, $query_vars ),
 								'fuzziness' => 0,
 								'operator'  => 'and',
