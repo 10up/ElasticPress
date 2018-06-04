@@ -68,13 +68,12 @@ class Autosuggest extends Feature {
 	public function setup() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
-		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10, 2 );
+		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
 	}
 
 	/**
 	 * Display decaying settings on dashboard.
 	 *
-	 * @param EP_Feature $feature Feature object.
 	 * @since 2.4
 	 */
 	public function output_feature_box_settings() {
@@ -106,7 +105,7 @@ class Autosuggest extends Feature {
 	/**
 	 * Add mapping for suggest fields
 	 *
-	 * @param  array $mapping
+	 * @param  array $mapping ES mapping.
 	 * @since  2.4
 	 * @return array
 	 */
@@ -138,12 +137,11 @@ class Autosuggest extends Feature {
 	/**
 	 * Add term suggestions to be indexed
 	 *
-	 * @param $post_args
-	 * @param $post_id
+	 * @param array $post_args Array of ES args.
 	 * @since  2.4
 	 * @return array
 	 */
-	public function filter_term_suggest( $post_args, $post_id ) {
+	public function filter_term_suggest( $post_args ) {
 		$suggest = [];
 
 		if ( ! empty( $post_args['terms'] ) ) {
@@ -229,6 +227,11 @@ class Autosuggest extends Feature {
 		);
 	}
 
+	/**
+	 * Tell user whether requirements for feature are met or not.
+	 *
+	 * @since 2.4
+	 */
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 1 );
 

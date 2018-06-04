@@ -68,7 +68,7 @@ class Elasticsearch {
 	 * @param  string  $index Index name.
 	 * @param  string  $type Index type.
 	 * @param  array   $document Formatted Elasticsearch document.
-	 * @param  boolean $blocking
+	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  2.6
 	 * @return boolean|array
 	 */
@@ -151,7 +151,7 @@ class Elasticsearch {
 	/**
 	 * Get Elasticsearch plugins. We cache this so we don't have to do it every time.
 	 *
-	 * @param  bool $force
+	 * @param  bool $force Force cache refresh or not.
 	 * @since  2.2
 	 * @return string|bool
 	 */
@@ -198,7 +198,7 @@ class Elasticsearch {
 			$hits       = $this->get_hits_from_query( $response );
 			$total_hits = $this->get_total_hits_from_query( $response );
 
-			// Check for and store aggregations
+			// Check for and store aggregations.
 			do_action( 'ep_valid_response', $response, $query, $query_args );
 
 			$documents = [];
@@ -408,7 +408,7 @@ class Elasticsearch {
 	 *
 	 * Network aliases are used to query documents across blogs in a network.
 	 *
-	 * @param  array  $alias         Indexes to group under alias.
+	 * @param  array  $indexes       Indexes to group under alias.
 	 * @param  string $network_alias Name of network alias.
 	 * @since  2.6
 	 * @return boolean
@@ -509,7 +509,7 @@ class Elasticsearch {
 	 * @since  2.6
 	 * @return boolean
 	 */
-	public function index_exists( $index_name ) {
+	public function index_exists( $index ) {
 
 		$request_args = [
 			'method' => 'HEAD',
@@ -538,7 +538,7 @@ class Elasticsearch {
 	 *
 	 * @param  string $index Index name.
 	 * @param  string $type Index type.
-	 * @param  string $body  Encoded JSON
+	 * @param  string $body  Encoded JSON.
 	 * @since  2.6
 	 * @return WP_Error|array
 	 */
@@ -583,10 +583,10 @@ class Elasticsearch {
 	 *
 	 * @since 1.6
 	 *
-	 * @param string                                     $path Site URL to retrieve.
-	 * @param array                                      $args Optional. Request arguments. Default empty array.
-	 * @param array                                      $query_args Optional. The query args originally passed to WP_Query
-	 * @param string Type of request, used for debugging
+	 * @param string $path Site URL to retrieve.
+	 * @param array  $args Optional. Request arguments. Default empty array.
+	 * @param array  $query_args Optional. The query args originally passed to WP_Query.
+	 * @param string $type Type of request, used for debugging.
 	 *
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
@@ -607,18 +607,18 @@ class Elasticsearch {
 			'query_args'   => $query_args,
 		);
 
-		// Add the API Header
+		// Add the API Header.
 		$args['headers'] = $this->format_request_headers();
 
 		$request  = false;
 		$failures = 0;
 
-		// Optionally let us try back up hosts and account for failures
+		// Optionally let us try back up hosts and account for failures.
 		while ( true ) {
 			$query['host'] = apply_filters( 'ep_pre_request_host', $query['host'], $failures, $path, $args );
 			$query['url']  = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
 
-			$request = wp_remote_request( $query['url'], $args ); // try the existing host to avoid unnecessary calls
+			$request = wp_remote_request( $query['url'], $args ); // try the existing host to avoid unnecessary calls.
 
 			$request_response_code = (int) wp_remote_retrieve_response_code( $request );
 
@@ -635,7 +635,7 @@ class Elasticsearch {
 			}
 		}
 
-		// Return now if we're not blocking, since we won't have a response yet
+		// Return now if we're not blocking, since we won't have a response yet.
 		if ( isset( $args['blocking'] ) && false === $args['blocking'] ) {
 			$query['blocking'] = true;
 			$query['request']  = $request;
@@ -648,7 +648,7 @@ class Elasticsearch {
 		$query['request']     = $request;
 		$this->_add_query_log( $query );
 
-		do_action( '$this->remote_request', $query, $type );
+		do_action( 'ep_remote_request', $query, $type );
 
 		return $request;
 
@@ -727,7 +727,7 @@ class Elasticsearch {
 			}
 
 			if ( ! empty( $es_info ) ) {
-				// Set ES info from cache
+				// Set ES info from cache.
 				$this->elasticsearch_version = $es_info['version'];
 				$this->elasticsearch_plugins = $es_info['plugins'];
 			} else {
@@ -766,7 +766,7 @@ class Elasticsearch {
 					if ( isset( $response['nodes'] ) ) {
 
 						foreach ( $response['nodes'] as $node ) {
-							// Save version of last node. We assume all nodes are same version
+							// Save version of last node. We assume all nodes are same version.
 							$this->elasticsearch_version = $node['version'];
 
 							if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
@@ -855,7 +855,7 @@ class Elasticsearch {
 	/**
 	 * Get an Elasticsearch pipeline
 	 *
-	 * @param  string $id
+	 * @param  string $id Id of pipeline.
 	 * @since  2.3
 	 * @return WP_Error|bool|array
 	 */

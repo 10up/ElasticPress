@@ -82,7 +82,7 @@ class Users extends Feature {
 	/**
 	 * Enable integration on search queries
 	 *
-	 * @param  bool     $enabled Whether EP is enabled
+	 * @param  bool          $enabled Whether EP is enabled
 	 * @param  WP_User_Query $query Current query object.
 	 * @since  2.6
 	 * @return bool

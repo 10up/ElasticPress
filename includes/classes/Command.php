@@ -3,6 +3,7 @@
  * WP-CLI command for ElasticPress
  *
  * @since  2.6
+ * @package elasticpress
  */
 
 namespace ElasticPress;
@@ -76,9 +77,8 @@ class Command extends WP_CLI_Command {
 	 * @subcommand activate-feature
 	 * @since      2.1
 	 * @param array $args Positional CLI args.
-	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function activate_feature( $args, $assoc_args ) {
+	public function activate_feature( $args ) {
 		$feature = Features::factory()->get_registered_feature( $args[0] );
 
 		if ( empty( $feature ) ) {
@@ -691,7 +691,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @param  Indexable $indexable Indexable instance.
 	 * @param  int       $object_id Object to queue.
-	 * @param  int       $bulk_trigger
+	 * @param  int       $bulk_trigger Number of posts to trigger index on.
 	 * @param  bool      $show_bulk_errors True to show individual post error messages for bulk.
 	 * @since  2.6
 	 * @return bool|int true if successfully synced, false if not or 2 if object was killed before sync
@@ -743,7 +743,8 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Perform the bulk index operation
 	 *
-	 * @param bool $show_bulk_errors True to show individual post error messages for bulk errors.
+	 * @param  Indexable $indexable Indexable instance.
+	 * @param bool      $show_bulk_errors True to show individual post error messages for bulk errors.
 	 *
 	 * @since 0.9.2
 	 */
@@ -772,7 +773,7 @@ class Command extends WP_CLI_Command {
 		/**
 		 * If we have errors, try broken documents up to 5 times. After 5 tries, log errors
 		 */
-		if ( isset( $response['errors'] ) && $response['errors'] === true ) {
+		if ( isset( $response['errors'] ) && true === $response['errors'] ) {
 			if ( $attempts < 5 ) {
 				foreach ( $response['items'] as $item ) {
 					if ( empty( $item['index']['error'] ) ) {
@@ -921,6 +922,7 @@ class Command extends WP_CLI_Command {
 				}
 				unset( $cache_property );
 			} catch ( \ReflectionException $e ) {
+				// No need to catch.
 			}
 
 			/*
@@ -932,7 +934,7 @@ class Command extends WP_CLI_Command {
 			}
 
 			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
-				call_user_func( [ $wp_object_cache, '__remoteset' ] ); // important
+				call_user_func( [ $wp_object_cache, '__remoteset' ] );
 			}
 		}
 

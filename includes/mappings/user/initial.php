@@ -122,7 +122,7 @@ return array(
 							'type'       => 'object',
 							'path'       => 'full',
 							'properties' => array(
-								'roles'             => array(
+								'roles' => array(
 									'type' => 'keyword',
 								),
 							),
@@ -177,7 +177,7 @@ return array(
 						),
 					),
 				),
-				'capabilities' => array(
+				'capabilities'    => array(
 					'type' => 'object',
 				),
 				'user_url'        => array(
