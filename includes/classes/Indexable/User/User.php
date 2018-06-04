@@ -101,11 +101,17 @@ class User extends Indexable {
 
 		$use_filters = false;
 
+		/**
+		 * Support `blog_id` query arg
+		 */
 		$blog_id = false;
 		if ( isset( $query_vars['blog_id'] ) ) {
 			$blog_id = (int) $query_vars['blog_id'];
 		}
 
+		/**
+		 * Support `role` query arg
+		 */
 		if ( ! empty( $blog_id ) ) {
 			if ( ! empty( $query_vars['role'] ) ) {
 				$roles = (array) $query_vars['role'];
@@ -150,6 +156,40 @@ class User extends Indexable {
 					$use_filters = true;
 				}
 			}
+		}
+
+		$meta_queries = [];
+
+		/**
+		 * Support `meta_key`, `meta_value`, and `meta_compare`
+		 */
+		if ( isset( $query_vars['meta_key'] ) ) {
+			$meta_query_array = [
+				'key' => $query_vars['meta_key'],
+			];
+
+			if ( isset( $query_vars['meta_value'] ) ) {
+				$meta_query_array['value'] = $query_vars['meta_value'];
+			}
+
+			if ( isset( $query_vars['meta_compare'] ) ) {
+				$meta_query_array['compare'] = $query_vars['meta_compare'];
+			}
+
+			$meta_queries[] = $meta_query_array;
+		}
+
+		/**
+		 * 'meta_query' arg support.
+		 */
+		if ( ! empty( $query_vars['meta_query'] ) ) {
+			$meta_queries = array_merge( $meta_queries, $query_vars['meta_query'] );
+		}
+
+		if ( ! empty( $meta_queries ) ) {
+			$filter['bool']['must'][] = $this->build_meta_query( $meta_queries );
+
+			$use_filters = true;
 		}
 
 		/**
