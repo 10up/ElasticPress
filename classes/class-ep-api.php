@@ -794,6 +794,11 @@ class EP_API {
 	public function prepare_meta( $post ) {
 		$meta = (array) get_post_meta( $post->ID );
 
+		// If post is password protected, save post meta saying so.
+		if ( ! empty( $post->post_password ) ) {
+			$meta['password_protected'] = true;
+		}
+
 		if ( empty( $meta ) ) {
 			return array();
 		}
@@ -1326,6 +1331,17 @@ class EP_API {
 		}
 
 		$meta_queries = array();
+
+		/**
+		 * Exclude password protected posts in search.
+		 */
+		if ( ! is_admin() ) {
+			$meta_queries[] = array(
+				'key'     => 'password_protected',
+				'value'   => true,
+				'compare' => '!=',
+			);
+		}
 
 		/**
 		 * Support meta_key
