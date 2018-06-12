@@ -27,6 +27,14 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.2
 	 */
 	public function setup() {
+		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
+			return;
+		}
+
+		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
+			return;
+		}
+
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
@@ -53,17 +61,6 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
-		global $importer;
-
-		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
-			return;
-		}
-
-		// If we have an importer we must be doing an import - let's abort.
-		if ( ! empty( $importer ) ) {
-			return;
-		}
-
 		$indexable = Indexables::factory()->get( 'post' );
 
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
@@ -82,7 +79,7 @@ class SyncManager extends SyncManagerAbstract {
 		$post = get_post( $object_id );
 
 		// If the post is an auto-draft - let's abort.
-		if ( 'auto-draft' == $post->post_status ) {
+		if ( 'auto-draft' === $post->post_status ) {
 			return;
 		}
 
@@ -124,7 +121,6 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_delete_post( $post_id ) {
-
 		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) || 'revision' === get_post_type( $post_id ) ) {
 			return;
 		}
@@ -141,13 +137,6 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_sync_on_update( $post_id ) {
-		global $importer;
-
-		// If we have an importer we must be doing an import - let's abort.
-		if ( ! empty( $importer ) ) {
-			return;
-		}
-
 		$indexable = Indexables::factory()->get( 'post' );
 
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
@@ -174,7 +163,7 @@ class SyncManager extends SyncManagerAbstract {
 		$post = get_post( $post_id );
 
 		// If the post is an auto-draft - let's abort.
-		if ( 'auto-draft' == $post->post_status ) {
+		if ( 'auto-draft' === $post->post_status ) {
 			return;
 		}
 

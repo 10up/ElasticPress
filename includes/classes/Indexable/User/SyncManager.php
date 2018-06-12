@@ -27,6 +27,14 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 2.6
 	 */
 	public function setup() {
+		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
+			return;
+		}
+
+		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
+			return;
+		}
+
 		add_action( 'delete_user', [ $this, 'action_delete_user' ] );
 		add_action( 'wpmu_delete_user', [ $this, 'action_delete_user' ] );
 		add_action( 'profile_update', [ $this, 'action_sync_on_update' ] );
@@ -49,17 +57,6 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
-		global $importer;
-
-		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
-			return;
-		}
-
-		// If we have an importer we must be doing an import - let's abort.
-		if ( ! empty( $importer ) ) {
-			return;
-		}
-
 		$indexable = Indexables::factory()->get( 'user' );
 
 		$prepared_document = $indexable->prepare_document( $object_id );
@@ -93,13 +90,6 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 2.6
 	 */
 	public function action_sync_on_update( $user_id ) {
-		global $importer;
-
-		// If we have an importer we must be doing an import - let's abort.
-		if ( ! empty( $importer ) ) {
-			return;
-		}
-
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			return;
 		}

@@ -72,9 +72,8 @@ abstract class SyncManager {
 			return;
 		}
 
-		foreach ( $this->sync_queue as $object_id => $value ) {
-			Indexables::factory()->get( $this->indexable_slug )->index( $object_id, false );
-		}
+		// Bulk sync them all.
+		Indexables::factory()->get( $this->indexable_slug )->bulk_index( array_keys( $this->sync_queue ) );
 
 		/**
 		 * Make sure to reset sync queue in case an shutdown happens before a redirect
