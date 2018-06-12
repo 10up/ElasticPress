@@ -462,6 +462,9 @@ function ep_wc_translate_args( $query ) {
 			} elseif ( 'product' === $post_type ) {
 				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
+				// Remove author_name from this search.
+				$search_fields = ep_wc_remove_author($search_fields);
+
 				// Make sure we search skus on the front end
 				$search_fields['meta'] = array( '_sku' );
 
@@ -734,6 +737,23 @@ function ep_wc_requirements_status( $status ) {
 	}
 
 	return $status;
+}
+
+/**
+ * Remove the author_name from search fields.
+ *
+ * @param array $search_fields Array of search fields.
+ *
+ * @return array
+ */
+function ep_wc_remove_author( $search_fields ) {
+	foreach ( $search_fields as $field_key => $field ) {
+		if ( 'author_name' === $field ) {
+			unset( $search_fields[ $field_key ] );
+		}
+	}
+
+	return $search_fields;
 }
 
 /**
