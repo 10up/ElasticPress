@@ -153,6 +153,7 @@
 			url: epas.endpointUrl,
 			type: 'post',
 			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
 			crossDomain: true,
 			data: JSON.stringify( query )
 		} );
