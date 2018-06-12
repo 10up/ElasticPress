@@ -174,17 +174,6 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Get default index per page number. We wrap this in a method so
-	 * people can filter it.
-	 *
-	 * @since  2.6
-	 * @return int
-	 */
-	private function get_default_index_per_page() {
-		return apply_filters( 'ep_index_default_per_page', 350 );
-	}
-
-	/**
 	 * Add document mappings for every indexable
 	 *
 	 * @synopsis [--network-wide] [--indexables]
@@ -612,7 +601,7 @@ class Command extends WP_CLI_Command {
 			$query_args['offset'] = absint( $args['offset'] );
 		}
 
-		$per_page = $this->get_default_index_per_page();
+		$per_page = $indexable->get_bulk_items_per_page();
 
 		if ( ! empty( $args['per-page'] ) ) {
 			$query_args['per_page'] = absint( $args['per-page'] );

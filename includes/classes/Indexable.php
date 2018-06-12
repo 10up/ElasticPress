@@ -55,15 +55,14 @@ abstract class Indexable {
 	public $query_integration;
 
 	/**
-	 * Create a new Indexable
+	 * Get number of bulk items to index per page
 	 *
 	 * @since  2.6
+	 * @return int
 	 */
-	/*
-	public function __construct() {
-		$this->sync_manager = new SyncManager( $this->slug );
-		$this->query_integration = new QueryIntegration( $this->slug );
-	}*/
+	public function get_bulk_items_per_page() {
+		return apply_filters( 'ep_bulk_items_per_page', 350, $this );
+	}
 
 	/**
 	 * Get the name of the index. Each indexable needs a unique index name

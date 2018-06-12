@@ -54,7 +54,7 @@ class Post extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'posts_per_page'      => 350,
+			'posts_per_page'      => $this->get_bulk_items_per_page(),
 			'post_type'           => $this->get_indexable_post_types(),
 			'post_status'         => $this->get_indexable_post_status(),
 			'offset'              => 0,
