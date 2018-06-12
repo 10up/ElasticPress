@@ -110,24 +110,26 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function mapping( $mapping ) {
+		$textType = $mapping['mappings']['post']['properties']['post_content']['type'];
+
 		$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-			'type'            => 'text',
-			'analyzer'        => 'edge_ngram_analyzer',
+			'type' => $textType,
+			'analyzer' => 'edge_ngram_analyzer',
 			'search_analyzer' => 'standard',
 		);
 
 		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
-			'type'      => 'custom',
+			'type' => 'custom',
 			'tokenizer' => 'standard',
-			'filter'    => array(
+			'filter' => array(
 				'lowercase',
 				'edge_ngram',
 			),
 		);
 
 		$mapping['mappings']['post']['properties']['term_suggest'] = array(
-			'type'            => 'text',
-			'analyzer'        => 'edge_ngram_analyzer',
+			'type' => $textType,
+			'analyzer' => 'edge_ngram_analyzer',
 			'search_analyzer' => 'standard',
 		);
 
