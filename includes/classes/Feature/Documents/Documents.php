@@ -44,6 +44,20 @@ class Documents extends Feature {
 		add_filter( 'ep_post_mapping', [ $this, 'attachments_mapping' ] );
 		add_action( 'ep_cli_put_mapping', [ $this, 'create_pipeline' ] );
 		add_action( 'ep_dashboard_put_mapping', [ $this, 'create_pipeline' ] );
+		add_filter( 'ep_indexable_post_types', [ $this, 'add_attachment_post_type' ] );
+	}
+
+	/**
+	 * Add attachment post type to be indexed. We used to index these by default.
+	 *
+	 * @param array $post_types List of indexable post types
+	 * @since  2.6
+	 * @return array
+	 */
+	public function add_attachment_post_type( $post_types ) {
+		$post_types['attachment'] = 'attachment';
+
+		return $post_types;
 	}
 
 	/**

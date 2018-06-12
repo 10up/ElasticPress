@@ -496,6 +496,12 @@ class WooCommerce extends Feature {
 				} elseif ( 'product' === $post_type ) {
 					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
+					foreach ( $search_fields as $field_key => $field ) {
+						if ( 'author_name' === $field ) {
+							unset( $search_fields[ $field_key ] );
+						}
+					}
+
 					// Make sure we search skus on the front end
 					$search_fields['meta'] = array( '_sku' );
 
