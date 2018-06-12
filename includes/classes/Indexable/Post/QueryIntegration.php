@@ -22,18 +22,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 class QueryIntegration {
 
 	/**
-	 * Is set only when we are within a multisite loop
-	 *
-	 * @var bool|WP_Query
+	 * Is set only when we switch_to_blog in MS context
 	 */
-	private $query_stack = [];
-
-	/**
-	 * Hashed query mapped to query for storage
-	 *
-	 * @var array
-	 */
-	private $posts_by_query = [];
+	private $switched = false;
 
 	/**
 	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
@@ -47,19 +38,16 @@ class QueryIntegration {
 		}
 
 		// Add header
-		add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
+		add_action( 'pre_get_posts', array( $this, 'add_es_header' ), 5 );
 
 		// Query ES for posts
 		add_filter( 'posts_pre_query', array( $this, 'get_es_posts' ), 10, 2 );
 
-		// Ensure we're in a loop before we allow blog switching
-		add_action( 'loop_start', array( $this, 'action_loop_start' ), 10, 1 );
-
 		// Properly restore blog if necessary
-		add_action( 'loop_end', array( $this, 'action_loop_end' ), 10, 1 );
+		add_action( 'loop_end', array( $this, 'maybe_restore_blog' ), 10, 1 );
 
 		// Properly switch to blog if necessary
-		add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
+		add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 1 );
 	}
 
 	/**
@@ -68,7 +56,7 @@ class QueryIntegration {
 	 * @param $query
 	 * @since 0.9
 	 */
-	public function action_pre_get_posts( $query ) {
+	public function add_es_header( $query ) {
 		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return;
 		}
@@ -88,7 +76,7 @@ class QueryIntegration {
 			 * Manually setting a header as $wp_query isn't yet initialized when we
 			 * call: add_filter('wp_headers', 'filter_wp_headers');
 			 */
-			header( 'X-ElasticPress-Search: true' );
+			header( 'X-ElasticPress-Query: true' );
 		}
 	}
 
@@ -98,23 +86,21 @@ class QueryIntegration {
 	 * @param array $post
 	 * @since 0.9
 	 */
-	public function action_the_post( $post ) {
+	public function maybe_switch_to_blog( $post ) {
 		if ( ! is_multisite() ) {
 			return;
 		}
 
-		if ( empty( $this->query_stack ) ) {
-			return;
-		}
-
-		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $this->query_stack[0] ) || apply_filters( 'ep_skip_query_integration', false, $this->query_stack[0] ) ) {
-			return;
-		}
-
 		if ( ! empty( $post->site_id ) && get_current_blog_id() !== $post->site_id ) {
-			restore_current_blog();
+			if ( $this->switched ) {
+				restore_current_blog();
+
+				$this->switched = false;
+			}
 
 			switch_to_blog( $post->site_id );
+
+			$this->switched = $post->site_id;
 
 			remove_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
 			setup_postdata( $post );
@@ -124,36 +110,19 @@ class QueryIntegration {
 	}
 
 	/**
-	 * Ensure we've started a loop before we allow ourselves to change the blog
-	 *
-	 * @since 0.9.2
-	 */
-	public function action_loop_start( $query ) {
-		if ( ! is_multisite() ) {
-			return;
-		}
-
-		array_unshift( $this->query_stack, $query );
-	}
-
-	/**
 	 * Make sure the correct blog is restored
 	 *
 	 * @since 0.9
 	 */
-	public function action_loop_end( $query ) {
+	public function maybe_restore_blog( $query ) {
 		if ( ! is_multisite() ) {
 			return;
 		}
 
-		array_pop( $this->query_stack );
-
-		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
-			return;
-		}
-
-		if ( ! empty( $GLOBALS['switched'] ) ) {
+		if ( $this->switched ) {
 			restore_current_blog();
+
+			$this->switched = false;
 		}
 	}
 
@@ -231,14 +200,14 @@ class QueryIntegration {
 			$index = null;
 
 			if ( 'all' === $scope ) {
-				$index = $this->get_network_alias();
+				$index = Indexables::factory()->get( 'post' )->get_network_alias();
 			} elseif ( is_numeric( $scope ) ) {
-				$index = $this->get_index_name( (int) $scope );
+				$index = Indexables::factory()->get( 'post' )->get_index_name( (int) $scope );
 			} elseif ( is_array( $scope ) ) {
 				$index = [];
 
 				foreach ( $scope as $site_id ) {
-					$index[] = $this->get_index_name( $site_id );
+					$index[] = Indexables::factory()->get( 'post' )->get_index_name( $site_id );
 				}
 
 				$index = implode( ',', $index );

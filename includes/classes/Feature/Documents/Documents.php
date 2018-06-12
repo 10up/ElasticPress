@@ -40,11 +40,25 @@ class Documents extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'post_sync_args' ], 999, 2 );
 		add_filter( 'ep_indexable_post_status', [ $this, 'indexable_post_status' ], 999, 1 );
 		add_filter( 'ep_bulk_index_request_path', [ $this, 'bulk_index_request_path' ], 999, 3 );
-		add_filter( 'pre_get_posts', [ $this, 'search_attachment_post_type' ] );
+		add_filter( 'pre_get_posts', [ $this, 'ssetup_document_search' ] );
 		add_filter( 'ep_post_mapping', [ $this, 'attachments_mapping' ] );
 		add_action( 'ep_cli_put_mapping', [ $this, 'create_pipeline' ] );
 		add_action( 'ep_dashboard_put_mapping', [ $this, 'create_pipeline' ] );
-		add_filter( 'ep_indexable_post_types', [ $this, 'add_attachment_post_type' ] );
+		add_filter( 'ep_indexable_post_types', [ $this, 'index_attachment_post_type' ] );
+		add_filter( 'ep_searchable_post_types', [ $this, 'search_attachment_post_type' ] );
+	}
+
+	/**
+	 * Add attachment post type to be searched. We used to search these by default.
+	 *
+	 * @param array $post_types List of indexable post types
+	 * @since  2.6
+	 * @return array
+	 */
+	public function search_attachment_post_type( $post_types ) {
+		$post_types['attachment'] = 'attachment';
+
+		return $post_types;
 	}
 
 	/**
@@ -54,7 +68,7 @@ class Documents extends Feature {
 	 * @since  2.6
 	 * @return array
 	 */
-	public function add_attachment_post_type( $post_types ) {
+	public function index_attachment_post_type( $post_types ) {
 		$post_types['attachment'] = 'attachment';
 
 		return $post_types;
@@ -84,7 +98,7 @@ class Documents extends Feature {
 	 * @param  WP_Query $query WP_Query to modify to search.
 	 * @since  2.3
 	 */
-	public function search_attachment_post_type( $query ) {
+	public function setup_document_search( $query ) {
 		if ( is_admin() ) {
 			return;
 		}

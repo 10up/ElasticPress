@@ -83,6 +83,13 @@ class Search extends Feature {
 	public function get_searchable_post_types() {
 		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
 
+		/**
+		 * Don't search attachments by default
+		 *
+		 * @since  2.6
+		 */
+		unset( $post_types['attachment'] );
+
 		return apply_filters( 'ep_searchable_post_types', $post_types );
 	}
 
@@ -225,45 +232,6 @@ class Search extends Feature {
 	}
 
 	/**
-	 * Make sure we search all relevant post types
-	 *
-	 * @param  string   $post_type
-	 * @param  WP_Query $query
-	 * @since  2.1
-	 * @return bool|string
-	 */
-	public function use_searchable_post_types_on_any( $post_type, $query ) {
-		if ( $query->is_search() && 'any' === $post_type ) {
-
-			/*
-			 * This is a search query
-			 * To follow WordPress conventions,
-			 * make sure we only search 'searchable' post types
-			 */
-			$searchable_post_types = $this->get_searchable_post_types();
-
-			// If we have no searchable post types, there's no point going any further
-			if ( empty( $searchable_post_types ) ) {
-
-				// Have to return something or it improperly calculates the found_posts
-				return false;
-			}
-
-			// Conform the post types array to an acceptable format for ES
-			$post_types = [];
-
-			foreach ( $searchable_post_types as $type ) {
-				$post_types[] = $type;
-			}
-
-			// These are now the only post types we will search
-			$post_type = $post_types;
-		}
-
-		return $post_type;
-	}
-
-	/**
 	 * Enable integration on search queries
 	 *
 	 * @param  bool     $enabled
@@ -311,12 +279,12 @@ class Search extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" 
+				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio"
 				<?php
 				if ( (bool) $decaying_settings['decaying_enabled'] ) :
 ?>
 checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" 
+				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio"
 				<?php
 				if ( ! (bool) $decaying_settings['decaying_enabled'] ) :
 ?>
