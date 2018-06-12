@@ -73,8 +73,10 @@ function ep_autosugguest_settings( $feature ) {
  * @return array
  */
 function ep_autosuggest_suggest_mapping( $mapping ) {
+	$textType = $mapping['mappings']['post']['properties']['post_content']['type'];
+
 	$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-		'type' => 'text',
+		'type' => $textType,
 		'analyzer' => 'edge_ngram_analyzer',
 		'search_analyzer' => 'standard',
 	);
@@ -89,7 +91,7 @@ function ep_autosuggest_suggest_mapping( $mapping ) {
 	);
 
 	$mapping['mappings']['post']['properties']['term_suggest'] = array(
-		'type' => 'text',
+		'type' => $textType,
 		'analyzer' => 'edge_ngram_analyzer',
 		'search_analyzer' => 'standard',
 	);
