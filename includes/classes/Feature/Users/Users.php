@@ -7,6 +7,7 @@
  */
 
 namespace ElasticPress\Feature\Users;
+
 use ElasticPress\Feature as Feature;
 
 /**

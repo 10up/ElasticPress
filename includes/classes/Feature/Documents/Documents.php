@@ -167,7 +167,7 @@ class Documents extends Feature {
 	public function post_sync_args( $post_args, $post_id ) {
 		global $wp_filesystem;
 
-		require_once( ABSPATH . 'wp-admin/includes/file.php' );
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 
 		$post_args['attachments'] = [];
 

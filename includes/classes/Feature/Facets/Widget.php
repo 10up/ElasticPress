@@ -132,7 +132,11 @@ class Widget extends WP_Widget {
 		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
 		?>
 
-		<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
+		<div class="terms 
+		<?php
+		if ( count( $terms_by_slug ) > $search_threshold ) :
+?>
+searchable<?php endif; ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
 			<?php endif; ?>
@@ -218,9 +222,20 @@ class Widget extends WP_Widget {
 									$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 								}
 								?>
-								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
+								<div class="term 
+								<?php
+								if ( empty( $term->count ) ) :
+?>
+empty-term<?php endif; ?> <?php
+if ( $selected ) :
+?>
+selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
-										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?>>
+										<input type="checkbox" 
+										<?php
+										if ( $selected ) :
+?>
+checked<?php endif; ?>>
 										<?php echo esc_html( $term->name ); ?>
 									</a>
 								</div>
@@ -247,8 +262,16 @@ class Widget extends WP_Widget {
 
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 					?>
-					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
+					<div class="term 
+					<?php
+					if ( empty( $term->count ) ) :
+?>
+empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
+						<a 
+						<?php
+						if ( ! empty( $term->count ) ) :
+?>
+href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
 							<input type="checkbox">
 							<?php echo esc_html( $term->name ); ?>
 						</a>

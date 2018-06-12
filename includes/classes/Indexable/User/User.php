@@ -462,7 +462,7 @@ class User extends Indexable {
 	 * @return boolean
 	 */
 	public function put_mapping() {
-		$mapping = require( apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/initial.php' ) );
+		$mapping = require apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/initial.php' );
 
 		$mapping = apply_filters( 'ep_user_mapping', $mapping );
 
@@ -580,12 +580,12 @@ class User extends Indexable {
 
 			if ( is_protected_meta( $key ) ) {
 
-				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) {
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
 					$allow_index = true;
 				}
 			} else {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys ) ) {
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 					$allow_index = true;
 				}
 			}

@@ -135,7 +135,7 @@ class Post extends Indexable {
 			$mapping_file = '5-0.php';
 		}
 
-		$mapping = require( apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file ) );
+		$mapping = require apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file );
 
 		$mapping = apply_filters( 'ep_post_mapping', $mapping );
 

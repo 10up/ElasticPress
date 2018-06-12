@@ -94,20 +94,16 @@ function get_sites( $limit = 0 ) {
 		)
 	);
 
-	if ( function_exists( 'get_sites' ) ) {
-		$site_objects = \get_sites( $args );
-		$sites        = [];
+	$site_objects = \get_sites( $args );
+	$sites        = [];
 
-		foreach ( $site_objects as $site ) {
-			$sites[] = array(
-				'blog_id' => $site->blog_id,
-				'domain'  => $site->domain,
-				'path'    => $site->path,
-				'site_id' => $site->site_id,
-			);
-		}
-	} else {
-		$sites = wp_get_sites( $args );
+	foreach ( $site_objects as $site ) {
+		$sites[] = array(
+			'blog_id' => $site->blog_id,
+			'domain'  => $site->domain,
+			'path'    => $site->path,
+			'site_id' => $site->site_id,
+		);
 	}
 
 	return apply_filters( 'ep_indexable_sites', $sites );

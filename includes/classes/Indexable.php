@@ -233,11 +233,7 @@ abstract class Indexable {
 
 			$document = $this->prepare_document( $object_id );
 
-			if ( function_exists( 'wp_json_encode' ) ) {
-				$body .= addcslashes( wp_json_encode( $document ), "\n" );
-			} else {
-				$body .= addcslashes( json_encode( $document ), "\n" );
-			}
+			$body .= addcslashes( wp_json_encode( $document ), "\n" );
 
 			$body .= "\n\n";
 		}
@@ -438,16 +434,16 @@ abstract class Indexable {
 				}
 
 				// Comparisons need to look at different paths
-				if ( in_array( $compare, array( 'exists', 'not exists' ) ) ) {
+				if ( in_array( $compare, array( 'exists', 'not exists' ), true ) ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'];
-				} elseif ( in_array( $compare, array( '=', '!=' ) ) && ! $type ) {
+				} elseif ( in_array( $compare, array( '=', '!=' ), true ) && ! $type ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
 				} elseif ( 'like' === $compare ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
 				} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 					// Map specific meta field types to different Elasticsearch core types
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
-				} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between', 'not between' ) ) ) {
+				} elseif ( in_array( $compare, array( '>=', '<=', '>', '<', 'between', 'not between' ), true ) ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
 				} else {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
@@ -679,7 +675,6 @@ abstract class Indexable {
 			}
 		}
 
-
 		if ( ! empty( $meta_filter ) ) {
 			return [
 				'bool' => [
@@ -696,7 +691,7 @@ abstract class Indexable {
 	 *
 	 * @return boolean
 	 */
-	abstract function put_mapping();
+	abstract public function put_mapping();
 
 	/**
 	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
@@ -705,7 +700,7 @@ abstract class Indexable {
 	 * @param  int $object_id Object to prepare.
 	 * @return array
 	 */
-	abstract function prepare_document( $object_id );
+	abstract public function prepare_document( $object_id );
 
 	/**
 	 * Must implement a method that queries MySQL for objects and returns them
@@ -715,5 +710,5 @@ abstract class Indexable {
 	 * @param  array $args Array to query DB against.
 	 * @return boolean
 	 */
-	abstract function query_db( $args );
+	abstract public function query_db( $args );
 }

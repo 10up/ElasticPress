@@ -1,24 +1,54 @@
 <?xml version="1.0"?>
-<ruleset name="ElasticPress">
-	<description>PHPCS rules for ElasticPress</description>
+<ruleset name="10up-Default">
+  <description>PHPCS rules for ElasticPress</description>
 
-	<file>./includes</file>
-	<file>./elasticpress.php</file>
+  <file>./includes</file>
+  <file>./elasticpress.php</file>
 
-	<!-- Include the WordPress-Extra standard. -->
-	<rule ref="WordPress-Core">
-		<exclude name="WordPress.Files.FileName"/>
-		<exclude name="Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace"/>
-	</rule>
+  <exclude-pattern>*/phpunit.xml*</exclude-pattern>
+  <exclude-pattern>*/languages/*</exclude-pattern>
+  <exclude-pattern>*/tests/*</exclude-pattern>
 
-	<rule ref="WordPress-Docs"/>
+  <!-- Third-party code -->
+  <exclude-pattern>*/bower-components/*</exclude-pattern>
+  <exclude-pattern>*/node_modules/*</exclude-pattern>
+  <exclude-pattern>*/vendor/*</exclude-pattern>
 
-	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
-	<rule ref="Generic.Commenting.Todo"/>
+  <!-- Don't worry about files that don't contain any code -->
+  <rule ref="Internal.NoCodeFound">
+    <severity>0</severity>
+  </rule>
 
-	<config name="testVersion" value="5.4"/>
-	<rule ref="PHPCompatibility"/>
+  <!-- Ignore mixed line-endings warnings -->
+  <rule ref="Internal.LineEndings.Mixed">
+    <severity>0</severity>
+  </rule>
 
-	<config name="minimum_supported_wp_version" value="3.7.1"/>
-	<config name="ignore_warnings_on_exit" value="1"/>
+  <!-- Internal exceptions (often occur on minified files) -->
+  <rule ref="Internal.Tokenizer.Exception">
+    <severity>0</severity>
+  </rule>
+
+  <rule ref="WordPress-Extra">
+    <!-- Forget about file names -->
+    <exclude name="WordPress.Files.FileName"/>
+
+    <!-- Allow same line control structures e.g. if ( true ) { echo 1; } -->
+    <exclude name="Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace"/>
+
+    <!-- Don't require punctuation after inline comments -->
+    <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+
+    <!-- Allow empty catch statements -->
+    <exclude name="Generic.CodeAnalysis.EmptyStatement.DetectedCatch"/>
+
+    <!-- Comment punctuation doesn't matter -->
+    <exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop"/>
+  </rule>
+
+  <rule ref="PHPCompatibility" />
+  <config name="minimum_supported_wp_version" value="4.6"/>
+
+  <!-- Sets the minimum supported WP version to 4.7, which is over a year old. -->
+  <config name="minimum_supported_wp_version" value="4.7" />
 </ruleset>

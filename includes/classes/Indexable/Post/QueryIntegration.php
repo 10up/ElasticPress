@@ -46,20 +46,11 @@ class QueryIntegration {
 			return;
 		}
 
-		// Make sure we return nothing for MySQL posts query
-		add_filter( 'posts_request', array( $this, 'filter_posts_request' ), 10, 2 );
-
 		// Add header
 		add_action( 'pre_get_posts', array( $this, 'action_pre_get_posts' ), 5 );
 
-		// Nukes the FOUND_ROWS() database query
-		add_filter( 'found_posts_query', array( $this, 'filter_found_posts_query' ), 5, 2 );
-
-		// Support "fields".
-		add_filter( 'posts_pre_query', array( $this, 'posts_fields' ), 10, 2 );
-
-		// Query and filter in EP_Posts to WP_Query
-		add_filter( 'the_posts', array( $this, 'filter_the_posts' ), 10, 2 );
+		// Query ES for posts
+		add_filter( 'posts_pre_query', array( $this, 'get_es_posts' ), 10, 2 );
 
 		// Ensure we're in a loop before we allow blog switching
 		add_action( 'loop_start', array( $this, 'action_loop_start' ), 10, 1 );
@@ -94,8 +85,8 @@ class QueryIntegration {
 
 		if ( ! headers_sent() ) {
 			/**
-			 * Manually setting a header as $wp_query isn't yet initialized
-			 * when we call: add_filter('wp_headers', 'filter_wp_headers');
+			 * Manually setting a header as $wp_query isn't yet initialized when we
+			 * call: add_filter('wp_headers', 'filter_wp_headers');
 			 */
 			header( 'X-ElasticPress-Search: true' );
 		}
@@ -120,7 +111,7 @@ class QueryIntegration {
 			return;
 		}
 
-		if ( ! empty( $post->site_id ) && get_current_blog_id() != $post->site_id ) {
+		if ( ! empty( $post->site_id ) && get_current_blog_id() !== $post->site_id ) {
 			restore_current_blog();
 
 			switch_to_blog( $post->site_id );
@@ -167,82 +158,18 @@ class QueryIntegration {
 	}
 
 	/**
-	 * Filter the posts array to contain ES query results in EP_Post form. Pull previously queried posts.
+	 * Get posts from Elasticsearch
 	 *
-	 * @param array  $posts
-	 * @param object $query
-	 * @return array
-	 */
-	public function filter_the_posts( $posts, $query ) {
-		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[ spl_object_hash( $query ) ] ) ) {
-			return $posts;
-		}
-
-		$new_posts = $this->posts_by_query[ spl_object_hash( $query ) ];
-
-		return $new_posts;
-	}
-
-	/**
-	 * Remove the found_rows from the SQL Query
-	 *
-	 * @param string $sql
-	 * @param object $query
-	 * @since 0.9
+	 * @param array $posts Array of posts
+	 * @param WP_Query $query WP_Query instance
+	 * @since 2.6
 	 * @return string
 	 */
-	public function filter_found_posts_query( $sql, $query ) {
-		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) ) {
-			return $sql;
-		}
-
-		return '';
-	}
-
-	/**
-	 * Workaround for when WP_Query short circuits for special fields arguments.
-	 *
-	 * @since 2.4.0
-	 *
-	 * @param array    $posts
-	 *   Return an array of post data to short-circuit WP's query,
-	 *   or null to allow WP to run its normal queries.
-	 * @param WP_Query $query
-	 *   WP_Query object.
-	 *
-	 * @return array
-	 *   An array of fields.
-	 */
-	public function posts_fields( $posts, $query ) {
-		// Make sure the query is EP enabled.
-		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) || ! isset( $this->posts_by_query[ spl_object_hash( $query ) ] ) ) {
-			return $posts;
-		}
-
-		// Determine how we should return the posts. The official WP_Query
-		// supports: ids, id=>parent and post objects.
-		$fields = $query->get( 'fields', '' );
-		if ( 'ids' === $fields || 'id=>parent' === $fields ) {
-			return $this->posts_by_query[ spl_object_hash( $query ) ];
-		}
-
-		return $posts;
-	}
-
-	/**
-	 * Filter query string used for get_posts(). Query for posts and save for later.
-	 * Return a query that will return nothing.
-	 *
-	 * @param string $request
-	 * @param object $query
-	 * @since 0.9
-	 * @return string
-	 */
-	public function filter_posts_request( $request, $query ) {
+	public function get_es_posts( $posts, $query ) {
 		global $wpdb;
 
 		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
-			return $request;
+			return $posts;
 		}
 
 		$query_vars = $query->query_vars;
@@ -259,7 +186,7 @@ class QueryIntegration {
 		}
 
 		/**
-		 * If not search and not set default to post. If not set and is search, use searchable post tpyes
+		 * If not search and not set default to post. If not set and is search, use searchable post types
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
 			if ( empty( $query_vars['s'] ) ) {
@@ -269,15 +196,18 @@ class QueryIntegration {
 			}
 		}
 
+		/**
+		 * No post types so bail
+		 */
 		if ( empty( $query_vars['post_type'] ) ) {
 			$this->posts_by_query[ spl_object_hash( $query ) ] = [];
 
-			return "SELECT * FROM $wpdb->posts WHERE 1=0";
+			return [];
 		}
 
-		$new_posts = apply_filters( 'ep_wp_query_search_cached_posts', [], $query );
+		$new_posts = apply_filters( 'ep_wp_query_cached_posts', [], $query );
 
-		$ep_query = [];
+		$ep_query = null;
 
 		if ( count( $new_posts ) < 1 ) {
 
@@ -316,18 +246,21 @@ class QueryIntegration {
 
 			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index );
 
+			/**
+			 * ES failed. Go back to MySQL.
+			 */
 			if ( false === $ep_query ) {
 				$query->elasticsearch_success = false;
-				return $request;
+				return null;
 			}
 
 			$query->found_posts           = $ep_query['found_documents'];
 			$query->max_num_pages         = ceil( $ep_query['found_documents'] / $query->get( 'posts_per_page' ) );
 			$query->elasticsearch_success = true;
 
-			// Determine how we should format the results from ES based on the fields
-			// parameter.
+			// Determine how we should format the results from ES based on the fields parameter.
 			$fields = $query->get( 'fields', '' );
+
 			switch ( $fields ) {
 				case 'ids':
 					$new_posts = $this->format_hits_as_ids( $ep_query['documents'], $new_posts );
@@ -347,9 +280,9 @@ class QueryIntegration {
 
 		$this->posts_by_query[ spl_object_hash( $query ) ] = $new_posts;
 
-		do_action( 'ep_wp_query_search', $new_posts, $ep_query, $query );
+		do_action( 'ep_wp_query', $new_posts, $ep_query, $query );
 
-		return "SELECT * FROM $wpdb->posts WHERE 1=0";
+		return $new_posts;
 	}
 
 	/**

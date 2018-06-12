@@ -22,7 +22,14 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <?php require_once __DIR__ . '/header.php'; ?>
 
-<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>
+<div class="error-overlay 
+<?php
+if ( ! empty( $index_meta ) ) :
+?>
+syncing<?php endif; ?> <?php
+if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) :
+?>
+cant-connect<?php endif; ?>"></div>
 <div class="wrap">
 	<h2 class="ep-list-features"><?php esc_html_e( 'List of features', 'elasticpress' ); // We use this since WP inserts warnings after the first h2. This will be hidden. ?></h2>
 	<div class="ep-features metabox-holder">
@@ -49,7 +56,11 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 			ob_start();
 			?>
-			<div class="<?php if ( $feature->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) : ?>dash-sync-disabled<?php endif; ?> ep-feature ep-feature-<?php echo esc_attr( $feature->slug ); ?> <?php echo esc_attr( $feature_classes ); ?>">
+			<div class="
+			<?php
+			if ( $feature->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) :
+?>
+dash-sync-disabled<?php endif; ?> ep-feature ep-feature-<?php echo esc_attr( $feature->slug ); ?> <?php echo esc_attr( $feature_classes ); ?>">
 				<div class="postbox">
 					<h2 class="hndle">
 						<span><?php echo esc_html( $feature->title ); ?></span>

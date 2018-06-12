@@ -88,5 +88,5 @@ abstract class SyncManager {
 	 *
 	 * @since 2.6
 	 */
-	abstract function setup();
+	abstract public function setup();
 }
