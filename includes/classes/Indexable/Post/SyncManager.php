@@ -45,19 +45,16 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-
-		/**
-		 * @todo Handle deleted meta
-		 */
+		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 	}
 
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
 	 *
-	 * @param  int    $meta_id Meta id.
-	 * @param  int    $object_id Object id.
-	 * @param  string $meta_key Meta key.
-	 * @param  string $meta_value Meta value.
+	 * @param  int|array $meta_id Meta id.
+	 * @param  int       $object_id Object id.
+	 * @param  string    $meta_key Meta key.
+	 * @param  string    $meta_value Meta value.
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
@@ -65,11 +62,6 @@ class SyncManager extends SyncManagerAbstract {
 
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
-
-		// Allow inherit as post status if post type is attachment.
-		if ( $post_type === 'attachment' ) {
-			$indexable_post_statuses[] = 'inherit';
-		}
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
 			// Bypass saving if doing autosave or post type is revision.
@@ -83,19 +75,10 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( in_array( $post->post_status, $indexable_post_statuses ) ) {
+		if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
-			if ( in_array( $post_type, $indexable_post_types ) ) {
-
-				// Using this function to hook in after all the meta applicable filters.
-				$prepared_post = $indexable->prepare_document( $object_id );
-
-				// Make sure meta key that was changed is actually relevant.
-				if ( ! isset( $prepared_post['meta'][ $meta_key ] ) ) {
-					return;
-				}
-
+			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				$this->sync_queue[ $object_id ] = true;
 			}
 		}
@@ -138,14 +121,6 @@ class SyncManager extends SyncManagerAbstract {
 	 */
 	public function action_sync_on_update( $post_id ) {
 		$indexable = Indexables::factory()->get( 'post' );
-
-		$indexable_post_statuses = $indexable->get_indexable_post_status();
-		$post_type               = get_post_type( $post_id );
-
-		if ( 'attachment' === $post_type ) {
-			$indexable_post_statuses[] = 'inherit';
-		}
-
 		$post_type = get_post_type( $post_id );
 
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
@@ -167,15 +142,15 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
+
 		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index.
-		if ( ! in_array( $post->post_status, $indexable_post_statuses ) ) {
+		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
 			$this->action_delete_post( $post_id );
 		} else {
-			$post_type = get_post_type( $post_id );
-
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
-			if ( in_array( $post_type, $indexable_post_types ) ) {
+			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				do_action( 'ep_sync_on_transition', $post_id );
 
 				$this->sync_queue[ $post_id ] = true;

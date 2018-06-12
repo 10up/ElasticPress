@@ -41,6 +41,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'user_register', [ $this, 'action_sync_on_update' ] );
 		add_action( 'updated_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
 		add_action( 'added_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
+		add_action( 'deleted_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
 
 		/**
 		 * @todo Handle deleted meta
@@ -48,23 +49,16 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
-	 * When whitelisted meta is updated, queue the object for reindex
+	 * When whitelisted meta is updated/added/deleted, queue the object for reindex
 	 *
-	 * @param  int    $meta_id Meta id.
-	 * @param  int    $object_id Object id.
-	 * @param  string $meta_key Meta key.
-	 * @param  string $meta_value Meta value.
+	 * @param  int       $meta_id Meta id.
+	 * @param  int|array $object_id Object id.
+	 * @param  string    $meta_key Meta key.
+	 * @param  string    $meta_value Meta value.
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
 		$indexable = Indexables::factory()->get( 'user' );
-
-		$prepared_document = $indexable->prepare_document( $object_id );
-
-		// Make sure meta key that was changed is actually relevant.
-		if ( ! isset( $prepared_document['meta'][ $meta_key ] ) ) {
-			return;
-		}
 
 		$this->sync_queue[ $object_id ] = true;
 	}
