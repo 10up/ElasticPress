@@ -94,6 +94,13 @@ class Post extends Indexable {
 	public function get_indexable_post_types() {
 		$post_types = get_post_types( array( 'public' => true ) );
 
+		/**
+		 * Remove attachments by default
+		 *
+		 * @since  2.6
+		 */
+		unset( $post_types['attachment'] );
+
 		return apply_filters( 'ep_indexable_post_types', $post_types );
 	}
 
