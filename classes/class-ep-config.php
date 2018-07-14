@@ -85,7 +85,7 @@ class EP_Config {
 			$host = get_option( 'ep_host', false );
 		}
 
-		return $host;
+		return apply_filters( 'ep_host', $host );
 	}
 
 	/**
