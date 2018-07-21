@@ -3280,6 +3280,86 @@ class EPTestSingleSite extends EP_Test_Base {
 	}
 
 	/**
+	 * Test Tax Query EXISTS operator
+	 *
+	 * @since 2.5
+	 * @group single-site
+	 */
+	public function testTaxQueryExists() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'operator' => 'EXISTS',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				'relation' => 'AND',
+				array(
+					'taxonomy' => 'post_tag',
+					'operator' => 'EXISTS',
+				),
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( 'two' ),
+					'field'    => 'slug',
+					'operator' => 'IN',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test Tax Query NOT EXISTS operator
+	 *
+	 * @since 2.5
+	 * @group single-site
+	 */
+	public function testTaxQueryNotExists() {
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 2', 'tags_input' => array( 'one' ) ) );
+		ep_create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+
+		ep_refresh_index();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'operator' => 'NOT EXISTS',
+				)
+			)
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
 	 * Test post_mime_type query
 	 *
 	 * @since 2.3
