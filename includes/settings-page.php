@@ -46,6 +46,19 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					</td>
 				</tr>
 				<tr>
+					<th scope="row"><label for="ep_host"><?php esc_html_e( 'Elasticsearch Index Prefix', 'elasticpress' ); ?></label></th>
+					<td>
+						<?php if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) : ?>
+							<input <?php if ( EP_Config::$option_prefix ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( ep_get_index_prefix() ); ?>" name="ep_prefix" id="ep_prefix">
+						<?php endif ?>
+						<?php if (  EP_Config::$option_prefix ) : ?>
+							<span class="description"><?php esc_html_e( 'Your index prefix is set in wp-config.php', 'elasticpress' ); ?></span>
+						<?php else : ?>
+							<span class="description"><?php esc_html_e( 'Plug in your index prefix here.', 'elasticpress' ); ?></span>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
 			</tbody>
 		</table>
 

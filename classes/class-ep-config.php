@@ -22,6 +22,15 @@ class EP_Config {
 	public $option_host = false;
 
 	/**
+	 * True if EP_INDEX_PREFIX has been set via wp-config or false.
+	 *
+	 * @since 2.5
+	 *
+	 * @var bool
+	 */
+	public static $option_prefix = false;
+
+	/**
 	 * Get a singleton instance of the class
 	 *
 	 * @since 0.1.0
@@ -32,6 +41,16 @@ class EP_Config {
 
 		if ( ! $instance ) {
 			$instance = new self();
+
+			if ( ! defined( 'EP_INDEX_PREFIX' ) ) {
+				$index_prefix = ep_get_index_prefix();
+				if ( $index_prefix ) {
+					define( 'EP_INDEX_PREFIX', $index_prefix );
+				}
+			} else {
+				$instance::$option_prefix = true;
+			}
+
 		}
 
 		return $instance;
@@ -89,6 +108,25 @@ class EP_Config {
 	}
 
 	/**
+	 * Retrieve the appropriate index prefix. Will default to EP_INDEX_PREFIX constant if it exists
+	 *
+	 * @since 2.5
+	 * @return string|bool
+	 */
+	public function get_index_prefix() {
+
+		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
+			$prefix = EP_INDEX_PREFIX;
+		} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$prefix = get_site_option( 'ep_prefix', false );
+		} else {
+			$prefix = get_option( 'ep_prefix', false );
+		}
+
+		return $prefix;
+	}
+
+	/**
 	 * Determine if host is set in options rather than a constant
 	 *
 	 * @since  2.1
@@ -127,6 +165,8 @@ class EP_Config {
 
 		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
 			$index_name = EP_INDEX_PREFIX . $index_name;
+		} elseif ( $prefix = $this->get_index_prefix() ) {
+			$index_name = $prefix . $index_name;
 		}
 
 		return apply_filters( 'ep_index_name', $index_name, $blog_id );
@@ -206,6 +246,10 @@ EP_Config::factory();
 
 function ep_get_host() {
 	return EP_Config::factory()->get_host();
+}
+
+function ep_get_index_prefix() {
+	return EP_Config::factory()->get_index_prefix();
 }
 
 function ep_host_by_option() {
