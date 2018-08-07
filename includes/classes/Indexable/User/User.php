@@ -513,7 +513,15 @@ class User extends Indexable {
 	public function prepare_capabilities( $user_id ) {
 		global $wpdb;
 
-		$sites = Utils\get_sites();
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sites = Utils\get_sites();
+		} else {
+			$sites = [
+				[
+					'blog_id' => (int) get_current_blog_id(),
+				],
+			];
+		}
 
 		$prepared_roles = [];
 

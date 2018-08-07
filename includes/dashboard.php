@@ -489,6 +489,16 @@ function action_wp_ajax_ep_index() {
 			delete_site_option( 'ep_need_upgrade_sync' );
 			delete_site_option( 'ep_feature_auto_activated_sync' );
 		} else {
+			foreach ( $non_global_indexables as $indexable ) {
+				$index_meta['sync_stack'][] = [
+					'url'       => untrailingslashit( home_url() ),
+					'blog_id'   => (int) get_current_blog_id(),
+					'indexable' => $indexable,
+				];
+			}
+
+			$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
+
 			update_option( 'ep_last_sync', time() );
 			delete_option( 'ep_need_upgrade_sync' );
 			delete_option( 'ep_feature_auto_activated_sync' );
