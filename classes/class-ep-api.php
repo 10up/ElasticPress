@@ -1123,7 +1123,7 @@ class EP_API {
 
 			foreach( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['taxonomy'] ) ) {
-					$terms = isset( $single_tax_query['terms'] )? (array) $single_tax_query['terms'] : array();
+					$terms = isset( $single_tax_query['terms'] ) ? (array) $single_tax_query['terms'] : array();
 
 					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
 
