@@ -45,6 +45,9 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 						<?php endif; ?>
 					</td>
 				</tr>
+				<?php
+				if ( ep_is_epio() ) {
+				?>
 				<tr>
 					<th scope="row"><label for="ep_host"><?php esc_html_e( 'Elasticsearch Index Prefix', 'elasticpress' ); ?></label></th>
 					<td>
@@ -58,7 +61,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 						<?php endif; ?>
 					</td>
 				</tr>
-				<tr>
+			<?php } ?>
 			</tbody>
 		</table>
 

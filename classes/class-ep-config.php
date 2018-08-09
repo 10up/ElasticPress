@@ -116,14 +116,16 @@ class EP_Config {
 	public function get_index_prefix() {
 
 		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
-			$prefix = EP_INDEX_PREFIX;
-		} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			return EP_INDEX_PREFIX;
+		} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ep_is_epio() ) {
 			$prefix = get_site_option( 'ep_prefix', false );
-		} else {
+		} elseif ( ep_is_epio() ) {
 			$prefix = get_option( 'ep_prefix', false );
+		} else {
+			$prefix = '';
 		}
 
-		return $prefix;
+		return apply_filters( 'ep_index_prefix', $prefix );
 	}
 
 	/**
@@ -282,4 +284,9 @@ function ep_get_network_alias() {
 
 function ep_is_network_activated( $plugin ) {
 	return EP_Config::factory()->is_network( $plugin );
+}
+
+// Check if the host is ElasticPress.io.
+function ep_is_epio() {
+	return preg_match( '#elasticpress\.io#i', ep_get_host() );
 }
