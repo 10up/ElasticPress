@@ -789,9 +789,17 @@ class EP_Dashboard {
 			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
 			update_site_option( 'ep_prefix', $prefix );
 
+			$credentials = ( isset( $_POST['credentials'] ) ) ? ep_sanitize_credentials( $_POST['credentials'] ) : [
+				'username' => '',
+				'token'    => '',
+			];
+			update_site_option( 'ep_credentials', $credentials );
+
+
 		} else {
 			register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 			register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
+			register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
 		}
 	}
 
