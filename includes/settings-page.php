@@ -47,7 +47,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				</td>
 			</tr>
 			<?php
-			if ( ep_is_epio() ) {
+			if ( ep_is_epio() && current_user_can( 'manage_options' ) ) {
 				$credentials = ep_get_epio_credentials();
 				?>
 				<tr>
