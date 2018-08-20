@@ -695,6 +695,7 @@ function ep_wc_setup() {
 		add_filter( 'ep_sync_taxonomies', 'ep_wc_whitelist_taxonomies', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_add_order_items_search', 20, 2 );
+		add_filter( 'ep_term_suggest_post_type', 'ep_wc_add_post_type' );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'ep_wp_query_search_cached_posts', 'ep_wc_disallow_duplicated_query', 10, 2 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
@@ -754,6 +755,22 @@ function ep_wc_remove_author( $search_fields ) {
 	}
 
 	return $search_fields;
+}
+
+/**
+ * Add the product post type to an array of post types.
+ * Use with filters.
+ *
+ * @param array $post_types Array of post types (e.g. post, page).
+ *
+ * @return array
+ */
+function ep_wc_add_post_type( $post_types ) {
+	if ( ! in_array( 'product', $post_types, true ) ) {
+		$post_types[] = 'product';
+	}
+
+	return $post_types;
 }
 
 /**
