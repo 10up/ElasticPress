@@ -45,6 +45,7 @@ class EP_Config {
 			if ( ! defined( 'EP_INDEX_PREFIX' ) ) {
 				$index_prefix = ep_get_index_prefix();
 				if ( $index_prefix ) {
+					$index_prefix = ( ep_is_epio() && '-' !== substr( $index_prefix, - 1 ) ) ? $index_prefix . '-' : $index_prefix;
 					define( 'EP_INDEX_PREFIX', $index_prefix );
 				}
 			} else {
