@@ -1,5 +1,4 @@
 ( function( $ ) {
-	var widgets = document.querySelectorAll( '.widget_ep-facet' );
 	var facetTerms = document.querySelectorAll( '.widget_ep-facet .terms' );
 
 	/**
@@ -25,11 +24,4 @@
 			}
 		} );
 	}, 200 ) );
-
-	/**
-	 * Handle checkbox clicks
-	 */
-	$( widgets ).on( 'click', 'input[type=checkbox]', function( event ) {
-		debugger;
-	} );
 } )( jQuery );

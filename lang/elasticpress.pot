@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.5\n"
+"Project-Id-Version: ElasticPress 2.5.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2018-04-20 15:37:52+00:00\n"
+"POT-Creation-Date: 2018-05-09 04:22:58+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -127,19 +127,19 @@ msgstr ""
 msgid "Total time elapsed: "
 msgstr ""
 
-#: bin/wp-cli.php:719
+#: bin/wp-cli.php:735
 msgid ""
 "The following posts failed to index:\r\n"
 "\r\n"
 msgstr ""
 
-#: bin/wp-cli.php:870
+#: bin/wp-cli.php:886
 msgid ""
 "There is no Elasticsearch host set up. Either add one through the dashboard "
 "or define one in wp-config.php"
 msgstr ""
 
-#: bin/wp-cli.php:872
+#: bin/wp-cli.php:888
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
@@ -390,30 +390,30 @@ msgstr ""
 msgid "ElasticPress - Facet"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:86
+#: features/facets/class-ep-facet-widget.php:112
 msgid "Search %s"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:268
-#: features/facets/class-ep-facet-widget.php:273
+#: features/facets/class-ep-facet-widget.php:294
+#: features/facets/class-ep-facet-widget.php:299
 msgid "all"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:269
-#: features/facets/class-ep-facet-widget.php:272
+#: features/facets/class-ep-facet-widget.php:295
+#: features/facets/class-ep-facet-widget.php:298
 msgid "any"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:284
+#: features/facets/class-ep-facet-widget.php:310
 #: features/related-posts/widget.php:88
 msgid "Title:"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:291
+#: features/facets/class-ep-facet-widget.php:317
 msgid "Taxonomy:"
 msgstr ""
 
-#: features/facets/class-ep-facet-widget.php:301
+#: features/facets/class-ep-facet-widget.php:327
 msgid ""
 "Faceting will  filter out any content that is not tagged to all selected "
 "terms; change this to show <strong>%s</strong> content tagged to "
@@ -439,11 +439,11 @@ msgid ""
 "content that matches any facet."
 msgstr ""
 
-#: features/facets/facets.php:465
+#: features/facets/facets.php:473
 msgid "Add controls to your website to filter content by one or more taxonomies."
 msgstr ""
 
-#: features/facets/facets.php:476
+#: features/facets/facets.php:484
 msgid ""
 "Adds a <a href='%s'>Facet widget</a> that administrators can add to the "
 "website's sidebars (widgetized areas), so that visitors can filter "
@@ -521,14 +521,14 @@ msgstr ""
 msgid "Weight results by date"
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:672
+#: features/woocommerce/woocommerce.php:708
 msgid ""
 "“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted "
 "product browsing strains servers and increases load times. Your buyers can "
 "find the perfect product quickly, and buy it quickly."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:683
+#: features/woocommerce/woocommerce.php:719
 msgid ""
 "Most caching and performance tools can’t keep up with the nearly infinite "
 "ways your visitors might filter or navigate your products. No matter how "
@@ -538,7 +538,7 @@ msgid ""
 "end product management."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:697
+#: features/woocommerce/woocommerce.php:733
 msgid "WooCommerce not installed."
 msgstr ""
 
@@ -575,15 +575,15 @@ msgstr ""
 msgid "Elasticsearch Host"
 msgstr ""
 
-#: includes/settings-page.php:40
+#: includes/settings-page.php:42
 msgid "Your Elasticsearch host is set in wp-config.php"
 msgstr ""
 
-#: includes/settings-page.php:42
+#: includes/settings-page.php:44
 msgid "Plug in your Elasticsearch server here!"
 msgstr ""
 
-#: includes/settings-page.php:50
+#: includes/settings-page.php:52
 msgid "Save Changes"
 msgstr ""
 

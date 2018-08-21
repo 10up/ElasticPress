@@ -1,20 +1,20 @@
 {
-	"name":            "ElasticPress",
-	"description":     "Grunt base for the ElasticPress Plugin.",
-	"dependencies":    {},
+	"name": "ElasticPress",
+	"description": "Grunt base for the ElasticPress Plugin.",
+	"dependencies": {},
 	"devDependencies": {
-		"grunt":                "*",
+		"grunt": "*",
 		"grunt-contrib-uglify": "*",
-		"grunt-contrib-watch":  "*",
-		"grunt-sass":           "*",
+		"grunt-contrib-watch": "*",
+		"grunt-sass": "*",
 		"grunt-contrib-cssmin": "*",
-		"load-grunt-tasks":     "*",
-		"grunt-autoprefixer":   "*",
-		"grunt-wp-i18n":        "^0.5.3"
+		"load-grunt-tasks": "*",
+		"grunt-autoprefixer": "*",
+		"grunt-wp-i18n": "^0.5.3"
 	},
-	"author":          "10up",
-	"repository":      {
+	"author": "10up",
+	"repository": {
 		"type": "git",
-		"url":  "https://github.com/10up/ElasticPress"
+		"url": "https://github.com/10up/ElasticPress"
 	}
 }
