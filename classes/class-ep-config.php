@@ -148,7 +148,7 @@ class EP_Config {
 		} elseif ( ep_is_epio() ) {
 			$credentials = ep_sanitize_credentials( get_option( 'ep_credentials', false ) );
 		} else {
-			$credentials = [];
+			$credentials = [ 'username' => '', 'token' => '' ];
 		}
 
 		if ( ! is_array( $credentials ) ) {
