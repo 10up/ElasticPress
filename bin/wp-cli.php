@@ -494,6 +494,12 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$posts_per_page = count($post_in);
 		}
 
+		if ( ! empty( $args['post-status'] ) ) {
+			$post_status = $args['post-status'];
+		} else {
+			$post_status = ep_get_indexable_post_status();
+		}
+
 		/**
 		 * Create WP_Query here and reuse it in the loop to avoid high memory consumption.
 		 */
@@ -504,7 +510,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 			$args = apply_filters( 'ep_index_posts_args', array(
 				'posts_per_page'         => $posts_per_page,
 				'post_type'              => $post_type,
-				'post_status'            => ep_get_indexable_post_status(),
+				'post_status'            => $post_status,
 				'offset'                 => $offset,
 				'ignore_sticky_posts'    => true,
 				'orderby'                => 'ID',
