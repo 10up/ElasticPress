@@ -48,7 +48,7 @@ ElasticPress 2.6 provides some new enhancements and bug fixes.
 * Allow WooCommerce products to be included in autosuggest results.
 * Support for tax_query operators EXISTS and NOT EXISTS.
 * Addition of new filter to change default orderby/sort (ep_set_default_sort).
-
+* Do not search for author_name when searching products in WooCommerce.
 
 = 2.5.2 (Requires re-index) =
 
