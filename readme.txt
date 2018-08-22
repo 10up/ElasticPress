@@ -45,7 +45,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 ElasticPress 2.6 provides some new enhancements and bug fixes.
 
 * Ability to set autosuggest endpoint by a constant (EP_AUTOSUGGEST_ENDPOINT).
-* Allow WooCommerce products to be included in autosuggest results.
+* Enable WooCommerce products to be included in autosuggest results.
 * Support for tax_query operators EXISTS and NOT EXISTS.
 * Addition of new filter to change default orderby/sort (ep_set_default_sort).
 * Do not search for author_name when searching products in WooCommerce.
