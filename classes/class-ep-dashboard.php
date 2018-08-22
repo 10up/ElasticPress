@@ -906,9 +906,9 @@ class EP_Dashboard {
 		);
 
 		add_submenu_page(
-			null,
+			'elasticpress',
 			'ElasticPress' . esc_html__( 'Settings', 'elasticpress' ),
-			'ElasticPress' . esc_html__( 'Settings', 'elasticpress' ),
+			esc_html__( 'Settings', 'elasticpress' ),
 			$capability,
 			'elasticpress-settings',
 			array( $this, 'settings_page' )
