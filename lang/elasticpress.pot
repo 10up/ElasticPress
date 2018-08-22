@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ElasticPress 2.5.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2018-05-09 04:22:58+00:00\n"
+"POT-Creation-Date: 2018-06-12 15:12:25+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -143,27 +143,27 @@ msgstr ""
 msgid "Unable to reach Elasticsearch Server! Check that service is running."
 msgstr ""
 
-#: classes/class-ep-api.php:2273
+#: classes/class-ep-api.php:2289
 msgid ""
 "Invalid response from ElasticPress server. Please contact your "
 "administrator."
 msgstr ""
 
-#: classes/class-ep-api.php:2286
+#: classes/class-ep-api.php:2302
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
 "--network-wide</code> using WP-CLI. Or use the index button on the left of "
 "this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2290
+#: classes/class-ep-api.php:2306
 msgid ""
 "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
 "using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: classes/class-ep-api.php:2425 classes/class-ep-api.php:2537
-#: classes/class-ep-api.php:2588
+#: classes/class-ep-api.php:2441 classes/class-ep-api.php:2553
+#: classes/class-ep-api.php:2604
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -521,14 +521,14 @@ msgstr ""
 msgid "Weight results by date"
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:708
+#: features/woocommerce/woocommerce.php:711
 msgid ""
 "“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted "
 "product browsing strains servers and increases load times. Your buyers can "
 "find the perfect product quickly, and buy it quickly."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:719
+#: features/woocommerce/woocommerce.php:722
 msgid ""
 "Most caching and performance tools can’t keep up with the nearly infinite "
 "ways your visitors might filter or navigate your products. No matter how "
@@ -538,7 +538,7 @@ msgid ""
 "end product management."
 msgstr ""
 
-#: features/woocommerce/woocommerce.php:733
+#: features/woocommerce/woocommerce.php:736
 msgid "WooCommerce not installed."
 msgstr ""
 

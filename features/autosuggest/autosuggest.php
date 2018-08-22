@@ -52,13 +52,22 @@ function ep_autosugguest_settings( $feature ) {
 	if ( preg_match( '#elasticpress\.io#i', $host ) ) {
 		return;
 	}
+	$endpoint_url = ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) ? EP_AUTOSUGGEST_ENDPOINT : $settings['endpoint_url'];
 	?>
 
 	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
 		<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Endpoint URL', 'elasticpress' ); ?></label></div>
 		<div class="input-wrap">
-			<input value="<?php echo esc_url( $settings['endpoint_url'] ); ?>" type="text" data-field-name="endpoint_url" class="setting-field" id="feature_autosuggest_endpoint_url">
+			<input <?php if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) : ?>disabled<?php endif; ?> value="<?php echo esc_url( $endpoint_url ); ?>" type="text" data-field-name="endpoint_url" class="setting-field" id="feature_autosuggest_endpoint_url">
+			<?php
+			if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
+				?>
+				<p class="field-description"><?php esc_html_e( 'Your autosuggest endpoint is set in wp-config.php', 'elasticpress' ); ?></p>
+				<?php
+			}
+			?>
 			<p class="field-description"><?php esc_html_e( 'This address will be exposed to the public.', 'elasticpress' ); ?></p>
+
 		</div>
 	</div>
 
@@ -73,8 +82,10 @@ function ep_autosugguest_settings( $feature ) {
  * @return array
  */
 function ep_autosuggest_suggest_mapping( $mapping ) {
+	$textType = $mapping['mappings']['post']['properties']['post_content']['type'];
+
 	$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-		'type' => 'text',
+		'type' => $textType,
 		'analyzer' => 'edge_ngram_analyzer',
 		'search_analyzer' => 'standard',
 	);
@@ -89,7 +100,7 @@ function ep_autosuggest_suggest_mapping( $mapping ) {
 	);
 
 	$mapping['mappings']['post']['properties']['term_suggest'] = array(
-		'type' => 'text',
+		'type' => $textType,
 		'analyzer' => 'edge_ngram_analyzer',
 		'search_analyzer' => 'standard',
 	);
@@ -135,22 +146,26 @@ function ep_autosuggest_enqueue_scripts() {
 
 	$endpoint_url = false;
 
-	if ( preg_match( '#elasticpress\.io#i', $host ) ) {
-		$endpoint_url = $host . '/' . ep_get_index_name() . '/post/_search';
+	if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
+		$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
 	} else {
-		$settings = $feature->get_settings();
+		if ( preg_match( '#elasticpress\.io#i', $host ) ) {
+			$endpoint_url = $host . '/' . ep_get_index_name() . '/post/_search';
+		} else {
+			$settings = $feature->get_settings();
 
-		if ( ! $settings ) {
-			$settings = array();
+			if ( ! $settings ) {
+				$settings = array();
+			}
+
+			$settings = wp_parse_args( $settings, $feature->default_settings );
+
+			if ( empty( $settings['endpoint_url'] ) ) {
+				return;
+			}
+
+			$endpoint_url = $settings['endpoint_url'];
 		}
-
-		$settings = wp_parse_args( $settings, $feature->default_settings );
-
-		if ( empty( $settings['endpoint_url'] ) ) {
-			return;
-		}
-
-		$endpoint_url = $settings['endpoint_url'];
 	}
 
 	$js_url = ( defined( 'SCRIPT_DEBUG' ) && true === SCRIPT_DEBUG ) ? EP_URL . 'features/autosuggest/assets/js/src/autosuggest.js' : EP_URL . 'features/autosuggest/assets/js/autosuggest.min.js';
