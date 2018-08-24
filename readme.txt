@@ -40,6 +40,10 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.6.1 =
+
+* Resolves issue of missing file for wp-cli.
+
 = 2.6.0 =
 
 ElasticPress 2.6 provides some new enhancements and bug fixes.
