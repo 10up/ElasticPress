@@ -355,7 +355,7 @@ class EP_Dashboard {
 
 				?>
 				<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
-					<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
+					<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
 				break;
