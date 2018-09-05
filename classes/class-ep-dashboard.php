@@ -363,7 +363,7 @@ class EP_Dashboard {
 				$feature = ep_get_registered_feature( $auto_activate_sync );
 				?>
 				<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
-                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
+                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) ); ?></p>
 				</div>
 				<?php
 				break;
