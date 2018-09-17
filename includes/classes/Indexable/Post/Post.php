@@ -480,7 +480,7 @@ class Post extends Indexable {
 
 		// Default sort for non-searches to date.
 		if ( empty( $args['orderby'] ) && ( ! isset( $args['s'] ) || '' === $args['s'] ) ) {
-			$args['orderby'] = 'date';
+			$args['orderby'] = apply_filters( 'ep_set_default_sort', 'date', $order );
 		}
 
 		// Set sort type.
