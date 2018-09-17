@@ -373,6 +373,10 @@ class Post extends Indexable {
 	public function prepare_meta( $post ) {
 		$meta = (array) get_post_meta( $post->ID );
 
+		if ( ! empty( $post->post_password ) ) {
+			$meta['password_protected'] = true;
+		}
+
 		if ( empty( $meta ) ) {
 			return [];
 		}
@@ -793,6 +797,17 @@ class Post extends Indexable {
 		}
 
 		$meta_queries = [];
+
+		/**
+		 * Exclude password protected posts in search.
+		 */
+		if ( ! is_admin() ) {
+			$meta_queries[] = array(
+				'key'     => 'password_protected',
+				'value'   => true,
+				'compare' => '!=',
+			);
+		}
 
 		/**
 		 * Support meta_key
