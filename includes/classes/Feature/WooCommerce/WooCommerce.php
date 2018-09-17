@@ -10,7 +10,7 @@ namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Feature as Feature;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Post\Post as Post;
+use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -378,7 +378,7 @@ class WooCommerce extends Feature {
 				'shop_order_refund',
 				'product_variation',
 			),
-			Post::factory()->get_indexable_post_types()
+			Indexables::factory()->get( 'post' )->get_indexable_post_types()
 		);
 
 		// For orders it queries an array of shop_order and shop_order_refund post types, hence an array_diff
