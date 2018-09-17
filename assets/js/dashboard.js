@@ -191,10 +191,16 @@ function updateSyncDash() {
 		$resumeSyncButton.hide()
 		$startSyncButton.hide()
 	} else if ( syncStatus === 'sync' ) {
-		text = epDash.sync_syncing + ' ' + epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase() + ' ' + parseInt( processed ) + '/' + parseInt( toProcess )
+		text = epDash.sync_syncing;
 
-		if ( currentSyncItem.url ) {
-			text += ' (' + currentSyncItem.url + ')'
+		if ( currentSyncItem ) {
+			if ( currentSyncItem.indexable ) {
+				text += ' ' + epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase() + ' ' + parseInt( processed ) + '/' + parseInt( toProcess )
+			}
+
+			if ( currentSyncItem.url ) {
+				text += ' (' + currentSyncItem.url + ')'
+			}
 		}
 
 		$syncStatusText.text( text )
@@ -211,10 +217,10 @@ function updateSyncDash() {
 		text = epDash.sync_paused
 
 		if ( toProcess && toProcess !== 0 ) {
-			text += ' ' + parseInt( processed ) + '/' + parseInt( toProcess )
+			text += ', ' + parseInt( processed ) + '/' + parseInt( toProcess ) + ' ' + epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase();
 		}
 
-		if ( currentSyncItem.url ) {
+		if ( currentSyncItem && currentSyncItem.url ) {
 			text += ' (' + currentSyncItem.url + ')'
 		}
 
