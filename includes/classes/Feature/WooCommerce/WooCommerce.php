@@ -689,6 +689,8 @@ class WooCommerce extends Feature {
 			return $post_args;
 		}
 
+		$post_indexable = Indexables::factory()->get( 'post' );
+
 		// Get order items.
 		$order     = wc_get_order( $post_id );
 		$item_meta = [];
@@ -703,7 +705,7 @@ class WooCommerce extends Feature {
 
 		// Prepare order items.
 		$item_meta['_items'] = empty( $item_meta['_items'] ) ? '' : implode( '|', $item_meta['_items'] );
-		$post_args['meta']   = array_merge( $post_args['meta'], Post::factory()->prepare_meta_types( $item_meta ) );
+		$post_args['meta']   = array_merge( $post_args['meta'], $post_indexable->prepare_meta_types( $item_meta ) );
 
 		return $post_args;
 	}
