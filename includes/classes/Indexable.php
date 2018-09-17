@@ -96,8 +96,10 @@ abstract class Indexable {
 			}
 		}
 
-		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
-			$index_name = EP_INDEX_PREFIX . $index_name;
+		$prefix = Utils\get_index_prefix();
+
+		if ( ! empty( $prefix ) ) {
+			$index_name = $prefix . $index_name;
 		}
 
 		return apply_filters( 'ep_index_name', $index_name, $blog_id, $this );
@@ -116,8 +118,10 @@ abstract class Indexable {
 
 		$alias = $slug . '-' . $this->slug . '-global';
 
-		if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
-			$alias = EP_INDEX_PREFIX . $alias;
+		$prefix = Utils\get_index_prefix();
+
+		if ( ! empty( $prefix ) ) {
+			$alias = $prefix . $alias;
 		}
 
 		return apply_filters( 'ep_global_alias', $alias );

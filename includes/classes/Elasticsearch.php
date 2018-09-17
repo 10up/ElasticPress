@@ -340,8 +340,10 @@ class Elasticsearch {
 		 *
 		 * @since 1.9
 		 */
-		if ( defined( 'ES_SHIELD' ) && ES_SHIELD ) {
-			$headers['Authorization'] = 'Basic ' . base64_encode( ES_SHIELD );
+		$shield = Utils\get_shield_credentials();
+
+		if ( ! empty( $shield ) ) {
+			$headers['Authorization'] = 'Basic ' . base64_encode( $shield );
 		}
 
 		$headers = apply_filters( 'ep_format_request_headers', $headers );

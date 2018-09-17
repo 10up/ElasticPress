@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function get_epio_credentials() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
 		$credentials = sanitize_credentials( get_site_option( 'ep_credentials', false ) );
-	} elseif ( ep_is_epio() ) {
+	} elseif ( is_epio() ) {
 		$credentials = sanitize_credentials( get_option( 'ep_credentials', false ) );
 	} else {
 		$credentials = [ 'username' => '', 'token' => '' ];
@@ -35,6 +35,22 @@ function get_epio_credentials() {
 }
 
 /**
+ * Get shield credentials
+ *
+ * @since  3.0
+ * @return string|bool
+ */
+function get_shield_credentials() {
+	if ( ! defined( 'ES_SHIELD' ) && is_epio() ) {
+		$credentials = get_epio_credentials();
+
+		return $credentials['username'] . ':' . $credentials['token'];
+	}
+
+	return false;
+}
+
+/**
  * Retrieve the appropriate index prefix. Will default to EP_INDEX_PREFIX constant if it exists
  * AKA Subscription ID.
  *
@@ -44,7 +60,7 @@ function get_epio_credentials() {
 function get_index_prefix() {
 	if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
 		return EP_INDEX_PREFIX;
-	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ep_is_epio() ) {
+	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
 		$prefix = get_site_option( 'ep_prefix', false );
 	} elseif ( is_epio() ) {
 		$prefix = get_option( 'ep_prefix', false );
@@ -72,7 +88,7 @@ function is_epio() {
  * @since  2.6
  * @return array
  */
-function ep_sanitize_credentials( $credentials ) {
+function sanitize_credentials( $credentials ) {
 	if ( ! is_array( $credentials ) ) {
 		return [ 'username' => '', 'token' => '' ];
 	}

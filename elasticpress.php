@@ -73,7 +73,6 @@ define( 'EP_ES_VERSION_MAX', '6.2' );
 define( 'EP_ES_VERSION_MIN', '1.7' );
 
 require_once __DIR__ . '/includes/utils.php';
-require_once __DIR__ . '/includes/epio.php';
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
 $network_activated = Utils\is_network_activated( plugin_basename( __FILE__ ) );

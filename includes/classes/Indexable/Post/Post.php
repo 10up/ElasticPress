@@ -118,7 +118,7 @@ class Post extends Indexable {
 	 * Send mapping to Elasticsearch
 	 *
 	 * @since  3.0
-	 * @return [type] [description]
+	 * @return array
 	 */
 	public function put_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
