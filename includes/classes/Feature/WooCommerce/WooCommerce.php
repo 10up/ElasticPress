@@ -499,6 +499,9 @@ class WooCommerce extends Feature {
 				} elseif ( 'product' === $post_type ) {
 					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
+					// Remove author_name from this search.
+					$search_fields = $this->remove_author( $search_fields );
+
 					foreach ( $search_fields as $field_key => $field ) {
 						if ( 'author_name' === $field ) {
 							unset( $search_fields[ $field_key ] );
@@ -762,6 +765,23 @@ class WooCommerce extends Feature {
 		?>
 		<p><?php esc_html_e( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ); ?></p>
 		<?php
+	}
+
+	/**
+	 * Remove the author_name from search fields.
+	 *
+	 * @param array $search_fields Array of search fields.
+	 * @since  3.0
+	 * @return array
+	 */
+	public function remove_author( $search_fields ) {
+		foreach ( $search_fields as $field_key => $field ) {
+			if ( 'author_name' === $field ) {
+				unset( $search_fields[ $field_key ] );
+			}
+		}
+
+		return $search_fields;
 	}
 
 	/**
