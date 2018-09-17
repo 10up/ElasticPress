@@ -197,6 +197,10 @@ class QueryIntegration {
 			 */
 			$scope = apply_filters( 'ep_search_scope', $scope );
 
+			if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+				$scope = 'current';
+			}
+
 			$index = null;
 
 			if ( 'all' === $scope ) {
