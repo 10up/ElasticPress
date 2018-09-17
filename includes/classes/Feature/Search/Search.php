@@ -20,7 +20,7 @@ class Search extends Feature {
 	/**
 	 * Initialize feature setting it's config
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct() {
 		$this->slug = 'search';
@@ -46,7 +46,7 @@ class Search extends Feature {
 	/**
 	 * Setup feature on each page load
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function search_setup() {
 		/**
@@ -86,7 +86,7 @@ class Search extends Feature {
 		/**
 		 * Don't search attachments by default
 		 *
-		 * @since  2.6
+		 * @since  3.0
 		 */
 		unset( $post_types['attachment'] );
 
@@ -129,7 +129,7 @@ class Search extends Feature {
 	 * Integrate search with ElasticPress and enhance search fields
 	 *
 	 * @param  WP_Query $query
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function improve_default_search( $query ) {
 		if ( is_admin() ) {
@@ -148,7 +148,8 @@ class Search extends Feature {
 		// Set search fields if they are not set
 		if ( empty( $search_fields ) ) {
 			$query->set(
-				'search_fields', array(
+				'search_fields',
+				array(
 					'post_title',
 					'post_content',
 					'post_excerpt',
@@ -180,7 +181,8 @@ class Search extends Feature {
 			}
 
 			$settings = wp_parse_args(
-				$settings, [
+				$settings,
+				[
 					'decaying_enabled' => true,
 				]
 			);
@@ -211,7 +213,7 @@ class Search extends Feature {
 	/**
 	 * Output feature box summary
 	 *
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function output_feature_box_summary() {
 		?>
@@ -222,7 +224,7 @@ class Search extends Feature {
 	/**
 	 * Output feature box long text
 	 *
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function output_feature_box_long() {
 		?>
@@ -282,15 +284,15 @@ class Search extends Feature {
 				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio"
 				<?php
 				if ( (bool) $decaying_settings['decaying_enabled'] ) :
-?>
+					?>
 checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
 				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio"
 				<?php
 				if ( ! (bool) $decaying_settings['decaying_enabled'] ) :
-?>
+					?>
 checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 		</div>
-	<?php
+		<?php
 	}
 }

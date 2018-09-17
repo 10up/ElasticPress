@@ -2,7 +2,7 @@
 /**
  * User indexable
  *
- * @since  2.6
+ * @since  3.0
  * @package  elasticpress
  */
 
@@ -26,7 +26,7 @@ class User extends Indexable {
 	 * We only need one user index
 	 *
 	 * @var boolean
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public $global = true;
 
@@ -34,14 +34,14 @@ class User extends Indexable {
 	 * Indexable slug
 	 *
 	 * @var string
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public $slug = 'user';
 
 	/**
 	 * Create indexable and setup dependencies
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct() {
 		$this->labels = [
@@ -57,7 +57,7 @@ class User extends Indexable {
 	 * Format query vars into ES query
 	 *
 	 * @param  array $query_vars WP_User_Query args.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function format_args( $query_vars ) {
@@ -418,7 +418,7 @@ class User extends Indexable {
 	 * Query DB for users
 	 *
 	 * @param  array $args
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function query_db( $args ) {
@@ -458,7 +458,7 @@ class User extends Indexable {
 	/**
 	 * Put mapping for users
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function put_mapping() {
@@ -473,7 +473,7 @@ class User extends Indexable {
 	 * Prepare a user document for indexing
 	 *
 	 * @param  int $user_id
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function prepare_document( $user_id ) {
@@ -507,7 +507,7 @@ class User extends Indexable {
 	 * Prepare capabilities for indexing
 	 *
 	 * @param  int $user_id User ID
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function prepare_capabilities( $user_id ) {
@@ -542,7 +542,7 @@ class User extends Indexable {
 	 * Prepare meta to send to ES
 	 *
 	 * @param int $user_id
-	 * @since 2.6
+	 * @since 3.0
 	 * @return array
 	 */
 	public function prepare_meta( $user_id ) {
@@ -559,7 +559,7 @@ class User extends Indexable {
 		 *
 		 * Allows for specifying private meta keys that may be indexed in the same manor as public meta keys.
 		 *
-		 * @since 2.6
+		 * @since 3.0
 		 *
 		 * @param         array Array of index-able private meta keys.
 		 * @param WP_Post $post The current post to be indexed.
@@ -571,15 +571,17 @@ class User extends Indexable {
 		 *
 		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
 		 *
-		 * @since 2.6
+		 * @since 3.0
 		 *
 		 * @param         array Array of public meta keys to exclude from index.
 		 * @param WP_Post $post The current post to be indexed.
 		 */
 		$excluded_public_keys = apply_filters(
-			'ep_prepare_user_meta_excluded_public_keys', [
+			'ep_prepare_user_meta_excluded_public_keys',
+			[
 				'session_tokens',
-			], $user_id
+			],
+			$user_id
 		);
 
 		foreach ( $meta as $key => $value ) {

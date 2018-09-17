@@ -2,7 +2,7 @@
 /**
  * Elasticsearch mapping for users
  *
- * @since  2.6
+ * @since  3.0
  * @package elasticpress
  */
 

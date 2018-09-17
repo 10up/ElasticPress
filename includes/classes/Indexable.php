@@ -4,7 +4,7 @@
  *
  * An indexable is a type of "data" in WP e.g. post type, term, user, etc.
  *
- * @since  2.6
+ * @since  3.0
  * @package elasticpress
  */
 
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * An indexable is essentially a document type that can be indexed
  * and queried against
  *
- * @since  2.6
+ * @since  3.0
  */
 abstract class Indexable {
 
@@ -32,7 +32,7 @@ abstract class Indexable {
 	 * network alias.
 	 *
 	 * @var boolean
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public $global = false;
 
@@ -41,7 +41,7 @@ abstract class Indexable {
 	 * objects.
 	 *
 	 * @var SyncManager
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public $sync_manager;
 
@@ -50,14 +50,14 @@ abstract class Indexable {
 	 * WP query.
 	 *
 	 * @var QueryIntegration
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public $query_integration;
 
 	/**
 	 * Get number of bulk items to index per page
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 * @return int
 	 */
 	public function get_bulk_items_per_page() {
@@ -68,7 +68,7 @@ abstract class Indexable {
 	 * Get the name of the index. Each indexable needs a unique index name
 	 *
 	 * @param  int $blog_id `null` means current blog.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return string
 	 */
 	public function get_index_name( $blog_id = null ) {
@@ -106,7 +106,7 @@ abstract class Indexable {
 	/**
 	 * Get unique indexable network alias
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 * @return string
 	 */
 	public function get_network_alias() {
@@ -126,7 +126,7 @@ abstract class Indexable {
 	/**
 	 * Delete unique indexable network alias
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function delete_network_alias() {
@@ -137,7 +137,7 @@ abstract class Indexable {
 	 * Create unique indexable network alias
 	 *
 	 * @param  array $indexes Array of indexes.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function create_network_alias( $indexes ) {
@@ -149,7 +149,7 @@ abstract class Indexable {
 	 *
 	 * @param  int     $object_id Object to delete.
 	 * @param  boolean $blocking Whether to issue blocking HTTP request or not.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function delete( $object_id, $blocking = true ) {
@@ -160,7 +160,7 @@ abstract class Indexable {
 	 * Get an object within the indexable
 	 *
 	 * @param  int $object_id Object to get.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean|array
 	 */
 	public function get( $object_id ) {
@@ -171,7 +171,7 @@ abstract class Indexable {
 	 * Delete an index within the indexable
 	 *
 	 * @param  int $blog_id `null` means current blog.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function delete_index( $blog_id = null ) {
@@ -183,7 +183,7 @@ abstract class Indexable {
 	 *
 	 * @param  int     $object_id Object to index.
 	 * @param  boolean $blocking Blocking HTTP request or not.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
@@ -210,7 +210,7 @@ abstract class Indexable {
 	 * Determine if indexable index exists
 	 *
 	 * @param  int $blog_id Blog to check index for.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function index_exists( $blog_id = null ) {
@@ -221,7 +221,7 @@ abstract class Indexable {
 	 * Bulk index objects. This calls prepare_document on each object
 	 *
 	 * @param  array $object_ids Array of object IDs.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $object_ids ) {
@@ -246,7 +246,7 @@ abstract class Indexable {
 	 * @param  array  $formatted_args Formatted es query arguments.
 	 * @param  array  $query_args WP_Query args.
 	 * @param  string $index Index(es) to query. Comma separate for multiple. Defaults to current.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function query_es( $formatted_args, $query_args, $index = null ) {
@@ -262,7 +262,7 @@ abstract class Indexable {
 	 *
 	 * @param WP_Query|WP_User_Query $query WP_Query or WP_User_Query instance
 	 * @return bool
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function elasticpress_enabled( $query ) {
 		$enabled = false;
@@ -284,7 +284,7 @@ abstract class Indexable {
 	 * Prepare meta type values to send to ES
 	 *
 	 * @param array $meta Array of meta.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function prepare_meta_types( $meta ) {
@@ -307,7 +307,7 @@ abstract class Indexable {
 	 * Prepare meta types for meta value
 	 *
 	 * @param mixed $meta_value Meta value to prepare.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function prepare_meta_value_types( $meta_value ) {

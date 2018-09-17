@@ -61,7 +61,7 @@ class Features {
 	 * Registers a feature for use in ElasticPress
 	 *
 	 * @param  Feature $feature An instance of the Feature class
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function register_feature( Feature $feature ) {

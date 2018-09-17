@@ -43,7 +43,7 @@ class QueryIntegration {
 	 *
 	 * @param  array         $results Users array.
 	 * @param  WP_User_Query $query   Current query.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function maybe_filter_query( $results, WP_User_Query $query ) {
@@ -77,7 +77,7 @@ class QueryIntegration {
 	 * Format the ES hits/results as WP_User objects.
 	 *
 	 * @param array $users The users that should be formatted.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	protected function format_hits_as_users( $users ) {
@@ -122,7 +122,7 @@ class QueryIntegration {
 	 * Disables cache_results, adds header.
 	 *
 	 * @param WP_User_Query $query
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function action_pre_get_users( $query ) {
 		if ( ! Indexables::factory()->get( 'user' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_user_query_integration', false, $query ) ) {

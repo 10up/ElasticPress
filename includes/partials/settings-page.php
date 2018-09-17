@@ -27,7 +27,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 <div class="error-overlay 
 <?php
 if ( ! empty( $index_meta ) ) :
-?>
+	?>
 syncing<?php endif; ?>"></div>
 <div class="wrap">
 	<h1><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h1>
@@ -45,7 +45,7 @@ syncing<?php endif; ?>"></div>
 							<input 
 							<?php
 							if ( defined( 'EP_HOST' ) && EP_HOST ) :
-?>
+								?>
 disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( Utils\get_host() ); ?>" name="ep_host" id="ep_host">
 						<?php endif ?>
 						<?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>
@@ -62,7 +62,7 @@ disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_
 		<input type="submit" 
 		<?php
 		if ( ! empty( $index_meta ) ) :
-?>
+			?>
 disabled<?php endif; ?> name="submit" id="submit" class="button button-primary" value="<?php esc_html_e( 'Save Changes', 'elasticpress' ); ?>">
 	</form>
 </div>

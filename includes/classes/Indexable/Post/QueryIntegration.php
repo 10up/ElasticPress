@@ -129,9 +129,9 @@ class QueryIntegration {
 	/**
 	 * Get posts from Elasticsearch
 	 *
-	 * @param array $posts Array of posts
+	 * @param array    $posts Array of posts
 	 * @param WP_Query $query WP_Query instance
-	 * @since 2.6
+	 * @since 3.0
 	 * @return string
 	 */
 	public function get_es_posts( $posts, $query ) {

@@ -3,7 +3,7 @@
  * SyncManager common functionality
  *
  * @package  elasticpress
- * @since  2.6
+ * @since  3.0
  */
 
 namespace ElasticPress;
@@ -16,7 +16,7 @@ abstract class SyncManager {
 	/**
 	 * Save objects for indexing later
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 * @var    array
 	 */
 	public $sync_queue = [];
@@ -25,7 +25,7 @@ abstract class SyncManager {
 	 * Indexable slug
 	 *
 	 * @var   string
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public $indexable_slug;
 
@@ -33,7 +33,7 @@ abstract class SyncManager {
 	 * Create new SyncManager
 	 *
 	 * @param string $indexable_slug Indexable slug.
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct( $indexable_slug ) {
 		$this->indexable_slug = $indexable_slug;
@@ -53,7 +53,7 @@ abstract class SyncManager {
 	 * shutdown won't be firing
 	 *
 	 * @param  string $location Redirect location.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return string
 	 */
 	public function index_sync_queue_on_redirect( $location ) {
@@ -65,7 +65,7 @@ abstract class SyncManager {
 	/**
 	 * Sync objects in queue.
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function index_sync_queue() {
 		if ( empty( $this->sync_queue ) ) {
@@ -85,7 +85,7 @@ abstract class SyncManager {
 	/**
 	 * Implementation should setup hooks/filters
 	 *
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	abstract public function setup();
 }

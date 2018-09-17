@@ -547,7 +547,8 @@ function action_wp_ajax_ep_index() {
 	do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
 
 	$args = apply_filters(
-		'ep_dashboard_index_args', [
+		'ep_dashboard_index_args',
+		[
 			'posts_per_page' => $per_page,
 			'offset'         => $index_meta['offset'],
 		]
@@ -745,7 +746,9 @@ function action_admin_enqueue_admin_scripts() {
 	wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'dist/js/admin.min.js', [ 'jquery' ], EP_VERSION, true );
 
 	wp_localize_script(
-		'ep_admin_scripts', 'epAdmin', array(
+		'ep_admin_scripts',
+		'epAdmin',
+		array(
 			'nonce' => wp_create_nonce( 'ep_admin_nonce' ),
 		)
 	);

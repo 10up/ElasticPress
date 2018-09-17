@@ -2,7 +2,7 @@
 /**
  * Manage syncing of content between WP and Elasticsearch for users
  *
- * @since  2.6
+ * @since  3.0
  * @package elasticpress
  */
 
@@ -24,7 +24,7 @@ class SyncManager extends SyncManagerAbstract {
 	/**
 	 * Setup actions and filters
 	 *
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function setup() {
 		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
@@ -67,7 +67,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * Delete ES user when WP user is deleted
 	 *
 	 * @param int $post_id Post ID.
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function action_delete_user( $user_id ) {
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
@@ -81,7 +81,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * Sync ES index with what happened to the user being saved
 	 *
 	 * @param int $user_id User id.
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function action_sync_on_update( $user_id ) {
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {

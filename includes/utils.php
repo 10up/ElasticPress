@@ -2,7 +2,7 @@
 /**
  * ElasticPress utility functions
  *
- * @since  2.6
+ * @since  3.0
  * @package elasticpress
  */
 
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Determine if ElasticPress is in the middle of an index
  *
- * @since  2.6
+ * @since  3.0
  * @return boolean
  */
 function is_indexing() {
@@ -31,7 +31,7 @@ function is_indexing() {
 /**
  * Check if wpcli indexing is occurring
  *
- * @since  2.6
+ * @since  3.0
  * @return boolean
  */
 function is_indexing_wpcli() {
@@ -66,7 +66,7 @@ function get_host() {
 /**
  * Determine if host is set in options rather than a constant
  *
- * @since  2.6
+ * @since  3.0
  * @return bool
  */
 function host_by_option() {
@@ -83,12 +83,13 @@ function host_by_option() {
  * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
  *
  * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites.
- * @since  2.6
+ * @since  3.0
  * @return array
  */
 function get_sites( $limit = 0 ) {
 	$args = apply_filters(
-		'ep_indexable_sites_args', array(
+		'ep_indexable_sites_args',
+		array(
 			'limit'  => $limit,
 			'number' => $limit,
 		)
@@ -114,7 +115,7 @@ function get_sites( $limit = 0 ) {
  *
  * Determines whether plugin is network activated or just on the local site.
  *
- * @since 2.6
+ * @since 3.0
  * @param string $plugin the plugin base name.
  * @return bool True if network activated or false.
  */

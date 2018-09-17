@@ -2,7 +2,7 @@
 /**
  * Handles indexable registration and storage
  *
- * @since  2.6
+ * @since  3.0
  * @package elasticpress
  */
 
@@ -21,7 +21,7 @@ class Indexables {
 	 * Array of registered indexables
 	 *
 	 * @var   array
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	private $registered_indexables = [];
 
@@ -29,7 +29,7 @@ class Indexables {
 	 * Register an indexable instance
 	 *
 	 * @param  Indexable $indexable Instance of Indexable.
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function register( Indexable $indexable ) {
 		$this->registered_indexables[ $indexable->slug ] = $indexable;
@@ -39,7 +39,7 @@ class Indexables {
 	 * Get an indexable instance given a slug
 	 *
 	 * @param  string $slug Indexable type slug.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return Indexable|boolean
 	 */
 	public function get( $slug ) {
@@ -51,7 +51,7 @@ class Indexables {
 	 *
 	 * @param  boolean $global If true or false, will only get Indexables with that global property.
 	 * @param  boolean $slug_only True returns an array of only string slugs.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function get_all( $global = null, $slug_only = false ) {

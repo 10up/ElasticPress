@@ -17,7 +17,7 @@ class Users extends Feature {
 	/**
 	 * Initialize feature setting it's config
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct() {
 		$this->slug = 'users';
@@ -25,6 +25,11 @@ class Users extends Feature {
 		$this->title = esc_html__( 'User Search', 'elasticpress' );
 	}
 
+	/**
+	 * Hook search functionality
+	 *
+	 * @since  3.0
+	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
 	}
@@ -32,7 +37,7 @@ class Users extends Feature {
 	/**
 	 * Setup feature on each page load
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function search_setup() {
 		/**
@@ -60,7 +65,7 @@ class Users extends Feature {
 	/**
 	 * Output feature box summary
 	 *
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function output_feature_box_summary() {
 		?>
@@ -71,7 +76,7 @@ class Users extends Feature {
 	/**
 	 * Output feature box long text
 	 *
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public function output_feature_box_long() {
 		?>
@@ -85,7 +90,7 @@ class Users extends Feature {
 	 *
 	 * @param  bool          $enabled Whether EP is enabled
 	 * @param  WP_User_Query $query Current query object.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {

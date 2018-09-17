@@ -2,7 +2,7 @@
 /**
  * WP-CLI command for ElasticPress
  *
- * @since  2.6
+ * @since  3.0
  * @package elasticpress
  */
 
@@ -682,7 +682,7 @@ class Command extends WP_CLI_Command {
 	 * @param  int       $object_id Object to queue.
 	 * @param  int       $bulk_trigger Number of posts to trigger index on.
 	 * @param  bool      $show_bulk_errors True to show individual post error messages for bulk.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return bool|int true if successfully synced, false if not or 2 if object was killed before sync
 	 */
 	private function queue_object( Indexable $indexable, $object_id, $bulk_trigger, $show_bulk_errors = false ) {

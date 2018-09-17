@@ -135,7 +135,7 @@ class Widget extends WP_Widget {
 		<div class="terms 
 		<?php
 		if ( count( $terms_by_slug ) > $search_threshold ) :
-?>
+			?>
 searchable<?php endif; ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
@@ -165,7 +165,7 @@ searchable<?php endif; ?>">
 									<?php echo esc_html( $term->name ); ?>
 								</a>
 							</div>
-						<?php
+							<?php
 						} else {
 							/**
 							 * This code is so that when we encounter a selected child/parent term, we push it's whole branch
@@ -225,16 +225,16 @@ searchable<?php endif; ?>">
 								<div class="term 
 								<?php
 								if ( empty( $term->count ) ) :
-?>
+									?>
 empty-term<?php endif; ?> <?php
 if ( $selected ) :
-?>
+	?>
 selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
 										<input type="checkbox" 
 										<?php
 										if ( $selected ) :
-?>
+											?>
 checked<?php endif; ?>>
 										<?php echo esc_html( $term->name ); ?>
 									</a>
@@ -265,12 +265,12 @@ checked<?php endif; ?>>
 					<div class="term 
 					<?php
 					if ( empty( $term->count ) ) :
-?>
+						?>
 empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 						<a 
 						<?php
 						if ( ! empty( $term->count ) ) :
-?>
+							?>
 href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
 							<input type="checkbox">
 							<?php echo esc_html( $term->name ); ?>
@@ -339,7 +339,8 @@ href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php
 		}
 
 		$settings = wp_parse_args(
-			$settings, array(
+			$settings,
+			array(
 				'match_type' => 'all',
 			)
 		);

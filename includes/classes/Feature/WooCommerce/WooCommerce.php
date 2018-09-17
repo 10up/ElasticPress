@@ -23,7 +23,7 @@ class WooCommerce extends Feature {
 	/**
 	 * Initialize feature setting it's config
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct() {
 		$this->slug = 'woocommerce';
@@ -44,7 +44,8 @@ class WooCommerce extends Feature {
 	public function whitelist_meta_keys( $meta, $post ) {
 		return array_unique(
 			array_merge(
-				$meta, array(
+				$meta,
+				array(
 					'_thumbnail_id',
 					'_product_attributes',
 					'_wpb_vc_js_status',
@@ -465,8 +466,10 @@ class WooCommerce extends Feature {
 					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 					$search_fields['meta'] = array_map(
-						'wc_clean', apply_filters(
-							'shop_order_search_fields', array(
+						'wc_clean',
+						apply_filters(
+							'shop_order_search_fields',
+							array(
 								'_order_key',
 								'_billing_company',
 								'_billing_address_1',

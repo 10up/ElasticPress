@@ -21,7 +21,7 @@ class ProtectedContent extends Feature {
 	/**
 	 * Initialize feature setting it's config
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct() {
 		$this->slug = 'protected_content';

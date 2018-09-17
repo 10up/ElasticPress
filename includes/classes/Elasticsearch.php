@@ -2,7 +2,7 @@
 /**
  * ElasticPress-Elasticsearch API functions
  *
- * @since  2.6
+ * @since  3.0
  * @package elasticpress
  */
 
@@ -69,7 +69,7 @@ class Elasticsearch {
 	 * @param  string  $type Index type.
 	 * @param  array   $document Formatted Elasticsearch document.
 	 * @param  boolean $blocking Blocking HTTP request or not.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean|array
 	 */
 	public function index_document( $index, $type, $document, $blocking = true ) {
@@ -116,7 +116,7 @@ class Elasticsearch {
 	/**
 	 * Refresh all index. Sometimes useful if you need changes to show up instantly.
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 * @return bool
 	 */
 	public function refresh_indices() {
@@ -169,7 +169,7 @@ class Elasticsearch {
 	 * @param  string $type Index type.
 	 * @param  array  $query Prepared ES query.
 	 * @param  array  $query_args WP query args. Used only for debugging.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return bool|array
 	 */
 	public function query( $index, $type, $query, $query_args ) {
@@ -286,7 +286,7 @@ class Elasticsearch {
 	 * @param  string  $type Index type.
 	 * @param  int     $document_id Document id to delete.
 	 * @param  boolean $blocking Blocking HTTP request or not.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function delete_document( $index, $type, $document_id, $blocking = true ) {
@@ -355,7 +355,7 @@ class Elasticsearch {
 	 * @param  string $index Index name.
 	 * @param  string $type Index type.
 	 * @param  int    $document_id Document id to get.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean|array
 	 */
 	public function get_document( $index, $type, $document_id ) {
@@ -384,7 +384,7 @@ class Elasticsearch {
 	 * Network aliases are used to query documents across blogs in a network.
 	 *
 	 * @param  string $alias Alias to use.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array|boolean
 	 */
 	public function delete_network_alias( $alias ) {
@@ -410,7 +410,7 @@ class Elasticsearch {
 	 *
 	 * @param  array  $indexes       Indexes to group under alias.
 	 * @param  string $network_alias Name of network alias.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function create_network_alias( $indexes, $network_alias ) {
@@ -450,7 +450,7 @@ class Elasticsearch {
 	 *
 	 * @param  string $index Index name.
 	 * @param  array  $mapping Mapping array.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function put_mapping( $index, $mapping ) {
@@ -479,7 +479,7 @@ class Elasticsearch {
 	 * Delete an Elasticsearch index
 	 *
 	 * @param  string $index Index name.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function delete_index( $index ) {
@@ -506,7 +506,7 @@ class Elasticsearch {
 	 * Check if an ES index exists
 	 *
 	 * @param  string $index Index name.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return boolean
 	 */
 	public function index_exists( $index ) {
@@ -539,7 +539,7 @@ class Elasticsearch {
 	 * @param  string $index Index name.
 	 * @param  string $type Index type.
 	 * @param  string $body  Encoded JSON.
-	 * @since  2.6
+	 * @since  3.0
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $index, $type, $body ) {

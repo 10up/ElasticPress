@@ -24,7 +24,7 @@ class Autosuggest extends Feature {
 	/**
 	 * Initialize feature setting it's config
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct() {
 		$this->slug = 'autosuggest';
@@ -113,23 +113,23 @@ class Autosuggest extends Feature {
 		$textType = $mapping['mappings']['post']['properties']['post_content']['type'];
 
 		$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-			'type' => $textType,
-			'analyzer' => 'edge_ngram_analyzer',
+			'type'            => $textType,
+			'analyzer'        => 'edge_ngram_analyzer',
 			'search_analyzer' => 'standard',
 		);
 
 		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
-			'type' => 'custom',
+			'type'      => 'custom',
 			'tokenizer' => 'standard',
-			'filter' => array(
+			'filter'    => array(
 				'lowercase',
 				'edge_ngram',
 			),
 		);
 
 		$mapping['mappings']['post']['properties']['term_suggest'] = array(
-			'type' => $textType,
-			'analyzer' => 'edge_ngram_analyzer',
+			'type'            => $textType,
+			'analyzer'        => 'edge_ngram_analyzer',
 			'search_analyzer' => 'standard',
 		);
 
@@ -212,13 +212,17 @@ class Autosuggest extends Feature {
 		 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 		 */
 		wp_localize_script(
-			'elasticpress-autosuggest', 'epas', apply_filters(
-				'ep_autosuggest_options', array(
+			'elasticpress-autosuggest',
+			'epas',
+			apply_filters(
+				'ep_autosuggest_options',
+				array(
 					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
 					'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
 					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
 					'searchFields' => apply_filters(
-						'ep_term_suggest_search_fields', array(
+						'ep_term_suggest_search_fields',
+						array(
 							'post_title.suggest',
 							'term_suggest',
 						)

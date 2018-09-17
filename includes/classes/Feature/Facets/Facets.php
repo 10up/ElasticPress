@@ -25,7 +25,7 @@ class Facets extends Feature {
 	/**
 	 * Initialize feature setting it's config
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct() {
 		$this->slug = 'facets';
@@ -70,20 +70,20 @@ class Facets extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio" 
+				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio"
 				<?php
 				if ( 'all' === $settings['match_type'] ) :
-?>
+					?>
 checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
-				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio" 
+				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio"
 				<?php
 				if ( 'any' === $settings['match_type'] ) :
-?>
+					?>
 checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
-	<?php
+		<?php
 	}
 
 	/**
@@ -114,7 +114,8 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 		$settings = $this->get_settings();
 
 		$settings = wp_parse_args(
-			$settings, array(
+			$settings,
+			array(
 				'match_type' => 'all',
 			)
 		);
@@ -253,7 +254,8 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 		$settings = $this->get_settings();
 
 		$settings = wp_parse_args(
-			$settings, array(
+			$settings,
+			array(
 				'match_type' => 'all',
 			)
 		);

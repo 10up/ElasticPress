@@ -2,7 +2,7 @@
 /**
  * User indexable
  *
- * @since  2.6
+ * @since  3.0
  * @package  elasticpress
  */
 
@@ -26,14 +26,14 @@ class Post extends Indexable {
 	 * Indexable slug used for identification
 	 *
 	 * @var   string
-	 * @since 2.6
+	 * @since 3.0
 	 */
 	public $slug = 'post';
 
 	/**
 	 * Create indexable and initialize dependencies
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 */
 	public function __construct() {
 		$this->labels = [
@@ -49,7 +49,7 @@ class Post extends Indexable {
 	 * Query database for posts
 	 *
 	 * @param  array $args
-	 * @since  2.6
+	 * @since  3.0
 	 * @return array
 	 */
 	public function query_db( $args ) {
@@ -97,7 +97,7 @@ class Post extends Indexable {
 		/**
 		 * Remove attachments by default
 		 *
-		 * @since  2.6
+		 * @since  3.0
 		 */
 		unset( $post_types['attachment'] );
 
@@ -117,7 +117,7 @@ class Post extends Indexable {
 	/**
 	 * Send mapping to Elasticsearch
 	 *
-	 * @since  2.6
+	 * @since  3.0
 	 * @return [type] [description]
 	 */
 	public function put_mapping() {
@@ -985,7 +985,8 @@ class Post extends Indexable {
 				 * per WP default behavior.
 				 */
 				$statuses = array_merge(
-					$statuses, get_post_stati(
+					$statuses,
+					get_post_stati(
 						array(
 							'protected'              => true,
 							'show_in_admin_all_list' => true,

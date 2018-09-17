@@ -191,7 +191,7 @@ class Documents extends Feature {
 
 		$allowed_ingest_mime_types = $this->get_allowed_ingest_mime_types();
 
-		if ( 'attachment' == get_post_type( $post_id ) && in_array( get_post_mime_type( $post_id ), $allowed_ingest_mime_types ) ) {
+		if ( 'attachment' === get_post_type( $post_id ) && in_array( get_post_mime_type( $post_id ), $allowed_ingest_mime_types, true ) ) {
 			$file_name = get_attached_file( $post_id );
 			$exist     = $wp_filesystem->exists( $file_name, false, 'f' );
 			if ( $exist ) {
@@ -231,7 +231,7 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function indexable_post_status( $statuses ) {
-		if ( ! array_search( 'inherit', $statuses ) ) {
+		if ( ! array_search( 'inherit', $statuses, true ) ) {
 			$statuses[] = 'inherit';
 		}
 
@@ -255,7 +255,8 @@ class Documents extends Feature {
 		return add_query_arg(
 			array(
 				'pipeline' => apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ),
-			), $path
+			),
+			$path
 		);
 	}
 
@@ -351,7 +352,8 @@ class Documents extends Feature {
 	 */
 	public function get_allowed_ingest_mime_types() {
 		return apply_filters(
-			'ep_allowed_documents_ingest_mime_types', array(
+			'ep_allowed_documents_ingest_mime_types',
+			array(
 				'pdf'  => 'application/pdf',
 				'ppt'  => 'application/vnd.ms-powerpoint',
 				'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
