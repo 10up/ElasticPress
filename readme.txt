@@ -40,6 +40,39 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.6.1 =
+
+* Resolves issue of missing file for wp-cli.
+
+= 2.6.0 =
+
+ElasticPress 2.6 provides some new enhancements and bug fixes.
+
+* Ability to set autosuggest endpoint by a constant (EP_AUTOSUGGEST_ENDPOINT).
+* Enable WooCommerce products to be included in autosuggest results.
+* Support for tax_query operators EXISTS and NOT EXISTS.
+* Addition of new filter to change default orderby/sort (ep_set_default_sort).
+* Do not search for author_name when searching products in WooCommerce.
+
+= 2.5.2 (Requires re-index) =
+
+This is a small bug fix release.
+
+* Removed unnecessary facet JavaScript
+* Fix facet aggregations warning
+
+= 2.5.1 (Requires re-index) =
+
+This if a bug fix release. This version requires a re-index as we change the way data is being sent to Elasticsearch.
+
+It's also worth noting for ElasticPress version 2.5+, the Facets feature, which is on by default, will run post type archive and search page main queries through Elasticsearch. If Elasticsearch is out of sync with your content (possible in rare edge cases), this could result in incorrect content being shown. Turning off Facets would fix the problem.
+
+### Bug Fixes
+
+* Don't pre-strip HTML before sending it to Elasticsearch.
+* Support PHP 5.2 backwards compat.
+* Don't show faceting widget if post type doesn't support taxonomy.
+
 = 2.5 =
 
 ElasticPress 2.5 includes a new Facets feature that makes it easy to add high performance content filtering controls to a website.
