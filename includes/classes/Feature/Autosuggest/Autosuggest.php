@@ -86,7 +86,7 @@ class Autosuggest extends Feature {
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
 
-		if ( preg_match( '#elasticpress\.io#i', $host ) ) {
+		if ( Utils\is_epio() ) {
 			return;
 		}
 		?>

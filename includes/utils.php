@@ -13,6 +13,77 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Retrieve the EPIO subscription credentials.
+ *
+ * @since 2.5
+ * @return array
+ */
+function get_epio_credentials() {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
+		$credentials = sanitize_credentials( get_site_option( 'ep_credentials', false ) );
+	} elseif ( ep_is_epio() ) {
+		$credentials = sanitize_credentials( get_option( 'ep_credentials', false ) );
+	} else {
+		$credentials = [ 'username' => '', 'token' => '' ];
+	}
+
+	if ( ! is_array( $credentials ) ) {
+		return [ 'username' => '', 'token' => '' ];
+	}
+
+	return $credentials;
+}
+
+/**
+ * Retrieve the appropriate index prefix. Will default to EP_INDEX_PREFIX constant if it exists
+ * AKA Subscription ID.
+ *
+ * @since 2.5
+ * @return string|bool
+ */
+function get_index_prefix() {
+	if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
+		return EP_INDEX_PREFIX;
+	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ep_is_epio() ) {
+		$prefix = get_site_option( 'ep_prefix', false );
+	} elseif ( is_epio() ) {
+		$prefix = get_option( 'ep_prefix', false );
+	} else {
+		$prefix = '';
+	}
+
+	return apply_filters( 'ep_index_prefix', $prefix );
+}
+
+/**
+ * Check if the host is ElasticPress.io.
+ *
+ * @since  2.6
+ * @return bool
+ */
+function is_epio() {
+	return preg_match( '#elasticpress\.io#i', get_host() );
+}
+
+/**
+ * Sanitize EPIO credentials prior to storing them.
+ *
+ * @param array $credentials Array containing username and token.
+ * @since  2.6
+ * @return array
+ */
+function ep_sanitize_credentials( $credentials ) {
+	if ( ! is_array( $credentials ) ) {
+		return [ 'username' => '', 'token' => '' ];
+	}
+
+ 	return [
+		'username' => ( isset( $credentials['username'] ) ) ? sanitize_text_field( $credentials['username'] ) : '',
+		'token'    => ( isset( $credentials['token'] ) ) ? sanitize_text_field( $credentials['token'] ) : '',
+	];
+}
+
+/**
  * Determine if ElasticPress is in the middle of an index
  *
  * @since  3.0

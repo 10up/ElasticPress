@@ -164,7 +164,7 @@ class ProtectedContent extends Feature {
 
 		$host = Utils\get_host();
 
-		if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
+		if ( ! Utils\is_epio() ) {
 			$status->code    = 1;
 			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
 		}
