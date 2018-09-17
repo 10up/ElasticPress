@@ -142,6 +142,7 @@ function esSearch( query ) {
 		type: 'post',
 		dataType: 'json',
 		crossDomain: true,
+		contentType: 'application/json; charset=utf-8',
 		data: JSON.stringify( query )
 	} )
 }
