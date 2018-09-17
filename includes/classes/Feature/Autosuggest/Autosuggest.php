@@ -77,7 +77,6 @@ class Autosuggest extends Feature {
 	 * @since 2.4
 	 */
 	public function output_feature_box_settings() {
-		$host     = Utils\get_host();
 		$settings = $this->get_settings();
 
 		if ( ! $settings ) {
@@ -89,13 +88,23 @@ class Autosuggest extends Feature {
 		if ( Utils\is_epio() ) {
 			return;
 		}
+
+		$endpoint_url = ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) ? EP_AUTOSUGGEST_ENDPOINT : $settings['endpoint_url'];
 		?>
 
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Endpoint URL', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
-				<input value="<?php echo esc_url( $settings['endpoint_url'] ); ?>" type="text" data-field-name="endpoint_url" class="setting-field" id="feature_autosuggest_endpoint_url">
+				<input <?php if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) : ?>disabled<?php endif; ?> value="<?php echo esc_url( $endpoint_url ); ?>" type="text" data-field-name="endpoint_url" class="setting-field" id="feature_autosuggest_endpoint_url">
+				<?php
+				if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
+					?>
+					<p class="field-description"><?php esc_html_e( 'Your autosuggest endpoint is set in wp-config.php', 'elasticpress' ); ?></p>
+					<?php
+				}
+				?>
 				<p class="field-description"><?php esc_html_e( 'This address will be exposed to the public.', 'elasticpress' ); ?></p>
+
 			</div>
 		</div>
 
@@ -168,25 +177,28 @@ class Autosuggest extends Feature {
 	 */
 	public function enqueue_scripts() {
 		$host = Utils\get_host();
-
 		$endpoint_url = false;
 
-		if ( preg_match( '#elasticpress\.io#i', $host ) ) {
-			$endpoint_url = $host . '/' . Indexables::factory()->get( 'post' )->get_index_name() . '/post/_search';
+		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
+			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
 		} else {
-			$settings = $this->get_settings();
+			if ( Utils\is_epio() ) {
+				$endpoint_url = $host . '/' . ep_get_index_name() . '/post/_search';
+			} else {
+				$settings = $feature->get_settings();
 
-			if ( ! $settings ) {
-				$settings = [];
+				if ( ! $settings ) {
+					$settings = [];
+				}
+
+				$settings = wp_parse_args( $settings, $this->default_settings );
+
+				if ( empty( $settings['endpoint_url'] ) ) {
+					return;
+				}
+
+				$endpoint_url = $settings['endpoint_url'];
 			}
-
-			$settings = wp_parse_args( $settings, $this->default_settings );
-
-			if ( empty( $settings['endpoint_url'] ) ) {
-				return;
-			}
-
-			$endpoint_url = $settings['endpoint_url'];
 		}
 
 		wp_enqueue_script(
@@ -211,26 +223,16 @@ class Autosuggest extends Feature {
 		 * postType: which post types to use for suggestions
 		 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 		 */
-		wp_localize_script(
-			'elasticpress-autosuggest',
-			'epas',
-			apply_filters(
-				'ep_autosuggest_options',
-				array(
-					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-					'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
-					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
-					'searchFields' => apply_filters(
-						'ep_term_suggest_search_fields',
-						array(
-							'post_title.suggest',
-							'term_suggest',
-						)
-					),
-					'action'       => 'navigate',
-				)
-			)
-		);
+		wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
+			'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
+			'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
+			'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
+			'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
+				'post_title.suggest',
+				'term_suggest',
+			) ),
+			'action'       => 'navigate',
+		) ) );
 	}
 
 	/**
@@ -241,13 +243,11 @@ class Autosuggest extends Feature {
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 1 );
 
-		$host = Utils\get_host();
-
 		$status->message = [];
 
 		$status->message[] = esc_html__( 'This feature modifies the site’s default user experience by presenting a list of suggestions below detected search fields as text is entered into the field.', 'elasticpress' );
 
-		if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
+		if ( ! Utils\is_epio() ) {
 			$status->message[] = wp_kses_post( __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured.", 'elasticpress' ) );
 		}
 
