@@ -119,10 +119,10 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function mapping( $mapping ) {
-		$textType = $mapping['mappings']['post']['properties']['post_content']['type'];
+		$text_type = $mapping['mappings']['post']['properties']['post_content']['type'];
 
 		$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-			'type'            => $textType,
+			'type'            => $text_type,
 			'analyzer'        => 'edge_ngram_analyzer',
 			'search_analyzer' => 'standard',
 		);
@@ -137,7 +137,7 @@ class Autosuggest extends Feature {
 		);
 
 		$mapping['mappings']['post']['properties']['term_suggest'] = array(
-			'type'            => $textType,
+			'type'            => $text_type,
 			'analyzer'        => 'edge_ngram_analyzer',
 			'search_analyzer' => 'standard',
 		);
