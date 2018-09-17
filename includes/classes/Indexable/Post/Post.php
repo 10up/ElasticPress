@@ -552,61 +552,99 @@ class Post extends Indexable {
 			// Main tax_query array for ES.
 			$es_tax_query = [];
 
-			foreach ( $args['tax_query'] as $single_tax_query ) {
-				if ( ! empty( $single_tax_query['terms'] ) ) {
-					$terms = (array) $single_tax_query['terms'];
-
+			foreach( $args['tax_query'] as $single_tax_query ) {
+				if ( ! empty( $single_tax_query['taxonomy'] ) ) {
+					$terms = isset( $single_tax_query['terms'] ) ? (array) $single_tax_query['terms'] : array();
 					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
 
 					if ( 'name' === $field ) {
 						$field = 'name.raw';
 					}
 
-					// Set up our terms object.
+					// Set up our terms object
 					$terms_obj = array(
 						'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
 					);
 
 					$operator = ( ! empty( $single_tax_query['operator'] ) ) ? strtolower( $single_tax_query['operator'] ) : 'in';
 
-					if ( 'not in' === $operator ) {
-						/**
-						 * add support for "NOT IN" operator
-						 *
-						 * @since 2.1
-						 */
-
-						// If "NOT IN" than it should filter as must_not
-						$tax_must_not_filter[]['terms'] = $terms_obj;
-					} elseif ( 'and' === $operator ) {
-						/**
-						 * add support for "and" operator
-						 *
-						 * @since 2.4
-						 */
-
-						$and_nest = array(
-							'bool' => array(
-								'must' => [],
-							),
-						);
-
-						foreach ( $terms as $term ) {
-							$and_nest['bool']['must'][] = array(
-								'terms' => array(
-									'terms.' . $single_tax_query['taxonomy'] . '.' . $field => (array) $term,
+					switch ( $operator ) {
+						case 'exists':
+							/**
+							 * add support for "EXISTS" operator
+							 *
+							 * @since 2.5
+							 */
+							$tax_filter[]['bool'] = array(
+								'must' => array(
+									array(
+										'exists' => array(
+											'field' => key( $terms_obj ),
+										),
+									),
 								),
 							);
-						}
 
-						$tax_filter[] = $and_nest;
-					} else {
-						/**
-						 * Default to IN operator
-						 */
+							break;
+						case 'not exists':
+							/**
+							 * add support for "NOT EXISTS" operator
+							 *
+							 * @since 2.5
+							 */
+							$tax_filter[]['bool'] = array(
+								'must_not' => array(
+									array(
+										'exists' => array(
+											'field' => key( $terms_obj ),
+										),
+									),
+								),
+							);
 
-						// Add the tax query filter
-						$tax_filter[]['terms'] = $terms_obj;
+							break;
+						case 'not in':
+							/**
+							 * add support for "NOT IN" operator
+							 *
+							 * @since 2.1
+							 */
+							// If "NOT IN" than it should filter as must_not
+							$tax_must_not_filter[]['terms'] = $terms_obj;
+
+							break;
+						case 'and':
+							/**
+							 * add support for "and" operator
+							 *
+							 * @since 2.4
+							 */
+							$and_nest = array(
+								'bool' => array(
+									'must' => array()
+								),
+							);
+
+							foreach ( $terms as $term ) {
+								$and_nest['bool']['must'][] = array(
+									'terms' => array(
+										'terms.' . $single_tax_query['taxonomy'] . '.' . $field => (array) $term,
+									)
+								);
+							}
+
+							$tax_filter[] = $and_nest;
+
+							break;
+						case 'in':
+						default:
+							/**
+							 * Default to IN operator
+							 */
+							// Add the tax query filter
+							$tax_filter[]['terms'] = $terms_obj;
+
+							break;
 					}
 				}
 			}
