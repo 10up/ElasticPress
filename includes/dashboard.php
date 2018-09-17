@@ -797,7 +797,7 @@ function action_admin_init() {
 function intro_or_dashboard() {
 	global $pagenow;
 
-	if ( 'admin.php' !== $pagenow || empty( $_GET['page'] ) || 'elasticpress' !== $_GET['page'] ) {
+	if ( 'admin.php' !== $pagenow || empty( $_GET['page'] ) || ( 'elasticpress' !== $_GET['page'] && 'elasticpress-settings' !== $_GET['page'] ) ) {
 		return;
 	}
 
