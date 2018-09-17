@@ -893,7 +893,7 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		'elasticpress',
-		'ElasticPress' . esc_html__( 'Settings', 'elasticpress' ),
+		'ElasticPress ' . esc_html__( 'Settings', 'elasticpress' ),
 		esc_html__( 'Settings', 'elasticpress' ),
 		$capability,
 		'elasticpress-settings',
@@ -902,8 +902,8 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		null,
-		'ElasticPress' . esc_html__( 'Welcome', 'elasticpress' ),
-		'ElasticPress' . esc_html__( 'Welcome', 'elasticpress' ),
+		'ElasticPress ' . esc_html__( 'Welcome', 'elasticpress' ),
+		'ElasticPress ' . esc_html__( 'Welcome', 'elasticpress' ),
 		$capability,
 		'elasticpress-intro',
 		__NAMESPACE__ . '\intro_page'
