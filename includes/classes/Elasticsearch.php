@@ -331,13 +331,7 @@ class Elasticsearch {
 		}
 
 		/**
-		 * ES Shield Username & Password
-		 * Adds username:password basic authentication headers
-		 *
-		 * Define the constant ES_SHIELD in your wp-config.php
-		 * Format: 'username:password' (colon separated)
-		 * Example: define( 'ES_SHIELD', 'es_admin:password' );
-		 *
+		 * ES Shield info
 		 * @since 1.9
 		 */
 		$shield = Utils\get_shield_credentials();
