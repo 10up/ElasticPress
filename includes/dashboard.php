@@ -892,9 +892,9 @@ function action_admin_menu() {
 	);
 
 	add_submenu_page(
-		null,
+		'elasticpress',
 		'ElasticPress' . esc_html__( 'Settings', 'elasticpress' ),
-		'ElasticPress' . esc_html__( 'Settings', 'elasticpress' ),
+		esc_html__( 'Settings', 'elasticpress' ),
 		$capability,
 		'elasticpress-settings',
 		__NAMESPACE__ . '\settings_page'
