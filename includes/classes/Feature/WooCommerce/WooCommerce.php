@@ -706,6 +706,21 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	* Add WC post type to autosuggest
+	*
+	* @param array $post_types Array of post types (e.g. post, page).
+	* @since  2.6
+	* @return array
+	*/
+	public function suggest_wc_add_post_type( $post_types ) {
+		if ( ! in_array( 'product', $post_types, true ) ) {
+			$post_types[] = 'product';
+		}
+
+		return $post_types;
+	}
+
+	/**
 	 * Setup all feature filters
 	 *
 	 * @since  2.1
@@ -723,6 +738,7 @@ class WooCommerce extends Feature {
 			add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 			add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
 			add_action( 'parse_query', [ $this, 'search_order' ], 11, 1 );
+			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_post_type' ] );
 		}
 	}
 
