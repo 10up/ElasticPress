@@ -592,6 +592,9 @@ class Elasticsearch {
 			$args['method'] = 'GET';
 		}
 
+		// Add the API Header.
+		$args['headers'] = $this->format_request_headers();
+
 		$query = array(
 			'time_start'   => microtime( true ),
 			'time_finish'  => false,
@@ -602,9 +605,6 @@ class Elasticsearch {
 			'host'         => Utils\get_host(),
 			'query_args'   => $query_args,
 		);
-
-		// Add the API Header.
-		$args['headers'] = $this->format_request_headers();
 
 		$request  = false;
 		$failures = 0;
