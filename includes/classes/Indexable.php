@@ -99,7 +99,7 @@ abstract class Indexable {
 		$prefix = Utils\get_index_prefix();
 
 		if ( ! empty( $prefix ) ) {
-			$index_name = $prefix . $index_name;
+			$index_name = $prefix . '-' . $index_name;
 		}
 
 		return apply_filters( 'ep_index_name', $index_name, $blog_id, $this );
@@ -121,7 +121,7 @@ abstract class Indexable {
 		$prefix = Utils\get_index_prefix();
 
 		if ( ! empty( $prefix ) ) {
-			$alias = $prefix . $alias;
+			$alias = $prefix . '-' . $alias;
 		}
 
 		return apply_filters( 'ep_global_alias', $alias );
