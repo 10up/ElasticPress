@@ -32,10 +32,12 @@ function ep_pc_setup() {
 function ep_pc_post_types( $post_types ) {
 	$pc_post_types = get_post_types( array( 'public' => false ) );
 
-	// We don't want to deal with nav menus
-	unset( $pc_post_types['nav_menu_item'] );
+	// We don't want to deal with nav menus if there are
+	if ( $pc_post_types['nav_menu_item'] ) {
+		unset( $pc_post_types['nav_menu_item'] );
+	}
 
-	return array_unique( array_merge( $post_types, $pc_post_types) );
+	return array_merge( $post_types, $pc_post_types);
 }
 
 /**
