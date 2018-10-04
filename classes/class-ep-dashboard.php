@@ -250,7 +250,7 @@ class EP_Dashboard {
 		}
 
 		// Fetch the ES version.
-		$es_version = ep_get_elasticsearch_version();
+		$es_version = ep_get_elasticsearch_version( $force );
 
 		/**
 		 * Check Elasticsearch version compat
@@ -326,11 +326,15 @@ class EP_Dashboard {
 					<?php if ( ! empty( $response_code ) || ! empty( $response_error ) ) : ?>
 						<p>
 							<?php if ( ! empty( $response_code ) ) : ?>
-								<?php printf( wp_kses_post( __( 'Response Code: %s', 'elasticpress' ) ), esc_html( $response_code ) ); ?>
+								<span class="notice-error-es-response-code">
+									<?php printf( wp_kses_post( __( 'Response Code: %s', 'elasticpress' ) ), esc_html( $response_code ) ); ?>
+								</span>
 							<?php endif; ?>
 
 							<?php if ( ! empty( $response_error ) ) : ?>
-								<?php printf( wp_kses_post( __( 'Error: %s', 'elasticpress' ) ), esc_html( $response_error ) ); ?>
+								<span class="notice-error-es-response-error">
+									<?php printf( wp_kses_post( __( 'Error: %s', 'elasticpress' ) ), esc_html( $response_error ) ); ?>
+								</span>
 							<?php endif; ?>
 						</p>
 					<?php endif; ?>
