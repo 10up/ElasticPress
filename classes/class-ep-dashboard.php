@@ -444,13 +444,8 @@ class EP_Dashboard {
 	 */
 	public function log_version_query_error( $query ) {
 
-		// Use https://httpstat.us/ to test various response codes.
-
 		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
-		$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
 		$logging_key = 'logging_ep_es_info';
-		$response_code_key = 'ep_es_info_response_code';
-		$response_error_key = 'ep_es_info_response_error';
 
 		if ( $is_network ) {
 			$logging = get_site_transient( $logging_key );
@@ -460,6 +455,10 @@ class EP_Dashboard {
 
 		// Are we logging the version query results?
 		if ( '1' === $logging ) {
+
+			$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
+			$response_code_key = 'ep_es_info_response_code';
+			$response_error_key = 'ep_es_info_response_error';
 
 			$response_code = 0;
 			$response_error = '';
@@ -474,7 +473,8 @@ class EP_Dashboard {
 			}
 
 			// Store the response code, and remove the flag that says
-			// we're logging the response code.
+			// we're logging the response code so we don't log additional
+			// queries.
 			if ( $is_network ) {
 				set_site_transient( $response_code_key, $response_code, $cache_time );
 				set_site_transient( $response_error_key, $response_error, $cache_time );
