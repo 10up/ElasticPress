@@ -50,6 +50,7 @@ class EP_Dashboard {
 		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
 		add_filter( 'plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
+		add_action( 'ep_add_query_log', array( $this, 'log_version_query_error' ) );
 	}
 
 	/**
@@ -160,6 +161,7 @@ class EP_Dashboard {
 		}
 
 		$notice = false;
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 
 		$on_settings_page = ( ! empty( $_GET['page'] ) && 'elasticpress-settings' === $_GET['page'] );
 
@@ -168,7 +170,7 @@ class EP_Dashboard {
 		/**
 		 * Bad host notice checks
 		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( $is_network ) {
 			$options_host = get_site_option( 'ep_host' );
 		} else {
 			$options_host = get_option( 'ep_host' );
@@ -183,7 +185,7 @@ class EP_Dashboard {
 			/**
 			 * Feature auto-activated sync notice check
 			 */
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( $is_network ) {
 				$auto_activate_sync = get_site_option( 'ep_feature_auto_activated_sync', false );
 			} else {
 				$auto_activate_sync = get_option( 'ep_feature_auto_activated_sync', false );
@@ -196,7 +198,7 @@ class EP_Dashboard {
 			/**
 			 * Upgrade sync notice check
 			 */
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( $is_network ) {
 				$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
 			} else {
 				$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
@@ -209,7 +211,7 @@ class EP_Dashboard {
 			/**
 			 * Never synced notice check
 			 */
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( $is_network ) {
 				$last_sync = get_site_option( 'ep_last_sync', false );
 			} else {
 				$last_sync = get_option( 'ep_last_sync', false );
@@ -230,7 +232,25 @@ class EP_Dashboard {
 			}
 		}
 
-		$es_version = ep_get_elasticsearch_version( $force );
+		// Turn on logging for the version query.
+		$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
+
+		if ( $is_network ) {
+			set_site_transient(
+				'logging_ep_es_info',
+				'1',
+				$cache_time
+			);
+		} else {
+			$a = set_transient(
+				'logging_ep_es_info',
+				'1',
+				$cache_time
+			);
+		}
+
+		// Fetch the ES version.
+		$es_version = ep_get_elasticsearch_version( true );
 
 		/**
 		 * Check Elasticsearch version compat
@@ -261,7 +281,7 @@ class EP_Dashboard {
 		 * Need setup up notice check
 		 */
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( $is_network ) {
 			$intro_shown = get_site_option( 'ep_intro_shown', false );
 			$skip_intro_shown_notice = get_site_option( 'ep_hide_intro_shown_notice', false );
 		} else {
@@ -277,17 +297,33 @@ class EP_Dashboard {
 
 		switch ( $notice ) {
 			case 'bad-host':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress-settings' );
 					$options_host = get_site_option( 'ep_host' );
+					$response_code = get_site_transient( 'ep_es_info_response_code' );
+					$response_error = get_site_transient( 'ep_es_info_response_error' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress-settings' );
 					$options_host = get_option( 'ep_host' );
+					$response_code = get_transient( 'ep_es_info_response_code' );
+					$response_error = get_transient( 'ep_es_info_response_error' );
 				}
 
 				?>
 				<div class="notice notice-error">
 					<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%s">try your host again</a>, or you may need to <a href="%s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
+
+					<?php if ( ! empty( $response_code ) || ! empty( $response_error ) ) : ?>
+						<p>
+							<?php if ( ! empty( $response_code ) ) : ?>
+								<?php printf( wp_kses_post( __( 'Response Code: %s', 'elasticpress' ) ), esc_html( $response_code ) ); ?>
+							<?php endif; ?>
+
+							<?php if ( ! empty( $response_error ) ) : ?>
+								<?php printf( wp_kses_post( __( 'Error: %s', 'elasticpress' ) ), esc_html( $response_error ) ); ?>
+							<?php endif; ?>
+						</p>
+					<?php endif; ?>
                 </div>
 				<?php
 				break;
@@ -306,7 +342,7 @@ class EP_Dashboard {
 				<?php
 				break;
 			case 'need-setup':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress-intro' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress-intro' );
@@ -319,7 +355,7 @@ class EP_Dashboard {
 				<?php
 				break;
 			case 'no-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
@@ -332,7 +368,7 @@ class EP_Dashboard {
 				<?php
 				break;
 			case 'upgrade-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
@@ -345,7 +381,7 @@ class EP_Dashboard {
 				<?php
 				break;
 			case 'auto-activate-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
@@ -384,6 +420,55 @@ class EP_Dashboard {
 		}
 
 		return $notice;
+	}
+
+	/**
+	 * Stores the results of the version query.
+	 *
+	 * @param  array $query The version query.
+	 * @return void
+	 */
+	public function log_version_query_error( $query ) {
+
+		// Use https://httpstat.us/ to test various response codes.
+
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
+		$logging_key = 'logging_ep_es_info';
+		$response_code_key = 'ep_es_info_response_code';
+		$response_error_key = 'ep_es_info_response_error';
+
+		if ( $is_network ) {
+			$logging = get_site_transient( $logging_key );
+		} else {
+			$logging = get_transient( $logging_key );
+		}
+
+		// Are we logging the version query results?
+		if ( '1' === $logging ) {
+
+			$response_code = 0;
+			$response_error = '';
+
+			if ( ! empty( $query['request'] ) ) {
+				$response_code = absint( wp_remote_retrieve_response_code( $query['request'] ) );
+				if ( is_wp_error( $query['request'] ) ) {
+					$response_error = $query['request']->get_error_message();
+				}
+			}
+
+			// Store the response code, and remove the flag that says
+			// we're logging the response code.
+			if ( $is_network ) {
+				set_site_transient( $response_code_key, $response_code, $cache_time );
+				set_site_transient( $response_error_key, $response_error, $cache_time );
+				delete_site_transient( $logging_key );
+			} else {
+				set_transient( $response_code_key, $response_code, $cache_time );
+				set_transient( $response_error_key, $response_error, $cache_time );
+				delete_transient( $logging_key );
+			}
+		}
 	}
 
 	/**
