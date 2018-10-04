@@ -452,7 +452,9 @@ class EP_Dashboard {
 
 			if ( ! empty( $query['request'] ) ) {
 				$response_code = absint( wp_remote_retrieve_response_code( $query['request'] ) );
-				if ( is_wp_error( $query['request'] ) ) {
+				$response_error = wp_remote_retrieve_response_message( $query['request'] );
+
+				if ( empty( $response_error ) && is_wp_error( $query['request'] ) ) {
 					$response_error = $query['request']->get_error_message();
 				}
 			}
