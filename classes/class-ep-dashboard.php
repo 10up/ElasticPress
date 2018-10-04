@@ -250,13 +250,23 @@ class EP_Dashboard {
 		}
 
 		// Fetch the ES version.
-		$es_version = ep_get_elasticsearch_version( true );
+		$es_version = ep_get_elasticsearch_version();
 
 		/**
 		 * Check Elasticsearch version compat
 		 */
 
 		if ( false !== $es_version ) {
+
+			// Clear out any errors.
+			if ( $is_network ) {
+				delete_site_transient( 'ep_es_info_response_code' );
+				delete_site_transient( 'ep_es_info_response_error' );
+			} else {
+				delete_transient( 'ep_es_info_response_code' );
+				delete_transient( 'ep_es_info_response_error' );
+			}
+
 			// First reduce version to major version i.e. 5.1 not 5.1.1
 			$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
