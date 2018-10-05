@@ -3,25 +3,6 @@
 class EP_Test_Base extends WP_UnitTestCase {
 
 	/**
-	 * Prevents weird MySQLi error.
-	 *
-	 * @since 1.0
-	 */
-	public function __construct() {
-		if ( property_exists( __CLASS__, 'ignore_files' ) ) {
-			self::$ignore_files = true;
-		}
-		$this->plugin_path = str_replace( '/tests/includes', '', dirname( __FILE__ ) );
-	}
-
-	/**
-	 * Stores the root path for the plugin
-	 *
-	 * @var string
-	 */
-	protected $plugin_path = '';
-
-	/**
 	 * Helps us keep track of actions that have fired
 	 *
 	 * @var array

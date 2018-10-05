@@ -14,7 +14,7 @@ class EP_Features {
 
 	/**
 	 * Stores all features that have been properly included (both active and inactive)
-	 * 
+	 *
 	 * @since  2.1
 	 * @var array
 	 */
@@ -22,35 +22,36 @@ class EP_Features {
 
 	/**
 	 * Initiate class actions
-	 * 
+	 *
 	 * @since 2.1
 	 */
 	public function setup() {
-		add_action( 'plugins_loaded', array( $this, 'handle_feature_activation' ), 12 );
-		add_action( 'plugins_loaded', array( $this, 'setup_features' ), 11 );
+		// hooks order matters, please, make sure feature activation goes before features setup
+		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
+		add_action( 'init', array( $this, 'setup_features' ), 0 );
 	}
 
 	/**
 	 * Registers a feature for use in ElasticPress
-	 * 
+	 *
 	 * @param  string $slug
 	 * @param  array  $feature_args
-	 * 
+	 *
 	 *         Supported array parameters:
-	 *         
+	 *
 	 *         "title" (string) - Pretty title for feature
 	 *         "default_settings" (array) - Array of default settings. Only needed if you plan on adding custom settings
 	 *         "requirements_status_cb" (callback) - Callback to a function that determines the "requirements" status of
-	 *         		the given feature. 0 means everything is okay. 1 means the feature can be used but there is a warning. 
-	 *         		2 means the feature cannot be active. This callback needs to return an EP_Feature_Requirements_Status 
+	 *         		the given feature. 0 means everything is okay. 1 means the feature can be used but there is a warning.
+	 *         		2 means the feature cannot be active. This callback needs to return an EP_Feature_Requirements_Status
 	 *         		object where the "code" property is one of the values above.
 	 *         "setup_cb" (callback) - Callback to a function to be called on each page load when the feature is activated
 	 *         "post_activation_cb" (callback) - Callback to a function to be called after a feature is first activated
 	 *         "feature_box_summary_cb" (callback) - Callback to a function that outputs HTML feature box summary (short description of feature)
 	 *         "feature_box_long_cb" (callback) - Callback to a function that outputs HTML feature box full description
 	 *         "feature_box_settings_cb" (callback) - Callback to a function that outputs custom feature settings fields
-	 * 
-	 * @since  2.1 
+	 *
+	 * @since  2.1
 	 * @return boolean
 	 */
 	public function register_feature( $slug, $feature_args ) {
@@ -67,7 +68,7 @@ class EP_Features {
 
 	/**
 	 * Activate or deactivate a feature
-	 * 
+	 *
 	 * @param  string  $slug
 	 * @param  array   $settings
 	 * @param  bool    $force
@@ -80,7 +81,7 @@ class EP_Features {
 		if ( empty( $feature ) ) {
 			return false;
 		}
-		
+
 		$original_state = $feature->is_active();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -136,7 +137,7 @@ class EP_Features {
 
 	/**
 	 * When plugins are adjusted, we need to determine how to activate/deactivate features
-	 * 
+	 *
 	 * @since 2.2
 	 */
 	public function handle_feature_activation() {
@@ -175,7 +176,7 @@ class EP_Features {
 
 		if ( false === $feature_settings ) {
 			$registered_features = $this->registered_features;
-			
+
 			foreach ( $registered_features as $slug => $feature ) {
 				if ( 0 === $feature->requirements_status()->code ) {
 					ep_activate_feature( $slug );
@@ -278,7 +279,7 @@ EP_Features::factory();
 
 /**
  * Main function for registering new feature. Since comment above for details
- * 
+ *
  * @param  string $slug
  * @param  array $feature_args
  * @since  2.1
@@ -290,7 +291,7 @@ function ep_register_feature( $slug, $feature_args ) {
 
 /**
  * Update a feature
- * 
+ *
  * @param  string $slug
  * @param  array $settings
  * @param  bool  $force
@@ -303,7 +304,7 @@ function ep_update_feature( $slug, $settings, $force = true ) {
 
 /**
  * Activate a feature
- * 
+ *
  * @param  string $slug
  * @since  2.2
  */
@@ -313,7 +314,7 @@ function ep_activate_feature( $slug ) {
 
 /**
  * Dectivate a feature
- * 
+ *
  * @param  string $slug
  * @param  bool  $force
  * @since  2.2

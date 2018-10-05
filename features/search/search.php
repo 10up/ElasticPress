@@ -37,6 +37,7 @@ function ep_search_feature_box_long() {
  */
 function ep_delay_search_setup() {
 	add_action( 'init', 'ep_search_setup' );
+	add_action( 'ep_feature_box_settings_search', 'ep_integrate_search_box_settings', 10, 1 );
 }
 
 /**
@@ -160,22 +161,33 @@ function ep_get_searchable_post_types() {
  */
 function ep_weight_recent( $formatted_args, $args ) {
 	if ( ! empty( $args['s'] ) ) {
-		$date_score = array(
-			'function_score' => array(
-				'query' => $formatted_args['query'],
-				'exp' => array(
-					'post_date_gmt' => array(
-						'scale' => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
-						'decay' => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
-						'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
-					),
-				),
-				'score_mode' => 'avg',
-				'boost_mode' => 'sum'
-			),
-		);
+		$feature  = ep_get_registered_feature( 'search' );
+		$settings = array();
+		if ( $feature ) {
+			$settings = $feature->get_settings();
+		}
 
-		$formatted_args['query'] = $date_score;
+		$settings = wp_parse_args( $settings, array(
+			'decaying_enabled' => true,
+		) );
+		if ( (bool)$settings['decaying_enabled'] ) {
+			$date_score = array(
+				'function_score' => array(
+					'query'      => $formatted_args['query'],
+					'exp'        => array(
+						'post_date_gmt' => array(
+							'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
+							'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
+							'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
+						),
+					),
+					'score_mode' => 'avg',
+					'boost_mode' => apply_filters( 'epwr_boost_mode', 'sum', $formatted_args, $args ),
+				),
+			);
+
+			$formatted_args['query'] = $date_score;
+		}
 	}
 
 	return $formatted_args;
@@ -234,14 +246,45 @@ function ep_integrate_search_queries( $enabled, $query ) {
 	} else if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 		$enabled = true;
 
+		/**
+		 * WordPress have to be version 4.6 or newer to have "fields" support
+		 * since it requires the "posts_pre_query" filter.
+		 *
+		 * @see WP_Query::get_posts
+		 */
 		$fields = $query->get( 'fields' );
-
-		if ( ! empty( $fields ) ) {
+		if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ! empty( $fields ) ) {
 			$enabled = false;
 		}
 	}
 
 	return $enabled;
+}
+
+/**
+ * Display decaying settings on dashboard.
+ *
+ * @since 2.4
+ *
+ * @param EP_Feature $feature Feature object.
+ *
+ * @return void
+ */
+function ep_integrate_search_box_settings( $feature ) {
+	$decaying_settings = $feature->get_settings();
+	if ( ! $decaying_settings ) {
+		$decaying_settings = array();
+	}
+	$decaying_settings = wp_parse_args( $decaying_settings, $feature->default_settings );
+	?>
+	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
+		<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
+		<div class="input-wrap">
+			<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool)$decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+			<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool)$decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+		</div>
+	</div>
+<?php
 }
 
 /**
@@ -253,4 +296,7 @@ ep_register_feature( 'search', array(
 	'feature_box_summary_cb' => 'ep_search_feature_box_summary',
 	'feature_box_long_cb' => 'ep_search_feature_box_long',
 	'requires_install_reindex' => false,
+	'default_settings'         => array(
+		'decaying_enabled' => true,
+	),
 ) );

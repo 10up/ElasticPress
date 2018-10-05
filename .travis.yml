@@ -11,14 +11,16 @@ notifications:
     on_failure: change
 
 php:
-  - "7.0"
+  - "7.2"
   - "5.5"
 
 env:
-  - WP_VERSION=latest WP_MULTISITE=1
+  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="5.0.2"
+  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="5.2.2"
+  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="5.5.1"
 
 before_install:
-  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.2.2.deb && sudo dpkg -i --force-confnew elasticsearch-5.2.2.deb && sudo service elasticsearch restart
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ES_VERSION.deb && sudo dpkg -i --force-confnew elasticsearch-$ES_VERSION.deb && sudo service elasticsearch restart
 
 before_script:
   - composer install --dev

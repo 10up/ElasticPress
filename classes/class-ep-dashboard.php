@@ -80,7 +80,7 @@ class EP_Dashboard {
 
 	/**
 	 * Show ElasticPress in network admin menu bar
-	 * 
+	 *
 	 * @param  object $admin_bar
 	 * @since  2.2
 	 */
@@ -95,7 +95,7 @@ class EP_Dashboard {
 
 	/**
 	 * Output dashboard link in plugin actions
-	 * 
+	 *
 	 * @param  array $plugin_actions
 	 * @param  string $plugin_file
 	 * @since  2.1
@@ -273,6 +273,8 @@ class EP_Dashboard {
 			$notice = 'need-setup';
 		}
 
+		$notice = apply_filters( 'ep_admin_notice_type', $notice );
+
 		switch ( $notice ) {
 			case 'bad-host':
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -285,21 +287,21 @@ class EP_Dashboard {
 
 				?>
 				<div class="notice notice-error">
-					<p><?php printf( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%s">try your host again</a>, or you may need to <a href="%s">change your settings</a>.', 'elasticpress' ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
-				</div>
+					<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%s">try your host again</a>, or you may need to <a href="%s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
+                </div>
 				<?php
 				break;
 			case 'above-es-compat':
 				?>
 				<div class="notice notice-error">
-					<p><?php printf( __( 'Your Elasticsearch version %s is above the maximum required Elasticsearch version %s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ); ?></p>
-				</div>
+                    <p><?php printf( wp_kses_post( __( 'Your Elasticsearch version %s is above the maximum required Elasticsearch version %s. ElasticPress may or may not work properly.', 'elasticpress' ) ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ); ?></p>
+                </div>
 				<?php
 				break;
 			case 'below-es-compat':
 				?>
 				<div class="notice notice-error">
-					<p><?php printf( __( 'Your Elasticsearch version %s is below the minimum required Elasticsearch version %s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ); ?></p>
+                    <p><?php printf( wp_kses_post( __( 'Your Elasticsearch version %s is below the minimum required Elasticsearch version %s. ElasticPress may or may not work properly.', 'elasticpress' ) ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ); ?></p>
 				</div>
 				<?php
 				break;
@@ -312,7 +314,7 @@ class EP_Dashboard {
 
 				?>
 				<div data-ep-notice="need-setup" class="notice notice-info is-dismissible">
-					<p><?php printf( __( 'Thanks for installing ElasticPress! You will need to run through a <a href="%s">quick set up process</a> to get the plugin working.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+                    <p><?php printf( wp_kses_post( __( 'Thanks for installing ElasticPress! You will need to run through a <a href="%s">quick set up process</a> to get the plugin working.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
 				break;
@@ -325,8 +327,8 @@ class EP_Dashboard {
 
 				?>
 				<div data-ep-notice="no-sync" class="notice notice-info is-dismissible">
-					<p><?php printf( __( 'ElasticPress is almost ready. You will need to complete a <a href="%s">sync</a> to get the plugin working.', 'elasticpress' ), esc_url( $url ) ); ?></p>
-				</div>
+                    <p><?php printf( wp_kses_post( __( 'ElasticPress is almost ready. You will need to complete a <a href="%s">sync</a> to get the plugin working.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
+                </div>
 				<?php
 				break;
 			case 'upgrade-sync':
@@ -338,7 +340,7 @@ class EP_Dashboard {
 
 				?>
 				<div data-ep-notice="upgrade-sync" class="notice notice-warning is-dismissible">
-					<p><?php printf( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ), esc_url( $url ) ); ?></p>
+                    <p><?php printf( wp_kses_post( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
 				break;
@@ -361,22 +363,22 @@ class EP_Dashboard {
 				$feature = ep_get_registered_feature( $auto_activate_sync );
 				?>
 				<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
-					<p><?php printf( __( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
+                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
 				</div>
 				<?php
 				break;
 			case 'sync-disabled-upgrade':
 				?>
 				<div data-ep-notice="sync-disabled-upgrade" class="notice notice-warning is-dismissible">
-					<p><?php printf( __( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' ) ); ?></p>
+                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' ) ); ?></p>
 				</div>
 				<?php
 				break;
 			case 'sync-disabled-no-sync':
 				?>
 				<div data-ep-notice="sync-disabled-no-sync" class="notice notice-warning is-dismissible">
-					<p><?php printf( __( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
-				</div>
+                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
+                </div>
 				<?php
 				break;
 		}
@@ -532,7 +534,7 @@ class EP_Dashboard {
 		}
 
 		$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
-		
+
 		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
 		$args = apply_filters( 'ep_index_posts_args', array(
@@ -608,7 +610,7 @@ class EP_Dashboard {
 				}
 			} else {
 				// We are done (with this site)
-				
+
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					if ( empty( $index_meta['site_stack'] ) ) {
 						delete_site_option( 'ep_index_meta' );
@@ -621,7 +623,7 @@ class EP_Dashboard {
 							$indexes[] = ep_get_index_name();
 							restore_current_blog();
 						}
-						
+
 						ep_create_network_alias( $indexes );
 					} else {
 						$index_meta['offset'] = (int) $query->found_posts;
@@ -696,7 +698,7 @@ class EP_Dashboard {
 
 	/**
 	 * Register and Enqueue JavaScripts for dashboard
-	 * 
+	 *
 	 * @since 2.2
 	 */
 	public function action_admin_enqueue_dashboard_scripts() {
@@ -735,13 +737,13 @@ class EP_Dashboard {
 				if ( ! empty( $index_meta ) ) {
 					$data['index_meta'] = $index_meta;
 				}
-				
+
 				$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );
 				$data['sync_paused'] = esc_html__( 'Sync paused', 'elasticpress' );
 				$data['sync_syncing'] = esc_html__( 'Syncing', 'elasticpress' );
 				$data['sync_initial'] = esc_html__( 'Starting sync', 'elasticpress' );
-				$data['sync_wpcli'] = esc_html__( "WP CLI sync is occuring. Refresh the page to see if it's finished", 'elasticpress' );
-				$data['sync_error'] = esc_html__( 'An error occured while syncing', 'elasticpress' );
+				$data['sync_wpcli'] = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
+				$data['sync_error'] = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 
 				wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 			}
@@ -750,7 +752,7 @@ class EP_Dashboard {
 
 	/**
 	 * Enqueue scripts to be used across all of WP admin
-	 * 
+	 *
 	 * @since 2.2
 	 */
 	public function action_admin_enqueue_admin_scripts() {
@@ -783,8 +785,21 @@ class EP_Dashboard {
 
 			$host = esc_url_raw( $_POST['ep_host'] );
 			update_site_option( 'ep_host', $host );
+
+			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
+			update_site_option( 'ep_prefix', $prefix );
+
+			$credentials = ( isset( $_POST['credentials'] ) ) ? ep_sanitize_credentials( $_POST['credentials'] ) : [
+				'username' => '',
+				'token'    => '',
+			];
+			update_site_option( 'ep_credentials', $credentials );
+
+
 		} else {
 			register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
+			register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
+			register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
 		}
 	}
 
@@ -891,9 +906,9 @@ class EP_Dashboard {
 		);
 
 		add_submenu_page(
-			null,
+			'elasticpress',
 			'ElasticPress' . esc_html__( 'Settings', 'elasticpress' ),
-			'ElasticPress' . esc_html__( 'Settings', 'elasticpress' ),
+			esc_html__( 'Settings', 'elasticpress' ),
 			$capability,
 			'elasticpress-settings',
 			array( $this, 'settings_page' )
@@ -928,4 +943,3 @@ class EP_Dashboard {
 }
 
 EP_Dashboard::factory();
-

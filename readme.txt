@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 4.9
+Tested up to: 5.0
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -26,6 +26,10 @@ __Protected Content__: Optionally index all of your content, including private a
 
 __Documents__: Indexes text inside of popular file types, and adds those files types to search results.
 
+__Autosuggest__: Suggest relevant content as text is entered into the search field.
+
+__Facets__: Suggest relevant content as text is entered into the search field.
+
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
@@ -35,6 +39,103 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 4. Enjoy!
 
 == Changelog ==
+
+= 2.6.1 =
+
+* Resolves issue of missing file for wp-cli.
+
+= 2.6.0 =
+
+ElasticPress 2.6 provides some new enhancements and bug fixes.
+
+* Ability to set autosuggest endpoint by a constant (EP_AUTOSUGGEST_ENDPOINT).
+* Enable WooCommerce products to be included in autosuggest results.
+* Support for tax_query operators EXISTS and NOT EXISTS.
+* Addition of new filter to change default orderby/sort (ep_set_default_sort).
+* Do not search for author_name when searching products in WooCommerce.
+
+= 2.5.2 (Requires re-index) =
+
+This is a small bug fix release.
+
+* Removed unnecessary facet JavaScript
+* Fix facet aggregations warning
+
+= 2.5.1 (Requires re-index) =
+
+This if a bug fix release. This version requires a re-index as we change the way data is being sent to Elasticsearch.
+
+It's also worth noting for ElasticPress version 2.5+, the Facets feature, which is on by default, will run post type archive and search page main queries through Elasticsearch. If Elasticsearch is out of sync with your content (possible in rare edge cases), this could result in incorrect content being shown. Turning off Facets would fix the problem.
+
+### Bug Fixes
+
+* Don't pre-strip HTML before sending it to Elasticsearch.
+* Support PHP 5.2 backwards compat.
+* Don't show faceting widget if post type doesn't support taxonomy.
+
+= 2.5 =
+
+ElasticPress 2.5 includes a new Facets feature that makes it easy to add high performance content filtering controls to a website.
+
+A new Facets widget enables site administrators to add taxonomy facets to a sidebar (or any widgetized area). When viewing a content list on the front end of the website, the widget will display the name of the taxonomy – e.g. “Categories” – and a checklist with all of its terms. Visitors can narrow down content by selecting terms they are interested in. The Facets feature can be globally configured to narrow results to content that is tagged with any or all of the selected terms. The widget’s front end output contains carefully named CSS classes, so that designers and developers can apply unique styling.
+
+Version 2.5 also includes a number of smaller enhancements and fixes, including official support for Elasticsearch 6.2, and increased functional parity with the WP_Query API.
+
+Here is a detailed list of what's been included in the release:
+
+### Enhancements
+* Facets feature
+* `--post-ids` CLI option to index only specific posts. Props [dotancohen](https://github.com/dotancohen).
+* Filter for hiding host setting in dashboard. Props [tomdxw](https://github.com/tomdxw).
+* Support `WP_Query` meta query `not between` comparator.
+
+### Bugs
+* Disallow duplicated Elasticsearch requests on WooCommerce orders page. Props [lukaspawlik](https://github.com/lukaspawlik)
+* Fix taxonomy sync object warning. Props [eugene-manuilov](https://github.com/eugene-manuilov)
+* `true` in `is_empty_query` terminates ep_query process when it shouldn't. Props [yaronuliel](https://github.com/yaronuliel)
+
+= 2.4.2 =
+Version 2.4.2 is a bug fix version.
+
+* Fix related posts not showing up bug.
+
+= 2.4.1 =
+
+Version 2.4.1 is a bug fix and maintenance release. Here are a listed of issues that have been resolved:
+
+* Support Elasticsearch 6.1 and properly send Content-Type header with application/json. Props [eugene-manuilov](https://github.com/eugene-manuilov).
+* Fix autosuggest event target issue bug. Props [eugene-manuilov](https://github.com/eugene-manuilov).
+* Fix widget init bug. Props [eugene-manuilov](https://github.com/eugene-manuilov).
+* Fix taxonomy sync parameter warning. Props [eugene-manuilov](https://github.com/eugene-manuilov).
+* Increase maximum Elasticsearch compatibility to 6.1
+
+= 2.4 =
+
+Version 2.4 introduces the Autosuggest feature. When enabled, input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.
+
+We also added hooks and filters to ElasticPress that make query logging possible. The [Debug Bar ElasticPress](https://github.com/10up/debug-bar-elasticpress) plugin now adds a Query Log screen to the ElasticPress admin menu. The Query Log is an extremely powerful tool for diagnosing search and indexing issues.
+
+Here is a comphrensive list of changes:
+
+### Enhancements
+* Autosuggest feature
+* Hooks for query log functionality in [Debug Bar ElasticPress](https://github.com/10up/debug-bar-elasticpress)
+* Support `WP_Query` `fields` parameter. Props [kallehauge](https://github.com/kallehauge).
+* Add setting for enabling/disabling date weighting in search. Props [lukaspawlik](https://github.com/kallehauge).
+* Remove extra post meta storage key from Elasticsearch
+* Add shipping class as indexed WooCommerce taxonomy. Props [kallehauge](https://github.com/kallehauge).
+* Allow WooCommerce orders to be searched by items. Props [kallehauge](https://github.com/kallehauge).
+* Support Elasticsearch 5.6
+* Add filter to granularly control admin notices. Props [mattonomics](https://github.com/mattonomics).
+* Support ES 5.5+ strict content type checking. Props [sc0ttclark](https://github.com/sc0ttclark)
+
+### Bug Fixes
+* Fix `author_name` search field. Props [ivankristianto](https://github.com/ivankristianto).
+* Fix unavailable taxonomy issue in WooCommerce. Props [ivankristianto](https://github.com/ivankristianto).
+* Index all publicly queryable taxonomies. Props [allan23](https://github.com/allan23).
+* Resolve case insensitive sorting issues. Props [allan23](https://github.com/allan23).
+* Add escaping per VIP standards. Props [jasonbahl](https://github.com/jasonbahl).
+* Fix WooCommerce post type warnings.
 
 = 2.3.1, 2.3.2 =
 
@@ -78,7 +179,7 @@ Version 2.2.1 is a bug fix release. Here are a listed of issues that have been r
 
 = 2.2 (Requires re-index) =
 
-Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overriden and disabled. Features that don't have their minimum requirements met, such as a missing plugin dependency, are auto-disabled.
+Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overridden and disabled. Features that don't have their minimum requirements met, such as a missing plugin dependency, are auto-disabled.
 
 We've bumped the minimum Elasticsearch version to 1.7 (although we strongly recommend 2+). The maximum tested version of Elasticsearch is version 5.2. If you are running Elasticsearch outside this version range, you will see a warning in the dashboard.
 

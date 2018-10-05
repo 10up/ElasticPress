@@ -25,7 +25,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	<div class="ep-features metabox-holder">
 		<?php $features = EP_Features::factory()->registered_features; ?>
 
-		<?php 
+		<?php
 		$left = '';
 		$right = '';
 		$i = 0;
