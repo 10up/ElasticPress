@@ -545,7 +545,7 @@ class EP_Dashboard {
 			'ignore_sticky_posts'    => true,
 			'orderby'                => 'ID',
 			'order'                  => 'DESC',
-			'fields' => 'all',
+			'fields'                 => 'ids',
 		) );
 
 		$query = new WP_Query( $args );
@@ -556,24 +556,23 @@ class EP_Dashboard {
 			if ( $query->have_posts() ) {
 				$queued_posts = array();
 
-				while ( $query->have_posts() ) {
-					$query->the_post();
+				foreach ( $query->posts as $post_id ) {
 					$killed_post_count = 0;
 
-					$post_args = ep_prepare_post( get_the_ID() );
+					$post_args = ep_prepare_post( $post_id );
 
-					if ( apply_filters( 'ep_post_sync_kill', false, $post_args, get_the_ID() ) ) {
+					if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
 
 						$killed_post_count++;
 
 					} else { // Post wasn't killed so process it.
 
-						$queued_posts[ get_the_ID() ][] = '{ "index": { "_id": "' . absint( get_the_ID() ) . '" } }';
+						$queued_posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
 
 						if ( function_exists( 'wp_json_encode' ) ) {
-							$queued_posts[ get_the_ID() ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
+							$queued_posts[ $post_id ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
 						} else {
-							$queued_posts[ get_the_ID() ][] = addcslashes( json_encode( $post_args ), "\n" );
+							$queued_posts[ $post_id ][] = addcslashes( json_encode( $post_args ), "\n" );
 						}
 					}
 				}
