@@ -41,22 +41,6 @@ class EP_Config {
 
 		if ( ! $instance ) {
 			$instance = new self();
-
-			if ( ! defined( 'EP_INDEX_PREFIX' ) ) {
-				$index_prefix = ep_get_index_prefix();
-				if ( $index_prefix ) {
-					$index_prefix = ( ep_is_epio() && '-' !== substr( $index_prefix, - 1 ) ) ? $index_prefix . '-' : $index_prefix;
-					define( 'EP_INDEX_PREFIX', $index_prefix );
-				}
-			} else {
-				$instance::$option_prefix = true;
-			}
-
-			if ( ! defined( 'ES_SHIELD' ) && ep_is_epio() ) {
-				$credentials = ep_get_epio_credentials();
-				define( 'ES_SHIELD', $credentials['username'] . ':' . $credentials['token'] );
-			}
-
 		}
 
 		return $instance;
@@ -268,6 +252,26 @@ class EP_Config {
 		return false;
 
 	}
+
+	/**
+	 * Setup credentials for future usage.
+	 */
+	public function setup_credentials(){
+		if ( ! defined( 'EP_INDEX_PREFIX' ) ) {
+			$index_prefix = ep_get_index_prefix();
+			if ( $index_prefix ) {
+				$index_prefix = ( ep_is_epio() && '-' !== substr( $index_prefix, - 1 ) ) ? $index_prefix . '-' : $index_prefix;
+				define( 'EP_INDEX_PREFIX', $index_prefix );
+			}
+		} else {
+			self::$option_prefix = true;
+		}
+
+		if ( ! defined( 'ES_SHIELD' ) && ep_is_epio() ) {
+			$credentials = ep_get_epio_credentials();
+			define( 'ES_SHIELD', $credentials['username'] . ':' . $credentials['token'] );
+		}
+	}
 }
 
 EP_Config::factory();
@@ -341,4 +345,11 @@ function ep_sanitize_credentials( $credentials ) {
 		'username' => ( isset( $credentials['username'] ) ) ? sanitize_text_field( $credentials['username'] ) : '',
 		'token'    => ( isset( $credentials['token'] ) ) ? sanitize_text_field( $credentials['token'] ) : '',
 	];
+}
+
+/**
+ * Prepare credentials if they are set for future use.
+ */
+function ep_setup_credentials(){
+	EP_Config::factory()->setup_credentials();
 }

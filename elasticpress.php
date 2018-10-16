@@ -46,6 +46,9 @@ if ( $network_activated ) {
 	define( 'EP_IS_NETWORK', true );
 }
 
+// Preparation in the case where a username/password and an index prefix are needed.
+ep_setup_credentials();
+
 require_once( 'classes/class-ep-sync-manager.php' );
 require_once( 'classes/class-ep-wp-query-integration.php' );
 require_once( 'classes/class-ep-wp-date-query.php' );
