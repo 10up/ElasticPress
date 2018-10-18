@@ -639,6 +639,7 @@ class EP_API {
 			'ping_status'           => $ping_status,
 			'menu_order'            => $menu_order,
 			'guid'                  => $post->guid,
+			'is_sticky'             => is_sticky( $post_id )
 		);
 
 		/**
@@ -1526,6 +1527,7 @@ class EP_API {
 				$formatted_args_query = $formatted_args['query'];
 				$formatted_args['query'] = array();
 				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+                $formatted_args['query']['function_score']['functions'] = array(  (object) array( 'filter' => array( 'match' => array( 'is_sticky' => true)), 'weight' => 2));
 				$formatted_args['query']['function_score']['random_score'] = (object) array();
 			}
 		}
