@@ -7,33 +7,30 @@
  */
 
 function ep_related_posts_formatted_args( $formatted_args, $args ) {
-	// Since 6.0 ElasticSearch uses a new mlt search structure
-	$new_mlt = 6.0 < ep_get_elasticsearch_version();
+	if ( ! empty ( $args[ 'more_like' ] ) ) {
+		//lets compare ES version to see if new MLT structure applies
+		$new_mlt = version_compare( ep_get_elasticsearch_version(), 6.0, '>=' );
 
-	switch ( ! empty ( $args[ 'more_like' ] ) ) {
-		case $new_mlt && is_array( $args[ 'more_like' ] ) :
+		if ( $new_mlt && is_array( $args[ 'more_like' ] ) ) {
 			foreach( $args['more_like'] as $id ) {
 				$ids[] = array( '_id' => $id ) ;
 			}
-			break;
-			//let's account for multiple id's too
-		case  $new_mlt && ! is_array( $args[ 'more_like' ] ) :
+		} elseif ( $new_mlt && ! is_array( $args[ 'more_like' ] ) ) {
 			$ids = array( '_id' => $args[ 'more_like' ]);
-			break;
-		case  ! $new_mlt :
+		} else {
 			$ids = is_array( $args[ 'more_like' ] ) ? $args[ 'more_like' ] : array( $args[ 'more_like' ] );
-			break;
-	}
+		}
 
-	$formatted_args[ 'query' ] = array(
-		'more_like_this' => array(
-			'like'            => $ids,
-			'fields'		  => apply_filters( 'ep_related_posts_fields', array( 'post_title', 'post_content', 'terms.post_tag.name' ) ),
-			'min_term_freq'	  => 1,
-			'max_query_terms' => 12,
-			'min_doc_freq'	  => 1,
-		)
-	);
+		$formatted_args[ 'query' ] = array(
+			'more_like_this' => array(
+				'ids'			  => $ids,
+				'fields'		  => apply_filters( 'ep_related_posts_fields', array( 'post_title', 'post_content', 'terms.post_tag.name' ) ),
+				'min_term_freq'	  => 1,
+				'max_query_terms' => 12,
+				'min_doc_freq'	  => 1,
+			)
+		);
+	}
 
 	return $formatted_args;
 }
