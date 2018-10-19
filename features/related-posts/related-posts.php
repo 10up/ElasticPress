@@ -6,6 +6,13 @@
  * @package elasticpress
  */
 
+/**
+ * Format the args for related posts for ElasticSearch
+ *
+ * @param $formatted_args
+ * @param $args
+ * @return mixed
+ */
 function ep_related_posts_formatted_args( $formatted_args, $args ) {
 	if ( ! empty ( $args[ 'more_like' ] ) ) {
 		//lets compare ES version to see if new MLT structure applies
