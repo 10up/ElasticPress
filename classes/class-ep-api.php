@@ -589,7 +589,7 @@ class EP_API {
 		$post_modified_gmt = $post->post_modified_gmt;
 		$comment_count     = absint( $post->comment_count );
 		$comment_status    = $post->comment_status;
-		$ping_status       = absint( $post->ping_status );
+		$ping_status       = $post->ping_status;
 		$menu_order        = absint( $post->menu_order );
 
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
