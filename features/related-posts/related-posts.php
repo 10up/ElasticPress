@@ -28,13 +28,19 @@ function ep_related_posts_formatted_args( $formatted_args, $args ) {
 			$ids = is_array( $args[ 'more_like' ] ) ? $args[ 'more_like' ] : array( $args[ 'more_like' ] );
 		}
 
+		$mlt_key = ( $new_mlt ) ? 'like' : 'ids';
+
 		$formatted_args[ 'query' ] = array(
 			'more_like_this' => array(
-				'ids'			  => $ids,
-				'fields'		  => apply_filters( 'ep_related_posts_fields', array( 'post_title', 'post_content', 'terms.post_tag.name' ) ),
-				'min_term_freq'	  => 1,
+				$mlt_key          => $ids,
+				'fields'          => apply_filters( 'ep_related_posts_fields', array(
+					'post_title',
+					'post_content',
+					'terms.post_tag.name'
+				) ),
+				'min_term_freq'   => 1,
 				'max_query_terms' => 12,
-				'min_doc_freq'	  => 1,
+				'min_doc_freq'    => 1,
 			)
 		);
 	}
