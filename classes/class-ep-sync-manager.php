@@ -38,6 +38,7 @@ class EP_Sync_Manager {
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		add_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
@@ -57,6 +58,7 @@ class EP_Sync_Manager {
 		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
 		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
@@ -263,13 +265,31 @@ class EP_Sync_Manager {
 
 		$post_args = ep_prepare_post( $post_id );
 
-		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) || ! $this->is_site_indexable() ) {
 			return false;
 		}
 
 		$response = ep_index_post( $post_args, $blocking );
 
 		return $response;
+	}
+
+	/**
+	 * Check to see if current site is indexable (public).
+	 *
+	 * @return bool
+	 */
+	protected function is_site_indexable() {
+		$blog_id = get_current_blog_id();
+		$sites   = ep_get_sites();
+		foreach ( $sites as $site ) {
+			if ( $blog_id === $site->blog_id ) {
+				return true;
+				break;
+			}
+		}
+
+		return false;
 	}
 }
 
