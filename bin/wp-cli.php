@@ -509,6 +509,7 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 				'ignore_sticky_posts'    => true,
 				'orderby'                => 'ID',
 				'order'                  => 'DESC',
+				'fields'                 => 'ids',
 			) );
 
 			if ( $post_in ) {
@@ -519,22 +520,21 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 
 			if ( $query->have_posts() ) {
 
-				while ( $query->have_posts() ) {
-					$query->the_post();
+				foreach ( $query->posts as $post_id ) {
 
 					if ( $no_bulk ) {
 						// index the posts one-by-one. not sure why someone may want to do this.
-						$result = ep_sync_post( get_the_ID() );
+						$result = ep_sync_post( $post_id );
 
 						$this->reset_transient();
 
-						do_action( 'ep_cli_post_index', get_the_ID() );
+						do_action( 'ep_cli_post_index', $post_id );
 					} else {
-						$result = $this->queue_post( get_the_ID(), $query->post_count, $show_bulk_errors );
+						$result = $this->queue_post( $post_id, $query->post_count, $show_bulk_errors );
 					}
 
 					if ( ! $result ) {
-						$errors[] = get_the_ID();
+						$errors[] = $post_id;
 					} elseif ( true === $result || isset( $result->_index ) ) {
 						$synced ++;
 					}
