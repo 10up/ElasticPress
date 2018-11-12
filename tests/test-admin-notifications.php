@@ -233,9 +233,29 @@ class EPTestAdminNotifications extends EP_Test_Base {
 
 		ob_start();
 		$notice = EP_Dashboard::factory()->maybe_notice( true );
-		ob_get_clean();
+		$html = ob_get_clean();
 
 		$this->assertEquals( 'bad-host', $notice );
+
+		$this->assertContains( 'notice-error-es-response-error', $html );
+
+		// Test an HTTP status code.
+		$callback = function() {
+			return 'https://httpstat.us/405';
+		};
+
+		add_filter( 'ep_pre_request_url', $callback );
+
+		ob_start();
+		$notice = EP_Dashboard::factory()->maybe_notice( true );
+		$html = ob_get_clean();
+
+		remove_filter( 'ep_pre_request_url', $callback );
+
+		$this->assertEquals( 'bad-host', $notice );
+
+		$this->assertContains( 'notice-error-es-response-code', $html );
+		$this->assertContains( '405', $html );
 	}
 
 	/**
