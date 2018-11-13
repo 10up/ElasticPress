@@ -280,10 +280,13 @@ class EP_Sync_Manager {
 	 * @return bool
 	 */
 	protected function is_site_indexable() {
+		if ( ! is_multisite() ) {
+			return true;
+		}
 		$blog_id = get_current_blog_id();
 		$sites   = ep_get_sites();
 		foreach ( $sites as $site ) {
-			if ( $blog_id === $site->blog_id ) {
+			if ( $blog_id === absint( $site['blog_id'] ) ) {
 				return true;
 				break;
 			}
