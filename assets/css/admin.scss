@@ -1,4 +1,5 @@
 $tablet-width: 768px;
+$wide-width: 1281px;
 $status-ok: #6aa000;
 $status-warning: #e3e600;
 $status-error: #ff0000;
@@ -11,6 +12,18 @@ $status-error: #ff0000;
 .wrap > h2 {
 	z-index: 2;
     position: relative;
+}
+
+.wrap h1 {
+	color: #626262;
+	margin: .5em 0 2em;
+	font-weight: 600;
+}
+
+@media (min-width: $tablet-width) {
+	.wrap h1 {
+		line-height: 1.75;
+	}
 }
 
 .wrap h2 {
@@ -426,7 +439,106 @@ h2.ep-list-features {
 
 
 .intro h2 {
-	padding: 9px 15px 4px 0;
+	padding: 9px 0 4px 0;
+	line-height: 1.2;
+}
+
+.intro h1 {
+	text-align: center;
+}
+
+.intro-container {
+	display: flex;
+	justify-content: center;
+	padding-left: 10%;
+	padding-right: 10%;
+	text-align: center;
+}
+
+.intro-box {
+	width: 33%;
+}
+
+.intro-container a {
+	font-weight: bold;
+}
+
+.intro-container h2 {
+	color: #626262;
+	height: 8%;
+}
+
+.intro-container p {
+	max-width: 300px;
+}
+
+.ep-copy-text {
+	padding: 0 15% 0 15%;
+}
+
+@media (max-width: $tablet-width) {
+	.intro-box {
+		width: auto;
+	}
+	.ep-copy-text {
+		padding: 0 9% 0 9%;
+	}
+}
+
+.circle {
+	width: 6em;
+	height: 6em;
+	text-align: center;
+	line-height: 2.8em;
+	border-radius: 50%;
+	margin: 0 1em;
+	display: inline-block;
+	color: #fff;
+	position: relative;
+	font-size: 16px;
+	font-weight: 400;
+}
+
+.circle p {
+	font-size: 50px;
+	border: 0;
+	margin: 0;
+	line-height: 0.5em;
+	font-weight: bold;
+}
+
+.red-circle {
+	background-color: #d73c38;
+	color: #fff;
+}
+
+.white-circle::before{
+	content: '';
+	position: absolute;
+	top: 2.9em;
+	left: -11.3em;
+	width: 14em;
+	height: .2em;
+	background: #d4d4d4;
+	z-index: -1;
+}
+
+@media (max-width: $tablet-width) {
+	.white-circle::before{
+		left: -8em;
+	}
+}
+
+@media (min-width: $wide-width) {
+	.white-circle::before{
+		left: -18em;
+		width: 24em;
+	}
+}
+
+.white-circle {
+	color: #626262;
+	background: white;
 }
 
 .wrap.intro {
@@ -448,21 +560,23 @@ h2.ep-list-features {
 
 .setup-message {
 	text-align: center;
-	background-color: #e63e3b;
-	margin: 20px -20px 0 -20px;
 	padding: 2em 0;
 	clear: both;
 }
 
 .setup-message .setup-button {
-	border-radius: 5px;
-	background-color: #d73c38;
-	color: #f19ea4;
+	border-radius: 10px;
+	background-color: #E63E3B;
+	color: white;
 	display: inline-block;
 	margin: 0 .75em;
 	text-decoration: none;
-	padding: .75em 3em;
+	padding: 1em 1.5em;
 	box-shadow: 1px 1px 3px 1px rgba(0,0,0,0.25);
+}
+.setup-message .setup-button:hover {
+	color: #ffe8ed;
+	background-color: #B93431;
 }
 
 .setup-message .setup-button-primary {
