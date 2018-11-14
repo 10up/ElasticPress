@@ -72,7 +72,7 @@ class EP_Config {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$is_indexing = (bool) get_site_transient( 'ep_wpcli_sync' );
 		} else {
-			$is_indexing = (bool) get_transient( 'ep_wpcli_sync', false );
+			$is_indexing = (bool) get_transient( 'ep_wpcli_sync' );
 		}
 
 		return apply_filters( 'ep_is_indexing_wpcli', $is_indexing );
