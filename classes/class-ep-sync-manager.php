@@ -21,7 +21,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * Save posts for indexing later
-	 * 
+	 *
 	 * @since  2.0
 	 * @var    array
 	 */
@@ -46,7 +46,7 @@ class EP_Sync_Manager {
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
-	
+
 	/**
 	 * Remove actions and filters
 	 *
@@ -86,7 +86,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
-	 * 
+	 *
 	 * @param  int $meta_id
 	 * @param  int $object_id
 	 * @param  string $meta_key
@@ -104,7 +104,7 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-		
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
@@ -184,10 +184,10 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-		
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
-		
+
 		if ( 'attachment' === $post_type ) {
 			$indexable_post_statuses[] = 'inherit';
 		}
@@ -229,7 +229,7 @@ class EP_Sync_Manager {
 			}
 		}
 	}
-	
+
 	/**
 	 * Return a singleton instance of the current class
 	 *
@@ -280,19 +280,30 @@ class EP_Sync_Manager {
 	 * @return bool
 	 */
 	protected function is_site_indexable() {
+
 		if ( ! is_multisite() ) {
 			return true;
 		}
+
 		$blog_id = get_current_blog_id();
-		$sites   = ep_get_sites();
-		foreach ( $sites as $site ) {
-			if ( $blog_id === absint( $site['blog_id'] ) ) {
-				return true;
-				break;
-			}
+
+		$args = array(
+			'fields'            => 'ids',
+			'public'            => 1,
+			'archived'          => 0,
+			'spam'              => 0,
+			'deleted'           => 0,
+			'update_site_cache' => false,
+		);
+
+
+		if ( function_exists( 'get_sites' ) ) {
+			$sites = get_sites( $args );
+		} else {
+			$sites = wp_list_pluck( wp_get_sites( $args ), 'blog_id' );
 		}
 
-		return false;
+		return in_array( $blog_id, $sites, true );
 	}
 }
 
