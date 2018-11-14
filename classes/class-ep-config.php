@@ -70,12 +70,12 @@ class EP_Config {
 	 */
 	public function is_indexing_wpcli() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$index_meta = get_site_option( 'ep_index_meta', false );
+			$is_indexing = (bool) get_site_transient( 'ep_wpcli_sync' );
 		} else {
-			$index_meta = get_option( 'ep_index_meta', false );
+			$is_indexing = (bool) get_transient( 'ep_wpcli_sync', false );
 		}
 
-		return apply_filters( 'ep_is_indexing_wpcli', ( ! empty( $index_meta ) && ! empty( $index_meta['wpcli'] ) ) );
+		return apply_filters( 'ep_is_indexing_wpcli', $is_indexing );
 	}
 
 	/**
