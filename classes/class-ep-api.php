@@ -2012,10 +2012,6 @@ class EP_API {
 
 			foreach ( $site_objects as $site ) {
 
-				if ( ! $site->public || $site->spam || $site->deleted ) {
-					continue;
-				}
-
 				$sites[] = array(
 					'blog_id' => $site->blog_id,
 					'domain'  => $site->domain,
