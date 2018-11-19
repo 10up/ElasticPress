@@ -2011,6 +2011,7 @@ class EP_API {
 			$sites = array();
 
 			foreach ( $site_objects as $site ) {
+
 				$sites[] = array(
 					'blog_id' => $site->blog_id,
 					'domain'  => $site->domain,
