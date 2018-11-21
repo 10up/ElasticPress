@@ -232,7 +232,8 @@ class EP_Facet_Widget extends WP_Widget {
 		</div>
 		<?php
 		$facet_html = ob_get_clean();
-		echo apply_filters( 'ep_facet_search_widget', $facet_html );
+		//Allows developers to modify widget html
+		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms );
 
 		echo $args['after_widget'];
 	}
