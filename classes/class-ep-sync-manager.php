@@ -36,6 +36,8 @@ class EP_Sync_Manager {
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'post_stuck', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'post_unstuck', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );

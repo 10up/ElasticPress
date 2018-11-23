@@ -1527,9 +1527,29 @@ class EP_API {
 				$formatted_args_query = $formatted_args['query'];
 				$formatted_args['query'] = array();
 				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
-                $formatted_args['query']['function_score']['functions'] = array(  (object) array( 'filter' => array( 'match' => array( 'is_sticky' => true)), 'weight' => 2));
 				$formatted_args['query']['function_score']['random_score'] = (object) array();
 			}
+		}
+
+		/**
+		 * Sticky posts support
+		 */
+		// Check first if there's sticky posts and show them only in the front page
+		if( false !== get_option( 'sticky_posts' ) && is_front_page() ) {
+			//let's eliminate sort so it does not mess with function_score results
+			$formatted_args['sort'] = array();
+			$formatted_args_query = $formatted_args['query'];
+			$formatted_args['query'] = array();
+			$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+			$formatted_args['query']['function_score']['functions'] = array(
+			//add extra weight to sticky posts to show them on top
+				(object) array(
+					'filter' => array(
+						'match' => array( 'is_sticky' => true )
+					),
+					'weight' => 2
+				)
+			);
 		}
 
 		/**
