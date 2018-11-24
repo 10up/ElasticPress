@@ -1535,7 +1535,9 @@ class EP_API {
 		 * Sticky posts support
 		 */
 		// Check first if there's sticky posts and show them only in the front page
-		if( false !== get_option( 'sticky_posts' ) && is_front_page() ) {
+		if( false !== get_option( 'sticky_posts' )
+            && is_front_page()
+            && in_array( $args['ignore_sticky_posts'], array( 'false', 0 ) ) ) {
 			//let's eliminate sort so it does not mess with function_score results
 			$formatted_args['sort'] = array();
 			$formatted_args_query = $formatted_args['query'];
