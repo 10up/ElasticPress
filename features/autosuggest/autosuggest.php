@@ -215,7 +215,7 @@ function ep_autosuggest_enqueue_scripts() {
 function ep_autosuggest_requirements_status( $status ) {
 	$host = ep_get_host();
 
-	$status->code = 1;
+	$status->code = 0;
 
 	$status->message = array();
 
@@ -223,6 +223,7 @@ function ep_autosuggest_requirements_status( $status ) {
 
 	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
 		$status->message[] = wp_kses_post( __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured.", 'elasticpress' ) );
+		$status->code = 1;
 	}
 
 	return $status;
