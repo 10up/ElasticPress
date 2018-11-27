@@ -90,7 +90,7 @@
 		}
 
 		if ( postStatus === '' ) {
-			postType = 'publish';
+			postStatus = 'publish';
 		}
 
 		var query = {
