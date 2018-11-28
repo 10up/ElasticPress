@@ -352,9 +352,6 @@ return array(
 						),
 					),
 				),
-				'is_sticky' => array(
-					'type' => 'boolean',
-				),
 			),
 		),
 	),
