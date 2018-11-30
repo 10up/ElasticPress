@@ -3519,4 +3519,47 @@ class EPTestSingleSite extends EP_Test_Base {
 		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
 	}
 
+	/**
+	 * If a post is sticky and we are on the home page, it should return at the top.
+	 *
+	 * @group single-site
+	 */
+	public function testStickyPostsIncludedOnHome() {
+		ep_create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
+		$sticky_id = ep_create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		stick_post( $sticky_id );
+		ep_create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+
+		ep_refresh_index();
+
+		$this->go_to( '/' );
+
+		$q = $GLOBALS['wp_query'];
+
+		$this->assertEquals( 'Sticky post', $q->posts[0]->post_title );
+	}
+
+	/**
+	 * If a post is not sticky and we are not on the home page, it should not return at the top.
+	 *
+	 * @group single-site
+	 */
+	public function testStickyPostsExcludedOnNotHome() {
+		ep_create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
+		$sticky_id = ep_create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		stick_post( $sticky_id );
+		ep_create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+
+		ep_refresh_index();
+
+
+		$args = array(
+			's'         => ''
+		);
+
+		$query = new WP_Query( $args );
+
+		$this->assertNotEquals( 'Sticky post', $query->posts[0]->post_title );
+	}
+
 }
