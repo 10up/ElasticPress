@@ -40,6 +40,19 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.7.0 (Requires re-index) =
+
+ElasticPress 2.7 provides some new enhancements and bug fixes.
+
+* Prevent indexing when blog is deleted or not public.
+* Do not apply absint to comment_status.
+* ElasticPress.io credentials bugfix.
+* Related posts bugfix.
+* Random WooCommerce ordering allowed.
+* Query only post IDs when indexing. (Props [elliott-stocks](https://github.com/elliott-stocks))
+* Better error notices. (Props [petenelson](https://github.com/petenelson))
+
+
 = 2.6.1 =
 
 * Resolves issue of missing file for wp-cli.

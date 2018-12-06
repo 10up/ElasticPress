@@ -41,22 +41,6 @@ class EP_Config {
 
 		if ( ! $instance ) {
 			$instance = new self();
-
-			if ( ! defined( 'EP_INDEX_PREFIX' ) ) {
-				$index_prefix = ep_get_index_prefix();
-				if ( $index_prefix ) {
-					$index_prefix = ( ep_is_epio() && '-' !== substr( $index_prefix, - 1 ) ) ? $index_prefix . '-' : $index_prefix;
-					define( 'EP_INDEX_PREFIX', $index_prefix );
-				}
-			} else {
-				$instance::$option_prefix = true;
-			}
-
-			if ( ! defined( 'ES_SHIELD' ) && ep_is_epio() ) {
-				$credentials = ep_get_epio_credentials();
-				define( 'ES_SHIELD', $credentials['username'] . ':' . $credentials['token'] );
-			}
-
 		}
 
 		return $instance;
@@ -86,12 +70,12 @@ class EP_Config {
 	 */
 	public function is_indexing_wpcli() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$index_meta = get_site_option( 'ep_index_meta', false );
+			$is_indexing = (bool) get_site_transient( 'ep_wpcli_sync' );
 		} else {
-			$index_meta = get_option( 'ep_index_meta', false );
+			$is_indexing = (bool) get_transient( 'ep_wpcli_sync' );
 		}
 
-		return apply_filters( 'ep_is_indexing_wpcli', ( ! empty( $index_meta ) && ! empty( $index_meta['wpcli'] ) ) );
+		return apply_filters( 'ep_is_indexing_wpcli', $is_indexing );
 	}
 
 	/**
@@ -110,7 +94,7 @@ class EP_Config {
 			$host = get_option( 'ep_host', false );
 		}
 
-		return $host;
+		return apply_filters( 'ep_host', $host );
 	}
 
 	/**
@@ -268,6 +252,26 @@ class EP_Config {
 		return false;
 
 	}
+
+	/**
+	 * Setup credentials for future usage.
+	 */
+	public function setup_credentials(){
+		if ( ! defined( 'EP_INDEX_PREFIX' ) ) {
+			$index_prefix = ep_get_index_prefix();
+			if ( $index_prefix ) {
+				$index_prefix = ( ep_is_epio() && '-' !== substr( $index_prefix, - 1 ) ) ? $index_prefix . '-' : $index_prefix;
+				define( 'EP_INDEX_PREFIX', $index_prefix );
+			}
+		} else {
+			self::$option_prefix = true;
+		}
+
+		if ( ! defined( 'ES_SHIELD' ) && ep_is_epio() ) {
+			$credentials = ep_get_epio_credentials();
+			define( 'ES_SHIELD', $credentials['username'] . ':' . $credentials['token'] );
+		}
+	}
 }
 
 EP_Config::factory();
@@ -341,4 +345,11 @@ function ep_sanitize_credentials( $credentials ) {
 		'username' => ( isset( $credentials['username'] ) ) ? sanitize_text_field( $credentials['username'] ) : '',
 		'token'    => ( isset( $credentials['token'] ) ) ? sanitize_text_field( $credentials['token'] ) : '',
 	];
+}
+
+/**
+ * Prepare credentials if they are set for future use.
+ */
+function ep_setup_credentials(){
+	EP_Config::factory()->setup_credentials();
 }

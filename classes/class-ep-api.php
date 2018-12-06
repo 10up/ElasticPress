@@ -583,14 +583,14 @@ class EP_API {
 			);
 		}
 
-		$post_date = $post->post_date;
-		$post_date_gmt = $post->post_date_gmt;
-		$post_modified = $post->post_modified;
+		$post_date         = $post->post_date;
+		$post_date_gmt     = $post->post_date_gmt;
+		$post_modified     = $post->post_modified;
 		$post_modified_gmt = $post->post_modified_gmt;
-		$comment_count = absint( $post->comment_count );
-		$comment_status = absint( $post->comment_status );
-		$ping_status = absint( $post->ping_status );
-		$menu_order = absint( $post->menu_order );
+		$comment_count     = absint( $post->comment_count );
+		$comment_status    = $post->comment_status;
+		$ping_status       = $post->ping_status;
+		$menu_order        = absint( $post->menu_order );
 
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
 			if ( ! strtotime( $post_date ) || $post_date === "0000-00-00 00:00:00" ) {
@@ -2011,6 +2011,7 @@ class EP_API {
 			$sites = array();
 
 			foreach ( $site_objects as $site ) {
+
 				$sites[] = array(
 					'blog_id' => $site->blog_id,
 					'domain'  => $site->domain,

@@ -21,7 +21,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * Save posts for indexing later
-	 * 
+	 *
 	 * @since  2.0
 	 * @var    array
 	 */
@@ -38,6 +38,7 @@ class EP_Sync_Manager {
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		add_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
@@ -45,7 +46,7 @@ class EP_Sync_Manager {
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'shutdown', array( $this, 'action_index_sync_queue' ) );
 	}
-	
+
 	/**
 	 * Remove actions and filters
 	 *
@@ -57,6 +58,7 @@ class EP_Sync_Manager {
 		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		remove_action( 'delete_blog', array( $this, 'action_delete_blog_from_index') );
+		remove_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
 		remove_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'archive_blog', array( $this, 'action_delete_blog_from_index') );
 		remove_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index') );
@@ -84,7 +86,7 @@ class EP_Sync_Manager {
 
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
-	 * 
+	 *
 	 * @param  int $meta_id
 	 * @param  int $object_id
 	 * @param  string $meta_key
@@ -102,7 +104,7 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-		
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
@@ -182,10 +184,10 @@ class EP_Sync_Manager {
 		if ( ! empty( $importer ) ) {
 			return;
 		}
-		
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $post_ID );
-		
+
 		if ( 'attachment' === $post_type ) {
 			$indexable_post_statuses[] = 'inherit';
 		}
@@ -227,7 +229,7 @@ class EP_Sync_Manager {
 			}
 		}
 	}
-	
+
 	/**
 	 * Return a singleton instance of the current class
 	 *
@@ -263,13 +265,45 @@ class EP_Sync_Manager {
 
 		$post_args = ep_prepare_post( $post_id );
 
-		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) || ! $this->is_site_indexable() ) {
 			return false;
 		}
 
 		$response = ep_index_post( $post_args, $blocking );
 
 		return $response;
+	}
+
+	/**
+	 * Check to see if current site is indexable (public).
+	 *
+	 * @return bool
+	 */
+	protected function is_site_indexable() {
+
+		if ( ! is_multisite() ) {
+			return true;
+		}
+
+		$blog_id = get_current_blog_id();
+
+		$args = array(
+			'fields'            => 'ids',
+			'public'            => 1,
+			'archived'          => 0,
+			'spam'              => 0,
+			'deleted'           => 0,
+			'update_site_cache' => false,
+		);
+
+
+		if ( function_exists( 'get_sites' ) ) {
+			$sites = get_sites( $args );
+		} else {
+			$sites = wp_list_pluck( wp_get_sites( $args ), 'blog_id' );
+		}
+
+		return in_array( $blog_id, $sites, true );
 	}
 }
 

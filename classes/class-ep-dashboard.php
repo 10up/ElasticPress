@@ -50,6 +50,7 @@ class EP_Dashboard {
 		add_action( 'network_admin_notices', array( $this, 'maybe_notice' ) );
 		add_filter( 'plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'filter_plugin_action_links' ), 10, 2 );
+		add_action( 'ep_add_query_log', array( $this, 'log_version_query_error' ) );
 	}
 
 	/**
@@ -160,6 +161,7 @@ class EP_Dashboard {
 		}
 
 		$notice = false;
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 
 		$on_settings_page = ( ! empty( $_GET['page'] ) && 'elasticpress-settings' === $_GET['page'] );
 
@@ -168,7 +170,7 @@ class EP_Dashboard {
 		/**
 		 * Bad host notice checks
 		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( $is_network ) {
 			$options_host = get_site_option( 'ep_host' );
 		} else {
 			$options_host = get_option( 'ep_host' );
@@ -183,7 +185,7 @@ class EP_Dashboard {
 			/**
 			 * Feature auto-activated sync notice check
 			 */
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( $is_network ) {
 				$auto_activate_sync = get_site_option( 'ep_feature_auto_activated_sync', false );
 			} else {
 				$auto_activate_sync = get_option( 'ep_feature_auto_activated_sync', false );
@@ -196,7 +198,7 @@ class EP_Dashboard {
 			/**
 			 * Upgrade sync notice check
 			 */
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( $is_network ) {
 				$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
 			} else {
 				$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
@@ -209,7 +211,7 @@ class EP_Dashboard {
 			/**
 			 * Never synced notice check
 			 */
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( $is_network ) {
 				$last_sync = get_site_option( 'ep_last_sync', false );
 			} else {
 				$last_sync = get_option( 'ep_last_sync', false );
@@ -230,6 +232,24 @@ class EP_Dashboard {
 			}
 		}
 
+		// Turn on logging for the version query.
+		$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
+
+		if ( $is_network ) {
+			set_site_transient(
+				'logging_ep_es_info',
+				'1',
+				$cache_time
+			);
+		} else {
+			$a = set_transient(
+				'logging_ep_es_info',
+				'1',
+				$cache_time
+			);
+		}
+
+		// Fetch the ES version.
 		$es_version = ep_get_elasticsearch_version( $force );
 
 		/**
@@ -237,6 +257,16 @@ class EP_Dashboard {
 		 */
 
 		if ( false !== $es_version ) {
+
+			// Clear out any errors.
+			if ( $is_network ) {
+				delete_site_transient( 'ep_es_info_response_code' );
+				delete_site_transient( 'ep_es_info_response_error' );
+			} else {
+				delete_transient( 'ep_es_info_response_code' );
+				delete_transient( 'ep_es_info_response_error' );
+			}
+
 			// First reduce version to major version i.e. 5.1 not 5.1.1
 			$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
@@ -261,7 +291,7 @@ class EP_Dashboard {
 		 * Need setup up notice check
 		 */
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( $is_network ) {
 			$intro_shown = get_site_option( 'ep_intro_shown', false );
 			$skip_intro_shown_notice = get_site_option( 'ep_hide_intro_shown_notice', false );
 		} else {
@@ -277,17 +307,37 @@ class EP_Dashboard {
 
 		switch ( $notice ) {
 			case 'bad-host':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress-settings' );
 					$options_host = get_site_option( 'ep_host' );
+					$response_code = get_site_transient( 'ep_es_info_response_code' );
+					$response_error = get_site_transient( 'ep_es_info_response_error' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress-settings' );
 					$options_host = get_option( 'ep_host' );
+					$response_code = get_transient( 'ep_es_info_response_code' );
+					$response_error = get_transient( 'ep_es_info_response_error' );
 				}
 
 				?>
 				<div class="notice notice-error">
 					<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%s">try your host again</a>, or you may need to <a href="%s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
+
+					<?php if ( ! empty( $response_code ) || ! empty( $response_error ) ) : ?>
+						<p>
+							<?php if ( ! empty( $response_code ) ) : ?>
+								<span class="notice-error-es-response-code">
+									<?php printf( wp_kses_post( __( 'Response Code: %s', 'elasticpress' ) ), esc_html( $response_code ) ); ?>
+								</span>
+							<?php endif; ?>
+
+							<?php if ( ! empty( $response_error ) ) : ?>
+								<span class="notice-error-es-response-error">
+									<?php printf( wp_kses_post( __( 'Error: %s', 'elasticpress' ) ), esc_html( $response_error ) ); ?>
+								</span>
+							<?php endif; ?>
+						</p>
+					<?php endif; ?>
                 </div>
 				<?php
 				break;
@@ -306,7 +356,7 @@ class EP_Dashboard {
 				<?php
 				break;
 			case 'need-setup':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress-intro' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress-intro' );
@@ -319,7 +369,7 @@ class EP_Dashboard {
 				<?php
 				break;
 			case 'no-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
@@ -332,7 +382,7 @@ class EP_Dashboard {
 				<?php
 				break;
 			case 'upgrade-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
@@ -345,7 +395,7 @@ class EP_Dashboard {
 				<?php
 				break;
 			case 'auto-activate-sync':
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				if ( $is_network ) {
 					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
 				} else {
 					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
@@ -384,6 +434,57 @@ class EP_Dashboard {
 		}
 
 		return $notice;
+	}
+
+	/**
+	 * Stores the results of the version query.
+	 *
+	 * @param  array $query The version query.
+	 * @return void
+	 */
+	public function log_version_query_error( $query ) {
+
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		$logging_key = 'logging_ep_es_info';
+
+		if ( $is_network ) {
+			$logging = get_site_transient( $logging_key );
+		} else {
+			$logging = get_transient( $logging_key );
+		}
+
+		// Are we logging the version query results?
+		if ( '1' === $logging ) {
+
+			$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
+			$response_code_key = 'ep_es_info_response_code';
+			$response_error_key = 'ep_es_info_response_error';
+
+			$response_code = 0;
+			$response_error = '';
+
+			if ( ! empty( $query['request'] ) ) {
+				$response_code = absint( wp_remote_retrieve_response_code( $query['request'] ) );
+				$response_error = wp_remote_retrieve_response_message( $query['request'] );
+
+				if ( empty( $response_error ) && is_wp_error( $query['request'] ) ) {
+					$response_error = $query['request']->get_error_message();
+				}
+			}
+
+			// Store the response code, and remove the flag that says
+			// we're logging the response code so we don't log additional
+			// queries.
+			if ( $is_network ) {
+				set_site_transient( $response_code_key, $response_code, $cache_time );
+				set_site_transient( $response_error_key, $response_error, $cache_time );
+				delete_site_transient( $logging_key );
+			} else {
+				set_transient( $response_code_key, $response_code, $cache_time );
+				set_transient( $response_error_key, $response_error, $cache_time );
+				delete_transient( $logging_key );
+			}
+		}
 	}
 
 	/**
@@ -545,7 +646,7 @@ class EP_Dashboard {
 			'ignore_sticky_posts'    => true,
 			'orderby'                => 'ID',
 			'order'                  => 'DESC',
-			'fields' => 'all',
+			'fields'                 => 'ids',
 		) );
 
 		$query = new WP_Query( $args );
@@ -556,24 +657,23 @@ class EP_Dashboard {
 			if ( $query->have_posts() ) {
 				$queued_posts = array();
 
-				while ( $query->have_posts() ) {
-					$query->the_post();
+				foreach ( $query->posts as $post_id ) {
 					$killed_post_count = 0;
 
-					$post_args = ep_prepare_post( get_the_ID() );
+					$post_args = ep_prepare_post( $post_id );
 
-					if ( apply_filters( 'ep_post_sync_kill', false, $post_args, get_the_ID() ) ) {
+					if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
 
 						$killed_post_count++;
 
 					} else { // Post wasn't killed so process it.
 
-						$queued_posts[ get_the_ID() ][] = '{ "index": { "_id": "' . absint( get_the_ID() ) . '" } }';
+						$queued_posts[ $post_id ][] = '{ "index": { "_id": "' . absint( $post_id ) . '" } }';
 
 						if ( function_exists( 'wp_json_encode' ) ) {
-							$queued_posts[ get_the_ID() ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
+							$queued_posts[ $post_id ][] = addcslashes( wp_json_encode( $post_args ), "\n" );
 						} else {
-							$queued_posts[ get_the_ID() ][] = addcslashes( json_encode( $post_args ), "\n" );
+							$queued_posts[ $post_id ][] = addcslashes( json_encode( $post_args ), "\n" );
 						}
 					}
 				}
@@ -783,13 +883,13 @@ class EP_Dashboard {
 				die( esc_html__( 'Security error!', 'elasticpress' ) );
 			}
 
-			$host = esc_url_raw( $_POST['ep_host'] );
+			$host = esc_url_raw( trim( $_POST['ep_host'] ) );
 			update_site_option( 'ep_host', $host );
 
 			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
 			update_site_option( 'ep_prefix', $prefix );
 
-			$credentials = ( isset( $_POST['credentials'] ) ) ? ep_sanitize_credentials( $_POST['credentials'] ) : [
+			$credentials = ( isset( $_POST['ep_credentials'] ) ) ? ep_sanitize_credentials( $_POST['ep_credentials'] ) : [
 				'username' => '',
 				'token'    => '',
 			];
@@ -907,7 +1007,7 @@ class EP_Dashboard {
 
 		add_submenu_page(
 			'elasticpress',
-			'ElasticPress' . esc_html__( 'Settings', 'elasticpress' ),
+			'ElasticPress ' . esc_html__( 'Settings', 'elasticpress' ),
 			esc_html__( 'Settings', 'elasticpress' ),
 			$capability,
 			'elasticpress-settings',

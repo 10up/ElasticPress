@@ -67,10 +67,12 @@ class EPTestRelatedPostsFeature extends EP_Test_Base {
 
 		$related = ep_find_related( $post_id );
 		$this->assertEquals( 1, sizeof( $related ) );
+		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
 
 		add_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 		$related = ep_find_related( $post_id );
 		$this->assertEquals( 2, sizeof( $related ) );
+		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
 		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 	}
 	
