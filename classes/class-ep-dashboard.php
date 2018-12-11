@@ -370,9 +370,9 @@ class EP_Dashboard {
 				break;
 			case 'no-sync':
 				if ( $is_network ) {
-					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+					$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 				} else {
-					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+					$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 				}
 
 				?>
@@ -383,9 +383,9 @@ class EP_Dashboard {
 				break;
 			case 'upgrade-sync':
 				if ( $is_network ) {
-					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+					$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 				} else {
-					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+					$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 				}
 
 				?>
@@ -396,9 +396,9 @@ class EP_Dashboard {
 				break;
 			case 'auto-activate-sync':
 				if ( $is_network ) {
-					$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+					$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 				} else {
-					$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+					$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 				}
 
 				$feature = ep_get_registered_feature( $auto_activate_sync );
@@ -957,9 +957,10 @@ class EP_Dashboard {
 	 * @since  2.1
 	 */
 	public function settings_page() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$current_step = $this->ep_get_config_status();
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && true === $current_step ) {
 			update_site_option( 'ep_intro_shown', true );
-		} else {
+		} elseif ( true === $current_step ) {
 			update_option( 'ep_intro_shown', true );
 		}
 
@@ -972,12 +973,14 @@ class EP_Dashboard {
 	 * @since  2.1
 	 */
 	public function intro_page() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_intro_shown', true );
-		} else {
-			update_option( 'ep_intro_shown', true );
-		}
-
+        $current_step = $this->ep_get_config_status();
+        if ( true === $current_step ) {
+            if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+                update_site_option( 'ep_intro_shown', true );
+            } else {
+                update_option( 'ep_intro_shown', true );
+            }
+        }
 		include( dirname( __FILE__ ) . '/../includes/intro-page.php' );
 	}
 
@@ -1022,6 +1025,25 @@ class EP_Dashboard {
 			'elasticpress-intro',
 			array( $this, 'intro_page' )
 		);
+	}
+
+	/**
+	 * Determines where a user is in the config process
+	 */
+	public function ep_get_config_status() {
+		// default to 2 since we can't ever be on step 1
+		$in_step = 2;
+		if( ep_get_host() ) {
+			$in_step = 3;
+		}
+		if( 3 === $in_step ) {
+			if ( false !== get_option( 'ep_last_sync', false ) ) {
+				//completed the steps
+				$in_step = true;
+			}
+		}
+
+		return $in_step;
 	}
 
 	/**

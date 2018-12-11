@@ -1,5 +1,5 @@
 $tablet-width: 768px;
-$wide-width: 1281px;
+$wide-width: 1065px;
 $status-ok: #6aa000;
 $status-warning: #e3e600;
 $status-error: #ff0000;
@@ -15,15 +15,11 @@ $status-error: #ff0000;
 }
 
 .wrap h1 {
-	color: #626262;
-	margin: .5em 0 2em;
-	font-weight: 600;
-}
-
-@media (min-width: $tablet-width) {
-	.wrap h1 {
-		line-height: 1.75;
-	}
+	font-size: 23px;
+	font-weight: 400;
+	margin: 0;
+	padding: 9px 0 4px;
+	line-height: 29px;
 }
 
 .wrap h2 {
@@ -445,6 +441,9 @@ h2.ep-list-features {
 
 .intro h1 {
 	text-align: center;
+	color: #626262;
+	margin: .5em 0 2em;
+	font-weight: 600;
 }
 
 .intro-container {
@@ -472,6 +471,42 @@ h2.ep-list-features {
 	max-width: 300px;
 }
 
+.intro-container-success {
+	text-align: center;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.intro-container-success p {
+	padding: 0 35% 0 35%;
+	margin-top: 23px;
+}
+
+@media (max-width: $tablet-width) {
+	.intro-container-success p {
+		padding: 0 26%;
+		margin-top: 23px;
+	}
+}
+
+.ep-config-success span {
+	font-size: 6em;
+	padding-right: 75px;
+}
+
+.setup-complete {
+	width: 100%;
+	padding-top: 0;
+	margin-top: 0;
+	font-size: 2em;
+}
+
+.setup-complete h2 {
+	padding-top: 0;
+	margin-top: 0;
+}
+
 .ep-copy-text {
 	padding: 0 15% 0 15%;
 }
@@ -485,7 +520,7 @@ h2.ep-list-features {
 	}
 }
 
-.circle {
+.ep-circle {
 	width: 6em;
 	height: 6em;
 	text-align: center;
@@ -499,7 +534,7 @@ h2.ep-list-features {
 	font-weight: 400;
 }
 
-.circle p {
+.ep-circle p {
 	font-size: 50px;
 	border: 0;
 	margin: 0;
@@ -507,36 +542,36 @@ h2.ep-list-features {
 	font-weight: bold;
 }
 
-.red-circle {
+.red-ep-circle {
 	background-color: #d73c38;
 	color: #fff;
 }
 
-.white-circle::before{
-	content: '';
-	position: absolute;
-	top: 2.9em;
-	left: -11.3em;
-	width: 14em;
-	height: .2em;
-	background: #d4d4d4;
-	z-index: -1;
+.ep-middle-circle::after{
+  content: '';
+  position: absolute;
+  top: 2.9em;
+  left: -14em;
+  width: 34em;
+  height: .2em;
+  background: #d4d4d4;
+  z-index: -1;
 }
 
-@media (max-width: $tablet-width) {
-	.white-circle::before{
-		left: -8em;
-	}
+@media (max-width: $wide-width) {
+  .ep-middle-circle::after{
+    left: -8em;
+    width: 21.9em;
+  }
 }
 
-@media (min-width: $wide-width) {
-	.white-circle::before{
-		left: -18em;
-		width: 24em;
-	}
+@media (min-width: $tablet-width) {
+  .wrap h1 {
+    line-height: 1.75;
+  }
 }
 
-.white-circle {
+.white-ep-circle {
 	color: #626262;
 	background: white;
 }

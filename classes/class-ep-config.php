@@ -353,3 +353,4 @@ function ep_sanitize_credentials( $credentials ) {
 function ep_setup_credentials(){
 	EP_Config::factory()->setup_credentials();
 }
+
