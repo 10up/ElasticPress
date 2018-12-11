@@ -48,7 +48,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			<h2><?php esc_html_e( 'Set up hosting', 'elasticpress' ); ?></h2>
 			<p class="ep-copy-text">
 				<?php echo sprintf( __( 'The next step is to make sure you have a working Elasticsearch server. We recommend creating an %s account or if you want you can set up your own hosting', 'elasticpress' ),
-					'<a href="https://www.elasticpress.io/">ElasticPress.io</a>'
+					'<a href="#">ElasticPress.io</a>'
 				); ?>
 			</p>
 		</div>
