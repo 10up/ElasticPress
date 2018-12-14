@@ -134,8 +134,9 @@ class EP_Facet_Widget extends WP_Widget {
 							<div class="term selected level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
 								<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
 									<input type="checkbox" checked>
-									<?php echo esc_html( $term->name ); ?>
+									<?php echo $this->_term_name( $term ) ?>
 								</a>
+								<?php echo $this->_term_count( $term ) ?>
 							</div>
 						<?php
 						} else {
@@ -197,8 +198,9 @@ class EP_Facet_Widget extends WP_Widget {
 								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 									<a href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>">
 										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?>>
-										<?php echo esc_html( $term->name ); ?>
+										<?php echo $this->_term_name( $term ) ?>
 									</a>
+									<?php echo $this->_term_count( $term ) ?>
 								</div>
 								<?php
 							}
@@ -224,8 +226,9 @@ class EP_Facet_Widget extends WP_Widget {
 					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( ep_facets_build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
 							<input type="checkbox">
-							<?php echo esc_html( $term->name ); ?>
+							<?php echo $this->_term_name( $term ) ?>
 						</a>
+						<?php echo $this->_term_count( $term ) ?>
 					</div>
 				<?php endforeach; ?>
 			</div>
@@ -236,6 +239,28 @@ class EP_Facet_Widget extends WP_Widget {
 		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms );
 
 		echo $args['after_widget'];
+	}
+
+	/**
+	 * Return HTML to display a term name
+	 *
+	 * @param  object $term
+	 * @since  2.8
+	 * @return string
+	 */
+	private function _term_name( $term ) {
+		return '<span class="term-name">' . esc_html( $term->name ) . '</span>';
+	}
+
+	/**
+	 * Return HTML to display a term count
+	 *
+	 * @param  object $term
+	 * @since  2.8
+	 * @return string
+	 */
+	private function _term_count( $term ) {
+		return '<span class="term-count">' . number_format_i18n( $term->count ) . '</span>';
 	}
 
 	/**

@@ -59,6 +59,9 @@
 
 .widget_ep-facet .term a {
 	position: relative;
+	flex-grow: 1;
+	display: flex;
+	align-items: baseline;
 
 	&:after {
 		content: ' ';
@@ -70,4 +73,19 @@
 		position: absolute;
 		z-index: 1;
 	}
+}
+
+.widget_ep-facet .term {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.widget_ep-facet .term a > input {
+	margin-right: .33em;
+}
+
+.widget_ep-facet .term-count {
+	margin-left: .33em;
+	text-align: right;
 }

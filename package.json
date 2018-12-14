@@ -6,7 +6,7 @@
 		"grunt": "*",
 		"grunt-contrib-uglify": "*",
 		"grunt-contrib-watch": "*",
-		"grunt-sass": "*",
+		"grunt-sass": "^2.1.0",
 		"grunt-contrib-cssmin": "*",
 		"load-grunt-tasks": "*",
 		"grunt-autoprefixer": "*",
