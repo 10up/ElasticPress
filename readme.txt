@@ -40,6 +40,11 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.7.1 =
+
+* Introduces 'ep_indexable_blogs' filter allowing developers to specify blogs that should be indexed.
+
+
 = 2.7.0 (Requires re-index) =
 
 ElasticPress 2.7 provides some new enhancements and bug fixes.
