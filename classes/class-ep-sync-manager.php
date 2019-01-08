@@ -303,7 +303,7 @@ class EP_Sync_Manager {
 			$sites = wp_list_pluck( wp_get_sites( $args ), 'blog_id' );
 		}
 
-		return in_array( $blog_id, $sites, true );
+		return in_array( $blog_id, apply_filters( 'ep_indexable_blogs', $sites ), true );
 	}
 }
 
