@@ -770,9 +770,28 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 		}
 
 		$body = wp_remote_retrieve_body( $request );
+		$body = json_decode( $body, true );
+		$results = [];
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sites   = ep_get_sites();
+
+			foreach ( $sites as $site ) {
+				switch_to_blog( $site['blog_id'] );
+
+				if ( isset( $body[ ep_get_index_name() ] ) ) {
+					$results[ ep_get_index_name() ] = $body[ ep_get_index_name() ];
+				}
+
+				restore_current_blog();
+			}
+		} else {
+			$results[ ep_get_index_name() ] = isset( $body[ ep_get_index_name() ] ) ? $body[ ep_get_index_name() ] : [];
+		}
+
 		WP_CLI::line( '' );
 		WP_CLI::line( '====== Status ======' );
-		WP_CLI::line( print_r( $body, true ) );
+		WP_CLI::line( print_r( $results, true ) );
 		WP_CLI::line( '====== End Status ======' );
 	}
 
