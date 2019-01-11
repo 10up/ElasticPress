@@ -46,6 +46,17 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					<?php endif; ?>
 				</td>
 			</tr>
+			<tr>
+				<th scope="row">
+					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Version', 'elasticpress' ); ?></label></th>
+				<td>
+					<?php if ( $version = ep_get_elasticsearch_version() ) : ?>
+						<span class="description"><?php echo esc_html( $version ); ?></span>
+					<?php else : ?>
+						<span class="description">&mdash;</span>
+					<?php endif; ?>
+				</td>
+			</tr>
 			<?php
 			if ( ep_is_epio() && current_user_can( 'manage_options' ) ) {
 				$credentials = ep_get_epio_credentials();
