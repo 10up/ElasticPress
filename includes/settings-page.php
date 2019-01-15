@@ -56,7 +56,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					</th>
 					<td>
 						<?php if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) : ?>
-							<input <?php if ( EP_Config::$option_prefix ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( ep_get_index_prefix() ); ?>" name="ep_prefix" id="ep_prefix">
+							<input <?php if ( EP_Config::$option_prefix ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( substr( ep_get_index_prefix(), 0, -1 ) ); ?>" name="ep_prefix" id="ep_prefix">
 						<?php endif ?>
 						<?php if ( EP_Config::$option_prefix ) : ?>
 							<span class="description"><?php esc_html_e( 'Your Subscription ID is set in wp-config.php', 'elasticpress' ); ?></span>
