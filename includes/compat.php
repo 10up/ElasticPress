@@ -15,7 +15,7 @@
  * @return boolean
  */
 function ep_register_feature( $slug, $args ) {
-	_deprecated_function( __FUNCTION__, '3.0', esc_html__( 'Feature registration API', 'elasticpress' ) );
+	//_deprecated_function( __FUNCTION__, '3.0', esc_html__( 'Feature registration API', 'elasticpress' ) );
 
 	$slug = preg_replace( '#[^a-zA-Z0-9\-\_]#is', '', $slug );
 	$title = ( ! empty( $args['title'] ) ) ? addcslashes( $args['title'], "'" ) : false;
@@ -52,7 +52,7 @@ class $slug extends ElasticPress\Feature {
 			"call_user_func( '$setup_cb' );"
 		:
 			''
-		) .
+		) . "
 	}
 
 	/**
