@@ -75,6 +75,15 @@ abstract class Feature {
 	abstract function output_feature_box_long();
 
 	/**
+	 * Create feature
+	 *
+	 * @since  3.0
+	 */
+	public function __construct() {
+		do_action( 'ep_feature_create', $this );
+	}
+
+	/**
 	 * Returns requirements status of feature
 	 *
 	 * @since  2.2
