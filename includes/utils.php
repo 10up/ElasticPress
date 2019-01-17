@@ -147,7 +147,7 @@ function get_host() {
 		$host = get_option( 'ep_host', false );
 	}
 
-	return $host;
+	return apply_filters( 'ep_host', $host );
 }
 
 /**
