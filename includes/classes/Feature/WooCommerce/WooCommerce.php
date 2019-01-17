@@ -441,12 +441,6 @@ class WooCommerce extends Feature {
 			$query->query['suppress_filters'] = false;
 			$query->set( 'suppress_filters', false );
 
-			$orderby = $query->get( 'orderby' );
-
-			if ( ! empty( $orderby ) && 'rand' === $orderby ) {
-				$query->set( 'orderby', false ); // Just order by relevance.
-			}
-
 			$s = $query->get( 's' );
 
 			$query->query_vars['ep_integrate'] = true;
