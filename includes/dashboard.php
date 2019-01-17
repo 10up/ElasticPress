@@ -43,6 +43,55 @@ function setup() {
 	add_action( 'network_admin_notices', __NAMESPACE__ . '\maybe_notice' );
 	add_filter( 'plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_filter( 'network_admin_plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
+	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
+}
+
+/**
+ * Stores the results of the version query.
+ *
+ * @param  array $query The version query.
+ * @since  3.0
+ */
+public function log_version_query_error( $query ) {
+	$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+
+	$logging_key = 'logging_ep_es_info';
+
+	if ( $is_network ) {
+		$logging = get_site_transient( $logging_key );
+	} else {
+		$logging = get_transient( $logging_key );
+	}
+
+	// Are we logging the version query results?
+	if ( '1' === $logging ) {
+		$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
+		$response_code_key = 'ep_es_info_response_code';
+		$response_error_key = 'ep_es_info_response_error';
+		$response_code = 0;
+		$response_error = '';
+
+		if ( ! empty( $query['request'] ) ) {
+			$response_code = absint( wp_remote_retrieve_response_code( $query['request'] ) );
+			$response_error = wp_remote_retrieve_response_message( $query['request'] );
+			if ( empty( $response_error ) && is_wp_error( $query['request'] ) ) {
+				$response_error = $query['request']->get_error_message();
+			}
+		}
+
+		// Store the response code, and remove the flag that says
+		// we're logging the response code so we don't log additional
+		// queries.
+		if ( $is_network ) {
+			set_site_transient( $response_code_key, $response_code, $cache_time );
+			set_site_transient( $response_error_key, $response_error, $cache_time );
+			delete_site_transient( $logging_key );
+		} else {
+			set_transient( $response_code_key, $response_code, $cache_time );
+			set_transient( $response_error_key, $response_error, $cache_time );
+			delete_transient( $logging_key );
+		}
+	}
 }
 
 /**
@@ -225,6 +274,24 @@ function maybe_notice( $force = false ) {
 		}
 	}
 
+	// Turn on logging for the version query.
+	$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		set_site_transient(
+			'logging_ep_es_info',
+			'1',
+			$cache_time
+		);
+	} else {
+		$a = set_transient(
+			'logging_ep_es_info',
+			'1',
+			$cache_time
+		);
+	}
+
+	// Fetch ES version
 	$es_version = Elasticsearch::factory()->get_elasticsearch_version( $force );
 
 	/**
@@ -232,6 +299,15 @@ function maybe_notice( $force = false ) {
 	 */
 
 	if ( false !== $es_version ) {
+		// Clear out any errors.
+		if ( $is_network ) {
+			delete_site_transient( 'ep_es_info_response_code' );
+			delete_site_transient( 'ep_es_info_response_error' );
+		} else {
+			delete_transient( 'ep_es_info_response_code' );
+			delete_transient( 'ep_es_info_response_error' );
+		}
+
 		// First reduce version to major version i.e. 5.1 not 5.1.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
@@ -275,14 +351,34 @@ function maybe_notice( $force = false ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$url          = admin_url( 'network/admin.php?page=elasticpress-settings' );
 				$options_host = get_site_option( 'ep_host' );
+				$response_code = get_site_transient( 'ep_es_info_response_code' );
+				$response_error = get_site_transient( 'ep_es_info_response_error' );
 			} else {
 				$url          = admin_url( 'admin.php?page=elasticpress-settings' );
 				$options_host = get_option( 'ep_host' );
+				$response_code = get_transient( 'ep_es_info_response_code' );
+				$response_error = get_transient( 'ep_es_info_response_error' );
 			}
 
 			?>
 			<div class="notice notice-error">
 				<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%1$s">try your host again</a>, or you may need to <a href="%2$s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
+
+				<?php if ( ! empty( $response_code ) || ! empty( $response_error ) ) : ?>
+					<p>
+						<?php if ( ! empty( $response_code ) ) : ?>
+							<span class="notice-error-es-response-code">
+								<?php printf( wp_kses_post( __( 'Response Code: %s', 'elasticpress' ) ), esc_html( $response_code ) ); ?>
+							</span>
+						<?php endif; ?>
+
+						<?php if ( ! empty( $response_error ) ) : ?>
+							<span class="notice-error-es-response-error">
+								<?php printf( wp_kses_post( __( 'Error: %s', 'elasticpress' ) ), esc_html( $response_error ) ); ?>
+							</span>
+						<?php endif; ?>
+					</p>
+				<?php endif; ?>
 			</div>
 			<?php
 			break;
