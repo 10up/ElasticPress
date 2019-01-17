@@ -72,6 +72,13 @@ abstract class SyncManager {
 			return;
 		}
 
+		/**
+		 * Backwards compat for pre-3.0
+		 */
+		foreach ( $this->sync_queue as $object_id => $value ) {
+			do_action( 'ep_sync_on_meta_update', $object_id );
+		}
+
 		// Bulk sync them all.
 		Indexables::factory()->get( $this->indexable_slug )->bulk_index( array_keys( $this->sync_queue ) );
 

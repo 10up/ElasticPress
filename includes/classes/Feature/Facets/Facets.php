@@ -36,6 +36,8 @@ class Facets extends Feature {
 		$this->default_settings         = [
 			'match_type' => 'all',
 		];
+
+		parent::__construct();
 	}
 
 	/**

@@ -36,6 +36,7 @@ class Autosuggest extends Feature {
 			'endpoint_url' => '',
 		];
 
+		parent::__construct();
 	}
 
 	/**

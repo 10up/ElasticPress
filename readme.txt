@@ -40,6 +40,13 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.0 =
+
+Actions Removed:
+
+* `ep_feature_setup`
+* `ep_wp_query_search`
+
 = 2.6.1 =
 
 * Resolves issue of missing file for wp-cli.

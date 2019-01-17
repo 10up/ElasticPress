@@ -27,6 +27,8 @@ class Documents extends Feature {
 		$this->title = esc_html__( 'Documents', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
+
+		parent::__construct();
 	}
 
 	/**

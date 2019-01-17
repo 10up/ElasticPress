@@ -31,6 +31,8 @@ class WooCommerce extends Feature {
 		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
+
+		parent::__construct();
 	}
 
 	/**

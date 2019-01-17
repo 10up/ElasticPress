@@ -29,6 +29,8 @@ class ProtectedContent extends Feature {
 		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
+
+		parent::__construct();
 	}
 
 	/**

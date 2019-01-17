@@ -23,6 +23,8 @@ class Users extends Feature {
 		$this->slug = 'users';
 
 		$this->title = esc_html__( 'User Search', 'elasticpress' );
+
+		parent::__construct();
 	}
 
 	/**

@@ -27,6 +27,8 @@ class RelatedPosts extends Feature {
 		$this->title = esc_html__( 'Related Posts', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
+
+		parent::__construct();
 	}
 
 	/**

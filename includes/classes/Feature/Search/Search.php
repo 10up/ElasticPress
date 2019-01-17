@@ -31,6 +31,8 @@ class Search extends Feature {
 		$this->default_settings         = [
 			'decaying_enabled' => true,
 		];
+
+		parent::__construct();
 	}
 
 	/**

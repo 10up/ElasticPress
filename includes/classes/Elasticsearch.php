@@ -91,6 +91,13 @@ class Elasticsearch {
 
 		$request = $this->remote_request( $path, $request_args, [], 'index' );
 
+		/**
+		 * Backwards compat for pre-3.0
+		 */
+		do_action( 'ep_index_post_retrieve_raw_response', $request, $document, $path );
+
+		do_action( 'ep_index_retrieve_raw_response', $request, $document, $path );
+
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
@@ -98,6 +105,13 @@ class Elasticsearch {
 		} else {
 			$return = false;
 		}
+
+		/**
+		 * Backwards compat for pre-3.0
+		 */
+		do_action( 'ep_after_index_post', $document, $return );
+
+		do_action( 'ep_after_index', $document, $return );
 
 		return $return;
 	}
