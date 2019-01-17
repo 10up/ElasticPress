@@ -217,6 +217,28 @@ function is_network_activated( $plugin ) {
 	return false;
 }
 
+/**
+ * Prepare credentials if they are set for future use.
+ */
+function setup_credentials(){
+	if ( ! defined( 'EP_INDEX_PREFIX' ) ) {
+		$index_prefix = get_index_prefix();
+
+		if ( $index_prefix ) {
+			$index_prefix = ( is_epio() && '-' !== substr( $index_prefix, - 1 ) ) ? $index_prefix . '-' : $index_prefix;
+
+			define( 'EP_INDEX_PREFIX', $index_prefix );
+		}
+	} else {
+		self::$option_prefix = true;
+	}
+	if ( ! defined( 'ES_SHIELD' ) && is_epio() ) {
+		$credentials = get_epio_credentials();
+
+		define( 'ES_SHIELD', $credentials['username'] . ':' . $credentials['token'] );
+	}
+}
+
 
 /**
  * Performant utility function for building a term tree.

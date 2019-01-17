@@ -770,13 +770,13 @@ function action_admin_init() {
 			die( esc_html__( 'Security error!', 'elasticpress' ) );
 		}
 
-		$host = esc_url_raw( $_POST['ep_host'] );
+		$host = esc_url_raw( trim( $_POST['ep_host'] ) );
 		update_site_option( 'ep_host', $host );
 
 		$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
 		update_site_option( 'ep_prefix', $prefix );
 
-		$credentials = ( isset( $_POST['credentials'] ) ) ? Utils\sanitize_credentials( $_POST['credentials'] ) : [
+		$credentials = ( isset( $_POST['ep_credentials'] ) ) ? Utils\sanitize_credentials( $_POST['ep_credentials'] ) : [
 			'username' => '',
 			'token'    => '',
 		];

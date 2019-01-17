@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 5.0
+Tested up to: 5.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -46,6 +46,18 @@ Actions Removed:
 
 * `ep_feature_setup`
 * `ep_wp_query_search`
+
+= 2.7.0 (Requires re-index) =
+
+ElasticPress 2.7 provides some new enhancements and bug fixes.
+
+* Prevent indexing when blog is deleted or not public.
+* Do not apply absint to comment_status.
+* ElasticPress.io credentials bugfix.
+* Related posts bugfix.
+* Random WooCommerce ordering allowed.
+* Query only post IDs when indexing. (Props [elliott-stocks](https://github.com/elliott-stocks))
+* Better error notices. (Props [petenelson](https://github.com/petenelson))
 
 = 2.6.1 =
 
