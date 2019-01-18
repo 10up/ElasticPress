@@ -417,7 +417,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -621,17 +621,22 @@ class Command extends WP_CLI_Command {
 			$query_args['offset'] = absint( $args['offset'] );
 		}
 
-		$per_page = $indexable->get_bulk_items_per_page();
-
-		if ( ! empty( $args['per-page'] ) ) {
-			$query_args['per_page'] = absint( $args['per-page'] );
-			$per_page               = $query_args['per_page'];
+		if ( ! empty( $args['post-ids'] ) ) {
+			$args['include'] = $args['post-ids'];
 		}
 
 		if ( ! empty( $args['include'] ) ) {
 			$include               = explode( ',', str_replace( ' ', '', $assoc_args['include'] ) );
 			$query_args['include'] = array_map( 'absint', $include );
+			$args['per-page']      = count( $query_args['include'] );
 		}
+
+		$per_page = $indexable->get_bulk_items_per_page();
+
+		if ( ! empty( $args['per-page'] ) ) {
+			$query_args['per_page'] = absint( $args['per-page'] );
+			$per_page               = $query_args['per_page'];
+		}=
 
 		if ( ! empty( $args['post_type'] ) ) {
 			$query_args['post_type'] = str_replace( ' ', '', $assoc_args['post_type'] );
