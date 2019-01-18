@@ -132,14 +132,16 @@ class Widget extends WP_Widget {
 		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
 		?>
 
-		<div class="terms 
+		<div class="terms
 		<?php
 		if ( count( $terms_by_slug ) > $search_threshold ) :
 			?>
 searchable<?php endif; ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
-			<?php endif; ?>
+			<?php endif;
+			ob_start();
+			?>
 
 			<div class="inner">
 				<?php if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) ) : ?>
@@ -222,7 +224,7 @@ searchable<?php endif; ?>">
 									$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 								}
 								?>
-								<div class="term 
+								<div class="term
 								<?php
 								if ( empty( $term->count ) ) :
 									?>
@@ -231,7 +233,7 @@ if ( $selected ) :
 	?>
 selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
-										<input type="checkbox" 
+										<input type="checkbox"
 										<?php
 										if ( $selected ) :
 											?>
@@ -262,12 +264,12 @@ checked<?php endif; ?>>
 
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 					?>
-					<div class="term 
+					<div class="term
 					<?php
 					if ( empty( $term->count ) ) :
 						?>
 empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a 
+						<a
 						<?php
 						if ( ! empty( $term->count ) ) :
 							?>
@@ -280,6 +282,9 @@ href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php
 			</div>
 		</div>
 		<?php
+		$facet_html = ob_get_clean();
+		//Allows developers to modify widget html
+		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms );
 
 		echo $args['after_widget'];
 	}
