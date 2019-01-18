@@ -52,7 +52,7 @@ function setup() {
  * @param  array $query The version query.
  * @since  3.0
  */
-public function log_version_query_error( $query ) {
+function log_version_query_error( $query ) {
 	$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 
 	$logging_key = 'logging_ep_es_info';

@@ -229,9 +229,8 @@ function setup_credentials(){
 
 			define( 'EP_INDEX_PREFIX', $index_prefix );
 		}
-	} else {
-		self::$option_prefix = true;
 	}
+
 	if ( ! defined( 'ES_SHIELD' ) && is_epio() ) {
 		$credentials = get_epio_credentials();
 
