@@ -300,7 +300,7 @@ function maybe_notice( $force = false ) {
 
 	if ( false !== $es_version ) {
 		// Clear out any errors.
-		if ( $is_network ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_es_info_response_code' );
 			delete_site_transient( 'ep_es_info_response_error' );
 		} else {
