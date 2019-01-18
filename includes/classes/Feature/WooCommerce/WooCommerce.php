@@ -535,6 +535,14 @@ class WooCommerce extends Feature {
 			}
 
 			/**
+			 * Set orderby and order for price when GET param not set
+			 */
+			if( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
+				$query->set( 'order', $query->query_vars['order'] );
+				$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+			}
+
+			/**
 			 * Set orderby from GET param
 			 * Also make sure the orderby param affects only the main query
 			 */
