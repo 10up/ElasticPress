@@ -18,6 +18,8 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 } else {
 	$index_meta = get_option( 'ep_index_meta', false );
 }
+
+$ep_host = ep_get_host();
 ?>
 
 <?php require_once( dirname( __FILE__ ) . '/header.php' ); ?>
@@ -34,10 +36,11 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			<tbody>
 			<tr>
 				<th scope="row">
-					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ); ?></label></th>
+					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ); ?></label>
+				</th>
 				<td>
 					<?php if ( apply_filters( 'ep_admin_show_host', true ) ) : ?>
-						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( ep_get_host() ); ?>" name="ep_host" id="ep_host">
+						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( $ep_host ); ?>" name="ep_host" id="ep_host">
 					<?php endif ?>
 					<?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>
 						<span class="description"><?php esc_html_e( 'Your Elasticsearch host is set in wp-config.php', 'elasticpress' ); ?></span>
@@ -84,7 +87,18 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 						<span class="description"><?php esc_html_e( 'Plug in your subscription token here.', 'elasticpress' ); ?></span>
 					</td>
 				</tr>
-			<?php } ?>
+			<?php }
+			if ( ! empty( $ep_host ) && ! has_filter( 'ep_index_posts_per_page' ) ) {
+				?>
+			<th scope="row">
+				<label for="ep_bulk_setting"><?php esc_html_e( 'Post index per cycle ', 'elasticpress' ); ?></label>
+			</th>
+				<td>
+					<input type="text" name="ep_bulk_setting" id="ep_bulk_setting" value="<?php echo esc_html( ep_get_bulk_settings() ); ?>">
+				</td>
+				<?php
+			}
+			?>
 			</tbody>
 		</table>
 
