@@ -47,6 +47,9 @@ Actions Removed:
 * `ep_feature_setup`
 * `ep_wp_query_search`
 
+Filters changed:
+* `ep_post_sync_kill` - Removed `$post_args` argument.
+
 = 2.7.0 (Requires re-index) =
 
 ElasticPress 2.7 provides some new enhancements and bug fixes.

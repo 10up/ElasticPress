@@ -40,12 +40,44 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+	}
+
+	/**
+	 * Check to see if current site is indexable (public).
+	 *
+	 * @since  3.0
+	 * @return bool
+	 */
+	protected function is_site_indexable() {
+		if ( ! is_multisite() ) {
+			return true;
+		}
+
+		$blog_id = get_current_blog_id();
+
+		$args = array(
+			'fields'            => 'ids',
+			'public'            => 1,
+			'archived'          => 0,
+			'spam'              => 0,
+			'deleted'           => 0,
+			'update_site_cache' => false,
+		);
+
+		if ( function_exists( 'get_sites' ) ) {
+			$sites = get_sites( $args );
+		} else {
+			$sites = wp_list_pluck( wp_get_sites( $args ), 'blog_id' );
+		}
+
+		return in_array( $blog_id, $sites, true );
 	}
 
 	/**
@@ -79,6 +111,10 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
+				if ( apply_filters( 'ep_post_sync_kill', false, $object_id ) || ! $this->is_site_indexable() ) {
+					return;
+				}
+
 				$this->sync_queue[ $object_id ] = true;
 			}
 		}
@@ -152,6 +188,11 @@ class SyncManager extends SyncManagerAbstract {
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				do_action( 'ep_sync_on_transition', $post_id );
+
+
+				if ( apply_filters( 'ep_post_sync_kill', false, $post_id ) || ! $this->is_site_indexable() ) {
+					return;
+				}
 
 				$this->sync_queue[ $post_id ] = true;
 			}
