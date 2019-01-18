@@ -56,12 +56,16 @@ class ProtectedContent extends Feature {
 	 * @return  array
 	 */
 	public function post_types( $post_types ) {
-		$all_post_types = get_post_types();
+		// Let's get non public post types first
+		$pc_post_types = get_post_types( array( 'public' => false ) );
 
 		// We don't want to deal with nav menus
-		unset( $all_post_types['nav_menu_item'] );
+		if ( $pc_post_types['nav_menu_item'] ) {
+			unset( $pc_post_types['nav_menu_item'] );
+		}
 
-		return array_unique( array_merge( $post_types, $all_post_types ) );
+		// Merge non public post types with any pre-filtered post_type
+		return array_merge( $post_types, $pc_post_types);
 	}
 
 	/**
