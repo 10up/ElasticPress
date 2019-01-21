@@ -449,6 +449,8 @@ function ep_facets_build_query_url( $filters ) {
 		}
 	}
 
+	$query_string = apply_filters( 'ep_facet_query_string', $query_string );
+
 	return strtok( $_SERVER['REQUEST_URI'], '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
 }
 
