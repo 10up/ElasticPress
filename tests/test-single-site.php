@@ -2561,33 +2561,6 @@ class EPTestSingleSite extends EP_Test_Base {
 
 
 	/**
-	 * Test if $post object values exist after receiving odd values from the 'ep_search_post_return_args' filter.
-	 *
-	 * @link https://github.com/10up/ElasticPress/issues/306
-	 * @group single-site
-	 */
-	public function testPostReturnArgs() {
-		add_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
-		ep_create_and_sync_post( array( 'post_content' => 'findme' ) );
-		ep_refresh_index();
-		$args	 = array(
-			's' => 'findme'
-		);
-		$query	 = new WP_Query( $args );
-		remove_filter( 'ep_search_post_return_args', array( $this, 'ep_search_post_return_args_filter' ) );
-	}
-
-	/**
-	 * Adds fake_item to post_return_args.
-	 * @param array $args
-	 * @return string
-	 */
-	public function ep_search_post_return_args_filter( $args ) {
-		$args[] = 'fake_item';
-		return $args;
-	}
-
-	/**
 	 * Helper method for mocking indexable post statuses
 	 *
 	 * @param   array $post_statuses
