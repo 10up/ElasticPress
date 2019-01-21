@@ -1928,8 +1928,10 @@ class EP_API {
 						case 'like':
 							if ( isset( $single_meta_query['value'] ) ) {
 								$terms_obj = array(
-									'wildcard' => array(
-										$meta_key_path => $single_meta_query['value'] . '*',
+									'query' => array(
+										'match' => array(
+											$meta_key_path => $single_meta_query['value'],
+										)
 									),
 								);
 							}
