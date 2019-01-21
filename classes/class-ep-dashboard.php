@@ -42,6 +42,7 @@ class EP_Dashboard {
 		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_admin_scripts' ) );
 		add_action( 'admin_init', array( $this, 'action_admin_init' ) );
 		add_action( 'admin_init', array( $this, 'intro_or_dashboard' ) );
+		add_action( 'admin_init', array( $this, 'intro_after_host' ) );
 		add_action( 'plugins_loaded', array( $this, 'maybe_clear_es_info_cache' ) );
 		add_action( 'wp_ajax_ep_index', array( $this, 'action_wp_ajax_ep_index' ) );
 		add_action( 'wp_ajax_ep_notice_dismiss', array( $this, 'action_wp_ajax_ep_notice_dismiss' ) );
@@ -957,7 +958,7 @@ class EP_Dashboard {
 	 * @since  2.1
 	 */
 	public function settings_page() {
-		$current_step = $this->ep_get_config_status();
+		$current_step = $this->get_config_status();
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && true === $current_step ) {
 			update_site_option( 'ep_intro_shown', true );
 		} elseif ( true === $current_step ) {
@@ -973,7 +974,7 @@ class EP_Dashboard {
 	 * @since  2.1
 	 */
 	public function intro_page() {
-        $current_step = $this->ep_get_config_status();
+        $current_step = $this->get_config_status();
         if ( true === $current_step ) {
             if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
                 update_site_option( 'ep_intro_shown', true );
@@ -1029,21 +1030,57 @@ class EP_Dashboard {
 
 	/**
 	 * Determines where a user is in the config process
+	 *
+	 * @return bool|int true if setup done
 	 */
-	public function ep_get_config_status() {
-		// default to 2 since we can't ever be on step 1
-		$in_step = 2;
-		if( ep_get_host() ) {
-			$in_step = 3;
-		}
-		if( 3 === $in_step ) {
-			if ( false !== get_option( 'ep_last_sync', false ) ) {
-				//completed the steps
+	public function get_config_status() {
+	    $ep_host = ep_get_host();
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( ! get_site_option( 'ep_intro_shown', false ) ) {
+				$in_step = 2;
+				if( $ep_host && false !== ep_get_elasticsearch_version( true ) ) {
+					$in_step = 3;
+				}
+				if( 3 === $in_step && false !== get_site_option( 'ep_last_sync', false ) ) {
+					$in_step = true;
+				}
+			} else {
+				$in_step = true;
+			}
+		} else {
+			if ( ! get_option( 'ep_intro_shown', false ) ) {
+				$in_step = 2;
+				if( $ep_host ) {
+					$in_step = 3;
+				}
+				if( 3 === $in_step && false !== get_option( 'ep_last_sync', false ) ) {
+					$in_step = true;
+				}
+			} else {
 				$in_step = true;
 			}
 		}
 
 		return $in_step;
+	}
+
+	/**
+	 * Redirect to the intro page after setting host for the first time
+	 *
+	 */
+	public function intro_after_host() {
+		$doing_sync = isset( $_GET['do_sync'] );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( 3 === $this->get_config_status() && ! get_site_option( 'ep_intro_shown' ) && 'elasticpress-settings' === $_GET["page"] && ! $doing_sync ) {
+				wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+				exit();
+			}
+		} else {
+			if ( 3 === $this->get_config_status() && ! get_option( 'ep_intro_shown' ) && 'elasticpress-settings' === $_GET["page"] && ! $doing_sync) {
+				wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+				exit();
+			}
+		}
 	}
 
 	/**
@@ -1065,3 +1102,7 @@ class EP_Dashboard {
 }
 
 EP_Dashboard::factory();
+
+function ep_get_config_status() {
+	return EP_Dashboard::factory()->get_config_status();
+}

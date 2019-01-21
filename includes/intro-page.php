@@ -15,6 +15,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 } else {
 	$setup_url = admin_url( 'admin.php?page=elasticpress-settings' );
 }
+$sync_url  = $setup_url . '&do_sync';
 ?>
 
 <?php require_once( dirname( __FILE__ ) . '/header.php' ); ?>
@@ -58,16 +59,19 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			</div>
 			<h2><?php esc_html_e( 'Index your content', 'elasticpress' ); ?></h2>
 			<p class="ep-copy-text">
-				<?php echo sprintf( __( '%sClick here%s to index your content through ElasticPress. You can also activate optional Features such as Protected Content and Autosuggest in the %sSettings%s page', 'elasticpress' ),
-					'<a href="' . esc_url( admin_url( 'admin.php?page=elasticpress-settings&do_sync' ) ) . '">',
-				'</a>',
-					'<a href="' . esc_url( admin_url( 'admin.php?page=elasticpress' ) ) . '">',
-					'</a>'
-				); ?>
+				<?php esc_html_e( 'Click below to index your content through ElasticPress. You can also activate optional Features such as Protected Content and Autosuggest in the Features page', 'elasticpress' ); ?>
 		</div>
 	</div>
 	<div class="setup-message">
+		<?php if ( 3 === ep_get_config_status() ) {
+			?>
+		<a class="setup-button" href="<?php echo esc_url( $sync_url ); ?>"><?php esc_html_e( 'Index Your Content', 'elasticpress' ); ?></a>
+		<?php
+		} else {
+			?>
 		<a class="setup-button" href="<?php echo esc_url( $setup_url ); ?>"><?php esc_html_e( 'Got hosting? Get Started', 'elasticpress' ); ?></a>
+		<?php
+		} ?>
 	</div>
 </div>
 <?php endif; ?>
