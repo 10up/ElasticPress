@@ -68,6 +68,10 @@ Suggest relevant content as text is entered into the search field.
 
 Add controls to your website to filter content by one or more taxonomies.
 
+### Users (requires WordPress 5.1+)
+
+Improve user search performance and relevancy.
+
 ## `WP_Query` and the ElasticPress Query Integration
 
 ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.

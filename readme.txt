@@ -30,6 +30,8 @@ __Autosuggest__: Suggest relevant content as text is entered into the search fie
 
 __Facets__: Suggest relevant content as text is entered into the search field.
 
+__Users__: Improve user search performance and relevancy.
+
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
@@ -42,7 +44,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 3.0 (Requires re-index) =
 
-3.0 is a refactor of ElasticPress for modern coding standards (PHP 5.4 required) as well as the introduction to indexables. Indexables abstracts out content types so data types other than post can be indexed and searched. 3.0 includes user indexing and search (integration with WP_User_Query).
+3.0 is a refactor of ElasticPress for modern coding standards (PHP 5.4 required) as well as the introduction to indexables. Indexables abstracts out content types so data types other than post can be indexed and searched. 3.0 includes user indexing and search (integration with WP_User_Query). User features require at least WordPress version 5.1.
 
 The refactor changes a lot of ElasticPress internals. The biggest change is the feature registration API has completely changed. Now, new features should extend the `ElasticPress\Feature` class rather than calling `ep_register_feature`. Older features should be backwards compatible. However, if you are using the `EP_Feature_Requirements_Status` has been renamed to `ElasticPress\FeatureRequirementsStatus`.
 
