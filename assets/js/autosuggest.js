@@ -78,7 +78,7 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 	}
 
 	if ( postStatus === '' ) {
-		postType = 'publish'
+		postStatus = 'publish'
 	}
 
 	var query = {
