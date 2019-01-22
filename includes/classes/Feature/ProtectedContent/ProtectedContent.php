@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\ProtectedContent;
 
 use ElasticPress\Utils as Utils;
 use ElasticPress\Feature as Feature;
+use ElasticPress\Features as Features;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -119,6 +120,15 @@ class ProtectedContent extends Feature {
 				$query->set( 'ep_integrate', true );
 			}
 		}
+
+		/**
+		 * Remove articles weighting by date in admin.
+		 *
+		 * @since 3.0
+		 */
+		$search_feature = Features::factory()->get_registered_feature( 'search' );
+
+		remove_filter( 'ep_formatted_args', [ $search_feature, 'weight_recent' ], 10 );
 	}
 
 	/**
