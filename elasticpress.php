@@ -89,7 +89,7 @@ global $wp_version;
  */
 Indexables::factory()->register( new Indexable\Post\Post() );
 
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-beta') ) {
+if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-') ) {
 	Indexables::factory()->register( new Indexable\User\User() );
 }
 
@@ -124,7 +124,7 @@ Features::factory()->register_feature(
 	new Feature\Documents\Documents()
 );
 
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-beta') ) {
+if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-') ) {
 	Features::factory()->register_feature(
 		new Feature\Users\Users()
 	);
