@@ -82,11 +82,16 @@ if ( $network_activated ) {
 	define( 'EP_IS_NETWORK', true );
 }
 
+global $wp_version;
+
 /**
  * Handle indexables
  */
 Indexables::factory()->register( new Indexable\Post\Post() );
-Indexables::factory()->register( new Indexable\User\User() );
+
+if ( version_compare( $wp_version, '5.1', '>=' ) ) {
+	Indexables::factory()->register( new Indexable\User\User() );
+}
 
 /**
  * Handle features
@@ -119,9 +124,11 @@ Features::factory()->register_feature(
 	new Feature\Documents\Documents()
 );
 
-Features::factory()->register_feature(
-	new Feature\Users\Users()
-);
+if ( version_compare( $wp_version, '5.1', '>=' ) ) {
+	Features::factory()->register_feature(
+		new Feature\Users\Users()
+	);
+}
 
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
