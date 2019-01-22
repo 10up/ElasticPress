@@ -74,7 +74,7 @@ class Elasticsearch {
 	 */
 	public function index_document( $index, $type, $document, $blocking = true ) {
 
-		$path = apply_filters( 'ep_index_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
+		$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );

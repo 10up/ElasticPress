@@ -88,6 +88,10 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		if ( apply_filters( 'ep_user_sync_kill', false, $user_id ) ) {
+			return;
+		}
+
 		$this->sync_queue[ $user_id ] = true;
 	}
 }
