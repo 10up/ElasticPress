@@ -41,7 +41,9 @@ function get_epio_credentials() {
  * @return string|bool
  */
 function get_shield_credentials() {
-	if ( ! defined( 'ES_SHIELD' ) && is_epio() ) {
+	if ( defined( 'ES_SHIELD' ) && ES_SHIELD ) {
+		return ES_SHIELD;
+	} elseif ( is_epio() ) {
 		$credentials = get_epio_credentials();
 
 		return $credentials['username'] . ':' . $credentials['token'];
@@ -59,11 +61,15 @@ function get_shield_credentials() {
  */
 function get_index_prefix() {
 	if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
-		return EP_INDEX_PREFIX;
+		$prefix = EP_INDEX_PREFIX;
 	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
 		$prefix = get_site_option( 'ep_prefix', false );
 	} elseif ( is_epio() ) {
 		$prefix = get_option( 'ep_prefix', false );
+
+		if ( '-' !== substr( $prefix, - 1 ) ) {
+			$prefix .= '-';
+		}
 	} else {
 		$prefix = '';
 	}
@@ -215,27 +221,6 @@ function is_network_activated( $plugin ) {
 	}
 
 	return false;
-}
-
-/**
- * Prepare credentials if they are set for future use.
- */
-function setup_credentials(){
-	if ( ! defined( 'EP_INDEX_PREFIX' ) ) {
-		$index_prefix = get_index_prefix();
-
-		if ( $index_prefix ) {
-			$index_prefix = ( is_epio() && '-' !== substr( $index_prefix, - 1 ) ) ? $index_prefix . '-' : $index_prefix;
-
-			define( 'EP_INDEX_PREFIX', $index_prefix );
-		}
-	}
-
-	if ( ! defined( 'ES_SHIELD' ) && is_epio() ) {
-		$credentials = get_epio_credentials();
-
-		define( 'ES_SHIELD', $credentials['username'] . ':' . $credentials['token'] );
-	}
 }
 
 
