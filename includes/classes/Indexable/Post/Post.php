@@ -959,6 +959,32 @@ class Post extends Indexable {
 		}
 
 		/**
+		 * Sticky posts support
+		 */
+
+		// Check first if there's sticky posts and show them only in the front page
+		$sticky_posts = get_option( 'sticky_posts' );
+
+		if( false !== $sticky_posts
+			&& is_home()
+			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ) ) ) {
+			//let's eliminate sort so it does not mess with function_score results
+			$formatted_args['sort'] = array();
+			$formatted_args_query = $formatted_args['query'];
+			$formatted_args['query'] = array();
+			$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+			$formatted_args['query']['function_score']['functions'] = array(
+			//add extra weight to sticky posts to show them on top
+				(object) array(
+					'filter' => array(
+						'terms' => array( '_id' => $sticky_posts )
+					),
+					'weight' => 2
+				)
+			);
+		}
+
+		/**
 		 * If not set default to post. If search and not set, default to "any".
 		 */
 		if ( ! empty( $args['post_type'] ) ) {
