@@ -77,6 +77,9 @@ class Post extends Indexable {
 
 		$args = apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) );
 
+		// Backwards compat with pre-3.0
+		$args = apply_filters( 'ep_index_posts_args', $args );
+
 		$query = new WP_Query( $args );
 
 		return [
