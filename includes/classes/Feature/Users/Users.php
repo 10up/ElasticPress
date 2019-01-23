@@ -42,25 +42,6 @@ class Users extends Feature {
 	 * @since  3.0
 	 */
 	public function search_setup() {
-		/**
-		 * By default EP will not integrate on admin or ajax requests. Since admin-ajax.php is
-		 * technically an admin request, there is some weird logic here. If we are doing ajax
-		 * and ep_ajax_wp_query_integration is filtered true, then we skip the next admin check.
-		 */
-		$admin_integration = apply_filters( 'ep_admin_wp_user_query_integration', false );
-
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
-				return;
-			} else {
-				$admin_integration = true;
-			}
-		}
-
-		if ( is_admin() && ! $admin_integration ) {
-			return;
-		}
-
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 	}
 
