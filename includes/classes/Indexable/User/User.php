@@ -163,7 +163,7 @@ class User extends Indexable {
 		/**
 		 * Support `meta_key`, `meta_value`, and `meta_compare`
 		 */
-		if ( isset( $query_vars['meta_key'] ) ) {
+		if ( ! empty( $query_vars['meta_key'] ) ) {
 			$meta_query_array = [
 				'key' => $query_vars['meta_key'],
 			];
@@ -532,7 +532,7 @@ class User extends Indexable {
 					);
 				} elseif ( 'user_login' === $orderby_clause || 'login' === $orderby_clause ) {
 					$sort[] = array(
-						'user_login' => array(
+						'user_login.raw' => array(
 							'order' => $order,
 						),
 					);

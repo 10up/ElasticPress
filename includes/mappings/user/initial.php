@@ -153,6 +153,18 @@ return array(
 						),
 					),
 				),
+				'user_login'   => array(
+					'type'   => 'text',
+					'fields' => array(
+						'user_login' => array(
+							'type' => 'text',
+						),
+						'raw'           => array(
+							'type'         => 'keyword',
+							'ignore_above' => 10922,
+						),
+					),
+				),
 				'display_name'    => array(
 					'type'   => 'text',
 					'fields' => array(
