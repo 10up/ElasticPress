@@ -65,7 +65,15 @@ class QueryIntegration {
 				return $results;
 			}
 
-			$new_users = $this->format_hits_as_users( $ep_query['documents'] );
+			if ( 'all_with_meta' === $query->get( 'fields' ) ) {
+				$new_users = [];
+
+				foreach ( $ep_query['documents'] as $document ) {
+					$new_users[] = $document['ID'];
+				}
+			} else {
+				$new_users = $this->format_hits_as_users( $ep_query['documents'] );
+			}
 		}
 
 		$query->total_users = $ep_query['found_documents'];
