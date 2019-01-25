@@ -459,8 +459,12 @@ function ep_wc_translate_args( $query ) {
 				// Remove author_name from this search.
 				$search_fields = ep_wc_remove_author($search_fields);
 
-				// Make sure we search skus on the front end
-				$search_fields['meta'] = array( '_sku' );
+				// Make sure we search skus on the front end and do not override meta search fields
+				if( ! empty( $search_fields['meta'] ) ) {
+					$search_fields['meta'] = array_merge( $search_fields['meta'], array( '_sku' ) );
+				} else {
+					$search_fields['meta'] = array( '_sku' );
+				}
 
 				// Search by proper taxonomies on the front end
 				$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
