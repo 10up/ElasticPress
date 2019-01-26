@@ -362,22 +362,26 @@ function maybe_notice( $force = false ) {
 
 			?>
 			<div class="notice notice-error">
-				<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%1$s">try your host again</a>, or you may need to <a href="%2$s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
+				<?php if ( empty( $host ) ) : ?>
+					<p><?php printf( wp_kses_post( __( 'ElasticPress needs a host to work properly. <a href="%1$s">Please add one.</a>', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
+				<?php else : ?>
+					<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%1$s">try your host again</a>, or you may need to <a href="%2$s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
 
-				<?php if ( ! empty( $response_code ) || ! empty( $response_error ) ) : ?>
-					<p>
-						<?php if ( ! empty( $response_code ) ) : ?>
-							<span class="notice-error-es-response-code">
-								<?php printf( wp_kses_post( __( 'Response Code: %s', 'elasticpress' ) ), esc_html( $response_code ) ); ?>
-							</span>
-						<?php endif; ?>
+					<?php if ( ! empty( $response_code ) || ! empty( $response_error ) ) : ?>
+						<p>
+							<?php if ( ! empty( $response_code ) ) : ?>
+								<span class="notice-error-es-response-code">
+									<?php printf( wp_kses_post( __( 'Response Code: %s', 'elasticpress' ) ), esc_html( $response_code ) ); ?>
+								</span>
+							<?php endif; ?>
 
-						<?php if ( ! empty( $response_error ) ) : ?>
-							<span class="notice-error-es-response-error">
-								<?php printf( wp_kses_post( __( 'Error: %s', 'elasticpress' ) ), esc_html( $response_error ) ); ?>
-							</span>
-						<?php endif; ?>
-					</p>
+							<?php if ( ! empty( $response_error ) ) : ?>
+								<span class="notice-error-es-response-error">
+									<?php printf( wp_kses_post( __( 'Error: %s', 'elasticpress' ) ), esc_html( $response_error ) ); ?>
+								</span>
+							<?php endif; ?>
+						</p>
+					<?php endif; ?>
 				<?php endif; ?>
 			</div>
 			<?php
@@ -912,15 +916,6 @@ function intro_or_dashboard() {
 			wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
 		}
 		exit;
-	} else {
-		if ( empty( $host ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
-			} else {
-				wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
-			}
-			exit;
-		}
 	}
 }
 

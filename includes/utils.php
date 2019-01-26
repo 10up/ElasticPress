@@ -157,22 +157,6 @@ function get_host() {
 }
 
 /**
- * Determine if host is set in options rather than a constant
- *
- * @since  3.0
- * @return bool
- */
-function host_by_option() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$host = get_site_option( 'ep_host', false );
-	} else {
-		$host = get_option( 'ep_host', false );
-	}
-
-	return ( ! empty( $host ) );
-}
-
-/**
  * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
  *
  * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites.
