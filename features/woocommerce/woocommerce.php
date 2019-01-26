@@ -466,9 +466,12 @@ function ep_wc_translate_args( $query ) {
 					$search_fields['meta'] = array( '_sku' );
 				}
 
-				// Search by proper taxonomies on the front end
-				$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
-
+				// Search by proper taxonomies on the front end and do not override taxonomy search fields
+				if( ! empty( $search_fields['taxonomies'] ) ) {
+					$search_fields['meta'] = array_merge( $search_fields['meta'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
+				} else {
+					$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
+				}
 				$query->set( 'search_fields', $search_fields );
 			}
 		} else {
