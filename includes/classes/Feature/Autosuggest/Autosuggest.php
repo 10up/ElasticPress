@@ -177,7 +177,7 @@ class Autosuggest extends Feature {
 	 * @since  2.4
 	 */
 	public function enqueue_scripts() {
-		$host = Utils\get_host();
+		$host         = Utils\get_host();
 		$endpoint_url = false;
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
@@ -224,16 +224,26 @@ class Autosuggest extends Feature {
 		 * postType: which post types to use for suggestions
 		 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 		 */
-		wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
-			'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-			'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
-			'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
-			'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
-				'post_title.suggest',
-				'term_suggest',
-			) ),
-			'action'       => 'navigate',
-		) ) );
+		wp_localize_script(
+			'elasticpress-autosuggest',
+			'epas',
+			apply_filters(
+				'ep_autosuggest_options',
+				array(
+					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
+					'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
+					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
+					'searchFields' => apply_filters(
+						'ep_term_suggest_search_fields',
+						array(
+							'post_title.suggest',
+							'term_suggest',
+						)
+					),
+					'action'       => 'navigate',
+				)
+			)
+		);
 	}
 
 	/**

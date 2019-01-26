@@ -89,7 +89,7 @@ global $wp_version;
  */
 Indexables::factory()->register( new Indexable\Post\Post() );
 
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-') ) {
+if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
 	Indexables::factory()->register( new Indexable\User\User() );
 }
 
@@ -124,7 +124,7 @@ Features::factory()->register_feature(
 	new Feature\Documents\Documents()
 );
 
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-') ) {
+if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
 	Features::factory()->register_feature(
 		new Feature\Users\Users()
 	);
@@ -175,7 +175,8 @@ function handle_upgrades() {
 	 * Reindex if we cross a reindex version in the upgrade
 	 */
 	$reindex_versions = apply_filters(
-		'ep_reindex_versions', array(
+		'ep_reindex_versions',
+		array(
 			'2.2',
 			'2.3.1',
 			'2.4',

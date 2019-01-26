@@ -24,11 +24,17 @@ function get_epio_credentials() {
 	} elseif ( is_epio() ) {
 		$credentials = sanitize_credentials( get_option( 'ep_credentials', false ) );
 	} else {
-		$credentials = [ 'username' => '', 'token' => '' ];
+		$credentials = [
+			'username' => '',
+			'token'    => '',
+		];
 	}
 
 	if ( ! is_array( $credentials ) ) {
-		return [ 'username' => '', 'token' => '' ];
+		return [
+			'username' => '',
+			'token'    => '',
+		];
 	}
 
 	return $credentials;
@@ -96,10 +102,13 @@ function is_epio() {
  */
 function sanitize_credentials( $credentials ) {
 	if ( ! is_array( $credentials ) ) {
-		return [ 'username' => '', 'token' => '' ];
+		return [
+			'username' => '',
+			'token'    => '',
+		];
 	}
 
- 	return [
+	return [
 		'username' => ( isset( $credentials['username'] ) ) ? sanitize_text_field( $credentials['username'] ) : '',
 		'token'    => ( isset( $credentials['token'] ) ) ? sanitize_text_field( $credentials['token'] ) : '',
 	];

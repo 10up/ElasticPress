@@ -65,14 +65,14 @@ function log_version_query_error( $query ) {
 
 	// Are we logging the version query results?
 	if ( '1' === $logging ) {
-		$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
-		$response_code_key = 'ep_es_info_response_code';
+		$cache_time         = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
+		$response_code_key  = 'ep_es_info_response_code';
 		$response_error_key = 'ep_es_info_response_error';
-		$response_code = 0;
-		$response_error = '';
+		$response_code      = 0;
+		$response_error     = '';
 
 		if ( ! empty( $query['request'] ) ) {
-			$response_code = absint( wp_remote_retrieve_response_code( $query['request'] ) );
+			$response_code  = absint( wp_remote_retrieve_response_code( $query['request'] ) );
 			$response_error = wp_remote_retrieve_response_message( $query['request'] );
 			if ( empty( $response_error ) && is_wp_error( $query['request'] ) ) {
 				$response_error = $query['request']->get_error_message();
@@ -349,14 +349,14 @@ function maybe_notice( $force = false ) {
 	switch ( $notice ) {
 		case 'bad-host':
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url          = admin_url( 'network/admin.php?page=elasticpress-settings' );
-				$options_host = get_site_option( 'ep_host' );
-				$response_code = get_site_transient( 'ep_es_info_response_code' );
+				$url            = admin_url( 'network/admin.php?page=elasticpress-settings' );
+				$options_host   = get_site_option( 'ep_host' );
+				$response_code  = get_site_transient( 'ep_es_info_response_code' );
 				$response_error = get_site_transient( 'ep_es_info_response_error' );
 			} else {
-				$url          = admin_url( 'admin.php?page=elasticpress-settings' );
-				$options_host = get_option( 'ep_host' );
-				$response_code = get_transient( 'ep_es_info_response_code' );
+				$url            = admin_url( 'admin.php?page=elasticpress-settings' );
+				$options_host   = get_option( 'ep_host' );
+				$response_code  = get_transient( 'ep_es_info_response_code' );
 				$response_error = get_transient( 'ep_es_info_response_error' );
 			}
 

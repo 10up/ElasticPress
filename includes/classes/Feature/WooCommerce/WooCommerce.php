@@ -537,7 +537,7 @@ class WooCommerce extends Feature {
 			/**
 			 * Set orderby and order for price when GET param not set
 			 */
-			if( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
+			if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
 				$query->set( 'order', $query->query_vars['order'] );
 				$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
 			}
@@ -715,12 +715,12 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	* Add WC post type to autosuggest
-	*
-	* @param array $post_types Array of post types (e.g. post, page).
-	* @since  2.6
-	* @return array
-	*/
+	 * Add WC post type to autosuggest
+	 *
+	 * @param array $post_types Array of post types (e.g. post, page).
+	 * @since  2.6
+	 * @return array
+	 */
 	public function suggest_wc_add_post_type( $post_types ) {
 		if ( ! in_array( 'product', $post_types, true ) ) {
 			$post_types[] = 'product';

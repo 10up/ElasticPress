@@ -346,6 +346,7 @@ class Elasticsearch {
 
 		/**
 		 * ES Shield info
+		 *
 		 * @since 1.9
 		 */
 		$shield = Utils\get_shield_credentials();

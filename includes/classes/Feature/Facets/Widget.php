@@ -139,9 +139,10 @@ class Widget extends WP_Widget {
 searchable<?php endif; ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
-			<?php endif;
+				<?php
+			endif;
 			ob_start();
-			?>
+?>
 
 			<div class="inner">
 				<?php if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) ) : ?>
@@ -283,7 +284,7 @@ href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php
 		</div>
 		<?php
 		$facet_html = ob_get_clean();
-		//Allows developers to modify widget html
+		// Allows developers to modify widget html
 		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms );
 
 		echo $args['after_widget'];

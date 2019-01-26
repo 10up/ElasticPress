@@ -189,7 +189,6 @@ class SyncManager extends SyncManagerAbstract {
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				do_action( 'ep_sync_on_transition', $post_id );
 
-
 				if ( apply_filters( 'ep_post_sync_kill', false, $post_id ) || ! $this->is_site_indexable() ) {
 					return;
 				}

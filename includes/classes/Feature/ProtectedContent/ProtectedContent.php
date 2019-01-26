@@ -66,7 +66,7 @@ class ProtectedContent extends Feature {
 		}
 
 		// Merge non public post types with any pre-filtered post_type
-		return array_merge( $post_types, $pc_post_types);
+		return array_merge( $post_types, $pc_post_types );
 	}
 
 	/**

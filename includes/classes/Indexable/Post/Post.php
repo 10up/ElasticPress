@@ -555,7 +555,7 @@ class Post extends Indexable {
 			// Main tax_query array for ES.
 			$es_tax_query = [];
 
-			foreach( $args['tax_query'] as $single_tax_query ) {
+			foreach ( $args['tax_query'] as $single_tax_query ) {
 				if ( ! empty( $single_tax_query['taxonomy'] ) ) {
 					$terms = isset( $single_tax_query['terms'] ) ? (array) $single_tax_query['terms'] : array();
 					$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
@@ -624,7 +624,7 @@ class Post extends Indexable {
 							 */
 							$and_nest = array(
 								'bool' => array(
-									'must' => array()
+									'must' => array(),
 								),
 							);
 
@@ -632,7 +632,7 @@ class Post extends Indexable {
 								$and_nest['bool']['must'][] = array(
 									'terms' => array(
 										'terms.' . $single_tax_query['taxonomy'] . '.' . $field => (array) $term,
-									)
+									),
 								);
 							}
 
@@ -968,22 +968,22 @@ class Post extends Indexable {
 		// Check first if there's sticky posts and show them only in the front page
 		$sticky_posts = get_option( 'sticky_posts' );
 
-		if( false !== $sticky_posts
+		if ( false !== $sticky_posts
 			&& is_home()
 			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ) ) ) {
-			//let's eliminate sort so it does not mess with function_score results
-			$formatted_args['sort'] = array();
-			$formatted_args_query = $formatted_args['query'];
-			$formatted_args['query'] = array();
-			$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+			// let's eliminate sort so it does not mess with function_score results
+			$formatted_args['sort']                                 = array();
+			$formatted_args_query                                   = $formatted_args['query'];
+			$formatted_args['query']                                = array();
+			$formatted_args['query']['function_score']['query']     = $formatted_args_query;
 			$formatted_args['query']['function_score']['functions'] = array(
-			//add extra weight to sticky posts to show them on top
-				(object) array(
-					'filter' => array(
-						'terms' => array( '_id' => $sticky_posts )
+				// add extra weight to sticky posts to show them on top
+					(object) array(
+						'filter' => array(
+							'terms' => array( '_id' => $sticky_posts ),
+						),
+						'weight' => 2,
 					),
-					'weight' => 2
-				)
 			);
 		}
 

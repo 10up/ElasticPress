@@ -32,9 +32,9 @@
     "10up/phpcs-composer": "dev-master"
   },
   "scripts": {
-    "lint": "./vendor/bin/phpcs",
-    "lint-fix": "./vendor/bin/phpcbf",
-    "test": "./vendor/bin/phpunit"
+    "lint": "phpcs .",
+    "lint-fix": "phpcbf .",
+    "test": "phpunit"
   },
   "extra": {
     "installer-paths": {

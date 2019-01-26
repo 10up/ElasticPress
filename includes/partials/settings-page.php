@@ -22,7 +22,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 }
 ?>
 
-<?php require_once( dirname( __FILE__ ) . '/header.php' ); ?>
+<?php require_once dirname( __FILE__ ) . '/header.php'; ?>
 
 <div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?>"></div>
 <div class="wrap">

@@ -153,13 +153,13 @@ return array(
 						),
 					),
 				),
-				'user_login'   => array(
+				'user_login'      => array(
 					'type'   => 'text',
 					'fields' => array(
 						'user_login' => array(
 							'type' => 'text',
 						),
-						'raw'           => array(
+						'raw'        => array(
 							'type'         => 'keyword',
 							'ignore_above' => 10922,
 						),
