@@ -1,11 +1,11 @@
-import jQuery from 'jquery'
-import { epAdmin, ajaxurl } from 'window'
+import jQuery from 'jquery';
+import { epAdmin, ajaxurl } from 'window';
 
 jQuery( '.notice' ).on( 'click', '.notice-dismiss', ( event ) => {
-	const notice = event.delegateTarget.getAttribute( 'data-ep-notice' )
+	const notice = event.delegateTarget.getAttribute( 'data-ep-notice' );
 
 	if ( ! notice ) {
-		return
+		return;
 	}
 
 	jQuery.ajax( {
@@ -16,5 +16,5 @@ jQuery( '.notice' ).on( 'click', '.notice-dismiss', ( event ) => {
 			notice: notice
 		},
 		url: ajaxurl
-	} )
-} )
+	} );
+} );

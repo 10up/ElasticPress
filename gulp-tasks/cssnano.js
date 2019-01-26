@@ -3,7 +3,6 @@ import cssnano from 'gulp-cssnano';
 import rename from 'gulp-rename';
 import sourcemaps from 'gulp-sourcemaps';
 import pump from 'pump';
-import livereload from 'gulp-livereload';
 import filter from 'gulp-filter';
 
 gulp.task( 'cssnano', ( cb ) => {
@@ -11,14 +10,15 @@ gulp.task( 'cssnano', ( cb ) => {
 		fileSrc = [
 			'./dist/*.css'
 		],
-		taskOpts = [cssnano( {
+		taskOpts = {
 			autoprefixer: false,
 			calc: {
 				precision: 8
 			},
 			zindex: false,
-			convertValues: true
-		} )];
+			convertValues: true,
+			mergeLonghand: false,
+		};
 
 	pump( [
 		gulp.src( fileSrc ),
@@ -31,7 +31,6 @@ gulp.task( 'cssnano', ( cb ) => {
 		} ),
 		sourcemaps.write( './' ),
 		gulp.dest( fileDest ),
-		filter( '**/*.css' ),
-		livereload()
+		filter( '**/*.css' )
 	], cb );
 } );

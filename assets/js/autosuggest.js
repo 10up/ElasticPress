@@ -1,12 +1,12 @@
-import jQuery from 'jquery'
-import { epas } from 'window'
+import jQuery from 'jquery';
+import { epas } from 'window';
 
 /**
  * Submit the search form
  * @param object $localInput
  */
 function submitSearchForm( $localInput ) {
-	$localInput.closest( 'form' ).submit()
+	$localInput.closest( 'form' ).submit();
 }
 
 /**
@@ -14,7 +14,7 @@ function submitSearchForm( $localInput ) {
  * @param event
  */
 function selectAutosuggestItem( $localInput, text ) {
-	$localInput.val( text )
+	$localInput.val( text );
 }
 
 /**
@@ -22,7 +22,7 @@ function selectAutosuggestItem( $localInput, text ) {
  * @param event
  */
 function goToAutosuggestItem( $localInput, url ) {
-	return window.location.href = url
+	return window.location.href = url;
 }
 
 /**
@@ -35,12 +35,12 @@ function goToAutosuggestItem( $localInput, url ) {
  */
 function selectItem( $localInput, element ) {
 
-	if ( epas.action === 'navigate' ) {
-		return goToAutosuggestItem( $localInput, element.dataset.url )
+	if ( 'navigate' === epas.action ) {
+		return goToAutosuggestItem( $localInput, element.dataset.url );
 	}
 
-	selectAutosuggestItem( $localInput, element.innerText )
-	submitSearchForm( $localInput )
+	selectAutosuggestItem( $localInput, element.innerText );
+	submitSearchForm( $localInput );
 }
 
 /**
@@ -52,18 +52,18 @@ function selectItem( $localInput, element ) {
  * @returns {Function}
  */
 function debounce( fn, delay ) {
-	let timer = null
+	let timer = null;
 
 	return () => {
 		const context = this,
-			args = arguments
+			args = arguments;
 
-		window.clearTimeout( timer )
+		window.clearTimeout( timer );
 
 		timer = window.setTimeout( () => {
-			fn.apply( context, args )
-		}, delay )
-	}
+			fn.apply( context, args );
+		}, delay );
+	};
 }
 
 /**
@@ -73,12 +73,12 @@ function debounce( fn, delay ) {
  * @returns object
  */
 function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
-	if ( postType === 'all' || typeof( postType ) === 'undefined' || postType === '' ) {
-		postType = 'all'
+	if ( 'all' === postType || 'undefined' === typeof( postType ) || '' === postType ) {
+		postType = 'all';
 	}
 
-	if ( postStatus === '' ) {
-		postStatus = 'publish'
+	if ( '' === postStatus ) {
+		postStatus = 'publish';
 	}
 
 	var query = {
@@ -95,15 +95,15 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 				fields: searchFields
 			}
 		}
-	}
+	};
 
 	// If we're specifying post types/statuses, do it in an array
-	if ( typeof postType === 'string' && postType !== 'all' ) {
-		postType = postType.split( ',' )
+	if ( 'string' === typeof postType && 'all' !== postType ) {
+		postType = postType.split( ',' );
 	}
 
-	if ( typeof postStatus === 'string' ) {
-		postStatus = postStatus.split( ',' )
+	if ( 'string' === typeof postStatus ) {
+		postStatus = postStatus.split( ',' );
 	}
 
 	// Then add it as a filter to the end of the query
@@ -115,15 +115,15 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 				}
 			]
 		}
-	}
+	};
 
-	if ( postType !== 'all' ) {
+	if ( 'all' !== postType ) {
 		query.post_filter.bool.must.push( {
 			terms: { 'post_type.raw': postType }
-		} )
+		} );
 	}
 
-	return query
+	return query;
 }
 
 /**
@@ -135,7 +135,7 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 function esSearch( query ) {
 
 	// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
-	jQuery.support.cors = true
+	jQuery.support.cors = true;
 
 	return jQuery.ajax( {
 		url: epas.endpointUrl,
@@ -144,7 +144,7 @@ function esSearch( query ) {
 		crossDomain: true,
 		contentType: 'application/json; charset=utf-8',
 		data: JSON.stringify( query )
-	} )
+	} );
 }
 
 /**
@@ -157,79 +157,79 @@ function updateAutosuggestBox( options, $localInput ) {
 	var i,
 		itemString,
 		$localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
-		$localSuggestList = $localESContainer.find( '.autosuggest-list' )
+		$localSuggestList = $localESContainer.find( '.autosuggest-list' );
 
-	$localSuggestList.empty()
+	$localSuggestList.empty();
 
 	// Don't listen to potentially previously set items
-	jQuery( '.autosuggest-item' ).off()
+	jQuery( '.autosuggest-item' ).off();
 
-	if ( options.length > 0 ) {
-		$localESContainer.show()
+	if ( 0 < options.length ) {
+		$localESContainer.show();
 	} else {
-		$localESContainer.hide()
+		$localESContainer.hide();
 	}
 
 	for ( i = 0; i < options.length; ++i ) {
-		var text = options[i].text
-		var url = options[i].url
-		itemString = '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>'
-		jQuery( itemString ).appendTo( $localSuggestList )
+		var text = options[i].text;
+		var url = options[i].url;
+		itemString = '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>';
+		jQuery( itemString ).appendTo( $localSuggestList );
 	}
 
 	// Listen to items to auto-fill search box and submit form
 	jQuery( '.autosuggest-item' ).on( 'click', ( event ) => {
-		selectItem( $localInput, event.target )
-	} )
+		selectItem( $localInput, event.target );
+	} );
 
-	$localInput.off( 'keydown' )
+	$localInput.off( 'keydown' );
 
 	// Listen to the input for up and down navigation between autosuggest items
 	$localInput.on( 'keydown', ( event ) => {
-		if ( event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13 ) {
-			var $results = $localInput.closest( '.ep-autosuggest-container' ).find( '.autosuggest-list li' )
-			var $current = $results.filter( '.selected' )
-			var $next
+		if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode ) {
+			var $results = $localInput.closest( '.ep-autosuggest-container' ).find( '.autosuggest-list li' );
+			var $current = $results.filter( '.selected' );
+			var $next;
 
 			switch ( event.keyCode ) {
 					case 38: // Up
-						$next = $current.prev()
-						break
+						$next = $current.prev();
+						break;
 					case 40: // Down
 						if ( ! $results.hasClass( 'selected' ) ) {
-							$results.first().addClass( 'selected' )
-							$next = $results.first()
+							$results.first().addClass( 'selected' );
+							$next = $results.first();
 						} else {
-							$next = $current.next()
+							$next = $current.next();
 						}
-						break
+						break;
 					case 13: // Enter
 						if ( $results.hasClass( 'selected' ) ) {
-							selectItem( $localInput, $current.children( 'span' ).get( 0 ) )
-							return false
+							selectItem( $localInput, $current.children( 'span' ).get( 0 ) );
+							return false;
 						} else {
 						// No item selected
-							return
+							return;
 						}
 			}
 
 			// only check next element if up and down key pressed
 			if ( $next.is( 'li' ) ) {
-				$current.removeClass( 'selected' )
-				$next.addClass( 'selected' )
+				$current.removeClass( 'selected' );
+				$next.addClass( 'selected' );
 			} else {
-				$results.removeClass( 'selected' )
+				$results.removeClass( 'selected' );
 			}
 
 			// keep cursor from heading back to the beginning in the input
-			if ( event.keyCode === 38 ) {
-				return false
+			if ( 38 === event.keyCode ) {
+				return false;
 			}
 
-			return
+			return;
 		}
 
-	} )
+	} );
 }
 
 /**
@@ -238,43 +238,43 @@ function updateAutosuggestBox( options, $localInput ) {
  * @return void
  */
 function hideAutosuggestBox() {
-	jQuery( '.autosuggest-list' ).empty()
-	jQuery( '.ep-autosuggest' ).hide()
+	jQuery( '.autosuggest-list' ).empty();
+	jQuery( '.ep-autosuggest' ).hide();
 }
 
 
 // No host/index set
-if ( epas.endpointUrl && epas.endpointUrl !== '' ) {
-	const $epInput       = jQuery( '.ep-autosuggest, input[type="search"], .search-field' )
-	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' )
+if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
+	const $epInput       = jQuery( '.ep-autosuggest, input[type="search"], .search-field' );
+	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
 	 * Build the auto-suggest container
 	 */
 	$epInput.each( ( key, input ) => {
-		var $epContainer = jQuery( '<div class="ep-autosuggest-container"></div>' )
-		var $input = jQuery( input )
+		var $epContainer = jQuery( '<div class="ep-autosuggest-container"></div>' );
+		var $input = jQuery( input );
 
 		// Disable autocomplete
-		$input.attr( 'autocomplete', 'off' )
+		$input.attr( 'autocomplete', 'off' );
 
-		$epContainer.insertAfter( $input )
-		var $epLabel = $input.siblings( 'label' )
+		$epContainer.insertAfter( $input );
+		var $epLabel = $input.siblings( 'label' );
 		$input
 			.closest( 'form' )
 			.find( '.ep-autosuggest-container' )
 			.append( $epLabel )
-			.append( $input )
+			.append( $input );
 
-		$epAutosuggest.clone().insertAfter( $input )
+		$epAutosuggest.clone().insertAfter( $input );
 
-		$input.trigger( 'elasticpress.input.moved' )
-	} )
+		$input.trigger( 'elasticpress.input.moved' );
+	} );
 
 	$epAutosuggest.css( {
 		top: $epInput.outerHeight() - 1,
 		'background-color': $epInput.css( 'background-color' )
-	} )
+	} );
 
 	/**
 	 * Singular bindings for up and down to prevent normal actions so we can use them to navigate
@@ -283,14 +283,14 @@ if ( epas.endpointUrl && epas.endpointUrl !== '' ) {
 	 */
 	jQuery( $epInput ).each( ( key, value ) => {
 		jQuery( value ).on( 'keyup keydown keypress', ( event ) => {
-			if ( event.keyCode === 38 || event.keyCode === 40 ) {
-				event.preventDefault()
+			if ( 38 === event.keyCode || 40 === event.keyCode ) {
+				event.preventDefault();
 			}
-			if ( event.keyCode === 27 ) {
-				hideAutosuggestBox()
+			if ( 27 === event.keyCode ) {
+				hideAutosuggestBox();
 			}
-		} )
-	} )
+		} );
+	} );
 
 	/**
 	 * Listen for any keyup events, throttle them to a min threshold of time
@@ -298,57 +298,57 @@ if ( epas.endpointUrl && epas.endpointUrl !== '' ) {
 	 *
 	 */
 	$epInput.each( ( key, localInput ) => {
-		var $localInput = jQuery( localInput )
+		var $localInput = jQuery( localInput );
 		$localInput.on( 'keyup', debounce( ( event ) => {
-			if ( event.keyCode === 38 || event.keyCode === 40 || event.keyCode === 13 || event.keyCode === 27 ) {
-				return
+			if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode || 27 === event.keyCode ) {
+				return;
 			}
 
-			var val = $localInput.val()
-			var query
-			var request
-			var postType = epas.postType
-			var postStatus = epas.postStatus
-			var searchFields = epas.searchFields
+			var val = $localInput.val();
+			var query;
+			var request;
+			var postType = epas.postType;
+			var postStatus = epas.postStatus;
+			var searchFields = epas.searchFields;
 
-			if ( val.length >= 2 ) {
-				query = buildSearchQuery( val, postType, postStatus, searchFields )
-				request = esSearch( query )
+			if ( 2 <= val.length ) {
+				query = buildSearchQuery( val, postType, postStatus, searchFields );
+				request = esSearch( query );
 
 				request.done( ( response ) => {
-					if ( response._shards.successful > 0 ) {
-						var usedPosts = {}
-						var filteredObjects = []
+					if ( 0 < response._shards.successful ) {
+						var usedPosts = {};
+						var filteredObjects = [];
 
 						jQuery.each( response.hits.hits, ( index, element ) =>{
-							var text = element._source.post_title
-							var url = element._source.permalink
-							var postId = element._source.post_id
+							var text = element._source.post_title;
+							var url = element._source.permalink;
+							var postId = element._source.post_id;
 
 							if( ! usedPosts[ postId ] ) {
-								usedPosts[ postId ] = true
+								usedPosts[ postId ] = true;
 
 								filteredObjects.push( {
 									'text': text,
 									'url': url
-								} )
+								} );
 							}
-						} )
+						} );
 
-						if ( filteredObjects.length === 0 ) {
-							hideAutosuggestBox()
+						if ( 0 === filteredObjects.length ) {
+							hideAutosuggestBox();
 						} else {
-							updateAutosuggestBox( filteredObjects, $localInput )
+							updateAutosuggestBox( filteredObjects, $localInput );
 						}
 					} else {
-						hideAutosuggestBox()
+						hideAutosuggestBox();
 					}
-				} )
-			} else if ( val.length === 0 ) {
-				hideAutosuggestBox()
+				} );
+			} else if ( 0 === val.length ) {
+				hideAutosuggestBox();
 			}
-		}, 200 ) )
-	} )
+		}, 200 ) );
+	} );
 
 	// Publically expose API
 	window.epasAPI = {
@@ -356,5 +356,5 @@ if ( epas.endpointUrl && epas.endpointUrl !== '' ) {
 		updateAutosuggestBox: updateAutosuggestBox,
 		esSearch: esSearch,
 		buildSearchQuery: buildSearchQuery
-	}
+	};
 }

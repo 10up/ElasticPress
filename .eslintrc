@@ -1,23 +1,10 @@
 {
-  "parser": "babel-eslint",
-  "env": {
-    "browser": true,
-    "es6": true
-  },
-  "extends": "eslint:recommended",
+  "extends": "@10up/eslint-config",
   "rules": {
-    "yoda": [ 1 ],
-    "indent": [ 1, "tab", { "SwitchCase": 2 } ],
-    "linebreak-style": [ 1, "unix" ],
-    "quotes": [ 1, "single" ],
-    "semi": [ 1, "never" ],
-    "space-in-parens": [ 1, "always" ],
     "no-console": [ 1 ],
     "no-alert": [ 1 ],
     "camelcase": [ 1 ],
     "no-debugger": [ 1 ],
-    "no-unused-vars": [ 1 ],
-    "function-paren-newline": [ 1, "never" ],
-    "no-extra-boolean-cast": [ 1 ]
+    "no-unused-vars": [ 1 ]
   }
 }

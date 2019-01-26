@@ -1,35 +1,18 @@
 import gulp from 'gulp';
 import requireDir from 'require-dir';
-import runSequence from 'run-sequence';
-import livereload from 'gulp-livereload';
 
 requireDir( './gulp-tasks' );
 
-gulp.task( 'js', () => {
-	runSequence(
-		'webpack',
-	);
-} );
+gulp.task( 'js', gulp.series( 'webpack' ) );
 
-gulp.task( 'css', () => {
-	runSequence(
-		'cssnext',
-		'cssnano',
-		'cssclean'
-	);
-} );
+gulp.task( 'cssprocess', gulp.series( 'css', 'cssnano', 'cssclean' ) );
 
 gulp.task( 'watch', () => {
 	process.env.NODE_ENV = 'development';
-	livereload.listen( { basePath: 'dist' } );
-	gulp.watch( ['./assets/css/**/*.css', '!./assets/css/src/**/*.css'], ['css'] );
-	gulp.watch( './assets/js/**/*.js', ['js'] );
+
+	gulp.watch( ['./assets/css/**/*.css', '!./assets/css/src/**/*.css'], gulp.series( 'cssprocess' ) );
+	gulp.watch( './assets/js/**/*.js', gulp.series( 'js' ) );
 } );
 
-gulp.task( 'default', () => {
-	runSequence(
-		'set-prod-node-env',
-		'css',
-		'webpack'
-	);
-} );
+gulp.task( 'default', gulp.parallel( 'cssprocess', gulp.series( 'set-prod-node-env', 'webpack' ) ) );
+

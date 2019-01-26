@@ -3,7 +3,7 @@ import postcss from 'gulp-postcss';
 import sourcemaps from 'gulp-sourcemaps';
 import pump from 'pump';
 
-gulp.task( 'cssnext', ( cb ) => {
+gulp.task( 'css', ( cb ) => {
 	const fileSrc = [
 		'./assets/css/dashboard.css',
 		'./assets/css/facets-admin.css',
@@ -11,16 +11,17 @@ gulp.task( 'cssnext', ( cb ) => {
 		'./assets/css/autosuggest.css'
 	];
 	const fileDest = './dist';
-	const cssNextOpts = {
-		features: {
-			autoprefixer: {
-				browsers: ['last 2 versions']
-			}
+
+	const cssOpts = {
+		stage: 0,
+		autoprefixer: {
+			grid: true
 		}
 	};
+
 	const taskOpts = [
 		require( 'postcss-import' ),
-		require( 'postcss-cssnext' )( cssNextOpts )
+		require( 'postcss-preset-env' )( cssOpts ),
 	];
 
 	pump( [
