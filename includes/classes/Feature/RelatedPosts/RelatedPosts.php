@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\RelatedPosts;
 
 use ElasticPress\Feature as Feature;
+use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Post\Post as Post;
 use \WP_Query as WP_Query;
 
@@ -34,14 +35,14 @@ class RelatedPosts extends Feature {
 	/**
 	 * Format args for related posts
 	 *
-	 * @param  array $formatted_args
-	 * @param  array $args
+	 * @param  array $formatted_args Formatted ES args
+	 * @param  array $args WP_Query args
 	 * @return array
 	 */
 	public function formatted_args( $formatted_args, $args ) {
 		if ( ! empty( $args['more_like'] ) ) {
 			// lets compare ES version to see if new MLT structure applies
-			$new_mlt = version_compare( ep_get_elasticsearch_version(), 6.0, '>=' );
+			$new_mlt = version_compare( Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
 
 			if ( $new_mlt && is_array( $args['more_like'] ) ) {
 				foreach ( $args['more_like'] as $id ) {
@@ -79,8 +80,8 @@ class RelatedPosts extends Feature {
 	/**
 	 * Search Elasticsearch for related content
 	 *
-	 * @param  int $post_id
-	 * @param  int $return
+	 * @param  int $post_id Post ID
+	 * @param  int $return Return code
 	 * @since  2.1
 	 * @return array|bool
 	 */
@@ -136,7 +137,7 @@ class RelatedPosts extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php _e( 'Output related content using our Widget or directly in your theme using our <a href="https://github.com/10up/ElasticPress/#related-posts">API functions.</a>', 'elasticpress' ); ?></p>
+		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://github.com/10up/ElasticPress/#related-posts">API functions.</a>', 'elasticpress' ) ); ?></p>
 		<?php
 	}
 }

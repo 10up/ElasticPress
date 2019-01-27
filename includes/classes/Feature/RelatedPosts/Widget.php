@@ -5,6 +5,7 @@
  * @since  2.2
  * @package  elasticpress
  */
+
 namespace ElasticPress\Feature\RelatedPosts;
 
 use \WP_Widget as WP_Widget;
@@ -32,8 +33,8 @@ class Widget extends WP_Widget {
 	/**
 	 * Display widget
 	 *
-	 * @param array $args
-	 * @param array $instance
+	 * @param array $args Widget arguments
+	 * @param array $instance Widget instance variables
 	 * @since  2.2
 	 */
 	public function widget( $args, $instance ) {
@@ -56,10 +57,10 @@ class Widget extends WP_Widget {
 
 			ob_start();
 
-			echo $args['before_widget'];
+			echo wp_kses_post( $args['before_widget'] );
 
 			if ( ! empty( $instance['title'] ) ) {
-				echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
+				echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
 			}
 			?>
 
@@ -72,7 +73,7 @@ class Widget extends WP_Widget {
 			<?php
 			wp_reset_postdata();
 
-			echo $args['after_widget'];
+			echo wp_kses_post( $args['after_widget'] );
 
 			$related_posts = ob_get_clean();
 
@@ -81,13 +82,13 @@ class Widget extends WP_Widget {
 			}
 		}
 
-		echo $related_posts;
+		echo wp_kses_post( $related_posts );
 	}
 
 	/**
 	 * Display widget settings form
 	 *
-	 * @param array $instance
+	 * @param array $instance Widget instance variables
 	 * @since  2.2
 	 */
 	public function form( $instance ) {
@@ -95,19 +96,19 @@ class Widget extends WP_Widget {
 		$num_posts = ( isset( $instance['num_posts'] ) ) ? $instance['num_posts'] : 5;
 		?>
 		<p>
-			<label for="<?php echo $this->get_field_id( 'title' ); ?>">
+			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>">
 				<?php esc_html_e( 'Title:', 'elasticpress' ); ?>
 			</label>
 
-			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
 		</p>
 
 		<p>
-			<label for="<?php echo $this->get_field_id( 'num_posts' ); ?>">
+			<label for="<?php echo esc_attr( $this->get_field_id( 'num_posts' ) ); ?>">
 				<?php esc_html_e( 'Number of Posts to Show:', 'elasticpress' ); ?>
 			</label>
 
-			<input class="widefat" id="<?php echo $this->get_field_id( 'num_posts' ); ?>" name="<?php echo $this->get_field_name( 'num_posts' ); ?>" type="text" value="<?php echo absint( $num_posts ); ?>" />
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'num_posts' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'num_posts' ) ); ?>" type="text" value="<?php echo absint( $num_posts ); ?>" />
 		</p>
 		<?php
 	}
@@ -115,8 +116,8 @@ class Widget extends WP_Widget {
 	/**
 	 * Update widget settings
 	 *
-	 * @param  array $new_instance
-	 * @param  array $old_instance
+	 * @param  array $new_instance New instance settings
+	 * @param  array $old_instance Old instance settings
 	 * @since  2.2
 	 * @return array
 	 */

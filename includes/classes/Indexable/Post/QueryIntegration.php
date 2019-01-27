@@ -23,6 +23,8 @@ class QueryIntegration {
 
 	/**
 	 * Is set only when we switch_to_blog in MS context
+	 *
+	 * @var  boolean
 	 */
 	private $switched = false;
 
@@ -53,7 +55,7 @@ class QueryIntegration {
 	/**
 	 * Disables cache_results, adds header.
 	 *
-	 * @param $query
+	 * @param WP_Query $query WP_Query instance
 	 * @since 0.9
 	 */
 	public function add_es_header( $query ) {
@@ -83,7 +85,7 @@ class QueryIntegration {
 	/**
 	 * Switch to the correct site if the post site id is different than the actual one
 	 *
-	 * @param array $post
+	 * @param WP_Post $post Post object
 	 * @since 0.9
 	 */
 	public function maybe_switch_to_blog( $post ) {
@@ -112,6 +114,7 @@ class QueryIntegration {
 	/**
 	 * Make sure the correct blog is restored
 	 *
+	 * @param  WP_Query $query WP_Query instance
 	 * @since 0.9
 	 */
 	public function maybe_restore_blog( $query ) {
@@ -307,7 +310,7 @@ class QueryIntegration {
 			);
 
 			foreach ( $post_return_args as $key ) {
-				if ( $key === 'post_author' ) {
+				if ( 'post_author' === $key ) {
 					$post->$key = $post_array[ $key ]['id'];
 				} elseif ( isset( $post_array[ $key ] ) ) {
 					$post->$key = $post_array[ $key ];
