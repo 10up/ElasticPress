@@ -34,7 +34,16 @@
 	 * @param event
 	 */
 	function goToAutosuggestItem( $localInput, url ) {
-		return window.location.href = url;
+		if( typeof gtag == 'function' ) {
+			gtag('event', 'click', {
+				'event_category' : 'EP :: Autosuggest Click',
+				'event_label' : url,
+				'transport_type' : 'beacon',
+				'event_callback': function(){window.location.href = url;}
+			});
+		} else {
+			return window.location.href = url;
+		}
 	}
 
 	/**
@@ -257,6 +266,7 @@
 
 	var $epInput       = $( '.ep-autosuggest, input[type="search"], .search-field' );
 	var $epAutosuggest = $( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
+	var $epAutosuggestItem = $( '.autosuggest-item' );
 
 	/**
 	 * Build the auto-suggest container
@@ -285,6 +295,26 @@
 		top: $epInput.outerHeight() - 1,
 		'background-color': $epInput.css( 'background-color' )
 	} );
+
+	/**
+	 * Run Google Analytics on the search query
+	 * @param event
+	 */
+	// function handleAnalytics() {
+	// 	$epAutosuggestItem.each( function( key, item ) {
+	// 		var $item = $( item );
+	// 		console.log($item);
+
+	// 		$item.on('click', function( event ) {
+	// 			console.log(event.target.dataset);
+	// 			gtag('event', 'Autosuggest Click', {
+	// 				'event_category' : 'Autosuggest Click',
+	// 				'event_label' : event.target.dataset.url,
+	// 				'transport_type' : 'beacon'
+	// 			});
+	// 		});
+	// 	} );
+	// }
 
 	/**
 	 * Singular bindings for up and down to prevent normal actions so we can use them to navigate
