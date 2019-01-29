@@ -2327,6 +2327,7 @@ class EPTestSingleSite extends EP_Test_Base {
 
 		$query = new WP_Query( $args );
 
+		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 	}
