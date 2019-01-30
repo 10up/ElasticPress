@@ -53,7 +53,6 @@ Here are a list of filters/actions removed or changed:
 ### Actions Removed:
 
 * `ep_feature_setup`
-* `ep_wp_query_search`
 
 ### Filters changed:
 

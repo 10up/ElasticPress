@@ -258,6 +258,11 @@ class QueryIntegration {
 
 		do_action( 'ep_wp_query', $new_posts, $ep_query, $query );
 
+		/**
+		 * Pre-3.0 backwards compat
+		 */
+		do_action( 'ep_wp_query_search', $new_posts, $ep_query, $query );
+
 		return $new_posts;
 	}
 
