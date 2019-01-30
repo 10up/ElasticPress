@@ -166,6 +166,17 @@ function handle_upgrades() {
 	}
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$last_sync = get_site_option( 'ep_last_sync', 'never' );
+	} else {
+		$last_sync = get_option( 'ep_last_sync', 'never' );
+	}
+
+	// No need to upgrade since we've never synced
+	if ( empty( $last_sync ) || 'never' === $last_sync ) {
+		return;
+	}
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$old_version = get_site_option( 'ep_version', false );
 	} else {
 		$old_version = get_option( 'ep_version', false );
