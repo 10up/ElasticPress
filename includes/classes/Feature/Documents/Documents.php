@@ -42,7 +42,7 @@ class Documents extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'post_sync_args' ], 999, 2 );
 		add_filter( 'ep_indexable_post_status', [ $this, 'indexable_post_status' ], 999, 1 );
 		add_filter( 'ep_bulk_index_request_path', [ $this, 'bulk_index_request_path' ], 999, 3 );
-		add_filter( 'pre_get_posts', [ $this, 'ssetup_document_search' ] );
+		add_filter( 'pre_get_posts', [ $this, 'setup_document_search' ] );
 		add_filter( 'ep_post_mapping', [ $this, 'attachments_mapping' ] );
 		add_action( 'ep_cli_put_mapping', [ $this, 'create_pipeline' ] );
 		add_action( 'ep_dashboard_put_mapping', [ $this, 'create_pipeline' ] );
