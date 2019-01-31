@@ -8,6 +8,7 @@
 namespace ElasticPress\Feature\Autosuggest;
 
 use ElasticPress\Feature as Feature;
+use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
@@ -179,6 +180,7 @@ class Autosuggest extends Feature {
 	public function enqueue_scripts() {
 		$host         = Utils\get_host();
 		$endpoint_url = false;
+		$feature      = Features::factory()->get_registered_feature( 'autosuggest' );
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
