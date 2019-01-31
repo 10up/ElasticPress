@@ -13,6 +13,7 @@ use \WP_CLI as WP_CLI;
 use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -901,7 +902,7 @@ class Command extends WP_CLI_Command {
 		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
 
 		foreach ( $sites as $site ) {
-			$current_index = ep_get_index_name( $site['blog_id'] );
+			$current_index = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
 
 			if ( isset( $body['indices'][ $current_index ] ) ) {
 				WP_CLI::log( '====== Stats for: ' . $current_index . ' ======' );
