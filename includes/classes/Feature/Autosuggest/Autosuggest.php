@@ -186,7 +186,7 @@ class Autosuggest extends Feature {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
 		} else {
 			if ( Utils\is_epio() ) {
-				$endpoint_url = $host . '/' . ep_get_index_name() . '/post/_search';
+				$endpoint_url = $host . '/' . Indexables::factory()->get( 'post' )->get_index_name() . '/post/_search';
 			} else {
 				$settings = $feature->get_settings();
 
