@@ -747,7 +747,7 @@ class WooCommerce extends Feature {
 			add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 			add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
 			add_action( 'parse_query', [ $this, 'search_order' ], 11, 1 );
-			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_post_type' ] );
+			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 		}
 	}
 
