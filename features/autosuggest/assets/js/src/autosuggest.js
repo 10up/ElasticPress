@@ -34,9 +34,12 @@
 	 * @param event
 	 */
 	function goToAutosuggestItem( $localInput, url ) {
+		var searchTerm = $localInput[0].value;
+		var action = 'click - ' + searchTerm;
+
 		if( typeof gtag == 'function' ) {
-			gtag('event', 'click', {
-				'event_category' : 'EP :: Autosuggest Click',
+			gtag('event', action, {
+				'event_category' : 'EP :: Autosuggest',
 				'event_label' : url,
 				'transport_type' : 'beacon',
 				'event_callback': function(){window.location.href = url;}
