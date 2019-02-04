@@ -303,6 +303,12 @@ class EP_Dashboard {
 			$notice = 'need-setup';
 		}
 
+		//Autosuggest defaults notice
+		$autosuggest = ep_get_registered_feature( 'autosuggest' );
+		if ( $autosuggest->is_active() && (bool)$autosuggest->get_settings()['defaults_enabled'] ) {
+			$notice = 'using-autosuggest-defaults';
+		}
+
 		$notice = apply_filters( 'ep_admin_notice_type', $notice );
 
 		switch ( $notice ) {
@@ -427,10 +433,16 @@ class EP_Dashboard {
 			case 'sync-disabled-no-sync':
 				?>
 				<div data-ep-notice="sync-disabled-no-sync" class="notice notice-warning is-dismissible">
-                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
-                </div>
+					<p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
+				</div>
 				<?php
 				break;
+			case 'using-autosuggest-defaults' :
+				?>
+				<div data-ep-notice="using-autosuggest-defaults" class="notice notice-warning is-dismissible">
+					<p><?php printf( esc_html__( 'Autosuggest feature is enabled. If protected content or documents feature is enabled, your protected content will also become searchable. Please checkmark the "Use safe values" checkbox in Autosuggest settings to default to safe content search', 'elasticpress' ) ); ?></p>
+				</div>
+				<?php
 		}
 
 		return $notice;
