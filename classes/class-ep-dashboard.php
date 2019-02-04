@@ -304,8 +304,12 @@ class EP_Dashboard {
 		}
 
 		//Autosuggest defaults notice
-		$autosuggest = ep_get_registered_feature( 'autosuggest' );
-		if ( $autosuggest->is_active() && (bool)$autosuggest->get_settings()['defaults_enabled'] ) {
+		$autosuggest          = ep_get_registered_feature( 'autosuggest' );
+		$autosuggest_settings = $autosuggest->get_settings();
+
+		if ( $autosuggest->is_active()
+		     && isset( $autosuggest_settings['defaults_enabled'] )
+		     && (bool) $autosuggest_settings['defaults_enabled'] ) {
 			$notice = 'using-autosuggest-defaults';
 		}
 
