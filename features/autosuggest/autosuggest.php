@@ -49,6 +49,17 @@ function ep_autosugguest_settings( $feature ) {
 
 	$settings = wp_parse_args( $settings, $feature->default_settings );
 
+	?>
+	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
+		<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest CSS Selector', 'elasticpress' ); ?></label></div>
+		<div class="input-wrap">
+			<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
+			<p class="field-description"><?php esc_html_e( 'CSS selector', 'elasticpress' ); ?></p>
+
+		</div>
+	</div>
+	<?php
+
 	if ( preg_match( '#elasticpress\.io#i', $host ) ) {
 		return;
 	}
@@ -70,6 +81,8 @@ function ep_autosugguest_settings( $feature ) {
 
 		</div>
 	</div>
+
+
 
 	<?php
 }
@@ -146,13 +159,14 @@ function ep_autosuggest_enqueue_scripts() {
 
 	$endpoint_url = false;
 
+    $settings = $feature->get_settings();
+
 	if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 		$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
 	} else {
 		if ( preg_match( '#elasticpress\.io#i', $host ) ) {
 			$endpoint_url = $host . '/' . ep_get_index_name() . '/post/_search';
 		} else {
-			$settings = $feature->get_settings();
 
 			if ( ! $settings ) {
 				$settings = array();
@@ -197,6 +211,7 @@ function ep_autosuggest_enqueue_scripts() {
 		'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
 		'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
 		'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
+		'selector'     => $settings['autosuggest_selector'],
 		'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
 			'post_title.suggest',
 			'term_suggest',
@@ -253,5 +268,6 @@ ep_register_feature( 'autosuggest', array(
 	'requirements_status_cb' => 'ep_autosuggest_requirements_status',
 	'default_settings' => array(
 		'endpoint_url' => '',
+        'autosuggest_selector' => 'ep-autosuggest',
 	),
 ) );
