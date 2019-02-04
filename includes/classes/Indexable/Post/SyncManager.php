@@ -74,7 +74,9 @@ class SyncManager extends SyncManagerAbstract {
 		if ( function_exists( 'get_sites' ) ) {
 			$sites = get_sites( $args );
 		} else {
+			// phpcs:disable
 			$sites = wp_list_pluck( wp_get_sites( $args ), 'blog_id' );
+			// phpcs:enable
 		}
 
 		return in_array( $blog_id, apply_filters( 'ep_indexable_blogs', $sites ), true );

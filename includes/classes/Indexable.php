@@ -371,9 +371,7 @@ abstract class Indexable {
 	 * Build Elasticsearch filter query for WP meta_query
 	 *
 	 * @since 2.2
-	 *
-	 * @param $meta_queries
-	 *
+	 * @param array $meta_queries Array of queries
 	 * @return array
 	 */
 	public function build_meta_query( $meta_queries ) {
@@ -641,7 +639,7 @@ abstract class Indexable {
 					$meta_filter[] = $terms_obj;
 				}
 			} elseif ( is_array( $single_meta_query ) && isset( $single_meta_query[0] ) && is_array( $single_meta_query[0] ) ) {
-				/*
+				/**
 				 * Handle multidimensional array. Something like:
 				 *
 				 * 'meta_query' => array(

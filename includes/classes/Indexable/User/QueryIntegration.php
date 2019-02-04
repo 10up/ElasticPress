@@ -129,7 +129,7 @@ class QueryIntegration {
 	/**
 	 * Disables cache_results, adds header.
 	 *
-	 * @param WP_User_Query $query
+	 * @param WP_User_Query $query User query
 	 * @since 3.0
 	 */
 	public function action_pre_get_users( $query ) {

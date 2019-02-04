@@ -116,7 +116,7 @@ function maybe_clear_es_info_cache() {
 	}
 
 	if ( ! empty( $_GET['ep-retry'] ) ) {
-		wp_redirect( remove_query_arg( 'ep-retry' ) );
+		wp_safe_redirect( remove_query_arg( 'ep-retry' ) );
 	}
 }
 
@@ -264,11 +264,11 @@ function maybe_notice( $force = false ) {
 		}
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
-			if ( 'auto-activate-sync' == $notice ) {
+			if ( 'auto-activate-sync' === $notice ) {
 				$notice = 'sync-disabled-auto-activate';
-			} elseif ( 'upgrade-sync' == $notice ) {
+			} elseif ( 'upgrade-sync' === $notice ) {
 				$notice = 'sync-disabled-upgrade';
-			} elseif ( 'no-sync' == $notice ) {
+			} elseif ( 'no-sync' === $notice ) {
 				$notice = 'sync-disabled-no-sync';
 			}
 		}
@@ -450,7 +450,7 @@ function maybe_notice( $force = false ) {
 
 			?>
 			<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
-				<p><?php printf( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
+				<p><?php printf( wp_kses_post( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ) ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -911,9 +911,9 @@ function intro_or_dashboard() {
 
 	if ( ! $intro_shown ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+			wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
 		} else {
-			wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+			wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
 		}
 		exit;
 	}

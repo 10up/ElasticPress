@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+/**
+ * Protected content feature
+ */
 class ProtectedContent extends Feature {
 
 	/**
@@ -72,7 +75,7 @@ class ProtectedContent extends Feature {
 	/**
 	 * Integrate EP into proper queries
 	 *
-	 * @param  WP_Query $query
+	 * @param  WP_Query $query WP Query
 	 * @since  2.1
 	 */
 	public function integrate( $query ) {
@@ -149,7 +152,7 @@ class ProtectedContent extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php wp_kses_post( _e( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ) ); ?></p>
+		<p><?php echo wp_kses_post( __( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ) ); ?></p>
 		<?php
 	}
 
@@ -157,7 +160,7 @@ class ProtectedContent extends Feature {
 	 * Fetches all post statuses we need to index
 	 *
 	 * @since  2.1
-	 * @param  array $statuses
+	 * @param  array $statuses Post statuses array
 	 * @return array
 	 */
 	public function get_statuses( $statuses ) {
@@ -171,7 +174,6 @@ class ProtectedContent extends Feature {
 	/**
 	 * Determine WC feature reqs status
 	 *
-	 * @param  EP_Feature_Requirements_Status $status
 	 * @since  2.2
 	 * @return EP_Feature_Requirements_Status
 	 */

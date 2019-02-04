@@ -39,7 +39,7 @@ class Features {
 	/**
 	 * Activate a feature
 	 *
-	 * @param  string $slug
+	 * @param  string $slug Feature slug
 	 * @since  2.2
 	 */
 	public function activate_feature( $slug ) {
@@ -49,8 +49,8 @@ class Features {
 	/**
 	 * Dectivate a feature
 	 *
-	 * @param  string $slug
-	 * @param  bool   $force
+	 * @param  string $slug Feature slug
+	 * @param  bool   $force Whether to force deactivation
 	 * @since  2.2
 	 */
 	public function deactivate_feature( $slug, $force = true ) {
@@ -75,7 +75,7 @@ class Features {
 	/**
 	 * Easy access function to get a Feature object from a slug
 	 *
-	 * @param  string $slug
+	 * @param  string $slug Feature slug
 	 * @since  2.1
 	 * @return Feature
 	 */
@@ -90,9 +90,9 @@ class Features {
 	/**
 	 * Activate or deactivate a feature
 	 *
-	 * @param  string $slug
-	 * @param  array  $settings
-	 * @param  bool   $force
+	 * @param  string $slug Feature slug
+	 * @param  array  $settings Array of settings
+	 * @param  bool   $force Whether to force activate/deactivate
 	 * @since  2.2
 	 * @return array|bool
 	 */

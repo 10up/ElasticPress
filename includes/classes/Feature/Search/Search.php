@@ -98,8 +98,8 @@ class Search extends Feature {
 	/**
 	 * Make sure we don't search for "any" on a search query
 	 *
-	 * @param  string   $post_type
-	 * @param  WP_Query $query
+	 * @param  string   $post_type Post type
+	 * @param  WP_Query $query WP Query
 	 * @return string|array
 	 */
 	public function filter_query_post_type_for_search( $post_type, $query ) {
@@ -130,7 +130,7 @@ class Search extends Feature {
 	/**
 	 * Integrate search with ElasticPress and enhance search fields
 	 *
-	 * @param  WP_Query $query
+	 * @param  WP_Query $query WP Query
 	 * @since  3.0
 	 */
 	public function improve_default_search( $query ) {
@@ -168,8 +168,8 @@ class Search extends Feature {
 	/**
 	 * Weight more recent content in searches
 	 *
-	 * @param  array $formatted_args
-	 * @param  array $args
+	 * @param  array $formatted_args Formatted ES args
+	 * @param  array $args WP_Query args
 	 * @since  2.1
 	 * @return array
 	 */
@@ -238,8 +238,8 @@ class Search extends Feature {
 	/**
 	 * Enable integration on search queries
 	 *
-	 * @param  bool     $enabled
-	 * @param  WP_Query $query
+	 * @param  bool     $enabled Original enabled value
+	 * @param  WP_Query $query WP Query
 	 * @since  2.1
 	 * @return bool
 	 */
@@ -283,16 +283,8 @@ class Search extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio"
-				<?php
-				if ( (bool) $decaying_settings['decaying_enabled'] ) :
-					?>
-checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio"
-				<?php
-				if ( ! (bool) $decaying_settings['decaying_enabled'] ) :
-					?>
-checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 		</div>
 		<?php

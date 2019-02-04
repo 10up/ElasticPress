@@ -81,7 +81,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function activate_feature( $args, $assoc_args ) {
-		$this->_index_occurring( $assoc_args );
+		$this->index_occurring( $assoc_args );
 
 		$feature = Features::factory()->get_registered_feature( $args[0] );
 
@@ -120,7 +120,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function deactivate_feature( $args, $assoc_args ) {
-		$this->_index_occurring( $assoc_args );
+		$this->index_occurring( $assoc_args );
 
 		$feature = Features::factory()->get_registered_feature( $args[0] );
 
@@ -134,7 +134,7 @@ class Command extends WP_CLI_Command {
 			$active_features = get_option( 'ep_feature_settings', [] );
 		}
 
-		$key = array_search( $feature->slug, array_keys( $active_features ) );
+		$key = array_search( $feature->slug, array_keys( $active_features ), true );
 
 		if ( false === $key || empty( $active_features[ $feature->slug ]['active'] ) ) {
 			WP_CLI::error( esc_html__( 'Feature is not active', 'elasticpress' ) );
@@ -189,10 +189,10 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function put_mapping( $args, $assoc_args ) {
-		$this->_connect_check();
-		$this->_index_occurring( $assoc_args );
+		$this->connect_check();
+		$this->index_occurring( $assoc_args );
 
-		$this->_put_mapping( $args, $assoc_args );
+		$this->put_mapping_helper( $args, $assoc_args );
 	}
 
 	/**
@@ -202,7 +202,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	private function _put_mapping( $args, $assoc_args ) {
+	private function put_mapping_helper( $args, $assoc_args ) {
 		$indexables = null;
 
 		if ( ! empty( $assoc_args['indexables'] ) ) {
@@ -307,8 +307,8 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function delete_index( $args, $assoc_args ) {
-		$this->_connect_check();
-		$this->_index_occurring( $assoc_args );
+		$this->connect_check();
+		$this->index_occurring( $assoc_args );
 
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
 		$global_indexable_objects     = Indexables::factory()->get_all( true );
@@ -373,8 +373,8 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function recreate_network_alias( $args, $assoc_args ) {
-		$this->_connect_check();
-		$this->_index_occurring( $assoc_args );
+		$this->connect_check();
+		$this->index_occurring( $assoc_args );
 
 		$indexables = Indexables::factory()->get_all( false );
 
@@ -383,7 +383,7 @@ class Command extends WP_CLI_Command {
 
 			$indexable->delete_network_alias();
 
-			$create_result = $this->_create_network_alias();
+			$create_result = $this->create_network_alias_helper();
 
 			if ( $create_result ) {
 				WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
@@ -400,7 +400,7 @@ class Command extends WP_CLI_Command {
 	 * @since  0.9
 	 * @return array|bool
 	 */
-	private function _create_network_alias( Indexable $indexable ) {
+	private function create_network_alias_helper( Indexable $indexable ) {
 		$sites   = Utils\get_sites();
 		$indexes = [];
 
@@ -427,8 +427,8 @@ class Command extends WP_CLI_Command {
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
 
-		$this->_connect_check();
-		$this->_index_occurring( $assoc_args );
+		$this->connect_check();
+		$this->index_occurring( $assoc_args );
 
 		$indexables = null;
 
@@ -473,7 +473,7 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
 
 			// Right now setup is just the put_mapping command, as this also deletes the index(s) first.
-			$this->_put_mapping( $args, $assoc_args );
+			$this->put_mapping_helper( $args, $assoc_args );
 		}
 
 		$all_indexables               = Indexables::factory()->get_all();
@@ -502,7 +502,7 @@ class Command extends WP_CLI_Command {
 
 					WP_CLI::log( sprintf( esc_html__( 'Indexing %1$s on site %2$d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), (int) $site['blog_id'] ) );
 
-					$result = $this->_index_helper( $indexable, $assoc_args );
+					$result = $this->index_helper( $indexable, $assoc_args );
 
 					$total_indexed += $result['synced'];
 
@@ -529,7 +529,7 @@ class Command extends WP_CLI_Command {
 
 				WP_CLI::log( sprintf( esc_html__( 'Indexing %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
-				$result = $this->_index_helper( $indexable, $assoc_args );
+				$result = $this->index_helper( $indexable, $assoc_args );
 
 				$total_indexed += $result['synced'];
 
@@ -553,7 +553,7 @@ class Command extends WP_CLI_Command {
 
 				WP_CLI::log( sprintf( esc_html__( 'Recreating %s network alias...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
-				$this->_create_network_alias( $indexable );
+				$this->create_network_alias_helper( $indexable );
 			}
 		} else {
 			/**
@@ -569,7 +569,7 @@ class Command extends WP_CLI_Command {
 
 				WP_CLI::log( sprintf( esc_html__( 'Indexing %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
-				$result = $this->_index_helper( $indexable, $assoc_args );
+				$result = $this->index_helper( $indexable, $assoc_args );
 
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
@@ -598,7 +598,7 @@ class Command extends WP_CLI_Command {
 	 * @since  0.9
 	 * @return array
 	 */
-	private function _index_helper( Indexable $indexable, $args ) {
+	private function index_helper( Indexable $indexable, $args ) {
 		$synced = 0;
 		$errors = [];
 
@@ -661,11 +661,11 @@ class Command extends WP_CLI_Command {
 						 */
 						$result = $indexable->index( $object->ID, true );
 
-						$this->_reset_transient();
+						$this->reset_transient();
 
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
 					} else {
-						$result = $this->_queue_object( $indexable, $object->ID, count( $query['objects'] ), $show_bulk_errors );
+						$result = $this->queue_object( $indexable, $object->ID, count( $query['objects'] ), $show_bulk_errors );
 					}
 
 					if ( ! $result ) {
@@ -685,12 +685,12 @@ class Command extends WP_CLI_Command {
 			usleep( 500 );
 
 			// Avoid running out of memory.
-			$this->_stop_the_insanity();
+			$this->stop_the_insanity();
 
 		}
 
 		if ( ! $no_bulk ) {
-			$this->_send_bulk_errors();
+			$this->send_bulk_errors();
 		}
 
 		wp_reset_postdata();
@@ -711,7 +711,7 @@ class Command extends WP_CLI_Command {
 	 * @since  3.0
 	 * @return bool|int true if successfully synced, false if not or 2 if object was killed before sync
 	 */
-	private function _queue_object( Indexable $indexable, $object_id, $bulk_trigger, $show_bulk_errors = false ) {
+	private function queue_object( Indexable $indexable, $object_id, $bulk_trigger, $show_bulk_errors = false ) {
 		static $killed_object_count = 0;
 
 		$killed_object = false;
@@ -737,7 +737,7 @@ class Command extends WP_CLI_Command {
 		if ( ( count( $this->objects ) + $killed_object_count ) === absint( $bulk_trigger ) ) {
 			// Don't waste time if we've killed all the posts.
 			if ( ! empty( $this->objects ) ) {
-				$this->_bulk_index( $indexable, $show_bulk_errors );
+				$this->bulk_index( $indexable, $show_bulk_errors );
 			}
 
 			// reset killed count.
@@ -763,7 +763,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @since 0.9.2
 	 */
-	private function _bulk_index( Indexable $indexable, $show_bulk_errors = false ) {
+	private function bulk_index( Indexable $indexable, $show_bulk_errors = false ) {
 		// monitor how many times we attempt to add this particular bulk request.
 		static $attempts = 0;
 
@@ -777,7 +777,7 @@ class Command extends WP_CLI_Command {
 
 		$response = $indexable->bulk_index( array_keys( $this->objects ) );
 
-		$this->_reset_transient();
+		$this->reset_transient();
 
 		do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $this->objects );
 
@@ -823,12 +823,12 @@ class Command extends WP_CLI_Command {
 	 * @since  2.2
 	 * @return string
 	 */
-	private function _format_bulk_error_message( $message_array ) {
+	private function format_bulk_error_message( $message_array ) {
 		$message = '';
 
 		foreach ( $message_array as $key => $value ) {
 			if ( is_array( $value ) ) {
-				$message .= $this->_format_bulk_error_message( $value );
+				$message .= $this->format_bulk_error_message( $value );
 			} else {
 				$message .= "$key: $value" . PHP_EOL;
 			}
@@ -842,7 +842,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @since 0.9.2
 	 */
-	private function _send_bulk_errors() {
+	private function send_bulk_errors() {
 		if ( ! empty( $this->failed_objects ) ) {
 			$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
 
@@ -850,7 +850,7 @@ class Command extends WP_CLI_Command {
 				$error_text .= '- ' . $failed_array['ID'] . ' (' . $failed_array['indexable']->labels['singular'] . '): ' . "\r\n";
 
 				if ( ! empty( $failed_array['error'] ) ) {
-					$error_text .= $this->_format_bulk_error_message( $failed_array['error'] ) . PHP_EOL;
+					$error_text .= $this->format_bulk_error_message( $failed_array['error'] ) . PHP_EOL;
 				}
 			}
 
@@ -867,7 +867,7 @@ class Command extends WP_CLI_Command {
 	 * @since 0.9.1
 	 */
 	public function status() {
-		$this->_connect_check();
+		$this->connect_check();
 
 		$request_args = [ 'headers' => ep_format_request_headers() ];
 
@@ -880,7 +880,9 @@ class Command extends WP_CLI_Command {
 		$body = wp_remote_retrieve_body( $request );
 		WP_CLI::line( '' );
 		WP_CLI::line( '====== Status ======' );
+		// phpcs:disable
 		WP_CLI::line( print_r( $body, true ) );
+		// phpcs:enable
 		WP_CLI::line( '====== End Status ======' );
 	}
 
@@ -890,7 +892,7 @@ class Command extends WP_CLI_Command {
 	 * @since 0.9.2
 	 */
 	public function stats() {
-		$this->_connect_check();
+		$this->connect_check();
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
@@ -919,7 +921,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Resets some values to reduce memory footprint.
 	 */
-	private function _stop_the_insanity() {
+	private function stop_the_insanity() {
 		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
 
 		$wpdb->queries = [];
@@ -954,7 +956,9 @@ class Command extends WP_CLI_Command {
 		}
 
 		// Prevent wp_actions from growing out of control.
+		// phpcs:disable
 		$wp_actions = $this->temporary_wp_actions;
+		// phpcs:enable
 
 		// WP_Query class adds filter get_term_metadata using its own instance
 		// what prevents WP_Query class from being destructed by PHP gc.
@@ -988,7 +992,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @since 0.9.3
 	 */
-	private function _connect_check() {
+	private function connect_check() {
 		$host = Utils\get_host();
 
 		if ( empty( $host ) ) {
@@ -1001,9 +1005,10 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Error out if index is already occurring
 	 *
+	 * @param  array $assoc_args Associative args passed to command
 	 * @since 3.0
 	 */
-	private function _index_occurring( $assoc_args ) {
+	private function index_occurring( $assoc_args ) {
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$dashboard_syncing = get_site_option( 'ep_index_meta' );
 			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
@@ -1022,7 +1027,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @since 2.2
 	 */
-	private function _reset_transient() {
+	private function reset_transient() {
 		if ( $this->is_network_transient ) {
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {

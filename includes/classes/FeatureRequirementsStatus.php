@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Simple class for tracking a features requirement status
  *

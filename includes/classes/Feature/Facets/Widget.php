@@ -30,8 +30,8 @@ class Widget extends WP_Widget {
 	/**
 	 * Output widget
 	 *
-	 * @param  array $args
-	 * @param  array $instance
+	 * @param  array $args Widget args
+	 * @param  array $instance Instance settings
 	 * @since 2.5
 	 */
 	public function widget( $args, $instance ) {
@@ -121,10 +121,10 @@ class Widget extends WP_Widget {
 
 		$outputted_terms = array();
 
-		echo $args['before_widget'];
+		echo wp_kses_post( $args['before_widget'] );
 
 		if ( ! empty( $instance['title'] ) ) {
-			echo $args['before_title'] . esc_html( apply_filters( 'widget_title', $instance['title'] ) ) . $args['after_title'];
+			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
 		}
 
 		$taxonomy_object = get_taxonomy( $taxonomy );
@@ -194,7 +194,7 @@ searchable<?php endif; ?>">
 
 							$flat_ordered_terms[] = $top_of_tree;
 
-							$to_process = $this->_order_by_selected( $top_of_tree->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] );
+							$to_process = $this->order_by_selected( $top_of_tree->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] );
 
 							while ( ! empty( $to_process ) ) {
 								$term = array_shift( $to_process );
@@ -202,7 +202,7 @@ searchable<?php endif; ?>">
 								$flat_ordered_terms[] = $term;
 
 								if ( ! empty( $term->children ) ) {
-									$to_process = array_merge( $this->_order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] ), $to_process );
+									$to_process = array_merge( $this->order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] ), $to_process );
 								}
 							}
 
@@ -225,20 +225,9 @@ searchable<?php endif; ?>">
 									$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 								}
 								?>
-								<div class="term
-								<?php
-								if ( empty( $term->count ) ) :
-									?>
-empty-term<?php endif; ?> <?php
-if ( $selected ) :
-	?>
-selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
+								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
-										<input type="checkbox"
-										<?php
-										if ( $selected ) :
-											?>
-checked<?php endif; ?>>
+										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?>>
 										<?php echo esc_html( $term->name ); ?>
 									</a>
 								</div>
@@ -266,15 +255,8 @@ checked<?php endif; ?>>
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 					?>
 					<div class="term
-					<?php
-					if ( empty( $term->count ) ) :
-						?>
-empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a
-						<?php
-						if ( ! empty( $term->count ) ) :
-							?>
-href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
+					<?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
+						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
 							<input type="checkbox">
 							<?php echo esc_html( $term->name ); ?>
 						</a>
@@ -285,20 +267,20 @@ href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php
 		<?php
 		$facet_html = ob_get_clean();
 		// Allows developers to modify widget html
-		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms );
+		echo wp_kses_post( apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms ) );
 
-		echo $args['after_widget'];
+		echo wp_kses_post( $args['after_widget'] );
 	}
 
 	/**
 	 * Order terms putting selected at the top
 	 *
-	 * @param  array $terms
-	 * @param  array $selected_terms
+	 * @param  array $terms Array of terms
+	 * @param  array $selected_terms Selected terms
 	 * @since  2.5
 	 * @return array
 	 */
-	private function _order_by_selected( $terms, $selected_terms ) {
+	private function order_by_selected( $terms, $selected_terms ) {
 		$ordered_terms = [];
 		$terms_by_slug = [];
 
@@ -327,7 +309,7 @@ href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php
 	/**
 	 * Output widget form
 	 *
-	 * @param  array $instance
+	 * @param  array $instance Instance settings
 	 * @since 2.5
 	 */
 	public function form( $instance ) {
@@ -366,18 +348,18 @@ href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php
 		?>
 		<div class="widget-ep-facet">
 			<p>
-				<label for="<?php echo $this->get_field_id( 'title' ); ?>">
+				<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>">
 					<?php esc_html_e( 'Title:', 'elasticpress' ); ?>
 				</label>
-				<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
+				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
 			</p>
 
 			<p>
-				<label for="<?php echo $this->get_field_id( 'facet' ); ?>">
+				<label for="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>">
 					<?php esc_html_e( 'Taxonomy:', 'elasticpress' ); ?>
 				</label><br>
 
-				<select id="<?php echo $this->get_field_id( 'facet' ); ?>" name="<?php echo $this->get_field_name( 'facet' ); ?>">
+				<select id="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'facet' ) ); ?>">
 					<?php foreach ( $taxonomies as $slug => $taxonomy_object ) : ?>
 						<option <?php selected( $facet, $taxonomy_object->name ); ?> value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
 					<?php endforeach; ?>
@@ -393,8 +375,8 @@ href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php
 	/**
 	 * Sanitize fields
 	 *
-	 * @param  array $new_instance
-	 * @param  array $old_instance
+	 * @param  array $new_instance New instance settings
+	 * @param  array $old_instance Old instance settings
 	 * @since 2.5
 	 */
 	public function update( $new_instance, $old_instance ) {

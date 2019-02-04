@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Feature class to be initiated for all features.
  *
@@ -58,21 +57,21 @@ abstract class Feature {
 	 *
 	 * @since  2.1
 	 */
-	abstract function setup();
+	abstract public function setup();
 
 	/**
 	 * Implement to output feature box summary
 	 *
 	 * @since  3.0
 	 */
-	abstract function output_feature_box_summary();
+	abstract public function output_feature_box_summary();
 
 	/**
 	 * Implement to output feature box long text
 	 *
 	 * @since  3.0
 	 */
-	abstract function output_feature_box_long();
+	abstract public function output_feature_box_long();
 
 	/**
 	 * Create feature
@@ -203,29 +202,9 @@ abstract class Feature {
 		<div class="feature-fields">
 			<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 				<div class="field-name status"><?php esc_html_e( 'Status', 'elasticpress' ); ?></div>
-				<div class="input-wrap
-				<?php
-				if ( 2 === $requirements_status->code ) :
-					?>
-disabled<?php endif; ?>">
-					<label for="feature_active_<?php echo esc_attr( $this->slug ); ?>_enabled"><input name="feature_active_<?php echo esc_attr( $this->slug ); ?>" id="feature_active_<?php echo esc_attr( $this->slug ); ?>_enabled" data-field-name="active" class="setting-field"
-															<?php
-															if ( 2 === $requirements_status->code ) :
-																?>
-										disabled<?php endif; ?> type="radio"
-						<?php
-						if ( $this->is_active() ) :
-							?>
-						checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-					<label for="feature_active_<?php echo esc_attr( $this->slug ); ?>_disabled"><input name="feature_active_<?php echo esc_attr( $this->slug ); ?>" id="feature_active_<?php echo esc_attr( $this->slug ); ?>_disabled" data-field-name="active" class="setting-field"
-															<?php
-															if ( 2 === $requirements_status->code ) :
-																?>
-										disabled<?php endif; ?> type="radio"
-						<?php
-						if ( ! $this->is_active() ) :
-							?>
-						checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<div class="input-wrap <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?>">
+					<label for="feature_active_<?php echo esc_attr( $this->slug ); ?>_enabled"><input name="feature_active_<?php echo esc_attr( $this->slug ); ?>" id="feature_active_<?php echo esc_attr( $this->slug ); ?>_enabled" data-field-name="active" class="setting-field" <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?> type="radio" <?php if ( $this->is_active() ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+					<label for="feature_active_<?php echo esc_attr( $this->slug ); ?>_disabled"><input name="feature_active_<?php echo esc_attr( $this->slug ); ?>" id="feature_active_<?php echo esc_attr( $this->slug ); ?>_disabled" data-field-name="active" class="setting-field" <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?> type="radio" <?php if ( ! $this->is_active() ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				</div>
 			</div>
 
@@ -239,11 +218,7 @@ disabled<?php endif; ?>">
 				<?php esc_html_e( 'Setting adjustments to this feature require a re-sync. Use WP-CLI.', 'elasticpress' ); ?>
 			</span>
 
-			<a data-feature="<?php echo esc_attr( $this->slug ); ?>" class="
-										<?php
-										if ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) :
-											?>
-							disabled<?php endif; ?> button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
+			<a data-feature="<?php echo esc_attr( $this->slug ); ?>" class="<?php if ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) : ?>disabled<?php endif; ?> button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
 		</div>
 		<?php
 	}

@@ -43,9 +43,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
 		add_action( 'deleted_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
 
-		/**
-		 * @todo Handle deleted meta
-		 */
+		// @todo Handle deleted meta
 	}
 
 	/**
@@ -66,7 +64,7 @@ class SyncManager extends SyncManagerAbstract {
 	/**
 	 * Delete ES user when WP user is deleted
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int $user_id User ID
 	 * @since 3.0
 	 */
 	public function action_delete_user( $user_id ) {

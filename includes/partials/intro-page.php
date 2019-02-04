@@ -22,9 +22,9 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 <div class="wrap intro">
 	<div class="left">
 		<h1><?php esc_html_e( 'A Fast and Flexible Search and Query Engine for WordPress.', 'elasticpress' ); ?></h1>
-		<h2><?php _e( "You're almost there! The plugin is free to use but requires an Elasticsearch server behind-the-scenes. There are tons of services that let you easily get one like <a href='https://qbox.io'>Qbox</a>. If you have a bigger website, 10up provides Elasticsearch hosting via <a href='http://www.elasticpress.io'>ElasticPress.io</a>.", 'elasticpress' ); ?></h2>
+		<h2><?php echo wp_kses_post( __( "You're almost there! The plugin is free to use but requires an Elasticsearch server behind-the-scenes. There are tons of services that let you easily get one like <a href='https://qbox.io'>Qbox</a>. If you have a bigger website, 10up provides Elasticsearch hosting via <a href='http://www.elasticpress.io'>ElasticPress.io</a>.", 'elasticpress' ) ); ?></h2>
 	</div>
-	<img class="features-screenshot" src="<?php echo EP_URL . 'images/features-screenshot.png'; ?>">
+	<img class="features-screenshot" src="<?php echo esc_url( EP_URL ) . 'images/features-screenshot.png'; ?>">
 </div>
 
 <div class="setup-message">

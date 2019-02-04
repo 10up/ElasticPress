@@ -341,6 +341,8 @@ class User extends Indexable {
 		}
 
 		/**
+		 * Need to support a few more params
+		 *
 		 * @todo  Support the following parameters:
 		 *
 		 * $orderby
@@ -492,13 +494,15 @@ class User extends Indexable {
 	 * Convert the alias to a properly-prefixed sort value.
 	 *
 	 * @since  3.0
-	 * @param  string $orderbys Orderby query var
-	 * @param  string $order Order direction
+	 * @param  string $orderby Orderby query var
+	 * @param  string $default_order Order direction
 	 * @param  array  $query_vars Query vars
 	 * @return array
 	 */
 	public function parse_orderby( $orderby, $default_order, $query_vars ) {
 		/**
+		 * More params to support
+		 *
 		 * @todo  Need to support:
 		 *
 		 * include
@@ -598,7 +602,7 @@ class User extends Indexable {
 	/**
 	 * Query DB for users
 	 *
-	 * @param  array $args
+	 * @param  array $args Query arguments
 	 * @since  3.0
 	 * @return array
 	 */
@@ -653,7 +657,7 @@ class User extends Indexable {
 	/**
 	 * Prepare a user document for indexing
 	 *
-	 * @param  int $user_id
+	 * @param  int $user_id User id
 	 * @since  3.0
 	 * @return array
 	 */
@@ -722,7 +726,7 @@ class User extends Indexable {
 	/**
 	 * Prepare meta to send to ES
 	 *
-	 * @param int $user_id
+	 * @param int $user_id User id
 	 * @since 3.0
 	 * @return array
 	 */

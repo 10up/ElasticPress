@@ -48,7 +48,7 @@ class Post extends Indexable {
 	/**
 	 * Query database for posts
 	 *
-	 * @param  array $args
+	 * @param  array $args Query DB args
 	 * @since  3.0
 	 * @return array
 	 */
@@ -187,19 +187,19 @@ class Post extends Indexable {
 		$menu_order        = absint( $post->menu_order );
 
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
-			if ( ! strtotime( $post_date ) || $post_date === '0000-00-00 00:00:00' ) {
+			if ( ! strtotime( $post_date ) || '0000-00-00 00:00:00' === $post_date ) {
 				$post_date = null;
 			}
 
-			if ( ! strtotime( $post_date_gmt ) || $post_date_gmt === '0000-00-00 00:00:00' ) {
+			if ( ! strtotime( $post_date_gmt ) || '0000-00-00 00:00:00' === $post_date_gmt ) {
 				$post_date_gmt = null;
 			}
 
-			if ( ! strtotime( $post_modified ) || $post_modified === '0000-00-00 00:00:00' ) {
+			if ( ! strtotime( $post_modified ) || '0000-00-00 00:00:00' === $post_modified ) {
 				$post_modified = null;
 			}
 
-			if ( ! strtotime( $post_modified_gmt ) || $post_modified_gmt === '0000-00-00 00:00:00' ) {
+			if ( ! strtotime( $post_modified_gmt ) || '0000-00-00 00:00:00' === $post_modified_gmt ) {
 				$post_modified_gmt = null;
 			}
 		}
@@ -251,8 +251,7 @@ class Post extends Indexable {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $timestamp
-	 *
+	 * @param string $post_date_gmt Post date
 	 * @since 0.1.4
 	 * @return array
 	 */
@@ -277,8 +276,7 @@ class Post extends Indexable {
 	/**
 	 * Prepare terms to send to ES.
 	 *
-	 * @param object $post
-	 *
+	 * @param WP_Post $post Post object
 	 * @since 0.1.0
 	 * @return array
 	 */
@@ -344,9 +342,9 @@ class Post extends Indexable {
 	/**
 	 * Recursively get all the ancestor terms of the given term
 	 *
-	 * @param $terms
-	 * @param $term
-	 * @param $tax_name
+	 * @param array   $terms Terms array
+	 * @param WP_Term $term Current term
+	 * @param string  $tax_name Taxonomy
 	 * @return array
 	 */
 	private function get_parent_terms( $terms, $term, $tax_name ) {
@@ -368,8 +366,7 @@ class Post extends Indexable {
 	/**
 	 * Prepare post meta to send to ES
 	 *
-	 * @param object $post
-	 *
+	 * @param WP_Post $post Post object
 	 * @since 0.1.0
 	 * @return array
 	 */
@@ -412,12 +409,12 @@ class Post extends Indexable {
 
 			if ( is_protected_meta( $key ) ) {
 
-				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys ) ) {
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
 					$allow_index = true;
 				}
 			} else {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys ) ) {
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 					$allow_index = true;
 				}
 			}
@@ -775,7 +772,9 @@ class Post extends Indexable {
 		 *
 		 * @since 1.3
 		 */
-		if ( $date_filter = DateQuery::simple_es_date_filter( $args ) ) {
+		$date_filter = DateQuery::simple_es_date_filter( $args );
+
+		if ( empty( $date_filter ) ) {
 			$filter['bool']['must'][] = $date_filter;
 			$use_filters              = true;
 		}
@@ -879,10 +878,10 @@ class Post extends Indexable {
 				unset( $search_field_args['meta'] );
 			}
 
-			if ( in_array( 'author_name', $search_field_args ) ) {
+			if ( in_array( 'author_name', $search_field_args, true ) ) {
 				$search_fields[] = 'post_author.login';
 
-				$author_name_index = array_search( 'author_name', $search_field_args );
+				$author_name_index = array_search( 'author_name', $search_field_args, true );
 				unset( $search_field_args[ $author_name_index ] );
 			}
 
@@ -953,7 +952,7 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['orderby'] ) ) {
 			$orderbys = $this->get_orderby_array( $args['orderby'] );
-			if ( in_array( 'rand', $orderbys ) ) {
+			if ( in_array( 'rand', $orderbys, true ) ) {
 				$formatted_args_query                                      = $formatted_args['query'];
 				$formatted_args['query']                                   = [];
 				$formatted_args['query']['function_score']['query']        = $formatted_args_query;
@@ -970,7 +969,7 @@ class Post extends Indexable {
 
 		if ( false !== $sticky_posts
 			&& is_home()
-			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ) ) ) {
+			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ), true ) ) {
 			// let's eliminate sort so it does not mess with function_score results
 			$formatted_args['sort']                                 = array();
 			$formatted_args_query                                   = $formatted_args['query'];
@@ -1176,9 +1175,9 @@ class Post extends Indexable {
 	 * @since 1.1
 	 * @access protected
 	 *
-	 * @param string $orderbys Alias or path for the field to order by.
-	 * @param string $order
-	 * @param  array  $args
+	 * @param string  $orderbys Alias or path for the field to order by.
+	 * @param string  $default_order Default order direction
+	 * @param  array  $args Query args
 	 * @return array
 	 */
 	protected function parse_orderby( $orderbys, $default_order, $args ) {
@@ -1264,8 +1263,7 @@ class Post extends Indexable {
 	/**
 	 * Get Order by args Array
 	 *
-	 * @param $orderbys
-	 *
+	 * @param string|array $orderbys Order by string or array
 	 * @since 2.1
 	 * @return array
 	 */

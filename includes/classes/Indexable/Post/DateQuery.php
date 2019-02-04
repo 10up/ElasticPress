@@ -47,8 +47,8 @@ class DateQuery extends WP_Date_Query {
 	/**
 	 * Get Elaticsearch formatted filters
 	 *
-	 * @param $query array of date query clauses.
-	 * @param int                               $depth unused but may be necessary if we do nested date queries.
+	 * @param array $query array of date query clauses.
+	 * @param int   $depth unused but may be necessary if we do nested date queries.
 	 * @since 0.1.4
 	 * @return array
 	 */
@@ -77,9 +77,6 @@ class DateQuery extends WP_Date_Query {
 					}
 
 					// This is a subquery, so we recurse.
-				} else {
-					// @todo WP_Date_Query supports nested date queries, revisit if necessary.
-					// Removed because this implementation had incorrect results.
 				}
 			}
 		}
@@ -180,8 +177,7 @@ class DateQuery extends WP_Date_Query {
 	/**
 	 * Takes SQL query part, and translates it into an ES filter
 	 *
-	 * @param $query SQL query piece.
-	 *
+	 * @param array $query SQL query piece.
 	 * @return array ES filter.
 	 */
 	protected function get_es_filter_for_clause( $query ) {
@@ -193,7 +189,7 @@ class DateQuery extends WP_Date_Query {
 
 		$compare = $this->get_compare( $query );
 
-		$inclusive = ! empty( $query['inclusive'] ) && $query['inclusive'] === true ? true : false;
+		$inclusive = ! empty( $query['inclusive'] ) && true === $query['inclusive'] ? true : false;
 
 		// Assign greater- and less-than values.
 		$lt = 'lt';
@@ -312,10 +308,9 @@ class DateQuery extends WP_Date_Query {
 	 * Support for older style WP_Query date params
 	 *
 	 * @param array $args WP_Query args.
-	 *
 	 * @return array|bool
 	 */
-	static function simple_es_date_filter( $args ) {
+	public static function simple_es_date_filter( $args ) {
 		$date_parameters = array(
 			'year'   => ! empty( $args['year'] ) ? $args['year'] : false,
 			'month'  => ! empty( $args['month'] ) ? $args['month'] : false,
@@ -367,7 +362,8 @@ class DateQuery extends WP_Date_Query {
 	/**
 	 * Introduced in WP 4.1 added here for backwards compatibility
 	 *
-	 * @var array
+	 * @param  array $query Date query array
+	 * @return boolean
 	 */
 	protected function is_first_order_clause( $query ) {
 		$time_keys = array_intersect( $this->time_keys, array_keys( $query ) );
@@ -377,7 +373,8 @@ class DateQuery extends WP_Date_Query {
 	/**
 	 * Introduced in WP 4.1 added here for backwards compatibility
 	 *
-	 * @var array
+	 * @param  array $date_query Date query array
+	 * @return boolean
 	 */
 	public function validate_date_values( $date_query = [] ) {
 		if ( empty( $date_query ) ) {
@@ -505,7 +502,7 @@ class DateQuery extends WP_Date_Query {
 						'<code>' . esc_html( $check['max'] ) . '</code>'
 					);
 
-					_doing_it_wrong( __CLASS__, $error, '4.1.0' );
+					_doing_it_wrong( __CLASS__, esc_html( $error ), '4.1.0' );
 
 					$valid = false;
 				}
@@ -554,7 +551,7 @@ class DateQuery extends WP_Date_Query {
 		}
 
 		if ( ! empty( $day_month_year_error_msg ) ) {
-			_doing_it_wrong( __CLASS__, $day_month_year_error_msg, '4.1.0' );
+			_doing_it_wrong( __CLASS__, esc_html( $day_month_year_error_msg ), '4.1.0' );
 		}
 
 		return $valid;

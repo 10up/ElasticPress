@@ -91,8 +91,8 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	/**
 	 * If we are doing or matches, we need to remove filters from aggs
 	 *
-	 * @param  array $args
-	 * @param  array $query_args
+	 * @param  array $args ES arguments
+	 * @param  array $query_args Query arguments
 	 * @since  2.5
 	 * @return array
 	 */
@@ -101,9 +101,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 			return $args;
 		}
 
-		/**
-		 * @todo For some reason these are appearing in the query args, need to investigate
-		 */
+		// @todo For some reason these are appearing in the query args, need to investigate
 		unset( $query_args['category_name'] );
 		unset( $query_args['cat'] );
 		unset( $query_args['tag'] );
@@ -146,7 +144,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	/**
 	 * Output scripts for widget admin
 	 *
-	 * @param  string $hook
+	 * @param  string $hook WP hook
 	 * @since  2.5
 	 */
 	public function admin_scripts( $hook ) {
@@ -187,7 +185,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	/**
 	 * Figure out if we can/should facet the query
 	 *
-	 * @param  WP_Query $query
+	 * @param  WP_Query $query WP Query
 	 * @since  2.5
 	 * @return bool
 	 */
@@ -216,6 +214,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	 * when a facet widget is used before the main query is executed so we enable EP
 	 * everywhere where a facet widget could be used.
 	 *
+	 * @param  WP_Query $query WP Query
 	 * @since  2.5
 	 */
 	public function facet_query( $query ) {
@@ -283,7 +282,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	/**
 	 * Hacky. Save aggregation data for later in a global
 	 *
-	 * @param  array $response
+	 * @param  array $response ES response
 	 * @since  2.5
 	 */
 	public function get_aggs( $response ) {
@@ -335,6 +334,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	 * Build query url
 	 *
 	 * @since  2.5
+	 * @param  array $filters Facet filters
 	 * @return string
 	 */
 	public function build_query_url( $filters ) {

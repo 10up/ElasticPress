@@ -10,9 +10,8 @@
  * Registers a feature for use in ElasticPress
  *
  * @param  string $slug Unique slug for feature
- * @param  array  $feature_args Feature arguments
+ * @param  array  $args Feature arguments
  * @since  2.1
- * @return boolean
  */
 function ep_register_feature( $slug, $args ) {
 	_deprecated_function( __FUNCTION__, '3.0', esc_html__( 'Feature registration API', 'elasticpress' ) );
@@ -81,7 +80,9 @@ class $slug extends ElasticPress\Feature {
 	}
 }
 ';
+	// phpcs:disable
 	eval( $code );
+	// phpcs:enable
 
 	ElasticPress\Features::factory()->register_feature(
 		new $slug()

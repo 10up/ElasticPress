@@ -182,9 +182,13 @@ class WooCommerce extends Feature {
 		 * Note product_shipping_class, product_cat, and product_tag are already public. Make
 		 * sure to index non-attribute taxonomies.
 		 */
-		if ( $attribute_taxonomies = wc_get_attribute_taxonomies() ) {
+		$attribute_taxonomies = wc_get_attribute_taxonomies();
+
+		if ( ! empty( $attribute_taxonomies ) ) {
 			foreach ( $attribute_taxonomies as $tax ) {
-				if ( $name = wc_attribute_taxonomy_name( $tax->attribute_name ) ) {
+				$name = wc_attribute_taxonomy_name( $tax->attribute_name );
+
+				if ( ! empty( $name ) ) {
 					if ( empty( $tax->attribute_ ) ) {
 						$woo_taxonomies[] = get_taxonomy( $name );
 					}
@@ -229,10 +233,10 @@ class WooCommerce extends Feature {
 	/**
 	 * Translate args to ElasticPress compat format. This is the meat of what the feature does
 	 *
-	 * @param  WP_Query $query
+	 * @param  WP_Query $query WP Query
 	 * @since  2.1
 	 */
-	function translate_args( $query ) {
+	public function translate_args( $query ) {
 
 		// Lets make sure this doesn't interfere with the CLI
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -323,7 +327,7 @@ class WooCommerce extends Feature {
 			 * First check if already set taxonomies are supported WC taxes
 			 */
 			foreach ( $tax_query as $taxonomy_array ) {
-				if ( isset( $taxonomy_array['taxonomy'] ) && in_array( $taxonomy_array['taxonomy'], $supported_taxonomies ) ) {
+				if ( isset( $taxonomy_array['taxonomy'] ) && in_array( $taxonomy_array['taxonomy'], $supported_taxonomies, true ) ) {
 					$integrate = true;
 				}
 			}
@@ -384,7 +388,7 @@ class WooCommerce extends Feature {
 		);
 
 		// For orders it queries an array of shop_order and shop_order_refund post types, hence an array_diff
-		if ( ! empty( $post_type ) && ( in_array( $post_type, $supported_post_types ) || ( is_array( $post_type ) && ! array_diff( $post_type, $supported_post_types ) ) ) ) {
+		if ( ! empty( $post_type ) && ( in_array( $post_type, $supported_post_types, true ) || ( is_array( $post_type ) && ! array_diff( $post_type, $supported_post_types ) ) ) ) {
 			$integrate = true;
 		}
 
@@ -581,7 +585,7 @@ class WooCommerce extends Feature {
 	/**
 	 * Fetch the ES related meta mapping for orderby
 	 *
-	 * @param  $meta_key The meta key to get the mapping for.
+	 * @param array $meta_key The meta key to get the mapping for.
 	 * @since  2.1
 	 * @return string    The mapped meta key.
 	 */
@@ -608,8 +612,8 @@ class WooCommerce extends Feature {
 	/**
 	 * Make search coupons don't go through ES
 	 *
-	 * @param  bool   $enabled
-	 * @param  object $query
+	 * @param  bool     $enabled Coupons enabled or not
+	 * @param  WP_Query $query WP Query
 	 * @since  2.1
 	 * @return bool
 	 */
@@ -625,11 +629,11 @@ class WooCommerce extends Feature {
 	 * Allow order creations on the front end to get synced
 	 *
 	 * @since  2.1
-	 * @param  bool $override
-	 * @param  int  $post_id
+	 * @param  bool $override Original order perms check value
+	 * @param  int  $post_id Post ID
 	 * @return bool
 	 */
-	function bypass_order_permissions_check( $override, $post_id ) {
+	public function bypass_order_permissions_check( $override, $post_id ) {
 		if ( 'shop_order' === get_post_type( $post_id ) ) {
 			return true;
 		}
@@ -644,12 +648,12 @@ class WooCommerce extends Feature {
 	 * 2. If the search key is integer and it is an Order Id, just query with post__in
 	 * 3. If the search key is integer but not an order id ( might be phone number ), use ES to find it
 	 *
-	 * @param WP_Query $wp
+	 * @param WP_Query $wp WP Query
 	 * @since  2.3
 	 */
-	function search_order( $wp ) {
+	public function search_order( $wp ) {
 		global $pagenow;
-		if ( 'edit.php' != $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
 			 ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 			return;
 		}
@@ -682,12 +686,12 @@ class WooCommerce extends Feature {
 	 *
 	 * @since 2.4
 	 *
-	 * @param array      $post_args
-	 * @param string|int $post_id
+	 * @param array      $post_args Post arguments
+	 * @param string|int $post_id Post id
 	 *
 	 * @return array
 	 */
-	function add_order_items_search( $post_args, $post_id ) {
+	public function add_order_items_search( $post_args, $post_id ) {
 		// Make sure it is only WooCommerce orders we touch.
 		if ( 'shop_order' !== $post_args['post_type'] ) {
 			return $post_args;

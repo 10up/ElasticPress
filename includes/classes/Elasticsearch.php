@@ -79,7 +79,9 @@ class Elasticsearch {
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );
 		} else {
+			// phpcs:disable
 			$encoded_document = json_encode( $document );
+			// phpcs:enable
 		}
 
 		$request_args = array(
@@ -352,7 +354,9 @@ class Elasticsearch {
 		$shield = Utils\get_shield_credentials();
 
 		if ( ! empty( $shield ) ) {
+			// phpcs:disable
 			$headers['Authorization'] = 'Basic ' . base64_encode( $shield );
+			// phpcs:enable
 		}
 
 		$headers = apply_filters( 'ep_format_request_headers', $headers );
@@ -650,14 +654,14 @@ class Elasticsearch {
 		if ( isset( $args['blocking'] ) && false === $args['blocking'] ) {
 			$query['blocking'] = true;
 			$query['request']  = $request;
-			$this->_add_query_log( $query );
+			$this->add_query_log( $query );
 
 			return $request;
 		}
 
 		$query['time_finish'] = microtime( true );
 		$query['request']     = $request;
-		$this->_add_query_log( $query );
+		$this->add_query_log( $query );
 
 		do_action( 'ep_remote_request', $query, $type );
 
@@ -943,7 +947,7 @@ class Elasticsearch {
 	 *
 	 * @param array $query Query to log.
 	 */
-	protected function _add_query_log( $query ) {
+	protected function add_query_log( $query ) {
 		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
 			$this->queries[] = $query;
 		}

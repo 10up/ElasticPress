@@ -22,7 +22,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <?php require_once __DIR__ . '/header.php'; ?>
 
-<div class="error-overlay 
+<div class="error-overlay
 <?php
 if ( ! empty( $index_meta ) ) :
 	?>
@@ -56,11 +56,7 @@ cant-connect<?php endif; ?>"></div>
 
 			ob_start();
 			?>
-			<div class="
-			<?php
-			if ( $feature->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) :
-				?>
-dash-sync-disabled<?php endif; ?> ep-feature ep-feature-<?php echo esc_attr( $feature->slug ); ?> <?php echo esc_attr( $feature_classes ); ?>">
+			<div class="<?php if ( $feature->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) : ?>dash-sync-disabled<?php endif; ?> ep-feature ep-feature-<?php echo esc_attr( $feature->slug ); ?> <?php echo esc_attr( $feature_classes ); ?>">
 				<div class="postbox">
 					<h2 class="hndle">
 						<span><?php echo esc_html( $feature->title ); ?></span>
@@ -87,10 +83,10 @@ dash-sync-disabled<?php endif; ?> ep-feature ep-feature-<?php echo esc_attr( $fe
 			?>
 		<?php endforeach; ?>
 		<div class="left">
-			<?php echo $left; ?>
+			<?php echo wp_kses_post( $left ); ?>
 		</div>
 		<div class="right">
-			<?php echo $right; ?>
+			<?php echo wp_kses_post( $right ); ?>
 		</div>
 	</div>
 </div>
