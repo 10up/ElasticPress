@@ -634,7 +634,7 @@ class EP_Dashboard {
 			}
 		}
 
-		$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
+		$posts_per_page =  apply_filters( 'ep_index_posts_per_page', ep_get_bulk_settings() );
 
 		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
@@ -895,11 +895,15 @@ class EP_Dashboard {
 			];
 			update_site_option( 'ep_credentials', $credentials );
 
+			if( isset( $_POST['ep_bulk_setting'] ) ) {
+				update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
+			}
 
 		} else {
 			register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 			register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 			register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
+			register_setting( 'elasticpress', 'ep_bulk_setting', array( 'type' => 'integer', 'sanitize_callback' => 'absint' ) );
 		}
 	}
 
