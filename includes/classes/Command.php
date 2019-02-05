@@ -639,8 +639,9 @@ class Command extends WP_CLI_Command {
 			$per_page               = $query_args['per_page'];
 		}
 
-		if ( ! empty( $args['post_type'] ) ) {
-			$query_args['post_type'] = str_replace( ' ', '', $assoc_args['post_type'] );
+		if ( ! empty( $args['post-type'] ) ) {
+			$query_args['post_type'] = explode( ',', $args['post-type'] );
+			$query_args['post_type'] = array_map( 'trim', $query_args['post_type'] );
 		}
 
 		while ( true ) {
