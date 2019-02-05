@@ -664,6 +664,8 @@ class Command extends WP_CLI_Command {
 						$this->reset_transient();
 
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
+
+						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), ( $synced + 1 ), (int) $query['total_objects'] ) );
 					} else {
 						$result = $this->queue_object( $indexable, $object->ID, count( $query['objects'] ), $show_bulk_errors );
 					}
@@ -678,7 +680,9 @@ class Command extends WP_CLI_Command {
 				break;
 			}
 
-			WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] ) );
+			if ( ! $no_bulk ) {
+				WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] ) );
+			}
 
 			$query_args['offset'] += $per_page;
 
