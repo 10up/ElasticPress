@@ -899,7 +899,7 @@ class Command extends WP_CLI_Command {
 	public function stats() {
 		$this->connect_check();
 
-		$request_args = array( 'headers' => ep_format_request_headers() );
+		$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . '_stats/', $request_args );
 		if ( is_wp_error( $request ) ) {
