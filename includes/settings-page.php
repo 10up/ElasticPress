@@ -60,6 +60,27 @@ $ep_host = ep_get_host();
 					<?php endif; ?>
 				</td>
 			</tr>
+			<tr>
+					<th scope="row">
+						<label for="ep_language"><?php esc_html_e( 'Elasticsearch Language', 'elasticpress' ); ?></label>
+					</th>
+					<td>
+						<?php
+						$ep_language = get_option( 'ep_language' );
+						$ep_language = ! empty( $ep_language ) ? $ep_language : get_locale();
+						$ep_language = apply_filters( 'ep_default_language', $ep_language );
+
+						wp_dropdown_languages(
+							[
+								'id'       => 'ep_language',
+								'name'     => 'ep_language',
+								'selected' => $ep_language,
+							]
+						);
+						?>
+						<span class="description"><?php esc_html_e( 'Default language for your Elasticsearch queries.', 'elasticpress' ); ?></span>
+					</td>
+			</tr>
 			<?php
 			if ( ep_is_epio() && current_user_can( 'manage_options' ) ) {
 				$credentials = ep_get_epio_credentials();

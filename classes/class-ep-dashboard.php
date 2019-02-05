@@ -846,7 +846,7 @@ class EP_Dashboard {
 					$index_meta['wpcli_sync'] = true;
 				}
 
-				if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) {
+				if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // @codingStandardsIgnoreLine
 					$data['auto_start_index'] = true;
 				}
 
@@ -855,11 +855,11 @@ class EP_Dashboard {
 				}
 
 				$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );
-				$data['sync_paused'] = esc_html__( 'Sync paused', 'elasticpress' );
-				$data['sync_syncing'] = esc_html__( 'Syncing', 'elasticpress' );
-				$data['sync_initial'] = esc_html__( 'Starting sync', 'elasticpress' );
-				$data['sync_wpcli'] = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
-				$data['sync_error'] = esc_html__( 'An error occurred while syncing', 'elasticpress' );
+				$data['sync_paused']   = esc_html__( 'Sync paused', 'elasticpress' );
+				$data['sync_syncing']  = esc_html__( 'Syncing', 'elasticpress' );
+				$data['sync_initial']  = esc_html__( 'Starting sync', 'elasticpress' );
+				$data['sync_wpcli']    = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
+				$data['sync_error']    = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 
 				wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 			}
@@ -899,27 +899,27 @@ class EP_Dashboard {
 				die( esc_html__( 'Security error!', 'elasticpress' ) );
 			}
 
-			$host = esc_url_raw( trim( $_POST['ep_host'] ) );
+			$host = esc_url_raw( trim( $_POST['ep_host'] ) ); // @codingStandardsIgnoreLine
 			update_site_option( 'ep_host', $host );
 
 			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
 			update_site_option( 'ep_prefix', $prefix );
 
-			$credentials = ( isset( $_POST['ep_credentials'] ) ) ? ep_sanitize_credentials( $_POST['ep_credentials'] ) : [
+			$credentials = ( isset( $_POST['ep_credentials'] ) ) ? ep_sanitize_credentials( $_POST['ep_credentials'] ) : [ // @codingStandardsIgnoreLine
 				'username' => '',
 				'token'    => '',
 			];
 			update_site_option( 'ep_credentials', $credentials );
 
-			if( isset( $_POST['ep_bulk_setting'] ) ) {
+			if ( isset( $_POST['ep_bulk_setting'] ) ) {
 				update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
 			}
-
 		} else {
 			register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 			register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 			register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
 			register_setting( 'elasticpress', 'ep_bulk_setting', array( 'type' => 'integer', 'sanitize_callback' => 'absint' ) );
+			register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
 		}
 	}
 
@@ -935,7 +935,7 @@ class EP_Dashboard {
 			return;
 		}
 
-		$host =  ep_get_host();
+		$host = ep_get_host();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$intro_shown = get_site_option( 'ep_intro_shown', false );
@@ -945,17 +945,17 @@ class EP_Dashboard {
 
 		if ( ! $intro_shown ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+				wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
 			} else {
-				wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+				wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
 			}
 			exit;
 		} else {
 			if ( empty( $host ) ) {
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+					wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
 				} else {
-					wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+					wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
 				}
 				exit;
 			}
@@ -983,7 +983,7 @@ class EP_Dashboard {
 			update_option( 'ep_intro_shown', true );
 		}
 
-		include( dirname( __FILE__ ) . '/../includes/settings-page.php' );
+		include dirname( __FILE__ ) . '/../includes/settings-page.php';
 	}
 
 	/**
@@ -998,7 +998,7 @@ class EP_Dashboard {
 			update_option( 'ep_intro_shown', true );
 		}
 
-		include( dirname( __FILE__ ) . '/../includes/intro-page.php' );
+		include dirname( __FILE__ ) . '/../includes/intro-page.php';
 	}
 
 	/**
@@ -1010,10 +1010,10 @@ class EP_Dashboard {
 	 * @return void
 	 */
 	public function action_admin_menu() {
-		$capability  = 'manage_options';
+		$capability = 'manage_options';
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$capability  = 'manage_network';
+			$capability = 'manage_network';
 		}
 
 		add_menu_page(
