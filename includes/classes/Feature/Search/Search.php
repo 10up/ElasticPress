@@ -30,6 +30,7 @@ class Search extends Feature {
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
 			'decaying_enabled' => true,
+			'narrow_search'    => false,
 		];
 
 		parent::__construct();
@@ -244,7 +245,7 @@ class Search extends Feature {
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
-		if ( ! is_a( $query, 'WP_Query' ) ) {
+		if ( ! is_a( $query, '\WP_Query' ) ) {
 			return $enabled;
 		}
 
@@ -272,19 +273,23 @@ class Search extends Feature {
 	 * @since 2.4
 	 */
 	public function output_feature_box_settings() {
-		$decaying_settings = $this->get_settings();
+		$settings = $this->get_settings();
+		$settings = ! empty( $settings ) ? $settings : [];
 
-		if ( ! $decaying_settings ) {
-			$decaying_settings = [];
-		}
-
-		$decaying_settings = wp_parse_args( $decaying_settings, $this->default_settings );
+		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+			</div>
+		</div>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name narrow-search"><?php esc_html_e( 'Narrow Search', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="narrow_search_enabled"><input name="narrow_search" id="narrow_search_enabled" data-field-name="narrow_search" class="setting-field" type="radio" <?php if ( (bool) $settings['narrow_search'] ) : ?>checked<?php endif; ?> value="1" /><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br />
+				<label for="narrow_search_disabled"><input name="narrow_search" id="narrow_search_disabled" data-field-name="narrow_search" class="setting-field" type="radio" <?php if ( ! (bool) $settings['narrow_search'] ) : ?>checked<?php endif; ?> value="0" /><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 		</div>
 		<?php
