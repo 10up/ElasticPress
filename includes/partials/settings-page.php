@@ -74,9 +74,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					</th>
 					<td>
 						<?php
-						$ep_language = get_option( 'ep_language' );
-						$ep_language = ! empty( $ep_language ) ? $ep_language : get_locale();
-						$ep_language = apply_filters( 'ep_default_language', $ep_language );
+						$ep_language = Utils\get_language();
 
 						wp_dropdown_languages(
 							[

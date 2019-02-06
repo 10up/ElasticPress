@@ -340,3 +340,22 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 
 	return $terms_tree;
 }
+
+/**
+ * Returns the defaiult language for ES mapping.
+ *
+ * @return string Default EP language.
+ */
+function get_language() {
+	$ep_language = get_option( 'ep_language' );
+	$ep_language = ! empty( $ep_language ) ? $ep_language : get_locale();
+
+	/**
+	 * Filter for the default language.
+	 *
+	 * Modifies the default language used in Elasticsearch mapping.
+	 *
+	 * @param string The current language.
+	 */
+	return apply_filters( 'ep_default_language', $ep_language );
+}
