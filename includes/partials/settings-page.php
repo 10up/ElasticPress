@@ -48,8 +48,27 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					<?php endif; ?>
 				</td>
 			</tr>
+			<tr>
+				<th scope="row">
+					<label for="ep_language"><?php esc_html_e( 'Elasticsearch Language', 'elasticpress' ); ?></label>
+				</th>
+				<td>
+					<?php
+					$ep_language = Utils\get_language();
+
+					wp_dropdown_languages(
+						[
+							'id'       => 'ep_language',
+							'name'     => 'ep_language',
+							'selected' => $ep_language,
+						]
+					);
+					?>
+					<span class="description"><?php esc_html_e( 'Default language for your Elasticsearch mapping.', 'elasticpress' ); ?></span>
+				</td>
+			</tr>
 			<?php
-			if ( Utils\is_epio() && current_user_can( 'manage_options' ) ) {
+			if ( Utils\is_epio() ) {
 				$credentials = Utils\get_epio_credentials();
 				?>
 				<tr>
@@ -65,26 +84,6 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 						<?php else : ?>
 							<span class="description"><?php esc_html_e( 'Plug in your Subscription ID here.', 'elasticpress' ); ?></span>
 						<?php endif; ?>
-					</td>
-				</tr>
-
-				<tr>
-					<th scope="row">
-						<label for="ep_language"><?php esc_html_e( 'Elasticsearch Language', 'elasticpress' ); ?></label>
-					</th>
-					<td>
-						<?php
-						$ep_language = Utils\get_language();
-
-						wp_dropdown_languages(
-							[
-								'id'       => 'ep_language',
-								'name'     => 'ep_language',
-								'selected' => $ep_language,
-							]
-						);
-						?>
-						<span class="description"><?php esc_html_e( 'Default language for your Elasticsearch queries.', 'elasticpress' ); ?></span>
 					</td>
 				</tr>
 

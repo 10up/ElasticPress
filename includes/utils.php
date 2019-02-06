@@ -347,7 +347,12 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
  * @return string Default EP language.
  */
 function get_language() {
-	$ep_language = get_option( 'ep_language' );
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$ep_language = get_site_option( 'ep_language' );
+	} else {
+		$ep_language = get_option( 'ep_language' );
+	}
+
 	$ep_language = ! empty( $ep_language ) ? $ep_language : get_locale();
 
 	/**

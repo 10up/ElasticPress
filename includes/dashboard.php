@@ -866,23 +866,30 @@ function action_admin_enqueue_admin_scripts() {
 function action_admin_init() {
 
 	// Save options for multisite.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $_POST['ep_host'] ) ) {
-		if ( ! check_admin_referer( 'elasticpress-options' ) ) {
-			die( esc_html__( 'Security error!', 'elasticpress' ) );
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $_POST['ep_language'] ) ) {
+		check_admin_referer( 'elasticpress-options' );
+
+		$language = sanitize_text_field( $_POST['ep_language'] );
+		update_site_option( 'ep_language', $language );
+
+		if ( isset( $_POST['ep_host'] ) ) {
+			$host = esc_url_raw( trim( $_POST['ep_host'] ) );
+			update_site_option( 'ep_host', $host );
 		}
 
-		$host = esc_url_raw( trim( $_POST['ep_host'] ) );
-		update_site_option( 'ep_host', $host );
+		if ( isset( $_POST['ep_prefix'] ) ) {
+			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
+			update_site_option( 'ep_prefix', $prefix );
+		}
 
-		$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
-		update_site_option( 'ep_prefix', $prefix );
+		if ( isset( $_POST['ep_credentials'] ) ) {
+			$credentials = ( isset( $_POST['ep_credentials'] ) ) ? Utils\sanitize_credentials( $_POST['ep_credentials'] ) : [
+				'username' => '',
+				'token'    => '',
+			];
 
-		$credentials = ( isset( $_POST['ep_credentials'] ) ) ? Utils\sanitize_credentials( $_POST['ep_credentials'] ) : [
-			'username' => '',
-			'token'    => '',
-		];
-
-		update_site_option( 'ep_credentials', $credentials );
+			update_site_option( 'ep_credentials', $credentials );
+		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
