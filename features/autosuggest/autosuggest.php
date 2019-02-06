@@ -54,7 +54,7 @@ function ep_autosugguest_settings( $feature ) {
 		<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest CSS Selector', 'elasticpress' ); ?></label></div>
 		<div class="input-wrap">
 			<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
-			<p class="field-description"><?php esc_html_e( 'Custom  selector', 'elasticpress' ); ?></p>
+			<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
 
 		</div>
 	</div>
