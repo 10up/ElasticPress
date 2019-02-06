@@ -48,6 +48,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 The refactor changes a lot of ElasticPress internals. The biggest change is the feature registration API has completely changed. Now, new features should extend the `ElasticPress\Feature` class rather than calling `ep_register_feature`. Older features should be backwards compatible. However, if you are using the `EP_Feature_Requirements_Status` has been renamed to `ElasticPress\FeatureRequirementsStatus`.
 
+Other Features:
+* Elasticsearch language setting in admin
+
 Here are a list of filters/actions removed or changed:
 
 ### Actions Removed:
