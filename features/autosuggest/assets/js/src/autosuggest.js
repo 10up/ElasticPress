@@ -168,7 +168,7 @@
 	function updateAutosuggestBox( options, $localInput ) {
 		var i,
 			itemString,
-			$localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.' + epas.selector ),
+			$localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
 			$localSuggestList = $localESContainer.find( '.autosuggest-list' );
 
 		$localSuggestList.empty();
@@ -252,11 +252,11 @@
 	 */
 	function hideAutosuggestBox() {
 		$( '.autosuggest-list' ).empty();
-		$( '.' + epas.selector ).hide();
+		$( '.ep-autosuggest' ).hide();
 	}
 
-	var $epInput       = $( '.' + epas.selector + ', input[type="search"], .search-field' );
-	var $epAutosuggest = $( '<div class="' + epas.selector + '"><ul class="autosuggest-list"></ul></div>' );
+	var $epInput       = $( '.ep-autosuggest, input[type="search"], .search-field, ' + epas.selector  );
+	var $epAutosuggest = $( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
 	 * Build the auto-suggest container

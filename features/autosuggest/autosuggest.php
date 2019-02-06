@@ -54,7 +54,7 @@ function ep_autosugguest_settings( $feature ) {
 		<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest CSS Selector', 'elasticpress' ); ?></label></div>
 		<div class="input-wrap">
 			<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
-			<p class="field-description"><?php esc_html_e( 'CSS selector', 'elasticpress' ); ?></p>
+			<p class="field-description"><?php esc_html_e( 'Custom  selector', 'elasticpress' ); ?></p>
 
 		</div>
 	</div>
@@ -211,7 +211,7 @@ function ep_autosuggest_enqueue_scripts() {
 		'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
 		'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
 		'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
-		'selector'     => $settings['autosuggest_selector'],
+		'selector'     => esc_html( $settings['autosuggest_selector'] ),
 		'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
 			'post_title.suggest',
 			'term_suggest',
