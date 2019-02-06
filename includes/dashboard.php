@@ -44,6 +44,7 @@ function setup() {
 	add_filter( 'plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_filter( 'network_admin_plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
+	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
 }
 
 /**
@@ -886,6 +887,7 @@ function action_admin_init() {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
+		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
 	}
 }
 
@@ -999,4 +1001,74 @@ function action_admin_menu() {
 		'elasticpress-intro',
 		__NAMESPACE__ . '\intro_page'
 	);
+}
+
+/**
+ * Uses the language from EP settings in mapping.
+ *
+ * @param string $language The current language.
+ * @return string          The updated language.
+ */
+function use_language_in_setting( $language = 'english' ) {
+	// Get the currently set language.
+	$ep_language = Utils\get_language();
+
+	// Bail early if no EP language is set.
+	if ( empty( $ep_language ) ) {
+		return $language;
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+	$translations = wp_get_available_translations();
+
+	// Bail early if not in the array of available translations.
+	if ( empty( $translations[ $ep_language ]['english_name'] ) ) {
+		return $language;
+	}
+
+	$english_name = strtolower( $translations[ $ep_language ]['english_name'] );
+
+	/**
+	 * Languages supported in Elasticsearch mappings.
+	 *
+	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
+	 */
+	$ep_languages = [
+		'arabic',
+		'armenian',
+		'basque',
+		'bengali',
+		'brazilian',
+		'bulgarian',
+		'catalan',
+		'cjk',
+		'czech',
+		'danish',
+		'dutch',
+		'english',
+		'finnish',
+		'french',
+		'galician',
+		'german',
+		'greek',
+		'hindi',
+		'hungarian',
+		'indonesian',
+		'irish',
+		'italian',
+		'latvian',
+		'lithuanian',
+		'norwegian',
+		'persian',
+		'portuguese',
+		'romanian',
+		'russian',
+		'sorani',
+		'spanish',
+		'swedish',
+		'turkish',
+		'thai',
+	];
+
+	return in_array( $english_name, $ep_languages, true ) ? $english_name : $language;
 }
