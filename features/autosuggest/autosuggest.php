@@ -284,6 +284,5 @@ ep_register_feature( 'autosuggest', array(
 	'default_settings' => array(
 		'defaults_enabled' => 1,
 		'endpoint_url' => '',
-        'autosuggest_selector' => 'ep-autosuggest',
 	),
 ) );
