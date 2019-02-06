@@ -205,17 +205,21 @@ function ep_autosuggest_enqueue_scripts() {
 	 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 	 */
 	if( (bool)$settings['defaults_enabled'] ) {
-		$post_types = ep_get_indexable_post_types();
-		$post_status = ep_get_indexable_post_status();
+		foreach( ep_get_indexable_post_types() as $post_type ) {
+			$post_types[] = $post_type;
+		}
+        foreach( ep_get_indexable_post_status() as $post_status ) {
+            $post_statuses[] = $post_status;
+        }
 	} else {
-		$post_status = array( 'post', 'page' );
-		$post_types  = array( 'publish' );
+		$post_statuses = array( 'publish' );
+		$post_types  = array( 'post', 'page' );
 	}
 
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
 		'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
 		'postType'     => apply_filters( 'ep_term_suggest_post_type', $post_types ),
-		'postStatus'   => apply_filters( 'ep_term_suggest_post_status', $post_status ),
+        'postStatus'   => apply_filters( 'ep_term_suggest_post_status', $post_statuses ),
 		'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
 			'post_title.suggest',
 			'term_suggest',
