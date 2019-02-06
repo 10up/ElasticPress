@@ -75,6 +75,7 @@ class Search extends Feature {
 		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 10, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
 		add_action( 'pre_get_posts', [ $this, 'improve_default_search' ], 10, 1 );
+		add_filter( 'ep_formatted_args', [ $hits, 'set_to_exact' ], 10, 2 );
 	}
 
 	/**
@@ -293,5 +294,16 @@ class Search extends Feature {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Narrow search results.
+	 *
+	 * @param array $formatted_args Formatted query arguments.
+	 * @param array $args           Query arguments.
+	 * @return void
+	 */
+	public function set_to_exact( $formatted_args, $args ) {
+
 	}
 }
