@@ -1028,7 +1028,11 @@ function use_language_in_setting( $language = 'english' ) {
 
 	$english_name = strtolower( $translations[ $ep_language ]['english_name'] );
 
-	// Languages supported in Elasticsearch mappings.
+	/**
+	 * Languages supported in Elasticsearch mappings.
+	 *
+	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
+	 */
 	$ep_languages = [
 		'arabic',
 		'armenian',
