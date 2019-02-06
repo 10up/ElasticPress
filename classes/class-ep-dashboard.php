@@ -303,6 +303,16 @@ class EP_Dashboard {
 			$notice = 'need-setup';
 		}
 
+		//Autosuggest defaults notice
+		$autosuggest          = ep_get_registered_feature( 'autosuggest' );
+		$autosuggest_settings = $autosuggest->get_settings();
+
+		if ( $autosuggest->is_active()
+		     && isset( $autosuggest_settings['defaults_enabled'] )
+		     && (bool) $autosuggest_settings['defaults_enabled'] ) {
+			$notice = 'using-autosuggest-defaults';
+		}
+
 		$notice = apply_filters( 'ep_admin_notice_type', $notice );
 
 		switch ( $notice ) {
@@ -405,7 +415,7 @@ class EP_Dashboard {
 
 				?>
 				<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
-					<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
+					<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) ); ?></p>
 				</div>
 				<?php
 				break;
@@ -413,7 +423,7 @@ class EP_Dashboard {
 				$feature = ep_get_registered_feature( $auto_activate_sync );
 				?>
 				<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
-                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
+                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) ); ?></p>
 				</div>
 				<?php
 				break;
@@ -427,10 +437,16 @@ class EP_Dashboard {
 			case 'sync-disabled-no-sync':
 				?>
 				<div data-ep-notice="sync-disabled-no-sync" class="notice notice-warning is-dismissible">
-                    <p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
-                </div>
+					<p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
+				</div>
 				<?php
 				break;
+			case 'using-autosuggest-defaults' :
+				?>
+				<div data-ep-notice="using-autosuggest-defaults" class="notice notice-warning is-dismissible">
+					<p><?php printf( esc_html__( 'Autosuggest feature is enabled. If protected content or documents feature is enabled, your protected content will also become searchable. Please checkmark the "Use safe values" checkbox in Autosuggest settings to default to safe content search', 'elasticpress' ) ); ?></p>
+				</div>
+				<?php
 		}
 
 		return $notice;
@@ -634,7 +650,7 @@ class EP_Dashboard {
 			}
 		}
 
-		$posts_per_page = apply_filters( 'ep_index_posts_per_page', 350 );
+		$posts_per_page =  apply_filters( 'ep_index_posts_per_page', ep_get_bulk_settings() );
 
 		do_action( 'ep_pre_dashboard_index', $index_meta, $status );
 
@@ -895,11 +911,15 @@ class EP_Dashboard {
 			];
 			update_site_option( 'ep_credentials', $credentials );
 
+			if( isset( $_POST['ep_bulk_setting'] ) ) {
+				update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
+			}
 
 		} else {
 			register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 			register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 			register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
+			register_setting( 'elasticpress', 'ep_bulk_setting', array( 'type' => 'integer', 'sanitize_callback' => 'absint' ) );
 		}
 	}
 

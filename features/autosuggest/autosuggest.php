@@ -34,7 +34,7 @@ function ep_autosuggest_setup() {
 }
 
 /**
- * Display decaying settings on dashboard.
+ * Display autosuggest settings on dashboard.
  *
  * @param EP_Feature $feature Feature object.
  * @since 2.4
@@ -50,14 +50,21 @@ function ep_autosugguest_settings( $feature ) {
 	$settings = wp_parse_args( $settings, $feature->default_settings );
 
 	?>
+    <div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
+        <div class="field-name status"><?php esc_html_e( 'Post type/status term suggest', 'elasticpress' ); ?></div>
+        <div class="input-wrap">
+            <label for="defaults_enabled"><input name="defaults_enabled" id="defaults_enabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( (bool)$settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Use plugin defaults', 'elasticpress' ); ?></label><br>
+            <label for="defaults_disabled"><input name="defaults_enabled" id="defaults_disabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( ! (bool)$settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Use safe values', 'elasticpress' ); ?></label>
+        </div>
+    </div>
+
 	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
 		<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest CSS Selector', 'elasticpress' ); ?></label></div>
 		<div class="input-wrap">
 			<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
 			<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
-
-		</div>
-	</div>
+        </div>
+    </div>
 	<?php
 
 	if ( preg_match( '#elasticpress\.io#i', $host ) ) {
@@ -207,10 +214,18 @@ function ep_autosuggest_enqueue_scripts() {
 	 * postType: which post types to use for suggestions
 	 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 	 */
+	if( (bool)$settings['defaults_enabled'] ) {
+		$post_types = ep_get_indexable_post_types();
+		$post_status = ep_get_indexable_post_status();
+	} else {
+		$post_status = array( 'post', 'page' );
+		$post_types  = array( 'publish' );
+	}
+
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
 		'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-		'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
-		'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
+		'postType'     => apply_filters( 'ep_term_suggest_post_type', $post_types ),
+		'postStatus'   => apply_filters( 'ep_term_suggest_post_status', $post_status ),
 		'selector'     => esc_html( $settings['autosuggest_selector'] ),
 		'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
 			'post_title.suggest',
@@ -267,6 +282,7 @@ ep_register_feature( 'autosuggest', array(
 	'requires_install_reindex' => true,
 	'requirements_status_cb' => 'ep_autosuggest_requirements_status',
 	'default_settings' => array(
+		'defaults_enabled' => 1,
 		'endpoint_url' => '',
         'autosuggest_selector' => 'ep-autosuggest',
 	),
