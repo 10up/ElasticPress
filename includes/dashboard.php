@@ -886,6 +886,7 @@ function action_admin_init() {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
+		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
 	}
 }
 
