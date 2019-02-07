@@ -83,10 +83,10 @@ cant-connect<?php endif; ?>"></div>
 			?>
 		<?php endforeach; ?>
 		<div class="left">
-			<?php echo wp_kses_post( $left ); ?>
+			<?php echo force_balance_tags( $left ); // @codingStandardsIgnoreLine ?>
 		</div>
 		<div class="right">
-			<?php echo wp_kses_post( $right ); ?>
+			<?php echo force_balance_tags( $right ); // @codingStandardsIgnoreLine ?>
 		</div>
 	</div>
 </div>

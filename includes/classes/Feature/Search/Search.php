@@ -75,7 +75,7 @@ class Search extends Feature {
 		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 10, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
 		add_action( 'pre_get_posts', [ $this, 'improve_default_search' ], 10, 1 );
-		add_filter( 'ep_formatted_args', [ $hits, 'set_to_exact' ], 10, 2 );
+		add_filter( 'ep_formatted_args', [ $this, 'set_to_exact' ], 10, 2 );
 	}
 
 	/**
@@ -304,6 +304,28 @@ class Search extends Feature {
 	 * @return array                Modified formatted arguments.
 	 */
 	public function set_to_exact( $formatted_args, $args ) {
+		// Bail early if not a search query.
+		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+
+		// Bail early if no should query.
+		if ( empty( $formatted_args['query']['bool']['should'] ) ) {
+			return $formatted_args;
+		}
+
+		// Create/change the bool query from should to must.
+		$formatted_args['query']['bool']['must'] = $formatted_args['query']['bool']['should'];
+
+		// Add the operator AND to the new bool query.
+		$formatted_args['query']['bool']['must'][0]['multi_match']['operator'] = 'AND';
+
+		// Erase the old should query.
+		unset( $formatted_args['query']['bool']['should'] );
+
+		// Erase the phrase matching (or not, if you don't want it).
+		unset( $formatted_args['query']['bool']['must'][0]['multi_match']['type'] );
+
 		return $formatted_args;
 	}
 }
