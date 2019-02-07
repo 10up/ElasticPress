@@ -297,13 +297,13 @@ class Search extends Feature {
 	}
 
 	/**
-	 * Narrow search results.
+	 * Narrow search results if enabled in settings.
 	 *
 	 * @param array $formatted_args Formatted query arguments.
 	 * @param array $args           Query arguments.
-	 * @return void
+	 * @return array                Modified formatted arguments.
 	 */
 	public function set_to_exact( $formatted_args, $args ) {
-
+		return $formatted_args;
 	}
 }
