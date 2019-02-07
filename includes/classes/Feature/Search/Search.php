@@ -188,6 +188,7 @@ class Search extends Feature {
 				$settings,
 				[
 					'decaying_enabled' => true,
+					'narrow_search'    => false,
 				]
 			);
 
@@ -306,6 +307,22 @@ class Search extends Feature {
 	public function set_to_exact( $formatted_args, $args ) {
 		// Bail early if not a search query.
 		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+
+		$feature = Features::factory()->get_registered_feature( 'search' );
+		$settings = method_exists( $feature , 'get_settings' ) ? $feature->get_settings() : [];
+
+		$settings = wp_parse_args(
+			$settings,
+			[
+				'decaying_enabled' => true,
+				'narrow_search'    => false,
+			]
+		);
+
+		// Bail early if not narrowing search.
+		if ( ! $settings['narrow_search'] ) {
 			return $formatted_args;
 		}
 
