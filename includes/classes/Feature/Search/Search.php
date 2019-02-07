@@ -310,8 +310,8 @@ class Search extends Feature {
 			return $formatted_args;
 		}
 
-		$feature = Features::factory()->get_registered_feature( 'search' );
-		$settings = method_exists( $feature , 'get_settings' ) ? $feature->get_settings() : [];
+		$feature  = Features::factory()->get_registered_feature( 'search' );
+		$settings = method_exists( $feature, 'get_settings' ) ? $feature->get_settings() : [];
 
 		$settings = wp_parse_args(
 			$settings,
