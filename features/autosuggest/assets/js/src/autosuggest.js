@@ -39,8 +39,8 @@
 
 	/**
 	 * Respond to an item selection based on the predefined behavior.
-	 * If epas.action is set to "navigate", redirects the browser to the URL of the selected item
-	 * If epas.action is set to any other value (default "search"), fill in the value and perform the search
+	 * If epas.action is set to "navigate" (the default), redirects the browser to the URL of the selected item
+	 * If epas.action is set to any other value (such as "search"), fill in the value and perform the search
 	 *
 	 * @param $localInput
 	 * @param element
@@ -90,7 +90,7 @@
 		}
 
 		if ( postStatus === '' ) {
-			postType = 'publish';
+			postStatus = 'publish';
 		}
 
 		var query = {

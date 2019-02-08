@@ -34,7 +34,7 @@ function ep_autosuggest_setup() {
 }
 
 /**
- * Display decaying settings on dashboard.
+ * Display autosuggest settings on dashboard.
  *
  * @param EP_Feature $feature Feature object.
  * @since 2.4
@@ -48,6 +48,16 @@ function ep_autosugguest_settings( $feature ) {
 	}
 
 	$settings = wp_parse_args( $settings, $feature->default_settings );
+
+	?>
+	<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $feature->slug ); ?>">
+		<div class="field-name status"><?php esc_html_e( 'Post type/status term suggest', 'elasticpress' ); ?></div>
+		<div class="input-wrap">
+			<label for="defaults_enabled"><input name="defaults_enabled" id="defaults_enabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( (bool)$settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Use plugin defaults', 'elasticpress' ); ?></label><br>
+			<label for="defaults_disabled"><input name="defaults_enabled" id="defaults_disabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( ! (bool)$settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Use safe values', 'elasticpress' ); ?></label>
+		</div>
+	</div>
+	<?php
 
 	if ( preg_match( '#elasticpress\.io#i', $host ) ) {
 		return;
@@ -146,13 +156,14 @@ function ep_autosuggest_enqueue_scripts() {
 
 	$endpoint_url = false;
 
+    $settings = $feature->get_settings();
+
 	if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 		$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
 	} else {
 		if ( preg_match( '#elasticpress\.io#i', $host ) ) {
 			$endpoint_url = $host . '/' . ep_get_index_name() . '/post/_search';
 		} else {
-			$settings = $feature->get_settings();
 
 			if ( ! $settings ) {
 				$settings = array();
@@ -193,10 +204,22 @@ function ep_autosuggest_enqueue_scripts() {
 	 * postType: which post types to use for suggestions
 	 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 	 */
+	if( (bool)$settings['defaults_enabled'] ) {
+		foreach( ep_get_indexable_post_types() as $post_type ) {
+			$post_types[] = $post_type;
+		}
+        foreach( ep_get_indexable_post_status() as $post_status ) {
+            $post_statuses[] = $post_status;
+        }
+	} else {
+		$post_statuses = array( 'publish' );
+		$post_types  = array( 'post', 'page' );
+	}
+
 	wp_localize_script( 'elasticpress-autosuggest', 'epas', apply_filters( 'ep_autosuggest_options', array(
 		'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-		'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
-		'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
+		'postType'     => apply_filters( 'ep_term_suggest_post_type', $post_types ),
+        'postStatus'   => apply_filters( 'ep_term_suggest_post_status', $post_statuses ),
 		'searchFields' => apply_filters( 'ep_term_suggest_search_fields', array(
 			'post_title.suggest',
 			'term_suggest',
@@ -215,7 +238,7 @@ function ep_autosuggest_enqueue_scripts() {
 function ep_autosuggest_requirements_status( $status ) {
 	$host = ep_get_host();
 
-	$status->code = 1;
+	$status->code = 0;
 
 	$status->message = array();
 
@@ -223,6 +246,7 @@ function ep_autosuggest_requirements_status( $status ) {
 
 	if ( ! preg_match( '#elasticpress\.io#i', $host ) ) {
 		$status->message[] = wp_kses_post( __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured.", 'elasticpress' ) );
+		$status->code = 1;
 	}
 
 	return $status;
@@ -251,6 +275,7 @@ ep_register_feature( 'autosuggest', array(
 	'requires_install_reindex' => true,
 	'requirements_status_cb' => 'ep_autosuggest_requirements_status',
 	'default_settings' => array(
+		'defaults_enabled' => 1,
 		'endpoint_url' => '',
 	),
 ) );

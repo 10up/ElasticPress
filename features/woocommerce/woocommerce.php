@@ -459,12 +459,19 @@ function ep_wc_translate_args( $query ) {
 				// Remove author_name from this search.
 				$search_fields = ep_wc_remove_author($search_fields);
 
-				// Make sure we search skus on the front end
-				$search_fields['meta'] = array( '_sku' );
+				// Make sure we search skus on the front end and do not override meta search fields
+				if( ! empty( $search_fields['meta'] ) ) {
+					$search_fields['meta'] = array_merge( $search_fields['meta'], array( '_sku' ) );
+				} else {
+					$search_fields['meta'] = array( '_sku' );
+				}
 
-				// Search by proper taxonomies on the front end
-				$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
-
+				// Search by proper taxonomies on the front end and do not override taxonomy search fields
+				if( ! empty( $search_fields['taxonomies'] ) ) {
+					$search_fields['meta'] = array_merge( $search_fields['meta'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
+				} else {
+					$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
+				}
 				$query->set( 'search_fields', $search_fields );
 			}
 		} else {
@@ -487,6 +494,14 @@ function ep_wc_translate_args( $query ) {
 						break;
 				}
 			}
+		}
+
+		/**
+		 * Set orderby and order for price when GET param not set
+		 */
+		if( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
+			$query->set( 'order', $query->query_vars['order'] );
+			$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
 		}
 
 		/**

@@ -265,7 +265,7 @@ class EP_Sync_Manager {
 
 		$post_args = ep_prepare_post( $post_id );
 
-		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) || ! $this->is_site_indexable() ) {
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_args, $post_id ) ) {
 			return false;
 		}
 
@@ -274,37 +274,6 @@ class EP_Sync_Manager {
 		return $response;
 	}
 
-	/**
-	 * Check to see if current site is indexable (public).
-	 *
-	 * @return bool
-	 */
-	protected function is_site_indexable() {
-
-		if ( ! is_multisite() ) {
-			return true;
-		}
-
-		$blog_id = get_current_blog_id();
-
-		$args = array(
-			'fields'            => 'ids',
-			'public'            => 1,
-			'archived'          => 0,
-			'spam'              => 0,
-			'deleted'           => 0,
-			'update_site_cache' => false,
-		);
-
-
-		if ( function_exists( 'get_sites' ) ) {
-			$sites = get_sites( $args );
-		} else {
-			$sites = wp_list_pluck( wp_get_sites( $args ), 'blog_id' );
-		}
-
-		return in_array( $blog_id, $sites, true );
-	}
 }
 
 $ep_sync_manager = EP_Sync_Manager::factory();

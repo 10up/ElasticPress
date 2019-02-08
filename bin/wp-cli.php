@@ -760,10 +760,18 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	public function status() {
 		$this->_connect_check();
+		$index_names = array();
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_recovery/?pretty', $request_args );
+		$sites = ( is_multisite() ) ? ep_get_sites() : array( 'blog_id' => get_current_blog_id() );
+		foreach ( $sites as $site ) {
+			$index_names[] = ep_get_index_name( $site['blog_id'] );
+		}
+
+		$index_names_imploded = implode( $index_names, "," );
+
+		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . $index_names_imploded . '/_recovery/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -783,18 +791,24 @@ class ElasticPress_CLI_Command extends WP_CLI_Command {
 	 */
 	public function stats() {
 		$this->_connect_check();
+		$index_names = array();
 
 		$request_args = array( 'headers' => ep_format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . '_stats/', $request_args );
+		$sites = ( is_multisite() ) ? ep_get_sites() : array( 'blog_id' => get_current_blog_id() );
+		foreach ( $sites as $site ) {
+			$index_names[] = ep_get_index_name( $site['blog_id'] );
+		}
+
+		$index_names_imploded = implode( $index_names, "," );
+
+		$request = wp_remote_get( trailingslashit( ep_get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}
 		$body  = json_decode( wp_remote_retrieve_body( $request ), true );
-		$sites = ( is_multisite() ) ? ep_get_sites() : array( 'blog_id' => get_current_blog_id() );
 
-		foreach ( $sites as $site ) {
-			$current_index = ep_get_index_name( $site['blog_id'] );
+		foreach ( $index_names as $current_index ) {
 
 			if (isset( $body['indices'][$current_index] ) ) {
 				WP_CLI::log( '====== Stats for: ' . $current_index . " ======" );
