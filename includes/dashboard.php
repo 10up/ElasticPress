@@ -657,7 +657,13 @@ function action_wp_ajax_ep_index() {
 		}
 	}
 
-	$per_page = apply_filters( 'ep_index_default_per_page', 350 );
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$bulk_setting = get_site_option( 'ep_bulk_setting', 350 );
+	} else {
+		$bulk_setting = get_option( 'ep_bulk_setting', 350 );
+	}
+
+	$per_page = apply_filters( 'ep_index_default_per_page', $bulk_setting );
 
 	do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
 
@@ -904,11 +910,23 @@ function action_admin_init() {
 
 			update_site_option( 'ep_credentials', $credentials );
 		}
+
+		if ( isset( $_POST['ep_bulk_setting'] ) ) {
+			update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
+		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
 		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
+		register_setting(
+			'elasticpress',
+			'ep_bulk_setting',
+			[
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			]
+		);
 	}
 }
 

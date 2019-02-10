@@ -22,7 +22,15 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$index_meta = get_option( 'ep_index_meta', false );
 }
 
-$version = Elasticsearch::factory()->get_elasticsearch_version()
+$version = Elasticsearch::factory()->get_elasticsearch_version();
+
+$host = Utils\get_host();
+
+if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	$bulk_setting = get_site_option( 'ep_bulk_setting', 350 );
+} else {
+	$bulk_setting = get_option( 'ep_bulk_setting', 350 );
+}
 ?>
 
 <?php require_once dirname( __FILE__ ) . '/header.php'; ?>
@@ -42,7 +50,7 @@ $version = Elasticsearch::factory()->get_elasticsearch_version()
 					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ); ?></label></th>
 				<td>
 					<?php if ( apply_filters( 'ep_admin_show_host', true ) ) : ?>
-						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( Utils\get_host() ); ?>" name="ep_host" id="ep_host">
+						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( $host ); ?>" name="ep_host" id="ep_host">
 					<?php endif ?>
 					<?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>
 						<span class="description"><?php esc_html_e( 'Your Elasticsearch host is set in wp-config.php', 'elasticpress' ); ?></span>
@@ -81,6 +89,17 @@ $version = Elasticsearch::factory()->get_elasticsearch_version()
 					<?php endif; ?>
 				</td>
 			</tr>
+			<?php if ( ! empty( $host ) && ! has_filter( 'ep_index_posts_per_page' ) ) : ?>
+				<tr>
+					<th scope="row">
+						<label for="ep_bulk_setting"><?php esc_html_e( 'Post index per cycle ', 'elasticpress' ); ?></label>
+					</th>
+					<td>
+						<input type="text" name="ep_bulk_setting" id="ep_bulk_setting" value="<?php echo absint( $bulk_setting ); ?>">
+					</td>
+				</tr>
+			<?php endif; ?>
+
 			<?php
 			if ( Utils\is_epio() ) {
 				$credentials = Utils\get_epio_credentials();
