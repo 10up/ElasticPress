@@ -874,9 +874,19 @@ class Command extends WP_CLI_Command {
 	public function status() {
 		$this->connect_check();
 
-		$request_args = [ 'headers' => ep_format_request_headers() ];
+		$request_args = [ 'headers' => Elasticsearch::factory()->format_request_headers() ];
 
-		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . '_recovery/?pretty', $request_args );
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+
+		foreach ( $sites as $site ) {
+			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+		}
+
+		$index_names[] = Indexables::factory()->get( 'user' )->get_index_name();
+
+		$index_names_imploded = implode( $index_names, ',' );
+
+		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_recovery/?pretty', $request_args );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -901,12 +911,22 @@ class Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
 
-		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . '_stats/', $request_args );
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+
+		foreach ( $sites as $site ) {
+			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+		}
+
+		$index_names[] = Indexables::factory()->get( 'user' )->get_index_name();
+
+		$index_names_imploded = implode( $index_names, ',' );
+
+		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
+
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
 		}
-		$body  = json_decode( wp_remote_retrieve_body( $request ), true );
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+		$body = json_decode( wp_remote_retrieve_body( $request ), true );
 
 		foreach ( $sites as $site ) {
 			$current_index = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
@@ -920,6 +940,18 @@ class Command extends WP_CLI_Command {
 			} else {
 				WP_CLI::warning( $current_index . ' is not currently indexed.' );
 			}
+		}
+
+		$user_index = Indexables::factory()->get( 'user' )->get_index_name();
+
+		if ( isset( $body['indices'][ $user_index ] ) ) {
+			WP_CLI::log( '====== Stats for: ' . $user_index . ' ======' );
+			WP_CLI::log( 'Documents:  ' . $body['indices'][ $user_index ]['primaries']['docs']['count'] );
+			WP_CLI::log( 'Index Size: ' . size_format( $body['indices'][ $user_index ]['primaries']['store']['size_in_bytes'], 2 ) );
+			WP_CLI::log( 'Index Size (including replicas): ' . size_format( $body['indices'][ $user_index ]['total']['store']['size_in_bytes'], 2 ) );
+			WP_CLI::log( '====== End Stats ======' );
+		} else {
+			WP_CLI::warning( $user_index . ' is not currently indexed.' );
 		}
 	}
 
