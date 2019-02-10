@@ -458,7 +458,7 @@ function maybe_notice( $force = false ) {
 
 			?>
 			<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
-				<p><?php printf( wp_kses_post( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ) ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
+				<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -466,7 +466,7 @@ function maybe_notice( $force = false ) {
 			$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
 			?>
 			<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
-				<p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
+				<p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) ); ?></p>
 			</div>
 			<?php
 			break;
