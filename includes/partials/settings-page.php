@@ -7,6 +7,7 @@
  */
 
 use ElasticPress\Utils as Utils;
+use ElasticPress\Elasticsearch as Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -20,6 +21,8 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 } else {
 	$index_meta = get_option( 'ep_index_meta', false );
 }
+
+$version = Elasticsearch::factory()->get_elasticsearch_version()
 ?>
 
 <?php require_once dirname( __FILE__ ) . '/header.php'; ?>
@@ -65,6 +68,17 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					);
 					?>
 					<span class="description"><?php esc_html_e( 'Default language for your Elasticsearch mapping.', 'elasticpress' ); ?></span>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
+					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Version', 'elasticpress' ); ?></label></th>
+				<td>
+					<?php if ( ! empty( $version ) ) : ?>
+						<span class="description"><?php echo esc_html( $version ); ?></span>
+					<?php else : ?>
+						<span class="description">&mdash;</span>
+					<?php endif; ?>
 				</td>
 			</tr>
 			<?php
