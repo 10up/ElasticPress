@@ -863,6 +863,11 @@ class EP_API {
 		$meta = array();
 
 		foreach ( $post_meta as $meta_key => $meta_values ) {
+			// Skip if no meta key.
+			if ( ! $meta_key ) {
+				continue;
+			}
+
 			if ( ! is_array( $meta_values ) ) {
 				$meta_values = array( $meta_values );
 			}
