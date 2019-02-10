@@ -348,7 +348,9 @@ function maybe_notice( $force = false ) {
 	// Autosuggest defaults notice
 	$autosuggest = Features::factory()->get_registered_feature( 'autosuggest' );
 
-	if ( $autosuggest->is_active() && (bool) $autosuggest->get_settings()['defaults_enabled'] ) {
+	$using_autosuggest_defaults_dismiss = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? get_site_option( 'ep_using_autosuggest_defaults_dismiss', false ) : get_option( 'ep_using_autosuggest_defaults_dismiss', false );
+
+	if ( empty( $using_autosuggest_defaults_dismiss ) && $autosuggest->is_active() && (bool) $autosuggest->get_settings()['defaults_enabled'] ) {
 		$notice = 'using-autosuggest-defaults';
 	}
 
@@ -546,6 +548,14 @@ function action_wp_ajax_ep_notice_dismiss() {
 				delete_site_option( 'ep_feature_auto_activated_sync' );
 			} else {
 				delete_option( 'ep_feature_auto_activated_sync' );
+			}
+
+			break;
+		case 'using-autosuggest-defaults':
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				update_site_option( 'ep_using_autosuggest_defaults_dismiss', true );
+			} else {
+				update_option( 'ep_using_autosuggest_defaults_dismiss', true );
 			}
 
 			break;
