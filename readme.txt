@@ -61,6 +61,25 @@ Here are a list of filters/actions removed or changed:
 
 * `ep_post_sync_kill` - Removed `$post_args` argument.
 
+= 2.8.0 =
+
+ElasticPress 2.8 provides some new enhancements and bug fixes.
+
+* Sticky posts support.
+* Meta LIKE query adjustment.
+* Autosuggest bugfix.
+* Autosuggest to abide by plugin settings.
+* WooCommerce searches with custom fields.
+* Adjustment to `wp elasticpress status`
+* Add Elasticsearch version in settings. (Props [turtlepod](https://github.com/turtlepod))
+* Allow user to set number of posts during bulk indexing cycle.
+* Facet query string customization (Props [ray-lee](https://github.com/ray-lee))
+* Removal of logic that determines if blog is public / indexable. (Resolves sync issue.)
+* Fix for auto activating sync notices. (Props [petenelson](https://github.com/petenelson))
+* Removal of date weighting for protected content admin queries.
+* Protected content: filtering of filtered post types.
+* Implemented --post-ids CLI option to index only specific posts. (Props [dotancohen](https://github.com/dotancohen))
+
 = 2.7.0 (Requires re-index) =
 
 ElasticPress 2.7 provides some new enhancements and bug fixes.
