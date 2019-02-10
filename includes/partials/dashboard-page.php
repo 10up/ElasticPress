@@ -22,14 +22,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 <?php require_once __DIR__ . '/header.php'; ?>
 
-<div class="error-overlay
-<?php
-if ( ! empty( $index_meta ) ) :
-	?>
-syncing<?php endif; ?> <?php
-if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) :
-	?>
-cant-connect<?php endif; ?>"></div>
+<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>
 <div class="wrap">
 	<h2 class="ep-list-features"><?php esc_html_e( 'List of features', 'elasticpress' ); // We use this since WP inserts warnings after the first h2. This will be hidden. ?></h2>
 	<div class="ep-features metabox-holder">
@@ -83,10 +76,10 @@ cant-connect<?php endif; ?>"></div>
 			?>
 		<?php endforeach; ?>
 		<div class="left">
-			<?php echo wp_kses_post( $left ); ?>
+			<?php echo $left; ?>
 		</div>
 		<div class="right">
-			<?php echo wp_kses_post( $right ); ?>
+			<?php echo $right; ?>
 		</div>
 	</div>
 </div>
