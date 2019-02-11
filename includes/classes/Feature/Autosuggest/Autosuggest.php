@@ -229,8 +229,8 @@ class Autosuggest extends Feature {
 		);
 
 		if ( (bool) $settings['defaults_enabled'] ) {
-			$post_types  = ep_get_indexable_post_types();
-			$post_status = ep_get_indexable_post_status();
+			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
+			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 		} else {
 			$post_status = array( 'post', 'page' );
 			$post_types  = array( 'publish' );

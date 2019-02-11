@@ -45,6 +45,23 @@ function setup() {
 	add_filter( 'network_admin_plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
+	add_action( 'admin_init', __NAMESPACE__ . '\intro_after_host' );
+	add_filter( 'admin_title', __NAMESPACE__ . '\filter_admin_title', 10, 2 );
+}
+
+/**
+ * Filter admin title for intro page
+ * @param  string $admin_title Current title
+ * @param  string $title       Original title
+ * @since  3.0
+ * @return string
+ */
+function filter_admin_title( $admin_title, $title ) {
+	if ( ! empty( $_GET['page'] ) && 'elasticpress-intro' === $_GET['page'] ) {
+		return esc_html__( 'Welcome to ElasticPress ', 'elasticpress' ) . $admin_title;
+	}
+
+	return $admin_title;
 }
 
 /**
@@ -425,9 +442,9 @@ function maybe_notice( $force = false ) {
 			break;
 		case 'no-sync':
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 			} else {
-				$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 			}
 
 			?>
@@ -438,9 +455,9 @@ function maybe_notice( $force = false ) {
 			break;
 		case 'upgrade-sync':
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 			} else {
-				$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 			}
 
 			?>
@@ -451,9 +468,9 @@ function maybe_notice( $force = false ) {
 			break;
 		case 'auto-activate-sync':
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 			} else {
-				$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 			}
 
 			$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
@@ -985,13 +1002,75 @@ function dashboard_page() {
  * @since  2.1
  */
 function settings_page() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	$current_step = get_config_status();
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && true === $current_step ) {
 		update_site_option( 'ep_intro_shown', true );
-	} else {
+	} elseif ( true === $current_step ) {
 		update_option( 'ep_intro_shown', true );
 	}
 
 	include __DIR__ . '/partials/settings-page.php';
+}
+
+/**
+ * Determines where a user is in the config process
+ *
+ * @since  3.0
+ * @return bool|int true if setup done
+ */
+function get_config_status() {
+	$ep_host = Utils\get_host();
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( ! get_site_option( 'ep_intro_shown', false ) ) {
+			$in_step = 2;
+			if ( $ep_host && false !== Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
+				$in_step = 3;
+			}
+			if ( 3 === $in_step && false !== get_site_option( 'ep_last_sync', false ) ) {
+				$in_step = true;
+			}
+		} else {
+			$in_step = true;
+		}
+	} else {
+		if ( ! get_option( 'ep_intro_shown', false ) ) {
+			$in_step = 2;
+
+			if ( $ep_host ) {
+				$in_step = 3;
+			}
+
+			if ( 3 === $in_step && false !== get_option( 'ep_last_sync', false ) ) {
+				$in_step = true;
+			}
+		} else {
+			$in_step = true;
+		}
+	}
+
+	return $in_step;
+}
+/**
+ * Redirect to the intro page after setting host for the first time
+ *
+ * @since  3.0
+ */
+function intro_after_host() {
+	$doing_sync = isset( $_GET['do_sync'] );
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( 3 === get_config_status() && ! get_site_option( 'ep_intro_shown' ) && 'elasticpress-settings' === $_GET['page'] && ! $doing_sync ) {
+			wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+			exit();
+		}
+	} else {
+		if ( 3 === get_config_status() && ! get_option( 'ep_intro_shown' ) && 'elasticpress-settings' === $_GET['page'] && ! $doing_sync ) {
+			wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+			exit();
+		}
+	}
 }
 
 /**
@@ -1000,10 +1079,14 @@ function settings_page() {
  * @since  2.1
  */
 function intro_page() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		update_site_option( 'ep_intro_shown', true );
-	} else {
-		update_option( 'ep_intro_shown', true );
+	$current_step = get_config_status();
+
+	if ( true === $current_step ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_intro_shown', true );
+		} else {
+			update_option( 'ep_intro_shown', true );
+		}
 	}
 
 	include __DIR__ . '/partials/intro-page.php';
