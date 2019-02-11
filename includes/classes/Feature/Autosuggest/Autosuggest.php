@@ -34,7 +34,8 @@ class Autosuggest extends Feature {
 
 		$this->requires_install_reindex = true;
 		$this->default_settings         = [
-			'endpoint_url' => '',
+			'endpoint_url'     => '',
+			'defaults_enabled' => 1,
 		];
 
 		parent::__construct();
@@ -86,6 +87,15 @@ class Autosuggest extends Feature {
 		}
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
+		?>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Post type/status term suggest', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="defaults_enabled"><input name="defaults_enabled" id="defaults_enabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Use plugin defaults', 'elasticpress' ); ?></label><br>
+				<label for="defaults_disabled"><input name="defaults_enabled" id="defaults_disabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Use safe values', 'elasticpress' ); ?></label>
+			</div>
+		</div>
+		<?php
 
 		if ( Utils\is_epio() ) {
 			return;
@@ -181,6 +191,7 @@ class Autosuggest extends Feature {
 		$host         = Utils\get_host();
 		$endpoint_url = false;
 		$feature      = Features::factory()->get_registered_feature( 'autosuggest' );
+		$settings     = $this->get_settings();
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
@@ -188,8 +199,6 @@ class Autosuggest extends Feature {
 			if ( Utils\is_epio() ) {
 				$endpoint_url = $host . '/' . Indexables::factory()->get( 'post' )->get_index_name() . '/post/_search';
 			} else {
-				$settings = $feature->get_settings();
-
 				if ( ! $settings ) {
 					$settings = [];
 				}
@@ -219,6 +228,14 @@ class Autosuggest extends Feature {
 			EP_VERSION
 		);
 
+		if ( (bool) $settings['defaults_enabled'] ) {
+			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
+			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
+		} else {
+			$post_status = array( 'post', 'page' );
+			$post_types  = array( 'publish' );
+		}
+
 		/**
 		 * Output variables to use in Javascript
 		 * index: the Elasticsearch index name
@@ -233,8 +250,8 @@ class Autosuggest extends Feature {
 				'ep_autosuggest_options',
 				array(
 					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-					'postType'     => apply_filters( 'ep_term_suggest_post_type', array( 'post', 'page' ) ),
-					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', 'publish' ),
+					'postType'     => apply_filters( 'ep_term_suggest_post_type', $post_types ),
+					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', $post_status ),
 					'searchFields' => apply_filters(
 						'ep_term_suggest_search_fields',
 						array(
@@ -254,13 +271,14 @@ class Autosuggest extends Feature {
 	 * @since 2.4
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 1 );
+		$status = new FeatureRequirementsStatus( 0 );
 
 		$status->message = [];
 
 		$status->message[] = esc_html__( 'This feature modifies the site’s default user experience by presenting a list of suggestions below detected search fields as text is entered into the field.', 'elasticpress' );
 
 		if ( ! Utils\is_epio() ) {
+			$status->code      = 1;
 			$status->message[] = wp_kses_post( __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured.", 'elasticpress' ) );
 		}
 

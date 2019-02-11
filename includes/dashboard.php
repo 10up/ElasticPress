@@ -45,6 +45,23 @@ function setup() {
 	add_filter( 'network_admin_plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
+	add_action( 'admin_init', __NAMESPACE__ . '\intro_after_host' );
+	add_filter( 'admin_title', __NAMESPACE__ . '\filter_admin_title', 10, 2 );
+}
+
+/**
+ * Filter admin title for intro page
+ * @param  string $admin_title Current title
+ * @param  string $title       Original title
+ * @since  3.0
+ * @return string
+ */
+function filter_admin_title( $admin_title, $title ) {
+	if ( ! empty( $_GET['page'] ) && 'elasticpress-intro' === $_GET['page'] ) {
+		return esc_html__( 'Welcome to ElasticPress ', 'elasticpress' ) . $admin_title;
+	}
+
+	return $admin_title;
 }
 
 /**
@@ -345,6 +362,15 @@ function maybe_notice( $force = false ) {
 		$notice = 'need-setup';
 	}
 
+	// Autosuggest defaults notice
+	$autosuggest = Features::factory()->get_registered_feature( 'autosuggest' );
+
+	$using_autosuggest_defaults_dismiss = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? get_site_option( 'ep_using_autosuggest_defaults_dismiss', false ) : get_option( 'ep_using_autosuggest_defaults_dismiss', false );
+
+	if ( empty( $using_autosuggest_defaults_dismiss ) && $autosuggest->is_active() && (bool) $autosuggest->get_settings()['defaults_enabled'] ) {
+		$notice = 'using-autosuggest-defaults';
+	}
+
 	$notice = apply_filters( 'ep_admin_notice_type', $notice );
 
 	switch ( $notice ) {
@@ -416,9 +442,9 @@ function maybe_notice( $force = false ) {
 			break;
 		case 'no-sync':
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 			} else {
-				$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 			}
 
 			?>
@@ -429,9 +455,9 @@ function maybe_notice( $force = false ) {
 			break;
 		case 'upgrade-sync':
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 			} else {
-				$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 			}
 
 			?>
@@ -442,16 +468,16 @@ function maybe_notice( $force = false ) {
 			break;
 		case 'auto-activate-sync':
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
 			} else {
-				$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
 			}
 
 			$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
 
 			?>
 			<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
-				<p><?php printf( wp_kses_post( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ) ), esc_html( $feature->title ), esc_url( $url ) ); ?></p>
+				<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -459,7 +485,7 @@ function maybe_notice( $force = false ) {
 			$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
 			?>
 			<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
-				<p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( $feature->title ) ); ?></p>
+				<p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -474,6 +500,13 @@ function maybe_notice( $force = false ) {
 			?>
 			<div data-ep-notice="sync-disabled-no-sync" class="notice notice-warning is-dismissible">
 				<p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
+			</div>
+			<?php
+			break;
+		case 'using-autosuggest-defaults':
+			?>
+			<div data-ep-notice="using-autosuggest-defaults" class="notice notice-warning is-dismissible">
+				<p><?php printf( esc_html__( 'Autosuggest feature is enabled. If protected content or documents feature is enabled, your protected content will also become searchable. Please checkmark the "Use safe values" checkbox in Autosuggest settings to default to safe content search', 'elasticpress' ) ); ?></p>
 			</div>
 			<?php
 			break;
@@ -532,6 +565,14 @@ function action_wp_ajax_ep_notice_dismiss() {
 				delete_site_option( 'ep_feature_auto_activated_sync' );
 			} else {
 				delete_option( 'ep_feature_auto_activated_sync' );
+			}
+
+			break;
+		case 'using-autosuggest-defaults':
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				update_site_option( 'ep_using_autosuggest_defaults_dismiss', true );
+			} else {
+				update_option( 'ep_using_autosuggest_defaults_dismiss', true );
 			}
 
 			break;
@@ -643,7 +684,13 @@ function action_wp_ajax_ep_index() {
 		}
 	}
 
-	$per_page = apply_filters( 'ep_index_default_per_page', 350 );
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$bulk_setting = get_site_option( 'ep_bulk_setting', 350 );
+	} else {
+		$bulk_setting = get_option( 'ep_bulk_setting', 350 );
+	}
+
+	$per_page = apply_filters( 'ep_index_default_per_page', $bulk_setting );
 
 	do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
 
@@ -890,11 +937,23 @@ function action_admin_init() {
 
 			update_site_option( 'ep_credentials', $credentials );
 		}
+
+		if ( isset( $_POST['ep_bulk_setting'] ) ) {
+			update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
+		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
 		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
+		register_setting(
+			'elasticpress',
+			'ep_bulk_setting',
+			[
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			]
+		);
 	}
 }
 
@@ -943,13 +1002,75 @@ function dashboard_page() {
  * @since  2.1
  */
 function settings_page() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	$current_step = get_config_status();
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && true === $current_step ) {
 		update_site_option( 'ep_intro_shown', true );
-	} else {
+	} elseif ( true === $current_step ) {
 		update_option( 'ep_intro_shown', true );
 	}
 
 	include __DIR__ . '/partials/settings-page.php';
+}
+
+/**
+ * Determines where a user is in the config process
+ *
+ * @since  3.0
+ * @return bool|int true if setup done
+ */
+function get_config_status() {
+	$ep_host = Utils\get_host();
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( ! get_site_option( 'ep_intro_shown', false ) ) {
+			$in_step = 2;
+			if ( $ep_host && false !== Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
+				$in_step = 3;
+			}
+			if ( 3 === $in_step && false !== get_site_option( 'ep_last_sync', false ) ) {
+				$in_step = true;
+			}
+		} else {
+			$in_step = true;
+		}
+	} else {
+		if ( ! get_option( 'ep_intro_shown', false ) ) {
+			$in_step = 2;
+
+			if ( $ep_host ) {
+				$in_step = 3;
+			}
+
+			if ( 3 === $in_step && false !== get_option( 'ep_last_sync', false ) ) {
+				$in_step = true;
+			}
+		} else {
+			$in_step = true;
+		}
+	}
+
+	return $in_step;
+}
+/**
+ * Redirect to the intro page after setting host for the first time
+ *
+ * @since  3.0
+ */
+function intro_after_host() {
+	$doing_sync = isset( $_GET['do_sync'] );
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		if ( 3 === get_config_status() && ! get_site_option( 'ep_intro_shown' ) && 'elasticpress-settings' === $_GET['page'] && ! $doing_sync ) {
+			wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+			exit();
+		}
+	} else {
+		if ( 3 === get_config_status() && ! get_option( 'ep_intro_shown' ) && 'elasticpress-settings' === $_GET['page'] && ! $doing_sync ) {
+			wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+			exit();
+		}
+	}
 }
 
 /**
@@ -958,10 +1079,14 @@ function settings_page() {
  * @since  2.1
  */
 function intro_page() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		update_site_option( 'ep_intro_shown', true );
-	} else {
-		update_option( 'ep_intro_shown', true );
+	$current_step = get_config_status();
+
+	if ( true === $current_step ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_intro_shown', true );
+		} else {
+			update_option( 'ep_intro_shown', true );
+		}
 	}
 
 	include __DIR__ . '/partials/intro-page.php';

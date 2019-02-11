@@ -50,39 +50,6 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
-	 * Check to see if current site is indexable (public).
-	 *
-	 * @since  3.0
-	 * @return bool
-	 */
-	protected function is_site_indexable() {
-		if ( ! is_multisite() ) {
-			return true;
-		}
-
-		$blog_id = get_current_blog_id();
-
-		$args = array(
-			'fields'            => 'ids',
-			'public'            => 1,
-			'archived'          => 0,
-			'spam'              => 0,
-			'deleted'           => 0,
-			'update_site_cache' => false,
-		);
-
-		if ( function_exists( 'get_sites' ) ) {
-			$sites = get_sites( $args );
-		} else {
-			// phpcs:disable
-			$sites = wp_list_pluck( wp_get_sites( $args ), 'blog_id' );
-			// phpcs:enable
-		}
-
-		return in_array( $blog_id, apply_filters( 'ep_indexable_blogs', $sites ), true );
-	}
-
-	/**
 	 * When whitelisted meta is updated, queue the post for reindex
 	 *
 	 * @param  int|array $meta_id Meta id.
@@ -113,7 +80,7 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
-				if ( apply_filters( 'ep_post_sync_kill', false, $object_id ) || ! $this->is_site_indexable() ) {
+				if ( apply_filters( 'ep_post_sync_kill', false, $object_id ) ) {
 					return;
 				}
 
@@ -191,7 +158,7 @@ class SyncManager extends SyncManagerAbstract {
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				do_action( 'ep_sync_on_transition', $post_id );
 
-				if ( apply_filters( 'ep_post_sync_kill', false, $post_id ) || ! $this->is_site_indexable() ) {
+				if ( apply_filters( 'ep_post_sync_kill', false, $post_id ) ) {
 					return;
 				}
 

@@ -615,8 +615,8 @@ abstract class Indexable {
 					case 'like':
 						if ( isset( $single_meta_query['value'] ) ) {
 							$terms_obj = array(
-								'wildcard' => array(
-									$meta_key_path => $single_meta_query['value'] . '*',
+								'match_phrase' => array(
+									$meta_key_path => $single_meta_query['value'],
 								),
 							);
 						}
