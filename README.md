@@ -524,7 +524,7 @@ The following commands are supported by ElasticPress:
 
 * `wp elasticpress put-mapping [--network-wide]`
 
-  Sends plugin put mapping to the current blog index. `--network-wide` will force mappings to be sent for every index in the network.
+  Sends plugin put mapping to the current blog index (this will delete the index). `--network-wide` will force mappings to be sent for every index in the network.
 
 * `wp elasticpress recreate-network-alias`
 
