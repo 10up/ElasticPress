@@ -367,6 +367,17 @@ function ep_sanitize_credentials( $credentials ) {
 }
 
 /**
+ * Sanitize bulk settings.
+ *
+ * @param $bulk_settings
+ * @return int
+ */
+function ep_sanitize_bulk_settings( $bulk_settings = 350 ) {
+	$bulk_settings = absint( $bulk_settings );
+	return ( 0 === $bulk_settings ) ? 350 : $bulk_settings;
+}
+
+/**
  * Prepare credentials if they are set for future use.
  */
 function ep_setup_credentials(){
