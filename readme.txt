@@ -40,6 +40,12 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 2.8.1 =
+
+* Bugfix for homepage out of chronological order.
+* Bugfix for missing meta key. (Props [turtlepod](https://github.com/turtlepod))
+* Bugfix for bulk indexing default value on settings page.
+
 = 2.8.0 =
 
 ElasticPress 2.8 provides some new enhancements and bug fixes.

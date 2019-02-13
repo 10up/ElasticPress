@@ -7,6 +7,8 @@ A fast and flexible search and query engine for WordPress.
 
 **Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7 require re-syncing.
 
+**ElasticSearch max version supported: 6.3** 
+
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 <p align="center">

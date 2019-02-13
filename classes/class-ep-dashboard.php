@@ -919,7 +919,7 @@ class EP_Dashboard {
 			register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 			register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 			register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
-			register_setting( 'elasticpress', 'ep_bulk_setting', array( 'type' => 'integer', 'sanitize_callback' => 'absint' ) );
+			register_setting( 'elasticpress', 'ep_bulk_setting', array( 'type' => 'integer', 'sanitize_callback' => 'ep_sanitize_bulk_settings' ) );
 		}
 	}
 
