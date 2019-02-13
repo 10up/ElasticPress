@@ -1539,12 +1539,24 @@ class EP_API {
 		 * Sticky posts support
 		 */
 		// Check first if there's sticky posts and show them only in the front page
+
 		$sticky_posts = get_option( 'sticky_posts' );
+		$sticky_posts = ( is_array( $sticky_posts ) && empty( $sticky_posts ) ) ? false : $sticky_posts;
+
 		if( false !== $sticky_posts
 			&& is_home()
 			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ) ) ) {
-			//let's eliminate sort so it does not mess with function_score results
-			$formatted_args['sort'] = array();
+
+			$new_sort = array(
+				array(
+					'_score' => array(
+						'order' => 'desc',
+					),
+				)
+			);
+
+			$formatted_args['sort'] = array_merge( $new_sort, $formatted_args['sort'] );
+
 			$formatted_args_query = $formatted_args['query'];
 			$formatted_args['query'] = array();
 			$formatted_args['query']['function_score']['query'] = $formatted_args_query;
@@ -1554,7 +1566,7 @@ class EP_API {
 					'filter' => array(
 						'terms' => array( '_id' => $sticky_posts )
 					),
-					'weight' => 2
+					'weight' => 20
 				)
 			);
 		}

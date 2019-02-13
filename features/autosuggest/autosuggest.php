@@ -204,7 +204,7 @@ function ep_autosuggest_enqueue_scripts() {
 	 * postType: which post types to use for suggestions
 	 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 	 */
-	if( (bool)$settings['defaults_enabled'] ) {
+	if ( ! isset( $settings['defaults_enabled'] ) || (bool) $settings['defaults_enabled'] ) {
 		foreach( ep_get_indexable_post_types() as $post_type ) {
 			$post_types[] = $post_type;
 		}
