@@ -1541,6 +1541,7 @@ class EP_API {
 		if( false !== $sticky_posts
 			&& is_home()
 			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ) ) ) {
+
 			$new_sort = array(
 				array(
 					'_score' => array(
@@ -1548,8 +1549,8 @@ class EP_API {
 					),
 				)
 			);
+
 			$formatted_args['sort'] = array_merge( $new_sort, $formatted_args['sort'] );
-			$formatted_args['sort'][]['_score']['order'] = 'desc';
 
 			$formatted_args_query = $formatted_args['query'];
 			$formatted_args['query'] = array();
