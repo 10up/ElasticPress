@@ -373,7 +373,7 @@ function ep_sanitize_credentials( $credentials ) {
  * @return int
  */
 function ep_sanitize_bulk_settings( $bulk_settings = 350 ) {
-	$bulk_settings = (int) $bulk_settings;
+	$bulk_settings = absint( $bulk_settings );
 	return ( 0 === $bulk_settings ) ? 350 : $bulk_settings;
 }
 
