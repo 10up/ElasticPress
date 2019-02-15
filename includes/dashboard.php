@@ -784,6 +784,7 @@ function action_wp_ajax_ep_index() {
 	}
 
 	wp_send_json_success( $index_meta );
+
 }
 
 /**
@@ -873,6 +874,8 @@ function action_admin_enqueue_dashboard_scripts() {
 				$data['sync_indexable_labels'][ $indexable->slug ] = $indexable->labels;
 			}
 
+			$data['intro_shown']   = esc_html( get_option( 'ep_intro_shown' ) );
+			$data['ep_intro_url']  = esc_html( admin_url( 'admin.php?page=elasticpress-intro' ) );
 			$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );
 			$data['sync_paused']   = esc_html__( 'Sync paused', 'elasticpress' );
 			$data['sync_syncing']  = esc_html__( 'Syncing', 'elasticpress' );
