@@ -965,7 +965,7 @@ function action_admin_init() {
 function intro_or_dashboard() {
 	global $pagenow;
 
-	if ( 'admin.php' !== $pagenow || empty( $_GET['page'] ) || ( 'elasticpress' !== $_GET['page'] && 'elasticpress-settings' !== $_GET['page'] ) ) {
+	if ( 'admin.php' !== $pagenow || empty( $_GET['page'] ) || 'elasticpress' !== $_GET['page'] ) {
 		return;
 	}
 
@@ -979,9 +979,9 @@ function intro_or_dashboard() {
 
 	if ( ! $intro_shown ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+			wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
 		} else {
-			wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+			wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
 		}
 		exit;
 	}
