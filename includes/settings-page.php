@@ -113,6 +113,10 @@ $ep_host = ep_get_host();
 			</tbody>
 		</table>
 
+        <?php
+        do_action( 'ep_settings_custom' );
+        ?>
+
 		<input type="submit" <?php if ( ! empty( $index_meta ) ) : ?>disabled<?php endif; ?> name="submit" id="submit" class="button button-primary" value="<?php esc_html_e( 'Save Changes', 'elasticpress' ); ?>">
 	</form>
 </div>
