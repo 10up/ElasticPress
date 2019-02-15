@@ -982,9 +982,9 @@ function intro_or_dashboard() {
 
 	if ( ! $intro_shown ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			wp_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
+			wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
 		} else {
-			wp_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
+			wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
 		}
 		exit;
 	}
