@@ -954,10 +954,22 @@ function action_admin_init() {
 			'ep_bulk_setting',
 			[
 				'type'              => 'integer',
-				'sanitize_callback' => 'absint',
+				'sanitize_callback' => __NAMESPACE__ . '\sanitize_bulk_settings',
 			]
 		);
 	}
+}
+
+/**
+ * Sanitize bulk settings.
+ *
+ * @param $bulk_settings
+ * @return int
+ */
+function sanitize_bulk_settings( $bulk_settings = 350 ) {
+	$bulk_settings = absint( $bulk_settings );
+
+	return ( 0 === $bulk_settings ) ? 350 : $bulk_settings;
 }
 
 /**
