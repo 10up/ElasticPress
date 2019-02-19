@@ -228,7 +228,7 @@ class Autosuggest extends Feature {
 			EP_VERSION
 		);
 
-		if ( (bool) $settings['defaults_enabled'] ) {
+		if ( ! isset( $settings['defaults_enabled'] ) || (bool) $settings['defaults_enabled'] ) {
 			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
 			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 		} else {

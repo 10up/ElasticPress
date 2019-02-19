@@ -61,6 +61,12 @@ Here are a list of filters/actions removed or changed:
 
 * `ep_post_sync_kill` - Removed `$post_args` argument.
 
+= 2.8.1 =
+
+* Bugfix for homepage out of chronological order.
+* Bugfix for missing meta key. (Props [turtlepod](https://github.com/turtlepod))
+* Bugfix for bulk indexing default value on settings page.
+
 = 2.8.0 =
 
 ElasticPress 2.8 provides some new enhancements and bug fixes.
