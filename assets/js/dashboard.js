@@ -362,6 +362,11 @@ function sync() {
 			// Sync finished
 			syncStatus = 'finished';
 			updateSyncDash();
+
+			if( ! epDash.intro_shown ) {
+				document.location.replace( epDash.ep_intro_url );
+			}
+
 		} else {
 			// We are starting a sync
 			syncStatus = 'sync';
@@ -377,6 +382,7 @@ function sync() {
 			cancelSync();
 		}
 	} );
+
 }
 
 $startSyncButton.on( 'click', () => {
