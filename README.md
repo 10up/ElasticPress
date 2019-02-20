@@ -1,7 +1,9 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress)
+ElasticPress
 =============
 
 A fast and flexible search and query engine for WordPress.
+
+**ElasticPress 3.0:** ElasticPress 3.0 contains major changes from 2.x including a rewrite of the feature registration API and PHP 5.4+ features. If you have problems upgrading, please create an issue.
 
 **Please note:** master is the stable branch
 
