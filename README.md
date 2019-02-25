@@ -28,11 +28,11 @@ ElasticPress integrates with several WordPress APIs (e.g. [WP_Query](http://code
 
 ## Installation
 
-1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
-2. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
-3. Activate the plugin (network activate for multisite). Navigate to the settings page. You should see an ElasticPress icon in your admin menu.
-4. Input your Elasticsearch host. Your host must begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
-5. Sync your content by clicking the sync icon.
+1. First, you will need to sign up for an [ElasticPress.io account](https://elasticpress.io), or if you prefer, you can [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
+2. Install the plugin in WordPress. You can install in the Dashboard, via WP-CLI, or download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
+3. Follow the prompts to add your ElasticPress.io or Elasticsearch server.
+<img src="https://github.com/10up/ElasticPress/raw/develop/images/setup-screenshot.png" width="850">
+4. Sync your content by clicking the sync icon.
 
 Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful Indexables class, which enables you to index and query custom content objects, as well as built-in Indexables for Posts and Users.
 
