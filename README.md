@@ -598,7 +598,7 @@ The following are special parameters that are only supported by ElasticPress.
 
 * ```search```
 
-    Searches for possible string matches on columns. Use of the * wildcard before and/or after the string will match on columns starting with*, *ending with, or *containing* the string you enter.
+    Searches for possible string matches on columns. NB: Use of the * wildcard before and/or after the string is not currently supported in ElasticPress.
     
 * ```search_fields```
 
