@@ -9,6 +9,11 @@ const $startSyncButton = jQuery( document.getElementsByClassName( 'start-sync' )
 const $resumeSyncButton = jQuery( document.getElementsByClassName( 'resume-sync' ) );
 const $pauseSyncButton = jQuery( document.getElementsByClassName( 'pause-sync' ) );
 const $cancelSyncButton = jQuery( document.getElementsByClassName( 'cancel-sync' ) );
+const $epCredentialsTab = jQuery( document.getElementsByClassName( 'ep-credentials-tab' ) );
+const $epCredentialsHostLabel = jQuery( '.ep-host-row label' );
+const $epCredentialsAdditionalFields = jQuery( document.getElementsByClassName( 'ep-additional-fields-row' ) );
+const epHostField = document.getElementById( 'ep_host' );
+const epHost = epHostField.value;
 
 let syncStatus = 'sync',
 	featureSync = false,
@@ -417,4 +422,31 @@ $cancelSyncButton.on( 'click', () => {
 	updateSyncDash();
 
 	cancelSync();
+} );
+
+$epCredentialsTab.on( 'click', ( e ) => {
+	const epio = null !== e.currentTarget.getAttribute( 'data-epio' );
+	const $target = jQuery( e.currentTarget );
+	const initial = $target.hasClass( 'initial' );
+
+	e.preventDefault();
+
+	if ( initial ) {
+		epHostField.value = epHost;
+	} else {
+		epHostField.value = '';
+	}
+
+	$epCredentialsTab.removeClass( 'nav-tab-active' );
+	$target.addClass( 'nav-tab-active' );
+
+	if ( epio ) {
+		$epCredentialsHostLabel.text( 'ElasticPress.io Host URL' );
+		$epCredentialsAdditionalFields.show();
+		$epCredentialsAdditionalFields.attr( 'aria-hidden', 'false' );
+	} else {
+		$epCredentialsHostLabel.text( 'Elasticsearch Host URL' );
+		$epCredentialsAdditionalFields.hide();
+		$epCredentialsAdditionalFields.attr( 'aria-hidden', 'true' );
+	}
 } );

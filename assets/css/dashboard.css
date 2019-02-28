@@ -687,3 +687,38 @@ h2.ep-list-features {
 		padding-top: .5em;
 	}
 }
+
+/**
+ * Settings page
+ */
+.ep-credentials-tab {
+	cursor: pointer;
+}
+
+.ep-credentials .form-table {
+	border: 1px solid #ccc;
+	margin-top: 0;
+}
+
+.ep-credentials .form-table th {
+	padding-left: 0.5rem;
+}
+
+.ep-credentials .form-table td {
+	padding-left: 0.5rem
+}
+
+@media (--tablet-min) {
+	.ep-credentials {
+		display: inline-block;
+	}
+
+	.ep-credentials .form-table {
+		border-top: none;
+		width: auto;
+	}
+
+	.ep-credentials .form-table td {
+		padding-left: 0;
+	}
+}
