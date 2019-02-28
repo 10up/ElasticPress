@@ -26,6 +26,7 @@ $version = Elasticsearch::factory()->get_elasticsearch_version();
 
 $host = Utils\get_host();
 $is_epio = Utils\is_epio();
+$credentials = Utils\get_epio_credentials();
 
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$bulk_setting = get_site_option( 'ep_bulk_setting', 350 );

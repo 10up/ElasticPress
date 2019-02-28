@@ -14,6 +14,7 @@ const $epCredentialsHostLabel = jQuery( '.ep-host-row label' );
 const $epCredentialsAdditionalFields = jQuery( document.getElementsByClassName( 'ep-additional-fields-row' ) );
 const epHostField = document.getElementById( 'ep_host' );
 const epHost = epHostField.value;
+let epHostNewValue = '';
 
 let syncStatus = 'sync',
 	featureSync = false,
@@ -424,6 +425,10 @@ $cancelSyncButton.on( 'click', () => {
 	cancelSync();
 } );
 
+epHostField.addEventListener( 'input', ( e ) => {
+	epHostNewValue = e.target.value;
+} );
+
 $epCredentialsTab.on( 'click', ( e ) => {
 	const epio = null !== e.currentTarget.getAttribute( 'data-epio' );
 	const $target = jQuery( e.currentTarget );
@@ -434,7 +439,7 @@ $epCredentialsTab.on( 'click', ( e ) => {
 	if ( initial ) {
 		epHostField.value = epHost;
 	} else {
-		epHostField.value = '';
+		epHostField.value = epHostNewValue;
 	}
 
 	$epCredentialsTab.removeClass( 'nav-tab-active' );
