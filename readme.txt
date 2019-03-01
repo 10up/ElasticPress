@@ -30,7 +30,7 @@ __Autosuggest__: Suggest relevant content as text is entered into the search fie
 
 __Facets__: Suggest relevant content as text is entered into the search field.
 
-__Users__: Improve user search performance and relevancy.
+__Users__: Improve user search relevancy and query performance.
 
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 

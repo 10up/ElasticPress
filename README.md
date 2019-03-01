@@ -73,7 +73,7 @@ Add controls to your website to filter content by one or more taxonomies.
 
 ### Users (requires WordPress 5.1+)
 
-Improve user search performance and relevancy.
+Improve user search relevancy and query performance.
 
 ## ElasticPress `Indexables`
 
@@ -515,18 +515,18 @@ The following are special parameters that are only supported by ElasticPress.
 
 ### Supported WP_User_Query Parameters
 
-* ```number``` (*int*) 
+* ```number``` (*int*)
 
      The maximum returned number of results.
-     
+
 * ```blog_id``` (*int*)
 
      The blog id on a multisite environment. Defaults to the current blog id.
-     
+
 * ```role``` (*string|array*)
 
      An array or a comma-separated list of role names that users must match to be included in results. Note that this is an inclusive list: users must match *each* role. Default empty.
-     
+
 * ```meta_key``` (*string*)
 
     Allows you to query meta with the defined key. Requires `meta_value` or `meta_value_num` be used as well.
@@ -534,11 +534,11 @@ The following are special parameters that are only supported by ElasticPress.
 * ```meta_value``` (*string*)
 
     This value will be queried against the key defined in `meta_key`.
-     
+
 * ```meta_compare``` (*string*)
 
     Operator to test the 'meta_value'. Possible values are '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS', and 'NOT EXISTS' ; 'REGEXP', 'NOT REGEXP' and 'RLIKE' were added in WordPress 3.7. Default value is '='.
-    
+
 * ```meta_query``` (*array*)
 
     Filter users by user meta conditions. Meta arrays and objects are serialized due to limitations of Elasticsearch. Takes an array of form:
@@ -555,7 +555,7 @@ The following are special parameters that are only supported by ElasticPress.
         ),
     ) );
     ```
-    
+
 * ```fields``` (*string|array*)
 
     Which fields to return. Defaults to all.
@@ -586,11 +586,11 @@ The following are special parameters that are only supported by ElasticPress.
 * ```offset``` (*int*)
 
     Offset the returned results (needed in pagination).
-    
+
 * ```include``` (*array*)
 
      List of user IDs to be included.
-     
+
 * ```exclude```
 
      List of user IDs to be excluded.
@@ -598,11 +598,11 @@ The following are special parameters that are only supported by ElasticPress.
 * ```search```
 
     Searches for possible string matches on columns. NB: Use of the * wildcard before and/or after the string is not currently supported in ElasticPress.
-    
+
 * ```search_fields```
 
     Specify fields to be searched.
-    
+
 * ```search_columns```
 
     Specify columns in the user database table to be searched. NB: this is merged into ```search_fields``` before being sent to Elasticsearch with ```search_fields``` overwriting ```search_columns```.

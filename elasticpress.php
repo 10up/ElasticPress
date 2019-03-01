@@ -89,10 +89,6 @@ global $wp_version;
  */
 Indexables::factory()->register( new Indexable\Post\Post() );
 
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
-	Indexables::factory()->register( new Indexable\User\User() );
-}
-
 /**
  * Handle features
  */

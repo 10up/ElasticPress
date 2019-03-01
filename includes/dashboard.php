@@ -868,11 +868,19 @@ function action_admin_enqueue_dashboard_scripts() {
 
 			$indexables = Indexables::factory()->get_all();
 
-			$data['sync_indexable_labels'] = [];
-
-			foreach ( $indexables as $indexable ) {
-				$data['sync_indexable_labels'][ $indexable->slug ] = $indexable->labels;
-			}
+			$data['sync_indexable_labels'] = apply_filters(
+				'ep_dashboard_indexable_labels',
+				[
+					'post' => [
+						'singular' => esc_html__( 'Post', 'elasticpress' ),
+						'plural'   => esc_html__( 'Posts', 'elasticpress' ),
+					],
+					'user' => [
+						'singular' => esc_html__( 'User', 'elasticpress' ),
+						'plural'   => esc_html__( 'Users', 'elasticpress' ),
+					],
+				]
+			);
 
 			$data['intro_shown']   = esc_html( get_option( 'ep_intro_shown' ) );
 			$data['ep_intro_url']  = esc_html( admin_url( 'admin.php?page=elasticpress-intro' ) );

@@ -9,6 +9,10 @@
 namespace ElasticPress\Feature\Users;
 
 use ElasticPress\Feature as Feature;
+use ElasticPress\Indexables as Indexables;
+use ElasticPress\Indexable as Indexable;
+use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Utils as Utils;
 
 /**
  * Users feature class
@@ -20,9 +24,9 @@ class Users extends Feature {
 	 * @since  3.0
 	 */
 	public function __construct() {
-		$this->slug = 'users';
-
-		$this->title = esc_html__( 'User Search', 'elasticpress' );
+		$this->slug                     = 'users';
+		$this->title                    = esc_html__( 'Users', 'elasticpress' );
+		$this->requires_install_reindex = true;
 
 		parent::__construct();
 	}
@@ -33,6 +37,8 @@ class Users extends Feature {
 	 * @since  3.0
 	 */
 	public function setup() {
+		Indexables::factory()->register( new Indexable\User\User() );
+
 		add_action( 'init', [ $this, 'search_setup' ] );
 	}
 
@@ -52,7 +58,7 @@ class Users extends Feature {
 	 */
 	public function output_feature_box_summary() {
 		?>
-		<p><?php esc_html_e( 'Improve user search performance and relevancy.', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'Improve user search relevancy and query performance.', 'elasticpress' ); ?></p>
 		<?php
 	}
 
@@ -63,7 +69,7 @@ class Users extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php esc_html_e( 'If you run a website with a lot of users, traditional WordPress user search can be slow and taxing on your website. This feature empowers ElasticPress to return user search results from Elasticsearch.', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'If you run a website with a lot of users, traditional WordPress user search can return poor results and queries quite slow. This feature empowers ElasticPress to return user queries and search results from Elasticsearch.', 'elasticpress' ); ?></p>
 
 		<?php
 	}
@@ -88,5 +94,22 @@ class Users extends Feature {
 		}
 
 		return $enabled;
+	}
+
+	/**
+	 * Determine feature reqs status
+	 *
+	 * @since  2.2
+	 * @return FeatureRequirementsStatus
+	 */
+	public function requirements_status() {
+		$status = new FeatureRequirementsStatus( 0 );
+
+		if ( ! Utils\is_epio() ) {
+			$status->code    = 1;
+			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
+		}
+
+		return $status;
 	}
 }

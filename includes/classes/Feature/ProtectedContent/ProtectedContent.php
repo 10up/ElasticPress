@@ -172,10 +172,10 @@ class ProtectedContent extends Feature {
 	}
 
 	/**
-	 * Determine WC feature reqs status
+	 * Determine feature reqs status
 	 *
 	 * @since  2.2
-	 * @return EP_Feature_Requirements_Status
+	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 0 );
