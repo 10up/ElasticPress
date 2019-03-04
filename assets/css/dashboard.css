@@ -691,13 +691,38 @@ h2.ep-list-features {
 /**
  * Settings page
  */
-.ep-credentials-tab {
+ /* @media screen and (max-width: 600px) { */
+	.wrap h2.nav-tab-wrapper.ep-credentials-tabs {
+		border-bottom: 1px solid #ccc;
+	}
+/* } */
+
+h2 .nav-tab.ep-credentials-tab {
 	cursor: pointer;
+	margin-bottom: -1px;
+}
+
+.ep-credentials-tab.nav-tab-active {
+	border-bottom-color: #f1f1f1;
+}
+
+.ep-credentials-tab img,
+.ep-credentials-tab span {
+	display: inline-block;
+	vertical-align: middle;
 }
 
 .ep-credentials .form-table {
 	border: 1px solid #ccc;
+	border-top: none;
 	margin-top: 0;
+}
+
+.ep-legend {
+	border-left: 1px solid #ccc;
+	border-right: 1px solid #ccc;
+	margin: 0;
+	padding: 0.5rem;
 }
 
 .ep-credentials .form-table th {
@@ -714,7 +739,6 @@ h2.ep-list-features {
 	}
 
 	.ep-credentials .form-table {
-		border-top: none;
 		width: auto;
 	}
 
