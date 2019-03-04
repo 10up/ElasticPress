@@ -13,7 +13,7 @@ const $epCredentialsTab = jQuery( document.getElementsByClassName( 'ep-credentia
 const $epCredentialsHostLabel = jQuery( '.ep-host-row label' );
 const $epCredentialsAdditionalFields = jQuery( document.getElementsByClassName( 'ep-additional-fields-row' ) );
 const epHostField = document.getElementById( 'ep_host' );
-const epHost = epHostField.value;
+const epHost = epHostField ? epHostField.value : null;
 let epHostNewValue = '';
 
 let syncStatus = 'sync',
@@ -425,9 +425,11 @@ $cancelSyncButton.on( 'click', () => {
 	cancelSync();
 } );
 
-epHostField.addEventListener( 'input', ( e ) => {
-	epHostNewValue = e.target.value;
-} );
+if ( epHostField ) {
+	epHostField.addEventListener( 'input', ( e ) => {
+		epHostNewValue = e.target.value;
+	} );
+}
 
 $epCredentialsTab.on( 'click', ( e ) => {
 	const epio = null !== e.currentTarget.getAttribute( 'data-epio' );
