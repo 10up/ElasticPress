@@ -11,6 +11,7 @@ const $pauseSyncButton = jQuery( document.getElementsByClassName( 'pause-sync' )
 const $cancelSyncButton = jQuery( document.getElementsByClassName( 'cancel-sync' ) );
 const $epCredentialsTab = jQuery( document.getElementsByClassName( 'ep-credentials-tab' ) );
 const $epCredentialsHostLabel = jQuery( '.ep-host-row label' );
+const $epCredentialsHostLegend = jQuery( document.getElementsByClassName( 'ep-host-legend' ) );
 const $epCredentialsAdditionalFields = jQuery( document.getElementsByClassName( 'ep-additional-fields' ) );
 const epHostField = document.getElementById( 'ep_host' );
 const epHost = epHostField ? epHostField.value : null;
@@ -438,7 +439,7 @@ $epCredentialsTab.on( 'click', ( e ) => {
 
 	e.preventDefault();
 
-	if ( initial ) {
+	if ( initial && !epHostField.disabled ) {
 		epHostField.value = epHost;
 	} else {
 		epHostField.value = epHostNewValue;
@@ -449,10 +450,12 @@ $epCredentialsTab.on( 'click', ( e ) => {
 
 	if ( epio ) {
 		$epCredentialsHostLabel.text( 'ElasticPress.io Host URL' );
+		$epCredentialsHostLegend.text( 'Plug in your ElasticPress.io server here!' );
 		$epCredentialsAdditionalFields.show();
 		$epCredentialsAdditionalFields.attr( 'aria-hidden', 'false' );
 	} else {
 		$epCredentialsHostLabel.text( 'Elasticsearch Host URL' );
+		$epCredentialsHostLegend.text( 'Plug in your Elasticsearch server here!' );
 		$epCredentialsAdditionalFields.hide();
 		$epCredentialsAdditionalFields.attr( 'aria-hidden', 'true' );
 	}

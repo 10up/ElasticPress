@@ -697,6 +697,10 @@ h2.ep-list-features {
 	}
 /* } */
 
+.ep-credentials input[type="text"] {
+	min-width: 250px;
+}
+
 h2 .nav-tab.ep-credentials-tab {
 	cursor: pointer;
 	margin-bottom: -1px;
@@ -712,25 +716,21 @@ h2 .nav-tab.ep-credentials-tab {
 	vertical-align: middle;
 }
 
-.ep-credentials .form-table {
-	border: 1px solid #ccc;
-	border-top: none;
-	margin-top: 0;
-}
-
-.ep-legend {
+.ep-credentials fieldset {
+	border-bottom: 1px solid #ccc;
 	border-left: 1px solid #ccc;
 	border-right: 1px solid #ccc;
 	margin: 0;
-	padding: 0.5rem;
+	padding: 0 1rem;
 }
 
-.ep-credentials .form-table th {
-	padding-left: 0.5rem;
+.ep-credentials fieldset.predefined {
+	border-top: 1px solid #ccc;
 }
 
-.ep-credentials .form-table td {
-	padding-left: 0.5rem
+.ep-settings .description {
+	font-size: 0.75rem;
+	font-style: italic;
 }
 
 @media (--tablet-min) {
