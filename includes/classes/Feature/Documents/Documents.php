@@ -343,6 +343,16 @@ class Documents extends Feature {
 						),
 					),
 				),
+				array(
+					'foreach' => array(
+						'field'     => 'attachments',
+						'processor' => array(
+							'remove' => array(
+								'field' => '_ingest._value.data',
+							),
+						),
+					),
+				),
 			),
 		);
 
