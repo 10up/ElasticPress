@@ -232,8 +232,8 @@ class Autosuggest extends Feature {
 			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
 			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 		} else {
-			$post_status = array( 'post', 'page' );
-			$post_types  = array( 'publish' );
+			$post_types = array( 'post', 'page' );
+			$post_status  = array( 'publish' );
 		}
 
 		/**
@@ -250,8 +250,8 @@ class Autosuggest extends Feature {
 				'ep_autosuggest_options',
 				array(
 					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-					'postType'     => apply_filters( 'ep_term_suggest_post_type', $post_types ),
-					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', $post_status ),
+					'postType'     => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
+					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
 					'searchFields' => apply_filters(
 						'ep_term_suggest_search_fields',
 						array(
