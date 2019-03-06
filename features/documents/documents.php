@@ -26,6 +26,16 @@ function ep_documents_setup() {
 function ep_documents_attachments_mapping( $mapping ) {
 	$mapping['mappings']['post']['properties']['attachments'] = array(
 		'type' => 'object',
+		'properties'=>array(
+			'data'=>array(
+				'type'=>'text',
+				'store'=>false,
+				'index'=>false,
+			),
+			'poopybutthole'=>array(
+				'type'=>'text',
+			),
+		),
 	);
 
 	return $mapping;
@@ -253,6 +263,16 @@ function ep_documents_create_pipeline() {
 							'field' => '_ingest._value.data',
 							'ignore_missing' => true,
 							'indexed_chars' => -1,
+						)
+					)
+				)
+			),
+			array(
+				'foreach' => array(
+					'field' => 'attachments',
+					'processor' => array(
+						'remove' => array(
+							'field' => '_ingest._value.data',
 						)
 					)
 				)
