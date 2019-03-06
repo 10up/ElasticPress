@@ -32,9 +32,6 @@ function ep_documents_attachments_mapping( $mapping ) {
 				'store'=>false,
 				'index'=>false,
 			),
-			'poopybutthole'=>array(
-				'type'=>'text',
-			),
 		),
 	);
 
