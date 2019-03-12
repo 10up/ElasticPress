@@ -257,6 +257,16 @@ function ep_documents_create_pipeline() {
 					)
 				)
 			),
+			array(
+				'foreach' => array(
+					'field' => 'attachments',
+					'processor' => array(
+						'remove' => array(
+							'field' => '_ingest._value.data',
+						)
+					)
+				)
+			),
 		),
 	);
 
