@@ -9,8 +9,6 @@ A fast and flexible search and query engine for WordPress.
 
 **Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0 require re-syncing.
 
-**ElasticSearch max version supported: 6.3**
-
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 <p align="center">
@@ -23,8 +21,9 @@ ElasticPress integrates with several WordPress APIs (e.g. [WP_Query](http://code
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.7+ (5.0+ highly recommended)
+* [Elasticsearch](https://www.elastic.co) 1.7+ (5.0+ highly recommended) **ElasticSearch max version supported: 6.3**
 * [WordPress](http://wordpress.org) 3.7.1+
+
 
 ## Installation
 
@@ -611,7 +610,7 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]`
 
     Index all posts in the current blog.
 
