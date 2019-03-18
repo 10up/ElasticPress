@@ -409,17 +409,18 @@ function ep_facets_get_selected() {
 
 	foreach ( $_GET as $key => $value ) {
 		if ( 0 === strpos( $key, 'filter' ) ) {
-			$taxonomy = str_replace( 'filter_', '', $key );
+			$attribute    = wc_sanitize_taxonomy_name( str_replace( 'filter_', '', $key ) );
+			$taxonomy     = wc_attribute_taxonomy_name( $attribute );
+			$filter_terms = ! empty( $value ) ? explode( ',', wc_clean( wp_unslash( $value ) ) ) : array();
 
 			$filters['taxonomies'][ $taxonomy ] = array(
-				'terms'      => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
+				'terms'      => $filter_terms
 			);
 		}
 	}
 
 	return $filters;
 }
-
 /**
  * Build query url
  *
