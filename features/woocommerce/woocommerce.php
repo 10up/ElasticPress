@@ -689,6 +689,21 @@ function ep_wc_add_order_items_search( $post_args, $post_id ) {
 }
 
 /**
+ * Add WooCommerce Product Attributes to EP Facets.
+ *
+ * @param array $taxonomies
+ *
+ * @return array
+ */
+function ep_wc_add_product_attributes( $taxonomies = [] ) {
+	$attribute_names = wc_get_attribute_taxonomy_names();
+	foreach ( $attribute_names as $name ) {
+		$taxonomies[ $name ] = get_taxonomy( $name );
+	}
+	return $taxonomies;
+}
+
+/**
  * Setup all feature filters
  *
  * @since  2.1
