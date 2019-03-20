@@ -689,6 +689,22 @@ function ep_wc_add_order_items_search( $post_args, $post_id ) {
 }
 
 /**
+ * Add WooCommerce Product Attributes to EP Facets.
+ *
+ * @param array $taxonomies
+ *
+ * @return array
+ */
+function ep_wc_add_product_attributes( $taxonomies = [] ) {
+	$attribute_names = wc_get_attribute_taxonomy_names();
+	foreach ( $attribute_names as $name ) {
+		$taxonomies[ $name ] = get_taxonomy( $name );
+	}
+
+	return $taxonomies;
+}
+
+/**
  * Setup all feature filters
  *
  * @since  2.1
@@ -705,6 +721,7 @@ function ep_wc_setup() {
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_add_order_items_search', 20, 2 );
 		add_filter( 'ep_term_suggest_post_type', 'ep_wc_add_post_type' );
+		add_filter( 'ep_facet_include_taxonomies', 'ep_wc_add_product_attributes' );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'ep_wp_query_search_cached_posts', 'ep_wc_disallow_duplicated_query', 10, 2 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
