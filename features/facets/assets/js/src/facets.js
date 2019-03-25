@@ -9,7 +9,7 @@
 			return;
 		}
 
-		var searchTerm = event.currentTarget.value.replace(/\s/g, '');
+		var searchTerm = event.currentTarget.value.replace(/\s/g, '').toLowerCase();
 
 		var terms = event.delegateTarget.querySelectorAll( '.term' );
 
