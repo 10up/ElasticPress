@@ -307,7 +307,10 @@ function ep_facets_facet_query( $query ) {
 		return;
 	}
 
-	$taxonomies = get_taxonomies( array( 'public' => true ) );
+	$taxonomies = get_taxonomies( array( 'public' => true ));
+
+	// Allow other plugins to modify the available taxonomies.
+	$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies, false );
 
 	if ( empty( $taxonomies ) ) {
 		return;
