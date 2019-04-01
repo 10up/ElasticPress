@@ -418,7 +418,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -607,6 +607,19 @@ class Command extends WP_CLI_Command {
 		if ( isset( $args['nobulk'] ) ) {
 			$no_bulk = true;
 		}
+
+		if ( isset( $args['ep-host'] ) ) {
+			add_filter( 'ep_host', function ( $host ) use ( $args ) {
+				return $args['ep-host'];
+			} );
+		}
+
+		if ( isset( $args['ep-prefix'] ) ) {
+			add_filter( 'ep_index_prefix', function ( $prefix ) use ( $args ) {
+				return $args['ep-prefix'];
+			} );
+		}
+
 
 		$show_bulk_errors = false;
 
@@ -1046,6 +1059,7 @@ class Command extends WP_CLI_Command {
 	 * @since 3.0
 	 */
 	private function index_occurring( $assoc_args ) {
+		return false;
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$dashboard_syncing = get_site_option( 'ep_index_meta' );
 			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
