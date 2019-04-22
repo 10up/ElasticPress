@@ -105,6 +105,10 @@ class EP_Sync_Manager {
 			return;
 		}
 
+		if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
+			return;
+		}
+
 		$indexable_post_statuses = ep_get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
@@ -182,6 +186,10 @@ class EP_Sync_Manager {
 
 		// If we have an importer we must be doing an import - let's abort
 		if ( ! empty( $importer ) ) {
+			return;
+		}
+
+		if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
 			return;
 		}
 
