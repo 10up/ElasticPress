@@ -267,7 +267,7 @@ searchable<?php endif; ?>">
 		<?php
 		$facet_html = ob_get_clean();
 		// Allows developers to modify widget html
-		echo wp_kses_post( apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms ) );
+		echo wp_kses_post( apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] ) );
 
 		echo wp_kses_post( $args['after_widget'] );
 	}
