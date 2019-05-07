@@ -61,6 +61,13 @@ Here are a list of filters/actions removed or changed:
 
 * `ep_post_sync_kill` - Removed `$post_args` argument.
 
+= 2.8.2 =
+
+* Enhancement: WooCommerce product attributes as facets.
+* Enhancement: Performance Boost for document indexing.
+* Bugfix for issue on WP REST API searches.
+* Bugfix for case-sensitivity issue with facet search.
+
 = 2.8.1 =
 
 * Bugfix for homepage out of chronological order.
