@@ -1,5 +1,5 @@
 === ElasticPress ===
-Contributors: tlovett1, aaronholbrook, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
+Contributors: tlovett1, aaronholbrook, collinsinternet, ChrisWiegman, sc0ttkclark, dkotter, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
@@ -39,6 +39,13 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 4. Enjoy!
 
 == Changelog ==
+
+= 2.8.2 =
+
+* Enhancement: WooCommerce product attributes as facets.
+* Enhancement: Performance Boost for document indexing.
+* Bugfix for issue on WP REST API searches.
+* Bugfix for case-sensitivity issue with facet search.
 
 = 2.8.1 =
 
