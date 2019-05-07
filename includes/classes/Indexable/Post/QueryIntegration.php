@@ -50,6 +50,25 @@ class QueryIntegration {
 
 		// Properly switch to blog if necessary
 		add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 1 );
+
+		// Sets the correct value for found_posts
+		add_filter( 'found_posts', array( $this, 'found_posts' ), 10, 2 );
+	}
+
+	/**
+	 * Set the found_posts variable on WP_Query.
+	 *
+	 * @param int      $found_posts Number of found posts
+	 * @param WP_Query $query Query object
+	 * @since 2.8.2
+	 * @return int
+	 */
+	public function found_posts( $found_posts, $query ) {
+		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) ) {
+			return $found_posts;
+		}
+
+		return $query->num_posts;
 	}
 
 	/**
@@ -231,6 +250,7 @@ class QueryIntegration {
 			}
 
 			$query->found_posts           = $ep_query['found_documents'];
+			$query->num_posts             = $query->found_posts;
 			$query->max_num_pages         = ceil( $ep_query['found_documents'] / $query->get( 'posts_per_page' ) );
 			$query->elasticsearch_success = true;
 
