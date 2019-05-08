@@ -92,7 +92,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			<?php if ( ! empty( $host ) && ! has_filter( 'ep_index_posts_per_page' ) ) : ?>
 				<tr>
 					<th scope="row">
-						<label for="ep_bulk_setting"><?php esc_html_e( 'Post index per cycle ', 'elasticpress' ); ?></label>
+						<label for="ep_bulk_setting"><?php esc_html_e( 'Content Items per Index Cycle ', 'elasticpress' ); ?></label>
 					</th>
 					<td>
 						<input type="text" name="ep_bulk_setting" id="ep_bulk_setting" value="<?php echo absint( $bulk_setting ); ?>">
