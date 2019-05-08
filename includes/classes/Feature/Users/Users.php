@@ -70,7 +70,7 @@ class Users extends Feature {
 	public function output_feature_box_long() {
 		?>
 		<p><?php esc_html_e( 'If you run a website with a lot of users, traditional WordPress user search can return poor results and queries quite slow. This feature empowers ElasticPress to return user queries and search results from Elasticsearch.', 'elasticpress' ); ?></p>
-
+		<p><?php esc_html_e( 'Be aware that storing user data may bound you to certain legal obligations depending on your local government regulations.', 'elasticpress' ); ?></p>
 		<?php
 	}
 
