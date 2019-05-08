@@ -196,9 +196,7 @@ function handle_upgrades() {
 
 	$need_upgrade_sync = false;
 
-	if ( false === $old_version ) {
-		$need_upgrade_sync = true;
-	} else {
+	if ( false !== $old_version ) {
 		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
 
 		if ( -1 === version_compare( $old_version, $last_reindex_version ) && 0 <= version_compare( EP_VERSION, $last_reindex_version ) ) {
