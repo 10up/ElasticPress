@@ -358,7 +358,9 @@ function maybe_notice( $force = false ) {
 		$skip_intro_shown_notice = get_option( 'ep_hide_intro_shown_notice', false );
 	}
 
-	if ( ! $skip_intro_shown_notice && ! $intro_shown && false === $options_host && ( ! defined( 'EP_HOST' ) || ! EP_HOST ) ) {
+	$config_status = get_config_status();
+
+	if ( true === $config_status && ! $skip_intro_shown_notice && ! $intro_shown && false === $options_host && ( ! defined( 'EP_HOST' ) || ! EP_HOST ) ) {
 		$notice = 'need-setup';
 	}
 
