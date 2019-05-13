@@ -103,12 +103,7 @@ class Users extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
-
-		if ( ! Utils\is_epio() ) {
-			$status->code    = 1;
-			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
-		}
+		$status = new FeatureRequirementsStatus( 1 );
 
 		return $status;
 	}
