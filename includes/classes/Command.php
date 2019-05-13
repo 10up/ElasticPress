@@ -882,7 +882,11 @@ class Command extends WP_CLI_Command {
 			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
 		}
 
-		$index_names[] = Indexables::factory()->get( 'user' )->get_index_name();
+		$user_indexable = Indexables::factory()->get( 'user' );
+
+		if ( ! empty( $user_indexable ) ) {
+			$index_names[] = $user_indexable->get_index_name();
+		}
 
 		$index_names_imploded = implode( $index_names, ',' );
 
