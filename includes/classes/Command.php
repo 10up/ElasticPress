@@ -917,7 +917,11 @@ class Command extends WP_CLI_Command {
 			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
 		}
 
-		$index_names[] = Indexables::factory()->get( 'user' )->get_index_name();
+		$user_indexable = Indexables::factory()->get( 'user' );
+
+		if ( ! empty( $user_indexable ) ) {
+			$index_names[] = $user_indexable->get_index_name();
+		}
 
 		$index_names_imploded = implode( $index_names, ',' );
 
@@ -942,16 +946,18 @@ class Command extends WP_CLI_Command {
 			}
 		}
 
-		$user_index = Indexables::factory()->get( 'user' )->get_index_name();
+		if ( ! empty( $user_indexable ) ) {
+			$user_index = $user_indexable->get_index_name();
 
-		if ( isset( $body['indices'][ $user_index ] ) ) {
-			WP_CLI::log( '====== Stats for: ' . $user_index . ' ======' );
-			WP_CLI::log( 'Documents:  ' . $body['indices'][ $user_index ]['primaries']['docs']['count'] );
-			WP_CLI::log( 'Index Size: ' . size_format( $body['indices'][ $user_index ]['primaries']['store']['size_in_bytes'], 2 ) );
-			WP_CLI::log( 'Index Size (including replicas): ' . size_format( $body['indices'][ $user_index ]['total']['store']['size_in_bytes'], 2 ) );
-			WP_CLI::log( '====== End Stats ======' );
-		} else {
-			WP_CLI::warning( $user_index . ' is not currently indexed.' );
+			if ( isset( $body['indices'][ $user_index ] ) ) {
+				WP_CLI::log( '====== Stats for: ' . $user_index . ' ======' );
+				WP_CLI::log( 'Documents:  ' . $body['indices'][ $user_index ]['primaries']['docs']['count'] );
+				WP_CLI::log( 'Index Size: ' . size_format( $body['indices'][ $user_index ]['primaries']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( 'Index Size (including replicas): ' . size_format( $body['indices'][ $user_index ]['total']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( '====== End Stats ======' );
+			} else {
+				WP_CLI::warning( $user_index . ' is not currently indexed.' );
+			}
 		}
 	}
 

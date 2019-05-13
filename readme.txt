@@ -42,6 +42,12 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.0.1 =
+
+3.0.1 is a minor bug release version. Here is a list of fixes:
+
+* `wp elasticpress stats` command fatal error fixed.
+
 = 3.0 (Requires re-index) =
 
 3.0 is a refactor of ElasticPress for modern coding standards (PHP 5.4 required) as well as the introduction to indexables. Indexables abstracts out content types so data types other than post can be indexed and searched. 3.0 includes user indexing and search (integration with WP_User_Query). User features require at least WordPress version 5.1.
