@@ -48,6 +48,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 * `wp elasticpress stats` and `wp elasticpress status` commands fatal error fixed.
 * Add autosuggest selector field default to fix notice.
+* Re-add `ep_find_related` as deprecated function.
 
 = 3.0 (Requires re-index) =
 

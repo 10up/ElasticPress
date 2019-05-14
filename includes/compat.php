@@ -46,6 +46,22 @@ class EP_Feature_Requirements_Status {
 }
 
 /**
+ * Search Elasticsearch for related content
+ *
+ * @param  int $post_id Post ID
+ * @param  int $return Number of posts to get
+ * @since  2.1
+ * @return array|bool
+ */
+function ep_find_related( $post_id, $return = 5 ) {
+	_deprecated_function( __FUNCTION__, '3.0', 'ElasticPress\Features::factory()->get_registered_feature' );
+
+	$feature = \ElasticPress\Features::factory()->get_registered_feature( 'related_posts' );
+
+	return ( ! empty( $feature ) ) ? $feature->find_related( $post_id, $return ) : false;
+}
+
+/**
  * Registers a feature for use in ElasticPress
  *
  * @param  string $slug Unique slug for feature
