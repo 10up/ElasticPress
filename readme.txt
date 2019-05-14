@@ -47,6 +47,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 3.0.1 is a minor bug release version. Here is a list of fixes:
 
 * `wp elasticpress stats` and `wp elasticpress status` commands fatal error fixed.
+* Add autosuggest selector field default to fix notice.
 
 = 3.0 (Requires re-index) =
 

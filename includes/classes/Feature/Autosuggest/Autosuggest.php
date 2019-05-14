@@ -34,8 +34,9 @@ class Autosuggest extends Feature {
 
 		$this->requires_install_reindex = true;
 		$this->default_settings         = [
-			'endpoint_url'     => '',
-			'defaults_enabled' => 1,
+			'endpoint_url'         => '',
+			'defaults_enabled'     => 1,
+			'autosuggest_selector' => '',
 		];
 
 		parent::__construct();
