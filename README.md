@@ -50,7 +50,7 @@ ElasticPress understands data in real time, so it can instantly deliver engaging
 
 Available API functions:
 
-* `ep_find_related( $post_id, $return = 5 )`
+* `ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id, $return = 5 )`
 
   Get related posts for a given `$post_id`. Use this in a theme or plugin to get related content.
 
