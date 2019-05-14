@@ -68,6 +68,10 @@ Here are a list of filters/actions removed or changed:
 
 * `ep_post_sync_kill` - Removed `$post_args` argument.
 
+### Other changes:
+
+* `posts-per-page` changed to `per-page` for WP-CLI index command.
+
 = 2.8.2 =
 
 * Enhancement: WooCommerce product attributes as facets.

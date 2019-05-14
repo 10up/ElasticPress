@@ -610,13 +610,13 @@ The following are special parameters that are only supported by ElasticPress.
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]`
+* `wp elasticpress index [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]`
 
     Index all posts in the current blog.
 
     * `--network-wide` will force indexing on all the blogs in the network. `--network-wide` takes an optional argument to limit the number of blogs to be indexed across where 0 is no limit. For example, `--network-wide=5` would limit indexing to only 5 blogs on the network.
     * `--setup` will clear the index first and re-send the put mapping.
-    * `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
+    * `--per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
     * `--nobulk` let's you disable bulk indexing.
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
     * `--indexables` lets you specify the Indexable(s) which will be indexed.
