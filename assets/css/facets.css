@@ -1,0 +1,69 @@
+.widget_ep-facet input[type="search"] {
+	margin-bottom: 1rem
+}
+
+.widget_ep-facet .searchable .inner {
+	max-height: 20em;
+	overflow: scroll;
+}
+
+.widget_ep-facet .term.hide {
+	display: none;
+}
+
+.widget_ep-facet .empty-term {
+	position: relative;
+	opacity: .5;
+}
+
+.widget_ep-facet .empty-term:after {
+	z-index: 2;
+	content: ' ';
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%
+}
+
+.widget_ep-facet .level-1 {
+	padding-left: 20px;
+}
+
+.widget_ep-facet .level-2 {
+	padding-left: 40px;
+}
+
+.widget_ep-facet .level-3 {
+	padding-left: 60px;
+}
+
+.widget_ep-facet .level-4 {
+	padding-left: 80px;
+}
+
+.widget_ep-facet .level-5 {
+	padding-left: 100px;
+}
+
+.widget_ep-facet input[disabled] {
+	cursor: pointer;
+	opacity: 1;
+}
+
+.widget_ep-facet .term a {
+	position: relative;
+
+	&:after {
+		content: ' ';
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		display: block;
+		position: absolute;
+		z-index: 1;
+	}
+}

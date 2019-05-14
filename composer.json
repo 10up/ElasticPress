@@ -3,13 +3,8 @@
   "description": "Supercharge WordPress with Elasticsearch.",
   "type": "wordpress-plugin",
   "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
-  "license": ["GPLv2"],
+  "license": ["GPL-2.0-only"],
   "authors": [
-    {
-      "name": "Aaron Holbrook",
-      "email": "aaron@10up.com",
-      "homepage": "http://aaronjholbrook.com"
-    },
     {
       "name": "Taylor Lovett",
       "email": "taylorl@get10up.com"
@@ -17,6 +12,11 @@
     {
       "name": "10up",
       "homepage": "http://10up.com"
+    },
+    {
+      "name": "Aaron Holbrook",
+      "email": "aaron@10up.com",
+      "homepage": "http://aaronjholbrook.com"
     }
   ],
   "repositories": [
@@ -26,17 +26,15 @@
     }
   ],
   "require": {
-    "php": ">=5.2"
+    "php": ">=5.4"
   },
   "require-dev": {
-    "phpunit/phpunit": "*@stable",
-    "wp-cli/wp-cli": "*@stable",
-    "wpackagist-plugin/woocommerce": "dev-trunk"
+    "10up/phpcs-composer": "dev-master"
   },
-  "config": {
-    "platform": {
-      "php": "5.3.29"
-    }
+  "scripts": {
+    "lint": "phpcs .",
+    "lint-fix": "phpcbf .",
+    "test": "phpunit"
   },
   "extra": {
     "installer-paths": {

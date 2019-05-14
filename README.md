@@ -1,15 +1,15 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=master)](https://travis-ci.org/10up/ElasticPress)
+ElasticPress
 =============
 
 A fast and flexible search and query engine for WordPress.
 
+**ElasticPress 3.0:** ElasticPress 3.0 contains major changes from 2.x including a rewrite of the feature registration API and PHP 5.4+ features. If you have problems upgrading, please create an issue.
+
 **Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1 require re-syncing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0 require re-syncing.
 
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable modules. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
-
-ElasticPress is module based so you can pick and choose what you need. The plugin even contains modules for popular plugins.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 <p align="center">
 <a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/10/10up-Github-Banner.png" width="850"></a>
@@ -17,45 +17,70 @@ ElasticPress is module based so you can pick and choose what you need. The plugi
 
 ## How Does it Work
 
-ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query) object returning results from Elasticsearch instead of MySQL.
+ElasticPress integrates with several WordPress APIs (e.g. [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query)) to return results from Elasticsearch instead of MySQL.
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.3+
+* [Elasticsearch](https://www.elastic.co) 1.7+ (5.0+ highly recommended) **ElasticSearch max version supported: 6.3**
 * [WordPress](http://wordpress.org) 3.7.1+
+
 
 ## Installation
 
-1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
-2. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
-3. Activate the plugin (network activate for multisite). Navigate to the settings page. You should see an ElasticPress icon in your admin menu.
-4. Input your Elasticsearch host. Your host must begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
-5. Activate the ElasticPress modules you want to use. Search is activated by default.
-6. Sync your content by clicking the sync icon.
+1. First, you will need to sign up for an [ElasticPress.io account](https://elasticpress.io), or if you prefer, you can [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
+2. Install the plugin in WordPress. You can install in the Dashboard, via WP-CLI, or download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
+3. Follow the prompts to add your ElasticPress.io or Elasticsearch server. <img src="https://github.com/10up/ElasticPress/raw/develop/images/setup-screenshot.png" width="850">
+4. Sync your content by clicking the sync icon.
 
-Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful WP_Query integration API.
+Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful Indexables class, which enables you to index and query custom content objects, as well as built-in Indexables for Posts and Users.
 
-## Available Modules
+## Features
 
 ### Search
 
-Beef up your search to be more accurate, search tags, categories, and other taxonomies, catch misspellings, weight content by recency and more.
+Instantly find the content you’re looking for. The first time.
 
 ### WooCommerce
 
-Allow customers to filter through products faster and improve product search relevancy. Enable editors to find orders and products more effectively in the admin. This module will increase your sales bottom line and reduce administrative costs.
+“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
 
 ### Related Posts
 
-Help users easily find related content by adding related posts to the end of each post.
+ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
 
-### Admin
+Available API functions:
 
-Help editors more effectively browse through content. Load long lists of posts faster. Filter posts faster. Please note this syncs draft content to Elasticsearch. You'll need to make sure your Elasticsearch instance is properly secured.
+* `ep_find_related( $post_id, $return = 5 )`
 
-## `WP_Query` and the ElasticPress Query Integration
+  Get related posts for a given `$post_id`. Use this in a theme or plugin to get related content.
 
-ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search module is activated, all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
+### Protected Content
+
+Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.
+
+### Documents (requires [Ingest Attachment plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html))
+
+Indexes text inside of popular file types, and adds those files types to search results.
+
+### Autosuggest
+
+Suggest relevant content as text is entered into the search field.
+
+### Facets
+
+Add controls to your website to filter content by one or more taxonomies.
+
+### Users (requires WordPress 5.1+)
+
+Improve user search relevancy and query performance.
+
+## ElasticPress `Indexables`
+
+In ElasticPress 3.0, we’ve introduced the concept of Indexables. In the past, ElasticPress integrated with WordPress’ WP_Query API, which enabled redirection of WP_Query queries through Elasticsearch instead of MySQL. Indexables takes this a step further, enabling indexing, search, and queries on any queryable object in WordPress.
+
+As of 3.0, ElasticPress ships with two built-in Indexables: Posts and Users. The Posts Indexable roughly corresponds to the previous WP_Query integration, and the Users Indexable adds support for [WP_User_Query](http://codex.wordpress.org/Class_Reference/WP_User_Query) in ElasticPress. Future versions of ElasticPress will include additional WordPress APIs (such as [WP_Comment_Query](http://codex.wordpress.org/Class_Reference/WP_Comment_Query)), and you can also create your own custom Indexables by extending the Indexable class.
+
+ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` and `WP_User_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` and `WP_User_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_Query` arguments for extra functionality.
 
 ### Supported WP_Query Parameters
 
@@ -71,7 +96,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
         'posts_per_page' => 20,
     ) );
     ```
-    
+
     Get all posts with a specific category slug
     ```php
     new WP_Query( array(
@@ -92,7 +117,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
 * ```s``` (*string*)
 
-    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```. (Requires search module)
+    Search keyword. By default used to search against ```post_title```, ```post_content```, and ```post_excerpt```. (Requires search feature)
 
 * ```posts_per_page``` (*int*)
 
@@ -115,8 +140,10 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     ) );
     ```
 
-    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), and
-    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s).
+    ```tax_query``` accepts an array of arrays where each inner array *only* supports ```taxonomy``` (string), ```field``` (string), `operator` (string), and
+    ```terms``` (string|array) parameters. ```field``` must be set to `slug`, `name`, or `term_id`. The default value for `field` is `term_id`. ```terms``` must be a string or an array of term slug(s), name(s), or id(s). `operator` defaults to `in` and also supports `not in` and `and`.
+
+    The outer array supports the `relation` parameter. Acceptable values are `and` and `or`. The default is `and`.
 
 * The following shorthand parameters can be used for querying posts by specific dates:
 
@@ -150,7 +177,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     containing the following parameters ```after```, ```before```, ```inclusive```, ```compare```, ```column```, and
     ```relation```. ```column``` is used to query specific columns from the ```wp_posts``` table. This will return posts
     which are created after January 1st 2012 and January 3rd 2012 8AM GMT:
-    
+
     ```php
     new WP_Query( array(
         's' => 'search phrase',
@@ -166,7 +193,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
         ),
     ) );
     ```
-    
+
     Currently only the ```AND``` value is supported for the ```relation``` parameter.
 
     ```inclusive``` is used on after/before options to determine whether exact value should be matched or not. If inclusive is used
@@ -247,17 +274,19 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     ) );
     ```
 
-    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string), 
+    ```meta_query``` accepts an array of arrays where each inner array *only* supports ```key``` (string),
     ```type``` (string), ```value``` (string|array|int), and ```compare``` (string) parameters. ```compare``` supports the following:
 
-      * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
-      * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
-      * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
-      * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
-      * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
-      * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
-      * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
-      * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+    * ```=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that equals the value passed to ```value```.
+    * ```!=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that does NOT equal the value passed to ```value```.
+    * ```>``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than the value passed to ```value```.
+    * ```>=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than or equal to the value passed to ```value```.
+    * ```<``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than the value passed to ```value```.
+    * ```<=``` - Posts will be returned that have a post meta key corresponding to ```key``` and a value that is less than or equal to the value passed to ```value```.
+    * ```EXISTS``` - Posts will be returned that have a post meta key corresponding to ```key```.
+    * ```NOT EXISTS``` - Posts will be returned that do not have a post meta key corresponding to ```key```.
+    * ```BETWEEN``` - Must pass an array to value such that the array[0] is the lower bound and array[1] is the upper bound. Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than array[0] and less than array[1].
+    * ```NOT BETWEEN``` - Must pass an array to `value` such that the array[0] is the lower bound and array[1] is the upper bound. Posts will be returned that have a post meta key corresponding to ```key``` and a value that is greater than array[0] and less than array[1].
 
     The outer array also supports a ```relation``` (string) parameter. By default ```relation``` is set to ```AND```:
     ```php
@@ -281,9 +310,9 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
     Possible values for ```relation``` are ```OR``` and ```AND```. If ```relation``` is set to ```AND```, all inner queries must be true for a post to be returned. If ```relation``` is set to ```OR```, only one of the inner meta queries must be true for the post to be returned.
 
-    ```type``` supports the following values:  'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 
-    'DECIMAL', 'SIGNED', 'TIME', and 'UNSIGNED'. By default WordPress casts meta values to these types 
-    in MySQL so some of these don't make sense in the context of Elasticsearch. ElasticPress does no "runtime" 
+    ```type``` supports the following values:  'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME',
+    'DECIMAL', 'SIGNED', 'TIME', and 'UNSIGNED'. By default WordPress casts meta values to these types
+    in MySQL so some of these don't make sense in the context of Elasticsearch. ElasticPress does no "runtime"
     casting but instead compares the value to a different type compiled during indexing
 
     * `NUMERIC` - Compares query `value` to integer version of stored meta value.
@@ -296,7 +325,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
     * `DATETIME` - Compares query `value` to date/time version of stored meta value. Query `value` must be formatted like `2012-01-02 05:00:00` or `yyyy:mm:dd hh:mm:ss`.
     * `TIME` - Compares query `value` to time version of stored meta value. Query `value` must be formatted like `17:00:00` or `hh:mm:ss`.
 
-    If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type``` 
+    If no type is specified, ElasticPress will just deduce the type from the comparator used. ```type```
     is very rarely needed to be used.
 
 * ```meta_key``` (*string*)
@@ -334,11 +363,11 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 * ```author``` (*int*)
 
     Show posts associated with certain author ID.
-    
+
 * ```author_name``` (*string*)
 
     Show posts associated with certain author. Use ```user_nicename``` (NOT name).
-    
+
 * ```orderby``` (*string*)
 
     Order results by field name instead of relevance. Supports: ```title```, ```modified```, `meta_value`, `meta_value_num`, ```type```, ```name```, ```date```, and ```relevance```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. You can sort by multiple fields as well i.e. `title meta.my_key.raw`
@@ -346,11 +375,11 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 * ```order``` (*string*)
 
     Which direction to order results in. Accepts ```ASC``` and ```DESC```. Default is ```DESC```.
-  
+
 * ```post_parent``` (*int*)
 
     Show posts that have the specified post parent.
-  
+
 
 The following are special parameters that are only supported by ElasticPress.
 
@@ -421,7 +450,7 @@ The following are special parameters that are only supported by ElasticPress.
 * ```aggs``` (*array*)
 
     Add aggregation results to your search result. For example:
-    
+
     ```php
     new WP_Query( array(
         's'    => 'search phrase',
@@ -483,11 +512,105 @@ The following are special parameters that are only supported by ElasticPress.
 
     _Note:_ Nesting cross-site `WP_Query` loops can result in unexpected behavior.
 
+### Supported WP_User_Query Parameters
+
+* ```number``` (*int*)
+
+     The maximum returned number of results.
+
+* ```blog_id``` (*int*)
+
+     The blog id on a multisite environment. Defaults to the current blog id.
+
+* ```role``` (*string|array*)
+
+     An array or a comma-separated list of role names that users must match to be included in results. Note that this is an inclusive list: users must match *each* role. Default empty.
+
+* ```meta_key``` (*string*)
+
+    Allows you to query meta with the defined key. Requires `meta_value` or `meta_value_num` be used as well.
+
+* ```meta_value``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
+
+* ```meta_compare``` (*string*)
+
+    Operator to test the 'meta_value'. Possible values are '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS', and 'NOT EXISTS' ; 'REGEXP', 'NOT REGEXP' and 'RLIKE' were added in WordPress 3.7. Default value is '='.
+
+* ```meta_query``` (*array*)
+
+    Filter users by user meta conditions. Meta arrays and objects are serialized due to limitations of Elasticsearch. Takes an array of form:
+
+    ```php
+    new WP_User_Query( array(
+        's'          => 'search phrase',
+        'meta_query' => array(
+            array(
+                'key'   => 'key_name',
+                'value' => 'meta value',
+                'compare' => '=',
+            ),
+        ),
+    ) );
+    ```
+
+* ```fields``` (*string|array*)
+
+    Which fields to return. Defaults to all.
+
+* ```nicename``` (*string|array*)
+
+    Filter users by ```user_nicename``` field.
+* ```nicename__not_in``` (*string|array*)
+
+    Filter users to remove those who match on the ```user_nicename``` field.
+
+* ```nicename__in``` (*string|array*)
+
+    Filter users to include only those who match on the ```user_nicename``` field.
+
+* ```login```
+
+    Filter users by ```user_login``` field.
+
+* ```login__in```
+
+    Filter users to remove those who match on the ```user_login``` field.
+
+* ```login__not_in```
+
+    Filter users to include only those who match on the ```user_login``` field.
+
+* ```offset``` (*int*)
+
+    Offset the returned results (needed in pagination).
+
+* ```include``` (*array*)
+
+     List of user IDs to be included.
+
+* ```exclude```
+
+     List of user IDs to be excluded.
+
+* ```search```
+
+    Searches for possible string matches on columns. NB: Use of the * wildcard before and/or after the string is not currently supported in ElasticPress.
+
+* ```search_fields```
+
+    Specify fields to be searched.
+
+* ```search_columns```
+
+    Specify columns in the user database table to be searched. NB: this is merged into ```search_fields``` before being sent to Elasticsearch with ```search_fields``` overwriting ```search_columns```.
+
 ## WP-CLI Commands
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type] [--keep-active]`
+* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]`
 
     Index all posts in the current blog.
 
@@ -496,32 +619,35 @@ The following commands are supported by ElasticPress:
     * `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
     * `--nobulk` let's you disable bulk indexing.
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
+    * `--indexables` lets you specify the Indexable(s) which will be indexed.
     * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
+    * `--include` Choose which object IDs to include in the index.
+    * `--post_ids` Choose which post_ids to include when indexing the Posts Indexable (deprecated).
 
 * `wp elasticpress delete-index [--network-wide]`
 
-  Deletes the current blog index. `--network-wide` will force every index on the network to be deleted.
+  Deletes the current Indexables indices. `--network-wide` will force every index on the network to be deleted.
 
-* `wp elasticpress put-mapping [--network-wide]`
+* `wp elasticpress put-mapping [--network-wide] [--indexables]`
 
-  Sends plugin put mapping to the current blog index. `--network-wide` will force mappings to be sent for every index in the network.
+  Sends plugin put mapping to the current Indexables indices (this will delete the indices). `--network-wide` will force mappings to be sent for every index in the network.
 
 * `wp elasticpress recreate-network-alias`
 
   Recreates the alias index which points to every index in the network.
 
-* `wp elasticpress activate-module <module-slug> [--network-wide]`
+* `wp elasticpress activate-feature <feature-slug> [--network-wide]`
 
-  Activate a module. If a re-indexing is required, you will need to do it manually. `--network-wide` will affect network activated ElasticPress.
+  Activate a feature. If a re-indexing is required, you will need to do it manually. `--network-wide` will affect network activated ElasticPress.
 
-* `wp elasticpress deactivate-module <module-slug> [--network-wide]`
+* `wp elasticpress deactivate-feature <feature-slug> [--network-wide]`
 
-  Deactivate a module. `--network-wide` will affect network activated ElasticPress.
+  Deactivate a feature. `--network-wide` will affect network activated ElasticPress.
 
-* `wp elasticpress list-modules [--all] [--network-wide]`
+* `wp elasticpress list-features [--all] [--network-wide]`
 
-  Lists active modules. `--all` will show all registered modules. `--network-wide` will force checking network options as opposed to a single sites options.
+  Lists active features. `--all` will show all registered features. `--network-wide` will force checking network options as opposed to a single sites options.
 
 * `wp elasticpress stats`
 
@@ -531,6 +657,7 @@ The following commands are supported by ElasticPress:
 
 ## Security
 
+* If you’re hosted with ElasticPress.io, simply add your Subscription ID and Token into the ElasticPress settings page to secure your ElasticPress installation.
 * ElasticPress can be used with the [Elasticsearch Shield](https://www.elastic.co/products/shield) plugin
 
     * Define the constant ```ES_SHIELD``` in your ```wp-config.php``` file with the username and password of your Elasticsearch Shield user. For example:
@@ -539,19 +666,29 @@ The following commands are supported by ElasticPress:
 define( 'ES_SHIELD', 'username:password' );
 ```
 
-## Custom Modules
+## Disable Dashboard Sync
 
-ElasticPress has a robust API for registering your own modules. Refer to the code within each module for detailed examples. To register a module, you will need to call the `ep_register_module()` function like so:
+Dashboard sync can be disabled by defining the constant `EP_DASHBOARD_SYNC` as `false` in your wp-config.php file.
+
+```php
+define( 'EP_DASHBOARD_SYNC', false );
+```
+
+This can be helpful for managed sites where users initiating a sync from the dashboard could potentially cause issues such as deleting the index and limiting this control to WP-CLI is preferred. When disabled, features that would require reindexing are also prevented from being enabled/disabled from the dashboard.
+
+## Custom Features
+
+ElasticPress has a robust API for registering your own features. Refer to the code within each feature for detailed examples. To register a feature, you will need to call the `ep_register_feature()` function like so:
 
 ```php
 add_action( 'plugins_loaded', function() {
-    ep_register_module( 'slug', array(
+    ep_register_feature( 'slug', array(
         'title' => 'Pretty Title',
         'setup_cb' => 'setup_callback_function',
-        'module_box_summary_cb' => 'summary_callback_function',
-        'module_box_long_cb' => 'long_summary_callback_function',
+        'feature_box_summary_cb' => 'summary_callback_function',
+        'feature_box_long_cb' => 'long_summary_callback_function',
         'requires_install_reindex' => true,
-        'dependencies_met_cb' => 'dependencies_meta_callback_function',
+        'requirements_status_cb' => 'requirements_status_callback_function',
         'post_activation_cb' => 'post_activation_callback_function',
     ) );
 } );
@@ -559,15 +696,15 @@ add_action( 'plugins_loaded', function() {
 
 The only arguments that are really required are the `slug` and `title` of the associative arguments array. Here are descriptions of each of the associative arguments:
 
-* `title` (string) - Pretty title for module
-* `requires_install_reindex` (boolean) - Setting to true will force a reindex after the module is activated.
-* `setup_cb` (callback) - Callback to a function to be called on each page load when the module is activated.
-* `post_activation_cb` (callback) - Callback to a function to be called after a module is first activated.
-* `module_box_summary_cb` (callback) - Callback to a function that outputs HTML module box summary (short description of module).
-* `module_box_long_cb` (callback) - Callback to a function that outputs HTML module box full description.
-* `dependencies_met_cb` (callback) - Callback to a function that determines if the modules dependencies are met. True means yes, WP_Error means no. If no, WP_Error message will be printed to the screen.
+* `title` (string) - Pretty title for feature
+* `requires_install_reindex` (boolean) - Setting to true will force a reindex after the feature is activated.
+* `setup_cb` (callback) - Callback to a function to be called on each page load when the feature is activated.
+* `post_activation_cb` (callback) - Callback to a function to be called after a feature is first activated.
+* `feature_box_summary_cb` (callback) - Callback to a function that outputs HTML feature box summary (short description of feature).
+* `feature_box_long_cb` (callback) - Callback to a function that outputs HTML feature box full description.
+* `requirements_status_cb` (callback) - Callback to a function that determines if the features requirements are met. This function needs to return a `EP_Feature_Requirements_Status` object. `EP_Feature_Requirements_Status` is a simple class with a `code` and a `message` property. Code 0 means there are no requirement issues; code 1 means there are issues with warnings; code 2 means the feature does not have it's requirements met and cannot be used. The message property of the object can be used to store warnings.
 
-If you build an open source custom module, let us know! We'd be happy to list the module within ElasticPress documentation.
+If you build an open source custom feature, let us know! We'd be happy to list the feature within ElasticPress documentation.
 
 ## Development
 
@@ -577,27 +714,8 @@ Follow the configuration instructions above to setup the plugin.
 
 ### Testing
 
-Within the terminal change directories to the plugin folder. Initialize your testing environment by running the
-following command:
-
-For VVV users:
-```
-bash bin/install-wp-tests.sh wordpress_test root root localhost latest
-```
-
-For VIP Quickstart users:
-```
-bash bin/install-wp-tests.sh wordpress_test root '' localhost latest
-```
-
-where:
-
-* ```wordpress_test``` is the name of the test database (all data will be deleted!)
-* ```root``` is the MySQL user name
-* ```root``` is the MySQL user password (if you're running VVV). Blank if you're running VIP Quickstart.
-* ```localhost``` is the MySQL server host
-* ```latest``` is the WordPress version; could also be 3.7, 3.6.2 etc.
-
+The simplest way to test is to use WP Local Docker, which includes Elasticsearch. To test with WP Local Docker, install ElasticPress into your site’s plugins folder and activate it. To connect, add the following string into your Elasticsearch URL field in the ElasticPress Settings:
+`https://localhost:9200`
 
 Our test suite depends on a running Elasticsearch server. You can supply a host to PHPUnit as an environmental variable like so:
 
