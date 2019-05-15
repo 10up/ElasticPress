@@ -240,8 +240,8 @@ class Autosuggest extends Feature {
 			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
 			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 		} else {
-			$post_types = array( 'post', 'page' );
-			$post_status  = array( 'publish' );
+			$post_types  = array( 'post', 'page' );
+			$post_status = array( 'publish' );
 		}
 
 		/**
