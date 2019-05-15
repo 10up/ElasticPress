@@ -145,6 +145,12 @@ require_once __DIR__ . '/includes/dashboard.php';
 Dashboard\setup();
 
 /**
+ * Setup Weighting
+ */
+require_once __DIR__ . '/includes/weighting.php';
+Weighting\setup();
+
+/**
  * WP CLI Commands
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
