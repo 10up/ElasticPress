@@ -3,7 +3,7 @@
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
  * Version:     3.0.1
- * Author:      Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
+ * Author:      10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
  * Text Domain: elasticpress
