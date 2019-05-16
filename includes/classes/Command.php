@@ -182,13 +182,15 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Add document mappings for every indexable
 	 *
-	 * @synopsis [--network-wide] [--indexables]
+	 * @synopsis [--network-wide] [--indexables] [--ep-host] [--ep-prefix]
 	 * @subcommand put-mapping
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function put_mapping( $args, $assoc_args ) {
+		$this->maybe_change_host( $assoc_args );
+		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
 
@@ -427,6 +429,8 @@ class Command extends WP_CLI_Command {
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
 
+		$this->maybe_change_host( $assoc_args );
+		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
 
@@ -1085,4 +1089,37 @@ class Command extends WP_CLI_Command {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		}
 	}
+
+
+	/**
+	 * maybe change Elastic host on the fly
+	 *
+	 * @param array $assoc_args Associative CLI args.
+	 *
+	 * @since 3.x
+	 */
+	private function maybe_change_host( $assoc_args ) {
+		if ( isset( $assoc_args['ep-host'] ) ) {
+			add_filter( 'ep_host', function ( $host ) use ( $assoc_args ) {
+				return $assoc_args['ep-host'];
+			} );
+		}
+	}
+
+
+	/**
+	 * maybe change index prefix on the fly
+	 *
+	 * @param array $assoc_args Associative CLI args.
+	 *
+	 * @since 3.x
+	 */
+	private function maybe_change_index_prefix( $assoc_args ) {
+		if ( isset( $assoc_args['ep-prefix'] ) ) {
+			add_filter( 'ep_index_prefix', function ( $prefix ) use ( $assoc_args ) {
+				return $assoc_args['ep-prefix'];
+			} );
+		}
+	}
+
 }
