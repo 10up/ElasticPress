@@ -68,6 +68,7 @@ function filter_allowed_html( $allowedtags, $context ) {
 			'type'        => true,
 			'checked'     => true,
 			'selected'    => true,
+			'disabled'    => true,
 			'value'       => true,
 			'class'       => true,
 			'data-*'      => true,

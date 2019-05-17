@@ -51,6 +51,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Re-add `ep_find_related` as deprecated function.
 * Changed max int to use core predefined constant. Props [@fabianmarz](https://github.com/fabianmarz)
 * Properly support legacy feature registration callbacks per #1329.
+* Properly disable settings as needed on dashboard.
 
 = 3.0 (Requires re-index) =
 
