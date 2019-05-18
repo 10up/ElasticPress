@@ -34,8 +34,9 @@ class Autosuggest extends Feature {
 
 		$this->requires_install_reindex = true;
 		$this->default_settings         = [
-			'endpoint_url'     => '',
-			'defaults_enabled' => 1,
+			'endpoint_url'         => '',
+			'defaults_enabled'     => 1,
+			'autosuggest_selector' => '',
 		];
 
 		parent::__construct();
@@ -239,8 +240,8 @@ class Autosuggest extends Feature {
 			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
 			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 		} else {
-			$post_types = array( 'post', 'page' );
-			$post_status  = array( 'publish' );
+			$post_types  = array( 'post', 'page' );
+			$post_status = array( 'publish' );
 		}
 
 		/**

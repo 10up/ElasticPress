@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 5.1
+Tested up to: 5.2
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -42,11 +42,22 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.0.1 =
+
+3.0.1 is a minor bug release version. Here is a list of fixes:
+
+* `wp elasticpress stats` and `wp elasticpress status` commands fatal error fixed.
+* Add autosuggest selector field default to fix notice.
+* Re-add `ep_find_related` as deprecated function.
+* Changed max int to use core predefined constant. Props [@fabianmarz](https://github.com/fabianmarz)
+* Properly support legacy feature registration callbacks per #1329.
+* Properly disable settings as needed on dashboard.
+
 = 3.0 (Requires re-index) =
 
 3.0 is a refactor of ElasticPress for modern coding standards (PHP 5.4 required) as well as the introduction to indexables. Indexables abstracts out content types so data types other than post can be indexed and searched. 3.0 includes user indexing and search (integration with WP_User_Query). User features require at least WordPress version 5.1.
 
-The refactor changes a lot of ElasticPress internals. The biggest change is the feature registration API has completely changed. Now, new features should extend the `ElasticPress\Feature` class rather than calling `ep_register_feature`. Older features should be backwards compatible. However, if you are using the `EP_Feature_Requirements_Status` has been renamed to `ElasticPress\FeatureRequirementsStatus`.
+The refactor changes a lot of ElasticPress internals. The biggest change is the feature registration API has completely changed. Now, new features should extend the `ElasticPress\Feature` class rather than calling `ep_register_feature`. Older features should be backwards compatible.
 
 Other Features:
 * Elasticsearch language setting in admin
@@ -60,6 +71,17 @@ Here are a list of filters/actions removed or changed:
 ### Filters changed:
 
 * `ep_post_sync_kill` - Removed `$post_args` argument.
+
+### Other changes:
+
+* `posts-per-page` changed to `per-page` for WP-CLI index command.
+
+= 2.8.2 =
+
+* Enhancement: WooCommerce product attributes as facets.
+* Enhancement: Performance Boost for document indexing.
+* Bugfix for issue on WP REST API searches.
+* Bugfix for case-sensitivity issue with facet search.
 
 = 2.8.1 =
 

@@ -1184,8 +1184,8 @@ class Post extends Indexable {
 	 * @since 1.1
 	 * @access protected
 	 *
-	 * @param string  $orderbys Alias or path for the field to order by.
-	 * @param string  $default_order Default order direction
+	 * @param string $orderbys Alias or path for the field to order by.
+	 * @param string $default_order Default order direction
 	 * @param  array  $args Query args
 	 * @return array
 	 */

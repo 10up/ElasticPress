@@ -69,8 +69,8 @@ class Users extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php esc_html_e( 'If you run a website with a lot of users, traditional WordPress user search can return poor results and queries quite slow. This feature empowers ElasticPress to return user queries and search results from Elasticsearch.', 'elasticpress' ); ?></p>
-
+		<p><?php esc_html_e( 'This feature will empower your website to overcome traditional WordPress user search and query limitations that can present themselves at scale.', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'Be aware that storing user data may bound you to certain legal obligations depending on your local government regulations.', 'elasticpress' ); ?></p>
 		<?php
 	}
 
@@ -103,12 +103,7 @@ class Users extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
-
-		if ( ! Utils\is_epio() ) {
-			$status->code    = 1;
-			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
-		}
+		$status = new FeatureRequirementsStatus( 1 );
 
 		return $status;
 	}

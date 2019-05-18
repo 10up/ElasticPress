@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.0a
+ * Version:     3.0.1
  * Author:      Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '3.0' );
+define( 'EP_VERSION', '3.0.1' );
 
 /**
  * PSR-4-ish autoloading
@@ -196,9 +196,7 @@ function handle_upgrades() {
 
 	$need_upgrade_sync = false;
 
-	if ( false === $old_version ) {
-		$need_upgrade_sync = true;
-	} else {
+	if ( false !== $old_version ) {
 		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
 
 		if ( -1 === version_compare( $old_version, $last_reindex_version ) && 0 <= version_compare( EP_VERSION, $last_reindex_version ) ) {
