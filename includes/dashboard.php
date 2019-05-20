@@ -47,10 +47,62 @@ function setup() {
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
 	add_action( 'admin_init', __NAMESPACE__ . '\intro_after_host' );
 	add_filter( 'admin_title', __NAMESPACE__ . '\filter_admin_title', 10, 2 );
+	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
+}
+
+/**
+ * Add ep-html kses context
+ *
+ * @param  array  $allowedtags HTML tags
+ * @param  string $context     Context string
+ * @since  3.0
+ * @return array
+ */
+function filter_allowed_html( $allowedtags, $context ) {
+	global $allowedposttags;
+
+	if ( 'ep-html' === $context ) {
+		$ep_tags = $allowedposttags;
+
+		$atts = [
+			'type'        => true,
+			'checked'     => true,
+			'selected'    => true,
+			'disabled'    => true,
+			'value'       => true,
+			'class'       => true,
+			'data-*'      => true,
+			'id'          => true,
+			'style'       => true,
+			'title'       => true,
+			'name'        => true,
+			'placeholder' => '',
+		];
+
+		$ep_tags['input']    = $atts;
+		$ep_tags['select']   = $atts;
+		$ep_tags['textarea'] = $atts;
+		$ep_tags['option']   = $atts;
+
+		$ep_tags['form'] = [
+			'action'         => true,
+			'accept'         => true,
+			'accept-charset' => true,
+			'enctype'        => true,
+			'method'         => true,
+			'name'           => true,
+			'target'         => true,
+		];
+
+		return $ep_tags;
+	}
+
+	return $allowedtags;
 }
 
 /**
  * Filter admin title for intro page
+ *
  * @param  string $admin_title Current title
  * @param  string $title       Original title
  * @since  3.0
@@ -479,7 +531,7 @@ function maybe_notice( $force = false ) {
 
 			?>
 			<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
-				<p><?php printf( __( 'The ElasticPress %s feature has been auto-activated! You will need to <a href="%s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) ); ?></p>
+				<p><?php echo wp_kses( sprintf( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) ), 'ep-html' ); ?></p>
 			</div>
 			<?php
 			break;
@@ -487,7 +539,13 @@ function maybe_notice( $force = false ) {
 			$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
 			?>
 			<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
-				<p><?php printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) ); ?></p>
+				<p>
+					<?php
+					// phpcs:disable
+					printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) );
+					// phpcs:enable
+					?>
+				</p>
 			</div>
 			<?php
 			break;
@@ -973,7 +1031,7 @@ function action_admin_init() {
 /**
  * Sanitize bulk settings.
  *
- * @param $bulk_settings
+ * @param int $bulk_settings Number of bulk content items
  * @return int
  */
 function sanitize_bulk_settings( $bulk_settings = 350 ) {

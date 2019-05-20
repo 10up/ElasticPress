@@ -316,7 +316,7 @@ abstract class Indexable {
 	 */
 	public function prepare_meta_value_types( $meta_value ) {
 
-		$max_java_int_value = 9223372036854775807;
+		$max_java_int_value = PHP_INT_MAX;
 
 		$meta_types = [];
 
