@@ -52,6 +52,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Changed max int to use core predefined constant. Props [@fabianmarz](https://github.com/fabianmarz)
 * Properly support legacy feature registration callbacks per #1329.
 * Properly disable settings as needed on dashboard.
+* Don't force document search on REST requests.
 
 = 3.0 (Requires re-index) =
 
