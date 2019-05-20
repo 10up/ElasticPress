@@ -128,6 +128,10 @@ function get_weighting_values() {
 
 	$response = $es->remote_request( "${index}/weighting" );
 
+	if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		return new \WP_Error( "es-api-error", "Unable to retreive weighting values from ElasticPress.io service. Ensure the service is up and try again." );
+	}
+
 	$body = wp_remote_retrieve_body( $response );
 
 	$json = json_decode( $body, true );
@@ -157,6 +161,7 @@ function inject_optional_search_fields( $fields ) {
 function render_settings_page() {
 	include EP_PATH . '/includes/partials/header.php'; ?>
     <div class="wrap">
+		<h1><?php esc_html_e( 'Weighting Settings', 'elasticpress' ); ?></h1>
         <?php
 		if ( isset( $_GET['settings-updated'] ) ) :
 			if ( $_GET['settings-updated'] ) : ?>
@@ -173,6 +178,11 @@ function render_settings_page() {
 		$fields = get_weightable_post_fields();
 		$current_values = get_weighting_values();
 		$optional_values = get_optional_field_values();
+
+		if ( is_wp_error( $current_values ) ) {
+			?><p><?php echo esc_html( $current_values->get_error_message() ); ?></p><?php
+			return;
+		}
 		?>
         <form action="<?php echo admin_url( 'admin-post.php' ); ?>" method="post" class="weighting-settings">
             <input type="hidden" name="action" value="ep-weighting">
