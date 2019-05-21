@@ -136,7 +136,11 @@ function get_weighting_values() {
 
 	$json = json_decode( $body, true );
 
-	return $json['fields'];
+	if ( isset( $json['fields'] ) ) {
+		return $json['fields'];
+	}
+
+	return array();
 }
 
 function get_optional_field_values() {
