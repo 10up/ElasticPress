@@ -193,11 +193,15 @@ class Search extends Feature {
 				$date_score = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],
-						'exp'        => array(
-							'post_date_gmt' => array(
-								'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
-								'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
-								'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
+						'functions'  => array(
+							array(
+								'exp' => array(
+									'post_date_gmt' => array(
+										'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
+										'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
+										'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
+									),
+								),
 							),
 						),
 						'score_mode' => 'avg',
