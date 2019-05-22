@@ -87,6 +87,15 @@ function get_weightable_fields_for_post_type( $post_type ) {
 }
 
 /**
+ * Returns the current weighting configuration
+ *
+ * @return array
+ */
+function get_weighting_configuration() {
+	return get_option( 'elasticpress_weighting', array() );
+}
+
+/**
  * Adds the submenu page for controlling weighting
  */
 function add_weighting_submenu_page() {
@@ -127,7 +136,7 @@ function render_settings_page() {
 
 			$post_types = $search->get_searchable_post_types();
 
-			$current_values = get_option( 'elasticpress_weighting', array() );
+			$current_values = get_weighting_configuration();
 
 			foreach ( $post_types as $post_type ) :
 				$fields = get_weightable_fields_for_post_type( $post_type );
@@ -244,10 +253,11 @@ function recursively_inject_weights_to_fields( &$fieldset, $weights ) {
 		return;
 	}
 
+	// @todo handle enabled/disabled fields
 	if ( is_array( $fieldset ) && isset( $fieldset['fields'] ) ) {
 		foreach ( $fieldset['fields'] as $key => $field ) {
 			if ( isset( $weights[ $field ] ) ) {
-				$weight = $weights[ $field ];
+				$weight = $weights[ $field ]['weight'];
 				$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 			}
 		}
@@ -267,21 +277,7 @@ function recursively_inject_weights_to_fields( &$fieldset, $weights ) {
  * @return array Formatted ES args
  */
 function do_weighting( $formatted_args, $args ) {
-	// Assume a static config mapping for now
-	$weight_config = array(
-		'post'       => array(
-			'post_title' => 10,
-		),
-		'page'       => array(
-
-		),
-		'wc_product' => array(
-
-		),
-		'random_cpt' => array(
-
-		),
-	);
+	$weight_config = get_weighting_configuration();
 
 	if ( ! empty( $args['s'] ) ) {
 		/*
