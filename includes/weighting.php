@@ -23,18 +23,20 @@ function setup() {
 
 	add_action( 'admin_menu', __NAMESPACE__ . '\add_weighting_submenu_page', 15 );
 	add_action( 'admin_post_ep-weighting', __NAMESPACE__ . '\handle_save' );
-	add_action( 'ep_search_fields', __NAMESPACE__ . '\inject_optional_search_fields' );
+	add_filter( 'ep_formatted_args', __NAMESPACE__ . '\do_weighting', 20, 2 ); // After date decay, etc are injected
 }
 
 /**
- * Returns a grouping of all the fields that support weighting
+ * Returns a grouping of all the fields that support weighting for the post type
+ *
+ * @param string $post_type Post type
  *
  * @return array
  */
-function get_weightable_post_fields() {
+function get_weightable_fields_for_post_type( $post_type ) {
 	$fields = array(
-		'post_attributes' => array(
-			'label'    => 'Post Attributes',
+		'attributes' => array(
+			'label'    => __( 'Attributes', 'elasticpress' ),
 			'children' => array(
 				'post_title'   => array(
 					'key'   => 'post_title',
@@ -54,54 +56,32 @@ function get_weightable_post_fields() {
 				),
 			),
 		),
-		'taxonomies'      => array(
-			'label'    => 'Taxonomies',
-			'children' => array(
-				'terms.post_tag.name' => array(
-					'key'   => 'terms.post_tag.name',
-					'label' => 'Tags',
-				),
-				'terms.category.name' => array(
-					'key'   => 'terms.category.name',
-					'label' => 'Categories',
-				),
-			),
-		),
 	);
 
-	/** @var Features $features */
-	$features = Features::factory();
-	/** @var Feature $woo */
-	$woo = $features->get_registered_feature( 'woocommerce' );
+	$taxonomies = get_taxonomies(
+		array(
+			'public' => true,
+			'object_type' => array( $post_type )
+		)
+	);
 
-	if ( $woo->is_active() ) {
-		// @todo add standard product category/tag taxonomies
+	if ( $taxonomies ) {
+		$fields['taxonomies'] = array(
+			'label'    => __( 'Taxonomies', 'elasticpress' ),
+			'children' => array()
+		);
 
-		// Add attribute taxonomies
-		if ( function_exists( 'wc_get_attribute_taxonomies' ) ) {
-			$attribute_taxonomies = wc_get_attribute_taxonomies();
+		foreach ( $taxonomies as $taxonomy ) {
+			$key = "terms.{$taxonomy}.name";
+			$taxonomy_object = get_taxonomy( $taxonomy );
 
-			if ( ! empty( $attribute_taxonomies ) ) {
-				$fields['product_attributes'] = array(
-					'label' => 'Product Attributes',
-					'children' => array(),
-				);
-
-				foreach ( $attribute_taxonomies as $attribute_taxonomy ) {
-					$tax_name = wc_attribute_taxonomy_name( $attribute_taxonomy->attribute_name );
-
-					$fields['product_attributes']['children'][] = array(
-						'key' => "terms.${tax_name}.name",
-						'label' => $attribute_taxonomy->attribute_label,
-						'optional' => true, // Indicates this field is optional for searching
-					);
-				}
-			}
+			$fields['taxonomies']['children'][ $key ] = array(
+				'key' => $key,
+				'label' => $taxonomy_object->labels->name,
+				'optional' => true,
+			);
 		}
 	}
-
-
-    // @todo get custom taxonomies
 
     return $fields;
 }
@@ -114,87 +94,52 @@ function add_weighting_submenu_page() {
 }
 
 /**
- * Gets the current weighting values from the elasticpress.io service
- *
- * @return array
- */
-function get_weighting_values() {
-	/** @var \ElasticPress\Indexable\Post\Post $post */
-	$post = Indexables::factory()->get( 'post' );
-	$index = $post->get_index_name();
-
-	/** @var \ElasticPress\Elasticsearch $es */
-	$es = Elasticsearch::factory();
-
-	$response = $es->remote_request( "${index}/weighting" );
-
-	if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
-		return new \WP_Error( "es-api-error", "Unable to retreive weighting values from ElasticPress.io service. Ensure the service is up and try again." );
-	}
-
-	$body = wp_remote_retrieve_body( $response );
-
-	$json = json_decode( $body, true );
-
-	if ( isset( $json['fields'] ) ) {
-		return $json['fields'];
-	}
-
-	return array();
-}
-
-function get_optional_field_values() {
-	return get_option( 'ep-optional-fields', array() );
-}
-
-function inject_optional_search_fields( $fields ) {
-	$add_fields = get_optional_field_values();
-
-	foreach ( $add_fields as $enabled_field ) {
-		if ( ! in_array( $enabled_field, $fields ) ) {
-			$fields[] = $enabled_field;
-		}
-	}
-
-	return $fields;
-}
-
-/**
  * Renders the settings page that controls weighting
  */
 function render_settings_page() {
 	include EP_PATH . '/includes/partials/header.php'; ?>
     <div class="wrap">
+
 		<h1><?php esc_html_e( 'Weighting Settings', 'elasticpress' ); ?></h1>
-        <?php
-		if ( isset( $_GET['settings-updated'] ) ) :
-			if ( $_GET['settings-updated'] ) : ?>
-                <div class="notice notice-success is-dismissible">
-                    <p><?php _e( 'Changes Saved!', 'elasticpress' ); ?></p>
-                </div>
-			<?php else : ?>
-                <div class="notice notice-error is-dismissible">
-                    <p><?php _e( 'An error occurred when saving!', 'elasticpress' ); ?></p>
-                </div>
-			<?php endif;
-		endif;
 
-		$fields = get_weightable_post_fields();
-		$current_values = get_weighting_values();
-		$optional_values = get_optional_field_values();
-
-		if ( is_wp_error( $current_values ) ) {
-			?><p><?php echo esc_html( $current_values->get_error_message() ); ?></p><?php
-			return;
-		}
-		?>
-        <form action="<?php echo admin_url( 'admin-post.php' ); ?>" method="post" class="weighting-settings">
-            <input type="hidden" name="action" value="ep-weighting">
+		<form action="<?php echo admin_url( 'admin-post.php' ); ?>" method="post" class="weighting-settings">
+			<input type="hidden" name="action" value="ep-weighting">
 			<?php wp_nonce_field( 'save-weighting', 'ep-weighting-nonce' ); ?>
-			<?php foreach ( $fields as $field_group ) :
-				render_settings_section( $field_group, $current_values, $optional_values );
+			<?php
+			if ( isset( $_GET['settings-updated'] ) ) :
+				if ( $_GET['settings-updated'] ) : ?>
+					<div class="notice notice-success is-dismissible">
+						<p><?php _e( 'Changes Saved!', 'elasticpress' ); ?></p>
+					</div>
+				<?php else : ?>
+					<div class="notice notice-error is-dismissible">
+						<p><?php _e( 'An error occurred when saving!', 'elasticpress' ); ?></p>
+					</div>
+				<?php endif;
+			endif;
+
+			/** @var Features $features */
+			$features = Features::factory();
+
+			/** @var Feature\Search\Search $search */
+			$search = $features->get_registered_feature( 'search' );
+
+			$post_types = $search->get_searchable_post_types();
+
+			$current_values = get_option( 'elasticpress_weighting', array() );
+
+			foreach ( $post_types as $post_type ) :
+				$fields = get_weightable_fields_for_post_type( $post_type );
+				$post_type_object = get_post_type_object( $post_type );
+				?>
+				<h2><?php echo esc_html( $post_type_object->labels->menu_name ); ?></h2>
+
+				<?php foreach ( $fields as $field_group ) :
+					render_settings_section( $post_type, $field_group, $current_values );
+				endforeach;
+
 			endforeach; ?>
-            <input type="submit" class="button button-primary">
+			<input type="submit" class="button button-primary">
         </form>
     </div>
     <?php
@@ -203,32 +148,41 @@ function render_settings_page() {
 /**
  * Recursively renders each settings section and its children
  *
+ * @param string $post_type      Current post type we're rendering
  * @param array $field           Current field to render
- * @param array $current_values  Weighting values from elasticpress.io service
- * @param array $optional_fields Array of field_key => bool that indicates if a field is enabled
+ * @param array $current_values  Current stored weighting values
  */
-function render_settings_section( $field, $current_values, $optional_fields ) {
+function render_settings_section( $post_type, $field, $current_values ) {
 	if ( isset( $field['children'] ) ) : ?>
         <div class="field-group">
             <strong><?php echo esc_html( $field['label'] ); ?></strong>
             <div class="fields">
                 <?php foreach( $field['children'] as $child ) {
-					render_settings_section( $child, $current_values, $optional_fields );
+					render_settings_section( $post_type, $child, $current_values );
 				} ?>
             </div>
         </div>
     <?php elseif ( isset( $field['key'] ) ) :
         $key = $field['key'];
-		$value = isset( $current_values[ $key ] ) ? (int) $current_values[ $key ] : 0;
+		$weight = isset( $current_values[$post_type] ) && isset( $current_values[$post_type][ $key ] ) && isset( $current_values[$post_type][ $key ]['weight'] ) ? (int) $current_values[ $post_type ][ $key ]['weight'] : 0;
 		$optional = isset( $field['optional'] ) && true === $field['optional'] ? true : false;
         ?>
         <div class="field">
-            <label for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $field['label'] ); ?></label>
-            <input type="range" min="0" max="10" step="1" value="<?php echo esc_attr( $value ); ?>" id="<?php echo esc_attr( $key ); ?>" name="<?php echo esc_attr( $key ); ?>">
+            <label for="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>"><?php echo esc_html( $field['label'] ); ?></label>
+            <input type="range" min="0" max="10" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]">
 
-			<?php if ( true === $optional ) : ?>
-				<input type="checkbox" <?php checked( in_array( $key, $optional_fields ) ); ?> id="<?php echo esc_attr( $key ); ?>-optional" name="optional_fields[<?php echo esc_attr( $key ); ?>]">
-				<label for="<?php echo esc_attr( $key ); ?>-optional">Make Searchable</label>
+			<?php if ( true === $optional ) :
+				$enabled = (
+					isset( $current_values[$post_type] ) &&
+					isset( $current_values[$post_type][ $key ] ) &&
+					isset( $current_values[$post_type][ $key ]['enabled'] )
+				)
+					? boolval( $current_values[ $post_type ][ $key ]['enabled'] ) : false;
+				?>
+				<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
+				<label for="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>">Make Searchable</label>
+			<?php else : ?>
+				<input type="hidden" value="on" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
 			<?php endif; ?>
         </div>
 	<?php endif;
@@ -246,73 +200,137 @@ function handle_save() {
 		return;
 	}
 
-	$fields = get_weightable_post_fields();
-	$final_fields = array();
-
-	foreach( $fields as $field ) {
-		recurse_fields_for_save( $field, $final_fields );
+	if ( ! isset( $_POST['weighting'] ) || empty( $_POST['weighting'] ) ) {
+		// It should always be set unless something is wrong, so just move on
+		return;
 	}
 
-	$to_submit = wp_json_encode( array( 'fields' => $final_fields ) );
+	$final_config = array();
 
-	/** @var \ElasticPress\Indexable\Post\Post $post */
-	$post = Indexables::factory()->get( 'post' );
-	$index = $post->get_index_name();
-
-	/** @var \ElasticPress\Elasticsearch $es */
-	$es = Elasticsearch::factory();
-
-	$response = $es->remote_request( "${index}/weighting", array( 'method' => 'POST', 'body' => $to_submit ) );
-	$code = (int) wp_remote_retrieve_response_code( $response );
-
-
-	// Save the optional field data
-	if ( isset( $_POST['optional_fields'] ) && is_array( $_POST['optional_fields'] ) ) {
-		$final_option = array();
-		foreach ( $_POST['optional_fields'] as $optional_field => $field_enabled ) {
-			if ( "on" === $field_enabled ) {
-				$final_option[] =  sanitize_text_field( $optional_field );
-			}
+	foreach ( $_POST['weighting'] as $post_type => $post_type_weighting ) {
+		// This also ensures the string is safe, since this would return false otherwise
+		if ( ! post_type_exists( $post_type ) ) {
+			continue;
 		}
-		update_option( 'ep-optional-fields', $final_option );
-	} else {
-		delete_option( 'ep-optional-fields' );
+
+		$final_config[ $post_type ] = array();
+
+		foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
+			$final_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = array(
+				'weight' => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
+				'enabled' => isset( $weighting_values['enabled'] ) && $weighting_values['enabled'] === "on" ? true : false,
+			);
+		}
 	}
+
+	update_option( 'elasticpress_weighting', $final_config );
 
 	$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
-
-	// We should usually get back a 202, but any 2xx response code should be fine
-	if ( 300 <= $code ) {
-		// Error
-		$redirect_url = add_query_arg( 'settings-updated', false, $redirect_url );
-	} else {
-		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
-	}
+	$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
 
 	wp_safe_redirect( $redirect_url );
 	exit();
 }
 
 /**
- * Recurses through the available weighting fields to fetch new values as part of the save routine
+ * Iterates through arrays in the formatted args to find "fields" and injects weighting values
  *
- * @param array $field Current field to fetch values for
- * @param array $final_fields Final fields and their weights that will be sent to elasticpress.io
+ * @param array $fieldset Current subset of formatted ES args
+ * @param array $weights Weight configuration
  */
-function recurse_fields_for_save( $field, &$final_fields ) {
-	if ( isset( $field['children'] ) ) {
-		foreach ( $field['children'] as $child ) {
-			recurse_fields_for_save( $child, $final_fields );
-		}
-	} else if ( isset( $field['key'] ) ) {
-		$safe_field = str_replace( '.', '_', $field['key'] );
-		if ( isset( $_POST[ $safe_field ] ) ) {
-			$value = (int)$_POST[ $safe_field ];
+function recursively_inject_weights_to_fields( &$fieldset, $weights ) {
+	if ( ! is_array( $fieldset ) ) {
+		return;
+	}
 
-			if ( $value > 0 ) {
-				$final_fields[ $field['key'] ] = $value;
+	if ( is_array( $fieldset ) && isset( $fieldset['fields'] ) ) {
+		foreach ( $fieldset['fields'] as $key => $field ) {
+			if ( isset( $weights[ $field ] ) ) {
+				$weight = $weights[ $field ];
+				$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 			}
+		}
+	} else {
+		foreach ( $fieldset as &$field ) {
+			recursively_inject_weights_to_fields( $field, $weights );
 		}
 	}
 }
 
+/**
+ * Adjusts the query for configured weighting values
+ *
+ * @param array $formatted_args Formatted ES args
+ * @param array $args WP_Query args
+ *
+ * @return array Formatted ES args
+ */
+function do_weighting( $formatted_args, $args ) {
+	// Assume a static config mapping for now
+	$weight_config = array(
+		'post'       => array(
+			'post_title' => 10,
+		),
+		'page'       => array(
+
+		),
+		'wc_product' => array(
+
+		),
+		'random_cpt' => array(
+
+		),
+	);
+
+	if ( ! empty( $args['s'] ) ) {
+		/*
+		 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
+		 * which then get combined into one result set. By having separate clauses for each post type, we can then
+		 * weight fields such as post_title per post type so that we can have fine grained control over weights by post
+		 * type, rather than globally on the query
+		 */
+		$new_query = array(
+			'bool' => array(
+				'should' => array()
+			)
+		);
+
+		// grab the query and keep track of whether or not it is nested in a function score
+		$function_score = isset( $formatted_args['query']['function_score'] );
+		$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
+
+		foreach ( $args['post_type'] as $post_type ) {
+			// Copy the query, so we can set specific weight values
+			$current_query = $query;
+
+			if ( isset( $weight_config[ $post_type ] ) ) {
+				// Find all "fields" values and inject weights for the current post type
+				recursively_inject_weights_to_fields( $current_query, $weight_config[ $post_type ] );
+			}
+
+			$new_query['bool']['should'][] = array(
+				"bool" => array(
+					"must" => array(
+						$current_query
+					),
+					"filter" => array(
+						array(
+							"match" => array(
+								"post_type.raw" => $post_type,
+							)
+						)
+					),
+				),
+			);
+		}
+
+		// put the new query back in the correct location
+		if ( $function_score ) {
+			$formatted_args['query']['function_score']['query'] = $new_query;
+		} else {
+			$formatted_args['query'] = $new_query;
+		}
+	}
+
+	return $formatted_args;
+}
