@@ -90,7 +90,7 @@ function get_weightable_fields_for_post_type( $post_type ) {
  * Adds the submenu page for controlling weighting
  */
 function add_weighting_submenu_page() {
-	add_submenu_page( 'elasticpress', __( 'Weighting', 'elasticpress' ), __( 'Weighting', 'elasticpress' ), 'manage_options', 'elasticpress-weighting', __NAMESPACE__ . '\render_settings_page' );
+	add_submenu_page( 'elasticpress', __( 'Search Fields & Weighting', 'elasticpress' ), __( 'Search Fields & Weighting', 'elasticpress' ), 'manage_options', 'elasticpress-weighting', __NAMESPACE__ . '\render_settings_page' );
 }
 
 /**
@@ -100,7 +100,8 @@ function render_settings_page() {
 	include EP_PATH . '/includes/partials/header.php'; ?>
     <div class="wrap">
 
-		<h1><?php esc_html_e( 'Weighting Settings', 'elasticpress' ); ?></h1>
+		<h1><?php esc_html_e( 'Manage Search Fields & Weighting', 'elasticpress' ); ?></h1>
+		<p>Adding more weight to an item will mean it will have more presence during searches. Add more weight to the items that are more important and need more prominence during searches.</p>
 
 		<form action="<?php echo admin_url( 'admin-post.php' ); ?>" method="post" class="weighting-settings">
 			<input type="hidden" name="action" value="ep-weighting">
