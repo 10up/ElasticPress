@@ -279,7 +279,7 @@ function recursively_inject_weights_to_fields( &$fieldset, $weights ) {
 function do_weighting( $formatted_args, $args ) {
 	$weight_config = get_weighting_configuration();
 
-	if ( ! empty( $args['s'] ) ) {
+	if ( ! empty( $args['s'] ) && ! empty( $weight_config ) ) {
 		/*
 		 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
 		 * which then get combined into one result set. By having separate clauses for each post type, we can then
