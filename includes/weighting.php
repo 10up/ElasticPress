@@ -51,7 +51,7 @@ function get_weightable_fields_for_post_type( $post_type ) {
 					'label' => 'Excerpt',
 				),
 				'author_name'  => array(
-					'key'   => 'author_name',
+					'key'   => 'author_name', // @todo check what field this should actually map to
 					'label' => 'Author',
 				),
 			),
@@ -253,12 +253,14 @@ function recursively_inject_weights_to_fields( &$fieldset, $weights ) {
 		return;
 	}
 
-	// @todo handle enabled/disabled fields
+	// @todo handle enabled/disabled fields and default enabled/disabled status
 	if ( is_array( $fieldset ) && isset( $fieldset['fields'] ) ) {
 		foreach ( $fieldset['fields'] as $key => $field ) {
-			if ( isset( $weights[ $field ] ) ) {
+			if ( isset( $weights[ $field ] ) && $weights[ $field ]['enabled'] !== false ) {
 				$weight = $weights[ $field ]['weight'];
 				$fieldset['fields'][ $key ] = "{$field}^{$weight}";
+			} else {
+				unset( $fieldset['fields'][ $key ] );
 			}
 		}
 	} else {
