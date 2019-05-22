@@ -10,8 +10,8 @@ namespace ElasticPress\Indexable\Post;
 
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
 use \WP_Query as WP_Query;
+use \WP_User as WP_User;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
