@@ -47,6 +47,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 3.0.2 is a minor bug release version. Here is a list of fixes:
 
 * Fix date query errors
+* Readd ep_retrieve_the_{type} filter. Props [gassan](https://github.com/gassan)
 
 = 3.0.1 =
 
