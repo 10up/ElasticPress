@@ -9,7 +9,7 @@
 namespace ElasticPress\Indexable\Post;
 
 use DateTime;
-use \WP_Date_Query as WP_Date_Query;
+use WP_Date_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -250,7 +250,7 @@ class DateQuery extends WP_Date_Query {
 
 		if ( $date_parameters ) {
 
-			EP_WP_Date_Query::validate_date_values( $date_parameters );
+			WP_Date_Query::validate_date_values( $date_parameters );
 
 			$date_terms = array(
 				'must'     => [],
