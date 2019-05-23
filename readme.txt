@@ -42,6 +42,14 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.0.2 =
+
+3.0.2 is a minor bug release version. Here is a list of fixes:
+
+* Fix date query errors
+* Readd ep_retrieve_the_{type} filter. Props [gassan](https://github.com/gassan)
+* Fix empty autosuggest selector notice
+
 = 3.0.1 =
 
 3.0.1 is a minor bug release version. Here is a list of fixes:
