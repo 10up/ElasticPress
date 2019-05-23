@@ -443,7 +443,7 @@ class DateQuery extends WP_Date_Query {
 		// Weeks per year.
 		if ( isset( $_year ) ) {
 			// If we have a specific year, use it to calculate number of weeks.
-			$date = new DateTime();
+			$date = new \DateTime();
 			$date->setISODate( $_year, 53 );
 			$week_count = $date->format( 'W' ) === '53' ? 53 : 52;
 
