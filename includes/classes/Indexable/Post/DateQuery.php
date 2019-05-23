@@ -8,6 +8,7 @@
 
 namespace ElasticPress\Indexable\Post;
 
+use DateTime;
 use \WP_Date_Query as WP_Date_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
