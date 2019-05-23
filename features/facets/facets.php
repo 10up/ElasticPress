@@ -289,7 +289,11 @@ function ep_facets_is_facetable( $query ) {
 
 	$page_id = $query->get( 'page_id' );
 
-	if ( ! ( $query->is_post_type_archive() || $query->is_search() || ( is_home() && empty( $page_id ) ) ) ) {
+
+	if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
+	         || $query->is_post_type_archive()
+	         || $query->is_search()
+	         || ( is_home() && empty( $page_id ) ) ) ) {
 		return false;
 	}
 
@@ -307,7 +311,10 @@ function ep_facets_facet_query( $query ) {
 		return;
 	}
 
-	$taxonomies = get_taxonomies( array( 'public' => true ) );
+	$taxonomies = get_taxonomies( array( 'public' => true ));
+
+	// Allow other plugins to modify the available taxonomies.
+	$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies, false );
 
 	if ( empty( $taxonomies ) ) {
 		return;

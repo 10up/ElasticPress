@@ -9,10 +9,11 @@
 /**
  * Index Woocommerce meta
  *
- * @param   array $meta Existing post meta.
- * @param   array $post Post arguments array.
- * @since   2.1
+ * @param array $meta Existing post meta.
+ * @param array $post Post arguments array.
+ *
  * @return  array
+ * @since   2.1
  */
 function ep_wc_whitelist_meta_keys( $meta, $post ) {
 	return array_unique( array_merge( $meta, array(
@@ -105,9 +106,10 @@ function ep_wc_shop_order_search_fields() {
  * Make sure all loop shop post ins are IDS. We have to pass post objects here since we override
  * the fields=>id query for the layered filter nav query
  *
- * @param   array $posts Post object array.
- * @since   2.1
+ * @param array $posts Post object array.
+ *
  * @return  array
+ * @since   2.1
  */
 function ep_wc_convert_post_object_to_id( $posts ) {
 	$new_posts = array();
@@ -127,21 +129,22 @@ function ep_wc_convert_post_object_to_id( $posts ) {
 /**
  * Index Woocommerce taxonomies
  *
- * @param   array $taxonomies Index taxonomies array.
- * @param   array $post Post properties array.
- * @since   2.1
+ * @param array $taxonomies Index taxonomies array.
+ * @param array $post Post properties array.
+ *
  * @return  array
+ * @since   2.1
  */
 function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 	$woo_taxonomies = array();
 
-	$product_type       = get_taxonomy( 'product_type' );
-	if( false !== $product_type ){
+	$product_type = get_taxonomy( 'product_type' );
+	if ( false !== $product_type ) {
 		$woo_taxonomies[] = $product_type;
 	}
 
 	$product_visibility = get_taxonomy( 'product_visibility' );
-	if( false !== $product_visibility ){
+	if ( false !== $product_visibility ) {
 		$woo_taxonomies[] = $product_visibility;
 	}
 
@@ -152,7 +155,7 @@ function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 	if ( $attribute_taxonomies = wc_get_attribute_taxonomies() ) {
 		foreach ( $attribute_taxonomies as $tax ) {
 			if ( $name = wc_attribute_taxonomy_name( $tax->attribute_name ) ) {
-				if ( empty( $tax->attribute_) ) {
+				if ( empty( $tax->attribute_ ) ) {
 					$woo_taxonomies[] = get_taxonomy( $name );
 				}
 			}
@@ -165,12 +168,12 @@ function ep_wc_whitelist_taxonomies( $taxonomies, $post ) {
 /**
  * Disallow duplicated ES queries on Orders page.
  *
- * @since 2.4
- *
  * @param array    $value Original filter values.
  * @param WP_Query $query WP_Query
  *
  * @return array
+ * @since 2.4
+ *
  */
 function ep_wc_disallow_duplicated_query( $value, $query ) {
 	global $pagenow;
@@ -196,7 +199,8 @@ function ep_wc_disallow_duplicated_query( $value, $query ) {
 /**
  * Translate args to ElasticPress compat format. This is the meat of what the feature does
  *
- * @param  WP_Query $query
+ * @param WP_Query $query
+ *
  * @since  2.1
  */
 function ep_wc_translate_args( $query ) {
@@ -305,7 +309,7 @@ function ep_wc_translate_args( $query ) {
 		if ( ! empty( $term ) ) {
 			$integrate = true;
 
-			$terms          = (array)$term;
+			$terms          = (array) $term;
 			$children_terms = array();
 
 			// to add child terms to the tax query
@@ -325,7 +329,7 @@ function ep_wc_translate_args( $query ) {
 					}
 				}
 			}
-			$terms = array_merge( $terms, $children_terms );
+			$terms       = array_merge( $terms, $children_terms );
 			$tax_query[] = array(
 				'taxonomy' => $taxonomy,
 				'field'    => 'slug',
@@ -390,12 +394,12 @@ function ep_wc_translate_args( $query ) {
 		 * Handle meta queries
 		 */
 		$meta_query = $query->get( 'meta_query', array() );
-		$meta_key = $query->get( 'meta_key', false );
+		$meta_key   = $query->get( 'meta_key', false );
 		$meta_value = $query->get( 'meta_value', false );
 
 		if ( ! empty( $meta_key ) && ! empty( $meta_value ) ) {
 			$meta_query[] = array(
-				'key' => $meta_key,
+				'key'   => $meta_key,
 				'value' => $meta_value,
 			);
 
@@ -411,7 +415,7 @@ function ep_wc_translate_args( $query ) {
 		$s = $query->get( 's' );
 
 		$query->query_vars['ep_integrate'] = true;
-		$query->query['ep_integrate'] = true;
+		$query->query['ep_integrate']      = true;
 
 		if ( ! empty( $s ) ) {
 			$query->set( 'orderby', false ); // Just order by relevance.
@@ -457,18 +461,23 @@ function ep_wc_translate_args( $query ) {
 				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 				// Remove author_name from this search.
-				$search_fields = ep_wc_remove_author($search_fields);
+				$search_fields = ep_wc_remove_author( $search_fields );
 
 				// Make sure we search skus on the front end and do not override meta search fields
-				if( ! empty( $search_fields['meta'] ) ) {
+				if ( ! empty( $search_fields['meta'] ) ) {
 					$search_fields['meta'] = array_merge( $search_fields['meta'], array( '_sku' ) );
 				} else {
 					$search_fields['meta'] = array( '_sku' );
 				}
 
 				// Search by proper taxonomies on the front end and do not override taxonomy search fields
-				if( ! empty( $search_fields['taxonomies'] ) ) {
-					$search_fields['meta'] = array_merge( $search_fields['meta'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
+				if ( ! empty( $search_fields['taxonomies'] ) ) {
+					$search_fields['meta'] = array_merge( $search_fields['meta'], array(
+						'category',
+						'post_tag',
+						'product_tag',
+						'product_cat'
+					) );
 				} else {
 					$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
 				}
@@ -477,13 +486,13 @@ function ep_wc_translate_args( $query ) {
 		} else {
 			/**
 			 * For default sorting by popularity (total_sales) and rating
-	         * Woocommerce doesn't set the orderby correctly.
-	         * These lines will check the meta_key and correct the orderby based on that.
-	         * And this won't run in search result and only run in main query
+			 * Woocommerce doesn't set the orderby correctly.
+			 * These lines will check the meta_key and correct the orderby based on that.
+			 * And this won't run in search result and only run in main query
 			 */
 			$meta_key = $query->get( 'meta_key', false );
-			if ( $meta_key && $query->is_main_query() ){
-				switch ( $meta_key ){
+			if ( $meta_key && $query->is_main_query() ) {
+				switch ( $meta_key ) {
 					case 'total_sales':
 						$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( 'total_sales' ) );
 						$query->set( 'order', 'DESC' );
@@ -499,7 +508,7 @@ function ep_wc_translate_args( $query ) {
 		/**
 		 * Set orderby and order for price when GET param not set
 		 */
-		if( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
+		if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
 			$query->set( 'order', $query->query_vars['order'] );
 			$query->set( 'orderby', ep_wc_get_orderby_meta_mapping( '_price' ) );
 		}
@@ -544,13 +553,14 @@ function ep_wc_translate_args( $query ) {
  * Fetch the ES related meta mapping for orderby
  *
  * @param  $meta_key The meta key to get the mapping for.
- * @since  2.1
+ *
  * @return string    The mapped meta key.
+ * @since  2.1
  */
 function ep_wc_get_orderby_meta_mapping( $meta_key ) {
 	$mapping = apply_filters( 'orderby_meta_mapping',
 		array(
-			'ID'				 => 'ID',
+			'ID'                 => 'ID',
 			'menu_order'         => 'menu_order title date',
 			'menu_order title'   => 'menu_order title date',
 			'total_sales'        => 'meta.total_sales.long date',
@@ -568,10 +578,11 @@ function ep_wc_get_orderby_meta_mapping( $meta_key ) {
 /**
  * Don't index legacy meta property. We want to to keep things light ot save space and memory.
  *
- * @param   array $post_args Post arguments to be indexed in ES.
- * @param   int   $post_id Post ID.
- * @since   2.1
+ * @param array $post_args Post arguments to be indexed in ES.
+ * @param int   $post_id Post ID.
+ *
  * @return  array
+ * @since   2.1
  */
 function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
 	if ( ! empty( $post_args['post_meta'] ) ) {
@@ -584,10 +595,11 @@ function ep_wc_remove_legacy_meta( $post_args, $post_id ) {
 /**
  * Make search coupons don't go through ES
  *
- * @param  bool $enabled
- * @param  object $query
- * @since  2.1
+ * @param bool   $enabled
+ * @param object $query
+ *
  * @return bool
+ * @since  2.1
  */
 function ep_wc_blacklist_coupons( $enabled, $query ) {
 	if ( method_exists( $query, 'get' ) && 'shop_coupon' === $query->get( 'post_type' ) ) {
@@ -600,10 +612,11 @@ function ep_wc_blacklist_coupons( $enabled, $query ) {
 /**
  * Allow order creations on the front end to get synced
  *
- * @since  2.1
- * @param  bool $override
- * @param  int $post_id
+ * @param bool $override
+ * @param int  $post_id
+ *
  * @return bool
+ * @since  2.1
  */
 function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
 	if ( 'shop_order' === get_post_type( $post_id ) ) {
@@ -621,9 +634,10 @@ function ep_wc_bypass_order_permissions_check( $override, $post_id ) {
  * 3. If the search key is integer but not an order id ( might be phone number ), use ES to find it
  *
  * @param WP_Query $wp
+ *
  * @since  2.3
  */
-function ep_wc_search_order( $wp ){
+function ep_wc_search_order( $wp ) {
 	global $pagenow;
 	if ( 'edit.php' != $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
 	     ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
@@ -656,12 +670,12 @@ function ep_wc_search_order( $wp ){
  * table. They combine the titles of the products and put them in a
  * meta field called "Items".
  *
- * @since 2.4
- *
- * @param array $post_args
+ * @param array      $post_args
  * @param string|int $post_id
  *
  * @return array
+ * @since 2.4
+ *
  */
 function ep_wc_add_order_items_search( $post_args, $post_id ) {
 	// Make sure it is only WooCommerce orders we touch.
@@ -676,14 +690,14 @@ function ep_wc_add_order_items_search( $post_args, $post_id ) {
 		// WooCommerce 3.x uses WC_Order_Item_Product instance while 2.x an array
 		if ( is_object( $product_item ) && method_exists( $product_item, 'get_name' ) ) {
 			$item_meta['_items'][] = $product_item->get_name( 'edit' );
-		} elseif ( is_array( $product_item ) && isset( $product_item[ 'name' ] ) ) {
-			$item_meta['_items'][] = $product_item[ 'name' ];
+		} elseif ( is_array( $product_item ) && isset( $product_item['name'] ) ) {
+			$item_meta['_items'][] = $product_item['name'];
 		}
 	}
 
 	// Prepare order items.
 	$item_meta['_items'] = empty( $item_meta['_items'] ) ? '' : implode( '|', $item_meta['_items'] );
-	$post_args['meta'] = array_merge( $post_args['meta'], EP_API::factory()->prepare_meta_types( $item_meta ) );
+	$post_args['meta']   = array_merge( $post_args['meta'], EP_API::factory()->prepare_meta_types( $item_meta ) );
 
 	return $post_args;
 }
@@ -691,15 +705,17 @@ function ep_wc_add_order_items_search( $post_args, $post_id ) {
 /**
  * Add WooCommerce Product Attributes to EP Facets.
  *
- * @param array $taxonomies
+ * @param array   $taxonomies
+ * @param boolean $object Return the taxonomy object on true.
  *
  * @return array
  */
-function ep_wc_add_product_attributes( $taxonomies = [] ) {
+function ep_wc_add_product_attributes( $taxonomies = [], $object = true ) {
 	$attribute_names = wc_get_attribute_taxonomy_names();
 	foreach ( $attribute_names as $name ) {
-		$taxonomies[ $name ] = get_taxonomy( $name );
+		$taxonomies[ $name ] = ( $object ) ? get_taxonomy( $name ) : $name;
 	}
+
 	return $taxonomies;
 }
 
@@ -709,9 +725,9 @@ function ep_wc_add_product_attributes( $taxonomies = [] ) {
  * @since  2.1
  */
 function ep_wc_setup() {
-	if( function_exists( 'WC' ) ) {
+	if ( function_exists( 'WC' ) ) {
 		add_filter( 'ep_sync_insert_permissions_bypass', 'ep_wc_bypass_order_permissions_check', 10, 2 );
-		add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10 ,2 );
+		add_filter( 'ep_elasticpress_enabled', 'ep_wc_blacklist_coupons', 10, 2 );
 		add_filter( 'ep_prepare_meta_allowed_protected_keys', 'ep_wc_whitelist_meta_keys', 10, 2 );
 		add_filter( 'woocommerce_shop_order_search_fields', 'ep_wc_shop_order_search_fields', 9999 );
 		add_filter( 'woocommerce_layered_nav_query_post_ids', 'ep_wc_convert_post_object_to_id', 10, 4 );
@@ -720,7 +736,7 @@ function ep_wc_setup() {
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_remove_legacy_meta', 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', 'ep_wc_add_order_items_search', 20, 2 );
 		add_filter( 'ep_term_suggest_post_type', 'ep_wc_add_post_type' );
-		add_filter( 'ep_facet_include_taxonomies', 'ep_wc_add_product_attributes' );
+		add_filter( 'ep_facet_include_taxonomies', 'ep_wc_add_product_attributes', 10, 2 );
 		add_action( 'pre_get_posts', 'ep_wc_translate_args', 11, 1 );
 		add_action( 'ep_wp_query_search_cached_posts', 'ep_wc_disallow_duplicated_query', 10, 2 );
 		add_action( 'parse_query', 'ep_wc_search_order', 11, 1 );
@@ -752,13 +768,14 @@ function ep_wc_feature_box_long() {
 /**
  * Determine WC feature reqs status
  *
- * @param  EP_Feature_Requirements_Status $status
- * @since  2.2
+ * @param EP_Feature_Requirements_Status $status
+ *
  * @return EP_Feature_Requirements_Status
+ * @since  2.2
  */
 function ep_wc_requirements_status( $status ) {
 	if ( ! class_exists( 'WooCommerce' ) ) {
-		$status->code = 2;
+		$status->code    = 2;
 		$status->message = esc_html__( 'WooCommerce not installed.', 'elasticpress' );
 	}
 
@@ -802,11 +819,11 @@ function ep_wc_add_post_type( $post_types ) {
  * Register the feature
  */
 ep_register_feature( 'woocommerce', array(
-	'title' => 'WooCommerce',
-	'setup_cb' => 'ep_wc_setup',
-	'requirements_status_cb' => 'ep_wc_requirements_status',
-	'feature_box_summary_cb' => 'ep_wc_feature_box_summary',
-	'feature_box_long_cb' => 'ep_wc_feature_box_long',
+	'title'                    => 'WooCommerce',
+	'setup_cb'                 => 'ep_wc_setup',
+	'requirements_status_cb'   => 'ep_wc_requirements_status',
+	'feature_box_summary_cb'   => 'ep_wc_feature_box_summary',
+	'feature_box_long_cb'      => 'ep_wc_feature_box_long',
 	'requires_install_reindex' => true,
 ) );
 
