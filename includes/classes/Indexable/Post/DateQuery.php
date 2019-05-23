@@ -249,7 +249,7 @@ class DateQuery extends WP_Date_Query {
 
 		if ( $date_parameters ) {
 
-			EP_WP_Date_Query::validate_date_values( $date_parameters );
+			self::validate_date_values( $date_parameters );
 
 			$date_terms = array(
 				'must'     => [],
