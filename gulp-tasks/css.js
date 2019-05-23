@@ -1,16 +1,20 @@
 import gulp from 'gulp';
+import rename from 'gulp-rename';
 import postcss from 'gulp-postcss';
+import cssnano from 'cssnano';
+import atImport from 'postcss-import';
+import presetEnv from 'postcss-preset-env';
 import sourcemaps from 'gulp-sourcemaps';
 import pump from 'pump';
 
 gulp.task( 'css', ( cb ) => {
 	const fileSrc = [
-		'./assets/css/dashboard.css',
-		'./assets/css/facets-admin.css',
-		'./assets/css/facets.css',
-		'./assets/css/autosuggest.css'
+		'./assets/css/dashboard.pcss',
+		'./assets/css/facets-admin.pcss',
+		'./assets/css/facets.pcss',
+		'./assets/css/autosuggest.pcss'
 	];
-	const fileDest = './dist';
+	const fileDest = './dist/css';
 
 	const cssOpts = {
 		stage: 0,
@@ -19,22 +23,32 @@ gulp.task( 'css', ( cb ) => {
 		}
 	};
 
+	const cssNanoOpts = {
+		autoprefixer: false,
+		calc: {
+			precision: 8
+		},
+		zindex: false,
+		convertValues: true,
+		mergeLonghand: false,
+	};
+
 	const taskOpts = [
-		require( 'postcss-import' ),
-		require( 'postcss-preset-env' )( cssOpts ),
+		atImport,
+		presetEnv( cssOpts ),
+		cssnano( cssNanoOpts ),
 	];
 
 	pump( [
 		gulp.src( fileSrc ),
+		rename( {
+			extname: '.min.css'
+		} ),
 		sourcemaps.init( {
 			loadMaps: true
 		} ),
 		postcss( taskOpts ),
-		sourcemaps.write( './css', {
-			mapFile: function( mapFilePath ) {
-				return mapFilePath.replace( '.css.map', '.min.css.map' );
-			}
-		} ),
+		sourcemaps.write( '.' ),
 		gulp.dest( fileDest )
 	], cb );
 } );
