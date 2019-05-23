@@ -223,7 +223,7 @@ class Elasticsearch {
 				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
-				$documents[] = $document;
+				$documents[] = apply_filters( 'ep_retrieve_the_' . $type, $document, $hit );
 			}
 
 			return [
