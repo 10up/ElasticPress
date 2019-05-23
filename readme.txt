@@ -48,6 +48,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 * Fix date query errors
 * Readd ep_retrieve_the_{type} filter. Props [gassan](https://github.com/gassan)
+* Fix empty autosuggest selector notice
 
 = 3.0.1 =
 
