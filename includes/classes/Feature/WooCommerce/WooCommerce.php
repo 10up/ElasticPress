@@ -733,6 +733,23 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Add WooCommerce Product Attributes to EP Facets.
+	 *
+	 * @param array $taxonomies
+	 *
+	 * @return array
+	 */
+	function add_product_attributes( $taxonomies = [] ) {
+		$attribute_names = wc_get_attribute_taxonomy_names();
+
+		foreach ( $attribute_names as $name ) {
+			$taxonomies[ $name ] = $name;
+		}
+
+		return $taxonomies;
+	}
+
+	/**
 	 * Add WC post type to autosuggest
 	 *
 	 * @param array $post_types Array of post types (e.g. post, page).
@@ -766,6 +783,7 @@ class WooCommerce extends Feature {
 			add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
 			add_action( 'parse_query', [ $this, 'search_order' ], 11, 1 );
 			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
+			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
 		}
 	}
 
