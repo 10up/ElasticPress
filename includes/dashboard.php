@@ -421,7 +421,10 @@ function maybe_notice( $force = false ) {
 
 	$using_autosuggest_defaults_dismiss = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? get_site_option( 'ep_using_autosuggest_defaults_dismiss', false ) : get_option( 'ep_using_autosuggest_defaults_dismiss', false );
 
-	if ( empty( $using_autosuggest_defaults_dismiss ) && $autosuggest->is_active() && (bool) $autosuggest->get_settings()['defaults_enabled'] ) {
+	$autosuggest_settings = $autosuggest->get_settings();
+	$defaults_enabled     = ( isset( $autosuggest_settings['defaults_enabled'] ) ) ? (bool) $autosuggest_settings['defaults_enabled'] : false;
+
+	if ( empty( $using_autosuggest_defaults_dismiss ) && $autosuggest->is_active() && $defaults_enabled ) {
 		$notice = 'using-autosuggest-defaults';
 	}
 
