@@ -754,6 +754,7 @@ class WooCommerce extends Feature {
 	 */
 	public function setup() {
 		if ( function_exists( 'WC' ) ) {
+			add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 2);
 			add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
 			add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
 			add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
@@ -823,5 +824,54 @@ class WooCommerce extends Feature {
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Modifies default query to allow filtering by price with EP.
+	 *
+	 * @param $args
+	 * @return mixed
+	 *
+	 */
+	public function price_filter( $args, $query_args ) {
+		$set_low_price = ! empty( $_GET['min_price'] );
+		$set_high_price = ! empty( $_GET['max_price'] );
+		$query = $args['query'];
+
+		//Account for match all context
+		if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['match_all'] ) ) {
+			unset ( $args['query']['match_all'] );
+			$args['query']['range']['meta._price.value']['gte'] = $_GET['min_price'];
+
+			if ( $set_low_price ) {
+				$args['query']['range']['meta._price.value']['gte'] = $_GET['min_price'] ;
+			}
+
+			if ( $set_high_price ) {
+				$args['query']['range']['meta._price.value']['lte'] = $_GET['max_price'] ;
+			}
+
+			$args['query']['range']['meta._price.value']['boost'] = 2.0;
+			return $args;
+		}
+
+		//Account for search term context
+		if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['bool']['should'] ) ) {
+			unset( $args['query']['bool']['should'] );
+
+			if ( $set_low_price ) {
+				$args['query']['bool']['must'][0]['range']['meta._price.value']['gte'] = $_GET['min_price'] ;
+			}
+
+			if ( $set_high_price ) {
+				$args['query']['bool']['must'][0]['range']['meta._price.value']['lte'] = $_GET['max_price'] ;
+			}
+
+			$args['query']['bool']['must'][0]['range']['meta._price.value']['boost'] = 2.0;
+			$args['query']['bool']['must'][1]['bool'] = $query['bool'];
+			return $args;
+		} else {
+			return $args;
+		}
 	}
 }
