@@ -362,6 +362,13 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
 
+		if ( is_post_type_archive() ) {
+			if ( $pagination = strpos( $_SERVER['REQUEST_URI'] , '/page' ) ) {
+				$URL = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
+				return strtok( $URL, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
+			}
+		}
+
 		return strtok( $_SERVER['REQUEST_URI'], '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
 	}
 
