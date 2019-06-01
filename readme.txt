@@ -42,6 +42,10 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.0.3 =
+
+* Pass $post_id twice in ep_post_sync_kill for backwards compatibility. Props [aaemnnosttv](https://github.com/aaemnnosttv)
+
 = 3.0.2 =
 
 3.0.2 is a minor bug release version. Here is a list of fixes:
