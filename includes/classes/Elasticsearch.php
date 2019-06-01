@@ -191,6 +191,11 @@ class Elasticsearch {
 	public function query( $index, $type, $query, $query_args ) {
 		$path = $index . '/' . $type . '/_search';
 
+		// For backwards compat
+		$path = apply_filters( 'ep_search_request_path', $path, $index, $type, $query, $query_args );
+
+		$path = apply_filters( 'ep_query_request_path', $path, $index, $type, $query, $query_args );
+
 		$request_args = array(
 			'body'    => json_encode( $query ),
 			'method'  => 'POST',
