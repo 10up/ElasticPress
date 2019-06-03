@@ -123,9 +123,9 @@ class QueryIntegration {
 
 			$this->switched = $post->site_id;
 
-			remove_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
+			remove_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 1 );
 			setup_postdata( $post );
-			add_action( 'the_post', array( $this, 'action_the_post' ), 10, 1 );
+			add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 1 );
 		}
 
 	}
