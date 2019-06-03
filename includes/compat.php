@@ -62,6 +62,18 @@ function ep_find_related( $post_id, $return = 5 ) {
 }
 
 /**
+ * Index a post given an ID
+ *
+ * @param  int $post_id  Post ID
+ * @return boolean|array
+ */
+function ep_index_post( $post_id ) {
+	_deprecated_function( __FUNCTION__, '3.0', "ElasticPress\Indexables::factory()->get( 'post' )->index" );
+
+	return \ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+}
+
+/**
  * Registers a feature for use in ElasticPress
  *
  * @param  string $slug Unique slug for feature
