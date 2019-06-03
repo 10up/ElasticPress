@@ -264,7 +264,7 @@ class Widget extends WP_Widget {
 
 		// phpcs:disable
 		// Allows developers to modify widget html
-		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms );
+		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] );
 		// phpcs:enable
 
 		echo wp_kses_post( $args['after_widget'] );
