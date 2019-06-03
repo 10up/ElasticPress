@@ -44,7 +44,7 @@ class TestProtectedContent extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		//make sure no one attached to this
+		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 
@@ -159,10 +159,12 @@ class TestProtectedContent extends BaseTestCase {
 		Functions\create_and_sync_post();
 		$post_id = Functions\create_and_sync_post();
 
-		wp_update_post( array(
-			'ID' => $post_id,
-			'post_status' => 'draft',
-		) );
+		wp_update_post(
+			array(
+				'ID'          => $post_id,
+				'post_status' => 'draft',
+			)
+		);
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 
@@ -196,8 +198,8 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$cat1 =  wp_create_category( 'category one' );
-		$cat2 =  wp_create_category( 'category two' );
+		$cat1 = wp_create_category( 'category one' );
+		$cat2 = wp_create_category( 'category two' );
 
 		Functions\create_and_sync_post( array( 'post_category' => array( $cat1 ) ) );
 		Functions\create_and_sync_post( array( 'post_category' => array( $cat2 ) ) );

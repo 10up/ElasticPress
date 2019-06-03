@@ -40,7 +40,7 @@ class TestSearch extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		//make sure no one attached to this
+		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
@@ -124,29 +124,44 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		ElasticPress\Features::factory()->update_feature( 'search', array(
-			'active'           => true,
-			'decaying_enabled' => true,
-		) );
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'           => true,
+				'decaying_enabled' => true,
+			)
+		);
 
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array(
+					'one',
+					'two',
+				),
+			)
+		);
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ) );
-		$query = new \WP_Query( array(
-			's' => 'test',
-		) );
+		$query = new \WP_Query(
+			array(
+				's' => 'test',
+			)
+		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertTrue( isset(
-			$this->fired_actions['ep_formatted_args']['query'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
-		) );
+		$this->assertTrue(
+			isset(
+				$this->fired_actions['ep_formatted_args']['query'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
+			)
+		);
 	}
 
 	/**
@@ -162,33 +177,50 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		ElasticPress\Features::factory()->update_feature( 'search', array(
-			'active'           => true,
-			'decaying_enabled' => false,
-		) );
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'           => true,
+				'decaying_enabled' => false,
+			)
+		);
 
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 1', 'tags_input' => array( 'one', 'two' ) ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array(
+					'one',
+					'two',
+				),
+			)
+		);
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ) );
 
-		$query = new \WP_Query( array(
-			's' => 'test',
-		) );
+		$query = new \WP_Query(
+			array(
+				's' => 'test',
+			)
+		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertTrue( ! isset(
-			$this->fired_actions['ep_formatted_args']['query']['function_score'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
-			$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
-		) );
-		$this->assertTrue( isset(
-			$this->fired_actions['ep_formatted_args']['query']['bool'],
-			$this->fired_actions['ep_formatted_args']['query']['bool']['should']
-		) );
+		$this->assertTrue(
+			! isset(
+				$this->fired_actions['ep_formatted_args']['query']['function_score'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
+			)
+		);
+		$this->assertTrue(
+			isset(
+				$this->fired_actions['ep_formatted_args']['query']['bool'],
+				$this->fired_actions['ep_formatted_args']['query']['bool']['should']
+			)
+		);
 	}
 
 	/**

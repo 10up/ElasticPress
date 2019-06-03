@@ -76,7 +76,7 @@ class BaseTestCase extends WP_UnitTestCase {
 	 */
 	public function setup_test_post_type() {
 		$args = array(
-			'public' => true,
+			'public'     => true,
 			'taxonomies' => array( 'post_tag', 'category' ),
 		);
 
@@ -84,7 +84,7 @@ class BaseTestCase extends WP_UnitTestCase {
 
 		// Post type that is excluded from search.
 		$args = array(
-			'taxonomies' => array( 'post_tag', 'category' ),
+			'taxonomies'          => array( 'post_tag', 'category' ),
 			'exclude_from_search' => true,
 		);
 
@@ -93,7 +93,7 @@ class BaseTestCase extends WP_UnitTestCase {
 				// Post type that is excluded from search.
 		$args = array(
 			'taxonomies' => array( 'post_tag', 'category' ),
-			'public' => false,
+			'public'     => false,
 		);
 
 		register_post_type( 'ep_test_not_public', $args );

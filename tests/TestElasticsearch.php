@@ -26,7 +26,6 @@ class TestElasticsearch extends BaseTestCase {
 
 		$status_unindexed = lasticPress\Elasticsearch::factory()->get_cluster_status();
 
-
 		$this->setUp();
 
 		if ( is_array( $status_indexed ) ) {

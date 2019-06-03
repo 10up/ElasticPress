@@ -43,7 +43,7 @@ class TestRelatedPosts extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		//make sure no one attached to this
+		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
@@ -62,10 +62,15 @@ class TestRelatedPosts extends BaseTestCase {
 	 *
 	 * @group related_posts
 	 */
-	public function testFindRelatedPostFilter(){
+	public function testFindRelatedPostFilter() {
 		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
 		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 3', 'post_type' => 'page' ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 3',
+				'post_type'    => 'page',
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -90,7 +95,7 @@ class TestRelatedPosts extends BaseTestCase {
 	 * @param $args
 	 * @return mixed
 	 */
-	public function find_related_posts_filter( $args ){
+	public function find_related_posts_filter( $args ) {
 		$args['post_type'] = array( 'post', 'page' );
 
 		return $args;

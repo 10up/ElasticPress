@@ -46,7 +46,7 @@ class TestFeatureActivation extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		//make sure no one attached to this
+		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}

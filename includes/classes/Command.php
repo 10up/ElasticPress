@@ -613,17 +613,22 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( isset( $args['ep-host'] ) ) {
-			add_filter( 'ep_host', function ( $host ) use ( $args ) {
-				return $args['ep-host'];
-			} );
+			add_filter(
+				'ep_host',
+				function ( $host ) use ( $args ) {
+					return $args['ep-host'];
+				}
+			);
 		}
 
 		if ( isset( $args['ep-prefix'] ) ) {
-			add_filter( 'ep_index_prefix', function ( $prefix ) use ( $args ) {
-				return $args['ep-prefix'];
-			} );
+			add_filter(
+				'ep_index_prefix',
+				function ( $prefix ) use ( $args ) {
+					return $args['ep-prefix'];
+				}
+			);
 		}
-
 
 		$show_bulk_errors = false;
 
@@ -1110,9 +1115,12 @@ class Command extends WP_CLI_Command {
 	 */
 	private function maybe_change_host( $assoc_args ) {
 		if ( isset( $assoc_args['ep-host'] ) ) {
-			add_filter( 'ep_host', function ( $host ) use ( $assoc_args ) {
-				return $assoc_args['ep-host'];
-			} );
+			add_filter(
+				'ep_host',
+				function ( $host ) use ( $assoc_args ) {
+					return $assoc_args['ep-host'];
+				}
+			);
 		}
 	}
 
@@ -1126,9 +1134,12 @@ class Command extends WP_CLI_Command {
 	 */
 	private function maybe_change_index_prefix( $assoc_args ) {
 		if ( isset( $assoc_args['ep-prefix'] ) ) {
-			add_filter( 'ep_index_prefix', function ( $prefix ) use ( $assoc_args ) {
-				return $assoc_args['ep-prefix'];
-			} );
+			add_filter(
+				'ep_index_prefix',
+				function ( $prefix ) use ( $assoc_args ) {
+					return $assoc_args['ep-prefix'];
+				}
+			);
 		}
 	}
 

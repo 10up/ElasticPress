@@ -38,7 +38,7 @@ function deep_in_array( $needle, $haystack ) {
  *
  * @param array $post_args
  * @param array $post_meta
- * @param int $site_id
+ * @param int   $site_id
  * @since 0.9
  * @return int|WP_Error
  */
@@ -47,12 +47,12 @@ function create_and_sync_post( $post_args = array(), $post_meta = array(), $site
 		switch_to_blog( $site_id );
 	}
 
-	$post_types = ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
+	$post_types       = ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
 	$post_type_values = array_values( $post_types );
 
 	$args = array(
 		'post_status' => 'publish',
-		'post_title' => 'Test Post ' . time(),
+		'post_title'  => 'Test Post ' . time(),
 	);
 
 	if ( ! empty( $post_type_values ) ) {
@@ -90,31 +90,33 @@ function create_and_sync_post( $post_args = array(), $post_meta = array(), $site
  * @since  3.0
  */
 function create_date_query_posts() {
-	$sites = ElasticPress\Utils\get_sites();
+	$sites        = ElasticPress\Utils\get_sites();
 	$beginning_tz = date_default_timezone_get();
 
-	date_default_timezone_set('America/Los_Angeles');
+	date_default_timezone_set( 'America/Los_Angeles' );
 
 	foreach ( $sites as $site ) {
 		switch_to_blog( $site['blog_id'] );
 
-		$post_date = strtotime( "January 6th, 2012 11:59PM" );
+		$post_date = strtotime( 'January 6th, 2012 11:59PM' );
 
-		for( $i = 0; $i <= 10; ++$i ) {
+		for ( $i = 0; $i <= 10; ++$i ) {
 
-			Functions\create_and_sync_post( array(
-				'post_title' => 'post_title' . $site['blog_id'],
-				'post_content' => 'findme',
-				'post_date'    => date( "Y-m-d H:i:s", strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
-				'post_date_gmt' => gmdate( "Y-m-d H:i:s", strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
-			) );
+			Functions\create_and_sync_post(
+				array(
+					'post_title'    => 'post_title' . $site['blog_id'],
+					'post_content'  => 'findme',
+					'post_date'     => date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+					'post_date_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+				)
+			);
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 		}
 
 		restore_current_blog();
 	}
-	date_default_timezone_set($beginning_tz);
+	date_default_timezone_set( $beginning_tz );
 
 }
 
@@ -128,16 +130,16 @@ function count_indexes() {
 
 	$count_indexes = 0;
 	foreach ( $sites as $site ) {
-		if ( $index_name = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name( $site[ 'blog_id' ] ) ) {
+		if ( $index_name = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] ) ) {
 			if ( ElasticPress\Indexables::factory()->get( 'post' )->index_exists( $index_name ) ) {
 				$count_indexes++;
-				$last_blog_id_with_index = $site[ 'blog_id' ];
+				$last_blog_id_with_index = $site['blog_id'];
 			}
 		}
 	}
 
 	return array(
-		'total_indexes' => $count_indexes,
+		'total_indexes'           => $count_indexes,
 		'last_blog_id_with_index' => $last_blog_id_with_index,
 	);
 }

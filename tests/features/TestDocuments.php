@@ -42,7 +42,7 @@ class TestDocuments extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		//make sure no one attached to this
+		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
@@ -65,12 +65,18 @@ class TestDocuments extends BaseTestCase {
 
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'attachment', 'post_mime_type' => 'application/msword' ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content'   => 'findme',
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'application/msword',
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's' => 'findme',
+			's'         => 'findme',
 			'post_type' => array( 'post', 'attachment' ),
 		);
 
@@ -96,13 +102,25 @@ class TestDocuments extends BaseTestCase {
 		$post_ids = array();
 
 		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_content' => 'image', 'post_type' => 'attachment', 'post_mime_type' => 'image' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'attachment', 'post_mime_type' => 'bad' ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content'   => 'image',
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image',
+			)
+		);
+		Functions\create_and_sync_post(
+			array(
+				'post_content'   => 'findme',
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'bad',
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's' => 'findme',
+			's'         => 'findme',
 			'post_type' => array( 'post', 'attachment' ),
 		);
 
@@ -127,14 +145,31 @@ class TestDocuments extends BaseTestCase {
 
 		$post_ids = array();
 
-		Functions\create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'post' ) );
-		Functions\create_and_sync_post( array( 'post_content' => '', 'post_type' => 'attachment', 'post_mime_type' => 'image' ) );
-		Functions\create_and_sync_post( array( 'post_content' => '', 'post_type' => 'attachment', 'post_mime_type' => 'bad' ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme',
+				'post_type'    => 'post',
+			)
+		);
+		Functions\create_and_sync_post(
+			array(
+				'post_content'   => '',
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image',
+			)
+		);
+		Functions\create_and_sync_post(
+			array(
+				'post_content'   => '',
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'bad',
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's' => 'findme',
+			's'         => 'findme',
 			'post_type' => array( 'post', 'attachment' ),
 		);
 

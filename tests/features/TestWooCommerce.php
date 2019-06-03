@@ -44,7 +44,7 @@ class TestWooCommerce extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		//make sure no one attached to this
+		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
@@ -60,7 +60,12 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_content' => 'product 1', 'post_type' => 'product' ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'product 1',
+				'post_type'    => 'product',
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -83,7 +88,8 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 2.1
 	 * @group woocommerce
 	 */
-	/*public function testProductsPostTypeQueryShopOrder() {
+	/*
+	public function testProductsPostTypeQueryShopOrder() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -128,7 +134,7 @@ class TestWooCommerce extends BaseTestCase {
 					'taxonomy' => 'product_cat',
 					'terms'    => array( 'cat' ),
 					'field'    => 'slug',
-				)
+				),
 			),
 		);
 
@@ -148,14 +154,19 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post( array( 'post_content' => 'findme', 'post_type' => 'shop_order' ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme',
+				'post_type'    => 'shop_order',
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$args = array(
-			's' => 'findme',
+			's'         => 'findme',
 			'post_type' => 'shop_order',
 		);
 
@@ -181,7 +192,7 @@ class TestWooCommerce extends BaseTestCase {
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$args = array(
-			's' => 'findme',
+			's'         => 'findme',
 			'post_type' => 'product',
 		);
 

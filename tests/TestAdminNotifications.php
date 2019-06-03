@@ -53,7 +53,7 @@ class TestAdminNotifications extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		//make sure no one attached to this
+		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 
@@ -212,7 +212,7 @@ class TestAdminNotifications extends BaseTestCase {
 
 		ob_start();
 		$notice = ElasticPress\Dashboard\maybe_notice( true );
-		$html = ob_get_clean();
+		$html   = ob_get_clean();
 
 		$this->assertEquals( 'bad-host', $notice );
 
@@ -227,7 +227,7 @@ class TestAdminNotifications extends BaseTestCase {
 
 		ob_start();
 		$notice = ElasticPress\Dashboard\maybe_notice( true );
-		$html = ob_get_clean();
+		$html   = ob_get_clean();
 
 		remove_filter( 'ep_pre_request_url', $callback );
 
