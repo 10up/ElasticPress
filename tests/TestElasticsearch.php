@@ -19,7 +19,7 @@ class TestElasticsearch extends BaseTestCase {
 	 * Test cluster status.
 	 *
 	 * @since 0.1.0
-	 * @group post-multisite
+	 * @group elasticsearch
 	 */
 	public function testGetClusterStatus() {
 
@@ -27,7 +27,7 @@ class TestElasticsearch extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 
-		$status_unindexed = lasticPress\Elasticsearch::factory()->get_cluster_status();
+		$status_unindexed = ElasticPress\Elasticsearch::factory()->get_cluster_status();
 
 		$this->setUp();
 
