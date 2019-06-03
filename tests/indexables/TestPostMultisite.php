@@ -4,10 +4,14 @@
  *
  * @group elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Test multisite post class
+ */
 class TestPostMultisite extends BaseTestCase {
 
 	/**
@@ -167,7 +171,7 @@ class TestPostMultisite extends BaseTestCase {
 			$this->assertEquals( $post->post_excerpt, $wp_post->post_excerpt );
 			$this->assertEquals( $post->site_id, get_current_blog_id() );
 
-			if ( get_current_blog_id() != $original_site_id ) {
+			if ( get_current_blog_id() !== $original_site_id ) {
 				$other_site_post_count++;
 			}
 		}
@@ -1396,8 +1400,8 @@ class TestPostMultisite extends BaseTestCase {
 		$sites = ElasticPress\Utils\get_sites();
 
 		$first_site_index       = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name( $sites[0]['blog_id'] );
-		$index_should_exist     = ep_index_exists( $first_site_index );
-		$index_should_not_exist = ep_index_exists( $first_site_index . 2 );
+		$index_should_exist     = ElasticPress\Elasticsearch::factory()->index_exists( $first_site_index );
+		$index_should_not_exist = ElasticPress\Elasticsearch::factory()->index_exists( $first_site_index . 2 );
 
 		$this->assertTrue( $index_should_exist );
 		$this->assertFalse( $index_should_not_exist );
@@ -1409,14 +1413,14 @@ class TestPostMultisite extends BaseTestCase {
 	 * @group post-multisite
 	 */
 	public function testDeleteIndex() {
-		$index_count = ep_count_indexes();
+		$index_count = Functions\count_indexes();
 
 		$count_indexes = $index_count['total_indexes'];
 		$last_blog_id  = $index_count['last_blog_id_with_index'];
 
 		wpmu_delete_blog( $last_blog_id );
 
-		$post_delete_count  = ep_count_indexes();
+		$post_delete_count  = Functions\count_indexes();
 		$post_count_indexes = $post_delete_count['total_indexes'];
 
 		$this->assertNotEquals( $count_indexes, $post_count_indexes );
@@ -1429,7 +1433,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * @group post-multisite
 	 */
 	public function testDeactivateSite() {
-		$index_count = ep_count_indexes();
+		$index_count = Functions\count_indexes();
 
 		$count_indexes = $index_count['total_indexes'];
 		$last_blog_id  = $index_count['last_blog_id_with_index'];
@@ -1437,7 +1441,7 @@ class TestPostMultisite extends BaseTestCase {
 		do_action( 'deactivate_blog', $last_blog_id );
 		update_blog_status( $last_blog_id, 'deleted', '1' );
 
-		$post_delete_count  = ep_count_indexes();
+		$post_delete_count  = Functions\count_indexes();
 		$post_count_indexes = $post_delete_count['total_indexes'];
 
 		$this->assertNotEquals( $count_indexes, $post_count_indexes );
@@ -1450,14 +1454,14 @@ class TestPostMultisite extends BaseTestCase {
 	 * @link https://github.com/10up/ElasticPress/issues/392
 	 */
 	public function testSpamSite() {
-		$index_count = ep_count_indexes();
+		$index_count = Functions\count_indexes();
 
 		$count_indexes = $index_count['total_indexes'];
 		$last_blog_id  = $index_count['last_blog_id_with_index'];
 
 		update_blog_status( $last_blog_id, 'spam', '1' );
 
-		$post_delete_count  = ep_count_indexes();
+		$post_delete_count  = Functions\count_indexes();
 		$post_count_indexes = $post_delete_count['total_indexes'];
 
 		$this->assertNotEquals( $count_indexes, $post_count_indexes );
@@ -1470,14 +1474,14 @@ class TestPostMultisite extends BaseTestCase {
 	 * @link https://github.com/10up/ElasticPress/issues/392
 	 */
 	public function testArchivedSite() {
-		$index_count = ep_count_indexes();
+		$index_count = Functions\count_indexes();
 
 		$count_indexes = $index_count['total_indexes'];
 		$last_blog_id  = $index_count['last_blog_id_with_index'];
 
 		update_blog_status( $last_blog_id, 'archived', '1' );
 
-		$post_delete_count  = ep_count_indexes();
+		$post_delete_count  = Functions\count_indexes();
 		$post_count_indexes = $post_delete_count['total_indexes'];
 
 		$this->assertNotEquals( $count_indexes, $post_count_indexes );

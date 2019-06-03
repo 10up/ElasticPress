@@ -2,7 +2,7 @@
 /**
  * ElasticPress test bootstrap
  *
- * @group 3.0
+ * @package elasticpress
  */
 
 namespace ElasticPressTest;
@@ -19,6 +19,7 @@ $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 /**
  * Make sure we only test on 1 shard because any more will lead to inconsitent results
  *
+ * @param  array $mapping Index mapping
  * @since  3.0
  */
 function test_shard_number( $mapping ) {
@@ -68,13 +69,13 @@ function load_plugin() {
 		}
 	} while ( --$tries );
 
-	if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
+	if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
 		exit( 'Could not connect to ElasticPress server.' );
 	}
 
 	require_once __DIR__ . '/includes/functions.php';
 
-	echo 'WordPress version ' . $wp_version . "\n";
+	echo 'WordPress version ' . $wp_version . "\n"; //phpcs:ignoreline
 }
 
 tests_add_filter( 'muplugins_loaded', __NAMESPACE__ . '\load_plugin' );

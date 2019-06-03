@@ -2,12 +2,15 @@
 /**
  * Test dashboard admin notifications. Logic here is very complex.
  *
- * @group elasticpress
+ * @package elasticpress
  */
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Notifications test class
+ */
 class TestAdminNotifications extends BaseTestCase {
 	/**
 	 * Checking if HTTP request returns 404 status code.

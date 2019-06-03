@@ -2,13 +2,16 @@
 /**
  * Test Elasticsearch methods
  *
- * @group  elasticpress
+ * @@package elasticpress
  */
 
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Elasticsearch test class
+ */
 class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Cluster status

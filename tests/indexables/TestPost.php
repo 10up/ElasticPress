@@ -2,19 +2,23 @@
 /**
  * Test post indexable functionality
  *
- * @since  3.0
+ * @package elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Test post indexable class
+ */
 class TestPost extends BaseTestCase {
 	/**
 	 * Checking if HTTP request returns 404 status code.
 	 *
 	 * @var boolean
 	 */
-	var $is_404 = false;
+	public $is_404 = false;
 
 	/**
 	 * Setup each test.
@@ -3540,8 +3544,9 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 1, $query->post_count );
 	}
 
-	/*
+	/**
 	 * Test a post_parent query
+	 *
 	 * @group post
 	 * @since 2.0
 	 */
@@ -3566,55 +3571,6 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-	}
-
-	/**
-	 * Test register feature
-	 *
-	 * @since 2.1
-	 * @group post
-	 */
-	public function testRegisterFeature() {
-		ep_register_feature(
-			'test',
-			array(
-				'title' => 'Test',
-			)
-		);
-
-		$feature = ElasticPress\Features::factory()->get_registered_feature( 'test' );
-
-		$this->assertTrue( ! empty( ElasticPress\Features::factory()->registered_features['test'] ) );
-		$this->assertTrue( ! empty( $feature ) );
-	}
-
-	/**
-	 * Test setup features
-	 *
-	 * @since 2.1
-	 * @group post
-	 */
-	public function testSetupFeatures() {
-		delete_option( 'ep_active_features' );
-
-		ep_register_feature(
-			'test',
-			array(
-				'title' => 'Test',
-			)
-		);
-
-		$feature = ElasticPress\Features::factory()->get_registered_feature( 'test' );
-
-		$this->assertTrue( ! empty( $feature ) );
-
-		$this->assertTrue( ! $feature->is_active() );
-
-		ElasticPress\Features::factory()->activate_feature( 'test' );
-
-		ElasticPress\Features::factory()->setup_features();
-
-		$this->assertTrue( $feature->is_active() );
 	}
 
 	/**

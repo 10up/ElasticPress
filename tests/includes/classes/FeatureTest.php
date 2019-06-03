@@ -2,12 +2,16 @@
 /**
  * Feature test class
  *
- * @group elasticpress
+ * @package elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Feature test class
+ */
 class FeatureTest extends ElasticPress\Feature {
 	public function __construct() {
 		$this->slug                     = 'test';

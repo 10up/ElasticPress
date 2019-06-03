@@ -2,12 +2,15 @@
 /**
  * Test feature activation, registration, and deactivation.
  *
- * @group elasticpress
+ * @package elasticpress
  */
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Feature activation test class
+ */
 class TestFeatureActivation extends BaseTestCase {
 	/**
 	 * Checking if HTTP request returns 404 status code.

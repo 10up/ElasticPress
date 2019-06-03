@@ -1,9 +1,17 @@
 <?php
+/**
+ * ElasticPress base test class
+ *
+ * @package  elasticpress
+ */
 
 namespace ElasticPressTest;
 
 use WP_UnitTestCase;
 
+/**
+ * Base test class
+ */
 class BaseTestCase extends WP_UnitTestCase {
 
 	/**
