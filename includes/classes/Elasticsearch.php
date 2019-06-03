@@ -523,6 +523,16 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Delete all indices
+	 *
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function delete_all_indices() {
+		return $this->delete_index( '*' );
+	}
+
+	/**
 	 * Check if an ES index exists
 	 *
 	 * @param  string $index Index name.

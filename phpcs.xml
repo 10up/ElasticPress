@@ -3,4 +3,6 @@
   <description>10up PHPCS extended.</description>
 
   <rule ref="10up-Default" />
+
+  <file>./tests</file>
 </ruleset>
