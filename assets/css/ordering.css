@@ -1,28 +1,59 @@
-.pointers {
-	& .pointer,
-	& .post {
+#ep-ordering {
+	& .inside {
+		margin: 0;
+		padding: 0;
+	}
+
+	& .loading {
+		margin: 1em;
+
+		& .spinner {
+			margin-top: 0;
+			margin-left: 0;
+			float: left;
+		}
+	}
+
+	& .pointers {
+		& .pointer,
+		& .post {
+			padding: 1em;
+
+			&:nth-child(odd) {
+				background-color: #f9f9f9;
+			}
+		}
+
+		& .pointer {
+			cursor: move;
+		}
+
+		& .post {
+			color: #7b7b7b;
+		}
+
+	}
+
+	& hr {
+		margin-top: 0;
+		margin-bottom: 1em;
+	}
+
+	& .pointer-search {
+		padding: 0.5em 1em 0;
+	}
+
+	& .delete-pointer,
+	& .add-pointer {
+		cursor: pointer;
+		float: right;
+	}
+
+	& .pointer-results {
+		margin: 1em 0;
+	}
+
+	& .pointer-result {
 		padding: 0.5em 0;
 	}
-
-	& .pointer {
-		cursor: move;
-	}
-
-	& .post {
-		color: #7b7b7b;
-	}
-}
-
-.delete-pointer,
-.add-pointer {
-	cursor: pointer;
-	float: right;
-}
-
-.pointer-results {
-	margin-top: 1em;
-}
-
-.pointer-result {
-	padding: 0.5em 0;
 }
