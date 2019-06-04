@@ -159,6 +159,11 @@ class SearchOrdering extends Feature {
 		<?php
 	}
 
+	/**
+	 * Sends initial pointer data to the frontend to reduce API requests required
+	 *
+	 * @return array
+	 */
 	public function get_pointer_data_for_localize() {
 		$post_id = get_the_ID();
 
@@ -212,7 +217,7 @@ class SearchOrdering extends Feature {
 				array_merge(
 					[
 						'searchEndpoint' => rest_url( 'elasticpress/v1/pointer_search' ),
-						'nonce'          => wp_create_nonce( 'search-ordering-nonce' ),
+						'nonce'          => wp_create_nonce( 'save-search-ordering' ),
 						'restApiRoot'    => rest_url( '/' ),
 					],
 					$pointer_data
@@ -237,31 +242,15 @@ class SearchOrdering extends Feature {
 		}
 
 		$final_order_data = [];
-		$highest_order = 0;
 
-		foreach ( $_POST['ordered_posts'] as $order_data ) {
-			$order = isset( $order_data['order'] ) ? (int) $order_data['order'] : 0;
+		$ordered_posts = json_decode( wp_unslash( $_POST['ordered_posts'] ), true );
+
+		foreach ( $ordered_posts as $order_data ) {
 			$final_order_data[] = [
 				'ID'    => intval( $order_data['ID'] ),
-				'order' => $order,
+				'order' => intval( $order_data['order'] ),
 			];
-
-			if ( $order > $highest_order ) {
-				$highest_order = $order;
-			}
 		}
-
-		// Add order data to anything that isn't currently set
-		foreach ( $final_order_data as $key => &$values ) {
-			if ( 0 === $values['order'] ) {
-				$values['order'] = ++$highest_order;
-			}
-		}
-
-		// Sort
-		usort( $final_order_data, function( $a, $b ) {
-			return $a['order'] <=> $b['order'];
-		} );
 
 		update_post_meta( $post_id, 'pointers', $final_order_data );
 
@@ -277,7 +266,6 @@ class SearchOrdering extends Feature {
 	 * @return array Modified searchable post types
 	 */
 	public function searchable_post_types( $post_types ) {
-		// @todo only add in proper circumstances
 		$post_types[] = self::POST_TYPE_NAME;
 
 		return $post_types;

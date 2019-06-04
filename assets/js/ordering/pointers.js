@@ -62,6 +62,7 @@ export class Pointers extends Component {
 		let { pointers } = this.state;
 
 		delete pointers[ pointers.indexOf( pointer ) ];
+		pointers = pointers.filter( item => null !== item );
 
 		this.setState( { pointers } );
 	};
@@ -188,6 +189,8 @@ export class Pointers extends Component {
 
 		return (
 			<div>
+				<input type="hidden" name="search-ordering-nonce" value={window.epOrdering.nonce} />
+				<input type="hidden" name="ordered_posts" value={ JSON.stringify( this.state.pointers ) }/>
 				<DragDropContext onDragEnd={this.onDragComplete}>
 					<Droppable droppableId="droppable">
 						{( provided, snapshot ) => (
