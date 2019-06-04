@@ -47,7 +47,7 @@ export class Pointers extends Component {
 		let searchTerm = this.state.title;
 
 		apiFetch( {
-			path: `/elasticpress/v1/pointer_search?s=${searchTerm}`,
+			path: `/elasticpress/v1/pointer_preview?s=${searchTerm}`,
 		} ).then( result => {
 
 			let { defaultResults } = this.state;
@@ -80,6 +80,7 @@ export class Pointers extends Component {
 			// Remove the original if a duplicate
 			if ( setIds[ pointer.ID ] ) {
 				delete merged[ merged.indexOf( setIds[ pointer.ID ] ) ];
+				merged = merged.filter( item => item );
 			}
 
 			// Insert into proper location

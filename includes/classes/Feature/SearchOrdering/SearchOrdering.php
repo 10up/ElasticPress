@@ -51,7 +51,7 @@ class SearchOrdering extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'save_post_' . self::POST_TYPE_NAME, [ $this, 'save_post'], 10, 2 );
 		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
-		add_action( 'ep_search_fields', [ $this, 'ep_search_fields' ] );
+		add_filter( 'ep_search_fields', [ $this, 'ep_search_fields' ], 10, 2 );
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 	}
@@ -275,11 +275,14 @@ class SearchOrdering extends Feature {
 	 * Adds the pointer query field to the search fields with a high boost level so it always surfaces to the top
 	 *
 	 * @param array $fields Current search fields
+	 * @param array $args   Current query args
 	 *
 	 * @return array Search fields with any modifications from the filter
 	 */
-	public function ep_search_fields( $fields ) {
-		$fields[] = 'meta.pointer_query^9999';
+	public function ep_search_fields( $fields, $args ) {
+		if ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) {
+			$fields[] = 'meta.pointer_query^9999';
+		}
 
 		return $fields;
 	}
@@ -363,6 +366,23 @@ class SearchOrdering extends Feature {
 				],
 			]
 		);
+
+		register_rest_route(
+			'elasticpress/v1',
+			'pointer_preview',
+			[
+				'methods' => 'GET',
+				'callback' => [ $this, 'handle_pointer_preview' ],
+				'args' => [
+					's' => [
+						'validate_callback' => function( $param ) {
+							return ! empty( $param );
+						},
+						'required' => true,
+					]
+				],
+			]
+		);
 	}
 
 	/**
@@ -393,5 +413,28 @@ class SearchOrdering extends Feature {
 		return $query->posts;
 	}
 
+	/**
+	 * Handles the search preview on the pointer edit screen
+	 *
+	 * @param \WP_REST_Request $request Rest request
+	 *
+	 * @return array
+	 */
+	public function handle_pointer_preview( $request ) {
+		remove_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
+
+		$search = $request->get_param( 's' );
+
+		$query = new \WP_Query(
+			[
+				's'                => $search,
+				'exclude_pointers' => true,
+			]
+		);
+
+		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
+
+		return $query->posts;
+	}
 
 }
