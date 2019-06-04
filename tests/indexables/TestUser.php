@@ -38,7 +38,12 @@ class TestUser extends BaseTestCase {
 
 		ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue = [];
 
-		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$admin_id = $this->factory->user->create(
+			[
+				'role'       => 'administrator',
+				'user_login' => 'test_admin',
+			]
+		);
 
 		grant_super_admin( $admin_id );
 
@@ -75,7 +80,11 @@ class TestUser extends BaseTestCase {
 			}
 		);
 
+		ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue = [];
+
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue ) );
 
 		ElasticPress\Indexables::factory()->get( 'user' )->index( $user_id );
 
@@ -88,7 +97,25 @@ class TestUser extends BaseTestCase {
 	}
 
 	/**
-	 * Test user sync kill
+	 * Test a simple user sync on meta update
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserSyncOnMetaUpdate() {
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue = [];
+
+		update_user_meta( $user_id, 'test_key', true );
+
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue ) );
+		$this->assertTrue( ! empty( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue[ $user_id ] ) );
+	}
+
+	/**
+	 * Test user sync kill. Note we can't actually check Elasticsearch here due to how the
+	 * code is structured.
 	 *
 	 * @since 3.0
 	 * @group user
