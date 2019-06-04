@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import apiFetch from '@wordpress/api-fetch';
 import { debounce } from '../utils/debounce';
 import { pluck } from '../utils/pluck';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 apiFetch.use( apiFetch.createRootURLMiddleware( window.epOrdering.restApiRoot ) );
 
@@ -126,6 +127,42 @@ export class Pointers extends Component {
 	};
 
 	/**
+	 * Callback when drag/drop is complete.
+	 *
+	 * Only the pointers are able to be dragged around, so all we need to do is increase any pointer by one that is
+	 * either at the current position or greater
+	 *
+	 * @param result
+	 */
+	onDragComplete = ( result ) => {
+		// dropped outside the list
+		if ( ! result.destination ) {
+			return;
+		}
+
+		let items = this.getMergedPosts();
+		const startIndex = result.source.index;
+		const endIndex = result.destination.index;
+
+		const [removed] = items.splice( startIndex, 1 );
+		items.splice( endIndex, 0, removed );
+
+		// Now _all_ the items are in order - grab the pointers and set the new positions to state
+		let pointers = [];
+
+		items.map( ( item, index ) => {
+			if ( item.order ) {
+				pointers.push( {
+					ID: item.ID,
+					order: index + 1,
+				} );
+			}
+		} );
+
+		this.setState( { pointers } );
+	};
+
+	/**
 	 * Renders the component
 	 *
 	 * @returns {*}
@@ -151,30 +188,57 @@ export class Pointers extends Component {
 
 		return (
 			<div>
-				<div className="pointers">
-					{mergedPosts.map( ( item ) => {
-						if ( item.order ) {
-							// is pointer
-							const referencedPost = posts[ item.ID ];
+				<DragDropContext onDragEnd={this.onDragComplete}>
+					<Droppable droppableId="droppable">
+						{( provided, snapshot ) => (
+							<div
+								className="pointers"
+								{...provided.droppableProps}
+								ref={provided.innerRef}
+							>
+								{mergedPosts.map( ( item, index ) => {
+									if ( item.order ) {
+										// is pointer
+										const referencedPost = posts[ item.ID ];
 
-							return (
-								<div className="pointer" key={item.ID}>
-									<strong className="title">{referencedPost.post_title}</strong>
-									<span className="dashicons dashicons-trash delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }>
-										<span className="screen-reader-text">Remove Post</span>
-									</span>
-								</div>
-							);
-						} else {
-							// is default post
-							return (
-								<div className="post" key={item.ID}>
-									<strong className="title">{item.post_title}</strong>
-								</div>
-							);
-						}
-					} )}
-				</div>
+										return (
+											<Draggable key={item.ID} draggableId={item.ID} index={index}>
+												{( provided, snapshot ) => (
+													<div
+														className="pointer"
+														ref={provided.innerRef}
+														{...provided.draggableProps}
+														{...provided.dragHandleProps}
+													>
+														<strong className="title">{referencedPost.post_title}</strong>
+														<span className="dashicons dashicons-trash delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
+													</div>
+												)}
+											</Draggable>
+										);
+									} else {
+										// is default post
+										return (
+											<Draggable key={item.ID} draggableId={item.ID} index={index} isDragDisabled={true}>
+												{( provided, snapshot ) => (
+													<div
+														className="post"
+														ref={provided.innerRef}
+														{...provided.draggableProps}
+														{...provided.dragHandleProps}
+													>
+														<strong className="title">{item.post_title}</strong>
+													</div>
+												)}
+											</Draggable>
+										);
+									}
+								} )}
+								{provided.placeholder}
+							</div>
+						)}
+					</Droppable>
+				</DragDropContext>
 
 				<hr/>
 
