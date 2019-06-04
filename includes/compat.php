@@ -126,9 +126,15 @@ function ep_register_feature( $slug, $args ) {
 	$title                    = ( ! empty( $args['title'] ) ) ? addcslashes( $args['title'], "'" ) : false;
 	$requires_install_reindex = ( ! empty( $requires_install_reindex ) ) ? 'true' : 'false';
 
+	$class_name = 'EP' . $slug . 'Feature';
+
+	if ( class_exists( $class_name ) ) {
+		return;
+	}
+
 	// phpcs:disable
 	$code = "
-class $slug extends ElasticPress\Feature {
+class $class_name extends ElasticPress\Feature {
 	/**
 	 * Initialize feature
 	 *
@@ -206,6 +212,6 @@ class $slug extends ElasticPress\Feature {
 	// phpcs:enable
 
 	ElasticPress\Features::factory()->register_feature(
-		new $slug()
+		new $class_name()
 	);
 }
