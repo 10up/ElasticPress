@@ -4031,8 +4031,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( 11, $query->post_count );
-		$this->assertEquals( 11, $query->found_posts );
+		$this->assertEquals( 5, $query->post_count );
+		$this->assertEquals( 5, $query->found_posts );
 
 		$args = array(
 			's'              => 'findme',
