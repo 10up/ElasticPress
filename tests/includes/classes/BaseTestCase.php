@@ -31,7 +31,7 @@ class BaseTestCase extends WP_UnitTestCase {
 	protected $applied_filters = array();
 
 	/**
-	 * Helper function to test whether a sync has happened
+	 * Helper function to test whether a post sync has happened
 	 *
 	 * @since 1.0
 	 */
