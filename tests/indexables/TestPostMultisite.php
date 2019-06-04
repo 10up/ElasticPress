@@ -2,7 +2,7 @@
 /**
  * Test post indexable in multisite context
  *
- * @group elasticpress
+ * @package elasticpress
  */
 
 namespace ElasticPressTest;
@@ -1139,8 +1139,6 @@ class TestPostMultisite extends BaseTestCase {
 			while ( $query->have_posts() ) {
 				global $post;
 				$query->the_post();
-
-				// do stuff!
 			}
 		}
 
@@ -1235,7 +1233,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			if ( $i > 0 ) {
 				Functions\create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
-			} elseif ( $i === 0 ) {
+			} elseif ( 0 === $i ) {
 				Functions\create_and_sync_post( array( 'post_title' => 'firstblog' ) );
 			}
 
@@ -1305,7 +1303,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			if ( $i > 0 ) {
 				Functions\create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
-			} elseif ( $i === 0 ) {
+			} elseif ( 0 === $i ) {
 				Functions\create_and_sync_post( array( 'post_title' => 'firstblog' ) );
 			}
 
@@ -1405,25 +1403,6 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertTrue( $index_should_exist );
 		$this->assertFalse( $index_should_not_exist );
-	}
-
-	/**
-	 * Tests Deletion of index when a blog is deleted
-	 *
-	 * @group post-multisite
-	 */
-	public function testDeleteIndex() {
-		$index_count = Functions\count_indexes();
-
-		$count_indexes = $index_count['total_indexes'];
-		$last_blog_id  = $index_count['last_blog_id_with_index'];
-
-		wpmu_delete_blog( $last_blog_id );
-
-		$post_delete_count  = Functions\count_indexes();
-		$post_count_indexes = $post_delete_count['total_indexes'];
-
-		$this->assertNotEquals( $count_indexes, $post_count_indexes );
 	}
 
 	/**

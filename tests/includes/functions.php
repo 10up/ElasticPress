@@ -116,8 +116,8 @@ function create_date_query_posts() {
 
 		restore_current_blog();
 	}
-	date_default_timezone_set( $beginning_tz );
 
+	date_default_timezone_set( $beginning_tz );
 }
 
 /**
@@ -128,13 +128,13 @@ function create_date_query_posts() {
 function count_indexes() {
 	$sites = ElasticPress\Utils\get_sites();
 
+	$last_blog_id_with_index = 0;
+
 	$count_indexes = 0;
 	foreach ( $sites as $site ) {
-		if ( $index_name = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] ) ) {
-			if ( ElasticPress\Indexables::factory()->get( 'post' )->index_exists( $index_name ) ) {
-				$count_indexes++;
-				$last_blog_id_with_index = $site['blog_id'];
-			}
+		if ( ElasticPress\Indexables::factory()->get( 'post' )->index_exists( $site['blog_id'] ) ) {
+			$count_indexes++;
+			$last_blog_id_with_index = $site['blog_id'];
 		}
 	}
 

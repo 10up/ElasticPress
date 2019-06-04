@@ -270,6 +270,8 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Make sure proper taxonomies are synced with post.
+	 *
 	 * @group post
 	 */
 	public function testPostTermSyncSingleLevel() {
@@ -277,43 +279,50 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post();
 		$post    = get_post( $post_id );
 
-		$taxName = rand_str( 32 );
-		register_taxonomy( $taxName, $post->post_type, array( 'label' => $taxName ) );
-		register_taxonomy_for_object_type( $taxName, $post->post_type );
+		$tax_name = rand_str( 32 );
+		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
-		$term1Name = rand_str( 32 );
-		$term1     = wp_insert_term( $term1Name, $taxName );
+		$term_1_name = rand_str( 32 );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
-		$term2Name = rand_str( 32 );
-		$term2     = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+		$term_2_name = rand_str( 32 );
+		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
-		$term3Name = rand_str( 32 );
-		$term3     = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+		$term_3_name = rand_str( 32 );
+		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
-		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 
 		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
 		$terms = $post['terms'];
-		$this->assertTrue( isset( $terms[ $taxName ] ) );
+		$this->assertTrue( isset( $terms[ $tax_name ] ) );
 
-		$indexedTerms  = $terms[ $taxName ];
-		$expectedTerms = array( $term3['term_id'] );
+		$indexed_terms  = $terms[ $tax_name ];
+		$expected_terms = array( $term3['term_id'] );
 
-		$this->assertTrue( count( $indexedTerms ) > 0 );
+		$this->assertTrue( count( $indexed_terms ) > 0 );
 
-		foreach ( $indexedTerms as $term ) {
-			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		foreach ( $indexed_terms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expected_terms, true ) );
 		}
 	}
 
+	/**
+	 * Helper filter for term syncing
+	 *
+	 * @return boolean
+	 */
 	public function ep_allow_multiple_level_terms_sync() {
 		return true;
 	}
 
 	/**
+	 * Make sure proper taxonomies are synced with post.
+	 *
 	 * @group post
 	 */
 	public function testPostTermSyncHierarchyMultipleLevel() {
@@ -322,39 +331,41 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post();
 		$post    = get_post( $post_id );
 
-		$taxName = rand_str( 32 );
-		register_taxonomy( $taxName, $post->post_type, array( 'label' => $taxName ) );
-		register_taxonomy_for_object_type( $taxName, $post->post_type );
+		$tax_name = rand_str( 32 );
+		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
-		$term1Name = rand_str( 32 );
-		$term1     = wp_insert_term( $term1Name, $taxName );
+		$term_1_name = rand_str( 32 );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
-		$term2Name = rand_str( 32 );
-		$term2     = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+		$term_2_name = rand_str( 32 );
+		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
-		$term3Name = rand_str( 32 );
-		$term3     = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+		$term_3_name = rand_str( 32 );
+		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
-		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 
 		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
 		$terms = $post['terms'];
-		$this->assertTrue( isset( $terms[ $taxName ] ) );
-		$this->assertTrue( count( $terms[ $taxName ] ) === 3 );
-		$indexedTerms  = $terms[ $taxName ];
-		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
+		$this->assertTrue( isset( $terms[ $tax_name ] ) );
+		$this->assertTrue( count( $terms[ $tax_name ] ) === 3 );
+		$indexed_terms  = $terms[ $tax_name ];
+		$expected_terms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
-		$this->assertTrue( count( $indexedTerms ) > 0 );
+		$this->assertTrue( count( $indexed_terms ) > 0 );
 
-		foreach ( $indexedTerms as $term ) {
-			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		foreach ( $indexed_terms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expected_terms ) );
 		}
 	}
 
 	/**
+	 * Make sure proper taxonomies are synced with post.
+	 *
 	 * @group post
 	 */
 	public function testPostTermSyncHierarchyMultipleLevelQuery() {
@@ -363,20 +374,20 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post( array( 'post_title' => '#findme' ) );
 		$post    = get_post( $post_id );
 
-		$taxName = rand_str( 32 );
-		register_taxonomy( $taxName, $post->post_type, array( 'label' => $taxName ) );
-		register_taxonomy_for_object_type( $taxName, $post->post_type );
+		$tax_name = rand_str( 32 );
+		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
-		$term1Name = rand_str( 32 );
-		$term1     = wp_insert_term( $term1Name, $taxName );
+		$term_1_name = rand_str( 32 );
+		$term1     = wp_insert_term( $term_1_name, $tax_name );
 
-		$term2Name = rand_str( 32 );
-		$term2     = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+		$term_2_name = rand_str( 32 );
+		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
-		$term3Name = rand_str( 32 );
-		$term3     = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+		$term_3_name = rand_str( 32 );
+		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
-		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -389,19 +400,21 @@ class TestPost extends BaseTestCase {
 		$post = $query->posts[0];
 
 		$terms = $post->terms;
-		$this->assertTrue( isset( $terms[ $taxName ] ) );
-		$this->assertTrue( count( $terms[ $taxName ] ) === 3 );
-		$indexedTerms  = $terms[ $taxName ];
-		$expectedTerms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
+		$this->assertTrue( isset( $terms[ $tax_name ] ) );
+		$this->assertTrue( count( $terms[ $tax_name ] ) === 3 );
+		$indexed_terms  = $terms[ $tax_name ];
+		$expected_terms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
 
-		$this->assertTrue( count( $indexedTerms ) > 0 );
+		$this->assertTrue( count( $indexed_terms ) > 0 );
 
-		foreach ( $indexedTerms as $term ) {
-			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		foreach ( $indexed_terms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expected_terms ) );
 		}
 	}
 
 	/**
+	 * Make sure proper taxonomies are synced with post.
+	 *
 	 * @group post
 	 */
 	public function testPostTermSyncSingleLevelQuery() {
@@ -409,20 +422,20 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post( array( 'post_title' => '#findme' ) );
 		$post    = get_post( $post_id );
 
-		$taxName = rand_str( 32 );
-		register_taxonomy( $taxName, $post->post_type, array( 'label' => $taxName ) );
-		register_taxonomy_for_object_type( $taxName, $post->post_type );
+		$tax_name = rand_str( 32 );
+		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
-		$term1Name = rand_str( 32 );
-		$term1     = wp_insert_term( $term1Name, $taxName );
+		$term_1_name = rand_str( 32 );
+		$term1     = wp_insert_term( $term_1_name, $tax_name );
 
-		$term2Name = rand_str( 32 );
-		$term2     = wp_insert_term( $term2Name, $taxName, array( 'parent' => $term1['term_id'] ) );
+		$term_2_name = rand_str( 32 );
+		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
-		$term3Name = rand_str( 32 );
-		$term3     = wp_insert_term( $term3Name, $taxName, array( 'parent' => $term2['term_id'] ) );
+		$term_3_name = rand_str( 32 );
+		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
-		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $taxName, true );
+		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -435,19 +448,21 @@ class TestPost extends BaseTestCase {
 		$post = $query->posts[0];
 
 		$terms = $post->terms;
-		$this->assertTrue( isset( $terms[ $taxName ] ) );
+		$this->assertTrue( isset( $terms[ $tax_name ] ) );
 
-		$indexedTerms  = $terms[ $taxName ];
-		$expectedTerms = array( $term3['term_id'] );
+		$indexed_terms  = $terms[ $tax_name ];
+		$expected_terms = array( $term3['term_id'] );
 
-		$this->assertTrue( count( $indexedTerms ) > 0 );
+		$this->assertTrue( count( $indexed_terms ) > 0 );
 
-		foreach ( $indexedTerms as $term ) {
-			$this->assertTrue( in_array( $term['term_id'], $expectedTerms ) );
+		foreach ( $indexed_terms as $term ) {
+			$this->assertTrue( in_array( $term['term_id'], $expected_terms ) );
 		}
 	}
 
 	/**
+	 * Make sure proper taxonomies are synced with post.
+	 *
 	 * @group post
 	 */
 	public function testPostImplicitTaxonomyQueryCustomTax() {
@@ -455,20 +470,20 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post();
 		$post    = get_post( $post_id );
 
-		$taxName = rand_str( 32 );
-		register_taxonomy( $taxName, $post->post_type, array( 'label' => $taxName ) );
-		register_taxonomy_for_object_type( $taxName, $post->post_type );
+		$tax_name = rand_str( 32 );
+		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
-		$term1Name = rand_str( 32 );
-		$term1     = wp_insert_term( $term1Name, $taxName );
+		$term_1_name = rand_str( 32 );
+		$term1     = wp_insert_term( $term_1_name, $tax_name );
 
-		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $taxName, true );
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $tax_name, true );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			$taxName => $term1Name,
+			$tax_name => $term_1_name,
 			's'      => '',
 		);
 
@@ -480,6 +495,8 @@ class TestPost extends BaseTestCase {
 
 
 	/**
+	 * Make sure proper taxonomies are synced with post.
+	 *
 	 * @group post
 	 */
 	public function testPostImplicitTaxonomyQueryCategoryName() {
@@ -487,8 +504,8 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post();
 		$post    = get_post( $post_id );
 
-		$term1Name = rand_str( 32 );
-		$term1     = wp_insert_term( $term1Name, 'category' );
+		$term_1_name = rand_str( 32 );
+		$term1     = wp_insert_term( $term_1_name, 'category' );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'category', true );
 
@@ -496,7 +513,7 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			'category_name' => $term1Name,
+			'category_name' => $term_1_name,
 			's'             => '',
 		);
 
@@ -507,6 +524,8 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Make sure proper taxonomies are synced with post.
+	 *
 	 * @group post
 	 */
 	public function testPostImplicitTaxonomyQueryTag() {
@@ -514,8 +533,8 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post();
 		$post    = get_post( $post_id );
 
-		$term1Name = rand_str( 32 );
-		$term1     = wp_insert_term( $term1Name, 'post_tag' );
+		$term_1_name = rand_str( 32 );
+		$term1     = wp_insert_term( $term_1_name, 'post_tag' );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'post_tag', true );
 
@@ -523,7 +542,7 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			'tag' => $term1Name,
+			'tag' => $term_1_name,
 			's'   => '',
 		);
 
@@ -1243,7 +1262,7 @@ class TestPost extends BaseTestCase {
 	 * Add attachment post type for indexing
 	 *
 	 * @since 1.6
-	 * @param array $post_types
+	 * @param array $post_types Post types
 	 * @return array
 	 */
 	public function _add_attachment_post_type( $post_types ) {
@@ -1255,7 +1274,7 @@ class TestPost extends BaseTestCase {
 	 * Setup attachment post status for indexing
 	 *
 	 * @since 1.6
-	 * @param array $post_statuses
+	 * @param array $post_statuses Post statuses
 	 * @return array
 	 */
 	public function _add_attachment_post_status( $post_statuses ) {
@@ -1414,7 +1433,7 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
-		 // Only check for fields which are provided in search_fields.
+		// Only check for fields which are provided in search_fields.
 		$args = array(
 			's'             => 'findme',
 			'search_fields' => array(
@@ -2241,10 +2260,10 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		/*
-		 Since it's test for random order, can't check against exact post ID or content
-			but only found posts and post count.
-		*/
+		/**
+		 * Since it's test for random order, can't check against exact post ID or content
+		 * but only found posts and post count.
+		 */
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 	}
@@ -2702,6 +2721,9 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 3, $query->found_posts );
 	}
 
+	/**
+	 * Test meta queries with multiple keys
+	 */
 	public function testMetaQueryMultipleArray() {
 		Functions\create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
 		Functions\create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
@@ -2960,7 +2982,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Helper method for mocking indexable post statuses
 	 *
-	 * @param   array $post_statuses
+	 * @param   array $post_statuses Post statuses
 	 * @return  array
 	 */
 	public function mock_indexable_post_status( $post_statuses ) {
@@ -3091,11 +3113,11 @@ class TestPost extends BaseTestCase {
 
 		$meta_3 = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
 
-		$this->assertTrue( is_array( $meta_1 ) && 1 === sizeof( $meta_1 ) );
+		$this->assertTrue( is_array( $meta_1 ) && 1 === count( $meta_1 ) );
 		$this->assertTrue( is_array( $meta_1 ) && array_key_exists( 'test_meta_1', $meta_1 ) );
-		$this->assertTrue( is_array( $meta_2 ) && 2 === sizeof( $meta_2 ) );
+		$this->assertTrue( is_array( $meta_2 ) && 2 === count( $meta_2 ) );
 		$this->assertTrue( is_array( $meta_2 ) && array_key_exists( 'test_meta_1', $meta_2 ) && array_key_exists( '_test_private_meta_1', $meta_2 ) );
-		$this->assertTrue( is_array( $meta_3 ) && 1 === sizeof( $meta_3 ) );
+		$this->assertTrue( is_array( $meta_3 ) && 1 === count( $meta_3 ) );
 		$this->assertTrue( is_array( $meta_3 ) && array_key_exists( '_test_private_meta_1', $meta_3 ) );
 
 	}
@@ -3103,7 +3125,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Helper method for filtering private meta keys
 	 *
-	 * @param  array $meta_keys
+	 * @param  array $meta_keys Meta keys
 	 * @return array
 	 */
 	public function filter_ep_prepare_meta_allowed_protected_keys( $meta_keys ) {
@@ -3117,7 +3139,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Helper method for filtering excluded meta keys
 	 *
-	 * @param  array $meta_keys
+	 * @param  array $meta_keys Meta keys
 	 * @return array
 	 */
 	public function filter_ep_prepare_meta_excluded_public_keys( $meta_keys ) {
@@ -3143,17 +3165,17 @@ class TestPost extends BaseTestCase {
 		$bool_true_val  = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( true );
 		$dateval        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '2015-01-01' );
 
-		$this->assertTrue( is_array( $intval ) && 5 === sizeof( $intval ) );
+		$this->assertTrue( is_array( $intval ) && 5 === count( $intval ) );
 		$this->assertTrue( is_array( $intval ) && array_key_exists( 'long', $intval ) && 13 === $intval['long'] );
-		$this->assertTrue( is_array( $floatval ) && 5 === sizeof( $floatval ) );
+		$this->assertTrue( is_array( $floatval ) && 5 === count( $floatval ) );
 		$this->assertTrue( is_array( $floatval ) && array_key_exists( 'double', $floatval ) && 13.43 === $floatval['double'] );
-		$this->assertTrue( is_array( $textval ) && 6 === sizeof( $textval ) );
+		$this->assertTrue( is_array( $textval ) && 6 === count( $textval ) );
 		$this->assertTrue( is_array( $textval ) && array_key_exists( 'raw', $textval ) && 'some text' === $textval['raw'] );
-		$this->assertTrue( is_array( $bool_false_val ) && 3 === sizeof( $bool_false_val ) );
+		$this->assertTrue( is_array( $bool_false_val ) && 3 === count( $bool_false_val ) );
 		$this->assertTrue( is_array( $bool_false_val ) && array_key_exists( 'boolean', $bool_false_val ) && false === $bool_false_val['boolean'] );
-		$this->assertTrue( is_array( $bool_true_val ) && 3 === sizeof( $bool_true_val ) );
+		$this->assertTrue( is_array( $bool_true_val ) && 3 === count( $bool_true_val ) );
 		$this->assertTrue( is_array( $bool_true_val ) && array_key_exists( 'boolean', $bool_true_val ) && true === $bool_true_val['boolean'] );
-		$this->assertTrue( is_array( $dateval ) && 6 === sizeof( $dateval ) );
+		$this->assertTrue( is_array( $dateval ) && 6 === count( $dateval ) );
 		$this->assertTrue( is_array( $dateval ) && array_key_exists( 'datetime', $dateval ) && '2015-01-01 00:00:00' === $dateval['datetime'] );
 
 	}
@@ -3748,7 +3770,7 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 2.3
 	 */
-	function testPostMimeTypeQuery() {
+	public function testPostMimeTypeQuery() {
 		Functions\create_and_sync_post(
 			array(
 				'post_type'      => 'attachment',
@@ -3914,22 +3936,22 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post();
 		$post    = get_post( $post_id );
 
-		$taxName = rand_str( 32 );
+		$tax_name = rand_str( 32 );
 		register_taxonomy(
-			$taxName,
+			$tax_name,
 			$post->post_type,
 			array(
-				'label'              => $taxName,
+				'label'              => $tax_name,
 				'public'             => false,
 				'publicly_queryable' => true,
 			)
 		);
-		register_taxonomy_for_object_type( $taxName, $post->post_type );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
-		$term1Name = rand_str( 32 );
-		$term1     = wp_insert_term( $term1Name, $taxName );
+		$term_1_name = rand_str( 32 );
+		$term1     = wp_insert_term( $term_1_name, $tax_name );
 
-		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $taxName, true );
+		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $tax_name, true );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -3938,8 +3960,8 @@ class TestPost extends BaseTestCase {
 			's'         => 'test',
 			'tax_query' => array(
 				array(
-					'taxonomy' => $taxName,
-					'terms'    => array( $term1Name ),
+					'taxonomy' => $tax_name,
+					'terms'    => array( $term_1_name ),
 					'field'    => 'name',
 				),
 			),
