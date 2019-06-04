@@ -9,7 +9,8 @@ const config = {
 		admin: './assets/js/admin.js',
 		autosuggest: './assets/js/autosuggest.js',
 		dashboard: './assets/js/dashboard.js',
-		facets: './assets/js/facets.js'
+		facets: './assets/js/facets.js',
+		ordering: './assets/js/ordering/index.js'
 	},
 	output: {
 		path: DIST_PATH,

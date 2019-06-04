@@ -1,0 +1,28 @@
+.pointers {
+	& .pointer,
+	& .post {
+		padding: 0.5em 0;
+	}
+
+	& .pointer {
+		cursor: move;
+	}
+
+	& .post {
+		color: #7b7b7b;
+	}
+}
+
+.delete-pointer,
+.add-pointer {
+	cursor: pointer;
+	float: right;
+}
+
+.pointer-results {
+	margin-top: 1em;
+}
+
+.pointer-result {
+	padding: 0.5em 0;
+}
