@@ -3,6 +3,8 @@ php:
   - 7.2
 notifications:
   email: false
+services:
+  - mysql
 env:
   global:
   - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="6.3.0"
