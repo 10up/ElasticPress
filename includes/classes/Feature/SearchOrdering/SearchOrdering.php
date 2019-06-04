@@ -54,6 +54,7 @@ class SearchOrdering extends Feature {
 		add_filter( 'ep_search_fields', [ $this, 'ep_search_fields' ], 10, 2 );
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
+		add_filter( 'ep_indexable_post_types', [ $this, 'filter_indexable_post_types'] );
 	}
 
 	/**
@@ -72,6 +73,19 @@ class SearchOrdering extends Feature {
 		?>
 		<p><?php esc_html_e( 'Selected posts will be injected into search results in the specified position.', 'elasticpress' ); ?></p>
 		<?php
+	}
+
+	/**
+	 * Adds this post type to indexable types
+	 *
+	 * @param array $post_types Current indexable post types
+	 *
+	 * @return array Updated post types
+	 */
+	public function filter_indexable_post_types( $post_types ) {
+		$post_types[ self::POST_TYPE_NAME ] = self::POST_TYPE_NAME;
+
+		return $post_types;
 	}
 
 	/**
