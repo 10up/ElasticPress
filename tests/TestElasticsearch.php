@@ -2,7 +2,7 @@
 /**
  * Test Elasticsearch methods
  *
- * @@package elasticpress
+ * @package elasticpress
  */
 
 namespace ElasticPressTest;

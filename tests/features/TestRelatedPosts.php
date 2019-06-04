@@ -2,12 +2,16 @@
 /**
  * Test related posts feature
  *
- * @group elasticpress
+ * @package elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Related post test class
+ */
 class TestRelatedPosts extends BaseTestCase {
 
 	/**

@@ -4,6 +4,7 @@
  *
  * @package elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;

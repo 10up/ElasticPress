@@ -2,12 +2,16 @@
 /**
  * Test woocommerce feature
  *
- * @group elasticpress
+ * @package elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * WC test class
+ */
 class TestWooCommerce extends BaseTestCase {
 
 	/**

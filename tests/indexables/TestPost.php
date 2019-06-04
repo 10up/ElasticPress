@@ -4493,7 +4493,7 @@ class TestPost extends BaseTestCase {
 	 * @link https://github.com/10up/ElasticPress/issues/285
 	 */
 	public function testQueryWithoutIsSearch() {
-		$query = new stdClass();
+		$query = new \stdClass();
 		$check = ElasticPress\Indexables::factory()->get( 'post' )->elasticpress_enabled( $query );
 		$this->assertFalse( $check );
 	}

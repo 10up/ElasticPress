@@ -2,12 +2,16 @@
 /**
  * Test document feature
  *
- * @group elasticpress
+ * @package elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Document test class
+ */
 class TestDocuments extends BaseTestCase {
 
 	/**

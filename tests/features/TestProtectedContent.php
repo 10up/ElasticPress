@@ -2,12 +2,16 @@
 /**
  * Test protected content feature
  *
- * @group elasticpress
+ * @package elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Protected content test class
+ */
 class TestProtectedContent extends BaseTestCase {
 
 	/**

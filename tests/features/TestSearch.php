@@ -2,12 +2,16 @@
 /**
  * Test search feature
  *
- * @group elasticpress
+ * @package elasticpress
  */
+
 namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Search test class
+ */
 class TestSearch extends BaseTestCase {
 
 	/**

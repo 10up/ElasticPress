@@ -2,36 +2,12 @@
 /**
  * ElasticPress test functions
  *
- * @group elasticpress
+ * @package elasticpress
  */
+
 namespace ElasticPressTest\Functions;
 
 use ElasticPress;
-
-/**
- * Recursive version of PHP's in_array
- *
- * @todo Max recursion restriction
- * @since 0.1.2
- * @param mixed $needle
- * @param array $haystack
- * @return bool
- */
-function deep_in_array( $needle, $haystack ) {
-	if ( in_array( $needle, $haystack, true ) ) {
-		return true;
-	}
-
-	$result = false;
-
-	foreach ( $haystack as $new_haystack ) {
-		if ( is_array( $new_haystack ) ) {
-			$result = $result || $this->_deepInArray( $needle, $new_haystack );
-		}
-	}
-
-	return $result;
-}
 
 /**
  * Create a WP post and "sync" it to Elasticsearch. We are mocking the sync
@@ -93,7 +69,7 @@ function create_date_query_posts() {
 	$sites        = ElasticPress\Utils\get_sites();
 	$beginning_tz = date_default_timezone_get();
 
-	date_default_timezone_set( 'America/Los_Angeles' );
+	date_default_timezone_set( 'America/Los_Angeles' ); // phpcs:ignore
 
 	foreach ( $sites as $site ) {
 		switch_to_blog( $site['blog_id'] );
@@ -117,7 +93,7 @@ function create_date_query_posts() {
 		restore_current_blog();
 	}
 
-	date_default_timezone_set( $beginning_tz );
+	date_default_timezone_set( $beginning_tz ); // phpcs:ignore
 }
 
 /**
