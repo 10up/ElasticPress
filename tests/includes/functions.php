@@ -78,7 +78,7 @@ function create_date_query_posts() {
 
 		for ( $i = 0; $i <= 10; ++$i ) {
 
-			Functions\create_and_sync_post(
+			create_and_sync_post(
 				array(
 					'post_title'    => 'post_title' . $site['blog_id'],
 					'post_content'  => 'findme',
