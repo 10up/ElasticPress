@@ -41,7 +41,7 @@ function load_plugin() {
 	$host = getenv( 'EP_HOST' );
 
 	if ( empty( $host ) ) {
-		$host = 'http://elasticpress.test/__elasticsearch';
+		$host = 'http://127.0.0.1:9200';
 	}
 
 	update_option( 'ep_host', $host );
