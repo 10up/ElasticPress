@@ -3,14 +3,10 @@ php:
   - 7.2
 notifications:
   email: false
-addons:
-  apt:
-    packages:
-      - oracle-java8-set-default
 env:
   global:
-  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="6.3"
-  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="6.3"
+  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="6.3.0"
+  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="6.3.0"
 before_install:
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ES_VERSION.deb && sudo dpkg -i --force-confnew elasticsearch-$ES_VERSION.deb && sudo service elasticsearch restart
 before_script:
