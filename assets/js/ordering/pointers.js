@@ -36,12 +36,19 @@ export class Pointers extends Component {
 
 		this.titleInput.addEventListener( 'keyup', debounce( this.handleTitleChange, 200 ) );
 
-		this.getDefaultResults();
+		if ( 0 < this.state.title.length ) {
+			this.getDefaultResults();
+		}
 	}
 
 	handleTitleChange = () => {
 		this.setState( { title: this.titleInput.value } );
+		this.debouncedDefaultResults();
 	};
+
+	debouncedDefaultResults = debounce( () => {
+		this.getDefaultResults();
+	}, 200 );
 
 	getDefaultResults = () => {
 		let searchTerm = this.state.title;
@@ -171,6 +178,14 @@ export class Pointers extends Component {
 	 */
 	render() {
 		const { posts, defaultResults } = this.state;
+
+		if ( 0 === this.state.title.length ) {
+			return (
+				<div className="new-post">
+					<p>Enter your search query in the title field to preview the results.</p>
+				</div>
+			);
+		}
 
 		if ( ! defaultResults[ this.state.title ] ) {
 			return (

@@ -167,14 +167,15 @@ class SearchOrdering extends Feature {
 	public function get_pointer_data_for_localize() {
 		$post_id = get_the_ID();
 
-		if ( ! $post_id ) {
+		$pointers = get_post_meta( $post_id, 'pointers', true );
+
+		if ( empty( $pointers ) ) {
 			return [
 				'pointers' => [],
 				'posts'    => [],
 			];
 		}
 
-		$pointers = get_post_meta( $post_id, 'pointers', true );
 		$post_ids = wp_list_pluck( $pointers, 'ID' );
 
 		$query = new \WP_Query(

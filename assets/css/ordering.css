@@ -4,6 +4,10 @@
 		padding: 0;
 	}
 
+	& .new-post {
+		margin: 1em;
+	}
+
 	& .loading {
 		margin: 1em;
 
