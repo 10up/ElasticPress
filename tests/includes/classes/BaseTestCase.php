@@ -60,6 +60,7 @@ class BaseTestCase extends WP_UnitTestCase {
 	/**
 	 * Helper function to check post sync args
 	 *
+	 * @param  array $post_args Post arguments
 	 * @since 1.0
 	 */
 	public function filter_post_sync_args( $post_args ) {

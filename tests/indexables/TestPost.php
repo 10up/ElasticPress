@@ -270,7 +270,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Make sure proper taxonomies are synced with post.
+	 * Make sure proper non-hierarchical taxonomies are synced with post.
 	 *
 	 * @group post
 	 */
@@ -321,7 +321,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Make sure proper taxonomies are synced with post.
+	 * Make sure proper hierarchical taxonomies are synced with post.
 	 *
 	 * @group post
 	 */
@@ -364,7 +364,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Make sure proper taxonomies are synced with post.
+	 * Make sure proper hierarchical taxonomies are synced with post and terms are searchable
 	 *
 	 * @group post
 	 */
@@ -413,7 +413,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Make sure proper taxonomies are synced with post.
+	 * Make sure proper taxonomies are synced with post and terms are searchable.
 	 *
 	 * @group post
 	 */
@@ -4026,25 +4026,23 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'monthnum'       => 12,
 			'posts_per_page' => 100,
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 15 );
-		$this->assertEquals( $query->found_posts, 15 );
+		$this->assertEquals( 11, $query->post_count );
+		$this->assertEquals( 11, $query->found_posts );
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'day'            => 5,
 			'posts_per_page' => 100,
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 3 );
-		$this->assertEquals( $query->found_posts, 3 );
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
 	}
 
 	/**
@@ -4057,14 +4055,13 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'day'            => 5,
 			'posts_per_page' => 100,
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 3 );
-		$this->assertEquals( $query->found_posts, 3 );
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
 	}
 
 	/**
@@ -4077,7 +4074,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4096,8 +4092,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 6 );
-		$this->assertEquals( $query->found_posts, 6 );
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
 	}
 
 	/**
@@ -4110,7 +4106,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4126,8 +4121,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( $query->post_count, 12 );
-		$this->assertEquals( $query->found_posts, 12 );
+		$this->assertEquals( $query->post_count, 4 );
+		$this->assertEquals( $query->found_posts, 4 );
 	}
 
 	/**
@@ -4140,7 +4135,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4156,8 +4150,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 3 );
-		$this->assertEquals( $query->found_posts, 3 );
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
 	}
 
 
@@ -4171,7 +4165,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4191,8 +4184,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( $query->post_count, 15 );
-		$this->assertEquals( $query->found_posts, 15 );
+		$this->assertEquals( $query->post_count, 5 );
+		$this->assertEquals( $query->found_posts, 5 );
 	}
 
 	/**
@@ -4205,7 +4198,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4235,7 +4227,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4247,8 +4238,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 3 );
-		$this->assertEquals( $query->found_posts, 3 );
+		$this->assertEquals( $query->post_count, 1 );
+		$this->assertEquals( $query->found_posts, 1 );
 	}
 
 	/**
@@ -4261,7 +4252,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4272,8 +4262,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 15 );
-		$this->assertEquals( $query->found_posts, 15 );
+		$this->assertEquals( $query->post_count, 5 );
+		$this->assertEquals( $query->found_posts, 5 );
 	}
 
 	/**
@@ -4286,7 +4276,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4297,8 +4286,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 24 );
-		$this->assertEquals( $query->found_posts, 24 );
+		$this->assertEquals( $query->post_count, 8 );
+		$this->assertEquals( $query->found_posts, 8 );
 	}
 
 	/**
@@ -4311,7 +4300,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4323,8 +4311,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( 3, $query->post_count );
-		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
@@ -4340,7 +4328,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4359,8 +4346,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 12 );
-		$this->assertEquals( $query->found_posts, 12 );
+		$this->assertEquals( $query->post_count, 4 );
+		$this->assertEquals( $query->found_posts, 4 );
 	}
 
 	/**
@@ -4374,7 +4361,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4393,8 +4379,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( $query->post_count, 6 );
-		$this->assertEquals( $query->found_posts, 6 );
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
 	}
 
 	/**
@@ -4408,7 +4394,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4438,7 +4423,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4457,8 +4441,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( 6, $query->post_count );
-		$this->assertEquals( 6, $query->found_posts );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -4471,7 +4455,6 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'              => 'findme',
-			'sites'          => 'all',
 			'posts_per_page' => 100,
 			'date_query'     => array(
 				array(
@@ -4482,8 +4465,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-		$this->assertEquals( 27, $query->post_count );
-		$this->assertEquals( 27, $query->found_posts );
+		$this->assertEquals( 9, $query->post_count );
+		$this->assertEquals( 9, $query->found_posts );
 	}
 
 	/**
@@ -4506,8 +4489,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testQueryWithIsSearch() {
 		$args  = array(
-			's'     => 'findme',
-			'sites' => 'all',
+			's' => 'findme',
 		);
 		$query = new \WP_Query( $args );
 		$check = ElasticPress\Indexables::factory()->get( 'post' )->elasticpress_enabled( $query );

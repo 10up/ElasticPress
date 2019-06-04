@@ -66,31 +66,24 @@ function create_and_sync_post( $post_args = array(), $post_meta = array(), $site
  * @since  3.0
  */
 function create_date_query_posts() {
-	$sites        = ElasticPress\Utils\get_sites();
 	$beginning_tz = date_default_timezone_get();
 
 	date_default_timezone_set( 'America/Los_Angeles' ); // phpcs:ignore
 
-	foreach ( $sites as $site ) {
-		switch_to_blog( $site['blog_id'] );
+	$post_date = strtotime( 'January 6th, 2012 11:59PM' );
 
-		$post_date = strtotime( 'January 6th, 2012 11:59PM' );
+	for ( $i = 0; $i <= 10; ++$i ) {
 
-		for ( $i = 0; $i <= 10; ++$i ) {
+		create_and_sync_post(
+			array(
+				'post_title'    => 'post_title ' . $i,
+				'post_content'  => 'findme',
+				'post_date'     => date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+				'post_date_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+			)
+		);
 
-			create_and_sync_post(
-				array(
-					'post_title'    => 'post_title' . $site['blog_id'],
-					'post_content'  => 'findme',
-					'post_date'     => date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
-					'post_date_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
-				)
-			);
-
-			ElasticPress\Elasticsearch::factory()->refresh_indices();
-		}
-
-		restore_current_blog();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 	}
 
 	date_default_timezone_set( $beginning_tz ); // phpcs:ignore
