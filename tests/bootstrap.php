@@ -75,7 +75,7 @@ function load_plugin() {
 
 	require_once __DIR__ . '/includes/functions.php';
 
-	echo 'WordPress version ' . $wp_version . "\n"; //phpcs:ignoreline
+	echo 'WordPress version ' . $wp_version . "\n"; // phpcs:ignore
 }
 
 tests_add_filter( 'muplugins_loaded', __NAMESPACE__ . '\load_plugin' );
@@ -96,11 +96,25 @@ function setup_wc() {
 
 		$GLOBALS['wp_roles'] = new \WP_Roles();
 
-		echo 'Installing WooCommerce version ' . WC()->version . ' ...' . PHP_EOL;
+		echo 'Installing WooCommerce version ' . WC()->version . ' ...' . PHP_EOL; // phpcs:ignore
 	}
 }
 
 tests_add_filter( 'setup_theme', __NAMESPACE__ . '\setup_wc' );
+
+/**
+ * Completely skip looking up translations
+ *
+ * @since  3.0
+ * @return array
+ */
+function skip_translations_api() {
+	return [
+		'translations' => [],
+	];
+}
+
+tests_add_filter( 'translations_api', __NAMESPACE__ . '\skip_translations_api' );
 
 require_once $_tests_dir . '/includes/bootstrap.php';
 
