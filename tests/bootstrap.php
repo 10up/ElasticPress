@@ -7,6 +7,8 @@
 
 namespace ElasticPressTest;
 
+set_time_limit( 0 );
+
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 if ( ! $_tests_dir ) {
 	$_tests_dir = '/tmp/wordpress-tests-lib';
