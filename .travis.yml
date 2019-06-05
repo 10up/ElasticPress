@@ -16,7 +16,7 @@ before_script:
   - sleep 10
 script:
   - composer run-script lint
-  - composer run-script test -- --coverage-clover=coverage.xml
+  - composer run-script test
 
 after_success:
   # Submit coverage report to https://codecov.io
