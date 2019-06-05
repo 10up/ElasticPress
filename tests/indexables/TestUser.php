@@ -40,12 +40,13 @@ class TestUser extends BaseTestCase {
 
 		$admin_id = $this->factory->user->create(
 			[
-				'role'         => 'administrator',
-				'user_login'   => 'test_admin',
-				'first_name'   => 'Mike',
-				'last_name'    => 'Mickey',
-				'display_name' => 'mikey',
-				'user_email'   => 'mikey@gmail.com',
+				'role'          => 'administrator',
+				'user_login'    => 'test_admin',
+				'first_name'    => 'Mike',
+				'last_name'     => 'Mickey',
+				'display_name'  => 'mikey',
+				'user_email'    => 'mikey@gmail.com',
+				'user_nicename' => 'mike',
 			]
 		);
 
@@ -69,34 +70,45 @@ class TestUser extends BaseTestCase {
 
 		$user_1 = Functions\create_and_sync_user(
 			[
-				'user_login'   => 'user1 author',
+				'user_login'   => 'user1-author',
 				'role'         => 'author',
 				'first_name'   => 'Dave',
 				'last_name'    => 'Smith',
 				'display_name' => 'dave',
 				'user_email'   => 'dave@gmail.com',
+			],
+			[
+				'user_1_key' => 'value1',
+				'user_num'   => 5,
 			]
 		);
 
 		$user_2 = Functions\create_and_sync_user(
 			[
-				'user_login'   => 'user2 contributor',
+				'user_login'   => 'user2-contributor',
 				'role'         => 'contributor',
 				'first_name'   => 'Zoey',
 				'last_name'    => 'Johnson',
 				'display_name' => 'Zoey',
 				'user_email'   => 'zoey@gmail.com',
+			],
+			[
+				'user_2_key' => 'value2',
 			]
 		);
 
 		$user_3 = Functions\create_and_sync_user(
 			[
-				'user_login'   => 'user3 editor',
+				'user_login'   => 'user3-editor',
 				'role'         => 'editor',
 				'first_name'   => 'Joe',
 				'last_name'    => 'Doe',
 				'display_name' => 'joe',
 				'user_email'   => 'joe@gmail.com',
+			],
+			[
+				'user_3_key' => 'value3',
+				'user_num'   => 5,
 			]
 		);
 
@@ -357,6 +369,163 @@ class TestUser extends BaseTestCase {
 	}
 
 	/**
+	 * Test user query include parameter
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserInclude() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'include'      => [ 1 ],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 1, $user_query->results[0]->ID );
+	}
+
+	/**
+	 * Test user query exclude parameter
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserExclude() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'exclude'      => [ 1 ],
+			]
+		);
+
+		$this->assertEquals( 4, $user_query->total_users );
+	}
+
+	/**
+	 * Test user query login parameter
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserQueryLogin() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'login'        => 'test_admin',
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
+	}
+
+	/**
+	 * Test user query login__in paramter
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserQueryLoginIn() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'login__in'    => [ 'test_admin' ],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
+	}
+
+	/**
+	 * Test user query login__not_in paramter
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserQueryLoginNotIn() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate'  => true,
+				'login__not_in' => [ 'test_admin' ],
+			]
+		);
+
+		$this->assertEquals( 4, $user_query->total_users );
+	}
+
+	/**
+	 * Test user query nicename parameter
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserQueryNicename() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'nicename'     => 'mike',
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'mike', $user_query->results[0]->user_nicename );
+	}
+
+	/**
+	 * Test user query nicename__in parameter
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserQueryNicenameIn() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'nicename__in' => [ 'mike' ],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'mike', $user_query->results[0]->user_nicename );
+	}
+
+	/**
+	 * Test user query nicename__in parameter
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserQueryNicenameNotIn() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate'     => true,
+				'nicename__not_in' => [ 'mike' ],
+			]
+		);
+
+		$this->assertEquals( 4, $user_query->total_users );
+	}
+
+	/**
 	 * Test user query role__not_in paramter
 	 *
 	 * @since 3.0
@@ -492,5 +661,190 @@ class TestUser extends BaseTestCase {
 				$this->assertTrue( $user_query->results[ $key - 1 ]->ID > $user->ID );
 			}
 		}
+	}
+
+	/**
+	 * Test meta query with simple args
+	 *
+	 * @since 3.0
+	 */
+	public function testUserMetaQuerySimple() {
+		$this->createAndIndexUsers();
+
+		// Value does not exist so should return nothing
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'meta_key'     => 'user_1_key',
+				'meta_value'   => 'value5',
+			]
+		);
+
+		$this->assertEquals( 0, $user_query->total_users );
+
+		// This value exists
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'meta_key'     => 'user_1_key',
+				'meta_value'   => 'value1',
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'value1', get_user_meta( $user_query->results[0]->ID, 'user_1_key', true ) );
+	}
+
+	/**
+	 * Test meta query with simple args and meta_compare does not equal
+	 *
+	 * @since 3.0
+	 */
+	public function testUserMetaQuerySimpleCompare() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'meta_key'     => 'user_1_key',
+				'meta_value'   => 'value1',
+				'meta_compare' => '!=',
+			]
+		);
+
+		$this->assertEquals( 4, $user_query->total_users );
+	}
+
+	/**
+	 * Test meta query with no compare
+	 *
+	 * @since 3.0
+	 */
+	public function testUserMetaQueryNoCompare() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'meta_query'   => [
+					[
+						'key'   => 'user_1_key',
+						'value' => 'value1',
+					],
+				],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'value1', get_user_meta( $user_query->results[0]->ID, 'user_1_key', true ) );
+	}
+
+	/**
+	 * Test meta query compare equals
+	 *
+	 * @since 3.0
+	 */
+	public function testUserMetaQueryCompareEquals() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'meta_query'   => [
+					[
+						'key'     => 'user_2_key',
+						'value'   => 'value2',
+						'compare' => '=',
+					],
+				],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'value2', get_user_meta( $user_query->results[0]->ID, 'user_2_key', true ) );
+	}
+
+	/**
+	 * Test meta query with multiple statements
+	 *
+	 * @since 3.0
+	 */
+	public function testUserMetaQueryMulti() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'meta_query'   => [
+					[
+						'key'   => 'user_num',
+						'value' => 5,
+					],
+					[
+						'key'   => 'user_1_key',
+						'value' => 'value1',
+					],
+				],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'value1', get_user_meta( $user_query->results[0]->ID, 'user_1_key', true ) );
+	}
+
+	/**
+	 * Test meta query with multiple statements and relation OR
+	 *
+	 * @since 3.0
+	 */
+	public function testUserMetaQueryMultiRelationOr() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'meta_query'   => [
+					[
+						'key'   => 'user_num',
+						'value' => 5,
+					],
+					[
+						'key'   => 'user_1_key',
+						'value' => 'value1',
+					],
+					'relation' => 'or',
+				],
+			]
+		);
+
+		$this->assertEquals( 2, $user_query->total_users );
+	}
+
+	/**
+	 * Test meta query with multiple statements and relation AND
+	 *
+	 * @since 3.0
+	 */
+	public function testUserMetaQueryMultiRelationAnd() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'meta_query'   => [
+					[
+						'key'   => 'user_num',
+						'value' => 5,
+					],
+					[
+						'key'   => 'user_1_key',
+						'value' => 'value1',
+					],
+					'relation' => 'and',
+				],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
 	}
 }

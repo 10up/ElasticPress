@@ -102,6 +102,20 @@ function setup_wc() {
 
 tests_add_filter( 'setup_theme', __NAMESPACE__ . '\setup_wc' );
 
+/**
+ * Completely skip looking up translations
+ *
+ * @since  3.0
+ * @return array
+ */
+function skip_translations_api() {
+	return [
+		'translations' => [],
+	];
+}
+
+tests_add_filter( 'translations_api', __NAMESPACE__ . '\skip_translations_api' );
+
 require_once $_tests_dir . '/includes/bootstrap.php';
 
 require_once __DIR__ . '/includes/classes/BaseTestCase.php';
