@@ -147,6 +147,26 @@ class TestUser extends BaseTestCase {
 	}
 
 	/**
+	 * Test a simple user sync with meta
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserSyncMeta() {
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		update_user_meta( $user_id, 'new_meta', 'test' );
+
+		ElasticPress\Indexables::factory()->get( 'user' )->index( $user_id );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$user = ElasticPress\Indexables::factory()->get( 'user' )->get( $user_id );
+
+		$this->assertEquals( 'test', $user['meta']['new_meta'][0]['value'] );
+	}
+
+	/**
 	 * Test a simple user sync on meta update
 	 *
 	 * @since 3.0
@@ -446,6 +466,30 @@ class TestUser extends BaseTestCase {
 		foreach ( $user_query->results as $key => $user ) {
 			if ( ! empty( $user_query->results[ $key - 1 ] ) ) {
 				$this->assertTrue( strcasecmp( $user_query->results[ $key - 1 ]->user_email, $user->user_email ) < 0 );
+			}
+		}
+	}
+
+	/**
+	 * Test user query order parameter where we are ordering by ID descending
+	 *
+	 * @since 3.0
+	 * @group user
+	 */
+	public function testUserQueryOrderDesc() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'ID',
+				'order'        => 'desc',
+			]
+		);
+
+		foreach ( $user_query->results as $key => $user ) {
+			if ( ! empty( $user_query->results[ $key - 1 ] ) ) {
+				$this->assertTrue( $user_query->results[ $key - 1 ]->ID > $user->ID );
 			}
 		}
 	}
