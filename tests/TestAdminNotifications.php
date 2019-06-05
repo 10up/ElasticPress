@@ -63,6 +63,8 @@ class TestAdminNotifications extends BaseTestCase {
 
 		// Update since we are deleting to test notifications
 		update_site_option( 'ep_host', $this->current_host );
+
+		set_current_screen( 'front' );
 	}
 
 	/**
