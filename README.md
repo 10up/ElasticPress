@@ -1,4 +1,4 @@
-ElasticPress
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress)
 =============
 
 A fast and flexible search and query engine for WordPress.
