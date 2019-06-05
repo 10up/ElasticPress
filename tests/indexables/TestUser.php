@@ -80,6 +80,7 @@ class TestUser extends BaseTestCase {
 			[
 				'user_1_key' => 'value1',
 				'user_num'   => 5,
+				'long_key'   => 'here is a text field',
 			]
 		);
 
@@ -91,6 +92,7 @@ class TestUser extends BaseTestCase {
 				'last_name'    => 'Johnson',
 				'display_name' => 'Zoey',
 				'user_email'   => 'zoey@gmail.com',
+				'user_url'     => 'http://google.com',
 			],
 			[
 				'user_2_key' => 'value2',
@@ -846,5 +848,83 @@ class TestUser extends BaseTestCase {
 		);
 
 		$this->assertEquals( 1, $user_query->total_users );
+	}
+
+	/**
+	 * Test basic user search
+	 *
+	 * @since 3.0
+	 */
+	public function testBasicUserSearch() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search' => 'joe',
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'user3-editor', $user_query->results[0]->user_login );
+	}
+
+	/**
+	 * Test basic user search via user login
+	 *
+	 * @since 3.0
+	 */
+	public function testBasicUserSearchUserLogin() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search' => 'joe',
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'user3-editor', $user_query->results[0]->user_login );
+	}
+
+	/**
+	 * Test basic user search via user url
+	 *
+	 * @since 3.0
+	 */
+	public function testBasicUserSearchUserUrl() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search'        => 'http://google.com',
+				'search_fields' => [
+					'user_url.raw',
+				],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'user2-contributor', $user_query->results[0]->user_login );
+	}
+
+	/**
+	 * Test basic user search via meta
+	 *
+	 * @since 3.0
+	 */
+	public function testBasicUserSearchMeta() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search'        => 'test field',
+				'search_fields' => [
+					'meta.long_key.value',
+				],
+			]
+		);
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'user1-author', $user_query->results[0]->user_login );
 	}
 }
