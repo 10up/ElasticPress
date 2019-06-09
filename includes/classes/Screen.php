@@ -1,6 +1,6 @@
 <?php
 /**
- * ElasticPress installer handler
+ * Determine which ElasticPress screen we are viewing
  *
  * @since  3.0
  * @package elasticpress
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Installer class
+ * Screen class
  */
 class Screen {
 	/**
@@ -103,4 +103,3 @@ class Screen {
 		return $instance;
 	}
 }
-

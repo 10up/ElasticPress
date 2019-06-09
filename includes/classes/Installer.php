@@ -37,7 +37,7 @@ class Installer {
 	}
 
 	/**
-	 * Filter admin title for intro page
+	 * Filter admin title for install page
 	 *
 	 * @param  string $admin_title Current title
 	 * @param  string $title       Original title
