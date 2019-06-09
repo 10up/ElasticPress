@@ -91,7 +91,7 @@ class Installer {
 	 * @return bool|int
 	 */
 	public function get_install_status() {
-		return $this->install_status;
+		return apply_filters( 'ep_install_status', $this->install_status );
 	}
 
 	/**
