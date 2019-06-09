@@ -47,6 +47,8 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function tearDown() {
+		parent::tearDown();
+
 		// phpcs:disable
 		if ( isset( $_GET['page'] ) ) {
 			unset( $_GET['page'] );
