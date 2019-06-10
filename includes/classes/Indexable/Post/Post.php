@@ -207,6 +207,8 @@ class Post extends Indexable {
 		// To prevent infinite loop, we don't queue when updated_postmeta.
 		remove_action( 'updated_postmeta', [ $this->sync_manager, 'action_queue_meta_sync' ], 10 );
 
+		$post_content_filtered_allowed = apply_filters( 'ep_allow_post_content_filtered_index', true );
+
 		$post_args = array(
 			'post_id'               => $post_id,
 			'ID'                    => $post_id,
@@ -215,7 +217,7 @@ class Post extends Indexable {
 			'post_date_gmt'         => $post_date_gmt,
 			'post_title'            => $post->post_title,
 			'post_excerpt'          => $post->post_excerpt,
-			'post_content_filtered' => apply_filters( 'the_content', $post->post_content ),
+			'post_content_filtered' => $post_content_filtered_allowed ? apply_filters( 'the_content', $post->post_content ) : '',
 			'post_content'          => $post->post_content,
 			'post_status'           => $post->post_status,
 			'post_name'             => $post->post_name,
