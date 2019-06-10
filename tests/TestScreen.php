@@ -44,6 +44,7 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Run after each test
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function tearDown() {
@@ -67,27 +68,33 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Current screen should always be false when not on an EP page
 	 *
+	 * @group screen
 	 * @since 3.0
 	 */
 	public function testDetermineScreenNotEP() {
 		$_GET['page'] = '';
 
+		ElasticPress\Installer::factory()->calculate_install_status();
 		ElasticPress\Screen::factory()->determine_screen();
 
-		$this->assertFalse( ElasticPress\Screen::factory()->get_current_screen() );
+		$this->assertEquals( null, ElasticPress\Screen::factory()->get_current_screen() );
 
 		$_GET['page'] = 'elasticpress';
 
 		set_current_screen( 'front' );
 
+		ElasticPress\Installer::factory()->calculate_install_status();
 		ElasticPress\Screen::factory()->determine_screen();
 
-		$this->assertFalse( ElasticPress\Screen::factory()->get_current_screen() );
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( null, ElasticPress\Screen::factory()->get_current_screen() );
 	}
 
 	/**
 	 * Test install true on settings
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstallTrue() {
@@ -99,7 +106,10 @@ class TestScreen extends BaseTestCase {
 
 		$_GET['page'] = 'elasticpress-settings';
 
-		$this->assertEquals( 'settings', ElasticPress\Screen::factory()->determine_screen() );
+		ElasticPress\Installer::factory()->calculate_install_status();
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( 'settings', ElasticPress\Screen::factory()->get_current_screen() );
 
 		remove_filter( 'ep_install_status', $set_install_status );
 	}
@@ -107,6 +117,7 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Test install status of 1 on settings
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstall1() {
@@ -118,7 +129,10 @@ class TestScreen extends BaseTestCase {
 
 		$_GET['page'] = 'elasticpress-settings';
 
-		$this->assertEquals( 'install', ElasticPress\Screen::factory()->determine_screen() );
+		ElasticPress\Installer::factory()->calculate_install_status();
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
 
 		remove_filter( 'ep_install_status', $set_install_status );
 	}
@@ -126,6 +140,7 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Test install status of 2 on settings
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstall2() {
@@ -137,7 +152,10 @@ class TestScreen extends BaseTestCase {
 
 		$_GET['page'] = 'elasticpress-settings';
 
-		$this->assertEquals( 'settings', ElasticPress\Screen::factory()->determine_screen() );
+		ElasticPress\Installer::factory()->calculate_install_status();
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( 'settings', ElasticPress\Screen::factory()->get_current_screen() );
 
 		remove_filter( 'ep_install_status', $set_install_status );
 	}
@@ -145,6 +163,7 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Test install status true on dashboard
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstallTrue() {
@@ -156,7 +175,10 @@ class TestScreen extends BaseTestCase {
 
 		$_GET['page'] = 'elasticpress';
 
-		$this->assertEquals( 'dashboard', ElasticPress\Screen::factory()->determine_screen() );
+		ElasticPress\Installer::factory()->calculate_install_status();
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( 'dashboard', ElasticPress\Screen::factory()->get_current_screen() );
 
 		remove_filter( 'ep_install_status', $set_install_status );
 	}
@@ -164,6 +186,7 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Test install status 1 on dashboard
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall1() {
@@ -175,7 +198,10 @@ class TestScreen extends BaseTestCase {
 
 		$_GET['page'] = 'elasticpress';
 
-		$this->assertEquals( 'install', ElasticPress\Screen::factory()->determine_screen() );
+		ElasticPress\Installer::factory()->calculate_install_status();
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
 
 		remove_filter( 'ep_install_status', $set_install_status );
 	}
@@ -183,6 +209,7 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Test install status 2 on dashboard
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall2() {
@@ -194,7 +221,10 @@ class TestScreen extends BaseTestCase {
 
 		$_GET['page'] = 'elasticpress';
 
-		$this->assertEquals( 'install', ElasticPress\Screen::factory()->determine_screen() );
+		ElasticPress\Installer::factory()->calculate_install_status();
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
 
 		remove_filter( 'ep_install_status', $set_install_status );
 	}
@@ -202,6 +232,7 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Test install status true with install complete on dashboard
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstallComplete() {
@@ -214,7 +245,10 @@ class TestScreen extends BaseTestCase {
 		$_GET['page']             = 'elasticpress';
 		$_GET['install_complete'] = 1;
 
-		$this->assertEquals( 'install', ElasticPress\Screen::factory()->determine_screen() );
+		ElasticPress\Installer::factory()->calculate_install_status();
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
 
 		remove_filter( 'ep_install_status', $set_install_status );
 	}
@@ -222,6 +256,7 @@ class TestScreen extends BaseTestCase {
 	/**
 	 * Test install status 3 on dashboard doing a sync
 	 *
+	 * @group screen
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall3DoSync() {
@@ -234,7 +269,10 @@ class TestScreen extends BaseTestCase {
 		$_GET['page']    = 'elasticpress';
 		$_GET['do_sync'] = 1;
 
-		$this->assertEquals( 'dashboard', ElasticPress\Screen::factory()->determine_screen() );
+		ElasticPress\Installer::factory()->calculate_install_status();
+		ElasticPress\Screen::factory()->determine_screen();
+
+		$this->assertEquals( 'dashboard', ElasticPress\Screen::factory()->get_current_screen() );
 
 		remove_filter( 'ep_install_status', $set_install_status );
 	}

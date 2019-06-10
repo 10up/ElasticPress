@@ -56,8 +56,8 @@ class TestInstaller extends BaseTestCase {
 		delete_option( 'ep_last_sync' );
 
 		// phpcs:disable
-		if ( isset( $_GET['ep_host'] ) ) {
-			unset( $_GET['ep_host'] );
+		if ( isset( $_POST['ep_host'] ) ) {
+			unset( $_POST['ep_host'] );
 		}
 		// phpcs:enable
 	}
@@ -65,6 +65,7 @@ class TestInstaller extends BaseTestCase {
 	/**
 	 * Test calculating install status when a sync has happened
 	 *
+	 * @group installer
 	 * @since  3.0
 	 */
 	public function testCalculateInstallStatusHostAndSync() {
@@ -80,6 +81,7 @@ class TestInstaller extends BaseTestCase {
 	/**
 	 * Test calculating install status with no sync and host
 	 *
+	 * @group installer
 	 * @since  3.0
 	 */
 	public function testCalculateInstallStatusNoSync() {
@@ -93,21 +95,25 @@ class TestInstaller extends BaseTestCase {
 	/**
 	 * Test calculating install status with no sync and no host
 	 *
+	 * @group installer
 	 * @since  3.0
 	 */
 	public function testCalculateInstallStatusNoHost() {
-		delete_option( 'ep_host' );
+		add_filter( 'ep_host', '__return_false' );
 
 		ElasticPress\Installer::factory()->calculate_install_status();
 
 		$install_status = ElasticPress\Installer::factory()->get_install_status();
 
 		$this->assertEquals( 2, $install_status );
+
+		remove_all_filters( 'ep_host' );
 	}
 
 	/**
 	 * Test calculating install status with no sync and no host but posted host
 	 *
+	 * @group installer
 	 * @since  3.0
 	 */
 	public function testCalculateInstallStatusNoHostPostHost() {
