@@ -48,6 +48,10 @@ function setup() {
 	add_action( 'admin_init', __NAMESPACE__ . '\intro_after_host' );
 	add_filter( 'admin_title', __NAMESPACE__ . '\filter_admin_title', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
+	add_filter( 'wpmu_blogs_columns', __NAMESPACE__ . '\filter_blogs_columns', 10, 1 );
+	add_action( 'manage_sites_custom_column',  __NAMESPACE__ . '\add_blogs_column', 10, 2 );
+	add_action( 'manage_blogs_custom_column',  __NAMESPACE__ . '\add_blogs_column', 10, 2 );
+    add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
 }
 
 /**
@@ -898,6 +902,15 @@ function action_wp_ajax_ep_save_feature() {
  * @since 2.2
  */
 function action_admin_enqueue_dashboard_scripts() {
+    wp_enqueue_style('ep_admin_sites_styles', EP_URL . 'dist/css/sites-admin.min.css', [], EP_VERSION);
+    wp_enqueue_script('ep_admin_sites_scripts', EP_URL . 'dist/js/sites_admin.min.js', ['jquery'], EP_VERSION, true);
+    $data = [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('epsa'),
+    ];
+    wp_localize_script('ep_admin_sites_scripts', 'epsa', $data);
+
+
 	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'elasticpress' ) !== false ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard.min.css', [], EP_VERSION );
 
@@ -1286,4 +1299,65 @@ function use_language_in_setting( $language = 'english' ) {
 	];
 
 	return in_array( $english_name, $ep_languages, true ) ? $english_name : $language;
+}
+
+/**
+ * Add column to sites admin table.
+ *
+ * @param string[] $columns Array of columns.
+ *
+ * @return string[]
+ */
+function filter_blogs_columns( $columns ) {
+	$columns['elasticpress'] = 'ElasticPress Indexing';
+
+	return $columns;
+}
+
+/**
+ * Populate column with checkbox/switch.
+ *
+ * @param string $column_name The name of the current column.
+ * @param int $blog_id The blog ID.
+ *
+ * @return void | string
+ */
+function add_blogs_column( $column_name, $blog_id ) {
+	$site = get_site( $blog_id );
+	if ( $site->deleted || $site->archived || $site->spam ) {
+		return;
+	}
+	if ( 'elasticpress' === $column_name ) {
+		$is_indexable = get_blog_option( $blog_id, 'ep_indexable', 'yes' );
+		$checked      = ( $is_indexable === 'yes' ) ? 'checked' : '';
+		echo '<label class="switch"><input type="checkbox" ' . $checked . ' class="index-toggle" data-blogId="' . esc_attr( $blog_id ) . '"><span class="slider round"></span></label>';
+		echo '<span class="switch-label" id="switch-label-' . esc_attr( $blog_id ) . '">';
+		echo ( $is_indexable === 'yes' ) ? 'On' : 'Off';
+		echo '</span>';
+	}
+
+	return $column_name;
+}
+
+/**
+ * AJAX callback to update ep_indexable site option.
+ */
+function action_wp_ajax_ep_site_admin() {
+	$blog_id = ( ! empty( $_GET['blog_id'] ) ) ? absint( wp_unslash( $_GET['blog_id'] ) ) : - 1;
+	$checked = ( ! empty( $_GET['checked'] ) ) ? sanitize_text_field( wp_unslash( $_GET['checked'] ) ) : 'no';
+
+	if ( $blog_id === - 1 || ! check_ajax_referer( 'epsa', 'nonce', false ) ) {
+		return wp_send_json_error();
+	}
+	$old    = get_blog_option( $blog_id, 'ep_indexable' );
+	$result = update_blog_option( $blog_id, 'ep_indexable', $checked );
+	$data   = [
+		'blog_id' => $blog_id,
+		'checked' => $checked,
+		'result'  => $result,
+		'raw'     => $_GET,
+		'old'     => $old
+	];
+
+	return wp_send_json_success( $data );
 }
