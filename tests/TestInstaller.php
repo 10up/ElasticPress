@@ -36,7 +36,7 @@ class TestInstaller extends BaseTestCase {
 		$this->setup_test_post_type();
 
 		global $hook_suffix;
-		$hook_suffix = 'admin.php';
+		$hook_suffix = 'sites.php';
 
 		set_current_screen();
 
