@@ -680,6 +680,10 @@ function action_wp_ajax_ep_index() {
 			$sites = Utils\get_sites();
 
 			foreach ( $sites as $site ) {
+				$is_indexable = get_blog_option( (int) $site['blog_id'], 'ep_indexable', 'yes' );
+				if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
+					continue;
+				}
 				foreach ( $non_global_indexables as $indexable ) {
 					$index_meta['sync_stack'][] = [
 						'url'       => untrailingslashit( $site['domain'] . $site['path'] ),
@@ -687,6 +691,12 @@ function action_wp_ajax_ep_index() {
 						'indexable' => $indexable,
 					];
 				}
+			}
+
+			if ( 0 === count( $index_meta['sync_stack'] ) ) {
+				wp_send_json_error( [ 'found_items' => 0, 'offset' => 0 ] );
+
+				return;
 			}
 
 			$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );

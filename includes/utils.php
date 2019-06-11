@@ -186,10 +186,13 @@ function get_sites( $limit = 0 ) {
 
 	foreach ( $site_objects as $site ) {
 		$sites[] = array(
-			'blog_id' => $site->blog_id,
-			'domain'  => $site->domain,
-			'path'    => $site->path,
-			'site_id' => $site->site_id,
+			'blog_id'  => $site->blog_id,
+			'domain'   => $site->domain,
+			'path'     => $site->path,
+			'site_id'  => $site->site_id,
+			'deleted'  => $site->deleted,
+			'archived' => $site->archived,
+			'spam'     => $site->spam,
 		);
 	}
 
