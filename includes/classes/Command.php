@@ -222,6 +222,11 @@ class Command extends WP_CLI_Command {
 			$sites = Utils\get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
+				$is_indexable = get_blog_option( (int) $site['blog_id'], 'ep_indexable', 'yes' );
+				if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
+					continue;
+				}
+
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
@@ -494,6 +499,10 @@ class Command extends WP_CLI_Command {
 			$sites = Utils\get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
+				$is_indexable = get_blog_option( (int) $site['blog_id'], 'ep_indexable', 'yes' );
+				if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
+					continue;
+				}
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
