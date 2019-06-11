@@ -31,6 +31,7 @@ class AdminNotices {
 	protected $notice_keys = [
 		'host_error',
 		'es_below_compat',
+		'es_above_compat',
 		'need_setup',
 		'no_sync',
 		'upgrade_sync',
@@ -52,6 +53,8 @@ class AdminNotices {
 	 * @since 3.0
 	 */
 	public function process_notices() {
+		$this->notices = [];
+
 		foreach ( $this->notice_keys as $notice ) {
 			$output = call_user_func( [ $this, 'process_' . $notice . '_notice' ] );
 
@@ -146,9 +149,9 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$auto_activate_sync = get_site_option( 'ep_feature_auto_activate_sync', false );
+			$auto_activate_sync = get_site_option( 'ep_feature_auto_activated_sync', false );
 		} else {
-			$auto_activate_sync = get_option( 'ep_feature_auto_activate_sync', false );
+			$auto_activate_sync = get_option( 'ep_feature_auto_activated_sync', false );
 		}
 
 		if ( ! $auto_activate_sync ) {
@@ -417,7 +420,7 @@ class AdminNotices {
 			return false;
 		}
 
-		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( false === $es_version ) {
 			return false;
@@ -484,11 +487,16 @@ class AdminNotices {
 			return false;
 		}
 
-		return [
-			'html'    => sprintf( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ),
-			'type'    => 'notice',
-			'dismiss' => true,
-		];
+		// First reduce version to major version i.e. 5.1 not 5.1.1.
+		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
+
+		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
+			return [
+				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ),
+				'type'    => 'notice',
+				'dismiss' => true,
+			];
+		}
 	}
 
 	/**

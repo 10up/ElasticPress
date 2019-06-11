@@ -98,6 +98,16 @@ class Screen {
 	}
 
 	/**
+	 * Set current screen
+	 *
+	 * @since  3.0
+	 * @param  string $screen Screen to set
+	 */
+	public function set_current_screen( $screen ) {
+		$this->screen = $screen;
+	}
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return self
