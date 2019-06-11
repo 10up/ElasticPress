@@ -912,14 +912,15 @@ function action_wp_ajax_ep_save_feature() {
  * @since 2.2
  */
 function action_admin_enqueue_dashboard_scripts() {
-    wp_enqueue_style('ep_admin_sites_styles', EP_URL . 'dist/css/sites-admin.min.css', [], EP_VERSION);
-    wp_enqueue_script('ep_admin_sites_scripts', EP_URL . 'dist/js/sites_admin.min.js', ['jquery'], EP_VERSION, true);
-    $data = [
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('epsa'),
-    ];
-    wp_localize_script('ep_admin_sites_scripts', 'epsa', $data);
-
+    if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'sites-network' ) !== false ) {
+	    wp_enqueue_style( 'ep_admin_sites_styles', EP_URL . 'dist/css/sites-admin.min.css', [], EP_VERSION );
+	    wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/sites_admin.min.js', [ 'jquery' ], EP_VERSION, true );
+	    $data = [
+		    'ajax_url' => admin_url( 'admin-ajax.php' ),
+		    'nonce'    => wp_create_nonce( 'epsa' ),
+	    ];
+	    wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
+    }
 
 	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'elasticpress' ) !== false ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard.min.css', [], EP_VERSION );
@@ -1363,10 +1364,7 @@ function action_wp_ajax_ep_site_admin() {
 	$result = update_blog_option( $blog_id, 'ep_indexable', $checked );
 	$data   = [
 		'blog_id' => $blog_id,
-		'checked' => $checked,
 		'result'  => $result,
-		'raw'     => $_GET,
-		'old'     => $old
 	];
 
 	return wp_send_json_success( $data );
