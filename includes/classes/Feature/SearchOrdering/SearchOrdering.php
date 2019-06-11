@@ -321,6 +321,9 @@ class SearchOrdering extends Feature {
 				if ( $post->post_type === self::POST_TYPE_NAME ) {
 					$pointers = get_post_meta( $post->ID, 'pointers', true );
 
+					// Pointers always need to be unset, regardless if they have pointer IDs or not
+					unset( $posts[ $key ] );
+
 					if ( empty( $pointers ) ) {
 						continue;
 					}
@@ -332,8 +335,6 @@ class SearchOrdering extends Feature {
 						$to_inject[ $order ] = $points_to;
 						$to_inject_ids[ $points_to ] = true;
 					}
-
-					unset( $posts[ $key ] );
 				}
 			}
 
