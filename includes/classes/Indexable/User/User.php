@@ -345,8 +345,6 @@ class User extends Indexable {
 		 *
 		 * @todo  Support the following parameters:
 		 *
-		 * $orderby
-		 * $order
 		 * $who
 		 * $has_published_posts
 		 */

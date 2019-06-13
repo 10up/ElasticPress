@@ -384,7 +384,7 @@ h2.ep-list-features {
 	}
 
 	& .disabled {
-		color: color(#444 lightness(50%));
+		color: #bbbbbb;
 
 		& input {
 			cursor: default;

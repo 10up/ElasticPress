@@ -134,7 +134,7 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	public function delete_network_alias() {
-		return Elasticsearch::factory()->delete_network_alias( $alias );
+		return Elasticsearch::factory()->delete_network_alias( $this->get_network_alias() );
 	}
 
 	/**
@@ -316,7 +316,7 @@ abstract class Indexable {
 	 */
 	public function prepare_meta_value_types( $meta_value ) {
 
-		$max_java_int_value = 9223372036854775807;
+		$max_java_int_value = PHP_INT_MAX;
 
 		$meta_types = [];
 

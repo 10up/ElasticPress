@@ -46,6 +46,34 @@ class EP_Feature_Requirements_Status {
 }
 
 /**
+ * Search Elasticsearch for related content
+ *
+ * @param  int $post_id Post ID
+ * @param  int $return Number of posts to get
+ * @since  2.1
+ * @return array|bool
+ */
+function ep_find_related( $post_id, $return = 5 ) {
+	_deprecated_function( __FUNCTION__, '3.0', 'ElasticPress\Features::factory()->get_registered_feature' );
+
+	$feature = \ElasticPress\Features::factory()->get_registered_feature( 'related_posts' );
+
+	return ( ! empty( $feature ) ) ? $feature->find_related( $post_id, $return ) : false;
+}
+
+/**
+ * Index a post given an ID
+ *
+ * @param  int $post_id  Post ID
+ * @return boolean|array
+ */
+function ep_index_post( $post_id ) {
+	_deprecated_function( __FUNCTION__, '3.0', "ElasticPress\Indexables::factory()->get( 'post' )->index" );
+
+	return \ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+}
+
+/**
  * Registers a feature for use in ElasticPress
  *
  * @param  string $slug Unique slug for feature
@@ -55,15 +83,58 @@ class EP_Feature_Requirements_Status {
 function ep_register_feature( $slug, $args ) {
 	_deprecated_function( __FUNCTION__, '3.0', esc_html__( 'Feature registration API', 'elasticpress' ) );
 
+	$callbacks = [
+		'feature_box_summary_cb',
+		'feature_box_long_cb',
+		'setup_cb',
+		'requirements_status_cb',
+	];
+
+	$resolved_callbacks = [];
+
+	if ( empty( $GLOBALS['ep_legacy_feature_refs'] ) ) {
+		$GLOBALS['ep_legacy_feature_refs'] = [];
+	}
+
+	$GLOBALS['ep_legacy_feature_refs'][ $slug ] = [];
+
+	foreach ( $callbacks as $callback_key ) {
+		if ( empty( $args[ $callback_key ] ) ) {
+			continue;
+		}
+
+		$callback = $args[ $callback_key ];
+
+		if ( is_string( $callback ) ) {
+			$resolved_callbacks[ $callback_key ] = "'" . $callback . "'";
+		} elseif ( is_array( $callback ) ) {
+			if ( is_string( $callback[0] ) ) {
+				$resolved_callbacks[ $callback_key ] = 'array( "' . addcslashes( $callback[0], "'" ) . '", "' . addcslashes( $callback[1], "'" ) . '" )';
+			} else {
+				$GLOBALS['ep_legacy_feature_refs'][ $slug ][ $callback_key ] = $callback[0];
+
+				$resolved_callbacks[ $callback_key ] = 'array( $GLOBALS["ep_legacy_feature_refs"]["' . $slug . '"]["' . $callback_key . '"], "' . addcslashes( $callback[1], "'" ) . '" )';
+			}
+		} else {
+			$GLOBALS['ep_legacy_feature_refs'][ $slug ][ $callback_key ] = $callback;
+
+			$resolved_callbacks[ $callback_key ] = '$GLOBALS["ep_legacy_feature_refs"]["' . $slug . '"]["' . $callback_key . '"]';
+		}
+	}
+
 	$slug                     = preg_replace( '#[^a-zA-Z0-9\-\_]#is', '', $slug );
 	$title                    = ( ! empty( $args['title'] ) ) ? addcslashes( $args['title'], "'" ) : false;
-	$feature_box_summary_cb   = ( ! empty( $args['feature_box_summary_cb'] ) ) ? addcslashes( $args['feature_box_summary_cb'], "'" ) : false;
 	$requires_install_reindex = ( ! empty( $requires_install_reindex ) ) ? 'true' : 'false';
-	$setup_cb                 = ( ! empty( $args['setup_cb'] ) ) ? addcslashes( $args['setup_cb'], "'" ) : false;
-	$requirements_status_cb   = ( ! empty( $args['requirements_status_cb'] ) ) ? addcslashes( $args['requirements_status_cb'], "'" ) : false;
 
+	$class_name = 'EP' . $slug . 'Feature';
+
+	if ( class_exists( $class_name ) ) {
+		return;
+	}
+
+	// phpcs:disable
 	$code = "
-class $slug extends ElasticPress\Feature {
+class $class_name extends ElasticPress\Feature {
 	/**
 	 * Initialize feature
 	 *
@@ -86,8 +157,8 @@ class $slug extends ElasticPress\Feature {
 	 * @since  3.0
 	 */
 	public function setup() {
-		' . ( ( ! empty( $setup_cb ) ) ?
-			"call_user_func( '$setup_cb' );"
+		' . ( ( ! empty( $resolved_callbacks['setup_cb'] ) ) ?
+			'call_user_func( ' . $resolved_callbacks['setup_cb'] . ' );'
 		:
 			''
 		) . '
@@ -99,8 +170,8 @@ class $slug extends ElasticPress\Feature {
 	 * @since 3.0
 	 */
 	public function output_feature_box_summary() {
-		' . ( ( ! empty( $feature_box_summary_cb ) ) ?
-			"call_user_func( '$feature_box_summary_cb' );"
+		' . ( ( ! empty( $resolved_callbacks['feature_box_summary_cb'] ) ) ?
+			'call_user_func( ' . $resolved_callbacks['feature_box_summary_cb'] . ' );'
 		:
 			''
 		) . '
@@ -112,8 +183,8 @@ class $slug extends ElasticPress\Feature {
 	 * @since 3.0
 	 */
 	public function output_feature_box_long() {
-		' . ( ( ! empty( $feature_box_long_cb ) ) ?
-			"call_user_func( '$feature_box_long_cb' );"
+		' . ( ( ! empty( $resolved_callbacks['feature_box_long_cb'] ) ) ?
+			'call_user_func( ' . $resolved_callbacks['feature_box_long_cb'] . ' );'
 		:
 			''
 		) . '
@@ -125,10 +196,10 @@ class $slug extends ElasticPress\Feature {
 	 * @since  3.0
 	 */
 	public function requirements_status() {
-		' . ( ( ! empty( $requirements_status_cb ) ) ?
+		' . ( ( ! empty( $resolved_callbacks['requirements_status_cb'] ) ) ?
 			"
 			\$status = new \ElasticPress\FeatureRequirementsStatus( 0 );
-			return call_user_func( '$requirements_status_cb', \$status );
+			return call_user_func( " . $resolved_callbacks['requirements_status_cb'] . ", \$status );
 			"
 		:
 			'return parent::requirements_status();'
@@ -136,11 +207,11 @@ class $slug extends ElasticPress\Feature {
 	}
 }
 ';
-	// phpcs:disable
+
 	eval( $code );
 	// phpcs:enable
 
 	ElasticPress\Features::factory()->register_feature(
-		new $slug()
+		new $class_name()
 	);
 }

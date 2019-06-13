@@ -182,13 +182,15 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Add document mappings for every indexable
 	 *
-	 * @synopsis [--network-wide] [--indexables]
+	 * @synopsis [--network-wide] [--indexables] [--ep-host] [--ep-prefix]
 	 * @subcommand put-mapping
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function put_mapping( $args, $assoc_args ) {
+		$this->maybe_change_host( $assoc_args );
+		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
 
@@ -418,7 +420,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -427,6 +429,8 @@ class Command extends WP_CLI_Command {
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
 
+		$this->maybe_change_host( $assoc_args );
+		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
 
@@ -608,6 +612,24 @@ class Command extends WP_CLI_Command {
 			$no_bulk = true;
 		}
 
+		if ( isset( $args['ep-host'] ) ) {
+			add_filter(
+				'ep_host',
+				function ( $host ) use ( $args ) {
+					return $args['ep-host'];
+				}
+			);
+		}
+
+		if ( isset( $args['ep-prefix'] ) ) {
+			add_filter(
+				'ep_index_prefix',
+				function ( $prefix ) use ( $args ) {
+					return $args['ep-prefix'];
+				}
+			);
+		}
+
 		$show_bulk_errors = false;
 
 		if ( isset( $args['show-bulk-errors'] ) ) {
@@ -627,7 +649,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $args['include'] ) ) {
-			$include               = explode( ',', str_replace( ' ', '', $assoc_args['include'] ) );
+			$include               = explode( ',', str_replace( ' ', '', $args['include'] ) );
 			$query_args['include'] = array_map( 'absint', $include );
 			$args['per-page']      = count( $query_args['include'] );
 		}
@@ -1056,6 +1078,7 @@ class Command extends WP_CLI_Command {
 	 * @since 3.0
 	 */
 	private function index_occurring( $assoc_args ) {
+
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$dashboard_syncing = get_site_option( 'ep_index_meta' );
 			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
@@ -1081,4 +1104,43 @@ class Command extends WP_CLI_Command {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		}
 	}
+
+
+	/**
+	 * maybe change Elastic host on the fly
+	 *
+	 * @param array $assoc_args Associative CLI args.
+	 *
+	 * @since 3.x
+	 */
+	private function maybe_change_host( $assoc_args ) {
+		if ( isset( $assoc_args['ep-host'] ) ) {
+			add_filter(
+				'ep_host',
+				function ( $host ) use ( $assoc_args ) {
+					return $assoc_args['ep-host'];
+				}
+			);
+		}
+	}
+
+
+	/**
+	 * maybe change index prefix on the fly
+	 *
+	 * @param array $assoc_args Associative CLI args.
+	 *
+	 * @since 3.x
+	 */
+	private function maybe_change_index_prefix( $assoc_args ) {
+		if ( isset( $assoc_args['ep-prefix'] ) ) {
+			add_filter(
+				'ep_index_prefix',
+				function ( $prefix ) use ( $assoc_args ) {
+					return $assoc_args['ep-prefix'];
+				}
+			);
+		}
+	}
+
 }
