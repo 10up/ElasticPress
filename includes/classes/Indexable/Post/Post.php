@@ -774,7 +774,7 @@ class Post extends Indexable {
 		 */
 		$date_filter = DateQuery::simple_es_date_filter( $args );
 
-		if ( empty( $date_filter ) ) {
+		if ( ! empty( $date_filter ) ) {
 			$filter['bool']['must'][] = $date_filter;
 			$use_filters              = true;
 		}

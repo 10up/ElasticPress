@@ -138,7 +138,7 @@ class Widget extends WP_Widget {
 				<?php
 			endif;
 			ob_start();
-?>
+			?>
 
 			<div class="inner">
 				<?php if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) ) : ?>

@@ -250,26 +250,26 @@ function maybe_notice( $force = false ) {
 	// Admins only.
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		if ( ! is_super_admin() ) {
-			return;
+			return false;
 		}
 	} else {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
+			return false;
 		}
 	}
 	// Don't show notice on intro page ever.
 	if ( ! empty( $_GET['page'] ) && 'elasticpress-intro' === $_GET['page'] ) {
-		return;
+		return false;
 	}
 
 	// If in network mode, don't output notice in admin and vice-versa.
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		if ( ! is_network_admin() ) {
-			return;
+			return false;
 		}
 	} else {
 		if ( is_network_admin() ) {
-			return;
+			return false;
 		}
 	}
 
