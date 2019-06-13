@@ -47,6 +47,8 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Pass $post_id twice in ep_post_sync_kill for backwards compatibility. Props [aaemnnosttv](https://github.com/aaemnnosttv)
 * Add `ep_search_request_path` filter for backwards compant.
 * Add `ep_query_request_path` filter for modifying the query path.
+* Fix missing action name in post query integration.
+* Properly add date filter to WP_Query.
 
 = 3.0.2 =
 

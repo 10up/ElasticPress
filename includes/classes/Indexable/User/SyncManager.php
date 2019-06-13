@@ -90,6 +90,8 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		do_action( 'ep_sync_user_on_transition', $user_id );
+
 		$this->sync_queue[ $user_id ] = true;
 	}
 }

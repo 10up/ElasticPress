@@ -2,5 +2,7 @@
 <ruleset name="10up PHPCS">
   <description>10up PHPCS extended.</description>
 
-  <rule ref="10up-Default" />
+  <rule ref="10up-Default">
+    <exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited" />
+  </rule>
 </ruleset>

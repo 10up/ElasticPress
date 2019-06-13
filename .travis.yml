@@ -1,13 +1,23 @@
 language: php
 php:
-- 7.2
-env:
-  global:
-  - WP_VERSION=master
-  - WP_VERSION=4.7
-before_script:
-  - composer install
-script:
-  - composer run-script lint
+  - 7.2
 notifications:
   email: false
+services:
+  - mysql
+env:
+  global:
+  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="6.3.0"
+before_install:
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ES_VERSION.deb && sudo dpkg -i --force-confnew elasticsearch-$ES_VERSION.deb && sudo service elasticsearch restart
+before_script:
+  - composer install
+  - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
+  - sleep 10
+script:
+  - composer run-script lint
+  - composer run-script test
+
+after_success:
+  # Submit coverage report to https://codecov.io
+  - bash <(curl -s https://codecov.io/bash)
