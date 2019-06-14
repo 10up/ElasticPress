@@ -134,7 +134,7 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	public function delete_network_alias() {
-		return Elasticsearch::factory()->delete_network_alias( $alias );
+		return Elasticsearch::factory()->delete_network_alias( $this->get_network_alias() );
 	}
 
 	/**
