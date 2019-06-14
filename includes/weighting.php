@@ -148,8 +148,10 @@ function render_settings_page() {
 					render_settings_section( $post_type, $field_group, $current_values );
 				endforeach;
 
-			endforeach; ?>
-			<input type="submit" class="button button-primary">
+			endforeach;
+			
+			submit_button();
+			?>
         </form>
     </div>
     <?php
