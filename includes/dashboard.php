@@ -1320,7 +1320,7 @@ function use_language_in_setting( $language = 'english' ) {
  * @return string[]
  */
 function filter_blogs_columns( $columns ) {
-	$columns['elasticpress'] = 'ElasticPress Indexing';
+	$columns['elasticpress'] = __( 'ElasticPress Indexing', 'elasticpress' );
 
 	return $columns;
 }
