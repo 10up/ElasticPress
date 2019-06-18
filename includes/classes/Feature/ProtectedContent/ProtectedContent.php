@@ -33,7 +33,9 @@ class ProtectedContent extends Feature {
 		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
-
+		$this->default_settings = [
+			'query_attachments' => 0,
+		];
 		parent::__construct();
 	}
 
@@ -49,6 +51,7 @@ class ProtectedContent extends Feature {
 		if ( is_admin() ) {
 			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
 			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
+			add_filter( 'ajax_query_attachments_args', [ $this, 'query_attachments' ], 10, 1 );
 		}
 	}
 
@@ -186,6 +189,58 @@ class ProtectedContent extends Feature {
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Allow ElasticPress integration for attachment searches depending on setting value.
+	 *
+	 * @param array $args Array of WP_Query arguments.
+	 *
+	 * @return array
+	 */
+	public function query_attachments( $args ) {
+		$settings = $this->get_settings();
+
+		if ( ! $settings ) {
+			$settings = [];
+		}
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		$args['ep_integrate'] = (bool) $settings['query_attachments'];
+
+		return $args;
+	}
+
+	/**
+	 * Display attachment settings on dashboard.
+	 */
+	public function output_feature_box_settings() {
+		$settings = $this->get_settings();
+
+		if ( ! $settings ) {
+			$settings = [];
+		}
+
+		$settings = wp_parse_args( $settings, $this->default_settings );
+		?>
+        <div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+            <div class="field-name status"><?php esc_html_e( 'Media Library Search', 'elasticpress' ); ?></div>
+            <div class="input-wrap">
+                <label for="query_attachments"><input name="query_attachments" id="query_attachments"
+                                                      data-field-name="query_attachments" class="setting-field"
+                                                      type="radio"
+				                                      <?php if ( (bool) $settings['query_attachments'] ) : ?>checked<?php endif; ?>
+                                                      value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
+                </label><br>
+                <label for="attachments_disabled"><input name="query_attachments" id="attachments_disabled"
+                                                         data-field-name="query_attachments" class="setting-field"
+                                                         type="radio"
+				                                         <?php if ( ! (bool) $settings['query_attachments'] ) : ?>checked<?php endif; ?>
+                                                         value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
+                </label>
+            </div>
+        </div>
+		<?php
 	}
 }
 
