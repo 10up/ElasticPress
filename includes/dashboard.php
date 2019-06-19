@@ -642,7 +642,7 @@ function action_admin_enqueue_dashboard_scripts() {
 			$data['indices_data'][ $index_name ]['docs'] = esc_html( $data['indices_data'][ $index_name ]['docs'] );
 		}
 
-		wp_enqueue_script( 'ep_chartjs', EP_URL . 'vendor/Chart.js-2.8.0/dist/Chart.bundle.min.js', [], EP_VERSION, true );
+		wp_enqueue_script( 'ep_chartjs', EP_URL . 'dist/js/Chart.js-2.8.0/dist/Chart.bundle.min.js', [], EP_VERSION, true );
 		wp_enqueue_script( 'ep_stats', EP_URL . 'dist/js/stats.min.js', [], EP_VERSION, true );
 		wp_localize_script( 'ep_stats', 'epChartData', $data );
 	}
