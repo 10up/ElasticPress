@@ -15,6 +15,7 @@ use ElasticPress\Indexables;
 use ElasticPress\Installer;
 use ElasticPress\AdminNotices;
 use ElasticPress\Screen;
+use ElasticPress\Stats;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -568,7 +569,7 @@ function action_wp_ajax_ep_save_feature() {
  * @since 2.2
  */
 function action_admin_enqueue_dashboard_scripts() {
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'stats' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard.min.css', [], EP_VERSION );
 	}
 
@@ -625,6 +626,25 @@ function action_admin_enqueue_dashboard_scripts() {
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
+	}
+
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'stats' ], true ) ) {
+		$data                           = Stats::factory()->get_localized();
+		$data['index_total']            = esc_html( $data['index_total'] );
+		$data['index_time_in_millis']   = esc_html( $data['index_time_in_millis'] );
+		$data['query_total']            = esc_html( $data['query_total'] );
+		$data['query_time_in_millis']   = esc_html( $data['query_time_in_millis'] );
+		$data['suggest_time_in_millis'] = esc_html( $data['suggest_time_in_millis'] );
+		$data['suggest_total']          = esc_html( $data['suggest_total'] );
+
+		foreach ( $data['indices_data'] as $index_name => $index ) {
+			$data['indices_data'][ $index_name ]['name'] = esc_html( $data['indices_data'][ $index_name ]['name'] );
+			$data['indices_data'][ $index_name ]['docs'] = esc_html( $data['indices_data'][ $index_name ]['docs'] );
+		}
+
+		wp_enqueue_script( 'ep_chartjs', EP_URL . 'vendor/Chart.js-2.8.0/dist/Chart.bundle.min.js', [], EP_VERSION, true );
+		wp_enqueue_script( 'ep_stats', EP_URL . 'dist/js/stats.min.js', [], EP_VERSION, true );
+		wp_localize_script( 'ep_stats', 'epChartData', $data );
 	}
 }
 
@@ -751,6 +771,15 @@ function action_admin_menu() {
 		esc_html__( 'Settings', 'elasticpress' ),
 		$capability,
 		'elasticpress-settings',
+		__NAMESPACE__ . '\resolve_screen'
+	);
+
+	add_submenu_page(
+		'elasticpress',
+		'ElasticPress ' . esc_html__( 'Stats', 'elasticpress' ),
+		esc_html__( 'Stats', 'elasticpress' ),
+		$capability,
+		'elasticpress-stats',
 		__NAMESPACE__ . '\resolve_screen'
 	);
 }
