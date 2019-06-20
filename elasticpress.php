@@ -120,7 +120,7 @@ Features::factory()->register_feature(
 	new Feature\Documents\Documents()
 );
 
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+if ( version_compare( $wp_version, '4.8', '>=' ) || 0 === stripos( $wp_version, '4.8-' ) ) {
 	Features::factory()->register_feature(
 		new Feature\Users\Users()
 	);
