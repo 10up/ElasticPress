@@ -112,7 +112,7 @@ function render_settings_page() {
 		<h1><?php esc_html_e( 'Manage Search Fields & Weighting', 'elasticpress' ); ?></h1>
 		<p>Adding more weight to an item will mean it will have more presence during searches. Add more weight to the items that are more important and need more prominence during searches.</p>
 
-		<form action="<?php echo admin_url( 'admin-post.php' ); ?>" method="post" class="weighting-settings">
+		<form action="<?php echo admin_url( 'admin-post.php' ); ?>" method="post" class="weighting-settings metabox-holder">
 			<input type="hidden" name="action" value="ep-weighting">
 			<?php wp_nonce_field( 'save-weighting', 'ep-weighting-nonce' ); ?>
 			<?php
@@ -142,12 +142,15 @@ function render_settings_page() {
 				$fields = get_weightable_fields_for_post_type( $post_type );
 				$post_type_object = get_post_type_object( $post_type );
 				?>
-				<h2><?php echo esc_html( $post_type_object->labels->menu_name ); ?></h2>
+				<div class="postbox">
+					<h2 class="hndle"><?php echo esc_html( $post_type_object->labels->menu_name ); ?></h2>
 
-				<?php foreach ( $fields as $field_group ) :
-					render_settings_section( $post_type, $field_group, $current_values );
-				endforeach;
-
+					<?php foreach ( $fields as $field_group ) :
+						render_settings_section( $post_type, $field_group, $current_values );
+					endforeach;
+					?>
+				</div>
+			<?php
 			endforeach;
 			
 			submit_button();
@@ -167,7 +170,7 @@ function render_settings_page() {
 function render_settings_section( $post_type, $field, $current_values ) {
 	if ( isset( $field['children'] ) ) : ?>
         <div class="field-group">
-            <strong><?php echo esc_html( $field['label'] ); ?></strong>
+            <h3><?php echo esc_html( $field['label'] ); ?></h3>
             <div class="fields">
                 <?php foreach( $field['children'] as $child ) {
 					render_settings_section( $post_type, $child, $current_values );
@@ -178,25 +181,40 @@ function render_settings_section( $post_type, $field, $current_values ) {
         $key = $field['key'];
 		$weight = isset( $current_values[$post_type] ) && isset( $current_values[$post_type][ $key ] ) && isset( $current_values[$post_type][ $key ]['weight'] ) ? (int) $current_values[ $post_type ][ $key ]['weight'] : 0;
 		$optional = isset( $field['optional'] ) && true === $field['optional'] ? true : false;
-        ?>
-        <div class="field">
-            <label for="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>"><?php echo esc_html( $field['label'] ); ?></label>
-            <input type="range" min="0" max="10" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]">
 
-			<?php if ( true === $optional ) :
-				$enabled = (
-					isset( $current_values[$post_type] ) &&
-					isset( $current_values[$post_type][ $key ] ) &&
-					isset( $current_values[$post_type][ $key ]['enabled'] )
-				)
-					? boolval( $current_values[ $post_type ][ $key ]['enabled'] ) : false;
-				?>
-				<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
-				<label for="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>">Make Searchable</label>
-			<?php else : ?>
-				<input type="hidden" value="on" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
-			<?php endif; ?>
-        </div>
+		$search_disabled = '';
+		$range_disabled = '';
+
+		if ( true === $optional ) {
+			$enabled = (
+				isset( $current_values[$post_type] ) &&
+				isset( $current_values[$post_type][ $key ] ) &&
+				isset( $current_values[$post_type][ $key ]['enabled'] )
+			)
+				? boolval( $current_values[ $post_type ][ $key ]['enabled'] ) : false;
+		} else {
+			$enabled = true;
+			$search_disabled = ' disabled="disabled"';
+		}
+
+		if ( ! $enabled ) {
+			$range_disabled = 'disabled="disabled" ';
+			$weight = 0;
+		}
+        ?>
+        <fieldset>
+			<legend><?php echo esc_html( $field['label'] ); ?></legend>
+
+			<p class="searchable">
+				<input type="checkbox" value="on" <?php checked( $enabled ); echo $search_disabled; ?> id="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
+				<label for="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>"><?php esc_html_e( 'Searchable', 'elasticpress' ); ?></label>
+			</p>
+
+			<p class="weighting">
+				<label for="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>"><?php printf( __( 'Weight: %s', 'elasticpress' ), '<span class="weighting-value">' . esc_attr( $weight ) . '</span>' ); ?></label>
+				<input type="range" min="0" max="10" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]" <?php echo $range_disabled; ?>>
+			</p>
+		</fieldset>
 	<?php endif;
 }
 
