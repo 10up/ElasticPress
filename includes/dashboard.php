@@ -94,6 +94,8 @@ function filter_allowed_html( $allowedtags, $context ) {
 			'target'         => true,
 		];
 
+		$ep_tags['a']['data-feature'] = true;
+
 		return $ep_tags;
 	}
 
