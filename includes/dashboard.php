@@ -569,7 +569,7 @@ function action_wp_ajax_ep_save_feature() {
  * @since 2.2
  */
 function action_admin_enqueue_dashboard_scripts() {
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'stats' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard.min.css', [], EP_VERSION );
 	}
 
@@ -628,7 +628,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'stats' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
 		$data                           = Stats::factory()->get_localized();
 		$data['index_total']            = esc_html( $data['index_total'] );
 		$data['index_time_in_millis']   = esc_html( $data['index_time_in_millis'] );

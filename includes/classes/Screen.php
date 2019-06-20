@@ -68,7 +68,7 @@ class Screen {
 				}
 			} elseif ( 'elasticpress-health' === $_GET['page'] ) {
 				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
-					$this->screen = 'stats';
+					$this->screen = 'health';
 				}
 			}
 		}
@@ -90,7 +90,7 @@ class Screen {
 			case 'install':
 				require_once __DIR__ . '/../partials/install-page.php';
 				break;
-			case 'stats':
+			case 'health':
 				require_once __DIR__ . '/../partials/stats-page.php';
 				break;
 		}

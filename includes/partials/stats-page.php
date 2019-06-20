@@ -7,14 +7,18 @@
  */
 
 use ElasticPress\Stats as Stats;
+use ElasticPress\Elasticsearch as Elasticsearch;
 
-$index_health = Stats::factory()->get_health();
-$totals       = Stats::factory()->get_totals();
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
 require_once __DIR__ . '/header.php';
 
-?>
-
+if ( ! empty( \ElasticPress\Utils\get_host() ) ) :
+	$index_health = Stats::factory()->get_health();
+	$totals       = Stats::factory()->get_totals();
+	?>
 <div class="wrap metabox-holder">
 	<div class="ep-flex-container">
 		<div class="stats-list postbox">
@@ -64,3 +68,8 @@ require_once __DIR__ . '/header.php';
 		</div>
 	</div>
 </div>
+<?php else : ?>
+	<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>
+	<div class="wrap">
+<?php endif; ?>
+
