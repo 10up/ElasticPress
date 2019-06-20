@@ -776,10 +776,10 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		'elasticpress',
-		'ElasticPress ' . esc_html__( 'Stats', 'elasticpress' ),
-		esc_html__( 'Stats', 'elasticpress' ),
+		'ElasticPress ' . esc_html__( 'Index Health', 'elasticpress' ),
+		esc_html__( 'Index Health', 'elasticpress' ),
 		$capability,
-		'elasticpress-stats',
+		'elasticpress-health',
 		__NAMESPACE__ . '\resolve_screen'
 	);
 }

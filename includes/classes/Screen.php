@@ -66,7 +66,7 @@ class Screen {
 				if ( true === $install_status || 2 === $install_status || isset( $_GET['do_sync'] ) ) {
 					$this->screen = 'settings';
 				}
-			} elseif ( 'elasticpress-stats' === $_GET['page'] ) {
+			} elseif ( 'elasticpress-health' === $_GET['page'] ) {
 				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
 					$this->screen = 'stats';
 				}
