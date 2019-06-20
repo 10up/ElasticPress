@@ -669,6 +669,10 @@ h2.ep-list-features {
 	width: 120px;
 }
 
+.weighting-settings .weighting label {
+	width: 60px; /* not localization friendly */
+}
+
 .weighting-settings input[type=range] {
 	display: inline-block;
 	width: 200px;
