@@ -9,7 +9,8 @@ const config = {
 		admin: './assets/js/admin.js',
 		autosuggest: './assets/js/autosuggest.js',
 		dashboard: './assets/js/dashboard.js',
-		facets: './assets/js/facets.js'
+		facets: './assets/js/facets.js',
+		stats: './assets/js/stats.js'
 	},
 	output: {
 		path: DIST_PATH,
@@ -51,7 +52,8 @@ const config = {
 	externals: {
 		jquery: 'jQuery',
 		underscores: '_',
-		window: 'window'
+		window: 'window',
+		chartjs: 'Chart'
 	}
 };
 
