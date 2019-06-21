@@ -309,6 +309,9 @@ function recursively_inject_weights_to_fields( &$fieldset, $weights ) {
 				unset( $fieldset['fields'][ $key ] );
 			}
 		}
+
+		// Reindex the array
+		$fieldset['fields'] = array_values( $fieldset['fields'] );
 	} else {
 		foreach ( $fieldset as &$field ) {
 			recursively_inject_weights_to_fields( $field, $weights );
