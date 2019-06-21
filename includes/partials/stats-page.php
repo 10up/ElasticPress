@@ -72,4 +72,3 @@ if ( ! empty( \ElasticPress\Utils\get_host() ) ) :
 	<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>
 	<div class="wrap">
 <?php endif; ?>
-
