@@ -296,8 +296,14 @@ function recursively_inject_weights_to_fields( &$fieldset, $weights ) {
 		return;
 	}
 
-	// @todo handle enabled/disabled fields and default enabled/disabled status
 	if ( is_array( $fieldset ) && isset( $fieldset['fields'] ) ) {
+		// Add any fields to the search that aren't already in there (weighting handled in next step)
+		foreach ( $weights as $field => $settings ) {
+			if ( ! in_array( $field, $fieldset['fields'], true ) ) {
+				$fieldset['fields'][] = $field;
+			}
+		}
+
 		foreach ( $fieldset['fields'] as $key => $field ) {
 			if ( isset( $weights[ $field ] ) && $weights[ $field ]['enabled'] !== false ) {
 				$weight = (int) $weights[ $field ]['weight'];
