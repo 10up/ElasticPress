@@ -1,15 +1,65 @@
+import Chart from 'chartjs';
+import { epChartData } from 'window';
+
+/**
+ * Generates a random string representing a color.
+ *
+ * @returns {string|string}
+ */
+function getRandomColor() {
+	let letters = '0123456789ABCDEF';
+	let color   = '#';
+	for ( let i = 0; i < 6; i++ ) {
+		color += letters[ Math.floor( Math.random() * 16 ) ];
+	}
+	return color;
+}
+
+const barData   = Object.entries( epChartData.indices_data );
+const barLabels = [];
+const barDocs   = [];
+const barColors = [];
+
 Chart.defaults.global.legend.labels.usePointStyle = true;
-var queriesTotalChart = new Chart( document.getElementById( 'queriesTotalChart' ), {
+
+barData.forEach( function( data ) {
+	barLabels.push( data[1].name );
+	barDocs.push( data[1].docs  );
+	barColors.push( getRandomColor() );
+} );
+
+let documentChart = new Chart( document.getElementById( 'documentChart' ), {
+	type: 'horizontalBar',
+	data: {
+		labels: barLabels,
+		datasets: [
+			{
+				label: 'Documents',
+				backgroundColor: barColors,
+				data: barDocs
+			}
+		]
+	},
+	options: {
+		legend: {
+			display: false
+		},
+		title: {
+			display: true,
+		}
+	}
+} );
+
+let queriesTotalChart = new Chart( document.getElementById( 'queriesTotalChart' ), {
 	type: 'pie',
 	data: {
-		labels: ['Indexing operations', 'Total Query operations', 'Total Autosuggest operations'],
+		labels: [ 'Indexing operations', 'Total Query operations' ],
 		datasets: [{
 			label: '',
-			backgroundColor: ['#5ba9a7', '#2e7875','#a980a4'],
-			data: [epChartData.index_total, epChartData.query_total, epChartData.suggest_total]
+			backgroundColor: [ '#5ba9a7', '#2e7875','#a980a4' ],
+			data: [ epChartData.index_total, epChartData.query_total ]
 		}]
 	},
-
 	options: {
 		responsive: false,
 		title: {
@@ -28,8 +78,8 @@ var queriesTotalChart = new Chart( document.getElementById( 'queriesTotalChart' 
 				 * @returns {string}
 				 */
 				label: function( item, data ) {
-					var dataset = data.datasets[item.datasetIndex];
-					var currentValue = dataset.data[item.index];
+					let dataset      = data.datasets[item.datasetIndex];
+					let currentValue = dataset.data[item.index];
 
 					return 'Operations: ' + currentValue ;
 				}
@@ -38,17 +88,16 @@ var queriesTotalChart = new Chart( document.getElementById( 'queriesTotalChart' 
 	}
 } );
 
-var queriesTimeChart = new Chart( document.getElementById( 'queriesTimeChart' ), {
+let queriesTimeChart = new Chart( document.getElementById( 'queriesTimeChart' ), {
 	type: 'pie',
 	data: {
-		labels: ['Avg indexing time in ms', 'Avg query time in ms', 'Avg autosuggest time in ms'],
+		labels: [ 'Avg indexing time in ms', 'Avg query time in ms' ],
 		datasets: [{
 			label: '',
-			backgroundColor: ['#9ea6c7', '#93b3d5', '#9bdcd9'],
-			data: [epChartData.index_time_in_millis, epChartData.query_time_in_millis, epChartData.suggest_time_in_millis]
+			backgroundColor: [ '#9ea6c7', '#93b3d5' ],
+			data: [ epChartData.index_time_in_millis, epChartData.query_time_in_millis ]
 		}]
 	},
-
 	options: {
 		responsive: false,
 		title: {
@@ -67,8 +116,8 @@ var queriesTimeChart = new Chart( document.getElementById( 'queriesTimeChart' ),
 				 * @returns {string}
 				 */
 				label: function( item, data ) {
-					var dataset = data.datasets[item.datasetIndex];
-					var currentValue = dataset.data[item.index];
+					let dataset = data.datasets[item.datasetIndex];
+					let currentValue = dataset.data[item.index];
 
 					return + currentValue + ' milliseconds';
 				}
@@ -76,35 +125,3 @@ var queriesTimeChart = new Chart( document.getElementById( 'queriesTimeChart' ),
 		}
 	}
 } );
-
-var barData  = Object.entries( epChartData.indices_data  );
-var labels   = [];
-var docs     = [];
-
-barData.forEach( function( data ) {
-	labels.push( data[1].name );
-} );
-
-barData.forEach( function( data ) {
-	docs.push( data[1].docs  );
-} );
-var documentChart = new Chart( document.getElementById( 'documentChart' ), {
-	type: 'horizontalBar',
-	data: {
-		labels: labels,
-		datasets: [
-			{
-				label: 'Documents',
-				backgroundColor: ['#bb5e83', '#2e7875'],
-				data: docs
-			}
-		]
-	},
-	options: {
-		legend: { display: false },
-		title: {
-			display: true,
-		}
-	}
-} );
-
