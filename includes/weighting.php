@@ -78,7 +78,6 @@ function get_weightable_fields_for_post_type( $post_type ) {
 			$fields['taxonomies']['children'][ $key ] = array(
 				'key' => $key,
 				'label' => $taxonomy_object->labels->name,
-				'optional' => true,
 			);
 		}
 	}
@@ -87,12 +86,40 @@ function get_weightable_fields_for_post_type( $post_type ) {
 }
 
 /**
+ * Returns default settings for any post type
+ *
+ * Defaults to title, content, excerpt, and author name enabled with zero weight
+ */
+function get_post_type_default_settings() {
+	$post_type_defaults = [
+		'post_title' => [
+			'enabled' => true,
+			'weight' => 0,
+		],
+		'post_content' => [
+			'enabled' => true,
+			'weight' => 0,
+		],
+		'post_excerpt' => [
+			'enabled' => true,
+			'weight' => 0,
+		],
+		'author_name' => [
+			'enabled' => true,
+			'weight' => 0,
+		],
+	];
+
+	return $post_type_defaults;
+}
+
+/**
  * Returns the current weighting configuration
  *
  * @return array
  */
 function get_weighting_configuration() {
-	return get_option( 'elasticpress_weighting', array() );
+	return get_option( 'elasticpress_weighting', [] );
 }
 
 /**
@@ -152,7 +179,7 @@ function render_settings_page() {
 				</div>
 			<?php
 			endforeach;
-			
+
 			submit_button();
 			?>
         </form>
@@ -179,23 +206,19 @@ function render_settings_section( $post_type, $field, $current_values ) {
         </div>
     <?php elseif ( isset( $field['key'] ) ) :
         $key = $field['key'];
-		$weight = isset( $current_values[$post_type] ) && isset( $current_values[$post_type][ $key ] ) && isset( $current_values[$post_type][ $key ]['weight'] ) ? (int) $current_values[ $post_type ][ $key ]['weight'] : 0;
-		$optional = isset( $field['optional'] ) && true === $field['optional'] ? true : false;
 
-		$search_disabled = '';
+		$post_type_settings = isset( $current_values[ $post_type ] ) ? $current_values[ $post_type ] : get_post_type_default_settings();
+
+		$weight = isset( $post_type_settings[ $key ] ) && isset( $post_type_settings[ $key ]['weight'] ) ? (int) $post_type_settings[ $key ]['weight'] : 0;
+
 		$range_disabled = '';
 
-		if ( true === $optional ) {
-			$enabled = (
-				isset( $current_values[$post_type] ) &&
-				isset( $current_values[$post_type][ $key ] ) &&
-				isset( $current_values[$post_type][ $key ]['enabled'] )
-			)
-				? boolval( $current_values[ $post_type ][ $key ]['enabled'] ) : false;
-		} else {
-			$enabled = true;
-			$search_disabled = ' disabled="disabled"';
-		}
+		$enabled = (
+			isset( $post_type_settings ) &&
+			isset( $post_type_settings[ $key ] ) &&
+			isset( $post_type_settings[ $key ]['enabled'] )
+		)
+			? boolval( $post_type_settings[ $key ]['enabled'] ) : false;
 
 		if ( ! $enabled ) {
 			$range_disabled = 'disabled="disabled" ';
@@ -206,7 +229,7 @@ function render_settings_section( $post_type, $field, $current_values ) {
 			<legend><?php echo esc_html( $field['label'] ); ?></legend>
 
 			<p class="searchable">
-				<input type="checkbox" value="on" <?php checked( $enabled ); echo $search_disabled; ?> id="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
+				<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
 				<label for="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>"><?php esc_html_e( 'Searchable', 'elasticpress' ); ?></label>
 			</p>
 
@@ -277,8 +300,11 @@ function recursively_inject_weights_to_fields( &$fieldset, $weights ) {
 	if ( is_array( $fieldset ) && isset( $fieldset['fields'] ) ) {
 		foreach ( $fieldset['fields'] as $key => $field ) {
 			if ( isset( $weights[ $field ] ) && $weights[ $field ]['enabled'] !== false ) {
-				$weight = $weights[ $field ]['weight'];
-				$fieldset['fields'][ $key ] = "{$field}^{$weight}";
+				$weight = (int) $weights[ $field ]['weight'];
+
+				if ( 0 !== $weight ) {
+					$fieldset['fields'][ $key ] = "{$field}^{$weight}";
+				}
 			} else {
 				unset( $fieldset['fields'][ $key ] );
 			}
