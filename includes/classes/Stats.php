@@ -54,19 +54,13 @@ class Stats {
 	 * @return array|mixed|object
 	 */
 	protected function api_call( $endpoint_url, $additional_endpoint ) {
-		if ( false !== Utils\get_shield_credentials() ) {
-			$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
-		} else {
-			$request_args = '';
-		}
+		$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
 
 		try {
-			$data  = [ 'format' => 'json' ];
-			$query = http_build_query( $data, null, '&', PHP_QUERY_RFC3986 );
+			$query = http_build_query( [ 'format' => 'json' ], null, '&', PHP_QUERY_RFC3986 );
 			$url   = trailingslashit( $endpoint_url ) . trailingslashit( $additional_endpoint ) . '?' . $query;
-			$args  = [ 'headers' => [ 'Content-Type' => 'application/x-www-form-urlencoded' ] ];
 
-			$api_call = wp_remote_get( $url, wp_parse_args( $request_args, $args ) );
+			$api_call = wp_remote_get( $url, $request_args );
 			if ( is_wp_error( $api_call ) ) {
 				$result = [
 					'success' => false,
@@ -83,7 +77,6 @@ class Stats {
 		}
 		return $result;
 	}
-
 
 	/**
 	 * Makes api calls and organizes data depending on the specified context.
