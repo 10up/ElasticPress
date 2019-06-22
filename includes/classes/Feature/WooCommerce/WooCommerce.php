@@ -841,17 +841,17 @@ class WooCommerce extends Feature {
 		//Account for match all context
 		if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['match_all'] ) ) {
 			unset ( $args['query']['match_all'] );
-			$args['query']['range']['meta._price.value']['gte'] = $_GET['min_price'];
+			$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'];
 
 			if ( $set_low_price ) {
-				$args['query']['range']['meta._price.value']['gte'] = $_GET['min_price'] ;
+				$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'] ;
 			}
 
 			if ( $set_high_price ) {
-				$args['query']['range']['meta._price.value']['lte'] = $_GET['max_price'] ;
+				$args['query']['range']['meta._price.long']['lte'] = $_GET['max_price'] ;
 			}
 
-			$args['query']['range']['meta._price.value']['boost'] = 2.0;
+			$args['query']['range']['meta._price.long']['boost'] = 2.0;
 			return $args;
 		}
 
@@ -860,14 +860,14 @@ class WooCommerce extends Feature {
 			unset( $args['query']['bool']['should'] );
 
 			if ( $set_low_price ) {
-				$args['query']['bool']['must'][0]['range']['meta._price.value']['gte'] = $_GET['min_price'] ;
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $_GET['min_price'] ;
 			}
 
 			if ( $set_high_price ) {
-				$args['query']['bool']['must'][0]['range']['meta._price.value']['lte'] = $_GET['max_price'] ;
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $_GET['max_price'] ;
 			}
 
-			$args['query']['bool']['must'][0]['range']['meta._price.value']['boost'] = 2.0;
+			$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
 			$args['query']['bool']['must'][1]['bool'] = $query['bool'];
 			return $args;
 		} else {
