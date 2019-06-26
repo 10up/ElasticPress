@@ -51,10 +51,10 @@ class SearchOrdering extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'save_post_' . self::POST_TYPE_NAME, [ $this, 'save_post'], 10, 2 );
 		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
-		add_filter( 'ep_search_fields', [ $this, 'ep_search_fields' ], 10, 2 );
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'filter_indexable_post_types'] );
+		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration'], 10, 2 );
 	}
 
 	/**
@@ -268,9 +268,6 @@ class SearchOrdering extends Feature {
 		}
 
 		update_post_meta( $post_id, 'pointers', $final_order_data );
-
-		// Set the meta key with the search term to the title
-		update_post_meta( $post_id, 'pointer_query', sanitize_text_field( $post->post_title ) );
 	}
 
 	/**
@@ -287,19 +284,24 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Adds the pointer query field to the search fields with a high boost level so it always surfaces to the top
+	 * Filters the weighting configuration to insert our weighting config when we're searching
 	 *
-	 * @param array $fields Current search fields
-	 * @param array $args   Current query args
+	 * @param array $weighting_configuration Current weighting configuration
+	 * @param array $args                    WP Query Args
 	 *
-	 * @return array Search fields with any modifications from the filter
+	 * @return array Final weighting configuration
 	 */
-	public function ep_search_fields( $fields, $args ) {
+	public function filter_weighting_configuration( $weighting_configuration, $args ) {
 		if ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) {
-			$fields[] = 'meta.pointer_query^9999';
+			$weighting_configuration[ self::POST_TYPE_NAME ] = [
+				'post_title' => [
+					'weight' => 9999,
+					'enabled' => true,
+				]
+			];
 		}
 
-		return $fields;
+		return $weighting_configuration;
 	}
 
 	/**

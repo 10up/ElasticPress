@@ -166,7 +166,7 @@ class Weighting {
 
 				foreach ( $post_types as $post_type ) :
 					$fields = $this->get_weightable_fields_for_post_type( $post_type );
-					$post_type_object = $this->get_post_type_object( $post_type );
+					$post_type_object = get_post_type_object( $post_type );
 					?>
 					<div class="postbox">
 						<h2 class="hndle"><?php echo esc_html( $post_type_object->labels->menu_name ); ?></h2>
@@ -334,6 +334,8 @@ class Weighting {
 	 */
 	function do_weighting( $formatted_args, $args ) {
 		$weight_config = $this->get_weighting_configuration();
+
+		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
 		if ( ! empty( $args['s'] ) && ! empty( $weight_config ) ) {
 			/*
