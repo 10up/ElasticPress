@@ -62,7 +62,7 @@ class SearchOrdering extends Feature {
 	 */
 	public function output_feature_box_summary() {
 		?>
-		<p><?php esc_html_e( 'Inject specific posts into search results for specific search queries.', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'Insert specific posts into search results for specific search queries.', 'elasticpress' ); ?></p>
 		<?php
 	}
 
@@ -71,7 +71,7 @@ class SearchOrdering extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php esc_html_e( 'Selected posts will be injected into search results in the specified position.', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'Selected posts will be inserted into search results in the specified position.', 'elasticpress' ); ?></p>
 		<?php
 	}
 
