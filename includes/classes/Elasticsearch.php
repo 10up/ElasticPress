@@ -184,7 +184,7 @@ class Elasticsearch {
 	 * @param  string $index Index name.
 	 * @param  string $type Index type.
 	 * @param  array  $query Prepared ES query.
-	 * @param  array  $query_args WP query args. Used only for debugging.
+	 * @param  array  $query_args WP query args.
 	 * @since  3.0
 	 * @return bool|array
 	 */
@@ -203,6 +203,11 @@ class Elasticsearch {
 				'Content-Type' => 'application/json',
 			),
 		);
+
+		// If search, send the search term as a header to ES
+		if ( isset( $query_args['s'] ) && ( bool ) $query_args['s'] ) {
+			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
+		}
 
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
 
@@ -629,8 +634,13 @@ class Elasticsearch {
 			$args['method'] = 'GET';
 		}
 
+		// Checks for any previously set headers
+		$existing_headers = isset( $args['headers'] ) ? (array) $args['headers'] : [];
+
 		// Add the API Header.
-		$args['headers'] = $this->format_request_headers();
+		$new_headers = $this->format_request_headers();
+
+		$args['headers'] = array_merge( $existing_headers, $new_headers );
 
 		$query = array(
 			'time_start'   => microtime( true ),
