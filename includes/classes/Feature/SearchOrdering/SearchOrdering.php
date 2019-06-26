@@ -89,10 +89,10 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Adds the search injection to the admin menu
+	 * Adds the search ordering to the admin menu
 	 */
 	public function admin_menu() {
-		add_submenu_page( 'elasticpress', 'Search Injection', 'Search Injection', 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
+		add_submenu_page( 'elasticpress', __( 'Search Ordering', 'elasticpress' ), __( 'Search Ordering', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
 	}
 
 	/**
