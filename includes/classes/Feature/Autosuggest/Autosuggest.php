@@ -237,8 +237,14 @@ class Autosuggest extends Feature {
 		);
 
 		if ( ! isset( $settings['defaults_enabled'] ) || (bool) $settings['defaults_enabled'] ) {
-			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
-			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
+			/** @var Features $features */
+			$features = Features::factory();
+
+			/** @var Feature\Search\Search $search */
+			$search = $features->get_registered_feature( 'search' );
+
+			$post_types  = $search->get_searchable_post_types();
+			$post_status = get_post_stati( array( 'public' => true ) );
 		} else {
 			$post_types  = array( 'post', 'page' );
 			$post_status = array( 'publish' );
