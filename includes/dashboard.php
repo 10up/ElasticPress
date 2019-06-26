@@ -9,9 +9,12 @@
 namespace ElasticPress\Dashboard;
 
 use ElasticPress\Utils as Utils;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Features as Features;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Installer;
+use ElasticPress\AdminNotices;
+use ElasticPress\Screen;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -34,7 +37,6 @@ function setup() {
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_dashboard_scripts' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_admin_scripts' );
 	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
-	add_action( 'admin_init', __NAMESPACE__ . '\intro_or_dashboard' );
 	add_action( 'plugins_loaded', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
 	add_action( 'wp_ajax_ep_index', __NAMESPACE__ . '\action_wp_ajax_ep_index' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
@@ -45,8 +47,6 @@ function setup() {
 	add_filter( 'network_admin_plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
-	add_action( 'admin_init', __NAMESPACE__ . '\intro_after_host' );
-	add_filter( 'admin_title', __NAMESPACE__ . '\filter_admin_title', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
 }
 
@@ -98,22 +98,6 @@ function filter_allowed_html( $allowedtags, $context ) {
 	}
 
 	return $allowedtags;
-}
-
-/**
- * Filter admin title for intro page
- *
- * @param  string $admin_title Current title
- * @param  string $title       Original title
- * @since  3.0
- * @return string
- */
-function filter_admin_title( $admin_title, $title ) {
-	if ( ! empty( $_GET['page'] ) && 'elasticpress-intro' === $_GET['page'] ) {
-		return esc_html__( 'Welcome to ElasticPress ', 'elasticpress' ) . $admin_title;
-	}
-
-	return $admin_title;
 }
 
 /**
@@ -175,7 +159,7 @@ function maybe_clear_es_info_cache() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-retry'] ) && ( empty( $_GET['page'] ) || ( 'elasticpress' !== $_GET['page'] && 'elasticpress-settings' !== $_GET['page'] ) ) ) {
+	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
 		return;
 	}
 
@@ -241,10 +225,10 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
 }
 
 /**
- * Output variety of dashboard notices. Only one at a time :)
+ * Output variety of dashboard notices.
  *
  * @param  bool $force Force ES info hard lookup.
- * @since  2.2
+ * @since  3.0
  */
 function maybe_notice( $force = false ) {
 	// Admins only.
@@ -257,10 +241,6 @@ function maybe_notice( $force = false ) {
 			return false;
 		}
 	}
-	// Don't show notice on intro page ever.
-	if ( ! empty( $_GET['page'] ) && 'elasticpress-intro' === $_GET['page'] ) {
-		return false;
-	}
 
 	// If in network mode, don't output notice in admin and vice-versa.
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -270,77 +250,6 @@ function maybe_notice( $force = false ) {
 	} else {
 		if ( is_network_admin() ) {
 			return false;
-		}
-	}
-
-	$notice = false;
-
-	$on_settings_page = ( ! empty( $_GET['page'] ) && 'elasticpress-settings' === $_GET['page'] );
-
-	$host = Utils\get_host();
-
-	/**
-	 * Bad host notice checks
-	 */
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$options_host = get_site_option( 'ep_host' );
-	} else {
-		$options_host = get_option( 'ep_host' );
-	}
-
-	$never_set_host = true;
-	if ( false !== $options_host || ( defined( 'EP_HOST' ) && EP_HOST ) ) {
-		$never_set_host = false;
-	}
-
-	if ( ! $never_set_host ) {
-		/**
-		 * Feature auto-activated sync notice check
-		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$auto_activate_sync = get_site_option( 'ep_feature_auto_activated_sync', false );
-		} else {
-			$auto_activate_sync = get_option( 'ep_feature_auto_activated_sync', false );
-		}
-
-		if ( ! empty( $auto_activate_sync ) && ! isset( $_GET['do_sync'] ) ) {
-			$notice = 'auto-activate-sync';
-		}
-
-		/**
-		 * Upgrade sync notice check
-		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
-		} else {
-			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
-		}
-
-		if ( $need_upgrade_sync && ! isset( $_GET['do_sync'] ) ) {
-			$notice = 'upgrade-sync';
-		}
-
-		/**
-		 * Never synced notice check
-		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
-
-		if ( false === $last_sync && ! isset( $_GET['do_sync'] ) ) {
-			$notice = 'no-sync';
-		}
-
-		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
-			if ( 'auto-activate-sync' === $notice ) {
-				$notice = 'sync-disabled-auto-activate';
-			} elseif ( 'upgrade-sync' === $notice ) {
-				$notice = 'sync-disabled-upgrade';
-			} elseif ( 'no-sync' === $notice ) {
-				$notice = 'sync-disabled-no-sync';
-			}
 		}
 	}
 
@@ -362,217 +271,23 @@ function maybe_notice( $force = false ) {
 	}
 
 	// Fetch ES version
-	$es_version = Elasticsearch::factory()->get_elasticsearch_version( $force );
+	Elasticsearch::factory()->get_elasticsearch_version( $force );
 
-	/**
-	 * Check Elasticsearch version compat
-	 */
+	AdminNotices::factory()->process_notices();
 
-	if ( false !== $es_version ) {
-		// Clear out any errors.
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_transient( 'ep_es_info_response_code' );
-			delete_site_transient( 'ep_es_info_response_error' );
-		} else {
-			delete_transient( 'ep_es_info_response_code' );
-			delete_transient( 'ep_es_info_response_error' );
-		}
+	$notices = AdminNotices::factory()->get_notices();
 
-		// First reduce version to major version i.e. 5.1 not 5.1.1.
-		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
-
-		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
-			$notice = 'above-es-compat';
-		} elseif ( 1 === version_compare( EP_ES_VERSION_MIN, $major_es_version ) ) {
-			$notice = 'below-es-compat';
-		}
+	foreach ( $notices as $notice_key => $notice ) {
+		?>
+		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> <?php if ( $notice['dismiss'] ) : ?>is-dismissible<?php endif; ?>">
+			<p>
+				<?php echo wp_kses( $notice['html'], 'ep-html' ); ?>
+			</p>
+		</div>
+		<?php
 	}
 
-	if ( empty( $host ) || false === $es_version ) {
-		if ( $on_settings_page ) {
-			if ( ! $never_set_host ) {
-				$notice = 'bad-host';
-			}
-		} else {
-			$notice = 'bad-host';
-		}
-	}
-
-	/**
-	 * Need setup up notice check
-	 */
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$intro_shown             = get_site_option( 'ep_intro_shown', false );
-		$skip_intro_shown_notice = get_site_option( 'ep_hide_intro_shown_notice', false );
-	} else {
-		$intro_shown             = get_option( 'ep_intro_shown', false );
-		$skip_intro_shown_notice = get_option( 'ep_hide_intro_shown_notice', false );
-	}
-
-	$config_status = get_config_status();
-
-	if ( true === $config_status && ! $skip_intro_shown_notice && ! $intro_shown && false === $options_host && ( ! defined( 'EP_HOST' ) || ! EP_HOST ) ) {
-		$notice = 'need-setup';
-	}
-
-	// Autosuggest defaults notice
-	$autosuggest = Features::factory()->get_registered_feature( 'autosuggest' );
-
-	$using_autosuggest_defaults_dismiss = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? get_site_option( 'ep_using_autosuggest_defaults_dismiss', false ) : get_option( 'ep_using_autosuggest_defaults_dismiss', false );
-
-	if ( empty( $using_autosuggest_defaults_dismiss ) && $autosuggest->is_active() && (bool) $autosuggest->get_settings()['defaults_enabled'] ) {
-		$notice = 'using-autosuggest-defaults';
-	}
-
-	$notice = apply_filters( 'ep_admin_notice_type', $notice );
-
-	switch ( $notice ) {
-		case 'bad-host':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url            = admin_url( 'network/admin.php?page=elasticpress-settings' );
-				$options_host   = get_site_option( 'ep_host' );
-				$response_code  = get_site_transient( 'ep_es_info_response_code' );
-				$response_error = get_site_transient( 'ep_es_info_response_error' );
-			} else {
-				$url            = admin_url( 'admin.php?page=elasticpress-settings' );
-				$options_host   = get_option( 'ep_host' );
-				$response_code  = get_transient( 'ep_es_info_response_code' );
-				$response_error = get_transient( 'ep_es_info_response_error' );
-			}
-
-			?>
-			<div class="notice notice-error">
-				<?php if ( empty( $host ) ) : ?>
-					<p><?php printf( wp_kses_post( __( 'ElasticPress needs a host to work properly. <a href="%1$s">Please add one.</a>', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
-				<?php else : ?>
-					<p><?php printf( wp_kses_post( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%1$s">try your host again</a>, or you may need to <a href="%2$s">change your settings</a>.', 'elasticpress' ) ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) ); ?></p>
-
-					<?php if ( ! empty( $response_code ) || ! empty( $response_error ) ) : ?>
-						<p>
-							<?php if ( ! empty( $response_code ) ) : ?>
-								<span class="notice-error-es-response-code">
-									<?php printf( wp_kses_post( __( 'Response Code: %s', 'elasticpress' ) ), esc_html( $response_code ) ); ?>
-								</span>
-							<?php endif; ?>
-
-							<?php if ( ! empty( $response_error ) ) : ?>
-								<span class="notice-error-es-response-error">
-									<?php printf( wp_kses_post( __( 'Error: %s', 'elasticpress' ) ), esc_html( $response_error ) ); ?>
-								</span>
-							<?php endif; ?>
-						</p>
-					<?php endif; ?>
-				<?php endif; ?>
-			</div>
-			<?php
-			break;
-		case 'above-es-compat':
-			?>
-			<div class="notice notice-error">
-				<p><?php printf( wp_kses_post( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ) ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ); ?></p>
-			</div>
-			<?php
-			break;
-		case 'below-es-compat':
-			?>
-			<div class="notice notice-error">
-				<p><?php printf( wp_kses_post( __( 'Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ) ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ); ?></p>
-			</div>
-			<?php
-			break;
-		case 'need-setup':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress-intro' );
-			} else {
-				$url = admin_url( 'admin.php?page=elasticpress-intro' );
-			}
-
-			?>
-			<div data-ep-notice="need-setup" class="notice notice-info is-dismissible">
-				<p><?php printf( wp_kses_post( __( 'Thanks for installing ElasticPress! You will need to run through a <a href="%s">quick set up process</a> to get the plugin working.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
-			</div>
-			<?php
-			break;
-		case 'no-sync':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
-			} else {
-				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
-			}
-
-			?>
-			<div data-ep-notice="no-sync" class="notice notice-info is-dismissible">
-				<p><?php printf( wp_kses_post( __( 'ElasticPress is almost ready. You will need to complete a <a href="%s">sync</a> to get the plugin working.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
-			</div>
-			<?php
-			break;
-		case 'upgrade-sync':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
-			} else {
-				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
-			}
-
-			?>
-			<div data-ep-notice="upgrade-sync" class="notice notice-warning is-dismissible">
-				<p><?php printf( wp_kses_post( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ) ), esc_url( $url ) ); ?></p>
-			</div>
-			<?php
-			break;
-		case 'auto-activate-sync':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress-settings&do_sync' );
-			} else {
-				$url = admin_url( 'admin.php?page=elasticpress-settings&do_sync' );
-			}
-
-			$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
-
-			?>
-			<div data-ep-notice="auto-activate-sync" class="notice notice-warning is-dismissible">
-				<p><?php echo wp_kses( sprintf( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) ), 'ep-html' ); ?></p>
-			</div>
-			<?php
-			break;
-		case 'sync-disabled-auto-activate':
-			$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
-			?>
-			<div data-ep-notice="sync-disabled-auto-activate" class="notice notice-warning is-dismissible">
-				<p>
-					<?php
-					// phpcs:disable
-					printf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) );
-					// phpcs:enable
-					?>
-				</p>
-			</div>
-			<?php
-			break;
-		case 'sync-disabled-upgrade':
-			?>
-			<div data-ep-notice="sync-disabled-upgrade" class="notice notice-warning is-dismissible">
-				<p><?php printf( esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' ) ); ?></p>
-			</div>
-			<?php
-			break;
-		case 'sync-disabled-no-sync':
-			?>
-			<div data-ep-notice="sync-disabled-no-sync" class="notice notice-warning is-dismissible">
-				<p><?php printf( esc_html__( 'Dashboard sync is disabled. You will need to index using WP-CLI to finish setup.', 'elasticpress' ) ); ?></p>
-			</div>
-			<?php
-			break;
-		case 'using-autosuggest-defaults':
-			?>
-			<div data-ep-notice="using-autosuggest-defaults" class="notice notice-warning is-dismissible">
-				<p><?php printf( esc_html__( 'Autosuggest feature is enabled. If protected content or documents feature is enabled, your protected content will also become searchable. Please checkmark the "Use safe values" checkbox in Autosuggest settings to default to safe content search', 'elasticpress' ) ); ?></p>
-			</div>
-			<?php
-			break;
-	}
-
-	return $notice;
+	return $notices;
 }
 
 /**
@@ -591,52 +306,7 @@ function action_wp_ajax_ep_notice_dismiss() {
 		exit;
 	}
 
-	switch ( $_POST['notice'] ) {
-		case 'need-setup':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_hide_intro_shown_notice', true );
-			} else {
-				update_option( 'ep_hide_intro_shown_notice', true );
-			}
-
-			break;
-		case 'no-sync':
-		case 'sync-disabled-no-sync':
-			// We use 'never' here as a placeholder value to trick EP into thinking a sync has happened.
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_last_sync', 'never' );
-			} else {
-				update_option( 'ep_last_sync', 'never' );
-			}
-
-			break;
-		case 'upgrade-sync':
-		case 'sync-disabled-upgrade':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				delete_site_option( 'ep_need_upgrade_sync' );
-			} else {
-				delete_option( 'ep_need_upgrade_sync' );
-			}
-
-			break;
-		case 'auto-activate-sync':
-		case 'sync-disabled-auto-activate':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				delete_site_option( 'ep_feature_auto_activated_sync' );
-			} else {
-				delete_option( 'ep_feature_auto_activated_sync' );
-			}
-
-			break;
-		case 'using-autosuggest-defaults':
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_using_autosuggest_defaults_dismiss', true );
-			} else {
-				update_option( 'ep_using_autosuggest_defaults_dismiss', true );
-			}
-
-			break;
-	}
+	AdminNotices::factory()->dismiss_notice( $_POST['notice'] );
 
 	wp_send_json_success();
 }
@@ -898,61 +568,63 @@ function action_wp_ajax_ep_save_feature() {
  * @since 2.2
  */
 function action_admin_enqueue_dashboard_scripts() {
-	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'elasticpress' ) !== false ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard.min.css', [], EP_VERSION );
+	}
 
-		if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) {
-			wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard.min.js', [ 'jquery' ], EP_VERSION, true );
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
+		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard.min.js', [ 'jquery' ], EP_VERSION, true );
 
-			$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
+		$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$index_meta = get_site_option( 'ep_index_meta', [] );
-				$wpcli_sync = (bool) get_site_transient( 'ep_wpcli_sync' );
-			} else {
-				$index_meta = get_option( 'ep_index_meta', [] );
-				$wpcli_sync = (bool) get_transient( 'ep_wpcli_sync' );
-			}
-
-			if ( ! empty( $wpcli_sync ) ) {
-				$index_meta['wpcli_sync'] = true;
-			}
-
-			if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) {
-				$data['auto_start_index'] = true;
-			}
-
-			if ( ! empty( $index_meta ) ) {
-				$data['index_meta'] = $index_meta;
-			}
-
-			$indexables = Indexables::factory()->get_all();
-
-			$data['sync_indexable_labels'] = apply_filters(
-				'ep_dashboard_indexable_labels',
-				[
-					'post' => [
-						'singular' => esc_html__( 'Post', 'elasticpress' ),
-						'plural'   => esc_html__( 'Posts', 'elasticpress' ),
-					],
-					'user' => [
-						'singular' => esc_html__( 'User', 'elasticpress' ),
-						'plural'   => esc_html__( 'Users', 'elasticpress' ),
-					],
-				]
-			);
-
-			$data['intro_shown']   = esc_html( get_option( 'ep_intro_shown' ) );
-			$data['ep_intro_url']  = esc_html( admin_url( 'admin.php?page=elasticpress-intro' ) );
-			$data['sync_complete'] = esc_html__( 'Sync complete', 'elasticpress' );
-			$data['sync_paused']   = esc_html__( 'Sync paused', 'elasticpress' );
-			$data['sync_syncing']  = esc_html__( 'Syncing', 'elasticpress' );
-			$data['sync_initial']  = esc_html__( 'Starting sync', 'elasticpress' );
-			$data['sync_wpcli']    = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
-			$data['sync_error']    = esc_html__( 'An error occurred while syncing', 'elasticpress' );
-
-			wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$index_meta           = get_site_option( 'ep_index_meta', [] );
+			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
+			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
+		} else {
+			$index_meta           = get_option( 'ep_index_meta', [] );
+			$wpcli_sync           = (bool) get_transient( 'ep_wpcli_sync' );
+			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
 		}
+
+		if ( ! empty( $wpcli_sync ) ) {
+			$index_meta['wpcli_sync'] = true;
+		}
+
+		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) {
+			$data['auto_start_index'] = true;
+		}
+
+		if ( ! empty( $index_meta ) ) {
+			$data['index_meta'] = $index_meta;
+		}
+
+		$indexables = Indexables::factory()->get_all();
+
+		$data['sync_indexable_labels'] = apply_filters(
+			'ep_dashboard_indexable_labels',
+			[
+				'post' => [
+					'singular' => esc_html__( 'Post', 'elasticpress' ),
+					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
+				],
+				'user' => [
+					'singular' => esc_html__( 'User', 'elasticpress' ),
+					'plural'   => esc_html__( 'Users', 'elasticpress' ),
+				],
+			]
+		);
+
+		$data['install_sync']         = empty( get_option( 'ep_last_sync', false ) );
+		$data['install_complete_url'] = esc_url( $install_complete_url );
+		$data['sync_complete']        = esc_html__( 'Sync complete', 'elasticpress' );
+		$data['sync_paused']          = esc_html__( 'Sync paused', 'elasticpress' );
+		$data['sync_syncing']         = esc_html__( 'Syncing', 'elasticpress' );
+		$data['sync_initial']         = esc_html__( 'Starting sync', 'elasticpress' );
+		$data['sync_wpcli']           = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
+		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
+
+		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 	}
 }
 
@@ -1041,138 +713,12 @@ function sanitize_bulk_settings( $bulk_settings = 350 ) {
 }
 
 /**
- * Conditionally show dashboard or intro
+ * Output current ElasticPress dashboard screen
  *
- * @since  2.1
+ * @since 3.0
  */
-function intro_or_dashboard() {
-	global $pagenow;
-
-	if ( 'admin.php' !== $pagenow || empty( $_GET['page'] ) || 'elasticpress' !== $_GET['page'] ) {
-		return;
-	}
-
-	$host = Utils\get_host();
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$intro_shown = get_site_option( 'ep_intro_shown', false );
-	} else {
-		$intro_shown = get_option( 'ep_intro_shown', false );
-	}
-
-	if ( ! $intro_shown ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
-		} else {
-			wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
-		}
-		exit;
-	}
-}
-
-/**
- * Build dashboard page
- *
- * @since 2.1
- */
-function dashboard_page() {
-	include __DIR__ . '/partials/dashboard-page.php';
-}
-
-/**
- * Build settings page
- *
- * @since  2.1
- */
-function settings_page() {
-	$current_step = get_config_status();
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && true === $current_step ) {
-		update_site_option( 'ep_intro_shown', true );
-	} elseif ( true === $current_step ) {
-		update_option( 'ep_intro_shown', true );
-	}
-
-	include __DIR__ . '/partials/settings-page.php';
-}
-
-/**
- * Determines where a user is in the config process
- *
- * @since  3.0
- * @return bool|int true if setup done
- */
-function get_config_status() {
-	$ep_host = Utils\get_host();
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! get_site_option( 'ep_intro_shown', false ) ) {
-			$in_step = 2;
-			if ( $ep_host && false !== Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
-				$in_step = 3;
-			}
-			if ( 3 === $in_step && false !== get_site_option( 'ep_last_sync', false ) ) {
-				$in_step = true;
-			}
-		} else {
-			$in_step = true;
-		}
-	} else {
-		if ( ! get_option( 'ep_intro_shown', false ) ) {
-			$in_step = 2;
-
-			if ( $ep_host ) {
-				$in_step = 3;
-			}
-
-			if ( 3 === $in_step && false !== get_option( 'ep_last_sync', false ) ) {
-				$in_step = true;
-			}
-		} else {
-			$in_step = true;
-		}
-	}
-
-	return $in_step;
-}
-/**
- * Redirect to the intro page after setting host for the first time
- *
- * @since  3.0
- */
-function intro_after_host() {
-	$doing_sync = isset( $_GET['do_sync'] );
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( 3 === get_config_status() && ! get_site_option( 'ep_intro_shown' ) && 'elasticpress-settings' === $_GET['page'] && ! $doing_sync ) {
-			wp_safe_redirect( admin_url( 'network/admin.php?page=elasticpress-intro' ) );
-			exit();
-		}
-	} else {
-		if ( 3 === get_config_status() && ! get_option( 'ep_intro_shown' ) && 'elasticpress-settings' === $_GET['page'] && ! $doing_sync ) {
-			wp_safe_redirect( admin_url( 'admin.php?page=elasticpress-intro' ) );
-			exit();
-		}
-	}
-}
-
-/**
- * Build settings page
- *
- * @since  2.1
- */
-function intro_page() {
-	$current_step = get_config_status();
-
-	if ( true === $current_step ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_intro_shown', true );
-		} else {
-			update_option( 'ep_intro_shown', true );
-		}
-	}
-
-	include __DIR__ . '/partials/intro-page.php';
+function resolve_screen() {
+	Screen::factory()->output();
 }
 
 /**
@@ -1195,7 +741,7 @@ function action_admin_menu() {
 		'ElasticPress',
 		$capability,
 		'elasticpress',
-		__NAMESPACE__ . '\dashboard_page',
+		__NAMESPACE__ . '\resolve_screen',
 		'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiLz48L3N2Zz4='
 	);
 
@@ -1205,16 +751,7 @@ function action_admin_menu() {
 		esc_html__( 'Settings', 'elasticpress' ),
 		$capability,
 		'elasticpress-settings',
-		__NAMESPACE__ . '\settings_page'
-	);
-
-	add_submenu_page(
-		null,
-		'ElasticPress ' . esc_html__( 'Welcome', 'elasticpress' ),
-		'ElasticPress ' . esc_html__( 'Welcome', 'elasticpress' ),
-		$capability,
-		'elasticpress-intro',
-		__NAMESPACE__ . '\intro_page'
+		__NAMESPACE__ . '\resolve_screen'
 	);
 }
 

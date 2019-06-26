@@ -143,6 +143,16 @@ if ( ! defined( 'EP_DASHBOARD_SYNC' ) ) {
 }
 
 /**
+ * Setup installer
+ */
+Installer::factory();
+
+/**
+ * Setup screen
+ */
+Screen::factory();
+
+/**
  * Setup dashboard
  */
 require_once __DIR__ . '/includes/dashboard.php';

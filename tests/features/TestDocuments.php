@@ -35,6 +35,8 @@ class TestDocuments extends BaseTestCase {
 
 		$this->setup_test_post_type();
 
+		set_current_screen( 'front' );
+
 		delete_option( 'ep_active_features' );
 	}
 
@@ -45,6 +47,11 @@ class TestDocuments extends BaseTestCase {
 	 */
 	public function tearDown() {
 		parent::tearDown();
+
+		global $hook_suffix;
+		$hook_suffix = 'sites.php';
+
+		set_current_screen();
 
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );

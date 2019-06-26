@@ -222,6 +222,9 @@ class Elasticsearch {
 			// Check for and store aggregations.
 			do_action( 'ep_valid_response', $response, $query, $query_args );
 
+			// Backwards compat
+			do_action( 'ep_retrieve_raw_response', $request, $query, $query_args );
+
 			$documents = [];
 
 			foreach ( $hits as $hit ) {
