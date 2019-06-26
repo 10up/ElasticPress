@@ -33,7 +33,7 @@ class SearchOrdering extends Feature {
 	public function __construct() {
 		$this->slug = 'searchordering';
 
-		$this->title = esc_html__( 'Search Ordering', 'elasticpress' );
+		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [];
@@ -92,7 +92,7 @@ class SearchOrdering extends Feature {
 	 * Adds the search ordering to the admin menu
 	 */
 	public function admin_menu() {
-		add_submenu_page( 'elasticpress', __( 'Search Ordering', 'elasticpress' ), __( 'Search Ordering', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
+		add_submenu_page( 'elasticpress', __( 'Custom Results', 'elasticpress' ), __( 'Custom Results', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
 	}
 
 	/**
