@@ -126,6 +126,10 @@ if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, 
 	);
 }
 
+Features::factory()->register_feature(
+	new Feature\SearchOrdering\SearchOrdering()
+);
+
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
  *
