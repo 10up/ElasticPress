@@ -43,6 +43,10 @@ class Search extends Feature {
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
+
+		// Set up weighting sub-module
+		$weighting = new Weighting();
+		$weighting->setup();
 	}
 
 	/**
