@@ -74,6 +74,11 @@ class SearchOrdering extends Feature {
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration'], 10, 2 );
+
+		// Deals with trashing/untrashing/deleting
+		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
+		add_action( 'before_delete_post', [ $this, 'handle_post_trash' ] );
+		add_action( 'untrashed_post', [ $this, 'handle_post_untrash' ] );
 	}
 
 	/**
@@ -360,14 +365,7 @@ class SearchOrdering extends Feature {
 		$custom_result_term = $this->create_or_return_custom_result_term( $post->post_title );
 		if ( $custom_result_term ) {
 			foreach ( $final_order_data as $final_order_datum ) {
-				$wpdb->query(
-					$wpdb->prepare(
-						"INSERT INTO $wpdb->term_relationships (object_id, term_taxonomy_id, term_order) VALUES ( %d, %d, %d ) ON DUPLICATE KEY UPDATE term_order = VALUES(term_order)",
-						$final_order_datum['ID'],
-						$custom_result_term->term_taxonomy_id,
-						$final_order_datum['order']
-					)
-				);
+				$this->assign_term_to_post( $final_order_datum['ID'], $custom_result_term->term_taxonomy_id, $final_order_datum['order'] );
 
 				$post_indexable->sync_manager->action_sync_on_update( $final_order_datum['ID'] );
 			}
@@ -382,9 +380,6 @@ class SearchOrdering extends Feature {
 				$post_indexable->sync_manager->action_sync_on_update( $old_post_id );
 			}
 		}
-
-		// Delete the term order cache
-		wp_cache_delete( "{$post_id}_term_order" );
 
 		update_post_meta( $post_id, 'pointers', $final_order_data );
 	}
@@ -567,6 +562,76 @@ class SearchOrdering extends Feature {
 		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
 
 		return $query->posts;
+	}
+
+	public function handle_post_trash( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( self::POST_TYPE_NAME !== $post->post_type ) {
+			return;
+		}
+
+		/** @var Post $post_indexable */
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$pointers = get_post_meta( $post_id, 'pointers', true );
+		$term = $this->create_or_return_custom_result_term( $post->post_title );
+
+		foreach ( $pointers as $pointer ) {
+			$ref_id = $pointer['ID'];
+			wp_remove_object_terms( $ref_id, (int) $term->term_id, self::TAXONOMY_NAME );
+
+			$post_indexable->sync_manager->action_sync_on_update( $ref_id );
+		}
+	}
+
+	/**
+	 * Handles reassigning terms to the posts when a pointer post is restored from trash
+	 *
+	 * @param int $post_id Post ID
+	 */
+	public function handle_post_untrash( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( self::POST_TYPE_NAME !== $post->post_type ) {
+			return;
+		}
+
+		/** @var Post $post_indexable */
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$pointers = get_post_meta( $post_id, 'pointers', true );
+		$term = $this->create_or_return_custom_result_term( $post->post_title );
+
+		foreach ( $pointers as $pointer ) {
+			$this->assign_term_to_post( $pointer['ID'], $term->term_taxonomy_id, $pointer['order'] );
+
+			$post_indexable->sync_manager->action_sync_on_update( $pointer['ID'] );
+		}
+	}
+
+	/**
+	 * Assigns the term to the post with the proper term_order value
+	 *
+	 * @param $post_id
+	 * @param $term_taxonomy_id
+	 * @param $order
+	 * @return bool|int
+	 */
+	protected function assign_term_to_post( $post_id, $term_taxonomy_id, $order ) {
+		global $wpdb;
+
+		return $wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO $wpdb->term_relationships (object_id, term_taxonomy_id, term_order) VALUES ( %d, %d, %d ) ON DUPLICATE KEY UPDATE term_order = VALUES(term_order)",
+				$post_id,
+				$term_taxonomy_id,
+				$order
+			)
+		);
+
+		// Delete the term order cache
+		wp_cache_delete( "{$post_id}_term_order" );
 	}
 
 }
