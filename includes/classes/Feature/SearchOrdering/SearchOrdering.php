@@ -416,8 +416,9 @@ class SearchOrdering extends Feature {
 		if ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) {
 			foreach ( $weighting_configuration as $post_type => $config ) {
 				$weighting_configuration[ $post_type ]['terms.ep_custom_result.name'] = [
-					'enabled' => true,
-					'weight'  => 9999,
+					'enabled'   => true,
+					'weight'    => 9999,
+					'fuzziness' => false,
 				];
 			}
 		}
