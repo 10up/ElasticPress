@@ -165,18 +165,18 @@ class SearchOrdering extends Feature {
 	 */
 	public function register_post_type() {
 		$labels = array(
-			'name'               => _x( 'Search Result', 'post type general name', 'elasticpress' ),
-			'singular_name'      => _x( 'Search Result', 'post type singular name', 'elasticpress' ),
-			'menu_name'          => _x( 'Search Results', 'admin menu', 'elasticpress' ),
-			'name_admin_bar'     => _x( 'Search Result', 'add new on admin bar', 'elasticpress' ),
+			'name'               => _x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
+			'singular_name'      => _x( 'Custom Search Result', 'post type singular name', 'elasticpress' ),
+			'menu_name'          => _x( 'Custom Search Results', 'admin menu', 'elasticpress' ),
+			'name_admin_bar'     => _x( 'Custom Search Result', 'add new on admin bar', 'elasticpress' ),
 			'add_new'            => _x( 'Add New', 'book', 'elasticpress' ),
-			'add_new_item'       => __( 'Add New Search Result', 'elasticpress' ),
-			'new_item'           => __( 'New Search Result', 'elasticpress' ),
-			'edit_item'          => __( 'Edit Search Result', 'elasticpress' ),
-			'view_item'          => __( 'View Search Result', 'elasticpress' ),
-			'all_items'          => __( 'All Search Results', 'elasticpress' ),
-			'search_items'       => __( 'Search Injected Search Results', 'elasticpress' ),
-			'parent_item_colon'  => __( 'Parent Search Result:', 'elasticpress' ),
+			'add_new_item'       => __( 'Add New Custom Search Result', 'elasticpress' ),
+			'new_item'           => __( 'New Custom Search Result', 'elasticpress' ),
+			'edit_item'          => __( 'Edit Custom Search Result', 'elasticpress' ),
+			'view_item'          => __( 'View Custom Search Result', 'elasticpress' ),
+			'all_items'          => __( 'All Custom Search Results', 'elasticpress' ),
+			'search_items'       => __( 'Search Custom Search Results', 'elasticpress' ),
+			'parent_item_colon'  => __( 'Parent Custom Search Result:', 'elasticpress' ),
 			'not_found'          => __( 'No results found.', 'elasticpress' ),
 			'not_found_in_trash' => __( 'No results found in Trash.', 'elasticpress' )
 		);
@@ -561,6 +561,11 @@ class SearchOrdering extends Feature {
 		return $query->posts;
 	}
 
+	/**
+	 * Removes taxonomy terms from the references posts when a pointer is deleted or trashed
+	 *
+	 * @param int $post_id Post ID that is being deleted
+	 */
 	public function handle_post_trash( $post_id ) {
 		$post = get_post( $post_id );
 
