@@ -8,6 +8,10 @@
 namespace ElasticPress\Feature\SearchOrdering;
 
 use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Features;
+use ElasticPress\Indexable\Post\Post;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -24,6 +28,11 @@ class SearchOrdering extends Feature {
 	 * Internal name of the post type
 	 */
 	const POST_TYPE_NAME = 'ep-pointer';
+
+	/**
+	 * Internal name of the taxonomy
+	 */
+	const TAXONOMY_NAME = 'ep_custom_result';
 
 	/**
 	 * Initialize feature setting it's config
@@ -45,16 +54,53 @@ class SearchOrdering extends Feature {
 	 * Setup Feature Functionality
 	 */
 	public function setup() {
+		/** @var Features $features */
+		$features = Features::factory();
+
+		/** @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		if ( ! $search->is_active() ) {
+			$features->deactivate_feature( $this->slug );
+			return;
+		}
+
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 50 );
 		add_filter( 'parent_file', [ $this, 'parent_file' ], 50 );
 		add_action( 'init', [ $this, 'register_post_type' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'save_post_' . self::POST_TYPE_NAME, [ $this, 'save_post'], 10, 2 );
-		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
-		add_filter( 'ep_indexable_post_types', [ $this, 'filter_indexable_post_types'] );
+		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration'], 10, 2 );
+
+		// Deals with trashing/untrashing/deleting
+		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
+		add_action( 'before_delete_post', [ $this, 'handle_post_trash' ] );
+		add_action( 'untrashed_post', [ $this, 'handle_post_untrash' ] );
+	}
+
+	/**
+	 * Returns requirements status of feature
+	 *
+	 * Requires the search feature to be activated
+	 *
+	 * @return FeatureRequirementsStatus
+	 */
+	public function requirements_status() {
+		/** @var Features $features */
+		$features = Features::factory();
+
+		/** @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		if ( ! $search->is_active() ) {
+			$features->deactivate_feature( $this->slug );
+			return new FeatureRequirementsStatus( 2, __( 'This feature requires the "Post Search" feature to be enabled', 'katerra' ) );
+		}
+
+		return parent::requirements_status();
 	}
 
 	/**
@@ -76,16 +122,16 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Adds this post type to indexable types
+	 * Adds this taxonomy as one of the taxonomies to index
 	 *
-	 * @param array $post_types Current indexable post types
+	 * @param array $taxonomies Current indexable taxonomies
 	 *
-	 * @return array Updated post types
+	 * @return array
 	 */
-	public function filter_indexable_post_types( $post_types ) {
-		$post_types[ self::POST_TYPE_NAME ] = self::POST_TYPE_NAME;
+	public function filter_sync_taxonomies( $taxonomies ) {
+		$taxonomies[] = get_taxonomy( self::TAXONOMY_NAME );
 
-		return $post_types;
+		return $taxonomies;
 	}
 
 	/**
@@ -119,18 +165,18 @@ class SearchOrdering extends Feature {
 	 */
 	public function register_post_type() {
 		$labels = array(
-			'name'               => _x( 'Search Result', 'post type general name', 'elasticpress' ),
-			'singular_name'      => _x( 'Search Result', 'post type singular name', 'elasticpress' ),
-			'menu_name'          => _x( 'Search Results', 'admin menu', 'elasticpress' ),
-			'name_admin_bar'     => _x( 'Search Result', 'add new on admin bar', 'elasticpress' ),
+			'name'               => _x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
+			'singular_name'      => _x( 'Custom Search Result', 'post type singular name', 'elasticpress' ),
+			'menu_name'          => _x( 'Custom Search Results', 'admin menu', 'elasticpress' ),
+			'name_admin_bar'     => _x( 'Custom Search Result', 'add new on admin bar', 'elasticpress' ),
 			'add_new'            => _x( 'Add New', 'book', 'elasticpress' ),
-			'add_new_item'       => __( 'Add New Search Result', 'elasticpress' ),
-			'new_item'           => __( 'New Search Result', 'elasticpress' ),
-			'edit_item'          => __( 'Edit Search Result', 'elasticpress' ),
-			'view_item'          => __( 'View Search Result', 'elasticpress' ),
-			'all_items'          => __( 'All Search Results', 'elasticpress' ),
-			'search_items'       => __( 'Search Injected Search Results', 'elasticpress' ),
-			'parent_item_colon'  => __( 'Parent Search Result:', 'elasticpress' ),
+			'add_new_item'       => __( 'Add New Custom Search Result', 'elasticpress' ),
+			'new_item'           => __( 'New Custom Search Result', 'elasticpress' ),
+			'edit_item'          => __( 'Edit Custom Search Result', 'elasticpress' ),
+			'view_item'          => __( 'View Custom Search Result', 'elasticpress' ),
+			'all_items'          => __( 'All Custom Search Results', 'elasticpress' ),
+			'search_items'       => __( 'Search Custom Search Results', 'elasticpress' ),
+			'parent_item_colon'  => __( 'Parent Custom Search Result:', 'elasticpress' ),
 			'not_found'          => __( 'No results found.', 'elasticpress' ),
 			'not_found_in_trash' => __( 'No results found in Trash.', 'elasticpress' )
 		);
@@ -153,6 +199,41 @@ class SearchOrdering extends Feature {
 		);
 
 		register_post_type( self::POST_TYPE_NAME, $args );
+
+
+		// Register taxonomy
+		$labels = array(
+			'name'              => _x( 'Custom Results', 'taxonomy general name', 'elasticpress' ),
+			'singular_name'     => _x( 'Custom Result', 'taxonomy singular name', 'elasticpress' ),
+			'search_items'      => __( 'Search Custom Results', 'elasticpress' ),
+			'all_items'         => __( 'All Custom Results', 'elasticpress' ),
+			'parent_item'       => __( 'Parent Custom Result', 'elasticpress' ),
+			'parent_item_colon' => __( 'Parent Custom Result:', 'elasticpress' ),
+			'edit_item'         => __( 'Edit Custom Result', 'elasticpress' ),
+			'update_item'       => __( 'Update Custom Result', 'elasticpress' ),
+			'add_new_item'      => __( 'Add New Custom Result', 'elasticpress' ),
+			'new_item_name'     => __( 'New Custom Result Name', 'elasticpress' ),
+			'menu_name'         => __( 'Custom Results', 'elasticpress' ),
+		);
+
+		$args = array(
+			'hierarchical'      => false,
+			'labels'            => $labels,
+			'show_ui'           => false,
+			'show_admin_column' => false,
+			'query_var'         => false,
+			'rewrite'           => false,
+		);
+
+		/** @var Features $features */
+		$features = Features::factory();
+
+		/** @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		$post_types = $search->get_searchable_post_types();
+
+		register_taxonomy( 'ep_custom_result', $post_types, $args );
 	}
 
 	/**
@@ -248,6 +329,9 @@ class SearchOrdering extends Feature {
 	 * @param $post
 	 */
 	public function save_post( $post_id, $post ) {
+		/** @var Post $post_indexable */
+		$post_indexable = Indexables::factory()->get( 'post' );
+
 		if ( ! isset( $_POST['search-ordering-nonce'] ) || ! wp_verify_nonce( $_POST['search-ordering-nonce'], 'save-search-ordering' ) ) {
 			return;
 		}
@@ -258,6 +342,10 @@ class SearchOrdering extends Feature {
 
 		$final_order_data = [];
 
+		// Track the old IDs that aren't retained so we can delete the terms later
+		$previous_order_data = get_post_meta( $post_id, 'pointers', true );
+		$previous_post_ids = array_flip( wp_list_pluck( $previous_order_data, 'ID' ) );
+
 		$ordered_posts = json_decode( wp_unslash( $_POST['ordered_posts'] ), true );
 
 		foreach ( $ordered_posts as $order_data ) {
@@ -265,22 +353,55 @@ class SearchOrdering extends Feature {
 				'ID'    => intval( $order_data['ID'] ),
 				'order' => intval( $order_data['order'] ),
 			];
+
+			// If the post is still assigned, no need to delete the terms later
+			if ( isset( $previous_post_ids[ $order_data['ID'] ] ) ) {
+				unset( $previous_post_ids[ $order_data['ID'] ] );
+			}
+		}
+
+		$custom_result_term = $this->create_or_return_custom_result_term( $post->post_title );
+		if ( $custom_result_term ) {
+			foreach ( $final_order_data as $final_order_datum ) {
+				$this->assign_term_to_post( $final_order_datum['ID'], $custom_result_term->term_taxonomy_id, $final_order_datum['order'] );
+
+				$post_indexable->sync_manager->action_sync_on_update( $final_order_datum['ID'] );
+			}
+		}
+
+		// Remove terms for any that were deleted
+		if ( ! empty( $previous_post_ids ) ) {
+			foreach ( array_flip( $previous_post_ids ) as $old_post_id ) {
+				wp_remove_object_terms( $old_post_id, (int) $custom_result_term->term_id, self::TAXONOMY_NAME );
+
+				$post_indexable->sync_manager->action_sync_on_update( $old_post_id );
+			}
 		}
 
 		update_post_meta( $post_id, 'pointers', $final_order_data );
 	}
 
 	/**
-	 * Adds this post type to the search post types for normal frontend WordPress searches
+	 * Creates a term in the taxonomy for tracking ordered results or returns the existing term
 	 *
-	 * @param array $post_types Current searchable post types
+	 * @param string $term_name Term name to fetch or create
 	 *
-	 * @return array Modified searchable post types
+	 * @return false|\WP_Term
 	 */
-	public function searchable_post_types( $post_types ) {
-		$post_types[] = self::POST_TYPE_NAME;
+	public function create_or_return_custom_result_term( $term_name ) {
+		$term = get_term_by( 'name', $term_name, self::TAXONOMY_NAME );
 
-		return $post_types;
+		if ( ! $term ) {
+			$term_ids = wp_insert_term( $term_name, self::TAXONOMY_NAME );
+
+			if ( is_wp_error( $term_ids ) ) {
+				return false;
+			}
+
+			$term = get_term( $term_ids['term_id'], self::TAXONOMY_NAME );
+		}
+
+		return $term;
 	}
 
 	/**
@@ -293,12 +414,13 @@ class SearchOrdering extends Feature {
 	 */
 	public function filter_weighting_configuration( $weighting_configuration, $args ) {
 		if ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) {
-			$weighting_configuration[ self::POST_TYPE_NAME ] = [
-				'post_title' => [
-					'weight' => 9999,
-					'enabled' => true,
-				]
-			];
+			foreach ( $weighting_configuration as $post_type => $config ) {
+				$weighting_configuration[ $post_type ]['terms.ep_custom_result.name'] = [
+					'enabled'   => true,
+					'weight'    => 9999,
+					'fuzziness' => false,
+				];
+			}
 		}
 
 		return $weighting_configuration;
@@ -314,37 +436,21 @@ class SearchOrdering extends Feature {
 	 */
 	public function posts_results( $posts, $query ) {
 		if ( is_array( $posts ) && $query->is_search() ) {
+			$search_query = strtolower( $query->get( 's' ) );
+
 			$to_inject = array();
 
-			// So we can avoid duplicates
-			$to_inject_ids = array();
-
 			foreach ( $posts as $key => &$post ) {
-				if ( $post->post_type === self::POST_TYPE_NAME ) {
-					$pointers = get_post_meta( $post->ID, 'pointers', true );
+				if ( isset( $post->terms ) && isset( $post->terms[ self::TAXONOMY_NAME ] ) ) {
+					foreach ( $post->terms[ self::TAXONOMY_NAME ] as $current_term ) {
+						if ( strtolower( $current_term['name'] ) === $search_query ) {
+							$to_inject[ $current_term['term_order'] ] = $post->ID;
 
-					// Pointers always need to be unset, regardless if they have pointer IDs or not
-					unset( $posts[ $key ] );
+							unset( $posts[ $key ] );
 
-					if ( empty( $pointers ) ) {
-						continue;
+							break;
+						}
 					}
-
-					foreach ( $pointers as $pointer ) {
-						$points_to = $pointer['ID'];
-						$order = $pointer['order'];
-
-						$to_inject[ $order ] = $points_to;
-						$to_inject_ids[ $points_to ] = true;
-					}
-				}
-			}
-
-			// Remove any that will be duplicates
-			foreach ( $posts as &$post ) {
-				if ( isset( $to_inject_ids[ $post->ID ] ) ) {
-					// Null so we don't break the loop
-					$post = null;
 				}
 			}
 
@@ -413,12 +519,13 @@ class SearchOrdering extends Feature {
 	public function handle_pointer_search( $request ) {
 		$search = $request->get_param( 's' );
 
-		$post_types = get_post_types(
-			[
-				'public'              => 'true',
-				'exclude_from_search' => false,
-			]
-		);
+		/** @var Features $features */
+		$features = Features::factory();
+
+		/** @var Feature\Search\Search $search */
+		$search_feature = $features->get_registered_feature( 'search' );
+
+		$post_types = $search_feature->get_searchable_post_types();
 
 		$query = new \WP_Query(
 			[
@@ -453,6 +560,81 @@ class SearchOrdering extends Feature {
 		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
 
 		return $query->posts;
+	}
+
+	/**
+	 * Removes taxonomy terms from the references posts when a pointer is deleted or trashed
+	 *
+	 * @param int $post_id Post ID that is being deleted
+	 */
+	public function handle_post_trash( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( self::POST_TYPE_NAME !== $post->post_type ) {
+			return;
+		}
+
+		/** @var Post $post_indexable */
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$pointers = get_post_meta( $post_id, 'pointers', true );
+		$term = $this->create_or_return_custom_result_term( $post->post_title );
+
+		foreach ( $pointers as $pointer ) {
+			$ref_id = $pointer['ID'];
+			wp_remove_object_terms( $ref_id, (int) $term->term_id, self::TAXONOMY_NAME );
+
+			$post_indexable->sync_manager->action_sync_on_update( $ref_id );
+		}
+	}
+
+	/**
+	 * Handles reassigning terms to the posts when a pointer post is restored from trash
+	 *
+	 * @param int $post_id Post ID
+	 */
+	public function handle_post_untrash( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( self::POST_TYPE_NAME !== $post->post_type ) {
+			return;
+		}
+
+		/** @var Post $post_indexable */
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$pointers = get_post_meta( $post_id, 'pointers', true );
+		$term = $this->create_or_return_custom_result_term( $post->post_title );
+
+		foreach ( $pointers as $pointer ) {
+			$this->assign_term_to_post( $pointer['ID'], $term->term_taxonomy_id, $pointer['order'] );
+
+			$post_indexable->sync_manager->action_sync_on_update( $pointer['ID'] );
+		}
+	}
+
+	/**
+	 * Assigns the term to the post with the proper term_order value
+	 *
+	 * @param $post_id
+	 * @param $term_taxonomy_id
+	 * @param $order
+	 * @return bool|int
+	 */
+	protected function assign_term_to_post( $post_id, $term_taxonomy_id, $order ) {
+		global $wpdb;
+
+		return $wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO $wpdb->term_relationships (object_id, term_taxonomy_id, term_order) VALUES ( %d, %d, %d ) ON DUPLICATE KEY UPDATE term_order = VALUES(term_order)",
+				$post_id,
+				$term_taxonomy_id,
+				$order
+			)
+		);
+
+		// Delete the term order cache
+		wp_cache_delete( "{$post_id}_term_order" );
 	}
 
 }

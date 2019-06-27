@@ -327,9 +327,10 @@ class Post extends Indexable {
 						'name'             => $term->name,
 						'parent'           => $term->parent,
 						'term_taxonomy_id' => $term->term_taxonomy_id,
+						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
 					);
 					if ( $allow_hierarchy ) {
-						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name );
+						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
 					}
 				}
 			}
@@ -347,20 +348,49 @@ class Post extends Indexable {
 	 * @param string  $tax_name Taxonomy
 	 * @return array
 	 */
-	private function get_parent_terms( $terms, $term, $tax_name ) {
+	private function get_parent_terms( $terms, $term, $tax_name, $object_id ) {
 		$parent_term = get_term( $term->parent, $tax_name );
 		if ( ! $parent_term || is_wp_error( $parent_term ) ) {
 			return $terms;
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
 			$terms[ $parent_term->term_id ] = array(
-				'term_id' => $parent_term->term_id,
-				'slug'    => $parent_term->slug,
-				'name'    => $parent_term->name,
-				'parent'  => $parent_term->parent,
+				'term_id'    => $parent_term->term_id,
+				'slug'       => $parent_term->slug,
+				'name'       => $parent_term->name,
+				'parent'     => $parent_term->parent,
+				'term_order' => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
 			);
 		}
-		return $this->get_parent_terms( $terms, $parent_term, $tax_name );
+		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
+	}
+
+	protected function get_term_order( $term_taxonomy_id, $object_id ) {
+		global $wpdb;
+
+		$cache_key = "{$object_id}_term_order";
+		$term_orders = wp_cache_get( $cache_key );
+
+		if ( false === $term_orders ) {
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT term_taxonomy_id, term_order from $wpdb->term_relationships where object_id=%d;",
+					$object_id
+				),
+				ARRAY_A
+			);
+
+			$term_orders = [];
+
+			foreach ( $results as $result ) {
+				$term_orders[ $result['term_taxonomy_id'] ] = $result['term_order'];
+			}
+
+			wp_cache_set( $cache_key, $term_orders );
+		}
+
+		return isset( $term_orders[ $term_taxonomy_id ] ) ? (int) $term_orders[ $term_taxonomy_id ] : 0;
+
 	}
 
 	/**

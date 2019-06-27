@@ -313,6 +313,11 @@ class Weighting {
 				} else {
 					unset( $fieldset['fields'][ $key ] );
 				}
+
+				// If fieldset has fuzziness enabled and fuzziness is disabled for this field, unset the field
+				if ( isset( $fieldset['fuzziness'] ) && $fieldset['fuzziness'] && isset( $weights[ $field ]['fuzziness'] ) && false === $weights[ $field ]['fuzziness'] ) {
+					unset( $fieldset['fields'][ $key ] );
+				}
 			}
 
 			// Reindex the array
