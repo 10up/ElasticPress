@@ -58,10 +58,8 @@ class SearchOrdering extends Feature {
 		add_action( 'init', [ $this, 'register_post_type' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'save_post_' . self::POST_TYPE_NAME, [ $this, 'save_post'], 10, 2 );
-		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
-		add_filter( 'ep_indexable_post_types', [ $this, 'filter_indexable_post_types'] );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration'], 10, 2 );
 	}
@@ -85,18 +83,12 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Adds this post type to indexable types
+	 * Adds this taxonomy as one of the taxonomies to index
 	 *
-	 * @param array $post_types Current indexable post types
+	 * @param array $taxonomies Current indexable taxonomies
 	 *
-	 * @return array Updated post types
+	 * @return array
 	 */
-	public function filter_indexable_post_types( $post_types ) {
-		$post_types[ self::POST_TYPE_NAME ] = self::POST_TYPE_NAME;
-
-		return $post_types;
-	}
-
 	public function filter_sync_taxonomies( $taxonomies ) {
 		$taxonomies[] = get_taxonomy( self::TAXONOMY_NAME );
 
@@ -313,6 +305,10 @@ class SearchOrdering extends Feature {
 
 		$final_order_data = [];
 
+		// Track the old IDs that aren't retained so we can delete the terms later
+		$previous_order_data = get_post_meta( $post_id, 'pointers', true );
+		$previous_post_ids = array_flip( wp_list_pluck( $previous_order_data, 'ID' ) );
+
 		$ordered_posts = json_decode( wp_unslash( $_POST['ordered_posts'] ), true );
 
 		foreach ( $ordered_posts as $order_data ) {
@@ -320,6 +316,11 @@ class SearchOrdering extends Feature {
 				'ID'    => intval( $order_data['ID'] ),
 				'order' => intval( $order_data['order'] ),
 			];
+
+			// If the post is still assigned, no need to delete the terms later
+			if ( isset( $previous_post_ids[ $order_data['ID'] ] ) ) {
+				unset( $previous_post_ids[ $order_data['ID'] ] );
+			}
 		}
 
 		$custom_result_term = $this->create_or_return_custom_result_term( $post->post_title );
@@ -338,12 +339,29 @@ class SearchOrdering extends Feature {
 			}
 		}
 
+		// Remove terms for any that were deleted
+		// @Todo also need to clean this up when a post itself is deleted
+		if ( ! empty( $previous_post_ids ) ) {
+			foreach ( array_flip( $previous_post_ids ) as $old_post_id ) {
+				wp_remove_object_terms( $old_post_id, (int) $custom_result_term->term_id, self::TAXONOMY_NAME );
+
+				$post_indexable->sync_manager->action_sync_on_update( $old_post_id );
+			}
+		}
+
 		// Delete the term order cache
 		wp_cache_delete( "{$post_id}_term_order" );
 
 		update_post_meta( $post_id, 'pointers', $final_order_data );
 	}
 
+	/**
+	 * Creates a term in the taxonomy for tracking ordered results or returns the existing term
+	 *
+	 * @param string $term_name Term name to fetch or create
+	 *
+	 * @return false|\WP_Term
+	 */
 	public function create_or_return_custom_result_term( $term_name ) {
 		$term = get_term_by( 'name', $term_name, self::TAXONOMY_NAME );
 
@@ -361,19 +379,6 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Adds this post type to the search post types for normal frontend WordPress searches
-	 *
-	 * @param array $post_types Current searchable post types
-	 *
-	 * @return array Modified searchable post types
-	 */
-	public function searchable_post_types( $post_types ) {
-		$post_types[] = self::POST_TYPE_NAME;
-
-		return $post_types;
-	}
-
-	/**
 	 * Filters the weighting configuration to insert our weighting config when we're searching
 	 *
 	 * @param array $weighting_configuration Current weighting configuration
@@ -383,12 +388,12 @@ class SearchOrdering extends Feature {
 	 */
 	public function filter_weighting_configuration( $weighting_configuration, $args ) {
 		if ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) {
-			$weighting_configuration[ self::POST_TYPE_NAME ] = [
-				'post_title' => [
-					'weight' => 9999,
+			foreach ( $weighting_configuration as $post_type => $config ) {
+				$weighting_configuration[ $post_type ]['terms.ep_custom_result.name'] = [
 					'enabled' => true,
-				]
-			];
+					'weight'  => 9999,
+				];
+			}
 		}
 
 		return $weighting_configuration;
