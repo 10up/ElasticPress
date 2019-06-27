@@ -338,6 +338,9 @@ class SearchOrdering extends Feature {
 			}
 		}
 
+		// Delete the term order cache
+		wp_cache_delete( "{$post_id}_term_order" );
+
 		update_post_meta( $post_id, 'pointers', $final_order_data );
 	}
 

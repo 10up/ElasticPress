@@ -368,16 +368,29 @@ class Post extends Indexable {
 	protected function get_term_order( $term_taxonomy_id, $object_id ) {
 		global $wpdb;
 
-		// @todo probably wrap in cache
-		$term_order = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT term_order from $wpdb->term_relationships where object_id=%d and term_taxonomy_id=%d;",
-				$object_id,
-				$term_taxonomy_id
-			)
-		);
+		$cache_key = "{$object_id}_term_order";
+		$term_orders = wp_cache_get( $cache_key );
 
-		return $term_order;
+		if ( false === $term_orders ) {
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT term_taxonomy_id, term_order from $wpdb->term_relationships where object_id=%d;",
+					$object_id
+				),
+				ARRAY_A
+			);
+
+			$term_orders = [];
+
+			foreach ( $results as $result ) {
+				$term_orders[ $result['term_taxonomy_id'] ] = $result['term_order'];
+			}
+
+			wp_cache_set( $cache_key, $term_orders );
+		}
+
+		return isset( $term_orders[ $term_taxonomy_id ] ) ? (int) $term_orders[ $term_taxonomy_id ] : 0;
+
 	}
 
 	/**
