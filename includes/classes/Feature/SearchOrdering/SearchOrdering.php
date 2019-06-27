@@ -8,6 +8,9 @@
 namespace ElasticPress\Feature\SearchOrdering;
 
 use ElasticPress\Feature;
+use ElasticPress\Features;
+use ElasticPress\Indexable\Post\Post;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -24,6 +27,11 @@ class SearchOrdering extends Feature {
 	 * Internal name of the post type
 	 */
 	const POST_TYPE_NAME = 'ep-pointer';
+
+	/**
+	 * Internal name of the taxonomy
+	 */
+	const TAXONOMY_NAME = 'ep_custom_result';
 
 	/**
 	 * Initialize feature setting it's config
@@ -54,6 +62,7 @@ class SearchOrdering extends Feature {
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'filter_indexable_post_types'] );
+		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration'], 10, 2 );
 	}
 
@@ -86,6 +95,12 @@ class SearchOrdering extends Feature {
 		$post_types[ self::POST_TYPE_NAME ] = self::POST_TYPE_NAME;
 
 		return $post_types;
+	}
+
+	public function filter_sync_taxonomies( $taxonomies ) {
+		$taxonomies[] = get_taxonomy( self::TAXONOMY_NAME );
+
+		return $taxonomies;
 	}
 
 	/**
@@ -153,6 +168,41 @@ class SearchOrdering extends Feature {
 		);
 
 		register_post_type( self::POST_TYPE_NAME, $args );
+
+
+		// Register taxonomy
+		$labels = array(
+			'name'              => _x( 'Custom Results', 'taxonomy general name', 'elasticpress' ),
+			'singular_name'     => _x( 'Custom Result', 'taxonomy singular name', 'elasticpress' ),
+			'search_items'      => __( 'Search Custom Results', 'elasticpress' ),
+			'all_items'         => __( 'All Custom Results', 'elasticpress' ),
+			'parent_item'       => __( 'Parent Custom Result', 'elasticpress' ),
+			'parent_item_colon' => __( 'Parent Custom Result:', 'elasticpress' ),
+			'edit_item'         => __( 'Edit Custom Result', 'elasticpress' ),
+			'update_item'       => __( 'Update Custom Result', 'elasticpress' ),
+			'add_new_item'      => __( 'Add New Custom Result', 'elasticpress' ),
+			'new_item_name'     => __( 'New Custom Result Name', 'elasticpress' ),
+			'menu_name'         => __( 'Custom Results', 'elasticpress' ),
+		);
+
+		$args = array(
+			'hierarchical'      => false,
+			'labels'            => $labels,
+			'show_ui'           => true, // @todo hide
+			'show_admin_column' => true, // @todo hide
+			'query_var'         => false,
+			'rewrite'           => false,
+		);
+
+		/** @var Features $features */
+		$features = Features::factory();
+
+		/** @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		$post_types = $search->get_searchable_post_types();
+
+		register_taxonomy( 'ep_custom_result', $post_types, $args );
 	}
 
 	/**
@@ -248,6 +298,11 @@ class SearchOrdering extends Feature {
 	 * @param $post
 	 */
 	public function save_post( $post_id, $post ) {
+		global $wpdb;
+
+		/** @var Post $post_indexable */
+		$post_indexable = Indexables::factory()->get( 'post' );
+
 		if ( ! isset( $_POST['search-ordering-nonce'] ) || ! wp_verify_nonce( $_POST['search-ordering-nonce'], 'save-search-ordering' ) ) {
 			return;
 		}
@@ -267,7 +322,39 @@ class SearchOrdering extends Feature {
 			];
 		}
 
+		$custom_result_term = $this->create_or_return_custom_result_term( $post->post_title );
+		if ( $custom_result_term ) {
+			foreach ( $final_order_data as $final_order_datum ) {
+				$wpdb->query(
+					$wpdb->prepare(
+						"INSERT INTO $wpdb->term_relationships (object_id, term_taxonomy_id, term_order) VALUES ( %d, %d, %d ) ON DUPLICATE KEY UPDATE term_order = VALUES(term_order)",
+						$final_order_datum['ID'],
+						$custom_result_term->term_taxonomy_id,
+						$final_order_datum['order']
+					)
+				);
+
+				$post_indexable->sync_manager->action_sync_on_update( $final_order_datum['ID'] );
+			}
+		}
+
 		update_post_meta( $post_id, 'pointers', $final_order_data );
+	}
+
+	public function create_or_return_custom_result_term( $term_name ) {
+		$term = get_term_by( 'name', $term_name, self::TAXONOMY_NAME );
+
+		if ( ! $term ) {
+			$term_ids = wp_insert_term( $term_name, self::TAXONOMY_NAME );
+
+			if ( is_wp_error( $term_ids ) ) {
+				return false;
+			}
+
+			$term = get_term( $term_ids['term_id'], self::TAXONOMY_NAME );
+		}
+
+		return $term;
 	}
 
 	/**
@@ -413,12 +500,13 @@ class SearchOrdering extends Feature {
 	public function handle_pointer_search( $request ) {
 		$search = $request->get_param( 's' );
 
-		$post_types = get_post_types(
-			[
-				'public'              => 'true',
-				'exclude_from_search' => false,
-			]
-		);
+		/** @var Features $features */
+		$features = Features::factory();
+
+		/** @var Feature\Search\Search $search */
+		$search_feature = $features->get_registered_feature( 'search' );
+
+		$post_types = $search_feature->get_searchable_post_types();
 
 		$query = new \WP_Query(
 			[
