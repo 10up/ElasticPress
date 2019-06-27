@@ -409,37 +409,21 @@ class SearchOrdering extends Feature {
 	 */
 	public function posts_results( $posts, $query ) {
 		if ( is_array( $posts ) && $query->is_search() ) {
+			$search_query = strtolower( $query->get( 's' ) );
+
 			$to_inject = array();
 
-			// So we can avoid duplicates
-			$to_inject_ids = array();
-
 			foreach ( $posts as $key => &$post ) {
-				if ( $post->post_type === self::POST_TYPE_NAME ) {
-					$pointers = get_post_meta( $post->ID, 'pointers', true );
+				if ( isset( $post->terms ) && isset( $post->terms[ self::TAXONOMY_NAME ] ) ) {
+					foreach ( $post->terms[ self::TAXONOMY_NAME ] as $current_term ) {
+						if ( strtolower( $current_term['name'] ) === $search_query ) {
+							$to_inject[ $current_term['term_order'] ] = $post->ID;
 
-					// Pointers always need to be unset, regardless if they have pointer IDs or not
-					unset( $posts[ $key ] );
+							unset( $posts[ $key ] );
 
-					if ( empty( $pointers ) ) {
-						continue;
+							break;
+						}
 					}
-
-					foreach ( $pointers as $pointer ) {
-						$points_to = $pointer['ID'];
-						$order = $pointer['order'];
-
-						$to_inject[ $order ] = $points_to;
-						$to_inject_ids[ $points_to ] = true;
-					}
-				}
-			}
-
-			// Remove any that will be duplicates
-			foreach ( $posts as &$post ) {
-				if ( isset( $to_inject_ids[ $post->ID ] ) ) {
-					// Null so we don't break the loop
-					$post = null;
 				}
 			}
 
