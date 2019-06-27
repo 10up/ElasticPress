@@ -219,8 +219,8 @@ class SearchOrdering extends Feature {
 		$args = array(
 			'hierarchical'      => false,
 			'labels'            => $labels,
-			'show_ui'           => true, // @todo hide
-			'show_admin_column' => true, // @todo hide
+			'show_ui'           => false,
+			'show_admin_column' => false,
 			'query_var'         => false,
 			'rewrite'           => false,
 		);
@@ -329,8 +329,6 @@ class SearchOrdering extends Feature {
 	 * @param $post
 	 */
 	public function save_post( $post_id, $post ) {
-		global $wpdb;
-
 		/** @var Post $post_indexable */
 		$post_indexable = Indexables::factory()->get( 'post' );
 
@@ -372,7 +370,6 @@ class SearchOrdering extends Feature {
 		}
 
 		// Remove terms for any that were deleted
-		// @Todo also need to clean this up when a post itself is deleted
 		if ( ! empty( $previous_post_ids ) ) {
 			foreach ( array_flip( $previous_post_ids ) as $old_post_id ) {
 				wp_remove_object_terms( $old_post_id, (int) $custom_result_term->term_id, self::TAXONOMY_NAME );
