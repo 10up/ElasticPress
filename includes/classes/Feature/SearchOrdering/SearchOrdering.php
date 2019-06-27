@@ -8,6 +8,7 @@
 namespace ElasticPress\Feature\SearchOrdering;
 
 use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Features;
 use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Indexables;
@@ -53,6 +54,17 @@ class SearchOrdering extends Feature {
 	 * Setup Feature Functionality
 	 */
 	public function setup() {
+		/** @var Features $features */
+		$features = Features::factory();
+
+		/** @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		if ( ! $search->is_active() ) {
+			$features->deactivate_feature( $this->slug );
+			return;
+		}
+
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 50 );
 		add_filter( 'parent_file', [ $this, 'parent_file' ], 50 );
 		add_action( 'init', [ $this, 'register_post_type' ] );
@@ -62,6 +74,28 @@ class SearchOrdering extends Feature {
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration'], 10, 2 );
+	}
+
+	/**
+	 * Returns requirements status of feature
+	 *
+	 * Requires the search feature to be activated
+	 *
+	 * @return FeatureRequirementsStatus
+	 */
+	public function requirements_status() {
+		/** @var Features $features */
+		$features = Features::factory();
+
+		/** @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		if ( ! $search->is_active() ) {
+			$features->deactivate_feature( $this->slug );
+			return new FeatureRequirementsStatus( 2, __( 'This feature requires the "Post Search" feature to be enabled', 'katerra' ) );
+		}
+
+		return parent::requirements_status();
 	}
 
 	/**
