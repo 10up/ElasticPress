@@ -42,6 +42,22 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.0.3 =
+
+* Pass $post_id twice in ep_post_sync_kill for backwards compatibility. Props [aaemnnosttv](https://github.com/aaemnnosttv)
+* Add `ep_search_request_path` filter for backwards compant.
+* Add `ep_query_request_path` filter for modifying the query path.
+* Fix missing action name in post query integration.
+* Properly add date filter to WP_Query.
+
+= 3.0.2 =
+
+3.0.2 is a minor bug release version. Here is a list of fixes:
+
+* Fix date query errors
+* Readd ep_retrieve_the_{type} filter. Props [gassan](https://github.com/gassan)
+* Fix empty autosuggest selector notice
+
 = 3.0.1 =
 
 3.0.1 is a minor bug release version. Here is a list of fixes:
@@ -50,6 +66,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Add autosuggest selector field default to fix notice.
 * Re-add `ep_find_related` as deprecated function.
 * Changed max int to use core predefined constant. Props [@fabianmarz](https://github.com/fabianmarz)
+* Properly support legacy feature registration callbacks per #1329.
+* Properly disable settings as needed on dashboard.
+* Don't force document search on REST requests.
 
 = 3.0 (Requires re-index) =
 

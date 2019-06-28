@@ -1,4 +1,4 @@
-ElasticPress
+ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress)
 =============
 
 A fast and flexible search and query engine for WordPress.
@@ -23,6 +23,7 @@ ElasticPress integrates with several WordPress APIs (e.g. [WP_Query](http://code
 
 * [Elasticsearch](https://www.elastic.co) 1.7+ (5.0+ highly recommended) **ElasticSearch max version supported: 6.3**
 * [WordPress](http://wordpress.org) 3.7.1+
+* [PHP](https://php.net/) 5.4+
 
 
 ## Installation

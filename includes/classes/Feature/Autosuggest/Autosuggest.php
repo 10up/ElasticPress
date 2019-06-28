@@ -260,7 +260,7 @@ class Autosuggest extends Feature {
 					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
 					'postType'     => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
 					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
-					'selector'     => esc_html( $settings['autosuggest_selector'] ),
+					'selector'     => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
 					'searchFields' => apply_filters(
 						'ep_term_suggest_search_fields',
 						array(
