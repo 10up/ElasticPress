@@ -116,7 +116,23 @@ class Widget extends WP_Widget {
 			}
 		}
 
-		$terms     = Utils\get_term_tree( $terms, 'count', 'desc', true );
+		/**
+		 * Filters the 'orderby' argument when querying for facet terms
+         *
+         * @var string $orderby One of either 'count' or 'name'. Defaults to 'count'.
+         * @var string $taxonomy The taxonomy slug used in the facet.
+		 */
+		$orderby = apply_filters( 'ep_facet_search_widget_orderby', 'count', $taxonomy );
+		
+		/**
+		 * Filters the 'order' argument when querying for facet terms
+		 *
+		 * @var string $order One of either 'desc' or 'asc'. Defaults to 'desc'.
+		 * @var string $taxonomy The taxonomy slug used in the facet.
+		 */
+		$order   = apply_filters( 'ep_facet_search_widget_order', 'desc', $taxonomy );
+
+		$terms     = Utils\get_term_tree( $terms, $orderby, $order, true );
 		$term_tree = Utils\get_term_tree( $terms, 'count', 'desc', false );
 
 		$outputted_terms = array();
