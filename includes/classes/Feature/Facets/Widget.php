@@ -116,7 +116,10 @@ class Widget extends WP_Widget {
 			}
 		}
 
-		$terms     = Utils\get_term_tree( $terms, 'count', 'desc', true );
+		$orderby = isset( $instance['orderby'] ) ? $instance['orderby'] : 'count';
+		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
+
+		$terms     = Utils\get_term_tree( $terms, $orderby, $order, true );
 		$term_tree = Utils\get_term_tree( $terms, 'count', 'desc', false );
 
 		$outputted_terms = array();
@@ -183,7 +186,7 @@ class Widget extends WP_Widget {
 									break;
 								}
 
-								$i++;
+								$i ++;
 							}
 
 							$flat_ordered_terms = array();
@@ -339,10 +342,23 @@ class Widget extends WP_Widget {
 			$not_set = esc_html__( 'all', 'elasticpress' );
 		}
 
-		$title = ( ! empty( $instance['title'] ) ) ? $instance['title'] : '';
-		$facet = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
+		$title   = ( ! empty( $instance['title'] ) ) ? $instance['title'] : '';
+		$facet   = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
+		$orderby = ( ! empty( $instance['orderby'] ) ) ? $instance['orderby'] : '';
+		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+
+		$orderby_options = [
+			'count' => 'Count',
+			'name'  => 'Term Name'
+		];
+
+		$order_options = [
+			'desc' => 'Descending',
+			'asc'  => 'Ascending'
+		];
+
 		?>
 		<div class="widget-ep-facet">
 			<p>
@@ -357,12 +373,42 @@ class Widget extends WP_Widget {
 					<?php esc_html_e( 'Taxonomy:', 'elasticpress' ); ?>
 				</label><br>
 
-				<select id="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'facet' ) ); ?>">
+                <select id="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>"
+                        name="<?php echo esc_attr( $this->get_field_name( 'facet' ) ); ?>">
 					<?php foreach ( $taxonomies as $slug => $taxonomy_object ) : ?>
-						<option <?php selected( $facet, $taxonomy_object->name ); ?> value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
+                        <option <?php selected( $facet, $taxonomy_object->name ); ?>
+                                value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
 					<?php endforeach; ?>
-				</select>
-			</p>
+                </select>
+            </p>
+
+            <p>
+                <label for="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>">
+			        <?php esc_html_e( 'Term Order:', 'elasticpress' ); ?>
+                </label><br>
+
+                <select id="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>"
+                        name="<?php echo esc_attr( $this->get_field_name( 'orderby' ) ); ?>">
+			        <?php foreach ( $orderby_options as $name => $title ) : ?>
+                        <option <?php selected( $orderby, $name ); ?>
+                                value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
+			        <?php endforeach; ?>
+                </select>
+            </p>
+
+            <p>
+                <label for="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>">
+			        <?php esc_html_e( 'Term Order:', 'elasticpress' ); ?>
+                </label><br>
+
+                <select id="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>"
+                        name="<?php echo esc_attr( $this->get_field_name( 'order' ) ); ?>">
+			        <?php foreach ( $order_options as $name => $title ) : ?>
+                        <option <?php selected( $order, $name ); ?>
+                                value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
+			        <?php endforeach; ?>
+                </select>
+            </p>
 
 			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
 		</div>
@@ -380,8 +426,10 @@ class Widget extends WP_Widget {
 	public function update( $new_instance, $old_instance ) {
 		$instance = [];
 
-		$instance['title'] = sanitize_text_field( $new_instance['title'] );
-		$instance['facet'] = sanitize_text_field( $new_instance['facet'] );
+		$instance['title']   = sanitize_text_field( $new_instance['title'] );
+		$instance['facet']   = sanitize_text_field( $new_instance['facet'] );
+		$instance['orderby'] = sanitize_text_field( $new_instance['orderby'] );
+		$instance['order']   = sanitize_text_field( $new_instance['order'] );
 
 		return $instance;
 	}
