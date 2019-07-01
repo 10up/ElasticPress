@@ -87,8 +87,8 @@ return array(
 									),
 								),
 								'raw'      => array( /* Left for backwards compat */
-								                     'type'         => 'string',
-								                     'ignore_above' => 10922,
+									'type'         => 'string',
+									'ignore_above' => 10922,
 								),
 								'long'     => array(
 									'type' => 'long',
