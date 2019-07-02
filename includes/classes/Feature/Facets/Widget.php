@@ -351,12 +351,12 @@ class Widget extends WP_Widget {
 
 		$orderby_options = [
 			'count' => 'Count',
-			'name'  => 'Term Name'
+			'name'  => 'Term Name',
 		];
 
 		$order_options = [
 			'desc' => 'Descending',
-			'asc'  => 'Ascending'
+			'asc'  => 'Ascending',
 		];
 
 		?>
@@ -382,27 +382,29 @@ class Widget extends WP_Widget {
 
             <p>
                 <label for="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>">
-			        <?php esc_html_e( 'Order Terms By:', 'elasticpress' ); ?>
+					<?php esc_html_e( 'Order Terms By:', 'elasticpress' ); ?>
                 </label><br>
 
-                <select id="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'orderby' ) ); ?>">
-			        <?php foreach ( $orderby_options as $name => $title ) : ?>
+                <select id="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>"
+                        name="<?php echo esc_attr( $this->get_field_name( 'orderby' ) ); ?>">
+					<?php foreach ( $orderby_options as $name => $title ) : ?>
                         <option <?php selected( $orderby, $name ); ?>
                                 value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
-			        <?php endforeach; ?>
+					<?php endforeach; ?>
                 </select>
             </p>
 
             <p>
                 <label for="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>">
-			        <?php esc_html_e( 'Term Order:', 'elasticpress' ); ?>
+					<?php esc_html_e( 'Term Order:', 'elasticpress' ); ?>
                 </label><br>
 
-                <select id="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'order' ) ); ?>">
-			        <?php foreach ( $order_options as $name => $title ) : ?>
+                <select id="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>"
+                        name="<?php echo esc_attr( $this->get_field_name( 'order' ) ); ?>">
+					<?php foreach ( $order_options as $name => $title ) : ?>
                         <option <?php selected( $order, $name ); ?>
                                 value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
-			        <?php endforeach; ?>
+					<?php endforeach; ?>
                 </select>
             </p>
 
