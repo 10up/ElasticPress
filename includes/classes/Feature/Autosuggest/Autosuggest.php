@@ -244,31 +244,42 @@ class Autosuggest extends Feature {
 			$post_status = array( 'publish' );
 		}
 
-		$post_types = apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) );
+		$post_types    = apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) );
 		$post_statuses = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
-		$search_fields = apply_filters( 'ep_term_suggest_search_fields', [
-			'post_title.suggest',
-			'term_suggest',
-		]);
+		$search_fields = apply_filters(
+			'ep_term_suggest_search_fields',
+			[
+				'post_title.suggest',
+				'term_suggest',
+			]
+		);
 
 		$search_query = [
-			'sort' => [
-				'_score' => ['order' => 'desc'],
+			'sort'  => [
+				'_score' => [ 'order' => 'desc' ],
 			],
 			'query' => [
 				'multi_match' => [
-					'query' => '{{searchText}}',
+					'query'  => '{{searchText}}',
 					'fields' => $search_fields,
 				],
 			],
 		];
 
-		if ( !empty($post_statuses) ) {
-			$search_query['post_filter']['bool']['must'][] = ['terms' => ['post_status' => $post_statuses]];
+		if ( ! empty( $post_statuses ) ) {
+			$search_query['post_filter']['bool']['must'][] = [
+				'terms' => [
+					'post_status' => $post_statuses,
+				],
+			];
 		}
 
 		if ( 'all' !== $post_types ) {
-			$search_query['post_filter']['bool']['must'][] = ['terms' => ['post_type.raw' => $post_types]];
+			$search_query['post_filter']['bool']['must'][] = [
+				'terms' => [
+					'post_type.raw' => $post_types,
+				],
+			];
 		}
 
 		/**
