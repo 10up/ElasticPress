@@ -72,57 +72,11 @@ function debounce( fn, delay ) {
  * @param searchText
  * @returns object
  */
-function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
-	if ( 'all' === postType || 'undefined' === typeof( postType ) || '' === postType ) {
-		postType = 'all';
-	}
-
-	if ( '' === postStatus ) {
-		postStatus = 'publish';
-	}
-
-	var query = {
-		sort: [
-			{
-				_score: {
-					order: 'desc'
-				}
-			}
-		],
-		query: {
-			multi_match: {
-				query: searchText,
-				fields: searchFields
-			}
-		}
-	};
-
-	// If we're specifying post types/statuses, do it in an array
-	if ( 'string' === typeof postType && 'all' !== postType ) {
-		postType = postType.split( ',' );
-	}
-
-	if ( 'string' === typeof postStatus ) {
-		postStatus = postStatus.split( ',' );
-	}
-
-	// Then add it as a filter to the end of the query
-	query.post_filter = {
-		bool: {
-			must: [
-				{
-					terms: { post_status: postStatus }
-				}
-			]
-		}
-	};
-
-	if ( 'all' !== postType ) {
-		query.post_filter.bool.must.push( {
-			terms: { 'post_type.raw': postType }
-		} );
-	}
-
+function buildSearchQuery( searchText ) {
+	var query = epas.searchQuery;
+	// Stringify object to replace token easily.
+	query = JSON.stringify( query ).replace( /{{searchText}}/g, searchText );
+	query = JSON.parse( query );
 	return query;
 }
 

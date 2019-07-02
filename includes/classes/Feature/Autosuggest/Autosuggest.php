@@ -244,11 +244,39 @@ class Autosuggest extends Feature {
 			$post_status = array( 'publish' );
 		}
 
+		$post_types = apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) );
+		$post_statuses = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
+		$search_fields = apply_filters( 'ep_term_suggest_search_fields', [
+			'post_title.suggest',
+			'term_suggest',
+		]);
+
+		$search_query = [
+			'sort' => [
+				'_score' => ['order' => 'desc'],
+			],
+			'query' => [
+				'multi_match' => [
+					'query' => '{{searchText}}',
+					'fields' => $search_fields,
+				],
+			],
+		];
+
+		if ( !empty($post_statuses) ) {
+			$search_query['post_filter']['bool']['must'][] = ['terms' => ['post_status' => $post_statuses]];
+		}
+
+		if ( 'all' !== $post_types ) {
+			$search_query['post_filter']['bool']['must'][] = ['terms' => ['post_type.raw' => $post_types]];
+		}
+
 		/**
 		 * Output variables to use in Javascript
 		 * index: the Elasticsearch index name
 		 * endpointUrl:  the Elasticsearch autosuggest endpoint url
 		 * postType: which post types to use for suggestions
+		 * searchQuery: the performed search query for the autosuggest search field.
 		 * action: the action to take when selecting an item. Possible values are "search" and "navigate".
 		 */
 		wp_localize_script(
@@ -258,16 +286,11 @@ class Autosuggest extends Feature {
 				'ep_autosuggest_options',
 				array(
 					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-					'postType'     => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
-					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
+					'postType'     => $post_types,
+					'postStatus'   => $post_statuses,
 					'selector'     => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-					'searchFields' => apply_filters(
-						'ep_term_suggest_search_fields',
-						array(
-							'post_title.suggest',
-							'term_suggest',
-						)
-					),
+					'searchFields' => $search_fields,
+					'searchQuery'  => $search_query,
 					'action'       => 'navigate',
 				)
 			)
