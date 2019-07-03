@@ -72,16 +72,19 @@ function debounce( fn, delay ) {
  * @param searchText
  * @returns object
  */
-function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
-	if ( 'all' === postType || 'undefined' === typeof( postType ) || '' === postType ) {
-		postType = 'all';
+function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weightingSettings ) {
+	// On ep.io, postTypes must be an array and match the post types used in the main search query
+	if ( 'all' === postTypes || 'undefined' === typeof( postTypes ) || '' === postTypes ) {
+		postTypes = 'all';
 	}
 
 	if ( '' === postStatus ) {
 		postStatus = 'publish';
 	}
 
-	var query = {
+	const query = {
+		from: 0,
+		size: 10,
 		sort: [
 			{
 				_score: {
@@ -89,17 +92,144 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 				}
 			}
 		],
-		query: {
-			multi_match: {
-				query: searchText,
-				fields: searchFields
-			}
-		}
+		query: {},
+		post_filter: {},
 	};
 
+	// Build the main section of the query
+	const mainQuery = [];
+
 	// If we're specifying post types/statuses, do it in an array
-	if ( 'string' === typeof postType && 'all' !== postType ) {
-		postType = postType.split( ',' );
+	if ( 'string' === typeof postTypes && 'all' !== postTypes ) {
+		postTypes = postTypes.split( ',' );
+	}
+
+	postTypes.map( postType => {
+		let postTypeWeights;
+
+		if ( undefined !== weightingSettings && undefined !== weightingSettings[ postType ] ) {
+			postTypeWeights = weightingSettings[ postType ];
+		} else {
+			postTypeWeights = {
+				post_title: {
+					enabled: true,
+					weight: 0,
+				},
+				post_content: {
+					enabled: true,
+					weight: 0,
+				},
+				post_excerpt: {
+					enabled: true,
+					weight: 0,
+				},
+				author_name: {
+					enabled: true,
+					weight: 0,
+				},
+			};
+		}
+
+		const fields = [];
+		const fuzzyFields = [];
+
+		const fieldKeys = Object.keys( postTypeWeights );
+		for ( let i = 0; i < fieldKeys.length; i++ ) {
+			const fieldKey = fieldKeys[ i ];
+			const fieldSettings = postTypeWeights[ fieldKey ];
+
+			if ( true === fieldSettings.enabled ) {
+				let fieldValue;
+
+				if ( 0 !== fieldSettings.weight ) {
+					fieldValue = `${fieldKey}^${fieldSettings.weight}`;
+				} else {
+					fieldValue = fieldKey;
+				}
+
+				fields.push( fieldValue );
+
+				// Defaults to allowing field in fuzzy search unless specifically disabled
+				if ( ! ( undefined !== fieldSettings.fuzziness && false === fieldSettings.fuzziness ) ) {
+					fuzzyFields.push( fieldValue );
+				}
+			}
+		}
+
+		mainQuery.push( {
+			bool: {
+				must: [
+					{
+						bool: {
+							should: [
+								{
+									multi_match: {
+										query: searchText,
+										type: 'phrase',
+										fields: fields,
+										boost: 4,
+									}
+								},
+								{
+									multi_match: {
+										query: searchText,
+										fields: fields,
+										boost: 2,
+										fuzziness: 0,
+										operator: 'and',
+									}
+								},
+								{
+									multi_match: {
+										query: searchText,
+										fields: fuzzyFields,
+										fuzziness: 1,
+									}
+								},
+							]
+						}
+					}
+				],
+				filter: [
+					{
+						match: {
+							'post_type.raw': postType
+						}
+					}
+				]
+			}
+		} );
+	} );
+
+	if ( undefined !== epas.dateDecay && true === epas.dateDecay.enabled ) {
+		query.query = {
+			function_score: {
+				query: {
+					bool: {
+						should: mainQuery
+					}
+				},
+				functions: [
+					{
+						exp: {
+							post_date_gmt: {
+								scale: '14d',
+								decay: 0.25,
+								offset: '7d',
+							}
+						}
+					}
+				],
+				score_mode: 'avg',
+				boost_mode: 'sum',
+			}
+		};
+	} else {
+		query.query = {
+			bool: {
+				should: mainQuery
+			}
+		};
 	}
 
 	if ( 'string' === typeof postStatus ) {
@@ -117,9 +247,9 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 		}
 	};
 
-	if ( 'all' !== postType ) {
+	if ( 'all' !== postTypes ) {
 		query.post_filter.bool.must.push( {
-			terms: { 'post_type.raw': postType }
+			terms: { 'post_type.raw': postTypes }
 		} );
 	}
 
@@ -242,6 +372,52 @@ function hideAutosuggestBox() {
 	jQuery( '.ep-autosuggest' ).hide();
 }
 
+/**
+ * Checks for any manually ordered posts and puts them in the correct place
+ *
+ * @param hits
+ * @param searchTerm
+ */
+function checkForOrderedPosts( hits, searchTerm ) {
+	const taxName = 'ep_custom_result';
+
+	searchTerm = searchTerm.toLowerCase();
+
+	const toInsert = {};
+
+	hits = hits.filter( ( hit, index ) => {
+		// Should we retain this hit in its current position?
+		let retain = true;
+
+		if ( undefined !== hit._source.terms && undefined !== hit._source.terms[ taxName ] ) {
+			hit._source.terms[ taxName ].map( currentTerm => {
+				if ( currentTerm.name.toLowerCase() === searchTerm ) {
+					toInsert[ currentTerm.term_order ] = hit;
+
+					retain = false;
+				}
+			} );
+		}
+
+		return retain;
+	} );
+
+	const orderedInserts = {};
+
+	Object.keys( toInsert ).sort().map( key => {
+		orderedInserts[ key ] = toInsert[ key ];
+	} );
+
+	if ( 0 < Object.keys( orderedInserts ).length ) {
+		Object.keys( orderedInserts ).map( key => {
+			const insertItem = orderedInserts[ key ];
+
+			hits.splice( key - 1, 0, insertItem );
+		} );
+	}
+
+	return hits;
+}
 
 // No host/index set
 if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
@@ -304,23 +480,26 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 				return;
 			}
 
-			var val = $localInput.val();
-			var query;
-			var request;
-			var postType = epas.postType;
-			var postStatus = epas.postStatus;
-			var searchFields = epas.searchFields;
+			const val = $localInput.val();
+			let query;
+			let request;
+			const postTypes = epas.postTypes;
+			const postStatus = epas.postStatus;
+			const searchFields = epas.searchFields;
+			const weightingSettings = epas.weighting;
 
 			if ( 2 <= val.length ) {
-				query = buildSearchQuery( val, postType, postStatus, searchFields );
+				query = buildSearchQuery( val, postTypes, postStatus, searchFields, weightingSettings );
 				request = esSearch( query );
 
 				request.done( ( response ) => {
 					if ( 0 < response._shards.successful ) {
-						var usedPosts = {};
-						var filteredObjects = [];
+						let usedPosts = {};
+						let filteredObjects = [];
 
-						jQuery.each( response.hits.hits, ( index, element ) =>{
+						const hits = checkForOrderedPosts( response.hits.hits, val );
+
+						jQuery.each( hits, ( index, element ) => {
 							var text = element._source.post_title;
 							var url = element._source.permalink;
 							var postId = element._source.post_id;

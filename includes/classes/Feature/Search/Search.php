@@ -17,6 +17,12 @@ use ElasticPress\Indexable\Post\Post as Post;
  * Search feature class
  */
 class Search extends Feature {
+
+	/**
+	 * @var Weighting
+	 */
+	public $weighting;
+
 	/**
 	 * Initialize feature setting it's config
 	 *
@@ -45,8 +51,8 @@ class Search extends Feature {
 		add_action( 'init', [ $this, 'search_setup' ] );
 
 		// Set up weighting sub-module
-		$weighting = new Weighting();
-		$weighting->setup();
+		$this->weighting = new Weighting();
+		$this->weighting->setup();
 	}
 
 	/**
@@ -170,6 +176,24 @@ class Search extends Feature {
 	}
 
 	/**
+	 * Returns true/false if decaying is/isn't enabled
+	 *
+	 * @return bool
+	 */
+	public function is_decaying_enabled() {
+		$settings = $this->get_settings();
+
+		$settings = wp_parse_args(
+			$settings,
+			[
+				'decaying_enabled' => true,
+			]
+		);
+
+		return (bool) $settings['decaying_enabled'];
+	}
+
+	/**
 	 * Weight more recent content in searches
 	 *
 	 * @param  array $formatted_args Formatted ES args
@@ -179,21 +203,7 @@ class Search extends Feature {
 	 */
 	public function weight_recent( $formatted_args, $args ) {
 		if ( ! empty( $args['s'] ) ) {
-			$feature = Features::factory()->get_registered_feature( 'search' );
-
-			$settings = [];
-			if ( $feature ) {
-				$settings = $feature->get_settings();
-			}
-
-			$settings = wp_parse_args(
-				$settings,
-				[
-					'decaying_enabled' => true,
-				]
-			);
-
-			if ( (bool) $settings['decaying_enabled'] ) {
+			if ( $this->is_decaying_enabled() ) {
 				$date_score = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],

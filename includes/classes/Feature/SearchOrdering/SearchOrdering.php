@@ -74,6 +74,7 @@ class SearchOrdering extends Feature {
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration'], 10, 2 );
+		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration'], 10, 1 );
 
 		// Deals with trashing/untrashing/deleting
 		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
@@ -419,7 +420,7 @@ class SearchOrdering extends Feature {
 	 *
 	 * @return array Final weighting configuration
 	 */
-	public function filter_weighting_configuration( $weighting_configuration, $args ) {
+	public function filter_weighting_configuration( $weighting_configuration, $args = array() ) {
 		if ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) {
 			foreach ( $weighting_configuration as $post_type => $config ) {
 				$weighting_configuration[ $post_type ]['terms.ep_custom_result.name'] = [

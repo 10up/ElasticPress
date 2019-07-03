@@ -850,8 +850,8 @@ class Post extends Indexable {
 					),
 					array(
 						'multi_match' => array(
-							'fields'    => $search_fields,
 							'query'     => '',
+							'fields'    => $search_fields,
 							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
 						),
 					),
