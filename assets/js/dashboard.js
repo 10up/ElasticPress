@@ -370,8 +370,8 @@ function sync() {
 			syncStatus = 'finished';
 			updateSyncDash();
 
-			if( ! epDash.intro_shown ) {
-				document.location.replace( epDash.ep_intro_url );
+			if ( epDash.install_sync ) {
+				document.location.replace( epDash.install_complete_url );
 			}
 
 		} else {

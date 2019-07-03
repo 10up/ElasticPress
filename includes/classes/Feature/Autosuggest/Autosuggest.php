@@ -34,8 +34,9 @@ class Autosuggest extends Feature {
 
 		$this->requires_install_reindex = true;
 		$this->default_settings         = [
-			'endpoint_url'     => '',
-			'defaults_enabled' => 1,
+			'endpoint_url'         => '',
+			'defaults_enabled'     => 1,
+			'autosuggest_selector' => '',
 		];
 
 		parent::__construct();
@@ -93,6 +94,13 @@ class Autosuggest extends Feature {
 			<div class="input-wrap">
 				<label for="defaults_enabled"><input name="defaults_enabled" id="defaults_enabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Use plugin defaults', 'elasticpress' ); ?></label><br>
 				<label for="defaults_disabled"><input name="defaults_enabled" id="defaults_disabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Use safe values', 'elasticpress' ); ?></label>
+			</div>
+		</div>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
+			<div class="input-wrap">
+				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
+				<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<?php
@@ -232,8 +240,8 @@ class Autosuggest extends Feature {
 			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
 			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 		} else {
-			$post_status = array( 'post', 'page' );
-			$post_types  = array( 'publish' );
+			$post_types  = array( 'post', 'page' );
+			$post_status = array( 'publish' );
 		}
 
 		/**
@@ -250,8 +258,9 @@ class Autosuggest extends Feature {
 				'ep_autosuggest_options',
 				array(
 					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-					'postType'     => apply_filters( 'ep_term_suggest_post_type', $post_types ),
-					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', $post_status ),
+					'postType'     => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
+					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
+					'selector'     => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
 					'searchFields' => apply_filters(
 						'ep_term_suggest_search_fields',
 						array(

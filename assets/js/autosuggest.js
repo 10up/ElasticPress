@@ -245,7 +245,7 @@ function hideAutosuggestBox() {
 
 // No host/index set
 if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
-	const $epInput       = jQuery( '.ep-autosuggest, input[type="search"], .search-field' );
+	const $epInput       = jQuery( '.ep-autosuggest, input[type="search"], .search-field, ' + epas.selector  );
 	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**

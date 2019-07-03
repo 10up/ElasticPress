@@ -10,8 +10,8 @@ namespace ElasticPress\Indexable\Post;
 
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
 use \WP_Query as WP_Query;
+use \WP_User as WP_User;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -774,7 +774,7 @@ class Post extends Indexable {
 		 */
 		$date_filter = DateQuery::simple_es_date_filter( $args );
 
-		if ( empty( $date_filter ) ) {
+		if ( ! empty( $date_filter ) ) {
 			$filter['bool']['must'][] = $date_filter;
 			$use_filters              = true;
 		}
@@ -1184,8 +1184,8 @@ class Post extends Indexable {
 	 * @since 1.1
 	 * @access protected
 	 *
-	 * @param string  $orderbys Alias or path for the field to order by.
-	 * @param string  $default_order Default order direction
+	 * @param string $orderbys Alias or path for the field to order by.
+	 * @param string $default_order Default order direction
 	 * @param  array  $args Query args
 	 * @return array
 	 */
@@ -1218,7 +1218,7 @@ class Post extends Indexable {
 					);
 				} elseif ( 'type' === $orderby_clause ) {
 					$sort[] = array(
-						'post_type' => array(
+						'post_type.raw' => array(
 							'order' => $order,
 						),
 					);

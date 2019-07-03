@@ -191,6 +191,11 @@ class Elasticsearch {
 	public function query( $index, $type, $query, $query_args ) {
 		$path = $index . '/' . $type . '/_search';
 
+		// For backwards compat
+		$path = apply_filters( 'ep_search_request_path', $path, $index, $type, $query, $query_args );
+
+		$path = apply_filters( 'ep_query_request_path', $path, $index, $type, $query, $query_args );
+
 		$request_args = array(
 			'body'    => json_encode( $query ),
 			'method'  => 'POST',
@@ -217,13 +222,16 @@ class Elasticsearch {
 			// Check for and store aggregations.
 			do_action( 'ep_valid_response', $response, $query, $query_args );
 
+			// Backwards compat
+			do_action( 'ep_retrieve_raw_response', $request, $query, $query_args );
+
 			$documents = [];
 
 			foreach ( $hits as $hit ) {
 				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
-				$documents[] = $document;
+				$documents[] = apply_filters( 'ep_retrieve_the_' . $type, $document, $hit );
 			}
 
 			return [
@@ -515,6 +523,16 @@ class Elasticsearch {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Delete all indices
+	 *
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function delete_all_indices() {
+		return $this->delete_index( '*' );
 	}
 
 	/**
