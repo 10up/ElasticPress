@@ -284,7 +284,7 @@ function esSearch( query ) {
  * @return void
  */
 function updateAutosuggestBox( options, $localInput ) {
-	var i,
+	let i,
 		itemString,
 		$localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
 		$localSuggestList = $localESContainer.find( '.autosuggest-list' );
@@ -301,8 +301,8 @@ function updateAutosuggestBox( options, $localInput ) {
 	}
 
 	for ( i = 0; i < options.length; ++i ) {
-		var text = options[i].text;
-		var url = options[i].url;
+		const text = options[i].text;
+		const url = options[i].url;
 		itemString = '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>';
 		jQuery( itemString ).appendTo( $localSuggestList );
 	}
@@ -317,9 +317,9 @@ function updateAutosuggestBox( options, $localInput ) {
 	// Listen to the input for up and down navigation between autosuggest items
 	$localInput.on( 'keydown', ( event ) => {
 		if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode ) {
-			var $results = $localInput.closest( '.ep-autosuggest-container' ).find( '.autosuggest-list li' );
-			var $current = $results.filter( '.selected' );
-			var $next;
+			const $results = $localInput.closest( '.ep-autosuggest-container' ).find( '.autosuggest-list li' );
+			const $current = $results.filter( '.selected' );
+			let $next;
 
 			switch ( event.keyCode ) {
 					case 38: // Up
@@ -428,14 +428,14 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	 * Build the auto-suggest container
 	 */
 	$epInput.each( ( key, input ) => {
-		var $epContainer = jQuery( '<div class="ep-autosuggest-container"></div>' );
-		var $input = jQuery( input );
+		const $epContainer = jQuery( '<div class="ep-autosuggest-container"></div>' );
+		const $input = jQuery( input );
 
 		// Disable autocomplete
 		$input.attr( 'autocomplete', 'off' );
 
 		$epContainer.insertAfter( $input );
-		var $epLabel = $input.siblings( 'label' );
+		const $epLabel = $input.siblings( 'label' );
 		$input
 			.closest( 'form' )
 			.find( '.ep-autosuggest-container' )
@@ -474,7 +474,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	 *
 	 */
 	$epInput.each( ( key, localInput ) => {
-		var $localInput = jQuery( localInput );
+		const $localInput = jQuery( localInput );
 		$localInput.on( 'keyup', debounce( ( event ) => {
 			if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode || 27 === event.keyCode ) {
 				return;
@@ -500,9 +500,9 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 						const hits = checkForOrderedPosts( response.hits.hits, val );
 
 						jQuery.each( hits, ( index, element ) => {
-							var text = element._source.post_title;
-							var url = element._source.permalink;
-							var postId = element._source.post_id;
+							const text = element._source.post_title;
+							const url = element._source.permalink;
+							const postId = element._source.post_id;
 
 							if( ! usedPosts[ postId ] ) {
 								usedPosts[ postId ] = true;
