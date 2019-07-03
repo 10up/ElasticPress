@@ -4495,4 +4495,63 @@ class TestPost extends BaseTestCase {
 		$check = ElasticPress\Indexables::factory()->get( 'post' )->elasticpress_enabled( $query );
 		$this->assertTrue( $check );
 	}
+
+	/**
+	 * Tested nested taxonomy query
+	 *
+	 * @group post
+	 */
+	public function testNestedTaxQuery() {
+		$cat1 = wp_create_category( 'category one' );
+		$cat2 = wp_create_category( 'category two' );
+
+		Functions\create_and_sync_post(
+			array(
+				'post_content'  => 'findme test 1',
+				'tags_input'    => array( 'one', 'two' ),
+				'post_category' => array( $cat1 ),
+			)
+		);
+
+		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+
+		Functions\create_and_sync_post(
+			array(
+				'post_content'  => 'findme test 3',
+				'tags_input'    => array( 'one', 'three' ),
+				'post_category' => array( $cat2 ),
+			)
+		);
+
+		$args = array(
+			'ep_integrate' => 1,
+			'post_type'    => 'post',
+			'tax_query'    => array(
+				'relation' => 'OR',
+				array(
+					'taxonomy' => 'category',
+					'field'    => 'slug',
+					'terms'    => array( 'category-one' ),
+				),
+				array(
+					'relation' => 'AND',
+					array(
+						'taxonomy' => 'post_tag',
+						'field'    => 'slug',
+						'terms'    => array( 'four' ),
+						'operator' => 'NOT IN',
+					),
+					array(
+						'taxonomy' => 'post_tag',
+						'field'    => 'slug',
+						'terms'    => array( 'three' ),
+					),
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, count( $query->posts ) );
+	}
 }
