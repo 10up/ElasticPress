@@ -189,8 +189,11 @@ export class Pointers extends Component {
 		}
 
 		let items = this.getMergedPosts();
-		const startIndex = result.source.index;
-		const endIndex = result.destination.index;
+
+		// Offsetting indexes when over posts per page to account for the non-sortable notice
+		const ppp = parseInt( window.epOrdering.postsPerPage, 10 );
+		const startIndex = result.source.index >= ppp ? result.source.index - 1 : result.source.index;
+		let endIndex = result.destination.index > ppp ? result.destination.index - 1 : result.destination.index;
 
 		const [removed] = items.splice( startIndex, 1 );
 		items.splice( endIndex, 0, removed );
@@ -215,21 +218,6 @@ export class Pointers extends Component {
 		} );
 
 		this.setState( { pointers } );
-	};
-
-	/**
-	 * Renders the next page notice when postsPerPage === index
-	 *
-	 * @param index
-	 */
-	renderNextPageNotice = ( index ) => {
-		if ( parseInt( window.epOrdering.postsPerPage, 10 ) === index ) {
-			return (
-				<div className='next-page-notice'>
-					The following posts have been displaced to the next page of search results.
-				</div>
-			);
-		}
 	};
 
 	/**
@@ -284,70 +272,59 @@ export class Pointers extends Component {
 							>
 								{mergedPosts.map( ( item, index ) => {
 
-									this.renderNextPageNotice( index );
+									const draggableIndex = parseInt( window.epOrdering.postsPerPage, 10 ) <= index ? index + 1 : index;
 
-									if ( item.order ) {
-										// is pointer
-										let referencedPost = posts[ item.ID ];
+									let title = item.title;
+									if ( undefined === title ) {
+										title = undefined !== posts[ item.ID ] ? posts[ item.ID ].post_title : defaultResultsById[ item.ID ].post_title;
+									}
 
+									// Determine if this result is part of default search results or not
+									const isDefaultResult = undefined !== defaultResultsById[ item.ID ];
 
-										if ( ! referencedPost ) {
-											referencedPost = defaultResultsById[ item.ID ];
-										}
-
-										// Determine if this result is part of default search results or not
-										const isDefaultResult = undefined !== defaultResultsById[ item.ID ];
-
-										return (
-											<React.Fragment>
-												{ this.renderNextPageNotice( index ) }
-
-												<Draggable key={item.ID} draggableId={item.ID} index={index}>
+									return (
+										<React.Fragment>
+											{ parseInt( window.epOrdering.postsPerPage, 10 ) === index && (
+												<Draggable key='divider' draggableId='divider' index={index} isDragDisabled={false}>
 													{( provided, snapshot ) => (
 														<div
-															className="pointer"
-															ref={provided.innerRef}
-															{...provided.draggableProps}
-														>
-															{ true === isDefaultResult && (
-																<span className='pointer-type'>RD</span>
-															) }
-															{ false === isDefaultResult && (
-																<span className='pointer-type'>CR</span>
-															)}
-															<strong className="title">{referencedPost.post_title}</strong>
-															<div className="pointer-actions">
-																<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
-																<span className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
-															</div>
-														</div>
-													)}
-												</Draggable>
-											</React.Fragment>
-										);
-									} else {
-										// is default post
-										return (
-											<React.Fragment>
-												{ this.renderNextPageNotice( index ) }
-												<Draggable key={item.ID} draggableId={item.ID} index={index} postTitle={item.post_title}>
-													{( provided, snapshot ) => (
-														<div
-															className="post"
+															className={`next-page-notice ${index}`}
 															ref={provided.innerRef}
 															{...provided.draggableProps}
 															{...provided.dragHandleProps}
 														>
-															<strong className="title">{item.post_title}</strong>
-															<div className="pointer-actions">
-																<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
-															</div>
+															<span>The following posts have been displaced to the next page of search results.</span>
 														</div>
 													)}
 												</Draggable>
-											</React.Fragment>
-										);
-									}
+											) }
+
+											<Draggable key={item.ID} draggableId={item.ID} index={draggableIndex}>
+												{( provided, snapshot ) => (
+													<div
+														className={`pointer ${draggableIndex}`}
+														ref={provided.innerRef}
+														{...provided.draggableProps}
+													>
+														{ item.order && true === isDefaultResult && (
+															<span className='pointer-type'>RD</span>
+														) }
+														{ item.order && false === isDefaultResult && (
+															<span className='pointer-type'>CR</span>
+														)}
+														<strong className="title">{title}</strong>
+														<div className="pointer-actions">
+															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
+															{ item.order && (
+																<span className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
+															) }
+														</div>
+													</div>
+												)}
+											</Draggable>
+										</React.Fragment>
+									);
+
 								} )}
 								{provided.placeholder}
 							</div>
