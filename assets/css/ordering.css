@@ -17,7 +17,8 @@
 	}
 
 	& .new-post {
-		margin: 1em;
+		padding: 0 1em;
+		background: #fff;
 	}
 
 	& .loading {
@@ -67,6 +68,11 @@
 			}
 		}
 
+		& .next-page-notice {
+			text-align: center;
+			padding: 1em 0;
+			background-color: #fdeeca;
+		}
 	}
 
 	& .legend {

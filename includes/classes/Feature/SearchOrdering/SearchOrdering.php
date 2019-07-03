@@ -315,6 +315,7 @@ class SearchOrdering extends Feature {
 						'searchEndpoint' => rest_url( 'elasticpress/v1/pointer_search' ),
 						'nonce'          => wp_create_nonce( 'save-search-ordering' ),
 						'restApiRoot'    => rest_url( '/' ),
+						'postsPerPage'   => (int) get_option( 'posts_per_page', 10 ),
 					],
 					$pointer_data
 				)
@@ -348,11 +349,17 @@ class SearchOrdering extends Feature {
 
 		$ordered_posts = json_decode( wp_unslash( $_POST['ordered_posts'] ), true );
 
+		$posts_per_page = (int) get_option( 'posts_per_page', 10 );
+
 		foreach ( $ordered_posts as $order_data ) {
-			$final_order_data[] = [
-				'ID'    => intval( $order_data['ID'] ),
-				'order' => intval( $order_data['order'] ),
-			];
+			if ( intval( $order_data['order'] ) <= $posts_per_page ) {
+				$final_order_data[] = [
+					'ID'    => intval( $order_data['ID'] ),
+					'order' => intval( $order_data['order'] ),
+				];
+			} else {
+				$previous_post_ids[ intval( $order_data['ID'] ) ] = true;
+			}
 
 			// If the post is still assigned, no need to delete the terms later
 			if ( isset( $previous_post_ids[ $order_data['ID'] ] ) ) {

@@ -83,6 +83,10 @@ export class Pointers extends Component {
 			setIds[ item.ID ] = item;
 		} );
 
+		pointers = pointers.sort( ( a, b ) => {
+			return a.order > b.order ? 1 : -1;
+		} );
+
 		pointers.map( pointer => {
 			// Remove the original if a duplicate
 			if ( setIds[ pointer.ID ] ) {
@@ -116,6 +120,36 @@ export class Pointers extends Component {
 		} );
 	}, 200 );
 
+	/**
+	 * Gets the next available position for a pointer
+	 * @returns {number}
+	 */
+	getNextAvailablePosition = () => {
+		const { pointers } = this.state;
+		const availablePositions = {};
+
+		for ( let i = 1; i <= window.epOrdering.postsPerPage; i++ ) {
+			availablePositions[ i ] = true;
+		}
+
+		pointers.map( item => {
+			delete availablePositions[ item.order ];
+		} );
+
+		const keys = Object.keys( availablePositions );
+
+		if ( 0 === keys.length ) {
+			return false;
+		}
+
+		return parseInt( keys[0], 10 );
+	};
+
+	/**
+	 * Adds a new pointer. We place the new pointer at the highest available position
+	 *
+	 * @param post
+	 */
 	addPointer = ( post ) => {
 		const id = post.ID;
 		const { posts, pointers } = this.state;
@@ -125,11 +159,16 @@ export class Pointers extends Component {
 			this.setState( { posts } );
 		}
 
-		const merged = this.getMergedPosts();
+		const position = this.getNextAvailablePosition();
+
+		if ( ! position ) {
+			window.alert( 'You have added the maximum number of custom results.' );
+			return false;
+		}
 
 		pointers.push( {
 			ID: id,
-			order: merged.length + 1,
+			order: position,
 		} );
 
 		this.setState( { pointers } );
@@ -176,6 +215,21 @@ export class Pointers extends Component {
 		} );
 
 		this.setState( { pointers } );
+	};
+
+	/**
+	 * Renders the next page notice when postsPerPage === index
+	 *
+	 * @param index
+	 */
+	renderNextPageNotice = ( index ) => {
+		if ( parseInt( window.epOrdering.postsPerPage, 10 ) === index ) {
+			return (
+				<div className='next-page-notice'>
+					The following posts have been displaced to the next page of search results.
+				</div>
+			);
+		}
 	};
 
 	/**
@@ -229,6 +283,9 @@ export class Pointers extends Component {
 								ref={provided.innerRef}
 							>
 								{mergedPosts.map( ( item, index ) => {
+
+									this.renderNextPageNotice( index );
+
 									if ( item.order ) {
 										// is pointer
 										let referencedPost = posts[ item.ID ];
@@ -242,46 +299,53 @@ export class Pointers extends Component {
 										const isDefaultResult = undefined !== defaultResultsById[ item.ID ];
 
 										return (
-											<Draggable key={item.ID} draggableId={item.ID} index={index}>
-												{( provided, snapshot ) => (
-													<div
-														className="pointer"
-														ref={provided.innerRef}
-														{...provided.draggableProps}
-													>
-														{ true === isDefaultResult && (
-															<span className='pointer-type'>RD</span>
-														) }
-														{ false === isDefaultResult && (
-															<span className='pointer-type'>CR</span>
-														)}
-														<strong className="title">{referencedPost.post_title}</strong>
-														<div className="pointer-actions">
-															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
-															<span className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
+											<React.Fragment>
+												{ this.renderNextPageNotice( index ) }
+
+												<Draggable key={item.ID} draggableId={item.ID} index={index}>
+													{( provided, snapshot ) => (
+														<div
+															className="pointer"
+															ref={provided.innerRef}
+															{...provided.draggableProps}
+														>
+															{ true === isDefaultResult && (
+																<span className='pointer-type'>RD</span>
+															) }
+															{ false === isDefaultResult && (
+																<span className='pointer-type'>CR</span>
+															)}
+															<strong className="title">{referencedPost.post_title}</strong>
+															<div className="pointer-actions">
+																<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
+																<span className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
+															</div>
 														</div>
-													</div>
-												)}
-											</Draggable>
+													)}
+												</Draggable>
+											</React.Fragment>
 										);
 									} else {
 										// is default post
 										return (
-											<Draggable key={item.ID} draggableId={item.ID} index={index} postTitle={item.post_title}>
-												{( provided, snapshot ) => (
-													<div
-														className="post"
-														ref={provided.innerRef}
-														{...provided.draggableProps}
-														{...provided.dragHandleProps}
-													>
-														<strong className="title">{item.post_title}</strong>
-														<div className="pointer-actions">
-															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
+											<React.Fragment>
+												{ this.renderNextPageNotice( index ) }
+												<Draggable key={item.ID} draggableId={item.ID} index={index} postTitle={item.post_title}>
+													{( provided, snapshot ) => (
+														<div
+															className="post"
+															ref={provided.innerRef}
+															{...provided.draggableProps}
+															{...provided.dragHandleProps}
+														>
+															<strong className="title">{item.post_title}</strong>
+															<div className="pointer-actions">
+																<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
+															</div>
 														</div>
-													</div>
-												)}
-											</Draggable>
+													)}
+												</Draggable>
+											</React.Fragment>
 										);
 									}
 								} )}
