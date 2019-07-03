@@ -549,11 +549,11 @@ class AdminNotices {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( ! empty( $response_code ) ) {
-				$html .= '<span class="notice-error-es-response-code">' . sprintf( __( 'Response Code: %s', 'elasticpress' ), esc_html( $response_code ) ) . '</span>';
+				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( __( 'Response Code: %s', 'elasticpress' ), esc_html( $response_code ) ) . '</span>';
 			}
 
 			if ( ! empty( $response_error ) ) {
-				$html .= '<span class="notice-error-es-response-error">' . sprintf( __( 'Response error: %s', 'elasticpress' ), esc_html( $response_error ) ) . '</span>';
+				$html .= '<span class="notice-error-es-response-error"> ' . sprintf( __( 'Response error: %s', 'elasticpress' ), esc_html( $response_error ) ) . '</span>';
 			}
 		}
 
