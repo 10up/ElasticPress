@@ -4523,6 +4523,8 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
 		$args = array(
 			'ep_integrate' => 1,
 			'post_type'    => 'post',
