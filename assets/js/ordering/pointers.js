@@ -281,6 +281,7 @@ export class Pointers extends Component {
 
 									// Determine if this result is part of default search results or not
 									const isDefaultResult = undefined !== defaultResultsById[ item.ID ];
+									const tooltipText = true === isDefaultResult ? 'Return to original position' : 'Remove custom result from results list';
 
 									return (
 										<React.Fragment>
@@ -316,7 +317,7 @@ export class Pointers extends Component {
 														<div className="pointer-actions">
 															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
 															{ item.order && (
-																<span className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
+																<span title={tooltipText} className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
 															) }
 														</div>
 													</div>
