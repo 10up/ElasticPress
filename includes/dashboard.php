@@ -65,18 +65,21 @@ function filter_allowed_html( $allowedtags, $context ) {
 		$ep_tags = $allowedposttags;
 
 		$atts = [
-			'type'        => true,
-			'checked'     => true,
-			'selected'    => true,
-			'disabled'    => true,
-			'value'       => true,
-			'class'       => true,
-			'data-*'      => true,
-			'id'          => true,
-			'style'       => true,
-			'title'       => true,
-			'name'        => true,
-			'placeholder' => '',
+			'type'            => true,
+			'checked'         => true,
+			'selected'        => true,
+			'disabled'        => true,
+			'value'           => true,
+			'class'           => true,
+			'data-*'          => true,
+			'data-field-name' => true,
+			'data-ep-notice'  => true,
+			'data-feature'    => true,
+			'id'              => true,
+			'style'           => true,
+			'title'           => true,
+			'name'            => true,
+			'placeholder'     => '',
 		];
 
 		$ep_tags['input']    = $atts;
@@ -93,6 +96,8 @@ function filter_allowed_html( $allowedtags, $context ) {
 			'name'           => true,
 			'target'         => true,
 		];
+
+		$ep_tags['a'] = $atts;
 
 		return $ep_tags;
 	}
