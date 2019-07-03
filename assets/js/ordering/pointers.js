@@ -161,6 +161,13 @@ export class Pointers extends Component {
 
 		items.map( ( item, index ) => {
 			if ( item.order ) {
+				// Reordering an existing pointer
+				pointers.push( {
+					ID: item.ID,
+					order: index + 1,
+				} );
+			} else if ( item.ID === result.draggableId ) {
+				// Adding a default post to the pointers array
 				pointers.push( {
 					ID: item.ID,
 					order: index + 1,
@@ -196,6 +203,12 @@ export class Pointers extends Component {
 			);
 		}
 
+		// We need to reference these by ID later
+		const defaultResultsById = {};
+		defaultResults[ this.state.title ].map( item => {
+			defaultResultsById[ item.ID ] = item;
+		} );
+
 		const mergedPosts = this.getMergedPosts();
 		const renderedIds = pluck( this.state.pointers, 'ID' );
 
@@ -218,7 +231,15 @@ export class Pointers extends Component {
 								{mergedPosts.map( ( item, index ) => {
 									if ( item.order ) {
 										// is pointer
-										const referencedPost = posts[ item.ID ];
+										let referencedPost = posts[ item.ID ];
+
+
+										if ( ! referencedPost ) {
+											referencedPost = defaultResultsById[ item.ID ];
+										}
+
+										// Determine if this result is part of default search results or not
+										const isDefaultResult = undefined !== defaultResultsById[ item.ID ];
 
 										return (
 											<Draggable key={item.ID} draggableId={item.ID} index={index}>
@@ -227,10 +248,18 @@ export class Pointers extends Component {
 														className="pointer"
 														ref={provided.innerRef}
 														{...provided.draggableProps}
-														{...provided.dragHandleProps}
 													>
+														{ true === isDefaultResult && (
+															<span className='pointer-type'>RD</span>
+														) }
+														{ false === isDefaultResult && (
+															<span className='pointer-type'>CR</span>
+														)}
 														<strong className="title">{referencedPost.post_title}</strong>
-														<span className="dashicons dashicons-trash delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
+														<div className="pointer-actions">
+															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
+															<span className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
+														</div>
 													</div>
 												)}
 											</Draggable>
@@ -238,7 +267,7 @@ export class Pointers extends Component {
 									} else {
 										// is default post
 										return (
-											<Draggable key={item.ID} draggableId={item.ID} index={index} isDragDisabled={true}>
+											<Draggable key={item.ID} draggableId={item.ID} index={index} postTitle={item.post_title}>
 												{( provided, snapshot ) => (
 													<div
 														className="post"
@@ -247,6 +276,9 @@ export class Pointers extends Component {
 														{...provided.dragHandleProps}
 													>
 														<strong className="title">{item.post_title}</strong>
+														<div className="pointer-actions">
+															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
+														</div>
 													</div>
 												)}
 											</Draggable>
@@ -259,21 +291,27 @@ export class Pointers extends Component {
 					</Droppable>
 				</DragDropContext>
 
-				<hr/>
-
 				<div className="pointer-search">
-					<input
-						type="text"
-						className="widefat search-pointers"
-						placeholder="Search for Post"
-						value={ this.state.searchText }
-						onChange={ e => {
-							this.setState( { searchText: e.target.value } );
-							this.doSearch();
-						} }/>
+					<h2 className="section-title">
+						Add to results
+					</h2>
 
-					<div className="pointer-results">
-						{ this.searchResults( searchResults ) }
+					<div className="search-wrapper">
+						<div className="input-wrap">
+							<input
+								type="text"
+								className="widefat search-pointers"
+								placeholder="Search for Post"
+								value={ this.state.searchText }
+								onChange={ e => {
+									this.setState( { searchText: e.target.value } );
+									this.doSearch();
+								} }/>
+						</div>
+
+						<div className="pointer-results">
+							{ this.searchResults( searchResults ) }
+						</div>
 					</div>
 				</div>
 			</div>
@@ -287,8 +325,8 @@ export class Pointers extends Component {
 
 		if ( false === searchResults ) {
 			return (
-				<div>
-					<div className="spinner"></div>
+				<div className='loading'>
+					<div className="spinner is-active"></div>
 					Loading...
 				</div>
 			);
@@ -296,7 +334,7 @@ export class Pointers extends Component {
 
 		if ( 0 === searchResults.length ) {
 			return (
-				<div>No results found.</div>
+				<div class='no-results'>No results found.</div>
 			);
 		}
 
