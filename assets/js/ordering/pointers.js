@@ -291,6 +291,17 @@ export class Pointers extends Component {
 					</Droppable>
 				</DragDropContext>
 
+				<div className="legend">
+					<div className='legend-item'>
+						<span className='pointer-type'>CR</span>
+						<span className='type-description'>Custom Result (manually added to list)</span>
+					</div>
+					<div className='legend-item'>
+						<span className='pointer-type'>RD</span>
+						<span className='type-description'>Reordered Default (originally in results, but repositioned)</span>
+					</div>
+				</div>
+
 				<div className="pointer-search">
 					<h2 className="section-title">
 						Add to results

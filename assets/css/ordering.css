@@ -30,6 +30,17 @@
 		}
 	}
 
+	& .pointer-type {
+		font-weight: bold;
+		border: 2px solid #0073aa;
+		border-radius: 2px;
+		margin-right: 8px;
+		display: inline-block;
+		padding: 1px 2px;
+		font-size: .75em;
+		color: #0073aa;
+	}
+
 	& .pointers {
 		& .pointer,
 		& .post {
@@ -40,17 +51,6 @@
 			}
 		}
 
-		& .pointer-type {
-			font-weight: bold;
-			border: 2px solid #0073aa;
-			border-radius: 2px;
-			margin-right: 8px;
-			display: inline-block;
-			padding: 1px 2px;
-			font-size: .75em;
-		}
-
-		& .pointer-type,
 		& .title {
 			color: #0073aa;
 		}
@@ -67,6 +67,20 @@
 			}
 		}
 
+	}
+
+	& .legend {
+		background: #fff;
+		text-align: center;
+		padding: 1em 0;
+		border-bottom: 1px solid #eee;
+	}
+
+	& .legend-item {
+		display: inline-block;
+		margin: 0 0.5em;
+		font-size: 0.875em;
+		font-style: italic;
 	}
 
 	& .pointer-search {
