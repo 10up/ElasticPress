@@ -70,6 +70,7 @@ function filter_allowed_html( $allowedtags, $context ) {
 			'selected'        => true,
 			'disabled'        => true,
 			'value'           => true,
+			'href'            => true,
 			'class'           => true,
 			'data-*'          => true,
 			'data-field-name' => true,
