@@ -587,10 +587,12 @@ function action_admin_enqueue_dashboard_scripts() {
 			$index_meta           = get_site_option( 'ep_index_meta', [] );
 			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
+			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
 			$index_meta           = get_option( 'ep_index_meta', [] );
 			$wpcli_sync           = (bool) get_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
+			$last_sync            = get_option( 'ep_last_sync', false );
 		}
 
 		if ( ! empty( $wpcli_sync ) ) {
@@ -621,7 +623,7 @@ function action_admin_enqueue_dashboard_scripts() {
 			]
 		);
 
-		$data['install_sync']         = empty( get_option( 'ep_last_sync', false ) );
+		$data['install_sync']         = empty( $last_sync );
 		$data['install_complete_url'] = esc_url( $install_complete_url );
 		$data['sync_complete']        = esc_html__( 'Sync complete', 'elasticpress' );
 		$data['sync_paused']          = esc_html__( 'Sync paused', 'elasticpress' );
