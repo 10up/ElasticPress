@@ -457,6 +457,9 @@ class SearchOrdering extends Feature {
 			// Remove the null values
 			$posts = array_filter( $posts );
 
+			// Sort by key so they get injected in order and remain in the proper positions
+			ksort( $to_inject );
+
 			if ( ! empty( $to_inject ) ) {
 				foreach ( $to_inject as $position => $newpost ) {
 					array_splice( $posts, $position - 1, 0, $newpost );
