@@ -627,7 +627,7 @@ class SearchOrdering extends Feature {
 	protected function assign_term_to_post( $post_id, $term_taxonomy_id, $order ) {
 		global $wpdb;
 
-		return $wpdb->query(
+		$result = $wpdb->query(
 			$wpdb->prepare(
 				"INSERT INTO $wpdb->term_relationships (object_id, term_taxonomy_id, term_order) VALUES ( %d, %d, %d ) ON DUPLICATE KEY UPDATE term_order = VALUES(term_order)",
 				$post_id,
@@ -638,6 +638,8 @@ class SearchOrdering extends Feature {
 
 		// Delete the term order cache
 		wp_cache_delete( "{$post_id}_term_order" );
+
+		return $result;
 	}
 
 }
