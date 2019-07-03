@@ -56,5 +56,8 @@
   "engineStrict": true,
   "engines": {
     "node": ">=8.11"
+  },
+  "dependencies": {
+    "@wordpress/i18n": "^3.5.0"
   }
 }

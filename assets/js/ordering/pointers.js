@@ -4,6 +4,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { debounce } from '../utils/debounce';
 import { pluck } from '../utils/pluck';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { __ } from '@wordpress/i18n';
 
 apiFetch.use( apiFetch.createRootURLMiddleware( window.epOrdering.restApiRoot ) );
 
@@ -162,7 +163,7 @@ export class Pointers extends Component {
 		const position = this.getNextAvailablePosition();
 
 		if ( ! position ) {
-			window.alert( 'You have added the maximum number of custom results.' );
+			window.alert( __( 'You have added the maximum number of custom results.', 'elasticpress' ) );
 			return false;
 		}
 
@@ -231,7 +232,7 @@ export class Pointers extends Component {
 		if ( 0 === this.state.title.length ) {
 			return (
 				<div className="new-post">
-					<p>Enter your search query in the title field to preview the results.</p>
+					<p>{ __( 'Enter your search query in the title field to preview the results.', 'elasticpress' ) }</p>
 				</div>
 			);
 		}
@@ -240,7 +241,7 @@ export class Pointers extends Component {
 			return (
 				<div className="loading">
 					<div className="spinner is-active"></div>
-					<span>Loading Result Preview...</span>
+					<span>{ __( 'Loading Result Preview...', 'elasticpress' ) }</span>
 				</div>
 			);
 		}
@@ -281,7 +282,7 @@ export class Pointers extends Component {
 
 									// Determine if this result is part of default search results or not
 									const isDefaultResult = undefined !== defaultResultsById[ item.ID ];
-									const tooltipText = true === isDefaultResult ? 'Return to original position' : 'Remove custom result from results list';
+									const tooltipText = true === isDefaultResult ? __( 'Return to original position', 'elasticpress' ) : __( 'Remove custom result from results list', 'elasticpress' );
 
 									return (
 										<React.Fragment>
@@ -294,7 +295,7 @@ export class Pointers extends Component {
 															{...provided.draggableProps}
 															{...provided.dragHandleProps}
 														>
-															<span>The following posts have been displaced to the next page of search results.</span>
+															<span>{ __( 'The following posts have been displaced to the next page of search results.', 'elasticpress' ) }</span>
 														</div>
 													)}
 												</Draggable>
@@ -315,7 +316,7 @@ export class Pointers extends Component {
 														)}
 														<strong className="title">{title}</strong>
 														<div className="pointer-actions">
-															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps}></span>
+															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps} title={ __( 'Drag post up or down to reposition', 'elasticpress' ) }></span>
 															{ item.order && (
 																<span title={tooltipText} className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
 															) }
@@ -336,17 +337,17 @@ export class Pointers extends Component {
 				<div className="legend">
 					<div className='legend-item'>
 						<span className='pointer-type'>CR</span>
-						<span className='type-description'>Custom Result (manually added to list)</span>
+						<span className='type-description'>{ __( 'Custom Result (manually added to list)', 'elasticpress' ) }</span>
 					</div>
 					<div className='legend-item'>
 						<span className='pointer-type'>RD</span>
-						<span className='type-description'>Reordered Default (originally in results, but repositioned)</span>
+						<span className='type-description'>{ __( 'Reordered Default (originally in results, but repositioned)' , 'elasticpress' ) }</span>
 					</div>
 				</div>
 
 				<div className="pointer-search">
 					<h2 className="section-title">
-						Add to results
+						{ __( 'Add to results', 'elasticpress' ) }
 					</h2>
 
 					<div className="search-wrapper">
@@ -387,7 +388,7 @@ export class Pointers extends Component {
 
 		if ( 0 === searchResults.length ) {
 			return (
-				<div class='no-results'>No results found.</div>
+				<div class='no-results'>{ __( 'No results found.', 'elasticpress' ) }</div>
 			);
 		}
 
@@ -396,7 +397,7 @@ export class Pointers extends Component {
 				<div className="pointer-result" key={result.ID}>
 					<span className="title">{result.post_title}</span>
 					<span className="dashicons dashicons-plus add-pointer" onClick={ e => { e.preventDefault(); this.addPointer( result ); } }>
-						<span className="screen-reader-text">Add Post</span>
+						<span className="screen-reader-text">{ __( 'Add Post', 'elasticpress' ) }</span>
 					</span>
 				</div>
 			);
