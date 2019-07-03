@@ -1218,7 +1218,7 @@ class Post extends Indexable {
 					);
 				} elseif ( 'type' === $orderby_clause ) {
 					$sort[] = array(
-						'post_type' => array(
+						'post_type.raw' => array(
 							'order' => $order,
 						),
 					);
