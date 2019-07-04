@@ -135,11 +135,15 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
 
 		const fieldKeys = Object.keys( postTypeWeights );
 		for ( let i = 0; i < fieldKeys.length; i++ ) {
-			const fieldKey = fieldKeys[ i ];
+			let fieldKey = fieldKeys[ i ];
 			const fieldSettings = postTypeWeights[ fieldKey ];
 
 			if ( true === fieldSettings.enabled ) {
 				let fieldValue;
+
+				if ( 'post_title' === fieldKey ) {
+					fieldKey = 'post_title.suggest';
+				}
 
 				if ( 0 !== fieldSettings.weight ) {
 					fieldValue = `${fieldKey}^${fieldSettings.weight}`;
