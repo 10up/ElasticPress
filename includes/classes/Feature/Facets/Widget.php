@@ -343,6 +343,7 @@ class Widget extends WP_Widget {
 		$facet = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		$taxonomies = apply_filters( 'ep_facet_search_taxonomies', $taxonomies );
 		?>
 		<div class="widget-ep-facet">
 			<p>
