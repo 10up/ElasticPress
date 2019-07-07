@@ -553,11 +553,17 @@ class WooCommerce extends Feature {
 			}
 
 			/**
-			 * Set orderby and order for price when GET param not set
+			 * Set orderby and order for price/popularity when GET param not set
 			 */
-			if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
-				$query->set( 'order', $query->query_vars['order'] );
-				$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+			if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && $query->is_main_query() ) {
+				switch ( $query->query_vars['orderby'] ) {
+					case 'price':
+						$query->set( 'order', $query->query_vars['order'] );
+						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+					case 'popularity':
+						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
+						$query->set( 'order', 'DESC' );
+				}
 			}
 
 			/**
