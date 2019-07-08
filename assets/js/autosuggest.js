@@ -155,7 +155,7 @@ function esSearch( query ) {
  */
 function updateAutosuggestBox( options, $localInput ) {
 	var i,
-		itemString,
+		itemString = '',
 		$localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
 		$localSuggestList = $localESContainer.find( '.autosuggest-list' );
 
@@ -173,9 +173,9 @@ function updateAutosuggestBox( options, $localInput ) {
 	for ( i = 0; i < options.length; ++i ) {
 		var text = options[i].text;
 		var url = options[i].url;
-		itemString = '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>';
-		jQuery( itemString ).appendTo( $localSuggestList );
+		itemString += '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>';
 	}
+	jQuery( itemString ).appendTo( $localSuggestList );
 
 	// Listen to items to auto-fill search box and submit form
 	jQuery( '.autosuggest-item' ).on( 'click', ( event ) => {
