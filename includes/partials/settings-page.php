@@ -47,7 +47,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		<?php settings_errors(); ?>
 
 		<div class="ep-credentials">
-			<?php if ( ! $wpconfig ) :?>
+			<?php if ( ! $wpconfig ) : ?>
 				<h2 class="nav-tab-wrapper ep-credentials-tabs">
 					<button class="nav-tab ep-credentials-tab <?php if ( ! $host || $is_epio ) { ?>nav-tab-active initial<?php } ?>" data-epio>
 						<img src="<?php echo esc_url( plugins_url( '/images/logo-icon.svg', dirname( __DIR__ ) ) ); ?>" width="16" height="16" alt="ElasticPress.io" />

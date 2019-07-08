@@ -72,16 +72,8 @@ class Facets extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio"
-				<?php
-				if ( 'all' === $settings['match_type'] ) :
-					?>
-checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
-				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio"
-				<?php
-				if ( 'any' === $settings['match_type'] ) :
-					?>
-checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
+				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'all' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
+				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'any' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
@@ -363,9 +355,11 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
 
 		if ( is_post_type_archive() ) {
-			if ( $pagination = strpos( $_SERVER['REQUEST_URI'] , '/page' ) ) {
-				$URL = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
-				return strtok( $URL, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
+			$pagination = strpos( $_SERVER['REQUEST_URI'], '/page' );
+
+			if ( false !== $pagination ) {
+				$url = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
+				return strtok( $url, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
 			}
 		}
 

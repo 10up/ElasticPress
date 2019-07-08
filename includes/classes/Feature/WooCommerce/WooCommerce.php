@@ -244,7 +244,7 @@ class WooCommerce extends Feature {
 		}
 
 		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
-			 ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
+			( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
 			return;
 		}
 
@@ -560,9 +560,11 @@ class WooCommerce extends Feature {
 					case 'price':
 						$query->set( 'order', $query->query_vars['order'] );
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+						break;
 					case 'popularity':
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
 						$query->set( 'order', 'DESC' );
+						break;
 				}
 			}
 
@@ -674,7 +676,7 @@ class WooCommerce extends Feature {
 	public function search_order( $wp ) {
 		global $pagenow;
 		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
-			 ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
+			( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 			return;
 		}
 
