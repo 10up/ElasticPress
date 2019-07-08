@@ -756,6 +756,7 @@ class WooCommerce extends Feature {
 			}
 			$taxonomies[ $name ] = get_taxonomy( $name );
 		}
+
 		return $taxonomies;
 	}
 
