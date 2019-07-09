@@ -751,7 +751,10 @@ class WooCommerce extends Feature {
 		$attribute_names = wc_get_attribute_taxonomy_names();
 
 		foreach ( $attribute_names as $name ) {
-			$taxonomies[ $name ] = $name;
+			if ( ! taxonomy_exists( $name ) ) {
+				continue;
+			}
+			$taxonomies[ $name ] = get_taxonomy( $name );
 		}
 
 		return $taxonomies;

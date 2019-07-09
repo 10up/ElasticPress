@@ -195,9 +195,10 @@ class Facets extends Feature {
 		}
 
 		if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
-		         || $query->is_post_type_archive()
-		         || $query->is_search()
-		         || ( is_home() && empty( $query->get( 'page_id' ) ) ) ) ) {
+			|| $query->is_post_type_archive()
+			|| $query->is_search()
+			|| ( is_home() && empty( $query->get( 'page_id' ) ) ) )
+		) {
 			return false;
 		}
 
@@ -217,22 +218,21 @@ class Facets extends Feature {
 			return;
 		}
 
-		$taxonomies = get_taxonomies( array( 'public' => true ) );
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
 
 		// Allow other plugins to modify the available taxonomies.
-		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies, false );
+		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		if ( empty( $taxonomies ) ) {
 			return;
 		}
-
 
 		$query->set( 'ep_integrate', true );
 		$query->set( 'ep_facet', true );
 
 		$facets = [];
 
-		foreach ( $taxonomies as $slug ) {
+		foreach ( $taxonomies as $slug => $taxonomy ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
 					'size'  => 10000,
