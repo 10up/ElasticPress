@@ -148,6 +148,16 @@ function esSearch( query ) {
 }
 
 /**
+ * Escapes double quotes for specific data-attr
+ *
+ * @param str
+ * @returns string The escaped string
+ */
+function escapeDoubleQuotes( str ) {
+	return str.replace( /\\([\s\S])|(")/g, '&quot;' );
+}
+
+/**
  * Update the auto suggest box with new options or hide if none
  *
  * @param options
@@ -173,7 +183,8 @@ function updateAutosuggestBox( options, $localInput ) {
 	for ( i = 0; i < options.length; ++i ) {
 		var text = options[i].text;
 		var url = options[i].url;
-		itemString += '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>';
+		itemString = '<li><span class="autosuggest-item" data-search="' + escapeDoubleQuotes( text ) + '" data-url="' + url + '">' + escapeDoubleQuotes( text ) + '</span></li>';
+		jQuery( itemString ).appendTo( $localSuggestList );
 	}
 	jQuery( itemString ).appendTo( $localSuggestList );
 
