@@ -272,7 +272,7 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
  * @param query
  * @returns AJAX object request
  */
-function esSearch( query ) {
+function esSearch( query, searchTerm ) {
 
 	// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
 	jQuery.support.cors = true;
@@ -283,6 +283,9 @@ function esSearch( query ) {
 		dataType: 'json',
 		crossDomain: true,
 		contentType: 'application/json; charset=utf-8',
+		headers: {
+			'EP-Search-Term': searchTerm
+		},
 		data: JSON.stringify( query )
 	} );
 }
@@ -510,7 +513,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 
 			if ( 2 <= val.length ) {
 				query = buildSearchQuery( val, postTypes, postStatus, searchFields, weightingSettings );
-				request = esSearch( query );
+				request = esSearch( query, val );
 
 				request.done( ( response ) => {
 					if ( 0 < response._shards.successful ) {
