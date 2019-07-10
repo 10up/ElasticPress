@@ -359,7 +359,7 @@ class Weighting {
 			$function_score = isset( $formatted_args['query']['function_score'] );
 			$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
 
-			foreach ( $args['post_type'] as $post_type ) {
+			foreach ( (array) $args['post_type'] as $post_type ) {
 				// Copy the query, so we can set specific weight values
 				$current_query = $query;
 
