@@ -937,10 +937,6 @@ class Post extends Indexable {
 			if ( 'any' !== $args['post_type'] ) {
 				$post_types     = (array) $args['post_type'];
 				$terms_map_name = 'terms';
-				if ( count( $post_types ) < 2 ) {
-					$terms_map_name = 'term';
-					$post_types     = $post_types[0];
-				}
 
 				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
