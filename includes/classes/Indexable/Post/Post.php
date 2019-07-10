@@ -1012,11 +1012,6 @@ class Post extends Indexable {
 
 			$post_status_filter_type = 'terms';
 
-			if ( 1 === count( $statuses ) ) {
-				$post_status_filter_type = 'term';
-				$statuses                = $statuses[0];
-			}
-
 			$filter['bool']['must'][] = array(
 				$post_status_filter_type => array(
 					'post_status' => $statuses,
