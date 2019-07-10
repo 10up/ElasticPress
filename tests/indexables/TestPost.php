@@ -339,10 +339,10 @@ class TestPost extends BaseTestCase {
 		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		$term_2_name = rand_str( 32 );
-		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
+		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
 		$term_3_name = rand_str( 32 );
-		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
+		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
 		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
@@ -379,13 +379,13 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, $tax_name );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		$term_2_name = rand_str( 32 );
-		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
+		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
 		$term_3_name = rand_str( 32 );
-		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
+		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
 		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
@@ -427,13 +427,13 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, $tax_name );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		$term_2_name = rand_str( 32 );
-		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
+		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
 		$term_3_name = rand_str( 32 );
-		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
+		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
 		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
@@ -475,7 +475,7 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, $tax_name );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $tax_name, true );
 
@@ -484,7 +484,7 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			$tax_name => $term_1_name,
-			's'      => '',
+			's'       => '',
 		);
 
 		$query = new \WP_Query( $args );
@@ -505,7 +505,7 @@ class TestPost extends BaseTestCase {
 		$post    = get_post( $post_id );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, 'category' );
+		$term1       = wp_insert_term( $term_1_name, 'category' );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'category', true );
 
@@ -534,7 +534,7 @@ class TestPost extends BaseTestCase {
 		$post    = get_post( $post_id );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, 'post_tag' );
+		$term1       = wp_insert_term( $term_1_name, 'post_tag' );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'post_tag', true );
 
@@ -3949,7 +3949,7 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, $tax_name );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $tax_name, true );
 

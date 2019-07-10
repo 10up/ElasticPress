@@ -33,6 +33,7 @@ class ProtectedContent extends Feature {
 		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
+
 		$this->default_settings = [
 			'query_attachments' => 0,
 		];
@@ -58,21 +59,32 @@ class ProtectedContent extends Feature {
 	/**
 	 * Index all post types
 	 *
-	 * @param   array $post_types Existing post types.
+	 * @param   array $current_post_types Existing post types.
 	 * @since   2.2
 	 * @return  array
 	 */
-	public function post_types( $post_types ) {
-		// Let's get non public post types first
-		$pc_post_types = get_post_types( array( 'public' => false ) );
+	public function post_types( $current_post_types ) {
+		// Get all post types
+		$post_types = get_post_types();
 
-		// We don't want to deal with nav menus
-		if ( $pc_post_types['nav_menu_item'] ) {
-			unset( $pc_post_types['nav_menu_item'] );
+		// Filter out blacklist
+		$post_type_blacklist = [
+			'customize_changeset',
+			'nav_menu_item',
+			'oembed_cache',
+			'user_request',
+			'wp_block',
+			'scheduled-action',
+		];
+
+		foreach ( $post_type_blacklist as $post_type ) {
+			if ( ! empty( $post_types[ $post_type ] ) ) {
+				unset( $post_types[ $post_type ] );
+			}
 		}
 
 		// Merge non public post types with any pre-filtered post_type
-		return array_merge( $post_types, $pc_post_types );
+		return array_merge( $current_post_types, $post_types );
 	}
 
 	/**
@@ -223,23 +235,19 @@ class ProtectedContent extends Feature {
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
-        <div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
-            <div class="field-name status"><?php esc_html_e( 'Media Library Search', 'elasticpress' ); ?></div>
-            <div class="input-wrap">
-                <label for="query_attachments"><input name="query_attachments" id="query_attachments"
-                                                      data-field-name="query_attachments" class="setting-field"
-                                                      type="radio"
-				                                      <?php if ( (bool) $settings['query_attachments'] ) : ?>checked<?php endif; ?>
-                                                      value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
-                </label><br>
-                <label for="attachments_disabled"><input name="query_attachments" id="attachments_disabled"
-                                                         data-field-name="query_attachments" class="setting-field"
-                                                         type="radio"
-				                                         <?php if ( ! (bool) $settings['query_attachments'] ) : ?>checked<?php endif; ?>
-                                                         value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
-                </label>
-            </div>
-        </div>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Media Library Search', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="query_attachments">
+					<input name="query_attachments" id="query_attachments" data-field-name="query_attachments" class="setting-field" type="radio" <?php if ( (bool) $settings['query_attachments'] ) : ?>checked<?php endif; ?> value="1">
+					<?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
+				</label><br>
+				<label for="attachments_disabled">
+					<input name="query_attachments" id="attachments_disabled" data-field-name="query_attachments" class="setting-field" type="radio" <?php if ( ! (bool) $settings['query_attachments'] ) : ?>checked<?php endif; ?> value="0">
+					<?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
+				</label>
+			</div>
+		</div>
 		<?php
 	}
 }
