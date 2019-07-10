@@ -205,7 +205,7 @@ class Elasticsearch {
 		);
 
 		// If search, send the search term as a header to ES
-		if ( isset( $query_args['s'] ) && ( bool ) $query_args['s'] ) {
+		if ( isset( $query_args['s'] ) && ( bool ) $query_args['s'] && ! is_admin() ) {
 			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
 		}
 
