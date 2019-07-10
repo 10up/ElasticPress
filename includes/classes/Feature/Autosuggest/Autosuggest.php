@@ -250,22 +250,23 @@ class Autosuggest extends Feature {
 			apply_filters(
 				'ep_autosuggest_options',
 				array(
-					'endpointUrl'    => esc_url( untrailingslashit( $endpoint_url ) ),
-					'postTypes'       => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
-					'postStatus'     => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
-					'selector'       => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-					'searchFields'   => apply_filters(
+					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
+					'postTypes'    => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
+					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
+					'selector'     => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+					'searchFields' => apply_filters(
 						'ep_term_suggest_search_fields',
 						array(
 							'post_title.suggest',
 							'term_suggest',
 						)
 					),
-					'dateDecay'      => [
+					'dateDecay'    => [
 						'enabled' => (bool)$search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
 					],
-					'action'         => 'navigate',
-					'weighting'      => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->weighting->get_weighting_configuration() ),
+					'action'       => 'navigate',
+					'weighting'    => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->weighting->get_weighting_configuration() ),
+					'mimeTypes'    => array(),
 				)
 			)
 		);

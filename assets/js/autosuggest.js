@@ -251,6 +251,12 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
 		}
 	};
 
+	if ( Object.values( epas.mimeTypes ).length ) {
+		query.post_filter.bool.must.push( {
+			terms: { 'post_mime_type': Object.values( epas.mimeTypes ) }
+		} );
+	}
+
 	if ( 'all' !== postTypes ) {
 		query.post_filter.bool.must.push( {
 			terms: { 'post_type.raw': postTypes }
@@ -299,7 +305,7 @@ function escapeDoubleQuotes( str ) {
  */
 function updateAutosuggestBox( options, $localInput ) {
 	let i,
-		itemString,
+		itemString = '',
 		$localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
 		$localSuggestList = $localESContainer.find( '.autosuggest-list' );
 
@@ -317,8 +323,7 @@ function updateAutosuggestBox( options, $localInput ) {
 	for ( i = 0; i < options.length; ++i ) {
 		const text = options[i].text;
 		const url = options[i].url;
-		itemString = '<li><span class="autosuggest-item" data-search="' + escapeDoubleQuotes( text ) + '" data-url="' + url + '">' + escapeDoubleQuotes( text ) + '</span></li>';
-		jQuery( itemString ).appendTo( $localSuggestList );
+		itemString += '<li><span class="autosuggest-item" data-search="' + escapeDoubleQuotes( text ) + '" data-url="' + url + '">' + escapeDoubleQuotes( text ) + '</span></li>';
 	}
 	jQuery( itemString ).appendTo( $localSuggestList );
 

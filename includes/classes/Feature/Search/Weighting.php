@@ -81,7 +81,7 @@ class Weighting {
 			}
 		}
 
-		return $fields;
+		return apply_filters( 'ep_weighting_fields_for_post_type', $fields, $post_type );
 	}
 
 	/**
@@ -89,7 +89,7 @@ class Weighting {
 	 *
 	 * Defaults to title, content, excerpt, and author name enabled with zero weight
 	 */
-	public function get_post_type_default_settings() {
+	public function get_post_type_default_settings( $post_type ) {
 		$post_type_defaults = [
 			'post_title' => [
 				'enabled' => true,
@@ -109,7 +109,7 @@ class Weighting {
 			],
 		];
 
-		return $post_type_defaults;
+		return apply_filters( 'ep_weighting_default_post_type_weights', $post_type_defaults, $post_type );
 	}
 
 	/**
@@ -206,7 +206,7 @@ class Weighting {
 		<?php elseif ( isset( $field['key'] ) ) :
 			$key = $field['key'];
 
-			$post_type_settings = isset( $current_values[ $post_type ] ) ? $current_values[ $post_type ] : $this->get_post_type_default_settings();
+			$post_type_settings = isset( $current_values[ $post_type ] ) ? $current_values[ $post_type ] : $this->get_post_type_default_settings( $post_type );
 
 			$weight = isset( $post_type_settings[ $key ] ) && isset( $post_type_settings[ $key ]['weight'] ) ? (int) $post_type_settings[ $key ]['weight'] : 0;
 
