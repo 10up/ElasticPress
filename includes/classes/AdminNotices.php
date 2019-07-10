@@ -473,10 +473,6 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( in_array( Screen::factory()->get_current_screen(), [ 'settings', 'dashboard', 'install' ], true ) ) {
-			return false;
-		}
-
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dismiss = get_site_option( 'ep_hide_es_above_compat_notice', false );
 		} else {
