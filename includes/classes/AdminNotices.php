@@ -493,7 +493,7 @@ class AdminNotices {
 		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
 			return [
 				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ),
-				'type'    => 'notice',
+				'type'    => 'warning',
 				'dismiss' => true,
 			];
 		}
