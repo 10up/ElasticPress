@@ -37,6 +37,7 @@ class Documents extends Feature {
 	 * @since  2.3
 	 */
 	public function setup() {
+		add_filter( 'ep_search_fields', [ $this, 'search_fields' ] );
 		add_filter( 'ep_index_request_path', [ $this, 'index_request_path' ], 999, 3 );
 		add_filter( 'ep_post_sync_args', [ $this, 'post_sync_args' ], 999, 2 );
 		add_filter( 'ep_indexable_post_status', [ $this, 'indexable_post_status' ], 999, 1 );
@@ -214,6 +215,21 @@ class Documents extends Feature {
 		}
 
 		return $post_args;
+	}
+
+	/**
+	 * Add attachment field for search
+	 *
+	 * @param array $search_fields Search fields.
+	 * @since  2.3
+	 * @return array
+	 */
+	public function search_fields( $search_fields ) {
+		if ( ! is_array( $search_fields ) ) {
+			return $search_fields;
+		}
+		$search_fields[] = 'attachments.attachment.content';
+		return $search_fields;
 	}
 
 	/**
