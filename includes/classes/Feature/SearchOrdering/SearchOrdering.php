@@ -130,7 +130,7 @@ class SearchOrdering extends Feature {
 	 * @return array
 	 */
 	public function filter_sync_taxonomies( $taxonomies ) {
-		$taxonomies[] = get_taxonomy( self::TAXONOMY_NAME );
+		$taxonomies[ self::TAXONOMY_NAME ] = get_taxonomy( self::TAXONOMY_NAME );
 
 		return $taxonomies;
 	}
