@@ -647,7 +647,8 @@ class SearchOrdering extends Feature {
 		// Delete the term order cache
 		wp_cache_delete( "{$post_id}_term_order" );
 
-		clean_object_term_cache( $post_id, self::TAXONOMY_NAME );
+		$post = get_post( $post_id );
+		clean_object_term_cache( $post_id, $post->post_type );
 
 		return $result;
 	}
