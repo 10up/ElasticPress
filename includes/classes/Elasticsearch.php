@@ -445,6 +445,10 @@ class Elasticsearch {
 		);
 
 		foreach ( $indexes as $index ) {
+			if ( empty( $index ) ) {
+				continue;
+			}
+
 			$args['actions'][] = array(
 				'add' => array(
 					'index' => $index,
