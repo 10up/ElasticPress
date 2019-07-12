@@ -237,28 +237,7 @@ class WooCommerce extends Feature {
 	 * @since  2.1
 	 */
 	public function translate_args( $query ) {
-
-		// Lets make sure this doesn't interfere with the CLI
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
-			return;
-		}
-
-		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
-			( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
-			return;
-		}
-
-		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
-
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
-				return;
-			} else {
-				$admin_integration = true;
-			}
-		}
-
-		if ( is_admin() && ! $admin_integration ) {
+		if ( ! $this->should_integrate_with_query( $query ) ) {
 			return;
 		}
 
@@ -664,6 +643,24 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Sets woocommerce meta search fields to an empty array if we are integrating the main query with ElasticSearch
+	 *
+	 * Woocommerce calls this action as part of its own callback on parse_query. We add this filter only if the query
+	 * is integrated with ElasticSearch.
+	 * If we were to always return array() on this filter, we'd break admin searches when WooCommerce module is activated
+	 * without the Protected Content Module
+	 *
+	 * @param \WP_Query $query
+	 */
+	public function maybe_hook_woocommerce_search_fields( $query ) {
+		if ( ! $this->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		add_filter( 'woocommerce_shop_order_search_fields', [ $this, 'shop_order_search_fields' ], 9999 );
+	}
+
+	/**
 	 * Enhance WooCommerce search order by order id, email, phone number, name, etc..
 	 * What this function does:
 	 * 1. Reverse the woocommerce shop_order_search_custom_fields query
@@ -674,6 +671,10 @@ class WooCommerce extends Feature {
 	 * @since  2.3
 	 */
 	public function search_order( $wp ) {
+		if ( ! $this->should_integrate_with_query( $wp ) ) {
+			return;
+		}
+
 		global $pagenow;
 		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
 			( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
@@ -784,14 +785,14 @@ class WooCommerce extends Feature {
 			add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
 			add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
 			add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
-			add_filter( 'woocommerce_shop_order_search_fields', [ $this, 'shop_order_search_fields' ], 9999 );
 			add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 			add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 			add_filter( 'ep_sync_taxonomies', [ $this, 'whitelist_taxonomies' ], 10, 2 );
 			add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
 			add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 			add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
-			add_action( 'parse_query', [ $this, 'search_order' ], 11, 1 );
+			add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
+			add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
 		}
@@ -851,5 +852,40 @@ class WooCommerce extends Feature {
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Determines whether or not ES should be integrating with the provided query
+	 *
+	 * @param \WP_Query $query
+	 *
+	 * @return bool
+	 */
+	protected function should_integrate_with_query( $query ) {
+		// Lets make sure this doesn't interfere with the CLI
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return false;
+		}
+
+		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
+			( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
+			return false;
+		}
+
+		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
+				return false;
+			} else {
+				$admin_integration = true;
+			}
+		}
+
+		if ( is_admin() && ! $admin_integration ) {
+			return false;
+		}
+
+		return true;
 	}
 }
