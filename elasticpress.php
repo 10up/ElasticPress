@@ -201,6 +201,7 @@ function handle_upgrades() {
 			'2.6',
 			'2.7',
 			'3.0',
+			'3.1',
 		)
 	);
 
