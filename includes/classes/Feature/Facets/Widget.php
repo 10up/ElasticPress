@@ -374,7 +374,7 @@ class Widget extends WP_Widget {
 					<?php esc_html_e( 'Taxonomy:', 'elasticpress' ); ?>
 				</label><br>
 
-                <select id="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'facet' ) ); ?>">
+				<select id="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'facet' ) ); ?>">
 					<?php foreach ( $taxonomies as $slug => $taxonomy_object ) : ?>
 						<option <?php selected( $facet, $taxonomy_object->name ); ?> value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
 					<?php endforeach; ?>
@@ -406,8 +406,8 @@ class Widget extends WP_Widget {
 						<option <?php selected( $order, $name ); ?>
 								value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
 					<?php endforeach; ?>
-                </select>
-            </p>
+				</select>
+			</p>
 
 			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
 		</div>
