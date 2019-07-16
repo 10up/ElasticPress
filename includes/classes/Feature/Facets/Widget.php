@@ -350,13 +350,13 @@ class Widget extends WP_Widget {
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
 
 		$orderby_options = [
-			'count' => 'Count',
-			'name'  => 'Term Name',
+			'count' => __( 'Count', 'elasticpress' ),
+			'name'  => __( 'Term Name', 'elasticpress' ),
 		];
 
 		$order_options = [
-			'desc' => 'Descending',
-			'asc'  => 'Ascending',
+			'desc' => __( 'Descending', 'elasticpress' ),
+			'asc'  => __( 'Ascending', 'elasticpress' ),
 		];
 
 		?>
