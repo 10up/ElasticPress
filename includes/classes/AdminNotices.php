@@ -473,10 +473,6 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( in_array( Screen::factory()->get_current_screen(), [ 'settings', 'dashboard', 'install' ], true ) ) {
-			return false;
-		}
-
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dismiss = get_site_option( 'ep_hide_es_above_compat_notice', false );
 		} else {
@@ -493,7 +489,7 @@ class AdminNotices {
 		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
 			return [
 				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ),
-				'type'    => 'notice',
+				'type'    => 'warning',
 				'dismiss' => true,
 			];
 		}
@@ -549,11 +545,11 @@ class AdminNotices {
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( ! empty( $response_code ) ) {
-				$html .= '<span class="notice-error-es-response-code">' . sprintf( __( 'Response Code: %s', 'elasticpress' ), esc_html( $response_code ) ) . '</span>';
+				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( __( 'Response Code: %s', 'elasticpress' ), esc_html( $response_code ) ) . '</span>';
 			}
 
 			if ( ! empty( $response_error ) ) {
-				$html .= '<span class="notice-error-es-response-error">' . sprintf( __( 'Response error: %s', 'elasticpress' ), esc_html( $response_error ) ) . '</span>';
+				$html .= '<span class="notice-error-es-response-error"> ' . sprintf( __( 'Response error: %s', 'elasticpress' ), esc_html( $response_error ) ) . '</span>';
 			}
 		}
 

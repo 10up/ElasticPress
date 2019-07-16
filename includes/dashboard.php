@@ -65,18 +65,22 @@ function filter_allowed_html( $allowedtags, $context ) {
 		$ep_tags = $allowedposttags;
 
 		$atts = [
-			'type'        => true,
-			'checked'     => true,
-			'selected'    => true,
-			'disabled'    => true,
-			'value'       => true,
-			'class'       => true,
-			'data-*'      => true,
-			'id'          => true,
-			'style'       => true,
-			'title'       => true,
-			'name'        => true,
-			'placeholder' => '',
+			'type'            => true,
+			'checked'         => true,
+			'selected'        => true,
+			'disabled'        => true,
+			'value'           => true,
+			'href'            => true,
+			'class'           => true,
+			'data-*'          => true,
+			'data-field-name' => true,
+			'data-ep-notice'  => true,
+			'data-feature'    => true,
+			'id'              => true,
+			'style'           => true,
+			'title'           => true,
+			'name'            => true,
+			'placeholder'     => '',
 		];
 
 		$ep_tags['input']    = $atts;
@@ -93,6 +97,8 @@ function filter_allowed_html( $allowedtags, $context ) {
 			'name'           => true,
 			'target'         => true,
 		];
+
+		$ep_tags['a'] = $atts;
 
 		return $ep_tags;
 	}
@@ -581,10 +587,12 @@ function action_admin_enqueue_dashboard_scripts() {
 			$index_meta           = get_site_option( 'ep_index_meta', [] );
 			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
+			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
 			$index_meta           = get_option( 'ep_index_meta', [] );
 			$wpcli_sync           = (bool) get_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
+			$last_sync            = get_option( 'ep_last_sync', false );
 		}
 
 		if ( ! empty( $wpcli_sync ) ) {
@@ -615,7 +623,7 @@ function action_admin_enqueue_dashboard_scripts() {
 			]
 		);
 
-		$data['install_sync']         = empty( get_option( 'ep_last_sync', false ) );
+		$data['install_sync']         = empty( $last_sync );
 		$data['install_complete_url'] = esc_url( $install_complete_url );
 		$data['sync_complete']        = esc_html__( 'Sync complete', 'elasticpress' );
 		$data['sync_paused']          = esc_html__( 'Sync paused', 'elasticpress' );

@@ -249,9 +249,10 @@ class QueryIntegration {
 				return null;
 			}
 
-			$query->found_posts           = $ep_query['found_documents'];
+			$found_documents              = is_array( $ep_query['found_documents'] ) ? $ep_query['found_documents']['value'] : $ep_query['found_documents']; // 7.0+ have this as an array rather than int
+			$query->found_posts           = $found_documents;
 			$query->num_posts             = $query->found_posts;
-			$query->max_num_pages         = ceil( $ep_query['found_documents'] / $query->get( 'posts_per_page' ) );
+			$query->max_num_pages         = ceil( $found_documents / $query->get( 'posts_per_page' ) );
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.

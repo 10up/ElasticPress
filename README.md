@@ -1,7 +1,8 @@
-ElasticPress [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress)
-=============
+# ElasticPress
 
-A fast and flexible search and query engine for WordPress.
+> A fast and flexible search and query engine for WordPress.
+
+[![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress) [![Release Version](https://img.shields.io/github/release/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/releases/latest) ![WordPress tested up to version](https://img.shields.io/badge/WordPress-v5.2%20tested-success.svg) [![MIT License](https://img.shields.io/github/license/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/blob/develop/LICENSE.md)
 
 **ElasticPress 3.0:** ElasticPress 3.0 contains major changes from 2.x including a rewrite of the feature registration API and PHP 5.4+ features. If you have problems upgrading, please create an issue.
 
@@ -9,11 +10,9 @@ A fast and flexible search and query engine for WordPress.
 
 **Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0 require re-syncing.
 
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
+## Overview
 
-<p align="center">
-<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/10/10up-Github-Banner.png" width="850"></a>
-</p>
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 ## How Does it Work
 
@@ -732,7 +731,12 @@ We have a [Debug Bar Plugin](https://github.com/10up/debug-bar-elasticpress) ava
 
 If you identify any errors or have an idea for improving the plugin, please [open an issue](https://github.com/10up/ElasticPress/issues?state=open). We're excited to see what the community thinks of this project, and we would love your input!
 
+## Support Level
 
-## License
+**Active:** 10up is actively working on this, and we expect to continue work for the foreseeable future including keeping tested up to the most recent version of WordPress.  Bug reports, feature requests, questions, and pull requests are welcome.
 
-ElasticPress is free software; you can redistribute it and/or modify it under the terms of the [GNU General Public License](http://www.gnu.org/licenses/gpl-2.0.html) as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+## Like what you see?
+
+<p align="center">
+<a href="http://10up.com/contact/"><img src="https://10updotcom-wpengine.s3.amazonaws.com/uploads/2016/10/10up-Github-Banner.png" width="850"></a>
+</p>

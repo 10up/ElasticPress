@@ -66,15 +66,18 @@ class Elasticsearch {
 	 * We require $document to have ID set
 	 *
 	 * @param  string  $index Index name.
-	 * @param  string  $type Index type.
+	 * @param  string  $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  array   $document Formatted Elasticsearch document.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
 	 * @return boolean|array
 	 */
 	public function index_document( $index, $type, $document, $blocking = true ) {
-
-		$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
+		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
+		} else {
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $document['ID'], $document, $type );
+		}
 
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );
@@ -182,14 +185,18 @@ class Elasticsearch {
 	 * Run a query on Elasticsearch
 	 *
 	 * @param  string $index Index name.
-	 * @param  string $type Index type.
+	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  array  $query Prepared ES query.
 	 * @param  array  $query_args WP query args. Used only for debugging.
 	 * @since  3.0
 	 * @return bool|array
 	 */
 	public function query( $index, $type, $query, $query_args ) {
-		$path = $index . '/' . $type . '/_search';
+		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = $index . '/' . $type . '/_search';
+		} else {
+			$path = $index . '/_search';
+		}
 
 		// For backwards compat
 		$path = apply_filters( 'ep_search_request_path', $path, $index, $type, $query, $query_args );
@@ -231,7 +238,7 @@ class Elasticsearch {
 				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
-				$documents[] = apply_filters( 'ep_retrieve_the_' . $type, $document, $hit );
+				$documents[] = apply_filters( 'ep_retrieve_the_' . $type, $document, $hit, $index );
 			}
 
 			return [
@@ -307,15 +314,18 @@ class Elasticsearch {
 	 * Delete an Elasticsearch document
 	 *
 	 * @param  string  $index Index name.
-	 * @param  string  $type Index type.
+	 * @param  string  $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  int     $document_id Document id to delete.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
 	 * @return boolean
 	 */
 	public function delete_document( $index, $type, $document_id, $blocking = true ) {
-
-		$path = $index . '/' . $type . '/' . $document_id;
+		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = $index . '/' . $type . '/' . $document_id;
+		} else {
+			$path = $index . '/' . $document_id;
+		}
 
 		$request_args = [
 			'method'   => 'DELETE',
@@ -376,13 +386,17 @@ class Elasticsearch {
 	 * Get a document from Elasticsearch given an id
 	 *
 	 * @param  string $index Index name.
-	 * @param  string $type Index type.
+	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  int    $document_id Document id to get.
 	 * @since  3.0
 	 * @return boolean|array
 	 */
 	public function get_document( $index, $type, $document_id ) {
-		$path = $index . '/' . $type . '/' . $document_id;
+		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = $index . '/' . $type . '/' . $document_id;
+		} else {
+			$path = $index . '/' . $document_id;
+		}
 
 		$request_args = [ 'method' => 'GET' ];
 
@@ -445,6 +459,10 @@ class Elasticsearch {
 		);
 
 		foreach ( $indexes as $index ) {
+			if ( empty( $index ) ) {
+				continue;
+			}
+
 			$args['actions'][] = array(
 				'add' => array(
 					'index' => $index,
@@ -488,6 +506,8 @@ class Elasticsearch {
 		$request = $this->remote_request( $index, $request_args, [], 'put_mapping' );
 
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
+
+		$response_body = wp_remote_retrieve_body( $request );
 
 		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
@@ -570,13 +590,17 @@ class Elasticsearch {
 	 * Bulk index Elasticsearch documents
 	 *
 	 * @param  string $index Index name.
-	 * @param  string $type Index type.
+	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  string $body  Encoded JSON.
 	 * @since  3.0
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $index, $type, $body ) {
-		$path = apply_filters( 'ep_bulk_index_request_path', $index . '/' . $type . '/_bulk', $body, $type );
+		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = apply_filters( 'ep_bulk_index_request_path', $index . '/' . $type . '/_bulk', $body, $type );
+		} else {
+			$path = apply_filters( 'ep_bulk_index_request_path', $index . '/_bulk', $body, $type );
+		}
 
 		$request_args = array(
 			'method'  => 'POST',
