@@ -47,7 +47,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index') );
+		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 	}
 
 	/**
