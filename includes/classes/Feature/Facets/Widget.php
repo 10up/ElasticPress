@@ -376,35 +376,35 @@ class Widget extends WP_Widget {
 
                 <select id="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'facet' ) ); ?>">
 					<?php foreach ( $taxonomies as $slug => $taxonomy_object ) : ?>
-                        <option <?php selected( $facet, $taxonomy_object->name ); ?> value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
+						<option <?php selected( $facet, $taxonomy_object->name ); ?> value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
 					<?php endforeach; ?>
-                </select>
-            </p>
+				</select>
+			</p>
 
-            <p>
-                <label for="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>">
+			<p>
+				<label for="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>">
 					<?php esc_html_e( 'Order Terms By:', 'elasticpress' ); ?>
-                </label><br>
+				</label><br>
 
-                <select id="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>"
-                        name="<?php echo esc_attr( $this->get_field_name( 'orderby' ) ); ?>">
+				<select id="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>"
+						name="<?php echo esc_attr( $this->get_field_name( 'orderby' ) ); ?>">
 					<?php foreach ( $orderby_options as $name => $title ) : ?>
-                        <option <?php selected( $orderby, $name ); ?>
-                                value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
+						<option <?php selected( $orderby, $name ); ?>
+								value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
 					<?php endforeach; ?>
-                </select>
-            </p>
+				</select>
+			</p>
 
-            <p>
-                <label for="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>">
+			<p>
+				<label for="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>">
 					<?php esc_html_e( 'Term Order:', 'elasticpress' ); ?>
-                </label><br>
+				</label><br>
 
-                <select id="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>"
-                        name="<?php echo esc_attr( $this->get_field_name( 'order' ) ); ?>">
+				<select id="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>"
+						name="<?php echo esc_attr( $this->get_field_name( 'order' ) ); ?>">
 					<?php foreach ( $order_options as $name => $title ) : ?>
-                        <option <?php selected( $order, $name ); ?>
-                                value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
+						<option <?php selected( $order, $name ); ?>
+								value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
 					<?php endforeach; ?>
                 </select>
             </p>
