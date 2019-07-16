@@ -348,7 +348,7 @@ class Widget extends WP_Widget {
 		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
-    $taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+        $taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		$orderby_options = [
 			'count' => __( 'Count', 'elasticpress' ),
