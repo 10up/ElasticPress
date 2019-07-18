@@ -395,7 +395,7 @@ class Documents extends Feature {
 	public function filter_autosuggest_options( $options ) {
 		$mime_types = isset( $options['mimeTypes'] ) && is_array( $options['mimeTypes'] ) ? $options['mimeTypes'] : array();
 
-		$mime_types = array_merge( $mime_types, $this->get_allowed_ingest_mime_types(), [ "" ] ); // Empty type matches any other post type without mime type set
+		$mime_types = array_merge( $mime_types, $this->get_allowed_ingest_mime_types(), [ '' ] ); // Empty type matches any other post type without mime type set
 
 		$options['mimeTypes'] = $mime_types;
 
@@ -420,7 +420,7 @@ class Documents extends Feature {
 	 *
 	 * Adds the document content field and changes the post_content and post_excerpt labels to "Description" and "Caption"
 	 *
-	 * @param array $fields Current weightable fields
+	 * @param array  $fields    Current weightable fields
 	 * @param string $post_type The post type the weightable fields apply to
 	 *
 	 * @return array Final weightable fields for post type
@@ -445,7 +445,7 @@ class Documents extends Feature {
 	/**
 	 * Filters the default weight values to add attachment-specific weights
 	 *
-	 * @param array $weights Current weight settings
+	 * @param array  $weights   Current weight settings
 	 * @param string $post_type The post type the weights apply to
 	 *
 	 * @return array Final weights

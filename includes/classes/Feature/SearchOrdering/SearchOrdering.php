@@ -54,10 +54,10 @@ class SearchOrdering extends Feature {
 	 * Setup Feature Functionality
 	 */
 	public function setup() {
-		/** @var Features $features */
+		/** Features Class @var Features $features */
 		$features = Features::factory();
 
-		/** @var Feature\Search\Search $search */
+		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
 		if ( ! $search->is_active() ) {
@@ -69,12 +69,12 @@ class SearchOrdering extends Feature {
 		add_filter( 'parent_file', [ $this, 'parent_file' ], 50 );
 		add_action( 'init', [ $this, 'register_post_type' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
-		add_action( 'save_post_' . self::POST_TYPE_NAME, [ $this, 'save_post'], 10, 2 );
+		add_action( 'save_post_' . self::POST_TYPE_NAME, [ $this, 'save_post' ], 10, 2 );
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
-		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration'], 10, 2 );
-		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration'], 10, 1 );
+		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration' ], 10, 2 );
+		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
 
 		// Deals with trashing/untrashing/deleting
 		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
@@ -90,10 +90,10 @@ class SearchOrdering extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		/** @var Features $features */
+		/** Features Class @var Features $features */
 		$features = Features::factory();
 
-		/** @var Feature\Search\Search $search */
+		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
 		if ( ! $search->is_active() ) {
@@ -153,7 +153,7 @@ class SearchOrdering extends Feature {
 		global $submenu_file, $current_screen, $parent_file;
 
 		// Set correct active/current menu and submenu in the WordPress Admin menu for the "pointer" CPT Add-New/Edit/List
-		if ( $current_screen->post_type === self::POST_TYPE_NAME ) {
+		if ( self::POST_TYPE_NAME === $current_screen->post_type ) {
 			$submenu_file = 'edit.php?post_type=' . self::POST_TYPE_NAME;
 			$parent_file  = 'elasticpress';
 		}
@@ -179,7 +179,7 @@ class SearchOrdering extends Feature {
 			'search_items'       => __( 'Search Custom Search Results', 'elasticpress' ),
 			'parent_item_colon'  => __( 'Parent Custom Search Result:', 'elasticpress' ),
 			'not_found'          => __( 'No results found.', 'elasticpress' ),
-			'not_found_in_trash' => __( 'No results found in Trash.', 'elasticpress' )
+			'not_found_in_trash' => __( 'No results found in Trash.', 'elasticpress' ),
 		);
 
 		$args = array(
@@ -200,7 +200,6 @@ class SearchOrdering extends Feature {
 		);
 
 		register_post_type( self::POST_TYPE_NAME, $args );
-
 
 		// Register taxonomy
 		$labels = array(
@@ -226,10 +225,10 @@ class SearchOrdering extends Feature {
 			'rewrite'           => false,
 		);
 
-		/** @var Features $features */
+		/** Features Class @var Features $features */
 		$features = Features::factory();
 
-		/** @var Feature\Search\Search $search */
+		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
 		$post_types = $search->get_searchable_post_types();
@@ -241,7 +240,7 @@ class SearchOrdering extends Feature {
 	 * Registers meta box for the search pointers
 	 */
 	public function register_meta_box() {
-		add_meta_box( 'ep-ordering', __( "Manage Results", 'elasticpress' ), [ $this, 'render_meta_box' ], self::POST_TYPE_NAME, 'normal' );
+		add_meta_box( 'ep-ordering', __( 'Manage Results', 'elasticpress' ), [ $this, 'render_meta_box' ], self::POST_TYPE_NAME, 'normal' );
 	}
 
 	/**
@@ -290,7 +289,7 @@ class SearchOrdering extends Feature {
 
 		return [
 			'pointers' => $pointers,
-			'posts' => $final_posts,
+			'posts'    => $final_posts,
 		];
 	}
 
@@ -302,7 +301,7 @@ class SearchOrdering extends Feature {
 
 		$screen = get_current_screen();
 
-		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ] ) && $screen instanceof \WP_Screen && $screen->post_type === self::POST_TYPE_NAME ) {
+		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && $screen instanceof \WP_Screen && self::POST_TYPE_NAME === $screen->post_type ) {
 			wp_enqueue_script( 'ep_ordering_scripts', EP_URL . 'dist/js/ordering.min.js', [ 'jquery' ], EP_VERSION, true );
 			wp_enqueue_style( 'ep_ordering_styles', EP_URL . 'dist/css/ordering.min.css', [], EP_VERSION );
 
@@ -327,11 +326,11 @@ class SearchOrdering extends Feature {
 	/**
 	 * Handles saving the injected post settings
 	 *
-	 * @param $post_id
-	 * @param $post
+	 * @param int      $post_id Post ID of the post being saved
+	 * @param \WP_Post $post    Post object being saved
 	 */
 	public function save_post( $post_id, $post ) {
-		/** @var Post $post_indexable */
+		/** Post Indexable @var Post $post_indexable */
 		$post_indexable = Indexables::factory()->get( 'post' );
 
 		if ( ! isset( $_POST['search-ordering-nonce'] ) || ! wp_verify_nonce( $_POST['search-ordering-nonce'], 'save-search-ordering' ) ) {
@@ -346,7 +345,7 @@ class SearchOrdering extends Feature {
 
 		// Track the old IDs that aren't retained so we can delete the terms later
 		$previous_order_data = get_post_meta( $post_id, 'pointers', true );
-		$previous_post_ids = array_flip( wp_list_pluck( $previous_order_data, 'ID' ) );
+		$previous_post_ids   = array_flip( wp_list_pluck( $previous_order_data, 'ID' ) );
 
 		$ordered_posts = json_decode( wp_unslash( $_POST['ordered_posts'] ), true );
 
@@ -489,15 +488,15 @@ class SearchOrdering extends Feature {
 			'elasticpress/v1',
 			'pointer_search',
 			[
-				'methods' => 'GET',
+				'methods'  => 'GET',
 				'callback' => [ $this, 'handle_pointer_search' ],
-				'args' => [
+				'args'     => [
 					's' => [
-						'validate_callback' => function( $param ) {
+						'validate_callback' => function ( $param ) {
 							return ! empty( $param );
 						},
-						'required' => true,
-					]
+						'required'          => true,
+					],
 				],
 			]
 		);
@@ -506,15 +505,15 @@ class SearchOrdering extends Feature {
 			'elasticpress/v1',
 			'pointer_preview',
 			[
-				'methods' => 'GET',
+				'methods'  => 'GET',
 				'callback' => [ $this, 'handle_pointer_preview' ],
-				'args' => [
+				'args'     => [
 					's' => [
-						'validate_callback' => function( $param ) {
+						'validate_callback' => function ( $param ) {
 							return ! empty( $param );
 						},
-						'required' => true,
-					]
+						'required'          => true,
+					],
 				],
 			]
 		);
@@ -530,10 +529,10 @@ class SearchOrdering extends Feature {
 	public function handle_pointer_search( $request ) {
 		$search = $request->get_param( 's' );
 
-		/** @var Features $features */
+		/** Features Class @var Features $features */
 		$features = Features::factory();
 
-		/** @var Feature\Search\Search $search */
+		/** Search Feature @var Feature\Search\Search $search */
 		$search_feature = $features->get_registered_feature( 'search' );
 
 		$post_types = $search_feature->get_searchable_post_types();
@@ -557,7 +556,7 @@ class SearchOrdering extends Feature {
 	 * @return array
 	 */
 	public function handle_pointer_preview( $request ) {
-		remove_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
+		remove_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
 
 		$search = $request->get_param( 's' );
 
@@ -568,7 +567,7 @@ class SearchOrdering extends Feature {
 			]
 		);
 
-		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types'] );
+		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
 
 		return $query->posts;
 	}
@@ -585,11 +584,11 @@ class SearchOrdering extends Feature {
 			return;
 		}
 
-		/** @var Post $post_indexable */
+		/** Post Indexable @var Post $post_indexable */
 		$post_indexable = Indexables::factory()->get( 'post' );
 
 		$pointers = get_post_meta( $post_id, 'pointers', true );
-		$term = $this->create_or_return_custom_result_term( $post->post_title );
+		$term     = $this->create_or_return_custom_result_term( $post->post_title );
 
 		foreach ( $pointers as $pointer ) {
 			$ref_id = $pointer['ID'];
@@ -611,11 +610,11 @@ class SearchOrdering extends Feature {
 			return;
 		}
 
-		/** @var Post $post_indexable */
+		/** Post Indexable @var Post $post_indexable */
 		$post_indexable = Indexables::factory()->get( 'post' );
 
 		$pointers = get_post_meta( $post_id, 'pointers', true );
-		$term = $this->create_or_return_custom_result_term( $post->post_title );
+		$term     = $this->create_or_return_custom_result_term( $post->post_title );
 
 		foreach ( $pointers as $pointer ) {
 			$this->assign_term_to_post( $pointer['ID'], $term->term_taxonomy_id, $pointer['order'] );
@@ -627,9 +626,10 @@ class SearchOrdering extends Feature {
 	/**
 	 * Assigns the term to the post with the proper term_order value
 	 *
-	 * @param $post_id
-	 * @param $term_taxonomy_id
-	 * @param $order
+	 * @param int $post_id          The Post ID
+	 * @param int $term_taxonomy_id Term Taxonomy ID
+	 * @param int $order            Term order to assign
+	 *
 	 * @return bool|int
 	 */
 	protected function assign_term_to_post( $post_id, $term_taxonomy_id, $order ) {

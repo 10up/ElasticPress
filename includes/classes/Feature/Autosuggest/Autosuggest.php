@@ -207,7 +207,6 @@ class Autosuggest extends Feature {
 	public function enqueue_scripts() {
 		$host         = Utils\get_host();
 		$endpoint_url = false;
-		$feature      = Features::factory()->get_registered_feature( 'autosuggest' );
 		$settings     = $this->get_settings();
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
@@ -245,10 +244,10 @@ class Autosuggest extends Feature {
 			EP_VERSION
 		);
 
-		/** @var Features $features */
+		/** Features Class @var Features $features */
 		$features = Features::factory();
 
-		/** @var Feature\Search\Search $search */
+		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
 		$post_types  = $search->get_searchable_post_types();
@@ -279,7 +278,7 @@ class Autosuggest extends Feature {
 						)
 					),
 					'dateDecay'    => [
-						'enabled' => (bool)$search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
+						'enabled' => (bool) $search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
 					],
 					'action'       => 'navigate',
 					'weighting'    => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->weighting->get_weighting_configuration() ),

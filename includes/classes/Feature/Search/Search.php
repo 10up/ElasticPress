@@ -9,9 +9,7 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Feature as Feature;
-use ElasticPress\Features as Features;
 use ElasticPress\Indexables as Indexables;
-use ElasticPress\Indexable\Post\Post as Post;
 
 /**
  * Search feature class
@@ -19,6 +17,8 @@ use ElasticPress\Indexable\Post\Post as Post;
 class Search extends Feature {
 
 	/**
+	 * Weighting Class (Sub Feature)
+	 *
 	 * @var Weighting
 	 */
 	public $weighting;

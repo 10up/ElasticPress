@@ -349,9 +349,11 @@ class Post extends Indexable {
 	/**
 	 * Recursively get all the ancestor terms of the given term
 	 *
-	 * @param array   $terms Terms array
-	 * @param WP_Term $term Current term
-	 * @param string  $tax_name Taxonomy
+	 * @param array   $terms     Terms array
+	 * @param WP_Term $term      Current term
+	 * @param string  $tax_name  Taxonomy
+	 * @param int     $object_id Post ID
+	 *
 	 * @return array
 	 */
 	private function get_parent_terms( $terms, $term, $tax_name, $object_id ) {
@@ -371,10 +373,18 @@ class Post extends Indexable {
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
 	}
 
+	/**
+	 * Retreives term order for the object/term_taxonomy_id combination
+	 *
+	 * @param int $term_taxonomy_id Term Taxonomy ID
+	 * @param int $object_id        Post ID
+	 *
+	 * @return int Term Order
+	 */
 	protected function get_term_order( $term_taxonomy_id, $object_id ) {
 		global $wpdb;
 
-		$cache_key = "{$object_id}_term_order";
+		$cache_key   = "{$object_id}_term_order";
 		$term_orders = wp_cache_get( $cache_key );
 
 		if ( false === $term_orders ) {

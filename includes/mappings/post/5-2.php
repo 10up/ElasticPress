@@ -165,9 +165,9 @@ return array(
 								'slug'             => array(
 									'type' => 'keyword',
 								),
-								'term_order'      => array(
+								'term_order'       => array(
 									'type' => 'long',
-								)
+								),
 							),
 						),
 					),
