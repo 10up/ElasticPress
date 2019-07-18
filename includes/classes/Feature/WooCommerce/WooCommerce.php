@@ -457,7 +457,7 @@ class WooCommerce extends Feature {
 				 * Default order when doing search in Woocommerce is 'ASC'
 				 * These lines will change it to 'DESC' as we want to most relevant result
 				 */
-				if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+				if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$query->set( 'order', 'DESC' );
 				}
 
@@ -572,9 +572,9 @@ class WooCommerce extends Feature {
 			 * Set orderby from GET param
 			 * Also make sure the orderby param affects only the main query
 			 */
-			if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+			if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
 
-				switch ( $_GET['orderby'] ) {
+				switch ( $_GET['orderby'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 					case 'popularity':
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
 						$query->set( 'order', 'DESC' );
@@ -680,7 +680,7 @@ class WooCommerce extends Feature {
 			return;
 		}
 
-		$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+		$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		$order_id        = absint( $search_key_safe );
 
 		/**
