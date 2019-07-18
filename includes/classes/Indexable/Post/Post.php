@@ -130,12 +130,16 @@ class Post extends Indexable {
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
 
+		$mapping_file = '5-2.php';
+
 		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
 			$mapping_file = 'pre-5-0.php';
-		} elseif ( version_compare( $es_version, '5.2' ) >= 0 ) {
-			$mapping_file = '5-2.php';
-		} else {
+		} elseif ( version_compare( $es_version, '5.0', '>=' ) && version_compare( $es_version, '5.2', '<' ) ) {
 			$mapping_file = '5-0.php';
+		} elseif ( version_compare( $es_version, '5.2', '>=' ) && version_compare( $es_version, '7.0', '<' ) ) {
+			$mapping_file = '5-2.php';
+		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
+			$mapping_file = '7-0.php';
 		}
 
 		$mapping = require apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file );

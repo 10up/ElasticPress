@@ -81,7 +81,7 @@ class QueryIntegration {
 			}
 		}
 
-		$query->total_users = $ep_query['found_documents'];
+		$query->total_users = is_array( $ep_query['found_documents'] ) ? $ep_query['found_documents']['value'] : $ep_query['found_documents']; // 7.0+ have this as an array rather than int;
 
 		return $new_users;
 	}

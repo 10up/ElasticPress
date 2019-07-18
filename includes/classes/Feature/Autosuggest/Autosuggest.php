@@ -12,6 +12,7 @@ use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -131,14 +132,6 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function mapping( $mapping ) {
-		$text_type = $mapping['mappings']['post']['properties']['post_content']['type'];
-
-		$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-			'type'            => $text_type,
-			'analyzer'        => 'edge_ngram_analyzer',
-			'search_analyzer' => 'standard',
-		);
-
 		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
 			'type'      => 'custom',
 			'tokenizer' => 'standard',
@@ -148,11 +141,35 @@ class Autosuggest extends Feature {
 			),
 		);
 
-		$mapping['mappings']['post']['properties']['term_suggest'] = array(
-			'type'            => $text_type,
-			'analyzer'        => 'edge_ngram_analyzer',
-			'search_analyzer' => 'standard',
-		);
+		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$text_type = $mapping['mappings']['post']['properties']['post_content']['type'];
+
+			$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
+				'type'            => $text_type,
+				'analyzer'        => 'edge_ngram_analyzer',
+				'search_analyzer' => 'standard',
+			);
+
+			$mapping['mappings']['post']['properties']['term_suggest'] = array(
+				'type'            => $text_type,
+				'analyzer'        => 'edge_ngram_analyzer',
+				'search_analyzer' => 'standard',
+			);
+		} else {
+			$text_type = $mapping['mappings']['properties']['post_content']['type'];
+
+			$mapping['mappings']['properties']['post_title']['fields']['suggest'] = array(
+				'type'            => $text_type,
+				'analyzer'        => 'edge_ngram_analyzer',
+				'search_analyzer' => 'standard',
+			);
+
+			$mapping['mappings']['properties']['term_suggest'] = array(
+				'type'            => $text_type,
+				'analyzer'        => 'edge_ngram_analyzer',
+				'search_analyzer' => 'standard',
+			);
+		}
 
 		return $mapping;
 	}

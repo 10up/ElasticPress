@@ -743,11 +743,10 @@ class WooCommerce extends Feature {
 	/**
 	 * Add WooCommerce Product Attributes to EP Facets.
 	 *
-	 * @param array $taxonomies
-	 *
+	 * @param array $taxonomies Taxonomies array
 	 * @return array
 	 */
-	function add_product_attributes( $taxonomies = [] ) {
+	public function add_product_attributes( $taxonomies = [] ) {
 		$attribute_names = wc_get_attribute_taxonomy_names();
 
 		foreach ( $attribute_names as $name ) {
