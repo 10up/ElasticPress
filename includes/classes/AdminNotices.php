@@ -2,6 +2,8 @@
 /**
  * ElasticPress admin notice handler
  *
+ * phpcs:disable WordPress.WP.I18n.MissingTranslatorsComment
+ *
  * @since  3.0
  * @package elasticpress
  */
@@ -190,7 +192,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) {
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return false;
 		}
 
@@ -268,7 +270,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) {
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return false;
 		}
 
@@ -334,7 +336,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) {
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return false;
 		}
 

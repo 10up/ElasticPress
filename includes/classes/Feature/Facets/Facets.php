@@ -316,7 +316,7 @@ class Facets extends Feature {
 			'taxonomies' => [],
 		);
 
-		foreach ( $_GET as $key => $value ) {
+		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 0 === strpos( $key, 'filter' ) ) {
 				$taxonomy = str_replace( 'filter_', '', $key );
 
@@ -400,7 +400,12 @@ class Facets extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) ); ?></p>
+		<p>
+			<?php
+			// translators: URL
+			echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) );
+			?>
+		</p>
 		<?php
 	}
 }

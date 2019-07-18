@@ -26,7 +26,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 <div class="wrap intro">
 	<h1><?php esc_html_e( 'A Fast and Flexible Search and Query Engine for WordPress.', 'elasticpress' ); ?></h1>
 
-	<?php if ( isset( $_GET['install_complete'] ) ) : ?>
+	<?php if ( isset( $_GET['install_complete'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
 		<div class="intro-container-success">
 			<h2 class="setup-complete">Setup Completed!</h2>
 			<div class="ep-circle red-ep-circle ep-config-success">
