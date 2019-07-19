@@ -372,7 +372,13 @@ class SearchOrdering extends Feature {
 		$custom_result_term = $this->create_or_return_custom_result_term( $post->post_title );
 		if ( $custom_result_term ) {
 			foreach ( $final_order_data as $final_order_datum ) {
-				$this->assign_term_to_post( $final_order_datum['ID'], $custom_result_term->term_taxonomy_id, $final_order_datum['order'] );
+
+				if ( 'publish' === $post->post_status ) {
+					$this->assign_term_to_post( $final_order_datum['ID'], $custom_result_term->term_taxonomy_id, $final_order_datum['order'] );
+				} else {
+					// If not published, we need to ensure that the term is _not_ present on the target posts
+					wp_remove_object_terms( $final_order_datum['ID'], (int) $custom_result_term->term_id, self::TAXONOMY_NAME );
+				}
 
 				$post_indexable->sync_manager->action_sync_on_update( $final_order_datum['ID'] );
 			}
@@ -646,10 +652,12 @@ class SearchOrdering extends Feature {
 		$pointers = get_post_meta( $post_id, 'pointers', true );
 		$term     = $this->create_or_return_custom_result_term( $post->post_title );
 
-		foreach ( $pointers as $pointer ) {
-			$this->assign_term_to_post( $pointer['ID'], $term->term_taxonomy_id, $pointer['order'] );
+		if ( 'publish' === $post->post_status ) {
+			foreach ( $pointers as $pointer ) {
+				$this->assign_term_to_post( $pointer['ID'], $term->term_taxonomy_id, $pointer['order'] );
 
-			$post_indexable->sync_manager->action_sync_on_update( $pointer['ID'] );
+				$post_indexable->sync_manager->action_sync_on_update( $pointer['ID'] );
+			}
 		}
 	}
 
