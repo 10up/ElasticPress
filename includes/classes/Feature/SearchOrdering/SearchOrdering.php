@@ -76,6 +76,7 @@ class SearchOrdering extends Feature {
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration' ], 10, 2 );
 		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
 		add_filter( 'enter_title_here', [ $this, 'filter_enter_title_here' ] );
+		add_filter( 'manage_' . self::POST_TYPE_NAME . '_posts_columns', [ $this, 'filter_column_names' ] );
 
 		// Deals with trashing/untrashing/deleting
 		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
@@ -435,7 +436,11 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
+	 * Changes the title to show "Enter Search Query" on the CPT edit screen
 	 *
+	 * @param string $text Current text for the input label
+	 *
+	 * @return string Final label
 	 */
 	public function filter_enter_title_here( $text ) {
 		if ( self::POST_TYPE_NAME === get_post_type() ) {
@@ -443,6 +448,19 @@ class SearchOrdering extends Feature {
 		}
 
 		return $text;
+	}
+
+	/**
+	 * Filters the title column to show "Search Query"
+	 *
+	 * @param array $columns Current columns
+	 *
+	 * @return array Final Columns
+	 */
+	public function filter_column_names( $columns ) {
+		$columns['title'] = __( 'Search Query', 'elasticpress' );
+
+		return $columns;
 	}
 
 	/**
