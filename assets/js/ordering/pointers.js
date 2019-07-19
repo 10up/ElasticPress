@@ -232,7 +232,7 @@ export class Pointers extends Component {
 		if ( 0 === this.state.title.length ) {
 			return (
 				<div className="new-post">
-					<p>{ __( 'Enter your search query in the title field to preview the results.', 'elasticpress' ) }</p>
+					<p>{ __( 'Enter your search query above to preview the results.', 'elasticpress' ) }</p>
 				</div>
 			);
 		}

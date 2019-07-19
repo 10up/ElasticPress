@@ -75,6 +75,7 @@ class SearchOrdering extends Feature {
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration' ], 10, 2 );
 		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
+		add_filter( 'enter_title_here', [ $this, 'filter_enter_title_here' ] );
 
 		// Deals with trashing/untrashing/deleting
 		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
@@ -431,6 +432,17 @@ class SearchOrdering extends Feature {
 		}
 
 		return $weighting_configuration;
+	}
+
+	/**
+	 *
+	 */
+	public function filter_enter_title_here( $text ) {
+		if ( self::POST_TYPE_NAME === get_post_type() ) {
+			$text = __( 'Enter Search Query', 'elasticpress' );
+		}
+
+		return $text;
 	}
 
 	/**
