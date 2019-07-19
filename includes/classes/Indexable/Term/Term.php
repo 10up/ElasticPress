@@ -123,10 +123,11 @@ class Term extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'number'  => $this->get_bulk_items_per_page(),
-			'offset'  => 0,
-			'orderby' => 'id',
-			'order'   => 'desc',
+			'number'   => $this->get_bulk_items_per_page(),
+			'offset'   => 0,
+			'orderby'  => 'id',
+			'order'    => 'desc',
+			'taxonomy' => $this->get_indexable_taxonomies(),
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -143,6 +144,25 @@ class Term extends Indexable {
 			'objects'       => $query->terms,
 			'total_objects' => $this->total_terms,
 		];
+	}
+
+	/**
+	 * Returns indexable taxonomies for the current site
+	 *
+	 * @since  3.1
+	 * @return mixed|void
+	 */
+	public function get_indexable_taxonomies() {
+		$taxonomies        = get_taxonomies( [], 'objects' );
+		$public_taxonomies = [];
+
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public || $taxonomy->publicly_queryable ) {
+				$public_taxonomies[] = $taxonomy->name;
+			}
+		}
+
+		return apply_filters( 'ep_indexable_taxonomies', $public_taxonomies );
 	}
 
 	/**
