@@ -48,7 +48,7 @@ class Term extends Indexable {
 			'singular' => esc_html__( 'Term', 'elasticpress' ),
 		];
 
-		$all_query = new WP_Term_Query( [ 'count'=> true, 'fields' => 'ids' ] );
+		$all_query = new WP_Term_Query( [ 'count' => true, 'fields' => 'ids' ] );
 
 		$this->total_terms       = count( $all_query->terms );
 		$this->sync_manager      = new SyncManager( $this->slug );
@@ -84,12 +84,12 @@ class Term extends Indexable {
 	/**
 	 * Prepare a term document for indexing
 	 *
-	 * @param  int $term_taxonomy_id Term taxonomy ID
+	 * @param  int $term_id Term ID
 	 * @since  3.1
 	 * @return bool|array
 	 */
-	public function prepare_document( $term_taxonomy_id ) {
-		$term = get_term_by( 'term_taxonomy_id', $term_taxonomy_id );
+	public function prepare_document( $term_id ) {
+		$term = get_term( $term_id );
 
 		if ( ! $term || ! is_a( $term, 'WP_Term' ) ) {
 			return false;
@@ -97,7 +97,7 @@ class Term extends Indexable {
 
 		$term_args = [
 			'term_id'          => $term->term_id,
-			'ID'               => $term->term_taxonomy_id,
+			'ID'               => $term->term_id,
 			'name'             => $term->name,
 			'slug'             => $term->slug,
 			'term_group'       => $term->group,
@@ -109,7 +109,7 @@ class Term extends Indexable {
 			'meta'             => $this->prepare_meta_types( $this->prepare_meta( $term->term_id ) ),
 		];
 
-		$term_args = apply_filters( 'ep_term_sync_args', $term_args, $term_taxonomy_id );
+		$term_args = apply_filters( 'ep_term_sync_args', $term_args, $term_id );
 
 		return $term_args;
 	}
@@ -170,8 +170,7 @@ class Term extends Indexable {
 	 *
 	 * In particular, result of WP_Term_Query does not
 	 * include an "id" field, which our index command
-	 * expects. This sets the term_taxonomy_id as the
-	 * "id" field.
+	 * expects.
 	 *
 	 * @param  object $value Term object
 	 * @since  3.1
@@ -179,7 +178,7 @@ class Term extends Indexable {
 	 */
 	public function remap_terms( &$value ) {
 		$value = (object) array(
-			'ID'               => $value->term_taxonomy_id,
+			'ID'               => $value->term_id,
 			'term_id'          => $value->term_id,
 			'name'             => $value->name,
 			'slug'             => $value->slug,
