@@ -349,7 +349,7 @@ class SearchOrdering extends Feature {
 
 		// Track the old IDs that aren't retained so we can delete the terms later
 		$previous_order_data = get_post_meta( $post_id, 'pointers', true );
-		$previous_post_ids   = array_flip( wp_list_pluck( $previous_order_data, 'ID' ) );
+		$previous_post_ids   = ! empty( $previous_order_data ) ? array_flip( wp_list_pluck( $previous_order_data, 'ID' ) ) : [];
 
 		$ordered_posts = json_decode( wp_unslash( $_POST['ordered_posts'] ), true );
 
