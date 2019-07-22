@@ -11,8 +11,8 @@
         <ini name="error_reporting" value="24575" />
     </php>
 	<testsuites>
-		<testsuite>
-			<directory prefix="test-" suffix=".php">./tests/</directory>
+		<testsuite name="elasticpress">
+			<directory prefix="Test" suffix=".php">./tests/</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

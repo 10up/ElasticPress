@@ -1,13 +1,13 @@
-ElasticPress 
+ElasticPress
 =============
 
 A fast and flexible search and query engine for WordPress.
 
+**ElasticPress 3.0:** ElasticPress 3.0 contains major changes from 2.x including a rewrite of the feature registration API and PHP 5.4+ features. If you have problems upgrading, please create an issue.
+
 **Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7 require re-syncing.
-
-**ElasticSearch max version supported: 6.3** 
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0 require re-syncing.
 
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
@@ -17,22 +17,23 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 
 ## How Does it Work
 
-ElasticPress integrates with the [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query) object returning results from Elasticsearch instead of MySQL.
+ElasticPress integrates with several WordPress APIs (e.g. [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query)) to return results from Elasticsearch instead of MySQL.
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.7+ (5.0+ highly recommended)
+* [Elasticsearch](https://www.elastic.co) 1.7+ (5.0+ highly recommended) **ElasticSearch max version supported: 6.3**
 * [WordPress](http://wordpress.org) 3.7.1+
+* [PHP](https://php.net/) 5.4+
+
 
 ## Installation
 
-1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
-2. Install the plugin in WordPress. You can download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
-3. Activate the plugin (network activate for multisite). Navigate to the settings page. You should see an ElasticPress icon in your admin menu.
-4. Input your Elasticsearch host. Your host must begin with a protocol specifier (`http` or `https`). URLs without a protocol prefix will not be parsed correctly and will cause ElasticPress to error out.
-5. Sync your content by clicking the sync icon.
+1. First, you will need to sign up for an [ElasticPress.io account](https://elasticpress.io), or if you prefer, you can [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
+2. Install the plugin in WordPress. You can install in the Dashboard, via WP-CLI, or download a [zip via Github](https://github.com/10up/ElasticPress/archive/master.zip) and upload it using the WordPress plugin uploader.
+3. Follow the prompts to add your ElasticPress.io or Elasticsearch server. <img src="https://github.com/10up/ElasticPress/raw/develop/images/setup-screenshot.png" width="850">
+4. Sync your content by clicking the sync icon.
 
-Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful WP_Query integration API.
+Once syncing finishes, your site is officially supercharged. You also have access to ElasticPress's powerful Indexables class, which enables you to index and query custom content objects, as well as built-in Indexables for Posts and Users.
 
 ## Features
 
@@ -50,7 +51,7 @@ ElasticPress understands data in real time, so it can instantly deliver engaging
 
 Available API functions:
 
-* `ep_find_related( $post_id, $return = 5 )`
+* `ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id, $return = 5 )`
 
   Get related posts for a given `$post_id`. Use this in a theme or plugin to get related content.
 
@@ -70,9 +71,17 @@ Suggest relevant content as text is entered into the search field.
 
 Add controls to your website to filter content by one or more taxonomies.
 
-## `WP_Query` and the ElasticPress Query Integration
+### Users (requires WordPress 5.1+)
 
-ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_query` arguments for extra functionality.
+Improve user search relevancy and query performance.
+
+## ElasticPress `Indexables`
+
+In ElasticPress 3.0, we’ve introduced the concept of Indexables. In the past, ElasticPress integrated with WordPress’ WP_Query API, which enabled redirection of WP_Query queries through Elasticsearch instead of MySQL. Indexables takes this a step further, enabling indexing, search, and queries on any queryable object in WordPress.
+
+As of 3.0, ElasticPress ships with two built-in Indexables: Posts and Users. The Posts Indexable roughly corresponds to the previous WP_Query integration, and the Users Indexable adds support for [WP_User_Query](http://codex.wordpress.org/Class_Reference/WP_User_Query) in ElasticPress. Future versions of ElasticPress will include additional WordPress APIs (such as [WP_Comment_Query](http://codex.wordpress.org/Class_Reference/WP_Comment_Query)), and you can also create your own custom Indexables by extending the Indexable class.
+
+ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` and `WP_User_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` and `WP_User_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_Query` arguments for extra functionality.
 
 ### Supported WP_Query Parameters
 
@@ -504,29 +513,126 @@ The following are special parameters that are only supported by ElasticPress.
 
     _Note:_ Nesting cross-site `WP_Query` loops can result in unexpected behavior.
 
+### Supported WP_User_Query Parameters
+
+* ```number``` (*int*)
+
+     The maximum returned number of results.
+
+* ```blog_id``` (*int*)
+
+     The blog id on a multisite environment. Defaults to the current blog id.
+
+* ```role``` (*string|array*)
+
+     An array or a comma-separated list of role names that users must match to be included in results. Note that this is an inclusive list: users must match *each* role. Default empty.
+
+* ```meta_key``` (*string*)
+
+    Allows you to query meta with the defined key. Requires `meta_value` or `meta_value_num` be used as well.
+
+* ```meta_value``` (*string*)
+
+    This value will be queried against the key defined in `meta_key`.
+
+* ```meta_compare``` (*string*)
+
+    Operator to test the 'meta_value'. Possible values are '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS', and 'NOT EXISTS' ; 'REGEXP', 'NOT REGEXP' and 'RLIKE' were added in WordPress 3.7. Default value is '='.
+
+* ```meta_query``` (*array*)
+
+    Filter users by user meta conditions. Meta arrays and objects are serialized due to limitations of Elasticsearch. Takes an array of form:
+
+    ```php
+    new WP_User_Query( array(
+        's'          => 'search phrase',
+        'meta_query' => array(
+            array(
+                'key'   => 'key_name',
+                'value' => 'meta value',
+                'compare' => '=',
+            ),
+        ),
+    ) );
+    ```
+
+* ```fields``` (*string|array*)
+
+    Which fields to return. Defaults to all.
+
+* ```nicename``` (*string|array*)
+
+    Filter users by ```user_nicename``` field.
+* ```nicename__not_in``` (*string|array*)
+
+    Filter users to remove those who match on the ```user_nicename``` field.
+
+* ```nicename__in``` (*string|array*)
+
+    Filter users to include only those who match on the ```user_nicename``` field.
+
+* ```login```
+
+    Filter users by ```user_login``` field.
+
+* ```login__in```
+
+    Filter users to remove those who match on the ```user_login``` field.
+
+* ```login__not_in```
+
+    Filter users to include only those who match on the ```user_login``` field.
+
+* ```offset``` (*int*)
+
+    Offset the returned results (needed in pagination).
+
+* ```include``` (*array*)
+
+     List of user IDs to be included.
+
+* ```exclude```
+
+     List of user IDs to be excluded.
+
+* ```search```
+
+    Searches for possible string matches on columns. NB: Use of the * wildcard before and/or after the string is not currently supported in ElasticPress.
+
+* ```search_fields```
+
+    Specify fields to be searched.
+
+* ```search_columns```
+
+    Specify columns in the user database table to be searched. NB: this is merged into ```search_fields``` before being sent to Elasticsearch with ```search_fields``` overwriting ```search_columns```.
+
 ## WP-CLI Commands
 
 The following commands are supported by ElasticPress:
 
-* `wp elasticpress index [--setup] [--network-wide] [--posts-per-page] [--nobulk] [--offset] [--show-bulk-errors] [--post-type]`
+* `wp elasticpress index [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include]`
 
     Index all posts in the current blog.
 
     * `--network-wide` will force indexing on all the blogs in the network. `--network-wide` takes an optional argument to limit the number of blogs to be indexed across where 0 is no limit. For example, `--network-wide=5` would limit indexing to only 5 blogs on the network.
     * `--setup` will clear the index first and re-send the put mapping.
-    * `--posts-per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
+    * `--per-page` let's you determine the amount of posts to be indexed per bulk index (or cycle).
     * `--nobulk` let's you disable bulk indexing.
     * `--offset` let's you skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
+    * `--indexables` lets you specify the Indexable(s) which will be indexed.
     * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
+    * `--include` Choose which object IDs to include in the index.
+    * `--post_ids` Choose which post_ids to include when indexing the Posts Indexable (deprecated).
 
 * `wp elasticpress delete-index [--network-wide]`
 
-  Deletes the current blog index. `--network-wide` will force every index on the network to be deleted.
+  Deletes the current Indexables indices. `--network-wide` will force every index on the network to be deleted.
 
-* `wp elasticpress put-mapping [--network-wide]`
+* `wp elasticpress put-mapping [--network-wide] [--indexables]`
 
-  Sends plugin put mapping to the current blog index (this will delete the index). `--network-wide` will force mappings to be sent for every index in the network.
+  Sends plugin put mapping to the current Indexables indices (this will delete the indices). `--network-wide` will force mappings to be sent for every index in the network.
 
 * `wp elasticpress recreate-network-alias`
 
@@ -552,6 +658,7 @@ The following commands are supported by ElasticPress:
 
 ## Security
 
+* If you’re hosted with ElasticPress.io, simply add your Subscription ID and Token into the ElasticPress settings page to secure your ElasticPress installation.
 * ElasticPress can be used with the [Elasticsearch Shield](https://www.elastic.co/products/shield) plugin
 
     * Define the constant ```ES_SHIELD``` in your ```wp-config.php``` file with the username and password of your Elasticsearch Shield user. For example:
@@ -608,27 +715,8 @@ Follow the configuration instructions above to setup the plugin.
 
 ### Testing
 
-Within the terminal change directories to the plugin folder. Initialize your testing environment by running the
-following command:
-
-For VVV users:
-```
-bash bin/install-wp-tests.sh wordpress_test root root localhost latest
-```
-
-For VIP Quickstart users:
-```
-bash bin/install-wp-tests.sh wordpress_test root '' localhost latest
-```
-
-where:
-
-* ```wordpress_test``` is the name of the test database (all data will be deleted!)
-* ```root``` is the MySQL user name
-* ```root``` is the MySQL user password (if you're running VVV). Blank if you're running VIP Quickstart.
-* ```localhost``` is the MySQL server host
-* ```latest``` is the WordPress version; could also be 3.7, 3.6.2 etc.
-
+The simplest way to test is to use WP Local Docker, which includes Elasticsearch. To test with WP Local Docker, install ElasticPress into your site’s plugins folder and activate it. To connect, add the following string into your Elasticsearch URL field in the ElasticPress Settings:
+`https://localhost:9200`
 
 Our test suite depends on a running Elasticsearch server. You can supply a host to PHPUnit as an environmental variable like so:
 

@@ -1,9 +1,0 @@
-{
-	"version": 3,
-	"file": "admin.css",
-	"sources": [
-		"admin.scss"
-	],
-	"names": [],
-	"mappings": "AAAA,AAAA,gBAAgB,CAAC,KAAK,CAAC;EACtB,YAAY,EAAE,GAAG,GACjB"
-}

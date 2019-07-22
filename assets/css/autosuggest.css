@@ -1,0 +1,37 @@
+.ep-autosuggest-container {
+	position: relative;
+
+	& .ep-autosuggest {
+		display: none;
+		background: white;
+		position: absolute;
+		border: 1px solid #ccc;
+		box-shadow: 0 2px 4px rgba( 0, 0, 0, .2 );
+
+		width: 100%;
+		z-index: 200;
+		& > ul {
+			margin: 0 !important;
+			list-style: none;
+			& > li {
+				font-family: sans-serif;
+				& > span {
+					display: block;
+					color: #000;
+					padding: 2px 10px;
+					cursor: pointer;
+					&:hover,
+					&:active {
+						background-color: #EEEEEE;
+						text-decoration: none;
+					}
+				}
+			}
+		}
+	}
+
+	& .selected {
+		background-color: #EEE;
+		text-decoration: none;
+	}
+}

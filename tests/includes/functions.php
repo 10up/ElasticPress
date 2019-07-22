@@ -1,50 +1,34 @@
 <?php
-
 /**
- * Recursive version of PHP's in_array
+ * ElasticPress test functions
  *
- * @todo Max recursion restriction
- * @since 0.1.2
- * @param mixed $needle
- * @param array $haystack
- * @return bool
+ * @package elasticpress
  */
-function ep_deep_in_array( $needle, $haystack ) {
-	if ( in_array( $needle, $haystack, true ) ) {
-		return true;
-	}
 
-	$result = false;
+namespace ElasticPressTest\Functions;
 
-	foreach ( $haystack as $new_haystack ) {
-		if ( is_array( $new_haystack ) ) {
-			$result = $result || $this->_deepInArray( $needle, $new_haystack );
-		}
-	}
-
-	return $result;
-}
+use ElasticPress;
 
 /**
  * Create a WP post and "sync" it to Elasticsearch. We are mocking the sync
  *
  * @param array $post_args
  * @param array $post_meta
- * @param int $site_id
+ * @param int   $site_id
  * @since 0.9
  * @return int|WP_Error
  */
-function ep_create_and_sync_post( $post_args = array(), $post_meta = array(), $site_id = null ) {
-	if ( $site_id != null ) {
+function create_and_sync_post( $post_args = array(), $post_meta = array(), $site_id = null ) {
+	if ( null !== $site_id ) {
 		switch_to_blog( $site_id );
 	}
 
-	$post_types = ep_get_indexable_post_types();
+	$post_types       = ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
 	$post_type_values = array_values( $post_types );
 
 	$args = array(
 		'post_status' => 'publish',
-		'post_title' => 'Test Post ' . time(),
+		'post_title'  => 'Test Post ' . time(),
 	);
 
 	if ( ! empty( $post_type_values ) ) {
@@ -67,43 +51,42 @@ function ep_create_and_sync_post( $post_args = array(), $post_meta = array(), $s
 		}
 	}
 
-	// Force a re-sync
-	wp_update_post( array( 'ID' => $post_id ) );
+	ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 
-	if ( $site_id != null ) {
+	if ( null !== $site_id ) {
 		restore_current_blog();
 	}
 
 	return $post_id;
 }
 
-function ep_create_date_query_posts() {
-	$sites = ep_get_sites();
+/**
+ * Create posts for date query testing
+ *
+ * @since  3.0
+ */
+function create_date_query_posts() {
 	$beginning_tz = date_default_timezone_get();
 
-	date_default_timezone_set('America/Los_Angeles');
+	date_default_timezone_set( 'America/Los_Angeles' ); // phpcs:ignore
 
-	foreach ( $sites as $site ) {
-		switch_to_blog( $site['blog_id'] );
+	$post_date = strtotime( 'January 6th, 2012 11:59PM' );
 
-		$post_date = strtotime( "January 6th, 2012 11:59PM" );
+	for ( $i = 0; $i <= 10; ++$i ) {
 
-		for( $i = 0; $i <= 10; ++$i ) {
+		create_and_sync_post(
+			array(
+				'post_title'    => 'post_title ' . $i,
+				'post_content'  => 'findme',
+				'post_date'     => date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+				'post_date_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+			)
+		);
 
-			ep_create_and_sync_post( array(
-				'post_title' => 'post_title' . $site['blog_id'],
-				'post_content' => 'findme',
-				'post_date'    => date( "Y-m-d H:i:s", strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
-				'post_date_gmt' => gmdate( "Y-m-d H:i:s", strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
-			) );
-
-			ep_refresh_index();
-		}
-
-		restore_current_blog();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 	}
-	date_default_timezone_set($beginning_tz);
 
+	date_default_timezone_set( $beginning_tz ); // phpcs:ignore
 }
 
 /**
@@ -111,20 +94,21 @@ function ep_create_date_query_posts() {
  *
  * @return array total index count with last blog id to manipulate blog with an index
  */
-function ep_count_indexes() {
-	$sites = ep_get_sites();
+function count_indexes() {
+	$sites = ElasticPress\Utils\get_sites();
+
+	$last_blog_id_with_index = 0;
 
 	$count_indexes = 0;
 	foreach ( $sites as $site ) {
-		if ( $index_name = ep_get_index_name( $site[ 'blog_id' ] ) ) {
-			if ( ep_index_exists( $index_name ) ) {
-				$count_indexes++;
-				$last_blog_id_with_index = $site[ 'blog_id' ];
-			}
+		if ( ElasticPress\Indexables::factory()->get( 'post' )->index_exists( $site['blog_id'] ) ) {
+			$count_indexes++;
+			$last_blog_id_with_index = $site['blog_id'];
 		}
 	}
+
 	return array(
-		'total_indexes' => $count_indexes,
+		'total_indexes'           => $count_indexes,
 		'last_blog_id_with_index' => $last_blog_id_with_index,
 	);
 }
