@@ -134,7 +134,14 @@ class Documents extends Feature {
 		}
 
 		if ( empty( $post_status ) ) {
-			$post_status = array_values( get_post_stati( [ 'public' => true, 'exclude_from_search' => false ] ) );
+			$post_status = array_values(
+				get_post_stati(
+					[
+						'public'              => true,
+						'exclude_from_search' => false,
+					]
+				)
+			);
 
 			// Add inherit for documents
 			$post_status[] = 'inherit';
