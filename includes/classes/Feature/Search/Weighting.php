@@ -299,6 +299,15 @@ class Weighting {
 		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
 		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
 
+		// Do a non-blocking search query to force the autosuggest hash to update
+		$url = add_query_arg( [ 's' => 'search test' ], home_url( '/' ) );
+		wp_remote_get(
+			$url,
+			[
+				'blocking' => false,
+			]
+		);
+
 		wp_safe_redirect( $redirect_url );
 		exit();
 	}
