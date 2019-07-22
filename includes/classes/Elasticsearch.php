@@ -187,7 +187,7 @@ class Elasticsearch {
 	 * @param  string $index Index name.
 	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  array  $query Prepared ES query.
-	 * @param  array  $query_args WP query args. Used only for debugging.
+	 * @param  array  $query_args WP query args.
 	 * @since  3.0
 	 * @return bool|array
 	 */
@@ -204,12 +204,17 @@ class Elasticsearch {
 		$path = apply_filters( 'ep_query_request_path', $path, $index, $type, $query, $query_args );
 
 		$request_args = array(
-			'body'    => json_encode( $query ),
+			'body'    => json_encode( $query ), // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'method'  => 'POST',
 			'headers' => array(
 				'Content-Type' => 'application/json',
 			),
 		);
+
+		// If search, send the search term as a header to ES
+		if ( isset( $query_args['s'] ) && (bool) $query_args['s'] && ! is_admin() ) {
+			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
+		}
 
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
 
@@ -472,7 +477,7 @@ class Elasticsearch {
 		}
 
 		$request_args = array(
-			'body'    => json_encode( $args ),
+			'body'    => json_encode( $args ), // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'method'  => 'POST',
 			'timeout' => 25,
 		);
@@ -498,7 +503,7 @@ class Elasticsearch {
 		$mapping = apply_filters( 'ep_config_mapping', $mapping, $index );
 
 		$request_args = [
-			'body'    => json_encode( $mapping ),
+			'body'    => json_encode( $mapping ), // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'method'  => 'PUT',
 			'timeout' => 30,
 		];
@@ -653,8 +658,13 @@ class Elasticsearch {
 			$args['method'] = 'GET';
 		}
 
+		// Checks for any previously set headers
+		$existing_headers = isset( $args['headers'] ) ? (array) $args['headers'] : [];
+
 		// Add the API Header.
-		$args['headers'] = $this->format_request_headers();
+		$new_headers = $this->format_request_headers();
+
+		$args['headers'] = array_merge( $existing_headers, $new_headers );
 
 		$query = array(
 			'time_start'   => microtime( true ),
@@ -956,7 +966,7 @@ class Elasticsearch {
 		$path = '_ingest/pipeline/' . $id;
 
 		$request_args = array(
-			'body'   => json_encode( $args ),
+			'body'   => json_encode( $args ), // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 			'method' => 'PUT',
 		);
 

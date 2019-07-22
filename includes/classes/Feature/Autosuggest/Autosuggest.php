@@ -2,6 +2,8 @@
 /**
  * Autosuggest feature
  *
+ * phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+ *
  * @package elasticpress
  */
 
@@ -36,7 +38,6 @@ class Autosuggest extends Feature {
 		$this->requires_install_reindex = true;
 		$this->default_settings         = [
 			'endpoint_url'         => '',
-			'defaults_enabled'     => 1,
 			'autosuggest_selector' => '',
 		];
 
@@ -90,13 +91,6 @@ class Autosuggest extends Feature {
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
-			<div class="field-name status"><?php esc_html_e( 'Post type/status term suggest', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label for="defaults_enabled"><input name="defaults_enabled" id="defaults_enabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Use plugin defaults', 'elasticpress' ); ?></label><br>
-				<label for="defaults_disabled"><input name="defaults_enabled" id="defaults_disabled" data-field-name="defaults_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['defaults_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Use safe values', 'elasticpress' ); ?></label>
-			</div>
-		</div>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
@@ -215,14 +209,13 @@ class Autosuggest extends Feature {
 	public function enqueue_scripts() {
 		$host         = Utils\get_host();
 		$endpoint_url = false;
-		$feature      = Features::factory()->get_registered_feature( 'autosuggest' );
 		$settings     = $this->get_settings();
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
 		} else {
 			if ( Utils\is_epio() ) {
-				$endpoint_url = $host . '/' . Indexables::factory()->get( 'post' )->get_index_name() . '/post/_search';
+				$endpoint_url = trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/autosuggest';
 			} else {
 				if ( ! $settings ) {
 					$settings = [];
@@ -253,13 +246,42 @@ class Autosuggest extends Feature {
 			EP_VERSION
 		);
 
-		if ( ! isset( $settings['defaults_enabled'] ) || (bool) $settings['defaults_enabled'] ) {
-			$post_types  = Indexables::factory()->get( 'post' )->get_indexable_post_types();
-			$post_status = Indexables::factory()->get( 'post' )->get_indexable_post_status();
-		} else {
-			$post_types  = array( 'post', 'page' );
-			$post_status = array( 'publish' );
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+
+		/** Search Feature @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		$post_types  = $search->get_searchable_post_types();
+		$post_status = get_post_stati( array( 'public' => true ) );
+
+		$epas_options = [
+			'endpointUrl'       => esc_url( untrailingslashit( $endpoint_url ) ),
+			'postTypes'         => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
+			'postStatus'        => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
+			'selector'          => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			'searchFields'      => apply_filters(
+				'ep_term_suggest_search_fields',
+				[
+					'post_title.suggest',
+					'term_suggest',
+				]
+			),
+			'dateDecay'         => [
+				'enabled' => (bool) $search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
+			],
+			'action'            => 'navigate',
+			'weighting'         => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->is_active() ? $search->weighting->get_weighting_configuration() : [] ),
+			'weightingDefaults' => [],
+			'mimeTypes'         => [],
+		];
+
+		$weightingDefaults = [];
+		foreach ( $epas_options['postTypes'] as $as_post_type ) {
+			$weightingDefaults[ $as_post_type ] = $search->weighting->get_post_type_default_settings( $as_post_type );
 		}
+
+		$epas_options['weightingDefaults'] = apply_filters( 'ep_weighting_configuration_defaults_for_autosuggest', $weightingDefaults );
 
 		/**
 		 * Output variables to use in Javascript
@@ -273,20 +295,7 @@ class Autosuggest extends Feature {
 			'epas',
 			apply_filters(
 				'ep_autosuggest_options',
-				array(
-					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-					'postType'     => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
-					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
-					'selector'     => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-					'searchFields' => apply_filters(
-						'ep_term_suggest_search_fields',
-						array(
-							'post_title.suggest',
-							'term_suggest',
-						)
-					),
-					'action'       => 'navigate',
-				)
+				$epas_options
 			)
 		);
 	}

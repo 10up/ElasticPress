@@ -2,6 +2,8 @@
 /**
  * WP-CLI command for ElasticPress
  *
+ * phpcs:disable WordPress.WP.I18n.MissingTranslatorsComment
+ *
  * @since  3.0
  * @package elasticpress
  */
