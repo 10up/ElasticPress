@@ -241,38 +241,6 @@ class WooCommerce extends Feature {
 			return;
 		}
 
-		$product_name = $query->get( 'product', false );
-
-		$post_parent = $query->get( 'post_parent', false );
-
-		/**
-		 * Do nothing for single product queries
-		 */
-		if ( ! empty( $product_name ) || $query->is_single() ) {
-			return;
-		}
-
-		/**
-		 * ElasticPress does not yet support post_parent queries
-		 */
-		if ( ! empty( $post_parent ) ) {
-			return;
-		}
-
-		/**
-		 * If this is just a preview, let's not use Elasticsearch.
-		 */
-		if ( $query->get( 'preview', false ) ) {
-			return;
-		}
-
-		/**
-		 * Cant hook into WC API yet
-		 */
-		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
-			return;
-		}
-
 		// Flag to check and make sure we are in a WooCommerce specific query
 		$integrate = false;
 
@@ -883,6 +851,38 @@ class WooCommerce extends Feature {
 		}
 
 		if ( is_admin() && ! $admin_integration ) {
+			return false;
+		}
+
+		$product_name = $query->get( 'product', false );
+
+		$post_parent = $query->get( 'post_parent', false );
+
+		/**
+		 * Do nothing for single product queries
+		 */
+		if ( ! empty( $product_name ) || $query->is_single() ) {
+			return false;
+		}
+
+		/**
+		 * ElasticPress does not yet support post_parent queries
+		 */
+		if ( ! empty( $post_parent ) ) {
+			return false;
+		}
+
+		/**
+		 * If this is just a preview, let's not use Elasticsearch.
+		 */
+		if ( $query->get( 'preview', false ) ) {
+			return false;
+		}
+
+		/**
+		 * Cant hook into WC API yet
+		 */
+		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
 			return false;
 		}
 
