@@ -67,6 +67,7 @@ class SearchOrdering extends Feature {
 
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 50 );
 		add_filter( 'parent_file', [ $this, 'parent_file' ], 50 );
+		add_filter( 'submenu_file', [ $this, 'submenu_file' ], 50 );
 		add_action( 'init', [ $this, 'register_post_type' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'save_post_' . self::POST_TYPE_NAME, [ $this, 'save_post' ], 10, 2 );
@@ -154,15 +155,32 @@ class SearchOrdering extends Feature {
 	 * @return string
 	 */
 	public function parent_file( $parent_file ) {
-		global $submenu_file, $current_screen, $parent_file;
+		global $current_screen;
+
+		// Set correct active/current menu and submenu in the WordPress Admin menu for the "pointer" CPT Add-New/Edit/List
+		if ( self::POST_TYPE_NAME === $current_screen->post_type ) {
+			$parent_file = 'elasticpress';
+		}
+
+		return $parent_file;
+	}
+
+	/**
+	 * Ensures the correct item is highlighted when adding a new post
+	 *
+	 * @param string $submenu_file Current parent menu item
+	 *
+	 * @return string
+	 */
+	public function submenu_file( $submenu_file ) {
+		global $current_screen;
 
 		// Set correct active/current menu and submenu in the WordPress Admin menu for the "pointer" CPT Add-New/Edit/List
 		if ( self::POST_TYPE_NAME === $current_screen->post_type ) {
 			$submenu_file = 'edit.php?post_type=' . self::POST_TYPE_NAME;
-			$parent_file  = 'elasticpress';
 		}
 
-		return $parent_file;
+		return $submenu_file;
 	}
 
 	/**
@@ -170,7 +188,7 @@ class SearchOrdering extends Feature {
 	 */
 	public function register_post_type() {
 		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
-		$menu       = $is_network ? null : 'edit.php?post_type=\' . self::POST_TYPE_NAME';
+		$menu       = $is_network ? null : false;
 
 		$labels = array(
 			'name'               => _x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
