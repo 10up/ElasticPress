@@ -75,6 +75,8 @@ class SearchOrdering extends Feature {
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration' ], 10, 2 );
 		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
+		add_filter( 'ep_weighting_configuration_defaults_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
+		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'filter_default_post_type_weights' ], 10, 2 );
 		add_filter( 'enter_title_here', [ $this, 'filter_enter_title_here' ] );
 		add_filter( 'manage_' . self::POST_TYPE_NAME . '_posts_columns', [ $this, 'filter_column_names' ] );
 
@@ -452,6 +454,24 @@ class SearchOrdering extends Feature {
 		}
 
 		return $weighting_configuration;
+	}
+
+	/**
+	 * Filters default weights for server side searches
+	 *
+	 * @param array  $post_type_defaults Current default weight settings
+	 * @param string $post_type          Post type
+	 *
+	 * @return array Final weight settings
+	 */
+	public function filter_default_post_type_weights( $post_type_defaults, $post_type ) {
+		$post_type_defaults['terms.ep_custom_result.name'] = [
+			'enabled'   => true,
+			'weight'    => 9999,
+			'fuzziness' => false,
+		];
+
+		return $post_type_defaults;
 	}
 
 	/**

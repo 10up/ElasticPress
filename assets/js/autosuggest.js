@@ -107,28 +107,7 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
 	postTypes.map( postType => {
 		let postTypeWeights;
 
-		if ( undefined !== weightingSettings && undefined !== weightingSettings[ postType ] ) {
-			postTypeWeights = weightingSettings[ postType ];
-		} else {
-			postTypeWeights = {
-				post_title: {
-					enabled: true,
-					weight: 0,
-				},
-				post_content: {
-					enabled: true,
-					weight: 0,
-				},
-				post_excerpt: {
-					enabled: true,
-					weight: 0,
-				},
-				author_name: {
-					enabled: true,
-					weight: 0,
-				},
-			};
-		}
+		postTypeWeights = weightingSettings[ postType ];
 
 		const fields = [];
 		const fuzzyFields = [];
@@ -509,7 +488,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 			const postTypes = epas.postTypes;
 			const postStatus = epas.postStatus;
 			const searchFields = epas.searchFields;
-			const weightingSettings = epas.weighting;
+			const weightingSettings = Object.assign( {}, epas.weightingDefaults, epas.weighting );
 
 			if ( 2 <= val.length ) {
 				query = buildSearchQuery( val, postTypes, postStatus, searchFields, weightingSettings );

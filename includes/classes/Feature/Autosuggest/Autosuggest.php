@@ -2,6 +2,8 @@
 /**
  * Autosuggest feature
  *
+ * phpcs:disable WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+ *
  * @package elasticpress
  */
 
@@ -253,6 +255,34 @@ class Autosuggest extends Feature {
 		$post_types  = $search->get_searchable_post_types();
 		$post_status = get_post_stati( array( 'public' => true ) );
 
+		$epas_options = [
+			'endpointUrl'       => esc_url( untrailingslashit( $endpoint_url ) ),
+			'postTypes'         => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
+			'postStatus'        => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
+			'selector'          => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			'searchFields'      => apply_filters(
+				'ep_term_suggest_search_fields',
+				[
+					'post_title.suggest',
+					'term_suggest',
+				]
+			),
+			'dateDecay'         => [
+				'enabled' => (bool) $search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
+			],
+			'action'            => 'navigate',
+			'weighting'         => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->weighting->get_weighting_configuration() ),
+			'weightingDefaults' => [],
+			'mimeTypes'         => [],
+		];
+
+		$weightingDefaults = [];
+		foreach ( $epas_options['postTypes'] as $as_post_type ) {
+			$weightingDefaults[ $as_post_type ] = $search->weighting->get_post_type_default_settings( $as_post_type );
+		}
+
+		$epas_options['weightingDefaults'] = apply_filters( 'ep_weighting_configuration_defaults_for_autosuggest', $weightingDefaults );
+
 		/**
 		 * Output variables to use in Javascript
 		 * index: the Elasticsearch index name
@@ -265,25 +295,7 @@ class Autosuggest extends Feature {
 			'epas',
 			apply_filters(
 				'ep_autosuggest_options',
-				array(
-					'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
-					'postTypes'    => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
-					'postStatus'   => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
-					'selector'     => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-					'searchFields' => apply_filters(
-						'ep_term_suggest_search_fields',
-						array(
-							'post_title.suggest',
-							'term_suggest',
-						)
-					),
-					'dateDecay'    => [
-						'enabled' => (bool) $search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
-					],
-					'action'       => 'navigate',
-					'weighting'    => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->weighting->get_weighting_configuration() ),
-					'mimeTypes'    => array(),
-				)
+				$epas_options
 			)
 		);
 	}
