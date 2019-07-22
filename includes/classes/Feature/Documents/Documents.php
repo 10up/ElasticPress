@@ -48,6 +48,13 @@ class Documents extends Feature {
 		add_action( 'ep_dashboard_put_mapping', [ $this, 'create_pipeline' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'index_attachment_post_type' ] );
 		add_filter( 'ep_searchable_post_types', [ $this, 'search_attachment_post_type' ] );
+
+		// Autosuggest Compatibility
+		add_filter( 'ep_autosuggest_options', [ $this, 'filter_autosuggest_options' ] );
+		add_filter( 'ep_term_suggest_post_status', [ $this, 'filter_autosuggest_post_status' ] );
+
+		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'filter_weightable_fields_for_post_type' ], 10, 2 );
+		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'filter_attachment_post_type_weights' ], 10, 2 );
 	}
 
 	/**
@@ -221,9 +228,7 @@ class Documents extends Feature {
 		if ( ! is_array( $search_fields ) ) {
 			return $search_fields;
 		}
-
 		$search_fields[] = 'attachments.attachment.content';
-
 		return $search_fields;
 	}
 
@@ -378,6 +383,82 @@ class Documents extends Feature {
 				'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 			)
 		);
+	}
+
+	/**
+	 * Filters autosuggest options to add the mime type filters
+	 *
+	 * @param array $options Current autosuggest options
+	 *
+	 * @return array
+	 */
+	public function filter_autosuggest_options( $options ) {
+		$mime_types = isset( $options['mimeTypes'] ) && is_array( $options['mimeTypes'] ) ? $options['mimeTypes'] : array();
+
+		$mime_types = array_merge( $mime_types, $this->get_allowed_ingest_mime_types(), [ '' ] ); // Empty type matches any other post type without mime type set
+
+		$options['mimeTypes'] = $mime_types;
+
+		return $options;
+	}
+
+	/**
+	 * Adds the "inherit" post status to allowed post statuses for autosuggest searches
+	 *
+	 * @param array $post_statuses Current post statuses
+	 *
+	 * @return array
+	 */
+	public function filter_autosuggest_post_status( $post_statuses ) {
+		$post_statuses[] = 'inherit';
+
+		return $post_statuses;
+	}
+
+	/**
+	 * Filters the weightable fields for attachments.
+	 *
+	 * Adds the document content field and changes the post_content and post_excerpt labels to "Description" and "Caption"
+	 *
+	 * @param array  $fields    Current weightable fields
+	 * @param string $post_type The post type the weightable fields apply to
+	 *
+	 * @return array Final weightable fields for post type
+	 */
+	public function filter_weightable_fields_for_post_type( $fields, $post_type ) {
+		if ( 'attachment' === $post_type ) {
+			// Updates labels for description and caption
+			// @todo this might need to move to Protected Content if attachments are enabled there
+			$fields['attributes']['children']['post_content']['label'] = __( 'Description', 'elasticpress' );
+			$fields['attributes']['children']['post_excerpt']['label'] = __( 'Caption', 'elasticpress' );
+
+			// Adds new field
+			$fields['attributes']['children']['attachments.attachment.content'] = [
+				'key'   => 'attachments.attachment.content',
+				'label' => __( 'Document Content', 'elasticpress' ),
+			];
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Filters the default weight values to add attachment-specific weights
+	 *
+	 * @param array  $weights   Current weight settings
+	 * @param string $post_type The post type the weights apply to
+	 *
+	 * @return array Final weights
+	 */
+	public function filter_attachment_post_type_weights( $weights, $post_type ) {
+		if ( 'attachment' === $post_type ) {
+			$weights['attachments.attachment.content'] = [
+				'enabled' => true,
+				'weight'  => 0,
+			];
+		}
+
+		return $weights;
 	}
 }
 

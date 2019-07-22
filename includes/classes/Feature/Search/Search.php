@@ -9,14 +9,20 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Feature as Feature;
-use ElasticPress\Features as Features;
 use ElasticPress\Indexables as Indexables;
-use ElasticPress\Indexable\Post\Post as Post;
 
 /**
  * Search feature class
  */
 class Search extends Feature {
+
+	/**
+	 * Weighting Class (Sub Feature)
+	 *
+	 * @var Weighting
+	 */
+	public $weighting;
+
 	/**
 	 * Initialize feature setting it's config
 	 *
@@ -43,6 +49,10 @@ class Search extends Feature {
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
+
+		// Set up weighting sub-module
+		$this->weighting = new Weighting();
+		$this->weighting->setup();
 	}
 
 	/**
@@ -166,6 +176,24 @@ class Search extends Feature {
 	}
 
 	/**
+	 * Returns true/false if decaying is/isn't enabled
+	 *
+	 * @return bool
+	 */
+	public function is_decaying_enabled() {
+		$settings = $this->get_settings();
+
+		$settings = wp_parse_args(
+			$settings,
+			[
+				'decaying_enabled' => true,
+			]
+		);
+
+		return (bool) $settings['decaying_enabled'];
+	}
+
+	/**
 	 * Weight more recent content in searches
 	 *
 	 * @param  array $formatted_args Formatted ES args
@@ -175,29 +203,19 @@ class Search extends Feature {
 	 */
 	public function weight_recent( $formatted_args, $args ) {
 		if ( ! empty( $args['s'] ) ) {
-			$feature = Features::factory()->get_registered_feature( 'search' );
-
-			$settings = [];
-			if ( $feature ) {
-				$settings = $feature->get_settings();
-			}
-
-			$settings = wp_parse_args(
-				$settings,
-				[
-					'decaying_enabled' => true,
-				]
-			);
-
-			if ( (bool) $settings['decaying_enabled'] ) {
+			if ( $this->is_decaying_enabled() ) {
 				$date_score = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],
-						'exp'        => array(
-							'post_date_gmt' => array(
-								'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
-								'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
-								'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
+						'functions'  => array(
+							array(
+								'exp' => array(
+									'post_date_gmt' => array(
+										'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
+										'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
+										'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
+									),
+								),
 							),
 						),
 						'score_mode' => 'avg',
@@ -286,6 +304,8 @@ class Search extends Feature {
 				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
 				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
+			<br class="clear">
+			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ); ?>"><?php esc_html_e( 'Advanced fields and weighting settings', 'elasticpress' ); ?></a></p>
 		</div>
 		<?php
 	}
