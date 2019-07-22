@@ -169,6 +169,9 @@ class SearchOrdering extends Feature {
 	 * Registers the pointer post type for the injected results
 	 */
 	public function register_post_type() {
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		$menu       = $is_network ? null : 'edit.php?post_type=\' . self::POST_TYPE_NAME';
+
 		$labels = array(
 			'name'               => _x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
 			'singular_name'      => _x( 'Custom Search Result', 'post type singular name', 'elasticpress' ),
@@ -192,15 +195,16 @@ class SearchOrdering extends Feature {
 			'public'               => false,
 			'publicly_queryable'   => false,
 			'show_ui'              => true,
-			'show_in_menu'         => 'edit.php?post_type=' . self::POST_TYPE_NAME,
+			'show_in_menu'         => $menu,
 			'query_var'            => true,
 			'rewrite'              => array( 'slug' => 'ep-pointer' ),
 			'capability_type'      => 'post',
 			'has_archive'          => false,
 			'hierarchical'         => false,
-			'menu_position'        => 5,
+			'menu_position'        => 100,
 			'supports'             => [ 'title' ],
 			'register_meta_box_cb' => [ $this, 'register_meta_box' ],
+			'menu_icon'            => 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiLz48L3N2Zz4=',
 		);
 
 		register_post_type( self::POST_TYPE_NAME, $args );
