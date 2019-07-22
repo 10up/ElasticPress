@@ -353,6 +353,18 @@ class SearchOrdering extends Feature {
 
 		$posts_per_page = (int) get_option( 'posts_per_page', 10 );
 
+		$old_search_term = get_post_meta( $post->ID, 'search_term', true );
+
+		// Search term changed, so remove it from all of the posts it was assigned to
+		if ( ! empty( $old_search_term ) && $old_search_term !== $post->post_title ) {
+			$old_term = $this->create_or_return_custom_result_term( $old_search_term );
+
+			foreach ( array_flip( $previous_post_ids ) as $previous_post_id ) {
+				wp_remove_object_terms( $previous_post_id, $old_term->term_id, self::TAXONOMY_NAME );
+				$post_indexable->sync_manager->action_sync_on_update( $previous_post_id );
+			}
+		}
+
 		foreach ( $ordered_posts as $order_data ) {
 			if ( intval( $order_data['order'] ) <= $posts_per_page ) {
 				$final_order_data[] = [
@@ -394,6 +406,7 @@ class SearchOrdering extends Feature {
 		}
 
 		update_post_meta( $post_id, 'pointers', $final_order_data );
+		update_post_meta( $post_id, 'search_term', $post->post_title );
 	}
 
 	/**
