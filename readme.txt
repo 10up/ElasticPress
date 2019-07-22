@@ -1,5 +1,5 @@
 === ElasticPress ===
-Contributors: tlovett1, aaronholbrook, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
+Contributors: tlovett1, mattonomics, aaronholbrook, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
@@ -12,7 +12,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 A fast and flexible search and query engine for WordPress.
 
 == Description ==
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 Here is a list of the amazing ElasticPress features included in the plugin:
 
@@ -28,7 +28,7 @@ __Documents__: Indexes text inside of popular file types, and adds those files t
 
 __Autosuggest__: Suggest relevant content as text is entered into the search field.
 
-__Facets__: Suggest relevant content as text is entered into the search field.
+__Facets__: Add controls to your website to filter content by one or more taxonomies.
 
 __Users__: Improve user search relevancy and query performance.
 
@@ -38,9 +38,12 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. Activate the plugin in WordPress.
 3. In the ElasticPress settings page, input your Elasticsearch host.
-4. Enjoy!
+4. Sync your content by clicking the sync icon.
+5. Enjoy!
 
 == Changelog ==
+
+= 3.1.0 =
 
 = 3.0.3 =
 

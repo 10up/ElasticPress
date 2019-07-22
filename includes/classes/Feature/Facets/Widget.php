@@ -134,6 +134,7 @@ class Widget extends WP_Widget {
 
 		<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
+				<?php // translators: Taxonomy Name ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
 				<?php
 			endif;
@@ -343,6 +344,7 @@ class Widget extends WP_Widget {
 		$facet = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 		?>
 		<div class="widget-ep-facet">
 			<p>
@@ -364,6 +366,7 @@ class Widget extends WP_Widget {
 				</select>
 			</p>
 
+			<?php // translators: "all" or "any", depending on configuration values, 3: URL ?>
 			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
 		</div>
 

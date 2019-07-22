@@ -17,3 +17,7 @@ before_script:
 script:
   - composer run-script lint
   - composer run-script test
+
+after_success:
+  # Submit coverage report to https://codecov.io
+  - bash <(curl -s https://codecov.io/bash)

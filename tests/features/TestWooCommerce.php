@@ -87,35 +87,6 @@ class TestWooCommerce extends BaseTestCase {
 	}
 
 	/**
-	 * Test orders post type query does get integrated
-	 *
-	 * @since 2.1
-	 * @group woocommerce
-	 */
-	/*
-	public function testProductsPostTypeQueryShopOrder() {
-		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
-		ElasticPress\Features::factory()->setup_features();
-
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_type' => 'shop_order' ) );
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
-		$args = array(
-			'post_type' => 'shop_order',
-		);
-
-		$query = new \WP_Query( $args );
-
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
-		$this->assertEquals( 1, $query->post_count );
-		$this->assertEquals( 1, $query->found_posts );
-	}*/
-
-	/**
 	 * Test products post type query does get integrated when querying WC product_cat taxonomy
 	 *
 	 * @since 2.1

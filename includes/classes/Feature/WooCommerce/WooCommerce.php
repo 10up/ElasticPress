@@ -436,7 +436,7 @@ class WooCommerce extends Feature {
 				 * Default order when doing search in Woocommerce is 'ASC'
 				 * These lines will change it to 'DESC' as we want to most relevant result
 				 */
-				if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+				if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$query->set( 'order', 'DESC' );
 				}
 
@@ -532,20 +532,28 @@ class WooCommerce extends Feature {
 			}
 
 			/**
-			 * Set orderby and order for price when GET param not set
+			 * Set orderby and order for price/popularity when GET param not set
 			 */
-			if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
-				$query->set( 'order', $query->query_vars['order'] );
-				$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+			if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && $query->is_main_query() ) {
+				switch ( $query->query_vars['orderby'] ) {
+					case 'price':
+						$query->set( 'order', $query->query_vars['order'] );
+						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+						break;
+					case 'popularity':
+						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
+						$query->set( 'order', 'DESC' );
+						break;
+				}
 			}
 
 			/**
 			 * Set orderby from GET param
 			 * Also make sure the orderby param affects only the main query
 			 */
-			if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+			if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
 
-				switch ( $_GET['orderby'] ) {
+				switch ( $_GET['orderby'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 					case 'popularity':
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
 						$query->set( 'order', 'DESC' );
@@ -669,11 +677,11 @@ class WooCommerce extends Feature {
 
 		global $pagenow;
 		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
-			 ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
+			( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 			return;
 		}
 
-		$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+		$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		$order_id        = absint( $search_key_safe );
 
 		/**
@@ -734,6 +742,25 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Add WooCommerce Product Attributes to EP Facets.
+	 *
+	 * @param array $taxonomies Taxonomies array
+	 * @return array
+	 */
+	public function add_product_attributes( $taxonomies = [] ) {
+		$attribute_names = wc_get_attribute_taxonomy_names();
+
+		foreach ( $attribute_names as $name ) {
+			if ( ! taxonomy_exists( $name ) ) {
+				continue;
+			}
+			$taxonomies[ $name ] = get_taxonomy( $name );
+		}
+
+		return $taxonomies;
+	}
+
+	/**
 	 * Add WC post type to autosuggest
 	 *
 	 * @param array $post_types Array of post types (e.g. post, page).
@@ -767,6 +794,7 @@ class WooCommerce extends Feature {
 			add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 			add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
+			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
 		}
 	}
 
