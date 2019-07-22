@@ -621,7 +621,13 @@ class WooCommerce extends Feature {
 	 * @param \WP_Query $query Current query
 	 */
 	public function maybe_hook_woocommerce_search_fields( $query ) {
+		global $pagenow, $wp;
+
 		if ( ! $this->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['s'] ) || 'shop_order' !== $wp->query_vars['post_type'] || ! isset( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
 
