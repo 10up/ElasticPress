@@ -253,7 +253,7 @@ class Autosuggest extends Feature {
 		$search = $features->get_registered_feature( 'search' );
 
 		$post_types  = $search->get_searchable_post_types();
-		$post_status = get_post_stati( array( 'public' => true ) );
+		$post_status = get_post_stati( [ 'public' => true, 'exclude_from_search' => false ] );
 
 		$epas_options = [
 			'endpointUrl'       => esc_url( untrailingslashit( $endpoint_url ) ),
