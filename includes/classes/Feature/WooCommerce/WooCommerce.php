@@ -650,7 +650,7 @@ class WooCommerce extends Feature {
 	 * If we were to always return array() on this filter, we'd break admin searches when WooCommerce module is activated
 	 * without the Protected Content Module
 	 *
-	 * @param \WP_Query $query
+	 * @param \WP_Query $query Current query
 	 */
 	public function maybe_hook_woocommerce_search_fields( $query ) {
 		if ( ! $this->should_integrate_with_query( $query ) ) {
@@ -857,7 +857,7 @@ class WooCommerce extends Feature {
 	/**
 	 * Determines whether or not ES should be integrating with the provided query
 	 *
-	 * @param \WP_Query $query
+	 * @param \WP_Query $query Query we might integrate with
 	 *
 	 * @return bool
 	 */
