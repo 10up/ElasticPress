@@ -157,6 +157,10 @@ class SearchOrdering extends Feature {
 	public function parent_file( $parent_file ) {
 		global $current_screen;
 
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			return $parent_file;
+		}
+
 		// Set correct active/current menu and submenu in the WordPress Admin menu for the "pointer" CPT Add-New/Edit/List
 		if ( self::POST_TYPE_NAME === $current_screen->post_type ) {
 			$parent_file = 'elasticpress';
@@ -174,6 +178,10 @@ class SearchOrdering extends Feature {
 	 */
 	public function submenu_file( $submenu_file ) {
 		global $current_screen;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			return $submenu_file;
+		}
 
 		// Set correct active/current menu and submenu in the WordPress Admin menu for the "pointer" CPT Add-New/Edit/List
 		if ( self::POST_TYPE_NAME === $current_screen->post_type ) {
