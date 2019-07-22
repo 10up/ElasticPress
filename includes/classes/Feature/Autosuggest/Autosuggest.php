@@ -271,7 +271,7 @@ class Autosuggest extends Feature {
 				'enabled' => (bool) $search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
 			],
 			'action'            => 'navigate',
-			'weighting'         => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->weighting->get_weighting_configuration() ),
+			'weighting'         => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->is_active() ? $search->weighting->get_weighting_configuration() : [] ),
 			'weightingDefaults' => [],
 			'mimeTypes'         => [],
 		];

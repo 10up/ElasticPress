@@ -103,7 +103,7 @@ class SearchOrdering extends Feature {
 
 		if ( ! $search->is_active() ) {
 			$features->deactivate_feature( $this->slug );
-			return new FeatureRequirementsStatus( 2, __( 'This feature requires the "Post Search" feature to be enabled', 'katerra' ) );
+			return new FeatureRequirementsStatus( 2, __( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
 		}
 
 		return parent::requirements_status();
