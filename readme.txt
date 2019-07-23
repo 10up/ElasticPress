@@ -45,6 +45,29 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 3.1.0 =
 
+- Support for nested tax queries. Props [@dkotter](https://github.com/dkotter)
+- `ep_bulk_index_action_args` filter. Props [@fabianmarz](https://github.com/fabianmarz)
+- Add filters to control MLT related posts params.
+- `ep_allow_post_content_filtered_index` filter to bypass filtered post content on indexing.
+- Weighting dashboard to control weights of specific fields on a per post type basis
+- Search ordering feature. Enables custom results for specific search queries.
+- Refactor admin notice, admin screen "resolver", and install path logic
+- WordPress.org profile
+- New EP settings interface. Props [@dkoo](https://github.com/dkoo)
+- Delete pagination from facet URL.
+- allows WooCommerce product attributes to be facetable in 3.0
+- Autosuggest queries now match the search queries performed by WordPress, including weighting and any custom results
+- Fix data escaping in WP 4.8.x
+- Support order by "type"/"post_type" in EP queries
+- Properly redirect after network sync
+- User mapping for pre 5.0 Props [@mustafauysal](https://github.com/mustafauysal)
+- Avoid multiple reflows in autosuggest. Props [@fabianmarz](https://github.com/fabianmarz)
+- 400 error when popularity is default sorting.
+- Fixed Facet widget not rendering WC product attribute options. Props [@fabianmarz](https://github.com/fabianmarz)
+- Delete wpcli sync option/transient when an error occurs
+- Create index/network alias when adding a new site on a network activated installation. Props [@elliott-stocks](https://github.com/elliott-stocks)
+- Fix WooCommerce order search when WooCommerce module activated but protected content turned off.
+
 = 3.0.3 =
 
 * Pass $post_id twice in ep_post_sync_kill for backwards compatibility. Props [aaemnnosttv](https://github.com/aaemnnosttv)
