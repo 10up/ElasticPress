@@ -381,7 +381,7 @@ class Widget extends WP_Widget {
 					<?php endforeach; ?>
 				</select>
 			</p>
-      
+
 			<p>
 				<label for="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>">
 					<?php esc_html_e( 'Order Terms By:', 'elasticpress' ); ?>
