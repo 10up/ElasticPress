@@ -13,6 +13,9 @@ action "WordPress Plugin Deploy" {
   needs = ["tag"]
   uses = "10up/actions-wordpress/dotorg-plugin-deploy@master"
   secrets = ["SVN_PASSWORD", "SVN_USERNAME", "GITHUB_TOKEN"]
+  env = {
+    SLUG = "elasticpress"
+  }
 }
 
 workflow "Asset/readme update" {
@@ -29,4 +32,7 @@ action "Plugin Asset Update" {
   uses = "10up/actions-wordpress/dotorg-plugin-asset-update@master"
   needs = ["Filters for GitHub Actions"]
   secrets = ["SVN_USERNAME", "SVN_PASSWORD"]
+  env = {
+    SLUG = "elasticpress"
+  }
 }
