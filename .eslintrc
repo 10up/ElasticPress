@@ -1,5 +1,8 @@
 {
-  "extends": "@10up/eslint-config",
+  "extends": [
+    "@10up/eslint-config",
+    "plugin:react/recommended"
+  ],
   "rules": {
     "no-console": [ 1 ],
     "no-alert": [ 1 ],

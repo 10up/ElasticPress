@@ -2,8 +2,8 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.0.3
- * Author:      Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
+ * Version:     3.1
+ * Author:      10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
  * Text Domain: elasticpress
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '3.0.3' );
+define( 'EP_VERSION', '3.1' );
 
 /**
  * PSR-4-ish autoloading
@@ -126,6 +126,10 @@ if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, 
 	);
 }
 
+Features::factory()->register_feature(
+	new Feature\SearchOrdering\SearchOrdering()
+);
+
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
  *
@@ -137,6 +141,16 @@ if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, 
 if ( ! defined( 'EP_DASHBOARD_SYNC' ) ) {
 	define( 'EP_DASHBOARD_SYNC', true );
 }
+
+/**
+ * Setup installer
+ */
+Installer::factory();
+
+/**
+ * Setup screen
+ */
+Screen::factory();
 
 /**
  * Setup dashboard
@@ -191,6 +205,7 @@ function handle_upgrades() {
 			'2.6',
 			'2.7',
 			'3.0',
+			'3.1',
 		)
 	);
 

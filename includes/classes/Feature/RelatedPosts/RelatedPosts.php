@@ -67,9 +67,9 @@ class RelatedPosts extends Feature {
 							'terms.post_tag.name',
 						)
 					),
-					'min_term_freq'   => 1,
-					'max_query_terms' => 12,
-					'min_doc_freq'    => 1,
+					'min_term_freq'   => apply_filters( 'ep_related_posts_min_term_freq', 1 ),
+					'max_query_terms' => apply_filters( 'ep_related_posts_max_query_terms', 12 ),
+					'min_doc_freq'    => apply_filters( 'ep_related_posts_min_doc_freq', 1 ),
 				),
 			);
 		}

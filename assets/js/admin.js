@@ -18,3 +18,13 @@ jQuery( '.notice' ).on( 'click', '.notice-dismiss', ( event ) => {
 		url: ajaxurl
 	} );
 } );
+
+jQuery( '.weighting-settings input[type=range]' ).change( function() {
+	const el = jQuery( this );
+
+	el.prev( 'label' ).find( '.weighting-value' ).text( el.val() );
+} );
+
+jQuery( '.weighting-settings .searchable input[type=checkbox]' ).change( function() {
+	jQuery( this ).parent().next( '.weighting' ).find( 'input[type=range]' ).prop( 'disabled', ! this.checked ).val( 0 ).prev( 'label' ).find( '.weighting-value' ).text( '0' );
+} );

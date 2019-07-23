@@ -10,11 +10,11 @@ namespace ElasticPressTest\Functions;
 use ElasticPress;
 
 /**
- * Create a WP post and "sync" it to Elasticsearch. We are mocking the sync
+ * Create a WP post and "sync" it to Elasticsearch
  *
- * @param array $post_args
- * @param array $post_meta
- * @param int   $site_id
+ * @param array $post_args Post arguments
+ * @param array $post_meta Post meta
+ * @param int   $site_id Site ID
  * @since 0.9
  * @return int|WP_Error
  */
@@ -58,6 +58,40 @@ function create_and_sync_post( $post_args = array(), $post_meta = array(), $site
 	}
 
 	return $post_id;
+}
+
+/**
+ * Create a WP User and "sync" it to Elasticsearch
+ *
+ * @param array $user_args User arguments
+ * @param array $user_meta User meta
+ * @since 3.0
+ * @return int|WP_Error
+ */
+function create_and_sync_user( $user_args = array(), $user_meta = array() ) {
+	$args = [
+		'role'      => 'administrator',
+		'user_pass' => null,
+	];
+
+	$args = wp_parse_args( $user_args, $args );
+
+	$user_id = wp_insert_user( $args );
+
+	// Quit if we have a WP_Error object
+	if ( is_wp_error( $user_id ) ) {
+		return $user_id;
+	}
+
+	if ( ! empty( $user_meta ) ) {
+		foreach ( $user_meta as $key => $value ) {
+			update_user_meta( $user_id, $key, $value );
+		}
+	}
+
+	ElasticPress\Indexables::factory()->get( 'user' )->index( $user_id, true );
+
+	return $user_id;
 }
 
 /**
