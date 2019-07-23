@@ -16,6 +16,7 @@
     "del": "^3.0.0",
     "eslint": "^5.4.0",
     "eslint-loader": "^2.1.0",
+    "eslint-plugin-react": "^7.14.3",
     "gulp": "^4.0.0",
     "gulp-cssnano": "^2.1.2",
     "gulp-filter": "^5.1.0",
