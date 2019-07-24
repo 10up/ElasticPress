@@ -58,12 +58,15 @@ class Weighting {
 			),
 		);
 
-		$taxonomies = get_taxonomies(
+		$public_taxonomies = get_taxonomies(
 			[
-				'public'      => true,
-				'object_type' => [ $post_type ],
+				'public' => true,
 			]
 		);
+
+		$post_type_taxonomies = get_object_taxonomies( $post_type );
+
+		$taxonomies = array_intersect( $public_taxonomies, $post_type_taxonomies );
 
 		if ( $taxonomies ) {
 			$fields['taxonomies'] = [
