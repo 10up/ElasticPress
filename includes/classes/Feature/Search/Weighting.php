@@ -58,12 +58,15 @@ class Weighting {
 			),
 		);
 
-		$taxonomies = get_taxonomies(
+		$public_taxonomies = get_taxonomies(
 			[
-				'public'      => true,
-				'object_type' => [ $post_type ],
+				'public' => true,
 			]
 		);
+
+		$post_type_taxonomies = get_object_taxonomies( $post_type );
+
+		$taxonomies = array_intersect( $public_taxonomies, $post_type_taxonomies );
 
 		if ( $taxonomies ) {
 			$fields['taxonomies'] = [
@@ -203,7 +206,7 @@ class Weighting {
 	 * @param array  $current_values Current stored weighting values
 	 */
 	public function render_settings_section( $post_type, $field, $current_values ) {
-		if ( isset( $field['children'] ) ) :
+		if ( isset( $field['children'] ) && ! empty( $field['children'] ) ) :
 			?>
 			<div class="field-group">
 				<h3><?php echo esc_html( $field['label'] ); ?></h3>

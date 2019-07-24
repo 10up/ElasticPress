@@ -74,6 +74,7 @@ class SearchOrdering extends Feature {
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
+		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'weighting_fields_for_post_type' ], 1, 2 );
 		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration' ], 10, 2 );
 		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
 		add_filter( 'ep_weighting_configuration_defaults_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
@@ -462,6 +463,22 @@ class SearchOrdering extends Feature {
 		}
 
 		return $term;
+	}
+
+	/**
+	 * Filters available fields for weighting to exclude the custom results taxonomy
+	 *
+	 * @param array  $fields    Current weightable fields
+	 * @param string $post_type Current post type
+	 *
+	 * @return array Final weightable fields
+	 */
+	public function weighting_fields_for_post_type( $fields, $post_type ) {
+		if ( isset( $fields['taxonomies'] ) && isset( $fields['taxonomies']['children'] ) && isset( $fields['taxonomies']['children'][ 'terms.' . self::TAXONOMY_NAME . '.name' ] ) ) {
+			unset( $fields['taxonomies']['children'][ 'terms.' . self::TAXONOMY_NAME . '.name' ] );
+		}
+
+		return $fields;
 	}
 
 	/**
