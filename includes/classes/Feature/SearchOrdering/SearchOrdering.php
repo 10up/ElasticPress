@@ -60,7 +60,7 @@ class SearchOrdering extends Feature {
 		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
-		if ( ! $search->is_active() ) {
+		if ( ! $search->is_active() && $this->is_active() ) {
 			$features->deactivate_feature( $this->slug );
 			return;
 		}
@@ -103,7 +103,6 @@ class SearchOrdering extends Feature {
 		$search = $features->get_registered_feature( 'search' );
 
 		if ( ! $search->is_active() ) {
-			$features->deactivate_feature( $this->slug );
 			return new FeatureRequirementsStatus( 2, __( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
 		}
 
