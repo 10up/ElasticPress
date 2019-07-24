@@ -341,9 +341,10 @@ class Weighting {
 					if ( 0 !== $weight ) {
 						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 					}
-				} else {
+				} elseif ( isset( $weights[ $field ] ) && false === $weights[ $field ]['enabled'] ) {
 					unset( $fieldset['fields'][ $key ] );
 				}
+				// else: Leave anything that isn't explicitly disabled alone. Could have been added by search_fields, and if it is not present in the UI, we shouldn't touch it here
 
 				// If fieldset has fuzziness enabled and fuzziness is disabled for this field, unset the field
 				if ( isset( $fieldset['fuzziness'] ) && $fieldset['fuzziness'] && isset( $weights[ $field ]['fuzziness'] ) && false === $weights[ $field ]['fuzziness'] ) {
