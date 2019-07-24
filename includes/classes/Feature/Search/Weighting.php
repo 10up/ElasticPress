@@ -206,7 +206,7 @@ class Weighting {
 	 * @param array  $current_values Current stored weighting values
 	 */
 	public function render_settings_section( $post_type, $field, $current_values ) {
-		if ( isset( $field['children'] ) ) :
+		if ( isset( $field['children'] ) && ! empty( $field['children'] ) ) :
 			?>
 			<div class="field-group">
 				<h3><?php echo esc_html( $field['label'] ); ?></h3>
