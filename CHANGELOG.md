@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
-## [3.1.1] - Unreleased
+## [3.1.1] - 2019-07-25
 ### Fixed
 - Ensure taxonomies that are shared among multiple post types show up on the weighting screen
  
