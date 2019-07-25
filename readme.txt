@@ -43,6 +43,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.1.1 =
+- Ensure taxonomies that are shared among multiple post types show up on the weighting screen
+
 = 3.1.0 =
 
 - Support for nested tax queries. Props [@dkotter](https://github.com/dkotter)

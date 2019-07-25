@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e19b2f55b35274c5afbb56bf91cfd334",
+    "content-hash": "c1f0ebebd6deb1e7f80f309c795fd383",
     "packages": [
         {
             "name": "doctrine/instantiator",
@@ -1955,31 +1955,27 @@
         },
         {
             "name": "wpackagist-plugin/woocommerce",
-            "version": "dev-trunk",
+            "version": "3.6.5",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/woocommerce/",
-                "reference": "trunk"
+                "reference": "tags/3.6.5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/woocommerce.zip?timestamp=1558983384",
-                "reference": null,
-                "shasum": null
+                "url": "https://downloads.wordpress.org/plugin/woocommerce.3.6.5.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
             },
             "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/woocommerce/",
-            "time": "2019-05-27T18:56:24+00:00"
+            "homepage": "https://wordpress.org/plugins/woocommerce/"
         }
     ],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "10up/phpcs-composer": 20,
-        "wpackagist-plugin/woocommerce": 20
+        "10up/phpcs-composer": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
