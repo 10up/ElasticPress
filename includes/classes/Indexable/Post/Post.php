@@ -1322,7 +1322,7 @@ class Post extends Indexable {
 				} elseif ( 'meta_value' === $orderby_clause ) {
 					if ( ! empty( $args['meta_key'] ) ) {
 						$sort[] = array(
-							'meta.' . $args['meta_key'] . '.value' => array(
+							'meta.' . $args['meta_key'] . '.raw' => array(
 								'order' => $order,
 							),
 						);
