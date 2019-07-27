@@ -259,15 +259,17 @@ class RelatedPosts extends Feature {
 
 		ob_start();
 		?>
-		<ul class="<?php echo esc_attr( $class ); ?>">
-			<?php foreach ( $posts as $related_post ) : ?>
-				<li>
-					<a href="<?php echo esc_url( get_permalink( $related_post->ID ) ); ?>">
-						<?php echo wp_kses( get_the_title( $related_post->ID ), 'ep-html' ); ?>
-					</a>
-				</li>
-			<?php endforeach; ?>
-		</ul>
+		<section class="<?php echo esc_attr( $class ); ?>">
+			<ul>
+				<?php foreach ( $posts as $related_post ) : ?>
+					<li>
+						<a href="<?php echo esc_url( get_permalink( $related_post->ID ) ); ?>">
+							<?php echo wp_kses( get_the_title( $related_post->ID ), 'ep-html' ); ?>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
 		<?php
 
 		$block_content = ob_get_clean();
