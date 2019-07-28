@@ -6,7 +6,6 @@ const { registerBlockType } = wp.blocks;
 
 registerBlockType( 'elasticpress/related-posts', {
 	title: 'Related Posts (ElasticPress)',
-	icon: 'universal-access-alt',
 	supports: {
 		align: true
 	},
