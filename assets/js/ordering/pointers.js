@@ -163,7 +163,7 @@ export class Pointers extends Component {
 		const position = this.getNextAvailablePosition();
 
 		if ( ! position ) {
-			window.alert( __( 'You have added the maximum number of custom results.', 'elasticpress' ) );
+			window.alert( __( 'You have added the maximum number of custom results.', 'elasticpress' ) ); // eslint-disable-line no-alert
 			return false;
 		}
 
@@ -265,7 +265,7 @@ export class Pointers extends Component {
 				<input type="hidden" name="ordered_posts" value={ JSON.stringify( this.state.pointers ) }/>
 				<DragDropContext onDragEnd={this.onDragComplete}>
 					<Droppable droppableId="droppable">
-						{( provided, snapshot ) => (
+						{( provided ) => (
 							<div
 								className="pointers"
 								{...provided.droppableProps}
@@ -285,10 +285,10 @@ export class Pointers extends Component {
 									const tooltipText = true === isDefaultResult ? __( 'Return to original position', 'elasticpress' ) : __( 'Remove custom result from results list', 'elasticpress' );
 
 									return (
-										<React.Fragment>
+										<React.Fragment key={index}>
 											{ parseInt( window.epOrdering.postsPerPage, 10 ) === index && (
 												<Draggable key='divider' draggableId='divider' index={index} isDragDisabled={false}>
-													{( provided, snapshot ) => (
+													{( provided ) => (
 														<div
 															className={`next-page-notice ${index}`}
 															ref={provided.innerRef}
@@ -302,7 +302,7 @@ export class Pointers extends Component {
 											) }
 
 											<Draggable key={item.ID} draggableId={item.ID} index={draggableIndex}>
-												{( provided, snapshot ) => (
+												{( provided ) => (
 													<div
 														className={`pointer ${draggableIndex}`}
 														ref={provided.innerRef}
@@ -388,7 +388,7 @@ export class Pointers extends Component {
 
 		if ( 0 === searchResults.length ) {
 			return (
-				<div class='no-results'>{ __( 'No results found.', 'elasticpress' ) }</div>
+				<div className='no-results'>{ __( 'No results found.', 'elasticpress' ) }</div>
 			);
 		}
 

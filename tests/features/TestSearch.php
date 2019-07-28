@@ -159,11 +159,13 @@ class TestSearch extends BaseTestCase {
 			isset(
 				$this->fired_actions['ep_formatted_args']['query'],
 				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
 			)
 		);
 	}
@@ -212,11 +214,13 @@ class TestSearch extends BaseTestCase {
 		$this->assertTrue(
 			! isset(
 				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
 			)
 		);
 		$this->assertTrue(

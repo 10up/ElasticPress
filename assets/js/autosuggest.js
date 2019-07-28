@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import jQuery from 'jquery';
 import { epas } from 'window';
 
@@ -387,7 +388,7 @@ function checkForOrderedPosts( hits, searchTerm ) {
 
 	const toInsert = {};
 
-	hits = hits.filter( ( hit, index ) => {
+	hits = hits.filter( ( hit ) => {
 		// Should we retain this hit in its current position?
 		let retain = true;
 
