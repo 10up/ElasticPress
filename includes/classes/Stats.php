@@ -47,6 +47,16 @@ class Stats {
 	protected $localized_data;
 
 	/**
+	 * Cluster node data.
+	 *
+	 * Used to determine cluster health
+	 *
+	 * @var int
+	 * @since 3.0
+	 */
+	protected $nodes;
+
+	/**
 	 * Makes an api call to elasticsearch endpoint
 	 *
 	 * @param  string $endpoint_url Elasticsearch endpoint
@@ -84,7 +94,7 @@ class Stats {
 	 * @param string $context Needed context to retrieve specific data
 	 */
 	public function retrieve_endpoint_data( $context ) {
-		if ( in_array( $context, [ 'localize', 'totals', 'health' ], true ) ) {
+		if ( in_array( $context, [ 'localize', 'totals', 'health', 'nodes' ], true ) ) {
 			$host  = Utils\get_host();
 			$stats = $this->api_call( $host, '_stats' );
 
@@ -113,6 +123,14 @@ class Stats {
 				$this->totals['docs']   = $stats->_all->total->docs->count;
 				$this->totals['size']   = $stats->_all->total->store->size_in_bytes;
 				$this->totals['memory'] = $stats->_all->primaries->segments->memory_in_bytes;
+			} elseif ( 'nodes' === $context ) {
+				if ( Utils\is_epio() ) {
+					$node_stats  = $this->api_call( $host, '_nodes/stats/discovery' );
+					$this->nodes = $node_stats->_nodes->total;
+				} else {
+					$node_stats  = $this->api_call( $host, '_nodes/stats' );
+					$this->nodes = $node_stats->_nodes->total;
+				}
 			}
 		}
 	}
@@ -125,6 +143,16 @@ class Stats {
 	public function get_health() {
 		$this->retrieve_endpoint_data( 'health' );
 		return $this->health_data;
+	}
+
+	/**
+	 * Get number of nodes in the current cluster
+	 *
+	 * @return int
+	 */
+	public function get_nodes() {
+		$this->retrieve_endpoint_data( 'nodes' );
+		return $this->nodes;
 	}
 
 	/**

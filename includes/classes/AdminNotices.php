@@ -583,17 +583,15 @@ class AdminNotices {
 			return false;
 		}
 
-		$indices = Stats::factory()->get_health();
+		$nodes = Stats::factory()->get_nodes();
 
-		foreach( $indices as $index ) {
-			if ( 'yellow' === $index['health'] ) {
-				$url = admin_url( 'network/admin.php?page=elasticpress-health' );
-				return [
-					'html'    => sprintf( __( 'It looks like one or more of your indices are running on a single node. While this won\'t prevent you from using ElasticPress, depending on your site\'s specific needs this can represent a performance issue. Please check the <a href="%1$s">Index Health</a> page where you can check the health of all of your indices.', 'elasticpress' ), $url ),
-					'type'    => 'warning',
-					'dismiss' => ( ! in_array( Screen::factory()->get_current_screen(), [ 'settings', 'health', 'dashboard' ], true ) ) ? true : false,
-				];
-			}
+		if ( $nodes < 2 ) {
+			$url = admin_url( 'network/admin.php?page=elasticpress-health' );
+			return [
+				'html'    => sprintf( __( 'It looks like one or more of your indices are running on a single node. While this won\'t prevent you from using ElasticPress, depending on your site\'s specific needs this can represent a performance issue. Please check the <a href="%1$s">Index Health</a> page where you can check the health of all of your indices.', 'elasticpress' ), $url ),
+				'type'    => 'warning',
+				'dismiss' => ( ! in_array( Screen::factory()->get_current_screen(), [ 'settings', 'health', 'dashboard' ], true ) ) ? true : false,
+			];
 		}
 	}
 
