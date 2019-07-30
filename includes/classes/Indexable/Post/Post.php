@@ -59,7 +59,7 @@ class Post extends Indexable {
 			'post_status'         => $this->get_indexable_post_status(),
 			'offset'              => 0,
 			'ignore_sticky_posts' => true,
-			'orderby'             => 'id',
+			'orderby'             => 'ID',
 			'order'               => 'desc',
 		];
 
