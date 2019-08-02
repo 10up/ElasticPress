@@ -291,15 +291,17 @@ class Facets extends Feature {
 		if ( ! empty( $response['aggregations'] ) ) {
 			$GLOBALS['ep_facet_aggs'] = [];
 
-			foreach ( $response['aggregations']['terms'] as $key => $agg ) {
-				if ( 'doc_count' === $key ) {
-					continue;
-				}
+			if ( isset( $response['aggregations']['terms'] ) && is_array( $response['aggregations']['terms'] ) ) {
+				foreach ( $response['aggregations']['terms'] as $key => $agg ) {
+					if ( 'doc_count' === $key ) {
+						continue;
+					}
 
-				$GLOBALS['ep_facet_aggs'][ $key ] = [];
+					$GLOBALS['ep_facet_aggs'][ $key ] = [];
 
-				foreach ( $agg['buckets'] as $bucket ) {
-					$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+					foreach ( $agg['buckets'] as $bucket ) {
+						$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+					}
 				}
 			}
 		}
