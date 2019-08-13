@@ -677,9 +677,12 @@ class Post extends Indexable {
 
 			$use_filters = true;
 		} elseif ( ! empty( $args['author_name'] ) ) {
+			// Since this was set to use the display name initially, there might be some code that used this feature.
+			// Let's ensure that any query vars coming in using author_name are in fact slugs.
+			$author_login = sanitize_user( $args['author_name'] );
 			$filter['bool']['must'][] = array(
 				'term' => array(
-					'post_author.raw' => $args['author'],
+					'post_author.login.raw' => $author_login,
 				),
 			);
 
