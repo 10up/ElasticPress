@@ -85,7 +85,7 @@ class SyncManager extends SyncManagerAbstract {
 					return;
 				}
 
-				$this->sync_queue[ $object_id ] = true;
+				$this->add_to_queue( $object_id );
 			}
 		}
 	}
@@ -163,7 +163,7 @@ class SyncManager extends SyncManagerAbstract {
 					return;
 				}
 
-				$this->sync_queue[ $post_id ] = true;
+				$this->add_to_queue( $post_id );
 			}
 		}
 	}
