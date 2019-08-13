@@ -274,11 +274,6 @@ class Weighting {
 			return;
 		}
 
-		if ( ! isset( $_POST['weighting'] ) || empty( $_POST['weighting'] ) ) {
-			// It should always be set unless something is wrong, so just move on
-			return;
-		}
-
 		$new_config                = array();
 		$previous_config_formatted = array();
 
@@ -297,19 +292,21 @@ class Weighting {
 			}
 		}
 
-		foreach ( $_POST['weighting'] as $post_type => $post_type_weighting ) {
-			// This also ensures the string is safe, since this would return false otherwise
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
+		if ( ! empty( $_POST['weighting'] ) ) {
+			foreach ( $_POST['weighting'] as $post_type => $post_type_weighting ) {
+				// This also ensures the string is safe, since this would return false otherwise
+				if ( ! post_type_exists( $post_type ) ) {
+					continue;
+				}
 
-			$new_config[ $post_type ] = array();
+				$new_config[ $post_type ] = array();
 
-			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
-				$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-					'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
-					'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
-				];
+				foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
+					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
+						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
+						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
+					];
+				}
 			}
 		}
 
