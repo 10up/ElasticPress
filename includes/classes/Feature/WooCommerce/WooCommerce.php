@@ -834,44 +834,46 @@ class WooCommerce extends Feature {
 	 *
 	 */
 	public function price_filter( $args, $query_args ) {
-		$set_low_price = ! empty( $_GET['min_price'] );
+		$set_low_price  = ! empty( $_GET['min_price'] );
 		$set_high_price = ! empty( $_GET['max_price'] );
-		$query = $args['query'];
+		$query          = $args['query'];
 
-		//Account for match all context
-		if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['match_all'] ) ) {
-			unset ( $args['query']['match_all'] );
-			$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'];
+		if ( ! empty( $args['query'] ) ) {
+			//Account for match all context
+			if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['match_all'] ) ) {
+				unset ( $args['query']['match_all'] );
+				$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'];
 
-			if ( $set_low_price ) {
-				$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'] ;
+				if ( $set_low_price ) {
+					$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'] ;
+				}
+
+				if ( $set_high_price ) {
+					$args['query']['range']['meta._price.long']['lte'] = $_GET['max_price'] ;
+				}
+
+				$args['query']['range']['meta._price.long']['boost'] = 2.0;
+				return $args;
 			}
 
-			if ( $set_high_price ) {
-				$args['query']['range']['meta._price.long']['lte'] = $_GET['max_price'] ;
+			//Account for search term context
+			if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['bool']['should'] ) ) {
+				unset( $args['query']['bool']['should'] );
+
+				if ( $set_low_price ) {
+					$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $_GET['min_price'] ;
+				}
+
+				if ( $set_high_price ) {
+					$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $_GET['max_price'] ;
+				}
+
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
+				$args['query']['bool']['must'][1]['bool']                               = $query['bool'];
+				return $args;
+			} else {
+				return $args;
 			}
-
-			$args['query']['range']['meta._price.long']['boost'] = 2.0;
-			return $args;
-		}
-
-		//Account for search term context
-		if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['bool']['should'] ) ) {
-			unset( $args['query']['bool']['should'] );
-
-			if ( $set_low_price ) {
-				$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $_GET['min_price'] ;
-			}
-
-			if ( $set_high_price ) {
-				$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $_GET['max_price'] ;
-			}
-
-			$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
-			$args['query']['bool']['must'][1]['bool'] = $query['bool'];
-			return $args;
-		} else {
-			return $args;
 		}
 	}
 }
