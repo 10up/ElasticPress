@@ -417,7 +417,18 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function prepare_meta( $post ) {
-		$meta = (array) get_post_meta( $post->ID );
+
+		/**
+		 * Filter meta data
+		 *
+		 * Allows for adding virtual meta data to current post.
+		 *
+		 * @since 3.1.2
+		 *
+		 * @param         array Meta data (raw).
+		 * @param WP_Post $post The current post to be indexed.
+		 */
+		$meta = apply_filters( 'ep_prepare_meta_data', (array) get_post_meta( $post->ID ), $post );
 
 		if ( empty( $meta ) ) {
 			return [];
