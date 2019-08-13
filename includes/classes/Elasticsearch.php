@@ -246,10 +246,16 @@ class Elasticsearch {
 				$documents[] = apply_filters( 'ep_retrieve_the_' . $type, $document, $hit, $index );
 			}
 
-			return [
-				'found_documents' => $total_hits,
-				'documents'       => $documents,
-			];
+			return apply_filters(
+				'ep_es_query_results',
+				[
+					'found_documents' => $total_hits,
+					'documents'       => $documents,
+				],
+				$response,
+				$query,
+				$query_args
+			);
 		}
 
 		return false;
