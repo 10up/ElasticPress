@@ -492,8 +492,13 @@ class Term extends Indexable {
 		/**
 		 * @todo Support the following parameters:
 		 *
-		 * $hierarchical
-		 * $pad_counts
+		 * $hierarchical If set to true (which is default), if a term has no relationships
+		 *		 but does have descendents that have relationships, the parent term
+		 * 		 should show in results, even if $hide_empty is true.
+		 *
+		 * $pad_counts If set to true (default is false), find all descendents and the count
+		 * 		 of relationships they have and add that number into the main parent's
+		 * 		 count, effectively inflating the parent's count value.
 		 */
 
 		if ( $use_filters ) {
