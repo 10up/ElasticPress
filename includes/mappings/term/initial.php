@@ -157,7 +157,7 @@ return [
 					'type' => 'long',
 				],
 				'taxonomy'         => [
-					'type' => 'keyword',
+					'type' => 'text',
 				],
 				'description'      => [
 					'type'   => 'text',
@@ -178,6 +178,9 @@ return [
 					'type' => 'long',
 				],
 				'meta'             => [
+					'type' => 'object',
+				],
+				'hierarchy'         => [
 					'type' => 'object',
 				],
 			],

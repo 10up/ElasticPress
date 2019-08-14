@@ -126,7 +126,7 @@ class QueryIntegration {
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.
-			$fields = $query->get( 'fields', '' );
+			$fields = $query->query_vars['fields'];
 
 			switch ( $fields ) {
 				case 'all_with_object_id':
@@ -164,6 +164,10 @@ class QueryIntegration {
 				default:
 					$new_terms = $this->format_hits_as_terms( $ep_query['documents'], $new_terms );
 					break;
+			}
+
+			if ( ! empty( $query->query_vars['count'] ) ) {
+				$new_terms = count( $ep_query['documents'] );
 			}
 		}
 

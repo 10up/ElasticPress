@@ -180,6 +180,9 @@ return [
 				'meta'             => [
 					'type' => 'object',
 				],
+				'hierarchy'         => [
+					'type' => 'object',
+				],
 			],
 		],
 	],

@@ -37,10 +37,11 @@ class SyncManager extends SyncManagerAbstract {
 
 		add_action( 'created_term', [ $this, 'action_sync_on_update' ] );
 		add_action( 'edited_terms', [ $this, 'action_sync_on_update' ] );
-		add_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ] );
-		add_action( 'deleted_term_meta', [ $this, 'action_queue_meta_sync' ] );
-		add_action( 'updated_term_meta', [ $this, 'action_queue_meta_sync' ] );
+		add_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
+		add_action( 'deleted_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
+		add_action( 'updated_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'delete_term', [ $this, 'action_sync_on_delete' ] );
+		add_action( 'set_object_terms', [ $this, 'action_sync_on_object_update' ], 10, 2 );
 	}
 
 	/**
@@ -61,6 +62,19 @@ class SyncManager extends SyncManagerAbstract {
 		do_action( 'ep_sync_term_on_transition', $term_id );
 
 		$this->sync_queue[ $term_id ] = true;
+	}
+
+	/**
+	 * When term relationships are updated, queue the terms for reindex
+	 *
+	 * @param int $object_id Object ID.
+	 * @param array $terms An array of term objects.
+	 * @since 3.1
+	 */
+	public function action_sync_on_object_update( $object_id, $terms ) {
+		foreach ( $terms as $term ) {
+			$this->sync_queue[ $term['term_id'] ] = true;
+		}
 	}
 
 	/**
