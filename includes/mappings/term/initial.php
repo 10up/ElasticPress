@@ -183,6 +183,9 @@ return [
 				'hierarchy'         => [
 					'type' => 'object',
 				],
+				'object_ids'         => [
+					'type' => 'object',
+				],
 			],
 		],
 	],

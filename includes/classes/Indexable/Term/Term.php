@@ -145,6 +145,30 @@ class Term extends Indexable {
 		}
 
 		/**
+		 * Support `object_ids` query var
+		 */
+		if ( ! empty( $query_vars['object_ids'] ) ) {
+			$filter['bool']['must'][]['bool']['must'][] = [
+				'match_phrase' => [
+					'object_ids.value' => $query_vars['object_ids'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `get` query var
+		 */
+		if ( ! empty( $query_vars['get'] ) && 'all' === $query_vars['get'] ) {
+			$query_vars['childless']    = false;
+			$query_vars['child_of']     = 0;
+			$query_vars['hide_empty']   = false;
+			$query_vars['hierarchical'] = false;
+			$query_vars['pad_counts']   = false;
+		}
+
+		/**
 		 * Support `hide_empty` query var
 		 */
 		if ( ! empty( $query_vars['hide_empty'] ) ) {
@@ -333,12 +357,38 @@ class Term extends Indexable {
 		}
 
 		/**
+		 * Support `child_of` query var.
+		 */
+		if ( ! empty( $query_vars['child_of'] ) && ( is_string( $taxonomy ) || count( $taxonomy ) < 2 ) ) {
+			$filter['bool']['must'][]['bool']['must'][] = [
+				'match_phrase' => [
+					'hierarchy.ancestors' => (int) $query_vars['child_of'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
 		 * Support `parent` query var.
 		 */
 		if ( ! empty( $query_vars['parent'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
 					'parent' => (int) $query_vars['parent'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `childless` query var.
+		 */
+		if ( ! empty( $query_vars['childless'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'hierarchy.children' => 'none',
 				],
 			];
 
@@ -442,12 +492,8 @@ class Term extends Indexable {
 		/**
 		 * @todo Support the following parameters:
 		 *
-		 * $object_ids
 		 * $hierarchical
 		 * $pad_counts
-		 * $get
-		 * $child_of
-		 * $childless
 		 */
 
 		if ( $use_filters ) {
@@ -509,7 +555,8 @@ class Term extends Indexable {
 			'parent'           => $term->parent,
 			'count'            => $term->count,
 			'meta'             => $this->prepare_meta_types( $this->prepare_meta( $term->term_id ) ),
-			'hierarchy'        => $this->prepare_term_hierarchy( $term ),
+			'hierarchy'        => $this->prepare_term_hierarchy( $term->term_id, $term->taxonomy ),
+			'object_ids'       => $this->prepare_object_ids( $term->term_id, $term->taxonomy ),
 		];
 
 		$term_args = apply_filters( 'ep_term_sync_args', $term_args, $term_id );
@@ -668,24 +715,50 @@ class Term extends Indexable {
 	/**
 	 * Prepare term hierarchy to send to ES
 	 *
-	 * @param  \WP_Term $term Term object.
+	 * @param  int $term_id Term ID.
+	 * @param  string $taxonomy Term taxonomy.
 	 * @since  3.1
 	 * @return array
 	 */
-	public function prepare_term_hierarchy( \WP_Term $term ) {
+	public function prepare_term_hierarchy( $term_id, $taxonomy ) {
 		$hierarchy = [];
-		$children  = get_term_children( $term->term_id, $term->taxonomy );
-		$ancestors = get_ancestors( $term->term_id, $term->taxonomy, 'taxonomy' );
+		$children  = get_term_children( $term_id, $taxonomy );
+		$ancestors = get_ancestors( $term_id, $taxonomy, 'taxonomy' );
 
 		if ( ! empty( $children ) && ! is_wp_error( $children ) ) {
-			$hierarchy['children'] = array_values( $children );
+			$hierarchy['children'] = $children;
+		} else {
+			$hierarchy['children'] = 'none';
 		}
 
 		if ( ! empty( $ancestors ) ) {
-			$hierarchy['ancestors'] = array_values( $ancestors );
+			$hierarchy['ancestors'] = $ancestors;
+		} else {
+			$hierarchy['ancestors'] = 'none';
 		}
 
 		return $hierarchy;
+	}
+
+	/**
+	 * Prepare object IDs to send to ES
+	 *
+	 * @param  int $term_id Term ID.
+	 * @param  string $taxonomy Term taxonomy.
+	 * @since  3.1
+	 * @return array
+	 */
+	public function prepare_object_ids( $term_id, $taxonomy ) {
+		$ids        = [];
+		$object_ids = get_objects_in_term( [ $term_id ], [ $taxonomy ] );
+
+		if ( ! empty( $object_ids ) && ! is_wp_error( $object_ids ) ) {
+			$ids['value'] = array_map( 'absint', array_values( $object_ids ) );
+		} else {
+			$ids['value'] = 'none';
+		}
+
+		return $ids;
 	}
 
 	/**
