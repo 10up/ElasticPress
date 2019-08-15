@@ -74,11 +74,8 @@ class SearchOrdering extends Feature {
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
-		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'weighting_fields_for_post_type' ], 1, 2 );
-		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration' ], 10, 2 );
-		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
-		add_filter( 'ep_weighting_configuration_defaults_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
-		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'filter_default_post_type_weights' ], 10, 2 );
+		add_filter( 'ep_weighted_fields', [ $this, 'filter_weighting_configuration' ], 10, 4 );
+		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_autosuggest_weighting_configuration' ], 10, 1 );
 		add_filter( 'enter_title_here', [ $this, 'filter_enter_title_here' ] );
 		add_filter( 'manage_' . self::POST_TYPE_NAME . '_posts_columns', [ $this, 'filter_column_names' ] );
 
@@ -103,7 +100,7 @@ class SearchOrdering extends Feature {
 		$search = $features->get_registered_feature( 'search' );
 
 		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, __( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
+			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
 		}
 
 		return parent::requirements_status();
@@ -144,7 +141,7 @@ class SearchOrdering extends Feature {
 	 * Adds the search ordering to the admin menu
 	 */
 	public function admin_menu() {
-		add_submenu_page( 'elasticpress', __( 'Custom Results', 'elasticpress' ), __( 'Custom Results', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
+		add_submenu_page( 'elasticpress', esc_html__( 'Custom Results', 'elasticpress' ), esc_html__( 'Custom Results', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
 	}
 
 	/**
@@ -204,20 +201,20 @@ class SearchOrdering extends Feature {
 			'menu_name'          => _x( 'Custom Search Results', 'admin menu', 'elasticpress' ),
 			'name_admin_bar'     => _x( 'Custom Search Result', 'add new on admin bar', 'elasticpress' ),
 			'add_new'            => _x( 'Add New', 'book', 'elasticpress' ),
-			'add_new_item'       => __( 'Add New Custom Search Result', 'elasticpress' ),
-			'new_item'           => __( 'New Custom Search Result', 'elasticpress' ),
-			'edit_item'          => __( 'Edit Custom Search Result', 'elasticpress' ),
-			'view_item'          => __( 'View Custom Search Result', 'elasticpress' ),
-			'all_items'          => __( 'All Custom Search Results', 'elasticpress' ),
-			'search_items'       => __( 'Search Custom Search Results', 'elasticpress' ),
-			'parent_item_colon'  => __( 'Parent Custom Search Result:', 'elasticpress' ),
-			'not_found'          => __( 'No results found.', 'elasticpress' ),
-			'not_found_in_trash' => __( 'No results found in Trash.', 'elasticpress' ),
+			'add_new_item'       => esc_html__( 'Add New Custom Search Result', 'elasticpress' ),
+			'new_item'           => esc_html__( 'New Custom Search Result', 'elasticpress' ),
+			'edit_item'          => esc_html__( 'Edit Custom Search Result', 'elasticpress' ),
+			'view_item'          => esc_html__( 'View Custom Search Result', 'elasticpress' ),
+			'all_items'          => esc_html__( 'All Custom Search Results', 'elasticpress' ),
+			'search_items'       => esc_html__( 'Search Custom Search Results', 'elasticpress' ),
+			'parent_item_colon'  => esc_html__( 'Parent Custom Search Result:', 'elasticpress' ),
+			'not_found'          => esc_html__( 'No results found.', 'elasticpress' ),
+			'not_found_in_trash' => esc_html__( 'No results found in Trash.', 'elasticpress' ),
 		);
 
 		$args = array(
 			'labels'               => $labels,
-			'description'          => __( 'Posts to inject into search results', 'elasticpress' ),
+			'description'          => esc_html__( 'Posts to inject into search results', 'elasticpress' ),
 			'public'               => false,
 			'publicly_queryable'   => false,
 			'show_ui'              => true,
@@ -239,15 +236,15 @@ class SearchOrdering extends Feature {
 		$labels = array(
 			'name'              => _x( 'Custom Results', 'taxonomy general name', 'elasticpress' ),
 			'singular_name'     => _x( 'Custom Result', 'taxonomy singular name', 'elasticpress' ),
-			'search_items'      => __( 'Search Custom Results', 'elasticpress' ),
-			'all_items'         => __( 'All Custom Results', 'elasticpress' ),
-			'parent_item'       => __( 'Parent Custom Result', 'elasticpress' ),
-			'parent_item_colon' => __( 'Parent Custom Result:', 'elasticpress' ),
-			'edit_item'         => __( 'Edit Custom Result', 'elasticpress' ),
-			'update_item'       => __( 'Update Custom Result', 'elasticpress' ),
-			'add_new_item'      => __( 'Add New Custom Result', 'elasticpress' ),
-			'new_item_name'     => __( 'New Custom Result Name', 'elasticpress' ),
-			'menu_name'         => __( 'Custom Results', 'elasticpress' ),
+			'search_items'      => esc_html__( 'Search Custom Results', 'elasticpress' ),
+			'all_items'         => esc_html__( 'All Custom Results', 'elasticpress' ),
+			'parent_item'       => esc_html__( 'Parent Custom Result', 'elasticpress' ),
+			'parent_item_colon' => esc_html__( 'Parent Custom Result:', 'elasticpress' ),
+			'edit_item'         => esc_html__( 'Edit Custom Result', 'elasticpress' ),
+			'update_item'       => esc_html__( 'Update Custom Result', 'elasticpress' ),
+			'add_new_item'      => esc_html__( 'Add New Custom Result', 'elasticpress' ),
+			'new_item_name'     => esc_html__( 'New Custom Result Name', 'elasticpress' ),
+			'menu_name'         => esc_html__( 'Custom Results', 'elasticpress' ),
 		);
 
 		$args = array(
@@ -274,7 +271,7 @@ class SearchOrdering extends Feature {
 	 * Registers meta box for the search pointers
 	 */
 	public function register_meta_box() {
-		add_meta_box( 'ep-ordering', __( 'Manage Results', 'elasticpress' ), [ $this, 'render_meta_box' ], self::POST_TYPE_NAME, 'normal' );
+		add_meta_box( 'ep-ordering', esc_html__( 'Manage Results', 'elasticpress' ), [ $this, 'render_meta_box' ], self::POST_TYPE_NAME, 'normal' );
 	}
 
 	/**
@@ -465,59 +462,45 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Filters available fields for weighting to exclude the custom results taxonomy
+	 * Filters the weighting configuration to insert our weighting config when we're searching
 	 *
-	 * @param array  $fields    Current weightable fields
-	 * @param string $post_type Current post type
-	 *
-	 * @return array Final weightable fields
+	 * @param  array  $fieldset ES query field set
+	 * @param  array  $weights Weights to use for post type
+	 * @param  string $post_type Post type
+	 * @param  array  $args \WP_Query args
+	 * @return array Final weighting configuration
 	 */
-	public function weighting_fields_for_post_type( $fields, $post_type ) {
-		if ( isset( $fields['taxonomies'] ) && isset( $fields['taxonomies']['children'] ) && isset( $fields['taxonomies']['children'][ 'terms.' . self::TAXONOMY_NAME . '.name' ] ) ) {
-			unset( $fields['taxonomies']['children'][ 'terms.' . self::TAXONOMY_NAME . '.name' ] );
+	public function filter_weighting_configuration( $fieldset, $weights, $post_type, $args ) {
+		if ( ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) && empty( $fieldset['fuzziness'] ) ) {
+			if ( empty( $fieldset['fields'] ) ) {
+				$fieldset['fields'] = [];
+			}
+
+			$fieldset['fields'][] = 'terms.ep_custom_result.name^' . 9999;
 		}
 
-		return $fields;
+		return $fieldset;
 	}
 
 	/**
 	 * Filters the weighting configuration to insert our weighting config when we're searching
 	 *
-	 * @param array $weighting_configuration Current weighting configuration
-	 * @param array $args                    WP Query Args
-	 *
+	 * @param  array  $fieldset ES query field set
+	 * @param  array  $weights Weights to use for post type
+	 * @param  string $post_type Post type
+	 * @param  array  $args \WP_Query args
 	 * @return array Final weighting configuration
 	 */
-	public function filter_weighting_configuration( $weighting_configuration, $args = array() ) {
-		if ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) {
-			foreach ( $weighting_configuration as $post_type => $config ) {
-				$weighting_configuration[ $post_type ]['terms.ep_custom_result.name'] = [
-					'enabled'   => true,
-					'weight'    => 9999,
-					'fuzziness' => false,
-				];
+	public function filter_autosuggest_weighting_configuration( $fieldset, $weights, $post_type, $args ) {
+		if ( ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) && empty( $fieldset['fuzziness'] ) ) {
+			if ( empty( $fieldset['fields'] ) ) {
+				$fieldset['fields'] = [];
 			}
+
+			$fieldset['fields'][] = 'terms.ep_custom_result.name^' . 9999;
 		}
 
-		return $weighting_configuration;
-	}
-
-	/**
-	 * Filters default weights for server side searches
-	 *
-	 * @param array  $post_type_defaults Current default weight settings
-	 * @param string $post_type          Post type
-	 *
-	 * @return array Final weight settings
-	 */
-	public function filter_default_post_type_weights( $post_type_defaults, $post_type ) {
-		$post_type_defaults['terms.ep_custom_result.name'] = [
-			'enabled'   => true,
-			'weight'    => 9999,
-			'fuzziness' => false,
-		];
-
-		return $post_type_defaults;
+		return $fieldset;
 	}
 
 	/**
@@ -529,7 +512,7 @@ class SearchOrdering extends Feature {
 	 */
 	public function filter_enter_title_here( $text ) {
 		if ( self::POST_TYPE_NAME === get_post_type() ) {
-			$text = __( 'Enter Search Query', 'elasticpress' );
+			$text = esc_html__( 'Enter Search Query', 'elasticpress' );
 		}
 
 		return $text;
@@ -543,7 +526,7 @@ class SearchOrdering extends Feature {
 	 * @return array Final Columns
 	 */
 	public function filter_column_names( $columns ) {
-		$columns['title'] = __( 'Search Query', 'elasticpress' );
+		$columns['title'] = esc_html__( 'Search Query', 'elasticpress' );
 
 		return $columns;
 	}

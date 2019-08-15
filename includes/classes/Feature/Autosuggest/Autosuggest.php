@@ -260,33 +260,39 @@ class Autosuggest extends Feature {
 			]
 		);
 
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$weighting = get_site_option( 'ep_weighting', false );
+		} else {
+			$weighting = get_option( 'ep_weighting', false );
+		}
+
 		$epas_options = [
-			'endpointUrl'       => esc_url( untrailingslashit( $endpoint_url ) ),
-			'postTypes'         => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
-			'postStatus'        => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
-			'selector'          => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-			'searchFields'      => apply_filters(
+			'endpointUrl'      => esc_url( untrailingslashit( $endpoint_url ) ),
+			'postTypes'        => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
+			'postStatus'       => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
+			'selector'         => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			'searchFields'     => apply_filters(
 				'ep_term_suggest_search_fields',
 				[
 					'post_title.suggest',
 					'term_suggest',
 				]
 			),
-			'dateDecay'         => [
+			'dateDecay'        => [
 				'enabled' => (bool) $search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
 			],
-			'action'            => 'navigate',
-			'weighting'         => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->is_active() ? $search->weighting->get_weighting_configuration() : [] ),
-			'weightingDefaults' => [],
-			'mimeTypes'         => [],
+			'action'           => 'navigate',
+			'weighting'        => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->is_active() ? $weighting : [] ),
+			'weightableFields' => [],
+			'mimeTypes'        => [],
 		];
 
-		$weightingDefaults = [];
+		$weightable_fields = [];
 		foreach ( $epas_options['postTypes'] as $as_post_type ) {
-			$weightingDefaults[ $as_post_type ] = $search->weighting->get_post_type_default_settings( $as_post_type );
+			$weightable_fields[ $as_post_type ] = $search->weighting->get_weightable_fields_for_post_type( $as_post_type );
 		}
 
-		$epas_options['weightingDefaults'] = apply_filters( 'ep_weighting_configuration_defaults_for_autosuggest', $weightingDefaults );
+		$epas_options['weightableFields'] = apply_filters( 'ep_weightable_fields_for_autosuggest', $weightable_fields );
 
 		/**
 		 * Output variables to use in Javascript

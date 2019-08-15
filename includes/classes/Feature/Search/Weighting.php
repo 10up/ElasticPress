@@ -375,8 +375,9 @@ class Weighting {
 	 * @param array  $fieldset Current subset of formatted ES args
 	 * @param array  $weights  Weight configuration
 	 * @param string $post_type Post type
+	 * @param array  $args \WP_Query args
 	 */
-	public function recursively_inject_weights_to_fields( &$fieldset, $weights, $post_type ) {
+	public function recursively_inject_weights_to_fields( &$fieldset, $weights, $post_type, $args ) {
 		if ( ! is_array( $fieldset ) ) {
 			return;
 		}
@@ -404,11 +405,13 @@ class Weighting {
 				}
 			}
 
+			$fieldset = apply_filters( 'ep_weighted_fields', $fieldset, $weights, $post_type, $args );
+
 			// Reindex the array
 			$fieldset['fields'] = array_values( $fieldset['fields'] );
 		} else {
 			foreach ( $fieldset as &$field ) {
-				$this->recursively_inject_weights_to_fields( $field, $weights, $post_type );
+				$this->recursively_inject_weights_to_fields( $field, $weights, $post_type, $args );
 			}
 		}
 	}
@@ -459,7 +462,7 @@ class Weighting {
 					$weighting[ $post_type ] = [];
 				}
 
-				$this->recursively_inject_weights_to_fields( $current_query, $weighting[ $post_type ], $post_type );
+				$this->recursively_inject_weights_to_fields( $current_query, $weighting[ $post_type ], $post_type, $args );
 
 				$new_query['bool']['should'][] = [
 					'bool' => [

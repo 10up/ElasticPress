@@ -73,7 +73,7 @@ function debounce( fn, delay ) {
  * @param searchText
  * @returns object
  */
-function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weightingSettings ) {
+function buildSearchQuery( searchText, postTypes, postStatus, searchFields ) {
 	// On ep.io, postTypes must be an array and match the post types used in the main search query
 	if ( 'all' === postTypes || 'undefined' === typeof( postTypes ) || '' === postTypes ) {
 		postTypes = 'all';
@@ -106,36 +106,33 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
 	}
 
 	postTypes.map( postType => {
-		let postTypeWeights;
+		let postTypeWeights, postTypeWeightableFields;
 
-		postTypeWeights = weightingSettings[ postType ];
+		if ( ! epas.weightableFields[ postType ] ) {
+			return;
+		}
 
 		const fields = [];
-		const fuzzyFields = [];
 
-		const fieldKeys = Object.keys( postTypeWeights );
-		for ( let i = 0; i < fieldKeys.length; i++ ) {
-			let fieldKey = fieldKeys[ i ];
-			const fieldSettings = postTypeWeights[ fieldKey ];
+		postTypeWeights = epas.weighting[ postType ] || {};
+		postTypeWeightableFields = epas.weightableFields[ postType ];
+		postTypeWeightableFields = Object.keys( postTypeWeightableFields.attributes ).concat( Object.keys( postTypeWeightableFields.taxonomies ) );
 
-			if ( true === fieldSettings.enabled ) {
-				let fieldValue;
+		for ( let i = 0; i < postTypeWeightableFields.length; i++ ) {
+			let field = postTypeWeightableFields[ i ];
+			let weight = postTypeWeights[ field ];
 
-				if ( 'post_title' === fieldKey ) {
-					fieldKey = 'post_title.suggest';
+			if ( weight && 0 < parseInt( weight ) ) {
+				weight = parseInt( weight ) - 1;
+
+				if ( 'post_title' === field ) {
+					field = 'post_title.suggest';
 				}
 
-				if ( 0 !== fieldSettings.weight ) {
-					fieldValue = `${fieldKey}^${fieldSettings.weight}`;
+				if ( 1 < weight ) {
+					fields.push( `${field}^${weight}` );
 				} else {
-					fieldValue = fieldKey;
-				}
-
-				fields.push( fieldValue );
-
-				// Defaults to allowing field in fuzzy search unless specifically disabled
-				if ( ! ( undefined !== fieldSettings.fuzziness && false === fieldSettings.fuzziness ) ) {
-					fuzzyFields.push( fieldValue );
+					fields.push( field );
 				}
 			}
 		}
@@ -166,7 +163,7 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
 								{
 									multi_match: {
 										query: searchText,
-										fields: fuzzyFields,
+										fields: fields,
 										fuzziness: 1,
 									}
 								},
@@ -185,7 +182,7 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
 		} );
 	} );
 
-	if ( undefined !== epas.dateDecay && true === epas.dateDecay.enabled ) {
+	if ( undefined !== typeof epas.dateDecay && true === epas.dateDecay.enabled ) {
 		query.query = {
 			function_score: {
 				query: {
@@ -242,6 +239,8 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
 			terms: { 'post_type.raw': postTypes }
 		} );
 	}
+
+	console.log( JSON.stringify( query ) );
 
 	return query;
 }
@@ -489,10 +488,9 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 			const postTypes = epas.postTypes;
 			const postStatus = epas.postStatus;
 			const searchFields = epas.searchFields;
-			const weightingSettings = Object.assign( {}, epas.weightingDefaults, epas.weighting );
 
 			if ( 2 <= val.length ) {
-				query = buildSearchQuery( val, postTypes, postStatus, searchFields, weightingSettings );
+				query = buildSearchQuery( val, postTypes, postStatus, searchFields );
 				request = esSearch( query, val );
 
 				request.done( ( response ) => {
