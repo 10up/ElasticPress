@@ -81,9 +81,104 @@ class Search extends Feature {
 		}
 
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
-		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 10, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
 		add_action( 'pre_get_posts', [ $this, 'improve_default_search' ], 10, 1 );
+		add_action( 'ep_formatted_args_query', [ $this, 'search_query' ], 10, 2 );
+		add_filter( 'ep_formatted_args_query', [ $this, 'weight_recent' ], 15, 2 );
+	}
+
+	/**
+	 * Insert search query into ES query
+	 *
+	 * @param array $formatted_args ES query
+	 * @param array $args WP_Query args
+	 * @since 3.1.2
+	 * @return array
+	 */
+	public function search_query( $formatted_args, $args ) {
+		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+
+		/**
+		 * Allow for search field specification
+		 *
+		 * @since 1.0
+		 */
+		if ( ! empty( $args['search_fields'] ) ) {
+			$search_field_args = $args['search_fields'];
+			$search_fields     = [];
+
+			if ( ! empty( $search_field_args['taxonomies'] ) ) {
+				$taxes = (array) $search_field_args['taxonomies'];
+
+				foreach ( $taxes as $tax ) {
+					$search_fields[] = 'terms.' . $tax . '.name';
+				}
+
+				unset( $search_field_args['taxonomies'] );
+			}
+
+			if ( ! empty( $search_field_args['meta'] ) ) {
+				$metas = (array) $search_field_args['meta'];
+
+				foreach ( $metas as $meta ) {
+					$search_fields[] = 'meta.' . $meta . '.value';
+				}
+
+				unset( $search_field_args['meta'] );
+			}
+
+			if ( in_array( 'author_name', $search_field_args, true ) ) {
+				$search_fields[] = 'post_author.login';
+
+				$author_name_index = array_search( 'author_name', $search_field_args, true );
+				unset( $search_field_args[ $author_name_index ] );
+			}
+
+			$search_fields = array_merge( $search_field_args, $search_fields );
+		} else {
+			$search_fields = array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+			);
+		}
+
+		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
+
+		$formatted_args = array(
+			'bool' => array(
+				'should' => array(
+					array(
+						'multi_match' => array(
+							'query'  => $args['s'],
+							'type'   => 'phrase',
+							'fields' => $search_fields,
+							'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+						),
+					),
+					array(
+						'multi_match' => array(
+							'query'     => $args['s'],
+							'fields'    => $search_fields,
+							'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
+							'fuzziness' => 0,
+							'operator'  => 'and',
+						),
+					),
+					array(
+						'multi_match' => array(
+							'query'     => $args['s'],
+							'fields'    => $search_fields,
+							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
+						),
+					),
+				),
+			),
+		);
+
+		return $formatted_args;
 	}
 
 	/**
@@ -206,7 +301,7 @@ class Search extends Feature {
 			if ( $this->is_decaying_enabled() ) {
 				$date_score = array(
 					'function_score' => array(
-						'query'      => $formatted_args['query'],
+						'query'      => $formatted_args,
 						'functions'  => array(
 							array(
 								'exp' => array(
@@ -223,7 +318,7 @@ class Search extends Feature {
 					),
 				);
 
-				$formatted_args['query'] = $date_score;
+				$formatted_args = $date_score;
 			}
 		}
 

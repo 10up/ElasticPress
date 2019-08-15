@@ -808,101 +808,16 @@ class Post extends Indexable {
 			}
 		}
 
-		/**
-		 * Allow for search field specification
-		 *
-		 * @since 1.0
-		 */
-		if ( ! empty( $args['search_fields'] ) ) {
-			$search_field_args = $args['search_fields'];
-			$search_fields     = [];
-
-			if ( ! empty( $search_field_args['taxonomies'] ) ) {
-				$taxes = (array) $search_field_args['taxonomies'];
-
-				foreach ( $taxes as $tax ) {
-					$search_fields[] = 'terms.' . $tax . '.name';
-				}
-
-				unset( $search_field_args['taxonomies'] );
-			}
-
-			if ( ! empty( $search_field_args['meta'] ) ) {
-				$metas = (array) $search_field_args['meta'];
-
-				foreach ( $metas as $meta ) {
-					$search_fields[] = 'meta.' . $meta . '.value';
-				}
-
-				unset( $search_field_args['meta'] );
-			}
-
-			if ( in_array( 'author_name', $search_field_args, true ) ) {
-				$search_fields[] = 'post_author.login';
-
-				$author_name_index = array_search( 'author_name', $search_field_args, true );
-				unset( $search_field_args[ $author_name_index ] );
-			}
-
-			$search_fields = array_merge( $search_field_args, $search_fields );
-		} else {
-			$search_fields = array(
-				'post_title',
-				'post_excerpt',
-				'post_content',
-			);
-		}
-
-		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
-
-		$query = array(
-			'bool' => array(
-				'should' => array(
-					array(
-						'multi_match' => array(
-							'query'  => '',
-							'type'   => 'phrase',
-							'fields' => $search_fields,
-							'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
-						),
-					),
-					array(
-						'multi_match' => array(
-							'query'     => '',
-							'fields'    => $search_fields,
-							'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
-							'fuzziness' => 0,
-							'operator'  => 'and',
-						),
-					),
-					array(
-						'multi_match' => array(
-							'query'     => '',
-							'fields'    => $search_fields,
-							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
-						),
-					),
-				),
-			),
-		);
+		$formatted_args['query']['match_all'] = [
+			'boost' => 1,
+		];
 
 		/**
-		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
-		 * supported for legacy code but may be deprecated and removed eventually.
+		 * This is where the search feature will make the query search if needed. The weighting functionality applies here too
 		 *
-		 * @since 1.3
+		 * @since  3.1.2
 		 */
-
-		if ( ! empty( $args['s'] ) ) {
-			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
-			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
-			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$formatted_args['query']                            = apply_filters( 'ep_formatted_args_query', $query, $args );
-		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
-			$formatted_args['query']['match_all'] = array(
-				'boost' => 1,
-			);
-		}
+		$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $formatted_args['query'], $args );
 
 		/**
 		 * Order by 'rand' support

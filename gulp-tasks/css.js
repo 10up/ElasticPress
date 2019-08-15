@@ -9,6 +9,7 @@ gulp.task( 'css', ( cb ) => {
 		'./assets/css/facets-admin.css',
 		'./assets/css/facets.css',
 		'./assets/css/autosuggest.css',
+		'./assets/css/weighting.css',
 		'./assets/css/ordering.css'
 	];
 	const fileDest = './dist';

@@ -66,6 +66,8 @@ class Screen {
 				if ( true === $install_status || 2 === $install_status || isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$this->screen = 'settings';
 				}
+			} elseif ( 'elasticpress-weighting' === $_GET['page'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+				$this->screen = 'weighting';
 			}
 		}
 	}
