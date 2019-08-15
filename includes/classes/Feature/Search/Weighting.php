@@ -46,6 +46,23 @@ class Weighting {
 	}
 
 	/**
+	 * Force autosuggest hash update
+	 *
+	 * @since 3.1.2
+	 */
+	public function force_autosuggest_hash_update() {
+		// Do a non-blocking search query to force the autosuggest hash to update
+		$url = add_query_arg( [ 's' => 'search test' ], home_url( '/' ) );
+
+		wp_remote_get(
+			$url,
+			[
+				'blocking' => false,
+			]
+		);
+	}
+
+	/**
 	 * Dont weight by these taxonomies
 	 *
 	 * @since  3.1.2
@@ -75,6 +92,10 @@ class Weighting {
 			update_site_option( 'ep_weighting', $this->prepare_weighting( $_POST['ep_weighting'] ) );
 		} else {
 			register_setting( 'elasticpress-weighting', 'ep_weighting', [ $this, 'prepare_weighting' ] );
+		}
+
+		if ( isset( $_POST['ep_weighting'] ) ) {
+			add_action( 'shutdown', [ $this, 'force_autosuggest_hash_update' ] );
 		}
 	}
 
@@ -166,8 +187,8 @@ class Weighting {
 
 			foreach ( $taxonomies as $taxonomy ) {
 				if ( in_array( $taxonomy, $this->get_blacklist_taxonomies(), true ) ) {
-						continue;
-					}
+					continue;
+				}
 
 				$key             = "terms.{$taxonomy}.name";
 				$taxonomy_object = get_taxonomy( $taxonomy );
