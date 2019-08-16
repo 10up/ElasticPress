@@ -46,6 +46,13 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 = 3.1.2 =
 This is a bug fix release with some filter additions.
 
+- Add ep_es_query_results filter.
+- Add option to sync prior to shutdown.
+- Readme update around WPCLI post syncing. Props [@mmcachran](https://github.com/mmcachran)
+- Ignore sticky posts in `find_related`. Props [@columbian-chris](https://github.com/columbian-chris)
+- Weighting dashboard fixes around saving. [@oscarsanchez](https://github.com/oscarsanchez)
+- Weighting UI improvements. Props [@mlaroy](https://github.com/mlaroy)
+
 = 3.1.1 =
 - Ensure taxonomies that are shared among multiple post types show up on the weighting screen
 
