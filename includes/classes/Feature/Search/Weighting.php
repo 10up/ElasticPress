@@ -453,6 +453,8 @@ class Weighting {
 			$weighting = $this->get_default_weighting();
 		}
 
+		var_dump($weighting);
+
 		$weighting = apply_filters( 'ep_weighting_configuration_for_search', $weighting, $args );
 
 		if ( ! is_admin() && ! empty( $args['s'] ) ) {
@@ -504,6 +506,8 @@ class Weighting {
 			} else {
 				$formatted_args = $new_query;
 			}
+
+			do_action( 'ep_weighting_added', $formatted_args, $args );
 		}
 
 		return $formatted_args;
