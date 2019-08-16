@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import jQuery from 'jquery';
 import { ajaxurl, epDash } from 'window';
 

@@ -159,11 +159,13 @@ class TestSearch extends BaseTestCase {
 			isset(
 				$this->fired_actions['ep_formatted_args']['query'],
 				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
 			)
 		);
 	}
@@ -212,11 +214,13 @@ class TestSearch extends BaseTestCase {
 		$this->assertTrue(
 			! isset(
 				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['exp']['post_date_gmt']['offset']
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
 			)
 		);
 		$this->assertTrue(
@@ -235,5 +239,77 @@ class TestSearch extends BaseTestCase {
 	 */
 	public function catch_ep_formatted_args( $args ) {
 		$this->fired_actions['ep_formatted_args'] = $args;
+	}
+
+	/**
+	 * Test that weighting is being added
+	 *
+	 * @since 3.1.2
+	 */
+	public function testDoWeighting() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		$weighting_done = false;
+
+		$test_function = function() use ( &$weighting_done ) {
+			$weighting_done = true;
+		};
+
+		add_action( 'ep_weighting_added', $test_function );
+
+		$args = [
+			's' => 'test',
+		];
+		new \WP_Query( $args );
+
+		remove_action( 'ep_weighting_added', $test_function );
+
+		$this->assertTrue( $weighting_done );
+	}
+
+	/**
+	 * Test preparing weighting
+	 *
+	 * @since 3.1.2
+	 */
+	public function testPrepareWeighting() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		$weighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting->prepare_weighting( [] );
+
+		$this->assertEquals( [], $weighting );
+
+		// Bad post type
+		$weighting = [
+			'badposttype' => [
+				'post_title' => [
+					'weight' => 5,
+				],
+			],
+		];
+		$weighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting->prepare_weighting( $weighting );
+
+		$this->assertEquals( [], $weighting );
+
+		// Good post type
+		$weighting = [
+			'post' => [
+				'post_title' => [
+					'weight' => 5,
+				],
+			],
+		];
+
+		$prepared_weighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting->prepare_weighting( $weighting );
+
+		$this->assertEquals( $weighting, $prepared_weighting );
 	}
 }

@@ -130,12 +130,16 @@ class Post extends Indexable {
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
 
+		$mapping_file = '5-2.php';
+
 		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
 			$mapping_file = 'pre-5-0.php';
-		} elseif ( version_compare( $es_version, '5.2' ) >= 0 ) {
-			$mapping_file = '5-2.php';
-		} else {
+		} elseif ( version_compare( $es_version, '5.0', '>=' ) && version_compare( $es_version, '5.2', '<' ) ) {
 			$mapping_file = '5-0.php';
+		} elseif ( version_compare( $es_version, '5.2', '>=' ) && version_compare( $es_version, '7.0', '<' ) ) {
+			$mapping_file = '5-2.php';
+		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
+			$mapping_file = '7-0.php';
 		}
 
 		$mapping = require apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file );
@@ -329,9 +333,10 @@ class Post extends Indexable {
 						'name'             => $term->name,
 						'parent'           => $term->parent,
 						'term_taxonomy_id' => $term->term_taxonomy_id,
+						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
 					);
 					if ( $allow_hierarchy ) {
-						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name );
+						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
 					}
 				}
 			}
@@ -344,25 +349,64 @@ class Post extends Indexable {
 	/**
 	 * Recursively get all the ancestor terms of the given term
 	 *
-	 * @param array   $terms Terms array
-	 * @param WP_Term $term Current term
-	 * @param string  $tax_name Taxonomy
+	 * @param array   $terms     Terms array
+	 * @param WP_Term $term      Current term
+	 * @param string  $tax_name  Taxonomy
+	 * @param int     $object_id Post ID
+	 *
 	 * @return array
 	 */
-	private function get_parent_terms( $terms, $term, $tax_name ) {
+	private function get_parent_terms( $terms, $term, $tax_name, $object_id ) {
 		$parent_term = get_term( $term->parent, $tax_name );
 		if ( ! $parent_term || is_wp_error( $parent_term ) ) {
 			return $terms;
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
 			$terms[ $parent_term->term_id ] = array(
-				'term_id' => $parent_term->term_id,
-				'slug'    => $parent_term->slug,
-				'name'    => $parent_term->name,
-				'parent'  => $parent_term->parent,
+				'term_id'    => $parent_term->term_id,
+				'slug'       => $parent_term->slug,
+				'name'       => $parent_term->name,
+				'parent'     => $parent_term->parent,
+				'term_order' => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
 			);
 		}
-		return $this->get_parent_terms( $terms, $parent_term, $tax_name );
+		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
+	}
+
+	/**
+	 * Retreives term order for the object/term_taxonomy_id combination
+	 *
+	 * @param int $term_taxonomy_id Term Taxonomy ID
+	 * @param int $object_id        Post ID
+	 *
+	 * @return int Term Order
+	 */
+	protected function get_term_order( $term_taxonomy_id, $object_id ) {
+		global $wpdb;
+
+		$cache_key   = "{$object_id}_term_order";
+		$term_orders = wp_cache_get( $cache_key );
+
+		if ( false === $term_orders ) {
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT term_taxonomy_id, term_order from $wpdb->term_relationships where object_id=%d;",
+					$object_id
+				),
+				ARRAY_A
+			);
+
+			$term_orders = [];
+
+			foreach ( $results as $result ) {
+				$term_orders[ $result['term_taxonomy_id'] ] = $result['term_order'];
+			}
+
+			wp_cache_set( $cache_key, $term_orders );
+		}
+
+		return isset( $term_orders[ $term_taxonomy_id ] ) ? (int) $term_orders[ $term_taxonomy_id ] : 0;
+
 	}
 
 	/**
@@ -373,7 +417,18 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function prepare_meta( $post ) {
-		$meta = (array) get_post_meta( $post->ID );
+
+		/**
+		 * Filter meta data
+		 *
+		 * Allows for adding virtual meta data to current post.
+		 *
+		 * @since 3.1.2
+		 *
+		 * @param         array Meta data (raw).
+		 * @param WP_Post $post The current post to be indexed.
+		 */
+		$meta = apply_filters( 'ep_prepare_meta_data', (array) get_post_meta( $post->ID ), $post );
 
 		if ( empty( $meta ) ) {
 			return [];
@@ -822,8 +877,8 @@ class Post extends Indexable {
 					),
 					array(
 						'multi_match' => array(
-							'fields'    => $search_fields,
 							'query'     => '',
+							'fields'    => $search_fields,
 							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
 						),
 					),
@@ -907,10 +962,6 @@ class Post extends Indexable {
 			if ( 'any' !== $args['post_type'] ) {
 				$post_types     = (array) $args['post_type'];
 				$terms_map_name = 'terms';
-				if ( count( $post_types ) < 2 ) {
-					$terms_map_name = 'term';
-					$post_types     = $post_types[0];
-				}
 
 				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
@@ -981,11 +1032,6 @@ class Post extends Indexable {
 			$statuses = array_values( $statuses );
 
 			$post_status_filter_type = 'terms';
-
-			if ( 1 === count( $statuses ) ) {
-				$post_status_filter_type = 'term';
-				$statuses                = $statuses[0];
-			}
 
 			$filter['bool']['must'][] = array(
 				$post_status_filter_type => array(
