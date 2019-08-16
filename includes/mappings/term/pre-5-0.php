@@ -158,6 +158,15 @@ return [
 				],
 				'taxonomy'         => [
 					'type' => 'string',
+					'fields' => [
+						'description' => [
+							'type' => 'string',
+						],
+						'raw'         => [
+							'type'         => 'string',
+							'ignore_above' => 10922,
+						],
+					],
 				],
 				'description'      => [
 					'type'   => 'string',

@@ -126,7 +126,7 @@ class Term extends Indexable {
 
 			$filter['bool']['must'][] = [
 				$terms_map_name => [
-					'taxonomy' => $taxonomy,
+					'taxonomy.raw' => $taxonomy,
 				],
 			];
 
@@ -223,7 +223,7 @@ class Term extends Indexable {
 		if ( ! empty( $query_vars['name'] ) ) {
 			$filter['bool']['must'][] = [
 				'terms' => [
-					'name' => (array) $query_vars['name'],
+					'name.raw' => (array) $query_vars['name'],
 				],
 			];
 
@@ -236,7 +236,7 @@ class Term extends Indexable {
 		if ( ! empty( $query_vars['slug'] ) ) {
 			$filter['bool']['must'][] = [
 				'terms' => [
-					'slug' => (array) $query_vars['slug'],
+					'slug.raw' => (array) $query_vars['slug'],
 				],
 			];
 
