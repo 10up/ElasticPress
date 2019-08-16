@@ -445,6 +445,8 @@ class Weighting {
 			} else {
 				$formatted_args['query'] = $new_query;
 			}
+
+			do_action( 'ep_weighting_added', $formatted_args, $args );
 		}
 
 		return $formatted_args;
