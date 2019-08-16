@@ -62,6 +62,26 @@ class SyncManager extends SyncManagerAbstract {
 		do_action( 'ep_sync_term_on_transition', $term_id );
 
 		$this->sync_queue[ $term_id ] = true;
+
+		// Find all terms in the hierarchy so we resync those as well
+		$term      = get_term( $term_id );
+		$children  = get_term_children( $term_id, $term->taxonomy );
+		$ancestors = get_ancestors( $term_id, $term->taxonomy, 'taxonomy' );
+		$hierarchy = array_merge( $ancestors, $children );
+
+		foreach ( $hierarchy as $hierarchy_term_id ) {
+			if ( ! current_user_can( 'edit_term', $hierarchy_term_id ) ) {
+				return;
+			}
+
+			if ( apply_filters( 'ep_term_sync_kill', false, $hierarchy_term_id ) ) {
+				return;
+			}
+
+			do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
+
+			$this->sync_queue[ $hierarchy_term_id ] = true;
+		}
 	}
 
 	/**
@@ -73,7 +93,36 @@ class SyncManager extends SyncManagerAbstract {
 	 */
 	public function action_sync_on_object_update( $object_id, $terms ) {
 		foreach ( $terms as $term ) {
-			$this->sync_queue[ $term['term_id'] ] = true;
+			if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
+				return;
+			}
+
+			if ( apply_filters( 'ep_term_sync_kill', false, $term->term_id ) ) {
+				return;
+			}
+
+			do_action( 'ep_sync_term_on_transition', $term->term_id );
+
+			$this->sync_queue[ $term->term_id ] = true;
+
+			// Find all terms in the hierarchy so we resync those as well
+			$children  = get_term_children( $term->term_id, $term->taxonomy );
+			$ancestors = get_ancestors( $term->term_id, $term->taxonomy, 'taxonomy' );
+			$hierarchy = array_merge( $ancestors, $children );
+
+			foreach ( $hierarchy as $hierarchy_term_id ) {
+				if ( ! current_user_can( 'edit_term', $hierarchy_term_id ) ) {
+					return;
+				}
+
+				if ( apply_filters( 'ep_term_sync_kill', false, $hierarchy_term_id ) ) {
+					return;
+				}
+
+				do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
+
+				$this->sync_queue[ $hierarchy_term_id ] = true;
+			}
 		}
 	}
 
@@ -100,6 +149,26 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		Indexables::factory()->get( 'term' )->delete( $term_id, false );
+
+		// Find all terms in the hierarchy so we resync those as well
+		$term      = get_term( $term_id );
+		$children  = get_term_children( $term->term_id, $term->taxonomy );
+		$ancestors = get_ancestors( $term->term_id, $term->taxonomy, 'taxonomy' );
+		$hierarchy = array_merge( $ancestors, $children );
+
+		foreach ( $hierarchy as $hierarchy_term_id ) {
+			if ( ! current_user_can( 'edit_term', $hierarchy_term_id ) ) {
+				return;
+			}
+
+			if ( apply_filters( 'ep_term_sync_kill', false, $hierarchy_term_id ) ) {
+				return;
+			}
+
+			do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
+
+			$this->sync_queue[ $hierarchy_term_id ] = true;
+		}
 	}
 
 }

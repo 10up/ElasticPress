@@ -130,7 +130,7 @@ class QueryIntegration {
 
 			switch ( $fields ) {
 				case 'all_with_object_id':
-					$new_terms = $this->format_hits_as_terms( $ep_query['documents'], $new_terms );
+					$new_terms = $this->format_hits_as_terms( $ep_query['documents'], $new_terms, $query->query_vars );
 					break;
 
 				case 'count':
@@ -162,7 +162,7 @@ class QueryIntegration {
 					break;
 
 				default:
-					$new_terms = $this->format_hits_as_terms( $ep_query['documents'], $new_terms );
+					$new_terms = $this->format_hits_as_terms( $ep_query['documents'], $new_terms, $query->query_vars );
 					break;
 			}
 
@@ -179,10 +179,11 @@ class QueryIntegration {
 	 *
 	 * @param  array $terms The terms that should be formatted.
 	 * @param  array $new_terms Array of terms from cache.
+	 * @param  array $query_vars Query variables.
 	 * @since  3.1
 	 * @return array
 	 */
-	protected function format_hits_as_terms( $terms, $new_terms ) {
+	protected function format_hits_as_terms( $terms, $new_terms, $query_vars ) {
 		foreach ( $terms as $term_array ) {
 			$term = new \stdClass();
 
@@ -211,6 +212,10 @@ class QueryIntegration {
 
 			foreach ( $term_return_args as $key ) {
 				if ( isset( $term_array[ $key ] ) ) {
+					if ( 'count' === $key && ! empty( $query_vars['pad_counts'] ) ) {
+						$term_array[ $key ] += $term_array['hierarchy']['children']['count'];
+					}
+
 					$term->$key = $term_array[ $key ];
 				}
 			}

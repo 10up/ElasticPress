@@ -30,14 +30,6 @@ class Term extends Indexable {
 	public $slug = 'term';
 
 	/**
-	 * Total terms
-	 *
-	 * @var   int
-	 * @since 3.1
-	 */
-	public $total_terms = 0;
-
-	/**
 	 * Create indexable and initialize dependencies
 	 *
 	 * @since 3.1
@@ -48,9 +40,6 @@ class Term extends Indexable {
 			'singular' => esc_html__( 'Term', 'elasticpress' ),
 		];
 
-		$all_query = new WP_Term_Query( [ 'count' => true, 'fields' => 'ids' ] );
-
-		$this->total_terms       = count( $all_query->terms );
 		$this->sync_manager      = new SyncManager( $this->slug );
 		$this->query_integration = new QueryIntegration();
 	}
@@ -268,6 +257,21 @@ class Term extends Indexable {
 		}
 
 		/**
+		 * Support `hierarchical` query var
+		 */
+		if ( ! empty( $query_vars['hierarchical'] ) && false === $query_vars['hierarchical'] ) {
+			$filter['bool']['must'][] = [
+				'range' => [
+					'hierarchy.children.count' => [
+						'gte' => 1,
+					],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
 		 * Support `search`, `name__like` and `description__like` query_vars
 		 */
 		if ( ! empty( $query_vars['search'] ) || ! empty( $query_vars['name__like'] ) || ! empty( $query_vars['description__like'] ) ) {
@@ -362,7 +366,7 @@ class Term extends Indexable {
 		if ( ! empty( $query_vars['child_of'] ) && ( is_string( $taxonomy ) || count( $taxonomy ) < 2 ) ) {
 			$filter['bool']['must'][]['bool']['must'][] = [
 				'match_phrase' => [
-					'hierarchy.ancestors' => (int) $query_vars['child_of'],
+					'hierarchy.ancestors.terms' => (int) $query_vars['child_of'],
 				],
 			];
 
@@ -388,7 +392,7 @@ class Term extends Indexable {
 		if ( ! empty( $query_vars['childless'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
-					'hierarchy.children' => 'none',
+					'hierarchy.children.terms' => 0,
 				],
 			];
 
@@ -489,18 +493,6 @@ class Term extends Indexable {
 			}
 		}
 
-		/**
-		 * @todo Support the following parameters:
-		 *
-		 * $hierarchical If set to true (which is default), if a term has no relationships
-		 *		 but does have descendents that have relationships, the parent term
-		 * 		 should show in results, even if $hide_empty is true.
-		 *
-		 * $pad_counts If set to true (default is false), find all descendents and the count
-		 * 		 of relationships they have and add that number into the main parent's
-		 * 		 count, effectively inflating the parent's count value.
-		 */
-
 		if ( $use_filters ) {
 			$formatted_args['post_filter'] = $filter;
 		}
@@ -577,6 +569,8 @@ class Term extends Indexable {
 	 * @return array
 	 */
 	public function query_db( $args ) {
+		$all_query = new WP_Term_Query( [ 'count' => true, 'fields' => 'ids' ] );
+
 		$defaults = [
 			'number'     => $this->get_bulk_items_per_page(),
 			'offset'     => 0,
@@ -598,7 +592,7 @@ class Term extends Indexable {
 
 		return [
 			'objects'       => $query->terms,
-			'total_objects' => $this->total_terms,
+			'total_objects' => count( $all_query->terms ),
 		];
 	}
 
@@ -731,15 +725,24 @@ class Term extends Indexable {
 		$ancestors = get_ancestors( $term_id, $taxonomy, 'taxonomy' );
 
 		if ( ! empty( $children ) && ! is_wp_error( $children ) ) {
-			$hierarchy['children'] = $children;
+			$hierarchy['children']['terms'] = $children;
+			$children_count                 = 0;
+
+			foreach ( $children as $child_term_id ) {
+				$child_term = get_term( $child_term_id );
+				$children_count += (int) $child_term->count;
+			}
+
+			$hierarchy['children']['count'] = $children_count;
 		} else {
-			$hierarchy['children'] = 'none';
+			$hierarchy['children']['terms'] = 0;
+			$hierarchy['children']['count'] = 0;
 		}
 
 		if ( ! empty( $ancestors ) ) {
-			$hierarchy['ancestors'] = $ancestors;
+			$hierarchy['ancestors']['terms'] = $ancestors;
 		} else {
-			$hierarchy['ancestors'] = 'none';
+			$hierarchy['ancestors']['terms'] = 0;
 		}
 
 		return $hierarchy;
@@ -760,7 +763,7 @@ class Term extends Indexable {
 		if ( ! empty( $object_ids ) && ! is_wp_error( $object_ids ) ) {
 			$ids['value'] = array_map( 'absint', array_values( $object_ids ) );
 		} else {
-			$ids['value'] = 'none';
+			$ids['value'] = 0;
 		}
 
 		return $ids;
