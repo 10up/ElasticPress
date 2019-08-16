@@ -252,8 +252,6 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields ) {
 		} );
 	}
 
-	console.log( JSON.stringify( query ) );
-
 	return query;
 }
 
