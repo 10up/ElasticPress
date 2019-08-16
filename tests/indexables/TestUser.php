@@ -64,7 +64,7 @@ class TestUser extends BaseTestCase {
 	 * @since 3.0
 	 */
 	public function createAndIndexUsers() {
-		ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue[1] = true;
+		ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->add_to_queue( 1 );
 
 		ElasticPress\Indexables::factory()->get( 'user' )->bulk_index( array_keys( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue ) );
 
@@ -194,7 +194,7 @@ class TestUser extends BaseTestCase {
 		update_user_meta( $user_id, 'test_key', true );
 
 		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue ) );
-		$this->assertTrue( ! empty( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue[ $user_id ] ) );
+		$this->assertTrue( ! empty( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->add_to_queue( $user_id ) ) );
 	}
 
 	/**

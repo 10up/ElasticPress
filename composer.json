@@ -37,7 +37,7 @@
     "lint": "phpcs .",
     "lint-fix": "phpcbf .",
     "test": "phpunit",
-    "setup-local-tests": "bash bin/install-wp-tests.sh wordpress_test root password mysql latest"
+    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password mysql latest true"
   },
   "extra": {
     "installer-paths": {

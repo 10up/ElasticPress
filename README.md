@@ -623,7 +623,7 @@ The following commands are supported by ElasticPress:
     * `--show-bulk-errors` displays the error message returned from Elasticsearch when a post fails to index (as opposed to just the title and ID of the post).
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
     * `--include` Choose which object IDs to include in the index.
-    * `--post_ids` Choose which post_ids to include when indexing the Posts Indexable (deprecated).
+    * `--post-ids` Choose which post_ids to include when indexing the Posts Indexable (deprecated).
 
 * `wp elasticpress delete-index [--network-wide]`
 

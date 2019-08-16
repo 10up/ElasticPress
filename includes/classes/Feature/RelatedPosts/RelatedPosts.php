@@ -90,6 +90,7 @@ class RelatedPosts extends Feature {
 			'more_like'      => $post_id,
 			'posts_per_page' => $return,
 			'ep_integrate'   => true,
+			'ignore_sticky_posts' => true,
 		);
 
 		$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );

@@ -101,19 +101,19 @@ class Weighting {
 		$post_type_defaults = [
 			'post_title'   => [
 				'enabled' => true,
-				'weight'  => 0,
+				'weight'  => 1,
 			],
 			'post_content' => [
 				'enabled' => true,
-				'weight'  => 0,
+				'weight'  => 1,
 			],
 			'post_excerpt' => [
 				'enabled' => true,
-				'weight'  => 0,
+				'weight'  => 1,
 			],
 			'author_name'  => [
 				'enabled' => true,
-				'weight'  => 0,
+				'weight'  => 1,
 			],
 		];
 
@@ -255,7 +255,7 @@ class Weighting {
 							<?php echo esc_html( $weight ); ?>
 						</span>
 					</label>
-					<input type="range" min="0" max="10" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]" <?php echo $range_disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+					<input type="range" min="1" max="100" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]" <?php echo $range_disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 				</p>
 			</fieldset>
 			<?php
@@ -274,28 +274,44 @@ class Weighting {
 			return;
 		}
 
-		if ( ! isset( $_POST['weighting'] ) || empty( $_POST['weighting'] ) ) {
-			// It should always be set unless something is wrong, so just move on
-			return;
-		}
+		$new_config                = array();
+		$previous_config_formatted = array();
+		$current_config            = $this->get_weighting_configuration();
 
-		$final_config = array();
-
-		foreach ( $_POST['weighting'] as $post_type => $post_type_weighting ) {
+		foreach ( $current_config as $post_type => $post_type_weighting ) {
 			// This also ensures the string is safe, since this would return false otherwise
 			if ( ! post_type_exists( $post_type ) ) {
 				continue;
 			}
 
-			$final_config[ $post_type ] = array();
-
+			// We need a way to know if fields have been explicitly set before, let's compare a previous state against $_POST['weighting']
 			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
-				$final_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-					'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
-					'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
+				$previous_config_formatted[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
+					'weight'  => isset( $_POST['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $_POST['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
+					'enabled' => isset( $_POST['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $_POST['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
 				];
 			}
 		}
+
+		if ( ! empty( $_POST['weighting'] ) ) {
+			foreach ( $_POST['weighting'] as $post_type => $post_type_weighting ) {
+				// This also ensures the string is safe, since this would return false otherwise
+				if ( ! post_type_exists( $post_type ) ) {
+					continue;
+				}
+
+				$new_config[ $post_type ] = array();
+
+				foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
+					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
+						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
+						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
+					];
+				}
+			}
+		}
+
+		$final_config = array_replace_recursive( $previous_config_formatted, $new_config );
 
 		update_option( 'elasticpress_weighting', $final_config );
 
@@ -342,6 +358,10 @@ class Weighting {
 						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 					}
 				} elseif ( isset( $weights[ $field ] ) && false === $weights[ $field ]['enabled'] ) {
+					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
+					if ( 'author_name' === $field ) {
+						unset( $fieldset['fields'][ array_search( 'post_author.login', $fieldset['fields'], true ) ] );
+					}
 					unset( $fieldset['fields'][ $key ] );
 				}
 				// else: Leave anything that isn't explicitly disabled alone. Could have been added by search_fields, and if it is not present in the UI, we shouldn't touch it here
@@ -425,9 +445,10 @@ class Weighting {
 			} else {
 				$formatted_args['query'] = $new_query;
 			}
+
+			do_action( 'ep_weighting_added', $formatted_args, $args );
 		}
 
 		return $formatted_args;
 	}
-
 }

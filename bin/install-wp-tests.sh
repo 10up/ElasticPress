@@ -10,7 +10,7 @@ DB_USER=$2
 DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
-SKIP_DB_CREATE=${6-false}
+CREATE_DB_IF_EXISTS=${6-false}
 
 TMPDIR=${TMPDIR-/tmp}
 TMPDIR=$(echo $TMPDIR | sed -e "s/\/$//")
@@ -126,10 +126,6 @@ install_test_suite() {
 
 install_db() {
 
-  if [ ${SKIP_DB_CREATE} = "true" ]; then
-    return 0
-  fi
-
   # parse DB_HOST for port or socket references
   local PARTS=(${DB_HOST//\:/ })
   local DB_HOSTNAME=${PARTS[0]};
@@ -146,10 +142,15 @@ install_db() {
     fi
   fi
 
-  # create database
-  mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
+  if [ ${CREATE_DB_IF_EXISTS} = "true" ]; then
+    mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA || echo "Database already exists."
+  else
+    mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
+  fi
 }
 
 install_wp
 install_test_suite
 install_db
+
+echo "Done!"
