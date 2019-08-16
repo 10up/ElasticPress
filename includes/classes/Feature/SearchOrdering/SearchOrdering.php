@@ -74,8 +74,8 @@ class SearchOrdering extends Feature {
 		add_action( 'posts_results', [ $this, 'posts_results' ], 20, 2 );  // Runs after core ES is done
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'filter_sync_taxonomies' ] );
-		add_filter( 'ep_weighted_fields', [ $this, 'filter_weighting_configuration' ], 10, 4 );
-		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_autosuggest_weighting_configuration' ], 10, 1 );
+		add_filter( 'ep_weighting_configuration_for_search', [ $this, 'filter_weighting_configuration' ], 10, 2 );
+		add_filter( 'ep_weighting_configuration_for_autosuggest', [ $this, 'filter_weighting_configuration' ], 10, 1 );
 		add_filter( 'enter_title_here', [ $this, 'filter_enter_title_here' ] );
 		add_filter( 'manage_' . self::POST_TYPE_NAME . '_posts_columns', [ $this, 'filter_column_names' ] );
 
@@ -464,22 +464,22 @@ class SearchOrdering extends Feature {
 	/**
 	 * Filters the weighting configuration to insert our weighting config when we're searching
 	 *
-	 * @param  array  $fieldset ES query field set
-	 * @param  array  $weights Weights to use for post type
-	 * @param  string $post_type Post type
-	 * @param  array  $args \WP_Query args
+	 * @param array $weighting_configuration Current weighting configuration
+	 * @param array $args                    WP Query Args
+	 *
 	 * @return array Final weighting configuration
 	 */
-	public function filter_weighting_configuration( $fieldset, $weights, $post_type, $args ) {
-		if ( ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) && empty( $fieldset['fuzziness'] ) ) {
-			if ( empty( $fieldset['fields'] ) ) {
-				$fieldset['fields'] = [];
+	public function filter_weighting_configuration( $weighting_configuration, $args = array() ) {
+		if ( ! isset( $args['exclude_pointers'] ) || true !== $args['exclude_pointers'] ) {
+			foreach ( $weighting_configuration as $post_type => $config ) {
+				$weighting_configuration[ $post_type ]['terms.ep_custom_result.name'] = [
+					'weight'    => 9999,
+					'fuzziness' => false,
+				];
 			}
-
-			$fieldset['fields'][] = 'terms.ep_custom_result.name^' . 9999;
 		}
 
-		return $fieldset;
+		return $weighting_configuration;
 	}
 
 	/**

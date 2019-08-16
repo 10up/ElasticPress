@@ -267,32 +267,27 @@ class Autosuggest extends Feature {
 		}
 
 		$epas_options = [
-			'endpointUrl'      => esc_url( untrailingslashit( $endpoint_url ) ),
-			'postTypes'        => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
-			'postStatus'       => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
-			'selector'         => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-			'searchFields'     => apply_filters(
+			'endpointUrl'  => esc_url( untrailingslashit( $endpoint_url ) ),
+			'postTypes'    => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
+			'postStatus'   => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
+			'selector'     => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			'searchFields' => apply_filters(
 				'ep_term_suggest_search_fields',
 				[
 					'post_title.suggest',
+					'post_content',
+					'post_excerpt',
+					'post_author.login',
 					'term_suggest',
 				]
 			),
-			'dateDecay'        => [
+			'dateDecay'    => [
 				'enabled' => (bool) $search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
 			],
-			'action'           => 'navigate',
-			'weighting'        => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->is_active() ? $weighting : [] ),
-			'weightableFields' => [],
-			'mimeTypes'        => [],
+			'action'       => 'navigate',
+			'weighting'    => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->is_active() ? $weighting : [] ),
+			'mimeTypes'    => [],
 		];
-
-		$weightable_fields = [];
-		foreach ( $epas_options['postTypes'] as $as_post_type ) {
-			$weightable_fields[ $as_post_type ] = $search->weighting->get_weightable_fields_for_post_type( $as_post_type );
-		}
-
-		$epas_options['weightableFields'] = apply_filters( 'ep_weightable_fields_for_autosuggest', $weightable_fields );
 
 		/**
 		 * Output variables to use in Javascript

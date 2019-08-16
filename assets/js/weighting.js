@@ -20,6 +20,12 @@ jQuery( '.weighting-settings .searchable input[type=checkbox]' ).change( functio
 		$rangeInput.val( 1 );
 	}
 
+	if ( ! this.checked ) {
+		$rangeInput.after( '<input type="hidden" name="' + $rangeInput.attr( 'name' ) + '" value="0" />' );
+	} else {
+		$rangeInput.parent().find( 'input[type="hidden"]' ).remove();
+	}
+
 	// get new weight display value, and set it
 	const newWeightDisplay = !this.checked ? '0' : $rangeInput.val();
 	$weightDisplay.text( newWeightDisplay );

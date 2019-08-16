@@ -106,23 +106,27 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields ) {
 	}
 
 	postTypes.map( postType => {
-		let postTypeWeights, postTypeWeightableFields;
+		let postTypeWeights;
 
-		if ( ! epas.weightableFields[ postType ] ) {
-			return;
-		}
+		const fields = {};
 
-		const fields = [];
+		searchFields.forEach( value => {
+			fields[ value ] = true;
+		} );
+
+		const fuzzyFields = Object.assign( {}, fields );
 
 		postTypeWeights = epas.weighting[ postType ] || {};
-		postTypeWeightableFields = epas.weightableFields[ postType ];
-		postTypeWeightableFields = Object.keys( postTypeWeightableFields.attributes ).concat( Object.keys( postTypeWeightableFields.taxonomies ) );
 
-		for ( let i = 0; i < postTypeWeightableFields.length; i++ ) {
-			let field = postTypeWeightableFields[ i ];
-			let weight = postTypeWeights[ field ];
+		for ( let field in postTypeWeights ) {
+			let weight = postTypeWeights[ field ]['weight'];
 
-			if ( weight && 0 < parseInt( weight ) ) {
+			if ( 0 === parseInt( weight ) ) {
+				delete fields[ field ];
+				delete fuzzyFields[ field ];
+			}
+
+			if ( 1 < parseInt( weight ) ) {
 				weight = parseInt( weight ) - 1;
 
 				if ( 'post_title' === field ) {
@@ -130,9 +134,17 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields ) {
 				}
 
 				if ( 1 < weight ) {
-					fields.push( `${field}^${weight}` );
+					fields[ `${field}^${weight}` ] = true;
+
+					if ( ! ( undefined !== postTypeWeights[ field ].fuzziness && false === postTypeWeights[ field ].fuzziness ) ) {
+						fuzzyFields[ `${field}^${weight}` ] = true;
+					}
 				} else {
-					fields.push( field );
+					fields[ field ] = true;
+
+					if ( ! ( undefined !== postTypeWeights[ field ].fuzziness && false === postTypeWeights[ field ].fuzziness ) ) {
+						fuzzyFields[ field ] = true;
+					}
 				}
 			}
 		}
@@ -147,14 +159,14 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields ) {
 									multi_match: {
 										query: searchText,
 										type: 'phrase',
-										fields: fields,
+										fields: Object.keys( fields ),
 										boost: 4,
 									}
 								},
 								{
 									multi_match: {
 										query: searchText,
-										fields: fields,
+										fields: Object.keys( fields ),
 										boost: 2,
 										fuzziness: 0,
 										operator: 'and',
@@ -163,7 +175,7 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields ) {
 								{
 									multi_match: {
 										query: searchText,
-										fields: fields,
+										fields: Object.keys( fuzzyFields ),
 										fuzziness: 1,
 									}
 								},

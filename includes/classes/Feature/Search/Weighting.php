@@ -118,10 +118,18 @@ class Weighting {
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_weighting = [
-				'post_title'        => 1,
-				'post_content'      => 1,
-				'post_excerpt'      => 1,
-				'post_author.login' => 1,
+				'post_title'        => [
+					'weight' => 1,
+				],
+				'post_content'      => [
+					'weight' => 1,
+				],
+				'post_excerpt'      => [
+					'weight' => 1,
+				],
+				'post_author.login' => [
+					'weight' => 1,
+				],
 			];
 
 			$public_taxonomies = get_taxonomies(
@@ -145,7 +153,9 @@ class Weighting {
 					$key             = "terms.{$taxonomy}.name";
 					$taxonomy_object = get_taxonomy( $taxonomy );
 
-					$post_type_weighting[ $key ] = 1;
+					$post_type_weighting[ $key ] = [
+						'weight' => 1,
+					];
 				}
 			}
 
@@ -258,13 +268,13 @@ class Weighting {
 								<div class="fields">
 									<?php
 									foreach ( $fields['attributes'] as $field_key => $field_label ) {
-										$weight = $default_weighting[ $post_type ][ $field_key ];
+										$weight = $default_weighting[ $post_type ][ $field_key ]['weight'];
 
 										if ( false !== $weighting ) {
 											$weight = 0;
 
-											if ( isset( $weighting[ $post_type ][ $field_key ] ) ) {
-												$weight = $weighting[ $post_type ][ $field_key ];
+											if ( isset( $weighting[ $post_type ][ $field_key ]['weight'] ) ) {
+												$weight = $weighting[ $post_type ][ $field_key ]['weight'];
 											}
 										}
 
@@ -281,13 +291,13 @@ class Weighting {
 								<div class="fields">
 									<?php
 									foreach ( $fields['taxonomies'] as $field_key => $field_label ) {
-										$weight = $default_weighting[ $post_type ][ $field_key ];
+										$weight = $default_weighting[ $post_type ][ $field_key ]['weight'];
 
 										if ( false !== $weighting ) {
 											$weight = 0;
 
-											if ( isset( $weighting[ $post_type ][ $field_key ] ) ) {
-												$weight = $weighting[ $post_type ][ $field_key ];
+											if ( isset( $weighting[ $post_type ][ $field_key ]['weight'] ) ) {
+												$weight = $weighting[ $post_type ][ $field_key ]['weight'];
 											}
 										}
 
@@ -318,7 +328,6 @@ class Weighting {
 	 * @since  3.1.2
 	 */
 	public function render_weighting_setting( $post_type, $field_key, $field_label, $weight ) {
-		$range_disabled = '';
 		?>
 		<fieldset>
 			<legend><?php echo esc_html( $field_label ); ?></legend>
@@ -335,7 +344,10 @@ class Weighting {
 						<?php echo esc_html( $weight ); ?>
 					</span>
 				</label>
-				<input type="range" <?php disabled( empty( $weight ) ); ?> min="1" max="100" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$field_key}-weight" ); ?>" name="ep_weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $field_key ); ?>]" <?php echo $range_disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+				<input type="range" <?php disabled( empty( $weight ) ); ?> min="1" max="100" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$field_key}-weight" ); ?>" name="ep_weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $field_key ); ?>][weight]">
+				<?php if ( empty( $weight ) ) : ?>
+					<input type="hidden" name="ep_weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $field_key ); ?>][weight]" value="0">
+				<?php endif; ?>
 			</p>
 		</fieldset>
 		<?php
@@ -360,8 +372,10 @@ class Weighting {
 
 				$prepared_weighting[ $post_type ] = [];
 
-				foreach ( $post_type_weighting as $field => $weight ) {
-					$prepared_weighting[ $post_type ][ sanitize_text_field( $field ) ] = (int) $weight;
+				foreach ( $post_type_weighting as $field => $field_array ) {
+					$prepared_weighting[ $post_type ][ sanitize_text_field( $field ) ] = [];
+
+					$prepared_weighting[ $post_type ][ sanitize_text_field( $field ) ]['weight'] = (int) $field_array['weight'];
 				}
 			}
 		}
@@ -382,30 +396,34 @@ class Weighting {
 			return;
 		}
 
-		$weightable_fields = $this->get_weightable_fields_for_post_type( $post_type );
-
-		if ( empty( $weightable_fields ) ) {
-			return;
-		}
-
 		if ( is_array( $fieldset ) && isset( $fieldset['fields'] ) ) {
-			foreach ( $fieldset['fields'] as $key => $field ) {
-				if ( isset( $weightable_fields['attributes'][ $field ] ) || isset( $weightable_fields['taxonomies'][ $field ] ) ) {
-					if ( empty( $weights[ $field ] ) || 0 === (int) $weights[ $field ] ) {
-						unset( $fieldset['fields'][ $key ] );
-					} else {
-						$weights[ $field ] = (int) $weights[ $field ];
-
-						$fieldset['fields'][ $key ] = $field;
-
-						if ( $weights[ $field ] > 1 ) {
-							$fieldset['fields'][ $key ] .= '^' . ( $weights[ $field ] - 1 );
-						}
-					}
+			// Add any fields to the search that aren't already in there (weighting handled in next step)
+			foreach ( $weights as $field => $settings ) {
+				if ( ! in_array( $field, $fieldset['fields'], true ) ) {
+					$fieldset['fields'][] = $field;
 				}
 			}
 
-			$fieldset = apply_filters( 'ep_weighted_fields', $fieldset, $weights, $post_type, $args );
+			foreach ( $fieldset['fields'] as $key => $field ) {
+				if ( isset( $weights[ $field ] ) && 1 < $weights[ $field ]['weight'] ) {
+					$weight = (int) $weights[ $field ]['weight'] - 1;
+
+					$fieldset['fields'][ $key ] = "{$field}^{$weight}";
+				} elseif ( isset( $weights[ $field ] ) && 0 === $weights[ $field ]['weight'] ) {
+					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
+					if ( 'author_name' === $field ) {
+						unset( $fieldset['fields'][ array_search( 'post_author.login', $fieldset['fields'], true ) ] );
+					}
+
+					unset( $fieldset['fields'][ $key ] );
+				}
+				// else: Leave anything that isn't explicitly disabled alone. Could have been added by search_fields, and if it is not present in the UI, we shouldn't touch it here
+
+				// If fieldset has fuzziness enabled and fuzziness is disabled for this field, unset the field
+				if ( isset( $fieldset['fuzziness'] ) && $fieldset['fuzziness'] && isset( $weights[ $field ]['fuzziness'] ) && false === $weights[ $field ]['fuzziness'] ) {
+					unset( $fieldset['fields'][ $key ] );
+				}
+			}
 
 			// Reindex the array
 			$fieldset['fields'] = array_values( $fieldset['fields'] );
