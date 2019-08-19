@@ -42,7 +42,7 @@ class QueryIntegration {
 	/**
 	 * Add EP header
 	 *
-	 * @param  WP_Term_Query $query
+	 * @param  WP_Term_Query $query Query object
 	 * @since  3.1
 	 * @return void
 	 */
@@ -233,8 +233,8 @@ class QueryIntegration {
 	/**
 	 * Format the ES hits/results as an array of ids.
 	 *
-	 * @param  array $terms The terms that should be formatted.
-	 * @param  array $new_terms Array of terms from cache.
+	 * @param  array  $terms The terms that should be formatted.
+	 * @param  array  $new_terms Array of terms from cache.
 	 * @param  string $type Type of ID to return. Default 'term_id'.
 	 * @since  3.1
 	 * @return array
@@ -298,8 +298,8 @@ class QueryIntegration {
 	/**
 	 * Format the ES hits/results as an array of term names.
 	 *
-	 * @param array  $terms The terms that should be formatted.
-	 * @param array  $new_terms Array of terms from cache.
+	 * @param array $terms The terms that should be formatted.
+	 * @param array $new_terms Array of terms from cache.
 	 * @since  3.1
 	 * @return array Returns an array of term names.
 	 */

@@ -157,7 +157,7 @@ return [
 					'type' => 'long',
 				],
 				'taxonomy'         => [
-					'type' => 'string',
+					'type'   => 'string',
 					'fields' => [
 						'description' => [
 							'type' => 'string',
@@ -189,10 +189,10 @@ return [
 				'meta'             => [
 					'type' => 'object',
 				],
-				'hierarchy'         => [
+				'hierarchy'        => [
 					'type' => 'object',
 				],
-				'object_ids'         => [
+				'object_ids'       => [
 					'type' => 'object',
 				],
 			],

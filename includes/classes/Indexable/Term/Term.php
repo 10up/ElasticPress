@@ -432,7 +432,7 @@ class Term extends Indexable {
 
 			if ( $built_meta_queries ) {
 				$filter['bool']['must'][] = $built_meta_queries;
-				$use_filters = true;
+				$use_filters              = true;
 			}
 		}
 
@@ -569,7 +569,12 @@ class Term extends Indexable {
 	 * @return array
 	 */
 	public function query_db( $args ) {
-		$all_query = new WP_Term_Query( [ 'count' => true, 'fields' => 'ids' ] );
+		$all_query = new WP_Term_Query(
+			[
+				'count'  => true,
+				'fields' => 'ids',
+			]
+		);
 
 		$defaults = [
 			'number'     => $this->get_bulk_items_per_page(),
@@ -714,7 +719,7 @@ class Term extends Indexable {
 	/**
 	 * Prepare term hierarchy to send to ES
 	 *
-	 * @param  int $term_id Term ID.
+	 * @param  int    $term_id Term ID.
 	 * @param  string $taxonomy Term taxonomy.
 	 * @since  3.1
 	 * @return array
@@ -729,7 +734,7 @@ class Term extends Indexable {
 			$children_count                 = 0;
 
 			foreach ( $children as $child_term_id ) {
-				$child_term = get_term( $child_term_id );
+				$child_term      = get_term( $child_term_id );
 				$children_count += (int) $child_term->count;
 			}
 
@@ -751,7 +756,7 @@ class Term extends Indexable {
 	/**
 	 * Prepare object IDs to send to ES
 	 *
-	 * @param  int $term_id Term ID.
+	 * @param  int    $term_id Term ID.
 	 * @param  string $taxonomy Term taxonomy.
 	 * @since  3.1
 	 * @return array

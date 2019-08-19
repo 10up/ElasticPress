@@ -87,7 +87,7 @@ class SyncManager extends SyncManagerAbstract {
 	/**
 	 * When term relationships are updated, queue the terms for reindex
 	 *
-	 * @param int $object_id Object ID.
+	 * @param int   $object_id Object ID.
 	 * @param array $terms An array of term objects.
 	 * @since 3.1
 	 */
