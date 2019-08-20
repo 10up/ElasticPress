@@ -500,26 +500,6 @@ class Elasticsearch {
 	 * @return boolean
 	 */
 	public function put_mapping( $index, $mapping ) {
-		/**
-		 * We are removing shard/replica defaults but need to maintain the filters
-		 * for backwards compat.
-		 *
-		 * @since 1.4
-		 */
-		global $wp_filter;
-		if ( ! empty( $wp_filter['ep_default_index_number_of_shards'] ) ) {
-			if ( empty( $mapping['settings']['index'] ) ) {
-				$mapping['settings']['index'] = array();
-			}
-			$mapping['settings']['index']['number_of_shards'] = (int) apply_filters( 'ep_default_index_number_of_shards', 5 ); // Default within Elasticsearch
-		}
-		if ( ! empty( $wp_filter['ep_default_index_number_of_replicas'] ) ) {
-			if ( empty( $mapping['settings']['index'] ) ) {
-				$mapping['settings']['index'] = array();
-			}
-			$mapping['settings']['index']['number_of_replicas'] = (int) apply_filters( 'ep_default_index_number_of_replicas', 1 );
-		}
-
 		$mapping = apply_filters( 'ep_config_mapping', $mapping, $index );
 
 		$request_args = [
