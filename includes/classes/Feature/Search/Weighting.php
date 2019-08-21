@@ -122,11 +122,11 @@ class Weighting {
 		 * we add them as enabled by default
 		 */
 		$post_type_taxonomies = get_object_taxonomies( $post_type );
-		$enabled_by_default = [ 'post_tag', 'category' ];
+		$enabled_by_default   = [ 'post_tag', 'category' ];
 
 		foreach ( $enabled_by_default as $default_tax ) {
-			if ( in_array( $default_tax, $post_type_taxonomies ) ) {
-				$post_type_defaults['terms.' . $default_tax . '.name'] = [
+			if ( in_array( $default_tax, $post_type_taxonomies, true ) ) {
+				$post_type_defaults[ 'terms.' . $default_tax . '.name' ] = [
 					'enabled' => true,
 					'weight'  => 1,
 				];
