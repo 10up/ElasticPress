@@ -251,13 +251,16 @@ class WooCommerce extends Feature {
 
 		$supported_taxonomies = array(
 			'product_cat',
-			'pa_brand',
 			'product_tag',
 			'product_type',
-			'pa_sort-by',
 			'product_visibility',
 			'product_shipping_class',
 		);
+
+		// Add in any attribute taxonomies that exist
+		$attribute_taxonomies = wc_get_attribute_taxonomy_names();
+
+		$supported_taxonomies = array_merge( $supported_taxonomies, $attribute_taxonomies );
 
 		/**
 		 * Add support for custom taxonomies.
