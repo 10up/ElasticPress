@@ -441,6 +441,15 @@ class AdminNotices {
 		// First reduce version to major version i.e. 5.1 not 5.1.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
+		// pad a version to have at least two parts (5 -> 5.0)
+		$parts = explode( '.', $major_es_version );
+
+		if ( 1 === count( $parts ) ) {
+			$parts[] = 0;
+		}
+
+		$major_es_version = implode( '.', $parts );
+
 		if ( 1 === version_compare( EP_ES_VERSION_MIN, $major_es_version ) ) {
 			return [
 				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ),
