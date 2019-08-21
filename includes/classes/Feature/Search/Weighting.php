@@ -117,6 +117,22 @@ class Weighting {
 			],
 		];
 
+		/*
+		 * Previous behavior had post_tag and category enabled by default, so if this is supported on the post type
+		 * we add them as enabled by default
+		 */
+		$post_type_taxonomies = get_object_taxonomies( $post_type );
+		$enabled_by_default = [ 'post_tag', 'category' ];
+
+		foreach ( $enabled_by_default as $default_tax ) {
+			if ( in_array( $default_tax, $post_type_taxonomies ) ) {
+				$post_type_defaults['terms.' . $default_tax . '.name'] = [
+					'enabled' => true,
+					'weight'  => 1,
+				];
+			}
+		}
+
 		return apply_filters( 'ep_weighting_default_post_type_weights', $post_type_defaults, $post_type );
 	}
 
@@ -357,7 +373,7 @@ class Weighting {
 					if ( 0 !== $weight ) {
 						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 					}
-				} elseif ( isset( $weights[ $field ] ) && false === $weights[ $field ]['enabled'] ) {
+				} else {
 					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
 					if ( 'author_name' === $field ) {
 						unset( $fieldset['fields'][ array_search( 'post_author.login', $fieldset['fields'], true ) ] );
@@ -390,6 +406,14 @@ class Weighting {
 	 * @return array Formatted ES args
 	 */
 	public function do_weighting( $formatted_args, $args ) {
+		/*
+		 * If search fields is set on the query, we should use those instead of the weighting, since the query was
+		 * overridden by some custom code
+		 */
+		if ( isset( $args['search_fields'] ) && ! empty( $args['search_fields'] ) ) {
+			return $formatted_args;
+		}
+
 		$weight_config = $this->get_weighting_configuration();
 
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );

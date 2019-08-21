@@ -1433,9 +1433,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
-		// Only check for fields which are provided in search_fields and weighting.
-		// Weighting always defaults to enabling post_title, so we assume that will match as well
-		// unless disabled in the UI
+		// Only check for fields which are provided in search_fields
+		// If search_fields is set, it will override/ignore any weighting settings in the UI
 		$args = array(
 			's'             => 'findme',
 			'search_fields' => array(
@@ -1445,8 +1444,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
