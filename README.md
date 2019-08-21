@@ -20,7 +20,7 @@ ElasticPress integrates with several WordPress APIs (e.g. [WP_Query](http://code
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 1.7+ (5.0+ highly recommended) **ElasticSearch max version supported: 6.3**
+* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 6.3**
 * [WordPress](http://wordpress.org) 3.7.1+
 * [PHP](https://php.net/) 5.4+
 
