@@ -123,11 +123,13 @@ function sanitize_credentials( $credentials ) {
 function is_indexing() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$index_meta = get_site_option( 'ep_index_meta', false );
+		$wpcli_sync = get_site_transient( 'ep_wpcli_sync' );
 	} else {
 		$index_meta = get_option( 'ep_index_meta', false );
+		$wpcli_sync = get_transient( 'ep_wpcli_sync' );
 	}
 
-	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) ) );
+	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) || ! empty( $wpcli_sync ) ) );
 }
 
 /**

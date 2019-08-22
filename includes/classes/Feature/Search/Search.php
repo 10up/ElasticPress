@@ -83,7 +83,6 @@ class Search extends Feature {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 10, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
-		add_action( 'pre_get_posts', [ $this, 'improve_default_search' ], 10, 1 );
 	}
 
 	/**
@@ -135,44 +134,6 @@ class Search extends Feature {
 		}
 
 		return $post_type;
-	}
-
-	/**
-	 * Integrate search with ElasticPress and enhance search fields
-	 *
-	 * @param  WP_Query $query WP Query
-	 * @since  3.0
-	 */
-	public function improve_default_search( $query ) {
-		if ( is_admin() ) {
-			return;
-		}
-
-		/**
-		 * Make sure this is an ElasticPress search query
-		 */
-		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || ! $query->is_search() ) {
-			return;
-		}
-
-		$search_fields = $query->get( 'search_fields' );
-
-		// Set search fields if they are not set
-		if ( empty( $search_fields ) ) {
-			$query->set(
-				'search_fields',
-				array(
-					'post_title',
-					'post_content',
-					'post_excerpt',
-					'author_name',
-					'taxonomies' => array(
-						'post_tag',
-						'category',
-					),
-				)
-			);
-		}
 	}
 
 	/**

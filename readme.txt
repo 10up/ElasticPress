@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 5.2
+Tested up to: 5.3
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -42,6 +42,15 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 5. Enjoy!
 
 == Changelog ==
+
+= 3.1.3 =
+This is a bug fix release.
+
+* Check wpcli transient before integrating with queries
+* Fix version comparison bug when comparing Elasticsearch versions
+* Use proper taxonomy name for WooCommerce attributes.
+* Increase Elasticsearch minimum supported version to 5.0
+* Fix product attribute archives
 
 = 3.1.2 =
 This is a bug fix release with some filter additions.

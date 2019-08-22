@@ -610,7 +610,7 @@ class User extends Indexable {
 		$defaults = [
 			'number'  => 350,
 			'offset'  => 0,
-			'orderby' => 'id',
+			'orderby' => 'ID',
 			'order'   => 'desc',
 		];
 

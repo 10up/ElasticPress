@@ -21,15 +21,10 @@ $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 /**
  * Make sure we only test on 1 shard because any more will lead to inconsitent results
  *
- * @param  array $mapping Index mapping
  * @since  3.0
  */
-function test_shard_number( $mapping ) {
-	$mapping['settings']['index'] = array(
-		'number_of_shards' => 1,
-	);
-
-	return $mapping;
+function test_shard_number() {
+	return 1;
 }
 
 /**
@@ -55,7 +50,7 @@ function load_plugin() {
 	include_once __DIR__ . '/../vendor/woocommerce/woocommerce.php';
 	require_once __DIR__ . '/../elasticpress.php';
 
-	add_filter( 'ep_config_mapping', __NAMESPACE__ . '\test_shard_number' );
+	add_filter( 'ep_default_index_number_of_shards', __NAMESPACE__ . '\test_shard_number' );
 
 	$tries = 5;
 	$sleep = 3;

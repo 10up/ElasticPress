@@ -264,7 +264,7 @@ class Facets extends Feature {
 
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
 			$tax_query[] = [
-				'taxonomy' => $taxonomy,
+				'taxonomy' => wc_attribute_taxonomy_name( $taxonomy ),
 				'field'    => 'slug',
 				'terms'    => array_keys( $filter['terms'] ),
 				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
