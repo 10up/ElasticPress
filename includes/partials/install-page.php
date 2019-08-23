@@ -26,7 +26,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 <div class="wrap intro">
 	<h1><?php esc_html_e( 'A Fast and Flexible Search and Query Engine for WordPress.', 'elasticpress' ); ?></h1>
 
-	<?php if ( isset( $_GET['install_complete'] ) ) : ?>
+	<?php if ( isset( $_GET['install_complete'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
 		<div class="intro-container-success">
 			<h2 class="setup-complete">Setup Completed!</h2>
 			<div class="ep-circle red-ep-circle ep-config-success">
@@ -50,7 +50,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				<div class="ep-circle <?php echo 2 === $install_status ? 'red-ep-circle' : 'white-ep-circle'; ?> ep-middle-circle">
 					<?php esc_html_e( 'Step', 'elasticpress' ); ?><p>2</p>
 				</div>
-				<h2><?php esc_html_e( 'Set up hosting', 'elasticpress' ); ?></h2>
+				<h2><?php esc_html_e( 'Set up Elasticsearch hosting', 'elasticpress' ); ?></h2>
 				<p class="ep-copy-text">
 					<?php echo wp_kses_post( __( 'The next step is to make sure you have a working Elasticsearch server. We recommend creating an <a href="https://elasticpress.io">ElasticPress.io</a> account or if you want you can set up your own hosting.', 'elasticpress' ) ); ?>
 				</p>

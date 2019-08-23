@@ -1433,7 +1433,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
-		// Only check for fields which are provided in search_fields.
+		// Only check for fields which are provided in search_fields
+		// If search_fields is set, it will override/ignore any weighting settings in the UI
 		$args = array(
 			's'             => 'findme',
 			'search_fields' => array(

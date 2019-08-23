@@ -326,7 +326,7 @@ abstract class Indexable {
 		$meta_types = [];
 
 		if ( is_array( $meta_value ) || is_object( $meta_value ) ) {
-			$meta_value = serialize( $meta_value );
+			$meta_value = serialize( $meta_value ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
 		}
 
 		$meta_types['value'] = $meta_value;

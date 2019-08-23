@@ -610,7 +610,7 @@ class User extends Indexable {
 		$defaults = [
 			'number'  => 350,
 			'offset'  => 0,
-			'orderby' => 'id',
+			'orderby' => 'ID',
 			'order'   => 'desc',
 		];
 
@@ -654,6 +654,8 @@ class User extends Indexable {
 
 		if ( version_compare( $es_version, '5.0', '<' ) ) {
 			$mapping_file = 'pre-5-0.php';
+		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
+			$mapping_file = '7-0.php';
 		}
 
 		$mapping = require apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/' . $mapping_file );

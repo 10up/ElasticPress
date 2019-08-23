@@ -11,6 +11,7 @@ const config = {
 		dashboard: './assets/js/dashboard.js',
 		facets: './assets/js/facets.js',
 		sites_admin: './assets/js/sites-admin.js',
+		ordering: './assets/js/ordering/index.js'
 	},
 	output: {
 		path: DIST_PATH,

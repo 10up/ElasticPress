@@ -87,9 +87,10 @@ class RelatedPosts extends Feature {
 	 */
 	public function find_related( $post_id, $return = 5 ) {
 		$args = array(
-			'more_like'      => $post_id,
-			'posts_per_page' => $return,
-			'ep_integrate'   => true,
+			'more_like'           => $post_id,
+			'posts_per_page'      => $return,
+			'ep_integrate'        => true,
+			'ignore_sticky_posts' => true,
 		);
 
 		$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );

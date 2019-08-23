@@ -2,6 +2,8 @@
 /**
  * ElasticPress admin notice handler
  *
+ * phpcs:disable WordPress.WP.I18n.MissingTranslatorsComment
+ *
  * @since  3.0
  * @package elasticpress
  */
@@ -190,7 +192,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) {
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return false;
 		}
 
@@ -268,7 +270,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) {
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return false;
 		}
 
@@ -334,7 +336,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) {
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return false;
 		}
 
@@ -439,6 +441,15 @@ class AdminNotices {
 		// First reduce version to major version i.e. 5.1 not 5.1.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
+		// pad a version to have at least two parts (5 -> 5.0)
+		$parts = explode( '.', $major_es_version );
+
+		if ( 1 === count( $parts ) ) {
+			$parts[] = 0;
+		}
+
+		$major_es_version = implode( '.', $parts );
+
 		if ( 1 === version_compare( EP_ES_VERSION_MIN, $major_es_version ) ) {
 			return [
 				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ),
@@ -473,10 +484,6 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( in_array( Screen::factory()->get_current_screen(), [ 'settings', 'dashboard', 'install' ], true ) ) {
-			return false;
-		}
-
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dismiss = get_site_option( 'ep_hide_es_above_compat_notice', false );
 		} else {
@@ -493,7 +500,7 @@ class AdminNotices {
 		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
 			return [
 				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ),
-				'type'    => 'notice',
+				'type'    => 'warning',
 				'dismiss' => true,
 			];
 		}

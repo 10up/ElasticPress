@@ -53,17 +53,17 @@ class Screen {
 			}
 		}
 
-		if ( ! empty( $_GET['page'] ) && false !== strpos( $_GET['page'], 'elasticpress' ) ) {
+		if ( ! empty( $_GET['page'] ) && false !== strpos( $_GET['page'], 'elasticpress' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$install_status = Installer::factory()->get_install_status();
 
 			$this->screen = 'install';
 
-			if ( 'elasticpress' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+			if ( 'elasticpress' === $_GET['page'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$this->screen = 'dashboard';
 				}
-			} elseif ( 'elasticpress-settings' === $_GET['page'] ) {
-				if ( true === $install_status || 2 === $install_status || isset( $_GET['do_sync'] ) ) {
+			} elseif ( 'elasticpress-settings' === $_GET['page'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+				if ( true === $install_status || 2 === $install_status || isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$this->screen = 'settings';
 				}
 			}

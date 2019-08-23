@@ -169,7 +169,7 @@ function maybe_clear_es_info_cache() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
+	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		return;
 	}
 
@@ -179,7 +179,7 @@ function maybe_clear_es_info_cache() {
 		delete_transient( 'ep_es_info' );
 	}
 
-	if ( ! empty( $_GET['ep-retry'] ) ) {
+	if ( ! empty( $_GET['ep-retry'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		wp_safe_redirect( remove_query_arg( 'ep-retry' ) );
 	}
 }
@@ -228,7 +228,7 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
 	$new_actions = [];
 
 	if ( basename( EP_PATH ) . '/elasticpress.php' === $plugin_file ) {
-		$new_actions['ep_dashboard'] = sprintf( __( '<a href="%s">Dashboard</a>', 'elasticpress' ), esc_url( $url ) );
+		$new_actions['ep_dashboard'] = sprintf( '<a href="%s">%s</a>', esc_url( $url ), __( 'Dashboard', 'elasticpress' ) );
 	}
 
 	return array_merge( $new_actions, $plugin_actions );
@@ -623,7 +623,7 @@ function action_admin_enqueue_dashboard_scripts() {
 			$index_meta['wpcli_sync'] = true;
 		}
 
-		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) {
+		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$data['auto_start_index'] = true;
 		}
 

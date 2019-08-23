@@ -2,6 +2,8 @@
 /**
  * WP-CLI command for ElasticPress
  *
+ * phpcs:disable WordPress.WP.I18n.MissingTranslatorsComment
+ *
  * @since  3.0
  * @package elasticpress
  */
@@ -194,7 +196,9 @@ class Command extends WP_CLI_Command {
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
 
-		$this->put_mapping_helper( $args, $assoc_args );
+		if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
+			exit( 1 );
+		}
 	}
 
 	/**
@@ -203,6 +207,7 @@ class Command extends WP_CLI_Command {
 	 * @since 3.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
+	 * @return boolean
 	 */
 	private function put_mapping_helper( $args, $assoc_args ) {
 		$indexables = null;
@@ -247,7 +252,9 @@ class Command extends WP_CLI_Command {
 					if ( $result ) {
 						WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 					} else {
-						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+
+						return false;
 					}
 				}
 
@@ -272,7 +279,9 @@ class Command extends WP_CLI_Command {
 				if ( $result ) {
 					WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 				} else {
-					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+
+					return false;
 				}
 			}
 		}
@@ -298,9 +307,13 @@ class Command extends WP_CLI_Command {
 			if ( $result ) {
 				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 			} else {
-				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+
+				return false;
 			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -390,7 +403,7 @@ class Command extends WP_CLI_Command {
 
 			$indexable->delete_network_alias();
 
-			$create_result = $this->create_network_alias_helper();
+			$create_result = $this->create_network_alias_helper( $indexable );
 
 			if ( $create_result ) {
 				WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
@@ -482,7 +495,11 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
 
 			// Right now setup is just the put_mapping command, as this also deletes the index(s) first.
-			$this->put_mapping_helper( $args, $assoc_args );
+			if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
+				$this->delete_transient();
+
+				exit( 1 );
+			}
 		}
 
 		$all_indexables               = Indexables::factory()->get_all();
@@ -522,6 +539,8 @@ class Command extends WP_CLI_Command {
 					WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
 
 					if ( ! empty( $result['errors'] ) ) {
+						$this->delete_transient();
+
 						WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], count( $result['errors'] ) ) );
 					}
 				}
@@ -549,6 +568,8 @@ class Command extends WP_CLI_Command {
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
+					$this->delete_transient();
+
 					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
 				}
 			}
@@ -587,6 +608,8 @@ class Command extends WP_CLI_Command {
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
+					$this->delete_transient();
+
 					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
 				}
 			}
@@ -594,11 +617,7 @@ class Command extends WP_CLI_Command {
 
 		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
 
-		if ( $this->is_network_transient ) {
-			delete_site_transient( 'ep_wpcli_sync' );
-		} else {
-			delete_transient( 'ep_wpcli_sync' );
-		}
+		$this->delete_transient();
 
 		WP_CLI::success( esc_html__( 'Done!', 'elasticpress' ) );
 	}
@@ -808,6 +827,8 @@ class Command extends WP_CLI_Command {
 
 		// make sure we actually have something to index.
 		if ( empty( $this->objects ) ) {
+			$this->delete_transient();
+
 			WP_CLI::error( 'There are no objects to index.' );
 		}
 
@@ -818,6 +839,8 @@ class Command extends WP_CLI_Command {
 		do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $this->objects );
 
 		if ( is_wp_error( $response ) ) {
+			$this->delete_transient();
+
 			WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
 		}
 
@@ -1111,6 +1134,19 @@ class Command extends WP_CLI_Command {
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+		}
+	}
+
+	/**
+	 * Delete transient that indicates indexing is occuring
+	 *
+	 * @since 3.1
+	 */
+	private function delete_transient() {
+		if ( $this->is_network_transient ) {
+			delete_site_transient( 'ep_wpcli_sync' );
+		} else {
+			delete_transient( 'ep_wpcli_sync' );
 		}
 	}
 
