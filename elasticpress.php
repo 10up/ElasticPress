@@ -163,7 +163,7 @@ Dashboard\setup();
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	WP_CLI::add_command( 'elasticpress', __NAMESPACE__ . '\Command' );
-	WP_CLI::add_hook( 'after_invoke:elasticpress', __NAMESPACE__ . '\Command::test' );
+	WP_CLI::add_hook( 'after_invoke:elasticpress', __NAMESPACE__ . '\Command::delete_sync_transient' );
 }
 
 /**
