@@ -47,6 +47,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 	}
 
 	/**
@@ -80,11 +81,11 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
-				if ( apply_filters( 'ep_post_sync_kill', false, $object_id ) ) {
+				if ( apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id ) ) {
 					return;
 				}
 
-				$this->sync_queue[ $object_id ] = true;
+				$this->add_to_queue( $object_id );
 			}
 		}
 	}
@@ -158,12 +159,37 @@ class SyncManager extends SyncManagerAbstract {
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				do_action( 'ep_sync_on_transition', $post_id );
 
-				if ( apply_filters( 'ep_post_sync_kill', false, $post_id ) ) {
+				if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
 					return;
 				}
 
-				$this->sync_queue[ $post_id ] = true;
+				$this->add_to_queue( $post_id );
 			}
 		}
+	}
+
+	/**
+	 * Create mapping and network alias when a new blog is created.
+	 *
+	 * @param WP_Site $blog New site object.
+	 */
+	public function action_create_blog_index( $blog ) {
+		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			return;
+		}
+
+		$non_global_indexable_objects = Indexables::factory()->get_all( false );
+
+		switch_to_blog( $blog->blog_id );
+
+		foreach ( $non_global_indexable_objects as $indexable ) {
+			$indexable->delete_index();
+			$indexable->put_mapping();
+
+			$index_name = $indexable->get_index_name( $blog->blog_id );
+			$indexable->create_network_alias( [ $index_name ] );
+		}
+
+		restore_current_blog();
 	}
 }

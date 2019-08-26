@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import jQuery from 'jquery';
 import { ajaxurl, epDash } from 'window';
 
@@ -9,6 +10,13 @@ const $startSyncButton = jQuery( document.getElementsByClassName( 'start-sync' )
 const $resumeSyncButton = jQuery( document.getElementsByClassName( 'resume-sync' ) );
 const $pauseSyncButton = jQuery( document.getElementsByClassName( 'pause-sync' ) );
 const $cancelSyncButton = jQuery( document.getElementsByClassName( 'cancel-sync' ) );
+const $epCredentialsTab = jQuery( document.getElementsByClassName( 'ep-credentials-tab' ) );
+const $epCredentialsHostLabel = jQuery( '.ep-host-row label' );
+const $epCredentialsHostLegend = jQuery( document.getElementsByClassName( 'ep-host-legend' ) );
+const $epCredentialsAdditionalFields = jQuery( document.getElementsByClassName( 'ep-additional-fields' ) );
+const epHostField = document.getElementById( 'ep_host' );
+const epHost = epHostField ? epHostField.value : null;
+let epHostNewValue = '';
 
 let syncStatus = 'sync',
 	featureSync = false,
@@ -363,8 +371,8 @@ function sync() {
 			syncStatus = 'finished';
 			updateSyncDash();
 
-			if( ! epDash.intro_shown ) {
-				document.location.replace( epDash.ep_intro_url );
+			if ( epDash.install_sync ) {
+				document.location.replace( epDash.install_complete_url );
 			}
 
 		} else {
@@ -417,4 +425,39 @@ $cancelSyncButton.on( 'click', () => {
 	updateSyncDash();
 
 	cancelSync();
+} );
+
+if ( epHostField ) {
+	epHostField.addEventListener( 'input', ( e ) => {
+		epHostNewValue = e.target.value;
+	} );
+}
+
+$epCredentialsTab.on( 'click', ( e ) => {
+	const epio = null !== e.currentTarget.getAttribute( 'data-epio' );
+	const $target = jQuery( e.currentTarget );
+	const initial = $target.hasClass( 'initial' );
+
+	e.preventDefault();
+
+	if ( initial && !epHostField.disabled ) {
+		epHostField.value = epHost;
+	} else {
+		epHostField.value = epHostNewValue;
+	}
+
+	$epCredentialsTab.removeClass( 'nav-tab-active' );
+	$target.addClass( 'nav-tab-active' );
+
+	if ( epio ) {
+		$epCredentialsHostLabel.text( 'ElasticPress.io Host URL' );
+		$epCredentialsHostLegend.text( 'Plug in your ElasticPress.io server here!' );
+		$epCredentialsAdditionalFields.show();
+		$epCredentialsAdditionalFields.attr( 'aria-hidden', 'false' );
+	} else {
+		$epCredentialsHostLabel.text( 'Elasticsearch Host URL' );
+		$epCredentialsHostLegend.text( 'Plug in your Elasticsearch server here!' );
+		$epCredentialsAdditionalFields.hide();
+		$epCredentialsAdditionalFields.attr( 'aria-hidden', 'true' );
+	}
 } );
