@@ -1179,4 +1179,10 @@ class Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Deletes CLI Indexing transient
+	 */
+	public function delete_sync_transient() {
+		delete_transient( 'ep_wpcli_sync' );
+	}
 }
