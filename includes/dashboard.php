@@ -369,7 +369,7 @@ function action_wp_ajax_ep_index() {
 				}
 			}
 
-			if ( 0 === count( $index_meta['sync_stack'] ) ) {
+			if ( 0 === count( $index_meta['sync_stack'] ) && empty( $global_indexables ) ) {
 				wp_send_json_error( [ 'found_items' => 0, 'offset' => 0 ] );
 
 				return;
@@ -400,10 +400,25 @@ function action_wp_ajax_ep_index() {
 			$index_meta['feature_sync'] = esc_attr( $_POST['feature_sync'] );
 		}
 
-		foreach ( $global_indexables as $indexable ) {
-			$index_meta['sync_stack'][] = [
-				'indexable' => $indexable,
-			];
+		// Handle global indexables case if non globals disabled
+		if ( 0 === count( $index_meta['sync_stack'] ) && ! in_array( $index_meta['current_sync_item']['indexable'], $non_global_indexables, true ) ) {
+			foreach ( $sites as $site ) {
+				foreach ( $global_indexables as $indexable ) {
+					$index_meta['sync_stack'][] = [
+						'url'       => untrailingslashit( $site['domain'] . $site['path'] ),
+						'blog_id'   => (int) $site['blog_id'],
+						'indexable' => $indexable,
+					];
+				}
+			}
+			$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
+
+		} else {
+			foreach ( $global_indexables as $indexable ) {
+				$index_meta['sync_stack'][] = [
+					'indexable' => $indexable,
+				];
+			}
 		}
 
 		do_action( 'ep_dashboard_start_index', $index_meta );
