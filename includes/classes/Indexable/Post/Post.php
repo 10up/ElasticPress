@@ -579,26 +579,42 @@ class Post extends Indexable {
 		// set tax_query if it's implicitly set in the query.
 		// e.g. $args['tag'], $args['category_name'].
 		if ( empty( $args['tax_query'] ) ) {
-			if ( ! empty( $args['category_name'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['category_name'] ),
-					'field'    => 'slug',
-				);
-			} elseif ( ! empty( $args['cat'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['cat'] ),
-					'field'    => 'id',
-				);
-			}
-
-			if ( ! empty( $args['tag'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => array( $args['tag'] ),
-					'field'    => 'slug',
-				);
+			switch ( $args ) {
+				case ! empty( $args['category_name'] ):
+					$args['tax_query'][] = array(
+						'taxonomy' => 'category',
+						'terms'    => array( $args['category_name'] ),
+						'field'    => 'slug',
+					);
+					break;
+				case ! empty( $args['cat'] ):
+					$args['tax_query'][] = array(
+						'taxonomy' => 'category',
+						'terms'    => array( $args['cat'] ),
+						'field'    => 'id',
+					);
+					break;
+				case ! empty( $args['tag'] ):
+					$args['tax_query'][] = array(
+						'taxonomy' => 'post_tag',
+						'terms'    => array( $args['tag'] ),
+						'field'    => 'slug',
+					);
+					break;
+				case ! empty( $args['tag__and'] ):
+					$args['tax_query'][]   = array(
+						'taxonomy' => 'post_tag',
+						'terms'    => $args['tag__and'],
+						'field'    => 'term_id',
+					);
+					break;
+				case ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ):
+					$args['tax_query'][]   = array(
+						'taxonomy' => 'post_tag',
+						'terms'    => $args['tag_id'],
+						'field'    => 'term_id',
+					);
+					break;
 			}
 		}
 
