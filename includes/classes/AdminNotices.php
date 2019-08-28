@@ -14,6 +14,7 @@ use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Screen;
 use ElasticPress\Features;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -39,6 +40,7 @@ class AdminNotices {
 		'upgrade_sync',
 		'auto_activate_sync',
 		'using_autosuggest_defaults',
+		'maybe_wrong_mapping',
 	];
 
 	/**
@@ -572,6 +574,61 @@ class AdminNotices {
 	}
 
 	/**
+	 *
+	 */
+	protected function process_maybe_wrong_mapping_notice() {
+		$host = Utils\get_host();
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
+
+		if ( false == $es_version ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_maybe_wrong_mapping_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_maybe_wrong_mapping_notice', false );
+		}
+
+		if ( $dismiss == $es_version ) {
+			return false;
+		}
+
+		$mapping_file_wanted = '5-2.php';
+		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
+			$mapping_file_wanted = 'pre-5-0.php';
+		} elseif ( version_compare( $es_version, '5.0', '>=' ) && version_compare( $es_version, '5.2', '<' ) ) {
+			$mapping_file_wanted = '5-0.php';
+		} elseif ( version_compare( $es_version, '5.2', '>=' ) && version_compare( $es_version, '7.0', '<' ) ) {
+			$mapping_file_wanted = '5-2.php';
+		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
+			$mapping_file_wanted = '7-0.php';
+		}
+
+		$post_index           = Indexables::factory()->get( 'post' )->get_index_name();
+		$mapping_file_current = Elasticsearch::factory()->determine_mapping_version( $post_index );
+
+		if ( ! $mapping_file_current || $mapping_file_wanted != $mapping_file_current ) {
+			$html = sprintf( __( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the <i>--setup</i> flag.', 'elasticpress' ) );
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( __( 'Current mapping: %1$s , Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '</span>';
+			}
+
+			return [
+				'html'    => $html,
+				'type'    => 'error',
+				'dismiss' => true,
+			];
+
+		}
+
+	}
+	/**
 	 * Get notices that should be displayed
 	 *
 	 * @since  3.0
@@ -588,10 +645,15 @@ class AdminNotices {
 	 * @since  3.0
 	 */
 	public function dismiss_notice( $notice ) {
+		$value = true;
+		// allow version dependent dismissal
+		if ( in_array( $notice, [ 'maybe_wrong_mapping' ] ) ) {
+			$value = Elasticsearch::factory()->get_elasticsearch_version( false );
+		}
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_hide_' . $notice . '_notice', true );
+			update_site_option( 'ep_hide_' . $notice . '_notice', $value );
 		} else {
-			update_option( 'ep_hide_' . $notice . '_notice', true );
+			update_option( 'ep_hide_' . $notice . '_notice', $value );
 		}
 	}
 
