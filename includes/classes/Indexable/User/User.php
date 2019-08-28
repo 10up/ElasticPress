@@ -571,7 +571,7 @@ class User extends Indexable {
 				} elseif ( 'meta_value' === $orderby_clause ) {
 					if ( ! empty( $query_vars['meta_key'] ) ) {
 						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.value' => array(
+							'meta.' . $query_vars['meta_key'] . '.raw' => array(
 								'order' => $order,
 							),
 						);
