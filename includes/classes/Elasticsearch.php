@@ -576,15 +576,15 @@ class Elasticsearch {
 			// check for pre-5-0 mapping
 			if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'] ) ) {
 				$val = $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'];
-				if ( ! $val || $val != 10922 ) {
+				if ( ! $val || 10922 !== $val ) {
 					$version = 'pre-5-0.php';
-				} elseif ( $val && $val == 10922 ) {
+				} elseif ( $val && 10922 === $val ) {
 					$version = 'not-pre-5-0';
 				}
 			}
 
 			// check for 5-0 mapping
-			if ( 'not-pre-5-0' == $version ) {
+			if ( 'not-pre-5-0' === $version ) {
 				if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_content_filtered']['fields'] ) ) {
 					$version = '5-0.php';
 				} else {
@@ -593,7 +593,7 @@ class Elasticsearch {
 			}
 
 			// check for 5-2 mapping
-			if ( 'not-5-0' == $version ) {
+			if ( 'not-5-0' === $version ) {
 				if ( isset( $mapping[ $index ]['mappings']['post']['_all'] ) ) {
 					$version = '5-2.php';
 				} else {
@@ -602,7 +602,7 @@ class Elasticsearch {
 			}
 
 			// check for 7-0 mapping
-			if ( 'not-5-2' == $version ) {
+			if ( 'not-5-2' === $version ) {
 				if ( isset( $mapping[ $index ]['settings']['index.max_shingle_diff'] ) ) {
 					$version = '7-0.php';
 				} else {

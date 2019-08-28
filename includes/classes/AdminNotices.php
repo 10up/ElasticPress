@@ -574,7 +574,14 @@ class AdminNotices {
 	}
 
 	/**
+	 * Determine if the wrong mapping might be installed
 	 *
+	 * Type: error
+	 * Dismiss: Always dismissable per es_version as custom mapping could exist
+	 * Show: All screens
+	 *
+	 * @since   3.1.5
+	 * @return array|bool
 	 */
 	protected function process_maybe_wrong_mapping_notice() {
 		$host = Utils\get_host();
