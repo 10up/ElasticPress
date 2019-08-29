@@ -584,24 +584,34 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_maybe_wrong_mapping_notice() {
-		$host = Utils\get_host();
-		if ( empty( $host ) ) {
-			return false;
-		}
-
-		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
-
-		if ( false == $es_version ) {
-			return false;
-		}
-
+		// we might have this dismissed
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dismiss = get_site_option( 'ep_hide_maybe_wrong_mapping_notice', false );
 		} else {
 			$dismiss = get_option( 'ep_hide_maybe_wrong_mapping_notice', false );
 		}
 
-		if ( $dismiss == $es_version ) {
+		// we need a host
+		$host = Utils\get_host();
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		// we also need a version
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
+
+		if ( false == $es_version ) {
+			return false;
+		}
+
+		// we also likely need a sync to have a mapping
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
 			return false;
 		}
 
