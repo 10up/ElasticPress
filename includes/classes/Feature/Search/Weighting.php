@@ -455,7 +455,7 @@ class Weighting {
 				// Check for any segments with null fields from recursively_inject function and remove them
 				if ( isset( $current_query['bool'] ) && isset( $current_query['bool']['should'] ) ) {
 					foreach ( $current_query['bool']['should'] as $index => $current_bool_should ) {
-						if ( null === $current_bool_should['multi_match'] ) {
+						if ( isset( $current_bool_should['multi_match'] ) && null === $current_bool_should['multi_match'] ) {
 							unset( $current_query['bool']['should'][ $index ] );
 						}
 					}
