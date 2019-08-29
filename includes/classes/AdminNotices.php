@@ -605,16 +605,7 @@ class AdminNotices {
 			return false;
 		}
 
-		$mapping_file_wanted = '5-2.php';
-		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
-			$mapping_file_wanted = 'pre-5-0.php';
-		} elseif ( version_compare( $es_version, '5.0', '>=' ) && version_compare( $es_version, '5.2', '<' ) ) {
-			$mapping_file_wanted = '5-0.php';
-		} elseif ( version_compare( $es_version, '5.2', '>=' ) && version_compare( $es_version, '7.0', '<' ) ) {
-			$mapping_file_wanted = '5-2.php';
-		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
-			$mapping_file_wanted = '7-0.php';
-		}
+		$mapping_file_wanted = Indexables::factory()->get( 'post' )->get_mapping_name();
 
 		$post_index           = Indexables::factory()->get( 'post' )->get_index_name();
 		$mapping_file_current = Elasticsearch::factory()->determine_mapping_version( $post_index );

@@ -118,12 +118,12 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Send mapping to Elasticsearch
+	 * Determine required mapping file
 	 *
-	 * @since  3.0
-	 * @return array
+	 * @since 3.1.5
+	 * @return string
 	 */
-	public function put_mapping() {
+	public function get_mapping_name() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -141,6 +141,18 @@ class Post extends Indexable {
 		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
 			$mapping_file = '7-0.php';
 		}
+
+		return $mapping_file;
+	}
+
+	/**
+	 * Send mapping to Elasticsearch
+	 *
+	 * @since  3.0
+	 * @return array
+	 */
+	public function put_mapping() {
+		$mapping_file = $this->get_mapping_name();
 
 		$mapping = require apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file );
 
