@@ -4595,7 +4595,7 @@ class TestPost extends BaseTestCase {
 		$args  = array(
 			's'              => 'findme',
 			'post_type'      => 'post',
-			'tag__and'       => array( $post_1_tags[1], $post_2_tags[1] ),
+			'tag__and'       => array( $post_1_tags[1]->term_id, $post_2_tags[1]->term_id ),
 		);
 
 		$query = new \WP_Query( $args );
@@ -4606,7 +4606,7 @@ class TestPost extends BaseTestCase {
 		$args  = array(
 			's'              => 'findme',
 			'post_type'      => 'post',
-			'tag_id'         => $post_3_tags[1]
+			'tag_id'         => $post_3_tags[1]->term_id
 		);
 
 		$query = new \WP_Query( $args );
