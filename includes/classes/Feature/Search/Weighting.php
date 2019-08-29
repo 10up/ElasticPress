@@ -395,6 +395,11 @@ class Weighting {
 				$this->recursively_inject_weights_to_fields( $field, $weights );
 			}
 		}
+
+		// Most likely to occur with the ordering results not being allowed in fuzzy, and weighting turning off fields for this otherwise
+		if ( isset( $fieldset['fields'] ) && empty( $fieldset['fields'] ) ) {
+			$fieldset = null;
+		}
 	}
 
 	/**
@@ -445,6 +450,15 @@ class Weighting {
 				} else {
 					// Use the default values for the post type
 					$this->recursively_inject_weights_to_fields( $current_query, $this->get_post_type_default_settings( $post_type ) );
+				}
+
+				// Check for any segments with null fields from recursively_inject function and remove them
+				if ( isset( $current_query['bool'] ) && isset( $current_query['bool']['should'] ) ) {
+					foreach ( $current_query['bool']['should'] as $index => $current_bool_should ) {
+						if ( null === $current_bool_should['multi_match'] ) {
+							unset( $current_query['bool']['should'][ $index ] );
+						}
+					}
 				}
 
 				$new_query['bool']['should'][] = [
