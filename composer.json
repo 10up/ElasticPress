@@ -26,12 +26,12 @@
     }
   ],
   "require": {
-    "php": ">=5.6",
-    "phpunit/phpunit": "^7"
+    "php": ">=5.6"
   },
   "require-dev": {
     "10up/phpcs-composer": "dev-master",
-    "wpackagist-plugin/woocommerce":"*"
+    "wpackagist-plugin/woocommerce":"*",
+    "phpunit/phpunit": "^7"
   },
   "scripts": {
     "lint": "phpcs .",
