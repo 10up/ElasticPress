@@ -619,6 +619,9 @@ class AdminNotices {
 
 		$post_index           = Indexables::factory()->get( 'post' )->get_index_name();
 		$mapping_file_current = Elasticsearch::factory()->determine_mapping_version( $post_index );
+		if ( is_wp_error( $mapping_file_current ) ) {
+			return false;
+		}
 
 		if ( ! $mapping_file_current || $mapping_file_wanted != $mapping_file_current ) {
 			$html = sprintf( __( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the <i>--setup</i> flag.', 'elasticpress' ) );

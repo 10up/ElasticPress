@@ -615,7 +615,7 @@ class Elasticsearch {
 			}
 		}
 
-		return $version;
+		return apply_filters( 'ep_post_mapping_version_determined', $version );
 	}
 
 	/**

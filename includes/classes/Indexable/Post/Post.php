@@ -142,7 +142,7 @@ class Post extends Indexable {
 			$mapping_file = '7-0.php';
 		}
 
-		return $mapping_file;
+		return apply_filters( 'ep_post_mapping_version', $mapping_file );
 	}
 
 	/**

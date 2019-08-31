@@ -29,6 +29,15 @@ class TestAdminNotices extends BaseTestCase {
 
 		wp_set_current_user( $admin_id );
 
+		$this->real_es_version = ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true );
+
+		add_filter(
+			'ep_elasticsearch_version',
+			function() {
+				return (int) EP_ES_VERSION_MAX - 1;
+			}
+		);
+
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
@@ -38,16 +47,16 @@ class TestAdminNotices extends BaseTestCase {
 
 		$this->current_host = get_option( 'ep_host' );
 
+		// always ensure mappings line up to avoid false positive notices
+		$mapping_file = ElasticPress\Indexables::factory()->get( 'post' )->get_mapping_name();
+		$mapping      = function() use ( $mapping_file ) {
+			return $mapping_file;
+		};
+		add_filter( 'ep_post_mapping_version_determined', $mapping );
+
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
 		set_current_screen();
-
-		add_filter(
-			'ep_elasticsearch_version',
-			function() {
-				return (int) EP_ES_VERSION_MAX - 1;
-			}
-		);
 	}
 
 	/**
@@ -398,5 +407,106 @@ class TestAdminNotices extends BaseTestCase {
 
 		$this->assertEquals( 1, count( $notices ) );
 		$this->assertTrue( ! empty( $notices['auto_activate_sync'] ) );
+	}
+
+
+	/**
+	 * Conditions:
+	 *
+	 * - In admin
+	 * - Host set
+	 * - Sync has occurred
+	 * - No upgrade sync is needed
+	 * - Feature auto activate sync is not needed
+	 * - Elasticsearch version within bounds
+	 * - Autosuggest not active
+	 * - Mapping version equals determined mapping version
+	 *
+	 * Do: Show no notice
+	 *
+	 * @group admin-notices
+	 * @since 3.1.5
+	 */
+	public function testValidMappingNoticeInAdmin() {
+		update_site_option( 'ep_last_sync', time() );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		update_site_option( 'ep_feature_auto_activated_sync', false );
+
+		// We need to do a proper sync with real version to ensure the index is in place
+		// and we do not get a 404 when requesting the mapping version.
+		$es_version = $this->real_es_version;
+		add_filter(
+			'ep_elasticsearch_version',
+			function() use ( $es_version ) {
+				return $es_version;
+			}
+		);
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+
+		$mapping_file = ElasticPress\Indexables::factory()->get( 'post' )->get_mapping_name();
+		$mapping      = function() use ( $mapping_file ) {
+			return $mapping_file;
+		};
+		add_filter( 'ep_post_mapping_version_determined', $mapping );
+
+		ElasticPress\Screen::factory()->set_current_screen( null );
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertEquals( 0, count( $notices ) );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - In admin
+	 * - Host set
+	 * - Sync has occurred
+	 * - No upgrade sync is needed
+	 * - Feature auto activate sync is not needed
+	 * - Elasticsearch version within bounds
+	 * - Autosuggest not active
+	 * - ES Mapping Version <> Determined mapping
+	 *
+	 * Do: Show mapping notice
+	 *
+	 * @group admin-notices
+	 * @since 3.1.5
+	 */
+	public function testInvalidMappingNoticeInAdmin() {
+		update_site_option( 'ep_last_sync', time() );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		update_site_option( 'ep_feature_auto_activated_sync', false );
+
+		// We need to do a proper sync with real version to ensure the index is in place
+		// and we do not get a 404 when requesting the mapping version.
+		$es_version = $this->real_es_version;
+		add_filter(
+			'ep_elasticsearch_version',
+			function() use ( $es_version ) {
+				return $es_version;
+			}
+		);
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+
+		$mapping = function() {
+			return 'idonotmatch';
+		};
+		add_filter( 'ep_post_mapping_version', $mapping );
+
+		ElasticPress\Screen::factory()->set_current_screen( null );
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertEquals( 1, count( $notices ) );
+		$this->assertTrue( ! empty( $notices['maybe_wrong_mapping'] ) );
 	}
 }
