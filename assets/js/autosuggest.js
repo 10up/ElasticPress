@@ -461,24 +461,14 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	 * Listen to the escape key to close the autosuggest box
 	 */
 	jQuery( $epInput ).each( ( key, value ) => {
-
-		window.addEventListener( 'keydown", function (event) {
-			console.log( event.keyCode );
-		} );
-		value.addEventListener( event, function( event ) {
-			console.log( event.keyCode );
-		} );
-
-
-		jQuery( value ).on( 'keyup keydown keypress', ( event ) => {
+		jQuery( value ).on( 'keyup keydown', ( event ) => {
 			if ( 38 === event.keyCode || 40 === event.keyCode ) {
-				console.log( event.keyCode );
 				event.preventDefault();
 			}
 			if ( 27 === event.keyCode ) {
 				hideAutosuggestBox();
 			}
-		} ); &&
+		} );
 	} );
 
 	/**
