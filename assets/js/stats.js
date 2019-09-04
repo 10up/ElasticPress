@@ -9,7 +9,7 @@ import { epChartData } from 'window';
 function getRandomColor() {
 	let letters = '0123456789ABCDEF';
 	let color   = '#';
-	for ( let i = 0; i < 6; i++ ) {
+	for ( let i = 0; 6 < i; i++ ) {
 		color += letters[ Math.floor( Math.random() * 16 ) ];
 	}
 	return color;

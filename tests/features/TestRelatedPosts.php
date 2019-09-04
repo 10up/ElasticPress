@@ -88,7 +88,7 @@ class TestRelatedPosts extends BaseTestCase {
 
 		add_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 		$related = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id );
-		$this->assertEquals( 2, sizeof( $related ) );
+		$this->assertEquals( 2, count( $related ) );
 		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
 		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 	}
@@ -96,7 +96,7 @@ class TestRelatedPosts extends BaseTestCase {
 	/**
 	 * Detect EP fire
 	 *
-	 * @param $args
+	 * @param array $args Query args
 	 * @return mixed
 	 */
 	public function find_related_posts_filter( $args ) {

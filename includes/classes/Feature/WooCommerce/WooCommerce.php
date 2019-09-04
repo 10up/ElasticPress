@@ -237,60 +237,7 @@ class WooCommerce extends Feature {
 	 * @since  2.1
 	 */
 	public function translate_args( $query ) {
-
-		// Lets make sure this doesn't interfere with the CLI
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
-			return;
-		}
-
-		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
-			 ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
-			return;
-		}
-
-		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
-
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
-				return;
-			} else {
-				$admin_integration = true;
-			}
-		}
-
-		if ( is_admin() && ! $admin_integration ) {
-			return;
-		}
-
-		$product_name = $query->get( 'product', false );
-
-		$post_parent = $query->get( 'post_parent', false );
-
-		/**
-		 * Do nothing for single product queries
-		 */
-		if ( ! empty( $product_name ) || $query->is_single() ) {
-			return;
-		}
-
-		/**
-		 * ElasticPress does not yet support post_parent queries
-		 */
-		if ( ! empty( $post_parent ) ) {
-			return;
-		}
-
-		/**
-		 * If this is just a preview, let's not use Elasticsearch.
-		 */
-		if ( $query->get( 'preview', false ) ) {
-			return;
-		}
-
-		/**
-		 * Cant hook into WC API yet
-		 */
-		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
+		if ( ! $this->should_integrate_with_query( $query ) ) {
 			return;
 		}
 
@@ -304,13 +251,16 @@ class WooCommerce extends Feature {
 
 		$supported_taxonomies = array(
 			'product_cat',
-			'pa_brand',
 			'product_tag',
 			'product_type',
-			'pa_sort-by',
 			'product_visibility',
 			'product_shipping_class',
 		);
+
+		// Add in any attribute taxonomies that exist
+		$attribute_taxonomies = wc_get_attribute_taxonomy_names();
+
+		$supported_taxonomies = array_merge( $supported_taxonomies, $attribute_taxonomies );
 
 		/**
 		 * Add support for custom taxonomies.
@@ -457,7 +407,7 @@ class WooCommerce extends Feature {
 				 * Default order when doing search in Woocommerce is 'ASC'
 				 * These lines will change it to 'DESC' as we want to most relevant result
 				 */
-				if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+				if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$query->set( 'order', 'DESC' );
 				}
 
@@ -553,20 +503,28 @@ class WooCommerce extends Feature {
 			}
 
 			/**
-			 * Set orderby and order for price when GET param not set
+			 * Set orderby and order for price/popularity when GET param not set
 			 */
-			if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && 'price' === $query->query_vars['orderby'] && $query->is_main_query() ) {
-				$query->set( 'order', $query->query_vars['order'] );
-				$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+			if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && $query->is_main_query() ) {
+				switch ( $query->query_vars['orderby'] ) {
+					case 'price':
+						$query->set( 'order', $query->query_vars['order'] );
+						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+						break;
+					case 'popularity':
+						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
+						$query->set( 'order', 'DESC' );
+						break;
+				}
 			}
 
 			/**
 			 * Set orderby from GET param
 			 * Also make sure the orderby param affects only the main query
 			 */
-			if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) {
+			if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
 
-				switch ( $_GET['orderby'] ) {
+				switch ( $_GET['orderby'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 					case 'popularity':
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
 						$query->set( 'order', 'DESC' );
@@ -656,6 +614,30 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Sets woocommerce meta search fields to an empty array if we are integrating the main query with ElasticSearch
+	 *
+	 * Woocommerce calls this action as part of its own callback on parse_query. We add this filter only if the query
+	 * is integrated with ElasticSearch.
+	 * If we were to always return array() on this filter, we'd break admin searches when WooCommerce module is activated
+	 * without the Protected Content Module
+	 *
+	 * @param \WP_Query $query Current query
+	 */
+	public function maybe_hook_woocommerce_search_fields( $query ) {
+		global $pagenow, $wp;
+
+		if ( ! $this->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['s'] ) || 'shop_order' !== $wp->query_vars['post_type'] || ! isset( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return;
+		}
+
+		add_filter( 'woocommerce_shop_order_search_fields', [ $this, 'shop_order_search_fields' ], 9999 );
+	}
+
+	/**
 	 * Enhance WooCommerce search order by order id, email, phone number, name, etc..
 	 * What this function does:
 	 * 1. Reverse the woocommerce shop_order_search_custom_fields query
@@ -666,13 +648,17 @@ class WooCommerce extends Feature {
 	 * @since  2.3
 	 */
 	public function search_order( $wp ) {
-		global $pagenow;
-		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
-			 ( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
+		if ( ! $this->should_integrate_with_query( $wp ) ) {
 			return;
 		}
 
-		$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+		global $pagenow;
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
+			( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
+			return;
+		}
+
+		$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		$order_id        = absint( $search_key_safe );
 
 		/**
@@ -733,6 +719,25 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Add WooCommerce Product Attributes to EP Facets.
+	 *
+	 * @param array $taxonomies Taxonomies array
+	 * @return array
+	 */
+	public function add_product_attributes( $taxonomies = [] ) {
+		$attribute_names = wc_get_attribute_taxonomy_names();
+
+		foreach ( $attribute_names as $name ) {
+			if ( ! taxonomy_exists( $name ) ) {
+				continue;
+			}
+			$taxonomies[ $name ] = get_taxonomy( $name );
+		}
+
+		return $taxonomies;
+	}
+
+	/**
 	 * Add WC post type to autosuggest
 	 *
 	 * @param array $post_types Array of post types (e.g. post, page).
@@ -757,15 +762,16 @@ class WooCommerce extends Feature {
 			add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
 			add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
 			add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
-			add_filter( 'woocommerce_shop_order_search_fields', [ $this, 'shop_order_search_fields' ], 9999 );
 			add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 			add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 			add_filter( 'ep_sync_taxonomies', [ $this, 'whitelist_taxonomies' ], 10, 2 );
 			add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
 			add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 			add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
-			add_action( 'parse_query', [ $this, 'search_order' ], 11, 1 );
+			add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
+			add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
+			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
 		}
 	}
 
@@ -823,5 +829,72 @@ class WooCommerce extends Feature {
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Determines whether or not ES should be integrating with the provided query
+	 *
+	 * @param \WP_Query $query Query we might integrate with
+	 *
+	 * @return bool
+	 */
+	protected function should_integrate_with_query( $query ) {
+		// Lets make sure this doesn't interfere with the CLI
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return false;
+		}
+
+		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
+			( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
+			return false;
+		}
+
+		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
+				return false;
+			} else {
+				$admin_integration = true;
+			}
+		}
+
+		if ( is_admin() && ! $admin_integration ) {
+			return false;
+		}
+
+		$product_name = $query->get( 'product', false );
+
+		$post_parent = $query->get( 'post_parent', false );
+
+		/**
+		 * Do nothing for single product queries
+		 */
+		if ( ! empty( $product_name ) || $query->is_single() ) {
+			return false;
+		}
+
+		/**
+		 * ElasticPress does not yet support post_parent queries
+		 */
+		if ( ! empty( $post_parent ) ) {
+			return false;
+		}
+
+		/**
+		 * If this is just a preview, let's not use Elasticsearch.
+		 */
+		if ( $query->get( 'preview', false ) ) {
+			return false;
+		}
+
+		/**
+		 * Cant hook into WC API yet
+		 */
+		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
+			return false;
+		}
+
+		return true;
 	}
 }

@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 return array(
 	'settings' => array(
+		'index.number_of_shards'           => apply_filters( 'ep_default_index_number_of_shards', 5 ),
+		'index.number_of_replicas'         => apply_filters( 'ep_default_index_number_of_replicas', 1 ),
 		'index.mapping.total_fields.limit' => apply_filters( 'ep_user_total_field_limit', 5000 ),
 		'index.max_result_window'          => apply_filters( 'ep_user_max_result_window', 1000000 ),
 		'analysis'                         => array(

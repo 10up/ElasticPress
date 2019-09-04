@@ -46,6 +46,7 @@ class Installer {
 	 */
 	public function filter_admin_title( $admin_title, $title ) {
 		if ( 'install' === Screen::factory()->get_current_screen() ) {
+			// translators: Site Name
 			return sprintf( esc_html__( 'ElasticPress Setup &lsaquo; %s &#8212; WordPress', 'elasticpress' ), esc_html( get_bloginfo( 'name' ) ) );
 		}
 

@@ -38,7 +38,7 @@ function setup() {
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_dashboard_scripts' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_admin_scripts' );
 	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
-	add_action( 'plugins_loaded', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
+	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
 	add_action( 'wp_ajax_ep_index', __NAMESPACE__ . '\action_wp_ajax_ep_index' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
 	add_action( 'wp_ajax_ep_cancel_index', __NAMESPACE__ . '\action_wp_ajax_ep_cancel_index' );
@@ -66,18 +66,22 @@ function filter_allowed_html( $allowedtags, $context ) {
 		$ep_tags = $allowedposttags;
 
 		$atts = [
-			'type'        => true,
-			'checked'     => true,
-			'selected'    => true,
-			'disabled'    => true,
-			'value'       => true,
-			'class'       => true,
-			'data-*'      => true,
-			'id'          => true,
-			'style'       => true,
-			'title'       => true,
-			'name'        => true,
-			'placeholder' => '',
+			'type'            => true,
+			'checked'         => true,
+			'selected'        => true,
+			'disabled'        => true,
+			'value'           => true,
+			'href'            => true,
+			'class'           => true,
+			'data-*'          => true,
+			'data-field-name' => true,
+			'data-ep-notice'  => true,
+			'data-feature'    => true,
+			'id'              => true,
+			'style'           => true,
+			'title'           => true,
+			'name'            => true,
+			'placeholder'     => '',
 		];
 
 		$ep_tags['input']    = $atts;
@@ -94,6 +98,8 @@ function filter_allowed_html( $allowedtags, $context ) {
 			'name'           => true,
 			'target'         => true,
 		];
+
+		$ep_tags['a'] = $atts;
 
 		return $ep_tags;
 	}
@@ -160,7 +166,7 @@ function maybe_clear_es_info_cache() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
+	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		return;
 	}
 
@@ -170,7 +176,7 @@ function maybe_clear_es_info_cache() {
 		delete_transient( 'ep_es_info' );
 	}
 
-	if ( ! empty( $_GET['ep-retry'] ) ) {
+	if ( ! empty( $_GET['ep-retry'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		wp_safe_redirect( remove_query_arg( 'ep-retry' ) );
 	}
 }
@@ -219,7 +225,7 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
 	$new_actions = [];
 
 	if ( basename( EP_PATH ) . '/elasticpress.php' === $plugin_file ) {
-		$new_actions['ep_dashboard'] = sprintf( __( '<a href="%s">Dashboard</a>', 'elasticpress' ), esc_url( $url ) );
+		$new_actions['ep_dashboard'] = sprintf( '<a href="%s">%s</a>', esc_url( $url ), __( 'Dashboard', 'elasticpress' ) );
 	}
 
 	return array_merge( $new_actions, $plugin_actions );
@@ -280,7 +286,10 @@ function maybe_notice( $force = false ) {
 
 	foreach ( $notices as $notice_key => $notice ) {
 		?>
-		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> <?php if ( $notice['dismiss'] ) : ?>is-dismissible<?php endif; ?>">
+		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> <?php
+		if ( $notice['dismiss'] ) :
+			?>
+			is-dismissible<?php endif; ?>">
 			<p>
 				<?php echo wp_kses( $notice['html'], 'ep-html' ); ?>
 			</p>
@@ -582,17 +591,19 @@ function action_admin_enqueue_dashboard_scripts() {
 			$index_meta           = get_site_option( 'ep_index_meta', [] );
 			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
+			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
 			$index_meta           = get_option( 'ep_index_meta', [] );
 			$wpcli_sync           = (bool) get_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
+			$last_sync            = get_option( 'ep_last_sync', false );
 		}
 
 		if ( ! empty( $wpcli_sync ) ) {
 			$index_meta['wpcli_sync'] = true;
 		}
 
-		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) {
+		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$data['auto_start_index'] = true;
 		}
 
@@ -616,7 +627,7 @@ function action_admin_enqueue_dashboard_scripts() {
 			]
 		);
 
-		$data['install_sync']         = empty( get_option( 'ep_last_sync', false ) );
+		$data['install_sync']         = empty( $last_sync );
 		$data['install_complete_url'] = esc_url( $install_complete_url );
 		$data['sync_complete']        = esc_html__( 'Sync complete', 'elasticpress' );
 		$data['sync_paused']          = esc_html__( 'Sync paused', 'elasticpress' );
