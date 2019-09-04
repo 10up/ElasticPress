@@ -37,7 +37,7 @@ function setup() {
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_dashboard_scripts' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_admin_scripts' );
 	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
-	add_action( 'plugins_loaded', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
+	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
 	add_action( 'wp_ajax_ep_index', __NAMESPACE__ . '\action_wp_ajax_ep_index' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
 	add_action( 'wp_ajax_ep_cancel_index', __NAMESPACE__ . '\action_wp_ajax_ep_cancel_index' );
@@ -169,7 +169,7 @@ function maybe_clear_es_info_cache() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		return;
 	}
 
@@ -289,7 +289,10 @@ function maybe_notice( $force = false ) {
 
 	foreach ( $notices as $notice_key => $notice ) {
 		?>
-		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> <?php if ( $notice['dismiss'] ) : ?>is-dismissible<?php endif; ?>">
+		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> <?php
+		if ( $notice['dismiss'] ) :
+			?>
+			is-dismissible<?php endif; ?>">
 			<p>
 				<?php echo wp_kses( $notice['html'], 'ep-html' ); ?>
 			</p>

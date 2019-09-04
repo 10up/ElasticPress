@@ -43,6 +43,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.1.4 =
+https://github.com/10up/ElasticPress/pulls?q=is%3Apr+milestone%3A3.1.4+is%3Aclosed
+
 = 3.1.3 =
 This is a bug fix release.
 
