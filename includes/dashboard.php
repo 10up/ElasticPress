@@ -49,9 +49,9 @@ function setup() {
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
 	add_filter( 'wpmu_blogs_columns', __NAMESPACE__ . '\filter_blogs_columns', 10, 1 );
-	add_action( 'manage_sites_custom_column',  __NAMESPACE__ . '\add_blogs_column', 10, 2 );
-	add_action( 'manage_blogs_custom_column',  __NAMESPACE__ . '\add_blogs_column', 10, 2 );
-    add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
+	add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
+	add_action( 'manage_blogs_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
+	add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
 }
 
 /**
@@ -373,7 +373,12 @@ function action_wp_ajax_ep_index() {
 			}
 
 			if ( 0 === count( $index_meta['sync_stack'] ) && empty( $global_indexables ) ) {
-				wp_send_json_error( [ 'found_items' => 0, 'offset' => 0 ] );
+				wp_send_json_error(
+					[
+						'found_items' => 0,
+						'offset'      => 0,
+					]
+				);
 
 				return;
 			}
@@ -606,15 +611,15 @@ function action_wp_ajax_ep_save_feature() {
  * @since 2.2
  */
 function action_admin_enqueue_dashboard_scripts() {
-    if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'sites-network' ) !== false ) {
-	    wp_enqueue_style( 'ep_admin_sites_styles', EP_URL . 'dist/css/sites-admin.min.css', [], EP_VERSION );
-	    wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/sites_admin.min.js', [ 'jquery' ], EP_VERSION, true );
-	    $data = [
-		    'ajax_url' => admin_url( 'admin-ajax.php' ),
-		    'nonce'    => wp_create_nonce( 'epsa' ),
-	    ];
-	    wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
-    }
+	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'sites-network' ) !== false ) {
+		wp_enqueue_style( 'ep_admin_sites_styles', EP_URL . 'dist/css/sites-admin.min.css', [], EP_VERSION );
+		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/sites_admin.min.js', [ 'jquery' ], EP_VERSION, true );
+		$data = [
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'epsa' ),
+		];
+		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
+	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard.min.css', [], EP_VERSION );
@@ -892,7 +897,7 @@ function filter_blogs_columns( $columns ) {
  * Populate column with checkbox/switch.
  *
  * @param string $column_name The name of the current column.
- * @param int $blog_id The blog ID.
+ * @param int    $blog_id The blog ID.
  *
  * @return void | string
  */
@@ -903,10 +908,10 @@ function add_blogs_column( $column_name, $blog_id ) {
 	}
 	if ( 'elasticpress' === $column_name ) {
 		$is_indexable = get_blog_option( $blog_id, 'ep_indexable', 'yes' );
-		$checked      = ( $is_indexable === 'yes' ) ? 'checked' : '';
-		echo '<label class="switch"><input type="checkbox" ' . $checked . ' class="index-toggle" data-blogId="' . esc_attr( $blog_id ) . '"><span class="slider round"></span></label>';
+		$checked      = ( 'yes' === $is_indexable ) ? 'checked' : '';
+		echo '<label class="switch"><input type="checkbox" ' . esc_attr( $checked ) . ' class="index-toggle" data-blogId="' . esc_attr( $blog_id ) . '"><span class="slider round"></span></label>';
 		echo '<span class="switch-label" id="switch-label-' . esc_attr( $blog_id ) . '">';
-		echo ( $is_indexable === 'yes' ) ? 'On' : 'Off';
+		echo ( 'yes' === $is_indexable ) ? 'On' : 'Off';
 		echo '</span>';
 	}
 
@@ -920,7 +925,7 @@ function action_wp_ajax_ep_site_admin() {
 	$blog_id = ( ! empty( $_GET['blog_id'] ) ) ? absint( wp_unslash( $_GET['blog_id'] ) ) : - 1;
 	$checked = ( ! empty( $_GET['checked'] ) ) ? sanitize_text_field( wp_unslash( $_GET['checked'] ) ) : 'no';
 
-	if ( $blog_id === - 1 || ! check_ajax_referer( 'epsa', 'nonce', false ) ) {
+	if ( - 1 === $blog_id || ! check_ajax_referer( 'epsa', 'nonce', false ) ) {
 		return wp_send_json_error();
 	}
 	$old    = get_blog_option( $blog_id, 'ep_indexable' );
