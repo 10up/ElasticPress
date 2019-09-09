@@ -1,8 +1,8 @@
 name: Deploy to WordPress.org
 on:
   push:
-    branches:
-    - refs/tags/*
+    tags:
+    - "*"
 jobs:
   tag:
     name: New tag
