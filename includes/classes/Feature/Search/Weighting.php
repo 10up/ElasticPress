@@ -376,7 +376,10 @@ class Weighting {
 				} else {
 					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
 					if ( 'author_name' === $field ) {
-						unset( $fieldset['fields'][ array_search( 'post_author.login', $fieldset['fields'], true ) ] );
+						$author_key = array_search( 'post_author.login', $fieldset['fields'], true );
+						if ( false !== $author_key ) {
+							unset( $fieldset['fields'][ $author_key ] );
+						}
 					}
 					unset( $fieldset['fields'][ $key ] );
 				}
