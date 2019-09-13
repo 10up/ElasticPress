@@ -66,6 +66,10 @@ class Screen {
 				if ( true === $install_status || 2 === $install_status || isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 					$this->screen = 'settings';
 				}
+			} elseif ( 'elasticpress-health' === $_GET['page'] ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+					$this->screen = 'health';
+				}
 			}
 		}
 	}
@@ -76,14 +80,19 @@ class Screen {
 	 * @since 3.0
 	 */
 	public function output() {
-		$install_status = Installer::factory()->get_install_status();
-
-		if ( 'dashboard' === $this->screen ) {
-			require_once __DIR__ . '/../partials/dashboard-page.php';
-		} elseif ( 'settings' === $this->screen ) {
-			require_once __DIR__ . '/../partials/settings-page.php';
-		} elseif ( 'install' === $this->screen ) {
-			require_once __DIR__ . '/../partials/install-page.php';
+		switch ( $this->screen ) {
+			case 'dashboard':
+				require_once __DIR__ . '/../partials/dashboard-page.php';
+				break;
+			case 'settings':
+				require_once __DIR__ . '/../partials/settings-page.php';
+				break;
+			case 'install':
+				require_once __DIR__ . '/../partials/install-page.php';
+				break;
+			case 'health':
+				require_once __DIR__ . '/../partials/stats-page.php';
+				break;
 		}
 	}
 
