@@ -359,10 +359,10 @@ function action_wp_ajax_ep_index() {
 			$sites = Utils\get_sites();
 
 			foreach ( $sites as $site ) {
-				$is_indexable = get_blog_option( (int) $site['blog_id'], 'ep_indexable', 'yes' );
-				if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
 					continue;
 				}
+
 				foreach ( $non_global_indexables as $indexable ) {
 					$index_meta['sync_stack'][] = [
 						'url'       => untrailingslashit( $site['domain'] . $site['path'] ),
@@ -888,7 +888,7 @@ function use_language_in_setting( $language = 'english' ) {
  * @return string[]
  */
 function filter_blogs_columns( $columns ) {
-	$columns['elasticpress'] = __( 'ElasticPress Indexing', 'elasticpress' );
+	$columns['elasticpress'] = esc_html__( 'ElasticPress Indexing', 'elasticpress' );
 
 	return $columns;
 }
@@ -911,7 +911,12 @@ function add_blogs_column( $column_name, $blog_id ) {
 		$checked      = ( 'yes' === $is_indexable ) ? 'checked' : '';
 		echo '<label class="switch"><input type="checkbox" ' . esc_attr( $checked ) . ' class="index-toggle" data-blogId="' . esc_attr( $blog_id ) . '"><span class="slider round"></span></label>';
 		echo '<span class="switch-label" id="switch-label-' . esc_attr( $blog_id ) . '">';
-		echo ( 'yes' === $is_indexable ) ? 'On' : 'Off';
+		if ( 'yes' === $is_indexable ) {
+			esc_html_e( 'On', 'elasticpress' );
+		} else {
+			esc_html_e( 'Off', 'elasticpress' );
+		}
+
 		echo '</span>';
 	}
 
