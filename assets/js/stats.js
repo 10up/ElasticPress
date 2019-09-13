@@ -28,7 +28,7 @@ barData.forEach( function( data ) {
 	barColors.push( getRandomColor() );
 } );
 
-let documentChart = new Chart( document.getElementById( 'documentChart' ), {
+new Chart( document.getElementById( 'documentChart' ), {
 	type: 'horizontalBar',
 	data: {
 		labels: barLabels,
@@ -50,7 +50,7 @@ let documentChart = new Chart( document.getElementById( 'documentChart' ), {
 	}
 } );
 
-let queriesTotalChart = new Chart( document.getElementById( 'queriesTotalChart' ), {
+new Chart( document.getElementById( 'queriesTotalChart' ), {
 	type: 'pie',
 	data: {
 		labels: [ 'Indexing operations', 'Total Query operations' ],
@@ -88,7 +88,7 @@ let queriesTotalChart = new Chart( document.getElementById( 'queriesTotalChart' 
 	}
 } );
 
-let queriesTimeChart = new Chart( document.getElementById( 'queriesTimeChart' ), {
+new Chart( document.getElementById( 'queriesTimeChart' ), {
 	type: 'pie',
 	data: {
 		labels: [ 'Avg indexing time in ms', 'Avg query time in ms' ],
