@@ -640,18 +640,9 @@ function action_admin_enqueue_dashboard_scripts() {
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
-		$data                           = Stats::factory()->get_localized();
-		$data['index_total']            = esc_html( $data['index_total'] );
-		$data['index_time_in_millis']   = esc_html( $data['index_time_in_millis'] );
-		$data['query_total']            = esc_html( $data['query_total'] );
-		$data['query_time_in_millis']   = esc_html( $data['query_time_in_millis'] );
-		$data['suggest_time_in_millis'] = esc_html( $data['suggest_time_in_millis'] );
-		$data['suggest_total']          = esc_html( $data['suggest_total'] );
+		Stats::factory()->build_stats();
 
-		foreach ( $data['indices_data'] as $index_name => $index ) {
-			$data['indices_data'][ $index_name ]['name'] = esc_html( $data['indices_data'][ $index_name ]['name'] );
-			$data['indices_data'][ $index_name ]['docs'] = esc_html( $data['indices_data'][ $index_name ]['docs'] );
-		}
+		$data = Stats::factory()->get_localized();
 
 		wp_enqueue_script( 'ep_stats', EP_URL . 'dist/js/stats.min.js', [], EP_VERSION, true );
 		wp_localize_script( 'ep_stats', 'epChartData', $data );

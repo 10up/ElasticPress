@@ -26,15 +26,19 @@ class Stats {
 	 * @var array
 	 * @since  3.0
 	 */
-	protected $health_data;
+	protected $health = [];
 
 	/**
 	 * Overall stats of the cluster
 	 *
 	 * @var array
-	 * @since  3.0
+	 * @since  3.2
 	 */
-	protected $totals;
+	protected $totals = [
+		'size'   => 0,
+		'memory' => 0,
+		'docs'   => 0,
+	];
 
 	/**
 	 * Later localized data.
@@ -42,9 +46,17 @@ class Stats {
 	 * Used for chart building purposes
 	 *
 	 * @var array
-	 * @since 3.0
+	 * @since 3.2
 	 */
-	protected $localized_data;
+	protected $localized = [
+		'index_total'            => 0,
+		'index_time_in_millis'   => 0,
+		'query_total'            => 0,
+		'query_time_in_millis'   => 0,
+		'suggest_time_in_millis' => 0,
+		'suggest_total'          => 0,
+		'indices_data'           => [],
+	];
 
 	/**
 	 * Cluster node data.
@@ -52,86 +64,83 @@ class Stats {
 	 * Used to determine cluster health
 	 *
 	 * @var int
-	 * @since 3.0
+	 * @since 3.2
 	 */
-	protected $nodes;
+	protected $nodes = 0;
 
 	/**
 	 * Makes an api call to elasticsearch endpoint
 	 *
-	 * @param  string $endpoint_url Elasticsearch endpoint
-	 * @param  string $additional_endpoint Any additional endpoints to append
+	 * @param  string $path Endpoint path to query
+	 * @since 3.2
 	 * @return array|mixed|object
 	 */
-	protected function api_call( $endpoint_url, $additional_endpoint ) {
-		$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
+	protected function remote_request_helper( $path ) {
+		$request = Elasticsearch::factory()->remote_request( $path );
 
-		try {
-			$query = http_build_query( [ 'format' => 'json' ], null, '&', PHP_QUERY_RFC3986 );
-			$url   = trailingslashit( $endpoint_url ) . trailingslashit( $additional_endpoint ) . '?' . $query;
-
-			$api_call = wp_remote_get( $url, $request_args );
-			if ( is_wp_error( $api_call ) ) {
-				$result = [
-					'success' => false,
-					'errors'  => $api_call->get_error_message(),
-				];
-			} else {
-				$result = json_decode( $api_call['body'] );
-			}
-		} catch ( \Exception $e ) {
-			$result = [
-				'success' => false,
-				'errors'  => $e->getMessage(),
-			];
+		if ( is_wp_error( $request ) || empty( $request ) ) {
+			return false;
 		}
-		return $result;
+
+		$body = wp_remote_retrieve_body( $request );
+
+		return json_decode( $body, true );
 	}
 
 	/**
 	 * Makes api calls and organizes data depending on the specified context.
 	 *
-	 * @param string $context Needed context to retrieve specific data
+	 * @param  boolean $force Force stats to be built even if cached
+	 * @since 3.2
 	 */
-	public function retrieve_endpoint_data( $context ) {
-		if ( in_array( $context, [ 'localize', 'totals', 'health', 'nodes' ], true ) ) {
-			$host  = Utils\get_host();
-			$stats = $this->api_call( $host, '_stats' );
+	public function build_stats( $force = false ) {
+		static $stats_built = false;
 
-			if ( 'localize' === $context ) {
-				$this->localized_data['index_total']            = $stats->_all->total->indexing->index_total;
-				$this->localized_data['index_time_in_millis']   = $stats->_all->total->indexing->index_time_in_millis;
-				$this->localized_data['query_total']            = $stats->_all->total->search->query_total;
-				$this->localized_data['query_time_in_millis']   = $stats->_all->total->search->query_time_in_millis;
-				$this->localized_data['suggest_time_in_millis'] = $stats->_all->total->search->suggest_time_in_millis;
-				$this->localized_data['suggest_total']          = $stats->_all->total->search->suggest_total;
+		if ( $stats_built && ! $force ) {
+			return;
+		}
 
-				foreach ( $stats->indices as $index_name => $current_index ) {
-					$this->localized_data['indices_data'][ $index_name ]['name'] = $index_name;
-					$this->localized_data['indices_data'][ $index_name ]['docs'] = $stats->indices->$index_name->total->docs->count;
-				}
-			} elseif ( 'health' === $context ) {
-				$this->health_data = [];
-				$indices           = $this->api_call( $host, '_cat/indices' );
+		$stats_built = true;
 
-				foreach ( $indices as  $index ) {
-					$this->health_data[ $index->index ]['name']   = $index->index;
-					$this->health_data[ $index->index ]['health'] = $index->health;
-				}
-			} elseif ( 'totals' === $context ) {
-				$this->totals           = [];
-				$this->totals['docs']   = $stats->_all->total->docs->count;
-				$this->totals['size']   = $stats->_all->total->store->size_in_bytes;
-				$this->totals['memory'] = $stats->_all->primaries->segments->memory_in_bytes;
-			} elseif ( 'nodes' === $context ) {
-				if ( Utils\is_epio() ) {
-					$node_stats  = $this->api_call( $host, '_nodes/stats/discovery' );
-					$this->nodes = $node_stats->_nodes->total;
-				} else {
-					$node_stats  = $this->api_call( $host, '_nodes/stats' );
-					$this->nodes = $node_stats->_nodes->total;
-				}
+		$stats = $this->remote_request_helper( '_stats?format=json' );
+
+		if ( empty( $stats ) || empty( $stats['_all'] ) || empty( $stats['_all']['total'] ) ) {
+			return;
+		}
+
+		$this->localized['index_total']            = $stats['_all']['total']['indexing']['index_total'];
+		$this->localized['index_time_in_millis']   = $stats['_all']['total']['indexing']['index_time_in_millis'];
+		$this->localized['query_total']            = $stats['_all']['total']['search']['query_total'];
+		$this->localized['query_time_in_millis']   = $stats['_all']['total']['search']['query_time_in_millis'];
+		$this->localized['suggest_time_in_millis'] = $stats['_all']['total']['search']['suggest_time_in_millis'];
+		$this->localized['suggest_total']          = $stats['_all']['total']['search']['suggest_total'];
+
+		foreach ( $stats['indices'] as $index_name => $current_index ) {
+			$this->localized['indices_data'][ $index_name ]['name'] = $index_name;
+			$this->localized['indices_data'][ $index_name ]['docs'] = $stats['indices'][ $index_name ]['total']['docs']['count'];
+		}
+
+		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
+
+		if ( ! empty( $indices ) ) {
+			foreach ( $indices as  $index ) {
+				$this->health[ $index['index'] ]['name']   = $index['index'];
+				$this->health[ $index['index'] ]['health'] = $index['health'];
 			}
+		}
+
+		$this->totals['docs']   = $stats['_all']['total']['docs']['count'];
+		$this->totals['size']   = $stats['_all']['total']['store']['size_in_bytes'];
+		$this->totals['memory'] = $stats['_all']['primaries']['segments']['memory_in_bytes'];
+
+		if ( Utils\is_epio() ) {
+			$node_stats = $this->remote_request_helper( '_nodes/stats/discovery?format=json' );
+		} else {
+			$node_stats = $this->remote_request_helper( '_nodes/stats?format=json' );
+		}
+
+		if ( ! empty( $node_stats ) ) {
+			$this->nodes = $node_stats['_nodes']['total'];
 		}
 	}
 
@@ -139,52 +148,58 @@ class Stats {
 	 * Get index list and health data of an elasticsearch endpoint
 	 *
 	 * @return array
+	 * @since 3.2
 	 */
 	public function get_health() {
-		$this->retrieve_endpoint_data( 'health' );
-		return $this->health_data;
+		return $this->health;
 	}
 
 	/**
 	 * Get number of nodes in the current cluster
 	 *
+	 * @since 3.2
 	 * @return int
 	 */
 	public function get_nodes() {
-		$this->retrieve_endpoint_data( 'nodes' );
 		return $this->nodes;
 	}
 
 	/**
 	 * Gets relevant total data of an elasticsearch endpoint
 	 *
+	 * @since 3.2
 	 * @return array
 	 */
 	public function get_totals() {
-		$this->retrieve_endpoint_data( 'totals' );
 		return $this->totals;
 	}
 
 	/**
 	 * Gets localized data
 	 *
+	 * @since 3.2
 	 * @return mixed Data used in localization for chart creation.
 	 */
 	public function get_localized() {
-		$this->retrieve_endpoint_data( 'localize' );
-		return $this->localized_data;
+		return $this->localized;
 	}
 
 	/**
 	 * Converts a number to a readable size format.
 	 *
 	 * @param  int $size Desired number to convert
+	 * @since 3.2
 	 * @return string Size with appended unit
 	 */
 	public function convert_to_readable_size( $size ) {
+		if ( empty( $size ) ) {
+			return 0;
+		}
+
 		$base   = log( $size ) / log( 1024 );
 		$suffix = array( '', 'KB', 'MB', 'GB', 'TB' );
 		$f_base = floor( $base );
+
 		return round( pow( 1024, $base - floor( $base ) ), 1 ) . $suffix[ $f_base ];
 	}
 
@@ -192,7 +207,7 @@ class Stats {
 	 * Return singleton instance of class
 	 *
 	 * @return self
-	 * @since 3.0
+	 * @since 3.2
 	 */
 	public static function factory() {
 		static $instance = false;

@@ -15,12 +15,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/header.php';
 
-if ( ! empty( \ElasticPress\Utils\get_host() ) ) :
-	$index_health = Stats::factory()->get_health();
-	$totals       = Stats::factory()->get_totals();
-	?>
-	<div class="wrap metabox-holder">
-		<h1><?php esc_html_e( 'Index Health', 'elasticpress' ); ?></h1>
+Stats::factory()->build_stats();
+
+$index_health = Stats::factory()->get_health();
+$totals       = Stats::factory()->get_totals();
+?>
+<div class="wrap metabox-holder">
+	<h1><?php esc_html_e( 'Index Health', 'elasticpress' ); ?></h1>
+
+	<?php if ( ! empty( $index_health ) ) : ?>
 		<div class="ep-flex-container">
 			<div class="stats-list postbox">
 				<h2 class="hndle stats-list-th"><span><?php esc_html_e( 'Index list', 'elasticpress' ); ?></span><span><?php esc_html_e( 'Health', 'elasticpress' ); ?></span></h2>
@@ -68,10 +71,7 @@ if ( ! empty( \ElasticPress\Utils\get_host() ) ) :
 				</div>
 			</div>
 		</div>
-	</div>
-<?php else : ?>
-<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>
-	<div class="wrap">
-		<h1><?php esc_html_e( 'Index Health', 'elasticpress' ); ?></h1>
-	</div>
+	<?php else : ?>
+		<p><?php echo wp_kses( __( 'We could not find any data for your Elasticsearch indices. Maybe you need to <a href="admin.php?page=elasticpress">sync your content</a>?', 'elasticpress' ), 'ep-html' ); ?></p>
 	<?php endif; ?>
+</div>
