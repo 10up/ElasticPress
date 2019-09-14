@@ -80,6 +80,8 @@ class Screen {
 	 * @since 3.0
 	 */
 	public function output() {
+		$install_status = Installer::factory()->get_install_status();
+
 		switch ( $this->screen ) {
 			case 'dashboard':
 				require_once __DIR__ . '/../partials/dashboard-page.php';
