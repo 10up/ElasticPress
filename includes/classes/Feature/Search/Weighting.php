@@ -358,6 +358,12 @@ class Weighting {
 			return;
 		}
 
+		if ( ! empty( $weights['author_name'] ) ) {
+			$weights['post_author.login'] = $weights['author_name'];
+
+			unset( $weights['author_name'] );
+		}
+
 		if ( is_array( $fieldset ) && isset( $fieldset['fields'] ) ) {
 			// Add any fields to the search that aren't already in there (weighting handled in next step)
 			foreach ( $weights as $field => $settings ) {
@@ -374,10 +380,6 @@ class Weighting {
 						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 					}
 				} else {
-					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
-					if ( 'author_name' === $field ) {
-						unset( $fieldset['fields'][ array_search( 'post_author.login', $fieldset['fields'], true ) ] );
-					}
 					unset( $fieldset['fields'][ $key ] );
 				}
 				// else: Leave anything that isn't explicitly disabled alone. Could have been added by search_fields, and if it is not present in the UI, we shouldn't touch it here
@@ -455,7 +457,7 @@ class Weighting {
 				// Check for any segments with null fields from recursively_inject function and remove them
 				if ( isset( $current_query['bool'] ) && isset( $current_query['bool']['should'] ) ) {
 					foreach ( $current_query['bool']['should'] as $index => $current_bool_should ) {
-						if ( isset( $current_bool_should['multi_match'] ) && null === $current_bool_should['multi_match'] ) {
+						if ( empty( $current_bool_should['multi_match'] ) ) {
 							unset( $current_query['bool']['should'][ $index ] );
 						}
 					}
