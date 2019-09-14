@@ -81,11 +81,46 @@ class SearchOrdering extends Feature {
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'filter_default_post_type_weights' ], 10, 2 );
 		add_filter( 'enter_title_here', [ $this, 'filter_enter_title_here' ] );
 		add_filter( 'manage_' . self::POST_TYPE_NAME . '_posts_columns', [ $this, 'filter_column_names' ] );
+		add_filter( 'post_updated_messages', [ $this, 'filter_updated_messages' ] );
 
 		// Deals with trashing/untrashing/deleting
 		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
 		add_action( 'before_delete_post', [ $this, 'handle_post_trash' ] );
 		add_action( 'untrashed_post', [ $this, 'handle_post_untrash' ] );
+	}
+
+	/**
+	 * Add updated messages for post type
+	 *
+	 * @param  array $messages Messages array
+	 * @since  3.2
+	 * @return array
+	 */
+	public function filter_updated_messages( $messages ) {
+		$post             = get_post();
+		$post_type        = get_post_type( $post );
+		$post_type_object = get_post_type_object( $post_type );
+
+		$messages[ self::POST_TYPE_NAME ] = array(
+			0  => '',
+			1  => esc_html__( 'Custom result updated.', 'elasticpress' ),
+			2  => esc_html__( 'Custom field updated.', 'elasticpress' ),
+			3  => esc_html__( 'Custom field deleted.', 'elasticpress' ),
+			4  => esc_html__( 'Custom result updated.', 'elasticpress' ),
+			/* translators: %s: date and time of the revision */
+			5  => isset( $_GET['revision'] ) ? sprintf( __( 'Custom result restored to revision from %s', 'elasticpress' ), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
+			6  => esc_html__( 'Custom result published.', 'elasticpress' ),
+			7  => esc_html__( 'Custom result saved.', 'elasticpress' ),
+			8  => esc_html__( 'Custom result submitted.', 'elasticpress' ),
+			9  => sprintf(
+				esc_html__( 'Custom result scheduled for: %1$s.', 'elasticpress' ),
+				// translators: Publish box date format, see http://php.net/date
+				date_i18n( esc_html__( 'M j, Y @ G:i', 'elasticpress' ), strtotime( $post->post_date ) )
+			),
+			10 => esc_html__( 'Custom result draft updated.', 'elasticpress' ),
+		);
+
+		return $messages;
 	}
 
 	/**
@@ -103,7 +138,7 @@ class SearchOrdering extends Feature {
 		$search = $features->get_registered_feature( 'search' );
 
 		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, __( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
+			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
 		}
 
 		return parent::requirements_status();
@@ -144,7 +179,7 @@ class SearchOrdering extends Feature {
 	 * Adds the search ordering to the admin menu
 	 */
 	public function admin_menu() {
-		add_submenu_page( 'elasticpress', __( 'Custom Results', 'elasticpress' ), __( 'Custom Results', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
+		add_submenu_page( 'elasticpress', esc_html__( 'Custom Results', 'elasticpress' ), esc_html__( 'Custom Results', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
 	}
 
 	/**
@@ -199,25 +234,25 @@ class SearchOrdering extends Feature {
 		$menu       = $is_network ? null : false;
 
 		$labels = array(
-			'name'               => _x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
-			'singular_name'      => _x( 'Custom Search Result', 'post type singular name', 'elasticpress' ),
-			'menu_name'          => _x( 'Custom Search Results', 'admin menu', 'elasticpress' ),
-			'name_admin_bar'     => _x( 'Custom Search Result', 'add new on admin bar', 'elasticpress' ),
-			'add_new'            => _x( 'Add New', 'book', 'elasticpress' ),
-			'add_new_item'       => __( 'Add New Custom Search Result', 'elasticpress' ),
-			'new_item'           => __( 'New Custom Search Result', 'elasticpress' ),
-			'edit_item'          => __( 'Edit Custom Search Result', 'elasticpress' ),
-			'view_item'          => __( 'View Custom Search Result', 'elasticpress' ),
-			'all_items'          => __( 'All Custom Search Results', 'elasticpress' ),
-			'search_items'       => __( 'Search Custom Search Results', 'elasticpress' ),
-			'parent_item_colon'  => __( 'Parent Custom Search Result:', 'elasticpress' ),
-			'not_found'          => __( 'No results found.', 'elasticpress' ),
-			'not_found_in_trash' => __( 'No results found in Trash.', 'elasticpress' ),
+			'name'               => esc_html_x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
+			'singular_name'      => esc_html_x( 'Custom Search Result', 'post type singular name', 'elasticpress' ),
+			'menu_name'          => esc_html_x( 'Custom Search Results', 'admin menu', 'elasticpress' ),
+			'name_admin_bar'     => esc_html_x( 'Custom Search Result', 'add new on admin bar', 'elasticpress' ),
+			'add_new'            => esc_html_x( 'Add New', 'book', 'elasticpress' ),
+			'add_new_item'       => esc_html__( 'Add New Custom Search Result', 'elasticpress' ),
+			'new_item'           => esc_html__( 'New Custom Search Result', 'elasticpress' ),
+			'edit_item'          => esc_html__( 'Edit Custom Search Result', 'elasticpress' ),
+			'view_item'          => esc_html__( 'View Custom Search Result', 'elasticpress' ),
+			'all_items'          => esc_html__( 'All Custom Search Results', 'elasticpress' ),
+			'search_items'       => esc_html__( 'Search Custom Search Results', 'elasticpress' ),
+			'parent_item_colon'  => esc_html__( 'Parent Custom Search Result:', 'elasticpress' ),
+			'not_found'          => esc_html__( 'No results found.', 'elasticpress' ),
+			'not_found_in_trash' => esc_html__( 'No results found in Trash.', 'elasticpress' ),
 		);
 
 		$args = array(
 			'labels'               => $labels,
-			'description'          => __( 'Posts to inject into search results', 'elasticpress' ),
+			'description'          => esc_html__( 'Posts to inject into search results', 'elasticpress' ),
 			'public'               => false,
 			'publicly_queryable'   => false,
 			'show_ui'              => true,
@@ -237,17 +272,17 @@ class SearchOrdering extends Feature {
 
 		// Register taxonomy
 		$labels = array(
-			'name'              => _x( 'Custom Results', 'taxonomy general name', 'elasticpress' ),
-			'singular_name'     => _x( 'Custom Result', 'taxonomy singular name', 'elasticpress' ),
-			'search_items'      => __( 'Search Custom Results', 'elasticpress' ),
-			'all_items'         => __( 'All Custom Results', 'elasticpress' ),
-			'parent_item'       => __( 'Parent Custom Result', 'elasticpress' ),
-			'parent_item_colon' => __( 'Parent Custom Result:', 'elasticpress' ),
-			'edit_item'         => __( 'Edit Custom Result', 'elasticpress' ),
-			'update_item'       => __( 'Update Custom Result', 'elasticpress' ),
-			'add_new_item'      => __( 'Add New Custom Result', 'elasticpress' ),
-			'new_item_name'     => __( 'New Custom Result Name', 'elasticpress' ),
-			'menu_name'         => __( 'Custom Results', 'elasticpress' ),
+			'name'              => esc_html_x( 'Custom Results', 'taxonomy general name', 'elasticpress' ),
+			'singular_name'     => esc_html_x( 'Custom Result', 'taxonomy singular name', 'elasticpress' ),
+			'search_items'      => esc_html__( 'Search Custom Results', 'elasticpress' ),
+			'all_items'         => esc_html__( 'All Custom Results', 'elasticpress' ),
+			'parent_item'       => esc_html__( 'Parent Custom Result', 'elasticpress' ),
+			'parent_item_colon' => esc_html__( 'Parent Custom Result:', 'elasticpress' ),
+			'edit_item'         => esc_html__( 'Edit Custom Result', 'elasticpress' ),
+			'update_item'       => esc_html__( 'Update Custom Result', 'elasticpress' ),
+			'add_new_item'      => esc_html__( 'Add New Custom Result', 'elasticpress' ),
+			'new_item_name'     => esc_html__( 'New Custom Result Name', 'elasticpress' ),
+			'menu_name'         => esc_html__( 'Custom Results', 'elasticpress' ),
 		);
 
 		$args = array(
@@ -274,7 +309,7 @@ class SearchOrdering extends Feature {
 	 * Registers meta box for the search pointers
 	 */
 	public function register_meta_box() {
-		add_meta_box( 'ep-ordering', __( 'Manage Results', 'elasticpress' ), [ $this, 'render_meta_box' ], self::POST_TYPE_NAME, 'normal' );
+		add_meta_box( 'ep-ordering', esc_html__( 'Manage Results', 'elasticpress' ), [ $this, 'render_meta_box' ], self::POST_TYPE_NAME, 'normal' );
 	}
 
 	/**
@@ -529,7 +564,7 @@ class SearchOrdering extends Feature {
 	 */
 	public function filter_enter_title_here( $text ) {
 		if ( self::POST_TYPE_NAME === get_post_type() ) {
-			$text = __( 'Enter Search Query', 'elasticpress' );
+			$text = esc_html__( 'Enter Search Query', 'elasticpress' );
 		}
 
 		return $text;
@@ -543,7 +578,7 @@ class SearchOrdering extends Feature {
 	 * @return array Final Columns
 	 */
 	public function filter_column_names( $columns ) {
-		$columns['title'] = __( 'Search Query', 'elasticpress' );
+		$columns['title'] = esc_html__( 'Search Query', 'elasticpress' );
 
 		return $columns;
 	}
