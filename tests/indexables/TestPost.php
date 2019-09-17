@@ -4568,21 +4568,21 @@ class TestPost extends BaseTestCase {
 	public function testTagQuery() {
 		$post_id_1 = Functions\create_and_sync_post(
 			array(
-				'post_content'  => 'findme test 1',
-				'tags_input'    => array( 'one', 'two' ),
+				'post_content' => 'findme test 1',
+				'tags_input'   => array( 'one', 'two' ),
 			)
 		);
 		$post_id_2 = Functions\create_and_sync_post(
 			array(
-				'post_content'  => 'findme test 2',
-				'tags_input'    => array( 'three', 'four', 'five', 'six' ),
+				'post_content' => 'findme test 2',
+				'tags_input'   => array( 'three', 'four', 'five', 'six' ),
 			)
 		);
 
 		$post_id_3 = Functions\create_and_sync_post(
 			array(
-				'post_content'  => 'findme test 3',
-				'tags_input'    => array( 'one', 'six' ),
+				'post_content' => 'findme test 3',
+				'tags_input'   => array( 'one', 'six' ),
 			)
 		);
 
@@ -4592,10 +4592,10 @@ class TestPost extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args  = array(
-			's'              => 'findme',
-			'post_type'      => 'post',
-			'tag__and'       => array( $post_1_tags[1]->term_id, $post_2_tags[1]->term_id ),
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+			'tag__and'  => array( $post_1_tags[1]->term_id, $post_2_tags[1]->term_id ),
 		);
 
 		$query = new \WP_Query( $args );
@@ -4603,10 +4603,10 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
-		$args  = array(
-			's'              => 'findme',
-			'post_type'      => 'post',
-			'tag_id'         => $post_3_tags[1]->term_id
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+			'tag_id'    => $post_3_tags[1]->term_id,
 		);
 
 		$query = new \WP_Query( $args );
