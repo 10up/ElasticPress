@@ -10,7 +10,8 @@ const config = {
 		autosuggest: './assets/js/autosuggest.js',
 		dashboard: './assets/js/dashboard.js',
 		facets: './assets/js/facets.js',
-		ordering: './assets/js/ordering/index.js'
+		ordering: './assets/js/ordering/index.js',
+		related_posts_block: './assets/js/blocks/related-posts/block.js'
 	},
 	output: {
 		path: DIST_PATH,
