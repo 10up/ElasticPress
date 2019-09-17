@@ -754,7 +754,7 @@ class WooCommerce extends Feature {
 	 */
 	public function setup() {
 		if ( function_exists( 'WC' ) ) {
-			add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 2);
+			add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
 			add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
 			add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
 			add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
@@ -827,53 +827,61 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * Modifies default query to allow filtering by price with EP.
+	 * Modifies main query to allow filtering by price with WooCommerce "Filter by price" widget.
 	 *
-	 * @param $args
-	 * @return mixed
-	 *
+	 * @param  array    $args ES args
+	 * @param  array    $query_args WP_Query args
+	 * @param  WP_Query $query WP_Query object
+	 * @since  3.2
+	 * @return array
 	 */
-	public function price_filter( $args, $query_args ) {
-		$set_low_price  = ! empty( $_GET['min_price'] );
-		$set_high_price = ! empty( $_GET['max_price'] );
-		$query          = $args['query'];
-
-		if ( ! empty( $args['query'] ) ) {
-			//Account for match all context
-			if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['match_all'] ) ) {
-				unset ( $args['query']['match_all'] );
-				$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'];
-
-				if ( $set_low_price ) {
-					$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'] ;
-				}
-
-				if ( $set_high_price ) {
-					$args['query']['range']['meta._price.long']['lte'] = $_GET['max_price'] ;
-				}
-
-				$args['query']['range']['meta._price.long']['boost'] = 2.0;
-				return $args;
-			}
-
-			//Account for search term context
-			if ( ( $set_high_price || $set_low_price ) && ! empty( $args['query']['bool']['should'] ) ) {
-				unset( $args['query']['bool']['should'] );
-
-				if ( $set_low_price ) {
-					$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $_GET['min_price'] ;
-				}
-
-				if ( $set_high_price ) {
-					$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $_GET['max_price'] ;
-				}
-
-				$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
-				$args['query']['bool']['must'][1]['bool']                               = $query['bool'];
-				return $args;
-			} else {
-				return $args;
-			}
+	public function price_filter( $args, $query_args, $query ) {
+		// Only can use widget on main query
+		if ( ! $query->is_main_query() ) {
+			return $args;
 		}
+
+		// Only can use widget on shop, product taxonomy, or search
+		if ( ! is_shop() && ! is_product_taxonomy() && ! is_search() ) {
+			return $args;
+		}
+
+		if ( empty( $_GET['min_price'] ) && empty( $_GET['max_price'] ) ) {
+			return $args;
+		}
+
+		if ( $query->is_search() ) {
+			/**
+			 * This logic is iffy but the WC price filter widget is not intended for use with search anyway
+			 */
+			unset( $args['query']['bool']['should'] );
+
+			if ( ! empty( $_GET['min_price'] ) ) {
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $_GET['min_price'];
+			}
+
+			if ( ! empty( $_GET['max_price'] ) ) {
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $_GET['max_price'];
+			}
+
+			$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
+			$args['query']['bool']['must'][1]['bool']                               = $args['query']['bool'];
+		} else {
+			unset( $args['query']['match_all'] );
+
+			$args['query']['range']['meta._price.long']['gte'] = ! empty( $_GET['min_price'] ) ? $_GET['min_price'] : 0;
+
+			if ( ! empty( $_GET['min_price'] ) ) {
+				$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'];
+			}
+
+			if ( ! empty( $_GET['max_price'] ) ) {
+				$args['query']['range']['meta._price.long']['lte'] = $_GET['max_price'];
+			}
+
+			$args['query']['range']['meta._price.long']['boost'] = 2.0;
+		}
+
+		return $args;
 	}
 }

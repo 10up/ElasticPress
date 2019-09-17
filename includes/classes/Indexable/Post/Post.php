@@ -431,11 +431,12 @@ class Post extends Indexable {
 	/**
 	 * Format WP query args for ES
 	 *
-	 * @param array $args WP_Query arguments.
+	 * @param  array    $args     WP_Query arguments.
+	 * @param  WP_Query $wp_query WP_Query object
 	 * @since 0.9.0
 	 * @return array
 	 */
-	public function format_args( $args ) {
+	public function format_args( $args, $wp_query = null ) {
 		if ( ! empty( $args['posts_per_page'] ) ) {
 			$posts_per_page = (int) $args['posts_per_page'];
 
@@ -1152,9 +1153,9 @@ class Post extends Indexable {
 			}
 		}
 
-		$formatted_args = apply_filters( 'ep_formatted_args', $formatted_args, $args );
+		$formatted_args = apply_filters( 'ep_formatted_args', $formatted_args, $args, $wp_query );
 
-		return apply_filters( 'ep_post_formatted_args', $formatted_args, $args );
+		return apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
 	}
 
 	/**
