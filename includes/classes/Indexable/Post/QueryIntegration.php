@@ -207,7 +207,7 @@ class QueryIntegration {
 				$scope = $query_vars['sites'];
 			}
 
-			$formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_vars );
+			$formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_vars, $query );
 
 			/**
 			 * Filter search scope

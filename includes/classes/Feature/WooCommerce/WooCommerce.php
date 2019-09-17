@@ -759,6 +759,7 @@ class WooCommerce extends Feature {
 	 */
 	public function setup() {
 		if ( function_exists( 'WC' ) ) {
+			add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
 			add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
 			add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
 			add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
@@ -832,6 +833,63 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Modifies main query to allow filtering by price with WooCommerce "Filter by price" widget.
+	 *
+	 * @param  array    $args ES args
+	 * @param  array    $query_args WP_Query args
+	 * @param  WP_Query $query WP_Query object
+	 * @since  3.2
+	 * @return array
+	 */
+	public function price_filter( $args, $query_args, $query ) {
+		// Only can use widget on main query
+		if ( ! $query->is_main_query() ) {
+			return $args;
+		}
+
+		// Only can use widget on shop, product taxonomy, or search
+		if ( ! is_shop() && ! is_product_taxonomy() && ! is_search() ) {
+			return $args;
+		}
+
+		if ( empty( $_GET['min_price'] ) && empty( $_GET['max_price'] ) ) {
+			return $args;
+		}
+
+		if ( $query->is_search() ) {
+			/**
+			 * This logic is iffy but the WC price filter widget is not intended for use with search anyway
+			 */
+			unset( $args['query']['bool']['should'] );
+
+			if ( ! empty( $_GET['min_price'] ) ) {
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $_GET['min_price'];
+			}
+
+			if ( ! empty( $_GET['max_price'] ) ) {
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $_GET['max_price'];
+			}
+
+			$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
+			$args['query']['bool']['must'][1]['bool']                               = $args['query']['bool'];
+		} else {
+			unset( $args['query']['match_all'] );
+
+			$args['query']['range']['meta._price.long']['gte'] = ! empty( $_GET['min_price'] ) ? $_GET['min_price'] : 0;
+
+			if ( ! empty( $_GET['min_price'] ) ) {
+				$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'];
+			}
+
+			if ( ! empty( $_GET['max_price'] ) ) {
+				$args['query']['range']['meta._price.long']['lte'] = $_GET['max_price'];
+			}
+
+			$args['query']['range']['meta._price.long']['boost'] = 2.0;
+		}
+
+		return $args;
+  /**
 	 * Determines whether or not ES should be integrating with the provided query
 	 *
 	 * @param \WP_Query $query Query we might integrate with
