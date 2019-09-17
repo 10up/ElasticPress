@@ -1,0 +1,12 @@
+.editor-styles-wrapper .wp-block-elasticpress-related-posts ul,
+.wp-block-elasticpress-related-posts ul {
+	list-style-type: none;
+	padding: 0;
+}
+
+.editor-styles-wrapper .wp-block-elasticpress-related-posts ul li a > div {
+	display: inline;
+}
+
+
+/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY3NzL3JlbGF0ZWQtcG9zdHMtYmxvY2suY3NzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3JlbGF0ZWQtcG9zdHMtYmxvY2suY3NzIl0sInNvdXJjZXNDb250ZW50IjpbIi5lZGl0b3Itc3R5bGVzLXdyYXBwZXIgLndwLWJsb2NrLWVsYXN0aWNwcmVzcy1yZWxhdGVkLXBvc3RzIHVsLFxuLndwLWJsb2NrLWVsYXN0aWNwcmVzcy1yZWxhdGVkLXBvc3RzIHVsIHtcblx0bGlzdC1zdHlsZS10eXBlOiBub25lO1xuXHRwYWRkaW5nOiAwO1xufVxuXG4uZWRpdG9yLXN0eWxlcy13cmFwcGVyIC53cC1ibG9jay1lbGFzdGljcHJlc3MtcmVsYXRlZC1wb3N0cyB1bCBsaSBhID4gZGl2IHtcblx0ZGlzcGxheTogaW5saW5lO1xufVxuIl0sIm1hcHBpbmdzIjoiQUFBQTs7QUFFQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7Iiwic291cmNlUm9vdCI6IiJ9*/

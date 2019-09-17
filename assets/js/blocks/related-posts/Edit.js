@@ -55,7 +55,7 @@ class Edit extends Component {
 		};
 
 		this.fetchRequest = wp.apiFetch( {
-			path: addQueryArgs( '/wp/v2/posts/' + wp.data.select( 'core/editor' ).getCurrentPostId() + '/related', urlArgs ),
+			path: addQueryArgs( `/wp/v2/posts/${  wp.data.select( 'core/editor' ).getCurrentPostId()  }/related`, urlArgs ),
 		} ).then(
 			( posts ) => {
 				this.setState( { posts: posts } );
