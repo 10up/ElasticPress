@@ -346,8 +346,6 @@ class User extends Indexable {
 		 *
 		 * @todo  Support the following parameters:
 		 *
-		 * $orderby
-		 * $order
 		 * $who
 		 * $has_published_posts
 		 */
@@ -574,7 +572,7 @@ class User extends Indexable {
 				} elseif ( 'meta_value' === $orderby_clause ) {
 					if ( ! empty( $query_vars['meta_key'] ) ) {
 						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.value' => array(
+							'meta.' . $query_vars['meta_key'] . '.raw' => array(
 								'order' => $order,
 							),
 						);
@@ -613,7 +611,7 @@ class User extends Indexable {
 		$defaults = [
 			'number'  => 350,
 			'offset'  => 0,
-			'orderby' => 'id',
+			'orderby' => 'ID',
 			'order'   => 'desc',
 		];
 
@@ -648,7 +646,20 @@ class User extends Indexable {
 	 * @return boolean
 	 */
 	public function put_mapping() {
-		$mapping = require apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/initial.php' );
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+		if ( empty( $es_version ) ) {
+			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
+		}
+
+		$mapping_file = 'initial.php';
+
+		if ( version_compare( $es_version, '5.0', '<' ) ) {
+			$mapping_file = 'pre-5-0.php';
+		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
+			$mapping_file = '7-0.php';
+		}
+
+		$mapping = require apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/' . $mapping_file );
 
 		$mapping = apply_filters( 'ep_user_mapping', $mapping );
 

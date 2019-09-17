@@ -61,9 +61,14 @@ class QueryIntegration {
 			$ep_query = $user_indexable->query_es( $formatted_args, $query->query_vars );
 
 			if ( false === $ep_query ) {
-				$query->elasticsearch_success = false;
 				return $results;
 			}
+
+			/**
+			 * WP_User_Query does not let us set this property:
+			 *
+			 * $query->elasticsearch_success = true;
+			 */
 
 			if ( 'all_with_meta' === $query->get( 'fields' ) ) {
 				$new_users = [];
@@ -76,7 +81,7 @@ class QueryIntegration {
 			}
 		}
 
-		$query->total_users = $ep_query['found_documents'];
+		$query->total_users = is_array( $ep_query['found_documents'] ) ? $ep_query['found_documents']['value'] : $ep_query['found_documents']; // 7.0+ have this as an array rather than int;
 
 		return $new_users;
 	}

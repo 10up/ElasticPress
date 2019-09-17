@@ -72,16 +72,8 @@ class Facets extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio"
-				<?php
-				if ( 'all' === $settings['match_type'] ) :
-					?>
-checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
-				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio"
-				<?php
-				if ( 'any' === $settings['match_type'] ) :
-					?>
-checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
+				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'all' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
+				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'any' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
@@ -202,7 +194,11 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 			return false;
 		}
 
-		if ( ! ( $query->is_post_type_archive() || $query->is_search() || ( is_home() && empty( $query->get( 'page_id' ) ) ) ) ) {
+		if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
+			|| $query->is_post_type_archive()
+			|| $query->is_search()
+			|| ( is_home() && empty( $query->get( 'page_id' ) ) ) )
+		) {
 			return false;
 		}
 
@@ -222,7 +218,10 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 			return;
 		}
 
-		$taxonomies = get_taxonomies( array( 'public' => true ) );
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+
+		// Allow other plugins to modify the available taxonomies.
+		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		if ( empty( $taxonomies ) ) {
 			return;
@@ -233,7 +232,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		$facets = [];
 
-		foreach ( $taxonomies as $slug ) {
+		foreach ( $taxonomies as $slug => $taxonomy ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
 					'size'  => 10000,
@@ -263,9 +262,19 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		$tax_query = $query->get( 'tax_query', [] );
 
+		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
+		$attribute_taxonomies = [];
+		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
+			$all_attr_taxonomies = wc_get_attribute_taxonomies();
+
+			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
+				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
+			}
+		}
+
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
 			$tax_query[] = [
-				'taxonomy' => $taxonomy,
+				'taxonomy' => isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy,
 				'field'    => 'slug',
 				'terms'    => array_keys( $filter['terms'] ),
 				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
@@ -292,15 +301,17 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 		if ( ! empty( $response['aggregations'] ) ) {
 			$GLOBALS['ep_facet_aggs'] = [];
 
-			foreach ( $response['aggregations']['terms'] as $key => $agg ) {
-				if ( 'doc_count' === $key ) {
-					continue;
-				}
+			if ( isset( $response['aggregations']['terms'] ) && is_array( $response['aggregations']['terms'] ) ) {
+				foreach ( $response['aggregations']['terms'] as $key => $agg ) {
+					if ( 'doc_count' === $key ) {
+						continue;
+					}
 
-				$GLOBALS['ep_facet_aggs'][ $key ] = [];
+					$GLOBALS['ep_facet_aggs'][ $key ] = [];
 
-				foreach ( $agg['buckets'] as $bucket ) {
-					$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+					foreach ( $agg['buckets'] as $bucket ) {
+						$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+					}
 				}
 			}
 		}
@@ -317,7 +328,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 			'taxonomies' => [],
 		);
 
-		foreach ( $_GET as $key => $value ) {
+		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 0 === strpos( $key, 'filter' ) ) {
 				$taxonomy = str_replace( 'filter_', '', $key );
 
@@ -362,6 +373,15 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
 
+		if ( is_post_type_archive() ) {
+			$pagination = strpos( $_SERVER['REQUEST_URI'], '/page' );
+
+			if ( false !== $pagination ) {
+				$url = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
+				return strtok( $url, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
+			}
+		}
+
 		return strtok( $_SERVER['REQUEST_URI'], '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
 	}
 
@@ -392,7 +412,12 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) ); ?></p>
+		<p>
+			<?php
+			// translators: URL
+			echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) );
+			?>
+		</p>
 		<?php
 	}
 }

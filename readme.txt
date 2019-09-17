@@ -1,10 +1,10 @@
 === ElasticPress ===
-Contributors: tlovett1, aaronholbrook, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
+Contributors: tlovett1, mattonomics, aaronholbrook, ChrisWiegman, sc0ttkclark, collinsinternet, dkotter, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
 Requires at least: 3.7.1
-Tested up to: 5.2
+Tested up to: 5.3
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -12,7 +12,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 A fast and flexible search and query engine for WordPress.
 
 == Description ==
-ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
 Here is a list of the amazing ElasticPress features included in the plugin:
 
@@ -28,7 +28,7 @@ __Documents__: Indexes text inside of popular file types, and adds those files t
 
 __Autosuggest__: Suggest relevant content as text is entered into the search field.
 
-__Facets__: Suggest relevant content as text is entered into the search field.
+__Facets__: Add controls to your website to filter content by one or more taxonomies.
 
 __Users__: Improve user search relevancy and query performance.
 
@@ -38,9 +38,68 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
 2. Activate the plugin in WordPress.
 3. In the ElasticPress settings page, input your Elasticsearch host.
-4. Enjoy!
+4. Sync your content by clicking the sync icon.
+5. Enjoy!
 
 == Changelog ==
+
+= 3.1.4 =
+https://github.com/10up/ElasticPress/pulls?q=is%3Apr+milestone%3A3.1.4+is%3Aclosed
+
+= 3.1.3 =
+This is a bug fix release.
+
+* Check wpcli transient before integrating with queries
+* Fix version comparison bug when comparing Elasticsearch versions
+* Use proper taxonomy name for WooCommerce attributes.
+* Increase Elasticsearch minimum supported version to 5.0
+* Fix product attribute archives
+
+= 3.1.2 =
+This is a bug fix release with some filter additions.
+
+- Add ep_es_query_results filter.
+- Add option to sync prior to shutdown.
+- Readme update around WPCLI post syncing. Props [@mmcachran](https://github.com/mmcachran)
+- Ignore sticky posts in `find_related`. Props [@columbian-chris](https://github.com/columbian-chris)
+- Weighting dashboard fixes around saving. [@oscarsanchez](https://github.com/oscarsanchez)
+- Weighting UI improvements. Props [@mlaroy](https://github.com/mlaroy)
+
+= 3.1.1 =
+- Ensure taxonomies that are shared among multiple post types show up on the weighting screen
+
+= 3.1.0 =
+
+- Support for nested tax queries. Props [@dkotter](https://github.com/dkotter)
+- `ep_bulk_index_action_args` filter. Props [@fabianmarz](https://github.com/fabianmarz)
+- Add filters to control MLT related posts params.
+- `ep_allow_post_content_filtered_index` filter to bypass filtered post content on indexing.
+- Weighting dashboard to control weights of specific fields on a per post type basis
+- Search ordering feature. Enables custom results for specific search queries.
+- Refactor admin notice, admin screen "resolver", and install path logic
+- WordPress.org profile
+- New EP settings interface. Props [@dkoo](https://github.com/dkoo)
+- Delete pagination from facet URL.
+- allows WooCommerce product attributes to be facetable in 3.0
+- Autosuggest queries now match the search queries performed by WordPress, including weighting and any custom results
+- Fix data escaping in WP 4.8.x
+- Support order by "type"/"post_type" in EP queries
+- Properly redirect after network sync
+- User mapping for pre 5.0 Props [@mustafauysal](https://github.com/mustafauysal)
+- Avoid multiple reflows in autosuggest. Props [@fabianmarz](https://github.com/fabianmarz)
+- 400 error when popularity is default sorting.
+- Fixed Facet widget not rendering WC product attribute options. Props [@fabianmarz](https://github.com/fabianmarz)
+- Delete wpcli sync option/transient when an error occurs
+- Create index/network alias when adding a new site on a network activated installation. Props [@elliott-stocks](https://github.com/elliott-stocks)
+- Fix WooCommerce order search when WooCommerce module activated but protected content turned off.
+
+= 3.0.3 =
+
+* Pass $post_id twice in ep_post_sync_kill for backwards compatibility. Props [aaemnnosttv](https://github.com/aaemnnosttv)
+* Add `ep_search_request_path` filter for backwards compant.
+* Add `ep_query_request_path` filter for modifying the query path.
+* Fix missing action name in post query integration.
+* Properly add date filter to WP_Query.
 
 = 3.0.2 =
 
