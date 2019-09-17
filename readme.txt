@@ -43,6 +43,12 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.2 =
+ElasticPress 3.2 is a feature release. We've added quite a few useful features including an index health page, the ability to control which sites are indexed in a network activated multisite setup, a related posts Gutenberg block, and more.
+
+See a full list of changes here:
+https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+milestone%3A3.2.0+is%3Aclosed+
+
 = 3.1.4 =
 https://github.com/10up/ElasticPress/pulls?q=is%3Apr+milestone%3A3.1.4+is%3Aclosed
 
