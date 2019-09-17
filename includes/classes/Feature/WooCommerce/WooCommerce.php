@@ -889,7 +889,9 @@ class WooCommerce extends Feature {
 		}
 
 		return $args;
-  /**
+	}
+
+	/**
 	 * Determines whether or not ES should be integrating with the provided query
 	 *
 	 * @param \WP_Query $query Query we might integrate with
