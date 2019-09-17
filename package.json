@@ -59,6 +59,7 @@
     "node": ">=8.11"
   },
   "dependencies": {
-    "@wordpress/i18n": "^3.5.0"
+    "@wordpress/i18n": "^3.5.0",
+    "chart.js": "^2.8.0"
   }
 }
