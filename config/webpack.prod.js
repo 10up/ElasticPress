@@ -9,7 +9,7 @@ const BrowserSyncPlugin = require( 'browser-sync-webpack-plugin' );
 module.exports = merge( common, {
 	mode: 'production',
 
-	devtool: 'inline-cheap-module-source-map',
+	devtool: 'inline-source-map',
 
 	plugins: [
 		// Run BrowserSync.
