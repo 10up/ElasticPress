@@ -6,7 +6,7 @@ window.addEventListener( 'load', function() {
 	for ( let i = 0; i < toggles.length; i++ ) {
 		toggles[i].addEventListener( 'click', function() {
 
-			let checked = ( this.checked ) ? 'yes' : 'no';
+			const checked = ( this.checked ) ? 'yes' : 'no';
 
 			jQuery.get( epsa.ajax_url,
 				{
@@ -16,8 +16,8 @@ window.addEventListener( 'load', function() {
 					checked: checked,
 				}, () => {
 					document.getElementById(
-						'switch-label-' +
-                this.dataset.blogid ).innerHTML = ( this.checked ) ?
+						`switch-label-${ 
+							this.dataset.blogid}` ).innerHTML = ( this.checked ) ?
 						'On' :
 						'Off';
 				} );

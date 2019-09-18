@@ -7,7 +7,7 @@ import { epChartData } from 'window';
  * @returns {string|string}
  */
 function getRandomColor() {
-	let letters = '0123456789ABCDEF';
+	const letters = '0123456789ABCDEF';
 	let color   = '#';
 	for ( let i = 0; 6 < i; i++ ) {
 		color += letters[ Math.floor( Math.random() * 16 ) ];
@@ -78,10 +78,10 @@ new Chart( document.getElementById( 'queriesTotalChart' ), {
 				 * @returns {string}
 				 */
 				label: function( item, data ) {
-					let dataset      = data.datasets[item.datasetIndex];
-					let currentValue = dataset.data[item.index];
+					const dataset      = data.datasets[item.datasetIndex];
+					const currentValue = dataset.data[item.index];
 
-					return 'Operations: ' + currentValue ;
+					return `Operations: ${  currentValue}` ;
 				}
 			}
 		}
@@ -116,10 +116,10 @@ new Chart( document.getElementById( 'queriesTimeChart' ), {
 				 * @returns {string}
 				 */
 				label: function( item, data ) {
-					let dataset = data.datasets[item.datasetIndex];
-					let currentValue = dataset.data[item.index];
+					const dataset = data.datasets[item.datasetIndex];
+					const currentValue = dataset.data[item.index];
 
-					return + currentValue + ' milliseconds';
+					return `${+ currentValue  } milliseconds`;
 				}
 			}
 		}
