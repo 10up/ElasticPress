@@ -3,5 +3,8 @@
     "@babel/preset-env",
     "@babel/preset-react",
     "@wordpress/default"
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties"
   ]
 }

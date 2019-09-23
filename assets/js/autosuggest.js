@@ -106,9 +106,7 @@ function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weig
 	}
 
 	postTypes.map( postType => {
-		let postTypeWeights;
-
-		postTypeWeights = weightingSettings[ postType ];
+		const postTypeWeights = weightingSettings[ postType ];
 
 		const fields = [];
 		const fuzzyFields = [];
@@ -288,8 +286,9 @@ function escapeDoubleQuotes( str ) {
  */
 function updateAutosuggestBox( options, $localInput ) {
 	let i,
-		itemString = '',
-		$localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
+		itemString = '';
+
+	const $localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
 		$localSuggestList = $localESContainer.find( '.autosuggest-list' );
 
 	$localSuggestList.empty();
@@ -306,7 +305,7 @@ function updateAutosuggestBox( options, $localInput ) {
 	for ( i = 0; i < options.length; ++i ) {
 		const text = options[i].text;
 		const url = options[i].url;
-		itemString += '<li><span class="autosuggest-item" data-search="' + escapeDoubleQuotes( text ) + '" data-url="' + url + '">' + escapeDoubleQuotes( text ) + '</span></li>';
+		itemString += `<li><span class="autosuggest-item" data-search="${  escapeDoubleQuotes( text )  }" data-url="${  url  }">${  escapeDoubleQuotes( text )  }</span></li>`;
 	}
 	jQuery( itemString ).appendTo( $localSuggestList );
 
@@ -424,7 +423,7 @@ function checkForOrderedPosts( hits, searchTerm ) {
 
 // No host/index set
 if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
-	const $epInput       = jQuery( '.ep-autosuggest, input[type="search"], .search-field, ' + epas.selector  );
+	const $epInput       = jQuery( `.ep-autosuggest, input[type="search"], .search-field, ${  epas.selector}`  );
 	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
@@ -497,8 +496,8 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 
 				request.done( ( response ) => {
 					if ( 0 < response._shards.successful ) {
-						let usedPosts = {};
-						let filteredObjects = [];
+						const usedPosts = {};
+						const filteredObjects = [];
 
 						const hits = checkForOrderedPosts( response.hits.hits, val );
 

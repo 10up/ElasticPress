@@ -4,23 +4,23 @@
 module.exports = {
 	entries: {
 		// JS files.
-		admin: './assets/js/admin.js',
-		autosuggest: './assets/js/autosuggest.js',
-		dashboard: './assets/js/dashboard.js',
-		facets: './assets/js/facets.js',
-		sites_admin: './assets/js/sites-admin.js',
-		ordering: './assets/js/ordering/index.js',
-		stats: './assets/js/stats.js',
-		related_posts_block: './assets/js/blocks/related-posts/block.js',
+		'admin-script': './assets/js/admin.js',
+		'autosuggest-script': './assets/js/autosuggest.js',
+		'dashboard-script': './assets/js/dashboard.js',
+		'facets-script': './assets/js/facets.js',
+		'sites-admin-script': './assets/js/sites-admin.js',
+		'ordering-script': './assets/js/ordering/index.js',
+		'stats-script': './assets/js/stats.js',
+		'related-posts-block-script': './assets/js/blocks/related-posts/block.js',
 
 		// CSS files.
-		dashboard: './assets/css/dashboard.css',
-		'facets-admin': './assets/css/facets-admin.css',
-		facets: './assets/css/facets.css',
-		autosuggest: './assets/css/autosuggest.css',
-		'sites-admin': './assets/css/sites-admin.css',
-		ordering: './assets/css/ordering.css',
-		'related-posts-block': './assets/css/related-posts-block.css'
+		'dashboard-styles': './assets/css/dashboard.css',
+		'facets-admin-styles': './assets/css/facets-admin.css',
+		'facets-styles': './assets/css/facets.css',
+		'autosuggest-styles': './assets/css/autosuggest.css',
+		'sites-admin-styles': './assets/css/sites-admin.css',
+		'ordering-styles': './assets/css/ordering.css',
+		'related-posts-block-styles': './assets/css/related-posts-block.css'
 	},
 	filename: {
 		js: 'js/[name].min.js',

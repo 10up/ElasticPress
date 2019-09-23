@@ -31,7 +31,7 @@ registerBlockType( 'elasticpress/related-posts', {
 	/**
 	 * Handle save
 	 */
-	save( props ) {
+	save() {
 		return null;
 	},
 } );

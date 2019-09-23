@@ -193,24 +193,24 @@ class RelatedPosts extends Feature {
 	public function register_block() {
 		wp_register_script(
 			'elasticpress-related-posts-block',
-			EP_URL . 'dist/js/related_posts_block.min.js',
+			EP_URL . 'dist/js/related-posts-block-script.min.js',
 			[
 				'wp-blocks',
 				'wp-element',
 				'wp-editor',
 				'wp-api-fetch',
 			],
-			filemtime( EP_PATH . 'dist/js/related_posts_block.min.js' ),
+			EP_VERSION,
 			true
 		);
 
 		wp_register_style(
 			'elasticpress-related-posts-block',
-			EP_URL . 'dist/css/related-posts-block.min.css',
+			EP_URL . 'dist/css/related-posts-block-styles.min.css',
 			[
 				'wp-edit-blocks',
 			],
-			filemtime( EP_PATH . 'dist/css/related-posts-block.min.css' )
+			EP_VERSION
 		);
 
 		register_block_type(

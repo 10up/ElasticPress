@@ -146,7 +146,7 @@ class Facets extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-facets-admin',
-			EP_URL . 'dist/css/admin.min.css',
+			EP_URL . 'dist/css/facets-admin-styles.min.css',
 			[],
 			EP_VERSION
 		);
@@ -160,7 +160,7 @@ class Facets extends Feature {
 	public function front_scripts() {
 		wp_enqueue_script(
 			'elasticpress-facets',
-			EP_URL . 'dist/js/facets.min.js',
+			EP_URL . 'dist/js/facets-script.min.js',
 			[ 'jquery', 'underscore' ],
 			EP_VERSION,
 			true
@@ -168,7 +168,7 @@ class Facets extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-facets',
-			EP_URL . 'dist/css/facets.min.css',
+			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
 			EP_VERSION
 		);

@@ -1,19 +1,16 @@
 /* global wp */
 
 const {
-	__,
-	setLocaleData
+	__
 } = wp.i18n;
 
 const {
-	RichText,
 	AlignmentToolbar,
 	BlockControls,
 	InspectorControls
 } = wp.editor;
 
 const {
-	TextControl,
 	PanelBody,
 	Placeholder,
 	Spinner,
