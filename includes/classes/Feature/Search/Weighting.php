@@ -376,7 +376,10 @@ class Weighting {
 				} else {
 					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
 					if ( 'author_name' === $field ) {
-						unset( $fieldset['fields'][ array_search( 'post_author.login', $fieldset['fields'], true ) ] );
+						$author_key = array_search( 'post_author.login', $fieldset['fields'], true );
+						if ( false !== $author_key ) {
+							unset( $fieldset['fields'][ $author_key ] );
+						}
 					}
 					unset( $fieldset['fields'][ $key ] );
 				}
@@ -400,6 +403,35 @@ class Weighting {
 		if ( isset( $fieldset['fields'] ) && empty( $fieldset['fields'] ) ) {
 			$fieldset = null;
 		}
+	}
+
+	/**
+	 * Determine if a post type has any fields enabled for search
+	 *
+	 * @param string $post_type
+	 * @return boolean true/false depending on any fields enabled == true
+	 */
+	public function post_type_has_fields( $post_type, $args = [] ) {
+		// define keys which are irrelevant for this consideration
+		$ignore_keys   = apply_filters( 'ep_weighting_ignore_fields_in_consideration', [ 'terms.ep_custom_result.name' => true ] );
+		$weight_config = $this->get_weighting_configuration();
+		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
+
+		if ( ! isset( $weight_config[ $post_type ] ) ) {
+			$weights = $this->get_post_type_default_settings( $post_type );
+		} else {
+			$weights = $weight_config[ $post_type ];
+		}
+
+		$weights = array_diff_key( $weights, $ignore_keys );
+
+		$found_enabled = array_search( true, array_column( $weights, 'enabled' ), true );
+
+		if ( false !== $found_enabled ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -441,6 +473,9 @@ class Weighting {
 			$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
 
 			foreach ( (array) $args['post_type'] as $post_type ) {
+				if ( false === $this->post_type_has_fields( $post_type, $args ) ) {
+					continue;
+				}
 				// Copy the query, so we can set specific weight values
 				$current_query = $query;
 
