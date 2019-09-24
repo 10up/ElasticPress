@@ -65,7 +65,7 @@ class SyncManager extends SyncManagerAbstract {
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ( 'revision' === $post_type && ! apply_filters( 'ep_index_revisions', false ) ) ) {
 			// Bypass saving if doing autosave or post type is revision.
 			return;
 		}
@@ -110,7 +110,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_delete_post( $post_id ) {
-		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) || 'revision' === get_post_type( $post_id ) ) {
+		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) || ( 'revision' === get_post_type( $post_id ) && ! apply_filters( 'ep_index_revisions', false ) ) ) {
 			return;
 		}
 
@@ -129,7 +129,7 @@ class SyncManager extends SyncManagerAbstract {
 		$indexable = Indexables::factory()->get( 'post' );
 		$post_type = get_post_type( $post_id );
 
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ( 'revision' === $post_type && ! apply_filters( 'ep_index_revisions', false ) ) ) {
 			// Bypass saving if doing autosave or post type is revision.
 			return;
 		}
