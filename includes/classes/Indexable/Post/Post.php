@@ -61,6 +61,7 @@ class Post extends Indexable {
 			'ignore_sticky_posts' => true,
 			'orderby'             => 'ID',
 			'order'               => 'desc',
+			'fields'              => 'ids',
 		];
 
 		if ( isset( $args['per_page'] ) ) {
