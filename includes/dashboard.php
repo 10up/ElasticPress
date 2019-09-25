@@ -484,13 +484,13 @@ function action_wp_ajax_ep_index() {
 		if ( ! empty( $query['objects'] ) ) {
 			$queued_items = [];
 
-			foreach ( $query['objects'] as $object ) {
+			foreach ( $query['objects'] as $object_id ) {
 				$killed_item_count = 0;
 
-				if ( apply_filters( 'ep_item_sync_kill', false, $object, $indexable ) ) {
+				if ( apply_filters( 'ep_item_sync_kill', false, $object_id, $indexable ) ) {
 					$killed_item_count++;
 				} else {
-					$queued_items[ $object->ID ] = true;
+					$queued_items[ $object_id ] = true;
 				}
 			}
 

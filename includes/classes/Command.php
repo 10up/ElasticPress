@@ -703,25 +703,25 @@ class Command extends WP_CLI_Command {
 
 			if ( ! empty( $query['objects'] ) ) {
 
-				foreach ( $query['objects'] as $object ) {
+				foreach ( $query['objects'] as $object_id ) {
 
 					if ( $no_bulk ) {
 						/**
 						 * Index objects one by one
 						 */
-						$result = $indexable->index( $object->ID, true );
+						$result = $indexable->index( $object_id, true );
 
 						$this->reset_transient();
 
-						do_action( 'ep_cli_object_index', $object->ID, $indexable );
+						do_action( 'ep_cli_object_index', $object_id, $indexable );
 
 						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), ( $synced + 1 ), (int) $query['total_objects'] ) );
 					} else {
-						$result = $this->queue_object( $indexable, $object->ID, count( $query['objects'] ), $show_bulk_errors );
+						$result = $this->queue_object( $indexable, $object_id, count( $query['objects'] ), $show_bulk_errors );
 					}
 
 					if ( ! $result ) {
-						$errors[] = $object->ID;
+						$errors[] = $object_id;
 					} elseif ( true === $result || isset( $result->_index ) ) {
 						$synced ++;
 					}
