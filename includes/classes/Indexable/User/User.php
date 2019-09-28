@@ -56,11 +56,12 @@ class User extends Indexable {
 	/**
 	 * Format query vars into ES query
 	 *
-	 * @param  array $query_vars WP_User_Query args.
+	 * @param  array         $query_vars WP_User_Query args.
+	 * @param  WP_User_Query $query      User query object
 	 * @since  3.0
 	 * @return array
 	 */
-	public function format_args( $query_vars ) {
+	public function format_args( $query_vars, $query = null ) {
 		global $wpdb;
 
 		/**
@@ -485,7 +486,7 @@ class User extends Indexable {
 			);
 		}
 
-		return apply_filters( 'ep_user_formatted_args', $formatted_args, $query_vars );
+		return apply_filters( 'ep_user_formatted_args', $formatted_args, $query_vars, $query );
 	}
 
 	/**
@@ -571,7 +572,7 @@ class User extends Indexable {
 				} elseif ( 'meta_value' === $orderby_clause ) {
 					if ( ! empty( $query_vars['meta_key'] ) ) {
 						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.value' => array(
+							'meta.' . $query_vars['meta_key'] . '.raw' => array(
 								'order' => $order,
 							),
 						);

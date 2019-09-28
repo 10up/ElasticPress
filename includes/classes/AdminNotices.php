@@ -15,6 +15,7 @@ use ElasticPress\Elasticsearch;
 use ElasticPress\Screen;
 use ElasticPress\Features;
 use ElasticPress\Indexables;
+use ElasticPress\Stats;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -41,6 +42,7 @@ class AdminNotices {
 		'auto_activate_sync',
 		'using_autosuggest_defaults',
 		'maybe_wrong_mapping',
+		'yellow_health',
 	];
 
 	/**
@@ -639,6 +641,53 @@ class AdminNotices {
 		}
 
 	}
+
+	/**
+	 * Single node notification. Shows when index health is yellow.
+	 *
+	 * Type: warning
+	 * Dismiss: Anywhere
+	 * Show: All screens except install
+	 *
+	 * @since  3.2
+	 * @return array|bool
+	 */
+	protected function process_yellow_health_notice() {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_yellow_health_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_yellow_health_notice', false );
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( ! in_array( $screen, [ 'dashboard', 'settings' ], true ) || $dismiss ) {
+			return false;
+		}
+
+		$nodes = Stats::factory()->get_nodes();
+
+		if ( $nodes < 2 ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$url = network_admin_url( 'admin.php?page=elasticpress-health' );
+			} else {
+				$url = admin_url( 'admin.php?page=elasticpress-health' );
+			}
+
+			return [
+				'html'    => sprintf( __( 'It looks like one or more of your indices are running on a single node. While this won\'t prevent you from using ElasticPress, depending on your site\'s specific needs this can represent a performance issue. Please check the <a href="%1$s">Index Health</a> page where you can check the health of all of your indices.', 'elasticpress' ), $url ),
+				'type'    => 'warning',
+				'dismiss' => true,
+			];
+		}
+	}
+
 	/**
 	 * Get notices that should be displayed
 	 *
