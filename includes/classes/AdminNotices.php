@@ -602,7 +602,7 @@ class AdminNotices {
 		// we also need a version
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
 
-		if ( false == $es_version ) {
+		if ( false === $es_version ) {
 			return false;
 		}
 
@@ -625,11 +625,11 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( ! $mapping_file_current || $mapping_file_wanted != $mapping_file_current ) {
-			$html = sprintf( __( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the <i>--setup</i> flag.', 'elasticpress' ) );
+		if ( ! $mapping_file_current || $mapping_file_wanted !== $mapping_file_current ) {
+			$html = sprintf( esc_html__( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the <em>--setup</em> flag.', 'elasticpress' ) );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( __( 'Current mapping: %1$s , Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '</span>';
+				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( esc_html__( 'Current mapping: %1$s , Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '</span>';
 			}
 
 			return [
@@ -707,7 +707,7 @@ class AdminNotices {
 	public function dismiss_notice( $notice ) {
 		$value = true;
 		// allow version dependent dismissal
-		if ( in_array( $notice, [ 'maybe_wrong_mapping' ] ) ) {
+		if ( in_array( $notice, [ 'maybe_wrong_mapping' ], true ) ) {
 			$value = Elasticsearch::factory()->get_elasticsearch_version( false );
 		}
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {

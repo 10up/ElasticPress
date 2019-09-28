@@ -212,7 +212,9 @@ class Elasticsearch {
 		);
 
 		// If search, send the search term as a header to ES so the backend understands what a normal query looks like
+		// phpcs:disable
 		if ( isset( $query_args['s'] ) && (bool) $query_args['s'] && ! is_admin() && ! isset( $_GET['post_type'] ) ) {
+		// phpcs:enable
 			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
 		}
 
@@ -571,7 +573,7 @@ class Elasticsearch {
 		}
 
 		// mapping does not have meta value set - use legacy detection
-		if ( 'unknown' == $version ) {
+		if ( 'unknown' === $version ) {
 
 			// check for pre-5-0 mapping
 			if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'] ) ) {
