@@ -61,7 +61,7 @@ class User extends Indexable {
 	 * @since  3.0
 	 * @return array
 	 */
-	public function format_args( $query_vars, $query = null ) {
+	public function format_args( $query_vars, $query ) {
 		global $wpdb;
 
 		/**
