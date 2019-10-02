@@ -206,6 +206,7 @@ class Elasticsearch {
 		 *
 		 * @param string If the results of this filter are not null and a string it will be used as the preference filter.
 		 * @param string The path to the search endpoint.
+		 * @param string The index name.
 		 * @param string The index type.
 		 * @param array  Prepared ES query.
 		 * @param array  WP Query args.
