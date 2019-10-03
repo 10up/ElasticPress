@@ -910,7 +910,7 @@ class Command extends WP_CLI_Command {
 			$index_names[] = $user_indexable->get_index_name();
 		}
 
-		$index_names_imploded = implode( $index_names, ',' );
+		$index_names_imploded = implode( ',', $index_names );
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_recovery/?pretty', $request_args );
 
@@ -949,7 +949,7 @@ class Command extends WP_CLI_Command {
 			$index_names[] = $user_indexable->get_index_name();
 		}
 
-		$index_names_imploded = implode( $index_names, ',' );
+		$index_names_imploded = implode( ',', $index_names );
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
 

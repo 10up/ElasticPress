@@ -355,7 +355,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 						$query_string .= '&';
 					}
 
-					$query_string .= 'filter_' . $taxonomy . '=' . implode( array_keys( $filter['terms'] ), ',' );
+					$query_string .= 'filter_' . $taxonomy . '=' . implode( ',', array_keys( $filter['terms'] ) );
 				}
 			}
 		}
