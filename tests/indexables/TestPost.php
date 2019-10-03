@@ -339,10 +339,10 @@ class TestPost extends BaseTestCase {
 		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		$term_2_name = rand_str( 32 );
-		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
+		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
 		$term_3_name = rand_str( 32 );
-		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
+		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
 		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
@@ -359,7 +359,7 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( count( $indexed_terms ) > 0 );
 
 		foreach ( $indexed_terms as $term ) {
-			$this->assertTrue( in_array( $term['term_id'], $expected_terms ) );
+			$this->assertTrue( in_array( $term['term_id'], $expected_terms, true ) );
 		}
 	}
 
@@ -379,13 +379,13 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, $tax_name );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		$term_2_name = rand_str( 32 );
-		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
+		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
 		$term_3_name = rand_str( 32 );
-		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
+		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
 		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
@@ -408,7 +408,7 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( count( $indexed_terms ) > 0 );
 
 		foreach ( $indexed_terms as $term ) {
-			$this->assertTrue( in_array( $term['term_id'], $expected_terms ) );
+			$this->assertTrue( in_array( $term['term_id'], $expected_terms, true ) );
 		}
 	}
 
@@ -427,13 +427,13 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, $tax_name );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		$term_2_name = rand_str( 32 );
-		$term2     = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
+		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
 
 		$term_3_name = rand_str( 32 );
-		$term3     = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
+		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
 		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
 
@@ -456,7 +456,7 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( count( $indexed_terms ) > 0 );
 
 		foreach ( $indexed_terms as $term ) {
-			$this->assertTrue( in_array( $term['term_id'], $expected_terms ) );
+			$this->assertTrue( in_array( $term['term_id'], $expected_terms, true ) );
 		}
 	}
 
@@ -475,7 +475,7 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, $tax_name );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $tax_name, true );
 
@@ -484,7 +484,7 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			$tax_name => $term_1_name,
-			's'      => '',
+			's'       => '',
 		);
 
 		$query = new \WP_Query( $args );
@@ -505,7 +505,7 @@ class TestPost extends BaseTestCase {
 		$post    = get_post( $post_id );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, 'category' );
+		$term1       = wp_insert_term( $term_1_name, 'category' );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'category', true );
 
@@ -534,7 +534,7 @@ class TestPost extends BaseTestCase {
 		$post    = get_post( $post_id );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, 'post_tag' );
+		$term1       = wp_insert_term( $term_1_name, 'post_tag' );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), 'post_tag', true );
 
@@ -1265,7 +1265,7 @@ class TestPost extends BaseTestCase {
 	 * @param array $post_types Post types
 	 * @return array
 	 */
-	public function _add_attachment_post_type( $post_types ) {
+	public function addAttachmentPostType( $post_types ) {
 		$post_types[] = 'attachment';
 		return $post_types;
 	}
@@ -1277,7 +1277,7 @@ class TestPost extends BaseTestCase {
 	 * @param array $post_statuses Post statuses
 	 * @return array
 	 */
-	public function _add_attachment_post_status( $post_statuses ) {
+	public function addAttachmentPostStatus( $post_statuses ) {
 		$post_statuses[] = 'inherit';
 		return $post_statuses;
 	}
@@ -1289,8 +1289,8 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testAttachmentQuery() {
-		add_filter( 'ep_indexable_post_types', array( $this, '_add_attachment_post_type' ) );
-		add_filter( 'ep_indexable_post_status', array( $this, '_add_attachment_post_status' ) );
+		add_filter( 'ep_indexable_post_types', array( $this, 'addAttachmentPostType' ) );
+		add_filter( 'ep_indexable_post_status', array( $this, 'addAttachmentPostStatus' ) );
 
 		Functions\create_and_sync_post(
 			array(
@@ -1315,8 +1315,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
-		remove_filter( 'ep_indexable_post_types', array( $this, '_add_attachment_post_type' ) );
-		remove_filter( 'ep_indexable_post_status', array( $this, '_add_attachment_post_status' ) );
+		remove_filter( 'ep_indexable_post_types', array( $this, 'addAttachmentPostType' ) );
+		remove_filter( 'ep_indexable_post_status', array( $this, 'addAttachmentPostStatus' ) );
 	}
 
 	/**
@@ -1433,7 +1433,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
-		// Only check for fields which are provided in search_fields.
+		// Only check for fields which are provided in search_fields
+		// If search_fields is set, it will override/ignore any weighting settings in the UI
 		$args = array(
 			's'             => 'findme',
 			'search_fields' => array(
@@ -3009,11 +3010,11 @@ class TestPost extends BaseTestCase {
 		$post    = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
 		$invalid_datetime = '0000-00-00 00:00:00';
-		if ( $wp_post->post_date_gmt == $invalid_datetime ) {
+		if ( $wp_post->post_date_gmt === $invalid_datetime ) {
 			$this->assertNull( $post['post_date_gmt'] );
 		}
 
-		if ( $wp_post->post_modified_gmt == $invalid_datetime ) {
+		if ( $wp_post->post_modified_gmt === $invalid_datetime ) {
 			$this->assertNull( $post['post_modified_gmt'] );
 		}
 		$this->assertNotNull( $post );
@@ -3041,7 +3042,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testAutoDraftPostStatus() {
 		// Let's test inserting an 'auto-draft' post.
-		add_action( 'http_api_debug', array( $this, '_check_404' ), 10, 5 );
+		add_action( 'http_api_debug', array( $this, 'check404' ), 10, 5 );
 		$new_post = wp_insert_post(
 			array(
 				'post_title'  => 'Auto Draft',
@@ -3053,7 +3054,7 @@ class TestPost extends BaseTestCase {
 
 		// Now let's test inserting a 'publish' post.
 		$this->is_404 = false;
-		add_action( 'http_api_debug', array( $this, '_check_404' ), 10, 5 );
+		add_action( 'http_api_debug', array( $this, 'check404' ), 10, 5 );
 		$new_post = wp_insert_post(
 			array(
 				'post_title'  => 'Published',
@@ -3073,12 +3074,13 @@ class TestPost extends BaseTestCase {
 	 * @param array          $args HTTP request arguments.
 	 * @param string         $url The request URL.
 	 */
-	function _check_404( $response, $type, $class, $args, $url ) {
+	public function check404( $response, $type, $class, $args, $url ) {
 		$response_code = $response['response']['code'];
-		if ( 404 == $response_code ) {
+		if ( 404 === $response_code ) {
 			$this->is_404 = true;
 		}
-		remove_action( 'http_api_debug', array( $this, '_check_404' ) );
+
+		remove_action( 'http_api_debug', array( $this, 'check404' ) );
 	}
 
 	/**
@@ -3949,7 +3951,7 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1     = wp_insert_term( $term_1_name, $tax_name );
+		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
 		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $tax_name, true );
 
@@ -4494,5 +4496,122 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $args );
 		$check = ElasticPress\Indexables::factory()->get( 'post' )->elasticpress_enabled( $query );
 		$this->assertTrue( $check );
+	}
+
+	/**
+	 * Tested nested taxonomy query
+	 *
+	 * @group post
+	 */
+	public function testNestedTaxQuery() {
+		$cat1 = wp_create_category( 'category one' );
+		$cat2 = wp_create_category( 'category two' );
+
+		Functions\create_and_sync_post(
+			array(
+				'post_content'  => 'findme test 1',
+				'tags_input'    => array( 'one', 'two' ),
+				'post_category' => array( $cat1 ),
+			)
+		);
+
+		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+
+		Functions\create_and_sync_post(
+			array(
+				'post_content'  => 'findme test 3',
+				'tags_input'    => array( 'one', 'three' ),
+				'post_category' => array( $cat2 ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'ep_integrate' => 1,
+			'post_type'    => 'post',
+			'tax_query'    => array(
+				'relation' => 'OR',
+				array(
+					'taxonomy' => 'category',
+					'field'    => 'slug',
+					'terms'    => array( 'category-one' ),
+				),
+				array(
+					'relation' => 'AND',
+					array(
+						'taxonomy' => 'post_tag',
+						'field'    => 'slug',
+						'terms'    => array( 'four' ),
+						'operator' => 'NOT IN',
+					),
+					array(
+						'taxonomy' => 'post_tag',
+						'field'    => 'slug',
+						'terms'    => array( 'three' ),
+					),
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, count( $query->posts ) );
+	}
+
+	/**
+	 * Test a query with tag__and and tag_id params
+	 *
+	 * @since 2.0
+	 * @group post
+	 */
+	public function testTagQuery() {
+		$post_id_1 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array( 'one', 'two' ),
+			)
+		);
+		$post_id_2 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 2',
+				'tags_input'   => array( 'three', 'four', 'five', 'six' ),
+			)
+		);
+
+		$post_id_3 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 3',
+				'tags_input'   => array( 'one', 'six' ),
+			)
+		);
+
+		$post_1_tags = get_the_tags( $post_id_1 );
+		$post_2_tags = get_the_tags( $post_id_2 );
+		$post_3_tags = get_the_tags( $post_id_3 );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+			'tag__and'  => array( $post_1_tags[1]->term_id, $post_2_tags[1]->term_id ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+			'tag_id'    => $post_3_tags[1]->term_id,
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 }

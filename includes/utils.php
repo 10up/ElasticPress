@@ -94,6 +94,25 @@ function is_epio() {
 }
 
 /**
+ * Determine if we should index a blog/site
+ *
+ * @param  int $blog_id Blog/site id
+ * @since  3.2
+ * @return boolean
+ */
+function is_site_indexable( $blog_id = null ) {
+	$site = get_site( $blog_id );
+
+	$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
+
+	if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
  * Sanitize EPIO credentials prior to storing them.
  *
  * @param array $credentials Array containing username and token.
@@ -123,11 +142,13 @@ function sanitize_credentials( $credentials ) {
 function is_indexing() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$index_meta = get_site_option( 'ep_index_meta', false );
+		$wpcli_sync = get_site_transient( 'ep_wpcli_sync' );
 	} else {
 		$index_meta = get_option( 'ep_index_meta', false );
+		$wpcli_sync = get_transient( 'ep_wpcli_sync' );
 	}
 
-	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) ) );
+	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) || ! empty( $wpcli_sync ) ) );
 }
 
 /**
@@ -166,6 +187,27 @@ function get_host() {
 }
 
 /**
+ * Get a site. Wraps get_site for formatting purposes
+ *
+ * @param  int $site_id Site/blog id
+ * @since 3.2
+ * @return array
+ */
+function get_site( $site_id ) {
+	$site = \get_site( $site_id );
+
+	return [
+		'blog_id'  => $site->blog_id,
+		'domain'   => $site->domain,
+		'path'     => $site->path,
+		'site_id'  => $site->site_id,
+		'deleted'  => $site->deleted,
+		'archived' => $site->archived,
+		'spam'     => $site->spam,
+	];
+}
+
+/**
  * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
  *
  * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites.
@@ -185,12 +227,7 @@ function get_sites( $limit = 0 ) {
 	$sites        = [];
 
 	foreach ( $site_objects as $site ) {
-		$sites[] = array(
-			'blog_id' => $site->blog_id,
-			'domain'  => $site->domain,
-			'path'    => $site->path,
-			'site_id' => $site->site_id,
-		);
+		$sites[] = get_site( $site->blog_id );
 	}
 
 	return apply_filters( 'ep_indexable_sites', $sites );

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import jQuery from 'jquery';
 import { epas } from 'window';
 
@@ -72,16 +73,19 @@ function debounce( fn, delay ) {
  * @param searchText
  * @returns object
  */
-function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
-	if ( 'all' === postType || 'undefined' === typeof( postType ) || '' === postType ) {
-		postType = 'all';
+function buildSearchQuery( searchText, postTypes, postStatus, searchFields, weightingSettings ) {
+	// On ep.io, postTypes must be an array and match the post types used in the main search query
+	if ( 'all' === postTypes || 'undefined' === typeof( postTypes ) || '' === postTypes ) {
+		postTypes = 'all';
 	}
 
 	if ( '' === postStatus ) {
 		postStatus = 'publish';
 	}
 
-	var query = {
+	const query = {
+		from: 0,
+		size: 10,
 		sort: [
 			{
 				_score: {
@@ -89,17 +93,125 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 				}
 			}
 		],
-		query: {
-			multi_match: {
-				query: searchText,
-				fields: searchFields
-			}
-		}
+		query: {},
+		post_filter: {},
 	};
 
+	// Build the main section of the query
+	const mainQuery = [];
+
 	// If we're specifying post types/statuses, do it in an array
-	if ( 'string' === typeof postType && 'all' !== postType ) {
-		postType = postType.split( ',' );
+	if ( 'string' === typeof postTypes && 'all' !== postTypes ) {
+		postTypes = postTypes.split( ',' );
+	}
+
+	postTypes.map( postType => {
+		const postTypeWeights = weightingSettings[ postType ];
+
+		const fields = [];
+		const fuzzyFields = [];
+
+		const fieldKeys = Object.keys( postTypeWeights );
+		for ( let i = 0; i < fieldKeys.length; i++ ) {
+			let fieldKey = fieldKeys[ i ];
+			const fieldSettings = postTypeWeights[ fieldKey ];
+
+			if ( true === fieldSettings.enabled ) {
+				let fieldValue;
+
+				if ( 'post_title' === fieldKey ) {
+					fieldKey = 'post_title.suggest';
+				}
+
+				if ( 0 !== fieldSettings.weight ) {
+					fieldValue = `${fieldKey}^${fieldSettings.weight}`;
+				} else {
+					fieldValue = fieldKey;
+				}
+
+				fields.push( fieldValue );
+
+				// Defaults to allowing field in fuzzy search unless specifically disabled
+				if ( ! ( undefined !== fieldSettings.fuzziness && false === fieldSettings.fuzziness ) ) {
+					fuzzyFields.push( fieldValue );
+				}
+			}
+		}
+
+		mainQuery.push( {
+			bool: {
+				must: [
+					{
+						bool: {
+							should: [
+								{
+									multi_match: {
+										query: searchText,
+										type: 'phrase',
+										fields: fields,
+										boost: 4,
+									}
+								},
+								{
+									multi_match: {
+										query: searchText,
+										fields: fields,
+										boost: 2,
+										fuzziness: 0,
+										operator: 'and',
+									}
+								},
+								{
+									multi_match: {
+										query: searchText,
+										fields: fuzzyFields,
+										fuzziness: 1,
+									}
+								},
+							]
+						}
+					}
+				],
+				filter: [
+					{
+						match: {
+							'post_type.raw': postType
+						}
+					}
+				]
+			}
+		} );
+	} );
+
+	if ( undefined !== epas.dateDecay && true === epas.dateDecay.enabled ) {
+		query.query = {
+			function_score: {
+				query: {
+					bool: {
+						should: mainQuery
+					}
+				},
+				functions: [
+					{
+						exp: {
+							post_date_gmt: {
+								scale: '14d',
+								decay: 0.25,
+								offset: '7d',
+							}
+						}
+					}
+				],
+				score_mode: 'avg',
+				boost_mode: 'sum',
+			}
+		};
+	} else {
+		query.query = {
+			bool: {
+				should: mainQuery
+			}
+		};
 	}
 
 	if ( 'string' === typeof postStatus ) {
@@ -117,9 +229,15 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
 		}
 	};
 
-	if ( 'all' !== postType ) {
+	if ( Object.values( epas.mimeTypes ).length ) {
 		query.post_filter.bool.must.push( {
-			terms: { 'post_type.raw': postType }
+			terms: { 'post_mime_type': Object.values( epas.mimeTypes ) }
+		} );
+	}
+
+	if ( 'all' !== postTypes ) {
+		query.post_filter.bool.must.push( {
+			terms: { 'post_type.raw': postTypes }
 		} );
 	}
 
@@ -132,7 +250,7 @@ function buildSearchQuery( searchText, postType, postStatus, searchFields ) {
  * @param query
  * @returns AJAX object request
  */
-function esSearch( query ) {
+function esSearch( query, searchTerm ) {
 
 	// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
 	jQuery.support.cors = true;
@@ -143,8 +261,21 @@ function esSearch( query ) {
 		dataType: 'json',
 		crossDomain: true,
 		contentType: 'application/json; charset=utf-8',
+		headers: {
+			'EP-Search-Term': searchTerm
+		},
 		data: JSON.stringify( query )
 	} );
+}
+
+/**
+ * Escapes double quotes for specific data-attr
+ *
+ * @param str
+ * @returns string The escaped string
+ */
+function escapeDoubleQuotes( str ) {
+	return str.replace( /\\([\s\S])|(")/g, '&quot;' );
 }
 
 /**
@@ -154,9 +285,10 @@ function esSearch( query ) {
  * @return void
  */
 function updateAutosuggestBox( options, $localInput ) {
-	var i,
-		itemString,
-		$localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
+	let i,
+		itemString = '';
+
+	const $localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
 		$localSuggestList = $localESContainer.find( '.autosuggest-list' );
 
 	$localSuggestList.empty();
@@ -171,11 +303,11 @@ function updateAutosuggestBox( options, $localInput ) {
 	}
 
 	for ( i = 0; i < options.length; ++i ) {
-		var text = options[i].text;
-		var url = options[i].url;
-		itemString = '<li><span class="autosuggest-item" data-search="' + text + '" data-url="' + url + '">' + text + '</span></li>';
-		jQuery( itemString ).appendTo( $localSuggestList );
+		const text = options[i].text;
+		const url = options[i].url;
+		itemString += `<li><span class="autosuggest-item" data-search="${  escapeDoubleQuotes( text )  }" data-url="${  url  }">${  escapeDoubleQuotes( text )  }</span></li>`;
 	}
+	jQuery( itemString ).appendTo( $localSuggestList );
 
 	// Listen to items to auto-fill search box and submit form
 	jQuery( '.autosuggest-item' ).on( 'click', ( event ) => {
@@ -187,9 +319,9 @@ function updateAutosuggestBox( options, $localInput ) {
 	// Listen to the input for up and down navigation between autosuggest items
 	$localInput.on( 'keydown', ( event ) => {
 		if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode ) {
-			var $results = $localInput.closest( '.ep-autosuggest-container' ).find( '.autosuggest-list li' );
-			var $current = $results.filter( '.selected' );
-			var $next;
+			const $results = $localInput.closest( '.ep-autosuggest-container' ).find( '.autosuggest-list li' );
+			const $current = $results.filter( '.selected' );
+			let $next;
 
 			switch ( event.keyCode ) {
 					case 38: // Up
@@ -242,24 +374,70 @@ function hideAutosuggestBox() {
 	jQuery( '.ep-autosuggest' ).hide();
 }
 
+/**
+ * Checks for any manually ordered posts and puts them in the correct place
+ *
+ * @param hits
+ * @param searchTerm
+ */
+function checkForOrderedPosts( hits, searchTerm ) {
+	const taxName = 'ep_custom_result';
+
+	searchTerm = searchTerm.toLowerCase();
+
+	const toInsert = {};
+
+	hits = hits.filter( ( hit ) => {
+		// Should we retain this hit in its current position?
+		let retain = true;
+
+		if ( undefined !== hit._source.terms && undefined !== hit._source.terms[ taxName ] ) {
+			hit._source.terms[ taxName ].map( currentTerm => {
+				if ( currentTerm.name.toLowerCase() === searchTerm ) {
+					toInsert[ currentTerm.term_order ] = hit;
+
+					retain = false;
+				}
+			} );
+		}
+
+		return retain;
+	} );
+
+	const orderedInserts = {};
+
+	Object.keys( toInsert ).sort().map( key => {
+		orderedInserts[ key ] = toInsert[ key ];
+	} );
+
+	if ( 0 < Object.keys( orderedInserts ).length ) {
+		Object.keys( orderedInserts ).map( key => {
+			const insertItem = orderedInserts[ key ];
+
+			hits.splice( key - 1, 0, insertItem );
+		} );
+	}
+
+	return hits;
+}
 
 // No host/index set
 if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
-	const $epInput       = jQuery( '.ep-autosuggest, input[type="search"], .search-field, ' + epas.selector  );
+	const $epInput       = jQuery( `.ep-autosuggest, input[type="search"], .search-field, ${  epas.selector}`  );
 	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
 	 * Build the auto-suggest container
 	 */
 	$epInput.each( ( key, input ) => {
-		var $epContainer = jQuery( '<div class="ep-autosuggest-container"></div>' );
-		var $input = jQuery( input );
+		const $epContainer = jQuery( '<div class="ep-autosuggest-container"></div>' );
+		const $input = jQuery( input );
 
 		// Disable autocomplete
 		$input.attr( 'autocomplete', 'off' );
 
 		$epContainer.insertAfter( $input );
-		var $epLabel = $input.siblings( 'label' );
+		const $epLabel = $input.siblings( 'label' );
 		$input
 			.closest( 'form' )
 			.find( '.ep-autosuggest-container' )
@@ -298,32 +476,35 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	 *
 	 */
 	$epInput.each( ( key, localInput ) => {
-		var $localInput = jQuery( localInput );
+		const $localInput = jQuery( localInput );
 		$localInput.on( 'keyup', debounce( ( event ) => {
 			if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode || 27 === event.keyCode ) {
 				return;
 			}
 
-			var val = $localInput.val();
-			var query;
-			var request;
-			var postType = epas.postType;
-			var postStatus = epas.postStatus;
-			var searchFields = epas.searchFields;
+			const val = $localInput.val();
+			let query;
+			let request;
+			const postTypes = epas.postTypes;
+			const postStatus = epas.postStatus;
+			const searchFields = epas.searchFields;
+			const weightingSettings = Object.assign( {}, epas.weightingDefaults, epas.weighting );
 
 			if ( 2 <= val.length ) {
-				query = buildSearchQuery( val, postType, postStatus, searchFields );
-				request = esSearch( query );
+				query = buildSearchQuery( val, postTypes, postStatus, searchFields, weightingSettings );
+				request = esSearch( query, val );
 
 				request.done( ( response ) => {
 					if ( 0 < response._shards.successful ) {
-						var usedPosts = {};
-						var filteredObjects = [];
+						const usedPosts = {};
+						const filteredObjects = [];
 
-						jQuery.each( response.hits.hits, ( index, element ) =>{
-							var text = element._source.post_title;
-							var url = element._source.permalink;
-							var postId = element._source.post_id;
+						const hits = checkForOrderedPosts( response.hits.hits, val );
+
+						jQuery.each( hits, ( index, element ) => {
+							const text = element._source.post_title;
+							const url = element._source.permalink;
+							const postId = element._source.post_id;
 
 							if( ! usedPosts[ postId ] ) {
 								usedPosts[ postId ] = true;

@@ -232,10 +232,15 @@ abstract class Indexable {
 		$body = '';
 
 		foreach ( $object_ids as $object_id ) {
-			$body .= '{ "index": { "_id": "' . absint( $object_id ) . '" } }' . "\n";
+			$action_args = array(
+				'index' => array(
+					'_id' => absint( $object_id ),
+				),
+			);
 
 			$document = $this->prepare_document( $object_id );
 
+			$body .= wp_json_encode( apply_filters( 'ep_bulk_index_action_args', $action_args, $document ) ) . "\n";
 			$body .= addcslashes( wp_json_encode( $document ), "\n" );
 
 			$body .= "\n\n";
@@ -321,7 +326,7 @@ abstract class Indexable {
 		$meta_types = [];
 
 		if ( is_array( $meta_value ) || is_object( $meta_value ) ) {
-			$meta_value = serialize( $meta_value );
+			$meta_value = serialize( $meta_value ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
 		}
 
 		$meta_types['value'] = $meta_value;

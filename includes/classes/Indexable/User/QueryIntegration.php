@@ -56,7 +56,7 @@ class QueryIntegration {
 		$new_users = apply_filters( 'ep_wp_query_search_cached_posts', null, $query );
 
 		if ( null === $new_users ) {
-			$formatted_args = $user_indexable->format_args( $query->query_vars );
+			$formatted_args = $user_indexable->format_args( $query->query_vars, $query );
 
 			$ep_query = $user_indexable->query_es( $formatted_args, $query->query_vars );
 
@@ -81,7 +81,7 @@ class QueryIntegration {
 			}
 		}
 
-		$query->total_users = $ep_query['found_documents'];
+		$query->total_users = is_array( $ep_query['found_documents'] ) ? $ep_query['found_documents']['value'] : $ep_query['found_documents']; // 7.0+ have this as an array rather than int;
 
 		return $new_users;
 	}

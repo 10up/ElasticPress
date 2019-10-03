@@ -48,7 +48,7 @@ class Facets extends Feature {
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ] );
-		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
@@ -72,16 +72,8 @@ class Facets extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio"
-				<?php
-				if ( 'all' === $settings['match_type'] ) :
-					?>
-checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
-				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio"
-				<?php
-				if ( 'any' === $settings['match_type'] ) :
-					?>
-checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
+				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'all' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
+				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'any' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
@@ -91,12 +83,13 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	/**
 	 * If we are doing or matches, we need to remove filters from aggs
 	 *
-	 * @param  array $args ES arguments
-	 * @param  array $query_args Query arguments
+	 * @param  array    $args ES arguments
+	 * @param  array    $query_args Query arguments
+	 * @param  WP_Query $query WP Query instance
 	 * @since  2.5
 	 * @return array
 	 */
-	public function set_agg_filters( $args, $query_args ) {
+	public function set_agg_filters( $args, $query_args, $query ) {
 		if ( empty( $query_args['ep_facet'] ) ) {
 			return $args;
 		}
@@ -131,7 +124,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 				}
 			}
 
-			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args );
+			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
 
 			$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
@@ -154,7 +147,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		wp_enqueue_style(
 			'elasticpress-facets-admin',
-			EP_URL . 'dist/css/admin.min.css',
+			EP_URL . 'dist/css/facets-admin-styles.min.css',
 			[],
 			EP_VERSION
 		);
@@ -168,7 +161,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	public function front_scripts() {
 		wp_enqueue_script(
 			'elasticpress-facets',
-			EP_URL . 'dist/js/facets.min.js',
+			EP_URL . 'dist/js/facets-script.min.js',
 			[ 'jquery', 'underscore' ],
 			EP_VERSION,
 			true
@@ -176,7 +169,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		wp_enqueue_style(
 			'elasticpress-facets',
-			EP_URL . 'dist/css/facets.min.css',
+			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
 			EP_VERSION
 		);
@@ -202,7 +195,11 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 			return false;
 		}
 
-		if ( ! ( $query->is_post_type_archive() || $query->is_search() || ( is_home() && empty( $query->get( 'page_id' ) ) ) ) ) {
+		if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
+			|| $query->is_post_type_archive()
+			|| $query->is_search()
+			|| ( is_home() && empty( $query->get( 'page_id' ) ) ) )
+		) {
 			return false;
 		}
 
@@ -222,7 +219,10 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 			return;
 		}
 
-		$taxonomies = get_taxonomies( array( 'public' => true ) );
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+
+		// Allow other plugins to modify the available taxonomies.
+		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		if ( empty( $taxonomies ) ) {
 			return;
@@ -233,7 +233,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		$facets = [];
 
-		foreach ( $taxonomies as $slug ) {
+		foreach ( $taxonomies as $slug => $taxonomy ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
 					'size'  => 10000,
@@ -263,9 +263,19 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		$tax_query = $query->get( 'tax_query', [] );
 
+		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
+		$attribute_taxonomies = [];
+		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
+			$all_attr_taxonomies = wc_get_attribute_taxonomies();
+
+			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
+				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
+			}
+		}
+
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
 			$tax_query[] = [
-				'taxonomy' => $taxonomy,
+				'taxonomy' => isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy,
 				'field'    => 'slug',
 				'terms'    => array_keys( $filter['terms'] ),
 				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
@@ -292,15 +302,17 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 		if ( ! empty( $response['aggregations'] ) ) {
 			$GLOBALS['ep_facet_aggs'] = [];
 
-			foreach ( $response['aggregations']['terms'] as $key => $agg ) {
-				if ( 'doc_count' === $key ) {
-					continue;
-				}
+			if ( isset( $response['aggregations']['terms'] ) && is_array( $response['aggregations']['terms'] ) ) {
+				foreach ( $response['aggregations']['terms'] as $key => $agg ) {
+					if ( 'doc_count' === $key ) {
+						continue;
+					}
 
-				$GLOBALS['ep_facet_aggs'][ $key ] = [];
+					$GLOBALS['ep_facet_aggs'][ $key ] = [];
 
-				foreach ( $agg['buckets'] as $bucket ) {
-					$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+					foreach ( $agg['buckets'] as $bucket ) {
+						$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+					}
 				}
 			}
 		}
@@ -317,7 +329,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 			'taxonomies' => [],
 		);
 
-		foreach ( $_GET as $key => $value ) {
+		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 0 === strpos( $key, 'filter' ) ) {
 				$taxonomy = str_replace( 'filter_', '', $key );
 
@@ -362,6 +374,15 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
 
+		if ( is_post_type_archive() ) {
+			$pagination = strpos( $_SERVER['REQUEST_URI'], '/page' );
+
+			if ( false !== $pagination ) {
+				$url = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
+				return strtok( $url, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
+			}
+		}
+
 		return strtok( $_SERVER['REQUEST_URI'], '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
 	}
 
@@ -392,7 +413,12 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) ); ?></p>
+		<p>
+			<?php
+			// translators: URL
+			echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) );
+			?>
+		</p>
 		<?php
 	}
 }

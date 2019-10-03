@@ -58,7 +58,7 @@ class SyncManager extends SyncManagerAbstract {
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
 		$indexable = Indexables::factory()->get( 'user' );
 
-		$this->sync_queue[ $object_id ] = true;
+		$this->add_to_queue( $object_id );
 	}
 
 	/**
@@ -92,6 +92,6 @@ class SyncManager extends SyncManagerAbstract {
 
 		do_action( 'ep_sync_user_on_transition', $user_id );
 
-		$this->sync_queue[ $user_id ] = true;
+		$this->add_to_queue( $user_id );
 	}
 }
