@@ -121,7 +121,7 @@ class User extends Indexable {
 					$filter['bool']['must'][] = array(
 						'terms' => array(
 							'capabilities.' . $blog_id . '.roles' => [
-								$role,
+								strtolower( $role ),
 							],
 						),
 					);
@@ -131,6 +131,8 @@ class User extends Indexable {
 			} else {
 				if ( ! empty( $query_vars['role__in'] ) ) {
 					$roles_in = (array) $query_vars['role__in'];
+
+					$roles_in = array_map( 'strtolower', $roles_in );
 
 					$filter['bool']['must'][] = array(
 						'terms' => array(
@@ -148,7 +150,7 @@ class User extends Indexable {
 						$filter['bool']['must_not'][] = array(
 							'terms' => array(
 								'capabilities.' . $blog_id . '.roles' => [
-									$role,
+									strtolower( $role ),
 								],
 							),
 						);
