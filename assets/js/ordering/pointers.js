@@ -52,13 +52,13 @@ export class Pointers extends Component {
 	}, 200 );
 
 	getDefaultResults = () => {
-		let searchTerm = this.state.title;
+		const searchTerm = this.state.title;
 
 		apiFetch( {
 			path: `/elasticpress/v1/pointer_preview?s=${searchTerm}`,
 		} ).then( result => {
 
-			let { defaultResults } = this.state;
+			const { defaultResults } = this.state;
 
 			defaultResults[ searchTerm ] = result;
 
@@ -79,7 +79,7 @@ export class Pointers extends Component {
 		let merged = this.state.defaultResults[ this.state.title ].slice();
 		let pointers = this.state.pointers;
 
-		let setIds = {};
+		const setIds = {};
 		merged.map( item => {
 			setIds[ item.ID ] = item;
 		} );
@@ -103,17 +103,17 @@ export class Pointers extends Component {
 	};
 
 	doSearch = debounce( () => {
-		let searchTerm = this.state.searchText;
+		const searchTerm = this.state.searchText;
 
 		// Set loading state
-		let { searchResults } = this.state;
+		const { searchResults } = this.state;
 		searchResults[ searchTerm ] = false;
 		this.setState( { searchResults } );
 
 		apiFetch( {
 			path: `/elasticpress/v1/pointer_search?s=${searchTerm}`
 		} ).then( result => {
-			let { searchResults } = this.state;
+			const { searchResults } = this.state;
 
 			searchResults[ searchTerm ] = result;
 
@@ -189,18 +189,18 @@ export class Pointers extends Component {
 			return;
 		}
 
-		let items = this.getMergedPosts();
+		const items = this.getMergedPosts();
 
 		// Offsetting indexes when over posts per page to account for the non-sortable notice
 		const ppp = parseInt( window.epOrdering.postsPerPage, 10 );
 		const startIndex = result.source.index >= ppp ? result.source.index - 1 : result.source.index;
-		let endIndex = result.destination.index > ppp ? result.destination.index - 1 : result.destination.index;
+		const endIndex = result.destination.index > ppp ? result.destination.index - 1 : result.destination.index;
 
 		const [removed] = items.splice( startIndex, 1 );
 		items.splice( endIndex, 0, removed );
 
 		// Now _all_ the items are in order - grab the pointers and set the new positions to state
-		let pointers = [];
+		const pointers = [];
 
 		items.map( ( item, index ) => {
 			if ( item.order ) {

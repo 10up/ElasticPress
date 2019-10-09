@@ -488,11 +488,12 @@ class Post extends Indexable {
 	/**
 	 * Format WP query args for ES
 	 *
-	 * @param array $args WP_Query arguments.
+	 * @param  array    $args     WP_Query arguments.
+	 * @param  WP_Query $wp_query WP_Query object
 	 * @since 0.9.0
 	 * @return array
 	 */
-	public function format_args( $args ) {
+	public function format_args( $args, $wp_query ) {
 		if ( ! empty( $args['posts_per_page'] ) ) {
 			$posts_per_page = (int) $args['posts_per_page'];
 
@@ -579,26 +580,42 @@ class Post extends Indexable {
 		// set tax_query if it's implicitly set in the query.
 		// e.g. $args['tag'], $args['category_name'].
 		if ( empty( $args['tax_query'] ) ) {
-			if ( ! empty( $args['category_name'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['category_name'] ),
-					'field'    => 'slug',
-				);
-			} elseif ( ! empty( $args['cat'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['cat'] ),
-					'field'    => 'id',
-				);
-			}
-
-			if ( ! empty( $args['tag'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => array( $args['tag'] ),
-					'field'    => 'slug',
-				);
+			switch ( $args ) {
+				case ! empty( $args['category_name'] ):
+					$args['tax_query'][] = array(
+						'taxonomy' => 'category',
+						'terms'    => array( $args['category_name'] ),
+						'field'    => 'slug',
+					);
+					break;
+				case ! empty( $args['cat'] ):
+					$args['tax_query'][] = array(
+						'taxonomy' => 'category',
+						'terms'    => array( $args['cat'] ),
+						'field'    => 'id',
+					);
+					break;
+				case ! empty( $args['tag'] ):
+					$args['tax_query'][] = array(
+						'taxonomy' => 'post_tag',
+						'terms'    => array( $args['tag'] ),
+						'field'    => 'slug',
+					);
+					break;
+				case ! empty( $args['tag__and'] ):
+					$args['tax_query'][] = array(
+						'taxonomy' => 'post_tag',
+						'terms'    => $args['tag__and'],
+						'field'    => 'term_id',
+					);
+					break;
+				case ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ):
+					$args['tax_query'][] = array(
+						'taxonomy' => 'post_tag',
+						'terms'    => $args['tag_id'],
+						'field'    => 'term_id',
+					);
+					break;
 			}
 		}
 
@@ -690,7 +707,7 @@ class Post extends Indexable {
 		} elseif ( ! empty( $args['author_name'] ) ) {
 			// Since this was set to use the display name initially, there might be some code that used this feature.
 			// Let's ensure that any query vars coming in using author_name are in fact slugs.
-			$author_login = sanitize_user( $args['author_name'] );
+			$author_login             = sanitize_user( $args['author_name'] );
 			$filter['bool']['must'][] = array(
 				'term' => array(
 					'post_author.login.raw' => $author_login,
@@ -1105,9 +1122,9 @@ class Post extends Indexable {
 			}
 		}
 
-		$formatted_args = apply_filters( 'ep_formatted_args', $formatted_args, $args );
+		$formatted_args = apply_filters( 'ep_formatted_args', $formatted_args, $args, $wp_query );
 
-		return apply_filters( 'ep_post_formatted_args', $formatted_args, $args );
+		return apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
 	}
 
 	/**

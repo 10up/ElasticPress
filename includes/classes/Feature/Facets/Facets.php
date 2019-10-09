@@ -48,7 +48,7 @@ class Facets extends Feature {
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ] );
-		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
@@ -83,12 +83,13 @@ class Facets extends Feature {
 	/**
 	 * If we are doing or matches, we need to remove filters from aggs
 	 *
-	 * @param  array $args ES arguments
-	 * @param  array $query_args Query arguments
+	 * @param  array    $args ES arguments
+	 * @param  array    $query_args Query arguments
+	 * @param  WP_Query $query WP Query instance
 	 * @since  2.5
 	 * @return array
 	 */
-	public function set_agg_filters( $args, $query_args ) {
+	public function set_agg_filters( $args, $query_args, $query ) {
 		if ( empty( $query_args['ep_facet'] ) ) {
 			return $args;
 		}
@@ -123,7 +124,7 @@ class Facets extends Feature {
 				}
 			}
 
-			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args );
+			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
 
 			$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
@@ -146,7 +147,7 @@ class Facets extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-facets-admin',
-			EP_URL . 'dist/css/admin.min.css',
+			EP_URL . 'dist/css/facets-admin-styles.min.css',
 			[],
 			EP_VERSION
 		);
@@ -160,7 +161,7 @@ class Facets extends Feature {
 	public function front_scripts() {
 		wp_enqueue_script(
 			'elasticpress-facets',
-			EP_URL . 'dist/js/facets.min.js',
+			EP_URL . 'dist/js/facets-script.min.js',
 			[ 'jquery', 'underscore' ],
 			EP_VERSION,
 			true
@@ -168,7 +169,7 @@ class Facets extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-facets',
-			EP_URL . 'dist/css/facets.min.css',
+			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
 			EP_VERSION
 		);

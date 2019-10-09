@@ -56,11 +56,12 @@ class User extends Indexable {
 	/**
 	 * Format query vars into ES query
 	 *
-	 * @param  array $query_vars WP_User_Query args.
+	 * @param  array         $query_vars WP_User_Query args.
+	 * @param  WP_User_Query $query      User query object
 	 * @since  3.0
 	 * @return array
 	 */
-	public function format_args( $query_vars ) {
+	public function format_args( $query_vars, $query ) {
 		global $wpdb;
 
 		/**
@@ -120,7 +121,7 @@ class User extends Indexable {
 					$filter['bool']['must'][] = array(
 						'terms' => array(
 							'capabilities.' . $blog_id . '.roles' => [
-								$role,
+								strtolower( $role ),
 							],
 						),
 					);
@@ -130,6 +131,8 @@ class User extends Indexable {
 			} else {
 				if ( ! empty( $query_vars['role__in'] ) ) {
 					$roles_in = (array) $query_vars['role__in'];
+
+					$roles_in = array_map( 'strtolower', $roles_in );
 
 					$filter['bool']['must'][] = array(
 						'terms' => array(
@@ -147,7 +150,7 @@ class User extends Indexable {
 						$filter['bool']['must_not'][] = array(
 							'terms' => array(
 								'capabilities.' . $blog_id . '.roles' => [
-									$role,
+									strtolower( $role ),
 								],
 							),
 						);
@@ -485,7 +488,7 @@ class User extends Indexable {
 			);
 		}
 
-		return apply_filters( 'ep_user_formatted_args', $formatted_args, $query_vars );
+		return apply_filters( 'ep_user_formatted_args', $formatted_args, $query_vars, $query );
 	}
 
 	/**
@@ -630,7 +633,7 @@ class User extends Indexable {
 		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
 		 * way to do that.
 		 */
-		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->prefix}users ORDER BY %s %s LIMIT %d, %d", $args['orderby'], $args['orderby'], (int) $args['offset'], (int) $args['number'] ) );
+		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} ORDER BY %s %s LIMIT %d, %d", $args['orderby'], $args['orderby'], (int) $args['offset'], (int) $args['number'] ) );
 
 		return [
 			'objects'       => $objects,

@@ -43,6 +43,22 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.2 =
+ElasticPress 3.2 is a feature release. We've added quite a few useful features including an index health page, the ability to control which sites are indexed in a network activated multisite setup, a related posts Gutenberg block, and more.
+
+* Improve block asset enqueueing: hook on `enqueue_block_editor_assets`. Props [adamsilverstein](https://github.com/adamsilverstein).
+* Handle empty search weighting fields bug.
+* Integrate WooCommerce default filter by price widget with ES range query.
+* Improve messaging for custom result post type.
+* Index health page.
+* Add tag_in and tag__and support.
+* Related posts Gutenberg block.
+* Facet widget ordering option. Props [psorensen](https://github.com/psorensen).
+* Control Index-ability of individual sites in multisite.
+* Integrate WooCommerce default filter by price widget with ES range query.
+
+See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+milestone%3A3.2.0+is%3Aclosed+
+
 = 3.1.4 =
 https://github.com/10up/ElasticPress/pulls?q=is%3Apr+milestone%3A3.1.4+is%3Aclosed
 

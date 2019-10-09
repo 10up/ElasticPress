@@ -15,6 +15,7 @@ use ElasticPress\Indexables;
 use ElasticPress\Installer;
 use ElasticPress\AdminNotices;
 use ElasticPress\Screen;
+use ElasticPress\Stats;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -48,6 +49,10 @@ function setup() {
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
+	add_filter( 'wpmu_blogs_columns', __NAMESPACE__ . '\filter_blogs_columns', 10, 1 );
+	add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
+	add_action( 'manage_blogs_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
+	add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
 }
 
 /**
@@ -355,6 +360,10 @@ function action_wp_ajax_ep_index() {
 			$sites = Utils\get_sites();
 
 			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
 				foreach ( $non_global_indexables as $indexable ) {
 					$index_meta['sync_stack'][] = [
 						'url'       => untrailingslashit( $site['domain'] . $site['path'] ),
@@ -362,6 +371,17 @@ function action_wp_ajax_ep_index() {
 						'indexable' => $indexable,
 					];
 				}
+			}
+
+			if ( 0 === count( $index_meta['sync_stack'] ) && empty( $global_indexables ) ) {
+				wp_send_json_error(
+					[
+						'found_items' => 0,
+						'offset'      => 0,
+					]
+				);
+
+				return;
 			}
 
 			$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
@@ -389,10 +409,25 @@ function action_wp_ajax_ep_index() {
 			$index_meta['feature_sync'] = esc_attr( $_POST['feature_sync'] );
 		}
 
-		foreach ( $global_indexables as $indexable ) {
-			$index_meta['sync_stack'][] = [
-				'indexable' => $indexable,
-			];
+		// Handle global indexables case if non globals disabled
+		if ( 0 === count( $index_meta['sync_stack'] ) && ! in_array( $index_meta['current_sync_item']['indexable'], $non_global_indexables, true ) ) {
+			foreach ( $sites as $site ) {
+				foreach ( $global_indexables as $indexable ) {
+					$index_meta['sync_stack'][] = [
+						'url'       => untrailingslashit( $site['domain'] . $site['path'] ),
+						'blog_id'   => (int) $site['blog_id'],
+						'indexable' => $indexable,
+					];
+				}
+			}
+			$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
+
+		} else {
+			foreach ( $global_indexables as $indexable ) {
+				$index_meta['sync_stack'][] = [
+					'indexable' => $indexable,
+				];
+			}
 		}
 
 		do_action( 'ep_dashboard_start_index', $index_meta );
@@ -577,12 +612,22 @@ function action_wp_ajax_ep_save_feature() {
  * @since 2.2
  */
 function action_admin_enqueue_dashboard_scripts() {
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) {
-		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard.min.css', [], EP_VERSION );
+	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'sites-network' ) !== false ) {
+		wp_enqueue_style( 'ep_admin_sites_styles', EP_URL . 'dist/css/sites-admin-styles.min.css', [], EP_VERSION );
+		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/sites-admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
+		$data = [
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'epsa' ),
+		];
+		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
+	}
+
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health' ], true ) ) {
+		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard-styles.min.css', [], EP_VERSION );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
-		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard.min.js', [ 'jquery' ], EP_VERSION, true );
+		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard-script.min.js', [ 'jquery' ], EP_VERSION, true );
 
 		$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
@@ -637,6 +682,15 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 	}
+
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
+		Stats::factory()->build_stats();
+
+		$data = Stats::factory()->get_localized();
+
+		wp_enqueue_script( 'ep_stats', EP_URL . 'dist/js/stats-script.min.js', [], EP_VERSION, true );
+		wp_localize_script( 'ep_stats', 'epChartData', $data );
+	}
 }
 
 /**
@@ -645,7 +699,7 @@ function action_admin_enqueue_dashboard_scripts() {
  * @since 2.2
  */
 function action_admin_enqueue_admin_scripts() {
-	wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'dist/js/admin.min.js', [ 'jquery' ], EP_VERSION, true );
+	wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'dist/js/admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
 
 	wp_localize_script(
 		'ep_admin_scripts',
@@ -764,6 +818,15 @@ function action_admin_menu() {
 		'elasticpress-settings',
 		__NAMESPACE__ . '\resolve_screen'
 	);
+
+	add_submenu_page(
+		'elasticpress',
+		'ElasticPress ' . esc_html__( 'Index Health', 'elasticpress' ),
+		esc_html__( 'Index Health', 'elasticpress' ),
+		$capability,
+		'elasticpress-health',
+		__NAMESPACE__ . '\resolve_screen'
+	);
 }
 
 /**
@@ -834,4 +897,67 @@ function use_language_in_setting( $language = 'english' ) {
 	];
 
 	return in_array( $english_name, $ep_languages, true ) ? $english_name : $language;
+}
+
+/**
+ * Add column to sites admin table.
+ *
+ * @param string[] $columns Array of columns.
+ *
+ * @return string[]
+ */
+function filter_blogs_columns( $columns ) {
+	$columns['elasticpress'] = esc_html__( 'ElasticPress Indexing', 'elasticpress' );
+
+	return $columns;
+}
+
+/**
+ * Populate column with checkbox/switch.
+ *
+ * @param string $column_name The name of the current column.
+ * @param int    $blog_id The blog ID.
+ *
+ * @return void | string
+ */
+function add_blogs_column( $column_name, $blog_id ) {
+	$site = get_site( $blog_id );
+	if ( $site->deleted || $site->archived || $site->spam ) {
+		return;
+	}
+	if ( 'elasticpress' === $column_name ) {
+		$is_indexable = get_blog_option( $blog_id, 'ep_indexable', 'yes' );
+		$checked      = ( 'yes' === $is_indexable ) ? 'checked' : '';
+		echo '<label class="switch"><input type="checkbox" ' . esc_attr( $checked ) . ' class="index-toggle" data-blogId="' . esc_attr( $blog_id ) . '"><span class="slider round"></span></label>';
+		echo '<span class="switch-label" id="switch-label-' . esc_attr( $blog_id ) . '">';
+		if ( 'yes' === $is_indexable ) {
+			esc_html_e( 'On', 'elasticpress' );
+		} else {
+			esc_html_e( 'Off', 'elasticpress' );
+		}
+
+		echo '</span>';
+	}
+
+	return $column_name;
+}
+
+/**
+ * AJAX callback to update ep_indexable site option.
+ */
+function action_wp_ajax_ep_site_admin() {
+	$blog_id = ( ! empty( $_GET['blog_id'] ) ) ? absint( wp_unslash( $_GET['blog_id'] ) ) : - 1;
+	$checked = ( ! empty( $_GET['checked'] ) ) ? sanitize_text_field( wp_unslash( $_GET['checked'] ) ) : 'no';
+
+	if ( - 1 === $blog_id || ! check_ajax_referer( 'epsa', 'nonce', false ) ) {
+		return wp_send_json_error();
+	}
+	$old    = get_blog_option( $blog_id, 'ep_indexable' );
+	$result = update_blog_option( $blog_id, 'ep_indexable', $checked );
+	$data   = [
+		'blog_id' => $blog_id,
+		'result'  => $result,
+	];
+
+	return wp_send_json_success( $data );
 }
