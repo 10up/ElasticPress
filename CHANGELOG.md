@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.2] - 2019-10-08
+
+* Improve block asset enqueueing: hook on `enqueue_block_editor_assets`. Props [adamsilverstein](https://github.com/adamsilverstein).
+* Handle empty search weighting fields bug.
+* Integrate WooCommerce default filter by price widget with ES range query.
+* Improve messaging for custom result post type.
+* Index health page.
+* Add tag_in and tag__and support.
+* Related posts Gutenberg block.
+* Facet widget ordering option. Props [psorensen](https://github.com/psorensen).
+* Control Index-ability of individual sites in multisite.
+* Integrate WooCommerce default filter by price widget with ES range query.
+
+See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+milestone%3A3.2.0+is%3Aclosed+
+
 ## [3.1.1] - 2019-07-25
 ### Fixed
 - Ensure taxonomies that are shared among multiple post types show up on the weighting screen
