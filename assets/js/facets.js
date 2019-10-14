@@ -1,12 +1,44 @@
 import jQuery from 'jquery';
-import _ from 'underscores';
+
+/**
+ * Debounce execution
+ */
+const debounce = function( func, wait, immediate ) {
+	let timeout;
+
+	return function executedFunction() {
+		const context = this;
+		const args = arguments;
+
+		/**
+		 * Function to execute later
+		 */
+		const later = function() {
+			timeout = null;
+
+			if ( ! immediate ) {
+				func.apply( context, args );
+			}
+		};
+
+		const callNow = immediate && ! timeout;
+
+		clearTimeout( timeout );
+
+		timeout = setTimeout( later, wait );
+
+		if ( callNow ) {
+			func.apply( context, args );
+		}
+	};
+};
 
 const facetTerms = document.querySelectorAll( '.widget_ep-facet .terms' );
 
 /**
  * Drill down facet choices
  */
-jQuery( facetTerms ).on( 'keyup', '.facet-search', _.debounce( ( event ) => {
+jQuery( facetTerms ).on( 'keyup', '.facet-search', debounce( ( event ) => {
 	if ( 13 === event.keyCode ) {
 		return;
 	}

@@ -37,7 +37,6 @@ module.exports = {
 	// External objects.
 	externals: {
 		jquery: 'jQuery',
-		underscores: '_',
 		window: 'window'
 	},
 
