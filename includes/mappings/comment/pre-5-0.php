@@ -120,16 +120,31 @@ return [
 				'analyzer' => 'simple',
 			],
 			'properties'        => [
-				'comment_ID'           => [
+				'comment_ID'             => [
 					'type' => 'long',
 				],
-				'ID'                   => [
+				'ID'                     => [
 					'type' => 'long',
 				],
-				'comment_post_ID'      => [
+				'comment_post_ID'        => [
 					'type' => 'long',
 				],
-				'comment_author'       => [
+				'comment_post_author_ID' => [
+					'type' => 'long',
+				],
+				'comment_post_status'    => [
+					'type'   => 'string',
+				],
+				'comment_post_type'      => [
+					'type'   => 'string',
+				],
+				'comment_post_name'      => [
+					'type'   => 'string',
+				],
+				'comment_post_parent'    => [
+					'type' => 'long',
+				],
+				'comment_author'         => [
 					'type'   => 'string',
 					'fields' => [
 						'name' => [
@@ -141,26 +156,53 @@ return [
 						],
 					],
 				],
-				'comment_author_email' => [
+				'comment_author_email'   => [
 					'type'   => 'string',
+					'fields' => [
+						'name' => [
+							'type' => 'string',
+						],
+						'raw'  => [
+							'type'         => 'string',
+							'ignore_above' => 10922,
+						],
+					],
 				],
-				'comment_author_url'   => [
+				'comment_author_url'     => [
 					'type'   => 'string',
+					'fields' => [
+						'name' => [
+							'type' => 'string',
+						],
+						'raw'  => [
+							'type'         => 'string',
+							'ignore_above' => 10922,
+						],
+					],
 				],
-				'comment_author_IP'    => [
+				'comment_author_IP'      => [
 					'type'   => 'string',
+					'fields' => [
+						'name' => [
+							'type' => 'string',
+						],
+						'raw'  => [
+							'type'         => 'string',
+							'ignore_above' => 10922,
+						],
+					],
 				],
-				'comment_date'         => [
+				'comment_date'           => [
 					'type'           => 'date',
 					'format'         => 'YYYY-MM-dd HH:mm:ss',
 					'include_in_all' => false,
 				],
-				'comment_date_gmt'     => [
+				'comment_date_gmt'       => [
 					'type'           => 'date',
 					'format'         => 'YYYY-MM-dd HH:mm:ss',
 					'include_in_all' => false,
 				],
-				'comment_content'      => [
+				'comment_content'        => [
 					'type'   => 'string',
 					'fields' => [
 						'description' => [
@@ -172,25 +214,52 @@ return [
 						],
 					],
 				],
-				'comment_karma'        => [
+				'comment_karma'          => [
 					'type' => 'long',
 				],
-				'comment_approved'     => [
+				'comment_approved'       => [
+					'type'   => 'string',
+					'fields' => [
+						'name' => [
+							'type' => 'string',
+						],
+						'raw'  => [
+							'type'         => 'string',
+							'ignore_above' => 10922,
+						],
+					],
+				],
+				'comment_agent'          => [
+					'type'   => 'string',
+					'fields' => [
+						'name' => [
+							'type' => 'string',
+						],
+						'raw'  => [
+							'type'         => 'string',
+							'ignore_above' => 10922,
+						],
+					],
+				],
+				'comment_type'           => [
+					'type'   => 'string',
+					'fields' => [
+						'name' => [
+							'type' => 'string',
+						],
+						'raw'  => [
+							'type'         => 'string',
+							'ignore_above' => 10922,
+						],
+					],
+				],
+				'comment_parent'         => [
 					'type' => 'long',
 				],
-				'comment_agent'        => [
-					'type' => 'string',
-				],
-				'comment_type'         => [
-					'type' => 'string',
-				],
-				'comment_parent'       => [
+				'user_id'                => [
 					'type' => 'long',
 				],
-				'user_id'              => [
-					'type' => 'long',
-				],
-				'meta'                 => [
+				'meta'                   => [
 					'type' => 'object',
 				],
 			],

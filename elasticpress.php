@@ -129,13 +129,6 @@ if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, 
 // TODO: update version number
 if ( version_compare( $wp_version, '5.2', '>=' ) || 0 === stripos( $wp_version, '5.2-' ) ) {
 	Features::factory()->register_feature(
-		new Feature\Terms\Terms()
-	);
-}
-
-// TODO: update version number
-if ( version_compare( $wp_version, '5.2', '>=' ) || 0 === stripos( $wp_version, '5.2-' ) ) {
-	Features::factory()->register_feature(
 		new Feature\Comments\Comments()
 	);
 }

@@ -120,16 +120,31 @@ return [
 				'analyzer' => 'simple',
 			],
 			'properties'        => [
-				'comment_ID'           => [
+				'comment_ID'             => [
 					'type' => 'long',
 				],
-				'ID'                   => [
+				'ID'                     => [
 					'type' => 'long',
 				],
-				'comment_post_ID'      => [
+				'comment_post_ID'        => [
 					'type' => 'long',
 				],
-				'comment_author'       => [
+				'comment_post_author_ID' => [
+					'type' => 'long',
+				],
+				'comment_post_status'    => [
+					'type'   => 'text',
+				],
+				'comment_post_type'      => [
+					'type'   => 'text',
+				],
+				'comment_post_name'      => [
+					'type'   => 'text',
+				],
+				'comment_post_parent'    => [
+					'type' => 'long',
+				],
+				'comment_author'         => [
 					'type'   => 'text',
 					'fields' => [
 						'name' => [
@@ -141,24 +156,51 @@ return [
 						],
 					],
 				],
-				'comment_author_email' => [
+				'comment_author_email'   => [
 					'type'   => 'text',
+					'fields' => [
+						'name' => [
+							'type' => 'text',
+						],
+						'raw'  => [
+							'type'         => 'keyword',
+							'ignore_above' => 10922,
+						],
+					],
 				],
-				'comment_author_url'   => [
+				'comment_author_url'     => [
 					'type'   => 'text',
+					'fields' => [
+						'name' => [
+							'type' => 'text',
+						],
+						'raw'  => [
+							'type'         => 'keyword',
+							'ignore_above' => 10922,
+						],
+					],
 				],
-				'comment_author_IP'    => [
+				'comment_author_IP'      => [
 					'type'   => 'text',
+					'fields' => [
+						'name' => [
+							'type' => 'text',
+						],
+						'raw'  => [
+							'type'         => 'keyword',
+							'ignore_above' => 10922,
+						],
+					],
 				],
-				'comment_date'         => [
+				'comment_date'           => [
 					'type'   => 'date',
 					'format' => 'YYYY-MM-dd HH:mm:ss',
 				],
-				'comment_date_gmt'     => [
+				'comment_date_gmt'       => [
 					'type'   => 'date',
 					'format' => 'YYYY-MM-dd HH:mm:ss',
 				],
-				'comment_content'      => [
+				'comment_content'        => [
 					'type'   => 'text',
 					'fields' => [
 						'description' => [
@@ -170,25 +212,52 @@ return [
 						],
 					],
 				],
-				'comment_karma'        => [
+				'comment_karma'          => [
 					'type' => 'long',
 				],
-				'comment_approved'     => [
+				'comment_approved'       => [
+					'type'   => 'text',
+					'fields' => [
+						'name' => [
+							'type' => 'text',
+						],
+						'raw'  => [
+							'type'         => 'keyword',
+							'ignore_above' => 10922,
+						],
+					],
+				],
+				'comment_agent'          => [
+					'type'   => 'text',
+					'fields' => [
+						'name' => [
+							'type' => 'text',
+						],
+						'raw'  => [
+							'type'         => 'keyword',
+							'ignore_above' => 10922,
+						],
+					],
+				],
+				'comment_type'           => [
+					'type'   => 'text',
+					'fields' => [
+						'name' => [
+							'type' => 'text',
+						],
+						'raw'  => [
+							'type'         => 'keyword',
+							'ignore_above' => 10922,
+						],
+					],
+				],
+				'comment_parent'         => [
 					'type' => 'long',
 				],
-				'comment_agent'        => [
-					'type' => 'text',
-				],
-				'comment_type'         => [
-					'type' => 'text',
-				],
-				'comment_parent'       => [
+				'user_id'                => [
 					'type' => 'long',
 				],
-				'user_id'              => [
-					'type' => 'long',
-				],
-				'meta'                 => [
+				'meta'                   => [
 					'type' => 'object',
 				],
 			],

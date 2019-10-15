@@ -36,7 +36,6 @@ class QueryIntegration {
 		add_action( 'pre_get_comments', array( $this, 'action_pre_get_comments' ), 5 );
 
 		// Filter comment query
-		// TODO: Check this
 		add_filter( 'comments_pre_query', [ $this, 'maybe_filter_query' ], 10, 2 );
 	}
 
@@ -64,7 +63,7 @@ class QueryIntegration {
 	/**
 	 * If WP_Comment_Query meets certain conditions, query results from ES
 	 *
-	 * @param  array            $results Term results.
+	 * @param  array            $results Query results.
 	 * @param  WP_Comment_Query $query   Current query.
 	 * @since  3.1
 	 * @return array
@@ -78,97 +77,128 @@ class QueryIntegration {
 
 		$new_comments = apply_filters( 'ep_wp_query_cached_comments', null, $query );
 
-		if ( null === $new_comments ) {
-			$formatted_args = $indexable->format_args( $query->query_vars );
+		if ( null !== $new_comments ) {
+			return $new_comments;
+		}
 
+		$formatted_args = $indexable->format_args( $query->query_vars );
+
+		$scope = 'current';
+		if ( ! empty( $query->query_vars['sites'] ) ) {
+			$scope = $query->query_vars['sites'];
+		}
+
+		/**
+		 * Filter search scope
+		 *
+		 * @since 3.1
+		 *
+		 * @param mixed $scope The search scope. Accepts `all` (string), a single
+		 *                     site id (int or string), or an array of site ids (array).
+		 */
+		$scope = apply_filters( 'ep_comment_search_scope', $scope );
+
+		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
 			$scope = 'current';
-			if ( ! empty( $query->query_vars['sites'] ) ) {
-				$scope = $query->query_vars['sites'];
+		}
+
+		$index = null;
+
+		if ( 'all' === $scope ) {
+			$index = $indexable->get_network_alias();
+		} elseif ( is_numeric( $scope ) ) {
+			$index = $indexable->get_index_name( (int) $scope );
+		} elseif ( is_array( $scope ) ) {
+			$index = [];
+
+			foreach ( $scope as $site_id ) {
+				$index[] = $indexable->get_index_name( $site_id );
 			}
 
-			/**
-			 * Filter search scope
-			 *
-			 * @since 3.1
-			 *
-			 * @param mixed $scope The search scope. Accepts `all` (string), a single
-			 *                     site id (int or string), or an array of site ids (array).
-			 */
-			$scope = apply_filters( 'ep_comment_search_scope', $scope );
+			$index = implode( ',', $index );
+		}
 
-			if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
-				$scope = 'current';
+		$ep_query = $indexable->query_es( $formatted_args, $query->query_vars, $index );
+
+		if ( false === $ep_query ) {
+			$query->elasticsearch_success = false;
+			return $results;
+		}
+
+		$query->found_comments        = $ep_query['found_documents'];
+		$query->elasticsearch_success = true;
+
+		// Determine how we should format the results from ES based on the fields parameter.
+		$fields = $query->query_vars['fields'];
+
+		switch ( $fields ) {
+			case 'ids':
+				$new_comments = $this->format_hits_as_ids( $ep_query['documents'], $new_comments );
+				break;
+
+			default:
+				$new_comments = $this->format_hits_as_comments( $ep_query['documents'], $new_comments, $query->query_vars );
+				break;
+		}
+
+		if ( ! empty( $query->query_vars['count'] ) ) {
+			$new_comments = count( $ep_query['documents'] );
+		}
+
+		return $new_comments;
+	}
+
+	/**
+	 * Format the ES hits/results as comments objects.
+	 *
+	 * @param  array $comments The comments that should be formatted.
+	 * @param  array $new_comments Array of comments from cache.
+	 * @param  array $query_vars Query variables.
+	 * @since  3.1
+	 * @return array
+	 */
+	protected function format_hits_as_comments( $comments, $new_comments, $query_vars ) {
+		foreach ( $comments as $comment_array ) {
+			$comment = new \stdClass();
+
+			$comment->ID      = $comment_array['comment_ID'];
+			$comment->site_id = get_current_blog_id();
+
+			if ( ! empty( $comment_array['site_id'] ) ) {
+				$comment->site_id = $comment_array['site_id'];
 			}
 
-			$index = null;
+			$comment_return_args = apply_filters(
+				'ep_search_comment_return_args',
+				[
+					'comment_ID',
+					'comment_post_ID',
+					'comment_author',
+					'comment_author_email',
+					'comment_author_url',
+					'comment_author_IP',
+					'comment_date',
+					'comment_date_gmt',
+					'comment_content',
+					'comment_karma',
+					'comment_approved',
+					'comment_agent',
+					'comment_type',
+					'comment_parent',
+					'user_id',
+				]
+			);
 
-			if ( 'all' === $scope ) {
-				$index = $indexable->get_network_alias();
-			} elseif ( is_numeric( $scope ) ) {
-				$index = $indexable->get_index_name( (int) $scope );
-			} elseif ( is_array( $scope ) ) {
-				$index = [];
-
-				foreach ( $scope as $site_id ) {
-					$index[] = $indexable->get_index_name( $site_id );
+			foreach ( $comment_return_args as $key ) {
+				if ( isset( $comment_array[ $key ] ) ) {
+					$comment->$key = $comment_array[ $key ];
 				}
-
-				$index = implode( ',', $index );
 			}
 
-			$ep_query = $indexable->query_es( $formatted_args, $query->query_vars, $index );
+			$comment->elasticsearch = true; // Super useful for debugging
 
-			if ( false === $ep_query ) {
-				$query->elasticsearch_success = false;
-				return $results;
-			}
-
-			$query->found_comments        = $ep_query['found_documents'];
-			$query->elasticsearch_success = true;
-
-			// Determine how we should format the results from ES based on the fields parameter.
-			$fields = $query->query_vars['fields'];
-
-			switch ( $fields ) {
-				case 'all_with_object_id':
-					$new_comments = $this->format_hits_as_terms( $ep_query['documents'], $new_comments, $query->query_vars );
-					break;
-
-				case 'count':
-					$new_comments = count( $ep_query['documents'] );
-					break;
-
-				case 'ids':
-					$new_comments = $this->format_hits_as_ids( $ep_query['documents'], $new_comments );
-					break;
-
-				case 'id=>name':
-					$new_comments = $this->format_hits_as_id_name( $ep_query['documents'], $new_comments );
-					break;
-
-				case 'id=>parent':
-					$new_comments = $this->format_hits_as_id_parent( $ep_query['documents'], $new_comments );
-					break;
-
-				case 'id=>slug':
-					$new_comments = $this->format_hits_as_id_slug( $ep_query['documents'], $new_comments );
-					break;
-
-				case 'names':
-					$new_comments = $this->format_hits_as_names( $ep_query['documents'], $new_comments );
-					break;
-
-				case 'tt_ids':
-					$new_comments = $this->format_hits_as_ids( $ep_query['documents'], $new_comments, 'term_taxonomy_id' );
-					break;
-
-				default:
-					$new_comments = $this->format_hits_as_terms( $ep_query['documents'], $new_comments, $query->query_vars );
-					break;
-			}
-
-			if ( ! empty( $query->query_vars['count'] ) ) {
-				$new_comments = count( $ep_query['documents'] );
+			if ( $comment ) {
+				$new_comments[] = $comment;
 			}
 		}
 
@@ -176,140 +206,19 @@ class QueryIntegration {
 	}
 
 	/**
-	 * Format the ES hits/results as term objects.
-	 *
-	 * @param  array $terms The terms that should be formatted.
-	 * @param  array $new_terms Array of terms from cache.
-	 * @param  array $query_vars Query variables.
-	 * @since  3.1
-	 * @return array
-	 */
-	protected function format_hits_as_terms( $terms, $new_terms, $query_vars ) {
-		foreach ( $terms as $term_array ) {
-			$term = new \stdClass();
-
-			$term->ID      = $term_array['term_id'];
-			$term->site_id = get_current_blog_id();
-
-			if ( ! empty( $term_array['site_id'] ) ) {
-				$term->site_id = $term_array['site_id'];
-			}
-
-			$term_return_args = apply_filters(
-				'ep_search_term_return_args',
-				array(
-					'term_id',
-					'name',
-					'slug',
-					'term_group',
-					'term_taxonomy_id',
-					'taxonomy',
-					'description',
-					'parent',
-					'count',
-					'meta',
-				)
-			);
-
-			foreach ( $term_return_args as $key ) {
-				if ( isset( $term_array[ $key ] ) ) {
-					if ( 'count' === $key && ! empty( $query_vars['pad_counts'] ) ) {
-						$term_array[ $key ] += $term_array['hierarchy']['children']['count'];
-					}
-
-					$term->$key = $term_array[ $key ];
-				}
-			}
-
-			$term->elasticsearch = true; // Super useful for debugging
-
-			if ( $term ) {
-				$new_terms[] = $term;
-			}
-		}
-
-		return $new_terms;
-	}
-
-	/**
 	 * Format the ES hits/results as an array of ids.
 	 *
-	 * @param  array  $terms The terms that should be formatted.
-	 * @param  array  $new_terms Array of terms from cache.
-	 * @param  string $type Type of ID to return. Default 'term_id'.
+	 * @param  array  $comments The comments that should be formatted.
+	 * @param  array  $new_comments Array of comments from cache.
 	 * @since  3.1
 	 * @return array
 	 */
-	protected function format_hits_as_ids( $terms, $new_terms, $type = 'term_id' ) {
-		foreach ( $terms as $term_array ) {
-			$new_terms[] = 'term_id' === $type ? $term_array['term_id'] : $term_array['term_taxonomy_id'];
+	protected function format_hits_as_ids( $comments, $new_comments ) {
+		foreach ( $comments as $comment_array ) {
+			$new_comments[] = $comment_array['comment_ID'];
 		}
 
-		return $new_terms;
-	}
-
-	/**
-	 * Format the ES hits/results as an array of term ID and term name.
-	 *
-	 * @param  array $terms The terms that should be formatted.
-	 * @param  array $new_terms Array of terms from cache.
-	 * @since  3.1
-	 * @return array Returns an associative array with ids as keys, term names as values
-	 */
-	protected function format_hits_as_id_name( $terms, $new_terms ) {
-		foreach ( $terms as $term_array ) {
-			$new_terms[ $term_array['term_id'] ] = $term_array['name'];
-		}
-
-		return $new_terms;
-	}
-
-	/**
-	 * Format the ES hits/results as an array of term ID and parent ID.
-	 *
-	 * @param  array $terms The terms that should be formatted.
-	 * @param  array $new_terms Array of terms from cache.
-	 * @since  3.1
-	 * @return array Returns an associative array with ids as keys, parent term IDs as values
-	 */
-	protected function format_hits_as_id_parent( $terms, $new_terms ) {
-		foreach ( $terms as $term_array ) {
-			$new_terms[ $term_array['term_id'] ] = $term_array['parent'];
-		}
-
-		return $new_terms;
-	}
-
-	/**
-	 * Format the ES hits/results as an array of term ID and term slug.
-	 *
-	 * @param  array $terms The terms that should be formatted.
-	 * @param  array $new_terms Array of terms from cache.
-	 * @since  3.1
-	 * @return array Returns an associative array with ids as keys, term slugs as values
-	 */
-	protected function format_hits_as_id_slug( $terms, $new_terms ) {
-		foreach ( $terms as $term_array ) {
-			$new_terms[ $term_array['term_id'] ] = $term_array['slug'];
-		}
-
-		return $new_terms;
-	}
-
-	/**
-	 * Format the ES hits/results as an array of term names.
-	 *
-	 * @param array $terms The terms that should be formatted.
-	 * @param array $new_terms Array of terms from cache.
-	 * @since  3.1
-	 * @return array Returns an array of term names.
-	 */
-	protected function format_hits_as_names( $terms, $new_terms ) {
-		foreach ( $terms as $term_array ) {
-			$new_terms[] = $term_array['name'];
-		}
-
-		return $new_terms;
+		return $new_comments;
 	}
 
 }

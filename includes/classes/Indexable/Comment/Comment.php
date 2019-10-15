@@ -10,6 +10,7 @@ namespace ElasticPress\Indexable\Comment;
 
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Indexable\Post\DateQuery as DateQuery;
 use \WP_Comment_Query as WP_Comment_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -47,9 +48,7 @@ class Comment extends Indexable {
 	/**
 	 * Format query vars into ES query
 	 *
-	 * TODO: Modify this
-	 *
-	 * @param  array $query_vars WP_Term_Query args.
+	 * @param  array $query_vars WP_Comment_Query args.
 	 * @since  3.1
 	 * @return array
 	 */
@@ -87,19 +86,29 @@ class Comment extends Indexable {
 		}
 
 		/**
+		 * Support `paged` query var
+		 *
+		 * If `offset` is used, that takes precendence
+		 * over this.
+		 */
+		if ( isset( $query_vars['paged'] ) && ! isset( $query_vars['offset'] ) && $query_vars['paged'] > 1 ) {
+			$formatted_args['from'] = $number * ( $query_vars['paged'] - 1 );
+		}
+
+		/**
 		 * Support `order` and `orderby` query vars
 		 */
 
-		// Set sort order, default is 'asc'.
+		// Set sort order, default is 'desc'.
 		if ( ! empty( $query_vars['order'] ) ) {
 			$order = $this->parse_order( $query_vars['order'] );
 		} else {
-			$order = 'asc';
+			$order = 'desc';
 		}
 
-		// Default sort by name
+		// Default sort by comment date
 		if ( empty( $query_vars['orderby'] ) ) {
-			$query_vars['orderby'] = 'name';
+			$query_vars['orderby'] = 'comment_date_gmt';
 		}
 
 		// Set sort type.
@@ -114,21 +123,177 @@ class Comment extends Indexable {
 		$use_filters = false;
 
 		/**
-		 * Support `taxonomy` query var
+		 * Support `author_email` query var
 		 */
-		$taxonomy = [];
-		if ( ! empty( $query_vars['taxonomy'] ) ) {
-			$taxonomy       = (array) $query_vars['taxonomy'];
-			$terms_map_name = 'terms';
+		if ( ! empty( $query_vars['author_email'] ) ) {
+			$filter['bool']['must'][] = [
+				'term' => [
+					'comment_author_email.raw' => $query_vars['author_email'],
+				],
+			];
 
-			if ( count( $taxonomy ) < 2 ) {
-				$terms_map_name = 'term';
-				$taxonomy       = $taxonomy[0];
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `author_url` query var
+		 */
+		if ( ! empty( $query_vars['author_url'] ) ) {
+			$filter['bool']['must'][] = [
+				'term' => [
+					'comment_author_url.raw' => $query_vars['author_url'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `user_id` query var
+		 */
+		if ( ! empty( $query_vars['user_id'] ) ) {
+			$filter['bool']['must'][] = [
+				'term' => [
+					'user_id' => (int) $query_vars['user_id'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `author__in` query var
+		 */
+		if ( ! empty( $query_vars['author__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'user_id' => array_values( (array) $query_vars['author__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `author__not_in` query var
+		 */
+		if ( ! empty( $query_vars['author__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'user_id' => array_values( (array) $query_vars['author__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `comment__in` query var
+		 */
+		if ( ! empty( $query_vars['comment__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'comment_ID' => array_values( (array) $query_vars['comment__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `comment__not_in` query var
+		 */
+		if ( ! empty( $query_vars['comment__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_ID' => array_values( (array) $query_vars['comment__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `date_query` query var
+		 */
+		if ( ! empty( $query_vars['date_query'] ) ) {
+			$date_query  = new DateQuery( $query_vars['date_query'] );
+			$date_filter = $date_query->get_es_filter();
+
+			if ( array_key_exists( 'and', $date_filter ) ) {
+				$filter['bool']['must'][] = $date_filter['and'];
+				$use_filters              = true;
+			}
+		}
+
+		/**
+		 * Support `fields` query var.
+		 */
+		if ( isset( $query_vars['fields'] ) ) {
+			switch ( $query_vars['fields'] ) {
+				case 'ids':
+					$formatted_args['_source'] = [
+						'include' => [
+							'comment_ID',
+						],
+					];
+					break;
+			}
+		}
+
+		/**
+		 * Support `karma` query var.
+		 */
+		if ( ! empty( $query_vars['karma'] ) || 0 === $query_vars['karma'] ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_karma' => $query_vars['karma'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		$meta_queries = [];
+
+		/**
+		 * Support `meta_key` and `meta_value` query args
+		 */
+		if ( ! empty( $query_vars['meta_key'] ) ) {
+			$meta_query_array = [
+				'key' => $query_vars['meta_key'],
+			];
+
+			if ( isset( $query_vars['meta_value'] ) ) {
+				$meta_query_array['value'] = $query_vars['meta_value'];
 			}
 
-			$filter['bool']['must'][] = [
-				$terms_map_name => [
-					'taxonomy.raw' => $taxonomy,
+			$meta_queries[] = $meta_query_array;
+		}
+
+		/**
+		 * Support 'meta_query' query var.
+		 */
+		if ( ! empty( $query_vars['meta_query'] ) ) {
+			$meta_queries = array_merge( $meta_queries, $query_vars['meta_query'] );
+		}
+
+		if ( ! empty( $meta_queries ) ) {
+			$built_meta_queries = $this->build_meta_query( $meta_queries );
+
+			if ( $built_meta_queries ) {
+				$filter['bool']['must'][] = $built_meta_queries;
+				$use_filters              = true;
+			}
+		}
+
+		/**
+		 * Support `parent` query var.
+		 */
+		if ( ! empty( $query_vars['parent'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'parent' => (int) $query_vars['parent'],
 				],
 			];
 
@@ -136,51 +301,12 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `object_ids` query var
+		 * Support `parent__in` query var
 		 */
-		if ( ! empty( $query_vars['object_ids'] ) ) {
-			$filter['bool']['must'][]['bool']['must'][] = [
-				'match_phrase' => [
-					'object_ids.value' => $query_vars['object_ids'],
-				],
-			];
-
-			$use_filters = true;
-		}
-
-		/**
-		 * Support `get` query var
-		 */
-		if ( ! empty( $query_vars['get'] ) && 'all' === $query_vars['get'] ) {
-			$query_vars['childless']    = false;
-			$query_vars['child_of']     = 0;
-			$query_vars['hide_empty']   = false;
-			$query_vars['hierarchical'] = false;
-			$query_vars['pad_counts']   = false;
-		}
-
-		/**
-		 * Support `hide_empty` query var
-		 */
-		if ( ! empty( $query_vars['hide_empty'] ) ) {
-			$filter['bool']['must'][] = [
-				'range' => [
-					'count' => [
-						'gte' => 1,
-					],
-				],
-			];
-
-			$use_filters = true;
-		}
-
-		/**
-		 * Support `include` query var
-		 */
-		if ( ! empty( $query_vars['include'] ) ) {
+		if ( ! empty( $query_vars['parent__in'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'terms' => [
-					'term_id' => array_values( (array) $query_vars['include'] ),
+					'comment_parent' => array_values( (array) $query_vars['parent__in'] ),
 				],
 			];
 
@@ -188,12 +314,12 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `exclude` query var
+		 * Support `parent__not_in` query var
 		 */
-		if ( empty( $query_vars['include'] ) && ! empty( $query_vars['exclude'] ) ) {
+		if ( ! empty( $query_vars['parent__not_in'] ) ) {
 			$filter['bool']['must'][]['bool']['must_not'] = [
 				'terms' => [
-					'term_id' => array_values( (array) $query_vars['exclude'] ),
+					'comment_parent' => array_values( (array) $query_vars['parent__not_in'] ),
 				],
 			];
 
@@ -201,18 +327,12 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `exclude_tree` query var
+		 * Support `post_author` query var.
 		 */
-		if ( empty( $query_vars['include'] ) && ! empty( $query_vars['exclude_tree'] ) ) {
-			$filter['bool']['must'][]['bool']['must_not'] = [
-				'terms' => [
-					'term_id' => array_values( (array) $query_vars['exclude_tree'] ),
-				],
-			];
-
-			$filter['bool']['must'][]['bool']['must_not'] = [
-				'terms' => [
-					'parent' => array_values( (array) $query_vars['exclude_tree'] ),
+		if ( ! empty( $query_vars['post_author'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_author_ID' => (int) $query_vars['post_author'],
 				],
 			];
 
@@ -220,38 +340,12 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `name` query var
+		 * Support `post_author__in` query var
 		 */
-		if ( ! empty( $query_vars['name'] ) ) {
-			$filter['bool']['must'][] = [
-				'terms' => [
-					'name.raw' => (array) $query_vars['name'],
-				],
-			];
-
-			$use_filters = true;
-		}
-
-		/**
-		 * Support `slug` query var
-		 */
-		if ( ! empty( $query_vars['slug'] ) ) {
-			$filter['bool']['must'][] = [
-				'terms' => [
-					'slug.raw' => (array) $query_vars['slug'],
-				],
-			];
-
-			$use_filters = true;
-		}
-
-		/**
-		 * Support `term_taxonomy_id` query var
-		 */
-		if ( ! empty( $query_vars['term_taxonomy_id'] ) ) {
+		if ( ! empty( $query_vars['post_author__in'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'terms' => [
-					'term_taxonomy_id' => array_values( (array) $query_vars['term_taxonomy_id'] ),
+					'comment_post_author_ID' => array_values( (array) $query_vars['post_author__in'] ),
 				],
 			];
 
@@ -259,14 +353,12 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `hierarchical` query var
+		 * Support `post_author__not_in` query var
 		 */
-		if ( ! empty( $query_vars['hierarchical'] ) && false === $query_vars['hierarchical'] ) {
-			$filter['bool']['must'][] = [
-				'range' => [
-					'hierarchy.children.count' => [
-						'gte' => 1,
-					],
+		if ( ! empty( $query_vars['post_author__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_post_author_ID' => array_values( (array) $query_vars['post_author__not_in'] ),
 				],
 			];
 
@@ -274,22 +366,112 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `search`, `name__like` and `description__like` query_vars
+		 * Support `post_id` query var.
 		 */
-		if ( ! empty( $query_vars['search'] ) || ! empty( $query_vars['name__like'] ) || ! empty( $query_vars['description__like'] ) ) {
+		if ( ! empty( $query_vars['post_id'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_ID' => (int) $query_vars['post_id'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post__in` query var
+		 */
+		if ( ! empty( $query_vars['post__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'comment_post_ID' => array_values( (array) $query_vars['post__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post__not_in` query var
+		 */
+		if ( ! empty( $query_vars['post__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_post_ID' => array_values( (array) $query_vars['post__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_status` query var
+		 */
+		if ( ! empty( $query_vars['post_status'] ) && 'any' !== $query_vars['post_status'] ) {
+			$post_status    = (array) ( is_string( $query_vars['post_status'] ) ? explode( ',', $query_vars['post_status'] ) : $query_vars['post_status'] );
+			$post_status    = array_map( 'trim', $post_status );
+			$terms_map_name = 'terms';
+
+			if ( count( $post_status ) < 2 ) {
+				$terms_map_name = 'term';
+				$post_status    = $post_status[0];
+			}
+
+			$filter['bool']['must'][] = array(
+				$terms_map_name => array(
+					'comment_post_status' => $post_status,
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_type` query var.
+		 */
+		if ( ! empty( $query_vars['post_type'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_type' => $query_vars['post_type'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_name` query var.
+		 */
+		if ( ! empty( $query_vars['post_name'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_name' => $query_vars['post_name'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_parent` query var.
+		 */
+		if ( ! empty( $query_vars['post_parent'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_parent' => (int) $query_vars['post_parent'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `search` query_var
+		 */
+		if ( ! empty( $query_vars['search'] ) ) {
 
 			$search        = ! empty( $query_vars['search'] ) ? $query_vars['search'] : '';
 			$search_fields = [];
-
-			if ( ! empty( $query_vars['name__like'] ) ) {
-				$search          = $query_vars['name__like'];
-				$search_fields[] = 'name';
-			}
-
-			if ( ! empty( $query_vars['description__like'] ) ) {
-				$search          = $query_vars['description__like'];
-				$search_fields[] = 'description';
-			}
 
 			/**
 			 * Allow for search field specification
@@ -321,7 +503,7 @@ class Comment extends Indexable {
 				];
 			}
 
-			$prepared_search_fields = apply_filters( 'ep_term_search_fields', $prepared_search_fields, $query_vars );
+			$prepared_search_fields = apply_filters( 'ep_comment_search_fields', $prepared_search_fields, $query_vars );
 
 			$query = [
 				'bool' => [
@@ -331,14 +513,14 @@ class Comment extends Indexable {
 								'query'  => $search,
 								'type'   => 'phrase',
 								'fields' => $prepared_search_fields,
-								'boost'  => apply_filters( 'ep_term_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
+								'boost'  => apply_filters( 'ep_comment_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
 							],
 						],
 						[
 							'multi_match' => [
 								'query'     => $search,
 								'fields'    => $prepared_search_fields,
-								'boost'     => apply_filters( 'ep_term_match_boost', 2, $prepared_search_fields, $query_vars ),
+								'boost'     => apply_filters( 'ep_comment_match_boost', 2, $prepared_search_fields, $query_vars ),
 								'fuzziness' => 0,
 								'operator'  => 'and',
 							],
@@ -347,14 +529,14 @@ class Comment extends Indexable {
 							'multi_match' => [
 								'fields'    => $prepared_search_fields,
 								'query'     => $search,
-								'fuzziness' => apply_filters( 'ep_term_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
+								'fuzziness' => apply_filters( 'ep_comment_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
 							],
 						],
 					],
 				],
 			];
 
-			$formatted_args['query'] = apply_filters( 'ep_term_formatted_args_query', $query, $query_vars );
+			$formatted_args['query'] = apply_filters( 'ep_comment_formatted_args_query', $query, $query_vars );
 
 		} else {
 			$formatted_args['query']['match_all'] = [
@@ -363,12 +545,93 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `child_of` query var.
+		 * Support `status` query var
 		 */
-		if ( ! empty( $query_vars['child_of'] ) && ( is_string( $taxonomy ) || count( $taxonomy ) < 2 ) ) {
-			$filter['bool']['must'][]['bool']['must'][] = [
-				'match_phrase' => [
-					'hierarchy.ancestors.terms' => (int) $query_vars['child_of'],
+		if ( ! empty( $query_vars['status'] ) && 'all' !== $query_vars['status'] ) {
+			$comment_stati    = (array) ( is_string( $query_vars['status'] ) ? explode( ',', $query_vars['status'] ) : $query_vars['status'] );
+			$comment_stati    = array_map( 'trim', $comment_stati );
+
+			foreach ( $comment_stati as $key => $status ) {
+				if ( 'hold' === $status ) {
+					$comment_stati[ $key ] = 0;
+				}
+
+				if ( 'approve' === $status ) {
+					$comment_stati[ $key ] = 1;
+				}
+			}
+
+			$terms_map_name = 'terms';
+
+			if ( count( $comment_stati ) < 2 ) {
+				$terms_map_name = 'term';
+				$comment_stati  = $comment_stati[0];
+			}
+
+			/**
+			 * Support `include_unapproved` query var
+			 */
+			if ( ! empty( $query_vars['include_unapproved'] ) ) {
+				$include_unapproved = wp_parse_list( $query_vars['include_unapproved'] );
+				$unapproved_ids     = [];
+				$unapproved_emails  = [];
+
+				foreach ( $include_unapproved as $unapproved_identifier ) {
+					// Numeric values are assumed to be user ids.
+					if ( is_numeric( $unapproved_identifier ) ) {
+						$unapproved_ids[] = $unapproved_identifier ;
+
+					// Otherwise we assume it's an email address.
+					} else {
+						$unapproved_emails[] = $unapproved_identifier;
+					}
+				}
+
+				$filter['bool']['must'][]['bool']['should'] = [
+					[
+						$terms_map_name => [
+							'comment_approved' => $comment_stati,
+						],
+					],
+					[
+						'terms' => [
+							'user_id' => array_values( array_map( 'absint', $unapproved_ids ) ),
+						],
+					],
+					[
+						'terms' => [
+							'comment_author_email.raw' => array_values( $unapproved_emails ),
+						],
+					]
+				];
+			} else {
+				$filter['bool']['must'][] = [
+					$terms_map_name => [
+						'comment_approved' => $comment_stati,
+					],
+				];
+			}
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `type` query var
+		 */
+		if ( ! empty( $query_vars['type'] ) ) {
+			$types    = (array) ( is_string( $query_vars['type'] ) ? explode( ',', $query_vars['type'] ) : $query_vars['type'] );
+			$types    = array_map( 'trim', $types );
+
+			$terms_map_name = 'terms';
+
+			if ( count( $types ) < 2 ) {
+				$terms_map_name = 'term';
+				$types  = $types[0];
+			}
+
+			$filter['bool']['must'][] = [
+				$terms_map_name => [
+					'comment_type' => $types,
 				],
 			];
 
@@ -376,12 +639,12 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `parent` query var.
+		 * Support `type__in` query var
 		 */
-		if ( ! empty( $query_vars['parent'] ) ) {
+		if ( ! empty( $query_vars['type__in'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
-				'term' => [
-					'parent' => (int) $query_vars['parent'],
+				'terms' => [
+					'comment_type' => array_values( (array) $query_vars['type__in'] ),
 				],
 			];
 
@@ -389,117 +652,25 @@ class Comment extends Indexable {
 		}
 
 		/**
-		 * Support `childless` query var.
+		 * Support `type__not_in` query var
 		 */
-		if ( ! empty( $query_vars['childless'] ) ) {
-			$filter['bool']['must'][]['bool']['must'] = [
-				'term' => [
-					'hierarchy.children.terms' => 0,
+		if ( ! empty( $query_vars['type__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_type' => array_values( (array) $query_vars['type__not_in'] ),
 				],
 			];
 
 			$use_filters = true;
 		}
 
-		$meta_queries = [];
-
-		/**
-		 * Support `meta_key`, `meta_value`, and `meta_compare` query args
-		 */
-		if ( ! empty( $query_vars['meta_key'] ) ) {
-			$meta_query_array = [
-				'key' => $query_vars['meta_key'],
-			];
-
-			if ( isset( $query_vars['meta_value'] ) ) {
-				$meta_query_array['value'] = $query_vars['meta_value'];
-			}
-
-			if ( isset( $query_vars['meta_compare'] ) ) {
-				$meta_query_array['compare'] = $query_vars['meta_compare'];
-			}
-
-			$meta_queries[] = $meta_query_array;
-		}
-
-		/**
-		 * Support 'meta_query' query var.
-		 */
-		if ( ! empty( $query_vars['meta_query'] ) ) {
-			$meta_queries = array_merge( $meta_queries, $query_vars['meta_query'] );
-		}
-
-		if ( ! empty( $meta_queries ) ) {
-			$built_meta_queries = $this->build_meta_query( $meta_queries );
-
-			if ( $built_meta_queries ) {
-				$filter['bool']['must'][] = $built_meta_queries;
-				$use_filters              = true;
-			}
-		}
-
-		/**
-		 * Support `fields` query var.
-		 */
-		if ( isset( $query_vars['fields'] ) ) {
-			switch ( $query_vars['fields'] ) {
-				case 'ids':
-					$formatted_args['_source'] = [
-						'include' => [
-							'term_id',
-						],
-					];
-					break;
-
-				case 'id=>name':
-					$formatted_args['_source'] = [
-						'include' => [
-							'term_id',
-							'name',
-						],
-					];
-					break;
-
-				case 'id=>parent':
-					$formatted_args['_source'] = [
-						'include' => [
-							'term_id',
-							'parent',
-						],
-					];
-					break;
-
-				case 'id=>slug':
-					$formatted_args['_source'] = [
-						'include' => [
-							'term_id',
-							'slug',
-						],
-					];
-					break;
-
-				case 'names':
-					$formatted_args['_source'] = [
-						'include' => [
-							'name',
-						],
-					];
-					break;
-				case 'tt_ids':
-					$formatted_args['_source'] = [
-						'include' => [
-							'term_taxonomy_id',
-						],
-					];
-					break;
-			}
-		}
+		// TODO: search, hierarchical
 
 		if ( $use_filters ) {
 			$formatted_args['post_filter'] = $filter;
 		}
 
-		return apply_filters( 'ep_term_formatted_args', $formatted_args, $query_vars );
+		return apply_filters( 'ep_comment_formatted_args', $formatted_args, $query_vars );
 	}
 
 	/**
@@ -557,7 +728,7 @@ class Comment extends Indexable {
 
 		$query = new WP_Comment_Query( $args );
 
-		array_walk( $query->comments, array( $this, 'remap_comments' ) );
+		array_walk( $query->comments, [ $this, 'remap_comments' ] );
 
 		return [
 			'objects'       => $query->comments,
@@ -579,24 +750,31 @@ class Comment extends Indexable {
 			return false;
 		}
 
+		$comment_post = get_post( $comment->comment_post_ID );
+
 		$comment_args = [
-			'comment_ID'           => $comment->comment_ID,
-			'ID'                   => $comment->comment_ID,
-			'comment_post_ID'      => $comment->comment_post_ID,
-			'comment_author'       => $comment->comment_author,
-			'comment_author_email' => $comment->comment_author_email,
-			'comment_author_url'   => $comment->comment_author_url,
-			'comment_author_IP'    => $comment->comment_author_IP,
-			'comment_date'         => $comment->comment_date,
-			'comment_date_gmt'     => $comment->comment_date_gmt,
-			'comment_content'      => $comment->comment_content,
-			'comment_karma'        => $comment->comment_karma,
-			'comment_approved'     => $comment->comment_approved,
-			'comment_agent'        => $comment->comment_agent,
-			'comment_type'         => $comment->comment_type,
-			'comment_parent'       => $comment->comment_parent,
-			'user_id'              => $comment->user_id,
-			'meta'                 => $this->prepare_meta_types( $this->prepare_meta( $comment->comment_ID ) ),
+			'comment_ID'             => $comment->comment_ID,
+			'ID'                     => $comment->comment_ID,
+			'comment_post_ID'        => $comment->comment_post_ID,
+			'comment_post_author_ID' => $comment_post->post_author,
+			'comment_post_status'    => $comment_post->post_status,
+			'comment_post_type'      => $comment_post->post_type,
+			'comment_post_name'      => $comment_post->post_name,
+			'comment_post_parent'    => $comment_post->post_parent,
+			'comment_author'         => $comment->comment_author,
+			'comment_author_email'   => $comment->comment_author_email,
+			'comment_author_url'     => $comment->comment_author_url,
+			'comment_author_IP'      => $comment->comment_author_IP,
+			'comment_date'           => $comment->comment_date,
+			'comment_date_gmt'       => $comment->comment_date_gmt,
+			'comment_content'        => $comment->comment_content,
+			'comment_karma'          => $comment->comment_karma,
+			'comment_approved'       => $comment->comment_approved,
+			'comment_agent'          => $comment->comment_agent,
+			'comment_type'           => $comment->comment_type,
+			'comment_parent'         => $comment->comment_parent,
+			'user_id'                => $comment->user_id,
+			'meta'                   => $this->prepare_meta_types( $this->prepare_meta( $comment->comment_ID ) ),
 		];
 
 		$comment_args = apply_filters( 'ep_comment_sync_args', $comment_args, $comment_id );
@@ -709,7 +887,7 @@ class Comment extends Indexable {
 	}
 
 	/**
-	 * Parse an 'order' query variable and cast it to ASC or DESC as necessary.
+	 * Parse an 'order' query variable and cast it to asc or desc as necessary.
 	 *
 	 * @access protected
 	 *
@@ -743,72 +921,122 @@ class Comment extends Indexable {
 	protected function parse_orderby( $orderby, $order, $args ) {
 		$sort = [];
 
-		if ( ! empty( $orderby ) ) {
-			if ( 'name' === $orderby ) {
-				$sort[] = array(
-					'name.raw' => array(
+		if ( empty( $orderby ) ) {
+			return $sort;
+		}
+
+		if ( 'comment_agent' === $orderby ) {
+			$sort[] = [
+				'comment_agent.raw' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_approved' === $orderby ) {
+			$sort[] = [
+				'comment_approved.raw' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_author' === $orderby ) {
+			$sort[] = [
+				'comment_author.raw' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_author_email' === $orderby ) {
+			$sort[] = [
+				'comment_author_email.raw' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_author_IP' === $orderby ) {
+			$sort[] = [
+				'comment_author_IP.raw' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_author_url' === $orderby ) {
+			$sort[] = [
+				'comment_author_url.raw' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_content' === $orderby ) {
+			$sort[] = [
+				'comment_content.raw' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_date' === $orderby ) {
+			$sort[] = [
+				'comment_date' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_date_gmt' === $orderby ) {
+			$sort[] = [
+				'comment_date_gmt' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_ID' === $orderby ) {
+			$sort[] = [
+				'comment_ID.long' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_karma' === $orderby ) {
+			$sort[] = [
+				'comment_karma.long' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_parent' === $orderby ) {
+			$sort[] = [
+				'comment_parent.long' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_post_ID' === $orderby ) {
+			$sort[] = [
+				'comment_post_ID.long' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'comment_type' === $orderby ) {
+			$sort[] = [
+				'comment_type.raw' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'user_id' === $orderby ) {
+			$sort[] = [
+				'user_id.long' => [
+					'order' => $order,
+				],
+			];
+		} elseif ( 'meta_value' === $orderby ) {
+			if ( ! empty( $args['meta_key'] ) ) {
+				$sort[] = [
+					'meta.' . $args['meta_key'] . '.value' => [
 						'order' => $order,
-					),
-				);
-			} elseif ( 'slug' === $orderby ) {
-				$sort[] = array(
-					'slug.raw' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'term_group' === $orderby ) {
-				$sort[] = array(
-					'term_group.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'term_id' === $orderby || 'id' === $orderby ) {
-				$sort[] = array(
-					'term_id.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'description' === $orderby ) {
-				$sort[] = array(
-					'description.raw' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'parent' === $orderby ) {
-				$sort[] = array(
-					'parent.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'count' === $orderby ) {
-				$sort[] = array(
-					'count.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'meta_value' === $orderby ) {
-				if ( ! empty( $args['meta_key'] ) ) {
-					$sort[] = array(
-						'meta.' . $args['meta_key'] . '.value' => array(
-							'order' => $order,
-						),
-					);
-				}
-			} elseif ( 'meta_value_num' === $orderby ) {
-				if ( ! empty( $args['meta_key'] ) ) {
-					$sort[] = array(
-						'meta.' . $args['meta_key'] . '.long' => array(
-							'order' => $order,
-						),
-					);
-				}
-			} else {
-				$sort[] = array(
-					$orderby => array(
-						'order' => $order,
-					),
-				);
+					],
+				];
 			}
+		} elseif ( 'meta_value_num' === $orderby ) {
+			if ( ! empty( $args['meta_key'] ) ) {
+				$sort[] = [
+					'meta.' . $args['meta_key'] . '.long' => [
+						'order' => $order,
+					],
+				];
+			}
+		} else {
+			$sort[] = [
+				$orderby => [
+					'order' => $order,
+				],
+			];
 		}
 
 		return $sort;
