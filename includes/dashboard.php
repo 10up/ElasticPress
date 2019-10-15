@@ -660,6 +660,10 @@ function action_admin_enqueue_dashboard_scripts() {
 		$data['sync_indexable_labels'] = apply_filters(
 			'ep_dashboard_indexable_labels',
 			[
+				'comment' => [
+					'singular' => esc_html__( 'Comment', 'elasticpress' ),
+					'plural'   => esc_html__( 'Comments', 'elasticpress' ),
+				],
 				'post' => [
 					'singular' => esc_html__( 'Post', 'elasticpress' ),
 					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
