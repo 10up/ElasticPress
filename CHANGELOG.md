@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
-## 3.2.1
+## [3.2.1] - 2019-10-14
 
 * Fix Gutenberg breaking issue with Related Posts and image blocks. Props [adamsilverstein](https://github.com/adamsilverstein)
+* Fix facet set aggs filter arguments bug.
 
 ## [3.2] - 2019-10-08
 
