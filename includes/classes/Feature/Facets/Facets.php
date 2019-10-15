@@ -114,7 +114,7 @@ class Facets extends Feature {
 		);
 
 		if ( ! empty( $facet_query_args['tax_query'] ) ) {
-			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 
 			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
 				if ( is_array( $taxonomy ) ) {
@@ -128,7 +128,7 @@ class Facets extends Feature {
 
 			$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
-			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		}
 
 		return $args;
