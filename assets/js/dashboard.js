@@ -41,7 +41,7 @@ $features.on( 'click', '.save-settings', function( event ) {
 	}
 
 	const feature = event.target.getAttribute( 'data-feature' );
-	const $feature = $features.find( '.ep-feature-' + feature );
+	const $feature = $features.find( `.ep-feature-${  feature}` );
 	const settings = {};
 	const $settings = $feature.find( '.setting-field' );
 
@@ -184,8 +184,8 @@ function updateSyncDash() {
 	if ( 0 === processed ) {
 		$progressBar.css( { width: '1%' } );
 	} else {
-		let width = parseInt( processed ) / parseInt( toProcess ) * 100;
-		$progressBar.css( { width: width + '%' } );
+		const width = parseInt( processed ) / parseInt( toProcess ) * 100;
+		$progressBar.css( { width: `${width  }%` } );
 	}
 
 	if ( 'initialsync' === syncStatus ) {
@@ -206,11 +206,11 @@ function updateSyncDash() {
 
 		if ( currentSyncItem ) {
 			if ( currentSyncItem.indexable ) {
-				text += ' ' + epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase() + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
+				text += ` ${  epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase()  } ${  parseInt( processed )  }/${  parseInt( toProcess )}`;
 			}
 
 			if ( currentSyncItem.url ) {
-				text += ' (' + currentSyncItem.url + ')';
+				text += ` (${  currentSyncItem.url  })`;
 			}
 		}
 
@@ -228,11 +228,11 @@ function updateSyncDash() {
 		text = epDash.sync_paused;
 
 		if ( toProcess && 0 !== toProcess ) {
-			text += ', ' + parseInt( processed ) + '/' + parseInt( toProcess ) + ' ' + epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase();
+			text += `, ${  parseInt( processed )  }/${  parseInt( toProcess )  } ${  epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase()}`;
 		}
 
 		if ( currentSyncItem && currentSyncItem.url ) {
-			text += ' (' + currentSyncItem.url + ')';
+			text += ` (${  currentSyncItem.url  })`;
 		}
 
 		$syncStatusText.text( text );
@@ -269,7 +269,7 @@ function updateSyncDash() {
 		$progressBar.hide();
 
 		if ( featureSync ) {
-			$features.find( '.ep-feature-' + featureSync ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;
@@ -288,7 +288,7 @@ function updateSyncDash() {
 		$startSyncButton.show();
 
 		if ( featureSync ) {
-			$features.find( '.ep-feature-' + featureSync ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;
@@ -304,7 +304,7 @@ function updateSyncDash() {
 		$errorOverlay.removeClass( 'syncing' );
 
 		if ( featureSync ) {
-			$features.find( '.ep-feature-' + featureSync ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;

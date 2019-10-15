@@ -1433,9 +1433,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
-		// Only check for fields which are provided in search_fields and weighting.
-		// Weighting always defaults to enabling post_title, so we assume that will match as well
-		// unless disabled in the UI
+		// Only check for fields which are provided in search_fields
+		// If search_fields is set, it will override/ignore any weighting settings in the UI
 		$args = array(
 			's'             => 'findme',
 			'search_fields' => array(
@@ -1445,8 +1444,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
@@ -4558,5 +4557,61 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		$this->assertEquals( 2, count( $query->posts ) );
+	}
+
+	/**
+	 * Test a query with tag__and and tag_id params
+	 *
+	 * @since 2.0
+	 * @group post
+	 */
+	public function testTagQuery() {
+		$post_id_1 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array( 'one', 'two' ),
+			)
+		);
+		$post_id_2 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 2',
+				'tags_input'   => array( 'three', 'four', 'five', 'six' ),
+			)
+		);
+
+		$post_id_3 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 3',
+				'tags_input'   => array( 'one', 'six' ),
+			)
+		);
+
+		$post_1_tags = get_the_tags( $post_id_1 );
+		$post_2_tags = get_the_tags( $post_id_2 );
+		$post_3_tags = get_the_tags( $post_id_3 );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+			'tag__and'  => array( $post_1_tags[1]->term_id, $post_2_tags[1]->term_id ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+			'tag_id'    => $post_3_tags[1]->term_id,
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 }

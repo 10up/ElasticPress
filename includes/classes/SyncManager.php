@@ -43,7 +43,7 @@ abstract class SyncManager {
 			 * We also sync when we exceed Chunk limit set.
 			 * This is sometimes useful when posts are generated programatically.
 			 */
-			 add_action( 'ep_after_add_to_queue', [ $this, 'index_sync_on_chunk_limit' ] );
+			add_action( 'ep_after_add_to_queue', [ $this, 'index_sync_on_chunk_limit' ] );
 		}
 		/**
 		 * We do all syncing on shutdown or redirect

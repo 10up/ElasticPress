@@ -14,6 +14,7 @@ use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Screen;
 use ElasticPress\Features;
+use ElasticPress\Stats;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -39,6 +40,7 @@ class AdminNotices {
 		'upgrade_sync',
 		'auto_activate_sync',
 		'using_autosuggest_defaults',
+		'yellow_health',
 	];
 
 	/**
@@ -441,6 +443,15 @@ class AdminNotices {
 		// First reduce version to major version i.e. 5.1 not 5.1.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
+		// pad a version to have at least two parts (5 -> 5.0)
+		$parts = explode( '.', $major_es_version );
+
+		if ( 1 === count( $parts ) ) {
+			$parts[] = 0;
+		}
+
+		$major_es_version = implode( '.', $parts );
+
 		if ( 1 === version_compare( EP_ES_VERSION_MIN, $major_es_version ) ) {
 			return [
 				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ),
@@ -560,6 +571,52 @@ class AdminNotices {
 			'type'    => 'error',
 			'dismiss' => ( ! in_array( Screen::factory()->get_current_screen(), [ 'settings', 'dashboard' ], true ) ) ? true : false,
 		];
+	}
+
+	/**
+	 * Single node notification. Shows when index health is yellow.
+	 *
+	 * Type: warning
+	 * Dismiss: Anywhere
+	 * Show: All screens except install
+	 *
+	 * @since  3.2
+	 * @return array|bool
+	 */
+	protected function process_yellow_health_notice() {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_yellow_health_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_yellow_health_notice', false );
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( ! in_array( $screen, [ 'dashboard', 'settings' ], true ) || $dismiss ) {
+			return false;
+		}
+
+		$nodes = Stats::factory()->get_nodes();
+
+		if ( $nodes < 2 ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$url = network_admin_url( 'admin.php?page=elasticpress-health' );
+			} else {
+				$url = admin_url( 'admin.php?page=elasticpress-health' );
+			}
+
+			return [
+				'html'    => sprintf( __( 'It looks like one or more of your indices are running on a single node. While this won\'t prevent you from using ElasticPress, depending on your site\'s specific needs this can represent a performance issue. Please check the <a href="%1$s">Index Health</a> page where you can check the health of all of your indices.', 'elasticpress' ), $url ),
+				'type'    => 'warning',
+				'dismiss' => true,
+			];
+		}
 	}
 
 	/**

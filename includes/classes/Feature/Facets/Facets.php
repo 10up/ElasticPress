@@ -48,7 +48,7 @@ class Facets extends Feature {
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ] );
-		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
@@ -83,12 +83,13 @@ class Facets extends Feature {
 	/**
 	 * If we are doing or matches, we need to remove filters from aggs
 	 *
-	 * @param  array $args ES arguments
-	 * @param  array $query_args Query arguments
+	 * @param  array    $args ES arguments
+	 * @param  array    $query_args Query arguments
+	 * @param  WP_Query $query WP Query instance
 	 * @since  2.5
 	 * @return array
 	 */
-	public function set_agg_filters( $args, $query_args ) {
+	public function set_agg_filters( $args, $query_args, $query ) {
 		if ( empty( $query_args['ep_facet'] ) ) {
 			return $args;
 		}
@@ -113,7 +114,7 @@ class Facets extends Feature {
 		);
 
 		if ( ! empty( $facet_query_args['tax_query'] ) ) {
-			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 
 			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
 				if ( is_array( $taxonomy ) ) {
@@ -123,11 +124,11 @@ class Facets extends Feature {
 				}
 			}
 
-			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args );
+			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
 
 			$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
-			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		}
 
 		return $args;
@@ -146,7 +147,7 @@ class Facets extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-facets-admin',
-			EP_URL . 'dist/css/admin.min.css',
+			EP_URL . 'dist/css/facets-admin-styles.min.css',
 			[],
 			EP_VERSION
 		);
@@ -160,7 +161,7 @@ class Facets extends Feature {
 	public function front_scripts() {
 		wp_enqueue_script(
 			'elasticpress-facets',
-			EP_URL . 'dist/js/facets.min.js',
+			EP_URL . 'dist/js/facets-script.min.js',
 			[ 'jquery', 'underscore' ],
 			EP_VERSION,
 			true
@@ -168,7 +169,7 @@ class Facets extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-facets',
-			EP_URL . 'dist/css/facets.min.css',
+			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
 			EP_VERSION
 		);
@@ -262,9 +263,19 @@ class Facets extends Feature {
 
 		$tax_query = $query->get( 'tax_query', [] );
 
+		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
+		$attribute_taxonomies = [];
+		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
+			$all_attr_taxonomies = wc_get_attribute_taxonomies();
+
+			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
+				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
+			}
+		}
+
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
 			$tax_query[] = [
-				'taxonomy' => $taxonomy,
+				'taxonomy' => isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy,
 				'field'    => 'slug',
 				'terms'    => array_keys( $filter['terms'] ),
 				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
@@ -291,15 +302,17 @@ class Facets extends Feature {
 		if ( ! empty( $response['aggregations'] ) ) {
 			$GLOBALS['ep_facet_aggs'] = [];
 
-			foreach ( $response['aggregations']['terms'] as $key => $agg ) {
-				if ( 'doc_count' === $key ) {
-					continue;
-				}
+			if ( isset( $response['aggregations']['terms'] ) && is_array( $response['aggregations']['terms'] ) ) {
+				foreach ( $response['aggregations']['terms'] as $key => $agg ) {
+					if ( 'doc_count' === $key ) {
+						continue;
+					}
 
-				$GLOBALS['ep_facet_aggs'][ $key ] = [];
+					$GLOBALS['ep_facet_aggs'][ $key ] = [];
 
-				foreach ( $agg['buckets'] as $bucket ) {
-					$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+					foreach ( $agg['buckets'] as $bucket ) {
+						$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+					}
 				}
 			}
 		}
