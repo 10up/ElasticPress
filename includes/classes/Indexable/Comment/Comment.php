@@ -288,12 +288,19 @@ class Comment extends Indexable {
 		}
 
 		/**
+		 * Support `hierarchical` query var
+		 */
+		if ( ! empty( $query_vars['hierarchical'] ) && empty( $query_vars['parent'] ) ) {
+			$query_vars['parent'] = 0;
+		}
+
+		/**
 		 * Support `parent` query var.
 		 */
-		if ( ! empty( $query_vars['parent'] ) ) {
+		if ( ! empty( $query_vars['parent'] ) || 0 === $query_vars['parent'] ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
-					'parent' => (int) $query_vars['parent'],
+					'comment_parent' => (int) $query_vars['parent'],
 				],
 			];
 
@@ -496,10 +503,11 @@ class Comment extends Indexable {
 				$prepared_search_fields = array_merge( $search_fields, $prepared_search_fields );
 			} else {
 				$prepared_search_fields = [
-					'name',
-					'slug',
-					'taxonomy',
-					'description',
+					'comment_author',
+					'comment_author_email',
+					'comment_author_url',
+					'comment_author_IP',
+					'comment_content',
 				];
 			}
 
@@ -663,8 +671,6 @@ class Comment extends Indexable {
 
 			$use_filters = true;
 		}
-
-		// TODO: search, hierarchical
 
 		if ( $use_filters ) {
 			$formatted_args['post_filter'] = $filter;
