@@ -232,8 +232,8 @@ class QueryIntegration {
 	/**
 	 * Format the ES hits/results as an array of ids.
 	 *
-	 * @param  array  $comments The comments that should be formatted.
-	 * @param  array  $new_comments Array of comments from cache.
+	 * @param  array $comments The comments that should be formatted.
+	 * @param  array $new_comments Array of comments from cache.
 	 * @since  3.1
 	 * @return array
 	 */
@@ -309,7 +309,8 @@ class QueryIntegration {
 
 		// If a threaded representation was requested, build the tree.
 		if ( 'threaded' === $query_vars['hierarchical'] ) {
-			$threaded_comments = $ref = [];
+			$threaded_comments = [];
+			$ref               = [];
 
 			foreach ( $all_comments as $c ) {
 				// If the comment isn't in the reference array, it goes in the top level of the thread.
@@ -317,10 +318,10 @@ class QueryIntegration {
 					$threaded_comments[ $c->comment_ID ] = $c;
 					$ref[ $c->comment_ID ]               = $threaded_comments[ $c->comment_ID ];
 
-				// Otherwise, set it as a child of its parent.
+					// Otherwise, set it as a child of its parent.
 				} else {
 					$ref[ $c->comment_parent ]->children[ $c->comment_ID ] = $c;
-					$ref[ $c->comment_ID ] = $c;
+					$ref[ $c->comment_ID ]                                 = $c;
 				}
 			}
 

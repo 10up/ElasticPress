@@ -556,8 +556,8 @@ class Comment extends Indexable {
 		 * Support `status` query var
 		 */
 		if ( ! empty( $query_vars['status'] ) && 'all' !== $query_vars['status'] ) {
-			$comment_stati    = (array) ( is_string( $query_vars['status'] ) ? explode( ',', $query_vars['status'] ) : $query_vars['status'] );
-			$comment_stati    = array_map( 'trim', $comment_stati );
+			$comment_stati = (array) ( is_string( $query_vars['status'] ) ? explode( ',', $query_vars['status'] ) : $query_vars['status'] );
+			$comment_stati = array_map( 'trim', $comment_stati );
 
 			foreach ( $comment_stati as $key => $status ) {
 				if ( 'hold' === $status ) {
@@ -587,9 +587,9 @@ class Comment extends Indexable {
 				foreach ( $include_unapproved as $unapproved_identifier ) {
 					// Numeric values are assumed to be user ids.
 					if ( is_numeric( $unapproved_identifier ) ) {
-						$unapproved_ids[] = $unapproved_identifier ;
+						$unapproved_ids[] = $unapproved_identifier;
 
-					// Otherwise we assume it's an email address.
+						// Otherwise we assume it's an email address.
 					} else {
 						$unapproved_emails[] = $unapproved_identifier;
 					}
@@ -610,7 +610,7 @@ class Comment extends Indexable {
 						'terms' => [
 							'comment_author_email.raw' => array_values( $unapproved_emails ),
 						],
-					]
+					],
 				];
 			} else {
 				$filter['bool']['must'][] = [
@@ -627,14 +627,14 @@ class Comment extends Indexable {
 		 * Support `type` query var
 		 */
 		if ( ! empty( $query_vars['type'] ) ) {
-			$types    = (array) ( is_string( $query_vars['type'] ) ? explode( ',', $query_vars['type'] ) : $query_vars['type'] );
-			$types    = array_map( 'trim', $types );
+			$types = (array) ( is_string( $query_vars['type'] ) ? explode( ',', $query_vars['type'] ) : $query_vars['type'] );
+			$types = array_map( 'trim', $types );
 
 			$terms_map_name = 'terms';
 
 			if ( count( $types ) < 2 ) {
 				$terms_map_name = 'term';
-				$types  = $types[0];
+				$types          = $types[0];
 			}
 
 			$filter['bool']['must'][] = [
