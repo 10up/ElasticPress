@@ -43,6 +43,11 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.2.2 =
+This is a bug fix version.
+
+* Ensure stats are built prior to showing cluster health notice.
+
 = 3.2.1 =
 This is a bug fix version.
 
