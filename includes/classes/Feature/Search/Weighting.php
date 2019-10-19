@@ -142,7 +142,7 @@ class Weighting {
 	 * @return array
 	 */
 	public function get_weighting_configuration() {
-		return get_option( 'elasticpress_weighting', [] );
+		return apply_filters( 'ep_weighting_configuration', get_option( 'elasticpress_weighting', [] ) );
 	}
 
 	/**

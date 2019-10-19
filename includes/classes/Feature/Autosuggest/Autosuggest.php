@@ -25,6 +25,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Autosuggest extends Feature {
 
+	public $autosuggest_query = [];
+
 	/**
 	 * Initialize feature setting it's config
 	 *
@@ -110,7 +112,11 @@ class Autosuggest extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Endpoint URL', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
-				<input <?php if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) : ?>disabled<?php endif; ?> value="<?php echo esc_url( $endpoint_url ); ?>" type="text" data-field-name="endpoint_url" class="setting-field" id="feature_autosuggest_endpoint_url">
+				<input 
+				<?php
+				if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) :
+					?>
+					disabled<?php endif; ?> value="<?php echo esc_url( $endpoint_url ); ?>" type="text" data-field-name="endpoint_url" class="setting-field" id="feature_autosuggest_endpoint_url">
 				<?php
 				if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 					?>
@@ -260,33 +266,16 @@ class Autosuggest extends Feature {
 			]
 		);
 
+		$query = $this->generate_search_query();
+
 		$epas_options = [
-			'endpointUrl'       => esc_url( untrailingslashit( $endpoint_url ) ),
-			'postTypes'         => apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) ),
-			'postStatus'        => apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) ),
-			'selector'          => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-			'searchFields'      => apply_filters(
-				'ep_term_suggest_search_fields',
-				[
-					'post_title.suggest',
-					'term_suggest',
-				]
-			),
-			'dateDecay'         => [
-				'enabled' => (bool) $search->is_decaying_enabled(), // nested so we don't cast true/false to "1" or ""
-			],
-			'action'            => 'navigate',
-			'weighting'         => apply_filters( 'ep_weighting_configuration_for_autosuggest', $search->is_active() ? $search->weighting->get_weighting_configuration() : [] ),
-			'weightingDefaults' => [],
-			'mimeTypes'         => [],
+			'query'       => $query['body'],
+			'placeholder' => $query['placeholder'],
+			'endpointUrl' => esc_url( untrailingslashit( $endpoint_url ) ),
+			'selector'    => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			'action'      => 'navigate',
+			'mimeTypes'   => [],
 		];
-
-		$weightingDefaults = [];
-		foreach ( $epas_options['postTypes'] as $as_post_type ) {
-			$weightingDefaults[ $as_post_type ] = $search->weighting->get_post_type_default_settings( $as_post_type );
-		}
-
-		$epas_options['weightingDefaults'] = apply_filters( 'ep_weighting_configuration_defaults_for_autosuggest', $weightingDefaults );
 
 		/**
 		 * Output variables to use in Javascript
@@ -305,9 +294,93 @@ class Autosuggest extends Feature {
 		);
 	}
 
+
+	/**
+	 * Build a default search request to pass to the autosuggest javascript.
+	 * The request will include a placeholder that can then be replaced.
+	 *
+	 * @return array Generated ElasticSearch request array( 'placeholder'=> placeholderstring, 'body' => request body )
+	 */
+	public function generate_search_query() {
+
+		$placeholder = apply_filters( 'ep_autosuggest_query_placeholder', 'ep_autosuggest_placeholder' );
+
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+
+		$post_type = $features->get_registered_feature( 'search' )->get_searchable_post_types();
+		$post_type = apply_filters( 'ep_term_suggest_post_type', array_values( $post_type ) );
+
+		$post_status = get_post_stati(
+			[
+				'public'              => true,
+				'exclude_from_search' => false,
+			]
+		);
+		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
+
+		add_filter( 'ep_intercept_remote_request', '__return_true' );
+		add_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ], 10, 1 );
+
+		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 4 );
+
+		$search = new \WP_Query(
+			[
+				'post_type'    => $post_type,
+				'post_status'  => $post_status,
+				's'            => $placeholder,
+				'ep_integrate' => true,
+			]
+		);
+
+		remove_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ] );
+
+		remove_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
+
+		remove_filter( 'ep_intercept_remote_request', '__return_true' );
+
+		return [
+			'body'        => $this->autosuggest_query,
+			'placeholder' => $placeholder,
+		];
+	}
+
+	/**
+	 * Allow applying custom weighting configuration for autosuggest
+	 *
+	 * @param array $config current configuration
+	 * @return array $config desired configuration
+	 */
+	public function apply_autosuggest_weighting( $config = [] ) {
+		$config = apply_filters( 'ep_weighting_configuration_for_autosuggest', $config );
+		return $config;
+	}
+
+	/**
+	 * Store intercepted request value and return (cached) request result
+	 *
+	 * @param object $response Response
+	 * @param array  $query Query
+	 * @param array  $args WP_Query Argument array
+	 * @param int    $failures Count of failures in request loop
+	 * @return object $response Response
+	 */
+	public function intercept_search_request( $response, $query = [], $args = [], $failures = 0 ) {
+		$this->autosuggest_query = $query['args']['body'];
+
+		// Let's make sure we also fire off the dummy request if settings have changed.
+		$cache_key = md5( json_encode( $query ) . json_encode( $args ) );
+		$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
+		if ( false === $request ) {
+			$request = wp_remote_request( $query['url'], $args );
+			wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
+		}
+		return $request;
+	}
 	/**
 	 * Tell user whether requirements for feature are met or not.
 	 *
+	 * @return array $status Status array
 	 * @since 2.4
 	 */
 	public function requirements_status() {
