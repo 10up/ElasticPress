@@ -369,8 +369,8 @@ class Autosuggest extends Feature {
 		$this->autosuggest_query = $query['args']['body'];
 
 		// Let's make sure we also fire off the dummy request if settings have changed.
-		$cache_key = md5( json_encode( $query ) . json_encode( $args ) );
-		$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
+		$cache_key = md5( json_encode( $query['url'] ) . json_encode( $args ) );
+		$request = wp_cache_get( $cache_key, 'ep_autosuggest' );
 		if ( false === $request ) {
 			$request = wp_remote_request( $query['url'], $args );
 			wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
