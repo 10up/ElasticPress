@@ -369,11 +369,16 @@ class Autosuggest extends Feature {
 		$this->autosuggest_query = $query['args']['body'];
 
 		// Let's make sure we also fire off the dummy request if settings have changed.
-		$cache_key = md5( json_encode( $query['url'] ) . json_encode( $args ) );
-		$request = wp_cache_get( $cache_key, 'ep_autosuggest' );
-		if ( false === $request ) {
-			$request = wp_remote_request( $query['url'], $args );
-			wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
+		// But only fire this if we have object caching as otherwise this comes with a performance penalty.
+		if ( wp_using_ext_object_cache() ) {
+			$cache_key = md5( json_encode( $query['url'] ) . json_encode( $args ) );
+			$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
+			if ( false == $request ) {
+				$request = wp_remote_request( $query['url'], $args );
+				wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
+			}
+		} else {
+			$request = new \WP_Error( 'ep_no_cache_skip_autosuggest_request', __( 'No external object cache found, skipping request', 'elasticpress' ) );
 		}
 		return $request;
 	}
