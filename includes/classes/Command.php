@@ -316,10 +316,52 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Return all indexes from the cluster as json
+	 *
+	 * @subcommand get-cluster-indexes
+	 * @since      3.2
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_cluster_indexes( $args, $assoc_args ) {
+		$path = '_cat/indices?format=json';
+
+		$response = Elasticsearch::factory()->remote_request( $path );
+
+		$body = wp_remote_retrieve_body( $response );
+
+		WP_CLI::line( $body );
+	}
+
+	/**
+	 * Get all index names as json
+	 *
+	 * @subcommand get-indexes
+	 * @since      3.2
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_indexes( $args, $assoc_args ) {
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+
+		foreach ( $sites as $site ) {
+			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+		}
+
+		$user_indexable = Indexables::factory()->get( 'user' );
+
+		if ( ! empty( $user_indexable ) ) {
+			$index_names[] = $user_indexable->get_index_name();
+		}
+
+		WP_CLI::line( wp_json_encode( $index_names ) );
+	}
+
+	/**
 	 * Delete the index for each indexable. !!Warning!! This removes your elasticsearch index(s)
 	 * for the entire site.
 	 *
-	 * @synopsis [--network-wide]
+	 * @synopsis [--index-name] [--network-wide]
 	 * @subcommand delete-index
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
@@ -328,6 +370,19 @@ class Command extends WP_CLI_Command {
 	public function delete_index( $args, $assoc_args ) {
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
+
+		// If index name is specified, just delete it and end the command.
+		if ( ! empty( $assoc_args['index-name'] ) ) {
+			$result = Elasticsearch::factory()->delete_index( $assoc_args['index-name'] );
+
+			if ( $result ) {
+				WP_CLI::success( esc_html__( 'Index deleted', 'elasticpress' ) );
+			} else {
+				WP_CLI::error( esc_html__( 'Index delete failed', 'elasticpress' ) );
+			}
+
+			return;
+		}
 
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
 		$global_indexable_objects     = Indexables::factory()->get_all( true );
