@@ -39,4 +39,28 @@ class BasicTest extends TestBase {
 			$I->seeText( $index_name );
 		}
 	}
+
+	/**
+	 * Test a simple search
+	 *
+	 * @testdox I can search on the front end and ES returns a proper response code.
+	 */
+	public function testSearch() {
+		$I = $this->openBrowserPage();
+
+		$I->loginAs( 'wpsnapshots' );
+
+		$I->moveTo( '/?s=test' );
+
+		$I->click( '#wp-admin-bar-debug-bar' );
+
+		$I->click( '#debug-menu-link-EP_Debug_Bar_ElasticPress' );
+
+		$I->seeText( 'Query Response Code: HTTP 200' );
+
+		// No error codes
+		$I->dontSeeText( 'Query Response Code: HTTP 4' );
+
+		$I->dontSeeText( 'Query Response Code: HTTP 5' );
+	}
 }
