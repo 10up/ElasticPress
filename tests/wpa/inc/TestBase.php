@@ -81,7 +81,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 *
 	 * @param  array $feature_settings Feature settings
 	 */
-	private function updateFeatureSettings( $feature_settings ) {
+	public function updateFeatureSettings( $feature_settings ) {
 		$current_settings_row = $this->selectRowsWhere( [ 'option_name' => 'ep_feature_settings' ], 'options' );
 
 		if ( empty( $current_settings_row ) ) {
@@ -105,5 +105,41 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			],
 			'options'
 		);
+	}
+
+	/**
+	 * Publish a post in the admin
+	 * @param  array                       $data  Post data
+	 * @param  \WPAcceptance\PHPUnit\Actor $actor Current actor
+	 */
+	public function publishPost( array $data, \WPAcceptance\PHPUnit\Actor $actor ) {
+		$defaults = [
+			'title'   => 'Test Post',
+			'content' => 'Test content.',
+		];
+
+		$data = array_merge( $defaults, $data );
+
+		$actor->moveTo( 'wp-admin/post-new.php' );
+
+		$actor->click( '.nux-dot-tip__disable' );
+
+		$actor->typeInField( '#post-title-0', $data['title'] );
+
+		usleep( 100 );
+
+		$actor->waitUntilElementVisible( '.editor-post-publish-panel__toggle' );
+
+		$actor->waitUntilElementEnabled( '.editor-post-publish-panel__toggle' );
+
+		$actor->click( '.editor-post-publish-panel__toggle' );
+
+		$actor->waitUntilElementVisible( '.editor-post-publish-button' );
+
+		$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
+
+		$actor->click( '.editor-post-publish-button' );
+
+		$actor->waitUntilElementVisible( '.components-notice' );
 	}
 }

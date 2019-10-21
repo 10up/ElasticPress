@@ -22,7 +22,7 @@ class BasicTest extends TestBase {
 	 *
 	 * @testdox I can successfully run an index in the single site dashboard and see the indexes in the health page.
 	 */
-	public function testSyncComplete() {
+	public function testDashboardSyncComplete() {
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -46,6 +46,8 @@ class BasicTest extends TestBase {
 	 * @testdox I can search on the front end and ES returns a proper response code.
 	 */
 	public function testSearch() {
+		$this->runCommand( 'wp elasticpress index --setup' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -62,5 +64,40 @@ class BasicTest extends TestBase {
 		$I->dontSeeText( 'Query Response Code: HTTP 4' );
 
 		$I->dontSeeText( 'Query Response Code: HTTP 5' );
+	}
+
+	/**
+	 * Test weighting adjustments
+	 *
+	 * @testdox I dont see a post in search that only matches by title when title is set as not searchable in the weighting dashboard.
+	 */
+	public function testWeightingOnOff() {
+		$this->runCommand( 'wp elasticpress index --setup' );
+
+		$I = $this->openBrowserPage();
+
+		$I->loginAs( 'wpsnapshots' );
+
+		$data = [
+			'title' => 'Test ElasticPress 1',
+		];
+
+		$this->publishPost( $data, $I );
+
+		$I->moveTo( '/?s=Test+ElasticPress+1' );
+
+		$I->seeText( 'Test ElasticPress 1', '.hentry' );
+
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+
+		$I->click( '#post-post_title-enabled' );
+
+		$I->click( '#submit' );
+
+		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
+
+		$I->moveTo( '/?s=Test+ElasticPress+1' );
+
+		$I->dontSeeText( 'Test ElasticPress 1', '.hentry' );
 	}
 }
