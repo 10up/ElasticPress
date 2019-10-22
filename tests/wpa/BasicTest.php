@@ -100,4 +100,31 @@ class BasicTest extends TestBase {
 
 		$I->dontSeeText( 'Test ElasticPress 1', '.hentry' );
 	}
+
+	/**
+	 * Test autosugest
+	 *
+	 * @testdox When I type in a search field on the front end, I see the autosuggest dropdown.
+	 */
+	public function testAutosuggestDropdownShows() {
+		$this->runCommand( 'wp elasticpress index --setup' );
+
+		$I = $this->openBrowserPage();
+
+		$I->moveTo( '/' );
+
+		$I->waitUntilElementVisible( '.search-toggle' );
+
+		$I->click( '.search-toggle' );
+
+		$I->waitUntilElementVisible( '#search-form-1' );
+
+		$I->typeInField( '#search-form-1', 'blog' );
+
+		$I->waitUntilElementVisible( '.ep-autosuggest' );
+
+		$I->seeElement( '.ep-autosuggest' );
+
+		$I->seeText( 'a Blog page', '.ep-autosuggest' );
+	}
 }
