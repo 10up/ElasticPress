@@ -207,9 +207,9 @@ class Autosuggest extends Feature {
 	/**
 	 * Handle ngram search fields for fuzziness fields
 	 *
-	 * @param array $query ES Query arguments
+	 * @param array  $query ES Query arguments
 	 * @param string $post_type Post Type
-	 * @param array $args WP_Query args
+	 * @param array  $args WP_Query args
 	 * @return array $query adjusted ES Query arguments
 	 */
 	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
