@@ -82,6 +82,8 @@ class Autosuggest extends Feature {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
+		add_filter( 'ep_fuzziness_arg', [ $this, 'set_fuzziness' ], 10, 3 );
+		add_filter( 'ep_weighted_query_for_post_type', [ $this, 'adjust_fuzzy_fields' ], 10, 3 );
 	}
 
 	/**
@@ -118,9 +120,9 @@ class Autosuggest extends Feature {
 			<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Endpoint URL', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
 				<input 
-				<?php
-				if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) :
-					?>
+			<?php
+			if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) :
+				?>
 					disabled<?php endif; ?> value="<?php echo esc_url( $endpoint_url ); ?>" type="text" data-field-name="endpoint_url" class="setting-field" id="feature_autosuggest_endpoint_url">
 				<?php
 				if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
@@ -134,7 +136,7 @@ class Autosuggest extends Feature {
 			</div>
 		</div>
 
-		<?php
+			<?php
 	}
 
 	/**
@@ -185,6 +187,64 @@ class Autosuggest extends Feature {
 		}
 
 		return $mapping;
+	}
+
+	/**
+	 * Ensure both search and autosuggest use fuziness with type auto
+	 *
+	 * @param integer $fuzziness Fuzziness
+	 * @param array   $search_fields Search Fields
+	 * @param array   $args Array of ES args
+	 * @return array
+	 */
+	public function set_fuzziness( $fuzziness, $search_fields, $args ) {
+		if ( ! is_admin() && ! empty( $args['s'] ) ) {
+			return 'auto';
+		}
+		return $fuzziness;
+	}
+
+	/**
+	 * Handle ngram search fields for fuzziness fields
+	 *
+	 * @param array $query 			ES Query arguments
+	 * @param string $post_type     Post Type
+	 * @param array $args           WP_Query args
+	 * @return array $query 		adjusted ES Query arguments
+	 */
+	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
+		if ( ! is_admin() && ! empty( $args['s'] ) ) {
+			$ngram_fields = apply_filters(
+				'ep_autosuggest_ngram_fields',
+				[
+					'post_title' => 'post_title.suggest',
+				]
+			);
+
+			if ( isset( $query['bool'] ) && isset( $query['bool']['must'] ) ) {
+				foreach ( $query['bool']['must'] as $q_index => $must_query ) {
+					if ( isset( $must_query['bool'] ) && isset( $must_query['bool']['should'] ) ) {
+						foreach ( $must_query['bool']['should'] as $index => $current_bool_should ) {
+							if ( isset( $current_bool_should['multi_match'] ) && isset( $current_bool_should['multi_match']['fuzziness'] ) && 0 !== $current_bool_should['multi_match']['fuzziness'] && isset( $current_bool_should['multi_match']['fields'] ) ) {
+								foreach ( $current_bool_should['multi_match']['fields'] as $key => $field ) {
+									foreach ( $ngram_fields as $plain_field => $ngram_field ) {
+										if ( preg_match( '/^(' . $plain_field . ')(\^(\d+))?$/', $field, $match ) ) {
+											if ( isset( $match[3] ) && $match[3] > 1 ) {
+												$weight = $match[3] - 1;
+											} else {
+												$weight = 1;
+											}
+											$query['bool']['must'][ $q_index ]['bool']['should'][ $index ]['multi_match']['fields'][] = $ngram_field . '^' . $weight;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return $query;
 	}
 
 	/**
@@ -298,7 +358,6 @@ class Autosuggest extends Feature {
 			)
 		);
 	}
-
 
 	/**
 	 * Build a default search request to pass to the autosuggest javascript.

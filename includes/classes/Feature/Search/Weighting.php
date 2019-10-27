@@ -497,20 +497,25 @@ class Weighting {
 					}
 				}
 
-				$new_query['bool']['should'][] = [
-					'bool' => [
-						'must'   => [
-							$current_query,
-						],
-						'filter' => [
-							[
-								'match' => [
-									'post_type.raw' => $post_type,
+				$new_query['bool']['should'][] = apply_filters(
+					'ep_weighted_query_for_post_type',
+					[
+						'bool' => [
+							'must'   => [
+								$current_query,
+							],
+							'filter' => [
+								[
+									'match' => [
+										'post_type.raw' => $post_type,
+									],
 								],
 							],
 						],
 					],
-				];
+					$post_type,
+					$args
+				);
 			}
 
 			// put the new query back in the correct location
