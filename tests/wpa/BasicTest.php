@@ -102,6 +102,57 @@ class BasicTest extends TestBase {
 	}
 
 	/**
+	 * Test content/title weighting
+	 *
+	 * @testdox I can increase post_title weighting and influence search results.
+	 */
+	public function testTitleContentWeighting() {
+		$this->runCommand( 'wp elasticpress index --setup' );
+
+		$I = $this->openBrowserPage();
+
+		$I->loginAs( 'wpsnapshots' );
+
+		$data = [
+			'title'   => 'test weighting content',
+			'content' => 'findme findme findme',
+		];
+
+		$this->publishPost( $data, $I );
+
+		$data = [
+			'title'   => 'test weighting title findme',
+			'content' => 'Nothing here.',
+		];
+
+		$this->publishPost( $data, $I );
+
+		$I->moveTo( '/?s=findme' );
+
+		$posts = $I->getElements( '.post' );
+
+		$first_post = $posts[0];
+
+		$I->seeText( 'test weighting content', $first_post );
+
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+
+		$I->setElementProperty( 'input[name="weighting[post][post_title][weight]"]', 'value', 20 );
+
+		$I->click( '#submit' );
+
+		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
+
+		$I->moveTo( '/?s=findme' );
+
+		$posts = $I->getElements( '.post' );
+
+		$first_post = $posts[0];
+
+		$I->seeText( 'test weighting title findme', $first_post );
+	}
+
+	/**
 	 * Test autosugest
 	 *
 	 * @testdox When I type in a search field on the front end, I see the autosuggest dropdown.

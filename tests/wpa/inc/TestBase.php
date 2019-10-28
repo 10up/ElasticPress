@@ -73,7 +73,70 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 					],
 				]
 			);
+
+			/**
+			 * Set default weighting
+			 */
+			$weighting = [
+				'post' => [
+					'post_title'   => [
+						'weight'  => 1,
+						'enabled' => 1,
+					],
+					'post_content' => [
+						'weight'  => 1,
+						'enabled' => 1,
+					],
+					'post_excerpt' => [
+						'weight'  => 1,
+						'enabled' => 1,
+					],
+
+					'author_name'  => [
+						'weight'  => 0,
+						'enabled' => 0,
+					],
+				],
+				'page' => [
+					'post_title'   => [
+						'weight'  => 1,
+						'enabled' => 1,
+					],
+					'post_content' => [
+						'weight'  => 1,
+						'enabled' => 1,
+					],
+					'post_excerpt' => [
+						'weight'  => 1,
+						'enabled' => 1,
+					],
+
+					'author_name'  => [
+						'weight'  => 0,
+						'enabled' => 0,
+					],
+				],
+			];
+
+			$this->updateWeighting( $weighting );
 		}
+	}
+
+	/**
+	 * Update EP weighting
+	 *
+	 * @param  array $weighting Weighting to set
+	 */
+	public function updateWeighting( $weighting ) {
+		$this->updateRowsWhere(
+			[
+				'option_value' => $weighting,
+			],
+			[
+				'option_name' => 'elasticpress_weighting',
+			],
+			'options'
+		);
 	}
 
 	/**
@@ -122,9 +185,19 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		$actor->moveTo( 'wp-admin/post-new.php' );
 
-		$actor->click( '.nux-dot-tip__disable' );
+		try {
+			$actor->click( '.nux-dot-tip__disable' );
+		} catch ( \Exception $e ) {
+			// Do nothing
+		}
 
 		$actor->typeInField( '#post-title-0', $data['title'] );
+
+		$actor->getPage()->type(
+			'.editor-default-block-appender__content',
+			$data['content'],
+			[ 'delay' => 10 ]
+		);
 
 		usleep( 100 );
 
