@@ -8,6 +8,7 @@
 namespace ElasticPress\Feature\Highlighting;
 
 use ElasticPress\Feature as Feature;
+use ElasticPress\Features;
 
 /**
  * Documents feature class.
@@ -20,7 +21,7 @@ class Highlighting extends Feature {
 	 * @since  VERSION
 	 */
 	public function __construct() {
-		$this->slug = 'search-term-highlighting';
+		$this->slug = 'elasticpress-highlighting';
 
 		$this->title = esc_html__( 'Search Term Highlighting', 'elasticpress' );
 
@@ -35,10 +36,13 @@ class Highlighting extends Feature {
 	 * @since VERSION
 	 */
 	public function setup() {
-        // TODO
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
         add_action( 'admin_menu', [ $this, 'add_term_highlighting_submenu_page' ], 15 );
+		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 
-        add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
+		// Add filter to overwrite the pre_/post_ tags
+		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
+		add_action( 'admin_post_ep-highlighting', [ $this, 'handle_save' ] );
     }
 
     /**
@@ -61,7 +65,8 @@ class Highlighting extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php esc_html_e( 'Inserts tags to wrap search terms in results for custom styling. Plus some more config options....', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'The wrapping HTML tag comes with the "ep-highlight" class for easy styling. Select a different tag, or add a color in the advanced options.') ?></p>
+		<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-highlighting' ) ); ?>"><?php esc_html_e( 'Advanced search term highlighting settings', 'elasticpress' ); ?></a></p>
 		<?php
     }
 
@@ -70,15 +75,180 @@ class Highlighting extends Feature {
 	 * Adds the submenu page for controlling search term highlighting options
 	 */
 	public function add_term_highlighting_submenu_page() {
-        // TODO: add settings page?
-        // add_submenu_page( 'elasticpress', __( 'Search Term Highlighting', 'elasticpress' ), __( 'Search Term Highlighting', 'elasticpress' ), 'manage_options', 'search-term-highlighting', [ $this, 'render_settings_page' ] );
+        add_submenu_page( 'elasticpress', __( 'Search Term Highlighting', 'elasticpress' ), __( 'Search Term Highlighting', 'elasticpress' ), 'manage_options', 'elasticpress-highlighting', [ $this, 'render_settings_page' ] );
     }
 
     /**
 	 * Renders the settings page that controls search term highlighting
 	 */
 	public function render_settings_page() {
-		// TODO: render settings page?
+		include EP_PATH . '/includes/partials/header.php'; ?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'Manage Search Term Highlighting', 'elasticpress' ); ?></h1>
+			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" class="highlighting-settings metabox-holder">
+				<input type="hidden" name="action" value="ep-highlighting">
+				<?php wp_nonce_field( 'save-highlighting', 'ep-highlighting-nonce' ); ?>
+				<?php
+				if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
+					if ( $_GET['settings-updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification
+						?>
+						<div class="notice notice-success is-dismissible">
+							<p><?php esc_html_e( 'Changes Saved!', 'elasticpress' ); ?></p>
+						</div>
+					<?php else : ?>
+						<div class="notice notice-error is-dismissible">
+							<p><?php esc_html_e( 'An error occurred when saving!', 'elasticpress' ); ?></p>
+						</div>
+						<?php
+					endif;
+				endif;
+
+				/** Features Class @var Features $features */
+				$features = Features::factory();
+
+				/** Search Feature @var Feature\Search\Search $search */
+				$search = $features->get_registered_feature( 'search' );
+
+				$tag_options = $this->get_default_terms();
+				$current_values = $this->get_highlighting_configuration();
+
+
+					?>
+					<div class="postbox">
+						<h2 class="hndle"><?php echo esc_html( 'Highlight Tag' ); ?></h2>
+
+						<div class="field-group">
+							<div class="fields">
+								<div class="field">
+									<label for="highlight-tag"><?php echo esc_html( 'Highlight Tag: ' ); ?></label>
+									<select id="highlight-tag" name="highlight-tag">
+										<?php
+										foreach ( $tag_options as $option ) :
+											$selected = ($option == $current_values['highlight_tag']) ? 'selected="selected"' : '';
+											echo '<option value="'. $option .'" '. $selected . '>' .$option. '</option>';
+										endforeach;
+										?>
+									</select>
+								</div>
+
+							</div>
+						</div>
+
+					</div>
+
+					<div class="postbox">
+						<h2 class="hndle"><?php echo esc_html( 'Highlight Color' ); ?></h2>
+
+						<div class="field-group">
+							<div class="field">
+								<label for="highlight-color"><?php echo esc_html( 'Highlight Color: ' ); ?>
+								<input type="text" id="highlight-color" name="highlight-color" class="ep-highlight-color-select" value="<?php echo esc_attr( $current_values['highlight_color']); ?>" />
+							</div>
+						</div>
+					</div>
+					<?php
+
+				submit_button();
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+
+	/**
+	 *
+	 */
+	public function handle_save() {
+		if ( ! isset( $_POST['ep-highlighting-nonce'] ) || ! wp_verify_nonce( $_POST['ep-highlighting-nonce'], 'save-highlighting' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$current_config = $this->get_highlighting_configuration();
+
+		if( isset( $_POST['highlight-tag'] ) && in_array( $_POST['highlight-tag'], $this->get_default_terms() )) {
+			$new_highlight_tag = $_POST['highlight-tag'];
+		} else {
+			$new_highlight_tag = $current_config['highlight_tag'];
+		}
+
+		// get color
+		$new_highlight_color = isset( $_POST['highlight-color'] ) ? $_POST['highlight-color'] : null;
+
+		$final_config = array(
+			'highlight_tag' => $new_highlight_tag,
+			'highlight_color' => $new_highlight_color
+		);
+
+
+		update_option( 'elasticpress_highlighting', $final_config );
+
+		$redirect_url = admin_url( 'admin.php?page=elasticpress-highlighting' );
+		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
+
+		wp_safe_redirect( $redirect_url );
+		exit();
+	}
+
+
+	/**
+	 * Returns the current highlighting configuration
+	 *
+	 * @return array
+	 */
+	public function get_highlighting_configuration() {
+		return get_option( 'elasticpress_highlighting', [] );
+	}
+
+	public function enqueue_scripts() {
+		$current_config = $this->get_highlighting_configuration();
+		$highlight_color = $current_config['highlight_color'];
+
+		wp_enqueue_style(
+			'elasticpress-highlighting',
+			EP_URL . 'dist/css/highlighting-styles.min.css',
+			[],
+			EP_VERSION
+		);
+
+		$inline_color = "
+			:root{
+				--highlight-color: {$highlight_color};
+			}";
+		wp_add_inline_style( 'elasticpress-highlighting', $inline_color );
+	}
+
+
+	/**
+	 * @param $tag string for html tag
+	 * @return string
+	 */
+	public function get_highlighting_tag( $tag ) {
+
+		$default_tag = 'mark';
+		$options = $this->get_default_terms();
+
+		if( ! in_array( $tag, $options) ) {
+			return $default_tag;
+		}
+
+		return $tag;
+	}
+
+
+	/**
+	 * helper function to retunr/restrict available html element options
+	 *
+	 * @return array
+	 */
+	public function get_default_terms() {
+		return array(
+			'mark', 'span', 'strong', 'em', 'i'
+		);
 	}
 
 
@@ -91,6 +261,10 @@ class Highlighting extends Feature {
 	 * @return array $formatted_args formatted args with search highlight tags
 	 */
     public function add_search_highlight_tags( $formatted_args, $args ) {
+
+		if( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
 
 		$fields_to_highlight = array();
 
@@ -115,8 +289,13 @@ class Highlighting extends Feature {
 			$fields_to_highlight = array_unique( $fields_to_highlight );
 		}
 
-		// default tag
-		$highlight_tag = 'mark';
+		// get current config
+		$config = $this->get_highlighting_configuration();
+
+		// define the tag to use
+		$current_tag = $config['highlight_tag'];
+		$highlight_tag = apply_filters( 'ep_highlighting_tag', $current_tag );
+
 		// default class
 		$highlight_class = 'ep-highlight';
 

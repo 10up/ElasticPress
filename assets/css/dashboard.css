@@ -787,6 +787,19 @@ h2.ep-list-features {
 	background: #1e8cbe;
 }
 
+.highlighting-settings .field {
+	padding: 10px;
+}
+
+.highlighting-settings fieldset .field:nth-of-type(odd) {
+	background: #f9f9f9;
+}
+
+.highlighting-settings fieldset legend {
+	margin: 10px;
+	font-size: 1em;
+}
+
 
 /**
  * Animations

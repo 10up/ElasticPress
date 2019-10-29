@@ -1,0 +1,8 @@
+:root {
+    --highlight-color: inherit;
+}
+
+.ep-highlight {
+    font-weight: bold;
+    color: var(--highlight-color);
+}
