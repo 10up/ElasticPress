@@ -74,13 +74,17 @@ Add controls to your website to filter content by one or more taxonomies.
 
 Improve user search relevancy and query performance.
 
+### Terms (requires WordPress 5.3+)
+
+Improve term search relevancy and query performance.
+
 ## ElasticPress `Indexables`
 
 In ElasticPress 3.0, we’ve introduced the concept of Indexables. In the past, ElasticPress integrated with WordPress’ WP_Query API, which enabled redirection of WP_Query queries through Elasticsearch instead of MySQL. Indexables takes this a step further, enabling indexing, search, and queries on any queryable object in WordPress.
 
-As of 3.0, ElasticPress ships with two built-in Indexables: Posts and Users. The Posts Indexable roughly corresponds to the previous WP_Query integration, and the Users Indexable adds support for [WP_User_Query](http://codex.wordpress.org/Class_Reference/WP_User_Query) in ElasticPress. Future versions of ElasticPress will include additional WordPress APIs (such as [WP_Comment_Query](http://codex.wordpress.org/Class_Reference/WP_Comment_Query)), and you can also create your own custom Indexables by extending the Indexable class.
+As of 3.3, ElasticPress ships with three built-in Indexables: Posts, Terms and Users. The Posts Indexable roughly corresponds to the previous WP_Query integration, the Terms Indexable adds support for [WP_Term_Query](https://developer.wordpress.org/reference/classes/wp_term_query/) and the Users Indexable adds support for [WP_User_Query](http://codex.wordpress.org/Class_Reference/WP_User_Query) in ElasticPress. Future versions of ElasticPress will include additional WordPress APIs (such as [WP_Comment_Query](http://codex.wordpress.org/Class_Reference/WP_Comment_Query)), and you can also create your own custom Indexables by extending the Indexable class.
 
-ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query` and `WP_User_Query` arguments to Elasticsearch readable queries. Supported `WP_Query` and `WP_User_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_Query` arguments for extra functionality.
+ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passed (see below) to the query object. If the search feature is activated (which it is by default), all queries with the `s` parameter will be integrated with as well. ElasticPress converts `WP_Query`, `WP_Term_Query` and `WP_User_Query` arguments to Elasticsearch readable queries. Supported `WP_Query`, `WP_Term_Query` and `WP_User_Query` parameters are listed and explained below. ElasticPress also adds some extra `WP_Query` arguments for extra functionality.
 
 ### Supported WP_Query Parameters
 
@@ -511,6 +515,167 @@ The following are special parameters that are only supported by ElasticPress.
     ```
 
     _Note:_ Nesting cross-site `WP_Query` loops can result in unexpected behavior.
+
+### Supported WP_Term_Query Parameters
+
+* ```number``` (*int*)
+
+    The maximum returned number of results.
+
+* ```offset``` (*int*)
+
+    Offset the returned results (needed in pagination).
+
+* ```orderby``` (*string*)
+
+    Order results by field name instead of relevance. Supports: ```name```, ```slug```, ```term_group```, ```term_id```, ```description```, ```parent```, ```count```, ```meta_value``` and ```meta_value_num```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`.
+
+* ```order``` (*string*)
+
+    Which direction to order results in. Accepts ```ASC``` and ```DESC```. Default is ```ASC```.
+
+* ```taxonomy``` (*string|array*)
+
+    Taxonomy name, or array of taxonomies, to which results should be limited.
+
+* ```object_ids``` (*int|array*)
+
+    Limit results to terms associated with either an object ID or an array of object IDs.
+
+* ```get``` (*string*)
+
+    Return terms regardless of their ancestry or regardless if the terms are empty. Accepts ```all``` or empty. Default is empty.
+
+* ```hide_empty``` (*boolean|int*)
+
+    Limit results to terms that are assigned to at least one object. Accepts ```1|true``` or ```0|false```. Default ```1|true```.
+
+* ```include``` (*array|string*)
+
+    Limit results to terms that match the passed in term IDs. Accepts either an array or comma-separated list of term IDs.
+
+* ```exclude``` (*array|string*)
+
+    Array or comma/space-separated string of term IDs to exclude from results.
+
+* ```exclude_tree``` (*array|string*)
+
+    Array or comma/space-separated string of term IDs to exclude along with all of their descendant terms. If ```$include``` is non-empty, ```$exclude_tree``` is ignored.
+
+* ```name``` (*string|array*)
+
+    Limit results to terms that match the passed in term names. Accepts either an array of names or a single name.
+
+* ```slug``` (*string|array*)
+
+    Limit results to terms that match the passed in term slugs. Accepts either an array of slugs or a single slug.
+
+* ```term_taxonomy_id``` (*int|array*)
+
+    Limit results to terms that match the passed in term taxonomy IDs. Accepts either an array of IDs or a single ID.
+
+* ```hierarchical``` (*boolean*)
+
+    Include terms that have non-empty descendants. Default is ```true```. This will take precendence over ```$hide_empty```.
+
+* ```search``` (*string*)
+
+    Search keyword. By default used to search against ```name```, ```slug```, ```taxonomy``` and ```description```.
+
+* ```name__like``` (*string*)
+
+    Search keyword used to search only against the ```name``` field.
+
+* ```description__like``` (*string*)
+
+    Search keyword used to search only against the ```description``` field.
+
+* ```child_of``` (*int*)
+
+    Term ID to retrieve child terms of. If multiple taxonomies are passed in ```$taxonomy```, ```$child_of``` is ignored. Default ```0```.
+
+* ```parent``` (*int|string*)
+
+    Parent term ID or array of parent term IDs to retrieve direct-child terms of.
+
+* ```childless``` (*boolean*)
+
+    Limit results to terms that have no children. Will have no effect if searching against non-hierarchical taxonomies. Default ```false```.
+
+* ```meta_key``` (*string*)
+
+    Limit terms to those matching a specific meta value. Can be used in conjunction with ```$meta_value```.
+
+* ```meta_value``` (*string*)
+
+    Limit terms to those matching a specific meta value. Usually used in conjunction with ```$meta_key```.
+
+* ```meta_compare``` (*string*)
+
+    Operator to test the 'meta_value'. Possible values are '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'EXISTS', and 'NOT EXISTS' ; 'REGEXP', 'NOT REGEXP' and 'RLIKE' were added in WordPress 3.7. Default value is '='.
+
+* ```meta_query``` (*array*)
+
+    Filter terms by term meta conditions. Meta arrays and objects are serialized due to limitations of Elasticsearch. See the ```WP_Query``` ```meta_query``` section for supported parameters. Takes an array of form:
+
+    ```php
+    new WP_Term_Query( array(
+        'search'     => 'search phrase',
+        'meta_query' => array(
+            array(
+                'key'     => 'key_name',
+                'value'   => 'meta value',
+                'compare' => '=',
+            ),
+        ),
+    ) );
+    ```
+
+* ```fields``` (*string*)
+
+    Which fields to return. Accepts ```all```, ```all_with_object_id```, ```ids```, ```tt_ids```, ```id=>parent```, ```names```, ```count```, ```id=>name``` or ```id=>slug```. Defaults to ```all```.
+
+The following are special parameters that are only supported by ElasticPress.
+
+* ```search_fields``` (*array*)
+
+    If not specified, defaults to ```array( 'name', 'slug', 'taxonomy', 'description' )```.
+
+    * ```name``` (*string*)
+
+        Applies current search to term names.
+
+    * ```slug``` (*string*)
+
+        Applies current search to term slugs.
+
+    * ```taxonomy``` (*string*)
+
+        Applies current search to term taxonomy names.
+
+    * ```description``` (*string*)
+
+        Applies current search to term descriptions.
+
+    * ```meta``` (*string* => *array*/*string*)
+
+        Applies the current search to term meta. The following will fuzzy search across ```name```, ```slug```, ```description```, and term meta keys ```meta_key_1``` and ```meta_key_2```:
+
+        ```php
+        new WP_Term_Query( array(
+            'search'        => 'meta search phrase',
+            'search_fields' => array(
+                'name',
+                'slug',
+                'description',
+                'meta' => array( 'meta_key_1', 'meta_key_2' ),
+            ),
+        ) );
+        ```
+
+* ```sites``` (*int*/*string*/*array*)
+
+    This parameter only applies in a multi-site environment. It lets you search for terms on specific sites or across the network.
 
 ### Supported WP_User_Query Parameters
 
