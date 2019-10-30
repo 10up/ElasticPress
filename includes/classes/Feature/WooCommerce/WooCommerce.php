@@ -458,25 +458,11 @@ class WooCommerce extends Feature {
 						}
 					}
 
-					// Make sure we search skus on the front end
-					$search_fields['meta'] = array( '_sku' );
+					$search_fields['meta']       = ( ! empty( $search_fields['meta'] ) ) ? $search_fields['meta'] : [];
+					$search_fields['taxonomies'] = ( ! empty( $search_fields['taxonomies'] ) ) ? $search_fields['taxonomies'] : [];
 
-					// Search by proper taxonomies on the front end
-					$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
-
-					// Make sure we search skus on the front end and do not override meta search fields
-					if ( ! empty( $search_fields['meta'] ) ) {
-						$search_fields['meta'] = array_merge( $search_fields['meta'], array( '_sku' ) );
-					} else {
-						$search_fields['meta'] = array( '_sku' );
-					}
-
-					// Search by proper taxonomies on the front end and do not override taxonomy search fields
-					if ( ! empty( $search_fields['taxonomies'] ) ) {
-						$search_fields['meta'] = array_merge( $search_fields['meta'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
-					} else {
-						$search_fields['taxonomies'] = array( 'category', 'post_tag', 'product_tag', 'product_cat' );
-					}
+					$search_fields['meta']       = array_merge( $search_fields['meta'], array( '_sku' ) );
+					$search_fields['taxonomies'] = array_merge( $search_fields['taxonomies'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
 
 					$query->set( 'search_fields', $search_fields );
 				}
