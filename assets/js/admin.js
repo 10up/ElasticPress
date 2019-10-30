@@ -39,4 +39,6 @@ jQuery( '.weighting-settings .searchable input[type=checkbox]' ).change( functio
 } );
 
 // for color picker in highlighting screen
-jQuery( '.ep-highlight-color-select' ).wpColorPicker();
+if( 'undefined' !== typeof wpColorPickerL10n ) {
+	jQuery( '.ep-highlight-color-select' ).wpColorPicker();
+}
