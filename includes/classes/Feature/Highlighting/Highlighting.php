@@ -37,7 +37,7 @@ class Highlighting extends Feature {
 	 */
 	public function setup() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-        add_action( 'admin_menu', [ $this, 'add_term_highlighting_submenu_page' ], 15 );
+		add_action( 'admin_menu', [ $this, 'add_term_highlighting_submenu_page' ], 15 );
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 
 		// Add filter to overwrite the pre_/post_ tags
