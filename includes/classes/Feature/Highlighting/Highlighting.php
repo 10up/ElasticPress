@@ -59,8 +59,6 @@ class Highlighting extends Feature {
 	/**
 	 * Output feature box long
      *
-     * TODO: finish the description
-	 *
 	 * @since  VERSION
 	 */
 	public function output_feature_box_long() {
@@ -89,8 +87,8 @@ class Highlighting extends Feature {
 				<input type="hidden" name="action" value="ep-highlighting">
 				<?php wp_nonce_field( 'save-highlighting', 'ep-highlighting-nonce' ); ?>
 				<?php
-				if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
-					if ( $_GET['settings-updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification
+				if ( isset( $_GET['settings-updated'] ) ) :
+					if ( $_GET['settings-updated'] ) :
 						?>
 						<div class="notice notice-success is-dismissible">
 							<p><?php esc_html_e( 'Changes Saved!', 'elasticpress' ); ?></p>
@@ -103,20 +101,12 @@ class Highlighting extends Feature {
 					endif;
 				endif;
 
-				/** Features Class @var Features $features */
-				$features = Features::factory();
-
-				/** Search Feature @var Feature\Search\Search $search */
-				$search = $features->get_registered_feature( 'search' );
-
 				$tag_options = $this->get_default_terms();
 				$current_values = $this->get_highlighting_configuration();
 
-
-					?>
+				?>
 					<div class="postbox">
 						<h2 class="hndle"><?php echo esc_html( 'Highlight Tag' ); ?></h2>
-
 						<div class="field-group">
 							<div class="fields">
 								<div class="field">
@@ -133,12 +123,9 @@ class Highlighting extends Feature {
 
 							</div>
 						</div>
-
 					</div>
-
 					<div class="postbox">
 						<h2 class="hndle"><?php echo esc_html( 'Highlight Color' ); ?></h2>
-
 						<div class="field-group">
 							<div class="field">
 								<label for="highlight-color"><?php echo esc_html( 'Highlight Color: ' ); ?>
@@ -146,8 +133,7 @@ class Highlighting extends Feature {
 							</div>
 						</div>
 					</div>
-					<?php
-
+				<?php
 				submit_button();
 				?>
 			</form>
@@ -157,7 +143,7 @@ class Highlighting extends Feature {
 
 
 	/**
-	 *
+	 * Handles processing the new highlighting values and saving them to the elasticpress.io service
 	 */
 	public function handle_save() {
 		if ( ! isset( $_POST['ep-highlighting-nonce'] ) || ! wp_verify_nonce( $_POST['ep-highlighting-nonce'], 'save-highlighting' ) ) {
@@ -204,10 +190,11 @@ class Highlighting extends Feature {
 		return get_option( 'elasticpress_highlighting', [] );
 	}
 
-	public function enqueue_scripts() {
-		$current_config = $this->get_highlighting_configuration();
-		$highlight_color = $current_config['highlight_color'];
 
+	/**
+	 * Enqueue styles for highlighting
+	 */
+	public function enqueue_scripts() {
 		wp_enqueue_style(
 			'elasticpress-highlighting',
 			EP_URL . 'dist/css/highlighting-styles.min.css',
@@ -215,16 +202,25 @@ class Highlighting extends Feature {
 			EP_VERSION
 		);
 
-		$inline_color = "
-			:root{
-				--highlight-color: {$highlight_color};
-			}";
-		wp_add_inline_style( 'elasticpress-highlighting', $inline_color );
+		// retrieve settings to ge the current color value
+		$current_config = $this->get_highlighting_configuration();
+		$highlight_color = $current_config['highlight_color'];
+
+		// check for value before inlining the style
+		if( !empty( $highlight_color ) ) {
+			$inline_color = "
+				:root{
+					--highlight-color: {$highlight_color};
+				}";
+			wp_add_inline_style( 'elasticpress-highlighting', $inline_color );
+		}
+
 	}
 
 
 	/**
 	 * @param $tag string for html tag
+	 *
 	 * @return string
 	 */
 	public function get_highlighting_tag( $tag ) {

@@ -12,7 +12,6 @@ module.exports = {
 		'ordering-script': './assets/js/ordering/index.js',
 		'stats-script': './assets/js/stats.js',
 		'related-posts-block-script': './assets/js/blocks/related-posts/block.js',
-		'highlighting-script': './assets/js/highlighting.js',
 
 		// CSS files.
 		'dashboard-styles': './assets/css/dashboard.css',

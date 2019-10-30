@@ -800,6 +800,20 @@ h2.ep-list-features {
 	font-size: 1em;
 }
 
+.highlighting-settings .wp-picker-container .wp-color-result.button {
+	margin-bottom: 0px;
+}
+
+.highlighting-settings .wp-picker-open + .wp-picker-input-wrap {
+	display: inline-flex;
+}
+
+.highlighting-settings .wp-picker-input-wrap label {
+	display: flex;
+	align-items: center;
+}
+
+
 
 /**
  * Animations
