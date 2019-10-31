@@ -791,6 +791,10 @@ h2.ep-list-features {
 	padding: 10px;
 }
 
+.highlighting-settings .field p {
+	margin-top: 0px;
+}
+
 .highlighting-settings fieldset .field:nth-of-type(odd) {
 	background: #f9f9f9;
 }

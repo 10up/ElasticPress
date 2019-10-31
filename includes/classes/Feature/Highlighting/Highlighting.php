@@ -43,6 +43,8 @@ class Highlighting extends Feature {
 		// Add filter to overwrite the pre_/post_ tags
 		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
 		add_action( 'admin_post_ep-highlighting', [ $this, 'handle_save' ] );
+
+		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
     }
 
     /**
@@ -104,6 +106,9 @@ class Highlighting extends Feature {
 				$tag_options = $this->get_default_terms();
 				$current_values = $this->get_highlighting_configuration();
 
+				$highlight_color = ( !empty( $current_values['highlight_color'] ) ) ? $current_values['highlight_color'] : null;
+				$excerpt_enabled = ( ! empty( $current_values['highlight_excerpt'] ) ) ? true : false;
+
 				?>
 					<div class="postbox">
 						<h2 class="hndle"><?php echo esc_html( 'Highlight Tag' ); ?></h2>
@@ -129,7 +134,19 @@ class Highlighting extends Feature {
 						<div class="field-group">
 							<div class="field">
 								<label for="highlight-color"><?php echo esc_html( 'Highlight Color: ' ); ?>
-								<input type="text" id="highlight-color" name="highlight-color" class="ep-highlight-color-select" value="<?php echo esc_attr( $current_values['highlight_color']); ?>" />
+								<input type="text" id="highlight-color" name="highlight-color" class="ep-highlight-color-select" value="<?php echo esc_attr( $highlight_color ); ?>" />
+							</div>
+						</div>
+					</div>
+					<div class="postbox">
+						<h2 class="hndle"><?php echo esc_html( 'Highlight Excerpt' ); ?></h2>
+						<div class="field-group">
+							<div class="field">
+								<p>By default, WordPress strips HTML from content excerpts. Check to enable the highlight tag in excerpts. </p>
+								<label>
+									<input type="checkbox" id="highlight-excerpt" value="on" name="highlight-excerpt" <?php checked( $excerpt_enabled ); ?> />
+									<?php echo esc_html( 'Show highlight tag in Excerpt' ); ?>
+								</label>
 							</div>
 						</div>
 					</div>
@@ -165,9 +182,12 @@ class Highlighting extends Feature {
 		// get color
 		$new_highlight_color = isset( $_POST['highlight-color'] ) ? $_POST['highlight-color'] : null;
 
+		$new_highlight_excerpt = isset( $_POST['highlight-excerpt'] ) ? $_POST['highlight-excerpt'] : false;
+
 		$final_config = array(
 			'highlight_tag' => $new_highlight_tag,
-			'highlight_color' => $new_highlight_color
+			'highlight_color' => $new_highlight_color,
+			'highlight_excerpt' => $new_highlight_excerpt
 		);
 
 
@@ -258,6 +278,8 @@ class Highlighting extends Feature {
 	 */
     public function add_search_highlight_tags( $formatted_args, $args ) {
 
+		apply_filters('ep_highlighting_excerpt', []);
+
 		if( empty( $args['s'] ) ) {
 			return $formatted_args;
 		}
@@ -310,5 +332,58 @@ class Highlighting extends Feature {
             }
         }
         return $formatted_args;
-    }
+	}
+
+
+
+
+	/**
+	 * called by ep_highlighting_excerpt filter
+	 *
+	 * Replaces the default excerpt with the custom excerpt, allowing
+	 * for the selected tag to be displayed in it.
+	 */
+	public function allow_excerpt_html() {
+		if( is_admin() ) {
+			return;
+		}
+
+		if( empty( $_GET['s'] ) ) {
+			return;
+		}
+
+		$current_values = $this->get_highlighting_configuration();
+
+		if( ! empty( $_GET['s'] ) && ! empty( $current_values['highlight_excerpt'] ) ) {
+			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
+			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
+		}
+	}
+
+	public function ep_highlight_excerpt( $text ) {
+
+		$current_values = $this->get_highlighting_configuration();
+
+		// reproduces the wp_trim_excerpt function
+		global $post;
+		if( !empty( $current_values['highlight_excerpt'] )) {
+			if ( '' == $text ) {
+				$text = get_the_content('');
+				$text = apply_filters('the_content', $text);
+				$text = str_replace('\]\]\>', ']]&gt;', $text);
+				$text = strip_tags( $text, '<'.$current_values['highlight_tag'] .'>' );
+
+				$excerpt_length = 55;
+				$words = explode(' ', $text, $excerpt_length + 1);
+				if (count($words)> $excerpt_length) {
+					array_pop($words);
+					array_push($words, '[...]');
+					$text = implode(' ', $words);
+				}
+			}
+		}
+
+		return $text;
+	}
+
 };
