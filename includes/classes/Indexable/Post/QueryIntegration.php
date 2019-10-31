@@ -343,12 +343,14 @@ class QueryIntegration {
 				}
 			}
 
-			// proof of concept...
-			// $post_array['highlight'] is set from $hit['highlight'] in ElasticSearch.php
-			// when going through the returned results, and that is defined by
-			// the Highlightting Feature on setup, calling ep_formatted_args  to
-			// define the highlight array of fields
-
+			/**
+			 * proof of concept...
+			 *
+			 * post_array['highlight'] is set from $hit['highlight'] in ElasticSearch.php
+			 * when going through the returned results, and that is defined by
+			 * the Highlightting Feature on setup, calling ep_formatted_args to
+			 * define the highlight array of fields
+			 */
 			if ( isset( $post_array['highlight'] ) ) {
 				foreach ( $post_array['highlight'] as $key => $val ) {
 					// e.g. $post->post_content
@@ -359,7 +361,6 @@ class QueryIntegration {
 					}
 				}
 			}
-
 
 			$post->elasticsearch = true; // Super useful for debugging
 

@@ -408,7 +408,8 @@ class Weighting {
 	/**
 	 * Determine if a post type has any fields enabled for search
 	 *
-	 * @param string $post_type
+	 * @param string $post_type post type string
+	 * @param array  $args query args
 	 * @return boolean true/false depending on any fields enabled == true
 	 */
 	public function post_type_has_fields( $post_type, $args = [] ) {

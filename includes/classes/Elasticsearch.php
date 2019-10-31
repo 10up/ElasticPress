@@ -243,7 +243,7 @@ class Elasticsearch {
 				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
-				if( ! empty( $hit['highlight'] ) ) {
+				if ( ! empty( $hit['highlight'] ) ) {
 					$document['highlight'] = $hit['highlight'];
 				}
 
