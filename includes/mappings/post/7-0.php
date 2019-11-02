@@ -15,6 +15,7 @@ return array(
 		'index.number_of_shards'           => apply_filters( 'ep_default_index_number_of_shards', 5 ),
 		'index.number_of_replicas'         => apply_filters( 'ep_default_index_number_of_replicas', 1 ),
 		'index.mapping.total_fields.limit' => apply_filters( 'ep_total_field_limit', 5000 ),
+		'index.mapping.ignore_malformed'   => apply_filters( 'ep_ignore_malformed', true ),
 		'index.max_result_window'          => apply_filters( 'ep_max_result_window', 1000000 ),
 		'index.max_shingle_diff'           => apply_filters( 'ep_max_shingle_diff', 8 ),
 		'analysis'                         => array(
