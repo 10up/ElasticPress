@@ -56,7 +56,7 @@ class QueryIntegration {
 			 * Manually setting a header as $wp_query isn't yet initialized
 			 * when we call: add_filter('wp_headers', 'filter_wp_headers');
 			 */
-			header( 'X-ElasticPress-Search: true' );
+			header( 'X-ElasticPress-Term-Search: true' );
 		}
 	}
 
