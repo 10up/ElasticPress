@@ -367,7 +367,7 @@ class Facets extends Feature {
 						$query_string .= '&';
 					}
 
-					$query_string .= 'filter_' . $taxonomy . '=' . implode( array_keys( $filter['terms'] ), ',' );
+					$query_string .= 'filter_' . $taxonomy . '=' . implode( ',', array_keys( $filter['terms'] ) );
 				}
 			}
 		}
