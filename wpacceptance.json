@@ -1,0 +1,12 @@
+{
+    "name": "elasticpress",
+    "tests": [
+        "./tests/wpa/*Test.php"
+    ],
+    "bootstrap": "./tests/wpa/bootstrap.php",
+    "exclude": [
+        "./node_modules"
+    ],
+    "enforce_clean_db": false,
+    "snapshot_id": "649bacfc153184422d815a5d4e4f6310"
+}

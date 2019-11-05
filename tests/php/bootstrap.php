@@ -47,8 +47,8 @@ function load_plugin() {
 	define( 'EP_IS_NETWORK', true );
 	define( 'WP_NETWORK_ADMIN', true );
 
-	include_once __DIR__ . '/../vendor/woocommerce/woocommerce.php';
-	require_once __DIR__ . '/../elasticpress.php';
+	include_once __DIR__ . '/../../vendor/woocommerce/woocommerce.php';
+	require_once __DIR__ . '/../../elasticpress.php';
 
 	add_filter( 'ep_default_index_number_of_shards', __NAMESPACE__ . '\test_shard_number' );
 
@@ -87,7 +87,7 @@ function setup_wc() {
 		define( 'WP_UNINSTALL_PLUGIN', true );
 
 		update_option( 'woocommerce_status_options', array( 'uninstall_data' => 1 ) );
-		include_once __DIR__ . '/../vendor/woocommerce/uninstall.php';
+		include_once __DIR__ . '/../../vendor/woocommerce/uninstall.php';
 
 		\WC_Install::install();
 

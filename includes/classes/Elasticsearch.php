@@ -204,7 +204,7 @@ class Elasticsearch {
 		$path = apply_filters( 'ep_query_request_path', $path, $index, $type, $query, $query_args );
 
 		$request_args = array(
-			'body'    => json_encode( $query ), // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'body'    => wp_json_encode( $query ),
 			'method'  => 'POST',
 			'headers' => array(
 				'Content-Type' => 'application/json',
@@ -483,7 +483,7 @@ class Elasticsearch {
 		}
 
 		$request_args = array(
-			'body'    => json_encode( $args ), // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'body'    => wp_json_encode( $args ),
 			'method'  => 'POST',
 			'timeout' => 25,
 		);
@@ -509,7 +509,7 @@ class Elasticsearch {
 		$mapping = apply_filters( 'ep_config_mapping', $mapping, $index );
 
 		$request_args = [
-			'body'    => json_encode( $mapping ), // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'body'    => wp_json_encode( $mapping ),
 			'method'  => 'PUT',
 			'timeout' => 30,
 		];
@@ -976,7 +976,7 @@ class Elasticsearch {
 		$path = '_ingest/pipeline/' . $id;
 
 		$request_args = array(
-			'body'   => json_encode( $args ), // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
+			'body'   => wp_json_encode( $args ),
 			'method' => 'PUT',
 		);
 

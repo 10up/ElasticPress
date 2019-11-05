@@ -4,6 +4,7 @@
   "type": "wordpress-plugin",
   "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
   "license": ["GPL-2.0-only"],
+  "minimum-stability": "dev",
   "authors": [
     {
       "name": "Taylor Lovett",
@@ -31,7 +32,8 @@
   "require-dev": {
     "10up/phpcs-composer": "dev-master",
     "wpackagist-plugin/woocommerce":"*",
-    "phpunit/phpunit": "^7"
+    "phpunit/phpunit": "^7",
+    "10up/wpacceptance": "dev-master"
   },
   "scripts": {
     "lint": "phpcs .",
