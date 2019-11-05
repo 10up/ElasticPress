@@ -359,6 +359,8 @@ class Highlighting extends Feature {
 
 		$current_values = $this->highlighting_configuration;
 
+		echo $text;
+
 		// reproduces wp_trim_excerpt filter, preserving the excerpt_more and excerpt_length filters
 		if ( '' === $text ) {
 			$text = get_the_content( '' );
