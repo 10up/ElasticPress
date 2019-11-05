@@ -95,6 +95,40 @@ function create_and_sync_user( $user_args = array(), $user_meta = array() ) {
 }
 
 /**
+ * Create and sync a term
+ *
+ * @param  string $slug        Term slug
+ * @param  string $name        Term name
+ * @param  string $description Term description
+ * @param  string $taxonomy    Taxonomy
+ * @param  array  $posts       Posts to use term on
+ * @param  int    $parent      Parent term id
+ * @since  3.3
+ * @return int                 Term ID
+ */
+function create_and_sync_term( $slug, $name, $description, $taxonomy, $posts = [], $parent = null ) {
+	$args = [
+		'slug' => $slug,
+	];
+
+	if ( ! empty( $parent ) ) {
+		$args['parent'] = $parent;
+	}
+
+	$term = wp_insert_term( $name, $taxonomy, $args );
+
+	if ( ! empty( $posts ) ) {
+		foreach ( $posts as $post_id ) {
+			wp_set_object_terms( $post_id, $term['term_id'], $taxonomy, true );
+		}
+	}
+
+	ElasticPress\Indexables::factory()->get( 'term' )->index( $term['term_id'], true );
+
+	return $term['term_id'];
+}
+
+/**
  * Create posts for date query testing
  *
  * @since  3.0
