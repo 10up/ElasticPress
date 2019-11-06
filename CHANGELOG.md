@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
-## [3.3.0] - 2019-11-05
+## [3.2.2] - 2019-11-05
 
 * Fix ensure lodash built as external Props [adamsilverstein](https://github.com/adamsilverstein)
 * Fix facet set aggs filter arguments bug

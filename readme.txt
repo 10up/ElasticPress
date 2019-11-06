@@ -43,7 +43,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 3.3.0 =
+= 3.2.2 =
 This is a bug fix version with some feature additions.
 
 * Fix ensure lodash built as external Props [adamsilverstein](https://github.com/adamsilverstein)
