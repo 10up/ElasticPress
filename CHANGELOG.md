@@ -2,10 +2,22 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.3.0] - 2019-11-05
+
+* Fix ensure lodash built as external Props [adamsilverstein](https://github.com/adamsilverstein)
+* Fix facet set aggs filter arguments bug
+* Fix PHPCS errors Props [mmcachran](https://github.com/mmcachran)
+* Fix ensuring stats are built prior to requesting information
+* Fix related post block enqueue block assets on the frontend
+* Fix custom order results change webpack config for externals:lodash
+* Fix don't overwrite search fields
+* Autosuggest queries generated though PHP instead of JavaScript
+* Add WP Acceptance tests
+* Add new WP-CLI commands: get_indexes and get_cluster_indexes
+
 ## [3.2.1] - 2019-10-14
 
 * Fix Gutenberg breaking issue with Related Posts and image blocks. Props [adamsilverstein](https://github.com/adamsilverstein)
-* Fix facet set aggs filter arguments bug.
 
 ## [3.2] - 2019-10-08
 
