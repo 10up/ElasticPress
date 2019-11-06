@@ -655,6 +655,14 @@ The following commands are supported by ElasticPress:
 
 * `wp elasticpress status`
 
+* `wp elasticpress get_indexes`
+
+  Get all index names as json.
+  
+* `wp elasticpress get_cluster_indexes`
+  
+  Return all indexes from the cluster as json.
+
 ## Security
 
 * If you’re hosted with ElasticPress.io, simply add your Subscription ID and Token into the ElasticPress settings page to secure your ElasticPress installation.
