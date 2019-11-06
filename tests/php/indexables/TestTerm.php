@@ -399,4 +399,157 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
+
+	/**
+	 * Test a term query orderby term id
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryOrderTermId() {
+		$this->createAndIndexTerms();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'orderby'    => 'term_id',
+			]
+		);
+
+		$this->assertTrue( $term_query->terms[0]->term_id < $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'order'      => 'desc',
+				'orderby'    => 'term_id',
+			]
+		);
+
+		$this->assertTrue( $term_query->terms[0]->term_id > $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+	}
+
+	/**
+	 * Test a term query orderby id
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryOrderId() {
+		$this->createAndIndexTerms();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'orderby'    => 'id',
+			]
+		);
+
+		$this->assertTrue( $term_query->terms[0]->term_id < $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'order'      => 'desc',
+				'orderby'    => 'id',
+			]
+		);
+
+		$this->assertTrue( $term_query->terms[0]->term_id > $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+	}
+
+	/**
+	 * Test a term query orderby parent
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryOrderParent() {
+		$this->createAndIndexTerms();
+
+		$term = wp_insert_term( 'ff', 'post_tag', [ 'parent' => 5 ] );
+
+		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'parent' => 7 ] );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'orderby'    => 'parent',
+			]
+		);
+
+		// Remove empty parents
+		foreach ( $term_query->terms as $key => $term_value ) {
+			if ( empty( $term_value->parent ) ) {
+				unset( $term_query->terms[ $key ] );
+			}
+		}
+
+		$term_query->terms = array_values( $term_query->terms );
+
+		$this->assertTrue( $term_query->terms[0]->term_id < $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'order'      => 'desc',
+				'orderby'    => 'parent',
+			]
+		);
+
+		// Remove empty parents
+		foreach ( $term_query->terms as $key => $term_value ) {
+			if ( empty( $term_value->parent ) ) {
+				unset( $term_query->terms[ $key ] );
+			}
+		}
+
+		$term_query->terms = array_values( $term_query->terms );
+
+		$this->assertTrue( $term_query->terms[0]->term_id > $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+	}
+
+	/**
+	 * Test a term query hide_empty
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryHideEmpty() {
+		$this->createAndIndexTerms();
+
+		$post = wp_insert_post(
+			[
+				'post_title'  => 'Test',
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			]
+		);
+
+		$term = wp_insert_term( 'term name', 'post_tag' );
+
+		wp_set_object_terms( $post, $term['term_id'], 'post_tag', true );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'taxonomy'   => 'post_tag',
+				'hide_empty' => true,
+			]
+		);
+
+		$this->assertEquals( 1, count( $term_query->terms ) );
+	}
 }
