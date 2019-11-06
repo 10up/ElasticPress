@@ -92,7 +92,13 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function action_sync_on_object_update( $object_id, $terms ) {
+		if ( empty( $terms ) ) {
+			return;
+		}
+
 		foreach ( $terms as $term ) {
+			$term = get_term( $term );
+
 			if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
 				return;
 			}
