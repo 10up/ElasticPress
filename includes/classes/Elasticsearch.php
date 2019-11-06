@@ -691,7 +691,11 @@ class Elasticsearch {
 			$query['host'] = apply_filters( 'ep_pre_request_host', $query['host'], $failures, $path, $args );
 			$query['url']  = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
 
-			$request = wp_remote_request( $query['url'], $args ); // try the existing host to avoid unnecessary calls.
+			if ( true === apply_filters( 'ep_intercept_remote_request', false ) ) {
+				$request = apply_filters( 'ep_do_intercept_request', new WP_Error( 400, 'No Request defined' ), $query, $args, $failures );
+			} else {
+				$request = wp_remote_request( $query['url'], $args ); // try the existing host to avoid unnecessary calls.
+			}
 
 			$request_response_code = (int) wp_remote_retrieve_response_code( $request );
 
