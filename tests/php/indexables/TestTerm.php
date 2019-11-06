@@ -222,4 +222,181 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertEquals( 4, count( $term_query->terms ) );
 	}
+
+
+	/**
+	 * Test a term query number
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryNumber() {
+		$this->createAndIndexTerms();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 2,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+			]
+		);
+
+		$this->assertEquals( 2, count( $term_query->terms ) );
+	}
+
+	/**
+	 * Test a term query object ids paramater
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryObjectIds() {
+		$this->createAndIndexTerms();
+
+		$post = wp_insert_post(
+			[
+				'post_title'  => 'Test',
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			]
+		);
+
+		$term = wp_insert_term( 'term name', 'post_tag' );
+
+		wp_set_object_terms( $post, $term['term_id'], 'post_tag', true );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'object_ids' => [ $post ],
+			]
+		);
+
+		$this->assertEquals( 1, count( $term_query->terms ) );
+	}
+
+	/**
+	 * Test a term query orderby name
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryOrderName() {
+		$this->createAndIndexTerms();
+
+		$term = wp_insert_term( 'aaa', 'post_tag', [ 'slug' => 'gg' ] );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+			]
+		);
+
+		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'order'      => 'desc',
+			]
+		);
+
+		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+	}
+
+	/**
+	 * Test a term query orderby slug
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryOrderSlug() {
+		$this->createAndIndexTerms();
+
+		$term = wp_insert_term( 'ff', 'post_tag', [ 'slug' => 'aaa' ] );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'orderby'    => 'slug',
+			]
+		);
+
+		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'order'      => 'desc',
+				'orderby'    => 'slug',
+			]
+		);
+
+		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+	}
+
+	/**
+	 * Test a term query orderby description
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryOrderDescription() {
+		$this->createAndIndexTerms();
+
+		$term = wp_insert_term( 'ff', 'post_tag', [ 'description' => 'aaa' ] );
+
+		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'description' => 'bbb' ] );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'orderby'    => 'description',
+			]
+		);
+
+		// Remove empty descriptions
+		foreach ( $term_query->terms as $key => $term_value ) {
+			if ( empty( $term_value->description ) ) {
+				unset( $term_query->terms[ $key ] );
+			}
+		}
+
+		$term_query->terms = array_values( $term_query->terms );
+
+		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'number'     => 10,
+				'hide_empty' => false,
+				'taxonomy'   => 'post_tag',
+				'order'      => 'desc',
+				'orderby'    => 'description',
+			]
+		);
+
+		// Remove empty descriptions
+		foreach ( $term_query->terms as $key => $term_value ) {
+			if ( empty( $term_value->description ) ) {
+				unset( $term_query->terms[ $key ] );
+			}
+		}
+
+		$term_query->terms = array_values( $term_query->terms );
+
+		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+	}
 }
