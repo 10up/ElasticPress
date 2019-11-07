@@ -151,6 +151,7 @@ class Stats {
 	 * @since 3.2
 	 */
 	public function get_health() {
+		$this->build_stats();
 		return $this->health;
 	}
 
@@ -161,6 +162,7 @@ class Stats {
 	 * @return int
 	 */
 	public function get_nodes() {
+		$this->build_stats();
 		return $this->nodes;
 	}
 
@@ -171,6 +173,7 @@ class Stats {
 	 * @return array
 	 */
 	public function get_totals() {
+		$this->build_stats();
 		return $this->totals;
 	}
 
@@ -181,6 +184,7 @@ class Stats {
 	 * @return mixed Data used in localization for chart creation.
 	 */
 	public function get_localized() {
+		$this->build_stats();
 		return $this->localized;
 	}
 
