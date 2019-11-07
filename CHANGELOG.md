@@ -4,9 +4,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [3.2.2] - 2019-11-05
 
-* Fix ensure lodash built as external Props [adamsilverstein](https://github.com/adamsilverstein)
-* Fix facet set aggs filter arguments bug
-* Fix PHPCS errors Props [mmcachran](https://github.com/mmcachran)
+* Fix PHPCS errors. Props [mmcachran](https://github.com/mmcachran)
 * Fix ensuring stats are built prior to requesting information
 * Fix related post block enqueue block assets on the frontend
 * Fix custom order results change webpack config for externals:lodash
@@ -37,7 +35,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 ## [3.1.1] - 2019-07-25
 ### Fixed
 - Ensure taxonomies that are shared among multiple post types show up on the weighting screen
- 
+
 ## [3.1.0] - 2019-07-22
 ### Added
 - Support for nested tax queries. Props [@dkotter](https://github.com/dkotter)
@@ -308,7 +306,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Prevent massive field Elasticsearch error when indexing large strings
 
 ## [2.2] - 2017-02-28
-### Notice 
+### Notice
 - Requires re-index
 
 ### Overview
