@@ -222,13 +222,12 @@ class Highlighting extends Feature {
 
 		// retrieve settings to ge the current color value
 		$current_config  = $this->highlighting_configuration;
-		$highlight_color = $current_config['highlight_color'];
 
 		// check for value before inlining the style
-		if ( ! empty( $highlight_color ) ) {
+		if ( ! empty( $current_config['highlight_color']; ) ) {
 			$inline_color = "
 				:root{
-					--highlight-color: {$highlight_color};
+					--highlight-color: {$current_config['highlight_color']};
 				}";
 			wp_add_inline_style( 'elasticpress-highlighting', $inline_color );
 		}
