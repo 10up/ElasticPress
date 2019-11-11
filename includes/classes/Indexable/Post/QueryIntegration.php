@@ -344,8 +344,6 @@ class QueryIntegration {
 			}
 
 			/**
-			 * proof of concept...
-			 *
 			 * post_array['highlight'] is set from $hit['highlight'] in ElasticSearch.php
 			 * when going through the returned results, and that is defined by
 			 * the Highlightting Feature on setup, calling ep_formatted_args to
