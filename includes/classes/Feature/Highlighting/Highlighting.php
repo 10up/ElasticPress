@@ -224,7 +224,7 @@ class Highlighting extends Feature {
 		$current_config  = $this->highlighting_configuration;
 
 		// check for value before inlining the style
-		if ( ! empty( $current_config['highlight_color']; ) ) {
+		if ( ! empty( $current_config['highlight_color'] ) ) {
 			$inline_color = "
 				:root{
 					--highlight-color: {$current_config['highlight_color']};
