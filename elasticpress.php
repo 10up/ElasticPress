@@ -130,6 +130,11 @@ Features::factory()->register_feature(
 	new Feature\SearchOrdering\SearchOrdering()
 );
 
+Features::factory()->register_feature(
+	new Feature\Highlighting\Highlighting()
+);
+
+
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
  *

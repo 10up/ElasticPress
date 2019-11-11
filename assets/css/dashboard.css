@@ -787,6 +787,37 @@ h2.ep-list-features {
 	background: #1e8cbe;
 }
 
+.highlighting-settings .field {
+	padding: 10px;
+}
+
+.highlighting-settings .field p {
+	margin-top: 0px;
+}
+
+.highlighting-settings fieldset .field:nth-of-type(odd) {
+	background: #f9f9f9;
+}
+
+.highlighting-settings fieldset legend {
+	margin: 10px;
+	font-size: 1em;
+}
+
+.highlighting-settings .wp-picker-container .wp-color-result.button {
+	margin-bottom: 0px;
+}
+
+.highlighting-settings .wp-picker-open + .wp-picker-input-wrap {
+	display: inline-flex;
+}
+
+.highlighting-settings .wp-picker-input-wrap label {
+	display: flex;
+	align-items: center;
+}
+
+
 
 /**
  * Animations

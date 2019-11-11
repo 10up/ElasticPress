@@ -20,7 +20,8 @@ module.exports = {
 		'autosuggest-styles': './assets/css/autosuggest.css',
 		'sites-admin-styles': './assets/css/sites-admin.css',
 		'ordering-styles': './assets/css/ordering.css',
-		'related-posts-block-styles': './assets/css/related-posts-block.css'
+		'related-posts-block-styles': './assets/css/related-posts-block.css',
+		'highlighting-styles': './assets/css/highlighting.css'
 	},
 	filename: {
 		js: 'js/[name].min.js',

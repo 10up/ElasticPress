@@ -37,3 +37,8 @@ jQuery( '.weighting-settings .searchable input[type=checkbox]' ).change( functio
 	const newWeightDisplay = !this.checked ? '0' : $rangeInput.val();
 	$weightDisplay.text( newWeightDisplay );
 } );
+
+// for color picker in highlighting screen
+if( 'undefined' !== typeof wpColorPickerL10n ) {
+	jQuery( '.ep-highlight-color-select' ).wpColorPicker();
+}
