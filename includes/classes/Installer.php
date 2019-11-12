@@ -92,6 +92,14 @@ class Installer {
 	 * @return bool|int
 	 */
 	public function get_install_status() {
+		/**
+		 * Filter install status
+		 *
+		 * @hook ep_install_status
+		 * @param  {string} $install_status Current install status
+		 * @return {string} New install status
+		 * @since  3.0
+		 */
 		return apply_filters( 'ep_install_status', $this->install_status );
 	}
 

@@ -250,4 +250,10 @@ function setup_misc() {
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
 
+/**
+ * Fires after Elasticpress plugin is loaded
+ *
+ * @since  2.0
+ * @hook elasticpress_loaded
+ */
 do_action( 'elasticpress_loaded' );
