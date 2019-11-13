@@ -81,6 +81,15 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
+				/**
+				 * Filter to kill post sync
+				 *
+				 * @hook ep_post_sync_kill
+				 * @param {bool} $skip True meanas kill sync for post
+				 * @param  {int} $object_id ID of post
+				 * @param  {int} $object_id ID of post
+				 * @return {boolean} New value
+				 */
 				if ( apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id ) ) {
 					return;
 				}
@@ -98,6 +107,13 @@ class SyncManager extends SyncManagerAbstract {
 	public function action_delete_blog_from_index( $blog_id ) {
 		$indexable = Indexables::factory()->get( 'post' );
 
+		/**
+		 * Filter to whether to keep index on site deletion
+		 *
+		 * @hook ep_keep_index
+		 * @param {bool} $keep True means don't delete index
+		 * @return {boolean} New value
+		 */
 		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false ) ) {
 			$indexable->delete_index( $blog_id );
 		}
@@ -110,10 +126,24 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_delete_post( $post_id ) {
+		/**
+		 * Filter whether to skip the permissions check on deleting a post
+		 *
+		 * @hook ep_post_sync_kill
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $post_id ID of post
+		 * @return {boolean} New value
+		 */
 		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) || 'revision' === get_post_type( $post_id ) ) {
 			return;
 		}
 
+		/**
+		 * Fires before post deletion
+		 *
+		 * @hook ep_delete_post
+		 * @param  {int} $post_id ID of post
+		 */
 		do_action( 'ep_delete_post', $post_id );
 
 		Indexables::factory()->get( 'post' )->delete( $post_id, false );
@@ -134,6 +164,14 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		/**
+		 * Filter whether to skip the permissions check on deleting a post
+		 *
+		 * @hook ep_post_sync_kill
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $post_id ID of post
+		 * @return {boolean} New value
+		 */
 		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
 			if ( ! current_user_can( 'edit_post', $post_id ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
 				// Bypass saving if user does not have access to edit post and we're not in a cron process.
@@ -157,8 +195,23 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
+				/**
+				 * Fire before post is queued for synxing
+				 *
+				 * @hook ep_sync_on_transition
+				 * @param  {int} $post_id ID of post
+				 */
 				do_action( 'ep_sync_on_transition', $post_id );
 
+				/**
+				 * Filter to kill post sync
+				 *
+				 * @hook ep_post_sync_kill
+				 * @param {bool} $skip True meanas kill sync for post
+				 * @param  {int} $object_id ID of post
+				 * @param  {int} $object_id ID of post
+				 * @return {boolean} New value
+				 */
 				if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
 					return;
 				}
