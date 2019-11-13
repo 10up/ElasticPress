@@ -229,7 +229,6 @@ class RelatedPosts extends Feature {
 				],
 				'editor_script'   => 'elasticpress-related-posts-block',
 				'editor_style'    => 'elasticpress-related-posts-block',
-				'style'           => 'elasticpress-related-posts-block',
 				'render_callback' => [ $this, 'render_block' ],
 			]
 		);
