@@ -510,6 +510,14 @@ class Post extends Indexable {
 				 *
 				 * @since 2.3.0
 				 */
+
+				/**
+				 * Filter max result size if set to -1
+				 *
+				 * @hook ep_max_results_window
+				 * @param  {int} Max result window
+				 * @return {int} New window
+				 */
 				$posts_per_page = apply_filters( 'ep_max_results_window', 10000 );
 			}
 		} else {

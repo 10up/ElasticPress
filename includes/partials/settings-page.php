@@ -78,7 +78,15 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 								</label>
 							</th>
 							<td>
-								<?php if ( apply_filters( 'ep_admin_show_host', true ) ) : ?>
+								<?php
+								/**
+								 * Filter whether to show host field in admin UI or not
+								 *
+								 * @hook ep_admin_show_host
+								 * @param  {boolean} $show True to show
+								 * @return {boolean} New value
+								 */
+								if ( apply_filters( 'ep_admin_show_host', true ) ) : ?>
 									<input <?php if ( $wpconfig ) { ?>disabled<?php } ?> placeholder="http://" type="text" value="<?php echo esc_url( $host ); ?>" name="ep_host" id="ep_host">
 								<?php endif ?>
 								<?php if ( $wpconfig ) : ?>
@@ -98,7 +106,15 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 									<label for="ep_prefix"><?php esc_html_e( 'Subscription ID', 'elasticpress' ); ?></label>
 								</th>
 								<td>
-									<?php if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) : ?>
+									<?php
+									/**
+									 * Filter whether to show index prefix field in admin UI or not
+									 *
+									 * @hook ep_admin_index_prefix
+									 * @param  {boolean} $show True to show
+									 * @return {boolean} New value
+									 */
+									if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) : ?>
 										<input <?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( rtrim( Utils\get_index_prefix(), '-' ) ); ?>" name="ep_prefix" id="ep_prefix">
 									<?php endif ?>
 									<?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>
@@ -179,6 +195,11 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		</table>
 
 		<?php
+		/**
+		 * Fires after settings table is displayed for inserting custom settings.
+		 *
+		 * @hook ep_settings_custom
+		 */
 		do_action( 'ep_settings_custom' );
 		?>
 

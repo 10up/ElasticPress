@@ -130,6 +130,14 @@ function log_version_query_error( $query ) {
 
 	// Are we logging the version query results?
 	if ( '1' === $logging ) {
+		/**
+		 * Filter how long results of Elasticsearch version query are stored
+		 *
+		 * @since  23.0
+		 * @hook ep_es_info_cache_expiration
+		 * @param  {int} Time in seconds
+		 * @return  {int} New time in seconds
+		 */
 		$cache_time         = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
 		$response_code_key  = 'ep_es_info_response_code';
 		$response_error_key = 'ep_es_info_response_error';
@@ -264,7 +272,14 @@ function maybe_notice( $force = false ) {
 		}
 	}
 
-	// Turn on logging for the version query.
+	/**
+	 * Filter how long results of Elasticsearch version query are stored
+	 *
+	 * @since  23.0
+	 * @hook ep_es_info_cache_expiration
+	 * @param  {int} Time in seconds
+	 * @return  {int} New time in seconds
+	 */
 	$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -430,6 +445,13 @@ function action_wp_ajax_ep_index() {
 			}
 		}
 
+		/**
+		 * Fires at start of new index
+		 *
+		 * @since  2.1
+		 * @hook ep_dashboard_start_index
+		 * @param  {array} $index_meta Index meta information
+		 */
 		do_action( 'ep_dashboard_start_index', $index_meta );
 	} elseif ( ! empty( $index_meta['sync_stack'] ) && $index_meta['offset'] >= $index_meta['found_items'] ) {
 		$status = 'start';
@@ -441,6 +463,14 @@ function action_wp_ajax_ep_index() {
 		$index_meta['start'] = false;
 	}
 
+	/**
+	 * Filter index meta during dashboard sync
+	 *
+	 * @since  3.0
+	 * @hook ep_index_meta
+	 * @param  {array} $index_meta Current index meta
+	 * @return  {array} New index meta
+	 */
 	$index_meta = apply_filters( 'ep_index_meta', $index_meta );
 	$indexable  = Indexables::factory()->get( $index_meta['current_sync_item']['indexable'] );
 
@@ -449,11 +479,28 @@ function action_wp_ajax_ep_index() {
 	}
 
 	if ( ! empty( $index_meta['start'] ) ) {
+		/**
+		 * Filter whether we should delete index and send new mapping at the start of the sync
+		 *
+		 * @since  2.1
+		 * @hook ep_skip_index_reset
+		 * @param  {bool} $skip True means skip
+		 * @param  {array} $index_meta Current index meta
+		 * @return  {bool} New skip value
+		 */
 		if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
 			$indexable->delete_index();
 
 			$indexable->put_mapping();
 
+			/**
+			 * Fires after dashboard put mapping is completed
+			 *
+			 * @since  2.1
+			 * @hook ep_dashboard_put_mapping
+			 * @param  {array} $index_meta Index meta information
+			 * @param  {string} $status Current indexing status
+			 */
 			do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
 		}
 	}
@@ -464,10 +511,33 @@ function action_wp_ajax_ep_index() {
 		$bulk_setting = get_option( 'ep_bulk_setting', 350 );
 	}
 
+	/**
+	 * Filter number of items to index per cycle in the dashboard
+	 *
+	 * @since  2.1
+	 * @hook ep_index_default_per_page
+	 * @param  {int} Entries per cycle
+	 * @return  {int} New number of entries
+	 */
 	$per_page = apply_filters( 'ep_index_default_per_page', $bulk_setting );
 
+	/**
+	 * Fires right before entries are about to be indexed in a dashboard sync
+	 *
+	 * @since  2.1
+	 * @hook ep_pre_dashboard_index
+	 * @param  {array} $args Args to query content with
+	 */
 	do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
 
+	/**
+	 * Filters arguments used to query for content for each indexable
+	 *
+	 * @since  3.0
+	 * @hook ep_dashboard_index_args
+	 * @param  {array} $args Args to query content with
+	 * @return  {array} New query args
+	 */
 	$args = apply_filters(
 		'ep_dashboard_index_args',
 		[
@@ -487,6 +557,15 @@ function action_wp_ajax_ep_index() {
 			foreach ( $query['objects'] as $object ) {
 				$killed_item_count = 0;
 
+				/**
+				 * Filter whether to not sync sepcific item in dashboard or not
+				 *
+				 * @since  2.1
+				 * @hook ep_item_sync_kill
+				 * @param  {boolean} $kill False means dont sync
+				 * @param  {array} $object Object to sync
+				 * @return {Indexable} Indexable that object belongs to
+				 */
 				if ( apply_filters( 'ep_item_sync_kill', false, $object, $indexable ) ) {
 					$killed_item_count++;
 				} else {
@@ -662,6 +741,14 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		$indexables = Indexables::factory()->get_all();
 
+		/**
+		 * Filter indexable labels used in dashboard sync UI
+		 *
+		 * @since  3.0
+		 * @hook ep_dashboard_indexable_labels
+		 * @param  {array} $labels Current indexable lables
+		 * @return {array} New labels
+		 */
 		$data['sync_indexable_labels'] = apply_filters(
 			'ep_dashboard_indexable_labels',
 			[
