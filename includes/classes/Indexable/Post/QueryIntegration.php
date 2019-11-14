@@ -70,7 +70,7 @@ class QueryIntegration {
 		 * @hook ep_skip_query_integration
 		 * @param  {bool} $skip True to skip
 		 * @param  {WP_Query} $query WP Query to evaluate
-		 * @param  {bool} New skip value
+		 * @return  {bool} New skip value
 		 */
 		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) ) {
 			return $found_posts;
@@ -92,7 +92,7 @@ class QueryIntegration {
 		 * @hook ep_skip_query_integration
 		 * @param  {bool} $skip True to skip
 		 * @param  {WP_Query} $query WP Query to evaluate
-		 * @param  {bool} New skip value
+		 * @return  {bool} New skip value
 		 */
 		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return;
@@ -181,7 +181,7 @@ class QueryIntegration {
 		 * @hook ep_skip_query_integration
 		 * @param  {bool} $skip True to skip
 		 * @param  {WP_Query} $query WP Query to evaluate
-		 * @param  {bool} New skip value
+		 * @return  {bool} New skip value
 		 */
 		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return $posts;
