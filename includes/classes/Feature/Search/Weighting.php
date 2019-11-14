@@ -85,6 +85,14 @@ class Weighting {
 			}
 		}
 
+		/**
+		 * Filter weighting fields for a post type
+		 *
+		 * @hook ep_weighting_fields_for_post_type
+		 * @param  {array} $fields Current weighting fields
+		 * @param  {string} $post_type Current post type
+		 * @return  {array} New fields
+		 */
 		return apply_filters( 'ep_weighting_fields_for_post_type', $fields, $post_type );
 	}
 
@@ -133,6 +141,14 @@ class Weighting {
 			}
 		}
 
+		/**
+		 * Filter weighting defaults for post type
+		 *
+		 * @hook ep_weighting_default_post_type_weights
+		 * @param  {array} $post_type_defaults Current weighting defaults
+		 * @param  {string} $post_type Current post type
+		 * @return  {array} New defaults
+		 */
 		return apply_filters( 'ep_weighting_default_post_type_weights', $post_type_defaults, $post_type );
 	}
 
@@ -142,6 +158,13 @@ class Weighting {
 	 * @return array
 	 */
 	public function get_weighting_configuration() {
+		/**
+		 * Filter weighting configuration
+		 *
+		 * @hook ep_weighting_configuration
+		 * @param  {array} $config Current configuration
+		 * @return  {array} New configuration
+		 */
 		return apply_filters( 'ep_weighting_configuration', get_option( 'elasticpress_weighting', [] ) );
 	}
 
@@ -414,8 +437,25 @@ class Weighting {
 	 */
 	public function post_type_has_fields( $post_type, $args = [] ) {
 		// define keys which are irrelevant for this consideration
+
+		/**
+		 * Filter fields considered in weighting
+		 *
+		 * @hook ep_weighting_ignore_fields_in_consideration
+		 * @param  {array} $fields Current fields
+		 * @return  {array} New fields
+		 */
 		$ignore_keys   = apply_filters( 'ep_weighting_ignore_fields_in_consideration', [ 'terms.ep_custom_result.name' => true ] );
 		$weight_config = $this->get_weighting_configuration();
+
+		/**
+		 * Filter weighting configuration for search
+		 *
+		 * @hook ep_weighting_configuration_for_search
+		 * @param  {array} $weight_config Current weight config
+		 * @param  {array} $args WP Query arguments
+		 * @return  {array} New configutation
+		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
 		if ( ! isset( $weight_config[ $post_type ] ) ) {
@@ -454,6 +494,14 @@ class Weighting {
 
 		$weight_config = $this->get_weighting_configuration();
 
+		/**
+		 * Filter weighting configuration for search
+		 *
+		 * @hook ep_weighting_configuration_for_search
+		 * @param  {array} $weight_config Current weight config
+		 * @param  {array} $args WP Query arguments
+		 * @return  {array} New configutation
+		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
 		if ( ! is_admin() && ! empty( $args['s'] ) ) {
@@ -497,6 +545,15 @@ class Weighting {
 					}
 				}
 
+				/**
+				 * Filter weighting query for a post type
+				 *
+				 * @hook ep_weighted_query_for_post_type
+				 * @param  {array} $query Weighting query
+				 * @param  {string} $post_type Post type
+				 * @param  {array} $args WP Query arguments
+				 * @return  {array} New query
+				 */
 				$new_query['bool']['should'][] = apply_filters(
 					'ep_weighted_query_for_post_type',
 					[
