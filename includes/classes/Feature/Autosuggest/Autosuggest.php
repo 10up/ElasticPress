@@ -119,7 +119,7 @@ class Autosuggest extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Endpoint URL', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
-				<input 
+				<input
 			<?php
 			if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) :
 				?>
@@ -214,6 +214,13 @@ class Autosuggest extends Feature {
 	 */
 	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
 		if ( ! is_admin() && ! empty( $args['s'] ) ) {
+			/**
+			 * Filter autosuggest ngram fields
+			 *
+			 * @hook ep_autosuggest_ngram_fields
+			 * @param  {array} $fields Fields available to ngram
+			 * @return  {array} New fields array
+			 */
 			$ngram_fields = apply_filters(
 				'ep_autosuggest_ngram_fields',
 				[
@@ -352,6 +359,13 @@ class Autosuggest extends Feature {
 		wp_localize_script(
 			'elasticpress-autosuggest',
 			'epas',
+			/**
+			 * Filter autosuggest JavaScript options
+			 *
+			 * @hook ep_autosuggest_options
+			 * @param  {array} $options Autosuggest options to be localized
+			 * @return  {array} New options
+			 */
 			apply_filters(
 				'ep_autosuggest_options',
 				$epas_options
@@ -367,12 +381,27 @@ class Autosuggest extends Feature {
 	 */
 	public function generate_search_query() {
 
+		/**
+		 * Filter autosuggest query placeholder
+		 *
+		 * @hook ep_autosuggest_query_placeholder
+		 * @param  {string} $placeholder Autosuggest placeholder to be replaced later
+		 * @return  {string} New placeholder
+		 */
 		$placeholder = apply_filters( 'ep_autosuggest_query_placeholder', 'ep_autosuggest_placeholder' );
 
 		/** Features Class @var Features $features */
 		$features = Features::factory();
 
 		$post_type = $features->get_registered_feature( 'search' )->get_searchable_post_types();
+
+		/**
+		 * Filter post types available to autosuggest
+		 *
+		 * @hook ep_term_suggest_post_type
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
 		$post_type = apply_filters( 'ep_term_suggest_post_type', array_values( $post_type ) );
 
 		$post_status = get_post_stati(
@@ -381,12 +410,22 @@ class Autosuggest extends Feature {
 				'exclude_from_search' => false,
 			]
 		);
+
+		/**
+		 * Filter post statuses available to autosuggest
+		 *
+		 * @hook ep_term_suggest_post_status
+		 * @param  {array} $post_statuses Post statuses
+		 * @return  {array} New post statuses
+		 */
 		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
 
 		add_filter( 'ep_intercept_remote_request', '__return_true' );
 		add_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ], 10, 1 );
 
 		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 4 );
+
+		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
 
 		$search = new \WP_Query(
 			[
@@ -396,6 +435,8 @@ class Autosuggest extends Feature {
 				'ep_integrate' => true,
 			]
 		);
+
+		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ] );
 
 		remove_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ] );
 
@@ -410,12 +451,29 @@ class Autosuggest extends Feature {
 	}
 
 	/**
+	 * Ensure we do not fallback to WPDB query for this request
+	 *
+	 * @param array $posts array of post objects
+	 * @return array $posts
+	 */
+	public function return_empty_posts( $posts = [] ) {
+		return [];
+	}
+
+	/**
 	 * Allow applying custom weighting configuration for autosuggest
 	 *
 	 * @param array $config current configuration
 	 * @return array $config desired configuration
 	 */
 	public function apply_autosuggest_weighting( $config = [] ) {
+		/**
+		 * Filter autosuggest weighting configuration
+		 *
+		 * @hook ep_weighting_configuration_for_autosuggest
+		 * @param  {array} $config Configuration
+		 * @return  {array} New config
+		 */
 		$config = apply_filters( 'ep_weighting_configuration_for_autosuggest', $config );
 		return $config;
 	}

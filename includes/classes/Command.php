@@ -246,6 +246,14 @@ class Command extends WP_CLI_Command {
 					$indexable->delete_index();
 					$result = $indexable->put_mapping();
 
+					/**
+					 * Fires after CLI put mapping
+					 *
+					 * @hook ep_cli_put_mapping
+					 * @param  {Indexable} $indexable Indexable involved in mapping
+					 * @param  {array} $args CLI command position args
+					 * @param {array} $assoc_args CLI command associative args
+					 */
 					do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 					if ( $result ) {
@@ -273,6 +281,14 @@ class Command extends WP_CLI_Command {
 				$indexable->delete_index();
 				$result = $indexable->put_mapping();
 
+				/**
+				 * Fires after CLI put mapping
+				 *
+				 * @hook ep_cli_put_mapping
+				 * @param  {Indexable} $indexable Indexable involved in mapping
+				 * @param  {array} $args CLI command position args
+				 * @param {array} $assoc_args CLI command associative args
+				 */
 				do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 				if ( $result ) {
@@ -301,6 +317,14 @@ class Command extends WP_CLI_Command {
 			$indexable->delete_index();
 			$result = $indexable->put_mapping();
 
+			/**
+			 * Fires after CLI put mapping
+			 *
+			 * @hook ep_cli_put_mapping
+			 * @param  {Indexable} $indexable Indexable involved in mapping
+			 * @param  {array} $args CLI command position args
+			 * @param {array} $assoc_args CLI command associative args
+			 */
 			do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 			if ( $result ) {
@@ -522,6 +546,14 @@ class Command extends WP_CLI_Command {
 		 * Useful for deregistering filters/actions that occur during a query request
 		 *
 		 * @since 1.4.1
+		 */
+
+		/**
+		 * Fires before starting a CLI index
+		 *
+		 * @hook ep_wp_clie_pre_index
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
@@ -768,6 +800,13 @@ class Command extends WP_CLI_Command {
 
 						$this->reset_transient();
 
+						/**
+						 * Fires after one by one indexing an object in CLI
+						 *
+						 * @hook ep_cli_object)index
+						 * @param  {int} $object_id Object to index
+						 * @param {Indexable} $indexable Current indexable
+						 */
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
 
 						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), ( $synced + 1 ), (int) $query['total_objects'] ) );
@@ -827,6 +866,15 @@ class Command extends WP_CLI_Command {
 
 		/**
 		 * Kill switch to skip an object
+		 */
+
+		/**
+		 * Conditionally kill indexing for a post
+		 *
+		 * @hook ep_{indexable_slug}_index_kill
+		 * @param  {bool} $index True means dont index
+		 * @param  {int} $object_id Object ID
+		 * @return {bool} New value
 		 */
 		if ( apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object_id ) ) {
 
@@ -890,6 +938,12 @@ class Command extends WP_CLI_Command {
 
 		$this->reset_transient();
 
+		/**
+		 * Fires after bulk indexing in CLI
+		 *
+		 * @hook ep_cli_{indexable_slug}_bulk_index
+		 * @param  {array} $objects Objects being indexed
+		 */
 		do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $this->objects );
 
 		if ( is_wp_error( $response ) ) {

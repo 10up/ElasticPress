@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.2.3] - 2019-11-13
+
+* Ensure query building for Autosuggest does not fallback to WPDB.
+
 ## [3.2.2] - 2019-11-05
 
 * Fix PHPCS errors. Props [mmcachran](https://github.com/mmcachran)

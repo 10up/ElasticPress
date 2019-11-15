@@ -626,6 +626,13 @@ class AdminNotices {
 	 * @return array
 	 */
 	public function get_notices() {
+		/**
+		 * Filter admin notices
+		 *
+		 * @hook ep_admin_notices
+		 * @param  {array} $notices Admin notices
+		 * @return {array} New notices
+		 */
 		return apply_filters( 'ep_admin_notices', $this->notices );
 	}
 

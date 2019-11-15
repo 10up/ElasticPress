@@ -221,7 +221,13 @@ class Facets extends Feature {
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
 
-		// Allow other plugins to modify the available taxonomies.
+		/**
+		 * Filter taxonomies made available for faceting
+		 *
+		 * @hook ep_facet_include_taxonomies
+		 * @param  {array} $taxonomies Taxonomies
+		 * @return  {array} New taxonomies
+		 */
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		if ( empty( $taxonomies ) ) {
@@ -372,6 +378,13 @@ class Facets extends Feature {
 			}
 		}
 
+		/**
+		 * Filter facet query string
+		 *
+		 * @hook ep_facet_query_string
+		 * @param  {string} $query_string Current query string
+		 * @return  {string} New query string
+		 */
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
 
 		if ( is_post_type_archive() ) {

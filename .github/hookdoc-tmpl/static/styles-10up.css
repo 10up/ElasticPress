@@ -1,0 +1,98 @@
+body {
+	background: #fefefe;
+	color: #232323;
+	font-family: 'IBM Plex Sans', sans-serif;
+	font-size: 1.3rem;
+	font-weight: 300;
+}
+
+h1, h2, h3 {
+	line-height: 1.2;
+	font-family: 'Playfair Display', sans-serif;
+	font-weight: 900;
+	letter-spacing: -.01em;
+}
+
+h1.page-title {
+	font-size: 42px;
+	margin-top: .5em;
+}
+
+nav ul {
+	font-size: 1.2rem;
+}
+
+nav li a {
+	background-image: none;
+}
+
+nav li a:hover {
+	text-decoration: underline;
+}
+
+code, pre,
+nav ul a, nav ul a:visited, nav ul a:active,
+.name, .signature,
+.params .name, .props .name,
+.name code {
+	font-family: 'IBM Plex Mono', monospace;
+}
+
+article h1 {
+	margin: 12px 0 32px;
+}
+
+a {
+	background-image: linear-gradient(transparent calc(100% - 7px), #f2dede 0),
+		linear-gradient(transparent calc(100% - 7px), #cef8f7 0);
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-size: 0 100%, 100% 100%;
+	color: #232323;
+	text-decoration: none;
+	transition: all .1s;
+}
+
+a:visited,
+a:active {
+	color: #232323;
+}
+
+a:focus,
+a:hover {
+	background-size: 100% 100%, 100% 100%;
+	color: #232323;
+	text-decoration: none;
+}
+
+a.banner {
+	background-image: none;
+	margin-left: -10px;
+}
+
+a.banner img {
+	width: 100%;
+	max-width: 888px;
+}
+
+footer {
+	text-align: center;
+	font-size: .8em;
+	font-style: normal;
+	font-weight: 300;
+}
+
+.home #main > section:first-of-type,
+.home nav > h2 {
+	display: none;
+}
+
+.prettyprint.source {
+	font-size: 14px;
+}
+
+.prettyprint code {
+	padding: 2px 10px;
+	line-height: 16px;
+	height: 16px;
+}

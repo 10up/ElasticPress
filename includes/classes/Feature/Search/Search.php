@@ -66,9 +66,24 @@ class Search extends Feature {
 		 * technically an admin request, there is some weird logic here. If we are doing ajax
 		 * and ep_ajax_wp_query_integration is filtered true, then we skip the next admin check.
 		 */
+
+		/**
+		 * Filter to integrate with admin queries
+		 *
+		 * @hook ep_admin_wp_query_integration
+		 * @param  {bool} $integrate True to integrate
+		 * @return  {bool} New value
+		 */
 		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
 
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			/**
+			 * Filter to integrate with admin ajax queries
+			 *
+			 * @hook ep_ajax_wp_query_integration
+			 * @param  {bool} $integrate True to integrate
+			 * @return  {bool} New value
+			 */
 			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
 				return;
 			} else {
@@ -101,6 +116,13 @@ class Search extends Feature {
 		 */
 		unset( $post_types['attachment'] );
 
+		/**
+		 * Filter searchable post types
+		 *
+		 * @hook ep_searchable_post_types
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
 		return apply_filters( 'ep_searchable_post_types', $post_types );
 	}
 
@@ -172,14 +194,50 @@ class Search extends Feature {
 							array(
 								'exp' => array(
 									'post_date_gmt' => array(
+										/**
+										 * Filter search date weighting scale
+										 *
+										 * @hook epwr_scale
+										 * @param  {string} $scale Current scale
+										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+										 * @param  {array} $args WP_Query arguments
+										 * @return  {string} New scale
+										 */
 										'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
+										/**
+										 * Filter search date weighting decay
+										 *
+										 * @hook epwr_decay
+										 * @param  {string} $decay Current decay
+										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+										 * @param  {array} $args WP_Query arguments
+										 * @return  {string} New decay
+										 */
 										'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
+										/**
+										 * Filter search date weighting offset
+										 *
+										 * @hook epwr_offset
+										 * @param  {string} $offset Current offset
+										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+										 * @param  {array} $args WP_Query arguments
+										 * @return  {string} New offset
+										 */
 										'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
 									),
 								),
 							),
 						),
 						'score_mode' => 'avg',
+						/**
+						 * Filter search date weighting boost mode
+						 *
+						 * @hook epwr_boost_mode
+						 * @param  {string} $boost_mode Current boost mode
+						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+						 * @param  {array} $args WP_Query arguments
+						 * @return  {string} New boost mode
+						 */
 						'boost_mode' => apply_filters( 'epwr_boost_mode', 'sum', $formatted_args, $args ),
 					),
 				);

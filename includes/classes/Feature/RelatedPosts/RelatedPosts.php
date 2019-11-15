@@ -59,6 +59,13 @@ class RelatedPosts extends Feature {
 			$formatted_args['query'] = array(
 				'more_like_this' => array(
 					$mlt_key          => $ids,
+					/**
+					 * Filter fields used to determine related posts
+					 *
+					 * @hook ep_related_posts_fields
+					 * @param  {array} $fields Related post fields
+					 * @return  {array} New fields
+					 */
 					'fields'          => apply_filters(
 						'ep_related_posts_fields',
 						array(
@@ -67,8 +74,29 @@ class RelatedPosts extends Feature {
 							'terms.post_tag.name',
 						)
 					),
+					/**
+					 * Filter related posts minimum term frequency
+					 *
+					 * @hook ep_related_posts_min_term_freq
+					 * @param  {int} $minimum Minimum term frequency
+					 * @return  {array} New value
+					 */
 					'min_term_freq'   => apply_filters( 'ep_related_posts_min_term_freq', 1 ),
+					/**
+					 * Filter related posts maximum query terms
+					 *
+					 * @hook ep_related_posts_max_query_terms
+					 * @param  {int} $maximum Maximum query terms
+					 * @return  {array} New value
+					 */
 					'max_query_terms' => apply_filters( 'ep_related_posts_max_query_terms', 12 ),
+					/**
+					 * Filter related posts minimum document frequency
+					 *
+					 * @hook ep_related_posts_min_doc_freq
+					 * @param  {int} $minimum Minimum document frequency
+					 * @return  {array} New value
+					 */
 					'min_doc_freq'    => apply_filters( 'ep_related_posts_min_doc_freq', 1 ),
 				),
 			);
@@ -93,6 +121,14 @@ class RelatedPosts extends Feature {
 			'ignore_sticky_posts' => true,
 		);
 
+		/**
+		 * Filter WP Query related post arguments
+		 *
+		 * @hook ep_find_related_args
+		 * @param  {array} $args WP Query arguments
+		 * @since  2.1
+		 * @return  {array} New arguments
+		 */
 		$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
 
 		if ( ! $query->have_posts() ) {

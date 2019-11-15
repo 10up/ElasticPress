@@ -73,6 +73,17 @@ class Elasticsearch {
 	 * @return boolean|array
 	 */
 	public function index_document( $index, $type, $document, $blocking = true ) {
+		/**
+		 * Filter Elasticsearch index document request path
+		 *
+		 * @hook ep_index_{document_type}_request_path
+		 * @param {string} $path Path to index document
+		 * @param  {int} $document_id Document ID
+		 * @param  {array} $document Document to index
+		 * @param  {string} $type Type of document
+		 * @return  {string} New path
+		 * @since  3.0
+		 */
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
 		} else {
@@ -99,8 +110,25 @@ class Elasticsearch {
 		/**
 		 * Backwards compat for pre-3.0
 		 */
+
+		/**
+		 * Fires after indexing document
+		 *
+		 * @hook ep_index_post_retrieve_raw_response
+		 * @param  {array} $request Remote request response
+		 * @param {array} $document Current document
+		 * @param  {string} $path Elasticsearch request path
+		 */
 		do_action( 'ep_index_post_retrieve_raw_response', $request, $document, $path );
 
+		/**
+		 * Fires after indexing document
+		 *
+		 * @hook ep_index_retrieve_raw_response
+		 * @param  {array} $request Remote request response
+		 * @param {array} $document Current document
+		 * @param  {string} $path Elasticsearch request path
+		 */
 		do_action( 'ep_index_retrieve_raw_response', $request, $document, $path );
 
 		if ( ! is_wp_error( $request ) ) {
@@ -114,8 +142,23 @@ class Elasticsearch {
 		/**
 		 * Backwards compat for pre-3.0
 		 */
+
+		/**
+		 * Fires after indexing document and body decoding
+		 *
+		 * @hook ep_index_index_post
+		 * @param {array} $document Current document
+		 * @param  {array|boolean} $return Elasticsearch response. False on error.
+		 */
 		do_action( 'ep_after_index_post', $document, $return );
 
+		/**
+		 * Fires after indexing document and body decoding
+		 *
+		 * @hook ep_index_index
+		 * @param {array} $document Current document
+		 * @param  {array|boolean} $return Elasticsearch response. False on error.
+		 */
 		do_action( 'ep_after_index', $document, $return );
 
 		return $return;
@@ -164,6 +207,14 @@ class Elasticsearch {
 
 		$info = $this->get_elasticsearch_info( $force );
 
+		/**
+		 * Filter Elasticsearch version
+		 *
+		 * @hook ep_elasticsearch_version
+		 * @param {string} $version Version
+		 * @return  {string} New version
+		 * @since  2.1.2
+		 */
 		return apply_filters( 'ep_elasticsearch_version', $info['version'] );
 	}
 
@@ -178,6 +229,14 @@ class Elasticsearch {
 
 		$info = $this->get_elasticsearch_info( $force );
 
+		/**
+		 * Filter Elasticsearch plugins
+		 *
+		 * @hook ep_elasticsearch_plugins
+		 * @param {array} $plugins Elasticsearch plugins
+		 * @return  {array} New plugins
+		 * @since  2.2
+		 */
 		return apply_filters( 'ep_elasticsearch_plugins', $info['plugins'] );
 	}
 
@@ -199,8 +258,30 @@ class Elasticsearch {
 		}
 
 		// For backwards compat
+		/**
+		 * Filter Elasticsearch query request path
+		 *
+		 * @hook ep_search_request_path
+		 * @param {string} $path Request path
+		 * @param  {string} $index Index name
+		 * @param  {string} $type Index type
+		 * @param  {array} $query Prepared Elasticsearch query
+		 * @param  {array} $query_args Query arguments
+		 * @return  {string} New path
+		 */
 		$path = apply_filters( 'ep_search_request_path', $path, $index, $type, $query, $query_args );
 
+		/**
+		 * Filter Elasticsearch query request path
+		 *
+		 * @hook ep_query_request_path
+		 * @param {string} $path Request path
+		 * @param  {string} $index Index name
+		 * @param  {string} $type Index type
+		 * @param  {array} $query Prepared Elasticsearch query
+		 * @param  {array} $query_args Query arguments
+		 * @return  {string} New path
+		 */
 		$path = apply_filters( 'ep_query_request_path', $path, $index, $type, $query, $query_args );
 
 		$request_args = array(
@@ -222,6 +303,14 @@ class Elasticsearch {
 
 		$is_valid_res = ( $remote_req_res_code >= 200 && $remote_req_res_code <= 299 );
 
+		/**
+		 * Filter whether Elasticsearch remote request response code is valid
+		 *
+		 * @hook ep_remote_request_is_valid_res
+		 * @param {boolean} $is_valid_res Whether response code is valid or not
+		 * @param  {array} $request Remote request response
+		 * @return  {string} New value
+		 */
 		if ( ! is_wp_error( $request ) && apply_filters( 'ep_remote_request_is_valid_res', $is_valid_res, $request ) ) {
 
 			$response_body = wp_remote_retrieve_body( $request );
@@ -232,9 +321,25 @@ class Elasticsearch {
 			$total_hits = $this->get_total_hits_from_query( $response );
 
 			// Check for and store aggregations.
+			/**
+			 * Fires after valid Elasticsearch query
+			 *
+			 * @hook ep_valid_response
+			 * @param {array} $response Elasticsearch decoded response
+			 * @param  {WP_Query} $query Current WP Query
+			 * @param  {array} $query_args Current WP Query arguments
+			 */
 			do_action( 'ep_valid_response', $response, $query, $query_args );
 
 			// Backwards compat
+			/**
+			 * Fires after valid Elasticsearch query
+			 *
+			 * @hook ep_retrieve_raw_response
+			 * @param {array} $response Elasticsearch request
+			 * @param  {WP_Query} $query Current WP Query
+			 * @param  {array} $query_args Current WP Query arguments
+			 */
 			do_action( 'ep_retrieve_raw_response', $request, $query, $query_args );
 
 			$documents = [];
@@ -243,9 +348,28 @@ class Elasticsearch {
 				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
+				/**
+				 * Filter Elasticsearch retrieved document
+				 *
+				 * @hook ep_retrieve_the_{index_type}
+				 * @param  {array} $document Document retrieved from Elasticsearch
+				 * @param  {array} $hit Raw Elasticsearch hit
+				 * @param  {string} $index Index name
+				 * @return  {array} New document
+				 */
 				$documents[] = apply_filters( 'ep_retrieve_the_' . $type, $document, $hit, $index );
 			}
 
+			/**
+			 * Filter Elasticsearch query results
+			 *
+			 * @hook ep_es_query_results
+			 * @param {array} $results Results from Elasticsearch
+			 * @param  {response} $response Raw response from Elasticsearch
+			 * @param  {array} $query Raw Elasticsearch query
+			 * @param  {array} $query_args Query arguments
+			 * @return  {array} New results
+			 */
 			return apply_filters(
 				'ep_es_query_results',
 				[
@@ -388,6 +512,13 @@ class Elasticsearch {
 			// phpcs:enable
 		}
 
+		/**
+		 * Filter Elasticsearch response headers
+		 *
+		 * @hook ep_format_request_headers
+		 * @param {array} $headers Current headers
+		 * @return  {array} New headers
+		 */
 		$headers = apply_filters( 'ep_format_request_headers', $headers );
 
 		return $headers;
@@ -506,6 +637,14 @@ class Elasticsearch {
 	 * @return boolean
 	 */
 	public function put_mapping( $index, $mapping ) {
+		/**
+		 * Filter Elasticsearch mapping before put mapping
+		 *
+		 * @hook ep_config_mapping
+		 * @param {array} $mapping Elasticsearch mapping
+		 * @param  {string} $index Index name
+		 * @return  {array} New mapping
+		 */
 		$mapping = apply_filters( 'ep_config_mapping', $mapping, $index );
 
 		$request_args = [
@@ -516,6 +655,15 @@ class Elasticsearch {
 
 		$request = $this->remote_request( $index, $request_args, [], 'put_mapping' );
 
+		/**
+		 * Filter Elasticsearch put mapping response
+		 *
+		 * @hook ep_config_mapping_request
+		 * @param {array} $request Elasticsearch response
+		 * @param  {string} $index Elasticsearch index name
+		 * @param  {array} $mapping Mapping sent to Elasticsearch
+		 * @return  {array} New response
+		 */
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
 
 		$response_body = wp_remote_retrieve_body( $request );
@@ -607,6 +755,15 @@ class Elasticsearch {
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $index, $type, $body ) {
+		/**
+		 * Filter Elasticsearch bulk index request path
+		 *
+		 * @hook ep_bulk_index_request_path
+		 * @param {string} Request path
+		 * @param  {string} $body Bulk index request body
+		 * @param  {string} $type Index type
+		 * @return  {string} New path
+		 */
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_bulk_index_request_path', $index . '/' . $type . '/_bulk', $body, $type );
 		} else {
@@ -688,10 +845,49 @@ class Elasticsearch {
 
 		// Optionally let us try back up hosts and account for failures.
 		while ( true ) {
+			/**
+			 * Filter Elasticsearch host prior to remote request
+			 *
+			 * @hook ep_pre_request_host
+			 * @param {string} Request host
+			 * @param  {int} $failures Number of current failures
+			 * @param  {string} $path Request path
+			 * @param  {array} $args Request arguments
+			 * @return {string} New host
+			 */
 			$query['host'] = apply_filters( 'ep_pre_request_host', $query['host'], $failures, $path, $args );
+
+			/**
+			 * Filter Elasticsearch url prior to remote request
+			 *
+			 * @hook ep_pre_request_url
+			 * @param {string} Request url
+			 * @param  {int} $failures Number of current failures
+			 * @param  {string} $host Request host
+			 * @param  {string} $path Request path
+			 * @param  {array} $args Request arguments
+			 * @return {string} New url
+			 */
 			$query['url']  = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
 
+			/**
+			 * Filter whether remote request should be intercepted
+			 *
+			 * @hook ep_intercept_remote_request
+			 * @param {boolean} $intercept True to intercept
+			 * @return {boolean} New value
+			 */
 			if ( true === apply_filters( 'ep_intercept_remote_request', false ) ) {
+				/**
+				 * Filter intercepted request
+				 *
+				 * @hook ep_do_intercept_request
+				 * @param {array} $request New remote request response
+				 * @param  {array} $query Remote request arguments
+				 * @param  {args} $args Request arguments
+				 * @param  {int} $failures Number of failures
+				 * @return {array} New request
+				 */
 				$request = apply_filters( 'ep_do_intercept_request', new WP_Error( 400, 'No Request defined' ), $query, $args, $failures );
 			} else {
 				$request = wp_remote_request( $query['url'], $args ); // try the existing host to avoid unnecessary calls.
@@ -704,6 +900,15 @@ class Elasticsearch {
 			if ( false === $request || is_wp_error( $request ) || ! $is_valid_res ) {
 				$failures++;
 
+				/**
+				 * Filter max number of times to attempt remote requests
+				 *
+				 * @hook ep_max_remote_request_tries
+				 * @param {int} $tries Number of times to try
+				 * @param  {path} $path Request path
+				 * @param  {args} $args Request arguments
+				 * @return {int} New number of tries
+				 */
 				if ( $failures >= apply_filters( 'ep_max_remote_request_tries', 1, $path, $args ) ) {
 					break;
 				}
@@ -725,6 +930,13 @@ class Elasticsearch {
 		$query['request']     = $request;
 		$this->add_query_log( $query );
 
+		/**
+		 * Fires after Elasticsearch remote request
+		 *
+		 * @hook ep_remote_request
+		 * @param  {array} $query Remote request arguments
+		 * @param  {string} $type Request type
+		 */
 		do_action( 'ep_remote_request', $query, $type );
 
 		return $request;
@@ -864,6 +1076,14 @@ class Elasticsearch {
 				 *
 				 * @since  2.3.1
 				 */
+
+				/**
+				 * Filter elasticsearch info cache expiration
+				 *
+				 * @hook ep_es_info_cache_expiration
+				 * @param {int} $time Cache time in seconds
+				 * @return {int} New cache time
+				 */
 				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					set_site_transient(
 						'ep_es_info',
@@ -943,6 +1163,13 @@ class Elasticsearch {
 			'method' => 'GET',
 		);
 
+		/**
+		 * Filter get pipeline request arguments
+		 *
+		 * @hook ep_get_pipeline_args
+		 * @param  {array} $request_args Request arguments
+		 * @return {array} New arguments
+		 */
 		$request = $this->remote_request( $path, apply_filters( 'ep_get_pipeline_args', $request_args ), [], 'get_pipeline' );
 
 		if ( is_wp_error( $request ) ) {
@@ -980,7 +1207,14 @@ class Elasticsearch {
 			'method' => 'PUT',
 		);
 
-		$request = $this->remote_request( $path, apply_filters( 'ep_get_pipeline_args', $request_args ), [], 'create_pipeline' );
+		/**
+		 * Filter create pipeline request arguments
+		 *
+		 * @hook ep_create_pipeline_args
+		 * @param  {array} $request_args Request arguments
+		 * @return {array} New arguments
+		 */
+		$request = $this->remote_request( $path, apply_filters( 'ep_create_pipeline_args', $request_args ), [], 'create_pipeline' );
 
 		if ( is_wp_error( $request ) ) {
 			return $request;
@@ -1014,6 +1248,12 @@ class Elasticsearch {
 			$this->queries[] = $query;
 		}
 
+		/**
+		 * Fires after item is added to the query log
+		 *
+		 * @hook ep_add_query_log
+		 * @param {array} $query Query to log
+		 */
 		do_action( 'ep_add_query_log', $query );
 	}
 
