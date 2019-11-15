@@ -425,6 +425,8 @@ class Autosuggest extends Feature {
 
 		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 4 );
 
+		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
+
 		$search = new \WP_Query(
 			[
 				'post_type'    => $post_type,
@@ -433,6 +435,8 @@ class Autosuggest extends Feature {
 				'ep_integrate' => true,
 			]
 		);
+
+		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ] );
 
 		remove_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ] );
 
@@ -444,6 +448,16 @@ class Autosuggest extends Feature {
 			'body'        => $this->autosuggest_query,
 			'placeholder' => $placeholder,
 		];
+	}
+
+	/**
+	 * Ensure we do not fallback to WPDB query for this request
+	 *
+	 * @param array $posts array of post objects
+	 * @return array $posts
+	 */
+	public function return_empty_posts( $posts = [] ) {
+		return [];
 	}
 
 	/**
