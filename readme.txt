@@ -43,6 +43,11 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.2.3 =
+This is a bug fix version.
+
+* Ensure query building for Autosuggest does not fallback to WPDB.
+
 = 3.2.2 =
 This is a bug fix version with some feature additions.
 
