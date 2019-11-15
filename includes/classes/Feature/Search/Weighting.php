@@ -582,6 +582,13 @@ class Weighting {
 				$formatted_args['query'] = $new_query;
 			}
 
+			/**
+			 * Hook after weighting is added to Elasticsearch query
+			 *
+			 * @hook ep_weighting_added
+			 * @param  {array} $formatted_args Elasticsearch query
+			 * @param  {array} $args WP Query arguments
+			 */
 			do_action( 'ep_weighting_added', $formatted_args, $args );
 		}
 
