@@ -551,7 +551,7 @@ class Command extends WP_CLI_Command {
 		/**
 		 * Fires before starting a CLI index
 		 *
-		 * @hook ep_wp_clie_pre_index
+		 * @hook ep_wp_cli_pre_index
 		 * @param  {array} $args CLI command position args
 		 * @param {array} $assoc_args CLI command associative args
 		 */
@@ -803,7 +803,7 @@ class Command extends WP_CLI_Command {
 						/**
 						 * Fires after one by one indexing an object in CLI
 						 *
-						 * @hook ep_cli_object)index
+						 * @hook ep_cli_object_index
 						 * @param  {int} $object_id Object to index
 						 * @param {Indexable} $indexable Current indexable
 						 */
