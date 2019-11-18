@@ -145,8 +145,7 @@ class RelatedPosts extends Feature {
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'formatted_args' ], 10, 2 );
-		add_action( 'enqueue_block_editor_assets', [ $this, 'register_block' ] );
-		add_action( 'enqueue_block_assets', [ $this, 'register_block' ] );
+		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
 	}
 
