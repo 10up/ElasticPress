@@ -240,12 +240,13 @@ class RelatedPosts extends Feature {
 			true
 		);
 
+		// The wp-edit-blocks style dependency is not needed on the front end of the site.
+		$style_dependencies = is_admin() ? [ 'wp-edit-blocks' ] : [];
+
 		wp_register_style(
 			'elasticpress-related-posts-block',
 			EP_URL . 'dist/css/related-posts-block-styles.min.css',
-			[
-				'wp-edit-blocks',
-			],
+			$style_dependencies,
 			EP_VERSION
 		);
 
