@@ -492,12 +492,20 @@ class Autosuggest extends Feature {
 
 		// Let's make sure we also fire off the dummy request if settings have changed.
 		// But only fire this if we have object caching as otherwise this comes with a performance penalty.
+		// If we do not have object caching we cache only one value for 5 minutes in a transient.
 		if ( wp_using_ext_object_cache() ) {
 			$cache_key = md5( json_encode( $query['url'] ) . json_encode( $args ) );
 			$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
 			if ( false == $request ) {
 				$request = wp_remote_request( $query['url'], $args );
 				wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
+			}
+		} else {
+			$cache_key = 'ep_autosuggest_query_request_cache';
+			$request   = get_transient( $cache_key );
+			if ( false == $request ) {
+				$request = wp_remote_request( $query['url'], $args );
+				set_transient( $cache_key, $request, 300 );
 			}
 		}
 
