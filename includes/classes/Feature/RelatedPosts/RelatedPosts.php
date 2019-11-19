@@ -145,8 +145,7 @@ class RelatedPosts extends Feature {
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'formatted_args' ], 10, 2 );
-		add_action( 'enqueue_block_editor_assets', [ $this, 'register_block' ] );
-		add_action( 'enqueue_block_assets', [ $this, 'register_block' ] );
+		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
 	}
 
@@ -241,12 +240,13 @@ class RelatedPosts extends Feature {
 			true
 		);
 
+		// The wp-edit-blocks style dependency is not needed on the front end of the site.
+		$style_dependencies = is_admin() ? [ 'wp-edit-blocks' ] : [];
+
 		wp_register_style(
 			'elasticpress-related-posts-block',
 			EP_URL . 'dist/css/related-posts-block-styles.min.css',
-			[
-				'wp-edit-blocks',
-			],
+			$style_dependencies,
 			EP_VERSION
 		);
 
