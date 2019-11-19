@@ -499,11 +499,11 @@ class Autosuggest extends Feature {
 				$request = wp_remote_request( $query['url'], $args );
 				wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
 			}
-		} else {
-			$request = new \WP_Error( 'ep_no_cache_skip_autosuggest_request', __( 'No external object cache found, skipping request', 'elasticpress' ) );
 		}
+
 		return $request;
 	}
+
 	/**
 	 * Tell user whether requirements for feature are met or not.
 	 *
