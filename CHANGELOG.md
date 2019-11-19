@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.2.4] - 2019-11-19
+
+* Fix Gutenberg block initialization
+* Fix Autosuggest: remove filter with proper priority in query generation. Props [Maxdw](https://github.com/Maxdw).
+* Fix Autosuggest: returning WP_Error for non object cache autosuggest queries causes issue. Fallback to transient
+
 ## [3.2.3] - 2019-11-13
 
 * Ensure query building for Autosuggest does not fallback to WPDB.
