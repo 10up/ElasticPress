@@ -436,7 +436,7 @@ class Autosuggest extends Feature {
 			]
 		);
 
-		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ] );
+		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100 );
 
 		remove_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ] );
 
@@ -492,6 +492,7 @@ class Autosuggest extends Feature {
 
 		// Let's make sure we also fire off the dummy request if settings have changed.
 		// But only fire this if we have object caching as otherwise this comes with a performance penalty.
+		// If we do not have object caching we cache only one value for 5 minutes in a transient.
 		if ( wp_using_ext_object_cache() ) {
 			$cache_key = md5( json_encode( $query['url'] ) . json_encode( $args ) );
 			$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
@@ -500,10 +501,17 @@ class Autosuggest extends Feature {
 				wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
 			}
 		} else {
-			$request = new \WP_Error( 'ep_no_cache_skip_autosuggest_request', __( 'No external object cache found, skipping request', 'elasticpress' ) );
+			$cache_key = 'ep_autosuggest_query_request_cache';
+			$request   = get_transient( $cache_key );
+			if ( false == $request ) {
+				$request = wp_remote_request( $query['url'], $args );
+				set_transient( $cache_key, $request, 300 );
+			}
 		}
+
 		return $request;
 	}
+
 	/**
 	 * Tell user whether requirements for feature are met or not.
 	 *

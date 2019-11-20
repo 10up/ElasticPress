@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.2.5] - 2019-11-20
+
+* Fix WP <5.0 fatal error on register_block_type.
+
+## [3.2.4] - 2019-11-19
+
+* Fix Gutenberg block initialization
+* Fix Autosuggest: remove filter with proper priority in query generation. Props [Maxdw](https://github.com/Maxdw).
+* Fix Autosuggest: returning WP_Error for non object cache autosuggest queries causes issue. Fallback to transient
+
 ## [3.2.3] - 2019-11-13
 
 * Ensure query building for Autosuggest does not fallback to WPDB.

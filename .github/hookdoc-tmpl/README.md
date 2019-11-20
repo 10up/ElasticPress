@@ -1,6 +1,12 @@
-# Welcome to the ElasticPress Plugin Hook Documentation
+# ElasticPress Documentation
 
-This resource is generated documentation on actions and filters found in the ElasticPress plugin. Use the sidebar to browse and navigate.
+ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
+
+**ElasticPress 3.0:** ElasticPress 3.0 contains major changes from 2.x including a rewrite of the feature registration API and PHP 5.4+ features. If you have problems upgrading, please create an issue.
+
+**Please note:** master is the stable branch on GitHub.
+
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0 require re-syncing.
 
 For more information about the ElasticPress plugin and ElasticPress.io service, please visit the [website](https://elasticpress.io).
 
