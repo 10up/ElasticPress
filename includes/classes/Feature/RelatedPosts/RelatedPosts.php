@@ -227,6 +227,11 @@ class RelatedPosts extends Feature {
 	 * @since  3.2
 	 */
 	public function register_block() {
+		// Must be WP 5.0+
+		if ( ! function_exists( 'register_block_type' ) ) {
+			return;
+		}
+
 		wp_register_script(
 			'elasticpress-related-posts-block',
 			EP_URL . 'dist/js/related-posts-block-script.min.js',
