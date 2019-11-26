@@ -23,18 +23,22 @@ function selectAutosuggestItem( $localInput, text ) {
  * @param event
  */
 function goToAutosuggestItem( $localInput, url ) {
-	var searchTerm = $localInput[0].value;
-	var action = 'click - ' + searchTerm;
+	const searchTerm = $localInput[0].value;
+	const action = `click - ${  searchTerm}`;
 
-	if( typeof gtag == 'function' ) {
-		gtag('event', action, {
+	if( 'function' == typeof gtag ) {
+		// eslint-disable-next-line no-undef
+		gtag( 'event', action, {
 			'event_category' : 'EP :: Autosuggest',
 			'event_label' : url,
 			'transport_type' : 'beacon',
+			/**
+			 * GA Callback function
+			 */
 			'event_callback': function(){
 				window.location.href = url;
 			}
-		});
+		} );
 	} else {
 		return window.location.href = url;
 	}
