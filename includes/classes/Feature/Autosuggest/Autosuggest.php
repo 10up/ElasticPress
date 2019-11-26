@@ -498,7 +498,7 @@ class Autosuggest extends Feature {
 			$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
 			if ( false == $request ) {
 				$request = wp_remote_request( $query['url'], $args );
-				if ( isset( $request->http_response ) ) {
+				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
 					$request->http_response->body = '';
 				}
 				wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
@@ -508,7 +508,7 @@ class Autosuggest extends Feature {
 			$request   = get_transient( $cache_key );
 			if ( false == $request ) {
 				$request = wp_remote_request( $query['url'], $args );
-				if ( isset( $request->http_response ) ) {
+				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
 					$request->http_response->body = '';
 				}
 				set_transient( $cache_key, $request, 300 );
