@@ -23,7 +23,21 @@ function selectAutosuggestItem( $localInput, text ) {
  * @param event
  */
 function goToAutosuggestItem( $localInput, url ) {
-	return window.location.href = url;
+	var searchTerm = $localInput[0].value;
+	var action = 'click - ' + searchTerm;
+
+	if( typeof gtag == 'function' ) {
+		gtag('event', action, {
+			'event_category' : 'EP :: Autosuggest',
+			'event_label' : url,
+			'transport_type' : 'beacon',
+			'event_callback': function(){
+				window.location.href = url;
+			}
+		});
+	} else {
+		return window.location.href = url;
+	}
 }
 
 /**
