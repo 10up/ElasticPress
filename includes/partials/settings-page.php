@@ -86,7 +86,8 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 								 * @param  {boolean} $show True to show
 								 * @return {boolean} New value
 								 */
-								if ( apply_filters( 'ep_admin_show_host', true ) ) : ?>
+								if ( apply_filters( 'ep_admin_show_host', true ) ) :
+									?>
 									<input <?php if ( $wpconfig ) { ?>disabled<?php } ?> placeholder="http://" type="text" value="<?php echo esc_url( $host ); ?>" name="ep_host" id="ep_host">
 								<?php endif ?>
 								<?php if ( $wpconfig ) : ?>
@@ -114,7 +115,8 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 									 * @param  {boolean} $show True to show
 									 * @return {boolean} New value
 									 */
-									if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) : ?>
+									if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) :
+										?>
 										<input <?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( rtrim( Utils\get_index_prefix(), '-' ) ); ?>" name="ep_prefix" id="ep_prefix">
 									<?php endif ?>
 									<?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>
