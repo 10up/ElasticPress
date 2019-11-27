@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.2.6] - 2019-11-27
+
+* Fix Under some edge conditions content for autosuggest can be large - don't cache it
+
 ## [3.2.5] - 2019-11-20
 
 * Fix WP <5.0 fatal error on register_block_type.
