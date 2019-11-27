@@ -427,6 +427,8 @@ class Autosuggest extends Feature {
 
 		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
 
+		remove_filter( 'ep_valid_response', [ $features->get_registered_feature( 'facets' ), 'get_aggs' ], 10, 1 ); // Remove the hook in the Facets feature that populates the $GLOBALS['ep_facet_aggs'] variable. Otherwise, if the WP_Query below is executed after the main search query, the aggs returned from the search query will be overridden and the checkboxes in the Facets widget will not function.
+
 		$search = new \WP_Query(
 			[
 				'post_type'    => $post_type,
@@ -443,6 +445,8 @@ class Autosuggest extends Feature {
 		remove_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
 		remove_filter( 'ep_intercept_remote_request', '__return_true' );
+
+		add_filter( 'ep_valid_response', [ $features->get_registered_feature( 'facets' ), 'get_aggs' ], 10, 1 ); // Restore the hook in the Facets feature that populates the $GLOBALS['ep_facet_aggs'] variable.
 
 		return [
 			'body'        => $this->autosuggest_query,
