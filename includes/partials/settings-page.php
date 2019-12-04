@@ -176,7 +176,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				<th scope="row">
 					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Version', 'elasticpress' ); ?></label></th>
 				<td>
-					<?php if ( ! $is_epio ) : ?>
+					<?php if ( $is_epio ) : ?>
 						<?php esc_html_e( 'ElasticPress.io Managed Platform'); ?>
 					<?php else : ?>
 						<?php if ( ! empty( $version ) ) : ?>
