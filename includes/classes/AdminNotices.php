@@ -418,6 +418,10 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_es_below_compat_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
 		$host = Utils\get_host();
 
 		if ( empty( $host ) ) {
@@ -474,6 +478,10 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_es_above_compat_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
 		$host = Utils\get_host();
 
 		if ( empty( $host ) ) {
