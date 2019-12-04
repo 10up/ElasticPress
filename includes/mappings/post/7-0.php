@@ -36,6 +36,7 @@ return array(
 		 * @return {int} New number
 		 */
 		'index.mapping.total_fields.limit' => apply_filters( 'ep_total_field_limit', 5000 ),
+		'index.mapping.ignore_malformed'   => apply_filters( 'ep_ignore_malformed', true ),
 		/**
 		 * Filter Elasticsearch max result window for posts
 		 *
