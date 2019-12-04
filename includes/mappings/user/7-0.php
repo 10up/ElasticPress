@@ -52,6 +52,14 @@ return array(
 		 * @return {int} New number
 		 */
 		'index.max_result_window'          => apply_filters( 'ep_user_max_result_window', 1000000 ),
+		/**
+		 * Filter whether Elasticsearch ignores malformed fields or not.
+		 *
+		 * @hook ep_ignore_malformed
+		 * @param  {bool} $ignore True for ignore
+		 * @return {bool} New value
+		 */
+		'index.mapping.ignore_malformed'   => apply_filters( 'ep_ignore_malformed', true ),
 		'analysis'                         => array(
 			'analyzer'   => array(
 				'default'          => array(
