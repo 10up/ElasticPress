@@ -247,10 +247,11 @@ class Elasticsearch {
 	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  array  $query Prepared ES query.
 	 * @param  array  $query_args WP query args.
+	 * @param  mixed  $query_object Could be WP_Query, WP_User_Query, etc.
 	 * @since  3.0
 	 * @return bool|array
 	 */
-	public function query( $index, $type, $query, $query_args ) {
+	public function query( $index, $type, $query, $query_args, $query_object = null ) {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/_search';
 		} else {
@@ -267,9 +268,10 @@ class Elasticsearch {
 		 * @param  {string} $type Index type
 		 * @param  {array} $query Prepared Elasticsearch query
 		 * @param  {array} $query_args Query arguments
+		 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
 		 * @return  {string} New path
 		 */
-		$path = apply_filters( 'ep_search_request_path', $path, $index, $type, $query, $query_args );
+		$path = apply_filters( 'ep_search_request_path', $path, $index, $type, $query, $query_args, $query_object );
 
 		/**
 		 * Filter Elasticsearch query request path
@@ -280,9 +282,10 @@ class Elasticsearch {
 		 * @param  {string} $type Index type
 		 * @param  {array} $query Prepared Elasticsearch query
 		 * @param  {array} $query_args Query arguments
+		 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
 		 * @return  {string} New path
 		 */
-		$path = apply_filters( 'ep_query_request_path', $path, $index, $type, $query, $query_args );
+		$path = apply_filters( 'ep_query_request_path', $path, $index, $type, $query, $query_args, $query_object );
 
 		$request_args = array(
 			'body'    => wp_json_encode( $query ),
@@ -326,10 +329,11 @@ class Elasticsearch {
 			 *
 			 * @hook ep_valid_response
 			 * @param {array} $response Elasticsearch decoded response
-			 * @param  {WP_Query} $query Current WP Query
+			 * @param  {array} $query Prepared Elasticsearch query
 			 * @param  {array} $query_args Current WP Query arguments
+			 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
 			 */
-			do_action( 'ep_valid_response', $response, $query, $query_args );
+			do_action( 'ep_valid_response', $response, $query, $query_args, $query_object );
 
 			// Backwards compat
 			/**
@@ -337,10 +341,11 @@ class Elasticsearch {
 			 *
 			 * @hook ep_retrieve_raw_response
 			 * @param {array} $response Elasticsearch request
-			 * @param  {WP_Query} $query Current WP Query
+			 * @param  {array} $query Prepared Elasticsearch query
 			 * @param  {array} $query_args Current WP Query arguments
+			 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
 			 */
-			do_action( 'ep_retrieve_raw_response', $request, $query, $query_args );
+			do_action( 'ep_retrieve_raw_response', $request, $query, $query_args, $query_object );
 
 			$documents = [];
 
@@ -368,6 +373,7 @@ class Elasticsearch {
 			 * @param  {response} $response Raw response from Elasticsearch
 			 * @param  {array} $query Raw Elasticsearch query
 			 * @param  {array} $query_args Query arguments
+			 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
 			 * @return  {array} New results
 			 */
 			return apply_filters(
@@ -378,7 +384,8 @@ class Elasticsearch {
 				],
 				$response,
 				$query,
-				$query_args
+				$query_args,
+				$query_object
 			);
 		}
 
