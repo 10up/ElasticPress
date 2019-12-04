@@ -275,7 +275,7 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			}
 
-			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index );
+			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index, $query );
 
 			/**
 			 * ES failed. Go back to MySQL.
