@@ -49,16 +49,34 @@ class QueryIntegration {
 	public function maybe_filter_query( $results, WP_User_Query $query ) {
 		$user_indexable = Indexables::factory()->get( 'user' );
 
+		/**
+		 * Filter to skip user query integration
+		 *
+		 * @hook ep_skip_user_query_integration
+		 * @param {bool} $skip True meanas skip query
+		 * @param  {WP_User_Query} $query User query
+		 * @since  3.0
+		 * @return {boolean} New value
+		 */
 		if ( ! $user_indexable->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_user_query_integration', false, $query ) ) {
 			return $results;
 		}
 
-		$new_users = apply_filters( 'ep_wp_query_search_cached_posts', null, $query );
+		/**
+		 * Filter cached user query users
+		 *
+		 * @hook ep_wp_query_search_cached_users
+		 * @param {array} $users Array of users
+		 * @param  {WP_User_Query} $query User query
+		 * @since  3.0
+		 * @return {array} New users
+		 */
+		$new_users = apply_filters( 'ep_wp_query_search_cached_users', null, $query );
 
 		if ( null === $new_users ) {
 			$formatted_args = $user_indexable->format_args( $query->query_vars, $query );
 
-			$ep_query = $user_indexable->query_es( $formatted_args, $query->query_vars );
+			$ep_query = $user_indexable->query_es( $formatted_args, $query->query_vars, null, $query );
 
 			if ( false === $ep_query ) {
 				return $results;
@@ -99,6 +117,14 @@ class QueryIntegration {
 		foreach ( $users as $user_array ) {
 			$user = new \stdClass();
 
+			/**
+			 * Filter arguments inserted into user object after search
+			 *
+			 * @hook ep_search_user_return_args
+			 * @param {array} $args Array of arguments
+			 * @since  3.0
+			 * @return {array} New arguments
+			 */
 			$user_return_args = apply_filters(
 				'ep_search_user_return_args',
 				[
@@ -138,6 +164,15 @@ class QueryIntegration {
 	 * @since 3.0
 	 */
 	public function action_pre_get_users( $query ) {
+		/**
+		 * Filter to skip user query integration
+		 *
+		 * @hook ep_skip_user_query_integration
+		 * @param {bool} $skip True meanas skip query
+		 * @param  {WP_User_Query} $query User query
+		 * @since  3.0
+		 * @return {boolean} New value
+		 */
 		if ( ! Indexables::factory()->get( 'user' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_user_query_integration', false, $query ) ) {
 			return;
 		}

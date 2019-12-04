@@ -39,7 +39,11 @@ module.exports = {
 		jquery: 'jQuery',
 		underscores: '_',
 		window: 'window',
-		lodash: 'lodash'
+		lodash: {
+			commonjs: 'lodash',
+			amd: 'lodash',
+			root: '_'
+		}
 	},
 
 	// Performance settings.

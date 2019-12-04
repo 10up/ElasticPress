@@ -2,10 +2,38 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.2.6] - 2019-11-27
+
+* Fix Under some edge conditions content for autosuggest can be large - don't cache it
+
+## [3.2.5] - 2019-11-20
+
+* Fix WP <5.0 fatal error on register_block_type.
+
+## [3.2.4] - 2019-11-19
+
+* Fix Gutenberg block initialization
+* Fix Autosuggest: remove filter with proper priority in query generation. Props [Maxdw](https://github.com/Maxdw).
+* Fix Autosuggest: returning WP_Error for non object cache autosuggest queries causes issue. Fallback to transient
+
+## [3.2.3] - 2019-11-13
+
+* Ensure query building for Autosuggest does not fallback to WPDB.
+
+## [3.2.2] - 2019-11-05
+
+* Fix PHPCS errors. Props [mmcachran](https://github.com/mmcachran)
+* Fix ensuring stats are built prior to requesting information
+* Fix related post block enqueue block assets on the frontend
+* Fix custom order results change webpack config for externals:lodash
+* Fix don't overwrite search fields
+* Autosuggest queries generated though PHP instead of JavaScript
+* Add WP Acceptance tests
+* Add new WP-CLI commands: get_indexes and get_cluster_indexes
+
 ## [3.2.1] - 2019-10-14
 
 * Fix Gutenberg breaking issue with Related Posts and image blocks. Props [adamsilverstein](https://github.com/adamsilverstein)
-* Fix facet set aggs filter arguments bug.
 
 ## [3.2] - 2019-10-08
 
@@ -25,7 +53,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 ## [3.1.1] - 2019-07-25
 ### Fixed
 - Ensure taxonomies that are shared among multiple post types show up on the weighting screen
- 
+
 ## [3.1.0] - 2019-07-22
 ### Added
 - Support for nested tax queries. Props [@dkotter](https://github.com/dkotter)
@@ -296,7 +324,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Prevent massive field Elasticsearch error when indexing large strings
 
 ## [2.2] - 2017-02-28
-### Notice 
+### Notice
 - Requires re-index
 
 ### Overview

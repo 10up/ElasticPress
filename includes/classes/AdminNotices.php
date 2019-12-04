@@ -418,6 +418,10 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_es_below_compat_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
 		$host = Utils\get_host();
 
 		if ( empty( $host ) ) {
@@ -474,6 +478,10 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_es_above_compat_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
 		$host = Utils\get_host();
 
 		if ( empty( $host ) ) {
@@ -626,6 +634,13 @@ class AdminNotices {
 	 * @return array
 	 */
 	public function get_notices() {
+		/**
+		 * Filter admin notices
+		 *
+		 * @hook ep_admin_notices
+		 * @param  {array} $notices Admin notices
+		 * @return {array} New notices
+		 */
 		return apply_filters( 'ep_admin_notices', $this->notices );
 	}
 

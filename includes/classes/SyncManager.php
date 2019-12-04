@@ -68,6 +68,14 @@ abstract class SyncManager {
 		}
 		$this->sync_queue[ $object_id ] = true;
 
+		/**
+		 * Fires after item is added to sync queue
+		 *
+		 * @hook ep_after_add_to_queue
+		 * @param  {int} $object_id ID of object
+		 * @param  {array} $sync_queue Current sync queue
+		 * @since  3.1.2
+		 */
 		do_action( 'ep_after_add_to_queue', $object_id, $this->sync_queue );
 
 		return true;
@@ -116,6 +124,12 @@ abstract class SyncManager {
 		 * Backwards compat for pre-3.0
 		 */
 		foreach ( $this->sync_queue as $object_id => $value ) {
+			/**
+			 * Fires when object in queue are synced
+			 *
+			 * @hook ep_sync_on_meta_update_queue
+			 * @param  {int} $object_id ID of object
+			 */
 			do_action( 'ep_sync_on_meta_update', $object_id );
 		}
 
