@@ -743,7 +743,7 @@ class SearchOrdering extends Feature {
 		if ( empty( $pointers ) ) {
 			return;
 		}
-		
+
 		foreach ( $pointers as $pointer ) {
 			$ref_id = $pointer['ID'];
 			wp_remove_object_terms( $ref_id, (int) $term->term_id, self::TAXONOMY_NAME );
