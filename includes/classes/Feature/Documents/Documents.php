@@ -91,9 +91,15 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function attachments_mapping( $mapping ) {
-		$mapping['mappings']['post']['properties']['attachments'] = array(
-			'type' => 'object',
-		);
+		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$mapping['mappings']['post']['properties']['attachments'] = array(
+				'type' => 'object',
+			);
+		} else {
+			$mapping['mappings']['properties']['attachments'] = array(
+				'type' => 'object',
+			);
+		}
 
 		return $mapping;
 	}
