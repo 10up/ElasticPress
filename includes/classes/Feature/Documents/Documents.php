@@ -195,7 +195,7 @@ class Documents extends Feature {
 				 * @param  {string} $id Pipeline ID
 				 * @return  {string} new ID
 				 */
-				$path  = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
 			}
 		}
 
