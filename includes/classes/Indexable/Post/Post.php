@@ -1149,7 +1149,7 @@ class Post extends Indexable {
 
 				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
-						'post_type.raw' => $post_types,
+						'post_type.raw' => array_values( $post_types ),
 					),
 				);
 
