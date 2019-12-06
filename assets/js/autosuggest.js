@@ -19,29 +19,23 @@ function selectAutosuggestItem( $localInput, text ) {
 }
 
 /**
- * Navigate to the selected item
+ * Navigate to the selected item, and provides
+ * event hook for JS customizations, like GA
  * @param event
  */
 function goToAutosuggestItem( $localInput, url ) {
 	const searchTerm = $localInput[0].value;
-	const action = `click - ${  searchTerm}`;
 
-	if( 'function' == typeof gtag ) {
-		// eslint-disable-next-line no-undef
-		gtag( 'event', action, {
-			'event_category' : 'EP :: Autosuggest',
-			'event_label' : url,
-			'transport_type' : 'beacon',
-			/**
-			 * GA Callback function
-			 */
-			'event_callback': function(){
-				window.location.href = url;
-			}
-		} );
-	} else {
-		return window.location.href = url;
-	}
+	const event = new CustomEvent( 'ep-autosuggest-click', {
+		detail: {
+			searchTerm,
+			url
+		}
+	} );
+
+	window.dispatchEvent( event );
+
+	window.location.href = url;
 }
 
 /**
