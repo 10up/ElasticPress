@@ -91,9 +91,15 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function attachments_mapping( $mapping ) {
-		$mapping['mappings']['post']['properties']['attachments'] = array(
-			'type' => 'object',
-		);
+		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$mapping['mappings']['post']['properties']['attachments'] = array(
+				'type' => 'object',
+			);
+		} else {
+			$mapping['mappings']['properties']['attachments'] = array(
+				'type' => 'object',
+			);
+		}
 
 		return $mapping;
 	}
@@ -182,6 +188,13 @@ class Documents extends Feature {
 		if ( 'attachment' === $post['post_type'] ) {
 			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types(), true ) ) {
 				$index = Indexables::factory()->get( 'post' )->get_index_name();
+				/**
+				 * Filter documents pipeline ID
+				 *
+				 * @hook ep_documents_pipeline_id
+				 * @param  {string} $id Pipeline ID
+				 * @return  {string} new ID
+				 */
 				$path  = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
 			}
 		}
@@ -273,6 +286,13 @@ class Documents extends Feature {
 
 		return add_query_arg(
 			array(
+				/**
+				 * Filter documents pipeline ID
+				 *
+				 * @hook ep_documents_pipeline_id
+				 * @param  {string} $id Pipeline ID
+				 * @return  {string} new ID
+				 */
 				'pipeline' => apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ),
 			),
 			$path
@@ -370,6 +390,13 @@ class Documents extends Feature {
 			),
 		);
 
+		/**
+		 * Filter documents pipeline ID
+		 *
+		 * @hook ep_documents_pipeline_id
+		 * @param  {string} $id Pipeline ID
+		 * @return  {string} new ID
+		 */
 		Elasticsearch::factory()->create_pipeline( apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ), $args );
 	}
 
@@ -380,6 +407,13 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function get_allowed_ingest_mime_types() {
+		/**
+		 * Filter allowed mime types for documents
+		 *
+		 * @hook ep_allowed_documents_ingest_mime_types
+		 * @param  {array} $mime_types Allowed mime types
+		 * @return  {array} New types
+		 */
 		return apply_filters(
 			'ep_allowed_documents_ingest_mime_types',
 			array(

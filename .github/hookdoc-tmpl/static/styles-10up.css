@@ -18,6 +18,36 @@ h1.page-title {
 	margin-top: .5em;
 }
 
+nav {
+	display: flex;
+	flex-direction: column;
+}
+
+nav * {
+	order: 4;
+}
+
+nav h2 {
+	order: 1;
+}
+
+nav h3:nth-of-type(3) {
+	order: 2;
+	visibility: hidden;
+	position: relative;
+}
+
+nav h3:nth-of-type(3):after {
+	content: 'Docs';
+	visibility: visible;
+	position: absolute;
+	left: 0;
+}
+
+nav ul:nth-of-type(3) {
+	order: 3;
+}
+
 nav ul {
 	font-size: 1.2rem;
 }
@@ -75,6 +105,13 @@ a.banner img {
 	max-width: 888px;
 }
 
+article img {
+	width: 100%;
+	max-width: 888px;
+	height: auto;
+	margin: 15px 0;
+}
+
 footer {
 	text-align: center;
 	font-size: .8em;
@@ -94,5 +131,4 @@ footer {
 .prettyprint code {
 	padding: 2px 10px;
 	line-height: 16px;
-	height: 16px;
 }

@@ -75,9 +75,22 @@ class Post extends Indexable {
 			$args['post__not_in'] = $args['exclude'];
 		}
 
+		/**
+		 * Filter arguments used to query posts from database
+		 *
+		 * @hook ep_post_query_db_args
+		 * @param  {array} $args Database arguments
+		 * @return  {array} New arguments
+		 */
 		$args = apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) );
 
-		// Backwards compat with pre-3.0
+		/**
+		 * Filter arguments used to query posts from database. Backwards compat with pre-3.0
+		 *
+		 * @hook ep_index_posts_args
+		 * @param  {array} $args Database arguments
+		 * @return  {array} New arguments
+		 */
 		$args = apply_filters( 'ep_index_posts_args', $args );
 
 		$query = new WP_Query( $args );
@@ -104,6 +117,13 @@ class Post extends Indexable {
 		 */
 		unset( $post_types['attachment'] );
 
+		/**
+		 * Filter indexable post types
+		 *
+		 * @hook ep_indexable_post_types
+		 * @param  {array} $post_types Indexable post types
+		 * @return  {array} New post types
+		 */
 		return apply_filters( 'ep_indexable_post_types', $post_types );
 	}
 
@@ -114,6 +134,13 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function get_indexable_post_status() {
+		/**
+		 * Filter indexable post statuses
+		 *
+		 * @hook ep_indexable_post_status
+		 * @param  {array} $post_statuses Indexable post statuses
+		 * @return  {array} New post statuses
+		 */
 		return apply_filters( 'ep_indexable_post_status', array( 'publish' ) );
 	}
 
@@ -127,6 +154,13 @@ class Post extends Indexable {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
+			/**
+			 * Filter fallback Elasticsearch version
+			 *
+			 * @hook ep_fallback_elasticsearch_version
+			 * @param {string} $version Fall back Elasticsearch version
+			 * @return  {string} New version
+			 */
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
 
@@ -142,8 +176,22 @@ class Post extends Indexable {
 			$mapping_file = '7-0.php';
 		}
 
+		/**
+		 * Filter post indexable mapping file
+		 *
+		 * @hook ep_post_mapping_file
+		 * @param {string} $file Path to file
+		 * @return  {string} New file path
+		 */
 		$mapping = require apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file );
 
+		/**
+		 * Filter post indexable mapping
+		 *
+		 * @hook ep_post_mapping
+		 * @param {array} $mapping Mapping
+		 * @return  {array} New mapping
+		 */
 		$mapping = apply_filters( 'ep_post_mapping', $mapping );
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
@@ -190,6 +238,15 @@ class Post extends Indexable {
 		$ping_status       = $post->ping_status;
 		$menu_order        = absint( $post->menu_order );
 
+		/**
+		 * Filter to ignore invalid dates
+		 *
+		 * @hook ep_ignore_invalid_dates
+		 * @param  {bool} $ignore True to ignore
+		 * @param {int} $post_id Post ID
+		 * @param  {WP_Post} $post Post object
+		 * @return  {bool} New ignore value
+		 */
 		if ( apply_filters( 'ep_ignore_invalid_dates', true, $post_id, $post ) ) {
 			if ( ! strtotime( $post_date ) || '0000-00-00 00:00:00' === $post_date ) {
 				$post_date = null;
@@ -211,6 +268,13 @@ class Post extends Indexable {
 		// To prevent infinite loop, we don't queue when updated_postmeta.
 		remove_action( 'updated_postmeta', [ $this->sync_manager, 'action_queue_meta_sync' ], 10 );
 
+		/**
+		 * Filter to allow indexing of filtered post content
+		 *
+		 * @hook ep_allow_post_content_filtered_index
+		 * @param  {bool} $ignore True to allow
+		 * @return  {bool} New value
+		 */
 		$post_content_filtered_allowed = apply_filters( 'ep_allow_post_content_filtered_index', true );
 
 		$post_args = array(
@@ -242,10 +306,23 @@ class Post extends Indexable {
 		);
 
 		/**
-		 * This filter is named poorly but has to stay to keep backwards compat
+		 * Filter sync arguments for a post. For backwards compatibility.
+		 *
+		 * @hook ep_post_sync_args
+		 * @param  {array} $post_args Post arguments
+		 * @param  {int} $post_id Post ID
+		 * @return  {array} New arguments
 		 */
 		$post_args = apply_filters( 'ep_post_sync_args', $post_args, $post_id );
 
+		/**
+		 * Filter sync arguments for a post after meta preparation.
+		 *
+		 * @hook ep_post_sync_args_post_prepare_meta
+		 * @param  {array} $post_args Post arguments
+		 * @param  {int} $post_id Post ID
+		 * @return  {array} New arguments
+		 */
 		$post_args = apply_filters( 'ep_post_sync_args_post_prepare_meta', $post_args, $post_id );
 
 		// Turn back on updated_postmeta hook
@@ -296,6 +373,14 @@ class Post extends Indexable {
 			}
 		}
 
+		/**
+		 * Filter taxonomies to be synced with post
+		 *
+		 * @hook ep_sync_taxonomies
+		 * @param  {array} $selected_taxonomies Selected taxonomies
+		 * @param  {WP_Post} Post object
+		 * @return  {array} New taxonomies
+		 */
 		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
 
 		if ( empty( $selected_taxonomies ) ) {
@@ -304,6 +389,13 @@ class Post extends Indexable {
 
 		$terms = [];
 
+		/**
+		 * Filter to allow child terms to be indexed
+		 *
+		 * @hook ep_sync_terms_allow_hierarchy
+		 * @param  {bool} $allow True means allow
+		 * @return  {bool} New value
+		 */
 		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
@@ -417,16 +509,13 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function prepare_meta( $post ) {
-
 		/**
-		 * Filter meta data
+		 * Filter pre-prepare meta for a post
 		 *
-		 * Allows for adding virtual meta data to current post.
-		 *
-		 * @since 3.1.2
-		 *
-		 * @param         array Meta data (raw).
-		 * @param WP_Post $post The current post to be indexed.
+		 * @hook ep_prepare_meta_data
+		 * @param  {array} $meta Meta data
+		 * @param  {WP_Post} $post Post object
+		 * @return  {array} New meta
 		 */
 		$meta = apply_filters( 'ep_prepare_meta_data', (array) get_post_meta( $post->ID ), $post );
 
@@ -437,26 +526,24 @@ class Post extends Indexable {
 		$prepared_meta = [];
 
 		/**
-		 * Filter index-able private meta
+		 * Filter indexable protected meta keys for posts
 		 *
-		 * Allows for specifying private meta keys that may be indexed in the same manor as public meta keys.
-		 *
-		 * @since 1.7
-		 *
-		 * @param         array Array of index-able private meta keys.
-		 * @param WP_Post $post The current post to be indexed.
+		 * @hook ep_prepare_meta_allowed_protected_keys
+		 * @param  {array} $keys Allowed protected keys
+		 * @param  {WP_Post} $post Post object
+		 * @since  1.7
+		 * @return  {array} New keys
 		 */
 		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
 
 		/**
-		 * Filter non-indexed public meta
+		 * Filter public keys to exclude from indexed post
 		 *
-		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
-		 *
-		 * @since 1.7
-		 *
-		 * @param         array Array of public meta keys to exclude from index.
-		 * @param WP_Post $post The current post to be indexed.
+		 * @hook ep_prepare_meta_excluded_public_keys
+		 * @param  {array} $keys Excluded protected keys
+		 * @param  {WP_Post} $post Post object
+		 * @since  1.7
+		 * @return  {array} New keys
 		 */
 		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
 
@@ -476,6 +563,15 @@ class Post extends Indexable {
 				}
 			}
 
+			/**
+			 * Filter force whitelisting a meta key
+			 *
+			 * @hook ep_prepare_meta_whitelist_key
+			 * @param  {bool} $whitelist True to whitelist key
+			 * @param  {string} $key Meta key
+			 * @param  {WP_Post} $post Post object
+			 * @return  {bool} New whitelist value
+			 */
 			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
@@ -546,6 +642,14 @@ class Post extends Indexable {
 
 		// Default sort for non-searches to date.
 		if ( empty( $args['orderby'] ) && ( ! isset( $args['s'] ) || '' === $args['s'] ) ) {
+			/**
+			 * Filter default post query order by
+			 *
+			 * @hook ep_set_default_sort
+			 * @param  {string} $sort Default sort
+			 * @param  {string $order Order direction
+			 * @return  {string} New default
+			 */
 			$args['orderby'] = apply_filters( 'ep_set_default_sort', 'date', $order );
 		}
 
@@ -562,6 +666,14 @@ class Post extends Indexable {
 				),
 			);
 
+			/**
+			 * Filter default post query order by
+			 *
+			 * @hook ep_set_default_sort
+			 * @param  {string} $sort Default sort
+			 * @param  {string} $order Order direction
+			 * @return  {string} New default
+			 */
 			$default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
 
 			$formatted_args['sort'] = $default_sort;
@@ -881,6 +993,14 @@ class Post extends Indexable {
 			);
 		}
 
+		/**
+		 * Filter default post search fields
+		 *
+		 * @hook ep_search_fields
+		 * @param  {array} $search_fields Default search fields
+		 * @param  {array} $args WP Query arguments
+		 * @return  {array} New defaults
+		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
 		$query = array(
@@ -891,6 +1011,15 @@ class Post extends Indexable {
 							'query'  => '',
 							'type'   => 'phrase',
 							'fields' => $search_fields,
+							/**
+							 * Filter boost for post match phrase query
+							 *
+							 * @hook ep_match_phrase_boost
+							 * @param  {int} $boost Phrase boost
+							 * @param {array} $prepared_search_fields Search fields
+							 * @param {array} $query_vars Query variables
+							 * @return  {int} New phrase boost
+							 */
 							'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
 						),
 					),
@@ -898,6 +1027,15 @@ class Post extends Indexable {
 						'multi_match' => array(
 							'query'     => '',
 							'fields'    => $search_fields,
+							/**
+							 * Filter boost for post match query
+							 *
+							 * @hook ep_match_boost
+							 * @param  {int} $boost Boost
+							 * @param {array} $prepared_search_fields Search fields
+							 * @param {array} $query_vars Query variables
+							 * @return  {int} New boost
+							 */
 							'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
 							'fuzziness' => 0,
 							'operator'  => 'and',
@@ -907,6 +1045,15 @@ class Post extends Indexable {
 						'multi_match' => array(
 							'query'     => '',
 							'fields'    => $search_fields,
+							/**
+							 * Filter fuzziness for post query
+							 *
+							 * @hook ep_fuzziness_arg
+							 * @param  {int} $fuzziness Fuzziness
+							 * @param {array} $prepared_search_fields Search fields
+							 * @param {array} $query_vars Query variables
+							 * @return  {int} New fuzziness
+							 */
 							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
 						),
 					),
@@ -925,7 +1072,16 @@ class Post extends Indexable {
 			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
 			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-			$formatted_args['query']                            = apply_filters( 'ep_formatted_args_query', $query, $args );
+
+			/**
+			 * Filter formatted Elasticsearch post query (only contains query part)
+			 *
+			 * @hook ep_formatted_args_query
+			 * @param {array} $query Current query
+			 * @param {array} $query_vars Query variables
+			 * @return  {array} New query
+			 */
+			$formatted_args['query']  = apply_filters( 'ep_formatted_args_query', $query, $args );
 		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
@@ -993,7 +1149,7 @@ class Post extends Indexable {
 
 				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
-						'post_type.raw' => $post_types,
+						'post_type.raw' => array_values( $post_types ),
 					),
 				);
 
@@ -1130,8 +1286,26 @@ class Post extends Indexable {
 			}
 		}
 
+		/**
+		 * Filter formatted Elasticsearch [ost ]query (entire query)
+		 *
+		 * @hook ep_formatted_args_query
+		 * @param {array} $formatted_args Formatted Elasticsearch query
+		 * @param {array} $query_vars Query variables
+		 * @param {array} $query Query part
+		 * @return  {array} New query
+		 */
 		$formatted_args = apply_filters( 'ep_formatted_args', $formatted_args, $args, $wp_query );
 
+		/**
+		 * Filter formatted Elasticsearch [ost ]query (entire query)
+		 *
+		 * @hook ep_post_formatted_args
+		 * @param {array} $formatted_args Formatted Elasticsearch query
+		 * @param {array} $query_vars Query variables
+		 * @param {array} $query Query part
+		 * @return  {array} New query
+		 */
 		return apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
 	}
 

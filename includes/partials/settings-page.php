@@ -86,7 +86,8 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 								 * @param  {boolean} $show True to show
 								 * @return {boolean} New value
 								 */
-								if ( apply_filters( 'ep_admin_show_host', true ) ) : ?>
+								if ( apply_filters( 'ep_admin_show_host', true ) ) :
+									?>
 									<input <?php if ( $wpconfig ) { ?>disabled<?php } ?> placeholder="http://" type="text" value="<?php echo esc_url( $host ); ?>" name="ep_host" id="ep_host">
 								<?php endif ?>
 								<?php if ( $wpconfig ) : ?>
@@ -114,7 +115,8 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 									 * @param  {boolean} $show True to show
 									 * @return {boolean} New value
 									 */
-									if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) : ?>
+									if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) :
+										?>
 										<input <?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( rtrim( Utils\get_index_prefix(), '-' ) ); ?>" name="ep_prefix" id="ep_prefix">
 									<?php endif ?>
 									<?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>
@@ -174,10 +176,14 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				<th scope="row">
 					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Version', 'elasticpress' ); ?></label></th>
 				<td>
-					<?php if ( ! empty( $version ) ) : ?>
-						<legend class="description"><?php echo esc_html( $version ); ?></legend>
+					<?php if ( $is_epio ) : ?>
+						<?php esc_html_e( 'ElasticPress.io Managed Platform'); ?>
 					<?php else : ?>
-						<legend class="description">&mdash;</legend>
+						<?php if ( ! empty( $version ) ) : ?>
+							<?php echo esc_html( $version ); ?>
+						<?php else : ?>
+							&mdash;
+						<?php endif; ?>
 					<?php endif; ?>
 				</td>
 			</tr>

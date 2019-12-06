@@ -263,11 +263,12 @@ class WooCommerce extends Feature {
 		$supported_taxonomies = array_merge( $supported_taxonomies, $attribute_taxonomies );
 
 		/**
-		 * Add support for custom taxonomies.
+		 * Filter supported custom taxonomies for WooCommerce integration
 		 *
-		 * @param array $supported_taxonomies An array of default taxonomies.
-		 *
+		 * @param {array} $supported_taxonomies An array of default taxonomies.
+		 * @hook ep_woocommerce_supported_taxonomies
 		 * @since 2.3.0
+		 * @return  {array} New taxonomies
 		 */
 		$supported_taxonomies = apply_filters( 'ep_woocommerce_supported_taxonomies', $supported_taxonomies );
 
@@ -417,6 +418,13 @@ class WooCommerce extends Feature {
 
 					$search_fields['meta'] = array_map(
 						'wc_clean',
+						/**
+						 * Filter shop order fields to search for WooCommerce
+						 *
+						 * @hook shop_order_search_fields
+						 * @param  {array} $fields Shop order fields
+						 * @return  {array} New fields
+						 */
 						apply_filters(
 							'shop_order_search_fields',
 							array(
@@ -548,6 +556,13 @@ class WooCommerce extends Feature {
 	 * @return string    The mapped meta key.
 	 */
 	public function get_orderby_meta_mapping( $meta_key ) {
+		/**
+		 * Filter WooCommerce to Elasticsearch meta mapping
+		 *
+		 * @hook orderby_meta_mapping
+		 * @param  {array} $mapping Meta mapping
+		 * @return  {array} New mapping
+		 */
 		$mapping = apply_filters(
 			'orderby_meta_mapping',
 			array(
@@ -890,14 +905,36 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
+		/**
+		 * Filter to skip WP Query integration
+		 *
+		 * @hook ep_skip_query_integration
+		 * @param  {bool} $skip True to skip
+		 * @param  {WP_Query} $query WP Query to evaluate
+		 * @return  {bool} New skip value
+		 */
 		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
 			( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
 			return false;
 		}
 
+		/**
+		 * Filter to integrate with admin queries
+		 *
+		 * @hook ep_admin_wp_query_integration
+		 * @param  {bool} $integrate True to integrate
+		 * @return  {bool} New value
+		 */
 		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
 
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			/**
+			 * Filter to integrate with admin ajax queries
+			 *
+			 * @hook ep_ajax_wp_query_integration
+			 * @param  {bool} $integrate True to integrate
+			 * @return  {bool} New value
+			 */
 			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
 				return false;
 			} else {

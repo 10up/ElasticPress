@@ -132,6 +132,14 @@ class Widget extends WP_Widget {
 
 		$taxonomy_object = get_taxonomy( $taxonomy );
 
+		/**
+		 * Filter facet search threshold
+		 *
+		 * @hook ep_facet_search_threshold
+		 * @param  {int} $search_threshold Search threshold
+		 * @param  {string} $taxonomy Current taxonomy
+		 * @return  {int} New threshold
+		 */
 		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
 		?>
 
@@ -267,7 +275,17 @@ class Widget extends WP_Widget {
 		$facet_html = ob_get_clean();
 
 		// phpcs:disable
-		// Allows developers to modify widget html
+		/**
+		 * Filter facet search widget HTML
+		 *
+		 * @hook ep_facet_search_widget
+		 * @param  {string} $facet_html Widget HTML
+		 * @param  {array} $selected_filters Selected filters
+		 * @param  {array} $terms_by_slug Terms by slug
+		 * @param  {array} $outputted_terms Outputted $terms
+		 * @param  {string} $title Widget title
+		 * @return  {string} New HTML
+		 */
 		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] );
 		// phpcs:enable
 
@@ -349,6 +367,13 @@ class Widget extends WP_Widget {
 		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		/**
+		 * Filter taxonomies made available for faceting
+		 *
+		 * @hook ep_facet_include_taxonomies
+		 * @param  {array} $taxonomies Taxonomies
+		 * @return  {array} New taxonomies
+		 */
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		$orderby_options = [
