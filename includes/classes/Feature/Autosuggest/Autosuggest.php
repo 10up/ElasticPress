@@ -36,6 +36,7 @@ class Autosuggest extends Feature {
 		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
+
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',

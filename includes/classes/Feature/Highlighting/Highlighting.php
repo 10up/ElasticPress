@@ -20,13 +20,13 @@ class Highlighting extends Feature {
 	 * @since  VERSION
 	 */
 	public function __construct() {
-		$this->slug = 'elasticpress-highlighting';
+		$this->slug = 'searchterm_highlighting';
 
 		$this->title = esc_html__( 'Search Term Highlighting', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
 
-		$this->default_terms = [
+		$this->default_tags = [
 			'mark',
 			'span',
 			'strong',
@@ -34,7 +34,13 @@ class Highlighting extends Feature {
 			'i',
 		];
 
-		$this->highlighting_configuration = get_option( 'elasticpress_highlighting', [] );
+		$this->default_settings  = [
+			'highlight_excerpt' => 'off',
+			'highlight_tag'		=> 'mark',
+			'highlight_color' 	=> '',
+		];
+
+		$this->highlighting_configuration = get_option( 'searchterm_highlighting', [] );
 
 		parent::__construct();
 	}
@@ -46,7 +52,6 @@ class Highlighting extends Feature {
 	 */
 	public function setup() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-		add_action( 'admin_menu', [ $this, 'add_term_highlighting_submenu_page' ], 15 );
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 
 		// Add filter to overwrite the pre_/post_ tags
@@ -76,136 +81,58 @@ class Highlighting extends Feature {
 	public function output_feature_box_long() {
 		?>
 		<p><?php esc_html_e( 'The wrapping HTML tag comes with the "ep-highlight" class for easy styling. Select a different tag, or add a color in the advanced options.' ); ?></p>
-		<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-highlighting' ) ); ?>"><?php esc_html_e( 'Advanced search term highlighting settings', 'elasticpress' ); ?></a></p>
 		<?php
 	}
 
 
 	/**
-	 * Adds the submenu page for controlling search term highlighting options
+	 * Display highlight settings on dashboard.
+	 *
+	 * @since VERSION
 	 */
-	public function add_term_highlighting_submenu_page() {
-		add_submenu_page( 'elasticpress', __( 'Search Term Highlighting', 'elasticpress' ), __( 'Search Term Highlighting', 'elasticpress' ), 'manage_options', 'elasticpress-highlighting', [ $this, 'render_settings_page' ] );
-	}
+	public function output_feature_box_settings() {
+		$settings = $this->get_settings();
 
-	/**
-	 * Renders the settings page that controls search term highlighting
-	 */
-	public function render_settings_page() {
-		include EP_PATH . '/includes/partials/header.php';
+		if ( ! $settings ) {
+			$settings = [];
+		}
+
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		$tag_options    = $this->default_tags;
+		$highlight_color = ( ! empty( $settings['highlight_color'] ) ) ? $settings['highlight_color'] : null;
+
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'Manage Search Term Highlighting', 'elasticpress' ); ?></h1>
-			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" class="highlighting-settings metabox-holder">
-				<input type="hidden" name="action" value="ep-highlighting">
-				<?php wp_nonce_field( 'save-highlighting', 'ep-highlighting-nonce' ); ?>
-				<?php
-				if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
-					if ( $_GET['settings-updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification
-						?>
-						<div class="notice notice-success is-dismissible">
-							<p><?php esc_html_e( 'Changes Saved!', 'elasticpress' ); ?></p>
-						</div>
-					<?php else : ?>
-						<div class="notice notice-error is-dismissible">
-							<p><?php esc_html_e( 'An error occurred when saving!', 'elasticpress' ); ?></p>
-						</div>
-						<?php
-					endif;
-				endif;
-
-				$tag_options    = $this->default_terms;
-				$current_values = $this->highlighting_configuration;
-
-				$highlight_color = ( ! empty( $current_values['highlight_color'] ) ) ? $current_values['highlight_color'] : null;
-
-				?>
-					<div class="postbox">
-						<h2 class="hndle"><?php echo esc_html_e( 'Highlight Tag' ); ?></h2>
-						<div class="field-group">
-							<div class="fields">
-								<div class="field">
-									<label for="highlight-tag"><?php echo esc_html_e( 'Highlight Tag: ', 'elasticpress' ); ?></label>
-									<select id="highlight-tag" name="highlight-tag">
-										<?php
-										foreach ( $tag_options as $option ) :
-											echo '<option value="' . esc_attr( $option ) . '" ' . selected( $option, $current_values['highlight_tag'] ) . '>' . esc_html( $option ) . '</option>';
-										endforeach;
-										?>
-									</select>
-								</div>
-
-							</div>
-						</div>
+			<div class="field" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+				<div class="field-group">
+					<div class="fields">
+						<label for="highlight-tag" class="field-name status"><?php echo esc_html_e( 'Highlight Tag: ', 'elasticpress' ); ?></label>
+						<select id="highlight-tag" name="highlight-tag" class="setting-field" data-field-name="highlight_tag">
+							<?php
+							foreach ( $tag_options as $option ) :
+								echo '<option value="' . esc_attr( $option ) . '" ' . selected( $option, $settings['highlight_tag'] ) . '>' . esc_html( $option ) . '</option>';
+							endforeach;
+							?>
+						</select>
 					</div>
-					<div class="postbox">
-						<h2 class="hndle"><?php echo esc_html_e( 'Highlight Color', 'elasticpress' ); ?></h2>
-						<div class="field-group">
-							<div class="field">
-								<label for="highlight-color"><?php echo esc_html( 'Highlight Color: ' ); ?>
-								<input type="text" id="highlight-color" name="highlight-color" class="ep-highlight-color-select" value="<?php echo esc_attr( $highlight_color ); ?>" />
-							</div>
-						</div>
-					</div>
-					<div class="postbox">
-						<h2 class="hndle"><?php echo esc_html_e( 'Highlight Excerpt', 'elasticpress' ); ?></h2>
-						<div class="field-group">
-							<div class="field">
-								<p>By default, WordPress strips HTML from content excerpts. Check to enable the highlight tag in excerpts. </p>
-								<label>
-									<input type="checkbox" id="highlight-excerpt" value="on" name="highlight-excerpt" <?php checked( ! empty( $current_values['highlight_excerpt'] ) && 'on' === $current_values['highlight_excerpt'] ? true : false ); ?> />
-									<?php echo esc_html_e( 'Show highlight tag in Excerpt', 'elasticpress' ); ?>
-								</label>
-							</div>
-						</div>
-					</div>
-				<?php
-				submit_button();
-				?>
-			</form>
-		</div>
+				</div>
+			</div>
+			<div class="field" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+				<div class="field-group">
+					<label for="highlight-color"><?php echo esc_html( 'Highlight Color: ' ); ?>
+					<input type="text" id="highlight-color" name="highlight-color" class="ep-highlight-color-select setting-field" value="<?php echo esc_attr( $highlight_color ); ?>" data-field-name="highlight_color" />
+				</div>
+			</div>
+			<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+				<p><?php esc_html_e( 'By default, WordPress strips HTML from content excerpts. Enable or disable the highlight tag in excerpts: ', 'elasticpress' ); ?></p>
+				<div class="field-name status"><?php esc_html_e( 'Excerpt status', 'elasticpress' ); ?></div>
+				<div class="input-wrap">
+					<label for="highlight_excerpt_enabled"><input name="highlight_excerpt" id="highlight_excerpt_enabled" class="setting-field" type="radio" <?php checked( $settings['highlight_excerpt'] == 1 ); ?> value="1" data-field-name="highlight_excerpt"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+					<label for="highlight_excerpt_disabled"><input name="highlight_excerpt" id="highlight_excerpt_disabled" class="setting-field" type="radio" <?php checked( $settings['highlight_excerpt'] == 0 ); ?> value="0" data-field-name="highlight_excerpt"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				</div>
+			</div>
+
 		<?php
-	}
-
-
-	/**
-	 * Handles processing the new highlighting values and saving them to the elasticpress.io service
-	 */
-	public function handle_save() {
-		if ( ! isset( $_POST['ep-highlighting-nonce'] ) || ! wp_verify_nonce( $_POST['ep-highlighting-nonce'], 'save-highlighting' ) ) {
-			return;
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		if ( isset( $_POST['highlight-tag'] ) && in_array( $_POST['highlight-tag'], $this->default_terms, true ) ) {
-			$new_highlight_tag = $_POST['highlight-tag'];
-		} else {
-			$current_config    = $this->highlighting_configuration;
-			$new_highlight_tag = $current_config['highlight_tag'];
-		}
-
-		// get color
-		$new_highlight_color = isset( $_POST['highlight-color'] ) ? $_POST['highlight-color'] : null;
-
-		// get checkbokx value
-		$new_highlight_excerpt = ( isset( $_POST['highlight-excerpt'] ) && 'on' === $_POST['highlight-excerpt'] ) ? 'on' : 'off';
-
-		$final_config = array(
-			'highlight_tag'     => sanitize_text_field( $new_highlight_tag ),
-			'highlight_color'   => sanitize_text_field( $new_highlight_color ),
-			'highlight_excerpt' => sanitize_text_field( $new_highlight_excerpt ),
-		);
-
-		update_option( 'elasticpress_highlighting', $final_config );
-
-		$redirect_url = admin_url( 'admin.php?page=elasticpress-highlighting' );
-		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
-
-		wp_safe_redirect( $redirect_url );
-		exit();
 	}
 
 
@@ -214,22 +141,22 @@ class Highlighting extends Feature {
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_style(
-			'elasticpress-highlighting',
+			'searchterm-highlighting',
 			EP_URL . 'dist/css/highlighting-styles.min.css',
 			[],
 			EP_VERSION
 		);
 
 		// retrieve settings to ge the current color value
-		$current_config  = $this->highlighting_configuration;
+		$settings = $this->get_settings();
 
 		// check for value before inlining the style
-		if ( ! empty( $current_config['highlight_color'] ) ) {
+		if ( ! empty( $settings['highlight_color'] ) ) {
 			$inline_color = "
 				:root{
-					--highlight-color: {$current_config['highlight_color']};
+					--highlight-color: {$settings['highlight_color']};
 				}";
-			wp_add_inline_style( 'elasticpress-highlighting', $inline_color );
+			wp_add_inline_style( 'searchterm-highlighting', $inline_color );
 		}
 
 	}
@@ -244,7 +171,7 @@ class Highlighting extends Feature {
 	public function get_highlighting_tag( $tag ) {
 		$this->highlighting_tag = $tag;
 
-		$options = $this->default_terms;
+		$options = $this->default_tags;
 
 		if ( ! in_array( $tag, $options, true ) ) {
 			$this->highlighting_tag = 'mark';
@@ -255,7 +182,7 @@ class Highlighting extends Feature {
 
 
 	/**
-	 * Set default fields to <h></h>ighilight
+	 * Set default fields to highilight
 	 *
 	 * @since VERSION
 	 *
@@ -294,10 +221,10 @@ class Highlighting extends Feature {
 		}
 
 		// get current config
-		$config = $this->highlighting_configuration;
+		$settings = $this->get_settings();
 
 		// define the tag to use
-		$current_tag   = $config['highlight_tag'];
+		$current_tag   = $settings['highlight_tag'];
 		$highlight_tag = apply_filters( 'ep_highlighting_tag', $current_tag );
 
 		// default class
@@ -338,9 +265,9 @@ class Highlighting extends Feature {
 			return;
 		}
 
-		$current_values = $this->highlighting_configuration;
+		$settings = $this->get_settings();
 
-		if ( ! empty( $_GET['s'] ) && ! empty( $current_values['highlight_excerpt'] ) && 'on' === $current_values['highlight_excerpt'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! empty( $_GET['s'] ) && ! empty( $settings['highlight_excerpt'] ) && '1' === $settings['highlight_excerpt'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
 		}
@@ -356,16 +283,14 @@ class Highlighting extends Feature {
 	 */
 	public function ep_highlight_excerpt( $text ) {
 
-		$current_values = $this->highlighting_configuration;
-
-		echo $text;
+		$settings = $this->get_settings();
 
 		// reproduces wp_trim_excerpt filter, preserving the excerpt_more and excerpt_length filters
 		if ( '' === $text ) {
 			$text = get_the_content( '' );
 			$text = apply_filters( 'the_content', $text );
 			$text = str_replace( '\]\]\>', ']]&gt;', $text );
-			$text = strip_tags( $text, '<' . esc_html( $current_values['highlight_tag'] ) . '>' );
+			$text = strip_tags( $text, '<' . esc_html( $settings['highlight_tag'] ) . '>' );
 
 			// use the defined length, if already applied...
 			$excerpt_length = apply_filters( 'excerpt_length', 55 );

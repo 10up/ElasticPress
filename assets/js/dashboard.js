@@ -44,20 +44,27 @@ $features.on( 'click', '.save-settings', function( event ) {
 	const $feature = $features.find( `.ep-feature-${  feature}` );
 	const settings = {};
 	const $settings = $feature.find( '.setting-field' );
+	console.log( {$settings} );
 
 	$settings.each( function() {
 		const type = jQuery( this ).attr( 'type' );
 		const name = jQuery( this ).attr( 'data-field-name' );
-		const value = jQuery( this ).attr( 'value' );
+		const value = jQuery( this ).val();
 
 		if ( 'radio' === type ) {
-			if ( jQuery( this ).attr( 'checked' ) ) {
+			if ( jQuery( this ).is( ':checked' ) ) {
+				settings[ name ] = value;
+			}
+		}else if ( 'checkbox' === type ) {
+			if ( jQuery( this ).is( ':checked' ) ) {
 				settings[ name ] = value;
 			}
 		} else {
 			settings[ name ] = value;
 		}
 	} );
+
+	console.log( {settings} );
 
 	$feature.addClass( 'saving' );
 
