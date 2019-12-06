@@ -34,10 +34,10 @@ class Highlighting extends Feature {
 			'i',
 		];
 
-		$this->default_settings  = [
+		$this->default_settings = [
 			'highlight_excerpt' => 'off',
-			'highlight_tag'		=> 'mark',
-			'highlight_color' 	=> '',
+			'highlight_tag'     => 'mark',
+			'highlight_color'   => '',
 		];
 
 		$this->highlighting_configuration = get_option( 'searchterm_highlighting', [] );
@@ -99,7 +99,7 @@ class Highlighting extends Feature {
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
 
-		$tag_options    = $this->default_tags;
+		$tag_options     = $this->default_tags;
 		$highlight_color = ( ! empty( $settings['highlight_color'] ) ) ? $settings['highlight_color'] : null;
 
 		?>
@@ -127,8 +127,8 @@ class Highlighting extends Feature {
 				<p><?php esc_html_e( 'By default, WordPress strips HTML from content excerpts. Enable or disable the highlight tag in excerpts: ', 'elasticpress' ); ?></p>
 				<div class="field-name status"><?php esc_html_e( 'Excerpt status', 'elasticpress' ); ?></div>
 				<div class="input-wrap">
-					<label for="highlight_excerpt_enabled"><input name="highlight_excerpt" id="highlight_excerpt_enabled" class="setting-field" type="radio" <?php checked( $settings['highlight_excerpt'] == 1 ); ?> value="1" data-field-name="highlight_excerpt"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-					<label for="highlight_excerpt_disabled"><input name="highlight_excerpt" id="highlight_excerpt_disabled" class="setting-field" type="radio" <?php checked( $settings['highlight_excerpt'] == 0 ); ?> value="0" data-field-name="highlight_excerpt"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+					<label for="highlight_excerpt_enabled"><input name="highlight_excerpt" id="highlight_excerpt_enabled" class="setting-field" type="radio" <?php checked( 1 === $settings['highlight_excerpt'] ); ?> value="1" data-field-name="highlight_excerpt"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+					<label for="highlight_excerpt_disabled"><input name="highlight_excerpt" id="highlight_excerpt_disabled" class="setting-field" type="radio" <?php checked( 0 === $settings['highlight_excerpt'] ); ?> value="0" data-field-name="highlight_excerpt"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				</div>
 			</div>
 
