@@ -24,18 +24,37 @@ function selectAutosuggestItem( $localInput, text ) {
  * @param event
  */
 function goToAutosuggestItem( $localInput, url ) {
-	const searchTerm = $localInput[0].value;
 
-	const event = new CustomEvent( 'ep-autosuggest-click', {
-		detail: {
-			searchTerm,
-			url
-		}
-	} );
+	const detail = {
+		searchTerm: $localInput[0].value,
+		url
+	};
 
-	window.dispatchEvent( event );
+	triggerEvents( detail );
 
 	window.location.href = url;
+}
+
+
+/**
+ * Fires events when autosuggest results are clicked,
+ * and if GA tracking is activated
+ *
+ * @param detail
+ */
+function triggerEvents( detail ) {
+	const event = new CustomEvent( 'ep-autosuggest-click', detail );
+	window.dispatchEvent( event );
+
+	if( epas.triggerGoogleAnalytics && 'function' == typeof gtag  ) {
+		const action = `click - ${detail.searchTerm}`;
+		// eslint-disable-next-line no-undef
+		gtag( 'event', action, {
+			'event_category' : 'EP :: Autosuggest',
+			'event_label' : detail.url,
+			'transport_type' : 'beacon',
+		} );
+	}
 }
 
 /**
