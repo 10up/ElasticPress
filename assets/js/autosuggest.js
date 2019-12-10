@@ -43,7 +43,7 @@ function goToAutosuggestItem( $localInput, url ) {
  * @param detail
  */
 function triggerEvents( detail ) {
-	const event = new CustomEvent( 'ep-autosuggest-click', detail );
+	const event = new CustomEvent( 'ep-autosuggest-click', { detail } );
 	window.dispatchEvent( event );
 
 	if( epas.triggerGoogleAnalytics && 'function' == typeof gtag  ) {
