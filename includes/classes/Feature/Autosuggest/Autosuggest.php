@@ -46,6 +46,7 @@ class Autosuggest extends Feature {
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',
+			'autosuggest_ga' 	   => '0'
 		];
 
 		parent::__construct();
@@ -99,12 +100,22 @@ class Autosuggest extends Feature {
 		}
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
+
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
 				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
 				<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Google Analytics Events', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="autosuggest_ga_enabled"><input name="autosuggest_ga" id="autosuggest_ga_enabled" data-field-name="autosuggest_ga" class="setting-field" <?php checked( 1 === $settings['autosuggest_ga'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="autosuggest_ga_disabled"><input name="autosuggest_ga" id="autosuggest_ga_disabled" data-field-name="autosuggest_ga" class="setting-field" <?php checked( 0 === $settings['autosuggest_ga'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<p class="field-description"><?php esc_html_e( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<?php
@@ -347,7 +358,7 @@ class Autosuggest extends Feature {
 			'selector'         => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
 			'action'           => 'navigate',
 			'mimeTypes'        => [],
-			'triggerAnalytics' => false,
+			'triggerAnalytics' => ( '0' === $settings['autosuggest_ga'] ) ? 'false' : 'true',
 		];
 
 		/**
