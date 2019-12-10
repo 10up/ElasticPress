@@ -46,7 +46,7 @@ class Autosuggest extends Feature {
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',
-			'autosuggest_ga' 	   => '0'
+			'autosuggest_ga'       => '0',
 		];
 
 		parent::__construct();
