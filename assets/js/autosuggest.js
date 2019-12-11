@@ -46,7 +46,7 @@ function triggerEvents( detail ) {
 	const event = new CustomEvent( 'ep-autosuggest-click', { detail } );
 	window.dispatchEvent( event );
 
-	if( 'true' === epas.triggerAnalytics && 'function' == typeof gtag  ) {
+	if( epas.hasOwnProperty( 'triggerAnalytics' ) && 'true' === epas.triggerAnalytics && 'function' == typeof gtag  ) {
 		const action = `click - ${detail.searchTerm}`;
 		// eslint-disable-next-line no-undef
 		gtag( 'event', action, {
