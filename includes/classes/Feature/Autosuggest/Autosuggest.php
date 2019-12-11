@@ -46,6 +46,7 @@ class Autosuggest extends Feature {
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',
+			'autosuggest_disable'  => '',
 		];
 
 		parent::__construct();
@@ -99,6 +100,11 @@ class Autosuggest extends Feature {
 		}
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		echo '<pre>';
+		print_r( $settings );
+		echo '</pre>';
+
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
@@ -107,6 +113,16 @@ class Autosuggest extends Feature {
 				<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
 			</div>
 		</div>
+
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><label for="feature_autosuggest_disable"><?php esc_html_e( 'Disable Search Field', 'elasticpress' ); ?></label></div>
+			<div class="input-wrap">
+				<input value="<?php echo empty( $settings['autosuggest_disable'] ) ? '' : esc_html( $settings['autosuggest_disable'] ); ?>" type="text" data-field-name="autosuggest_disable" name="autosuggest_disable" class="setting-field" id="feature_autosuggest_disable">
+				<p class="field-description"><?php esc_html_e( 'By default, all search fields are enhanced to use autosuggest. Add a selector to disable autosuggest for that field.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
 		<?php
 
 		if ( Utils\is_epio() ) {
@@ -347,6 +363,7 @@ class Autosuggest extends Feature {
 			'selector'    => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
 			'action'      => 'navigate',
 			'mimeTypes'   => [],
+			'disable'     => esc_html( $settings['autosuggest_disable'] ),
 		];
 
 		/**

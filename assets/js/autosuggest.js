@@ -302,9 +302,35 @@ function checkForOrderedPosts( hits, searchTerm ) {
 	return hits;
 }
 
+
+/**
+ * Helper function to create an array from a string with a
+ * separator to determine where to break
+ *
+ * @param {*} string
+ * @param {*} separator
+ */
+function arrayFromString( string, separator ) {
+	return string.split( separator ).map( selector => selector.trim() );
+}
+
+
 // No host/index set
 if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
-	const $epInput       = jQuery( `.ep-autosuggest, input[type="search"], .search-field, ${  epas.selector}`  );
+	const customSelectors = arrayFromString( epas.selector, ',' );
+	const defaultInputs = ['.ep-autosuggest', 'input[type="search"]', '.search-field', ...customSelectors ];
+	let allowedInputs = [];
+
+	if ( epas.hasOwnProperty( 'disable' ) && '' !== epas.disable ) {
+		const disabledInputs = arrayFromString( epas.disable, ',' );
+		allowedInputs = defaultInputs
+			.filter( input => ! disabledInputs.includes( input ) )
+			.map( selector => 'input[type="search"]' == selector ? `input[type="search"]:not(${epas.disable})` : selector );
+	} else {
+		allowedInputs = defaultInputs;
+	}
+
+	const $epInput       = jQuery( allowedInputs.join( ',' ) );
 	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
