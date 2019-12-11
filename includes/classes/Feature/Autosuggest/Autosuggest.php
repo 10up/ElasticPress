@@ -349,6 +349,10 @@ class Autosuggest extends Feature {
 			'mimeTypes'   => [],
 		];
 
+		if ( Utils\is_epio() ) {
+			$epas_options['ajaxHeader'] = 'EP-Search-Term';
+		}
+
 		/**
 		 * Output variables to use in Javascript
 		 * index: the Elasticsearch index name
