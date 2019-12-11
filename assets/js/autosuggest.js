@@ -307,8 +307,8 @@ function checkForOrderedPosts( hits, searchTerm ) {
  * Helper function to create an array from a string with a
  * separator to determine where to break
  *
- * @param {*} string
- * @param {*} separator
+ * @param string
+ * @param separator
  */
 function arrayFromString( string, separator ) {
 	return string.split( separator ).map( selector => selector.trim() );
