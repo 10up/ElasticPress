@@ -147,7 +147,7 @@ function esSearch( query, searchTerm ) {
 	};
 
 	// only applies headers if using ep.io endpoint
-	if( epas.ajaxHeader ) {
+	if( epas.hasOwnProperty( 'ajaxHeader' ) ) {
 		ajaxConfig.headers = {
 			[epas.ajaxHeader]: searchTerm
 		};
