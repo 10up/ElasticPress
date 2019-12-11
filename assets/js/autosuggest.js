@@ -318,19 +318,19 @@ function arrayFromString( string, separator ) {
 // No host/index set
 if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	const customSelectors = arrayFromString( epas.selector, ',' );
-	const defaultInputs = ['.ep-autosuggest', 'input[type="search"]', '.search-field', ...customSelectors ];
-	let allowedInputs = [];
+	const defaultSelectors = ['.ep-autosuggest', 'input[type="search"]', '.search-field', ...customSelectors ];
+	let allowedSelectors = [];
 
 	if ( epas.hasOwnProperty( 'disable' ) && '' !== epas.disable ) {
 		const disabledInputs = arrayFromString( epas.disable, ',' );
-		allowedInputs = defaultInputs
-			.filter( input => ! disabledInputs.includes( input ) )
+		allowedSelectors = defaultSelectors
+			.filter( selector => ! disabledInputs.includes( selector ) )
 			.map( selector => 'input[type="search"]' == selector ? `input[type="search"]:not(${epas.disable})` : selector );
 	} else {
-		allowedInputs = defaultInputs;
+		allowedSelectors = defaultSelectors;
 	}
 
-	const $epInput       = jQuery( allowedInputs.join( ',' ) );
+	const $epInput       = jQuery( allowedSelectors.join( ',' ) );
 	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
