@@ -350,7 +350,7 @@ class Autosuggest extends Feature {
 		];
 
 		if ( Utils\is_epio() ) {
-			$epas_options['ajaxHeader'] = 'EP-Search-Term';
+			$epas_options['ajaxHeader'] = esc_html( 'EP-Search-Term' );
 		}
 
 		/**
