@@ -101,10 +101,6 @@ class Autosuggest extends Feature {
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
 
-		echo '<pre>';
-		print_r( $settings );
-		echo '</pre>';
-
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
