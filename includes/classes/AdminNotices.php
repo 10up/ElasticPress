@@ -591,6 +591,16 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dismiss = get_site_option( 'ep_hide_yellow_health_notice', false );
 		} else {
 			$dismiss = get_option( 'ep_hide_yellow_health_notice', false );
@@ -604,7 +614,7 @@ class AdminNotices {
 
 		$nodes = Stats::factory()->get_nodes();
 
-		if ( $nodes < 2 ) {
+		if ( false !== $nodes && $nodes < 2 ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$url = network_admin_url( 'admin.php?page=elasticpress-health' );
 			} else {
