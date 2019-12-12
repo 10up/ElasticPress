@@ -113,7 +113,7 @@ class Autosuggest extends Feature {
 			<div class="field-name status"><label for="feature_autosuggest_disable"><?php esc_html_e( 'Disable Search Field', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
 				<input value="<?php echo empty( $settings['autosuggest_disable'] ) ? '' : esc_html( $settings['autosuggest_disable'] ); ?>" type="text" data-field-name="autosuggest_disable" name="autosuggest_disable" class="setting-field" id="feature_autosuggest_disable">
-				<p class="field-description"><?php esc_html_e( 'By default, all search fields are enhanced to use autosuggest. Add a selector to disable autosuggest for that field.', 'elasticpress' ); ?></p>
+				<p class="field-description"><?php esc_html_e( 'By default, all search fields are enhanced to use autosuggest. Add selectors separated by a comma to disable autosuggest for that field.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 
