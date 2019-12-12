@@ -614,7 +614,7 @@ class AdminNotices {
 
 		$nodes = Stats::factory()->get_nodes();
 
-		if ( false !== $nodes && $nodes < 2 ) {
+		if ( false !== $nodes && $nodes < 2 && $nodes > 0 ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$url = network_admin_url( 'admin.php?page=elasticpress-health' );
 			} else {
