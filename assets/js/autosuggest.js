@@ -176,7 +176,7 @@ function updateAutosuggestBox( options, $localInput ) {
 	$localSuggestList.empty();
 
 	// Don't listen to potentially previously set items
-	$localSuggestList.off();
+	$localSuggestList.find( '.autosuggest-item' ).off();
 
 	if ( 0 < options.length ) {
 		$localESContainer.show();
