@@ -195,6 +195,12 @@ class Facets extends Feature {
 			return false;
 		}
 
+		$ep_integrate = $query->get( 'ep_integrate', null );
+
+		if ( false === $ep_integrate ) {
+			return false;
+		}
+
 		if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
 			|| $query->is_post_type_archive()
 			|| $query->is_search()
