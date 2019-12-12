@@ -43,12 +43,17 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 3.2.5
+= 3.2.6 =
+This is a bugfix release
+
+* Under some edge conditions content for autosuggest can be large - don't cache it
+
+= 3.2.5 =
 This is a bug fix version.
 
 * Fix WP <5.0 fatal error on register_block_type.
 
-= 3.2.4
+= 3.2.4 =
 This is a bug fix version.
 
 * Fix Gutenberg block initialization
