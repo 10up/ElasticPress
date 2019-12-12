@@ -421,7 +421,17 @@ class Elasticsearch {
 			return [];
 		}
 
-		return $response['hits']['hits'];
+		/**
+		 * Filter Elasticsearch allows to flatten hits, if searched hits are come within aggregations.
+		 *
+		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-top-hits-aggregation.html
+		 *
+		 * @hook ep_get_hits_from_query
+		 * @param {array} $hits from Elasticsearch
+		 * @param {response} $response Raw response from Elasticsearch
+		 * @return {array} hits
+		 */
+		return apply_filters( 'ep_get_hits_from_query', $response['hits']['hits'], $response );
 	}
 
 	/**
