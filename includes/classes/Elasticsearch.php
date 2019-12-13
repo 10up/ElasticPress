@@ -87,7 +87,7 @@ class Elasticsearch {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
 		} else {
-			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $document['ID'], $document, $type );
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/' . $document['ID'], $document, $type );
 		}
 
 		if ( function_exists( 'wp_json_encode' ) ) {
@@ -100,7 +100,7 @@ class Elasticsearch {
 
 		$request_args = array(
 			'body'     => $encoded_document,
-			'method'   => 'PUT',
+			'method'   => 'POST',
 			'timeout'  => 15,
 			'blocking' => $blocking,
 		);
@@ -476,7 +476,7 @@ class Elasticsearch {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/' . $document_id;
 		} else {
-			$path = $index . '/' . $document_id;
+			$path = $index . '/_doc/' . $document_id;
 		}
 
 		$request_args = [
@@ -554,7 +554,7 @@ class Elasticsearch {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/' . $document_id;
 		} else {
-			$path = $index . '/' . $document_id;
+			$path = $index . '/_doc/' . $document_id;
 		}
 
 		$request_args = [ 'method' => 'GET' ];
