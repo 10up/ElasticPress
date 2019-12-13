@@ -197,7 +197,7 @@ return array(
 			),
 			'user_registered' => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'user_nicename'   => array(
 				'type'   => 'text',

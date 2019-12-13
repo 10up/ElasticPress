@@ -287,11 +287,11 @@ return array(
 			),
 			'post_date'             => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'post_date_gmt'         => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'post_title'            => array(
 				'type'   => 'text',
@@ -337,11 +337,11 @@ return array(
 			),
 			'post_modified'         => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'post_modified_gmt'     => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'post_parent'           => array(
 				'type' => 'long',
