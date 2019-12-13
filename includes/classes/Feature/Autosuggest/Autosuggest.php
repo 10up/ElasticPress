@@ -46,7 +46,7 @@ class Autosuggest extends Feature {
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',
-			'autosuggest_ga'       => '0',
+			'trigger_ga_event'     => false,
 		];
 
 		parent::__construct();
@@ -113,8 +113,8 @@ class Autosuggest extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Google Analytics Events', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="autosuggest_ga_enabled"><input name="autosuggest_ga" id="autosuggest_ga_enabled" data-field-name="autosuggest_ga" class="setting-field" <?php checked( 1 === $settings['autosuggest_ga'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="autosuggest_ga_disabled"><input name="autosuggest_ga" id="autosuggest_ga_disabled" data-field-name="autosuggest_ga" class="setting-field" <?php checked( 0 === $settings['autosuggest_ga'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label for="trigger_ga_event_enabled"><input name="trigger_ga_event" id="trigger_ga_event_enabled" data-field-name="trigger_ga_event" class="setting-field" <?php checked( (bool) $settings['trigger_ga_event'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="trigger_ga_event_disabled"><input name="trigger_ga_event" id="trigger_ga_event_disabled" data-field-name="trigger_ga_event" class="setting-field" <?php checked( (bool) $settings['trigger_ga_event'], false ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
@@ -358,7 +358,7 @@ class Autosuggest extends Feature {
 			'selector'         => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
 			'action'           => 'navigate',
 			'mimeTypes'        => [],
-			'triggerAnalytics' => ( '0' === $settings['autosuggest_ga'] ) ? 'false' : 'true',
+			'triggerAnalytics' => ! empty( $settings['trigger_ga_event'] ),
 		];
 
 		/**
