@@ -290,6 +290,26 @@ class TestUser extends BaseTestCase {
 
 		$this->assertEquals( 1, count( $user_query->results ) );
 		$this->assertEquals( 5, $user_query->total_users );
+
+		for ( $i = 1; $i <= 15; $i++ ) {
+			Functions\create_and_sync_user(
+				[
+					'user_login' => 'user' . $i . '-editor',
+					'role'       => 'administrator',
+				]
+			);
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertEquals( 19, count( $user_query->results ) );
+		$this->assertEquals( 19, $user_query->total_users );
 	}
 
 	/**
