@@ -176,7 +176,7 @@ function updateAutosuggestBox( options, $localInput ) {
 	$localSuggestList.empty();
 
 	// Don't listen to potentially previously set items
-	jQuery( '.autosuggest-item' ).off();
+	$localSuggestList.find( '.autosuggest-item' ).off();
 
 	if ( 0 < options.length ) {
 		$localESContainer.show();
@@ -302,22 +302,47 @@ function checkForOrderedPosts( hits, searchTerm ) {
 	return hits;
 }
 
+
+/**
+ * Helper function to create an array from a string with a
+ * separator to determine where to break
+ *
+ * @param string
+ * @param separator
+ */
+function arrayFromString( string, separator ) {
+	return string.split( separator ).map( selector => selector.trim() );
+}
+
+
 // No host/index set
 if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
-	const $epInput       = jQuery( `.ep-autosuggest, input[type="search"], .search-field, ${  epas.selector}`  );
+	const customSelectors = arrayFromString( epas.selector, ',' );
+	const defaultSelectors = ['.ep-autosuggest', 'input[type="search"]', '.search-field', ...customSelectors ];
+	let allowedSelectors = [];
+
+	if ( epas.hasOwnProperty( 'disable' ) && '' !== epas.disable ) {
+		const disabledInputs = arrayFromString( epas.disable, ',' );
+		allowedSelectors = defaultSelectors
+			.filter( selector => ! disabledInputs.includes( selector ) )
+			.map( selector => 'input[type="search"]' == selector ? `input[type="search"]:not(${epas.disable})` : selector );
+	} else {
+		allowedSelectors = defaultSelectors;
+	}
+
+	const $epInput       = jQuery( allowedSelectors.join( ',' ) );
 	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
 
 	/**
 	 * Build the auto-suggest container
 	 */
 	$epInput.each( ( key, input ) => {
-		const $epContainer = jQuery( '<div class="ep-autosuggest-container"></div>' );
 		const $input = jQuery( input );
 
 		// Disable autocomplete
 		$input.attr( 'autocomplete', 'off' );
 
-		$epContainer.insertAfter( $input );
+		$input.wrap( '<div class="ep-autosuggest-container"></div>' );
 		const $epLabel = $input.siblings( 'label' );
 		$input
 			.closest( 'form' )
@@ -340,7 +365,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	 * our autosuggest list
 	 * Listen to the escape key to close the autosuggest box
 	 */
-	jQuery( $epInput ).each( ( key, value ) => {
+	$epInput.each( ( key, value ) => {
 		jQuery( value ).on( 'keyup keydown keypress', ( event ) => {
 			if ( 38 === event.keyCode || 40 === event.keyCode ) {
 				event.preventDefault();

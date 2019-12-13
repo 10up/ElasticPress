@@ -48,10 +48,10 @@ $features.on( 'click', '.save-settings', function( event ) {
 	$settings.each( function() {
 		const type = jQuery( this ).attr( 'type' );
 		const name = jQuery( this ).attr( 'data-field-name' );
-		const value = jQuery( this ).attr( 'value' );
+		const value = jQuery( this ).val();
 
 		if ( 'radio' === type ) {
-			if ( jQuery( this ).attr( 'checked' ) ) {
+			if ( jQuery( this ).is( ':checked' ) ) {
 				settings[ name ] = value;
 			}
 		} else {
