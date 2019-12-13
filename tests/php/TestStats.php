@@ -42,12 +42,12 @@ class TestStats extends BaseTestCase {
 		$hook_suffix = 'sites.php';
 		set_current_screen();
 
-		add_filter(
+		/*add_filter(
 			'ep_elasticsearch_version',
 			function() {
 				return (int) EP_ES_VERSION_MAX - 1;
 			}
-		);
+		);*/
 	}
 
 	/**
