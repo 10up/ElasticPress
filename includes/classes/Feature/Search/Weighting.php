@@ -504,7 +504,7 @@ class Weighting {
 		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
-		if ( ! is_admin() && ! empty( $args['s'] ) ) {
+		if ( ( ! is_admin() || wp_doing_ajax() ) && ! empty( $args['s'] ) ) {
 			/*
 			 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
 			 * which then get combined into one result set. By having separate clauses for each post type, we can then
