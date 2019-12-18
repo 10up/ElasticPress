@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Add filter `ep_get_hits_from_query` to modify retrieved Elasticsearch hits.
 * Make sure `post_type` array does not include keys. Fixes a bbPress issue.
 * Pass query object to EP response so we can check for main query. This fixes a faceting bug.
+* Add EP-Search-Term header to autosuggest requests to EP.io
 
 ## [3.2.6] - 2019-11-27
 
