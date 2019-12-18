@@ -73,6 +73,7 @@ function load_plugin() {
 	require_once __DIR__ . '/includes/functions.php';
 
 	echo 'WordPress version ' . $wp_version . "\n"; // phpcs:ignore
+	echo 'Elasticsearch version ' . \ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true ) . "\n"; // phpcs:ignore
 }
 
 tests_add_filter( 'muplugins_loaded', __NAMESPACE__ . '\load_plugin' );
