@@ -533,6 +533,12 @@ class AdminNotices {
 			return false;
 		}
 
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
 
 		if ( false !== $es_version ) {
@@ -540,7 +546,7 @@ class AdminNotices {
 		}
 
 		// Only dismissable on non-EP screens
-		if ( ! in_array( Screen::factory()->get_current_screen(), [ 'settings', 'dashboard' ], true ) ) {
+		if ( ! in_array( $screen, [ 'settings', 'dashboard' ], true ) ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$dismiss = get_site_option( 'ep_hide_host_error_notice', false );
 			} else {
