@@ -525,6 +525,13 @@ class Command extends WP_CLI_Command {
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
 
+		if ( ! function_exists( 'pcntl_signal' ) ) {
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run "wp delete transient ep_wpcli_sync" in case of failure' ) );
+		} else {
+			declare( ticks = 1 );
+			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );
+		}
+
 		$this->maybe_change_host( $assoc_args );
 		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
@@ -835,6 +842,10 @@ class Command extends WP_CLI_Command {
 			// Avoid running out of memory.
 			$this->stop_the_insanity();
 
+			// Just in case, let's make sure we're not indexing more than we have
+			if ( (int) $query_args['offset'] > (int) $query['total_objects'] + $per_page ) {
+				break;
+			}
 		}
 
 		if ( ! $no_bulk ) {
@@ -1296,4 +1307,16 @@ class Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Properly clean up when receiving SIGINT on indexing
+	 *
+	 * @param int $signal_no Signal number
+	 */
+	public function delete_transient_on_int( $signal_no ) {
+		if ( SIGINT === $signal_no ) {
+			$this->delete_transient();
+			WP_CLI::log( 'Deleted Transient, goodbye!' );
+			exit;
+		}
+	}
 }
