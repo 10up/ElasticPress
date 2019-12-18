@@ -352,14 +352,19 @@ class Autosuggest extends Feature {
 		$query = $this->generate_search_query();
 
 		$epas_options = [
-			'query'            => $query['body'],
-			'placeholder'      => $query['placeholder'],
-			'endpointUrl'      => esc_url( untrailingslashit( $endpoint_url ) ),
-			'selector'         => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-			'action'           => 'navigate',
-			'mimeTypes'        => [],
-			'triggerAnalytics' => ! empty( $settings['trigger_ga_event'] ),
+			'query'               => $query['body'],
+			'placeholder'         => $query['placeholder'],
+			'endpointUrl'         => esc_url( untrailingslashit( $endpoint_url ) ),
+			'selector'            => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			'action'              => 'navigate',
+			'mimeTypes'           => [],
+			'triggerAnalytics'    => ! empty( $settings['trigger_ga_event'] ),
+			'addSearchTermHeader' => false,
 		];
+
+		if ( Utils\is_epio() ) {
+			$epas_options['addSearchTermHeader'] = true;
+		}
 
 		/**
 		 * Output variables to use in Javascript

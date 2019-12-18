@@ -168,17 +168,23 @@ function esSearch( query, searchTerm ) {
 	// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
 	jQuery.support.cors = true;
 
-	return jQuery.ajax( {
+	const ajaxConfig = {
 		url: epas.endpointUrl,
 		type: 'post',
 		dataType: 'json',
 		crossDomain: true,
 		contentType: 'application/json; charset=utf-8',
-		headers: {
-			'EP-Search-Term': searchTerm
-		},
 		data: query // no longer need to JSON.stringify
-	} );
+	};
+
+	// only applies headers if using ep.io endpoint
+	if( epas.addSearchTermHeader ) {
+		ajaxConfig.headers = {
+			'EP-Search-Term': searchTerm
+		};
+	}
+
+	return jQuery.ajax( ajaxConfig );
 }
 
 /**
