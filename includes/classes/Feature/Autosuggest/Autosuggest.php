@@ -511,9 +511,9 @@ class Autosuggest extends Feature {
 		// But only fire this if we have object caching as otherwise this comes with a performance penalty.
 		// If we do not have object caching we cache only one value for 5 minutes in a transient.
 		if ( wp_using_ext_object_cache() ) {
-			$cache_key = md5( json_encode( $query['url'] ) . json_encode( $args ) );
+			$cache_key = md5( wp_json_encode( $query['url'] ) . wp_json_encode( $args ) );
 			$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
-			if ( false == $request ) {
+			if ( false === $request ) {
 				$request = wp_remote_request( $query['url'], $args );
 				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
 					$request->http_response->body = '';
@@ -523,7 +523,7 @@ class Autosuggest extends Feature {
 		} else {
 			$cache_key = 'ep_autosuggest_query_request_cache';
 			$request   = get_transient( $cache_key );
-			if ( false == $request ) {
+			if ( false === $request ) {
 				$request = wp_remote_request( $query['url'], $args );
 				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
 					$request->http_response->body = '';

@@ -885,7 +885,7 @@ class Elasticsearch {
 			 * @param  {array} $args Request arguments
 			 * @return {string} New url
 			 */
-			$query['url']  = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
+			$query['url'] = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
 
 			/**
 			 * Filter whether remote request should be intercepted

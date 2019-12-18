@@ -172,6 +172,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 	/**
 	 * Publish a post in the admin
+	 *
 	 * @param  array                       $data  Post data
 	 * @param  \WPAcceptance\PHPUnit\Actor $actor Current actor
 	 */
