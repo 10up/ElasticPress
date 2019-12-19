@@ -46,6 +46,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 = 3.3 =
 
 * Officially support Elasticsearch 7.5
+* Add optional Google Analytics Autosuggest tracking Event
 * Fix single node warning before sync has occurred.
 * When `ep_integrate` is set to false, do not apply faceting.
 * Fix search ordering error when there are no pointers.
