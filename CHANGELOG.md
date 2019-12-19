@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
-## [3.x]
+## [3.3] - 2018-12-18
 
 * Officially support Elasticsearch 7.5
 * Fix single node warning before sync has occurred.
@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Make sure `post_type` array does not include keys. Fixes a bbPress issue.
 * Pass query object to EP response so we can check for main query. This fixes a faceting bug.
 * Add EP-Search-Term header to autosuggest requests to EP.io
+* Clean up indexing transient on sigkill
 
 ## [3.2.6] - 2019-11-27
 

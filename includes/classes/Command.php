@@ -540,7 +540,7 @@ class Command extends WP_CLI_Command {
 		global $wp_actions;
 
 		if ( ! function_exists( 'pcntl_signal' ) ) {
-			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run "wp delete transient ep_wpcli_sync" in case the process is killed.' ) );
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp transient delete ep_wpcli_sync` in case the process is killed.' ) );
 		} else {
 			declare( ticks = 1 );
 			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );
