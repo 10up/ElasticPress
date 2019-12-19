@@ -76,7 +76,7 @@ class QueryIntegration {
 		if ( null === $new_users ) {
 			$formatted_args = $user_indexable->format_args( $query->query_vars, $query );
 
-			$ep_query = $user_indexable->query_es( $formatted_args, $query->query_vars );
+			$ep_query = $user_indexable->query_es( $formatted_args, $query->query_vars, null, $query );
 
 			if ( false === $ep_query ) {
 				return $results;

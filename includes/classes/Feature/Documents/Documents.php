@@ -91,9 +91,15 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function attachments_mapping( $mapping ) {
-		$mapping['mappings']['post']['properties']['attachments'] = array(
-			'type' => 'object',
-		);
+		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$mapping['mappings']['post']['properties']['attachments'] = array(
+				'type' => 'object',
+			);
+		} else {
+			$mapping['mappings']['properties']['attachments'] = array(
+				'type' => 'object',
+			);
+		}
 
 		return $mapping;
 	}
@@ -189,7 +195,7 @@ class Documents extends Feature {
 				 * @param  {string} $id Pipeline ID
 				 * @return  {string} new ID
 				 */
-				$path  = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
 			}
 		}
 

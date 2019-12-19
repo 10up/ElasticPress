@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.2.6
+ * Version:     3.3
  * Author:      10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '3.2.6' );
+define( 'EP_VERSION', '3.3' );
 
 /**
  * PSR-4-ish autoloading
@@ -69,7 +69,7 @@ spl_autoload_register(
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '6.4' );
+define( 'EP_ES_VERSION_MAX', '7.5' );
 define( 'EP_ES_VERSION_MIN', '5.0' );
 
 require_once __DIR__ . '/includes/compat.php';

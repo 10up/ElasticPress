@@ -94,7 +94,14 @@ class User extends Indexable {
 				$number = apply_filters( 'ep_max_results_window', 10000 );
 			}
 		} else {
-			$number = 10; // @todo Not sure what the default is.
+			/**
+			 * Filter max result size if set to -1
+			 *
+			 * @hook ep_max_results_window
+			 * @param  {int} $window Max result window
+			 * @return {int} New window
+			 */
+			$number = apply_filters( 'ep_max_results_window', 10000 );
 		}
 
 		$formatted_args = [

@@ -47,7 +47,7 @@ class Facets extends Feature {
 	 */
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
-		add_action( 'ep_valid_response', [ $this, 'get_aggs' ] );
+		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
@@ -195,6 +195,12 @@ class Facets extends Feature {
 			return false;
 		}
 
+		$ep_integrate = $query->get( 'ep_integrate', null );
+
+		if ( false === $ep_integrate ) {
+			return false;
+		}
+
 		if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
 			|| $query->is_post_type_archive()
 			|| $query->is_search()
@@ -299,9 +305,15 @@ class Facets extends Feature {
 	 * Hacky. Save aggregation data for later in a global
 	 *
 	 * @param  array $response ES response
+	 * @param  array $query Prepared Elasticsearch query
+	 * @param  array $query_args Current WP Query arguments
+	 * @param  mixed $query_object Could be WP_Query, WP_User_Query, etc.
 	 * @since  2.5
 	 */
-	public function get_aggs( $response ) {
+	public function get_aggs( $response, $query, $query_args, $query_object ) {
+		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $query_object->is_main_query() ) {
+			return;
+		}
 
 		$GLOBALS['ep_facet_aggs'] = false;
 

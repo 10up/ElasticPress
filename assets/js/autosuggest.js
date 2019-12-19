@@ -19,11 +19,42 @@ function selectAutosuggestItem( $localInput, text ) {
 }
 
 /**
- * Navigate to the selected item
+ * Navigate to the selected item, and provides
+ * event hook for JS customizations, like GA
  * @param event
  */
 function goToAutosuggestItem( $localInput, url ) {
-	return window.location.href = url;
+
+	const detail = {
+		searchTerm: $localInput[0].value,
+		url
+	};
+
+	triggerEvents( detail );
+
+	window.location.href = url;
+}
+
+
+/**
+ * Fires events when autosuggest results are clicked,
+ * and if GA tracking is activated
+ *
+ * @param detail
+ */
+function triggerEvents( detail ) {
+	const event = new CustomEvent( 'ep-autosuggest-click', { detail } );
+	window.dispatchEvent( event );
+
+	if( detail.searchTerm && 1 === parseInt( epas.triggerAnalytics ) && 'function' == typeof gtag ) {
+		const action = `click - ${detail.searchTerm}`;
+		// eslint-disable-next-line no-undef
+		gtag( 'event', action, {
+			'event_category' : 'EP :: Autosuggest',
+			'event_label' : detail.url,
+			'transport_type' : 'beacon',
+		} );
+	}
 }
 
 /**
@@ -137,17 +168,23 @@ function esSearch( query, searchTerm ) {
 	// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
 	jQuery.support.cors = true;
 
-	return jQuery.ajax( {
+	const ajaxConfig = {
 		url: epas.endpointUrl,
 		type: 'post',
 		dataType: 'json',
 		crossDomain: true,
 		contentType: 'application/json; charset=utf-8',
-		headers: {
-			'EP-Search-Term': searchTerm
-		},
 		data: query // no longer need to JSON.stringify
-	} );
+	};
+
+	// only applies headers if using ep.io endpoint
+	if( epas.addSearchTermHeader ) {
+		ajaxConfig.headers = {
+			'EP-Search-Term': searchTerm
+		};
+	}
+
+	return jQuery.ajax( ajaxConfig );
 }
 
 /**

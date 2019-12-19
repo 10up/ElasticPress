@@ -46,6 +46,7 @@ class Autosuggest extends Feature {
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',
+			'trigger_ga_event'     => false,
 		];
 
 		parent::__construct();
@@ -99,12 +100,22 @@ class Autosuggest extends Feature {
 		}
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
+
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
 				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
 				<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Google Analytics Events', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="trigger_ga_event_enabled"><input name="trigger_ga_event" id="trigger_ga_event_enabled" data-field-name="trigger_ga_event" class="setting-field" <?php checked( (bool) $settings['trigger_ga_event'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="trigger_ga_event_disabled"><input name="trigger_ga_event" id="trigger_ga_event_disabled" data-field-name="trigger_ga_event" class="setting-field" <?php checked( (bool) $settings['trigger_ga_event'], false ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<p class="field-description"><?php esc_html_e( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<?php
@@ -341,13 +352,19 @@ class Autosuggest extends Feature {
 		$query = $this->generate_search_query();
 
 		$epas_options = [
-			'query'       => $query['body'],
-			'placeholder' => $query['placeholder'],
-			'endpointUrl' => esc_url( untrailingslashit( $endpoint_url ) ),
-			'selector'    => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-			'action'      => 'navigate',
-			'mimeTypes'   => [],
+			'query'               => $query['body'],
+			'placeholder'         => $query['placeholder'],
+			'endpointUrl'         => esc_url( untrailingslashit( $endpoint_url ) ),
+			'selector'            => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			'action'              => 'navigate',
+			'mimeTypes'           => [],
+			'triggerAnalytics'    => ! empty( $settings['trigger_ga_event'] ),
+			'addSearchTermHeader' => false,
 		];
+
+		if ( Utils\is_epio() ) {
+			$epas_options['addSearchTermHeader'] = true;
+		}
 
 		/**
 		 * Output variables to use in Javascript
@@ -494,9 +511,9 @@ class Autosuggest extends Feature {
 		// But only fire this if we have object caching as otherwise this comes with a performance penalty.
 		// If we do not have object caching we cache only one value for 5 minutes in a transient.
 		if ( wp_using_ext_object_cache() ) {
-			$cache_key = md5( json_encode( $query['url'] ) . json_encode( $args ) );
+			$cache_key = md5( wp_json_encode( $query['url'] ) . wp_json_encode( $args ) );
 			$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
-			if ( false == $request ) {
+			if ( false === $request ) {
 				$request = wp_remote_request( $query['url'], $args );
 				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
 					$request->http_response->body = '';
@@ -506,7 +523,7 @@ class Autosuggest extends Feature {
 		} else {
 			$cache_key = 'ep_autosuggest_query_request_cache';
 			$request   = get_transient( $cache_key );
-			if ( false == $request ) {
+			if ( false === $request ) {
 				$request = wp_remote_request( $query['url'], $args );
 				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
 					$request->http_response->body = '';

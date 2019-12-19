@@ -37,6 +37,14 @@ return array(
 		 */
 		'index.mapping.total_fields.limit' => apply_filters( 'ep_total_field_limit', 5000 ),
 		/**
+		 * Filter whether Elasticsearch ignores malformed fields or not.
+		 *
+		 * @hook ep_ignore_malformed
+		 * @param  {bool} $ignore True for ignore
+		 * @return {bool} New value
+		 */
+		'index.mapping.ignore_malformed'   => apply_filters( 'ep_ignore_malformed', true ),
+		/**
 		 * Filter Elasticsearch max result window for posts
 		 *
 		 * @hook ep_max_result_window
@@ -44,6 +52,13 @@ return array(
 		 * @return {int} New number
 		 */
 		'index.max_result_window'          => apply_filters( 'ep_max_result_window', 1000000 ),
+		/**
+		 * Filter Elasticsearch maximum shingle difference
+		 *
+		 * @hook ep_max_shingle_diff
+		 * @param  {int} $number Max difference
+		 * @return {int} New number
+		 */
 		'index.max_shingle_diff'           => apply_filters( 'ep_max_shingle_diff', 8 ),
 		'analysis'                         => array(
 			'analyzer'   => array(
@@ -272,11 +287,11 @@ return array(
 			),
 			'post_date'             => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'post_date_gmt'         => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'post_title'            => array(
 				'type'   => 'text',
@@ -322,11 +337,11 @@ return array(
 			),
 			'post_modified'         => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'post_modified_gmt'     => array(
 				'type'   => 'date',
-				'format' => 'YYYY-MM-dd HH:mm:ss',
+				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
 			'post_parent'           => array(
 				'type' => 'long',

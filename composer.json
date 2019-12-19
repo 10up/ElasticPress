@@ -36,8 +36,8 @@
     "10up/wpacceptance": "dev-master"
   },
   "scripts": {
-    "lint": "phpcs .",
-    "lint-fix": "phpcbf .",
+    "lint": "phpcs elasticpress.php includes",
+    "lint-fix": "phpcbf elasticpress.php includes",
     "test": "phpunit",
     "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password mysql latest true"
   },

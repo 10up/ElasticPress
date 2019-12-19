@@ -1081,7 +1081,7 @@ class Post extends Indexable {
 			 * @param {array} $query_vars Query variables
 			 * @return  {array} New query
 			 */
-			$formatted_args['query']  = apply_filters( 'ep_formatted_args_query', $query, $args );
+			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args );
 		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
@@ -1149,7 +1149,7 @@ class Post extends Indexable {
 
 				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
-						'post_type.raw' => $post_types,
+						'post_type.raw' => array_values( $post_types ),
 					),
 				);
 

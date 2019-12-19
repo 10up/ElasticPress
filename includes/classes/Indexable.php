@@ -315,15 +315,16 @@ abstract class Indexable {
 	 * @param  array  $formatted_args Formatted es query arguments.
 	 * @param  array  $query_args WP_Query args.
 	 * @param  string $index Index(es) to query. Comma separate for multiple. Defaults to current.
+	 * @param  mixed  $query_object Could be WP_Query, WP_User_Query, etc.
 	 * @since  3.0
 	 * @return array
 	 */
-	public function query_es( $formatted_args, $query_args, $index = null ) {
+	public function query_es( $formatted_args, $query_args, $index = null, $query_object = null ) {
 		if ( null === $index ) {
 			$index = $this->get_index_name();
 		}
 
-		return Elasticsearch::factory()->query( $index, $this->slug, $formatted_args, $query_args );
+		return Elasticsearch::factory()->query( $index, $this->slug, $formatted_args, $query_args, $query_object );
 	}
 
 	/**
