@@ -53,6 +53,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Make sure `post_type` array does not include keys. Fixes a bbPress issue.
 * Pass query object to EP response so we can check for main query. This fixes a faceting bug.
 * Add EP-Search-Term header to autosuggest requests to EP.io
+* Clean up indexing transient on sigkill
 
 = 3.2.6 =
 This is a bugfix release
