@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ## [3.3] - 2018-12-18
 
 * Officially support Elasticsearch 7.5
+* Add optional Google Analytics Autosuggest tracking Event
 * Fix single node warning before sync has occurred.
 * When `ep_integrate` is set to false, do not apply faceting.
 * Fix search ordering error when there are no pointers.
