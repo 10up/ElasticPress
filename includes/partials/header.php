@@ -6,7 +6,8 @@
  * @package elasticpress
  */
 
-use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Screen;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -20,7 +21,7 @@ $base_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'networ
 
 	<div class="icons">
 		<span class="sync-status"></span>
-		<?php if ( ! empty( $_GET['page'] ) && ( 'elasticpress' === $_GET['page'] || 'elasticpress-settings' === $_GET['page'] ) ) : ?>
+		<?php if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'health' ], true ) ) : ?>
 			<a class="dashicons pause-sync dashicons-controls-pause"></a>
 			<a class="dashicons resume-sync dashicons-controls-play"></a>
 			<a class="dashicons cancel-sync dashicons-no"></a>

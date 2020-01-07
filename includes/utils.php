@@ -80,6 +80,14 @@ function get_index_prefix() {
 		$prefix = '';
 	}
 
+	/**
+	 * Filter index prefix. Defaults to nothing
+	 *
+	 * @since  2.5
+	 * @hook ep_index_prefix
+	 * @param  {string} $prefix Current prefix
+	 * @return  {string} New prefix
+	 */
 	return apply_filters( 'ep_index_prefix', $prefix );
 }
 
@@ -91,6 +99,25 @@ function get_index_prefix() {
  */
 function is_epio() {
 	return preg_match( '#elasticpress\.io#i', get_host() );
+}
+
+/**
+ * Determine if we should index a blog/site
+ *
+ * @param  int $blog_id Blog/site id
+ * @since  3.2
+ * @return boolean
+ */
+function is_site_indexable( $blog_id = null ) {
+	$site = get_site( $blog_id );
+
+	$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
+
+	if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
+		return false;
+	}
+
+	return true;
 }
 
 /**
@@ -123,11 +150,21 @@ function sanitize_credentials( $credentials ) {
 function is_indexing() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$index_meta = get_site_option( 'ep_index_meta', false );
+		$wpcli_sync = get_site_transient( 'ep_wpcli_sync' );
 	} else {
 		$index_meta = get_option( 'ep_index_meta', false );
+		$wpcli_sync = get_transient( 'ep_wpcli_sync' );
 	}
 
-	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) ) );
+	/**
+	 * Filter whether an index is occurring in dashboard or CLI
+	 *
+	 * @since  3.0
+	 * @hook ep_is_indexing
+	 * @param  {bool} $indexing True for indexing
+	 * @return {bool} New indexing value
+	 */
+	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) || ! empty( $wpcli_sync ) ) );
 }
 
 /**
@@ -143,6 +180,14 @@ function is_indexing_wpcli() {
 		$is_indexing = (bool) get_transient( 'ep_wpcli_sync', false );
 	}
 
+	/**
+	 * Filter whether a CLI sync is occuring
+	 *
+	 * @since  3.0
+	 * @hook ep_is_indexing_wpcli
+	 * @param  {bool} $indexing True for indexing
+	 * @return {bool} New indexing value
+	 */
 	return apply_filters( 'ep_is_indexing_wpcli', $is_indexing );
 }
 
@@ -162,7 +207,36 @@ function get_host() {
 		$host = get_option( 'ep_host', false );
 	}
 
+	/**
+	 * Filter ElasticPress host to use
+	 *
+	 * @since  2.1
+	 * @hook ep_host
+	 * @param  {string} $host Current EP host
+	 * @return  {string} Host to use
+	 */
 	return apply_filters( 'ep_host', $host );
+}
+
+/**
+ * Get a site. Wraps get_site for formatting purposes
+ *
+ * @param  int $site_id Site/blog id
+ * @since 3.2
+ * @return array
+ */
+function get_site( $site_id ) {
+	$site = \get_site( $site_id );
+
+	return [
+		'blog_id'  => $site->blog_id,
+		'domain'   => $site->domain,
+		'path'     => $site->path,
+		'site_id'  => $site->site_id,
+		'deleted'  => $site->deleted,
+		'archived' => $site->archived,
+		'spam'     => $site->spam,
+	];
 }
 
 /**
@@ -173,6 +247,14 @@ function get_host() {
  * @return array
  */
 function get_sites( $limit = 0 ) {
+	/**
+	 * Filter arguments to use to query for sites on network
+	 *
+	 * @since  2.1
+	 * @hook ep_indexable_sites_args
+	 * @param  {array} $args Array of args to query sites with. See WP_Site_Query
+	 * @return {array} New arguments
+	 */
 	$args = apply_filters(
 		'ep_indexable_sites_args',
 		array(
@@ -185,14 +267,17 @@ function get_sites( $limit = 0 ) {
 	$sites        = [];
 
 	foreach ( $site_objects as $site ) {
-		$sites[] = array(
-			'blog_id' => $site->blog_id,
-			'domain'  => $site->domain,
-			'path'    => $site->path,
-			'site_id' => $site->site_id,
-		);
+		$sites[] = get_site( $site->blog_id );
 	}
 
+	/**
+	 * Filter indexable sites
+	 *
+	 * @since  3.0
+	 * @hook ep_indexable_sites
+	 * @param  {array} $sites Current sites. Instances of WP_Site
+	 * @return  {array} New array of sites
+	 */
 	return apply_filters( 'ep_indexable_sites', $sites );
 }
 
@@ -356,11 +441,12 @@ function get_language() {
 	$ep_language = ! empty( $ep_language ) ? $ep_language : get_locale();
 
 	/**
-	 * Filter for the default language.
+	 * Filter the default language to use at index time
 	 *
-	 * Modifies the default language used in Elasticsearch mapping.
-	 *
-	 * @param string The current language.
+	 * @since  3.1
+	 * @param {string} The current language.
+	 * @hook ep_default_language
+	 * @return  {string} New language
 	 */
 	return apply_filters( 'ep_default_language', $ep_language );
 }

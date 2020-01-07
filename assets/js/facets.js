@@ -15,8 +15,8 @@ jQuery( facetTerms ).on( 'keyup', '.facet-search', _.debounce( ( event ) => {
 	const terms = event.delegateTarget.querySelectorAll( '.term' );
 
 	terms.forEach( ( term ) => {
-		var slug = term.getAttribute( 'data-term-slug' );
-		var name = term.getAttribute( 'data-term-name' );
+		const slug = term.getAttribute( 'data-term-slug' );
+		const name = term.getAttribute( 'data-term-name' );
 
 		if ( name.includes( searchTerm ) || slug.includes( searchTerm ) ) {
 			term.classList.remove( 'hide' );

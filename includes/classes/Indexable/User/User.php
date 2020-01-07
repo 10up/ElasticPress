@@ -56,11 +56,12 @@ class User extends Indexable {
 	/**
 	 * Format query vars into ES query
 	 *
-	 * @param  array $query_vars WP_User_Query args.
+	 * @param  array         $query_vars WP_User_Query args.
+	 * @param  WP_User_Query $query      User query object
 	 * @since  3.0
 	 * @return array
 	 */
-	public function format_args( $query_vars ) {
+	public function format_args( $query_vars, $query ) {
 		global $wpdb;
 
 		/**
@@ -82,10 +83,25 @@ class User extends Indexable {
 				 *
 				 * @since 2.3.0
 				 */
+
+				/**
+				 * Filter max result size if set to -1
+				 *
+				 * @hook ep_max_results_window
+				 * @param  {int} $window Max result window
+				 * @return {int} New window
+				 */
 				$number = apply_filters( 'ep_max_results_window', 10000 );
 			}
 		} else {
-			$number = 10; // @todo Not sure what the default is.
+			/**
+			 * Filter max result size if set to -1
+			 *
+			 * @hook ep_max_results_window
+			 * @param  {int} $window Max result window
+			 * @return {int} New window
+			 */
+			$number = apply_filters( 'ep_max_results_window', 10000 );
 		}
 
 		$formatted_args = [
@@ -120,7 +136,7 @@ class User extends Indexable {
 					$filter['bool']['must'][] = array(
 						'terms' => array(
 							'capabilities.' . $blog_id . '.roles' => [
-								$role,
+								strtolower( $role ),
 							],
 						),
 					);
@@ -130,6 +146,8 @@ class User extends Indexable {
 			} else {
 				if ( ! empty( $query_vars['role__in'] ) ) {
 					$roles_in = (array) $query_vars['role__in'];
+
+					$roles_in = array_map( 'strtolower', $roles_in );
 
 					$filter['bool']['must'][] = array(
 						'terms' => array(
@@ -147,7 +165,7 @@ class User extends Indexable {
 						$filter['bool']['must_not'][] = array(
 							'terms' => array(
 								'capabilities.' . $blog_id . '.roles' => [
-									$role,
+									strtolower( $role ),
 								],
 							),
 						);
@@ -413,6 +431,15 @@ class User extends Indexable {
 				];
 			}
 
+			/**
+			 * Filter search fields in user query
+			 *
+			 * @hook ep_user_search_fields
+			 * @param  {array} $prepared_search_fields Prepared search fields
+			 * @param  {array} $query_vars Query variables
+			 * @since  3.0
+			 * @return {array} Search fields
+			 */
 			$prepared_search_fields = apply_filters( 'ep_user_search_fields', $prepared_search_fields, $query_vars );
 
 			$query = array(
@@ -423,6 +450,16 @@ class User extends Indexable {
 								'query'  => $query_vars['search'],
 								'type'   => 'phrase',
 								'fields' => $prepared_search_fields,
+								/**
+								 * Filter boost for user match phrase query
+								 *
+								 * @hook ep_user_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @since  3.0
+								 * @return  {int} New phrase boost
+								 */
 								'boost'  => apply_filters( 'ep_user_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
 							),
 						),
@@ -430,6 +467,16 @@ class User extends Indexable {
 							'multi_match' => array(
 								'query'     => $query_vars['search'],
 								'fields'    => $prepared_search_fields,
+								/**
+								 * Filter boost for user match query
+								 *
+								 * @hook ep_user_match_boost
+								 * @param  {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @since  3.0
+								 * @return  {int} New boost
+								 */
 								'boost'     => apply_filters( 'ep_user_match_boost', 2, $prepared_search_fields, $query_vars ),
 								'fuzziness' => 0,
 								'operator'  => 'and',
@@ -439,6 +486,16 @@ class User extends Indexable {
 							'multi_match' => array(
 								'fields'    => $prepared_search_fields,
 								'query'     => $query_vars['search'],
+								/**
+								 * Filter fuzziness for user query
+								 *
+								 * @hook ep_user_fuzziness_arg
+								 * @param  {int} $fuzziness Fuzziness
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @since  3.0
+								 * @return  {int} New fuzziness
+								 */
 								'fuzziness' => apply_filters( 'ep_user_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
 							),
 						),
@@ -446,6 +503,15 @@ class User extends Indexable {
 				),
 			);
 
+			/**
+			 * Filter formatted Elasticsearch user query (only contains query part)
+			 *
+			 * @hook ep_user_formatted_args_query
+			 * @param {array} $query Current query
+			 * @param {array} $query_vars Query variables
+			 * @since  3.0
+			 * @return  {array} New query
+			 */
 			$formatted_args['query'] = apply_filters( 'ep_user_formatted_args_query', $query, $query_vars );
 
 		} else {
@@ -485,7 +551,17 @@ class User extends Indexable {
 			);
 		}
 
-		return apply_filters( 'ep_user_formatted_args', $formatted_args, $query_vars );
+		/**
+		 * Filter formatted Elasticsearch user query (entire query)
+		 *
+		 * @hook ep_user_formatted_args_query
+		 * @param {array} $formatted_args Formatted Elasticsearch query
+		 * @param {array} $query_vars Query variables
+		 * @param {array} $query Query part
+		 * @since  3.0
+		 * @return  {array} New query
+		 */
+		return apply_filters( 'ep_user_formatted_args', $formatted_args, $query_vars, $query );
 	}
 
 	/**
@@ -571,7 +647,7 @@ class User extends Indexable {
 				} elseif ( 'meta_value' === $orderby_clause ) {
 					if ( ! empty( $query_vars['meta_key'] ) ) {
 						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.value' => array(
+							'meta.' . $query_vars['meta_key'] . '.raw' => array(
 								'order' => $order,
 							),
 						);
@@ -610,7 +686,7 @@ class User extends Indexable {
 		$defaults = [
 			'number'  => 350,
 			'offset'  => 0,
-			'orderby' => 'id',
+			'orderby' => 'ID',
 			'order'   => 'desc',
 		];
 
@@ -618,6 +694,14 @@ class User extends Indexable {
 			$args['number'] = $args['per_page'];
 		}
 
+		/**
+		 * Filter query database arguments for user indexable
+		 *
+		 * @hook ep_user_query_db_args
+		 * @param {array} $args Database query arguments
+		 * @since  3.0
+		 * @return  {array} New arguments
+		 */
 		$args = apply_filters( 'ep_user_query_db_args', wp_parse_args( $args, $defaults ) );
 
 		$args['order'] = trim( strtolower( $args['order'] ) );
@@ -630,7 +714,7 @@ class User extends Indexable {
 		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
 		 * way to do that.
 		 */
-		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->prefix}users ORDER BY %s %s LIMIT %d, %d", $args['orderby'], $args['orderby'], (int) $args['offset'], (int) $args['number'] ) );
+		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} ORDER BY %s %s LIMIT %d, %d", $args['orderby'], $args['orderby'], (int) $args['offset'], (int) $args['number'] ) );
 
 		return [
 			'objects'       => $objects,
@@ -645,8 +729,44 @@ class User extends Indexable {
 	 * @return boolean
 	 */
 	public function put_mapping() {
-		$mapping = require apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/initial.php' );
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+		if ( empty( $es_version ) ) {
+			/**
+			 * Filter fallback Elasticsearch version
+			 *
+			 * @hook ep_fallback_elasticsearch_version
+			 * @param {string} $version Fall back Elasticsearch version
+			 * @return  {string} New version
+			 */
+			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
+		}
 
+		$mapping_file = 'initial.php';
+
+		if ( version_compare( $es_version, '5.0', '<' ) ) {
+			$mapping_file = 'pre-5-0.php';
+		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
+			$mapping_file = '7-0.php';
+		}
+
+		/**
+		 * Filter user indexable mapping file
+		 *
+		 * @hook ep_user_mapping_file
+		 * @param {string} $file Path to file
+		 * @since  3.0
+		 * @return  {string} New file path
+		 */
+		$mapping = require apply_filters( 'ep_user_mapping_file', __DIR__ . '/../../../mappings/user/' . $mapping_file );
+
+		/**
+		 * Filter user indexable mapping
+		 *
+		 * @hook ep_user_mapping
+		 * @param {array} $mapping Mapping
+		 * @since  3.0
+		 * @return  {array} New mapping
+		 */
 		$mapping = apply_filters( 'ep_user_mapping', $mapping );
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
@@ -681,6 +801,15 @@ class User extends Indexable {
 			'meta'            => $this->prepare_meta_types( $this->prepare_meta( $user_id ) ),
 		];
 
+		/**
+		 * Filter prepared user document before index
+		 *
+		 * @hook ep_user_sync_args
+		 * @param {array} $user_args Document
+		 * @param  {int} $user_id User ID
+		 * @since  3.0
+		 * @return  {array} New document
+		 */
 		$user_args = apply_filters( 'ep_user_sync_args', $user_args, $user_id );
 
 		return $user_args;
@@ -738,26 +867,24 @@ class User extends Indexable {
 		$prepared_meta = [];
 
 		/**
-		 * Filter index-able private meta
+		 * Filter indexable private meta for users
 		 *
-		 * Allows for specifying private meta keys that may be indexed in the same manor as public meta keys.
-		 *
-		 * @since 3.0
-		 *
-		 * @param         array Array of index-able private meta keys.
-		 * @param WP_Post $post The current post to be indexed.
+		 * @hook ep_prepare_user_meta_allowed_protected_keys
+		 * @param {array} $meta Meta keys
+		 * @param  {int} $user_id User ID
+		 * @since  3.0
+		 * @return  {array} New meta array
 		 */
 		$allowed_protected_keys = apply_filters( 'ep_prepare_user_meta_allowed_protected_keys', [], $user_id );
 
 		/**
-		 * Filter non-indexed public meta
+		 * Filter out excluded indexable public meta keys for users
 		 *
-		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
-		 *
-		 * @since 3.0
-		 *
-		 * @param         array Array of public meta keys to exclude from index.
-		 * @param WP_Post $post The current post to be indexed.
+		 * @hook ep_prepare_user_meta_excluded_public_keys
+		 * @param {array} $meta Meta keys
+		 * @param  {int} $user_id User ID
+		 * @since  3.0
+		 * @return  {array} New meta array
 		 */
 		$excluded_public_keys = apply_filters(
 			'ep_prepare_user_meta_excluded_public_keys',
@@ -783,6 +910,16 @@ class User extends Indexable {
 				}
 			}
 
+			/**
+			 * Filter whether to whitelist a specific user meta key
+			 *
+			 * @hookep_prepare_user_meta_whitelist_key
+			 * @param {bool} $index True to force index
+			 * @param {string} $key User meta key
+			 * @param  {int} $user_id User ID
+			 * @since  3.0
+			 * @return  {bool} New index value
+			 */
 			if ( true === $allow_index || apply_filters( 'ep_prepare_user_meta_whitelist_key', false, $key, $user_id ) ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}

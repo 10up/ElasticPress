@@ -48,6 +48,13 @@ class Documents extends Feature {
 		add_action( 'ep_dashboard_put_mapping', [ $this, 'create_pipeline' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'index_attachment_post_type' ] );
 		add_filter( 'ep_searchable_post_types', [ $this, 'search_attachment_post_type' ] );
+
+		// Autosuggest Compatibility
+		add_filter( 'ep_autosuggest_options', [ $this, 'filter_autosuggest_options' ] );
+		add_filter( 'ep_term_suggest_post_status', [ $this, 'filter_autosuggest_post_status' ] );
+
+		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'filter_weightable_fields_for_post_type' ], 10, 2 );
+		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'filter_attachment_post_type_weights' ], 10, 2 );
 	}
 
 	/**
@@ -84,9 +91,15 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function attachments_mapping( $mapping ) {
-		$mapping['mappings']['post']['properties']['attachments'] = array(
-			'type' => 'object',
-		);
+		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$mapping['mappings']['post']['properties']['attachments'] = array(
+				'type' => 'object',
+			);
+		} else {
+			$mapping['mappings']['properties']['attachments'] = array(
+				'type' => 'object',
+			);
+		}
 
 		return $mapping;
 	}
@@ -127,7 +140,17 @@ class Documents extends Feature {
 		}
 
 		if ( empty( $post_status ) ) {
-			$post_status = array( 'inherit', 'publish' );
+			$post_status = array_values(
+				get_post_stati(
+					[
+						'public'              => true,
+						'exclude_from_search' => false,
+					]
+				)
+			);
+
+			// Add inherit for documents
+			$post_status[] = 'inherit';
 		} else {
 			if ( is_string( $post_status ) ) {
 				$post_status = explode( ' ', $post_status );
@@ -165,7 +188,14 @@ class Documents extends Feature {
 		if ( 'attachment' === $post['post_type'] ) {
 			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types(), true ) ) {
 				$index = Indexables::factory()->get( 'post' )->get_index_name();
-				$path  = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+				/**
+				 * Filter documents pipeline ID
+				 *
+				 * @hook ep_documents_pipeline_id
+				 * @param  {string} $id Pipeline ID
+				 * @return  {string} new ID
+				 */
+				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
 			}
 		}
 
@@ -221,9 +251,7 @@ class Documents extends Feature {
 		if ( ! is_array( $search_fields ) ) {
 			return $search_fields;
 		}
-
 		$search_fields[] = 'attachments.attachment.content';
-
 		return $search_fields;
 	}
 
@@ -258,6 +286,13 @@ class Documents extends Feature {
 
 		return add_query_arg(
 			array(
+				/**
+				 * Filter documents pipeline ID
+				 *
+				 * @hook ep_documents_pipeline_id
+				 * @param  {string} $id Pipeline ID
+				 * @return  {string} new ID
+				 */
 				'pipeline' => apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ),
 			),
 			$path
@@ -271,11 +306,10 @@ class Documents extends Feature {
 	 * @return mixed
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
+		$status = new FeatureRequirementsStatus( 1 );
 
 		$plugins = Elasticsearch::factory()->get_elasticsearch_plugins();
 
-		$status->code    = 1;
 		$status->message = [];
 
 		// Ingest attachment plugin is required for this feature.
@@ -283,7 +317,7 @@ class Documents extends Feature {
 			$status->code      = 2;
 			$status->message[] = __( 'The <a href="https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html">Ingest Attachment plugin</a> for Elasticsearch is not installed. To get the most out of ElasticPress, without the hassle of Elasticsearch management, check out <a href="https://elasticpress.io">ElasticPress.io</a> hosting.', 'elasticpress' );
 		} else {
-			$status->code      = 0;
+			$status->code      = 1;
 			$status->message[] = __( 'This feature modifies the default user experience for your visitors by adding popular document file types to search results. <strong>All supported documents</strong> uploaded to your media library will appear in search results.', 'elasticpress' );
 		}
 
@@ -356,6 +390,13 @@ class Documents extends Feature {
 			),
 		);
 
+		/**
+		 * Filter documents pipeline ID
+		 *
+		 * @hook ep_documents_pipeline_id
+		 * @param  {string} $id Pipeline ID
+		 * @return  {string} new ID
+		 */
 		Elasticsearch::factory()->create_pipeline( apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' ), $args );
 	}
 
@@ -366,6 +407,13 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function get_allowed_ingest_mime_types() {
+		/**
+		 * Filter allowed mime types for documents
+		 *
+		 * @hook ep_allowed_documents_ingest_mime_types
+		 * @param  {array} $mime_types Allowed mime types
+		 * @return  {array} New types
+		 */
 		return apply_filters(
 			'ep_allowed_documents_ingest_mime_types',
 			array(
@@ -378,6 +426,82 @@ class Documents extends Feature {
 				'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 			)
 		);
+	}
+
+	/**
+	 * Filters autosuggest options to add the mime type filters
+	 *
+	 * @param array $options Current autosuggest options
+	 *
+	 * @return array
+	 */
+	public function filter_autosuggest_options( $options ) {
+		$mime_types = isset( $options['mimeTypes'] ) && is_array( $options['mimeTypes'] ) ? $options['mimeTypes'] : array();
+
+		$mime_types = array_merge( $mime_types, $this->get_allowed_ingest_mime_types(), [ '' ] ); // Empty type matches any other post type without mime type set
+
+		$options['mimeTypes'] = $mime_types;
+
+		return $options;
+	}
+
+	/**
+	 * Adds the "inherit" post status to allowed post statuses for autosuggest searches
+	 *
+	 * @param array $post_statuses Current post statuses
+	 *
+	 * @return array
+	 */
+	public function filter_autosuggest_post_status( $post_statuses ) {
+		$post_statuses[] = 'inherit';
+
+		return $post_statuses;
+	}
+
+	/**
+	 * Filters the weightable fields for attachments.
+	 *
+	 * Adds the document content field and changes the post_content and post_excerpt labels to "Description" and "Caption"
+	 *
+	 * @param array  $fields    Current weightable fields
+	 * @param string $post_type The post type the weightable fields apply to
+	 *
+	 * @return array Final weightable fields for post type
+	 */
+	public function filter_weightable_fields_for_post_type( $fields, $post_type ) {
+		if ( 'attachment' === $post_type ) {
+			// Updates labels for description and caption
+			// @todo this might need to move to Protected Content if attachments are enabled there
+			$fields['attributes']['children']['post_content']['label'] = __( 'Description', 'elasticpress' );
+			$fields['attributes']['children']['post_excerpt']['label'] = __( 'Caption', 'elasticpress' );
+
+			// Adds new field
+			$fields['attributes']['children']['attachments.attachment.content'] = [
+				'key'   => 'attachments.attachment.content',
+				'label' => __( 'Document Content', 'elasticpress' ),
+			];
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Filters the default weight values to add attachment-specific weights
+	 *
+	 * @param array  $weights   Current weight settings
+	 * @param string $post_type The post type the weights apply to
+	 *
+	 * @return array Final weights
+	 */
+	public function filter_attachment_post_type_weights( $weights, $post_type ) {
+		if ( 'attachment' === $post_type ) {
+			$weights['attachments.attachment.content'] = [
+				'enabled' => true,
+				'weight'  => 0,
+			];
+		}
+
+		return $weights;
 	}
 }
 

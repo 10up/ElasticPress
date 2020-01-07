@@ -1,0 +1,26 @@
+{
+  "opts": {
+      "destination": "docs-built",
+      "template": "node_modules/wp-hookdoc/template",
+      "recurse": true,
+      "readme": "./.github/hookdoc-tmpl/README.md",
+      "tutorials": "./docs"
+  },
+  "source": {
+      "includePattern": ".+\\.(php|inc)?$"
+  },
+  "plugins": [
+    "node_modules/wp-hookdoc/plugin",
+    "plugins/markdown"
+  ],
+  "templates":  {
+    "default": {
+      "layoutFile": ".github/hookdoc-tmpl/layout.tmpl",
+      "staticFiles": {
+        "include": [
+          "./.github/hookdoc-tmpl/static"
+        ]
+      }
+    }
+  }
+}

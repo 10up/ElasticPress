@@ -24,7 +24,10 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 $version = Elasticsearch::factory()->get_elasticsearch_version();
 
-$host = Utils\get_host();
+$host        = Utils\get_host();
+$is_epio     = Utils\is_epio();
+$credentials = Utils\get_epio_credentials();
+$wpconfig    = defined( 'EP_HOST' ) && EP_HOST;
 
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$bulk_setting = get_site_option( 'ep_bulk_setting', 350 );
@@ -39,26 +42,117 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 <div class="wrap">
 	<h1><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h1>
 
-	<form action="<?php echo esc_attr( $action ); ?>" method="post">
+	<form action="<?php echo esc_attr( $action ); ?>" method="post" class="ep-settings">
 		<?php settings_fields( 'elasticpress' ); ?>
 		<?php settings_errors(); ?>
 
+		<div class="ep-credentials">
+			<?php if ( ! $wpconfig ) : ?>
+				<h2 class="nav-tab-wrapper ep-credentials-tabs">
+					<button class="nav-tab ep-credentials-tab <?php if ( ! $host || $is_epio ) { ?>nav-tab-active initial<?php } ?>" data-epio>
+						<img src="<?php echo esc_url( plugins_url( '/images/logo-icon.svg', dirname( __DIR__ ) ) ); ?>" width="16" height="16" alt="ElasticPress.io" />
+						<span>ElasticPress.io</span>
+					</button>
+					<button class="nav-tab ep-credentials-tab <?php if ( $host && ! $is_epio ) { ?>nav-tab-active initial<?php } ?>">
+						<span>Third-Party/Self-Hosted</span>
+					</button>
+				</h2>
+			<?php endif; ?>
+
+			<fieldset class="<?php if ( $wpconfig ) { ?>predefined<?php } ?>">
+				<?php if ( $is_epio || ! $wpconfig ) : ?>
+					<p class="ep-legend ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>" aria-hidden="<?php if ( $host && ! $is_epio ) { ?>true<?php } else { ?>false<?php } ?>">
+						<a href="http://elasticpress.io/" target="_blank" rel="noreferrer noopener">ElasticPress.io</a> is a hosted Elasticsearch service built for ElasticPress, powered by <a href="https://10up.com/" target="_blank" rel="noreferrer noopener">10up</a>.
+					</p>
+				<?php endif; ?>
+				<table class="form-table">
+					<tbody>
+						<tr class="ep-host-row">
+							<th scope="row">
+								<label for="ep_host">
+									<?php if ( $is_epio ) : ?>
+										<?php esc_html_e( 'ElasticPress.io Host URL', 'elasticpress' ); ?>
+									<?php else : ?>
+										<?php esc_html_e( 'Elasticsearch Host URL', 'elasticpress' ); ?>
+									<?php endif; ?>
+								</label>
+							</th>
+							<td>
+								<?php
+								/**
+								 * Filter whether to show host field in admin UI or not
+								 *
+								 * @hook ep_admin_show_host
+								 * @param  {boolean} $show True to show
+								 * @return {boolean} New value
+								 */
+								if ( apply_filters( 'ep_admin_show_host', true ) ) :
+									?>
+									<input <?php if ( $wpconfig ) { ?>disabled<?php } ?> placeholder="http://" type="text" value="<?php echo esc_url( $host ); ?>" name="ep_host" id="ep_host">
+								<?php endif ?>
+								<?php if ( $wpconfig ) : ?>
+									<legend class="description ep-host-legend"><?php esc_html_e( 'Host already defined in wp-config.php.', 'elasticpress' ); ?></legend>
+								<?php else : ?>
+									<?php if ( $is_epio ) : ?>
+										<legend class="description ep-host-legend"><?php esc_html_e( 'Plug in your ElasticPress.io server here!', 'elasticpress' ); ?></legend>
+									<?php else : ?>
+										<legend class="description ep-host-legend"><?php esc_html_e( 'Plug in your Elasticsearch server here!', 'elasticpress' ); ?></legend>
+									<?php endif; ?>
+								<?php endif; ?>
+							</td>
+						</tr>
+						<?php if ( $is_epio || ! $wpconfig ) : ?>
+							<tr class="ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>" aria-hidden="<?php if ( $host && ! $is_epio ) { ?>true<?php } else { ?>false<?php } ?>">
+								<th scope="row">
+									<label for="ep_prefix"><?php esc_html_e( 'Subscription ID', 'elasticpress' ); ?></label>
+								</th>
+								<td>
+									<?php
+									/**
+									 * Filter whether to show index prefix field in admin UI or not
+									 *
+									 * @hook ep_admin_index_prefix
+									 * @param  {boolean} $show True to show
+									 * @return {boolean} New value
+									 */
+									if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) :
+										?>
+										<input <?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( rtrim( Utils\get_index_prefix(), '-' ) ); ?>" name="ep_prefix" id="ep_prefix">
+									<?php endif ?>
+									<?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>
+										<legend class="description"><?php esc_html_e( 'Your Subscription ID is set in wp-config.php', 'elasticpress' ); ?></legend>
+									<?php else : ?>
+										<legend class="description"><?php esc_html_e( 'Plug in your Subscription ID here.', 'elasticpress' ); ?></legend>
+									<?php endif; ?>
+								</td>
+							</tr>
+
+							<tr class="ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>" aria-hidden="<?php if ( $host && ! $is_epio ) { ?>true<?php } else { ?>false<?php } ?>">
+								<th scope="row">
+									<label for="ep_username"><?php esc_html_e( 'Subscription Username', 'elasticpress' ); ?></label>
+								</th>
+								<td>
+									<input type="text" value="<?php echo esc_attr( $credentials['username'] ); ?>" name="ep_credentials[username]" id="ep_username">
+									<legend class="description"><?php esc_html_e( 'Plug in your subscription username here.', 'elasticpress' ); ?></legend>
+								</td>
+							</tr>
+
+							<tr class="ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>" aria-hidden="<?php if ( $host && ! $is_epio ) { ?>true<?php } else { ?>false<?php } ?>">
+								<th scope="row">
+									<label for="ep_token"><?php esc_html_e( 'Subscription Token', 'elasticpress' ); ?></label></th>
+								<td>
+									<input type="text" value="<?php echo esc_attr( $credentials['token'] ); ?>" name="ep_credentials[token]" id="ep_token">
+									<legend class="description"><?php esc_html_e( 'Plug in your subscription token here.', 'elasticpress' ); ?></legend>
+								</td>
+							</tr>
+						<?php endif; ?>
+					</tbody>
+				</table>
+			</fieldset>
+		</div>
+
 		<table class="form-table">
 			<tbody>
-			<tr>
-				<th scope="row">
-					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Host', 'elasticpress' ); ?></label></th>
-				<td>
-					<?php if ( apply_filters( 'ep_admin_show_host', true ) ) : ?>
-						<input <?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>disabled<?php endif; ?> placeholder="http://" type="text" value="<?php echo esc_url( $host ); ?>" name="ep_host" id="ep_host">
-					<?php endif ?>
-					<?php if ( defined( 'EP_HOST' ) && EP_HOST ) : ?>
-						<span class="description"><?php esc_html_e( 'Your Elasticsearch host is set in wp-config.php', 'elasticpress' ); ?></span>
-					<?php else : ?>
-						<span class="description"><?php esc_html_e( 'Plug in your Elasticsearch server here!', 'elasticpress' ); ?></span>
-					<?php endif; ?>
-				</td>
-			</tr>
 			<tr>
 				<th scope="row">
 					<label for="ep_language"><?php esc_html_e( 'Elasticsearch Language', 'elasticpress' ); ?></label>
@@ -75,17 +169,21 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 						]
 					);
 					?>
-					<span class="description"><?php esc_html_e( 'Default language for your Elasticsearch mapping.', 'elasticpress' ); ?></span>
+					<legend class="description"><?php esc_html_e( 'Default language for your Elasticsearch mapping.', 'elasticpress' ); ?></legend>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row">
 					<label for="ep_host"><?php esc_html_e( 'Elasticsearch Version', 'elasticpress' ); ?></label></th>
 				<td>
-					<?php if ( ! empty( $version ) ) : ?>
-						<span class="description"><?php echo esc_html( $version ); ?></span>
+					<?php if ( $is_epio ) : ?>
+						<?php esc_html_e( 'ElasticPress.io Managed Platform' ); ?>
 					<?php else : ?>
-						<span class="description">&mdash;</span>
+						<?php if ( ! empty( $version ) ) : ?>
+							<?php echo esc_html( $version ); ?>
+						<?php else : ?>
+							&mdash;
+						<?php endif; ?>
 					<?php endif; ?>
 				</td>
 			</tr>
@@ -99,50 +197,15 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					</td>
 				</tr>
 			<?php endif; ?>
-
-			<?php
-			if ( Utils\is_epio() ) {
-				$credentials = Utils\get_epio_credentials();
-				?>
-				<tr>
-					<th scope="row">
-						<label for="ep_prefix"><?php esc_html_e( 'Subscription ID', 'elasticpress' ); ?></label>
-					</th>
-					<td>
-						<?php if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) : ?>
-							<input <?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( rtrim( Utils\get_index_prefix(), '-' ) ); ?>" name="ep_prefix" id="ep_prefix">
-						<?php endif ?>
-						<?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>
-							<span class="description"><?php esc_html_e( 'Your Subscription ID is set in wp-config.php', 'elasticpress' ); ?></span>
-						<?php else : ?>
-							<span class="description"><?php esc_html_e( 'Plug in your Subscription ID here.', 'elasticpress' ); ?></span>
-						<?php endif; ?>
-					</td>
-				</tr>
-
-				<tr>
-					<th scope="row">
-						<label for="ep_username"><?php esc_html_e( 'Subscription Username', 'elasticpress' ); ?></label>
-					</th>
-					<td>
-						<input type="text" value="<?php echo esc_attr( $credentials['username'] ); ?>" name="ep_credentials[username]" id="ep_username">
-						<span class="description"><?php esc_html_e( 'Plug in your subscription username here.', 'elasticpress' ); ?></span>
-					</td>
-				</tr>
-
-				<tr>
-					<th scope="row">
-						<label for="ep_token"><?php esc_html_e( 'Subscription Token', 'elasticpress' ); ?></label></th>
-					<td>
-						<input type="text" value="<?php echo esc_attr( $credentials['token'] ); ?>" name="ep_credentials[token]" id="ep_token">
-						<span class="description"><?php esc_html_e( 'Plug in your subscription token here.', 'elasticpress' ); ?></span>
-					</td>
-				</tr>
-			<?php } ?>
 			</tbody>
 		</table>
 
 		<?php
+		/**
+		 * Fires after settings table is displayed for inserting custom settings.
+		 *
+		 * @hook ep_settings_custom
+		 */
 		do_action( 'ep_settings_custom' );
 		?>
 
