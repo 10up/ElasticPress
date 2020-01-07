@@ -1,5 +1,7 @@
 /* eslint-disable camelcase */
 import jQuery from 'jquery';
+import 'promise-polyfill/src/polyfill';
+import 'whatwg-fetch';
 import { epas } from 'window';
 
 /**
@@ -163,28 +165,36 @@ function buildSearchQuery( searchText, placeholder, { query } ) {
  * @param query - json string
  * @returns AJAX object request
  */
-function esSearch( query, searchTerm ) {
+async function esSearch( query, searchTerm ) {
 
-	// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
-	jQuery.support.cors = true;
-
-	const ajaxConfig = {
-		url: epas.endpointUrl,
-		type: 'post',
-		dataType: 'json',
-		crossDomain: true,
-		contentType: 'application/json; charset=utf-8',
-		data: query // no longer need to JSON.stringify
+	const fetchConfig = {
+		body: query,
+		method: 'POST',
+		mode: 'cors',
+		headers: {
+			'Content-Type': 'application/json; charset=utf-8',
+		}
 	};
 
 	// only applies headers if using ep.io endpoint
 	if( epas.addSearchTermHeader ) {
-		ajaxConfig.headers = {
-			'EP-Search-Term': searchTerm
-		};
+		fetchConfig.headers['EP-Search-Term'] = searchTerm;
 	}
 
-	return jQuery.ajax( ajaxConfig );
+	try {
+		const response = await fetch( epas.endpointUrl, fetchConfig );
+		if ( !response.ok ) {
+			throw Error( response.statusText );
+		}
+		return await response.json();
+	} catch( error ) {
+		// eslint-disable-next-line no-console
+		console.error( error );
+	}
+
+
+
+	// return jQuery.ajax( ajaxConfig );
 }
 
 /**
@@ -419,7 +429,8 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 				query = buildSearchQuery( searchText, placeholder, queryJSON );
 				request = esSearch( query, searchText );
 
-				request.done( ( response ) => {
+				request.then( ( response ) => {
+					// console.log( response );
 					if ( 0 < response._shards.successful ) {
 						const usedPosts = {};
 						const filteredObjects = [];
