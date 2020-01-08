@@ -25,29 +25,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * CLI Commands for ElasticPress
  */
 class Command extends WP_CLI_Command {
-	/**
-	 * Holds the objects that will be bulk indexed.
-	 *
-	 * @since 0.9
-	 * @var  array
-	 */
-	private $objects = [];
-
-	/**
-	 * Holds all of the objects that failed to index during a bulk index.
-	 *
-	 * @since 0.9
-	 * @var  array
-	 */
-	private $failed_objects = [];
-
-	/**
-	 * Holds error messages for individual objects that failed to index (assuming they're available).
-	 *
-	 * @since 1.7
-	 * @var  array
-	 */
-	private $failed_objects_message = [];
 
 	/**
 	 * Holds whether it's network transient or not
