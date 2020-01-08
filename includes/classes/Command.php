@@ -530,7 +530,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -648,7 +648,7 @@ class Command extends WP_CLI_Command {
 					if ( ! empty( $result['errors'] ) ) {
 						$this->delete_transient();
 
-						WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], count( $result['errors'] ) ) );
+						WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], $result['errors'] ) );
 					}
 				}
 
@@ -677,7 +677,7 @@ class Command extends WP_CLI_Command {
 				if ( ! empty( $result['errors'] ) ) {
 					$this->delete_transient();
 
-					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
+					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $result['errors'] ) );
 				}
 			}
 
@@ -717,7 +717,7 @@ class Command extends WP_CLI_Command {
 				if ( ! empty( $result['errors'] ) ) {
 					$this->delete_transient();
 
-					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
+					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $result['errors'] ) );
 				}
 			}
 		}
@@ -738,8 +738,12 @@ class Command extends WP_CLI_Command {
 	 * @return array
 	 */
 	private function index_helper( Indexable $indexable, $args ) {
-		$synced = 0;
-		$errors = [];
+		$synced              = 0;
+		$errors              = [];
+		$no_bulk_count       = 0;
+		$index_queue         = [];
+		$killed_object_count = 0;
+		$failed_objects      = [];
 
 		$no_bulk = false;
 
@@ -765,10 +769,10 @@ class Command extends WP_CLI_Command {
 			);
 		}
 
-		$show_bulk_errors = false;
+		$show_errors = false;
 
-		if ( isset( $args['show-bulk-errors'] ) ) {
-			$show_bulk_errors = true;
+		if ( isset( $args['show-errors'] ) || ( isset( $args['show-bulk-errors'] ) && ! $no_bulk ) || ( isset( $args['show-nobulk-errors'] ) && $no_bulk ) ) {
+			$show_errors = true;
 		}
 
 		$query_args = [];
@@ -807,7 +811,7 @@ class Command extends WP_CLI_Command {
 			/**
 			 * Reset bulk object queue
 			 */
-			$this->objects = [];
+			$objects = [];
 
 			if ( ! empty( $query['objects'] ) ) {
 
@@ -818,6 +822,18 @@ class Command extends WP_CLI_Command {
 						 * Index objects one by one
 						 */
 						$result = $indexable->index( $object->ID, true );
+
+						$no_bulk_count++;
+
+						if ( ! empty( $result->error ) ) {
+							if ( ! empty( $result->error->reason ) ) {
+								$failed_objects[ $object->ID ] = (array) $result->error;
+							} else {
+								$failed_objects[ $object->ID ] = null;
+							}
+						} else {
+							$synced++;
+						}
 
 						$this->reset_transient();
 
@@ -830,15 +846,81 @@ class Command extends WP_CLI_Command {
 						 */
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
 
-						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), ( $synced + 1 ), (int) $query['total_objects'] ) );
+						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), $no_bulk_count, (int) $query['total_objects'] ) );
 					} else {
-						$result = $this->queue_object( $indexable, $object->ID, count( $query['objects'] ), $show_bulk_errors );
-					}
+						/**
+						 * Conditionally kill indexing for a post
+						 *
+						 * @hook ep_{indexable_slug}_index_kill
+						 * @param  {bool} $index True means dont index
+						 * @param  {int} $object_id Object ID
+						 * @return {bool} New value
+						 */
+						if ( apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object_id ) ) {
+							$killed_object_count++;
+						} else {
 
-					if ( ! $result ) {
-						$errors[] = $object->ID;
-					} elseif ( true === $result || isset( $result->_index ) ) {
-						$synced ++;
+							/**
+							 * Put object in queue
+							 */
+							$objects[ $object->ID ] = true;
+						}
+
+						// If we have hit the trigger, initiate the bulk request.
+						if ( ! empty( $objects ) && ( count( $objects ) + $killed_object_count ) >= absint( $bulk_trigger ) ) {
+							$index_objects = $objects;
+
+							$this->reset_transient();
+
+							for ( $attempts = 1; $attempts <= 3; $attempts++ ) {
+								$response = $indexable->bulk_index( array_keys( $index_objects ) );
+
+								/**
+								 * Fires after bulk indexing in CLI
+								 *
+								 * @hook ep_cli_{indexable_slug}_bulk_index
+								 * @param  {array} $objects Objects being indexed
+								 * @param  {array} response Elasticsearch bulk index response
+								 */
+								do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $objects, $response );
+
+								if ( is_wp_error( $response ) ) {
+									$this->delete_transient();
+
+									if ( $show_errors ) {
+										if ( ! empty( $failed_objects ) ) {
+											$this->output_index_errors( $failed_objects, $indexable );
+										}
+									}
+
+									WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
+								}
+
+								if ( isset( $response['errors'] ) && true === $response['errors'] ) {
+									foreach ( $response['items'] as $item ) {
+										if ( empty( $item['index']['error'] ) ) {
+											unset( $index_objects[ $item['index']['_id'] ] );
+										}
+									}
+								} else {
+									$index_objects = [];
+
+									break;
+								}
+							}
+
+							$synced += count( $objects ) - count( $index_objects );
+
+							foreach ( $index_objects as $object_id => $value ) {
+								$failed_objects[ $object_id ] = (array) $item['index']['error'];
+							}
+
+							// reset killed count.
+							$killed_object_count = 0;
+
+							// reset the objects.
+							$objects = [];
+						}
 					}
 				}
 			} else {
@@ -858,195 +940,35 @@ class Command extends WP_CLI_Command {
 
 		}
 
-		if ( ! $no_bulk ) {
-			$this->send_bulk_errors();
+		if ( $show_errors ) {
+			$this->output_index_errors( $failed_objects, $indexable );
 		}
 
 		wp_reset_postdata();
 
 		return [
 			'synced' => $synced,
-			'errors' => $errors,
+			'errors' => count( $failed_objects ),
 		];
-	}
-
-	/**
-	 * Queues up an object for bulk indexing
-	 *
-	 * @param  Indexable $indexable Indexable instance.
-	 * @param  int       $object_id Object to queue.
-	 * @param  int       $bulk_trigger Number of posts to trigger index on.
-	 * @param  bool      $show_bulk_errors True to show individual post error messages for bulk.
-	 * @since  3.0
-	 * @return bool|int true if successfully synced, false if not or 2 if object was killed before sync
-	 */
-	private function queue_object( Indexable $indexable, $object_id, $bulk_trigger, $show_bulk_errors = false ) {
-		static $killed_object_count = 0;
-
-		$killed_object = false;
-
-		/**
-		 * Kill switch to skip an object
-		 */
-
-		/**
-		 * Conditionally kill indexing for a post
-		 *
-		 * @hook ep_{indexable_slug}_index_kill
-		 * @param  {bool} $index True means dont index
-		 * @param  {int} $object_id Object ID
-		 * @return {bool} New value
-		 */
-		if ( apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object_id ) ) {
-
-			$killed_object_count++;
-			$killed_object = true; // Save status for return.
-
-		} else {
-
-			/**
-			 * Put object in queue
-			 */
-			$this->objects[ $object_id ] = true;
-
-		}
-
-		// If we have hit the trigger, initiate the bulk request.
-		if ( ( count( $this->objects ) + $killed_object_count ) === absint( $bulk_trigger ) ) {
-			// Don't waste time if we've killed all the posts.
-			if ( ! empty( $this->objects ) ) {
-				$this->bulk_index( $indexable, $show_bulk_errors );
-			}
-
-			// reset killed count.
-			$killed_object_count = 0;
-
-			// reset the objects.
-			$this->objects = [];
-		}
-
-		if ( true === $killed_object ) {
-			return 2;
-		}
-
-		return true;
-
-	}
-
-	/**
-	 * Perform the bulk index operation
-	 *
-	 * @param  Indexable $indexable Indexable instance.
-	 * @param bool      $show_bulk_errors True to show individual post error messages for bulk errors.
-	 *
-	 * @since 0.9.2
-	 */
-	private function bulk_index( Indexable $indexable, $show_bulk_errors = false ) {
-		// monitor how many times we attempt to add this particular bulk request.
-		static $attempts = 0;
-
-		// augment the attempts.
-		$attempts++;
-
-		// make sure we actually have something to index.
-		if ( empty( $this->objects ) ) {
-			$this->delete_transient();
-
-			WP_CLI::error( 'There are no objects to index.' );
-		}
-
-		$response = $indexable->bulk_index( array_keys( $this->objects ) );
-
-		$this->reset_transient();
-
-		/**
-		 * Fires after bulk indexing in CLI
-		 *
-		 * @hook ep_cli_{indexable_slug}_bulk_index
-		 * @param  {array} $objects Objects being indexed
-		 */
-		do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $this->objects );
-
-		if ( is_wp_error( $response ) ) {
-			$this->delete_transient();
-
-			WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
-		}
-
-		/**
-		 * If we have errors, try broken documents up to 5 times. After 5 tries, log errors
-		 */
-		if ( isset( $response['errors'] ) && true === $response['errors'] ) {
-			if ( $attempts < 5 ) {
-				foreach ( $response['items'] as $item ) {
-					if ( empty( $item['index']['error'] ) ) {
-						unset( $this->objects[ $item['index']['_id'] ] );
-					}
-				}
-
-				$this->bulk_index( $indexable, $show_bulk_errors );
-			} else {
-				foreach ( $response['items'] as $item ) {
-					if ( ! empty( $item['index']['_id'] ) ) {
-						$this->failed_objects[] = [
-							'ID'        => $item['index']['_id'],
-							'indexable' => $indexable,
-							'error'     => $item['index']['error'],
-						];
-					}
-				}
-
-				$attempts = 0;
-			}
-		} else {
-			// there were no errors, all the objects were added.
-			$attempts = 0;
-		}
-	}
-
-	/**
-	 * Formatting bulk error message recursively
-	 *
-	 * @param  array $message_array Messages.
-	 * @since  2.2
-	 * @return string
-	 */
-	private function format_bulk_error_message( $message_array ) {
-		$message = '';
-
-		foreach ( $message_array as $key => $value ) {
-			if ( is_array( $value ) ) {
-				$message .= $this->format_bulk_error_message( $value );
-			} else {
-				$message .= "$key: $value" . PHP_EOL;
-			}
-		}
-
-		return $message;
 	}
 
 	/**
 	 * Send any bulk indexing errors
 	 *
-	 * @since 0.9.2
+	 * @param  array     $errors Error array
+	 * @param  Indexable $indexable Index indexable
+	 * @since 3.4
 	 */
-	private function send_bulk_errors() {
-		if ( ! empty( $this->failed_objects ) ) {
-			$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
+	private function output_index_errors( $errors, Indexable $indexable ) {
+		$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
 
-			foreach ( $this->failed_objects as $failed_array ) {
-				$error_text .= '- ' . $failed_array['ID'] . ' (' . $failed_array['indexable']->labels['singular'] . '): ' . "\r\n";
+		foreach ( $errors as $object_id => $error ) {
+			$error_text .= '- ' . $object_id . ' (' . $indexable->labels['singular'] . '): ' . "\r\n";
 
-				if ( ! empty( $failed_array['error'] ) ) {
-					$error_text .= $this->format_bulk_error_message( $failed_array['error'] ) . PHP_EOL;
-				}
-			}
-
-			WP_CLI::log( $error_text );
-
-			// clear failed objects after printing to the screen.
-			$this->failed_posts = [];
+			$error_text .= '[' . $error['type'] . '] ' . $error['reason'] . "\r\n";
 		}
+
+		WP_CLI::log( $error_text );
 	}
 
 	/**
