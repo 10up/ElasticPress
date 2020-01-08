@@ -697,45 +697,63 @@ class Post extends Indexable {
 		 * @since 0.9.1
 		 */
 
-		// set tax_query if it's implicitly set in the query.
-		// e.g. $args['tag'], $args['category_name'].
-		if ( empty( $args['tax_query'] ) ) {
-			switch ( $args ) {
-				case ! empty( $args['category_name'] ):
-					$args['tax_query'][] = array(
-						'taxonomy' => 'category',
-						'terms'    => array( $args['category_name'] ),
-						'field'    => 'slug',
-					);
-					break;
-				case ! empty( $args['cat'] ):
-					$args['tax_query'][] = array(
-						'taxonomy' => 'category',
-						'terms'    => array( $args['cat'] ),
-						'field'    => 'id',
-					);
-					break;
-				case ! empty( $args['tag'] ):
-					$args['tax_query'][] = array(
-						'taxonomy' => 'post_tag',
-						'terms'    => array( $args['tag'] ),
-						'field'    => 'slug',
-					);
-					break;
-				case ! empty( $args['tag__and'] ):
-					$args['tax_query'][] = array(
-						'taxonomy' => 'post_tag',
-						'terms'    => $args['tag__and'],
-						'field'    => 'term_id',
-					);
-					break;
-				case ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ):
-					$args['tax_query'][] = array(
-						'taxonomy' => 'post_tag',
-						'terms'    => $args['tag_id'],
-						'field'    => 'term_id',
-					);
-					break;
+		// Find root level taxonomies.
+		switch ( $args ) {
+			case ! empty( $args['category_name'] ):
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['category_name'] ),
+					'field'    => 'slug',
+				);
+				break;
+			case ! empty( $args['cat'] ):
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['cat'] ),
+					'field'    => 'id',
+				);
+				break;
+			case ! empty( $args['tag'] ):
+				$args['tax_query'][] = array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $args['tag'] ),
+					'field'    => 'slug',
+				);
+				break;
+			case ! empty( $args['tag__and'] ):
+				$args['tax_query'][] = array(
+					'taxonomy' => 'post_tag',
+					'terms'    => $args['tag__and'],
+					'field'    => 'term_id',
+				);
+				break;
+			case ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ):
+				$args['tax_query'][] = array(
+					'taxonomy' => 'post_tag',
+					'terms'    => $args['tag_id'],
+					'field'    => 'term_id',
+				);
+				break;
+		}
+
+		/**
+		 * Try to find other taxonomies set in the root of WP_Query
+		 *
+		 * @since  3.4
+		 */
+		$taxonomies = get_taxonomies();
+
+		foreach ( $taxonomies as $tax_slug ) {
+			if ( 'ep_custom_result' === $tax_slug ) {
+				continue;
+			}
+
+			if ( ! empty( $args[ $tax_slug ] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => $tax_slug,
+					'terms'    => array( $args[ $tax_slug ] ),
+					'field'    => 'slug',
+				);
 			}
 		}
 
