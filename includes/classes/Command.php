@@ -917,7 +917,7 @@ class Command extends WP_CLI_Command {
 
 		}
 
-		if ( $show_errors ) {
+		if ( $show_errors && ! empty( $failed_objects ) ) {
 			$this->output_index_errors( $failed_objects, $indexable );
 		}
 
