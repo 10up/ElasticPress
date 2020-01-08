@@ -1148,9 +1148,9 @@ class Command extends WP_CLI_Command {
 		$host = Utils\get_host();
 
 		if ( empty( $host ) ) {
-			WP_CLI::error( esc_html__( 'An index is already occuring. Try again later.', 'elasticpress' ) );
+			WP_CLI::error( esc_html__( 'Elasticsearch host is not set.', 'elasticpress' ) );
 		} elseif ( ! Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
-			WP_CLI::error( esc_html__( 'An index is already occuring. Try again later.', 'elasticpress' ) );
+			WP_CLI::error( esc_html__( 'Could not connect to Elasticsearch.', 'elasticpress' ) );
 		}
 	}
 
