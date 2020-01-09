@@ -88,11 +88,28 @@ class QueryIntegration {
 			 * $query->elasticsearch_success = true;
 			 */
 
-			if ( 'all_with_meta' === $query->get( 'fields' ) ) {
-				$new_users = [];
+			$fields    = $query->get( 'fields' );
+			$new_users = [];
 
+			if ( 'all_with_meta' === $fields ) {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document['ID'];
+				}
+			} else if ( is_array( $fields ) ) {
+				// WP_User_Query returns a stdClass.
+				foreach ( $ep_query['documents'] as $document ) {
+
+					$user = new \stdClass();
+
+					foreach ( $fields as $field ) {
+						$user->$field = $document[ $field ];
+					}
+
+					$new_users[] = $user;
+				}
+			} else if ( is_string( $fields ) && ! empty( $fields ) ) {
+				foreach ( $ep_query['documents'] as $document ) {
+					$new_users[] = $document[ $fields ];
 				}
 			} else {
 				$new_users = $this->format_hits_as_users( $ep_query['documents'] );

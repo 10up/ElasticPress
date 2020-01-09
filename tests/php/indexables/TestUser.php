@@ -947,4 +947,36 @@ class TestUser extends BaseTestCase {
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'user1-author', $user_query->results[0]->user_login );
 	}
+
+	/**
+	 * Tests a single field in the fields parameters for user queries.
+	 */
+	public function testSingleUserFieldQuery() {
+		$this->createAndIndexUsers();
+
+		// First, get the IDs of the users.
+		$user_query = new \WP_User_Query(
+			[
+				'number' => 5,
+				'fields' => 'ID',
+			]
+		);
+
+		$this->assertEquals( 5, count( $user_query->results ) );
+
+		// This returns an array of strings, while EP returns ints.
+		$user_ids = array_map( 'absint', $user_query->results );
+
+		// Run the same query against EP to verify we're only getting
+		// user IDs.
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'number'       => 5,
+				'fields'       => 'ID',
+			]
+		);
+
+		$this->assertSame( $user_ids, $user_query->results );
+	}
 }
