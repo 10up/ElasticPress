@@ -147,8 +147,7 @@ function replaceGlobally( string, term, replacement ) {
  * Build the search query from the search text
  *
  * @param searchText - string
- * @param placeholder - string
- * @param { query } - desructured json query string
+ * @param { query, placeholder } - desructured json query string and placeholder
  * @returns json string
  */
 function buildSearchQuery( searchText, { query, placeholder } ) {
