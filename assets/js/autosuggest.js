@@ -151,7 +151,7 @@ function replaceGlobally( string, term, replacement ) {
  * @param { query } - desructured json query string
  * @returns json string
  */
-function buildSearchQuery( searchText, placeholder, { query } ) {
+function buildSearchQuery( searchText, { query, placeholder } ) {
 	const newQuery = replaceGlobally( query, placeholder, searchText );
 	return newQuery;
 }
@@ -401,7 +401,6 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 			}
 
 			const searchText = $localInput.val();
-			const placeholder = 'ep_autosuggest_placeholder';
 			const queryJSON = getJsonQuery();
 
 			if( queryJSON.error ) {
@@ -416,7 +415,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 			const weightingSettings = Object.assign( {}, epas.weightingDefaults, epas.weighting );
 
 			if ( 2 <= searchText.length ) {
-				query = buildSearchQuery( searchText, placeholder, queryJSON );
+				query = buildSearchQuery( searchText, queryJSON );
 				request = esSearch( query, searchText );
 
 				request.done( ( response ) => {
