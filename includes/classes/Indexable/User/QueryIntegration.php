@@ -91,7 +91,7 @@ class QueryIntegration {
 			$fields    = $query->get( 'fields' );
 			$new_users = [];
 
-			if ( 'all_with_meta' === $fields || 'all' === $fields ) {
+			if ( 'all_with_meta' === $fields ) {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document['ID'];
 				}
@@ -108,7 +108,7 @@ class QueryIntegration {
 
 					$new_users[] = $user;
 				}
-			} else if ( is_string( $fields ) && ! empty( $fields ) ) {
+			} else if ( is_string( $fields ) && ! empty( $fields ) && 'all' !== $fields ) {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document[ $fields ];
 				}
