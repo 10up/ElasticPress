@@ -979,4 +979,44 @@ class TestUser extends BaseTestCase {
 
 		$this->assertSame( $user_ids, $user_query->results );
 	}
+
+	/**
+	 * Tests multiple fields in the fields parameters for user queries.
+	 */
+	public function testMultipleUserFieldsQuery() {
+		$this->createAndIndexUsers();
+
+		$count = 5;
+
+		// First, get the IDs of the users.
+		$user_query = new \WP_User_Query(
+			[
+				'number' => $count,
+				'fields' => [ 'ID', 'display_name' ],
+			]
+		);
+
+		$users = $user_query->results;
+
+		$this->assertEquals( $count, count( $users ) );
+
+		// Run the same query against EP to verify we're getting classes
+		// with properties.
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'number'       => $count,
+				'fields' => [ 'ID', 'display_name' ],
+			]
+		);
+
+		$ep_users = $user_query->results;
+
+		$this->assertEquals( 5, count( $users ) );
+
+		for ( $i = 0; $i < 5; $i++ ) {
+			$this->assertSame( absint( $users[ $i ]->ID ), absint( $ep_users[ $i ]->ID ) );
+			$this->assertSame( $users[ $i ]->display_name, $ep_users[ $i ]->display_name );
+		}
+	}
 }
