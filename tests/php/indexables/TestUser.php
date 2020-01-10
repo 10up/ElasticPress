@@ -241,7 +241,7 @@ class TestUser extends BaseTestCase {
 	public function testBasicUserQuery() {
 		$this->createAndIndexUsers();
 
-		// First try without ES and make sure everything is right
+		// First try without ES and make sure everything is right.
 		$user_query = new \WP_User_Query(
 			[
 				'number' => 10,
@@ -255,8 +255,7 @@ class TestUser extends BaseTestCase {
 		$this->assertEquals( 5, count( $user_query->results ) );
 		$this->assertEquals( 5, $user_query->total_users );
 
-		// Now try with Elasticsearch
-
+		// Now try with Elasticsearch.
 		$user_query = new \WP_User_Query(
 			[
 				'ep_integrate' => true,
@@ -1017,6 +1016,7 @@ class TestUser extends BaseTestCase {
 		for ( $i = 0; $i < 5; $i++ ) {
 			$this->assertSame( absint( $users[ $i ]->ID ), absint( $ep_users[ $i ]->ID ) );
 			$this->assertSame( $users[ $i ]->display_name, $ep_users[ $i ]->display_name );
+			$this->assertTrue( $user->elasticsearch );
 		}
 	}
 }
