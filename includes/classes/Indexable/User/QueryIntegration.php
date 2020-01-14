@@ -100,10 +100,10 @@ class QueryIntegration {
 				foreach ( $ep_query['documents'] as $document ) {
 
 					$user = new \stdClass();
+					$user->elasticsearch = true; // Super useful for debugging.
 
 					foreach ( $fields as $field ) {
 						$user->$field = $document[ $field ];
-						$user->elasticsearch = true; // Super useful for debugging.
 					}
 
 					$new_users[] = $user;

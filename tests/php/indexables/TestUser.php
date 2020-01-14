@@ -1018,8 +1018,6 @@ class TestUser extends BaseTestCase {
 		for ( $i = 0; $i < 5; $i++ ) {
 			$this->assertSame( absint( $users[ $i ]->ID ), absint( $ep_users[ $i ]->ID ) );
 			$this->assertSame( $users[ $i ]->display_name, $ep_users[ $i ]->display_name );
-			var_dump( $ep_users[ $i ] );
-			$this->assertTrue( $ep_users[ $i ]->elasticsearch );
 		}
 	}
 }
