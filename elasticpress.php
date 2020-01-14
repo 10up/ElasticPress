@@ -83,60 +83,61 @@ if ( $network_activated ) {
 }
 
 /**
- * Sets up all the various EP classes.
+ * Sets up the indexable posts class.
  *
  * @return void
  */
-function ep_setup() {
-	global $wp_version;
-
+function register_indexable_posts() {
 	/**
 	 * Handle indexables
 	 */
 	Indexables::factory()->register( new Indexable\Post\Post() );
 
-	/**
-	 * Handle features
-	 */
-	Features::factory()->register_feature(
-		new Feature\Search\Search()
-	);
+}
+add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
-	Features::factory()->register_feature(
-		new Feature\ProtectedContent\ProtectedContent()
-	);
+global $wp_version;
 
-	Features::factory()->register_feature(
-		new Feature\Autosuggest\Autosuggest()
-	);
+/**
+ * Handle features
+ */
+Features::factory()->register_feature(
+	new Feature\Search\Search()
+);
 
-	Features::factory()->register_feature(
-		new Feature\RelatedPosts\RelatedPosts()
-	);
+Features::factory()->register_feature(
+	new Feature\ProtectedContent\ProtectedContent()
+);
 
-	Features::factory()->register_feature(
-		new Feature\WooCommerce\WooCommerce()
-	);
+Features::factory()->register_feature(
+	new Feature\Autosuggest\Autosuggest()
+);
 
-	Features::factory()->register_feature(
-		new Feature\Facets\Facets()
-	);
+Features::factory()->register_feature(
+	new Feature\RelatedPosts\RelatedPosts()
+);
 
-	Features::factory()->register_feature(
-		new Feature\Documents\Documents()
-	);
+Features::factory()->register_feature(
+	new Feature\WooCommerce\WooCommerce()
+);
 
-	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Users\Users()
-		);
-	}
+Features::factory()->register_feature(
+	new Feature\Facets\Facets()
+);
 
+Features::factory()->register_feature(
+	new Feature\Documents\Documents()
+);
+
+if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
 	Features::factory()->register_feature(
-		new Feature\SearchOrdering\SearchOrdering()
+		new Feature\Users\Users()
 	);
 }
-add_action( 'plugins_loaded', __NAMESPACE__ . '\ep_setup' );
+
+Features::factory()->register_feature(
+	new Feature\SearchOrdering\SearchOrdering()
+);
 
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
