@@ -4614,4 +4614,34 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
+
+	/**
+	 * Tests the http_request_args filter.
+	 *
+	 * @return void
+	 */
+	public function testHttpRequestArgsFilter() {
+		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
+
+		add_filter(
+			'http_request_args',
+			function( $args ) {
+				$args['headers']['x-my-value'] = '12345';
+				return $args;
+			}
+		);
+
+		add_filter(
+			'http_request_args',
+			function( $args ) {
+				$this->assertSame( '12345', $args['headers']['x-my-value'] );
+				return $args;
+			},
+			PHP_INT_MAX
+		);
+
+		$post_id = Functions\create_and_sync_post();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+	}
 }
