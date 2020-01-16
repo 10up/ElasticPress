@@ -844,7 +844,7 @@ class Command extends WP_CLI_Command {
 						}
 
 						// If we have hit the trigger, initiate the bulk request.
-						if ( ! empty( $objects ) && ( count( $objects ) + $killed_object_count ) >= absint( $bulk_trigger ) ) {
+						if ( ! empty( $objects ) && ( count( $objects ) + $killed_object_count ) >= absint( count( $query['objects'] ) ) ) {
 							$index_objects = $objects;
 
 							$this->reset_transient();
