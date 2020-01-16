@@ -578,7 +578,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( isset( $assoc_args['network-wide'] ) || is_multisite() ) {
 			$this->is_network_transient = true;
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
@@ -588,7 +588,7 @@ class Command extends WP_CLI_Command {
 		timer_start();
 
 		// This clears away dashboard notifications.
-		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( isset( $assoc_args['network-wide'] ) || is_multisite() ) {
 			update_site_option( 'ep_last_sync', time() );
 			delete_site_option( 'ep_need_upgrade_sync' );
 			delete_site_option( 'ep_feature_auto_activated_sync' );
