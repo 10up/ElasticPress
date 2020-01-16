@@ -41,3 +41,4 @@ script:
   # - if [ -n "$AWS_ACCESS_KEY" ]; then bash run-wpacceptance.sh; fi
   - composer run-script test
   - composer run-script test-single-site
+
