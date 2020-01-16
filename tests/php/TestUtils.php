@@ -164,4 +164,32 @@ class TestUtils extends BaseTestCase {
 		$this->assertSame( 'my-user-name', $creds['username'] );
 		$this->assertSame( 'my-token', $creds['token'] );
 	}
+
+	/**
+	 * Tests the is_indexing function.
+	 *
+	 * @return void
+	 */
+	public function testIsIndexing() {
+
+		if ( is_multisite() ) {
+			update_site_option( 'ep_index_meta', [] );
+			set_site_transient( 'ep_wpcli_sync', true, 900 );
+		} else {
+			update_option( 'ep_index_meta', [] );
+			set_transient( 'ep_wpcli_sync', true, 900 );
+		}
+
+		$this->assertTrue( ElasticPress\Utils\is_indexing() );
+
+		if ( is_multisite() ) {
+			delete_site_option( 'ep_index_meta' );
+			delete_site_transient( 'ep_wpcli_sync' );
+		} else {
+			delete_option( 'ep_index_meta' );
+			delete_transient( 'ep_wpcli_sync' );
+		}
+
+		$this->assertFalse( ElasticPress\Utils\is_indexing() );
+	}
 }
