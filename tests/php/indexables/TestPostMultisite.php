@@ -912,7 +912,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post(
+			$post_id = Functions\create_and_sync_post(
 				array( 'post_content' => 'post content findme' ),
 				array(
 					'test_key'  => 'findme',
@@ -920,8 +920,10 @@ class TestPostMultisite extends BaseTestCase {
 				)
 			);
 
+			$this->assertNotFalse( $post_id );
+
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post(
+				$post_id = Functions\create_and_sync_post(
 					array( 'post_content' => 'post content findme' ),
 					array(
 						'test_key2' => 'findme',
@@ -929,6 +931,8 @@ class TestPostMultisite extends BaseTestCase {
 						'test_key3' => 'findme',
 					)
 				);
+
+				$this->assertNotFalse( $post_id );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -959,10 +963,6 @@ class TestPostMultisite extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-
-		var_dump( $query );
-		var_dump( $query->posts );
-		var_dump( $query->post_count );
 
 		$this->assertSame( 2, $query->post_count );
 		$this->assertSame( 2, $query->found_posts );

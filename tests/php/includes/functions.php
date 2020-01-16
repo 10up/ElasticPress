@@ -51,13 +51,13 @@ function create_and_sync_post( $post_args = array(), $post_meta = array(), $site
 		}
 	}
 
-	ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+	$indexed = ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 
 	if ( null !== $site_id ) {
 		restore_current_blog();
 	}
 
-	return $post_id;
+	return ! $indexed ? false : $post_id;
 }
 
 /**
