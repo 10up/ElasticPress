@@ -104,17 +104,19 @@ function is_epio() {
 /**
  * Determine if we should index a blog/site
  *
- * @param  int $blog_id Blog/site id
+ * @param  int $blog_id Blog/site id.
  * @since  3.2
  * @return boolean
  */
 function is_site_indexable( $blog_id = null ) {
-	$site = get_site( $blog_id );
+	if ( is_multisite() ) {
+		$site = get_site( $blog_id );
 
-	$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
+		$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
 
-	if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
-		return false;
+		if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
+			return false;
+		}
 	}
 
 	return true;
