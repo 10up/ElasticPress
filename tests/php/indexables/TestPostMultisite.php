@@ -20,7 +20,6 @@ class TestPostMultisite extends BaseTestCase {
 	 * @since 0.1.0
 	 */
 	public function setUp() {
-
 		if ( ! is_multisite() ) {
 			return;
 		}
