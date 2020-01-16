@@ -89,10 +89,14 @@ class TestPostMultisite extends BaseTestCase {
 
 			ElasticPress\Indexables::factory()->get( 'post' )->delete_index();
 
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
 			restore_current_blog();
 		}
 
 		ElasticPress\Indexables::factory()->get( 'post' )->delete_network_alias();
+
+		wp_cache_flush();
 	}
 
 	/**
@@ -956,9 +960,6 @@ class TestPostMultisite extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-
-		var_dump( $query->posts );
-		var_dump( $query->post_count );
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
