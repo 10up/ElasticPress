@@ -249,6 +249,11 @@ function get_site( $site_id ) {
  * @return array
  */
 function get_sites( $limit = 0 ) {
+
+	if ( ! is_multisite() ) {
+		return [];
+	}
+
 	/**
 	 * Filter arguments to use to query for sites on network
 	 *

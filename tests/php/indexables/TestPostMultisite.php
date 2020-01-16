@@ -20,6 +20,11 @@ class TestPostMultisite extends BaseTestCase {
 	 * @since 0.1.0
 	 */
 	public function setUp() {
+
+		if ( ! is_multisite() ) {
+			return;
+		}
+
 		global $wpdb;
 		parent::setUp();
 		$wpdb->suppress_errors();
@@ -68,6 +73,10 @@ class TestPostMultisite extends BaseTestCase {
 	 * @since 0.1.0
 	 */
 	public function tearDown() {
+		if ( ! is_multisite() ) {
+			return;
+		}
+
 		parent::tearDown();
 
 		$this->fired_actions = array();
@@ -87,6 +96,22 @@ class TestPostMultisite extends BaseTestCase {
 	}
 
 	/**
+	 * Test the get_sites() function.
+	 *
+	 * @since 0.9
+	 * @group post-multisite
+	 */
+	public function testGetSites() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+		} else {
+			$this->assertNotEmpty( $sites );
+		}
+	}
+
+	/**
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
@@ -94,6 +119,10 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testPostSync() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+		}
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -123,6 +152,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testWPQuerySearchContent() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -190,6 +224,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testWPQuerySearchContentSiteSubset() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
@@ -221,6 +260,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testInvalidSubsites() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
@@ -255,6 +299,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testWPQuerySearchContentSingleSite() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
@@ -286,6 +335,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testWPQueryPostDataSetup() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		$old_blog_id = get_current_blog_id();
 
@@ -337,6 +391,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testWPQuerySearchTitle() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
@@ -371,6 +430,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testWPQuerySearchExcerpt() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		$i = 0;
 
@@ -413,6 +477,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testTaxQuery() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		$i = 0;
 
@@ -475,6 +544,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testPostTypeSearchQueryPage() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$i = 0;
 
 		foreach ( $sites as $site ) {
@@ -518,6 +592,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testPostTypeSearchQueryPost() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		$i = 0;
 
@@ -563,6 +642,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testNoPostTypeSearchQuery() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$i = 0;
 
 		foreach ( $sites as $site ) {
@@ -606,6 +690,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testNoPostTypeNoSearchQuery() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$i = 0;
 
 		foreach ( $sites as $site ) {
@@ -648,6 +737,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testAuthorIDQuery() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		$i = 0;
 
@@ -700,6 +794,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testAuthorNameQuery() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$i = 0;
 
 		$user_id = $this->factory->user->create(
@@ -751,6 +850,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testSearchMetaQuery() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$i = 0;
 
 		foreach ( $sites as $site ) {
@@ -794,6 +898,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testFilterMetaQuery() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		$i = 0;
 
@@ -861,6 +970,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testSearchTaxQuery() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$i = 0;
 
 		foreach ( $sites as $site ) {
@@ -909,6 +1023,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testSearchAuthorQuery() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		$i = 0;
 
@@ -964,14 +1083,19 @@ class TestPostMultisite extends BaseTestCase {
 	 * @group post-multisite
 	 */
 	public function testAdvancedQuery() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$user_id = $this->factory->user->create(
 			array(
 				'user_login' => 'john',
 				'role'       => 'administrator',
 			)
 		);
-
-		$sites = ElasticPress\Utils\get_sites();
 
 		switch_to_blog( $sites[0]['blog_id'] );
 
@@ -1051,6 +1175,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testPagination() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
@@ -1103,14 +1232,19 @@ class TestPostMultisite extends BaseTestCase {
 	 * @group post-multisite
 	 */
 	public function testQueryRestorationResetPostData() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$old_blog_id = get_current_blog_id();
 
 		$main_post_id = $this->factory->post->create();
 
 		query_posts( array( 'p' => $main_post_id ) );
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
-
-		$sites = ElasticPress\Utils\get_sites();
 
 		$i = 0;
 
@@ -1156,14 +1290,19 @@ class TestPostMultisite extends BaseTestCase {
 	 * @group post-multisite
 	 */
 	public function testQueryRestorationResetQuery() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$old_blog_id = get_current_blog_id();
 
 		$main_post_id = $this->factory->post->create();
 
 		query_posts( array( 'p' => $main_post_id ) );
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
-
-		$sites = ElasticPress\Utils\get_sites();
 
 		$i = 0;
 
@@ -1214,14 +1353,19 @@ class TestPostMultisite extends BaseTestCase {
 	 * @group post-multisite
 	 */
 	public function testQueryStack() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$old_blog_id = get_current_blog_id();
 
 		$main_post_id = $this->factory->post->create();
 
 		query_posts( array( 'p' => $main_post_id ) );
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
-
-		$sites = ElasticPress\Utils\get_sites();
 
 		$i = 0;
 
@@ -1286,12 +1430,17 @@ class TestPostMultisite extends BaseTestCase {
 	 * @group post-multisite
 	 */
 	public function testQueryIntegrationSkip() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$main_post_id = $this->factory->post->create();
 
 		query_posts( array( 'p' => $main_post_id ) );
 		$GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
-
-		$sites = ElasticPress\Utils\get_sites();
 
 		$i = 0;
 
@@ -1334,6 +1483,11 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testPostObject() {
 		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
 
 		$user_id = $this->factory->user->create(
 			array(
@@ -1397,6 +1551,11 @@ class TestPostMultisite extends BaseTestCase {
 	public function testIndexExists() {
 		$sites = ElasticPress\Utils\get_sites();
 
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
 		$first_site_index       = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name( $sites[0]['blog_id'] );
 		$index_should_exist     = ElasticPress\Elasticsearch::factory()->index_exists( $first_site_index );
 		$index_should_not_exist = ElasticPress\Elasticsearch::factory()->index_exists( $first_site_index . 2 );
@@ -1413,6 +1572,13 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testDeactivateSite() {
 		$index_count = Functions\count_indexes();
+
+		if ( ! is_multisite() ) {
+			$this->assertSame( $index_count['total_indexes'], 0 );
+			$this->assertSame( $index_count['last_blog_id_with_index'], 0 );
+
+			return;
+		}
 
 		$count_indexes = $index_count['total_indexes'];
 		$last_blog_id  = $index_count['last_blog_id_with_index'];
@@ -1435,6 +1601,13 @@ class TestPostMultisite extends BaseTestCase {
 	public function testSpamSite() {
 		$index_count = Functions\count_indexes();
 
+		if ( ! is_multisite() ) {
+			$this->assertSame( $index_count['total_indexes'], 0 );
+			$this->assertSame( $index_count['last_blog_id_with_index'], 0 );
+
+			return;
+		}
+
 		$count_indexes = $index_count['total_indexes'];
 		$last_blog_id  = $index_count['last_blog_id_with_index'];
 
@@ -1454,6 +1627,13 @@ class TestPostMultisite extends BaseTestCase {
 	 */
 	public function testArchivedSite() {
 		$index_count = Functions\count_indexes();
+
+		if ( ! is_multisite() ) {
+			$this->assertSame( $index_count['total_indexes'], 0 );
+			$this->assertSame( $index_count['last_blog_id_with_index'], 0 );
+
+			return;
+		}
 
 		$count_indexes = $index_count['total_indexes'];
 		$last_blog_id  = $index_count['last_blog_id_with_index'];
