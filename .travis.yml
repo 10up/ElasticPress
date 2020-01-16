@@ -37,7 +37,7 @@ before_script:
   - sleep 10
 
 script:
-  - composer run-script lint
+  # - composer run-script lint
   # - if [ -n "$AWS_ACCESS_KEY" ]; then bash run-wpacceptance.sh; fi
   - composer run-script test
   # - composer run-script test-single-site
