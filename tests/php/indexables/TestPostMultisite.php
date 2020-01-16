@@ -913,7 +913,7 @@ class TestPostMultisite extends BaseTestCase {
 			switch_to_blog( $site['blog_id'] );
 
 			Functions\create_and_sync_post(
-				array( 'post_content' => 'post content testFilterMetaQueryfindme' ),
+				array( 'post_content' => 'post content findme' ),
 				array(
 					'test_key'  => 'findme',
 					'test_key2' => 'findme3',
@@ -922,11 +922,11 @@ class TestPostMultisite extends BaseTestCase {
 
 			if ( $i > 0 ) {
 				Functions\create_and_sync_post(
-					array( 'post_content' => 'post content testFilterMetaQueryfindme' ),
+					array( 'post_content' => 'post content findme' ),
 					array(
-						'test_key2' => 'testFilterMetaQueryfindme',
+						'test_key2' => 'findme',
 						'test_key'  => 'value2',
-						'test_key3' => 'testFilterMetaQueryfindme',
+						'test_key3' => 'findme',
 					)
 				);
 			}
@@ -939,7 +939,7 @@ class TestPostMultisite extends BaseTestCase {
 		}
 
 		$args = array(
-			's'          => 'testFilterMetaQueryfindme',
+			's'          => 'findme',
 			'sites'      => 'all',
 			'meta_query' => array(
 				array(
@@ -948,7 +948,7 @@ class TestPostMultisite extends BaseTestCase {
 				),
 				array(
 					'key'     => 'test_key2',
-					'value'   => 'testFilterMetaQueryfindme3',
+					'value'   => 'findme3',
 					'compare' => '!=',
 				),
 				array(
@@ -959,6 +959,10 @@ class TestPostMultisite extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		var_dump( $query );
+		var_dump( $query->posts );
+		var_dump( $query->post_count );
 
 		$this->assertSame( 2, $query->post_count );
 		$this->assertSame( 2, $query->found_posts );
