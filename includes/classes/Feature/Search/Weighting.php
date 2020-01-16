@@ -396,6 +396,13 @@ class Weighting {
 					if ( 0 !== $weight ) {
 						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 					}
+
+					// Use display_name as the searchable field. author_name was
+					// used in previous versions of the plugin.
+					if ( 'author_name' === $field ) {
+						$field = 'post_author.display_name';
+						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
+					}
 				} else {
 					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
 					if ( 'author_name' === $field ) {
@@ -484,6 +491,7 @@ class Weighting {
 	 * @return array Formatted ES args
 	 */
 	public function do_weighting( $formatted_args, $args ) {
+
 		/*
 		 * If search fields is set on the query, we should use those instead of the weighting, since the query was
 		 * overridden by some custom code
