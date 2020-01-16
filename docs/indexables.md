@@ -290,7 +290,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
 * ```author_name``` (*string*)
 
-    Show posts associated with certain author. Use ```user_nicename``` (NOT name).
+    Show posts associated with certain author. Uses ```post_author.display_name```.
 
 * ```orderby``` (*string*)
 
