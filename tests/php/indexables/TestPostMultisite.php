@@ -1105,7 +1105,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0
-	 * @group testMultipleTests
+	 * @group post-multisite
 	 */
 	public function testAdvancedQuery() {
 		$sites = ElasticPress\Utils\get_sites();
