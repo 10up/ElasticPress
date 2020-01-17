@@ -238,7 +238,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post content search on a subset of network sites
 	 *
 	 * @since 0.9.2
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testWPQuerySearchContentSiteSubset() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -275,7 +275,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test to ensure that if we pass an invalid blog_id to the 'sites' parameter that it doesn't break the search
 	 *
 	 * @since 0.9.2
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testInvalidSubsites() {
 		$sites = ElasticPress\Utils\get_sites();
