@@ -445,7 +445,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post excerpt search
 	 *
 	 * @since 0.9
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testWPQuerySearchExcerpt() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -492,7 +492,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a tax query search
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testTaxQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -558,7 +558,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a post type query search for pages
 	 *
 	 * @since 1.3
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testPostTypeSearchQueryPage() {
 		$sites = ElasticPress\Utils\get_sites();
