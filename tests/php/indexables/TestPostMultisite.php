@@ -114,6 +114,11 @@ class TestPostMultisite extends BaseTestCase {
 		}
 	}
 
+	public function testMultipleTests() {
+		$this->testSearchMetaQuery();
+		$this->testFilterMetaQuery();
+	}
+
 	/**
 	 * Test a simple post sync
 	 *
@@ -931,8 +936,6 @@ class TestPostMultisite extends BaseTestCase {
 						'test_key3' => 'findme',
 					)
 				);
-
-				$this->assertNotFalse( $post_id );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -1018,8 +1021,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( $query->post_count, 2 );
-		$this->assertEquals( $query->found_posts, 2 );
+		$this->assertSame( 2, $query->post_count );
+		$this->assertSame( 2, $query->found_posts );
 	}
 
 	/**
