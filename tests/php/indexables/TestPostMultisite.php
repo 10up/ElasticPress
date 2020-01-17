@@ -880,13 +880,15 @@ class TestPostMultisite extends BaseTestCase {
 
 		$i = 0;
 
+		$post_ids = [];
+
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'post content' ) );
+			$post_ids[] = Functions\create_and_sync_post( array( 'post_content' => 'post content' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 'findme' ) );
+				$post_ids[] = Functions\create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 'findme' ) );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -911,6 +913,19 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertSame( 2, $query->post_count );
 		$this->assertSame( 2, $query->found_posts );
+
+		// Cleanup.
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			foreach ( $post_ids as $post_id ) {
+				wp_delete_post( $post_id, true );
+			}
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			restore_current_blog();
+		}
 	}
 
 	/**
