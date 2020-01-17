@@ -118,7 +118,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test the get_sites() function.
 	 *
 	 * @since 0.9
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testGetSites() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -134,7 +134,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testPostSync() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -167,7 +167,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post content search
 	 *
 	 * @since 0.9
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testWPQuerySearchContent() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -828,8 +828,6 @@ class TestPostMultisite extends BaseTestCase {
 		);
 
 		$posts_created = 0;
-
-		var_dump( 'sites ' . count( $sites ) );
 
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
