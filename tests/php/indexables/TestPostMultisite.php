@@ -95,6 +95,22 @@ class TestPostMultisite extends BaseTestCase {
 
 		ElasticPress\Indexables::factory()->get( 'post' )->delete_network_alias();
 
+		global $ep_unit_test_post_ids;
+		if ( is_array( $ep_unit_test_post_ids ) ) {
+			foreach ( $ep_unit_test_post_ids as $post_data ) {
+
+				if ( ! empty( $post_data['site_id'] ) ) {
+					switch_to_blog( $post_data['site_id'] );
+				}
+
+				wp_delete_post( $post_data['post_id'], true );
+
+				if ( ! empty( $post_data['site_id'] ) ) {
+					restore_current_blog();
+				}
+			}
+		}
+
 		wp_cache_flush();
 	}
 
@@ -112,12 +128,6 @@ class TestPostMultisite extends BaseTestCase {
 		} else {
 			$this->assertNotEmpty( $sites );
 		}
-	}
-
-	public function testMultipleTests() {
-		$this->testAuthorNameQuery();
-		$this->testSearchMetaQuery();
-		$this->testFilterMetaQuery();
 	}
 
 	/**
@@ -742,7 +752,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test an author ID query
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testAuthorIDQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -817,6 +827,10 @@ class TestPostMultisite extends BaseTestCase {
 			)
 		);
 
+		$posts_created = 0;
+
+		var_dump( 'sites ' . count( $sites ) );
+
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
@@ -829,6 +843,8 @@ class TestPostMultisite extends BaseTestCase {
 						'post_author'  => $user_id,
 					)
 				);
+
+				$posts_created++;
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -846,15 +862,15 @@ class TestPostMultisite extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( $query->post_count, 2 );
-		$this->assertEquals( $query->found_posts, 2 );
+		$this->assertSame( 2, $query->post_count );
+		$this->assertSame( 2, $query->found_posts );
 	}
 
 	/**
 	 * Test a fuzzy search on meta
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testSearchMetaQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -908,7 +924,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a search with a filter on meta
 	 *
 	 * @since 1.3
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testFilterMetaQuery() {
 		$sites = ElasticPress\Utils\get_sites();

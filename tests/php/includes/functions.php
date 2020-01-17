@@ -57,6 +57,20 @@ function create_and_sync_post( $post_args = array(), $post_meta = array(), $site
 		restore_current_blog();
 	}
 
+	// If we're running unit tests, store this post ID in a global so we
+	// can clean it out of the test DB later.
+	if ( defined( 'EP_UNIT_TESTS' ) && EP_UNIT_TESTS ) {
+		global $ep_unit_test_post_ids;
+		if ( ! is_array( $ep_unit_test_post_ids ) ) {
+			$ep_unit_test_post_ids = [];
+		}
+
+		$ep_unit_test_post_ids[] = [
+			'post_id' => $post_id,
+			'site_id' => ! is_multisite() ? 0 : get_current_blog_id(),
+		];
+	}
+
 	return $post_id;
 }
 
