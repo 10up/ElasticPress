@@ -115,6 +115,8 @@ class TestPostMultisite extends BaseTestCase {
 	}
 
 	public function testMultipleTests() {
+		$this->testAuthorIDQuery();
+		$this->testAuthorNameQuery();
 		$this->testSearchMetaQuery();
 		$this->testFilterMetaQuery();
 	}
