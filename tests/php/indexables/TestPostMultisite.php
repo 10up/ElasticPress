@@ -898,8 +898,6 @@ class TestPostMultisite extends BaseTestCase {
 			$i++;
 		}
 
-		var_dump( $i );
-
 		$args = array(
 			's'             => 'findme',
 			'sites'         => 'all',
@@ -912,9 +910,6 @@ class TestPostMultisite extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
-
-		var_dump( $query->post_count );
-		var_dump( $query->posts );
 
 		$this->assertSame( 2, $query->post_count );
 		$this->assertSame( 2, $query->found_posts );
