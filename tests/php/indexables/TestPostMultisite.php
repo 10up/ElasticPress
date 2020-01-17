@@ -895,8 +895,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( $query->post_count, 2 );
-		$this->assertEquals( $query->found_posts, 2 );
+		$this->assertSame( $query->post_count, 2 );
+		$this->assertSame( $query->found_posts, 2 );
 	}
 
 	/**
