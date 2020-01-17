@@ -1120,7 +1120,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testAdvancedQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1210,7 +1210,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test pagination
 	 *
 	 * @since 0.9
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testPagination() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1269,7 +1269,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test query restoration after wp_reset_postdata
 	 *
 	 * @since 0.9.2
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testQueryRestorationResetPostData() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1327,7 +1327,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test query restoration after wp_reset_query
 	 *
 	 * @since 0.9.2
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testQueryRestorationResetQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1390,7 +1390,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test query stack with nested queries
 	 *
 	 * @since 1.2
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testQueryStack() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1467,7 +1467,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test filter for skipping query integration
 	 *
 	 * @since 1.2
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testQueryIntegrationSkip() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1519,7 +1519,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test post object data
 	 *
 	 * @since 1.4
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testPostObject() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1586,7 +1586,7 @@ class TestPostMultisite extends BaseTestCase {
 	/**
 	 * Test index_exists helper function
 	 *
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testIndexExists() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1608,7 +1608,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Tests deletion of index when a blog is deleted
 	 *
 	 * @link https://github.com/10up/ElasticPress/issues/392
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testDeactivateSite() {
 		$index_count = Functions\count_indexes();
@@ -1635,7 +1635,7 @@ class TestPostMultisite extends BaseTestCase {
 	/**
 	 * Tests deletion of index when a blog is marked as spam
 	 *
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 * @link https://github.com/10up/ElasticPress/issues/392
 	 */
 	public function testSpamSite() {
@@ -1662,7 +1662,7 @@ class TestPostMultisite extends BaseTestCase {
 	/**
 	 * Tests deletion of index when a blog is marked as archived
 	 *
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 * @link https://github.com/10up/ElasticPress/issues/392
 	 */
 	public function testArchivedSite() {
