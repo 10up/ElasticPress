@@ -897,8 +897,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		var_dump( $query->post_count );
 
-		$this->assertSame( $query->post_count, 2 );
-		$this->assertSame( $query->found_posts, 2 );
+		$this->assertSame( 2, $query->post_count );
+		$this->assertSame( 2, $query->found_posts );
 	}
 
 	/**
