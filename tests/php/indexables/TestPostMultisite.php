@@ -607,7 +607,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a post type query search for posts
 	 *
 	 * @since 1.3
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testPostTypeSearchQueryPost() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -656,7 +656,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a post type query search where no post type is specified
 	 *
 	 * @since 1.3
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testNoPostTypeSearchQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -704,7 +704,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a post type query non-search where no post type is specified. Defaults to `post` post type
 	 *
 	 * @since 1.3
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testNoPostTypeNoSearchQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -808,7 +808,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test an author name query
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testAuthorNameQuery() {
 		$sites = ElasticPress\Utils\get_sites();
