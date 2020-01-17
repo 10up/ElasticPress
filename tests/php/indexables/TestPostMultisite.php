@@ -116,7 +116,9 @@ class TestPostMultisite extends BaseTestCase {
 
 	public function testMultipleTests() {
 		$this->testAuthorNameQuery();
+		wp_cache_flush();
 		$this->testSearchMetaQuery();
+		wp_cache_flush();
 		$this->testFilterMetaQuery();
 	}
 
