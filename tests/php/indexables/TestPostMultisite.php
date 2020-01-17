@@ -1044,7 +1044,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on author names
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testSearchAuthorQuery() {
 		$sites = ElasticPress\Utils\get_sites();
