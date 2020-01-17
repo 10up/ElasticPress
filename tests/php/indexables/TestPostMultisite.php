@@ -92,6 +92,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * @return void
 	 */
 	public function cleanUpSites( $sites ) {
+		global $wpdb;
 
 		$indexes = array();
 
