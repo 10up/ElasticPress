@@ -520,7 +520,16 @@ class Post extends Indexable {
 		$meta = apply_filters( 'ep_prepare_meta_data', (array) get_post_meta( $post->ID ), $post );
 
 		if ( empty( $meta ) ) {
-			return [];
+			/**
+			 * Filter final list of prepared meta.
+			 *
+			 * @hook ep_prepared_post_meta
+			 * @param  {array} $prepared_meta Prepared meta
+			 * @param  {WP_Post} $post Post object
+			 * @since  3.4
+			 * @return  {array} Prepared meta
+			 */
+			return apply_filters( 'ep_prepared_post_meta', [], $post );
 		}
 
 		$prepared_meta = [];
@@ -577,7 +586,16 @@ class Post extends Indexable {
 			}
 		}
 
-		return $prepared_meta;
+		/**
+		 * Filter final list of prepared meta.
+		 *
+		 * @hook ep_prepared_post_meta
+		 * @param  {array} $prepared_meta Prepared meta
+		 * @param  {WP_Post} $post Post object
+		 * @since  3.4
+		 * @return  {array} Prepared meta
+		 */
+		return apply_filters( 'ep_prepared_post_meta', $prepared_meta, $post );
 
 	}
 
