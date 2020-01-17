@@ -313,7 +313,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post content search on a single site on the network
 	 *
 	 * @since 0.9.2
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testWPQuerySearchContentSingleSite() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -350,7 +350,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test that post data is setup correctly after switch_to_blog()
 	 *
 	 * @since 0.9.2
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testWPQueryPostDataSetup() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -405,7 +405,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a simple post title search
 	 *
 	 * @since 0.9
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testWPQuerySearchTitle() {
 		$sites = ElasticPress\Utils\get_sites();
