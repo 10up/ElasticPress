@@ -1195,7 +1195,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test pagination
 	 *
 	 * @since 0.9
-	 * @group testMultipleTests
+	 * @group post-multisite
 	 */
 	public function testPagination() {
 		$sites = ElasticPress\Utils\get_sites();
