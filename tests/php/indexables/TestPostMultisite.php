@@ -990,7 +990,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testSearchTaxQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1044,7 +1044,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on author names
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testSearchAuthorQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1105,7 +1105,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on taxonomy terms
 	 *
 	 * @since 1.0
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testAdvancedQuery() {
 		$sites = ElasticPress\Utils\get_sites();
@@ -1195,7 +1195,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test pagination
 	 *
 	 * @since 0.9
-	 * @group post-multisite
+	 * @group testMultipleTests
 	 */
 	public function testPagination() {
 		$sites = ElasticPress\Utils\get_sites();
