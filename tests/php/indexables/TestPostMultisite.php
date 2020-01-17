@@ -868,6 +868,7 @@ class TestPostMultisite extends BaseTestCase {
 	 * Test a fuzzy search on meta
 	 *
 	 * @since 1.0
+	 * @group testMultipleTests
 	 */
 	public function testSearchMetaQuery() {
 		$sites = ElasticPress\Utils\get_sites();
