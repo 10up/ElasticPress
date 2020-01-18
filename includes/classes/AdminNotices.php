@@ -602,7 +602,7 @@ class AdminNotices {
 		// we also need a version
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
 
-		if ( false === $es_version ) {
+		if ( false === $es_version || $dismiss === $es_version ) {
 			return false;
 		}
 
@@ -733,4 +733,3 @@ class AdminNotices {
 		return $instance;
 	}
 }
-
