@@ -1,0 +1,26 @@
+{
+    "install": {
+        "title": "Install"
+    },
+    "features": {
+        "title": "Features"
+    },
+    "feature-api": {
+        "title": "Feature API"
+    },
+    "indexables": {
+        "title": "Indexables"
+    },
+    "security": {
+        "title": "Security"
+    },
+    "wp-cli": {
+        "title": "WP-CLI Commands"
+    },
+    "debugging": {
+        "title": "Debugging"
+    },
+    "development": {
+        "title": "Development"
+    }
+}

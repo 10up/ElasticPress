@@ -420,6 +420,10 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_es_below_compat_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
 		$host = Utils\get_host();
 
 		if ( empty( $host ) ) {
@@ -476,6 +480,10 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_es_above_compat_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
 		$host = Utils\get_host();
 
 		if ( empty( $host ) ) {
@@ -527,6 +535,12 @@ class AdminNotices {
 			return false;
 		}
 
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
 
 		if ( false !== $es_version ) {
@@ -534,7 +548,7 @@ class AdminNotices {
 		}
 
 		// Only dismissable on non-EP screens
-		if ( ! in_array( Screen::factory()->get_current_screen(), [ 'settings', 'dashboard' ], true ) ) {
+		if ( ! in_array( $screen, [ 'settings', 'dashboard' ], true ) ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$dismiss = get_site_option( 'ep_hide_host_error_notice', false );
 			} else {
@@ -660,6 +674,16 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dismiss = get_site_option( 'ep_hide_yellow_health_notice', false );
 		} else {
 			$dismiss = get_option( 'ep_hide_yellow_health_notice', false );
@@ -673,7 +697,7 @@ class AdminNotices {
 
 		$nodes = Stats::factory()->get_nodes();
 
-		if ( $nodes < 2 ) {
+		if ( false !== $nodes && $nodes < 2 && $nodes > 0 ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$url = network_admin_url( 'admin.php?page=elasticpress-health' );
 			} else {
@@ -695,6 +719,13 @@ class AdminNotices {
 	 * @return array
 	 */
 	public function get_notices() {
+		/**
+		 * Filter admin notices
+		 *
+		 * @hook ep_admin_notices
+		 * @param  {array} $notices Admin notices
+		 * @return {array} New notices
+		 */
 		return apply_filters( 'ep_admin_notices', $this->notices );
 	}
 

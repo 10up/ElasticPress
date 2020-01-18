@@ -4,6 +4,7 @@
   "type": "wordpress-plugin",
   "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
   "license": ["GPL-2.0-only"],
+  "minimum-stability": "dev",
   "authors": [
     {
       "name": "Taylor Lovett",
@@ -31,11 +32,12 @@
   "require-dev": {
     "10up/phpcs-composer": "dev-master",
     "wpackagist-plugin/woocommerce":"*",
-    "phpunit/phpunit": "^7"
+    "phpunit/phpunit": "^7",
+    "10up/wpacceptance": "dev-master"
   },
   "scripts": {
-    "lint": "phpcs .",
-    "lint-fix": "phpcbf .",
+    "lint": "phpcs elasticpress.php includes",
+    "lint-fix": "phpcbf elasticpress.php includes",
     "test": "phpunit",
     "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password mysql latest true"
   },

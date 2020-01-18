@@ -86,10 +86,26 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		/**
+		 * Filter whether to kill sync for a particular user
+		 *
+		 * @hook ep_user_sync_kill
+		 * @param {bool} $kill True means dont sync
+		 * @param  {int} $user_id User ID
+		 * @since  3.0
+		 * @return  {bool} New kill value
+		 */
 		if ( apply_filters( 'ep_user_sync_kill', false, $user_id ) ) {
 			return;
 		}
 
+		/**
+		 * Fires before adding user to sync queue
+		 *
+		 * @hook ep_sync_user_on_transition
+		 * @param  {int} $user_id User ID
+		 * @since  3.0
+		 */
 		do_action( 'ep_sync_user_on_transition', $user_id );
 
 		$this->add_to_queue( $user_id );

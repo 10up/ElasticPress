@@ -47,8 +47,8 @@ class Facets extends Feature {
 	 */
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
-		add_action( 'ep_valid_response', [ $this, 'get_aggs' ] );
-		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
@@ -83,12 +83,13 @@ class Facets extends Feature {
 	/**
 	 * If we are doing or matches, we need to remove filters from aggs
 	 *
-	 * @param  array $args ES arguments
-	 * @param  array $query_args Query arguments
+	 * @param  array    $args ES arguments
+	 * @param  array    $query_args Query arguments
+	 * @param  WP_Query $query WP Query instance
 	 * @since  2.5
 	 * @return array
 	 */
-	public function set_agg_filters( $args, $query_args ) {
+	public function set_agg_filters( $args, $query_args, $query ) {
 		if ( empty( $query_args['ep_facet'] ) ) {
 			return $args;
 		}
@@ -113,7 +114,7 @@ class Facets extends Feature {
 		);
 
 		if ( ! empty( $facet_query_args['tax_query'] ) ) {
-			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 
 			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
 				if ( is_array( $taxonomy ) ) {
@@ -123,11 +124,11 @@ class Facets extends Feature {
 				}
 			}
 
-			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args );
+			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
 
 			$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
-			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 2 );
+			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		}
 
 		return $args;
@@ -194,6 +195,12 @@ class Facets extends Feature {
 			return false;
 		}
 
+		$ep_integrate = $query->get( 'ep_integrate', null );
+
+		if ( false === $ep_integrate ) {
+			return false;
+		}
+
 		if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
 			|| $query->is_post_type_archive()
 			|| $query->is_search()
@@ -220,7 +227,13 @@ class Facets extends Feature {
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
 
-		// Allow other plugins to modify the available taxonomies.
+		/**
+		 * Filter taxonomies made available for faceting
+		 *
+		 * @hook ep_facet_include_taxonomies
+		 * @param  {array} $taxonomies Taxonomies
+		 * @return  {array} New taxonomies
+		 */
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		if ( empty( $taxonomies ) ) {
@@ -292,9 +305,15 @@ class Facets extends Feature {
 	 * Hacky. Save aggregation data for later in a global
 	 *
 	 * @param  array $response ES response
+	 * @param  array $query Prepared Elasticsearch query
+	 * @param  array $query_args Current WP Query arguments
+	 * @param  mixed $query_object Could be WP_Query, WP_User_Query, etc.
 	 * @since  2.5
 	 */
-	public function get_aggs( $response ) {
+	public function get_aggs( $response, $query, $query_args, $query_object ) {
+		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $query_object->is_main_query() ) {
+			return;
+		}
 
 		$GLOBALS['ep_facet_aggs'] = false;
 
@@ -366,11 +385,18 @@ class Facets extends Feature {
 						$query_string .= '&';
 					}
 
-					$query_string .= 'filter_' . $taxonomy . '=' . implode( array_keys( $filter['terms'] ), ',' );
+					$query_string .= 'filter_' . $taxonomy . '=' . implode( ',', array_keys( $filter['terms'] ) );
 				}
 			}
 		}
 
+		/**
+		 * Filter facet query string
+		 *
+		 * @hook ep_facet_query_string
+		 * @param  {string} $query_string Current query string
+		 * @return  {string} New query string
+		 */
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
 
 		if ( is_post_type_archive() ) {

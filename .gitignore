@@ -2,3 +2,7 @@
 node_modules
 .idea
 .history
+docs-built
+npm-log.log
+test-coverage-html/
+.phpunit.result.cache
