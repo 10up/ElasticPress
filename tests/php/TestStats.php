@@ -1,6 +1,6 @@
 <?php
 /**
- * Test utils functionality
+ * Test stats functionality
  *
  * @package elasticpress
  */
@@ -10,9 +10,9 @@ namespace ElasticPressTest;
 use ElasticPress;
 
 /**
- * Dashboard test class
+ * Stats test class
  */
-class TestUtils extends BaseTestCase {
+class TestStats extends BaseTestCase {
 
 	/**
 	 * Setup each test.
@@ -41,13 +41,6 @@ class TestUtils extends BaseTestCase {
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
 		set_current_screen();
-
-		add_filter(
-			'ep_elasticsearch_version',
-			function() {
-				return (int) EP_ES_VERSION_MAX - 1;
-			}
-		);
 	}
 
 	/**
@@ -65,42 +58,39 @@ class TestUtils extends BaseTestCase {
 	}
 
 	/**
-	 * Check that a site is indexable by default
+	 * Test totals
 	 *
 	 * @since 3.2
-	 * @group utils
+	 * @group stats
 	 */
-	public function testIsSiteIndexableByDefault() {
-		delete_option( 'ep_indexable' );
+	public function testTotals() {
+		Functions\create_and_sync_post();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$this->assertTrue( ElasticPress\Utils\is_site_indexable() );
+		ElasticPress\Stats::factory()->build_stats();
+
+		$totals = ElasticPress\Stats::factory()->get_totals();
+
+		$this->assertEquals( 1, $totals['docs'] );
+		$this->assertTrue( ! empty( $totals['size'] ) );
+		$this->assertTrue( ! empty( $totals['memory'] ) );
 	}
 
 	/**
-	 * Check that a spam site is NOT indexable by default
+	 * Test health
 	 *
 	 * @since 3.2
-	 * @group utils
+	 * @group stats
 	 */
-	public function testIsSiteIndexableByDefaultSpam() {
-		delete_option( 'ep_indexable' );
+	public function testHealth() {
+		Functions\create_and_sync_post();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		update_blog_status( get_current_blog_id(), 'spam', 1 );
+		ElasticPress\Stats::factory()->build_stats();
 
-		$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
+		$health = ElasticPress\Stats::factory()->get_health();
 
-		update_blog_status( get_current_blog_id(), 'spam', 0 );
-	}
-
-	/**
-	 * Check that a site is not indexable after being set that way in the admin
-	 *
-	 * @since 3.2
-	 * @group utils
-	 */
-	public function testIsSiteIndexableDisabled() {
-		update_option( 'ep_indexable', 'no' );
-
-		$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
+		$this->assertEquals( 1, count( $health ) );
+		$this->assertEquals( 'exampleorg-post-1', array_keys( $health )[0] );
 	}
 }

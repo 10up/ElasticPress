@@ -246,6 +246,14 @@ class Command extends WP_CLI_Command {
 					$indexable->delete_index();
 					$result = $indexable->put_mapping();
 
+					/**
+					 * Fires after CLI put mapping
+					 *
+					 * @hook ep_cli_put_mapping
+					 * @param  {Indexable} $indexable Indexable involved in mapping
+					 * @param  {array} $args CLI command position args
+					 * @param {array} $assoc_args CLI command associative args
+					 */
 					do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 					if ( $result ) {
@@ -273,6 +281,14 @@ class Command extends WP_CLI_Command {
 				$indexable->delete_index();
 				$result = $indexable->put_mapping();
 
+				/**
+				 * Fires after CLI put mapping
+				 *
+				 * @hook ep_cli_put_mapping
+				 * @param  {Indexable} $indexable Indexable involved in mapping
+				 * @param  {array} $args CLI command position args
+				 * @param {array} $assoc_args CLI command associative args
+				 */
 				do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 				if ( $result ) {
@@ -301,6 +317,14 @@ class Command extends WP_CLI_Command {
 			$indexable->delete_index();
 			$result = $indexable->put_mapping();
 
+			/**
+			 * Fires after CLI put mapping
+			 *
+			 * @hook ep_cli_put_mapping
+			 * @param  {Indexable} $indexable Indexable involved in mapping
+			 * @param  {array} $args CLI command position args
+			 * @param {array} $assoc_args CLI command associative args
+			 */
 			do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 			if ( $result ) {
@@ -316,10 +340,52 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Return all indexes from the cluster as json
+	 *
+	 * @subcommand get-cluster-indexes
+	 * @since      3.2
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_cluster_indexes( $args, $assoc_args ) {
+		$path = '_cat/indices?format=json';
+
+		$response = Elasticsearch::factory()->remote_request( $path );
+
+		$body = wp_remote_retrieve_body( $response );
+
+		WP_CLI::line( $body );
+	}
+
+	/**
+	 * Get all index names as json
+	 *
+	 * @subcommand get-indexes
+	 * @since      3.2
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_indexes( $args, $assoc_args ) {
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+
+		foreach ( $sites as $site ) {
+			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+		}
+
+		$user_indexable = Indexables::factory()->get( 'user' );
+
+		if ( ! empty( $user_indexable ) ) {
+			$index_names[] = $user_indexable->get_index_name();
+		}
+
+		WP_CLI::line( wp_json_encode( $index_names ) );
+	}
+
+	/**
 	 * Delete the index for each indexable. !!Warning!! This removes your elasticsearch index(s)
 	 * for the entire site.
 	 *
-	 * @synopsis [--network-wide]
+	 * @synopsis [--index-name] [--network-wide]
 	 * @subcommand delete-index
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
@@ -328,6 +394,19 @@ class Command extends WP_CLI_Command {
 	public function delete_index( $args, $assoc_args ) {
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
+
+		// If index name is specified, just delete it and end the command.
+		if ( ! empty( $assoc_args['index-name'] ) ) {
+			$result = Elasticsearch::factory()->delete_index( $assoc_args['index-name'] );
+
+			if ( $result ) {
+				WP_CLI::success( esc_html__( 'Index deleted', 'elasticpress' ) );
+			} else {
+				WP_CLI::error( esc_html__( 'Index delete failed', 'elasticpress' ) );
+			}
+
+			return;
+		}
 
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
 		$global_indexable_objects     = Indexables::factory()->get_all( true );
@@ -435,6 +514,20 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Properly clean up when receiving SIGINT on indexing
+	 *
+	 * @param int $signal_no Signal number
+	 * @since  3.3
+	 */
+	public function delete_transient_on_int( $signal_no ) {
+		if ( SIGINT === $signal_no ) {
+			$this->delete_transient();
+			WP_CLI::log( esc_html__( 'Indexing cleaned up.', 'elasticpress' ) );
+			exit;
+		}
+	}
+
+	/**
 	 * Index all posts for a site or network wide
 	 *
 	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
@@ -445,6 +538,13 @@ class Command extends WP_CLI_Command {
 	 */
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
+
+		if ( ! function_exists( 'pcntl_signal' ) ) {
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp transient delete ep_wpcli_sync` in case the process is killed.' ) );
+		} else {
+			declare( ticks = 1 );
+			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );
+		}
 
 		$this->maybe_change_host( $assoc_args );
 		$this->maybe_change_index_prefix( $assoc_args );
@@ -467,6 +567,14 @@ class Command extends WP_CLI_Command {
 		 * Useful for deregistering filters/actions that occur during a query request
 		 *
 		 * @since 1.4.1
+		 */
+
+		/**
+		 * Fires before starting a CLI index
+		 *
+		 * @hook ep_wp_cli_pre_index
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
@@ -713,6 +821,13 @@ class Command extends WP_CLI_Command {
 
 						$this->reset_transient();
 
+						/**
+						 * Fires after one by one indexing an object in CLI
+						 *
+						 * @hook ep_cli_object_index
+						 * @param  {int} $object_id Object to index
+						 * @param {Indexable} $indexable Current indexable
+						 */
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
 
 						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), ( $synced + 1 ), (int) $query['total_objects'] ) );
@@ -772,6 +887,15 @@ class Command extends WP_CLI_Command {
 
 		/**
 		 * Kill switch to skip an object
+		 */
+
+		/**
+		 * Conditionally kill indexing for a post
+		 *
+		 * @hook ep_{indexable_slug}_index_kill
+		 * @param  {bool} $index True means dont index
+		 * @param  {int} $object_id Object ID
+		 * @return {bool} New value
 		 */
 		if ( apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object_id ) ) {
 
@@ -835,6 +959,12 @@ class Command extends WP_CLI_Command {
 
 		$this->reset_transient();
 
+		/**
+		 * Fires after bulk indexing in CLI
+		 *
+		 * @hook ep_cli_{indexable_slug}_bulk_index
+		 * @param  {array} $objects Objects being indexed
+		 */
 		do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $this->objects );
 
 		if ( is_wp_error( $response ) ) {
@@ -941,7 +1071,7 @@ class Command extends WP_CLI_Command {
 			$index_names[] = $user_indexable->get_index_name();
 		}
 
-		$index_names_imploded = implode( $index_names, ',' );
+		$index_names_imploded = implode( ',', $index_names );
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_recovery/?pretty', $request_args );
 
@@ -980,7 +1110,7 @@ class Command extends WP_CLI_Command {
 			$index_names[] = $user_indexable->get_index_name();
 		}
 
-		$index_names_imploded = implode( $index_names, ',' );
+		$index_names_imploded = implode( ',', $index_names );
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
 

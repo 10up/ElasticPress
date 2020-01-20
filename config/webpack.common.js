@@ -38,7 +38,12 @@ module.exports = {
 	externals: {
 		jquery: 'jQuery',
 		underscores: '_',
-		window: 'window'
+		window: 'window',
+		lodash: {
+			commonjs: 'lodash',
+			amd: 'lodash',
+			root: '_'
+		}
 	},
 
 	// Performance settings.
