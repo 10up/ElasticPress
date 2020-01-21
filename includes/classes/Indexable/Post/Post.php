@@ -1591,7 +1591,7 @@ class Post extends Indexable {
 							),
 						);
 					}
-				} elseif ( preg_match( '/RAND\(([0-9]+)\)/i', $orderby_clause ) ) {
+				} elseif ( preg_match( '/RAND/i', $orderby_clause ) ) {
 					continue;
 				} else {
 					$sort[] = array(
