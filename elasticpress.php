@@ -83,61 +83,60 @@ if ( $network_activated ) {
 }
 
 /**
- * Sets up the indexable posts class.
+ * Sets up the indexables and features.
  *
  * @return void
  */
 function register_indexable_posts() {
+	global $wp_version;
+
 	/**
 	 * Handle indexables
 	 */
 	Indexables::factory()->register( new Indexable\Post\Post() );
 
-}
-add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
-
-global $wp_version;
-
-/**
- * Handle features
- */
-Features::factory()->register_feature(
-	new Feature\Search\Search()
-);
-
-Features::factory()->register_feature(
-	new Feature\ProtectedContent\ProtectedContent()
-);
-
-Features::factory()->register_feature(
-	new Feature\Autosuggest\Autosuggest()
-);
-
-Features::factory()->register_feature(
-	new Feature\RelatedPosts\RelatedPosts()
-);
-
-Features::factory()->register_feature(
-	new Feature\WooCommerce\WooCommerce()
-);
-
-Features::factory()->register_feature(
-	new Feature\Facets\Facets()
-);
-
-Features::factory()->register_feature(
-	new Feature\Documents\Documents()
-);
-
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+	/**
+	 * Handle features
+	 */
 	Features::factory()->register_feature(
-		new Feature\Users\Users()
+		new Feature\Search\Search()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\ProtectedContent\ProtectedContent()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Autosuggest\Autosuggest()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\RelatedPosts\RelatedPosts()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\WooCommerce\WooCommerce()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Facets\Facets()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Documents\Documents()
+	);
+
+	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Users\Users()
+		);
+	}
+
+	Features::factory()->register_feature(
+		new Feature\SearchOrdering\SearchOrdering()
 	);
 }
-
-Features::factory()->register_feature(
-	new Feature\SearchOrdering\SearchOrdering()
-);
+add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
