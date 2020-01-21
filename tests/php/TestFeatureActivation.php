@@ -99,6 +99,9 @@ class TestFeatureActivation extends BaseTestCase {
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['related_posts']->is_active() );
 		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['related_posts']->requirements_status()->code );
+
+		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['searchterm_highlighting']->is_active() );
+		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['searchterm_highlighting']->requirements_status()->code );
 	}
 
 	/**
