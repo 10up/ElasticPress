@@ -241,7 +241,7 @@ class TestUser extends BaseTestCase {
 	public function testBasicUserQuery() {
 		$this->createAndIndexUsers();
 
-		// First try without ES and make sure everything is right
+		// First try without ES and make sure everything is right.
 		$user_query = new \WP_User_Query(
 			[
 				'number' => 10,
@@ -255,8 +255,7 @@ class TestUser extends BaseTestCase {
 		$this->assertEquals( 5, count( $user_query->results ) );
 		$this->assertEquals( 5, $user_query->total_users );
 
-		// Now try with Elasticsearch
-
+		// Now try with Elasticsearch.
 		$user_query = new \WP_User_Query(
 			[
 				'ep_integrate' => true,
@@ -946,5 +945,79 @@ class TestUser extends BaseTestCase {
 
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'user1-author', $user_query->results[0]->user_login );
+	}
+
+	/**
+	 * Tests a single field in the fields parameters for user queries.
+	 */
+	public function testSingleUserFieldQuery() {
+		$this->createAndIndexUsers();
+
+		// First, get the IDs of the users.
+		$user_query = new \WP_User_Query(
+			[
+				'number' => 5,
+				'fields' => 'ID',
+			]
+		);
+
+		$this->assertEquals( 5, count( $user_query->results ) );
+
+		// This returns an array of strings, while EP returns ints.
+		$user_ids = array_map( 'absint', $user_query->results );
+
+		// Run the same query against EP to verify we're only getting
+		// user IDs.
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'number'       => 5,
+				'fields'       => 'ID',
+			]
+		);
+
+		$ep_user_ids = array_map( 'absint', $user_query->results );
+
+		$this->assertSame( $user_ids, $ep_user_ids );
+	}
+
+	/**
+	 * Tests multiple fields in the fields parameters for user queries.
+	 */
+	public function testMultipleUserFieldsQuery() {
+		$this->createAndIndexUsers();
+
+		$count = 5;
+
+		// First, get the IDs of the users.
+		$user_query = new \WP_User_Query(
+			[
+				'number' => $count,
+				'fields' => [ 'ID', 'display_name' ],
+			]
+		);
+
+		$users = $user_query->results;
+
+		$this->assertEquals( $count, count( $users ) );
+
+		// Run the same query against EP to verify we're getting classes
+		// with properties.
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'number'       => $count,
+				'fields' => [ 'ID', 'display_name' ],
+			]
+		);
+
+		$ep_users = $user_query->results;
+
+		$this->assertEquals( 5, count( $users ) );
+
+		for ( $i = 0; $i < 5; $i++ ) {
+			$this->assertSame( absint( $users[ $i ]->ID ), absint( $ep_users[ $i ]->ID ) );
+			$this->assertSame( $users[ $i ]->display_name, $ep_users[ $i ]->display_name );
+		}
 	}
 }
