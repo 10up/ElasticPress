@@ -41,13 +41,6 @@ class TestUtils extends BaseTestCase {
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
 		set_current_screen();
-
-		add_filter(
-			'ep_elasticsearch_version',
-			function() {
-				return (int) EP_ES_VERSION_MAX - 1;
-			}
-		);
 	}
 
 	/**
@@ -102,5 +95,65 @@ class TestUtils extends BaseTestCase {
 		update_option( 'ep_indexable', 'no' );
 
 		$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
+	}
+
+	/**
+	 * Tests the sanitize_credentials utils function.
+	 *
+	 * @return void
+	 */
+	public function testSanitizeCredentials() {
+
+		// First test anything that is not an array.
+		$creds = \ElasticPress\Utils\sanitize_credentials( false );
+		$this->assertTrue( is_array( $creds ) );
+
+		$this->assertArrayHasKey( 'username', $creds );
+		$this->assertArrayHasKey( 'token', $creds );
+
+		$this->assertSame( '', $creds['username'] );
+		$this->assertSame( '', $creds['token'] );
+
+		// Then test arrays with invalid data.
+		$creds = \ElasticPress\Utils\sanitize_credentials( [] );
+
+		$this->assertTrue( is_array( $creds ) );
+
+		$this->assertArrayHasKey( 'username', $creds );
+		$this->assertArrayHasKey( 'token', $creds );
+
+		$this->assertSame( '', $creds['username'] );
+		$this->assertSame( '', $creds['token'] );
+
+		$creds = \ElasticPress\Utils\sanitize_credentials(
+			[
+				'username' => '<strong>hello</strong> world',
+				'token' => 'able <script>alert("baker");</script>',
+			]
+		);
+
+		$this->assertTrue( is_array( $creds ) );
+
+		$this->assertArrayHasKey( 'username', $creds );
+		$this->assertArrayHasKey( 'token', $creds );
+
+		$this->assertSame( 'hello world', $creds['username'] );
+		$this->assertSame( 'able', $creds['token'] );
+
+		// Finally, test with valid data.
+		$creds = \ElasticPress\Utils\sanitize_credentials(
+			[
+				'username' => 'my-user-name',
+				'token' => 'my-token',
+			]
+		);
+
+		$this->assertTrue( is_array( $creds ) );
+
+		$this->assertArrayHasKey( 'username', $creds );
+		$this->assertArrayHasKey( 'token', $creds );
+
+		$this->assertSame( 'my-user-name', $creds['username'] );
+		$this->assertSame( 'my-token', $creds['token'] );
 	}
 }

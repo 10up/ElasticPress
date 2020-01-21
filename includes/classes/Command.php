@@ -514,6 +514,20 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Properly clean up when receiving SIGINT on indexing
+	 *
+	 * @param int $signal_no Signal number
+	 * @since  3.3
+	 */
+	public function delete_transient_on_int( $signal_no ) {
+		if ( SIGINT === $signal_no ) {
+			$this->delete_transient();
+			WP_CLI::log( esc_html__( 'Indexing cleaned up.', 'elasticpress' ) );
+			exit;
+		}
+	}
+
+	/**
 	 * Index all posts for a site or network wide
 	 *
 	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
@@ -524,6 +538,13 @@ class Command extends WP_CLI_Command {
 	 */
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
+
+		if ( ! function_exists( 'pcntl_signal' ) ) {
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp transient delete ep_wpcli_sync` in case the process is killed.' ) );
+		} else {
+			declare( ticks = 1 );
+			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );
+		}
 
 		$this->maybe_change_host( $assoc_args );
 		$this->maybe_change_index_prefix( $assoc_args );

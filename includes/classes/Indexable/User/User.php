@@ -94,7 +94,14 @@ class User extends Indexable {
 				$number = apply_filters( 'ep_max_results_window', 10000 );
 			}
 		} else {
-			$number = 10; // @todo Not sure what the default is.
+			/**
+			 * Filter max result size if set to -1
+			 *
+			 * @hook ep_max_results_window
+			 * @param  {int} $window Max result window
+			 * @return {int} New window
+			 */
+			$number = apply_filters( 'ep_max_results_window', 10000 );
 		}
 
 		$formatted_args = [
@@ -854,7 +861,16 @@ class User extends Indexable {
 		$meta = (array) get_user_meta( $user_id );
 
 		if ( empty( $meta ) ) {
-			return [];
+			/**
+			 * Filter final list of prepared user meta.
+			 *
+			 * @hook ep_prepared_user_meta
+			 * @param  {array} $prepared_meta Prepared meta
+			 * @param  {integer} $user_id User ID
+			 * @since  3.4
+			 * @return  {array} Prepared meta
+			 */
+			return apply_filters( 'ep_prepared_user_meta', [], $user_id );
 		}
 
 		$prepared_meta = [];
@@ -918,6 +934,15 @@ class User extends Indexable {
 			}
 		}
 
-		return $prepared_meta;
+		/**
+		 * Filter final list of prepared user meta.
+		 *
+		 * @hook ep_prepared_user_meta
+		 * @param  {array} $prepared_meta Prepared meta
+		 * @param  {integer} $user_id User ID
+		 * @since  3.4
+		 * @return  {array} Prepared meta
+		 */
+		return apply_filters( 'ep_prepared_user_meta', $prepared_meta, $user_id );
 	}
 }

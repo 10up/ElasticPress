@@ -43,6 +43,19 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.3 =
+
+* Officially support Elasticsearch 7.5
+* Add optional Google Analytics Autosuggest tracking Event
+* Fix single node warning before sync has occurred.
+* When `ep_integrate` is set to false, do not apply faceting.
+* Fix search ordering error when there are no pointers.
+* Add filter `ep_get_hits_from_query` to modify retrieved Elasticsearch hits.
+* Make sure `post_type` array does not include keys. Fixes a bbPress issue.
+* Pass query object to EP response so we can check for main query. This fixes a faceting bug.
+* Add EP-Search-Term header to autosuggest requests to EP.io
+* Clean up indexing transient on sigkill
+
 = 3.2.6 =
 This is a bugfix release
 

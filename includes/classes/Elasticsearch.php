@@ -87,7 +87,7 @@ class Elasticsearch {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
 		} else {
-			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $document['ID'], $document, $type );
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/' . $document['ID'], $document, $type );
 		}
 
 		if ( function_exists( 'wp_json_encode' ) ) {
@@ -100,7 +100,7 @@ class Elasticsearch {
 
 		$request_args = array(
 			'body'     => $encoded_document,
-			'method'   => 'PUT',
+			'method'   => 'POST',
 			'timeout'  => 15,
 			'blocking' => $blocking,
 		);
@@ -323,7 +323,19 @@ class Elasticsearch {
 			$hits       = $this->get_hits_from_query( $response );
 			$total_hits = $this->get_total_hits_from_query( $response );
 
-			// Check for and store aggregations.
+			if ( ! empty( $response['aggregations'] ) ) {
+				/**
+				 * Deprecated way to retrieve aggregations.
+				 *
+				 * @hook ep_retrieve_aggregations
+				 * @param {array} $aggregations Elasticsearch aggregations
+				 * @param  {array} $query Prepared Elasticsearch query
+				 * @param {string} $scope Backwards compat for scope parameter.
+				 * @param  {array} $query_args Current WP Query arguments
+				 */
+				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $query, '', $query_args );
+			}
+
 			/**
 			 * Fires after valid Elasticsearch query
 			 *
@@ -425,7 +437,17 @@ class Elasticsearch {
 			return [];
 		}
 
-		return $response['hits']['hits'];
+		/**
+		 * Filter Elasticsearch allows to flatten hits, if searched hits are come within aggregations.
+		 *
+		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-top-hits-aggregation.html
+		 *
+		 * @hook ep_get_hits_from_query
+		 * @param {array} $hits from Elasticsearch
+		 * @param {response} $response Raw response from Elasticsearch
+		 * @return {array} hits
+		 */
+		return apply_filters( 'ep_get_hits_from_query', $response['hits']['hits'], $response );
 	}
 
 	/**
@@ -470,7 +492,7 @@ class Elasticsearch {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/' . $document_id;
 		} else {
-			$path = $index . '/' . $document_id;
+			$path = $index . '/_doc/' . $document_id;
 		}
 
 		$request_args = [
@@ -548,7 +570,7 @@ class Elasticsearch {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/' . $document_id;
 		} else {
-			$path = $index . '/' . $document_id;
+			$path = $index . '/_doc/' . $document_id;
 		}
 
 		$request_args = [ 'method' => 'GET' ];
@@ -879,7 +901,7 @@ class Elasticsearch {
 			 * @param  {array} $args Request arguments
 			 * @return {string} New url
 			 */
-			$query['url']  = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
+			$query['url'] = apply_filters( 'ep_pre_request_url', esc_url( trailingslashit( $query['host'] ) . $path ), $failures, $query['host'], $path, $args );
 
 			/**
 			 * Filter whether remote request should be intercepted
