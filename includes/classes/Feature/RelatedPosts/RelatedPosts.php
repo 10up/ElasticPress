@@ -59,6 +59,13 @@ class RelatedPosts extends Feature {
 			$formatted_args['query'] = array(
 				'more_like_this' => array(
 					$mlt_key          => $ids,
+					/**
+					 * Filter fields used to determine related posts
+					 *
+					 * @hook ep_related_posts_fields
+					 * @param  {array} $fields Related post fields
+					 * @return  {array} New fields
+					 */
 					'fields'          => apply_filters(
 						'ep_related_posts_fields',
 						array(
@@ -67,9 +74,30 @@ class RelatedPosts extends Feature {
 							'terms.post_tag.name',
 						)
 					),
-					'min_term_freq'   => 1,
-					'max_query_terms' => 12,
-					'min_doc_freq'    => 1,
+					/**
+					 * Filter related posts minimum term frequency
+					 *
+					 * @hook ep_related_posts_min_term_freq
+					 * @param  {int} $minimum Minimum term frequency
+					 * @return  {array} New value
+					 */
+					'min_term_freq'   => apply_filters( 'ep_related_posts_min_term_freq', 1 ),
+					/**
+					 * Filter related posts maximum query terms
+					 *
+					 * @hook ep_related_posts_max_query_terms
+					 * @param  {int} $maximum Maximum query terms
+					 * @return  {array} New value
+					 */
+					'max_query_terms' => apply_filters( 'ep_related_posts_max_query_terms', 12 ),
+					/**
+					 * Filter related posts minimum document frequency
+					 *
+					 * @hook ep_related_posts_min_doc_freq
+					 * @param  {int} $minimum Minimum document frequency
+					 * @return  {array} New value
+					 */
+					'min_doc_freq'    => apply_filters( 'ep_related_posts_min_doc_freq', 1 ),
 				),
 			);
 		}
@@ -87,11 +115,20 @@ class RelatedPosts extends Feature {
 	 */
 	public function find_related( $post_id, $return = 5 ) {
 		$args = array(
-			'more_like'      => $post_id,
-			'posts_per_page' => $return,
-			'ep_integrate'   => true,
+			'more_like'           => $post_id,
+			'posts_per_page'      => $return,
+			'ep_integrate'        => true,
+			'ignore_sticky_posts' => true,
 		);
 
+		/**
+		 * Filter WP Query related post arguments
+		 *
+		 * @hook ep_find_related_args
+		 * @param  {array} $args WP Query arguments
+		 * @since  2.1
+		 * @return  {array} New arguments
+		 */
 		$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
 
 		if ( ! $query->have_posts() ) {
@@ -108,6 +145,179 @@ class RelatedPosts extends Feature {
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'formatted_args' ], 10, 2 );
+		add_action( 'init', [ $this, 'register_block' ] );
+		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
+	}
+
+	/**
+	 * Setup REST endpoints
+	 *
+	 * @since  3.2
+	 */
+	public function setup_endpoint() {
+		register_rest_route(
+			'wp/v2',
+			'/posts/(?P<id>[0-9]+)/related',
+			[
+				'methods'  => 'GET',
+				'callback' => [ $this, 'output_endpoint' ],
+				'args'     => [
+					'id'     => [
+						'description' => 'Post ID.',
+						'type'        => 'numeric',
+					],
+					'number' => [
+						'description' => 'Number of posts',
+						'type'        => 'numeric',
+						'default'     => 5,
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Output related posts endpoint
+	 *
+	 * @param  \WP_REST_Request $request REST request
+	 * @since  3.2
+	 * @return \WP_REST_Response
+	 */
+	public function output_endpoint( $request ) {
+		$id = $request['id'];
+
+		$posts          = $this->find_related( $id, (int) $request['number'] );
+		$prepared_posts = [];
+
+		if ( ! empty( $posts ) ) {
+			foreach ( $posts as $post ) {
+				$prepared_post = [];
+
+				$prepared_post['id']           = $post->ID;
+				$prepared_post['link']         = get_permalink( $post->ID );
+				$prepared_post['status']       = $post->post_status;
+				$prepared_post['title']        = [
+					'raw'      => $post->post_title,
+					'rendered' => get_the_title( $post->ID ),
+				];
+				$prepared_post['author']       = (int) $post->post_author;
+				$prepared_post['parent']       = (int) $post->post_parent;
+				$prepared_post['menu_order']   = (int) $post->menu_order;
+				$prepared_post['content']      = [
+					'rendered' => post_password_required( $post ) ? '' : apply_filters( 'the_content', $post->post_content ),
+				];
+				$prepared_post['date']         = $post->post_date;
+				$prepared_post['date_gmt']     = $post->post_date_gmt;
+				$prepared_post['modified']     = $post->post_modified;
+				$prepared_post['modified_gmt'] = $post->post_modified_gmt;
+
+				$prepared_posts[] = $prepared_post;
+			}
+		}
+
+		$response = new \WP_REST_Response();
+		$response->set_data( $prepared_posts );
+
+		return $response;
+	}
+
+	/**
+	 * Register gutenberg block
+	 *
+	 * @since  3.2
+	 */
+	public function register_block() {
+		// Must be WP 5.0+
+		if ( ! function_exists( 'register_block_type' ) ) {
+			return;
+		}
+
+		wp_register_script(
+			'elasticpress-related-posts-block',
+			EP_URL . 'dist/js/related-posts-block-script.min.js',
+			[
+				'wp-blocks',
+				'wp-element',
+				'wp-editor',
+				'wp-api-fetch',
+			],
+			EP_VERSION,
+			true
+		);
+
+		// The wp-edit-blocks style dependency is not needed on the front end of the site.
+		$style_dependencies = is_admin() ? [ 'wp-edit-blocks' ] : [];
+
+		wp_register_style(
+			'elasticpress-related-posts-block',
+			EP_URL . 'dist/css/related-posts-block-styles.min.css',
+			$style_dependencies,
+			EP_VERSION
+		);
+
+		register_block_type(
+			'elasticpress/related-posts',
+			[
+				'attributes'      => [
+					'number' => [
+						'type'    => 'number',
+						'default' => 5,
+					],
+					'align'  => [
+						'type' => 'string',
+						'enum' => [ 'left', 'center', 'right', 'wide', 'full' ],
+					],
+				],
+				'editor_script'   => 'elasticpress-related-posts-block',
+				'editor_style'    => 'elasticpress-related-posts-block',
+				'style'           => 'elasticpress-related-posts-block',
+				'render_callback' => [ $this, 'render_block' ],
+			]
+		);
+	}
+
+	/**
+	 * Render Gutenberg block
+	 *
+	 * @param  array $attributes Block attributes
+	 * @since  3.2
+	 * @return string
+	 */
+	public function render_block( $attributes ) {
+		$posts = $this->find_related( get_the_ID(), $attributes['number'] );
+
+		if ( empty( $posts ) ) {
+			return '';
+		}
+
+		$class = 'wp-block-elasticpress-related-posts';
+
+		if ( ! empty( $attributes['align'] ) ) {
+			$class .= ' align' . $attributes['align'];
+		}
+
+		if ( ! empty( $attributes['className'] ) ) {
+			$class .= ' ' . $attributes['className'];
+		}
+
+		ob_start();
+		?>
+		<section class="<?php echo esc_attr( $class ); ?>">
+			<ul>
+				<?php foreach ( $posts as $related_post ) : ?>
+					<li>
+						<a href="<?php echo esc_url( get_permalink( $related_post->ID ) ); ?>">
+							<?php echo wp_kses( get_the_title( $related_post->ID ), 'ep-html' ); ?>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
+		<?php
+
+		$block_content = ob_get_clean();
+
+		return $block_content;
 	}
 
 	/**

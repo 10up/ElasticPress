@@ -2,6 +2,8 @@
 /**
  * WP-CLI command for ElasticPress
  *
+ * phpcs:disable WordPress.WP.I18n.MissingTranslatorsComment
+ *
  * @since  3.0
  * @package elasticpress
  */
@@ -182,17 +184,21 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Add document mappings for every indexable
 	 *
-	 * @synopsis [--network-wide] [--indexables]
+	 * @synopsis [--network-wide] [--indexables] [--ep-host] [--ep-prefix]
 	 * @subcommand put-mapping
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function put_mapping( $args, $assoc_args ) {
+		$this->maybe_change_host( $assoc_args );
+		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
 
-		$this->put_mapping_helper( $args, $assoc_args );
+		if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
+			exit( 1 );
+		}
 	}
 
 	/**
@@ -201,6 +207,7 @@ class Command extends WP_CLI_Command {
 	 * @since 3.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
+	 * @return boolean
 	 */
 	private function put_mapping_helper( $args, $assoc_args ) {
 		$indexables = null;
@@ -220,6 +227,10 @@ class Command extends WP_CLI_Command {
 			$sites = Utils\get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
@@ -235,12 +246,22 @@ class Command extends WP_CLI_Command {
 					$indexable->delete_index();
 					$result = $indexable->put_mapping();
 
+					/**
+					 * Fires after CLI put mapping
+					 *
+					 * @hook ep_cli_put_mapping
+					 * @param  {Indexable} $indexable Indexable involved in mapping
+					 * @param  {array} $args CLI command position args
+					 * @param {array} $assoc_args CLI command associative args
+					 */
 					do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 					if ( $result ) {
 						WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 					} else {
-						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+
+						return false;
 					}
 				}
 
@@ -260,12 +281,22 @@ class Command extends WP_CLI_Command {
 				$indexable->delete_index();
 				$result = $indexable->put_mapping();
 
+				/**
+				 * Fires after CLI put mapping
+				 *
+				 * @hook ep_cli_put_mapping
+				 * @param  {Indexable} $indexable Indexable involved in mapping
+				 * @param  {array} $args CLI command position args
+				 * @param {array} $assoc_args CLI command associative args
+				 */
 				do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 				if ( $result ) {
 					WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 				} else {
-					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+
+					return false;
 				}
 			}
 		}
@@ -286,21 +317,75 @@ class Command extends WP_CLI_Command {
 			$indexable->delete_index();
 			$result = $indexable->put_mapping();
 
+			/**
+			 * Fires after CLI put mapping
+			 *
+			 * @hook ep_cli_put_mapping
+			 * @param  {Indexable} $indexable Indexable involved in mapping
+			 * @param  {array} $args CLI command position args
+			 * @param {array} $assoc_args CLI command associative args
+			 */
 			do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
 			if ( $result ) {
 				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 			} else {
-				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+
+				return false;
 			}
 		}
+
+		return true;
+	}
+
+	/**
+	 * Return all indexes from the cluster as json
+	 *
+	 * @subcommand get-cluster-indexes
+	 * @since      3.2
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_cluster_indexes( $args, $assoc_args ) {
+		$path = '_cat/indices?format=json';
+
+		$response = Elasticsearch::factory()->remote_request( $path );
+
+		$body = wp_remote_retrieve_body( $response );
+
+		WP_CLI::line( $body );
+	}
+
+	/**
+	 * Get all index names as json
+	 *
+	 * @subcommand get-indexes
+	 * @since      3.2
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_indexes( $args, $assoc_args ) {
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+
+		foreach ( $sites as $site ) {
+			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+		}
+
+		$user_indexable = Indexables::factory()->get( 'user' );
+
+		if ( ! empty( $user_indexable ) ) {
+			$index_names[] = $user_indexable->get_index_name();
+		}
+
+		WP_CLI::line( wp_json_encode( $index_names ) );
 	}
 
 	/**
 	 * Delete the index for each indexable. !!Warning!! This removes your elasticsearch index(s)
 	 * for the entire site.
 	 *
-	 * @synopsis [--network-wide]
+	 * @synopsis [--index-name] [--network-wide]
 	 * @subcommand delete-index
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
@@ -309,6 +394,19 @@ class Command extends WP_CLI_Command {
 	public function delete_index( $args, $assoc_args ) {
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
+
+		// If index name is specified, just delete it and end the command.
+		if ( ! empty( $assoc_args['index-name'] ) ) {
+			$result = Elasticsearch::factory()->delete_index( $assoc_args['index-name'] );
+
+			if ( $result ) {
+				WP_CLI::success( esc_html__( 'Index deleted', 'elasticpress' ) );
+			} else {
+				WP_CLI::error( esc_html__( 'Index delete failed', 'elasticpress' ) );
+			}
+
+			return;
+		}
 
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
 		$global_indexable_objects     = Indexables::factory()->get_all( true );
@@ -383,7 +481,7 @@ class Command extends WP_CLI_Command {
 
 			$indexable->delete_network_alias();
 
-			$create_result = $this->create_network_alias_helper();
+			$create_result = $this->create_network_alias_helper( $indexable );
 
 			if ( $create_result ) {
 				WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
@@ -416,9 +514,23 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Properly clean up when receiving SIGINT on indexing
+	 *
+	 * @param int $signal_no Signal number
+	 * @since  3.3
+	 */
+	public function delete_transient_on_int( $signal_no ) {
+		if ( SIGINT === $signal_no ) {
+			$this->delete_transient();
+			WP_CLI::log( esc_html__( 'Indexing cleaned up.', 'elasticpress' ) );
+			exit;
+		}
+	}
+
+	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--offset] [--indexables] [--show-bulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -427,6 +539,15 @@ class Command extends WP_CLI_Command {
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
 
+		if ( ! function_exists( 'pcntl_signal' ) ) {
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp transient delete ep_wpcli_sync` in case the process is killed.' ) );
+		} else {
+			declare( ticks = 1 );
+			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );
+		}
+
+		$this->maybe_change_host( $assoc_args );
+		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
 		$this->index_occurring( $assoc_args );
 
@@ -446,6 +567,14 @@ class Command extends WP_CLI_Command {
 		 * Useful for deregistering filters/actions that occur during a query request
 		 *
 		 * @since 1.4.1
+		 */
+
+		/**
+		 * Fires before starting a CLI index
+		 *
+		 * @hook ep_wp_cli_pre_index
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
@@ -473,7 +602,11 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
 
 			// Right now setup is just the put_mapping command, as this also deletes the index(s) first.
-			$this->put_mapping_helper( $args, $assoc_args );
+			if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
+				$this->delete_transient();
+
+				exit( 1 );
+			}
 		}
 
 		$all_indexables               = Indexables::factory()->get_all();
@@ -490,6 +623,10 @@ class Command extends WP_CLI_Command {
 			$sites = Utils\get_sites( $assoc_args['network-wide'] );
 
 			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
@@ -509,6 +646,8 @@ class Command extends WP_CLI_Command {
 					WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
 
 					if ( ! empty( $result['errors'] ) ) {
+						$this->delete_transient();
+
 						WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], count( $result['errors'] ) ) );
 					}
 				}
@@ -536,6 +675,8 @@ class Command extends WP_CLI_Command {
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
+					$this->delete_transient();
+
 					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
 				}
 			}
@@ -574,6 +715,8 @@ class Command extends WP_CLI_Command {
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
+					$this->delete_transient();
+
 					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), count( $result['errors'] ) ) );
 				}
 			}
@@ -581,11 +724,7 @@ class Command extends WP_CLI_Command {
 
 		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
 
-		if ( $this->is_network_transient ) {
-			delete_site_transient( 'ep_wpcli_sync' );
-		} else {
-			delete_transient( 'ep_wpcli_sync' );
-		}
+		$this->delete_transient();
 
 		WP_CLI::success( esc_html__( 'Done!', 'elasticpress' ) );
 	}
@@ -608,6 +747,24 @@ class Command extends WP_CLI_Command {
 			$no_bulk = true;
 		}
 
+		if ( isset( $args['ep-host'] ) ) {
+			add_filter(
+				'ep_host',
+				function ( $host ) use ( $args ) {
+					return $args['ep-host'];
+				}
+			);
+		}
+
+		if ( isset( $args['ep-prefix'] ) ) {
+			add_filter(
+				'ep_index_prefix',
+				function ( $prefix ) use ( $args ) {
+					return $args['ep-prefix'];
+				}
+			);
+		}
+
 		$show_bulk_errors = false;
 
 		if ( isset( $args['show-bulk-errors'] ) ) {
@@ -627,7 +784,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $args['include'] ) ) {
-			$include               = explode( ',', str_replace( ' ', '', $assoc_args['include'] ) );
+			$include               = explode( ',', str_replace( ' ', '', $args['include'] ) );
 			$query_args['include'] = array_map( 'absint', $include );
 			$args['per-page']      = count( $query_args['include'] );
 		}
@@ -664,6 +821,13 @@ class Command extends WP_CLI_Command {
 
 						$this->reset_transient();
 
+						/**
+						 * Fires after one by one indexing an object in CLI
+						 *
+						 * @hook ep_cli_object_index
+						 * @param  {int} $object_id Object to index
+						 * @param {Indexable} $indexable Current indexable
+						 */
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
 
 						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), ( $synced + 1 ), (int) $query['total_objects'] ) );
@@ -724,6 +888,15 @@ class Command extends WP_CLI_Command {
 		/**
 		 * Kill switch to skip an object
 		 */
+
+		/**
+		 * Conditionally kill indexing for a post
+		 *
+		 * @hook ep_{indexable_slug}_index_kill
+		 * @param  {bool} $index True means dont index
+		 * @param  {int} $object_id Object ID
+		 * @return {bool} New value
+		 */
 		if ( apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object_id ) ) {
 
 			$killed_object_count++;
@@ -777,6 +950,8 @@ class Command extends WP_CLI_Command {
 
 		// make sure we actually have something to index.
 		if ( empty( $this->objects ) ) {
+			$this->delete_transient();
+
 			WP_CLI::error( 'There are no objects to index.' );
 		}
 
@@ -784,9 +959,17 @@ class Command extends WP_CLI_Command {
 
 		$this->reset_transient();
 
+		/**
+		 * Fires after bulk indexing in CLI
+		 *
+		 * @hook ep_cli_{indexable_slug}_bulk_index
+		 * @param  {array} $objects Objects being indexed
+		 */
 		do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $this->objects );
 
 		if ( is_wp_error( $response ) ) {
+			$this->delete_transient();
+
 			WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
 		}
 
@@ -882,9 +1065,13 @@ class Command extends WP_CLI_Command {
 			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
 		}
 
-		$index_names[] = Indexables::factory()->get( 'user' )->get_index_name();
+		$user_indexable = Indexables::factory()->get( 'user' );
 
-		$index_names_imploded = implode( $index_names, ',' );
+		if ( ! empty( $user_indexable ) ) {
+			$index_names[] = $user_indexable->get_index_name();
+		}
+
+		$index_names_imploded = implode( ',', $index_names );
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_recovery/?pretty', $request_args );
 
@@ -917,9 +1104,13 @@ class Command extends WP_CLI_Command {
 			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
 		}
 
-		$index_names[] = Indexables::factory()->get( 'user' )->get_index_name();
+		$user_indexable = Indexables::factory()->get( 'user' );
 
-		$index_names_imploded = implode( $index_names, ',' );
+		if ( ! empty( $user_indexable ) ) {
+			$index_names[] = $user_indexable->get_index_name();
+		}
+
+		$index_names_imploded = implode( ',', $index_names );
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
 
@@ -942,16 +1133,18 @@ class Command extends WP_CLI_Command {
 			}
 		}
 
-		$user_index = Indexables::factory()->get( 'user' )->get_index_name();
+		if ( ! empty( $user_indexable ) ) {
+			$user_index = $user_indexable->get_index_name();
 
-		if ( isset( $body['indices'][ $user_index ] ) ) {
-			WP_CLI::log( '====== Stats for: ' . $user_index . ' ======' );
-			WP_CLI::log( 'Documents:  ' . $body['indices'][ $user_index ]['primaries']['docs']['count'] );
-			WP_CLI::log( 'Index Size: ' . size_format( $body['indices'][ $user_index ]['primaries']['store']['size_in_bytes'], 2 ) );
-			WP_CLI::log( 'Index Size (including replicas): ' . size_format( $body['indices'][ $user_index ]['total']['store']['size_in_bytes'], 2 ) );
-			WP_CLI::log( '====== End Stats ======' );
-		} else {
-			WP_CLI::warning( $user_index . ' is not currently indexed.' );
+			if ( isset( $body['indices'][ $user_index ] ) ) {
+				WP_CLI::log( '====== Stats for: ' . $user_index . ' ======' );
+				WP_CLI::log( 'Documents:  ' . $body['indices'][ $user_index ]['primaries']['docs']['count'] );
+				WP_CLI::log( 'Index Size: ' . size_format( $body['indices'][ $user_index ]['primaries']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( 'Index Size (including replicas): ' . size_format( $body['indices'][ $user_index ]['total']['store']['size_in_bytes'], 2 ) );
+				WP_CLI::log( '====== End Stats ======' );
+			} else {
+				WP_CLI::warning( $user_index . ' is not currently indexed.' );
+			}
 		}
 	}
 
@@ -1046,6 +1239,7 @@ class Command extends WP_CLI_Command {
 	 * @since 3.0
 	 */
 	private function index_occurring( $assoc_args ) {
+
 		if ( ! empty( $assoc_args['network-wide'] ) ) {
 			$dashboard_syncing = get_site_option( 'ep_index_meta' );
 			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
@@ -1071,4 +1265,56 @@ class Command extends WP_CLI_Command {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		}
 	}
+
+	/**
+	 * Delete transient that indicates indexing is occuring
+	 *
+	 * @since 3.1
+	 */
+	private function delete_transient() {
+		if ( $this->is_network_transient ) {
+			delete_site_transient( 'ep_wpcli_sync' );
+		} else {
+			delete_transient( 'ep_wpcli_sync' );
+		}
+	}
+
+
+	/**
+	 * maybe change Elastic host on the fly
+	 *
+	 * @param array $assoc_args Associative CLI args.
+	 *
+	 * @since 3.x
+	 */
+	private function maybe_change_host( $assoc_args ) {
+		if ( isset( $assoc_args['ep-host'] ) ) {
+			add_filter(
+				'ep_host',
+				function ( $host ) use ( $assoc_args ) {
+					return $assoc_args['ep-host'];
+				}
+			);
+		}
+	}
+
+
+	/**
+	 * maybe change index prefix on the fly
+	 *
+	 * @param array $assoc_args Associative CLI args.
+	 *
+	 * @since 3.x
+	 */
+	private function maybe_change_index_prefix( $assoc_args ) {
+		if ( isset( $assoc_args['ep-prefix'] ) ) {
+			add_filter(
+				'ep_index_prefix',
+				function ( $prefix ) use ( $assoc_args ) {
+					return $assoc_args['ep-prefix'];
+				}
+			);
+		}
+	}
+
 }

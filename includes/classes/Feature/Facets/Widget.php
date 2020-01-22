@@ -116,7 +116,10 @@ class Widget extends WP_Widget {
 			}
 		}
 
-		$terms     = Utils\get_term_tree( $terms, 'count', 'desc', true );
+		$orderby = isset( $instance['orderby'] ) ? $instance['orderby'] : 'count';
+		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
+
+		$terms     = Utils\get_term_tree( $terms, $orderby, $order, true );
 		$term_tree = Utils\get_term_tree( $terms, 'count', 'desc', false );
 
 		$outputted_terms = array();
@@ -129,20 +132,25 @@ class Widget extends WP_Widget {
 
 		$taxonomy_object = get_taxonomy( $taxonomy );
 
+		/**
+		 * Filter facet search threshold
+		 *
+		 * @hook ep_facet_search_threshold
+		 * @param  {int} $search_threshold Search threshold
+		 * @param  {string} $taxonomy Current taxonomy
+		 * @return  {int} New threshold
+		 */
 		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
 		?>
 
-		<div class="terms
-		<?php
-		if ( count( $terms_by_slug ) > $search_threshold ) :
-			?>
-searchable<?php endif; ?>">
+		<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
+				<?php // translators: Taxonomy Name ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
 				<?php
 			endif;
 			ob_start();
-?>
+			?>
 
 			<div class="inner">
 				<?php if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) ) : ?>
@@ -254,8 +262,7 @@ searchable<?php endif; ?>">
 
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 					?>
-					<div class="term
-					<?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
+					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
 							<input type="checkbox">
 							<?php echo esc_html( $term->name ); ?>
@@ -266,8 +273,21 @@ searchable<?php endif; ?>">
 		</div>
 		<?php
 		$facet_html = ob_get_clean();
-		// Allows developers to modify widget html
-		echo wp_kses_post( apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms ) );
+
+		// phpcs:disable
+		/**
+		 * Filter facet search widget HTML
+		 *
+		 * @hook ep_facet_search_widget
+		 * @param  {string} $facet_html Widget HTML
+		 * @param  {array} $selected_filters Selected filters
+		 * @param  {array} $terms_by_slug Terms by slug
+		 * @param  {array} $outputted_terms Outputted $terms
+		 * @param  {string} $title Widget title
+		 * @return  {string} New HTML
+		 */
+		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] );
+		// phpcs:enable
 
 		echo wp_kses_post( $args['after_widget'] );
 	}
@@ -341,10 +361,31 @@ searchable<?php endif; ?>">
 			$not_set = esc_html__( 'all', 'elasticpress' );
 		}
 
-		$title = ( ! empty( $instance['title'] ) ) ? $instance['title'] : '';
-		$facet = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
+		$title   = ( ! empty( $instance['title'] ) ) ? $instance['title'] : '';
+		$facet   = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
+		$orderby = ( ! empty( $instance['orderby'] ) ) ? $instance['orderby'] : '';
+		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		/**
+		 * Filter taxonomies made available for faceting
+		 *
+		 * @hook ep_facet_include_taxonomies
+		 * @param  {array} $taxonomies Taxonomies
+		 * @return  {array} New taxonomies
+		 */
+		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+
+		$orderby_options = [
+			'count' => __( 'Count', 'elasticpress' ),
+			'name'  => __( 'Term Name', 'elasticpress' ),
+		];
+
+		$order_options = [
+			'desc' => __( 'Descending', 'elasticpress' ),
+			'asc'  => __( 'Ascending', 'elasticpress' ),
+		];
+
 		?>
 		<div class="widget-ep-facet">
 			<p>
@@ -366,6 +407,35 @@ searchable<?php endif; ?>">
 				</select>
 			</p>
 
+			<p>
+				<label for="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>">
+					<?php esc_html_e( 'Order Terms By:', 'elasticpress' ); ?>
+				</label><br>
+
+				<select id="<?php echo esc_attr( $this->get_field_id( 'orderby' ) ); ?>"
+						name="<?php echo esc_attr( $this->get_field_name( 'orderby' ) ); ?>">
+					<?php foreach ( $orderby_options as $name => $title ) : ?>
+						<option <?php selected( $orderby, $name ); ?>
+								value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</p>
+
+			<p>
+				<label for="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>">
+					<?php esc_html_e( 'Term Order:', 'elasticpress' ); ?>
+				</label><br>
+
+				<select id="<?php echo esc_attr( $this->get_field_id( 'order' ) ); ?>"
+						name="<?php echo esc_attr( $this->get_field_name( 'order' ) ); ?>">
+					<?php foreach ( $order_options as $name => $title ) : ?>
+						<option <?php selected( $order, $name ); ?>
+								value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</p>
+
+			<?php // translators: "all" or "any", depending on configuration values, 3: URL ?>
 			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
 		</div>
 
@@ -382,8 +452,10 @@ searchable<?php endif; ?>">
 	public function update( $new_instance, $old_instance ) {
 		$instance = [];
 
-		$instance['title'] = sanitize_text_field( $new_instance['title'] );
-		$instance['facet'] = sanitize_text_field( $new_instance['facet'] );
+		$instance['title']   = sanitize_text_field( $new_instance['title'] );
+		$instance['facet']   = sanitize_text_field( $new_instance['facet'] );
+		$instance['orderby'] = sanitize_text_field( $new_instance['orderby'] );
+		$instance['order']   = sanitize_text_field( $new_instance['order'] );
 
 		return $instance;
 	}

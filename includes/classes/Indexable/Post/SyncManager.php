@@ -47,6 +47,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 	}
 
 	/**
@@ -80,11 +81,20 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
-				if ( apply_filters( 'ep_post_sync_kill', false, $object_id ) ) {
+				/**
+				 * Filter to kill post sync
+				 *
+				 * @hook ep_post_sync_kill
+				 * @param {bool} $skip True meanas kill sync for post
+				 * @param  {int} $object_id ID of post
+				 * @param  {int} $object_id ID of post
+				 * @return {boolean} New value
+				 */
+				if ( apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id ) ) {
 					return;
 				}
 
-				$this->sync_queue[ $object_id ] = true;
+				$this->add_to_queue( $object_id );
 			}
 		}
 	}
@@ -97,6 +107,13 @@ class SyncManager extends SyncManagerAbstract {
 	public function action_delete_blog_from_index( $blog_id ) {
 		$indexable = Indexables::factory()->get( 'post' );
 
+		/**
+		 * Filter to whether to keep index on site deletion
+		 *
+		 * @hook ep_keep_index
+		 * @param {bool} $keep True means don't delete index
+		 * @return {boolean} New value
+		 */
 		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false ) ) {
 			$indexable->delete_index( $blog_id );
 		}
@@ -109,10 +126,24 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_delete_post( $post_id ) {
+		/**
+		 * Filter whether to skip the permissions check on deleting a post
+		 *
+		 * @hook ep_post_sync_kill
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $post_id ID of post
+		 * @return {boolean} New value
+		 */
 		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) || 'revision' === get_post_type( $post_id ) ) {
 			return;
 		}
 
+		/**
+		 * Fires before post deletion
+		 *
+		 * @hook ep_delete_post
+		 * @param  {int} $post_id ID of post
+		 */
 		do_action( 'ep_delete_post', $post_id );
 
 		Indexables::factory()->get( 'post' )->delete( $post_id, false );
@@ -133,6 +164,14 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		/**
+		 * Filter whether to skip the permissions check on deleting a post
+		 *
+		 * @hook ep_post_sync_kill
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $post_id ID of post
+		 * @return {boolean} New value
+		 */
 		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
 			if ( ! current_user_can( 'edit_post', $post_id ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
 				// Bypass saving if user does not have access to edit post and we're not in a cron process.
@@ -156,14 +195,54 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
+				/**
+				 * Fire before post is queued for synxing
+				 *
+				 * @hook ep_sync_on_transition
+				 * @param  {int} $post_id ID of post
+				 */
 				do_action( 'ep_sync_on_transition', $post_id );
 
-				if ( apply_filters( 'ep_post_sync_kill', false, $post_id ) ) {
+				/**
+				 * Filter to kill post sync
+				 *
+				 * @hook ep_post_sync_kill
+				 * @param {bool} $skip True meanas kill sync for post
+				 * @param  {int} $object_id ID of post
+				 * @param  {int} $object_id ID of post
+				 * @return {boolean} New value
+				 */
+				if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
 					return;
 				}
 
-				$this->sync_queue[ $post_id ] = true;
+				$this->add_to_queue( $post_id );
 			}
 		}
+	}
+
+	/**
+	 * Create mapping and network alias when a new blog is created.
+	 *
+	 * @param WP_Site $blog New site object.
+	 */
+	public function action_create_blog_index( $blog ) {
+		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			return;
+		}
+
+		$non_global_indexable_objects = Indexables::factory()->get_all( false );
+
+		switch_to_blog( $blog->blog_id );
+
+		foreach ( $non_global_indexable_objects as $indexable ) {
+			$indexable->delete_index();
+			$indexable->put_mapping();
+
+			$index_name = $indexable->get_index_name( $blog->blog_id );
+			$indexable->create_network_alias( [ $index_name ] );
+		}
+
+		restore_current_blog();
 	}
 }

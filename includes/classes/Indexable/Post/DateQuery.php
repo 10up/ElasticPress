@@ -249,7 +249,7 @@ class DateQuery extends WP_Date_Query {
 
 		if ( $date_parameters ) {
 
-			EP_WP_Date_Query::validate_date_values( $date_parameters );
+			self::validate_date_values( $date_parameters );
 
 			$date_terms = array(
 				'must'     => [],
@@ -443,7 +443,7 @@ class DateQuery extends WP_Date_Query {
 		// Weeks per year.
 		if ( isset( $_year ) ) {
 			// If we have a specific year, use it to calculate number of weeks.
-			$date = new DateTime();
+			$date = new \DateTime();
 			$date->setISODate( $_year, 53 );
 			$week_count = $date->format( 'W' ) === '53' ? 53 : 52;
 
@@ -525,6 +525,7 @@ class DateQuery extends WP_Date_Query {
 			if ( ! wp_checkdate( $date_query['month'], $date_query['day'], $date_query['year'], sprintf( '%s-%s-%s', $date_query['year'], $date_query['month'], $date_query['day'] ) ) ) {
 				/* translators: 1: year, 2: month, 3: day of month */
 				$day_month_year_error_msg = sprintf(
+					// translators: 1: Year, 2: Month, 3: Day
 					__( 'The following values do not describe a valid date: year %1$s, month %2$s, day %3$s.' ),
 					'<code>' . esc_html( $date_query['year'] ) . '</code>',
 					'<code>' . esc_html( $date_query['month'] ) . '</code>',
@@ -540,8 +541,9 @@ class DateQuery extends WP_Date_Query {
 			 */
 			if ( ! wp_checkdate( $date_query['month'], $date_query['day'], 2012, sprintf( '2012-%s-%s', $date_query['month'], $date_query['day'] ) ) ) {
 				/* translators: 1: month, 2: day of month */
+				$err_msg                  = __( 'The following values do not describe a valid date: month %1$s, day %2$s.' );
 				$day_month_year_error_msg = sprintf(
-					__( 'The following values do not describe a valid date: month %1$s, day %2$s.' ),
+					$err_msg,
 					'<code>' . esc_html( $date_query['month'] ) . '</code>',
 					'<code>' . esc_html( $date_query['day'] ) . '</code>'
 				);

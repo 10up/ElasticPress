@@ -76,10 +76,10 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			?>
 		<?php endforeach; ?>
 		<div class="left">
-			<?php echo force_balance_tags( $left ); // @codingStandardsIgnoreLine ?>
+			<?php echo wp_kses( $left, 'ep-html' ); ?>
 		</div>
 		<div class="right">
-			<?php echo force_balance_tags( $right ); // @codingStandardsIgnoreLine ?>
+			<?php echo wp_kses( $right, 'ep-html' ); ?>
 		</div>
 	</div>
 </div>

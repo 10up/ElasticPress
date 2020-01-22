@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import jQuery from 'jquery';
 import { ajaxurl, epDash } from 'window';
 
@@ -9,6 +10,13 @@ const $startSyncButton = jQuery( document.getElementsByClassName( 'start-sync' )
 const $resumeSyncButton = jQuery( document.getElementsByClassName( 'resume-sync' ) );
 const $pauseSyncButton = jQuery( document.getElementsByClassName( 'pause-sync' ) );
 const $cancelSyncButton = jQuery( document.getElementsByClassName( 'cancel-sync' ) );
+const $epCredentialsTab = jQuery( document.getElementsByClassName( 'ep-credentials-tab' ) );
+const $epCredentialsHostLabel = jQuery( '.ep-host-row label' );
+const $epCredentialsHostLegend = jQuery( document.getElementsByClassName( 'ep-host-legend' ) );
+const $epCredentialsAdditionalFields = jQuery( document.getElementsByClassName( 'ep-additional-fields' ) );
+const epHostField = document.getElementById( 'ep_host' );
+const epHost = epHostField ? epHostField.value : null;
+let epHostNewValue = '';
 
 let syncStatus = 'sync',
 	featureSync = false,
@@ -33,17 +41,18 @@ $features.on( 'click', '.save-settings', function( event ) {
 	}
 
 	const feature = event.target.getAttribute( 'data-feature' );
-	const $feature = $features.find( '.ep-feature-' + feature );
+	const $feature = $features.find( `.ep-feature-${  feature}` );
 	const settings = {};
 	const $settings = $feature.find( '.setting-field' );
 
 	$settings.each( function() {
-		const type = jQuery( this ).attr( 'type' );
-		const name = jQuery( this ).attr( 'data-field-name' );
-		const value = jQuery( this ).attr( 'value' );
+		const $this = jQuery( this );
+		const type = $this.attr( 'type' );
+		const name = $this.attr( 'data-field-name' );
+		const value = $this.val();
 
 		if ( 'radio' === type ) {
-			if ( jQuery( this ).attr( 'checked' ) ) {
+			if ( $this.is( ':checked' ) ) {
 				settings[ name ] = value;
 			}
 		} else {
@@ -176,8 +185,8 @@ function updateSyncDash() {
 	if ( 0 === processed ) {
 		$progressBar.css( { width: '1%' } );
 	} else {
-		let width = parseInt( processed ) / parseInt( toProcess ) * 100;
-		$progressBar.css( { width: width + '%' } );
+		const width = parseInt( processed ) / parseInt( toProcess ) * 100;
+		$progressBar.css( { width: `${width  }%` } );
 	}
 
 	if ( 'initialsync' === syncStatus ) {
@@ -198,11 +207,11 @@ function updateSyncDash() {
 
 		if ( currentSyncItem ) {
 			if ( currentSyncItem.indexable ) {
-				text += ' ' + epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase() + ' ' + parseInt( processed ) + '/' + parseInt( toProcess );
+				text += ` ${  epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase()  } ${  parseInt( processed )  }/${  parseInt( toProcess )}`;
 			}
 
 			if ( currentSyncItem.url ) {
-				text += ' (' + currentSyncItem.url + ')';
+				text += ` (${  currentSyncItem.url  })`;
 			}
 		}
 
@@ -220,11 +229,11 @@ function updateSyncDash() {
 		text = epDash.sync_paused;
 
 		if ( toProcess && 0 !== toProcess ) {
-			text += ', ' + parseInt( processed ) + '/' + parseInt( toProcess ) + ' ' + epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase();
+			text += `, ${  parseInt( processed )  }/${  parseInt( toProcess )  } ${  epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase()}`;
 		}
 
 		if ( currentSyncItem && currentSyncItem.url ) {
-			text += ' (' + currentSyncItem.url + ')';
+			text += ` (${  currentSyncItem.url  })`;
 		}
 
 		$syncStatusText.text( text );
@@ -261,7 +270,7 @@ function updateSyncDash() {
 		$progressBar.hide();
 
 		if ( featureSync ) {
-			$features.find( '.ep-feature-' + featureSync ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;
@@ -280,7 +289,7 @@ function updateSyncDash() {
 		$startSyncButton.show();
 
 		if ( featureSync ) {
-			$features.find( '.ep-feature-' + featureSync ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;
@@ -296,7 +305,7 @@ function updateSyncDash() {
 		$errorOverlay.removeClass( 'syncing' );
 
 		if ( featureSync ) {
-			$features.find( '.ep-feature-' + featureSync ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;
@@ -362,6 +371,11 @@ function sync() {
 			// Sync finished
 			syncStatus = 'finished';
 			updateSyncDash();
+
+			if ( epDash.install_sync ) {
+				document.location.replace( epDash.install_complete_url );
+			}
+
 		} else {
 			// We are starting a sync
 			syncStatus = 'sync';
@@ -377,6 +391,7 @@ function sync() {
 			cancelSync();
 		}
 	} );
+
 }
 
 $startSyncButton.on( 'click', () => {
@@ -411,4 +426,39 @@ $cancelSyncButton.on( 'click', () => {
 	updateSyncDash();
 
 	cancelSync();
+} );
+
+if ( epHostField ) {
+	epHostField.addEventListener( 'input', ( e ) => {
+		epHostNewValue = e.target.value;
+	} );
+}
+
+$epCredentialsTab.on( 'click', ( e ) => {
+	const epio = null !== e.currentTarget.getAttribute( 'data-epio' );
+	const $target = jQuery( e.currentTarget );
+	const initial = $target.hasClass( 'initial' );
+
+	e.preventDefault();
+
+	if ( initial && !epHostField.disabled ) {
+		epHostField.value = epHost;
+	} else {
+		epHostField.value = epHostNewValue;
+	}
+
+	$epCredentialsTab.removeClass( 'nav-tab-active' );
+	$target.addClass( 'nav-tab-active' );
+
+	if ( epio ) {
+		$epCredentialsHostLabel.text( 'ElasticPress.io Host URL' );
+		$epCredentialsHostLegend.text( 'Plug in your ElasticPress.io server here!' );
+		$epCredentialsAdditionalFields.show();
+		$epCredentialsAdditionalFields.attr( 'aria-hidden', 'false' );
+	} else {
+		$epCredentialsHostLabel.text( 'Elasticsearch Host URL' );
+		$epCredentialsHostLegend.text( 'Plug in your Elasticsearch server here!' );
+		$epCredentialsAdditionalFields.hide();
+		$epCredentialsAdditionalFields.attr( 'aria-hidden', 'true' );
+	}
 } );
