@@ -2,28 +2,27 @@
 
 > A fast and flexible search and query engine for WordPress.
 
-[![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress) [![Release Version](https://img.shields.io/github/release/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/releases/latest) ![WordPress tested up to version](https://img.shields.io/badge/WordPress-v5.2%20tested-success.svg) [![MIT License](https://img.shields.io/github/license/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/blob/develop/LICENSE.md)
-
-**ElasticPress 3.0:** ElasticPress 3.0 contains major changes from 2.x including a rewrite of the feature registration API and PHP 5.4+ features. If you have problems upgrading, please create an issue.
+[![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Build Status](https://travis-ci.org/10up/ElasticPress.svg?branch=develop)](https://travis-ci.org/10up/ElasticPress) [![Release Version](https://img.shields.io/github/release/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/releases/latest) ![WordPress tested up to version](https://img.shields.io/badge/WordPress-v5.3%20tested-success.svg) [![MIT License](https://img.shields.io/github/license/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/blob/develop/LICENSE.md)
 
 **Please note:** master is the stable branch
 
 **Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0 require re-syncing.
 
+*Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
+
 ## Overview
 
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
-## How Does it Work
+## Documentation
 
-ElasticPress integrates with several WordPress APIs (e.g. [WP_Query](http://codex.wordpress.org/Class_Reference/WP_Query)) to return results from Elasticsearch instead of MySQL.
+ElasticPress has an in depth documentation site. [Visit the docs ☞](http://10up.github.io/ElasticPress/)
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 6.4**
+* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.5**
 * [WordPress](http://wordpress.org) 3.7.1+
 * [PHP](https://php.net/) 5.4+
-
 
 ## Installation
 

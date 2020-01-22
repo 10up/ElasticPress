@@ -41,13 +41,6 @@ class TestAdminNotices extends BaseTestCase {
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
 		set_current_screen();
-
-		add_filter(
-			'ep_elasticsearch_version',
-			function() {
-				return (int) EP_ES_VERSION_MAX - 1;
-			}
-		);
 	}
 
 	/**

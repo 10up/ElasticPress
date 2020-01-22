@@ -59,6 +59,13 @@ class RelatedPosts extends Feature {
 			$formatted_args['query'] = array(
 				'more_like_this' => array(
 					$mlt_key          => $ids,
+					/**
+					 * Filter fields used to determine related posts
+					 *
+					 * @hook ep_related_posts_fields
+					 * @param  {array} $fields Related post fields
+					 * @return  {array} New fields
+					 */
 					'fields'          => apply_filters(
 						'ep_related_posts_fields',
 						array(
@@ -67,8 +74,29 @@ class RelatedPosts extends Feature {
 							'terms.post_tag.name',
 						)
 					),
+					/**
+					 * Filter related posts minimum term frequency
+					 *
+					 * @hook ep_related_posts_min_term_freq
+					 * @param  {int} $minimum Minimum term frequency
+					 * @return  {array} New value
+					 */
 					'min_term_freq'   => apply_filters( 'ep_related_posts_min_term_freq', 1 ),
+					/**
+					 * Filter related posts maximum query terms
+					 *
+					 * @hook ep_related_posts_max_query_terms
+					 * @param  {int} $maximum Maximum query terms
+					 * @return  {array} New value
+					 */
 					'max_query_terms' => apply_filters( 'ep_related_posts_max_query_terms', 12 ),
+					/**
+					 * Filter related posts minimum document frequency
+					 *
+					 * @hook ep_related_posts_min_doc_freq
+					 * @param  {int} $minimum Minimum document frequency
+					 * @return  {array} New value
+					 */
 					'min_doc_freq'    => apply_filters( 'ep_related_posts_min_doc_freq', 1 ),
 				),
 			);
@@ -93,6 +121,14 @@ class RelatedPosts extends Feature {
 			'ignore_sticky_posts' => true,
 		);
 
+		/**
+		 * Filter WP Query related post arguments
+		 *
+		 * @hook ep_find_related_args
+		 * @param  {array} $args WP Query arguments
+		 * @since  2.1
+		 * @return  {array} New arguments
+		 */
 		$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
 
 		if ( ! $query->have_posts() ) {
@@ -109,7 +145,7 @@ class RelatedPosts extends Feature {
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'formatted_args' ], 10, 2 );
-		add_action( 'enqueue_block_editor_assets', [ $this, 'register_block' ] );
+		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
 	}
 
@@ -191,6 +227,11 @@ class RelatedPosts extends Feature {
 	 * @since  3.2
 	 */
 	public function register_block() {
+		// Must be WP 5.0+
+		if ( ! function_exists( 'register_block_type' ) ) {
+			return;
+		}
+
 		wp_register_script(
 			'elasticpress-related-posts-block',
 			EP_URL . 'dist/js/related-posts-block-script.min.js',
@@ -204,12 +245,13 @@ class RelatedPosts extends Feature {
 			true
 		);
 
+		// The wp-edit-blocks style dependency is not needed on the front end of the site.
+		$style_dependencies = is_admin() ? [ 'wp-edit-blocks' ] : [];
+
 		wp_register_style(
 			'elasticpress-related-posts-block',
 			EP_URL . 'dist/css/related-posts-block-styles.min.css',
-			[
-				'wp-edit-blocks',
-			],
+			$style_dependencies,
 			EP_VERSION
 		);
 
