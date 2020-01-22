@@ -61,7 +61,7 @@ class Highlighting extends Feature {
 		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
 
 		// filter called from Features->update_feature to sanitze data
-		add_filter('ep_sanitize_feature_settings', [ $this, 'check_allowed_tags' ], 10, 2);
+		add_filter( 'ep_sanitize_feature_settings', [ $this, 'check_allowed_tags' ], 10, 2 );
 	}
 
 	/**
