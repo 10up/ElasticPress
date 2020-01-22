@@ -833,7 +833,7 @@ class Command extends WP_CLI_Command {
 						 * @param  {int} $object_id Object ID
 						 * @return {bool} New value
 						 */
-						if ( apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object_id ) ) {
+						if ( apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object->ID ) ) {
 							$killed_object_count++;
 						} else {
 
