@@ -8,6 +8,7 @@
 
 namespace ElasticPress\Feature\Search;
 
+use ElasticPress\Features as Features;
 use ElasticPress\Feature as Feature;
 use ElasticPress\Indexables as Indexables;
 
