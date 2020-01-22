@@ -59,6 +59,9 @@ class Highlighting extends Feature {
 		add_action( 'admin_post_ep-highlighting', [ $this, 'handle_save' ] );
 
 		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
+
+		// filter called from Features->update_feature to sanitze data
+		add_filter('ep_sanitize_feature_settings', [ $this, 'check_allowed_tags' ], 10, 2);
 	}
 
 	/**
@@ -177,7 +180,22 @@ class Highlighting extends Feature {
 			$this->highlighting_tag = 'mark';
 		}
 
-		return $tag;
+		return $this->highlighting_tag;
+	}
+
+
+	/**
+	 * Hooks into the ep_sanitize_feature_settings filter
+	 * when updating settings. Checks for allowed tags
+	 */
+	public function check_allowed_tags( $feature_settings, $feature ) {
+
+		if( ! empty( $feature_settings['searchterm_highlighting']['highlight_tag'] ) ) {
+			$tag = $feature_settings['searchterm_highlighting']['highlight_tag'];
+			$feature_settings['searchterm_highlighting']['highlight_tag'] = $this->get_highlighting_tag( $tag );
+		}
+
+		return $feature_settings;
 	}
 
 
