@@ -190,7 +190,7 @@ class TestTerm extends BaseTestCase {
 	public function testBasicTermQuery() {
 		$this->createAndIndexTerms();
 
-		// First try without ES and make sure everything is right
+		// First try without ES and make sure everything is right.
 		$term_query = new \WP_Term_Query(
 			[
 				'number'     => 10,
@@ -205,8 +205,7 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertEquals( 4, count( $term_query->terms ) );
 
-		// Now try with Elasticsearch
-
+		// Now try with Elasticsearch.
 		$term_query = new \WP_Term_Query(
 			[
 				'ep_integrate' => true,
@@ -488,7 +487,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		// Remove empty parents
+		// Remove empty parents.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->parent ) ) {
 				unset( $term_query->terms[ $key ] );
@@ -509,7 +508,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		// Remove empty parents
+		// Remove empty parents.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->parent ) ) {
 				unset( $term_query->terms[ $key ] );
