@@ -366,21 +366,21 @@ class Search extends Feature {
 		}
 
 		// Bail early if no should query.
-		if ( empty( $formatted_args['query']['bool']['should'] ) ) {
+		if ( empty( $formatted_args['query']['function_score']['query']['bool']['should'] ) ) {
 			return $formatted_args;
 		}
 
 		// Create/change the bool query from should to must.
-		$formatted_args['query']['bool']['must'] = $formatted_args['query']['bool']['should'];
+		$formatted_args['query']['function_score']['query']['bool']['must'] = $formatted_args['query']['function_score']['query']['bool']['should'];
 
 		// Add the operator AND to the new bool query.
-		$formatted_args['query']['bool']['must'][0]['multi_match']['operator'] = 'AND';
+		$formatted_args['query']['function_score']['query']['bool']['must'][0]['multi_match']['operator'] = 'AND';
 
 		// Erase the old should query.
-		unset( $formatted_args['query']['bool']['should'] );
+		unset( $formatted_args['query']['function_score']['query']['bool']['should'] );
 
 		// Erase the phrase matching (or not, if you don't want it).
-		unset( $formatted_args['query']['bool']['must'][0]['multi_match']['type'] );
+		unset( $formatted_args['query']['function_score']['query']['bool']['must'][0]['multi_match']['type'] );
 
 		return $formatted_args;
 	}
