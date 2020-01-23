@@ -130,9 +130,9 @@ Features::factory()->register_feature(
 	new Feature\SearchOrdering\SearchOrdering()
 );
 
-Features::factory()->register_feature(
-	new Feature\Highlighting\Highlighting()
-);
+// Features::factory()->register_feature(
+// 	new Feature\Highlighting\Highlighting()
+// );
 
 
 /**

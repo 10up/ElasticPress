@@ -24,6 +24,13 @@ class Search extends Feature {
 	public $weighting;
 
 	/**
+	 * Highlighting Class (Sub Feature)
+	 *
+	 * @var Highlighting
+	 */
+	public $highlighting;
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -53,6 +60,10 @@ class Search extends Feature {
 		// Set up weighting sub-module
 		$this->weighting = new Weighting();
 		$this->weighting->setup();
+
+		// Set up weighting sub-module
+		$this->highlighting = new Highlighting();
+		$this->highlighting->setup();
 	}
 
 	/**
