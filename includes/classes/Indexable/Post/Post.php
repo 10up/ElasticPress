@@ -769,7 +769,7 @@ class Post extends Indexable {
 			if ( ! empty( $args[ $tax_slug ] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
-					'terms'    => array( $args[ $tax_slug ] ),
+					'terms'    => (array) $args[ $tax_slug ],
 					'field'    => 'slug',
 				);
 			}
