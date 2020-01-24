@@ -72,9 +72,30 @@ class TestTerm extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
+		$this->deleteAllTerms();
+
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
+	}
+
+	/**
+	 * Deletes all terms from the database.
+	 *
+	 * @return void
+	 */
+	public function deleteAllTerms() {
+
+		$terms = get_terms(
+			[
+				'taxonomy'   => [ 'category', 'post_tag' ],
+				'hide_empty' => false,
+			]
+		);
+
+		foreach ( $terms as $term ) {
+			wp_delete_term( $term->term_id, $term->taxonomy );
+		}
 	}
 
 	/**
@@ -474,9 +495,19 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderParent() {
 		$this->createAndIndexTerms();
 
-		$term = wp_insert_term( 'ff', 'post_tag', [ 'parent' => 5 ] );
+		$apple = get_term_by( 'slug', 'apple', 'post_tag' );
+		$orange = get_term_by( 'slug', 'orange', 'post_tag' );
 
-		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'parent' => 7 ] );
+		$this->assertTrue( is_a( $apple, '\WP_Term' ) );
+		$this->assertTrue( is_a( $orange, '\WP_Term' ) );
+
+		$this->assertGreaterThan( $apple->term_id, $orange->term_id );
+
+		$term = wp_insert_term( 'ff', 'post_tag', [ 'parent' => $apple->term_id ] );
+		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'parent' => $orange->term_id ] );
+
+		$this->assertTrue( is_array( $term ) );
+		$this->assertTrue( is_array( $term_2 ) );
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -495,6 +526,8 @@ class TestTerm extends BaseTestCase {
 		}
 
 		$term_query->terms = array_values( $term_query->terms );
+
+		$this->assertNotEmpty( $term_query->terms );
 
 		$this->assertTrue( $term_query->terms[0]->term_id < $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 
@@ -516,6 +549,8 @@ class TestTerm extends BaseTestCase {
 		}
 
 		$term_query->terms = array_values( $term_query->terms );
+
+		$this->assertNotEmpty( $term_query->terms );
 
 		$this->assertTrue( $term_query->terms[0]->term_id > $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
