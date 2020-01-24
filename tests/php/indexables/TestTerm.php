@@ -297,9 +297,9 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertTrue( is_array( $term ) );
 
-		$this->markTestIncomplete(
-			"The 'get' parameter is not currently working."
-		);
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term['term_id'], true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// First, verify this with default functionality.
 		$term_query = new \WP_Term_Query(
