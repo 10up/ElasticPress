@@ -90,6 +90,7 @@ class TestTerm extends BaseTestCase {
 			[
 				'taxonomy'   => [ 'category', 'post_tag' ],
 				'hide_empty' => false,
+				'get'        => 'all',
 			]
 		);
 
@@ -241,6 +242,23 @@ class TestTerm extends BaseTestCase {
 		}
 
 		$this->assertEquals( 4, count( $term_query->terms ) );
+
+		// Test some of the filters and defaults.
+		$return_2 = function() {
+			return 2;
+		};
+
+		add_filter( 'ep_max_results_window', $return_2 );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'ep_integrate' => true,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+			]
+		);
+
+		$this->assertEquals( 2, count( $term_query->terms ) );
 	}
 
 
@@ -262,6 +280,55 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertEquals( 2, count( $term_query->terms ) );
+	}
+
+	/**
+	 * Test a term query get paramater.
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryGet() {
+		$this->createAndIndexTerms();
+
+		$apple = get_term_by( 'slug', 'apple', 'post_tag' );
+
+		$term = wp_insert_term( 'apple child', 'post_tag', [ 'parent' => $apple->term_id ] );
+
+		$this->assertTrue( is_array( $term ) );
+
+		$this->markTestIncomplete(
+			"The 'get' parameter is not currently working."
+		);
+
+		// First, verify this with default functionality.
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => 'post_tag',
+				'get'          => 'all',
+			]
+		);
+
+		$slugs = wp_list_pluck( $term_query->terms, 'slug' );
+
+		$this->assertEquals( 5, count( $term_query->terms ) );
+
+		$this->assertContains( 'apple-child', $slugs );
+
+		// Then, test it with ES.
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => 'post_tag',
+				'ep_integrate' => true,
+				'get'          => 'all',
+			]
+		);
+
+		$slugs = wp_list_pluck( $term_query->terms, 'slug' );
+
+		$this->assertEquals( 5, count( $term_query->terms ) );
+
+		$this->assertContains( 'apple-child', $slugs );
 	}
 
 	/**
@@ -287,10 +354,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'object_ids' => [ $post ],
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'object_ids'   => [ $post ],
+				'ep_integrate' => true,
 			]
 		);
 
