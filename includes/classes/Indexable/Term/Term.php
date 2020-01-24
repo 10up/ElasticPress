@@ -805,7 +805,7 @@ class Term extends Indexable {
 		if ( ! empty( $orderby ) ) {
 			if ( 'name' === $orderby ) {
 				$sort[] = array(
-					'name.raw' => array(
+					'name.sortable' => array(
 						'order' => $order,
 					),
 				);

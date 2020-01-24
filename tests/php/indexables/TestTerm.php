@@ -1,4 +1,4 @@
-<?php
+<?php // phpcs:ignore
 /**
  * Test term indexable functionality
  *
@@ -42,7 +42,7 @@ class TestTerm extends BaseTestCase {
 
 		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
 
-		// Need to call this since it's hooked to init
+		// Need to call this since it's hooked to init.
 		ElasticPress\Features::factory()->get_registered_feature( 'terms' )->search_setup();
 	}
 
@@ -74,7 +74,7 @@ class TestTerm extends BaseTestCase {
 
 		$this->deleteAllTerms();
 
-		// make sure no one attached to this
+		// Make sure no one attached to this.
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
@@ -374,7 +374,11 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderName() {
 		$this->createAndIndexTerms();
 
-		$term = wp_insert_term( 'aaa', 'post_tag', [ 'slug' => 'gg' ] );
+		$term_id = Functions\create_and_sync_term( 'aaa', 'aaa', '', 'post_tag' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertGreaterThan( 0, $term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -385,7 +389,9 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+		$this->assertSame( 5, count( $term_query->terms ) );
+
+		$this->assertEquals( $term_id, $term_query->terms[0]->term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -397,7 +403,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+		$this->assertEquals( $term_id, $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
 	/**
@@ -460,7 +466,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		// Remove empty descriptions
+		// Remove empty descriptions.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->description ) ) {
 				unset( $term_query->terms[ $key ] );
@@ -482,7 +488,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		// Remove empty descriptions
+		// Remove empty descriptions.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->description ) ) {
 				unset( $term_query->terms[ $key ] );
@@ -667,5 +673,18 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertEquals( 1, count( $term_query->terms ) );
+	}
+
+	/**
+	 * Tests prepare_document function.
+	 *
+	 * @return void
+	 */
+	public function testPrepareDocument() {
+
+		$results = ElasticPress\Indexables::factory()->get( 'term' )->prepare_document( 0 );
+
+		$this->assertFalse( $results );
+
 	}
 }

@@ -139,6 +139,11 @@ return [
 					'name' => [
 						'type' => 'text',
 					],
+					'sortable' => [
+						'type'         => 'keyword',
+						'ignore_above' => 10922,
+						'normalizer'   => 'lowerasciinormalizer',
+					],
 					'raw'  => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
