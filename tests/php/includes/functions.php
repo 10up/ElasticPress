@@ -109,6 +109,7 @@ function create_and_sync_user( $user_args = array(), $user_meta = array() ) {
 function create_and_sync_term( $slug, $name, $description, $taxonomy, $posts = [], $parent = null ) {
 	$args = [
 		'slug' => $slug,
+		'description' => $description,
 	];
 
 	if ( ! empty( $parent ) ) {

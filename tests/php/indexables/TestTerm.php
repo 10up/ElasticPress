@@ -415,7 +415,11 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderSlug() {
 		$this->createAndIndexTerms();
 
-		$term = wp_insert_term( 'ff', 'post_tag', [ 'slug' => 'aaa' ] );
+		$term_id = Functions\create_and_sync_term( 'aaa', 'aaa', '', 'post_tag' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertGreaterThan( 0, $term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -427,7 +431,9 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+		$this->assertSame( 5, count( $term_query->terms ) );
+
+		$this->assertEquals( $term_id, $term_query->terms[0]->term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -440,7 +446,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+		$this->assertEquals( $term_id, $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
 	/**
@@ -452,9 +458,13 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderDescription() {
 		$this->createAndIndexTerms();
 
-		$term = wp_insert_term( 'ff', 'post_tag', [ 'description' => 'aaa' ] );
+		$term_id_1 = Functions\create_and_sync_term( 'ff', 'ff', 'aaa', 'post_tag' );
+		$term_id_2 = Functions\create_and_sync_term( 'yff', 'ff', 'bbb', 'post_tag' );
 
-		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'description' => 'bbb' ] );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertGreaterThan( 0, $term_id_1 );
+		$this->assertGreaterThan( 0, $term_id_2 );
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -475,7 +485,9 @@ class TestTerm extends BaseTestCase {
 
 		$term_query->terms = array_values( $term_query->terms );
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+		$this->assertSame( 6, count( $term_query->terms ) );
+
+		$this->assertEquals( $term_id_1, $term_query->terms[0]->term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -497,7 +509,9 @@ class TestTerm extends BaseTestCase {
 
 		$term_query->terms = array_values( $term_query->terms );
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+		$this->assertSame( 6, count( $term_query->terms ) );
+
+		$this->assertEquals( $term_id_1, $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
 	/**

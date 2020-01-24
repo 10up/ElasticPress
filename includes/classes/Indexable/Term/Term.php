@@ -829,7 +829,7 @@ class Term extends Indexable {
 				);
 			} elseif ( 'description' === $orderby ) {
 				$sort[] = array(
-					'description.raw' => array(
+					'description.sortable' => array(
 						'order' => $order,
 					),
 				);

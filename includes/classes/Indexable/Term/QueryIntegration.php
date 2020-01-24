@@ -220,7 +220,7 @@ class QueryIntegration {
 				}
 			}
 
-			$term->elasticsearch = true; // Super useful for debugging
+			$term->elasticsearch = true; // Super useful for debugging.
 
 			if ( $term ) {
 				$new_terms[] = $term;
