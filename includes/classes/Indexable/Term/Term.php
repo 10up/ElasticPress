@@ -88,16 +88,9 @@ class Term extends Indexable {
 		 * Support `order` and `orderby` query vars
 		 */
 
-		// Set sort order, default is 'asc'.
+		// Set sort order, default is 'ASC'.
 		if ( ! empty( $query_vars['order'] ) ) {
 			$order = $this->parse_order( $query_vars['order'] );
-		} else {
-			$order = 'asc';
-		}
-
-		// Default sort by name
-		if ( empty( $query_vars['orderby'] ) ) {
-			$query_vars['orderby'] = 'name';
 		}
 
 		// Set sort type.
