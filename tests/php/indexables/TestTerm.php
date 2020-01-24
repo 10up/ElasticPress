@@ -378,9 +378,10 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -388,10 +389,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -411,10 +413,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'slug',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'slug',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -422,11 +425,12 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'slug',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'slug',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -448,10 +452,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'description',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'description',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -468,11 +473,12 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'description',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'description',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -499,10 +505,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'term_id',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'term_id',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -510,11 +517,12 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'term_id',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'term_id',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -532,10 +540,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'id',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'id',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -543,11 +552,12 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'id',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'id',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -579,10 +589,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'parent',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'parent',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -601,11 +612,12 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'parent',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'parent',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -634,9 +646,10 @@ class TestTerm extends BaseTestCase {
 
 		$post = wp_insert_post(
 			[
-				'post_title'  => 'Test',
-				'post_status' => 'publish',
-				'post_type'   => 'post',
+				'post_title'   => 'Test',
+				'post_status'  => 'publish',
+				'post_type'    => 'post',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -646,9 +659,10 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'taxonomy'   => 'post_tag',
-				'hide_empty' => true,
+				'number'       => 10,
+				'taxonomy'     => 'post_tag',
+				'hide_empty'   => true,
+				'ep_integrate' => true,
 			]
 		);
 
