@@ -692,13 +692,13 @@ class TestTerm extends BaseTestCase {
 	/**
 	 * Tests prepare_document function.
 	 *
-	 * @return void
+	 * @since 3.4
+	 * @group term
 	 */
 	public function testPrepareDocument() {
 
 		$results = ElasticPress\Indexables::factory()->get( 'term' )->prepare_document( 0 );
 
 		$this->assertFalse( $results );
-
 	}
 }
