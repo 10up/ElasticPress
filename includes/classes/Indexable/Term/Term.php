@@ -510,6 +510,8 @@ class Term extends Indexable {
 
 		if ( version_compare( $es_version, '5.0', '<' ) ) {
 			$mapping_file = 'pre-5-0.php';
+		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
+			$mapping_file = '7-0.php';
 		}
 
 		$mapping = require apply_filters( 'ep_term_mapping_file', __DIR__ . '/../../../mappings/term/' . $mapping_file );
