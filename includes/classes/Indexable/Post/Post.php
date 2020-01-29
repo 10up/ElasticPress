@@ -1184,7 +1184,7 @@ class Post extends Indexable {
 
 				$filter['bool']['must'][] = array(
 					$terms_map_name => array(
-						'post_status' => $post_status,
+						'post_status' => array_values( $post_status ),
 					),
 				);
 
