@@ -34,7 +34,8 @@ class Facets extends Feature {
 
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
-			'match_type' => 'all',
+			'match_type'   => 'all',
+			'ajax_enabled' => false,
 		];
 
 		parent::__construct();
@@ -77,6 +78,23 @@ class Facets extends Feature {
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'AJAX', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="ajax_enabled"><input name="ajax_enabled" id="ajax_enabled" data-field-name="ajax_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['ajax_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="ajax_disabled"><input name="ajax_enabled" id="ajax_disabled" data-field-name="ajax_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['ajax_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+			</div>
+		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><label for="feature_ajax_selector"><?php esc_html_e( 'DOM Selector', 'elasticpress' ); ?></label></div>
+			<div class="input-wrap">
+				<input value="<?php echo empty( $settings['ajax_selector'] ) ? '#main' : esc_html( $settings['ajax_selector'] ); ?>" type="text" data-field-name="ajax_selector" class="setting-field" id="feature_ajax_selector">
+				<p class="field-description"><?php esc_html_e( 'Target selector to replace the content.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
 		<?php
 	}
 
@@ -172,6 +190,19 @@ class Facets extends Feature {
 			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
 			EP_VERSION
+		);
+
+		$settings = $this->get_settings();
+
+		$facet_options = [
+			'ajax_enabled' => (int) ( $settings['ajax_enabled'] ),
+			'selector'     => empty( $settings['ajax_selector'] ) ? '' : esc_html( $settings['ajax_selector'] ),
+		];
+
+		wp_localize_script(
+			'elasticpress-facets',
+			'epfacets',
+			$facet_options
 		);
 	}
 

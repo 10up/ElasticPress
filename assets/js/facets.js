@@ -1,4 +1,5 @@
 import jQuery from 'jquery';
+import { epfacets } from 'window';
 import _ from 'underscores';
 
 const facetTerms = document.querySelectorAll( '.widget_ep-facet .terms' );
@@ -25,3 +26,22 @@ jQuery( facetTerms ).on( 'keyup', '.facet-search', _.debounce( ( event ) => {
 		}
 	} );
 }, 200 ) );
+
+/**
+ * Ajaxify facets
+ */
+if( 1 === parseInt( epfacets.ajax_enabled ) && epfacets.selector && 0 < jQuery( epfacets.selector ).length ){
+	jQuery( document ).on( 'click', '.term', function ( e ) {
+		e.preventDefault();
+		const relPath = jQuery( this ).find( 'a' ).attr( 'href' );
+		if( relPath ){
+			const baseUrl = window.location.origin;
+			const targetUrl = baseUrl + relPath;
+
+			jQuery.get( targetUrl, function ( data ) {
+				const elem = jQuery( data ).find( epfacets.selector );
+				jQuery( epfacets.selector ).replaceWith( elem );
+			} );
+		}
+	} );
+}
