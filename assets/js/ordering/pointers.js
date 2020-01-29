@@ -33,6 +33,7 @@ export class Pointers extends Component {
 			defaultResults: {},
 			searchText: '',
 			searchResults: {},
+			dashiconMenu: ''
 		};
 
 		this.titleInput.addEventListener( 'keyup', debounce( this.handleTitleChange, 200 ) );
@@ -40,6 +41,8 @@ export class Pointers extends Component {
 		if ( 0 < this.state.title.length ) {
 			this.getDefaultResults();
 		}
+
+		console.log();
 	}
 
 	handleTitleChange = () => {
@@ -316,7 +319,7 @@ export class Pointers extends Component {
 														)}
 														<strong className="title">{title}</strong>
 														<div className="pointer-actions">
-															<span className="dashicons dashicons-menu-alt handle" {...provided.dragHandleProps} title={ __( 'Drag post up or down to reposition', 'elasticpress' ) }></span>
+															<span className="dashicons dashicons-menu handle" {...provided.dragHandleProps} title={ __( 'Drag post up or down to reposition', 'elasticpress' ) }></span>
 															{ item.order && (
 																<span title={tooltipText} className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
 															) }
