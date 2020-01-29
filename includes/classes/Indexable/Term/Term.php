@@ -88,16 +88,9 @@ class Term extends Indexable {
 		 * Support `order` and `orderby` query vars
 		 */
 
-		// Set sort order, default is 'asc'.
+		// Set sort order, default is 'ASC'.
 		if ( ! empty( $query_vars['order'] ) ) {
 			$order = $this->parse_order( $query_vars['order'] );
-		} else {
-			$order = 'asc';
-		}
-
-		// Default sort by name
-		if ( empty( $query_vars['orderby'] ) ) {
-			$query_vars['orderby'] = 'name';
 		}
 
 		// Set sort type.
@@ -517,6 +510,8 @@ class Term extends Indexable {
 
 		if ( version_compare( $es_version, '5.0', '<' ) ) {
 			$mapping_file = 'pre-5-0.php';
+		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
+			$mapping_file = '7-0.php';
 		}
 
 		$mapping = require apply_filters( 'ep_term_mapping_file', __DIR__ . '/../../../mappings/term/' . $mapping_file );
@@ -812,7 +807,7 @@ class Term extends Indexable {
 		if ( ! empty( $orderby ) ) {
 			if ( 'name' === $orderby ) {
 				$sort[] = array(
-					'name.raw' => array(
+					'name.sortable' => array(
 						'order' => $order,
 					),
 				);
@@ -836,7 +831,7 @@ class Term extends Indexable {
 				);
 			} elseif ( 'description' === $orderby ) {
 				$sort[] = array(
-					'description.raw' => array(
+					'description.sortable' => array(
 						'order' => $order,
 					),
 				);

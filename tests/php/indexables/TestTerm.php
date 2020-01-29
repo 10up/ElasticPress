@@ -1,4 +1,4 @@
-<?php
+<?php // phpcs:ignore
 /**
  * Test term indexable functionality
  *
@@ -42,7 +42,7 @@ class TestTerm extends BaseTestCase {
 
 		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
 
-		// Need to call this since it's hooked to init
+		// Need to call this since it's hooked to init.
 		ElasticPress\Features::factory()->get_registered_feature( 'terms' )->search_setup();
 	}
 
@@ -72,9 +72,31 @@ class TestTerm extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		// make sure no one attached to this
+		$this->deleteAllTerms();
+
+		// Make sure no one attached to this.
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
+	}
+
+	/**
+	 * Deletes all terms from the database.
+	 *
+	 * @return void
+	 */
+	public function deleteAllTerms() {
+
+		$terms = get_terms(
+			[
+				'taxonomy'   => [ 'category', 'post_tag' ],
+				'hide_empty' => false,
+				'get'        => 'all',
+			]
+		);
+
+		foreach ( $terms as $term ) {
+			wp_delete_term( $term->term_id, $term->taxonomy );
+		}
 	}
 
 	/**
@@ -190,7 +212,7 @@ class TestTerm extends BaseTestCase {
 	public function testBasicTermQuery() {
 		$this->createAndIndexTerms();
 
-		// First try without ES and make sure everything is right
+		// First try without ES and make sure everything is right.
 		$term_query = new \WP_Term_Query(
 			[
 				'number'     => 10,
@@ -205,8 +227,7 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertEquals( 4, count( $term_query->terms ) );
 
-		// Now try with Elasticsearch
-
+		// Now try with Elasticsearch.
 		$term_query = new \WP_Term_Query(
 			[
 				'ep_integrate' => true,
@@ -221,6 +242,23 @@ class TestTerm extends BaseTestCase {
 		}
 
 		$this->assertEquals( 4, count( $term_query->terms ) );
+
+		// Test some of the filters and defaults.
+		$return_2 = function() {
+			return 2;
+		};
+
+		add_filter( 'ep_max_results_window', $return_2 );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'ep_integrate' => true,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+			]
+		);
+
+		$this->assertEquals( 2, count( $term_query->terms ) );
 	}
 
 
@@ -242,6 +280,55 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertEquals( 2, count( $term_query->terms ) );
+	}
+
+	/**
+	 * Test a term query get paramater.
+	 *
+	 * @since 3.3
+	 * @group term
+	 */
+	public function testTermQueryGet() {
+		$this->createAndIndexTerms();
+
+		$apple = get_term_by( 'slug', 'apple', 'post_tag' );
+
+		$term = wp_insert_term( 'apple child', 'post_tag', [ 'parent' => $apple->term_id ] );
+
+		$this->assertTrue( is_array( $term ) );
+
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term['term_id'], true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// First, verify this with default functionality.
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => 'post_tag',
+				'get'          => 'all',
+			]
+		);
+
+		$slugs = wp_list_pluck( $term_query->terms, 'slug' );
+
+		$this->assertEquals( 5, count( $term_query->terms ) );
+
+		$this->assertContains( 'apple-child', $slugs );
+
+		// Then, test it with ES.
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => 'post_tag',
+				'ep_integrate' => true,
+				'get'          => 'all',
+			]
+		);
+
+		$slugs = wp_list_pluck( $term_query->terms, 'slug' );
+
+		$this->assertEquals( 5, count( $term_query->terms ) );
+
+		$this->assertContains( 'apple-child', $slugs );
 	}
 
 	/**
@@ -267,10 +354,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'object_ids' => [ $post ],
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'object_ids'   => [ $post ],
+				'ep_integrate' => true,
 			]
 		);
 
@@ -286,28 +374,36 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderName() {
 		$this->createAndIndexTerms();
 
-		$term = wp_insert_term( 'aaa', 'post_tag', [ 'slug' => 'gg' ] );
+		$term_id = Functions\create_and_sync_term( 'aaa', 'aaa', '', 'post_tag' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertGreaterThan( 0, $term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'ep_integrate' => true,
 			]
 		);
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+		$this->assertSame( 5, count( $term_query->terms ) );
+
+		$this->assertEquals( $term_id, $term_query->terms[0]->term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'ep_integrate' => true,
 			]
 		);
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+		$this->assertEquals( $term_id, $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
 	/**
@@ -319,30 +415,38 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderSlug() {
 		$this->createAndIndexTerms();
 
-		$term = wp_insert_term( 'ff', 'post_tag', [ 'slug' => 'aaa' ] );
+		$term_id = Functions\create_and_sync_term( 'aaa', 'aaa', '', 'post_tag' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertGreaterThan( 0, $term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'slug',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'slug',
+				'ep_integrate' => true,
 			]
 		);
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+		$this->assertSame( 5, count( $term_query->terms ) );
+
+		$this->assertEquals( $term_id, $term_query->terms[0]->term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'slug',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'slug',
+				'ep_integrate' => true,
 			]
 		);
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+		$this->assertEquals( $term_id, $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
 	/**
@@ -354,20 +458,25 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderDescription() {
 		$this->createAndIndexTerms();
 
-		$term = wp_insert_term( 'ff', 'post_tag', [ 'description' => 'aaa' ] );
+		$term_id_1 = Functions\create_and_sync_term( 'ff', 'ff', 'aaa', 'post_tag' );
+		$term_id_2 = Functions\create_and_sync_term( 'yff', 'ff', 'bbb', 'post_tag' );
 
-		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'description' => 'bbb' ] );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertGreaterThan( 0, $term_id_1 );
+		$this->assertGreaterThan( 0, $term_id_2 );
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'description',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'description',
+				'ep_integrate' => true,
 			]
 		);
 
-		// Remove empty descriptions
+		// Remove empty descriptions.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->description ) ) {
 				unset( $term_query->terms[ $key ] );
@@ -376,19 +485,22 @@ class TestTerm extends BaseTestCase {
 
 		$term_query->terms = array_values( $term_query->terms );
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[0]->term_id );
+		$this->assertSame( 6, count( $term_query->terms ) );
+
+		$this->assertEquals( $term_id_1, $term_query->terms[0]->term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'description',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'description',
+				'ep_integrate' => true,
 			]
 		);
 
-		// Remove empty descriptions
+		// Remove empty descriptions.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->description ) ) {
 				unset( $term_query->terms[ $key ] );
@@ -397,7 +509,9 @@ class TestTerm extends BaseTestCase {
 
 		$term_query->terms = array_values( $term_query->terms );
 
-		$this->assertEquals( $term['term_id'], $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
+		$this->assertSame( 6, count( $term_query->terms ) );
+
+		$this->assertEquals( $term_id_1, $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
 	/**
@@ -411,10 +525,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'term_id',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'term_id',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -422,11 +537,12 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'term_id',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'term_id',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -444,10 +560,11 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'id',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'id',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -455,11 +572,12 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'id',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'id',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -475,20 +593,31 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderParent() {
 		$this->createAndIndexTerms();
 
-		$term = wp_insert_term( 'ff', 'post_tag', [ 'parent' => 5 ] );
+		$apple = get_term_by( 'slug', 'apple', 'post_tag' );
+		$orange = get_term_by( 'slug', 'orange', 'post_tag' );
 
-		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'parent' => 7 ] );
+		$this->assertTrue( is_a( $apple, '\WP_Term' ) );
+		$this->assertTrue( is_a( $orange, '\WP_Term' ) );
+
+		$this->assertGreaterThan( $apple->term_id, $orange->term_id );
+
+		$term = wp_insert_term( 'ff', 'post_tag', [ 'parent' => $apple->term_id ] );
+		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'parent' => $orange->term_id ] );
+
+		$this->assertTrue( is_array( $term ) );
+		$this->assertTrue( is_array( $term_2 ) );
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'orderby'    => 'parent',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'orderby'      => 'parent',
+				'ep_integrate' => true,
 			]
 		);
 
-		// Remove empty parents
+		// Remove empty parents.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->parent ) ) {
 				unset( $term_query->terms[ $key ] );
@@ -496,20 +625,23 @@ class TestTerm extends BaseTestCase {
 		}
 
 		$term_query->terms = array_values( $term_query->terms );
+
+		$this->assertNotEmpty( $term_query->terms );
 
 		$this->assertTrue( $term_query->terms[0]->term_id < $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'hide_empty' => false,
-				'taxonomy'   => 'post_tag',
-				'order'      => 'desc',
-				'orderby'    => 'parent',
+				'number'       => 10,
+				'hide_empty'   => false,
+				'taxonomy'     => 'post_tag',
+				'order'        => 'desc',
+				'orderby'      => 'parent',
+				'ep_integrate' => true,
 			]
 		);
 
-		// Remove empty parents
+		// Remove empty parents.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->parent ) ) {
 				unset( $term_query->terms[ $key ] );
@@ -517,6 +649,8 @@ class TestTerm extends BaseTestCase {
 		}
 
 		$term_query->terms = array_values( $term_query->terms );
+
+		$this->assertNotEmpty( $term_query->terms );
 
 		$this->assertTrue( $term_query->terms[0]->term_id > $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
@@ -532,9 +666,10 @@ class TestTerm extends BaseTestCase {
 
 		$post = wp_insert_post(
 			[
-				'post_title'  => 'Test',
-				'post_status' => 'publish',
-				'post_type'   => 'post',
+				'post_title'   => 'Test',
+				'post_status'  => 'publish',
+				'post_type'    => 'post',
+				'ep_integrate' => true,
 			]
 		);
 
@@ -544,12 +679,26 @@ class TestTerm extends BaseTestCase {
 
 		$term_query = new \WP_Term_Query(
 			[
-				'number'     => 10,
-				'taxonomy'   => 'post_tag',
-				'hide_empty' => true,
+				'number'       => 10,
+				'taxonomy'     => 'post_tag',
+				'hide_empty'   => true,
+				'ep_integrate' => true,
 			]
 		);
 
 		$this->assertEquals( 1, count( $term_query->terms ) );
+	}
+
+	/**
+	 * Tests prepare_document function.
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testPrepareDocument() {
+
+		$results = ElasticPress\Indexables::factory()->get( 'term' )->prepare_document( 0 );
+
+		$this->assertFalse( $results );
 	}
 }
