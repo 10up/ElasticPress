@@ -40,8 +40,6 @@ export class Pointers extends Component {
 		if ( 0 < this.state.title.length ) {
 			this.getDefaultResults();
 		}
-
-		console.log();
 	}
 
 	handleTitleChange = () => {
