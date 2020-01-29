@@ -53,14 +53,14 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Activate a feature.
 	 *
-	 * @synopsis <feature> [--network-wide]
+	 * @synopsis <feature>
 	 * @subcommand activate-feature
 	 * @since      2.1
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function activate_feature( $args, $assoc_args ) {
-		$this->index_occurring( $assoc_args );
+		$this->index_occurring();
 
 		$feature = Features::factory()->get_registered_feature( $args[0] );
 
@@ -92,14 +92,14 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Dectivate a feature.
 	 *
-	 * @synopsis <feature> [--network-wide]
+	 * @synopsis <feature>
 	 * @subcommand deactivate-feature
 	 * @since      2.1
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function deactivate_feature( $args, $assoc_args ) {
-		$this->index_occurring( $assoc_args );
+		$this->index_occurring();
 
 		$feature = Features::factory()->get_registered_feature( $args[0] );
 
@@ -107,7 +107,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
+		if ( EP_IS_NETWORK ) {
 			$active_features = get_site_option( 'ep_feature_settings', [] );
 		} else {
 			$active_features = get_option( 'ep_feature_settings', [] );
@@ -127,7 +127,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * List features (either active or all)
 	 *
-	 * @synopsis [--all] [--network-wide]
+	 * @synopsis [--all]
 	 * @subcommand list-features
 	 * @since      2.1
 	 * @param array $args Positional CLI args.
@@ -136,7 +136,7 @@ class Command extends WP_CLI_Command {
 	public function list_features( $args, $assoc_args ) {
 
 		if ( empty( $assoc_args['all'] ) ) {
-			if ( ! empty( $assoc_args['network-wide'] ) ) {
+			if ( EP_IS_NETWORK ) {
 				$features = get_site_option( 'ep_feature_settings', [] );
 			} else {
 				$features = get_option( 'ep_feature_settings', [] );
@@ -171,7 +171,7 @@ class Command extends WP_CLI_Command {
 		$this->maybe_change_host( $assoc_args );
 		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
-		$this->index_occurring( $assoc_args );
+		$this->index_occurring();
 
 		if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
 			exit( 1 );
@@ -370,7 +370,7 @@ class Command extends WP_CLI_Command {
 	 */
 	public function delete_index( $args, $assoc_args ) {
 		$this->connect_check();
-		$this->index_occurring( $assoc_args );
+		$this->index_occurring();
 
 		// If index name is specified, just delete it and end the command.
 		if ( ! empty( $assoc_args['index-name'] ) ) {
@@ -449,7 +449,7 @@ class Command extends WP_CLI_Command {
 	 */
 	public function recreate_network_alias( $args, $assoc_args ) {
 		$this->connect_check();
-		$this->index_occurring( $assoc_args );
+		$this->index_occurring();
 
 		$indexables = Indexables::factory()->get_all( false );
 
@@ -526,7 +526,7 @@ class Command extends WP_CLI_Command {
 		$this->maybe_change_host( $assoc_args );
 		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
-		$this->index_occurring( $assoc_args );
+		$this->index_occurring();
 
 		$indexables = null;
 
@@ -555,7 +555,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( EP_IS_NETWORK ) {
 			$this->is_network_transient = true;
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
@@ -565,7 +565,7 @@ class Command extends WP_CLI_Command {
 		timer_start();
 
 		// This clears away dashboard notifications.
-		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( EP_IS_NETWORK ) {
 			update_site_option( 'ep_last_sync', time() );
 			delete_site_option( 'ep_need_upgrade_sync' );
 			delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -1134,12 +1134,11 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Error out if index is already occurring
 	 *
-	 * @param  array $assoc_args Associative args passed to command
 	 * @since 3.0
 	 */
-	private function index_occurring( $assoc_args ) {
+	private function index_occurring() {
 
-		if ( ! empty( $assoc_args['network-wide'] ) ) {
+		if ( EP_IS_NETWORK ) {
 			$dashboard_syncing = get_site_option( 'ep_index_meta' );
 			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
 		} else {
