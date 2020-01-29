@@ -33,7 +33,6 @@ export class Pointers extends Component {
 			defaultResults: {},
 			searchText: '',
 			searchResults: {},
-			dashiconMenu: ''
 		};
 
 		this.titleInput.addEventListener( 'keyup', debounce( this.handleTitleChange, 200 ) );
