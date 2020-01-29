@@ -542,7 +542,7 @@ class Elasticsearch {
 		}
 
 		/**
-		 * Filter Elasticsearch response headers
+		 * Filter Elasticsearch request headers
 		 *
 		 * @hook ep_format_request_headers
 		 * @param {array} $headers Current headers

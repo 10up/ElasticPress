@@ -82,59 +82,67 @@ if ( $network_activated ) {
 	define( 'EP_IS_NETWORK', true );
 }
 
-global $wp_version;
-
 /**
- * Handle indexables
+ * Sets up the indexables and features.
+ *
+ * @return void
  */
-Indexables::factory()->register( new Indexable\Post\Post() );
+function register_indexable_posts() {
+	global $wp_version;
 
-/**
- * Handle features
- */
-Features::factory()->register_feature(
-	new Feature\Search\Search()
-);
+	/**
+	 * Handle indexables
+	 */
+	Indexables::factory()->register( new Indexable\Post\Post() );
 
-Features::factory()->register_feature(
-	new Feature\ProtectedContent\ProtectedContent()
-);
-
-Features::factory()->register_feature(
-	new Feature\Autosuggest\Autosuggest()
-);
-
-Features::factory()->register_feature(
-	new Feature\RelatedPosts\RelatedPosts()
-);
-
-Features::factory()->register_feature(
-	new Feature\WooCommerce\WooCommerce()
-);
-
-Features::factory()->register_feature(
-	new Feature\Facets\Facets()
-);
-
-Features::factory()->register_feature(
-	new Feature\Documents\Documents()
-);
-
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+	/**
+	 * Handle features
+	 */
 	Features::factory()->register_feature(
-		new Feature\Users\Users()
+		new Feature\Search\Search()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\ProtectedContent\ProtectedContent()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Autosuggest\Autosuggest()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\RelatedPosts\RelatedPosts()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\WooCommerce\WooCommerce()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Facets\Facets()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Documents\Documents()
+	);
+
+  if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+	  Features::factory()->register_feature(
+		  new Feature\Terms\Terms()
+	  );
+  }
+
+	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Users\Users()
+		);
+	}
+
+	Features::factory()->register_feature(
+		new Feature\SearchOrdering\SearchOrdering()
 	);
 }
-
-if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-	Features::factory()->register_feature(
-		new Feature\Terms\Terms()
-	);
-}
-
-Features::factory()->register_feature(
-	new Feature\SearchOrdering\SearchOrdering()
-);
+add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
@@ -187,7 +195,7 @@ function handle_upgrades() {
 		$last_sync = get_option( 'ep_last_sync', 'never' );
 	}
 
-	// No need to upgrade since we've never synced
+	// No need to upgrade since we've never synced.
 	if ( empty( $last_sync ) || 'never' === $last_sync ) {
 		return;
 	}
