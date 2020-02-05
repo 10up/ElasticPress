@@ -394,13 +394,10 @@ class Weighting {
 					$weight = (int) $weights[ $field ]['weight'];
 
 					if ( 0 !== $weight ) {
-						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
-					}
+						if ( 'author_name' === $field ) {
+							$field = 'post_author.display_name';
+						}
 
-					// Use display_name as the searchable field. author_name was
-					// used in previous versions of the plugin.
-					if ( 'author_name' === $field ) {
-						$field = 'post_author.display_name';
 						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 					}
 				} else {

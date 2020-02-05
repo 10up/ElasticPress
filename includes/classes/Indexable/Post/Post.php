@@ -847,12 +847,6 @@ class Post extends Indexable {
 			$use_filters = true;
 		}
 
-		// Use the original author name passed into the query. query_vars
-		// contains a slugified author_name value.
-		if ( isset( $wp_query->query['author_name'] ) ) {
-			$args['author_name'] = sanitize_text_field( $wp_query->query['author_name'] );
-		}
-
 		/**
 		 * Author query support
 		 *
