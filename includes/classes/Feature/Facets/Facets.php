@@ -23,6 +23,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Facets extends Feature {
 
 	/**
+	 * Facet query
+	 *
+	 * @var array
+	 */
+	public $placeholder_query = [];
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -54,6 +61,86 @@ class Facets extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
+
+		$settings = $this->get_settings();
+
+		if ( true === (bool) $settings['ajax_enabled'] ) {
+			add_filter( 'the_posts', [ $this, 'inject_templating_post' ], PHP_INT_MAX, 2 );
+			add_action( 'the_post', [ $this, 'maybe_buffer_template_item' ] );
+			add_action( 'loop_end', [ $this, 'maybe_capture_template_output' ] );
+			add_action( 'wp_footer', [ $this, 'output_templating_post' ] );
+		}
+
+	}
+
+	/**
+	 * HTML Output of the templating post
+	 */
+	public function output_templating_post() {
+		global $ep_facet_output;
+		if ( ! empty( $ep_facet_output ) ) {
+			echo '<div id="ep-facet-sample-result" style="display: none">' . $ep_facet_output . '</div>'; // phpcs:ignore
+		}
+	}
+
+	/**
+	 * Start output buffering for template post
+	 *
+	 * @param \WP_Post $post Post object
+	 */
+	public function maybe_buffer_template_item( $post ) {
+		global $ep_facet_buffer;
+		if ( - 99999999999 === $post->ID ) {
+			ob_start();
+			$ep_facet_buffer = true;
+		}
+	}
+
+	/**
+	 * Stop autput buffering for template post
+	 *
+	 * @param \WP_Query $query WP Query
+	 */
+	public function maybe_capture_template_output( $query ) {
+		global $ep_facet_buffer, $ep_facet_output;
+		if ( true === $ep_facet_buffer ) {
+			$ep_facet_output = ob_get_clean();
+			$ep_facet_buffer = false;
+		}
+	}
+
+	/**
+	 * Inject fake post to search loop
+	 *
+	 * @param \WP_Post  $post  Post object
+	 * @param \WP_Query $query WP Query
+	 *
+	 * @return array
+	 */
+	public function inject_templating_post( $post, $query ) {
+		if ( $query->is_main_query() && $query->is_search() ) {
+			$fake_post                        = new \stdClass();
+			$fake_post->ID                    = - 99999999999;
+			$fake_post->post_author           = 1;
+			$fake_post->post_date             = current_time( 'mysql' );
+			$fake_post->post_date_gmt         = current_time( 'mysql' );
+			$fake_post->post_title            = '{{POST_TITLE}}';
+			$fake_post->post_excerpt          = '{{POST_EXCERPT}}';
+			$fake_post->post_content          = '{{POST_CONTENT}}';
+			$fake_post->post_content_filtered = '{{POST_CONTENT_FILTERED}}';
+			$fake_post->post_status           = 'publish';
+			$fake_post->comment_status        = 'closed';
+			$fake_post->ping_status           = 'closed';
+			$fake_post->post_name             = 'ep-facets-templating-post';
+			$fake_post->post_type             = 'post';
+			$fake_post->filter                = 'raw';
+			$fake_post->permalink             = '{{PERMALINK}}';
+
+			$templating_post = new \WP_Post( $fake_post );
+			$post[]          = $templating_post;
+		}
+
+		return $post;
 	}
 
 	/**
@@ -111,6 +198,11 @@ class Facets extends Feature {
 		if ( empty( $query_args['ep_facet'] ) ) {
 			return $args;
 		}
+
+		/**
+		 * Catch current query for FE use
+		 */
+		$this->placeholder_query = $args;
 
 		// @todo For some reason these are appearing in the query args, need to investigate
 		unset( $query_args['category_name'] );
@@ -197,6 +289,8 @@ class Facets extends Feature {
 		$facet_options = [
 			'ajax_enabled' => (int) ( $settings['ajax_enabled'] ),
 			'selector'     => empty( $settings['ajax_selector'] ) ? '' : esc_html( $settings['ajax_selector'] ),
+			'query'        => $this->placeholder_query,
+			'endpointUrl'  => trailingslashit( Utils\get_host() ) . Indexables::factory()->get( 'post' )->get_index_name() . '/_search',
 		];
 
 		wp_localize_script(
