@@ -1,4 +1,4 @@
-# ElasticPress - Automattic VIP fork
+# ElasticPress
 
 > A fast and flexible search and query engine for WordPress.
 
