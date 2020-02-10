@@ -290,6 +290,7 @@ class Facets extends Feature {
 			'ajax_enabled' => (int) ( $settings['ajax_enabled'] ),
 			'selector'     => empty( $settings['ajax_selector'] ) ? '' : esc_html( $settings['ajax_selector'] ),
 			'query'        => $this->placeholder_query,
+			'match_type'   => $settings['match_type'],
 			'endpointUrl'  => trailingslashit( Utils\get_host() ) . Indexables::factory()->get( 'post' )->get_index_name() . '/_search',
 		];
 
