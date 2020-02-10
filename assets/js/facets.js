@@ -100,6 +100,7 @@ if( 1 === parseInt( epfacets.ajax_enabled ) && epfacets.selector && 0 < jQuery( 
 						.replace( /{{POST_CONTENT}}/g, post_content )
 						.replace( /{{POST_CONTENT_FILTERED}}/g, post_content_filtered )
 						.replace( /{{PERMALINK}}/g, permalink )
+						.replace( /http:\/\/PERMALINK/g, permalink )
 						.replace( /-99999999999/g, postId )
 					;
 				} );

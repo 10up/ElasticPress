@@ -69,8 +69,25 @@ class Facets extends Feature {
 			add_action( 'the_post', [ $this, 'maybe_buffer_template_item' ] );
 			add_action( 'loop_end', [ $this, 'maybe_capture_template_output' ] );
 			add_action( 'wp_footer', [ $this, 'output_templating_post' ] );
+			add_filter( 'post_link', [ $this, 'maybe_replace_post_link' ], 10, 2 );
 		}
 
+	}
+
+	/**
+	 * Replace permalink for templating purpose
+	 *
+	 * @param String   $link Post permalink
+	 * @param \WP_Post $post Post Object
+	 *
+	 * @return string
+	 */
+	public function maybe_replace_post_link( $link, $post ) {
+		if ( - 99999999999 === $post->ID ) {
+			$link = '{{PERMALINK}}';
+		}
+
+		return $link;
 	}
 
 	/**
