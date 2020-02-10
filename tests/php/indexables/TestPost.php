@@ -1015,8 +1015,11 @@ class TestPost extends BaseTestCase {
 	public function testAuthorNameQuery() {
 		$user_id = $this->factory->user->create(
 			array(
-				'user_login' => 'john',
-				'role'       => 'administrator',
+				'user_login'   => 'john',
+				'first_name'   => 'Bacon',
+				'last_name'    => 'Ipsum',
+				'display_name' => 'Bacon Ipsum',
+				'role'         => 'administrator',
 			)
 		);
 
@@ -1037,8 +1040,16 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'           => 'findme',
-			'author_name' => 'john',
+			's' => 'findme',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$args = array(
+			's' => 'Bacon Ipsum',
 		);
 
 		$query = new \WP_Query( $args );
