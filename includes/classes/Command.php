@@ -107,7 +107,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		if ( EP_IS_NETWORK ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$active_features = get_site_option( 'ep_feature_settings', [] );
 		} else {
 			$active_features = get_option( 'ep_feature_settings', [] );
@@ -136,7 +136,7 @@ class Command extends WP_CLI_Command {
 	public function list_features( $args, $assoc_args ) {
 
 		if ( empty( $assoc_args['all'] ) ) {
-			if ( EP_IS_NETWORK ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$features = get_site_option( 'ep_feature_settings', [] );
 			} else {
 				$features = get_option( 'ep_feature_settings', [] );
@@ -555,7 +555,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		if ( EP_IS_NETWORK ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$this->is_network_transient = true;
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
@@ -565,7 +565,7 @@ class Command extends WP_CLI_Command {
 		timer_start();
 
 		// This clears away dashboard notifications.
-		if ( EP_IS_NETWORK ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			update_site_option( 'ep_last_sync', time() );
 			delete_site_option( 'ep_need_upgrade_sync' );
 			delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -1138,7 +1138,7 @@ class Command extends WP_CLI_Command {
 	 */
 	private function index_occurring() {
 
-		if ( EP_IS_NETWORK ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dashboard_syncing = get_site_option( 'ep_index_meta' );
 			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
 		} else {
