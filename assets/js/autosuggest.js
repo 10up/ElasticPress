@@ -7,8 +7,8 @@ import {
 } from './utils/helpers';
 import 'element-closest';
 import 'promise-polyfill/src/polyfill';
-import 'whatwg-fetch';
-import { epas } from 'window';
+// import 'whatwg-fetch';
+import { epas, fetch } from 'window';
 
 /**
  * Submit the search form
@@ -139,7 +139,8 @@ async function esSearch( query, searchTerm ) {
 	}
 
 	try {
-		const response = await fetch( epas.endpointUrl, fetchConfig );
+		const response = await window.fetch( epas.endpointUrl, fetchConfig );
+		console.log( response );
 		if ( !response.ok ) {
 			throw Error( response.statusText );
 		}
@@ -179,8 +180,13 @@ function updateAutosuggestBox( options, input ) {
 		resultsContainer.style = 'display: none;';
 	}
 
+	// anticipating the future... a setting where we configure
+	// a limit of results to show, and optionally append a
+	// link to "all results" or something of that nature
+	const resultsLimit = options.length;
+
 	// create markup for list items
-	for ( i = 0; i < options.length; ++i ) {
+	for ( i = 0; resultsLimit > i; ++i ) {
 		const { text, url } = options[i];
 		const escapedText = escapeDoubleQuotes( text );
 
@@ -188,9 +194,9 @@ function updateAutosuggestBox( options, input ) {
 		const highlightedText = escapedText.replace( value, `<span class="ep-autosuggest-highlight">${value}</span>` );
 		itemString +=
 			`<li class="autosuggest-list-item">
-				<span class="autosuggest-item" data-search="${escapedText}" data-url="${url}">
+				<a href="${url}" class="autosuggest-item" data-search="${escapedText}" data-url="${url}">
 					${highlightedText}
-				</span>
+				</a>
 			</li>`;
 	}
 
@@ -372,8 +378,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 		const input = event.target;
 		const container = findAncestor( input, 'ep-autosuggest-container' );
 		const suggestList = container.querySelector( '.autosuggest-list' );
-
-		const results = suggestList.getElementsByClassName( 'autosuggest-list-item' );
+		const results = suggestList.querySelectorAll( '.autosuggest-list-item' );
 
 		/**
 		 * helper function to get the currently selected result
@@ -394,7 +399,8 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 		 */
 		const selectNextResult = () => {
 			if( 0 <= $currentIndex ) {
-				results[$currentIndex].classList.add( 'selected' );
+				const el = results[$currentIndex];
+				el.classList.add( 'selected' );
 			}
 		};
 
@@ -407,7 +413,6 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 					deSelectResults();
 					break;
 				case 40: // Down
-
 					if ( 'undefined' === typeof $currentIndex ) {
 						// index is not yet defined, so let's
 						// start with the first one
@@ -458,6 +463,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	 * @param {*} event
 	 */
 	const handleKeyup = event => {
+		event.preventDefault();
 
 		const input = event.target;
 		const keyCodes = [
@@ -520,11 +526,18 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	};
 
 	/**
-	 * Listen for any keyup events, throttle them to a min threshold of time
-	 * and then send them for a query to the Elasticsearch server
+	 * Listen for any events:
 	 *
+	 * keyup
+	 * 		- send them for a query to the Elasticsearch server
+	 * 		- handle up and down keys to move between results
+	 * blur
+	 * 		- hide the autosuggest box
 	 */
-	epInputs.forEach( input => input.addEventListener( 'keyup', handleKeyup ) );
+	epInputs.forEach( input => {
+		input.addEventListener( 'keyup', handleKeyup );
+		input.addEventListener( 'blur', hideAutosuggestBox );
+	} );
 
 	// Publically expose API
 	window.epasAPI = {
