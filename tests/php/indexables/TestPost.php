@@ -1015,8 +1015,11 @@ class TestPost extends BaseTestCase {
 	public function testAuthorNameQuery() {
 		$user_id = $this->factory->user->create(
 			array(
-				'user_login' => 'john',
-				'role'       => 'administrator',
+				'user_login'   => 'john',
+				'first_name'   => 'Bacon',
+				'last_name'    => 'Ipsum',
+				'display_name' => 'Bacon Ipsum',
+				'role'         => 'administrator',
 			)
 		);
 
@@ -1037,8 +1040,16 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'           => 'findme',
-			'author_name' => 'john',
+			's' => 'findme',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$args = array(
+			's' => 'Bacon Ipsum',
 		);
 
 		$query = new \WP_Query( $args );
@@ -4613,5 +4624,35 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Tests the http_request_args filter.
+	 *
+	 * @return void
+	 */
+	public function testHttpRequestArgsFilter() {
+		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
+
+		add_filter(
+			'http_request_args',
+			function( $args ) {
+				$args['headers']['x-my-value'] = '12345';
+				return $args;
+			}
+		);
+
+		add_filter(
+			'http_request_args',
+			function( $args ) {
+				$this->assertSame( '12345', $args['headers']['x-my-value'] );
+				return $args;
+			},
+			PHP_INT_MAX
+		);
+
+		$post_id = Functions\create_and_sync_post();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 	}
 }
