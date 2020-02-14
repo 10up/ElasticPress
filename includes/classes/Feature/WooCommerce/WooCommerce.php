@@ -11,6 +11,7 @@ namespace ElasticPress\Feature\WooCommerce;
 use ElasticPress\Feature as Feature;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -293,27 +294,9 @@ class WooCommerce extends Feature {
 			if ( ! empty( $term ) ) {
 				$integrate = true;
 
-				$terms          = (array) $term;
-				$children_terms = [];
+				$terms = (array) $term;
+				$terms = Utils\prepare_term_slugs( $terms, $taxonomy );
 
-				// to add child terms to the tax query
-				if ( is_taxonomy_hierarchical( $taxonomy ) ) {
-					foreach ( $terms as $term ) {
-						$term_object = get_term_by( 'slug', $term, $taxonomy );
-						if ( $term_object && property_exists( $term_object, 'term_id' ) ) {
-							$children = get_term_children( $term_object->term_id, $taxonomy );
-							if ( $children ) {
-								foreach ( $children as $child ) {
-									$child_object = get_term( $child, $taxonomy );
-									if ( $child_object && ! is_wp_error( $child_object ) && property_exists( $child_object, 'slug' ) ) {
-										$children_terms[] = $child_object->slug;
-									}
-								}
-							}
-						}
-					}
-				}
-				$terms       = array_merge( $terms, $children_terms );
 				$tax_query[] = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',

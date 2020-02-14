@@ -450,3 +450,38 @@ function get_language() {
 	 */
 	return apply_filters( 'ep_default_language', $ep_language );
 }
+
+/**
+ * Prepare term slugs for tax query
+ *
+ * @param array  $terms    Term slugs
+ * @param string $taxonomy Taxonomy
+ *
+ * @return array
+ * @since 3.4
+ */
+function prepare_term_slugs( $terms, $taxonomy ) {
+	$children_terms = [];
+
+	// to add child terms to the tax query
+	if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+		foreach ( $terms as $term ) {
+			$term_object = get_term_by( 'slug', $term, $taxonomy );
+			if ( $term_object && property_exists( $term_object, 'term_id' ) ) {
+				$children = get_term_children( $term_object->term_id, $taxonomy );
+				if ( $children ) {
+					foreach ( $children as $child ) {
+						$child_object = get_term( $child, $taxonomy );
+						if ( $child_object && ! is_wp_error( $child_object ) && property_exists( $child_object, 'slug' ) ) {
+							$children_terms[] = $child_object->slug;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	$terms = array_merge( $terms, $children_terms );
+
+	return $terms;
+}

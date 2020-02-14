@@ -156,4 +156,37 @@ class TestUtils extends BaseTestCase {
 		$this->assertSame( 'my-user-name', $creds['username'] );
 		$this->assertSame( 'my-token', $creds['token'] );
 	}
+
+	/**
+	 * Tests the prepare_term_slugs utils function.
+	 *
+	 * @return void
+	 * @since 3.4
+	 */
+	public function testPrepareTermSlugs() {
+
+		$music = wp_insert_term( 'Music', 'category', [
+				'slug'        => 'music',
+				'description' => 'Music is a parent term',
+			]
+		);
+
+		$albums = wp_insert_term( 'Albums', 'category', [
+				'parent'      => $music['term_id'],
+				'slug'        => 'albums',
+				'description' => 'Albums is a child category of Music',
+			]
+		);
+
+		wp_insert_term( '2010s', 'category', [
+				'parent'      => $albums['term_id'],
+				'slug'        => '2010s',
+				'description' => '2010s is a child category of Albums',
+			]
+		);
+
+		$slugs = \ElasticPress\Utils\prepare_term_slugs( [ 'music' ], 'category' );
+
+		$this->assertEquals( 3, count( $slugs ) );
+	}
 }
