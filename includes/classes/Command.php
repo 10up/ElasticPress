@@ -27,14 +27,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Command extends WP_CLI_Command {
 
 	/**
-	 * Holds whether it's network transient or not
-	 *
-	 * @since 2.1.1
-	 * @var  array
-	 */
-	private $is_network_transient = false;
-
-	/**
 	 * Holds time until transient expires
 	 *
 	 * @since 2.1.1
@@ -556,7 +548,6 @@ class Command extends WP_CLI_Command {
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
 		if ( EP_IS_NETWORK ) {
-			$this->is_network_transient = true;
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
@@ -1157,7 +1148,7 @@ class Command extends WP_CLI_Command {
 	 * @since 2.2
 	 */
 	private function reset_transient() {
-		if ( $this->is_network_transient ) {
+		if ( EP_IS_NETWORK ) {
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
@@ -1170,11 +1161,23 @@ class Command extends WP_CLI_Command {
 	 * @since 3.1
 	 */
 	private function delete_transient() {
-		if ( $this->is_network_transient ) {
+		if ( EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_wpcli_sync' );
 		} else {
 			delete_transient( 'ep_wpcli_sync' );
 		}
+	}
+
+	/**
+	 * If an index was stopped prematurely and won't start again, this will clear this
+	 * cached data such that a new index can start.
+	 *
+	 * @subcommand clear-index
+	 * @alias delete-transient
+	 * @since      3.4
+	 */
+	public function clear_index() {
+		$this->delete_transient();
 	}
 
 
@@ -1183,7 +1186,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @param array $assoc_args Associative CLI args.
 	 *
-	 * @since 3.x
+	 * @since 3.4
 	 */
 	private function maybe_change_host( $assoc_args ) {
 		if ( isset( $assoc_args['ep-host'] ) ) {
@@ -1202,7 +1205,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @param array $assoc_args Associative CLI args.
 	 *
-	 * @since 3.x
+	 * @since 3.4
 	 */
 	private function maybe_change_index_prefix( $assoc_args ) {
 		if ( isset( $assoc_args['ep-prefix'] ) ) {
