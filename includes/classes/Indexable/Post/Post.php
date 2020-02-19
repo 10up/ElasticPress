@@ -769,7 +769,7 @@ class Post extends Indexable {
 			if ( ! empty( $args[ $tax_slug ] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
-					'terms'    => array( $args[ $tax_slug ] ),
+					'terms'    => (array) $args[ $tax_slug ],
 					'field'    => 'slug',
 				);
 			}
@@ -863,10 +863,10 @@ class Post extends Indexable {
 		} elseif ( ! empty( $args['author_name'] ) ) {
 			// Since this was set to use the display name initially, there might be some code that used this feature.
 			// Let's ensure that any query vars coming in using author_name are in fact slugs.
-			$author_login             = sanitize_user( $args['author_name'] );
+			// This was changed back in ticket #1622 to use the display name, so we removed the sanitize_user() call.
 			$filter['bool']['must'][] = array(
 				'term' => array(
-					'post_author.login.raw' => $author_login,
+					'post_author.display_name' => $args['author_name'],
 				),
 			);
 

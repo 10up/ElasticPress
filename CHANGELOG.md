@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.4]
+
+* Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
+* Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
+* Support all taxonomies in root of `WP_Query`
+* Readd `ep_retrieve_aggregations` hook for backwards compatibility
+* Move indexable posts class registration into a function that runs in the `plugins_loaded` action. Props [petenelson](https://github.com/petenelson).
+* Fix author name in weighting and use post_author.display_name for weighted author field search. Props [petenelson](https://github.com/petenelson).
+* Add `ep_prepared_*_meta` filters
+* Refactor CLI indexing code for simplicity.
+* Limit indexed Protected Content post types removing `revision`, `oembed_cache`, `custom_css`, `user_request`, `customize_changeset`, and `wp_block`.
+* Cast taxonomy slug to array in case it's already an array in `WP_Query`.
+* Remove unnecessary usage of `--network-wide` CLI paramter.
+* Add name, nickname, and display name to fields used for user search.
+* Add `clear-transient` WP CLI command.
+
 ## [3.3] - 2018-12-18
 
 * Officially support Elasticsearch 7.5

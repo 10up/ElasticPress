@@ -45,10 +45,10 @@ The following WP-CLI commands are supported by ElasticPress:
 
 * `wp elasticpress status`
 
-* `wp elasticpress get_indexes`
+* `wp elasticpress get-indexes`
 
   Get all index names as json.
 
-* `wp elasticpress get_cluster_indexes`
+* `wp elasticpress get-cluster-indexes`
 
   Return all indexes from the cluster as json.
