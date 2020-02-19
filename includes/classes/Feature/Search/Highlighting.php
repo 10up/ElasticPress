@@ -24,12 +24,6 @@ class Highlighting {
 	 * @since  VERSION
 	 */
 	public function __construct() {
-		// $this->slug = 'searchterm_highlighting';
-
-		// $this->title = esc_html__( 'Search Term Highlighting', 'elasticpress' );
-
-		// $this->requires_install_reindex = false;
-
 		$this->default_tags = [
 			'mark',
 			'span',
@@ -39,12 +33,11 @@ class Highlighting {
 		];
 
 		$this->default_settings = [
+			'highlight_enabled'	=> 'off',
 			'highlight_excerpt' => 'off',
 			'highlight_tag'     => 'mark',
 			'highlight_color'   => '',
 		];
-
-		// $this->highlighting_configuration = get_option( 'searchterm_highlighting', [] );
 	}
 
 	/**
@@ -55,8 +48,6 @@ class Highlighting {
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
 		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
-
-		// $this->output_feature_box_settings();
 	}
 
 
@@ -99,6 +90,14 @@ class Highlighting {
 	public function add_search_highlight_tags( $formatted_args, $args ) {
 		apply_filters( 'ep_highlighting_excerpt', [] );
 
+		// get current config
+		$settings = $this->get_highlighting_configuration();
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		if ( $settings['highlight_enabled'] !== '1' ) {
+			return $formatted_args;
+		}
+
 		if ( empty( $args['s'] ) ) {
 			return $formatted_args;
 		}
@@ -124,11 +123,6 @@ class Highlighting {
 
 			$fields_to_highlight = array_unique( $fields_to_highlight );
 		}
-
-		// get current config
-		$settings = $this->get_highlighting_configuration();
-		// print_r( $settings );
-		// $settings = wp_parse_args( $settings, $this->default_settings );
 
 		// define the tag to use
 		$current_tag   = $settings['highlight_tag'];
@@ -161,17 +155,13 @@ class Highlighting {
 	 * @return array
 	 */
 	public function get_highlighting_configuration() {
-		/**
-		 * Filter highlighting configuration
-		 *
-		 * @hook ep_highlighting_configuration
-		 * @param  {array} $config Current configuration
-		 * @return  {array} New configuration
-		 */
 
-		// return apply_filters( 'ep_highlighting_configuration', get_option( 'searchterm_highlighting', [] ) );
+		/** Features Class @var Features $features */
+		$features = Features::factory();
 
-		return $this->default_settings;
+		/** Search Feature @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+		return $search->get_settings();
 	}
 
 
@@ -190,12 +180,12 @@ class Highlighting {
 			return;
 		}
 
-		// $settings = $this->get_settings();
+		$settings = $this->get_highlighting_configuration();
 
-		// if ( ! empty( $_GET['s'] ) && ! empty( $settings['highlight_excerpt'] ) && '1' === $settings['highlight_excerpt'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! empty( $_GET['s'] ) && ! empty( $settings['highlight_excerpt'] ) && '1' === $settings['highlight_excerpt'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
-		// }
+		}
 	}
 
 
