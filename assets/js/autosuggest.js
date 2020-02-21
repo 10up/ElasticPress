@@ -143,7 +143,16 @@ async function esSearch( query, searchTerm ) {
 		if ( !response.ok ) {
 			throw Error( response.statusText );
 		}
-		return await response.json();
+
+		let data = await response.json();
+
+		// allow for filtered data before returning it to
+		// be output on the front end
+		if( 'undefined' !== typeof window.epDataFilter ) {
+			data = window.epDataFilter( data, searchTerm );
+		}
+
+		return data;
 	} catch( error ) {
 		// eslint-disable-next-line no-console
 		console.error( error );
@@ -277,12 +286,10 @@ function checkForOrderedPosts( hits, searchTerm ) {
 	return hits;
 }
 
-
-
-// Ensure we have an endpoint URL, or
-// else this shouldn't happen
-if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
-
+/**
+ * init method called if the epas endpoint is defined
+ */
+function init() {
 	const epInputNodes = document.querySelectorAll( `.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}` );
 
 	// build the container into which we place the search results.
@@ -482,7 +489,6 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	};
 
 
-
 	/**
 	 * Calls the ajax request, and outputs the results.
 	 * Called by the handleKeyup callback, debounced.
@@ -537,6 +543,14 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 		input.addEventListener( 'keyup', handleKeyup );
 		input.addEventListener( 'blur', hideAutosuggestBox );
 	} );
+
+}
+
+// Ensure we have an endpoint URL, or
+// else this shouldn't happen
+if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
+
+	init();
 
 	// Publically expose API
 	window.epasAPI = {
