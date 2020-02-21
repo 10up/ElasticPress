@@ -10,7 +10,6 @@ namespace ElasticPress\Indexable\Post;
 
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Utils;
 use \WP_Query as WP_Query;
 use \WP_User as WP_User;
 
@@ -768,12 +767,9 @@ class Post extends Indexable {
 			}
 
 			if ( ! empty( $args[ $tax_slug ] ) ) {
-				$terms = (array) $args[ $tax_slug ];
-				$terms = Utils\prepare_term_slugs( $terms, $tax_slug );
-
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
-					'terms'    => $terms,
+					'terms'    => (array) $args[ $tax_slug ],
 					'field'    => 'slug',
 				);
 			}
