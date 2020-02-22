@@ -2281,6 +2281,38 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test random order with the seed value
+	 *
+	 * @since 3.4
+	 * @group post
+	 */
+	public function testRandOrderWithSeed() {
+		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 1' ) );
+		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 2' ) );
+		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$args = array(
+			'ep_integrate' => true,
+			'orderby'      => 'rand(3)',
+		);
+
+		$query = new \WP_Query( $args );
+
+		// make sure the response retrieved from ES
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+
+		/**
+		 * Since it's test for random order, can't check against exact post ID or content
+		 * but only found posts and post count.
+		 */
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
 	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
 	 *
 	 * @since 1.2
