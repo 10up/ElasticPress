@@ -28,7 +28,7 @@ class QueryIntegration {
 	 */
 	public function __construct() {
 		// Check if we are currently indexing
-		if ( Utils\is_indexing() ) {
+		if ( Utils\is_recreating_index() ) {
 			return;
 		}
 

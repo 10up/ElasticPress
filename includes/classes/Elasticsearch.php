@@ -725,6 +725,8 @@ class Elasticsearch {
 		// 200 means the delete was successful
 		// 404 means the index was non-existent, but we should still pass this through as we will occasionally want to delete an already deleted index
 		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) || 404 === wp_remote_retrieve_response_code( $request ) ) ) {
+			Utils\set_recreating_index_flag();
+
 			$response_body = wp_remote_retrieve_body( $request );
 
 			return json_decode( $response_body );

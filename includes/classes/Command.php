@@ -491,7 +491,7 @@ class Command extends WP_CLI_Command {
 	 */
 	public function delete_transient_on_int( $signal_no ) {
 		if ( SIGINT === $signal_no ) {
-			$this->delete_transient();
+			$this->remove_indexing_flags();
 			WP_CLI::log( esc_html__( 'Indexing cleaned up.', 'elasticpress' ) );
 			exit;
 		}
@@ -572,7 +572,7 @@ class Command extends WP_CLI_Command {
 
 			// Right now setup is just the put_mapping command, as this also deletes the index(s) first.
 			if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
-				$this->delete_transient();
+				$this->remove_indexing_flags();
 
 				exit( 1 );
 			}
@@ -615,7 +615,7 @@ class Command extends WP_CLI_Command {
 					WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
 
 					if ( ! empty( $result['errors'] ) ) {
-						$this->delete_transient();
+						$this->remove_indexing_flags();
 
 						WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], $result['errors'] ) );
 					}
@@ -644,7 +644,7 @@ class Command extends WP_CLI_Command {
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
-					$this->delete_transient();
+					$this->remove_indexing_flags();
 
 					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $result['errors'] ) );
 				}
@@ -684,7 +684,7 @@ class Command extends WP_CLI_Command {
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
-					$this->delete_transient();
+					$this->remove_indexing_flags();
 
 					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $result['errors'] ) );
 				}
@@ -693,7 +693,7 @@ class Command extends WP_CLI_Command {
 
 		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
 
-		$this->delete_transient();
+		$this->remove_indexing_flags();
 
 		WP_CLI::success( esc_html__( 'Done!', 'elasticpress' ) );
 	}
@@ -854,7 +854,7 @@ class Command extends WP_CLI_Command {
 								do_action( 'ep_cli_' . $indexable->slug . '_bulk_index', $objects, $response );
 
 								if ( is_wp_error( $response ) ) {
-									$this->delete_transient();
+									$this->remove_indexing_flags();
 
 									if ( $show_errors ) {
 										if ( ! empty( $failed_objects ) ) {
@@ -1157,16 +1157,18 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Delete transient that indicates indexing is occuring
+	 * Delete transient and flag that indicate indexing is occuring
 	 *
 	 * @since 3.1
 	 */
-	private function delete_transient() {
+	private function remove_indexing_flags() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_wpcli_sync' );
 		} else {
 			delete_transient( 'ep_wpcli_sync' );
 		}
+
+		Utils\unset_recreating_index_flag();
 	}
 
 	/**
@@ -1178,7 +1180,7 @@ class Command extends WP_CLI_Command {
 	 * @since      3.4
 	 */
 	public function clear_index() {
-		$this->delete_transient();
+		$this->remove_indexing_flags();
 
 		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}

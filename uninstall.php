@@ -62,6 +62,8 @@ class EP_Uninstaller {
 		delete_option( 'ep_host' );
 		delete_site_option( 'ep_index_meta' );
 		delete_option( 'ep_index_meta' );
+		delete_site_option( 'ep_mapping_sync' );
+		delete_option( 'ep_mapping_sync' );
 		delete_site_option( 'ep_feature_settings' );
 		delete_option( 'ep_feature_settings' );
 		delete_site_option( 'ep_version' );

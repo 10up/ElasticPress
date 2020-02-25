@@ -35,7 +35,7 @@ class QueryIntegration {
 	 */
 	public function __construct() {
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
-		if ( Utils\is_indexing() ) {
+		if ( Utils\is_recreating_index() ) {
 			return;
 		}
 

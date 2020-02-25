@@ -168,6 +168,60 @@ function is_indexing() {
 }
 
 /**
+ * Set the flag for destructive reindexes.
+ *
+ * @since  3.5
+ * @return void
+ */
+function set_recreating_index_flag() {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		update_site_option( 'ep_mapping_sync', true );
+	} else {
+		update_option( 'ep_mapping_sync', true );
+	}
+}
+
+/**
+ * Remove the flag for destructive reindexes.
+ *
+ * @since  3.5
+ * @return void
+ */
+function unset_recreating_index_flag() {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		update_site_option( 'ep_mapping_sync', false );
+	} else {
+		update_option( 'ep_mapping_sync', false );
+	}
+}
+
+/**
+ * Determine if ElasticPress is in the middle of a destructive reindex.
+ * A reindex is considered destructive if all mappings were deleted and all indexes
+ * are being recreated.
+ *
+ * @since  3.5
+ * @return boolean
+ */
+function is_recreating_index() {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$mapping_sync = get_site_option( 'ep_mapping_sync', false );
+	} else {
+		$mapping_sync = get_option( 'ep_mapping_sync', false );
+	}
+
+	/**
+	 * Filter whether a destructive reindex is occurring.
+	 *
+	 * @since  3.5
+	 * @hook ep_is_recreating_index
+	 * @param  {bool} $recreating_index True for full reindexing
+	 * @return {bool} New recreating_index value
+	 */
+	return apply_filters( 'ep_is_recreating_index', (bool) $mapping_sync );
+}
+
+/**
  * Check if wpcli indexing is occurring
  *
  * @since  3.0
