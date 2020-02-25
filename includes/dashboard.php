@@ -53,6 +53,7 @@ function setup() {
 	add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 	add_action( 'manage_blogs_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 	add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
+	add_action( 'ep_dashboard_index_completed', __NAMESPACE__ . '\dashboard_index_completed' );
 }
 
 /**
@@ -622,6 +623,14 @@ function action_wp_ajax_ep_index() {
 
 				delete_option( 'ep_index_meta' );
 			}
+
+			/**
+			 * Fires when the dashboard sync is completed
+			 *
+			 * @since  3.5
+			 * @hook ep_dashboard_index_completed
+			 */
+			do_action( 'ep_dashboard_index_completed' );
 		}
 	} else {
 
@@ -635,6 +644,19 @@ function action_wp_ajax_ep_index() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! empty( $index_meta['current_sync_item']['blog_id'] ) ) {
 		restore_current_blog();
 	}
+
+	/**
+	 * Fires right after each dashboard sync AJAX request.
+	 * This action runs after partial requests as well. Use the `ep_dashboard_index_completed`
+	 * action to run code after the whole process is complete.
+	 *
+	 * @since  3.5
+	 * @see ep_dashboard_index_completed
+	 * @hook ep_post_dashboard_index
+	 * @param  {array} $args Args to query content with
+	 * @param  {array} $query Query results
+	 */
+	do_action( 'ep_post_dashboard_index', $index_meta, $query );
 
 	wp_send_json_success( $index_meta );
 
@@ -1051,4 +1073,13 @@ function action_wp_ajax_ep_site_admin() {
 	];
 
 	return wp_send_json_success( $data );
+}
+
+/**
+ * Unset the flag for destructive reindexes when dashboard sync is over.
+ *
+ * @since 3.5
+ */
+function dashboard_index_completed() {
+	Utils\unset_recreating_index_flag();
 }
