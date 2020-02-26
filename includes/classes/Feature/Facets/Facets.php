@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\Facets;
 
 use ElasticPress\Feature as Feature;
+use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
@@ -198,6 +199,12 @@ class Facets extends Feature {
 		$ep_integrate = $query->get( 'ep_integrate', null );
 
 		if ( false === $ep_integrate ) {
+			return false;
+		}
+
+		$woocommerce = Features::factory()->get_registered_feature( 'woocommerce' );
+
+		if ( ! $woocommerce->is_active() && ( function_exists( 'is_product_category' ) && is_product_category() ) ) {
 			return false;
 		}
 
