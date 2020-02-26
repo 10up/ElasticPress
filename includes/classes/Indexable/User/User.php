@@ -382,7 +382,7 @@ class User extends Indexable {
 			 * @since  3.4
 			 * @return  {boolean}
 			 */
-			if ( apply_filters( 'ep_user_search_remove_wildcards', true, $query, $query_vars) ) {
+			if ( apply_filters( 'ep_user_search_remove_wildcards', true, $query, $query_vars ) ) {
 				$query_vars['search'] = trim( $query_vars['search'], '*' );
 			}
 

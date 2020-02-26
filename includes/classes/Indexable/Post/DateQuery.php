@@ -411,7 +411,7 @@ class DateQuery extends WP_Date_Query {
 				$_year = $date_query['year'];
 			}
 
-			$max_days_of_year = date( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
+			$max_days_of_year = date_i18n( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
 		} else {
 			// otherwise we use the max of 366 (leap-year).
 			$max_days_of_year = 366;
