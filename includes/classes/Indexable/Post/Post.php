@@ -362,9 +362,10 @@ class Post extends Indexable {
 	 * Get an array of taxonomies that are indexable for the given post
 	 *
 	 * @param WP_Post $post Post object
-	 * @return array Array of taxonomy slugs that should be indexed
+	 * @since 0.1.0
+	 * @return array
 	 */
-	public function get_indexable_post_taxonomies( $post ) {
+	private function prepare_terms( $post ) {
 		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
 		$selected_taxonomies = [];
 
@@ -373,7 +374,7 @@ class Post extends Indexable {
 				$selected_taxonomies[] = $taxonomy;
 			}
 		}
-		
+
 		/**
 		 * Filter taxonomies to be synced with post
 		 *
@@ -383,19 +384,6 @@ class Post extends Indexable {
 		 * @return  {array} New taxonomies
 		 */
 		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
-
-		return $selected_taxonomies;
-	}
-
-	/**
-	 * Prepare terms to send to ES.
-	 *
-	 * @param WP_Post $post Post object
-	 * @since 0.1.0
-	 * @return array
-	 */
-	private function prepare_terms( $post ) {
-		$selected_taxonomies = $this->get_indexable_post_taxonomies( $post );
 
 		if ( empty( $selected_taxonomies ) ) {
 			return [];
