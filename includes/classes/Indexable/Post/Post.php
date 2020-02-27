@@ -373,7 +373,7 @@ class Post extends Indexable {
 				$selected_taxonomies[] = $taxonomy;
 			}
 		}
-
+		
 		/**
 		 * Filter taxonomies to be synced with post
 		 *
