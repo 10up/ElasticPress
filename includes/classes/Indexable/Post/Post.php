@@ -1212,7 +1212,7 @@ class Post extends Indexable {
 			if ( 'any' !== $args['post_status'] ) {
 				$post_status    = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
 				# Flatten out the array
-				$post_status    = array_values( $post_status )
+				$post_status    = array_values( $post_status );
 				$post_status    = array_map( 'trim', $post_status );
 				$terms_map_name = 'terms';
 				if ( count( $post_status ) < 2 ) {
