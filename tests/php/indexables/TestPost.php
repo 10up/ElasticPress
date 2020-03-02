@@ -291,7 +291,9 @@ class TestPost extends BaseTestCase {
 		// Update the term
 		wp_update_term( $term['term_id'], 'category', array( 'slug' => 'new-slug' ) );
 
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$this->applied_filters = array();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
 
 		// Check if ES post sync filter has been triggered
 		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
