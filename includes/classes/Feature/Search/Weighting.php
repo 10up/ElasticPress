@@ -489,7 +489,7 @@ class Weighting {
 	 */
 	public function do_weighting( $formatted_args, $args ) {
 
-		/*
+		/**
 		 * If search fields is set on the query, we should use those instead of the weighting, since the query was
 		 * overridden by some custom code
 		 */
