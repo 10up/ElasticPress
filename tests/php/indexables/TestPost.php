@@ -306,7 +306,59 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Make sure proper non-hierarchical taxonomies are synced with post.
+	 * Make sure that when terms associated with a post are deleted that the posts are reindexed
+	 *
+	 * @since 3.5
+	 * @group post
+	 */
+	public function testPostTermSyncOnSetObjectTerms() {
+		$term = wp_insert_term( 'Test Tag', 'post_tag', array( 'slug' => 'test-tag' ) );
+
+		$post_id = Functions\create_and_sync_post(
+			array(
+				'tags_input' => array( $term['term_id'] ),
+			)
+		);
+
+		$post_id_two = Functions\create_and_sync_post(
+			array(
+				'tags_input' => array( $term['term_id'] ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Double check that our post is associated with this term (otherwise the test isn't doing anything)
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$post_two = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id_two );
+
+		$this->assertEquals( $term['term_id'], $post['terms']['post_tag'][ 0 ]['term_id'] );
+		$this->assertEquals( $term['term_id'], $post_two['terms']['post_tag'][ 0 ]['term_id'] );
+
+		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
+
+		// Delete the term
+		wp_delete_term( $term['term_id'], 'post_tag' );
+
+		$this->applied_filters = array();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+
+		// Check if ES post sync filter has been triggered
+		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
+
+		// Check if new term slug was synced
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$post_two = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id_two );
+
+		// And the post documents no longer have any tags
+		$this->assertArrayNotHasKey( 'post_tag', $post['terms'] );
+		$this->assertArrayNotHasKey( 'post_tag', $post_two['terms'] );
+	}
+
+	/**
+	 * Make sure proper non-hierarchical taxonomies are synced with post when ep_sync_terms_allow_hierarchy is
+	 * set to false.
 	 *
 	 * @group post
 	 */
