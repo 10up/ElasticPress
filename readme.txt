@@ -57,6 +57,8 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Cast taxonomy slug to array in case it's already an array in `WP_Query`.
 * Remove unnecessary usage of `--network-wide` CLI paramter.
 * Add name, nickname, and display name to fields used for user search.
+* Add `clear-transient` WP CLI command.
+* Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
 
 = 3.3 =
 
