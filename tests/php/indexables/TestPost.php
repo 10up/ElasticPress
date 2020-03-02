@@ -317,7 +317,7 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
 
 		// Update the term
-		wp_update_term( $term['term_id'], 'category', array( 'slug' => 'new-slug' ) );
+		wp_update_term( $term['term_id'], 'category', array( 'slug' => 'new-slug', 'name' => 'New Name' ) );
 
 		$this->applied_filters = array();
 
@@ -329,7 +329,8 @@ class TestPost extends BaseTestCase {
 		// Check if new term slug was synced
 		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
-		$this->assertTrue( 'new-slug', $post['terms']['post_category'][ 0 ]['slug'] );
+		$this->assertEquals( 'new-slug', $post['terms']['category'][ 0 ]['slug'] );
+		$this->assertEquals( 'New Name', $post['terms']['category'][ 0 ]['name'] );
 	}
 
 	/**
