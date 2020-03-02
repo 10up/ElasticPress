@@ -136,7 +136,7 @@ return [
 			'name'             => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'name'     => [
 						'type' => 'text',
 					],
 					'sortable' => [
@@ -144,7 +144,7 @@ return [
 						'ignore_above' => 10922,
 						'normalizer'   => 'lowerasciinormalizer',
 					],
-					'raw'  => [
+					'raw'      => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -186,7 +186,7 @@ return [
 					'description' => [
 						'type' => 'text',
 					],
-					'sortable' => [
+					'sortable'    => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 						'normalizer'   => 'lowerasciinormalizer',

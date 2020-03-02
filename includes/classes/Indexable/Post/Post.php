@@ -408,7 +408,7 @@ class Post extends Indexable {
 		 * @param  {bool} $allow True means allow
 		 * @return  {bool} New value
 		 */
-		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', false );
+		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', true );
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
 			// If we get a taxonomy name, we need to convert it to taxonomy object

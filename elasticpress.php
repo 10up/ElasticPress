@@ -126,11 +126,11 @@ function register_indexable_posts() {
 		new Feature\Documents\Documents()
 	);
 
-  if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-	  Features::factory()->register_feature(
-		  new Feature\Terms\Terms()
-	  );
-  }
+	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Terms\Terms()
+		);
+	}
 
 	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
 		Features::factory()->register_feature(
@@ -221,6 +221,7 @@ function handle_upgrades() {
 			'3.0',
 			'3.1',
 			'3.3',
+			'3.4',
 		)
 	);
 
