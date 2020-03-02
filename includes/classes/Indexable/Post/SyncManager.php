@@ -130,7 +130,9 @@ class SyncManager extends SyncManagerAbstract {
 			// Only re-index if the taxonomy is indexed for this post
 			$indexable_taxonomies = $indexable->get_indexable_post_taxonomies( $post );
 
-			if ( ! in_array( $taxonomy, $indexable_taxonomies ) ) {
+			$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
+
+			if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
 				return;
 			}
 
