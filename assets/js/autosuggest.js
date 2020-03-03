@@ -12,7 +12,7 @@ import { epas, fetch } from 'window';
 
 /**
  * Submit the search form
- * @param object input
+ * @param input
  */
 function submitSearchForm( input ) {
 	input.closest( 'form' ).submit();
@@ -20,7 +20,8 @@ function submitSearchForm( input ) {
 
 /**
  * Take selected item and fill the search input
- * @param event
+ * @param input
+ * @param text
  */
 function selectAutosuggestItem( input, text ) {
 	input.value = text;
@@ -29,11 +30,12 @@ function selectAutosuggestItem( input, text ) {
 /**
  * Navigate to the selected item, and provides
  * event hook for JS customizations, like GA
- * @param event
+ * @param input
+ * @param url
  */
-function goToAutosuggestItem( input, url ) {
+function goToAutosuggestItem( searchTerm, url ) {
 	const detail = {
-		searchTerm: input.value,
+		searchTerm,
 		url
 	};
 
@@ -74,7 +76,7 @@ function triggerAutosuggestEvent( detail ) {
 function selectItem( input, element ) {
 
 	if ( 'navigate' === epas.action ) {
-		return goToAutosuggestItem( input, element.dataset.url );
+		return goToAutosuggestItem( input.value, element.dataset.url );
 	}
 
 	selectAutosuggestItem( input, element.innerText );
@@ -165,11 +167,12 @@ async function esSearch( query, searchTerm ) {
  * Update the auto suggest box with new options or hide if none
  *
  * @param options
+ * @param input
  * @return void
  */
 function updateAutosuggestBox( options, input ) {
-	let i,
-		itemString = '';
+	let i;
+	let itemString = '';
 
 	// get the search term for use later on
 	const { value } = input;
@@ -178,8 +181,9 @@ function updateAutosuggestBox( options, input ) {
 	const suggestList = resultsContainer.querySelector( '.autosuggest-list' );
 
 	// empty the the list of all child nodes
-	while( suggestList.firstChild )
+	while( suggestList.firstChild ) {
 		suggestList.removeChild( suggestList.firstChild );
+	}
 
 
 	if ( 0 < options.length ) {
@@ -201,8 +205,8 @@ function updateAutosuggestBox( options, input ) {
 		// TODO: use some regex magic to match upper/lower/capital case??
 		const highlightedText = escapedText.replace( value, `<span class="ep-autosuggest-highlight">${value}</span>` );
 		itemString +=
-			`<li class="autosuggest-list-item">
-				<a href="${url}" class="autosuggest-item" data-search="${escapedText}" data-url="${url}">
+			`<li class="autosuggest-item">
+				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}">
 					${highlightedText}
 				</a>
 			</li>`;
@@ -211,7 +215,7 @@ function updateAutosuggestBox( options, input ) {
 	// append list items to the list
 	suggestList.innerHTML = itemString;
 
-	const autosuggestItems = Array.from( document.querySelectorAll( '.autosuggest-item' ) );
+	const autosuggestItems = document.querySelectorAll( '.autosuggest-list-item' );
 	autosuggestItems.forEach( item => {
 		item.addEventListener( 'click', event => {
 			selectItem( input, event.target );
@@ -384,7 +388,7 @@ function init() {
 		const input = event.target;
 		const container = findAncestor( input, 'ep-autosuggest-container' );
 		const suggestList = container.querySelector( '.autosuggest-list' );
-		const results = suggestList.querySelectorAll( '.autosuggest-list-item' );
+		const results = suggestList.querySelectorAll( '.autosuggest-item' );
 
 		/**
 		 * helper function to get the currently selected result
@@ -434,9 +438,10 @@ function init() {
 					}
 					break;
 				case 13: // Enter
+
 					if ( results[$currentIndex].classList.contains( 'selected' ) ) {
 						// navigate to the item defined in the span's data-url attribute
-						selectItem( input, results[$currentIndex].querySelector( '.autosuggest-item' ) );
+						selectItem( input, results[$currentIndex].querySelector( '.autosuggest-link' ) );
 						return false;
 					} else {
 						// No item selected
@@ -445,7 +450,7 @@ function init() {
 		}
 
 		// only check next element if up and down key pressed
-		if ( results[$currentIndex] && results[$currentIndex].classList.contains( 'autosuggest-list-item' ) ) {
+		if ( results[$currentIndex] && results[$currentIndex].classList.contains( 'autosuggest-item' ) ) {
 			selectNextResult();
 		} else {
 			deSelectResults();
@@ -541,7 +546,7 @@ function init() {
 	 */
 	epInputs.forEach( input => {
 		input.addEventListener( 'keyup', handleKeyup );
-		input.addEventListener( 'blur', hideAutosuggestBox );
+		// input.addEventListener( 'blur', hideAutosuggestBox );
 	} );
 
 }
@@ -554,9 +559,9 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 
 	// Publically expose API
 	window.epasAPI = {
-		hideAutosuggestBox: hideAutosuggestBox,
-		updateAutosuggestBox: updateAutosuggestBox,
-		esSearch: esSearch,
-		buildSearchQuery: buildSearchQuery
+		hideAutosuggestBox,
+		updateAutosuggestBox,
+		esSearch,
+		buildSearchQuery
 	};
 }
