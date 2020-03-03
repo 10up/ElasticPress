@@ -234,13 +234,13 @@ function hideAutosuggestBox() {
 	const containers = document.querySelectorAll( '.ep-autosuggest' );
 
 	// empty all EP results lists
-	[].forEach.call( lists, list => {
+	lists.forEach( list => {
 		while( list.firstChild )
 			list.removeChild( list.firstChild );
 	} );
 
 	// hide all EP results containers
-	[].forEach.call( containers, container => container.style = 'display: none;' );
+	containers.forEach( container => container.style = 'display: none;' );
 }
 
 
@@ -294,7 +294,7 @@ function checkForOrderedPosts( hits, searchTerm ) {
  * init method called if the epas endpoint is defined
  */
 function init() {
-	const epInputNodes = document.querySelectorAll( `.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}` );
+	const epInputs = document.querySelectorAll( `.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}` );
 
 	// build the container into which we place the search results.
 	// These will be cloned later for each instance
@@ -306,7 +306,7 @@ function init() {
 	epAutosuggest.appendChild( autosuggestList );
 
 	// Build the auto-suggest containers
-	const epInputs = Array.from( epInputNodes );
+	// const epInputs = Array.from( epInputNodes );
 	epInputs.forEach( input => {
 
 		const epContainer = document.createElement( 'div' );
@@ -334,8 +334,8 @@ function init() {
 
 
 	epAutosuggest.style = `
-		top: ${epInputNodes[0].offsetHeight - 1};
-		background-color: ${getComputedStyle( epInputNodes[0], 'background-color' )}
+		top: ${epInputs[0].offsetHeight - 1};
+		background-color: ${getComputedStyle( epInputs[0], 'background-color' )}
 	`;
 
 
@@ -363,7 +363,7 @@ function init() {
 
 	// to be used by the handleUpdDown function
 	// to keep track of the currently selected result
-	let $currentIndex;
+	let currentIndex;
 
 	/**
 	 *
@@ -401,15 +401,15 @@ function init() {
 		 * helper function to deselect results
 		 */
 		const deSelectResults = () => {
-			[].forEach.call( results, result => result.classList.remove( 'selected' ) );
+			results.forEach( result => result.classList.remove( 'selected' ) );
 		};
 
 		/**
 		 * helper function to selected the next result
 		 */
 		const selectNextResult = () => {
-			if( 0 <= $currentIndex ) {
-				const el = results[$currentIndex];
+			if( 0 <= currentIndex ) {
+				const el = results[currentIndex];
 				el.classList.add( 'selected' );
 			}
 		};
@@ -419,29 +419,29 @@ function init() {
 		switch ( event.keyCode ) {
 				case 38: // Up
 					// don't go less than the 0th index
-					$currentIndex = ( 0 <= $currentIndex - 1 ) ? $currentIndex - 1 : 0;
+					currentIndex = ( 0 <= currentIndex - 1 ) ? currentIndex - 1 : 0;
 					deSelectResults();
 					break;
 				case 40: // Down
-					if ( 'undefined' === typeof $currentIndex ) {
+					if ( 'undefined' === typeof currentIndex ) {
 						// index is not yet defined, so let's
 						// start with the first one
-						$currentIndex = 0;
+						currentIndex = 0;
 					} else {
-						const $current = getSelectedResultIndex();
+						const current = getSelectedResultIndex();
 
 						// check for existence of next result
-						if( results[$current + 1] ) {
-							$currentIndex = $current + 1;
+						if( results[current + 1] ) {
+							currentIndex = current + 1;
 							deSelectResults();
 						}
 					}
 					break;
 				case 13: // Enter
 
-					if ( results[$currentIndex].classList.contains( 'selected' ) ) {
+					if ( results[currentIndex].classList.contains( 'selected' ) ) {
 						// navigate to the item defined in the span's data-url attribute
-						selectItem( input, results[$currentIndex].querySelector( '.autosuggest-link' ) );
+						selectItem( input, results[currentIndex].querySelector( '.autosuggest-link' ) );
 						return false;
 					} else {
 						// No item selected
@@ -450,7 +450,7 @@ function init() {
 		}
 
 		// only check next element if up and down key pressed
-		if ( results[$currentIndex] && results[$currentIndex].classList.contains( 'autosuggest-item' ) ) {
+		if ( results[currentIndex] && results[currentIndex].classList.contains( 'autosuggest-item' ) ) {
 			selectNextResult();
 		} else {
 			deSelectResults();
@@ -517,7 +517,7 @@ function init() {
 			// fetch the results
 			const response = await esSearch( query, searchText );
 
-			if ( response && 0 < response._shards.successful ) {
+			if ( response && ( 0 < response._shards.successful ) ) {
 				const hits = checkForOrderedPosts( response.hits.hits, searchText );
 				const formattedResults = formatSearchResults( hits );
 
@@ -553,7 +553,7 @@ function init() {
 
 // Ensure we have an endpoint URL, or
 // else this shouldn't happen
-if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
+if ( epas.endpointUrl && ( '' !== epas.endpointUrl ) ) {
 
 	init();
 
