@@ -394,6 +394,10 @@ class Weighting {
 					$weight = (int) $weights[ $field ]['weight'];
 
 					if ( 0 !== $weight ) {
+						if ( 'author_name' === $field ) {
+							$field = 'post_author.display_name';
+						}
+
 						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
 					}
 				} else {
@@ -484,7 +488,8 @@ class Weighting {
 	 * @return array Formatted ES args
 	 */
 	public function do_weighting( $formatted_args, $args ) {
-		/*
+
+		/**
 		 * If search fields is set on the query, we should use those instead of the weighting, since the query was
 		 * overridden by some custom code
 		 */

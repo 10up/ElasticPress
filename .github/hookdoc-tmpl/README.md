@@ -6,7 +6,7 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 
 **Please note:** master is the stable branch on GitHub.
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0 require re-syncing.
+**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0, 3.1, and 3.3 require re-syncing.
 
 For more information about the ElasticPress plugin and ElasticPress.io service, please visit the [website](https://elasticpress.io).
 

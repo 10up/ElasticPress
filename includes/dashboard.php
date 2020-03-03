@@ -751,6 +751,10 @@ function action_admin_enqueue_dashboard_scripts() {
 					'singular' => esc_html__( 'Post', 'elasticpress' ),
 					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
 				],
+				'term' => [
+					'singular' => esc_html__( 'Term', 'elasticpress' ),
+					'plural'   => esc_html__( 'Terms', 'elasticpress' ),
+				],
 				'user' => [
 					'singular' => esc_html__( 'User', 'elasticpress' ),
 					'plural'   => esc_html__( 'Users', 'elasticpress' ),

@@ -2,9 +2,9 @@
 Contributors: tlovett1, vhauri, tott, oscarssanchez, cmmarslender, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
-Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
+Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Requires at least: 3.7.1
-Tested up to: 5.3
+Tested up to: 5.4
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -42,6 +42,23 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 5. Enjoy!
 
 == Changelog ==
+
+= 3.4 =
+
+* Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
+* Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
+* Support all taxonomies in root of `WP_Query`
+* Readd `ep_retrieve_aggregations` hook for backwards compatibility
+* Move indexable posts class registration into a function that runs in the `plugins_loaded` action. Props [petenelson](https://github.com/petenelson).
+* Fix author name in weighting and use post_author.display_name for weighted author field search. Props [petenelson](https://github.com/petenelson).
+* Add `ep_prepared_*_meta` filters
+* Refactor CLI indexing code for simplicity.
+* Limit indexed Protected Content post types removing `revision`, `oembed_cache`, `custom_css`, `user_request`, `customize_changeset`, and `wp_block`.
+* Cast taxonomy slug to array in case it's already an array in `WP_Query`.
+* Remove unnecessary usage of `--network-wide` CLI paramter.
+* Add name, nickname, and display name to fields used for user search.
+* Add `clear-transient` WP CLI command.
+* Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
 
 = 3.3 =
 
