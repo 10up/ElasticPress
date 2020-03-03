@@ -99,9 +99,9 @@ class SyncManager extends SyncManagerAbstract {
 	/**
 	 * When a term is updated, re-index all posts attached to that term
 	 *
-	 * @param  int       $term_id Term id.
-	 * @param  int       $tt_id Term Taxonomy id.
-	 * @param  string    $taxonomy Taxonomy name.
+	 * @param  int    $term_id Term id.
+	 * @param  int    $tt_id Term Taxonomy id.
+	 * @param  string $taxonomy Taxonomy name.
 	 * @since  3.5
 	 */
 	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
@@ -122,7 +122,7 @@ class SyncManager extends SyncManagerAbstract {
 		$indexable = Indexables::factory()->get( 'post' );
 
 		// Add all of them to the queue
-		foreach( $object_ids as $post_id ) {
+		foreach ( $object_ids as $post_id ) {
 			$post_type = get_post_type( $post_id );
 
 			$post = get_post( $post_id );
@@ -170,12 +170,18 @@ class SyncManager extends SyncManagerAbstract {
 
 	/**
 	 * When a post's terms are changed, re-index
-	 * 
+	 *
 	 * This catches term deletions via wp_delete_term(), because that function internally loops over all attached objects
 	 * and updates their terms. It will also end up firing whenever set_object_terms is called, but the queue will de-duplicate
 	 * multiple instances per post
 	 *
 	 * @see set_object_terms
+	 * @param int    $object_id  Object ID.
+	 * @param array  $terms      An array of object terms.
+	 * @param array  $tt_ids     An array of term taxonomy IDs.
+	 * @param string $taxonomy   Taxonomy slug.
+	 * @param bool   $append     Whether to append new terms to the old terms.
+	 * @param array  $old_tt_ids Old array of term taxonomy IDs.
 	 * @since  3.5
 	 */
 	public function action_set_object_terms( $object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) {

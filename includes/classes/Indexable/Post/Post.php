@@ -358,7 +358,7 @@ class Post extends Indexable {
 
 	/**
 	 * Get an array of taxonomies that are indexable for the given post
-	 * 
+	 *
 	 * @param WP_Post $post Post object
 	 * @return array Array of taxonomy slugs that should be indexed
 	 */
@@ -371,7 +371,7 @@ class Post extends Indexable {
 				$selected_taxonomies[] = $taxonomy;
 			}
 		}
-		
+
 		/**
 		 * Filter taxonomies to be synced with post
 		 *
