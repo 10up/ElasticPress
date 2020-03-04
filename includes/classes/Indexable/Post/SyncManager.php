@@ -65,17 +65,12 @@ class SyncManager extends SyncManagerAbstract {
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
 
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
-			// Bypass saving if doing autosave or post type is revision.
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
 			return;
 		}
 
 		$post = get_post( $object_id );
-
-		// If the post is an auto-draft - let's abort.
-		if ( 'auto-draft' === $post->post_status ) {
-			return;
-		}
 
 		if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
 			$indexable_post_types = $indexable->get_indexable_post_types();
@@ -134,7 +129,17 @@ class SyncManager extends SyncManagerAbstract {
 		 * @param  {int} $post_id ID of post
 		 * @return {boolean} New value
 		 */
-		if ( ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) || 'revision' === get_post_type( $post_id ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( 'post' );
+		$post_type = get_post_type( $post_id );
+
+		$indexable_post_types = $indexable->get_indexable_post_types();
+
+		if ( ! in_array( $post_type, $indexable_post_types, true ) ) {
+			// If not an indexable post type, skip delete.
 			return;
 		}
 
@@ -159,8 +164,8 @@ class SyncManager extends SyncManagerAbstract {
 		$indexable = Indexables::factory()->get( 'post' );
 		$post_type = get_post_type( $post_id );
 
-		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || 'revision' === $post_type ) {
-			// Bypass saving if doing autosave or post type is revision.
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
 			return;
 		}
 
@@ -180,11 +185,6 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		$post = get_post( $post_id );
-
-		// If the post is an auto-draft - let's abort.
-		if ( 'auto-draft' === $post->post_status ) {
-			return;
-		}
 
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
 
