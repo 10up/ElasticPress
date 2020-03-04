@@ -1,572 +1,889 @@
-# Copyright (C) 2018 Taylor Lovett, Matt Gross, Aaron Holbrook, 10up
-# This file is distributed under the GPLv2 or later.
+# Copyright (C) 2020 10up
+# This file is distributed under the same license as the ElasticPress plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 2.6\n"
+"Project-Id-Version: ElasticPress 3.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
-"POT-Creation-Date: 2018-04-25 03:10:49+00:00\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"X-Generator: grunt-wp-i18n 0.5.4\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2020-02-25T14:18:02+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.4.0\n"
+"X-Domain: elasticpress\n"
 
-#: bin/wp-cli.php:69 bin/wp-cli.php:106
+#. Plugin Name of the plugin
+msgid "ElasticPress"
+msgstr ""
+
+#. Description of the plugin
+msgid "A fast and flexible search and query engine for WordPress."
+msgstr ""
+
+#. Author of the plugin
+msgid "10up"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "http://10up.com"
+msgstr ""
+
+#: includes/classes/AdminNotices.php:127
+msgid "Autosuggest feature is enabled. If protected content or documents feature is enabled, your protected content will also become searchable. Please checkmark the \"Use safe values\" checkbox in Autosuggest settings to default to safe content search"
+msgstr ""
+
+#: includes/classes/AdminNotices.php:210
+msgid "Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:212
+msgid "The ElasticPress %1$s feature has been auto-activated! You will need to <a href=\"%2$s\">run a sync</a> for it to work."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:286
+msgid "Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:288
+msgid "The new version of ElasticPress requires that you <a href=\"%s\">run a sync</a>."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:352
+msgid "Dashboard sync is disabled, but ElasticPress is almost ready to go. Trigger a sync from WP-CLI."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:354
+msgid "ElasticPress is almost ready to go. You just need to <a href=\"%s\">sync your content</a>."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:404
+msgid "ElasticPress is almost ready to go. You just need to <a href=\"%s\">enter your settings</a>."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:461
+msgid "Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:512
+msgid "Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:571
+msgid "There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href=\"%1$s\">try your host again</a>, or you may need to <a href=\"%2$s\">change your settings</a>."
+msgstr ""
+
+#: includes/classes/AdminNotices.php:575
+msgid "Response Code: %s"
+msgstr ""
+
+#: includes/classes/AdminNotices.php:579
+msgid "Response error: %s"
+msgstr ""
+
+#: includes/classes/AdminNotices.php:639
+msgid "It looks like one or more of your indices are running on a single node. While this won't prevent you from using ElasticPress, depending on your site's specific needs this can represent a performance issue. Please check the <a href=\"%1$s\">Index Health</a> page where you can check the health of all of your indices."
+msgstr ""
+
+#: includes/classes/Command.php:61
+#: includes/classes/Command.php:100
 msgid "No feature with that slug is registered"
 msgstr ""
 
-#: bin/wp-cli.php:73
+#: includes/classes/Command.php:65
 msgid "This feature is already active"
 msgstr ""
 
-#: bin/wp-cli.php:79
+#: includes/classes/Command.php:71
 msgid "Feature requirements are not met: %s"
 msgstr ""
 
-#: bin/wp-cli.php:81
+#: includes/classes/Command.php:73
 msgid "Feature is usable but there are warnings: %s"
 msgstr ""
 
-#: bin/wp-cli.php:87
-msgid ""
-"This feature requires a re-index. You may want to run the index command "
-"next."
+#: includes/classes/Command.php:79
+msgid "This feature requires a re-index. You may want to run the index command next."
 msgstr ""
 
-#: bin/wp-cli.php:90
+#: includes/classes/Command.php:82
 msgid "Feature activated"
 msgstr ""
 
-#: bin/wp-cli.php:118
+#: includes/classes/Command.php:112
 msgid "Feature is not active"
 msgstr ""
 
-#: bin/wp-cli.php:123
+#: includes/classes/Command.php:117
 msgid "Feature deactivated"
 msgstr ""
 
-#: bin/wp-cli.php:143
+#: includes/classes/Command.php:137
 msgid "Active features:"
 msgstr ""
 
-#: bin/wp-cli.php:151
+#: includes/classes/Command.php:145
 msgid "Registered features:"
 msgstr ""
 
-#: bin/wp-cli.php:182
-msgid "Adding mapping for site %d..."
+#: includes/classes/Command.php:214
+msgid "Adding %1$s mapping for site %2$d..."
 msgstr ""
 
-#: bin/wp-cli.php:192 bin/wp-cli.php:210
+#: includes/classes/Command.php:230
+#: includes/classes/Command.php:265
+#: includes/classes/Command.php:301
 msgid "Mapping sent"
 msgstr ""
 
-#: bin/wp-cli.php:194 bin/wp-cli.php:212
+#: includes/classes/Command.php:232
+#: includes/classes/Command.php:267
+#: includes/classes/Command.php:303
 msgid "Mapping failed"
 msgstr ""
 
-#: bin/wp-cli.php:200
-msgid "Adding mapping..."
+#: includes/classes/Command.php:249
+#: includes/classes/Command.php:285
+msgid "Adding %s mapping..."
 msgstr ""
 
-#: bin/wp-cli.php:240
-msgid "Deleting index for site %d..."
-msgstr ""
-
-#: bin/wp-cli.php:245 bin/wp-cli.php:258
+#: includes/classes/Command.php:373
+#: includes/classes/Command.php:400
+#: includes/classes/Command.php:415
+#: includes/classes/Command.php:428
 msgid "Index deleted"
 msgstr ""
 
-#: bin/wp-cli.php:247
-msgid "Delete index failed"
-msgstr ""
-
-#: bin/wp-cli.php:253
-msgid "Deleting index..."
-msgstr ""
-
-#: bin/wp-cli.php:260
+#: includes/classes/Command.php:375
+#: includes/classes/Command.php:417
+#: includes/classes/Command.php:430
 msgid "Index delete failed"
 msgstr ""
 
-#: bin/wp-cli.php:278 bin/wp-cli.php:409
-msgid "Recreating network alias..."
+#: includes/classes/Command.php:395
+msgid "Deleting %1$s index for site %2$d..."
 msgstr ""
 
-#: bin/wp-cli.php:285 bin/wp-cli.php:436
-msgid "Done!"
+#: includes/classes/Command.php:402
+msgid "Delete index failed"
 msgstr ""
 
-#: bin/wp-cli.php:287
+#: includes/classes/Command.php:410
+#: includes/classes/Command.php:423
+msgid "Deleting index for %s..."
+msgstr ""
+
+#: includes/classes/Command.php:450
+#: includes/classes/Command.php:664
+msgid "Recreating %s network alias..."
+msgstr ""
+
+#: includes/classes/Command.php:457
+msgid "Done."
+msgstr ""
+
+#: includes/classes/Command.php:459
 msgid "An error occurred"
 msgstr ""
 
-#: bin/wp-cli.php:389
-msgid "Indexing posts network-wide..."
+#: includes/classes/Command.php:495
+msgid "Indexing cleaned up."
 msgstr ""
 
-#: bin/wp-cli.php:400 bin/wp-cli.php:421
-msgid "Number of posts indexed on site %d: %d"
+#: includes/classes/Command.php:590
+msgid "Indexing objects network-wide..."
 msgstr ""
 
-#: bin/wp-cli.php:403 bin/wp-cli.php:424
-msgid "Number of post index errors on site %d: %d"
+#: includes/classes/Command.php:609
+msgid "Indexing %1$s on site %2$d..."
 msgstr ""
 
-#: bin/wp-cli.php:413
-msgid "Total number of posts indexed: %d"
+#: includes/classes/Command.php:615
+msgid "Number of %1$s indexed on site %2$d: %3$d"
 msgstr ""
 
-#: bin/wp-cli.php:417
-msgid "Indexing posts..."
+#: includes/classes/Command.php:620
+msgid "Number of %1$s index errors on site %2$d: %3$d"
 msgstr ""
 
-#: bin/wp-cli.php:428
+#: includes/classes/Command.php:638
+#: includes/classes/Command.php:680
+msgid "Indexing %s..."
+msgstr ""
+
+#: includes/classes/Command.php:644
+#: includes/classes/Command.php:684
+msgid "Number of %1$s indexed: %2$d"
+msgstr ""
+
+#: includes/classes/Command.php:649
+#: includes/classes/Command.php:689
+msgid "Number of %1$s index errors: %2$d"
+msgstr ""
+
+#: includes/classes/Command.php:694
 msgid "Total time elapsed: "
 msgstr ""
 
-#: bin/wp-cli.php:735
+#: includes/classes/Command.php:698
+msgid "Done!"
+msgstr ""
+
+#: includes/classes/Command.php:818
+#: includes/classes/Command.php:900
+msgid "Processed %1$d/%2$d..."
+msgstr ""
+
+#: includes/classes/Command.php:932
 msgid ""
-"The following posts failed to index:\r\n"
+"The following failed to index:\r\n"
 "\r\n"
+""
 msgstr ""
 
-#: bin/wp-cli.php:886
-msgid ""
-"There is no Elasticsearch host set up. Either add one through the dashboard "
-"or define one in wp-config.php"
+#: includes/classes/Command.php:1120
+msgid "Elasticsearch host is not set."
 msgstr ""
 
-#: bin/wp-cli.php:888
-msgid "Unable to reach Elasticsearch Server! Check that service is running."
+#: includes/classes/Command.php:1122
+msgid "Could not connect to Elasticsearch."
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:571
-msgid ""
-"Invalid response from ElasticPress server. Please contact your "
-"administrator."
+#: includes/classes/Command.php:1142
+msgid "An index is already occuring. Try again later."
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:584
-msgid ""
-"Site not indexed. <p>Please run: <code>wp elasticpress index --setup "
-"--network-wide</code> using WP-CLI. Or use the index button on the left of "
-"this screen.</p>"
+#: includes/classes/Command.php:1183
+msgid "Index cleared."
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:588
-msgid ""
-"Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> "
-"using WP-CLI. Or use the index button on the left of this screen.</p>"
+#: includes/classes/Elasticsearch.php:1003
+msgid "Site not indexed. <p>Please run: <code>wp elasticpress index --setup --network-wide</code> using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:723
-#: includes/classes/Elasticsearch.php:824
-#: includes/classes/Elasticsearch.php:875
+#: includes/classes/Elasticsearch.php:1007
+msgid "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> using WP-CLI. Or use the index button on the left of this screen.</p>"
+msgstr ""
+
+#: includes/classes/Elasticsearch.php:1158
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:18
-msgid "Autosuggest"
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:35
-msgid "Suggest relevant content as text is entered into the search field."
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:46
-msgid ""
-"Input fields of type \"search\" or with the CSS class \"search-field\" or "
-"\"ep-autosuggest\" will be enhanced with autosuggest functionality. As text "
-"is entered into the search field, suggested content will appear below it, "
-"based on top search results for the text. Suggestions link directly to the "
-"content."
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:83
-msgid "Endpoint URL"
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:86
-msgid "This address will be exposed to the public."
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:223
-msgid ""
-"This feature modifies the site’s default user experience by presenting a "
-"list of suggestions below detected search fields as text is entered into "
-"the field."
-msgstr ""
-
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:226
-msgid ""
-"You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
-"we can't be sure your host is properly secured. Autosuggest requires a "
-"publicly accessible endpoint, which can expose private content and allow "
-"data modification if improperly configured."
-msgstr ""
-
-#: includes/classes/Feature/Documents/Documents.php:14
-msgid "Documents"
-msgstr ""
-
-#: includes/classes/Feature/Documents/Documents.php:225
-msgid ""
-"The <a "
-"href=\"https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-"
-"attachment.html\">Ingest Attachment plugin</a> for Elasticsearch is not "
-"installed. To get the most out of ElasticPress, without the hassle of "
-"Elasticsearch management, check out <a "
-"href=\"https://elasticpress.io\">ElasticPress.io</a> hosting."
-msgstr ""
-
-#: includes/classes/Feature/Documents/Documents.php:227
-msgid ""
-"This feature modifies the default user experience for your visitors by "
-"adding popular document file types to search results. <strong>All supported "
-"documents</strong> uploaded to your media library will appear in search "
-"results."
-msgstr ""
-
-#: includes/classes/Feature/Documents/Documents.php:240
-msgid ""
-"Indexes text inside of popular file types, and adds those files types to "
-"search results."
-msgstr ""
-
-#: includes/classes/Feature/Documents/Documents.php:251
-msgid ""
-"Website search results will include popular document file types, using file "
-"names as well as their content. Supported file types include: ppt, pptx, "
-"doc, docx, xls, xlsx, pdf."
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:19
-msgid "Facets"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:57
-msgid "Match Type"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:59
-msgid "Show any content tagged to <strong>all</strong> selected terms"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:60
-msgid "Show all content tagged to <strong>any</strong> selected term"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:61
-msgid ""
-"\"All\" will only show content that matches all facets. \"Any\" will show "
-"content that matches any facet."
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:354
-msgid "Add controls to your website to filter content by one or more taxonomies."
-msgstr ""
-
-#: includes/classes/Feature/Facets/Facets.php:365
-msgid ""
-"Adds a <a href='%s'>Facet widget</a> that administrators can add to the "
-"website's sidebars (widgetized areas), so that visitors can filter "
-"applicable content and search results by one or more taxonomy terms."
-msgstr ""
-
-#: includes/classes/Feature/Facets/Widget.php:17
-msgid "Add a facet to an archive or search results page."
-msgstr ""
-
-#: includes/classes/Feature/Facets/Widget.php:18
-msgid "ElasticPress - Facet"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Widget.php:99
-msgid "Search %s"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Widget.php:281
-#: includes/classes/Feature/Facets/Widget.php:286
-msgid "all"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Widget.php:282
-#: includes/classes/Feature/Facets/Widget.php:285
-msgid "any"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Widget.php:297
-#: includes/classes/Feature/RelatedPosts/Widget.php:96
-msgid "Title:"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Widget.php:304
-msgid "Taxonomy:"
-msgstr ""
-
-#: includes/classes/Feature/Facets/Widget.php:314
-msgid ""
-"Faceting will  filter out any content that is not tagged to all selected "
-"terms; change this to show <strong>%s</strong> content tagged to "
-"<strong>%s</strong> selected term in <a href=\"%s\">ElasticPress "
-"settings</a>."
-msgstr ""
-
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:24
-msgid "Protected Content"
-msgstr ""
-
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:120
-msgid ""
-"Optionally index all of your content, including private and unpublished "
-"content, to speed up searches and queries in places like the administrative "
-"dashboard."
-msgstr ""
-
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:131
-msgid ""
-"Securely indexes unpublished content—including private, draft, and "
-"scheduled posts —improving load times in places like the administrative "
-"dashboard where WordPress needs to include protected content in a query. "
-"<em>We recommend using a secured Elasticsearch setup, such as "
-"ElasticPress.io, to prevent potential exposure of content not intended for "
-"the public.</em>"
-msgstr ""
-
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:164
-msgid ""
-"You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so "
-"we can't be sure your Elasticsearch instance is secure."
-msgstr ""
-
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:19
-msgid "Related Posts"
-msgstr ""
-
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:89
-msgid ""
-"ElasticPress understands data in real time, so it can instantly deliver "
-"engaging and precise related content with no impact on site performance."
-msgstr ""
-
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:100
-msgid ""
-"Output related content using our Widget or directly in your theme using our "
-"<a href=\"https://github.com/10up/ElasticPress/#related-posts\">API "
-"functions.</a>"
-msgstr ""
-
-#: includes/classes/Feature/RelatedPosts/Widget.php:25
-msgid ""
-"Show related posts using ElasticPress. This widget will only appear on "
-"single post, page, and custom type pages."
-msgstr ""
-
-#: includes/classes/Feature/RelatedPosts/Widget.php:26
-msgid "ElasticPress - Related Posts"
-msgstr ""
-
-#: includes/classes/Feature/RelatedPosts/Widget.php:104
-msgid "Number of Posts to Show:"
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:11
-msgid "Search"
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:145
-msgid "Instantly find the content you’re looking for. The first time."
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:151
-msgid ""
-"Overcome higher-end performance and functional limits posed by the "
-"traditional WordPress structured (SQL) database to deliver superior keyword "
-"search, instantly. ElasticPress indexes custom fields, tags, and other "
-"metadata to improve search results. Fuzzy matching accounts for "
-"misspellings and verb tenses."
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:218
-msgid "Weight results by date"
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:220
-#: includes/classes/Feature.php:174
-msgid "Enabled"
-msgstr ""
-
-#: includes/classes/Feature/Search/Search.php:221
-#: includes/classes/Feature.php:175
-msgid "Disabled"
-msgstr ""
-
-#: includes/classes/Feature/WooCommerce/WooCommerce.php:24
-msgid "WooCommerce"
-msgstr ""
-
-#: includes/classes/Feature/WooCommerce/WooCommerce.php:711
-msgid ""
-"“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted "
-"product browsing strains servers and increases load times. Your buyers can "
-"find the perfect product quickly, and buy it quickly."
-msgstr ""
-
-#: includes/classes/Feature/WooCommerce/WooCommerce.php:722
-msgid ""
-"Most caching and performance tools can’t keep up with the nearly infinite "
-"ways your visitors might filter or navigate your products. No matter how "
-"many products, filters, or customers you have, ElasticPress will keep your "
-"online store performing quickly. If used in combination with the Protected "
-"Content feature, ElasticPress will also accelerate order searches and back "
-"end product management."
-msgstr ""
-
-#: includes/classes/Feature/WooCommerce/WooCommerce.php:737
-msgid "WooCommerce not installed."
-msgstr ""
-
-#: includes/classes/Feature.php:138
+#: includes/classes/Feature.php:197
 msgid "Learn more"
 msgstr ""
 
-#: includes/classes/Feature.php:143
+#: includes/classes/Feature.php:202
 msgid "Collapse"
 msgstr ""
 
-#: includes/classes/Feature.php:168 includes/dashboard.php:889
-#: includes/dashboard.php:890 includes/partials/settings-page.php:29
+#: includes/classes/Feature.php:253
+#: includes/dashboard.php:906
+#: includes/dashboard.php:907
+#: includes/partials/settings-page.php:43
 msgid "Settings"
 msgstr ""
 
-#: includes/classes/Feature.php:172
+#: includes/classes/Feature.php:257
 msgid "Status"
 msgstr ""
 
-#: includes/classes/Feature.php:186
+#: includes/classes/Feature.php:259
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:116
+#: includes/classes/Feature/Search/Search.php:323
+msgid "Enabled"
+msgstr ""
+
+#: includes/classes/Feature.php:260
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:117
+#: includes/classes/Feature/Search/Search.php:324
+msgid "Disabled"
+msgstr ""
+
+#: includes/classes/Feature.php:271
 msgid "Setting adjustments to this feature require a re-sync. Use WP-CLI."
 msgstr ""
 
-#: includes/classes/Feature.php:189
+#: includes/classes/Feature.php:274
 msgid "Save"
 msgstr ""
 
-#: includes/classes/Post/DateQuery.php:496
-#. translators: Date query invalid date message: 1: invalid value, 2: type of
-#. value, 3: minimum valid value, 4: maximum valid value
-msgid "Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:43
+msgid "Autosuggest"
 msgstr ""
 
-#: includes/classes/Post/DateQuery.php:526
-#. translators: 1: year, 2: month, 3: day of month
-msgid ""
-"The following values do not describe a valid date: year %1$s, month %2$s, "
-"day %3$s."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:62
+msgid "Suggest relevant content as text is entered into the search field."
 msgstr ""
 
-#: includes/classes/Post/DateQuery.php:543
-#. translators: 1: month, 2: day of month
-msgid "The following values do not describe a valid date: month %1$s, day %2$s."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:73
+msgid "Input fields of type \"search\" or with the CSS class \"search-field\" or \"ep-autosuggest\" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content."
 msgstr ""
 
-#: includes/dashboard.php:115
-msgid "<a href=\"%s\">Dashboard</a>"
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:106
+msgid "Autosuggest Selector"
 msgstr ""
 
-#: includes/dashboard.php:282
-msgid ""
-"There is a problem with connecting to your Elasticsearch host. ElasticPress "
-"can <a href=\"%s\">try your host again</a>, or you may need to <a "
-"href=\"%s\">change your settings</a>."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:109
+msgid "Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type=\"text\"]"
 msgstr ""
 
-#: includes/dashboard.php:289
-msgid ""
-"Your Elasticsearch version %s is above the maximum required Elasticsearch "
-"version %s. ElasticPress may or may not work properly."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:114
+msgid "Google Analytics Events"
 msgstr ""
 
-#: includes/dashboard.php:296
-msgid ""
-"Your Elasticsearch version %s is below the minimum required Elasticsearch "
-"version %s. ElasticPress may or may not work properly."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:118
+msgid "When enabled, a gtag tracking event is fired when an autosuggest result is clicked."
 msgstr ""
 
-#: includes/dashboard.php:309
-msgid ""
-"Thanks for installing ElasticPress! You will need to run through a <a "
-"href=\"%s\">quick set up process</a> to get the plugin working."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:131
+msgid "Endpoint URL"
 msgstr ""
 
-#: includes/dashboard.php:322
-msgid ""
-"ElasticPress is almost ready. You will need to complete a <a "
-"href=\"%s\">sync</a> to get the plugin working."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:141
+msgid "Your autosuggest endpoint is set in wp-config.php"
 msgstr ""
 
-#: includes/dashboard.php:335
-msgid ""
-"The new version of ElasticPress requires that you <a href=\"%s\">run a "
-"sync</a>."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:145
+msgid "This address will be exposed to the public."
 msgstr ""
 
-#: includes/dashboard.php:350
-msgid ""
-"The ElasticPress %s feature has been auto-activated! You will need to <a "
-"href=\"%s\">run a sync</a> for it to work."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:549
+msgid "This feature modifies the site’s default user experience by presenting a list of suggestions below detected search fields as text is entered into the field."
 msgstr ""
 
-#: includes/dashboard.php:358
-msgid ""
-"Dashboard sync is disabled. The ElasticPress %s feature has been "
-"auto-activated! You will need to reindex using WP-CLI for it to work."
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:553
+msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured."
 msgstr ""
 
-#: includes/dashboard.php:365
-msgid ""
-"Dashboard sync is disabled. The new version of ElasticPress requires that "
-"you to reindex using WP-CLI."
+#: includes/classes/Feature/Documents/Documents.php:27
+#: includes/partials/stats-page.php:47
+msgid "Documents"
 msgstr ""
 
-#: includes/dashboard.php:372
-msgid ""
-"Dashboard sync is disabled. You will need to index using WP-CLI to finish "
-"setup."
+#: includes/classes/Feature/Documents/Documents.php:318
+msgid "The <a href=\"https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-attachment.html\">Ingest Attachment plugin</a> for Elasticsearch is not installed. To get the most out of ElasticPress, without the hassle of Elasticsearch management, check out <a href=\"https://elasticpress.io\">ElasticPress.io</a> hosting."
 msgstr ""
 
-#: includes/dashboard.php:733
+#: includes/classes/Feature/Documents/Documents.php:321
+msgid "This feature modifies the default user experience for your visitors by adding popular document file types to search results. <strong>All supported documents</strong> uploaded to your media library will appear in search results."
+msgstr ""
+
+#: includes/classes/Feature/Documents/Documents.php:334
+msgid "Indexes text inside of popular file types, and adds those files types to search results."
+msgstr ""
+
+#: includes/classes/Feature/Documents/Documents.php:345
+msgid "Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf."
+msgstr ""
+
+#: includes/classes/Feature/Documents/Documents.php:475
+msgid "Description"
+msgstr ""
+
+#: includes/classes/Feature/Documents/Documents.php:476
+msgid "Caption"
+msgstr ""
+
+#: includes/classes/Feature/Documents/Documents.php:481
+msgid "Document Content"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Facets.php:33
+msgid "Facets"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Facets.php:73
+msgid "Match Type"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Facets.php:75
+msgid "Show any content tagged to <strong>all</strong> selected terms"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Facets.php:76
+msgid "Show all content tagged to <strong>any</strong> selected term"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Facets.php:77
+msgid "\"All\" will only show content that matches all facets. \"Any\" will show content that matches any facet."
+msgstr ""
+
+#: includes/classes/Feature/Facets/Facets.php:430
+msgid "Add controls to your website to filter content by one or more taxonomies."
+msgstr ""
+
+#. translators: URL
+#: includes/classes/Feature/Facets/Facets.php:444
+msgid "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms."
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:26
+msgid "Add a facet to an archive or search results page."
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:27
+msgid "ElasticPress - Facet"
+msgstr ""
+
+#. translators: Taxonomy Name
+#: includes/classes/Feature/Facets/Widget.php:149
+msgid "Search %s"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:356
+#: includes/classes/Feature/Facets/Widget.php:361
+msgid "all"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:357
+#: includes/classes/Feature/Facets/Widget.php:360
+msgid "any"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:380
+msgid "Count"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:381
+msgid "Term Name"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:385
+msgid "Descending"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:386
+msgid "Ascending"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:393
+#: includes/classes/Feature/RelatedPosts/Widget.php:100
+msgid "Title:"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:400
+msgid "Taxonomy:"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:412
+msgid "Order Terms By:"
+msgstr ""
+
+#: includes/classes/Feature/Facets/Widget.php:426
+msgid "Term Order:"
+msgstr ""
+
+#. translators: "all" or "any", depending on configuration values, 3: URL
+#: includes/classes/Feature/Facets/Widget.php:439
+msgid "Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href=\"%3$s\">ElasticPress settings</a>."
+msgstr ""
+
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:33
+msgid "Protected Content"
+msgstr ""
+
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:181
+msgid "Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard."
+msgstr ""
+
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:192
+msgid "Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>"
+msgstr ""
+
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:222
+msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure."
+msgstr ""
+
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:28
+msgid "Related Posts"
+msgstr ""
+
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:339
+msgid "ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance."
+msgstr ""
+
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:350
+msgid "Output related content using our Widget or directly in your theme using our <a href=\"https://github.com/10up/ElasticPress/#related-posts\">API functions.</a>"
+msgstr ""
+
+#: includes/classes/Feature/RelatedPosts/Widget.php:29
+msgid "Show related posts using ElasticPress. This widget will only appear on single post, page, and custom type pages."
+msgstr ""
+
+#: includes/classes/Feature/RelatedPosts/Widget.php:30
+msgid "ElasticPress - Related Posts"
+msgstr ""
+
+#: includes/classes/Feature/RelatedPosts/Widget.php:108
+msgid "Number of Posts to Show:"
+msgstr ""
+
+#: includes/classes/Feature/Search/Search.php:34
+msgid "Post Search"
+msgstr ""
+
+#: includes/classes/Feature/Search/Search.php:259
+msgid "Instantly find the content you’re looking for. The first time."
+msgstr ""
+
+#: includes/classes/Feature/Search/Search.php:270
+msgid "Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses."
+msgstr ""
+
+#: includes/classes/Feature/Search/Search.php:321
+msgid "Weight results by date"
+msgstr ""
+
+#: includes/classes/Feature/Search/Search.php:327
+msgid "Advanced fields and weighting settings"
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:39
+msgid "Attributes"
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:73
+msgid "Taxonomies"
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:175
+msgid "Search Fields & Weighting"
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:185
+msgid "Manage Search Fields & Weighting"
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:186
+msgid "Adding more weight to an item will mean it will have more presence during searches. Add more weight to the items that are more important and need more prominence during searches."
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:187
+msgid "For example, adding more weight to the title attribute will cause search matches on the post title to appear more prominently."
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:197
+msgid "Changes Saved!"
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:201
+msgid "An error occurred when saving!"
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:287
+msgid "Searchable"
+msgstr ""
+
+#: includes/classes/Feature/Search/Weighting.php:292
+msgid "Weight: "
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:45
+msgid "Custom Search Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:106
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:109
+msgid "Custom result updated."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:107
+msgid "Custom field updated."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:108
+msgid "Custom field deleted."
+msgstr ""
+
+#. translators: %s: date and time of the revision
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:111
+msgid "Custom result restored to revision from %s"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:112
+msgid "Custom result published."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:113
+msgid "Custom result saved."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:114
+msgid "Custom result submitted."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:116
+msgid "Custom result scheduled for: %1$s."
+msgstr ""
+
+#. translators: Publish box date format, see http://php.net/date
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:118
+msgid "M j, Y @ G:i"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:120
+msgid "Custom result draft updated."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:141
+msgid "This feature requires the \"Post Search\" feature to be enabled"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:152
+msgid "Insert specific posts into search results for specific search queries."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:161
+msgid "Selected posts will be inserted into search results in the specified position."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:182
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:285
+msgid "Custom Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:237
+msgctxt "post type general name"
+msgid "Custom Search Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:238
+msgctxt "post type singular name"
+msgid "Custom Search Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:239
+msgctxt "admin menu"
+msgid "Custom Search Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:240
+msgctxt "add new on admin bar"
+msgid "Custom Search Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:241
+msgctxt "book"
+msgid "Add New"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:242
+msgid "Add New Custom Search Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:243
+msgid "New Custom Search Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:244
+msgid "Edit Custom Search Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:245
+msgid "View Custom Search Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:246
+msgid "All Custom Search Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:247
+msgid "Search Custom Search Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:248
+msgid "Parent Custom Search Result:"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:249
+msgid "No results found."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:250
+msgid "No results found in Trash."
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:255
+msgid "Posts to inject into search results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:275
+msgctxt "taxonomy general name"
+msgid "Custom Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:276
+msgctxt "taxonomy singular name"
+msgid "Custom Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:277
+msgid "Search Custom Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:278
+msgid "All Custom Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:279
+msgid "Parent Custom Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:280
+msgid "Parent Custom Result:"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:281
+msgid "Edit Custom Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:282
+msgid "Update Custom Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:283
+msgid "Add New Custom Result"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:284
+msgid "New Custom Result Name"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:312
+msgid "Manage Results"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:567
+msgid "Enter Search Query"
+msgstr ""
+
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:581
+msgid "Search Query"
+msgstr ""
+
+#: includes/classes/Feature/Terms/Terms.php:28
+#: includes/classes/Indexable/Term/Term.php:39
+#: includes/dashboard.php:756
+msgid "Terms"
+msgstr ""
+
+#: includes/classes/Feature/Terms/Terms.php:61
+msgid "Improve term search relevancy and query performance."
+msgstr ""
+
+#: includes/classes/Feature/Terms/Terms.php:72
+msgid "This feature will empower your website to overcome traditional WordPress term search and query limitations that can present themselves at scale."
+msgstr ""
+
+#: includes/classes/Feature/Users/Users.php:28
+#: includes/classes/Indexable/User/User.php:48
+#: includes/dashboard.php:760
+msgid "Users"
+msgstr ""
+
+#: includes/classes/Feature/Users/Users.php:61
+msgid "Improve user search relevancy and query performance."
+msgstr ""
+
+#: includes/classes/Feature/Users/Users.php:72
+msgid "This feature will empower your website to overcome traditional WordPress user search and query limitations that can present themselves at scale."
+msgstr ""
+
+#: includes/classes/Feature/Users/Users.php:73
+msgid "Be aware that storing user data may bound you to certain legal obligations depending on your local government regulations."
+msgstr ""
+
+#: includes/classes/Feature/WooCommerce/WooCommerce.php:31
+msgid "WooCommerce"
+msgstr ""
+
+#: includes/classes/Feature/WooCommerce/WooCommerce.php:766
+msgid "“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly."
+msgstr ""
+
+#: includes/classes/Feature/WooCommerce/WooCommerce.php:777
+msgid "Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management."
+msgstr ""
+
+#: includes/classes/Feature/WooCommerce/WooCommerce.php:809
+msgid "WooCommerce not installed."
+msgstr ""
+
+#: includes/classes/Indexable/Post/Post.php:40
+#: includes/dashboard.php:752
+msgid "Posts"
+msgstr ""
+
+#: includes/classes/Indexable/Post/Post.php:41
+#: includes/dashboard.php:751
+msgid "Post"
+msgstr ""
+
+#: includes/classes/Indexable/Term/Term.php:40
+#: includes/dashboard.php:755
+msgid "Term"
+msgstr ""
+
+#: includes/classes/Indexable/User/User.php:49
+#: includes/dashboard.php:759
+msgid "User"
+msgstr ""
+
+#. translators: Site Name
+#: includes/classes/Installer.php:50
+msgid "ElasticPress Setup &lsaquo; %s &#8212; WordPress"
+msgstr ""
+
+#: includes/compat.php:96
+msgid "Feature registration API"
+msgstr ""
+
+#: includes/dashboard.php:240
+msgid "Dashboard"
+msgstr ""
+
+#: includes/dashboard.php:767
 msgid "Sync complete"
 msgstr ""
 
-#: includes/dashboard.php:734
+#: includes/dashboard.php:768
 msgid "Sync paused"
 msgstr ""
 
-#: includes/dashboard.php:735
+#: includes/dashboard.php:769
 msgid "Syncing"
 msgstr ""
 
-#: includes/dashboard.php:736
+#: includes/dashboard.php:770
 msgid "Starting sync"
 msgstr ""
 
-#: includes/dashboard.php:737
+#: includes/dashboard.php:771
 msgid "WP CLI sync is occurring. Refresh the page to see if it's finished"
 msgstr ""
 
-#: includes/dashboard.php:738
+#: includes/dashboard.php:772
 msgid "An error occurred while syncing"
 msgstr ""
 
-#: includes/dashboard.php:775
-msgid "Security error!"
+#: includes/dashboard.php:915
+#: includes/dashboard.php:916
+#: includes/partials/stats-page.php:24
+msgid "Index Health"
 msgstr ""
 
-#: includes/dashboard.php:898 includes/dashboard.php:899
-msgid "Welcome"
+#: includes/dashboard.php:1001
+msgid "ElasticPress Indexing"
+msgstr ""
+
+#: includes/dashboard.php:1025
+msgid "On"
+msgstr ""
+
+#: includes/dashboard.php:1027
+msgid "Off"
 msgstr ""
 
 #: includes/partials/dashboard-page.php:27
@@ -577,55 +894,152 @@ msgstr ""
 msgid "settings"
 msgstr ""
 
-#: includes/partials/intro-page.php:24
+#: includes/partials/install-page.php:27
 msgid "A Fast and Flexible Search and Query Engine for WordPress."
 msgstr ""
 
-#: includes/partials/intro-page.php:25
-msgid ""
-"You're almost there! The plugin is free to use but requires an "
-"Elasticsearch server behind-the-scenes. There are tons of services that let "
-"you easily get one like <a href='https://qbox.io'>Qbox</a>. If you have a "
-"bigger website, 10up provides Elasticsearch hosting via <a "
-"href='http://www.elasticpress.io'>ElasticPress.io</a>."
+#: includes/partials/install-page.php:37
+msgid "Go to dashboard"
 msgstr ""
 
-#: includes/partials/intro-page.php:31
-msgid "Set Up"
+#: includes/partials/install-page.php:44
+#: includes/partials/install-page.php:51
+#: includes/partials/install-page.php:60
+msgid "Step"
 msgstr ""
 
-#: includes/partials/intro-page.php:32
-msgid "Learn More"
+#: includes/partials/install-page.php:46
+msgid "Plugin has been installed"
 msgstr ""
 
-#: includes/partials/settings-page.php:38
-msgid "Elasticsearch Host"
+#: includes/partials/install-page.php:47
+msgid "You've taken your first step into a faster and more flexible search and query engine for WordPress"
 msgstr ""
 
-#: includes/partials/settings-page.php:44
-msgid "Your Elasticsearch host is set in wp-config.php"
+#: includes/partials/install-page.php:53
+msgid "Set up Elasticsearch hosting"
 msgstr ""
 
-#: includes/partials/settings-page.php:46
+#: includes/partials/install-page.php:55
+msgid "The next step is to make sure you have a working Elasticsearch server. We recommend creating an <a href=\"https://elasticpress.io\">ElasticPress.io</a> account or if you want you can set up your own hosting."
+msgstr ""
+
+#: includes/partials/install-page.php:62
+msgid "Index your content"
+msgstr ""
+
+#: includes/partials/install-page.php:64
+msgid "Click below to index your content through ElasticPress. You can also activate optional Features such as Protected Content and Autosuggest in the Features page"
+msgstr ""
+
+#: includes/partials/install-page.php:70
+msgid "Index Your Content"
+msgstr ""
+
+#: includes/partials/install-page.php:72
+msgid "Got hosting? Get Started"
+msgstr ""
+
+#: includes/partials/settings-page.php:74
+msgid "ElasticPress.io Host URL"
+msgstr ""
+
+#: includes/partials/settings-page.php:76
+msgid "Elasticsearch Host URL"
+msgstr ""
+
+#: includes/partials/settings-page.php:94
+msgid "Host already defined in wp-config.php."
+msgstr ""
+
+#: includes/partials/settings-page.php:97
+msgid "Plug in your ElasticPress.io server here!"
+msgstr ""
+
+#: includes/partials/settings-page.php:99
 msgid "Plug in your Elasticsearch server here!"
 msgstr ""
 
-#: includes/partials/settings-page.php:54
+#: includes/partials/settings-page.php:107
+msgid "Subscription ID"
+msgstr ""
+
+#: includes/partials/settings-page.php:123
+msgid "Your Subscription ID is set in wp-config.php"
+msgstr ""
+
+#: includes/partials/settings-page.php:125
+msgid "Plug in your Subscription ID here."
+msgstr ""
+
+#: includes/partials/settings-page.php:132
+msgid "Subscription Username"
+msgstr ""
+
+#: includes/partials/settings-page.php:136
+msgid "Plug in your subscription username here."
+msgstr ""
+
+#: includes/partials/settings-page.php:142
+msgid "Subscription Token"
+msgstr ""
+
+#: includes/partials/settings-page.php:145
+msgid "Plug in your subscription token here."
+msgstr ""
+
+#: includes/partials/settings-page.php:158
+msgid "Elasticsearch Language"
+msgstr ""
+
+#: includes/partials/settings-page.php:172
+msgid "Default language for your Elasticsearch mapping."
+msgstr ""
+
+#: includes/partials/settings-page.php:177
+msgid "Elasticsearch Version"
+msgstr ""
+
+#: includes/partials/settings-page.php:193
+msgid "Content Items per Index Cycle "
+msgstr ""
+
+#: includes/partials/settings-page.php:212
 msgid "Save Changes"
 msgstr ""
 
-#. Plugin Name of the plugin/theme
-msgid "ElasticPress"
+#: includes/partials/stats-page.php:29
+msgid "Index list"
 msgstr ""
 
-#. Description of the plugin/theme
-msgid "A fast and flexible search and query engine for WordPress."
+#: includes/partials/stats-page.php:29
+msgid "Health"
 msgstr ""
 
-#. Author of the plugin/theme
-msgid "Taylor Lovett, Matt Gross, Aaron Holbrook, 10up"
+#: includes/partials/stats-page.php:41
+msgid "Queries & Indexing total"
 msgstr ""
 
-#. Author URI of the plugin/theme
-msgid "http://10up.com"
+#: includes/partials/stats-page.php:54
+msgid "Total Documents"
+msgstr ""
+
+#: includes/partials/stats-page.php:58
+msgid "Total Size"
+msgstr ""
+
+#: includes/partials/stats-page.php:62
+msgid "Total Memory"
+msgstr ""
+
+#: includes/partials/stats-page.php:68
+msgid "Queries & Indexing Time"
+msgstr ""
+
+#: includes/partials/stats-page.php:75
+msgid "We could not find any data for your Elasticsearch indices. Maybe you need to <a href=\"admin.php?page=elasticpress\">sync your content</a>?"
+msgstr ""
+
+#: assets/js/blocks/related-posts/Edit.js:117
+msgid "(Untitled)"
 msgstr ""
