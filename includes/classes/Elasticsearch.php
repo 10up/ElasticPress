@@ -401,6 +401,17 @@ class Elasticsearch {
 			);
 		}
 
+		/**
+		 * Fires after invalid Elasticsearch query
+		 *
+		 * @hook ep_invalid_response
+		 * @param  {array} $request Remote request response
+		 * @param  {array} $query Prepared Elasticsearch query
+		 * @param  {array} $query_args Current WP Query arguments
+		 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
+		 */
+		do_action( 'ep_invalid_response', $request, $query, $query_args, $query_object );
+
 		return false;
 	}
 
