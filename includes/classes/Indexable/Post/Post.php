@@ -341,17 +341,17 @@ class Post extends Indexable {
 	private function prepare_date_terms( $post_date_gmt ) {
 		$timestamp  = strtotime( $post_date_gmt );
 		$date_terms = array(
-			'year'          => (int) date( 'Y', $timestamp ),
-			'month'         => (int) date( 'm', $timestamp ),
-			'week'          => (int) date( 'W', $timestamp ),
-			'dayofyear'     => (int) date( 'z', $timestamp ),
-			'day'           => (int) date( 'd', $timestamp ),
-			'dayofweek'     => (int) date( 'w', $timestamp ),
-			'dayofweek_iso' => (int) date( 'N', $timestamp ),
-			'hour'          => (int) date( 'H', $timestamp ),
-			'minute'        => (int) date( 'i', $timestamp ),
-			'second'        => (int) date( 's', $timestamp ),
-			'm'             => (int) ( date( 'Y', $timestamp ) . date( 'm', $timestamp ) ), // yearmonth
+			'year'          => (int) date_i18n( 'Y', $timestamp ),
+			'month'         => (int) date_i18n( 'm', $timestamp ),
+			'week'          => (int) date_i18n( 'W', $timestamp ),
+			'dayofyear'     => (int) date_i18n( 'z', $timestamp ),
+			'day'           => (int) date_i18n( 'd', $timestamp ),
+			'dayofweek'     => (int) date_i18n( 'w', $timestamp ),
+			'dayofweek_iso' => (int) date_i18n( 'N', $timestamp ),
+			'hour'          => (int) date_i18n( 'H', $timestamp ),
+			'minute'        => (int) date_i18n( 'i', $timestamp ),
+			'second'        => (int) date_i18n( 's', $timestamp ),
+			'm'             => (int) ( date_i18n( 'Y', $timestamp ) . date_i18n( 'm', $timestamp ) ), // yearmonth
 		);
 		return $date_terms;
 	}
