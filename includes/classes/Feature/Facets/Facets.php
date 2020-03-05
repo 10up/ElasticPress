@@ -371,6 +371,8 @@ class Facets extends Feature {
 			'taxonomies' => [],
 		);
 
+		$allowed_args = $this->get_allowed_query_args();
+
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 0 === strpos( $key, 'filter_' ) ) {
 				$taxonomy = str_replace( 'filter_', '', $key );
@@ -378,6 +380,10 @@ class Facets extends Feature {
 				$filters['taxonomies'][ $taxonomy ] = array(
 					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
 				);
+			}
+
+			if ( in_array( $key, $allowed_args, true ) ) {
+				$filters[ $key ] = $value;
 			}
 		}
 
@@ -392,36 +398,39 @@ class Facets extends Feature {
 	 * @return string
 	 */
 	public function build_query_url( $filters ) {
-		$query_string = '';
-
-		$s = get_search_query();
-
-		if ( ! empty( $s ) ) {
-			$query_string .= 's=' . $s;
-		}
+		$query_param = array();
 
 		if ( ! empty( $filters['taxonomies'] ) ) {
 			$tax_filters = $filters['taxonomies'];
 
 			foreach ( $tax_filters as $taxonomy => $filter ) {
 				if ( ! empty( $filter['terms'] ) ) {
-					if ( ! empty( $query_string ) ) {
-						$query_string .= '&';
-					}
-
-					$query_string .= 'filter_' . $taxonomy . '=' . implode( ',', array_keys( $filter['terms'] ) );
+					$query_param[ 'filter_' . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
 				}
 			}
 		}
+
+		$allowed_args = $this->get_allowed_query_args();
+
+		if ( ! empty( $filters ) ) {
+			foreach ( $filters as $filter => $value ) {
+				if ( ! empty( $value ) && in_array( $filter, $allowed_args, true ) ) {
+					$query_param[ $filter ] = $value;
+				}
+			}
+		}
+
+		$query_string = http_build_query( $query_param );
 
 		/**
 		 * Filter facet query string
 		 *
 		 * @hook ep_facet_query_string
 		 * @param  {string} $query_string Current query string
+		 * @param  {array} $query_param Query parameters
 		 * @return  {string} New query string
 		 */
-		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
+		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_param );
 
 		if ( is_post_type_archive() ) {
 			$pagination = strpos( $_SERVER['REQUEST_URI'], '/page' );
@@ -469,5 +478,26 @@ class Facets extends Feature {
 			?>
 		</p>
 		<?php
+	}
+
+	/**
+	 * Returns allowed query args for facets
+	 *
+	 * @return mixed|void
+	 * @since 3.4.1
+	 */
+	public function get_allowed_query_args() {
+		$args = array( 's', 'post_type' );
+
+		/**
+		 * Filter allowed query args
+		 *
+		 * @hook    ep_facet_allowed_query_args
+		 *
+		 * @param   {array} $args Post types
+		 *
+		 * @return  {array} New post types
+		 */
+		return apply_filters( 'ep_facet_allowed_query_args', $args );
 	}
 }
