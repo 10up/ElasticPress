@@ -689,13 +689,21 @@ class Term extends Indexable {
 		 */
 		$all_query = new WP_Term_Query( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
 
+		$total_objects = count( $all_query->terms );
+
+		if ( ! empty( $args['offset'] ) ) {
+			if ( (int) $args['offset'] >= $total_objects ) {
+				$total_objects = 0;
+			}
+		}
+
 		$query = new WP_Term_Query( $args );
 
 		array_walk( $query->terms, array( $this, 'remap_terms' ) );
 
 		return [
 			'objects'       => $query->terms,
-			'total_objects' => count( $all_query->terms ),
+			'total_objects' => $total_objects,
 		];
 	}
 
