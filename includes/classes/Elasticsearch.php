@@ -598,6 +598,40 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Get multiple documents from Elasticsearch given an array of ids
+	 *
+	 * @param  string $index Index name.
+	 * @param  array  $document_id Array of document ids to get.
+	 * @since  3.5
+	 * @return boolean|array
+	 */
+	public function get_documents( $index, $document_ids ) {
+		$path = $index . '/_doc/_mget';
+
+		$request_args = [ 'method' => 'GET' ];
+
+		$request_body = array(
+			'docs' => $document_ids,
+		);
+
+		$request = $this->remote_request( $path, $request_args, array(
+			'body' => $request_body,
+		), 'get' );
+
+		if ( ! is_wp_error( $request ) ) {
+			$response_body = wp_remote_retrieve_body( $request );
+
+			$response = json_decode( $response_body, true );
+
+			if ( is_array( $response[ 'docs' ] ) ) {
+				return wp_list_pluck( $response[ 'docs' ], '_source' );
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Delete the network alias.
 	 *
 	 * Network aliases are used to query documents across blogs in a network.
