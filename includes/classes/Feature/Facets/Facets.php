@@ -95,9 +95,18 @@ class Facets extends Feature {
 	 */
 	public function output_templating_post() {
 		global $ep_facet_output;
-		if ( ! empty( $ep_facet_output ) ) {
-			echo '<div id="ep-facet-sample-result" style="display: none">' . $ep_facet_output . '</div>'; // phpcs:ignore
+
+		$settings = $this->get_settings();
+
+		if( ! empty( $settings['ajax_template'] ) ) {
+			$template = file_get_contents( locate_template( $settings['ajax_template'] ) );
+			echo $template;
+		} else{
+			if ( ! empty( $ep_facet_output ) ) {
+				echo '<template id="ep-facet-sample-result">' . $ep_facet_output . '</template>'; // phpcs:ignore
+			}
 		}
+
 	}
 
 	/**
@@ -154,6 +163,7 @@ class Facets extends Feature {
 			$fake_post->permalink             = '{{PERMALINK}}';
 
 			$templating_post = new \WP_Post( $fake_post );
+
 			$post[]          = $templating_post;
 		}
 
@@ -173,6 +183,9 @@ class Facets extends Feature {
 		}
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
+		echo '<pre>';
+		print_r( $settings );
+		echo '</pre>';
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
@@ -196,6 +209,14 @@ class Facets extends Feature {
 			<div class="input-wrap">
 				<input value="<?php echo empty( $settings['ajax_selector'] ) ? '#main' : esc_html( $settings['ajax_selector'] ); ?>" type="text" data-field-name="ajax_selector" class="setting-field" id="feature_ajax_selector">
 				<p class="field-description"><?php esc_html_e( 'Target selector to replace the content.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><label for="feature_ajax_template"><?php esc_html_e( 'Template File', 'elasticpress' ); ?></label></div>
+			<div class="input-wrap">
+				<input value="<?php echo empty( $settings['ajax_template'] ) ? '' : esc_html( $settings['ajax_template'] ); ?>" type="text" data-field-name="ajax_template" class="setting-field" id="feature_ajax_template">
+				<p class="field-description"><?php esc_html_e( 'Add a path from the root of your theme to use as the template for showing a post in the ajax results. E.g. partials/file-name.php', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 
@@ -310,6 +331,10 @@ class Facets extends Feature {
 			'match_type'   => $settings['match_type'],
 			'endpointUrl'  => trailingslashit( Utils\get_host() ) . Indexables::factory()->get( 'post' )->get_index_name() . '/_search',
 		];
+
+		if ( Utils\is_epio() ) {
+			$facet_options['addFacetsHeader'] = true;
+		}
 
 		wp_localize_script(
 			'elasticpress-facets',
