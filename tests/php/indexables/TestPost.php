@@ -270,11 +270,13 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Make sure proper non-hierarchical taxonomies are synced with post.
+	 * Make sure proper non-hierarchical taxonomies are synced with post when ep_sync_terms_allow_hierarchy is
+	 * set to false.
 	 *
 	 * @group post
 	 */
 	public function testPostTermSyncSingleLevel() {
+		add_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_disallow_multiple_level_terms_sync' ), 100, 1 );
 
 		$post_id = Functions\create_and_sync_post();
 		$post    = get_post( $post_id );
@@ -316,18 +318,17 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @return boolean
 	 */
-	public function ep_allow_multiple_level_terms_sync() {
-		return true;
+	public function ep_disallow_multiple_level_terms_sync() {
+		return false;
 	}
 
 	/**
-	 * Make sure proper hierarchical taxonomies are synced with post.
+	 * Make sure proper hierarchical taxonomies are synced with post and parent terms are included.
 	 *
 	 * @group post
 	 */
 	public function testPostTermSyncHierarchyMultipleLevel() {
 
-		add_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100, 1 );
 		$post_id = Functions\create_and_sync_post();
 		$post    = get_post( $post_id );
 
@@ -364,13 +365,14 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Make sure proper hierarchical taxonomies are synced with post and terms are searchable
+	 * Make sure proper hierarchical taxonomies are synced with post, terms are searchable, and
+	 * parent terms are not included.
 	 *
 	 * @group post
 	 */
 	public function testPostTermSyncHierarchyMultipleLevelQuery() {
 
-		add_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100, 1 );
+		add_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_disallow_multiple_level_terms_sync' ), 100, 1 );
 		$post_id = Functions\create_and_sync_post( array( 'post_title' => '#findme' ) );
 		$post    = get_post( $post_id );
 
@@ -401,55 +403,7 @@ class TestPost extends BaseTestCase {
 
 		$terms = $post->terms;
 		$this->assertTrue( isset( $terms[ $tax_name ] ) );
-		$this->assertTrue( count( $terms[ $tax_name ] ) === 3 );
-		$indexed_terms  = $terms[ $tax_name ];
-		$expected_terms = array( $term1['term_id'], $term2['term_id'], $term3['term_id'] );
-
-		$this->assertTrue( count( $indexed_terms ) > 0 );
-
-		foreach ( $indexed_terms as $term ) {
-			$this->assertTrue( in_array( $term['term_id'], $expected_terms, true ) );
-		}
-	}
-
-	/**
-	 * Make sure proper taxonomies are synced with post and terms are searchable.
-	 *
-	 * @group post
-	 */
-	public function testPostTermSyncSingleLevelQuery() {
-
-		$post_id = Functions\create_and_sync_post( array( 'post_title' => '#findme' ) );
-		$post    = get_post( $post_id );
-
-		$tax_name = rand_str( 32 );
-		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
-		register_taxonomy_for_object_type( $tax_name, $post->post_type );
-
-		$term_1_name = rand_str( 32 );
-		$term1       = wp_insert_term( $term_1_name, $tax_name );
-
-		$term_2_name = rand_str( 32 );
-		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
-
-		$term_3_name = rand_str( 32 );
-		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
-
-		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
-
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-		$query = new \WP_Query( array( 's' => '#findme' ) );
-
-		$this->assertNotNull( $query->posts[0] );
-		$this->assertNotNull( $query->posts[0]->terms );
-		$post = $query->posts[0];
-
-		$terms = $post->terms;
-		$this->assertTrue( isset( $terms[ $tax_name ] ) );
-
+		$this->assertTrue( count( $terms[ $tax_name ] ) === 1 );
 		$indexed_terms  = $terms[ $tax_name ];
 		$expected_terms = array( $term3['term_id'] );
 
@@ -1015,8 +969,11 @@ class TestPost extends BaseTestCase {
 	public function testAuthorNameQuery() {
 		$user_id = $this->factory->user->create(
 			array(
-				'user_login' => 'john',
-				'role'       => 'administrator',
+				'user_login'   => 'john',
+				'first_name'   => 'Bacon',
+				'last_name'    => 'Ipsum',
+				'display_name' => 'Bacon Ipsum',
+				'role'         => 'administrator',
 			)
 		);
 
@@ -1037,8 +994,16 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'           => 'findme',
-			'author_name' => 'john',
+			's' => 'findme',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+
+		$args = array(
+			's' => 'Bacon Ipsum',
 		);
 
 		$query = new \WP_Query( $args );

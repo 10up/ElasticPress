@@ -372,6 +372,20 @@ class User extends Indexable {
 		 */
 		if ( ! empty( $query_vars['search'] ) ) {
 
+			/**
+			 * Remove *'s from beginning and end of user search string'
+			 *
+			 * @hook ep_user_search_remove_wildcards
+			 * @param  {boolean} $remove True to remove
+			 * @param {array} $query Current query
+			 * @param {array} $query_vars Query variables
+			 * @since  3.4
+			 * @return  {boolean}
+			 */
+			if ( apply_filters( 'ep_user_search_remove_wildcards', true, $query, $query_vars ) ) {
+				$query_vars['search'] = trim( $query_vars['search'], '*' );
+			}
+
 			$search_fields = ( ! empty( $query_vars['search_columns'] ) ) ? $query_vars['search_columns'] : [];
 
 			if ( ! empty( $query_vars['search_fields'] ) ) {
@@ -426,8 +440,12 @@ class User extends Indexable {
 				$prepared_search_fields = [
 					'user_login',
 					'user_nicename',
+					'display_name',
 					'user_url',
 					'user_email',
+					'meta.first_name',
+					'meta.last_name',
+					'meta.nickname',
 				];
 			}
 
