@@ -601,7 +601,7 @@ class Elasticsearch {
 	 * Get multiple documents from Elasticsearch given an array of ids
 	 *
 	 * @param  string $index Index name.
-	 * @param  array  $document_id Array of document ids to get.
+	 * @param  array  $document_ids Array of document ids to get.
 	 * @since  3.5
 	 * @return boolean|array
 	 */
