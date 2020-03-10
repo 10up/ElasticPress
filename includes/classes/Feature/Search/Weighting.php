@@ -313,6 +313,33 @@ class Weighting {
 			return;
 		}
 
+		$this->save_weighting_configuration( $_POST );
+
+		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
+		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
+
+		// Do a non-blocking search query to force the autosuggest hash to update
+		$url = add_query_arg( [ 's' => 'search test' ], home_url( '/' ) );
+		wp_remote_get(
+			$url,
+			[
+				'blocking' => false,
+			]
+		);
+
+		wp_safe_redirect( $redirect_url );
+		exit();
+	}
+
+	/**
+	 * Save weighting configuration for each searchable post_type
+	 *
+	 * @param array $settings weighting settings
+	 *
+	 * @return array final settings
+	 * @since 3.4.1
+	 */
+	public function save_weighting_configuration( $settings ) {
 		$new_config                = array();
 		$previous_config_formatted = array();
 		$current_config            = $this->get_weighting_configuration();
@@ -326,8 +353,8 @@ class Weighting {
 			// We need a way to know if fields have been explicitly set before, let's compare a previous state against $_POST['weighting']
 			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
 				$previous_config_formatted[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-					'weight'  => isset( $_POST['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $_POST['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
-					'enabled' => isset( $_POST['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $_POST['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
+					'weight'  => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
+					'enabled' => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
 				];
 			}
 		}
@@ -344,8 +371,8 @@ class Weighting {
 			/** override default post_type settings while saving */
 			$new_config[ $post_type ] = array();
 
-			if ( isset( $_POST['weighting'][ $post_type ] ) ) {
-				foreach ( $_POST['weighting'][ $post_type ] as $weighting_field => $weighting_values ) {
+			if ( isset( $settings['weighting'][ $post_type ] ) ) {
+				foreach ( $settings['weighting'][ $post_type ] as $weighting_field => $weighting_values ) {
 					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
 						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
 						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
@@ -358,20 +385,7 @@ class Weighting {
 
 		update_option( 'elasticpress_weighting', $final_config );
 
-		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
-		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
-
-		// Do a non-blocking search query to force the autosuggest hash to update
-		$url = add_query_arg( [ 's' => 'search test' ], home_url( '/' ) );
-		wp_remote_get(
-			$url,
-			[
-				'blocking' => false,
-			]
-		);
-
-		wp_safe_redirect( $redirect_url );
-		exit();
+		return $final_config;
 	}
 
 	/**
