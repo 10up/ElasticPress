@@ -637,6 +637,7 @@ h2.ep-list-features {
 
 .weighting-settings fieldset {
 	padding: 10px;
+	display: flex;
 }
 
 .weighting-settings fieldset legend {
@@ -647,7 +648,8 @@ h2.ep-list-features {
 }
 
 .weighting-settings fieldset p {
-	display: inline-block;
+	align-items: center;
+	display: flex;
 	margin: 0;
 }
 
@@ -670,7 +672,8 @@ h2.ep-list-features {
 }
 
 .weighting-settings .weighting label {
-	width: 60px; /* not localization friendly */
+	min-width: 80px;
+	margin-right: 10px;
 }
 
 .weighting-settings input[type=range] {
