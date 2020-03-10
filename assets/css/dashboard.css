@@ -628,6 +628,11 @@ h2.ep-list-features {
 
 .weighting-settings .postbox {
 	max-width: 650px;
+	box-sizing: border-box;
+
+	* {
+		box-sizing: border-box;
+	}
 }
 
 .weighting-settings .postbox h2.hndle {
@@ -637,7 +642,6 @@ h2.ep-list-features {
 
 .weighting-settings fieldset {
 	padding: 10px;
-	display: flex;
 }
 
 .weighting-settings fieldset legend {
@@ -648,8 +652,8 @@ h2.ep-list-features {
 }
 
 .weighting-settings fieldset p {
-	align-items: center;
-	display: flex;
+	display: inline-block;
+	float: left;
 	margin: 0;
 }
 
@@ -669,6 +673,11 @@ h2.ep-list-features {
 .weighting-settings .searchable {
 	display: inline-block;
 	width: 120px;
+}
+
+.weighting-settings .weighting {
+	display: flex;
+	align-items: center;
 }
 
 .weighting-settings .weighting label {
