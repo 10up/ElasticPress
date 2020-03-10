@@ -608,24 +608,35 @@ class Elasticsearch {
 	public function get_documents( $index, $document_ids ) {
 		$path = $index . '/_doc/_mget';
 
-		$request_args = [ 'method' => 'GET' ];
+		$request_args = [
+			'method' => 'POST',
+			'body'   => wp_json_encode(
+				array(
+					'ids' => $document_ids,
+				)
+			),
+		];
 
-		$request_body = array(
-			'docs' => $document_ids,
-		);
-
-		$request = $this->remote_request( $path, $request_args, array(
-			'body' => $request_body,
-		), 'get' );
+		$request = $this->remote_request( $path, $request_args, [], 'post' );
 
 		if ( ! is_wp_error( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
 
 			$response = json_decode( $response_body, true );
 
-			if ( is_array( $response[ 'docs' ] ) ) {
-				return wp_list_pluck( $response[ 'docs' ], '_source' );
+			$docs = [];
+
+			if ( is_array( $response['docs'] ) ) {
+				foreach ( $response['docs'] as $doc ) {
+					if ( ! empty( $doc['exists'] ) || ! empty( $doc['found'] ) ) {
+						$docs[] = $doc['_source'];
+					} else {
+						$docs[] = null;
+					}
+				}
 			}
+
+			return $docs;
 		}
 
 		return false;
