@@ -135,43 +135,43 @@ class Stats {
 	 * @since 3.x
 	 */
 	private function populate_indices_stats() {
-		$sites             = array();
-		$indices           = $this->remote_request_helper( '_cat/indices?format=json' );
 		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		$sites[]           = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
+		$indices           = $this->remote_request_helper( '_cat/indices?format=json' );
 
-		if ( ! empty( $indices ) ) {
-			if ( $network_activated ) {
-				// if the plugin is network activated we only want the data from the indexable WP indexes, not any others
-				$indexable_sites = Utils\get_sites();
-				foreach ( $indexable_sites as $site ) {
-					$sites[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-				}
-			} else {
-				// if this is not a network or the sites are activated one by one, we only care about the current site stats
+		if ( empty( $indices ) ) {
+			return;
+		}
+
+		// if the plugin is network activated we only want the data from the indexable WP indexes, not any others
+		if ( $network_activated ) {
+			$sites = array();
+			$indexable_sites = Utils\get_sites();
+			foreach ( $indexable_sites as $site ) {
 				$sites[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
 			}
+		}
 
-			// Filter the general list of indices to contain only the ones we care about
-			$filtered_indices = array_filter( $indices, function ( $index ) use ( $sites ) {
-				return in_array( $index['index'], $sites, true );
-			} );
+		// Filter the general list of indices to contain only the ones we care about
+		$filtered_indices = array_filter( $indices, function ( $index ) use ( $sites ) {
+			return in_array( $index['index'], $sites, true );
+		} );
 
-			/**
-			 * Allow sites to select which indices will be displayed in the Index Health page
-			 *
-			 * @param  {array} $filtered_indices Indices filtered to the site(s) being queried.
-			 * @param  {array} $indices          All indices returned from Elasticsearch
-			 *
-			 * @return  {array} List of indices to use
-			 *
-			 * @since  3.x
-			 * @hook   ep_index_health_stats_indices
-			 */
-			$filtered_indices = apply_filters( 'ep_index_health_stats_indices', $filtered_indices, $indices );
+		/**
+		 * Allow sites to select which indices will be displayed in the Index Health page
+		 *
+		 * @param   {array} $filtered_indices Indices filtered to the site(s) being queried.
+		 * @param   {array} $indices          All indices returned from Elasticsearch
+		 *
+		 * @return  {array} List of indices to use
+		 *
+		 * @since   3.x
+		 * @hook    ep_index_health_stats_indices
+		 */
+		$filtered_indices = apply_filters( 'ep_index_health_stats_indices', $filtered_indices, $indices );
 
-			foreach ( $filtered_indices as $index ) {
-				$this->populate_index_stats( $index['index'], $index['health'] );
-			}
+		foreach ( $filtered_indices as $index ) {
+			$this->populate_index_stats( $index['index'], $index['health'] );
 		}
 	}
 
