@@ -138,6 +138,7 @@ class Stats {
 		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 		$sites[]           = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
 		$indices           = $this->remote_request_helper( '_cat/indices?format=json' );
+		$i = 1;
 
 		if ( empty( $indices ) ) {
 			return;
@@ -171,7 +172,7 @@ class Stats {
 		$filtered_indices = apply_filters( 'ep_index_health_stats_indices', $filtered_indices, $indices );
 
 		foreach ( $filtered_indices as $index ) {
-			$this->populate_index_stats( $index['index'], $index['health'] );
+			$this->populate_index_stats( $index['index'], $index['health'], $i++ );
 		}
 	}
 
@@ -183,7 +184,7 @@ class Stats {
 	 *
 	 * @since 3.x
 	 */
-	private function populate_index_stats( $index_name, $health ) {
+	private function populate_index_stats( $index_name, $health, $i ) {
 
 		if ( empty( $this->stats['indices'][ $index_name ] ) ) {
 			return;
@@ -197,12 +198,17 @@ class Stats {
 		$this->localized['indices_data'][ $index_name ]['docs'] = $this->stats['indices'][ $index_name ]['total']['docs']['count'];
 
 		// General data counts
-		$this->localized['index_total']            += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_total'] );
-		$this->localized['index_time_in_millis']   += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_time_in_millis'] );
-		$this->localized['query_total']            += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_total'] );
-		$this->localized['query_time_in_millis']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_time_in_millis'] );
-		$this->localized['suggest_time_in_millis'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_time_in_millis'] );
-		$this->localized['suggest_total']          += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_total'] );
+		$this->localized['index_total']   += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_total'] );
+		$this->localized['query_total']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_total'] );
+		$this->localized['suggest_total'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_total'] );
+
+		$this->localized['total_index_time_in_millis']   += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_time_in_millis'] );
+		$this->localized['total_query_time_in_millis']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_time_in_millis'] );
+		$this->localized['total_suggest_time_in_millis'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_time_in_millis'] );
+
+		$this->localized['index_time_in_millis']   = ceil( $this->localized['total_index_time_in_millis'] / $i );
+		$this->localized['query_time_in_millis']   = ceil( $this->localized['total_query_time_in_millis'] / $i );
+		$this->localized['suggest_time_in_millis'] = ceil( $this->localized['total_suggest_time_in_millis'] / $i );
 
 		$this->totals['docs']   += absint( $this->stats['indices'][ $index_name ]['total']['docs']['count'] );
 		$this->totals['size']   += absint( $this->stats['indices'][ $index_name ]['total']['store']['size_in_bytes'] );
