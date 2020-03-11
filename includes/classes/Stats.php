@@ -9,6 +9,7 @@
 namespace ElasticPress;
 
 use ElasticPress\Utils as Utils;
+use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -121,6 +122,11 @@ class Stats {
 		}
 
 		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
+
+		if ( is_multisite() && true !== EP_IS_NETWORK ) {
+			$current_site_indice = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
+			$indices = wp_list_filter( $indices, array( 'index' => $current_site_indice ) );
+		}
 
 		if ( ! empty( $indices ) ) {
 			foreach ( $indices as  $index ) {
