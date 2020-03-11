@@ -774,7 +774,7 @@ class Post extends Indexable {
 		$taxonomies = get_taxonomies();
 
 		foreach ( $taxonomies as $tax_slug ) {
-			if ( 'ep_custom_result' === $tax_slug ) {
+			if ( 'ep_custom_result' === $tax_slug || $this->is_protected_parameter( $tax_slug ) ) {
 				continue;
 			}
 
@@ -1624,5 +1624,89 @@ class Post extends Indexable {
 		}
 
 		return $orderbys;
+	}
+
+	/**
+	 * Check if a value matches a protected parameter
+	 *
+	 * @see https://developer.wordpress.org/reference/classes/wp_query/#parameters List of protected parameters
+	 * 
+	 * @param string $value The value to test
+	 * @since 3.4
+	 * @return bool
+	 */
+	private function is_protected_parameter( $value ) {
+		if( ! is_string( $value ) ) {
+			return false;
+		}
+		
+		$protected_parameter_list = array(
+			'author',
+			'author__in',
+			'author__not_in',
+			'author_id',
+			'author_name',
+			'cache_results',
+			'cat',
+			'category__and',
+			'category__in',
+			'category__not_in',
+			'category_name',
+			'comment_count',
+			'date_query',
+			'day',
+			'fields',
+			'has_password',
+			'hour',
+			'ignore_sticky_posts',
+			'm',
+			'meta_compare',
+			'meta_key',
+			'meta_query',
+			'meta_value',
+			'meta_value_num',
+			'minute',
+			'monthnum',
+			'name',
+			'nopaging',
+			'offset',
+			'order',
+			'orderby',
+			'p',
+			'page',
+			'page_id',
+			'paged',
+			'pagename',
+			'perm',
+			'post__in',
+			'post__not_in',
+			'post_mime_type',
+			'post_name__in',
+			'post_parent',
+			'post_parent__in',
+			'post_parent__not_in',
+			'post_password',
+			'post_status',
+			'post_type',
+			'posts_per_archive_page',
+			'posts_per_page',
+			's',
+			'second',
+			'tag',
+			'tag__and',
+			'tag__in',
+			'tag__not_in',
+			'tag_id',
+			'tag_slug__and',
+			'tag_slug__in',
+			'tax',
+			'tax_query',
+			'update_post_meta_cache',
+			'update_post_term_cache',
+			'w',
+			'year',
+		);
+
+		return in_array( $value, $protected_parameter_list, true );
 	}
 }
