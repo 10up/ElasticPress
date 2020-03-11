@@ -120,14 +120,7 @@ class Stats {
 			$this->localized['indices_data'][ $index_name ]['docs'] = $stats['indices'][ $index_name ]['total']['docs']['count'];
 		}
 
-		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
-
-		if ( ! empty( $indices ) ) {
-			foreach ( $indices as  $index ) {
-				$this->health[ $index['index'] ]['name']   = $index['index'];
-				$this->health[ $index['index'] ]['health'] = $index['health'];
-			}
-		}
+		$this->populate_indices_for_display();
 
 		$this->totals['docs']   = $stats['_all']['total']['docs']['count'];
 		$this->totals['size']   = $stats['_all']['total']['store']['size_in_bytes'];
@@ -142,6 +135,28 @@ class Stats {
 		if ( ! empty( $node_stats ) ) {
 			$this->nodes = $node_stats['_nodes']['total'];
 		}
+	}
+
+	/**
+	 * Populate $this->health with the correct indices for display, based on context
+	 *
+	 * @since 3.x
+	 */
+	public function populate_indices_for_display() {
+		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
+		$current_site_index = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
+		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+
+		if ( ! empty( $indices ) ) {
+			foreach ( $indices as  $index ) {
+				if ( ! $network_activated && $index['index'] !== $current_site_index ) {
+					continue;
+				}
+				$this->health[ $index['index'] ]['name']   = $index['index'];
+				$this->health[ $index['index'] ]['health'] = $index['health'];
+			}
+		}
+
 	}
 
 	/**
