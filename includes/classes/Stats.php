@@ -29,6 +29,14 @@ class Stats {
 	protected $health = [];
 
 	/**
+	 * Stats retrieved directly from the current cluster
+	 *
+	 * @var array
+	 * @since 3.x
+	 */
+	protected $stats = [];
+
+	/**
 	 * Overall stats of the cluster
 	 *
 	 * @var array
@@ -102,29 +110,21 @@ class Stats {
 
 		$stats_built = true;
 
-		$stats = $this->remote_request_helper( '_stats?format=json' );
+		$this->stats = $this->remote_request_helper( '_stats?format=json' );
 
-		if ( empty( $stats ) || empty( $stats['_all'] ) || empty( $stats['_all']['total'] ) ) {
+		if ( empty( $this->stats ) || empty( $this->stats['_all'] ) || empty( $this->stats['_all']['total'] ) ) {
 			return;
 		}
 
-		$this->localized['index_total']            = $stats['_all']['total']['indexing']['index_total'];
-		$this->localized['index_time_in_millis']   = $stats['_all']['total']['indexing']['index_time_in_millis'];
-		$this->localized['query_total']            = $stats['_all']['total']['search']['query_total'];
-		$this->localized['query_time_in_millis']   = $stats['_all']['total']['search']['query_time_in_millis'];
-		$this->localized['suggest_time_in_millis'] = $stats['_all']['total']['search']['suggest_time_in_millis'];
-		$this->localized['suggest_total']          = $stats['_all']['total']['search']['suggest_total'];
+		$this->localized['index_total']            = $this->stats['_all']['total']['indexing']['index_total'];
+		$this->localized['index_time_in_millis']   = $this->stats['_all']['total']['indexing']['index_time_in_millis'];
+		$this->localized['query_total']            = $this->stats['_all']['total']['search']['query_total'];
+		$this->localized['query_time_in_millis']   = $this->stats['_all']['total']['search']['query_time_in_millis'];
+		$this->localized['suggest_time_in_millis'] = $this->stats['_all']['total']['search']['suggest_time_in_millis'];
+		$this->localized['suggest_total']          = $this->stats['_all']['total']['search']['suggest_total'];
 
-		foreach ( $stats['indices'] as $index_name => $current_index ) {
-			$this->localized['indices_data'][ $index_name ]['name'] = $index_name;
-			$this->localized['indices_data'][ $index_name ]['docs'] = $stats['indices'][ $index_name ]['total']['docs']['count'];
-		}
-
+		$this->populate_totals();
 		$this->populate_indices_stats();
-
-		$this->totals['docs']   = $stats['_all']['total']['docs']['count'];
-		$this->totals['size']   = $stats['_all']['total']['store']['size_in_bytes'];
-		$this->totals['memory'] = $stats['_all']['primaries']['segments']['memory_in_bytes'];
 
 		if ( Utils\is_epio() ) {
 			$node_stats = $this->remote_request_helper( '_nodes/stats/discovery?format=json' );
@@ -138,22 +138,59 @@ class Stats {
 	}
 
 	/**
-	 * Populate $this->health with the correct indices, based on context
+	 * Populate $this->totals with data from the correct indices, based on context
 	 *
 	 * @since 3.x
 	 */
-	public function populate_indices_stats() {
-		$indices            = $this->remote_request_helper( '_cat/indices?format=json' );
-		$current_site_index = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
-		$network_activated  = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+	private function populate_totals( $totals = array() ) {
+
+		if ( empty( $totals ) ) {
+			$this->totals['docs']   = $this->stats['_all']['total']['docs']['count'];
+			$this->totals['size']   = $this->stats['_all']['total']['store']['size_in_bytes'];
+			$this->totals['memory'] = $this->stats['_all']['primaries']['segments']['memory_in_bytes'];
+		} else {
+			$this->totals['docs']   = isset( $totals['count'] ) ? $totals['count'] : 0;
+			$this->totals['size']   = isset( $totals['size_in_bytes'] ) ? $totals['size_in_bytes'] : 0;
+			$this->totals['memory'] = isset( $totals['memory_in_bytes'] ) ? $totals['memory_in_bytes'] : 0;
+		}
+
+	}
+
+	/**
+	 * Populate $this->health and $this->localized with the correct indices, based on context
+	 *
+	 * @since 3.x
+	 */
+	private function populate_indices_stats() {
+		$indices           = $this->remote_request_helper( '_cat/indices?format=json' );
+		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 
 		if ( ! empty( $indices ) ) {
+			if ( ! $network_activated ) {
+				$current_site_index = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
+				$indices            = array_filter( $indices, function ( $index ) use ( $current_site_index ) {
+					return $index['index'] === $current_site_index;
+				} );
+			}
+
 			foreach ( $indices as $index ) {
-				if ( ! $network_activated && $index['index'] !== $current_site_index ) {
-					continue;
-				}
+				$index_name = $index['index'];
+
 				$this->health[ $index['index'] ]['name']   = $index['index'];
 				$this->health[ $index['index'] ]['health'] = $index['health'];
+
+				$this->localized['indices_data'][ $index_name ]['name'] = $index_name;
+				$this->localized['indices_data'][ $index_name ]['docs'] = $index['docs.count'];
+
+				if ( ! $network_activated ) {
+					$this->populate_totals(
+						array(
+							'count'           => $this->stats['indices'][ $index_name ]['total']['docs']['count'],
+							'size_in_bytes'   => $this->stats['indices'][ $index_name ]['total']['store']['size_in_bytes'],
+							'memory_in_bytes' => $this->stats['indices'][ $index_name ]['primaries']['segments']['memory_in_bytes'],
+						)
+					);
+				}
 			}
 		}
 
