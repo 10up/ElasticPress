@@ -97,13 +97,19 @@ class Stats {
 	public function build_stats( $force = false ) {
 		static $stats_built = false;
 
+		$current_site_indice = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
+
 		if ( $stats_built && ! $force ) {
 			return;
 		}
 
 		$stats_built = true;
 
-		$stats = $this->remote_request_helper( '_stats?format=json' );
+		if ( is_multisite() && ! defined( 'EP_IS_NETWORK' ) ) {
+			$stats = $this->remote_request_helper( $current_site_indice. '/_stats?format=json' );
+		} else {
+			$stats = $this->remote_request_helper( '_stats?format=json' );
+		}
 
 		if ( empty( $stats ) || empty( $stats['_all'] ) || empty( $stats['_all']['total'] ) ) {
 			return;
@@ -121,11 +127,11 @@ class Stats {
 			$this->localized['indices_data'][ $index_name ]['docs'] = $stats['indices'][ $index_name ]['total']['docs']['count'];
 		}
 
-		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
 
-		if ( is_multisite() && true !== EP_IS_NETWORK ) {
-			$current_site_indice = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
-			$indices = wp_list_filter( $indices, array( 'index' => $current_site_indice ) );
+		if ( is_multisite() && ! defined( 'EP_IS_NETWORK' ) ) {
+			$indices = $this->remote_request_helper( '_cat/indices/' . $current_site_indice . '?format=json' );
+		} else {
+			$indices = $this->remote_request_helper( '_cat/indices?format=json' );
 		}
 
 		if ( ! empty( $indices ) ) {
