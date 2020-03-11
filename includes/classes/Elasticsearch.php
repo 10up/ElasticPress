@@ -619,27 +619,27 @@ class Elasticsearch {
 
 		$request = $this->remote_request( $path, $request_args, [], 'post' );
 
-		if ( ! is_wp_error( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
+		if ( is_wp_error( $request ) ) {
+			return false;
+		}
+		
+		$response_body = wp_remote_retrieve_body( $request );
 
-			$response = json_decode( $response_body, true );
+		$response = json_decode( $response_body, true );
 
-			$docs = [];
+		$docs = [];
 
-			if ( is_array( $response['docs'] ) ) {
-				foreach ( $response['docs'] as $doc ) {
-					if ( ! empty( $doc['exists'] ) || ! empty( $doc['found'] ) ) {
-						$docs[] = $doc['_source'];
-					} else {
-						$docs[] = null;
-					}
+		if ( is_array( $response['docs'] ) ) {
+			foreach ( $response['docs'] as $doc ) {
+				if ( ! empty( $doc['exists'] ) || ! empty( $doc['found'] ) ) {
+					$docs[] = $doc['_source'];
+				} else {
+					$docs[] = null;
 				}
 			}
-
-			return $docs;
 		}
 
-		return false;
+		return $docs;
 	}
 
 	/**
@@ -1343,4 +1343,3 @@ class Elasticsearch {
 	}
 
 }
-
