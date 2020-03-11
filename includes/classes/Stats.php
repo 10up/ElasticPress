@@ -116,14 +116,6 @@ class Stats {
 			return;
 		}
 
-		$this->localized['index_total']            = $this->stats['_all']['total']['indexing']['index_total'];
-		$this->localized['index_time_in_millis']   = $this->stats['_all']['total']['indexing']['index_time_in_millis'];
-		$this->localized['query_total']            = $this->stats['_all']['total']['search']['query_total'];
-		$this->localized['query_time_in_millis']   = $this->stats['_all']['total']['search']['query_time_in_millis'];
-		$this->localized['suggest_time_in_millis'] = $this->stats['_all']['total']['search']['suggest_time_in_millis'];
-		$this->localized['suggest_total']          = $this->stats['_all']['total']['search']['suggest_total'];
-
-		$this->populate_totals();
 		$this->populate_indices_stats();
 
 		if ( Utils\is_epio() ) {
@@ -138,62 +130,83 @@ class Stats {
 	}
 
 	/**
-	 * Populate $this->totals with data from the correct indices, based on context
-	 *
-	 * @since 3.x
-	 */
-	private function populate_totals( $totals = array() ) {
-
-		if ( empty( $totals ) ) {
-			$this->totals['docs']   = $this->stats['_all']['total']['docs']['count'];
-			$this->totals['size']   = $this->stats['_all']['total']['store']['size_in_bytes'];
-			$this->totals['memory'] = $this->stats['_all']['primaries']['segments']['memory_in_bytes'];
-		} else {
-			$this->totals['docs']   = isset( $totals['count'] ) ? $totals['count'] : 0;
-			$this->totals['size']   = isset( $totals['size_in_bytes'] ) ? $totals['size_in_bytes'] : 0;
-			$this->totals['memory'] = isset( $totals['memory_in_bytes'] ) ? $totals['memory_in_bytes'] : 0;
-		}
-
-	}
-
-	/**
-	 * Populate $this->health and $this->localized with the correct indices, based on context
+	 * Populate the instantiated object with the correct indices, based on context
 	 *
 	 * @since 3.x
 	 */
 	private function populate_indices_stats() {
+		$sites             = array();
 		$indices           = $this->remote_request_helper( '_cat/indices?format=json' );
 		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 
 		if ( ! empty( $indices ) ) {
-			if ( ! $network_activated ) {
-				$current_site_index = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
-				$indices            = array_filter( $indices, function ( $index ) use ( $current_site_index ) {
-					return $index['index'] === $current_site_index;
-				} );
+			if ( $network_activated ) {
+				// if the plugin is network activated we only want the data from the indexable WP indexes, not any others
+				$indexable_sites = Utils\get_sites();
+				foreach ( $indexable_sites as $site ) {
+					$sites[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+				}
+			} else {
+				// if this is not a network or the sites are activated one by one, we only care about the current site stats
+				$sites[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
 			}
 
-			foreach ( $indices as $index ) {
-				$index_name = $index['index'];
+			// Filter the general list of indices to contain only the ones we care about
+			$filtered_indices = array_filter( $indices, function ( $index ) use ( $sites ) {
+				return in_array( $index['index'], $sites, true );
+			} );
 
-				$this->health[ $index['index'] ]['name']   = $index['index'];
-				$this->health[ $index['index'] ]['health'] = $index['health'];
+			/**
+			 * Allow sites to select which indices will be displayed in the Index Health page
+			 *
+			 * @param  {array} $filtered_indices Indices filtered to the site(s) being queried.
+			 * @param  {array} $indices          All indices returned from Elasticsearch
+			 *
+			 * @return  {array} List of indices to use
+			 *
+			 * @since  3.x
+			 * @hook   ep_index_health_stats_indices
+			 */
+			$filtered_indices = apply_filters( 'ep_index_health_stats_indices', $filtered_indices, $indices );
 
-				$this->localized['indices_data'][ $index_name ]['name'] = $index_name;
-				$this->localized['indices_data'][ $index_name ]['docs'] = $index['docs.count'];
-
-				if ( ! $network_activated ) {
-					$this->populate_totals(
-						array(
-							'count'           => $this->stats['indices'][ $index_name ]['total']['docs']['count'],
-							'size_in_bytes'   => $this->stats['indices'][ $index_name ]['total']['store']['size_in_bytes'],
-							'memory_in_bytes' => $this->stats['indices'][ $index_name ]['primaries']['segments']['memory_in_bytes'],
-						)
-					);
-				}
+			foreach ( $filtered_indices as $index ) {
+				$this->populate_index_stats( $index['index'], $index['health'] );
 			}
 		}
+	}
 
+	/**
+	 * Populate data about a specific index into the object instance
+	 *
+	 * @param string $index_name index name
+	 * @param string $health     index health status
+	 *
+	 * @since 3.x
+	 */
+	private function populate_index_stats( $index_name, $health ) {
+
+		if ( empty( $this->stats['indices'][ $index_name ] ) ) {
+			return;
+		}
+
+		// Index-specific data
+		$this->health[ $index_name ]['name']   = $index_name;
+		$this->health[ $index_name ]['health'] = $health;
+
+		$this->localized['indices_data'][ $index_name ]['name'] = $index_name;
+		$this->localized['indices_data'][ $index_name ]['docs'] = $this->stats['indices'][ $index_name ]['total']['docs']['count'];
+
+		// General data counts
+		$this->localized['index_total']            += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_total'] );
+		$this->localized['index_time_in_millis']   += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_time_in_millis'] );
+		$this->localized['query_total']            += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_total'] );
+		$this->localized['query_time_in_millis']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_time_in_millis'] );
+		$this->localized['suggest_time_in_millis'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_time_in_millis'] );
+		$this->localized['suggest_total']          += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_total'] );
+
+		$this->totals['docs']   += absint( $this->stats['indices'][ $index_name ]['total']['docs']['count'] );
+		$this->totals['size']   += absint( $this->stats['indices'][ $index_name ]['total']['store']['size_in_bytes'] );
+		$this->totals['memory'] += absint( $this->stats['indices'][ $index_name ]['primaries']['segments']['memory_in_bytes'] );
 	}
 
 	/**
