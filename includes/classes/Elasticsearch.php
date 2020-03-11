@@ -637,8 +637,6 @@ class Elasticsearch {
 					$docs[] = null;
 				}
 			}
-
-			return $docs;
 		}
 
 		return $docs;
