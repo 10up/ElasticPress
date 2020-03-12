@@ -117,6 +117,7 @@ class Stats {
 		}
 
 		$this->populate_indices_stats();
+		$this->populate_indices_averages();
 
 		if ( Utils\is_epio() ) {
 			$node_stats = $this->remote_request_helper( '_nodes/stats/discovery?format=json' );
@@ -177,7 +178,24 @@ class Stats {
 	}
 
 	/**
-	 * Populate data about a specific index into the object instance
+	 * Populate cluster performance data
+	 *
+	 * @since 3.x
+	 */
+	private function populate_indices_averages() {
+
+		if ( empty( $this->stats['_all']['total'] ) ) {
+			return;
+		}
+
+		// General cluster performance stats
+		$this->localized['index_time_in_millis']   = $this->stats['_all']['total']['indexing']['index_time_in_millis'];
+		$this->localized['query_time_in_millis']   = $this->stats['_all']['total']['search']['query_time_in_millis'];
+		$this->localized['suggest_time_in_millis'] = $this->stats['_all']['total']['search']['suggest_time_in_millis'];
+	}
+
+	/**
+	 * Populate index storage capacity and metrics
 	 *
 	 * @param string $index_name index name
 	 * @param string $health     index health status
@@ -201,14 +219,6 @@ class Stats {
 		$this->localized['index_total']   += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_total'] );
 		$this->localized['query_total']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_total'] );
 		$this->localized['suggest_total'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_total'] );
-
-		$this->localized['total_index_time_in_millis']   += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_time_in_millis'] );
-		$this->localized['total_query_time_in_millis']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_time_in_millis'] );
-		$this->localized['total_suggest_time_in_millis'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_time_in_millis'] );
-
-		$this->localized['index_time_in_millis']   = ceil( $this->localized['total_index_time_in_millis'] / $i );
-		$this->localized['query_time_in_millis']   = ceil( $this->localized['total_query_time_in_millis'] / $i );
-		$this->localized['suggest_time_in_millis'] = ceil( $this->localized['total_suggest_time_in_millis'] / $i );
 
 		$this->totals['docs']   += absint( $this->stats['indices'][ $index_name ]['total']['docs']['count'] );
 		$this->totals['size']   += absint( $this->stats['indices'][ $index_name ]['total']['store']['size_in_bytes'] );
