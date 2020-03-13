@@ -28,7 +28,7 @@ class QueryIntegration {
 	 */
 	public function __construct() {
 		// Check if we are currently indexing
-		if ( Utils\is_indexing() ) {
+		if ( Utils\is_indexing() && ! apply_filters( 'ep_enable_query_integration_during_indexing', false, $this ) ) {
 			return;
 		}
 
