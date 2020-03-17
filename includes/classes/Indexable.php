@@ -420,22 +420,20 @@ abstract class Indexable {
 
 		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
 
-		if ( is_string( $meta_value ) ) {
-			$timestamp = strtotime( $meta_value );
-
-			$date     = '1971-01-01';
-			$datetime = '1971-01-01 00:00:01';
-			$time     = '00:00:01';
+		try {
+			// if this is a recognizable date format
+			$new_date = new \DateTime( $meta_value, \wp_timezone() );
+			$timestamp = $new_date->getTimestamp();
 
 			if ( false !== $timestamp ) {
-				$date     = date_i18n( 'Y-m-d', $timestamp );
-				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
-				$time     = date_i18n( 'H:i:s', $timestamp );
+				$meta_types['date']     = $new_date->format( 'Y-m-d' );
+				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
+				$meta_types['time']     = $new_date->format( 'H:i:s' );
 			}
 
-			$meta_types['date']     = $date;
-			$meta_types['datetime'] = $datetime;
-			$meta_types['time']     = $time;
+		} catch (\Exception $e ) {
+			// if $meta_value is not a recognizable date format, DateTime will throw an exception,
+			// just catch it and move on.
 		}
 
 		return $meta_types;
