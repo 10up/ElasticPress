@@ -2359,6 +2359,49 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test that a post being trashed gets correctly removed from the Elasticsearch index
+	 *
+	 * @since 3.5
+	 * @group post
+	 */
+	public function testPostTrashed() {
+		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
+
+		$post_id = Functions\create_and_sync_post();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		// Ensure that our post made it over to elasticsearch
+		$this->assertTrue( ! empty( $post ) );
+
+		// Let's trash the post
+		wp_trash_post( $post_id );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_delete_post'] ) );
+
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		// Alright, now the post has been removed from the index, so this should be empty
+		$this->assertTrue( empty( $post ), '$post from ES is not empty' );
+
+		$post = get_post( $post_id );
+
+		// This post should have the right status
+		$this->assertEquals( 'trash', $post->post_status, 'Post status from db is not trashed' );
+
+		// And ensure the post is not queued for re-indexing (such as from core meta changes)
+		$queue = ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue;
+
+		$this->assertArrayNotHasKey( $post_id, $queue, 'Post is still queue in SyncManager' );
+
+		$this->fired_actions = array();
+	}
+
+	/**
 	 * Test that empty search string returns all results
 	 *
 	 * @since 1.2
