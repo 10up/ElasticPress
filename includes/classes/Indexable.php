@@ -421,7 +421,7 @@ abstract class Indexable {
 		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
 
 		try {
-			// if this is a recognizable date format
+			// is this is a recognizable date format?
 			$new_date = new \DateTime( $meta_value, \wp_timezone() );
 			$timestamp = $new_date->getTimestamp();
 

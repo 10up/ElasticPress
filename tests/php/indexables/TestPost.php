@@ -3125,25 +3125,34 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaValueTypes() {
 
-		$intval         = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 13 );
-		$floatval       = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 13.43 );
-		$textval        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 'some text' );
-		$bool_false_val = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( false );
-		$bool_true_val  = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( true );
-		$dateval        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '2015-01-01' );
+		$intval            = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 13 );
+		$floatval          = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 13.43 );
+		$textval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 'some text' );
+		$float_string      = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '20.000000' );
+		$bool_false_val    = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( false );
+		$bool_true_val     = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( true );
+		$dateval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '2015-01-01' );
+		$recognizable_time = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 'third day of January 2020' );
+		$relative_format   = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '+1 year' );
 
 		$this->assertTrue( is_array( $intval ) && 5 === count( $intval ) );
 		$this->assertTrue( is_array( $intval ) && array_key_exists( 'long', $intval ) && 13 === $intval['long'] );
-		$this->assertTrue( is_array( $floatval ) && 5 === count( $floatval ) );
+		$this->assertTrue( is_array( $floatval ) && 8 === count( $floatval ) );
 		$this->assertTrue( is_array( $floatval ) && array_key_exists( 'double', $floatval ) && 13.43 === $floatval['double'] );
-		$this->assertTrue( is_array( $textval ) && 6 === count( $textval ) );
+		$this->assertTrue( is_array( $textval ) && 3 === count( $textval ) );
 		$this->assertTrue( is_array( $textval ) && array_key_exists( 'raw', $textval ) && 'some text' === $textval['raw'] );
+		$this->assertTrue( is_array( $float_string ) && 8 === count( $float_string ) );
+		$this->assertTrue( is_array( $float_string ) && array_key_exists( 'raw', $float_string ) && '20.000000' === $float_string['raw'] );
 		$this->assertTrue( is_array( $bool_false_val ) && 3 === count( $bool_false_val ) );
 		$this->assertTrue( is_array( $bool_false_val ) && array_key_exists( 'boolean', $bool_false_val ) && false === $bool_false_val['boolean'] );
 		$this->assertTrue( is_array( $bool_true_val ) && 3 === count( $bool_true_val ) );
 		$this->assertTrue( is_array( $bool_true_val ) && array_key_exists( 'boolean', $bool_true_val ) && true === $bool_true_val['boolean'] );
 		$this->assertTrue( is_array( $dateval ) && 6 === count( $dateval ) );
 		$this->assertTrue( is_array( $dateval ) && array_key_exists( 'datetime', $dateval ) && '2015-01-01 00:00:00' === $dateval['datetime'] );
+		$this->assertTrue( is_array( $recognizable_time ) && 6 === count( $recognizable_time ) );
+		$this->assertTrue( is_array( $recognizable_time ) && array_key_exists( 'datetime', $recognizable_time ) && '2020-01-03 00:00:00' === $recognizable_time['datetime'] );
+		$this->assertTrue( is_array( $relative_format ) && 6 === count( $relative_format ) );
+		$this->assertTrue( is_array( $relative_format ) && array_key_exists( 'datetime', $relative_format ) && date( 'Y-m-d H:i:s', strtotime( '+1 year' ) ) === $relative_format['datetime'] );
 
 	}
 
