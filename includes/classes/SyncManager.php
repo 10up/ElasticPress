@@ -82,6 +82,33 @@ abstract class SyncManager {
 	}
 
 	/**
+	 * Remove an object from the sync queue.
+	 *
+	 * @param  id $object_id object ID to remove from the queue
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function remove_from_queue( $object_id ) {
+		if ( ! is_numeric( $object_id ) ) {
+			return false;
+		}
+
+		unset( $this->sync_queue[ $object_id ] );
+
+		/**
+		 * Fires after item is removed from sync queue
+		 *
+		 * @hook ep_after_remove_from_queue
+		 * @param  {int} $object_id ID of object
+		 * @param  {array} $sync_queue Current sync queue
+		 * @since  3.5
+		 */
+		do_action( 'ep_after_remove_from_queue', $object_id, $this->sync_queue );
+
+		return true;
+	}
+
+	/**
 	 * Sync queued objects if the EP_SYNC_CHUNK_LIMIT is reached.
 	 *
 	 * @since 3.1.2
