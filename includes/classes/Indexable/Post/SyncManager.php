@@ -292,6 +292,9 @@ class SyncManager extends SyncManagerAbstract {
 		do_action( 'ep_delete_post', $post_id );
 
 		Indexables::factory()->get( 'post' )->delete( $post_id, false );
+
+		// Ensure that the post isn't queued for syncing (could have happened due to meta or other changes in same request)
+		$this->remove_from_queue( $post_id );
 	}
 
 	/**
