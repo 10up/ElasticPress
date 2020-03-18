@@ -425,7 +425,10 @@ abstract class Indexable {
 			$new_date = new \DateTime( $meta_value, \wp_timezone() );
 			$timestamp = $new_date->getTimestamp();
 
-			if ( false !== $timestamp ) {
+			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
+			// issues when integrating into stricter systems. This is by design:
+			// https://bugs.php.net/bug.php?id=60288
+			if ( false !== $timestamp && '0000' !== $new_date->format( 'Y' ) ) {
 				$meta_types['date']     = $new_date->format( 'Y-m-d' );
 				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
 				$meta_types['time']     = $new_date->format( 'H:i:s' );
