@@ -202,18 +202,28 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		usleep( 100 );
 
-		$actor->waitUntilElementVisible( '.editor-post-publish-panel__toggle' );
+		// Post Status.
+		if ( isset( $data['status'] ) && 'draft' === $data['status'] ) {
 
-		$actor->waitUntilElementEnabled( '.editor-post-publish-panel__toggle' );
+			$actor->click( '.editor-post-save-draft' );
 
-		$actor->click( '.editor-post-publish-panel__toggle' );
+			$actor->waitUntilElementContainsText( 'Saved', '.editor-post-saved-state' );
 
-		$actor->waitUntilElementVisible( '.editor-post-publish-button' );
+		} else {
 
-		$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
+			$actor->waitUntilElementVisible( '.editor-post-publish-panel__toggle' );
 
-		$actor->click( '.editor-post-publish-button' );
+			$actor->waitUntilElementEnabled( '.editor-post-publish-panel__toggle' );
 
-		$actor->waitUntilElementVisible( '.components-notice' );
+			$actor->click( '.editor-post-publish-panel__toggle' );
+
+			$actor->waitUntilElementVisible( '.editor-post-publish-button' );
+
+			$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
+
+			$actor->click( '.editor-post-publish-button' );
+
+			$actor->waitUntilElementVisible( '.components-notice' );
+		}
 	}
 }
