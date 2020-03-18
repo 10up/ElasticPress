@@ -152,9 +152,19 @@ class Stats {
 			$sites = array();
 			$indexable_sites = Utils\get_sites();
 			foreach ( $indexable_sites as $site ) {
-				$sites[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-				$sites[] = Indexables::factory()->get( 'term' )->get_index_name( $site['blog_id'] );
-				$sites[] = Indexables::factory()->get( 'user' )->get_index_name( $site['blog_id'] );
+				$post_index = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+				$term_index = Indexables::factory()->get( 'term' )->get_index_name( $site['blog_id'] );
+				$user_index = Indexables::factory()->get( 'user' )->get_index_name( $site['blog_id'] );
+
+				if ( ! in_array( $post_index, $sites, true ) ) {
+					$sites[] = $post_index;
+				}
+				if ( ! in_array( $term_index, $sites, true ) ) {
+					$sites[] = $term_index;
+				}
+				if ( ! in_array( $user_index, $sites, true ) ) {
+					$sites[] = $user_index;
+				}
 			}
 		}
 
