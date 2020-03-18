@@ -14,7 +14,7 @@
     "@wordpress/babel-preset-default": "^4.1.0",
     "@wordpress/element": "^2.5.0",
     "@wordpress/i18n": "^3.5.0",
-    "acorn": "^7.0.0",
+    "acorn": "^7.1.1",
     "babel-eslint": "^9.0.0",
     "babel-loader": "^8.0.0",
     "browser-sync": "^2.26.3",
