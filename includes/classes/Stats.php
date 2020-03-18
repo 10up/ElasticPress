@@ -151,6 +151,8 @@ class Stats {
 			$indexable_sites = Utils\get_sites();
 			foreach ( $indexable_sites as $site ) {
 				$sites[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+				$sites[] = Indexables::factory()->get( 'term' )->get_index_name( $site['blog_id'] );
+				$sites[] = Indexables::factory()->get( 'user' )->get_index_name( $site['blog_id'] );
 			}
 		}
 
