@@ -420,6 +420,25 @@ abstract class Indexable {
 
 		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
 
+		$meta_types = $this->prepare_date_meta_values( $meta_types, $meta_value );
+
+		return $meta_types;
+	}
+
+	/**
+	 * Checks if a meta_value is a valid date and prepare extra meta-data.
+	 *
+	 * @param array  $meta_types Array of currently prepared data
+	 * @param string $meta_value Meta value to prepare.
+	 *
+	 * @return array
+	 */
+	public function prepare_date_meta_values( $meta_types, $meta_value ) {
+
+		if ( empty( $meta_value ) || true === $meta_value ) {
+			return $meta_types;
+		}
+
 		try {
 			// is this is a recognizable date format?
 			$new_date = new \DateTime( $meta_value, \wp_timezone() );
@@ -440,6 +459,7 @@ abstract class Indexable {
 		}
 
 		return $meta_types;
+
 	}
 
 	/**

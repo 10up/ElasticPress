@@ -3156,6 +3156,36 @@ class TestPost extends BaseTestCase {
 
 	}
 
+	public function testMetaValueTypeDate() {
+		$meta_types = array();
+
+		// Invalid dates
+		$textval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, 'some text' );
+		$k20_string        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '20.000000' );
+		$bool_false_val    = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, false );
+		$bool_true_val     = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, true );
+
+		$this->assertEquals( $meta_types, $textval );
+		$this->assertEquals( $meta_types, $k20_string );
+		$this->assertEquals( $meta_types, $bool_false_val );
+		$this->assertEquals( $meta_types, $bool_true_val );
+
+		// Valid dates
+		$intval            = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, time() );
+		$floatval          = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, 13.43 );
+		$float_string      = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '20.000001' );
+		$dateval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '2015-01-01' );
+		$recognizable_time = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, 'third day of January 2020' );
+		$relative_format   = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '+1 year' );
+
+		$this->assertTrue( isset( $intval['date'] ) && isset( $intval['datetime'] ) && isset( $intval['time'] ) );
+		$this->assertTrue( isset( $floatval['date'] ) && isset( $floatval['datetime'] ) && isset( $floatval['time'] ) );
+		$this->assertTrue( isset( $float_string['date'] ) && isset( $float_string['datetime'] ) && isset( $float_string['time'] ) );
+		$this->assertTrue( isset( $dateval['date'] ) && isset( $dateval['datetime'] ) && isset( $dateval['time'] ) );
+		$this->assertTrue( isset( $recognizable_time['date'] ) && isset( $recognizable_time['datetime'] ) && isset( $recognizable_time['time'] ) );
+		$this->assertTrue( isset( $relative_format['date'] ) && isset( $relative_format['datetime'] ) && isset( $relative_format['time'] ) );
+	}
+
 	/**
 	 * Test meta key query
 	 *
