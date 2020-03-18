@@ -312,6 +312,15 @@ class Term extends Indexable {
 				];
 			}
 
+			/**
+			 * Filter fields to search on Term query
+			 *
+			 * @hook ep_term_search_fields
+			 * @param  {array} $search_fields Search fields
+			 * @param  {array} $query_vars Query variables
+			 * @since  3.4
+			 * @return {array} New search fields
+			 */
 			$prepared_search_fields = apply_filters( 'ep_term_search_fields', $prepared_search_fields, $query_vars );
 
 			$query = [
@@ -322,6 +331,15 @@ class Term extends Indexable {
 								'query'  => $search,
 								'type'   => 'phrase',
 								'fields' => $prepared_search_fields,
+								/**
+								 * Filter term match phrase boost amount
+								 *
+								 * @hook ep_term_match_phrase_boost
+								 * @param  {int} $boos Boost amount for match phrase
+								 * @param  {array} $query_vars Query variables
+								 * @since  3.4
+								 * @return {int} New boost amount
+								 */
 								'boost'  => apply_filters( 'ep_term_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
 							],
 						],
@@ -329,6 +347,15 @@ class Term extends Indexable {
 							'multi_match' => [
 								'query'     => $search,
 								'fields'    => $prepared_search_fields,
+								/**
+								 * Filter term match boost amount
+								 *
+								 * @hook ep_term_match_boost
+								 * @param  {int} $boost Boost amount for match
+								 * @param  {array} $query_vars Query variables
+								 * @since  3.4
+								 * @return {int} New boost amount
+								 */
 								'boost'     => apply_filters( 'ep_term_match_boost', 2, $prepared_search_fields, $query_vars ),
 								'fuzziness' => 0,
 								'operator'  => 'and',
@@ -338,6 +365,15 @@ class Term extends Indexable {
 							'multi_match' => [
 								'fields'    => $prepared_search_fields,
 								'query'     => $search,
+								/**
+								 * Filter term fuzziness amount
+								 *
+								 * @hook ep_term_fuzziness_arg
+								 * @param  {int} $fuzziness Amount of fuziness to factor into search
+								 * @param  {array} $query_vars Query variables
+								 * @since  3.4
+								 * @return {int} New boost amount
+								 */
 								'fuzziness' => apply_filters( 'ep_term_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
 							],
 						],
@@ -345,6 +381,15 @@ class Term extends Indexable {
 				],
 			];
 
+			/**
+			 * Filter Elasticsearch query used for Terms indexable
+			 *
+			 * @hook ep_term_formatted_args_query
+			 * @param  {array} $query Elasticsearch query
+			 * @param  {array} $query_vars Query variables
+			 * @since  3.4
+			 * @return {array} New query
+			 */
 			$formatted_args['query'] = apply_filters( 'ep_term_formatted_args_query', $query, $query_vars );
 
 		} else {
@@ -490,6 +535,15 @@ class Term extends Indexable {
 			$formatted_args['post_filter'] = $filter;
 		}
 
+		/**
+		 * Filter full Elasticsearch query for Terms indexable
+		 *
+		 * @hook ep_term_formatted_args
+		 * @param  {array} $query Elasticsearch query
+		 * @param  {array} $query_vars Query variables
+		 * @since  3.4
+		 * @return {array} New query
+		 */
 		return apply_filters( 'ep_term_formatted_args', $formatted_args, $query_vars );
 	}
 
@@ -514,8 +568,24 @@ class Term extends Indexable {
 			$mapping_file = '7-0.php';
 		}
 
+		/**
+		 * Filter mapping file for Terms indexable
+		 *
+		 * @hook ep_term_mapping_file
+		 * @param  {string} $file File name
+		 * @since  3.4
+		 * @return {string} New file name
+		 */
 		$mapping = require apply_filters( 'ep_term_mapping_file', __DIR__ . '/../../../mappings/term/' . $mapping_file );
 
+		/**
+		 * Filter full Elasticsearch query for Terms indexable
+		 *
+		 * @hook ep_term_mapping
+		 * @param  {array} $mapping Elasticsearch mapping
+		 * @since  3.4
+		 * @return {array} New mapping
+		 */
 		$mapping = apply_filters( 'ep_term_mapping', $mapping );
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
@@ -551,6 +621,15 @@ class Term extends Indexable {
 			'object_ids'       => $this->prepare_object_ids( $term->term_id, $term->taxonomy ),
 		];
 
+		/**
+		 * Filter term fields pre-sync
+		 *
+		 * @hook ep_term_sync_args
+		 * @param  {array} $term_args Current term fields
+		 * @param  {int} $term_id Term ID
+		 * @since  3.4
+		 * @return {array} New fields
+		 */
 		$term_args = apply_filters( 'ep_term_sync_args', $term_args, $term_id );
 
 		return $term_args;
@@ -564,12 +643,6 @@ class Term extends Indexable {
 	 * @return array
 	 */
 	public function query_db( $args ) {
-		$all_query = new WP_Term_Query(
-			[
-				'count'  => true,
-				'fields' => 'ids',
-			]
-		);
 
 		$defaults = [
 			'number'     => $this->get_bulk_items_per_page(),
@@ -584,7 +657,45 @@ class Term extends Indexable {
 			$args['number'] = $args['per_page'];
 		}
 
+		/**
+		 * Filter database arguments for term query
+		 *
+		 * @hook ep_term_query_db_args
+		 * @param  {array} $args Query arguments based to WP_Term_Query
+		 * @since  3.4
+		 * @return {array} New arguments
+		 */
 		$args = apply_filters( 'ep_term_query_db_args', wp_parse_args( $args, $defaults ) );
+
+		$all_query_args = $args;
+
+		unset( $all_query_args['number'] );
+		unset( $all_query_args['offset'] );
+		unset( $all_query_args['fields'] );
+
+		/**
+		 * This just seems so inefficient.
+		 *
+		 * @todo Better way to do this?
+		 */
+
+		/**
+		 * Filter database arguments for term count query
+		 *
+		 * @hook ep_term_all_query_db_args
+		 * @param  {array} $args Query arguments based to WP_Term_Query
+		 * @since  3.4
+		 * @return {array} New arguments
+		 */
+		$all_query = new WP_Term_Query( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
+
+		$total_objects = count( $all_query->terms );
+
+		if ( ! empty( $args['offset'] ) ) {
+			if ( (int) $args['offset'] >= $total_objects ) {
+				$total_objects = 0;
+			}
+		}
 
 		$query = new WP_Term_Query( $args );
 
@@ -592,7 +703,7 @@ class Term extends Indexable {
 
 		return [
 			'objects'       => $query->terms,
-			'total_objects' => count( $all_query->terms ),
+			'total_objects' => $total_objects,
 		];
 	}
 
@@ -612,6 +723,14 @@ class Term extends Indexable {
 			}
 		}
 
+		/**
+		 * Filter indexable taxonomies for Terms indexable
+		 *
+		 * @hook ep_indexable_taxonomies
+		 * @param  {array} $public_taxonomies Taxonomies
+		 * @since  3.4
+		 * @return {array} New taxonomies array
+		 */
 		return apply_filters( 'ep_indexable_taxonomies', $public_taxonomies );
 	}
 
@@ -662,10 +781,11 @@ class Term extends Indexable {
 		 *
 		 * Allows for specifying private meta keys that may be indexed in the same manner as public meta keys.
 		 *
-		 * @since 3.1
-		 *
-		 * @param array        Array of index-able private meta keys.
-		 * @param int $term_id Term ID.
+		 * @since 3.4
+		 * @hook ep_prepare_term_meta_allowed_protected_keys
+		 * @param {array} $allowed_protected_keys Array of index-able private meta keys.
+		 * @param {int} $term_id Term ID.
+		 * @return {array} New meta keys
 		 */
 		$allowed_protected_keys = apply_filters( 'ep_prepare_term_meta_allowed_protected_keys', [], $term_id );
 
@@ -674,10 +794,11 @@ class Term extends Indexable {
 		 *
 		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
 		 *
-		 * @since 3.1
-		 *
-		 * @param array        Array of public meta keys to exclude from index.
-		 * @param int $term_id Term ID.
+		 * @since 3.4
+		 * @hook ep_prepare_term_meta_excluded_public_keys
+		 * @param {array} $public_keys  Array of public meta keys to exclude from index.
+		 * @param {int} $term_id Term ID.
+		 * @return {array} New keys
 		 */
 		$excluded_public_keys = apply_filters(
 			'ep_prepare_term_meta_excluded_public_keys',
@@ -703,6 +824,16 @@ class Term extends Indexable {
 				}
 			}
 
+			/**
+			 * Filter kill switch for any term meta
+			 *
+			 * @since 3.4
+			 * @hook ep_prepare_term_meta_whitelist_key
+			 * @param  {boolean} $index_key Whether to index key or not
+			 * @param {string} $key Key name
+			 * @param {int} $term_id Term ID.
+			 * @return {boolean} New index value
+			 */
 			if ( true === $allow_index || apply_filters( 'ep_prepare_term_meta_whitelist_key', false, $key, $term_id ) ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}

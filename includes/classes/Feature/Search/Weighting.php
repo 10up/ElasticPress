@@ -313,46 +313,7 @@ class Weighting {
 			return;
 		}
 
-		$new_config                = array();
-		$previous_config_formatted = array();
-		$current_config            = $this->get_weighting_configuration();
-
-		foreach ( $current_config as $post_type => $post_type_weighting ) {
-			// This also ensures the string is safe, since this would return false otherwise
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
-
-			// We need a way to know if fields have been explicitly set before, let's compare a previous state against $_POST['weighting']
-			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
-				$previous_config_formatted[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-					'weight'  => isset( $_POST['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $_POST['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
-					'enabled' => isset( $_POST['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $_POST['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
-				];
-			}
-		}
-
-		if ( ! empty( $_POST['weighting'] ) ) {
-			foreach ( $_POST['weighting'] as $post_type => $post_type_weighting ) {
-				// This also ensures the string is safe, since this would return false otherwise
-				if ( ! post_type_exists( $post_type ) ) {
-					continue;
-				}
-
-				$new_config[ $post_type ] = array();
-
-				foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
-					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
-						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
-					];
-				}
-			}
-		}
-
-		$final_config = array_replace_recursive( $previous_config_formatted, $new_config );
-
-		update_option( 'elasticpress_weighting', $final_config );
+		$this->save_weighting_configuration( $_POST );
 
 		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
 		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
@@ -368,6 +329,63 @@ class Weighting {
 
 		wp_safe_redirect( $redirect_url );
 		exit();
+	}
+
+	/**
+	 * Save weighting configuration for each searchable post_type
+	 *
+	 * @param array $settings weighting settings
+	 *
+	 * @return array final settings
+	 * @since 3.4.1
+	 */
+	public function save_weighting_configuration( $settings ) {
+		$new_config                = array();
+		$previous_config_formatted = array();
+		$current_config            = $this->get_weighting_configuration();
+
+		foreach ( $current_config as $post_type => $post_type_weighting ) {
+			// This also ensures the string is safe, since this would return false otherwise
+			if ( ! post_type_exists( $post_type ) ) {
+				continue;
+			}
+
+			// We need a way to know if fields have been explicitly set before, let's compare a previous state against $_POST['weighting']
+			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
+				$previous_config_formatted[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
+					'weight'  => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
+					'enabled' => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
+				];
+			}
+		}
+
+		$search     = Features::factory()->get_registered_feature( 'search' );
+		$post_types = $search->get_searchable_post_types();
+
+		foreach ( $post_types as $post_type ) {
+			// This also ensures the string is safe, since this would return false otherwise
+			if ( ! post_type_exists( $post_type ) ) {
+				continue;
+			}
+
+			/** override default post_type settings while saving */
+			$new_config[ $post_type ] = array();
+
+			if ( isset( $settings['weighting'][ $post_type ] ) ) {
+				foreach ( $settings['weighting'][ $post_type ] as $weighting_field => $weighting_values ) {
+					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
+						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
+						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
+					];
+				}
+			}
+		}
+
+		$final_config = array_replace_recursive( $previous_config_formatted, $new_config );
+
+		update_option( 'elasticpress_weighting', $final_config );
+
+		return $final_config;
 	}
 
 	/**
