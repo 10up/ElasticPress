@@ -138,6 +138,8 @@ class Stats {
 	private function populate_indices_stats() {
 		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 		$sites[]           = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
+		$sites[]           = Indexables::factory()->get( 'term' )->get_index_name( get_current_blog_id() );
+		$sites[]           = Indexables::factory()->get( 'user' )->get_index_name( get_current_blog_id() );
 		$indices           = $this->remote_request_helper( '_cat/indices?format=json' );
 		$i = 1;
 
