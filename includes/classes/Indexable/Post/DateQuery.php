@@ -11,7 +11,9 @@ namespace ElasticPress\Indexable\Post;
 use \WP_Date_Query as WP_Date_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
