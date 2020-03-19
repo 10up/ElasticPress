@@ -4210,6 +4210,29 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests the fallback code for filters and relations.
+	 *
+	 * @group post
+	 */
+	public function testDateQueryFiltersRelation() {
+
+		$date_query = new \ElasticPress\Indexable\Post\DateQuery(
+			[
+				'relation' => '',
+				[
+					'year' => 0,
+				],
+			]
+		);
+
+		$filter = $date_query->get_es_filter();
+
+		$this->assertTrue( is_array( $filter ) );
+		$this->assertCount( 1, $filter );
+		$this->assertSame( 'and', array_key_first( $filter ) );
+	}
+
+	/**
 	 * Test a date query with BETWEEN comparison
 	 *
 	 * @group post
