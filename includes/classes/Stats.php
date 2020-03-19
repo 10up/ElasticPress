@@ -138,7 +138,7 @@ class Stats {
 	private function populate_indices_stats() {
 		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 		$blog_id           = get_current_blog_id();
-		$main_indexables   = $this->get_indices_for_site( $blog_id );
+		$site_indices      = $this->get_indices_for_site( $blog_id );
 
 		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
 		$i       = 1;
@@ -151,14 +151,14 @@ class Stats {
 		if ( $network_activated ) {
 			$indexable_sites = Utils\get_sites();
 			foreach ( $indexable_sites as $site ) {
-				$indexables      = $this->get_indices_for_site( $site['blog_id'] );
-				$main_indexables = array_merge( $main_indexables, $indexables );
+				$indexables   = $this->get_indices_for_site( $site['blog_id'] );
+				$site_indices = array_merge( $site_indices, $indexables );
 			}
 		}
 
 		// Filter the general list of indices to contain only the ones we care about
-		$filtered_indices = array_filter( $indices, function ( $index ) use ( $main_indexables ) {
-			return in_array( $index['index'], $main_indexables, true );
+		$filtered_indices = array_filter( $indices, function ( $index ) use ( $site_indices ) {
+			return in_array( $index['index'], $site_indices, true );
 		} );
 
 		/**
@@ -236,10 +236,10 @@ class Stats {
 		$this->health[ $index_name ]['health'] = $health;
 
 		$this->localized['indices_data'][ $index_name ]['name'] = $index_name;
-		$this->localized['indices_data'][ $index_name ]['docs'] = $this->stats['indices'][ $index_name ]['total']['docs']['count'];
+		$this->localized['indices_data'][ $index_name ]['docs'] = $this->stats['indices'][ $index_name ]['primaries']['docs']['count'];
 
 		// General data counts
-		$this->localized['index_total']   += absint( $this->stats['indices'][ $index_name ]['total']['indexing']['index_total'] );
+		$this->localized['index_total']   += absint( $this->stats['indices'][ $index_name ]['primaries']['indexing']['index_total'] );
 		$this->localized['query_total']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_total'] );
 		$this->localized['suggest_total'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_total'] );
 
