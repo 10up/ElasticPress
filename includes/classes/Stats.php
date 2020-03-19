@@ -137,11 +137,11 @@ class Stats {
 	 */
 	private function populate_indices_stats() {
 		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
-		$sites[]           = Indexables::factory()->get( 'post' )->get_index_name( get_current_blog_id() );
-		$sites[]           = Indexables::factory()->get( 'term' )->get_index_name( get_current_blog_id() );
-		$sites[]           = Indexables::factory()->get( 'user' )->get_index_name( get_current_blog_id() );
-		$indices           = $this->remote_request_helper( '_cat/indices?format=json' );
-		$i = 1;
+		$blog_id           = get_current_blog_id();
+		$main_indexables   = $this->get_indices_for_site( $blog_id );
+
+		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
+		$i       = 1;
 
 		if ( empty( $indices ) ) {
 			return;
@@ -149,28 +149,16 @@ class Stats {
 
 		// if the plugin is network activated we only want the data from the indexable WP indexes, not any others
 		if ( $network_activated ) {
-			$sites = array();
 			$indexable_sites = Utils\get_sites();
 			foreach ( $indexable_sites as $site ) {
-				$post_index = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-				$term_index = Indexables::factory()->get( 'term' )->get_index_name( $site['blog_id'] );
-				$user_index = Indexables::factory()->get( 'user' )->get_index_name( $site['blog_id'] );
-
-				if ( ! in_array( $post_index, $sites, true ) ) {
-					$sites[] = $post_index;
-				}
-				if ( ! in_array( $term_index, $sites, true ) ) {
-					$sites[] = $term_index;
-				}
-				if ( ! in_array( $user_index, $sites, true ) ) {
-					$sites[] = $user_index;
-				}
+				$indexables      = $this->get_indices_for_site( $site['blog_id'] );
+				$main_indexables = array_merge( $main_indexables, $indexables );
 			}
 		}
 
 		// Filter the general list of indices to contain only the ones we care about
-		$filtered_indices = array_filter( $indices, function ( $index ) use ( $sites ) {
-			return in_array( $index['index'], $sites, true );
+		$filtered_indices = array_filter( $indices, function ( $index ) use ( $main_indexables ) {
+			return in_array( $index['index'], $main_indexables, true );
 		} );
 
 		/**
@@ -187,12 +175,31 @@ class Stats {
 		$filtered_indices = apply_filters( 'ep_index_health_stats_indices', $filtered_indices, $indices );
 
 		foreach ( $filtered_indices as $index ) {
-			$this->populate_index_stats( $index['index'], $index['health'], $i++ );
+			$this->populate_index_stats( $index['index'], $index['health'], $i ++ );
 		}
 	}
 
 	/**
-	 * Populate cluster performance data
+	 * Get all registered index names for a given site ID
+	 *
+	 * @param int $site_id the site id
+	 *
+	 * @return array
+	 * @since 3.x
+	 */
+	public function get_indices_for_site( $site_id ) {
+		$indexables = Indexables::factory()->get_all();
+		$indices    = array();
+
+		foreach ( $indexables as $indexable ) {
+			$indices[] = $indexable->get_index_name( $site_id );
+		}
+
+		return $indices;
+	}
+
+	/**
+	 * Populate cluster performance data. These use the total key so averages include both primary and replica shards
 	 *
 	 * @since 3.x
 	 */
@@ -210,6 +217,8 @@ class Stats {
 
 	/**
 	 * Populate index storage capacity and metrics
+	 * Note: in the numbers below, those using the total key are counting values across all primary and replica shards
+	 * while those using the primaries key are reading only from the primary shards
 	 *
 	 * @param string $index_name index name
 	 * @param string $health     index health status
@@ -234,9 +243,9 @@ class Stats {
 		$this->localized['query_total']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_total'] );
 		$this->localized['suggest_total'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_total'] );
 
-		$this->totals['docs']   += absint( $this->stats['indices'][ $index_name ]['total']['docs']['count'] );
+		$this->totals['docs']   += absint( $this->stats['indices'][ $index_name ]['primaries']['docs']['count'] );
 		$this->totals['size']   += absint( $this->stats['indices'][ $index_name ]['total']['store']['size_in_bytes'] );
-		$this->totals['memory'] += absint( $this->stats['indices'][ $index_name ]['primaries']['segments']['memory_in_bytes'] );
+		$this->totals['memory'] += absint( $this->stats['indices'][ $index_name ]['total']['segments']['memory_in_bytes'] );
 	}
 
 	/**
