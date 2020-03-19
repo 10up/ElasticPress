@@ -45,6 +45,10 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 = 3.4.1 =
 
+* Make weighting dashboard flex containers to prevent the slider from changing size. Props [@mlaroy](https://github.com/mlaroy).
+* Fix issue where weightings wouldn't save properly for certain post types. Props [mustafauysal](https://github.com/mustafauysal).
+* Fix bug where terms wouldn't finish syncing in certain scenarios.
+
 = 3.4 =
 
 * Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
