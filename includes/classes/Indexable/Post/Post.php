@@ -14,7 +14,9 @@ use \WP_Query as WP_Query;
 use \WP_User as WP_User;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**

@@ -4742,6 +4742,7 @@ class TestPost extends BaseTestCase {
 	 * Tests the http_request_args filter.
 	 *
 	 * @return void
+	 * @group post
 	 */
 	public function testHttpRequestArgsFilter() {
 		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
@@ -4766,5 +4767,92 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
+	}
+
+	/**
+	 * Tests the constructor for the Indexable\Post class.
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testPostConstructor() {
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$this->assertSame( 'Posts', $post->labels['plural'] );
+		$this->assertSame( 'Post', $post->labels['singular'] );
+
+		$this->assertTrue( is_a( $post->sync_manager, '\ElasticPress\Indexable\Post\SyncManager' ) );
+		$this->assertTrue( is_a( $post->query_integration, '\ElasticPress\Indexable\Post\QueryIntegration' ) );
+	}
+
+	/**
+	 * Tests the constructor for the Indexable\Post class.
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testQueryDb() {
+
+		$exclude_post_id = Functions\create_and_sync_post();
+		$post_id = Functions\create_and_sync_post();
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$results = $post->query_db(
+			[
+				'per_page' => 1,
+				'include'  => [ $post_id ],
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+
+		$this->assertCount( 1, $post_ids );
+		$this->assertContains( $post_id, $post_ids );
+		$this->assertSame( 1, absint( $results['total_objects'] ) );
+
+		$results = $post->query_db(
+			[
+				'exclude'  => [ $exclude_post_id ],
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+
+		$this->assertNotContains( $exclude_post_id, $post_ids );
+
+		// Set up a few posts for the filters.
+		$args_post_ids = [];
+
+		$args_post_ids[] = Functions\create_and_sync_post();
+		$args_post_ids[] = Functions\create_and_sync_post();
+		$args_post_ids[] = Functions\create_and_sync_post();
+		$args_post_ids[] = Functions\create_and_sync_post();
+
+		$defaults_filter = function( $args ) use ( $args_post_ids ) {
+			$args['post__in'] = $args_post_ids;
+			return $args;
+		};
+
+		$index_filter = function( $args ) {
+			$args['posts_per_page'] = 3;
+			$args['order'] = 'ASC';
+			return $args;
+		};
+
+		add_filter( 'ep_post_query_db_args', $defaults_filter );
+		add_filter( 'ep_index_posts_args', $index_filter );
+
+		$results = $post->query_db( [] );
+
+		remove_filter( 'ep_post_query_db_args', $defaults_filter );
+		remove_filter( 'ep_index_posts_args', $index_filter );
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+
+		$this->assertCount( 3, $post_ids );
+		$this->assertContains( $args_post_ids[2], $post_ids );
+		$this->assertNotContains( $args_post_ids[3], $post_ids );
 	}
 }
