@@ -136,6 +136,12 @@ class SyncManager extends SyncManagerAbstract {
 				return;
 			}
 
+			$indexable_post_statuses = $indexable->get_indexable_post_status();
+
+			if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+				return;
+			}
+
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
@@ -203,6 +209,12 @@ class SyncManager extends SyncManagerAbstract {
 		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
 
 		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
+			return;
+		}
+
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
+
+		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
 			return;
 		}
 
