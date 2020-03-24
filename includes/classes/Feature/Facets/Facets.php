@@ -255,7 +255,7 @@ class Facets extends Feature {
 		foreach ( $taxonomies as $slug => $taxonomy ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
-					'size'  => 10000,
+					'size'  => apply_filters( 'ep_facet_taxonomies_size', 5, $taxonomy ),
 					'field' => 'terms.' . $slug . '.slug',
 				),
 			);
