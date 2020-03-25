@@ -718,42 +718,44 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		switch ( $args ) {
-			case ! empty( $args['category_name'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['category_name'] ),
-					'field'    => 'slug',
-				);
-				break;
-			case ! empty( $args['cat'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['cat'] ),
-					'field'    => 'id',
-				);
-				break;
-			case ! empty( $args['tag'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => array( $args['tag'] ),
-					'field'    => 'slug',
-				);
-				break;
-			case ! empty( $args['tag__and'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => $args['tag__and'],
-					'field'    => 'term_id',
-				);
-				break;
-			case ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => $args['tag_id'],
-					'field'    => 'term_id',
-				);
-				break;
+		if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'category',
+				'terms'    => array( $args['category_name'] ),
+				'field'    => 'slug',
+			);
+		}
+
+		if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'category',
+				'terms'    => array( $args['cat'] ),
+				'field'    => 'id',
+			);
+		}
+
+		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'post_tag',
+				'terms'    => array( $args['tag'] ),
+				'field'    => 'slug',
+			);
+		}
+
+		if ( isset( $args['tag__and'] ) && ! empty( $args['tag__and'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'post_tag',
+				'terms'    => $args['tag__and'],
+				'field'    => 'term_id',
+			);
+		}
+
+		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'post_tag',
+				'terms'    => $args['tag_id'],
+				'field'    => 'term_id',
+			);
 		}
 
 		/**

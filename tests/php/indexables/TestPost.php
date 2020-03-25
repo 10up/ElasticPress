@@ -4930,4 +4930,39 @@ class TestPost extends BaseTestCase {
 
 		unset( $wp_taxonomies['testPrepareDocumentFallbacks'] );
 	}
+
+	/**
+	 * Tests fallback code inside format_args.
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsFallbacks() {
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$query = new \WP_Query();
+		$posts_per_page = (int) get_option( 'posts_per_page' );
+
+		$args = $post->format_args(
+			[
+				'cat'       => 123,
+				'tag'       => 'tag-slug',
+				'post_tag'  => 'post-tag-slug',
+			],
+			$query
+		);
+
+		echo wp_json_encode( $args, JSON_PRETTY_PRINT );
+
+		$this->assertSame( $posts_per_page, $args['size'] );
+
+		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
+
+		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
+
+		$this->assertSame( 123, $must_terms[0]['terms']['terms.category.id'][0] );
+		$this->assertSame( 'tag-slug', $must_terms[1]['terms']['terms.post_tag.slug'][0] );
+		$this->assertSame( 'post-tag-slug', $must_terms[2]['terms']['terms.post_tag.slug'][0] );
+	}
 }
