@@ -4229,7 +4229,9 @@ class TestPost extends BaseTestCase {
 
 		$this->assertTrue( is_array( $filter ) );
 		$this->assertCount( 1, $filter );
-		$this->assertSame( 'and', array_key_first( $filter ) );
+
+		$keys = array_keys( $filter );
+		$this->assertSame( 'and', $keys[0] );
 	}
 
 	/**
@@ -4966,7 +4968,7 @@ class TestPost extends BaseTestCase {
 
 		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
 
-		$this->assertSame( 123, $must_terms[0]['terms']['terms.category.id'][0] );
+		$this->assertSame( 123, $must_terms[0]['terms']['terms.category.term_id'][0] );
 		$this->assertSame( 'tag-slug', $must_terms[1]['terms']['terms.post_tag.slug'][0] );
 		$this->assertSame( 'post-tag-slug', $must_terms[2]['terms']['terms.post_tag.slug'][0] );
 	}
