@@ -4855,4 +4855,45 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( $args_post_ids[2], $post_ids );
 		$this->assertNotContains( $args_post_ids[3], $post_ids );
 	}
+
+	/**
+	 * Tests fallback code inside prepare_document.
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testPrepareDocumentFallbacks() {
+		global $wpdb;
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$this->assertFalse( $post->prepare_document( null ) );
+
+		// Create a post with invalid data.
+		$post_id = Functions\create_and_sync_post();
+
+		// Manually update the post with invalid data.
+		$wpdb->update(
+			$wpdb->posts,
+			[
+				'post_author'   => 0,
+				'post_date'     => '0000-00-00 00:00:00',
+				'post_modified' => '0000-00-00 00:00:00',
+
+			],
+			[
+				'ID' => $post_id,
+			]
+		);
+
+		clean_post_cache( $post_id );
+
+		$post_args = $post->prepare_document( $post_id );
+
+		$this->assertTrue( is_array( $post_args ) );
+		$this->assertSame( null, $post_args['post_date'] );
+		$this->assertSame( null, $post_args['post_modified'] );
+
+		wp_delete_post( $post_id, true );
+	}
 }
