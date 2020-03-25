@@ -235,8 +235,9 @@ function hideAutosuggestBox() {
 
 	// empty all EP results lists
 	lists.forEach( list => {
-		while( list.firstChild )
+		while( list.firstChild ) {
 			list.removeChild( list.firstChild );
+		}
 	} );
 
 	// hide all EP results containers
@@ -294,7 +295,7 @@ function checkForOrderedPosts( hits, searchTerm ) {
  * init method called if the epas endpoint is defined
  */
 function init() {
-	const epInputs = document.querySelectorAll( `.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}` );
+	const epInputNodes = document.querySelectorAll( `.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}` );
 
 	// build the container into which we place the search results.
 	// These will be cloned later for each instance
@@ -306,7 +307,7 @@ function init() {
 	epAutosuggest.appendChild( autosuggestList );
 
 	// Build the auto-suggest containers
-	// const epInputs = Array.from( epInputNodes );
+	const epInputs = Array.from( epInputNodes );
 	epInputs.forEach( input => {
 
 		const epContainer = document.createElement( 'div' );
@@ -343,7 +344,7 @@ function init() {
 	 * Helper function to format search results for consumption
 	 * by the updateAutosuggestBox function
 	 *
-	 * @param {hits} - object
+	 * @param {Object} - hists
 	 */
 	const formatSearchResults = hits => {
 		const usedPosts = [];
@@ -394,7 +395,8 @@ function init() {
 		 * helper function to get the currently selected result
 		 */
 		const getSelectedResultIndex = () => {
-			return [].findIndex.call( results, result => result.classList.contains( 'selected' ) );
+			const resultsArr = Array.from( results );
+			return resultsArr.findIndex( result => result.classList.contains( 'selected' ) );
 		};
 
 		/**
