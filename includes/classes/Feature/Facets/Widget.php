@@ -261,6 +261,10 @@ class Widget extends WP_Widget {
 		</div>
 		<?php
 		$facet_html = ob_get_clean();
+		
+		// Enqueue Script & Styles
+		wp_enqueue_script( 'elasticpress-facets' );
+		wp_enqueue_style( 'elasticpress-facets' );
 
 		// phpcs:disable
 		// Allows developers to modify widget html
