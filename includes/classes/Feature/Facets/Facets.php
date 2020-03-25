@@ -166,7 +166,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 	 * @since 2.5
 	 */
 	public function front_scripts() {
-		wp_enqueue_script(
+		wp_register_script(
 			'elasticpress-facets',
 			EP_URL . 'dist/js/facets.min.js',
 			[ 'jquery', 'underscore' ],
@@ -174,7 +174,7 @@ checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all conten
 			true
 		);
 
-		wp_enqueue_style(
+		wp_register_style(
 			'elasticpress-facets',
 			EP_URL . 'dist/css/facets.min.css',
 			[],
