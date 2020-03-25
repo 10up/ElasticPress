@@ -4864,6 +4864,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPrepareDocumentFallbacks() {
 		global $wpdb;
+		global $wp_taxonomies;
 
 		$post = new \ElasticPress\Indexable\Post\Post();
 
@@ -4888,12 +4889,45 @@ class TestPost extends BaseTestCase {
 
 		clean_post_cache( $post_id );
 
+		wp_set_post_terms( $post_id, 'testPrepareDocumentFallbacks', 'category', true );
+
+		add_filter( 'ep_sync_taxonomies', '__return_false' );
+
 		$post_args = $post->prepare_document( $post_id );
 
+		remove_filter( 'ep_sync_taxonomies', '__return_false' );
+
 		$this->assertTrue( is_array( $post_args ) );
+		$this->assertTrue( is_array( $post_args['terms'] ) );
+		$this->assertEmpty( $post_args['terms'] );
 		$this->assertSame( null, $post_args['post_date'] );
 		$this->assertSame( null, $post_args['post_modified'] );
 
-		wp_delete_post( $post_id, true );
+		// Run it again with a filter to return a taxonomy that's not
+		// a WP_Taxonomy class.
+		$terms_callback = function() {
+			return [
+				'testPrepareDocumentFallbacks',
+			];
+		};
+
+		// We need to create an object that is not a taxonomy to simulate
+		// pre 4.7 behavior.
+		$invalid_taxonomy = new \stdClass();
+		$invalid_taxonomy->object_type = 'post';
+		$invalid_taxonomy->public      = true;
+
+		$wp_taxonomies['testPrepareDocumentFallbacks'] = $invalid_taxonomy;
+
+		add_filter( 'ep_sync_taxonomies', $terms_callback );
+
+		$post_args = $post->prepare_document( $post_id );
+
+		remove_filter( 'ep_sync_taxonomies', $terms_callback );
+
+		$this->assertTrue( is_array( $post_args['terms'] ) );
+		$this->assertEmpty( $post_args['terms'] );
+
+		unset( $wp_taxonomies['testPrepareDocumentFallbacks'] );
 	}
 }
