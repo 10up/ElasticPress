@@ -4726,6 +4726,13 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
+		// Verify we're only getting the posts we requested.
+		$post_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertContains( get_post_field( 'post_name', $post_id_1 ), $post_names );
+		$this->assertContains( get_post_field( 'post_name', $post_id_2 ), $post_names );
+		$this->assertNotContains( get_post_field( 'post_name', $post_id_3 ), $post_names );
+
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'post',
@@ -4932,12 +4939,12 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests fallback code inside format_args.
+	 * Tests additional code inside format_args.
 	 *
 	 * @return void
 	 * @group post
 	 */
-	public function testFormatArgsFallbacks() {
+	public function testFormatArgs() {
 
 		$post = new \ElasticPress\Indexable\Post\Post();
 
@@ -4952,8 +4959,6 @@ class TestPost extends BaseTestCase {
 			],
 			$query
 		);
-
-		echo wp_json_encode( $args, JSON_PRETTY_PRINT );
 
 		$this->assertSame( $posts_per_page, $args['size'] );
 
