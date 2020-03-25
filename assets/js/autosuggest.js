@@ -146,12 +146,12 @@ async function esSearch( query, searchTerm ) {
 			throw Error( response.statusText );
 		}
 
-		let data = await response.json();
+		const data = await response.json();
 
 		// allow for filtered data before returning it to
 		// be output on the front end
 		if( 'undefined' !== typeof window.epDataFilter ) {
-			data = window.epDataFilter( data, searchTerm );
+			return window.epDataFilter( data, searchTerm );
 		}
 
 		return data;
@@ -215,11 +215,15 @@ function updateAutosuggestBox( options, input ) {
 	// append list items to the list
 	suggestList.innerHTML = itemString;
 
-	const autosuggestItems = document.querySelectorAll( '.autosuggest-list-item' );
-	autosuggestItems.forEach( item => {
-		item.addEventListener( 'click', event => {
-			selectItem( input, event.target );
-		} );
+	const autosuggestItems = Array.from( document.querySelectorAll( '.autosuggest-link' ) );
+
+	suggestList.addEventListener( 'click', event => {
+		event.preventDefault();
+		const { srcElement } = event;
+
+		if( autosuggestItems.includes( srcElement ) ) {
+			selectItem( input, srcElement );
+		}
 	} );
 }
 
@@ -339,7 +343,6 @@ function init() {
 		background-color: ${getComputedStyle( epInputs[0], 'background-color' )}
 	`;
 
-
 	/**
 	 * Helper function to format search results for consumption
 	 * by the updateAutosuggestBox function
@@ -361,26 +364,23 @@ function init() {
 		} );
 	};
 
-
 	// to be used by the handleUpdDown function
 	// to keep track of the currently selected result
 	let currentIndex;
+
+	// these are the keycodes we listen for in handleUpDown,
+	// and in handleKeyup
+	const keyCodes = [
+		38, // up
+		40, // down
+		13, // enter
+	];
 
 	/**
 	 *
 	 * @param {*} event
 	 */
-	const handleUpdDown = event => {
-		const keyCodes = [
-			38, // up
-			40, // down
-			13 // enter
-		];
-
-		if ( 27 === event.keyCode ) {
-			hideAutosuggestBox();
-			return;
-		}
+	const handleUpdDown = ( event ) => {
 
 		if ( !keyCodes.includes( event.keyCode ) ) {
 			return;
@@ -466,7 +466,6 @@ function init() {
 		return;
 	};
 
-
 	/**
 	 * Callback for keyup in Autosuggest container.
 	 *
@@ -478,23 +477,20 @@ function init() {
 	const handleKeyup = event => {
 		event.preventDefault();
 
-		const input = event.target;
-		const keyCodes = [
-			38, // up
-			40, // down
-			13, // enter
-			27 // esc
-		];
+		if ( 27 === event.keyCode ) {
+			hideAutosuggestBox();
+			return;
+		}
 
 		if( keyCodes.includes( event.keyCode ) ) {
 			handleUpdDown( event );
 			return;
 		}
 
+		const input = event.target;
 		const debounceFetchResults = debounce( fetchResults, 200 );
 		debounceFetchResults( input );
 	};
-
 
 	/**
 	 * Calls the ajax request, and outputs the results.
