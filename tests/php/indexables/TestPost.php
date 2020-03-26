@@ -4941,12 +4941,12 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests additional code inside format_args.
+	 * Tests root taxonomy queries inside format_args.
 	 *
 	 * @return void
 	 * @group post
 	 */
-	public function testFormatArgs() {
+	public function testFormatArgsRootLevelTaxonomies() {
 
 		$post = new \ElasticPress\Indexable\Post\Post();
 
@@ -4971,5 +4971,75 @@ class TestPost extends BaseTestCase {
 		$this->assertSame( 123, $must_terms[0]['terms']['terms.category.term_id'][0] );
 		$this->assertSame( 'tag-slug', $must_terms[1]['terms']['terms.post_tag.slug'][0] );
 		$this->assertSame( 'post-tag-slug', $must_terms[2]['terms']['terms.post_tag.slug'][0] );
+
+		// Verify a bug fix where two different terms.post_tag.term_id
+		// parameters were being created. Should only be one parameter
+		// with the two IDs.
+		$args = $post->format_args(
+			[
+				'tag__and' => [ 123, 456 ],
+				'tag_id'   => 123,
+			],
+			$query
+		);
+
+		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
+
+		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
+
+		$this->assertCount( 1, $must_terms );
+		$this->assertCount( 2, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+		$this->assertContains( 123, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+		$this->assertContains( 456, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+
+		// Verify we're append the tag_id to the array.
+		$args = $post->format_args(
+			[
+				'tag__and' => [ 123, 456 ],
+				'tag_id'   => 789,
+			],
+			$query
+		);
+
+		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
+
+		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
+
+		$this->assertCount( 1, $must_terms );
+		$this->assertCount( 3, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+		$this->assertContains( 123, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+		$this->assertContains( 456, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+		$this->assertContains( 789, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+	}
+
+	/**
+	 * Tests post_mime_type in format_args().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsPostMimeType() {
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$query = new \WP_Query();
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => 'image',
+			],
+			$query
+		);
+
+		$this->assertSame( 'image.*', $args['post_filter']['bool']['must'][0]['regexp']['post_mime_type'] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [ 'image/jpeg' ],
+			],
+			$query
+		);
+
+		$this->assertSame( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'][0] );
 	}
 }
