@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.4
+ * Version:     3.4.1
  * Author:      10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -27,7 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '3.4' );
+define( 'EP_FILE', plugin_basename( __FILE__ ) );
+define( 'EP_VERSION', '3.4.1' );
 
 /**
  * PSR-4-ish autoloading
@@ -76,7 +77,7 @@ require_once __DIR__ . '/includes/compat.php';
 require_once __DIR__ . '/includes/utils.php';
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
-$network_activated = Utils\is_network_activated( plugin_basename( __FILE__ ) );
+$network_activated = Utils\is_network_activated( EP_FILE );
 
 if ( $network_activated ) {
 	define( 'EP_IS_NETWORK', true );
