@@ -435,9 +435,13 @@ abstract class Indexable {
 	 */
 	public function prepare_date_meta_values( $meta_types, $meta_value ) {
 
-		if ( empty( $meta_value ) || true === $meta_value ) {
+		if ( empty( $meta_value ) || ! is_string( $meta_value ) ) {
 			return $meta_types;
 		}
+
+		$meta_types['date']     = '1971-01-01';
+		$meta_types['datetime'] = '1971-01-01 00:00:01';
+		$meta_types['time']     = '00:00:01';
 
 		try {
 			// is this is a recognizable date format?
@@ -459,7 +463,6 @@ abstract class Indexable {
 		}
 
 		return $meta_types;
-
 	}
 
 	/**
