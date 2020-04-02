@@ -5042,4 +5042,35 @@ class TestPost extends BaseTestCase {
 
 		$this->assertSame( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'][0] );
 	}
+
+	/**
+	 * Tests author in format_args().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsAuthor() {
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$query = new \WP_Query();
+
+		$args = $post->format_args(
+			[
+				'author' => 123,
+			],
+			$query
+		);
+
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['term']['post_author.id'] );
+
+		$args = $post->format_args(
+			[
+				'author_name' => 'Bacon Ipsum',
+			],
+			$query
+		);
+
+		$this->assertSame( 'Bacon Ipsum', $args['post_filter']['bool']['must'][0]['term']['post_author.display_name'] );
+	}
 }
