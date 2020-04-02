@@ -35,7 +35,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			 */
 			$cluster_indexes = json_decode( $this->runCommand( 'wp elasticpress get-cluster-indexes' )['stdout'], true );
 
-			foreach ( $cluster_indexes as $index ) {
+			foreach ( (array) $cluster_indexes as $index ) {
 				$this->runCommand( 'wp elasticpress delete-index --index-name=' . $index['index'] );
 			}
 
@@ -220,12 +220,17 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	/**
 	 * Activate the plugin.
 	 *
-	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
-	 * @param string                      $slug  Plugin slug.
+	 * @param \WPAcceptance\PHPUnit\Actor $actor   The actor.
+	 * @param string                      $slug    Plugin slug.
+	 * @param bool                        $network Multisite?
 	 */
-	protected function activatePlugin( $actor, $slug = 'elasticpress' ) {
-		// Activate the plugin.
-		$actor->moveTo( '/wp-admin/plugins.php' );
+	protected function activatePlugin( $actor, $slug = 'elasticpress', $network = false ) {
+		if ( $network ) {
+			$actor->moveTo( '/wp-admin/network/plugins.php' );
+		} else {
+			$actor->moveTo( '/wp-admin/plugins.php' );
+		}
+
 		try {
 			$element = $actor->getElement( '[data-slug="' . $slug . '"] .deactivate a' );
 			if ( $element ) {
@@ -242,9 +247,15 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 *
 	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
 	 * @param string                      $slug  Plugin slug.
+	 * @param bool                        $network Multisite?
 	 */
-	protected function deactivatePlugin( $actor, $slug = 'elasticpress' ) {
-		$actor->moveTo( '/wp-admin/plugins.php' );
+	protected function deactivatePlugin( $actor, $slug = 'elasticpress', $network = false ) {
+		if ( $network ) {
+			$actor->moveTo( '/wp-admin/network/plugins.php' );
+		} else {
+			$actor->moveTo( '/wp-admin/plugins.php' );
+		}
+
 		try {
 			$element = $actor->getElement( '[data-slug="' . $slug . '"] .deactivate a' );
 			if ( $element ) {

@@ -6,7 +6,7 @@
  */
 
 /**
- * PHPUnit test class
+ * General test class
  */
 class GeneralTest extends TestBase {
 	/**
@@ -65,4 +65,38 @@ class GeneralTest extends TestBase {
 	/**
 	 * @testdox If user creates/updates a published post, post data should sync with Elasticsearch with post data and meta details.
 	 */
+	public function testSyncUpdatedPostData() {
+		$I = $this->openBrowserPage();
+
+		$I->loginAs( 'wpsnapshots' );
+
+		$data = [
+			'title' => 'Test ElasticPress 1',
+		];
+
+		$this->publishPost( $data, $I );
+
+		$I->moveTo( '/?s=Test+ElasticPress+1' );
+
+		$I->seeText( 'Test ElasticPress 1', '.hentry' );
+	}
+
+	/**
+	 * @testdox If user activates plugin with an Elasticsearch version before or after min/max requirements, they should get a warning in the dashboard.
+	 */
+	public function testUnsupportedElasticsearchVersion() {
+		$I = $this->openBrowserPage();
+
+		$I->loginAs( 'wpsnapshots' );
+
+		$this->deactivatePlugin( $I );
+
+		$this->activatePlugin( $I, 'unsupported-elasticsearch-version' );
+
+		$this->activatePlugin( $I );
+
+		$I->seeText( 'ElasticPress may or may not work properly.' );
+
+		$this->deactivatePlugin( $I, 'unsupported-elasticsearch-version' );
+	}
 }
