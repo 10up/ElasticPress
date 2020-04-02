@@ -36,8 +36,9 @@ class GeneralTest extends TestBase {
 
 		$this->activatePlugin( $I );
 
-		$I->seeText( 'ElasticPress is almost ready to go.', '#message' );
+		$I->seeText( 'ElasticPress is almost ready to go. You just need to sync your content.', '#message' );
 
 		$this->deactivatePlugin( $I, 'fake-new-activation' );
 	}
+
 }
