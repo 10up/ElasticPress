@@ -216,4 +216,41 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		$actor->waitUntilElementVisible( '.components-notice' );
 	}
+
+	/**
+	 * Activate the plugin.
+	 *
+	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
+	 * @param string                      $slug  Plugin slug.
+	 */
+	protected function activatePlugin( $actor, $slug = 'elasticpress' ) {
+		// Activate the plugin.
+		$actor->moveTo( '/wp-admin/plugins.php' );
+		try {
+			$element = $actor->getElement( '[data-slug="' . $slug . '"] .deactivate a' );
+			if ( $element ) {
+				$actor->click( $element );
+				$actor->waitUntilElementVisible( '#message' );
+			}
+		} catch ( \Exception $e ) {}
+		$actor->click( '[data-slug="' . $slug . '"] .activate a' );
+		$actor->waitUntilElementVisible( '#message' );
+	}
+
+	/**
+	 * Deactivate the plugin.
+	 *
+	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
+	 * @param string                      $slug  Plugin slug.
+	 */
+	protected function deactivatePlugin( $actor, $slug = 'elasticpress' ) {
+		$actor->moveTo( '/wp-admin/plugins.php' );
+		try {
+			$element = $actor->getElement( '[data-slug="' . $slug . '"] .deactivate a' );
+			if ( $element ) {
+				$actor->click( $element );
+				$actor->waitUntilElementVisible( '#message' );
+			}
+		} catch ( \Exception $e ) {}
+	}
 }
