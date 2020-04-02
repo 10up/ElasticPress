@@ -5073,4 +5073,38 @@ class TestPost extends BaseTestCase {
 
 		$this->assertSame( 'Bacon Ipsum', $args['post_filter']['bool']['must'][0]['term']['post_author.display_name'] );
 	}
+
+	/**
+	 * Tests sticky posts in format_args().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsStickyPosts() {
+		global $wp_query;
+
+		// Create a sticky post.
+		$sticky_post_id = Functions\create_and_sync_post();
+		stick_post( $sticky_post_id );
+	
+		$sticky_posts = get_option( 'sticky_posts' );
+		$this->assertNotEmpty( $sticky_posts );
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$this->go_to( home_url( '/' ) );
+
+		$args = $post->format_args(
+			[
+				'ep_integrate'        => true,
+				'ignore_sticky_posts' => false,
+			],
+			$wp_query
+		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['_score']['order'] );
+		$this->assertSame( 1, $args['query']['function_score']['query']['match_all']['boost'] );
+		$this->assertContains( $sticky_post_id, $args['query']['function_score']['functions'][0]->filter['terms']['_id'] );
+		$this->assertSame( 20, $args['query']['function_score']['functions'][0]->weight );
+	}
 }

@@ -1175,7 +1175,7 @@ class Post extends Indexable {
 
 		if ( false !== $sticky_posts
 			&& is_home()
-			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ), true ) ) {
+			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
 			$new_sort = [
 				[
 					'_score' => [
