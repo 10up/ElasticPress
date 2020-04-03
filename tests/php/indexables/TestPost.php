@@ -5109,4 +5109,29 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( $sticky_post_id, $args['query']['function_score']['functions'][0]->filter['terms']['_id'] );
 		$this->assertSame( 20, $args['query']['function_score']['functions'][0]->weight );
 	}
+
+	/**
+	 * Tests post statuses for admin in format_args().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsAdminPostStatuses() {
+
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		// This will include statuses besides publish.
+		$args = $post->format_args( [ ], new \WP_Query() );
+
+		$statuses = $args['post_filter']['bool']['must'][1]['terms']['post_status'];
+
+		$this->assertContains( 'publish', $statuses );
+		$this->assertContains( 'future', $statuses );
+		$this->assertContains( 'draft', $statuses );
+		$this->assertContains( 'pending', $statuses );
+		$this->assertContains( 'private', $statuses );
+	}
 }
