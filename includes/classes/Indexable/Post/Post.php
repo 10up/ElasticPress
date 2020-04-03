@@ -1523,9 +1523,13 @@ class Post extends Indexable {
 	 * @return string The sanitized 'order' query variable.
 	 */
 	protected function parse_order( $order ) {
+		// Core will always set sort order to DESC for any invalid value,
+		// so we can't do any automated testing of this function.
+		// @codeCoverageIgnoreStart
 		if ( ! is_string( $order ) || empty( $order ) ) {
 			return 'desc';
 		}
+		// @codeCoverageIgnoreEnd
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'asc';

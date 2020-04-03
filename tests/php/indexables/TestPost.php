@@ -5211,4 +5211,67 @@ class TestPost extends BaseTestCase {
 
 		$this->assertSame( 'terms.post_type', $args['aggs']['aggregation_name']['terms']['field'] );
 	}
+
+	/**
+	 * Tests additional order by parameters in parse_orderby().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testParseOrderBy() {
+
+		// Post type.
+		$query_args = [
+			'ep_integrate' => true,
+			'orderby'      => 'type',
+			'order'        => 'asc',
+		];
+
+		$assert_callback = function( $args ) {
+
+			$this->assertArrayHasKey( 'post_type.raw', $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0]['post_type.raw']['order'] );
+
+			return $args;
+		};
+
+		// We need to run tests inside a callback because parse_orderby()
+		// is a protected function.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		// Post modified.
+		$query_args['orderby'] = 'modified';
+
+		$assert_callback = function( $args ) {
+
+			$this->assertArrayHasKey( 'post_modified', $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0]['post_modified']['order'] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		// Meta value.
+		$query_args['orderby']  = 'meta_value';
+		$query_args['meta_key'] = 'custom_meta_key';
+
+		$assert_callback = function( $args ) {
+
+			$this->assertArrayHasKey( 'meta.custom_meta_key.raw', $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0]['meta.custom_meta_key.raw']['order'] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+	}
 }
