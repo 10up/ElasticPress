@@ -187,12 +187,23 @@ class Search extends Feature {
 	public function weight_recent( $formatted_args, $args ) {
 		if ( ! empty( $args['s'] ) ) {
 			if ( $this->is_decaying_enabled() ) {
+				/**
+				 * Filter search date weighting scale
+				 *
+				 * @hook epwr_decay_function
+				 * @param  {string} $decay_function Current decay function
+				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+				 * @param  {array} $args WP_Query arguments
+				 * @return  {string} New decay function
+				 */
+				$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
+				
 				$date_score = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],
 						'functions'  => array(
 							array(
-								'exp' => array(
+								$decay_function => array(
 									'post_date_gmt' => array(
 										/**
 										 * Filter search date weighting scale
@@ -228,7 +239,16 @@ class Search extends Feature {
 								),
 							),
 						),
-						'score_mode' => 'avg',
+						/**
+						 * Filter search date weighting score mode
+						 *
+						 * @hook epwr_score_mode
+						 * @param  {string} $score_mode Current score mode
+						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+						 * @param  {array} $args WP_Query arguments
+						 * @return  {string} New score mode
+						 */
+						'score_mode' => apply_filters( 'epwr_score_mode', 'avg', $formatted_args, $args ),
 						/**
 						 * Filter search date weighting boost mode
 						 *
