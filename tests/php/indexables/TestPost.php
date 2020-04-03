@@ -5273,5 +5273,22 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_formatted_args', $assert_callback );
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		// Meta value number.
+		$query_args['orderby']  = 'meta_value_num';
+		$query_args['meta_key'] = 'custom_price';
+
+		$assert_callback = function( $args ) {
+
+			$this->assertArrayHasKey( 'meta.custom_price.long', $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0]['meta.custom_price.long']['order'] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
 	}
 }
