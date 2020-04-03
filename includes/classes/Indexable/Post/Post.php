@@ -1370,10 +1370,6 @@ class Post extends Indexable {
 		 */
 		$formatted_args = apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
 
-		// TOOD remove these.
-		// echo PHP_EOL;
-		// echo wp_json_encode( $formatted_args );
-
 		return $formatted_args;
 	}
 

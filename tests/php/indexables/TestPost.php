@@ -5164,4 +5164,51 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( 'post_id', $args['_source']['include'] );
 		$this->assertContains( 'post_parent', $args['_source']['include'] );
 	}
+
+	/**
+	 * Tests aggs in format_args().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsAggs() {
+		// For reference https://www.elasticpress.io/blog/2017/09/aggregations-api-for-grouping-data/.
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$args = $post->format_args(
+			[
+				// Triggers $use_filter to be true.
+				'post_status' => 'publish',
+
+				'aggs' => [
+					'name' => 'post_type_stats',
+					'use-filter' => true,
+					'aggs' => [
+						'terms' => [
+							'field' => 'terms.post_type',
+						],
+					],
+				],
+			],
+			new \WP_Query()
+		);
+
+		$this->assertSame( 'publish', $args['aggs']['post_type_stats']['filter']['bool']['must'][1]['term']['post_status'] );
+		$this->assertSame( 'terms.post_type', $args['aggs']['post_type_stats']['aggs']['terms']['field'] );
+
+		$args = $post->format_args(
+			[
+				'aggs' => [
+					'aggs' => [
+						'terms' => [
+							'field' => 'terms.post_type',
+						],
+					],
+				],
+			],
+			new \WP_Query()
+		);
+
+		$this->assertSame( 'terms.post_type', $args['aggs']['aggregation_name']['terms']['field'] );
+	}
 }
