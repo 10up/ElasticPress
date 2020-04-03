@@ -203,7 +203,7 @@ function get_last_sync() {
 		$last_sync = get_option( 'ep_last_sync', false );
 	}
 
-	return $last_sync;
+	return apply_filters( 'ep_last_sync', $last_sync );
 }
 
 /**
