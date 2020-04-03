@@ -153,6 +153,8 @@ class TestPost extends BaseTestCase {
 				'ep_integrate'   => true,
 				'posts_per_page' => 1,
 				'offset'         => 1,
+				'order'          => 'ASC',
+				'orderby'        => 'title',
 			)
 		);
 
