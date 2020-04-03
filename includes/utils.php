@@ -192,6 +192,21 @@ function is_indexing_wpcli() {
 }
 
 /**
+ * Get the timestamp of the last sync, if any
+ *
+ * @return {int} Unix timestamp representing the last full sync time, or false
+ */
+function get_last_sync() {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$last_sync = get_site_option( 'ep_last_sync', false );
+	} else {
+		$last_sync = get_option( 'ep_last_sync', false );
+	}
+
+	return $last_sync;
+}
+
+/**
  * Retrieve the appropriate host. Will default to EP_HOST constant if it exists
  *
  * @since 2.1
