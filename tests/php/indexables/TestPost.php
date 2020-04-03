@@ -5134,4 +5134,34 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( 'pending', $statuses );
 		$this->assertContains( 'private', $statuses );
 	}
+
+	/**
+	 * Tests fields in format_args().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsFields() {
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$args = $post->format_args(
+			[
+				'fields' => 'ids',
+			],
+			new \WP_Query()
+		);
+
+		$this->assertContains( 'post_id', $args['_source']['include'] );
+
+		$args = $post->format_args(
+			[
+				'fields' => 'id=>parent',
+			],
+			new \WP_Query()
+		);
+
+		$this->assertContains( 'post_id', $args['_source']['include'] );
+		$this->assertContains( 'post_parent', $args['_source']['include'] );
+	}
 }
