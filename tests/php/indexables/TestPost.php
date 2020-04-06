@@ -4825,4 +4825,35 @@ class TestPost extends BaseTestCase {
 
 		$this->assertSame( 123, $query_integration->found_posts( 10, $query ) );
 	}
+
+	/**
+	 * Tests additional logic in get_es_posts();
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testGetESPosts() {
+
+		$assert_callback = function( $formatted_args, $args ) {
+
+			$this->assertSame( 'post', $args['post_type'] );
+
+			return $args;
+		};
+
+		// Add the tests in the filter and run the query to perform the
+		// tests.
+		add_filter( 'ep_formatted_args', $assert_callback, 10, 2 );
+
+		// This will default to 'post' by QueryIntegration when 'any' is
+		// passed in.
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post_type'    => 'any',
+			]
+		);
+
+		remove_filter( 'ep_formatted_args', $assert_callback, 10, 2 );
+	}
 }

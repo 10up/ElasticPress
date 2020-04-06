@@ -129,7 +129,9 @@ class QueryIntegration {
 	 */
 	public function maybe_switch_to_blog( $post ) {
 		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( ! empty( $post->site_id ) && get_current_blog_id() !== $post->site_id ) {
