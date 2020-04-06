@@ -4742,6 +4742,7 @@ class TestPost extends BaseTestCase {
 	 * Tests the http_request_args filter.
 	 *
 	 * @return void
+	 * @group  post
 	 */
 	public function testHttpRequestArgsFilter() {
 		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
@@ -4766,5 +4767,42 @@ class TestPost extends BaseTestCase {
 		$post_id = Functions\create_and_sync_post();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
+	}
+
+	/**
+	 * Tests the QueryIntegration constructor.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testQueryIntegrationConstructor() {
+
+		// Pretend we're indexing.
+		add_filter( 'ep_is_indexing', '__return_true' );
+
+		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
+
+		$action_function = [
+			'pre_get_posts'   => [ 'add_es_header', 5 ],
+			'posts_pre_query' => [ 'get_es_posts', 10 ],
+			'loop_end'        => [ 'maybe_restore_blog', 10 ],
+			'the_post'        => [ 'maybe_switch_to_blog', 10 ],
+			'found_posts'     => [ 'found_posts', 10 ],
+		];
+
+		// Make sure these filters are not present if EP is indexing.
+		foreach ( $action_function as $action => $function ) {
+			$this->assertFalse( has_filter( $action, [ $query_integration, $function[0] ] ) );
+		}
+
+		remove_filter( 'ep_is_indexing', '__return_true' );
+
+		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
+
+		// Make sure these filters ARE not present since EP is not flagged
+		// as indexing.
+		foreach ( $action_function as $action => $function ) {
+			$this->assertSame( $function[1], has_filter( $action, [ $query_integration, $function[0] ] ) );
+		}
 	}
 }
