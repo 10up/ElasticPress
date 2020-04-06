@@ -5345,6 +5345,7 @@ class TestPost extends BaseTestCase {
 	 * Tests additional logic in put_mapping().
 	 *
 	 * @return void
+	 * @group post
 	 */
 	public function testPutMapping() {
 
