@@ -5291,4 +5291,53 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
 	}
+
+	/**
+	 * Tests additional nested tax queries in parse_tax_query().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testParseNestedTaxQuery() {
+
+		// Post type.
+		$query_args = [
+			'ep_integrate' => true,
+			'tax_query' => [
+				'relation' => 'and',
+				[
+					'relation' => 'or',
+					[
+						'taxonomy' => 'category',
+						'terms'    => 123,
+					],
+					[
+						'taxonomy' => 'post_tag',
+						'terms'    => 456,
+					],
+				],
+				[
+					[
+						'taxonomy' => 'custom-tax',
+						'terms'    => 789,
+					],
+				],
+			],
+		];
+
+		$assert_callback = function( $args ) {
+
+			$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['bool']['should'][0]['terms']['terms.category.term_id'][0] );
+			$this->assertSame( 456, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['bool']['should'][1]['terms']['terms.post_tag.term_id'][0] );
+
+			$this->assertSame( 789, $args['post_filter']['bool']['must'][0]['bool']['must'][1]['bool']['must'][0]['terms']['terms.custom-tax.term_id'][0] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+	}
 }
