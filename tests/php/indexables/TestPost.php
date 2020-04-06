@@ -4830,7 +4830,7 @@ class TestPost extends BaseTestCase {
 	 * Tests the http_request_args filter.
 	 *
 	 * @return void
-	 * @group  post
+	 * @group post
 	 */
 	public function testHttpRequestArgsFilter() {
 		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
