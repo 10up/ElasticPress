@@ -8,6 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
+use ElasticPress\Indexables as Indexables;
 
 /**
  * Test post indexable class
@@ -4804,5 +4805,24 @@ class TestPost extends BaseTestCase {
 		foreach ( $action_function as $action => $function ) {
 			$this->assertSame( $function[1], has_filter( $action, [ $query_integration, $function[0] ] ) );
 		}
+	}
+
+	/**
+	 * Tests found_posts.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testFoundPosts() {
+
+		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
+
+		// Simulate a WP_Query object.
+		$query = new \stdClass();
+		$query->elasticsearch_success = true;
+		$query->num_posts = 123;
+		$query->query_vars = [ 'ep_integrate' => true ];
+
+		$this->assertSame( 123, $query_integration->found_posts( 10, $query ) );
 	}
 }
