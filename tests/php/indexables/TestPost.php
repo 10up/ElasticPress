@@ -332,6 +332,76 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests additional logic in maybe_switch_to_blog();
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testMaybeSwitchToBlog() {
+
+		$sites      = get_sites();
+		$blog_1_id  = get_current_blog_id();
+		$blog_2_id  = false;
+
+		// Create a second site if we need one.
+		if ( count( $sites ) <= 1 ) {
+
+			$blog_2_id = $this->factory->blog->create_object(
+				[
+					'domain' => 'example2.org',
+					'title'  => 'Example Site 2',
+				]
+			);
+
+			$this->assertFalse( is_wp_error( $blog_2_id ) ) ;
+		} else {
+			$blog_2_id = $sites[1]->blog_id;
+		}
+
+		$this->assertGreaterThan( 1, $blog_2_id );
+
+		$blog_1_post_id = Functions\create_and_sync_post();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'   => true,
+				'post__in'       => [ $blog_1_post_id ],
+				'posts_per_page' => 1,
+			]
+		);
+
+		$blog_1_post = $query->posts[0];
+
+		$this->assertSame( $blog_1_id, $blog_1_post->site_id );
+
+		// Switch to the new blog, create a post.
+		switch_to_blog( $blog_2_id );
+
+		$blog_2_post_id = Functions\create_and_sync_post();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'   => true,
+				'post__in'       => [ $blog_2_post_id ],
+				'posts_per_page' => 1,
+			]
+		);
+
+		$blog_2_post = $query->posts[0];
+
+		$this->assertSame( $blog_2_id, $blog_2_post->site_id );
+
+		restore_current_blog();
+
+		// Now we have two different posts in different sites and can
+		// test the function.
+	}
+
+	/**
 	 * Make sure proper taxonomies are synced with post. Hidden taxonomies should be skipped!
 	 *
 	 * @since 0.1.1
