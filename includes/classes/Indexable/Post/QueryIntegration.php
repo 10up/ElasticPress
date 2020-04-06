@@ -115,7 +115,9 @@ class QueryIntegration {
 			 * Manually setting a header as $wp_query isn't yet initialized when we
 			 * call: add_filter('wp_headers', 'filter_wp_headers');
 			 */
+			// @codeCoverageIgnoreStart
 			header( 'X-ElasticPress-Query: true' );
+			// @codeCoverageIgnoreEnd
 		}
 	}
 
@@ -156,7 +158,9 @@ class QueryIntegration {
 	 */
 	public function maybe_restore_blog( $query ) {
 		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( $this->switched ) {
