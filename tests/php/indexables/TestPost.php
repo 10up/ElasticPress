@@ -5340,4 +5340,52 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
 	}
+
+	/**
+	 * Tests additional logic in put_mapping().
+	 *
+	 * @return void
+	 */
+	public function testPutMapping() {
+
+		// This lets us trigger the ep_fallback_elasticsearch_version filter.
+		add_filter( 'ep_elasticsearch_version', '__return_false' );
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		// Test the mapping files for different ES versions.
+		$version_and_file = [
+			'4.0' => 'pre-5-0.php',
+			'5.1' => '5-0.php',
+			'5.3' => '5-2.php',
+		];
+
+		foreach ( $version_and_file as $version => $file ) {
+
+			$version_callback = function() use ( $version ) {
+				return $version;
+			};
+
+			// Callback to test the mapping file that was selected.
+			$assert_callback = function( $mapping_file ) use ( $file ) {
+				$this->assertSame( $file, basename( $mapping_file ) );
+				return $mapping_file;
+			};
+
+			// Tell EP that we're running a specific ES version.
+			add_filter( 'ep_fallback_elasticsearch_version', $version_callback );
+
+			// Turn on the test for the mapping file.
+			add_filter( 'ep_post_mapping_file', $assert_callback );
+
+			// Run put_mapping(), which will trigger these filters above
+			// and run the tests.
+			$post->put_mapping();
+
+			remove_filter( 'ep_fallback_elasticsearch_version', $version_callback );
+			remove_filter( 'ep_post_mapping_file', $assert_callback );
+		}
+
+		remove_filter( 'ep_elasticsearch_version', '__return_false' );
+	}
 }
