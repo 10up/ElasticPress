@@ -30,7 +30,9 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		var_dump( $this->runCommand( 'wp elasticpress delete-index' ) );
+		$this->waitFor( $I, 1000 );
+		$this->runCommand( 'wp elasticpress delete-index' );
+		$this->waitFor( $I, 3000 );
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
@@ -149,6 +151,10 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
+		$this->waitFor( $I, 1000 );
+		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->waitFor( $I, 3000 );
+
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->click( '.start-sync' );
@@ -156,6 +162,8 @@ class DashboardSyncTest extends TestBase {
 		$this->waitFor( $I, 1000 );
 
 		$I->executeJavaScript( 'document.querySelector( ".pause-sync" ).click();' );
+
+		$this->waitFor( $I, 1000 );
 
 		$cli_result = $this->runCommand( 'wp elasticpress index' )['stdout'];
 

@@ -7,7 +7,7 @@
     "exclude": [
         "./node_modules"
     ],
-    "enforce_clean_db": false,
+    "enforce_clean_db": true,
     "snapshot_id": "649bacfc153184422d815a5d4e4f6310",
     "before_scripts" : [
       "mv tests/test-plugins/* ../"
