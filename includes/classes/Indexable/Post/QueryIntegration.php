@@ -122,6 +122,15 @@ class QueryIntegration {
 	}
 
 	/**
+	 * Gets the blog ID that the class is currently switched to.
+	 *
+	 * @return int
+	 */
+	public function get_switched() {
+		return $this->switched;
+	}
+
+	/**
 	 * Switch to the correct site if the post site id is different than the actual one
 	 *
 	 * @param WP_Post $post Post object

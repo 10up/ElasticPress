@@ -332,7 +332,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests additional logic in maybe_switch_to_blog();
+	 * Tests logic in maybe_switch_to_blog() and maybe_restore_blog();
 	 *
 	 * @return void
 	 * @group  post
@@ -398,7 +398,28 @@ class TestPost extends BaseTestCase {
 		restore_current_blog();
 
 		// Now we have two different posts in different sites and can
-		// test the function.
+		// test the function. Try accessing the 2nd post from the 1st blog.
+		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
+
+		// This should switch to the 2nd site.
+		$query_integration->maybe_switch_to_blog( $blog_2_post );
+
+		$this->assertSame( $blog_2_post->site_id, $query_integration->get_switched() );
+
+		// Now we're in "switched" mode, try getting the post from the
+		// 1st site, should switch back.
+		$query_integration->maybe_switch_to_blog( $blog_1_post );
+
+		$this->assertSame( $blog_1_post->site_id, $query_integration->get_switched() );
+
+		restore_current_blog();
+
+		// Verify we're clearing the flag in the class.
+		$query_integration->maybe_restore_blog( null );
+		$this->assertFalse( $query_integration->get_switched() );
+
+		// Make sure we're back on the first site.
+		$this->assertSame( $blog_1_id, get_current_blog_id() );
 	}
 
 	/**
