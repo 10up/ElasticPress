@@ -148,6 +148,18 @@ abstract class SyncManager {
 		}
 
 		/**
+		 * Allow other code to intercept the sync process
+		 *
+		 * @hook pre_ep_index_sync_queue
+		 * @param  {\ElasticPress\SyncManager} $sync_manager SyncManager instance for the indexable
+		 * @param  {string} $indexable_slug Slug of the indexable being synced
+		 * @since  3.5
+		 */
+		if ( apply_filters( 'pre_ep_index_sync_queue', $this, $this->indexable_slug ) ) {
+			return;
+		}
+
+		/**
 		 * Backwards compat for pre-3.0
 		 */
 		foreach ( $this->sync_queue as $object_id => $value ) {
