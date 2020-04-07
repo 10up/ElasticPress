@@ -5514,7 +5514,7 @@ class TestPost extends BaseTestCase {
 			$this->assertSame( $post_ids[2], $new_posts[2]->ID );
 
 			// The last new post should have the parent ID of the second post.
-			$this->assertContains( $post_ids[1], $new_posts[2]->post_parent );
+			$this->assertSame( $post_ids[1], $new_posts[2]->post_parent );
 
 			foreach ( $new_posts as $new_post ) {
 				$this->assertTrue( $new_post->elasticsearch );
@@ -5530,7 +5530,8 @@ class TestPost extends BaseTestCase {
 				'ep_integrate' => true,
 				'fields'       => 'id=>parent',
 				'post__in'     => $post_ids,
-				'orderby'      => 'post__in',
+				'orderby'      => 'post_id',
+				'order'        => 'asc',
 			]
 		);
 
