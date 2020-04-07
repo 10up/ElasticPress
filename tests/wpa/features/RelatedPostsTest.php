@@ -21,7 +21,11 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		$I->click( '.ep-feature-related_posts .settings-button' );
 
-		$I->checkOptions( '#feature_active_related_posts_disabled' );
+		$I->click( '#feature_active_related_posts_disabled' );
+
+		$I->click( 'a.save-settings[data-feature="related_posts"]' );
+
+		sleep( 2 );
 
 		$I->moveTo( '/wp-admin/widgets.php' );
 
@@ -31,7 +35,11 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		$I->click( '.ep-feature-related_posts .settings-button' );
 
-		$I->checkOptions( '#feature_active_related_posts_enabled' );
+		$I->click( '#feature_active_related_posts_enabled' );
+
+		$I->click( 'a.save-settings[data-feature="related_posts"]' );
+
+		sleep( 2 );
 
 		$I->moveTo( '/wp-admin/widgets.php' );
 
