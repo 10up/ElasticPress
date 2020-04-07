@@ -247,184 +247,6 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests the QueryIntegration constructor.
-	 *
-	 * @return void
-	 * @group  post
-	 */
-	public function testQueryIntegrationConstructor() {
-
-		// Pretend we're indexing.
-		add_filter( 'ep_is_indexing', '__return_true' );
-
-		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
-
-		$action_function = [
-			'pre_get_posts'   => [ 'add_es_header', 5 ],
-			'posts_pre_query' => [ 'get_es_posts', 10 ],
-			'loop_end'        => [ 'maybe_restore_blog', 10 ],
-			'the_post'        => [ 'maybe_switch_to_blog', 10 ],
-			'found_posts'     => [ 'found_posts', 10 ],
-		];
-
-		// Make sure these filters are not present if EP is indexing.
-		foreach ( $action_function as $action => $function ) {
-			$this->assertFalse( has_filter( $action, [ $query_integration, $function[0] ] ) );
-		}
-
-		remove_filter( 'ep_is_indexing', '__return_true' );
-
-		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
-
-		// Make sure these filters ARE not present since EP is not flagged
-		// as indexing.
-		foreach ( $action_function as $action => $function ) {
-			$this->assertSame( $function[1], has_filter( $action, [ $query_integration, $function[0] ] ) );
-		}
-	}
-
-	/**
-	 * Tests found_posts.
-	 *
-	 * @return void
-	 * @group  post
-	 */
-	public function testFoundPosts() {
-
-		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
-
-		// Simulate a WP_Query object.
-		$query = new \stdClass();
-		$query->elasticsearch_success = true;
-		$query->num_posts = 123;
-		$query->query_vars = [ 'ep_integrate' => true ];
-
-		$this->assertSame( 123, $query_integration->found_posts( 10, $query ) );
-	}
-
-	/**
-	 * Tests additional logic in get_es_posts();
-	 *
-	 * @return void
-	 * @group  post
-	 */
-	public function testGetESPosts() {
-
-		$assert_callback = function( $formatted_args, $args ) {
-
-			$this->assertSame( 'post', $args['post_type'] );
-
-			return $args;
-		};
-
-		// Add the tests in the filter and run the query to perform the
-		// tests.
-		add_filter( 'ep_formatted_args', $assert_callback, 10, 2 );
-
-		// This will default to 'post' by QueryIntegration when 'any' is
-		// passed in.
-		$query = new \WP_Query(
-			[
-				'ep_integrate' => true,
-				'post_type'    => 'any',
-			]
-		);
-
-		remove_filter( 'ep_formatted_args', $assert_callback, 10, 2 );
-	}
-
-	/**
-	 * Tests logic in maybe_switch_to_blog() and maybe_restore_blog();
-	 *
-	 * @return void
-	 * @group  post
-	 */
-	public function testMaybeSwitchToBlog() {
-
-		$sites      = get_sites();
-		$blog_1_id  = get_current_blog_id();
-		$blog_2_id  = false;
-
-		// Create a second site if we need one.
-		if ( count( $sites ) <= 1 ) {
-
-			$blog_2_id = $this->factory->blog->create_object(
-				[
-					'domain' => 'example2.org',
-					'title'  => 'Example Site 2',
-				]
-			);
-
-			$this->assertFalse( is_wp_error( $blog_2_id ) ) ;
-		} else {
-			$blog_2_id = $sites[1]->blog_id;
-		}
-
-		$this->assertGreaterThan( 1, $blog_2_id );
-
-		$blog_1_post_id = Functions\create_and_sync_post();
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		$query = new \WP_Query(
-			[
-				'ep_integrate'   => true,
-				'post__in'       => [ $blog_1_post_id ],
-				'posts_per_page' => 1,
-			]
-		);
-
-		$blog_1_post = $query->posts[0];
-
-		$this->assertSame( $blog_1_id, $blog_1_post->site_id );
-
-		// Switch to the new blog, create a post.
-		switch_to_blog( $blog_2_id );
-
-		$blog_2_post_id = Functions\create_and_sync_post();
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		$query = new \WP_Query(
-			[
-				'ep_integrate'   => true,
-				'post__in'       => [ $blog_2_post_id ],
-				'posts_per_page' => 1,
-			]
-		);
-
-		$blog_2_post = $query->posts[0];
-
-		$this->assertSame( $blog_2_id, $blog_2_post->site_id );
-
-		restore_current_blog();
-
-		// Now we have two different posts in different sites and can
-		// test the function. Try accessing the 2nd post from the 1st blog.
-		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
-
-		// This should switch to the 2nd site.
-		$query_integration->maybe_switch_to_blog( $blog_2_post );
-
-		$this->assertSame( $blog_2_post->site_id, $query_integration->get_switched() );
-
-		// Now we're in "switched" mode, try getting the post from the
-		// 1st site, should switch back.
-		$query_integration->maybe_switch_to_blog( $blog_1_post );
-
-		$this->assertSame( $blog_1_post->site_id, $query_integration->get_switched() );
-
-		restore_current_blog();
-
-		// Verify we're clearing the flag in the class.
-		$query_integration->maybe_restore_blog( null );
-		$this->assertFalse( $query_integration->get_switched() );
-
-		// Make sure we're back on the first site.
-		$this->assertSame( $blog_1_id, get_current_blog_id() );
-	}
-
-	/**
 	 * Make sure proper taxonomies are synced with post. Hidden taxonomies should be skipped!
 	 *
 	 * @since 0.1.1
@@ -5567,5 +5389,242 @@ class TestPost extends BaseTestCase {
 		}
 
 		remove_filter( 'ep_elasticsearch_version', '__return_false' );
+	}
+
+	/**
+	 * Tests the QueryIntegration constructor.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testQueryIntegrationConstructor() {
+
+		// Pretend we're indexing.
+		add_filter( 'ep_is_indexing', '__return_true' );
+
+		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
+
+		$action_function = [
+			'pre_get_posts'   => [ 'add_es_header', 5 ],
+			'posts_pre_query' => [ 'get_es_posts', 10 ],
+			'loop_end'        => [ 'maybe_restore_blog', 10 ],
+			'the_post'        => [ 'maybe_switch_to_blog', 10 ],
+			'found_posts'     => [ 'found_posts', 10 ],
+		];
+
+		// Make sure these filters are not present if EP is indexing.
+		foreach ( $action_function as $action => $function ) {
+			$this->assertFalse( has_filter( $action, [ $query_integration, $function[0] ] ) );
+		}
+
+		remove_filter( 'ep_is_indexing', '__return_true' );
+
+		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
+
+		// Make sure these filters ARE not present since EP is not flagged
+		// as indexing.
+		foreach ( $action_function as $action => $function ) {
+			$this->assertSame( $function[1], has_filter( $action, [ $query_integration, $function[0] ] ) );
+		}
+	}
+
+	/**
+	 * Tests found_posts.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testFoundPosts() {
+
+		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
+
+		// Simulate a WP_Query object.
+		$query = new \stdClass();
+		$query->elasticsearch_success = true;
+		$query->num_posts = 123;
+		$query->query_vars = [ 'ep_integrate' => true ];
+
+		$this->assertSame( 123, $query_integration->found_posts( 10, $query ) );
+	}
+
+	/**
+	 * Tests additional logic in get_es_posts();
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testGetESPosts() {
+
+		$assert_callback = function( $formatted_args, $args ) {
+
+			$this->assertSame( 'post', $args['post_type'] );
+
+			return $args;
+		};
+
+		// Add the tests in the filter and run the query to perform the
+		// tests.
+		add_filter( 'ep_formatted_args', $assert_callback, 10, 2 );
+
+		// This will default to 'post' by QueryIntegration when 'any' is
+		// passed in.
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post_type'    => 'any',
+			]
+		);
+
+		remove_filter( 'ep_formatted_args', $assert_callback, 10, 2 );
+
+		$post_ids   = [];
+		$post_ids[] = Functions\create_and_sync_post();
+		$post_ids[] = Functions\create_and_sync_post();
+		$post_ids[] = Functions\create_and_sync_post( [ 'post_parent' => $post_ids[1] ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Now test the fields parameter.
+		$assert_callback = function( $new_posts ) use ( $post_ids ) {
+
+			$this->assertContains( $post_ids[0], $new_posts );
+			$this->assertContains( $post_ids[1], $new_posts );
+			$this->assertContains( $post_ids[2], $new_posts );
+
+			return $new_posts;
+		};
+
+		add_filter( 'ep_wp_query', $assert_callback );
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'fields'       => 'ids',
+				'post__in'     => $post_ids,
+			]
+		);
+
+		remove_filter( 'ep_wp_query', $assert_callback );
+
+		// Test the id=>parent parameter.
+		$assert_callback = function( $new_posts ) use ( $post_ids ) {
+
+			$this->assertSame( $post_ids[0], $new_posts[0]->ID );
+			$this->assertSame( $post_ids[1], $new_posts[1]->ID );
+			$this->assertSame( $post_ids[2], $new_posts[2]->ID );
+
+			// The last new post should have the parent ID of the second post.
+			$this->assertContains( $post_ids[1], $new_posts[2]->post_parent );
+
+			foreach ( $new_posts as $new_post ) {
+				$this->assertTrue( $new_post->elasticsearch );
+			}
+
+			return $new_posts;
+		};
+
+		add_filter( 'ep_wp_query', $assert_callback );
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'fields'       => 'id=>parent',
+				'post__in'     => $post_ids,
+				'orderby'      => 'post__in',
+			]
+		);
+
+		remove_filter( 'ep_wp_query', $assert_callback );
+	}
+
+	/**
+	 * Tests logic in maybe_switch_to_blog() and maybe_restore_blog();
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testMaybeSwitchToBlog() {
+
+		$sites      = get_sites();
+		$blog_1_id  = get_current_blog_id();
+		$blog_2_id  = false;
+
+		// Create a second site if we need one.
+		if ( count( $sites ) <= 1 ) {
+
+			$blog_2_id = $this->factory->blog->create_object(
+				[
+					'domain' => 'example2.org',
+					'title'  => 'Example Site 2',
+				]
+			);
+
+			$this->assertFalse( is_wp_error( $blog_2_id ) ) ;
+		} else {
+			$blog_2_id = $sites[1]->blog_id;
+		}
+
+		$this->assertGreaterThan( 1, $blog_2_id );
+
+		$blog_1_post_id = Functions\create_and_sync_post();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'   => true,
+				'post__in'       => [ $blog_1_post_id ],
+				'posts_per_page' => 1,
+			]
+		);
+
+		$blog_1_post = $query->posts[0];
+
+		$this->assertSame( $blog_1_id, $blog_1_post->site_id );
+
+		// Switch to the new blog, create a post.
+		switch_to_blog( $blog_2_id );
+
+		$blog_2_post_id = Functions\create_and_sync_post();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'   => true,
+				'post__in'       => [ $blog_2_post_id ],
+				'posts_per_page' => 1,
+			]
+		);
+
+		$blog_2_post = $query->posts[0];
+
+		$this->assertSame( $blog_2_id, $blog_2_post->site_id );
+
+		restore_current_blog();
+
+		// Now we have two different posts in different sites and can
+		// test the function. Try accessing the 2nd post from the 1st blog.
+		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
+
+		// This should switch to the 2nd site.
+		$query_integration->maybe_switch_to_blog( $blog_2_post );
+
+		$this->assertSame( $blog_2_post->site_id, $query_integration->get_switched() );
+
+		// Now we're in "switched" mode, try getting the post from the
+		// 1st site, should switch back.
+		$query_integration->maybe_switch_to_blog( $blog_1_post );
+
+		$this->assertSame( $blog_1_post->site_id, $query_integration->get_switched() );
+
+		restore_current_blog();
+
+		// Verify we're clearing the flag in the class.
+		$query_integration->maybe_restore_blog( null );
+		$this->assertFalse( $query_integration->get_switched() );
+
+		// Make sure we're back on the first site.
+		$this->assertSame( $blog_1_id, get_current_blog_id() );
 	}
 }
