@@ -5560,7 +5560,7 @@ class TestPost extends BaseTestCase {
 				]
 			);
 
-			$this->assertFalse( is_wp_error( $blog_2_id ) ) ;
+			$this->assertFalse( is_wp_error( $blog_2_id ) );
 		} else {
 			$blog_2_id = $sites[1]->blog_id;
 		}
@@ -5627,5 +5627,127 @@ class TestPost extends BaseTestCase {
 
 		// Make sure we're back on the first site.
 		$this->assertSame( $blog_1_id, get_current_blog_id() );
+	}
+
+	/**
+	 * Tests additional logic with the post sync queue.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostSyncQueueEPKill() {
+
+		// Create a post sync it.
+		$post_id = Functions\create_and_sync_post();
+
+		$this->assertNotEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Make sure we're starting with an empty queue.
+		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+
+		// Turn on the filter to kill syncing.
+		add_filter( 'ep_post_sync_kill', '__return_true' );
+
+		update_post_meta( $post_id, 'custom_key', 123 );
+
+		// Make sure sync queue is still empty when meta is updated for
+		// an existing post.
+		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+
+		wp_insert_post( [ 'post_type' => 'post' ] );
+
+		// Make sure sync queue is still empty when a new post is added.
+		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+
+		remove_filter( 'ep_post_sync_kill', '__return_true' );
+
+		// Now verify the queue when this filter is not enabled.
+		update_post_meta( $post_id, 'custom_key', 456 );
+
+		$this->assertNotEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+
+		// Flush the queues.
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+	}
+
+	/**
+	 * Tests additional logic with the post sync queue.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostSyncQueuePermissions() {
+
+		// Create a post sync it.
+		$post_id = Functions\create_and_sync_post();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Make sure we're starting with an empty queue.
+		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+
+		// Test user permissions. We'll tell WP the user is not allowed
+		// to edit the post we created at the top of this function.
+		$map_meta_cap_callback = function( $caps, $cap, $user_id, $args ) use ( $post_id ) {
+
+			if ( 'edit_post' === $cap && is_array( $args ) && ! empty( $args ) &&  $post_id === $args[0] ) {
+				$caps = [ 'do_not_allow' ];
+			}
+
+			return $caps;
+		};
+
+		add_filter( 'map_meta_cap', $map_meta_cap_callback, 10, 4 );
+
+		// Try deleting the post.
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->action_delete_post( $post_id );
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Verify we can still get it from ES.
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		$this->assertTrue( is_array( $document ) );
+		$this->assertSame( $post_id, $document[ 'post_id' ] );
+
+		$post_title = $document['post_title'];
+
+		// Try updating the post title.
+		wp_update_post( [ 'ID' => $post_id, 'post_title' => 'New Post Title' ] );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Verify the old title is still there.
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		$this->assertTrue( is_array( $document ) );
+		$this->assertSame( $post_title, $document[ 'post_title'] );
+
+		// Turn off the map_meta_cap filter and verify everything is flowing
+		// through to ES.
+		remove_filter( 'map_meta_cap', $map_meta_cap_callback, 10, 4 );
+
+		// Try updating the post title.
+		wp_update_post( [ 'ID' => $post_id, 'post_title' => 'New Post Title' ] );
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Verify the new title is there.
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		$this->assertSame( 'New Post Title', $document[ 'post_title'] );
+
+		// Delete it, make sure it's gone.
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->action_delete_post( $post_id );
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		$this->assertEmpty( $document );
 	}
 }
