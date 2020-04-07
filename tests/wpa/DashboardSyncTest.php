@@ -17,9 +17,10 @@ class DashboardSyncTest extends TestBase {
 	 * @param Actor $actor Actor instance.
 	 * @param int   $time  Timeout.
 	 */
-	public function waitFor( $actor, $timeout = 3000 ) {
-		$actor->executeJavaScript( 'setTimeout( function() { var newdiv = document.createElement( "div" ); newdiv.id = "ready-to-go"; document.body.appendChild( newdiv ); }, ' . $timeout . ' );' );
-		$actor->waitUntilElementVisible( '#ready-to-go' );
+	private function waitFor( $actor, $timeout = 3000 ) {
+		$id = 'ready-' . random_int( 0, 1000 );
+		$actor->executeJavaScript( 'setTimeout( function() { var newdiv = document.createElement( "div" ); newdiv.id = "' . $id . '"; document.body.appendChild( newdiv ); }, ' . $timeout . ' );' );
+		$actor->waitUntilElementVisible( '#' . $id );
 	}
 
 	/**

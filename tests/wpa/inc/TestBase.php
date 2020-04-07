@@ -200,19 +200,13 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			[ 'delay' => 10 ]
 		);
 
-		usleep( 100 );
-
 		$actor->waitUntilElementVisible( '.editor-post-publish-panel__toggle' );
-
-		$actor->waitUntilElementEnabled( '.editor-post-publish-panel__toggle' );
 
 		$actor->click( '.editor-post-publish-panel__toggle' );
 
-		$actor->waitUntilElementVisible( '.editor-post-publish-button' );
-
 		$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
 
-		$actor->click( '.editor-post-publish-button' );
+		$actor->executeJavaScript( 'document.querySelector( ".editor-post-publish-button" ).click();' );
 
 		$actor->waitUntilElementVisible( '.components-notice' );
 	}
