@@ -785,17 +785,13 @@ class Post extends Indexable {
 		 *
 		 * @since  3.4
 		 */
-		$taxonomies = get_taxonomies();
+		$taxonomies = get_taxonomies( array(), 'objects' );
 
-		foreach ( $taxonomies as $tax_slug ) {
-			if ( 'ep_custom_result' === $tax_slug ) {
-				continue;
-			}
-
-			if ( ! empty( $args[ $tax_slug ] ) ) {
+		foreach ( $taxonomies as $tax_slug => $tax ) {
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
-					'terms'    => (array) $args[ $tax_slug ],
+					'terms'    => (array) $args[ $tax->query_var ],
 					'field'    => 'slug',
 				);
 			}
