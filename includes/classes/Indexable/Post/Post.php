@@ -742,6 +742,14 @@ class Post extends Indexable {
 			);
 		}
 
+		if ( isset( $args['post_tag'] ) && ! empty( $args['post_tag'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'post_tag',
+				'terms'    => array( $args['post_tag'] ),
+				'field'    => 'slug',
+			);
+		}
+
 		$has_tag__and = false;
 
 		if ( isset( $args['tag__and'] ) && ! empty( $args['tag__and'] ) ) {
@@ -783,7 +791,8 @@ class Post extends Indexable {
 		/**
 		 * Try to find other taxonomies set in the root of WP_Query
 		 *
-		 * @since  3.4
+		 * @since 3.4
+		 * @since 3.4.2 Test taxonomies with their query_var value.
 		 */
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
