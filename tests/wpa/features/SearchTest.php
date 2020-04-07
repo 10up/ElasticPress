@@ -37,11 +37,12 @@ class FeatureSearchTest extends TestBase {
 	 * @testdox If a user searches the phrase “10up loves elasticpress”, the post with the exact phrase in post_content will show higher than the post with only “elasticpress” in the content.
 	 */
 	public function testExactMatchesShowHigher() {
-		$this->runCommand( 'wp elasticpress index --setup' );
 
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
+
+		$this->runCommand( 'wp elasticpress index --setup' );
 
 		$this->publishPost( [
 			'title'   => 'Older post',
@@ -52,6 +53,8 @@ class FeatureSearchTest extends TestBase {
 			'title'   => 'Newer post',
 			'content' => 'elasticpress',
 		], $I );
+
+		sleep( 1 );
 
 		$I->moveTo( '/?s=10up+loves+elasticpress' );
 
