@@ -4,9 +4,9 @@
 	--statusError: #ff0000;
 }
 
-@custom-media --tablet-min (min-width: 768px);
+@custom-media --tablet-min (min-width: 880px);
 @custom-media --wide-min (min-width: 1270px);
-@custom-media --tablet-max (max-width: 768px);
+@custom-media --tablet-max (max-width: 880px);
 @custom-media --wide-max (max-width: 1270px);
 
 /**
@@ -945,6 +945,11 @@ h2 .nav-tab.ep-credentials-tab {
 	width: 100%;
 	margin-right: 0;
 
+	/* @media( --tablet-min ) {
+		width: 48%;
+		margin-right: 24px;
+	} */
+
 	@media (--wide-min) {
 		width: 37%;
 		background-color: white;
@@ -955,6 +960,10 @@ h2 .nav-tab.ep-credentials-tab {
 .stats-queries {
 	width: 100%;
 	background-color: white;
+
+	/* @media( --tablet-min ) {
+		width: 48%;
+	} */
 
 	@media (--wide-min) {
 		width: 60%;
@@ -1018,6 +1027,11 @@ h2 .nav-tab.ep-credentials-tab {
 	margin-right: 0;
 	width: 100%;
 
+	@media( --tablet-min ) {
+		width: 48%;
+		margin-right: 24px;
+	}
+
 	@media( --wide-min ) {
 		width: 50%;
 		margin-right: 28px;
@@ -1028,7 +1042,12 @@ h2 .nav-tab.ep-credentials-tab {
 	width: 90%;
 	margin: 0 auto;
 
+	@media( --tablet-min ) {
+		width: 48%;
+	}
+
 	@media( --wide-min ) {
+		margin: 0 auto;
 		width: 50%;
 	}
 
@@ -1040,6 +1059,9 @@ h2 .nav-tab.ep-credentials-tab {
 
 .ep-totals {
 	width: 100%;
+	@media( --tablet-min ) {
+		width: 48%;
+	}
 	@media( --wide-min ) {
 		width: 47%;
 	}
@@ -1047,6 +1069,11 @@ h2 .nav-tab.ep-credentials-tab {
 
 .ep-totals-1st-row {
 	width: 100%;
+
+	@media( --tablet-min ) {
+		width: 48%;
+	}
+
 	@media( --wide-min ) {
 		width: 45%;
 		text-align: center;
@@ -1067,3 +1094,5 @@ p.ep-totals-data {
 	width: 100%;
 	text-align: center;
 }
+
+
