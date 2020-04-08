@@ -737,4 +737,31 @@ class TestTerm extends BaseTestCase {
 		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not']['terms']['term_id'][0] );
 		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must_not']['terms']['parent'][0] );
 	}
+
+	/**
+	 * Test name and slug logic in format_args(),
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testFormatArgsNameSlug() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$args = $term->format_args(
+			[
+				'name' => 'Bacon Ipsum',
+			]
+		);
+
+		$this->assertSame( 'Bacon Ipsum', $args['post_filter']['bool']['must'][0]['terms']['name.raw'][0] );
+
+		$args = $term->format_args(
+			[
+				'slug' => 'bacon-ipsum',
+			]
+		);
+
+		$this->assertSame( 'bacon-ipsum', $args['post_filter']['bool']['must'][0]['terms']['slug.raw'][0] );
+	}
 }
