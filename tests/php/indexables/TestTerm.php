@@ -701,4 +701,40 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertFalse( $results );
 	}
+
+	/**
+	 * Test include/exclude logic in format_args(),
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testFormatArgsIncludeExclude() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$args = $term->format_args(
+			[
+				'include' => [ 123 ],
+			]
+		);
+
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must']['terms']['term_id'][0] );
+
+		$args = $term->format_args(
+			[
+				'exclude' => [ 123 ],
+			]
+		);
+
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not']['terms']['term_id'][0] );
+
+		$args = $term->format_args(
+			[
+				'exclude_tree' => [ 123 ],
+			]
+		);
+
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not']['terms']['term_id'][0] );
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must_not']['terms']['parent'][0] );
+	}
 }

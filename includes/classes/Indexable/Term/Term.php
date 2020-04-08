@@ -13,7 +13,9 @@ use ElasticPress\Elasticsearch as Elasticsearch;
 use \WP_Term_Query as WP_Term_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -91,6 +93,13 @@ class Term extends Indexable {
 		// Set sort order, default is 'ASC'.
 		if ( ! empty( $query_vars['order'] ) ) {
 			$order = $this->parse_order( $query_vars['order'] );
+		} else {
+			$order = 'desc';
+		}
+
+		// Set orderby, default is 'name'.
+		if ( empty( $query_vars['orderby'] ) ) {
+			$query_vars['orderby'] = 'name';
 		}
 
 		// Set sort type.
