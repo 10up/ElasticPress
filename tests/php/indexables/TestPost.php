@@ -5657,7 +5657,7 @@ class TestPost extends BaseTestCase {
 		// an existing post.
 		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
 
-		wp_insert_post( [ 'post_type' => 'post' ] );
+		wp_insert_post( [ 'post_type' => 'ep_test', 'post_status' => 'publish' ] );
 
 		// Make sure sync queue is still empty when a new post is added.
 		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
