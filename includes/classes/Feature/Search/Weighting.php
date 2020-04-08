@@ -622,4 +622,50 @@ class Weighting {
 
 		return $formatted_args;
 	}
+
+	/**
+	 * Add fields to the weighting configuration for search without overwriting existent fields.
+	 *
+	 * @since 3.x
+	 *
+	 * @param array  $weight_config Existent weighting configuration.
+	 * @param array  $search_fields Fields to be added.
+	 * @param string $post_type     Post type where the fields should be added.
+	 *
+	 * @return array Modified weighting configuration.
+	 */
+	public function add_weighted_fields( $weight_config, $search_fields, $post_type ) {
+		$product_config = ( isset( $weight_config[ $post_type ] ) ) ? $weight_config[ $post_type ] : array();
+		foreach ( $search_fields as $key => $search_field ) {
+			if ( is_integer( $key ) ) {
+				$this->set_weighted_field( $product_config, $search_field );
+			} else {
+				foreach ( $search_field as $sub_field ) {
+					if ( 'taxonomies' === $key ) {
+						$field_name = 'terms.' . $sub_field . '.name';
+					} else {
+						$field_name = $key . '.' . $sub_field . '.value';
+					}
+					$this->set_weighted_field( $product_config, $field_name );
+				}
+			}
+		}
+		$weight_config[ $post_type ] = $product_config;
+		return $weight_config;
+	}
+
+	/**
+	 * If it doesn't exist, add a single field to the weighting configuration array.
+	 *
+	 * @param array  $weighted_fields All fields set so far.
+	 * @param string $field_name      The new field name.
+	 */
+	protected function set_weighted_field( &$weighted_fields, $field_name ) {
+		if ( ! isset( $weighted_fields[ $field_name ] ) || ! $weighted_fields[ $field_name ]['enabled'] ) {
+			$weighted_fields[ $field_name ] = array(
+				'weight'  => 1,
+				'enabled' => true,
+			);
+		}
+	}
 }
