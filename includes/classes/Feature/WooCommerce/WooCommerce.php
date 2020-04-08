@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Feature as Feature;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Features;
 use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -434,24 +435,7 @@ class WooCommerce extends Feature {
 
 					$query->set( 'search_fields', $search_fields );
 				} elseif ( 'product' === $post_type ) {
-					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
-
-					// Remove author_name from this search.
-					$search_fields = $this->remove_author( $search_fields );
-
-					foreach ( $search_fields as $field_key => $field ) {
-						if ( 'author_name' === $field ) {
-							unset( $search_fields[ $field_key ] );
-						}
-					}
-
-					$search_fields['meta']       = ( ! empty( $search_fields['meta'] ) ) ? $search_fields['meta'] : [];
-					$search_fields['taxonomies'] = ( ! empty( $search_fields['taxonomies'] ) ) ? $search_fields['taxonomies'] : [];
-
-					$search_fields['meta']       = array_merge( $search_fields['meta'], array( '_sku' ) );
-					$search_fields['taxonomies'] = array_merge( $search_fields['taxonomies'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
-
-					$query->set( 'search_fields', $search_fields );
+					add_filter( 'ep_weighting_configuration_for_search', array( $this, 'add_search_weighted_fields_product_search' ), 10, 2 );
 				}
 			} else {
 				/**
@@ -958,5 +942,32 @@ class WooCommerce extends Feature {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Add the necessary fields to the product search.
+	 *
+	 * @since 3.x
+	 *
+	 * @param array $weight_config Current weight config.
+	 * @param array $args          Query args.
+	 *
+	 * @return array Modified weight config.
+	 */
+	public function add_search_weighted_fields_product_search( $weight_config, $args ) {
+		$search_fields = ( ! empty( $args['search_fields'] ) ) ? $args['search_fields'] : array( 'post_title', 'post_content', 'post_excerpt' );
+
+		// Remove author_name from this search.
+		$search_fields = $this->remove_author( $search_fields );
+
+		$search_fields['meta']       = ( ! empty( $search_fields['meta'] ) ) ? $search_fields['meta'] : [];
+		$search_fields['taxonomies'] = ( ! empty( $search_fields['taxonomies'] ) ) ? $search_fields['taxonomies'] : [];
+
+		$search_fields['meta']       = array_merge( $search_fields['meta'], array( '_sku' ) );
+		$search_fields['taxonomies'] = array_merge( $search_fields['taxonomies'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
+
+		$features = Features::factory();
+		$search   = $features->get_registered_feature( 'search' );
+		return $search->weighting->add_weighted_fields( $weight_config, $search_fields, 'product' );
 	}
 }
