@@ -261,7 +261,7 @@ class Term extends Indexable {
 		/**
 		 * Support `hierarchical` query var
 		 */
-		if ( ! empty( $query_vars['hierarchical'] ) && false === $query_vars['hierarchical'] ) {
+		if ( isset( $query_vars['hierarchical'] ) && false === $query_vars['hierarchical'] ) {
 			$filter['bool']['must'][] = [
 				'range' => [
 					'hierarchy.children.count' => [

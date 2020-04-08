@@ -764,4 +764,33 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertSame( 'bacon-ipsum', $args['post_filter']['bool']['must'][0]['terms']['slug.raw'][0] );
 	}
+
+	/**
+	 * Test term_taxonomy_id and hierarchical logic in format_args(),
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testFormatArgsTermTaxIdHierarchical() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$args = $term->format_args(
+			[
+				'term_taxonomy_id' => 123,
+			]
+		);
+
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must']['terms']['term_taxonomy_id'][0] );
+
+		$args = $term->format_args(
+			[
+				'hierarchical' => false,
+			]
+		);
+
+		echo wp_json_encode( $args, JSON_PRETTY_PRINT );
+
+		$this->assertSame( 1, $args['post_filter']['bool']['must'][0]['range']['hierarchy.children.count']['gte'] );
+	}
 }
