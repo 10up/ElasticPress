@@ -703,7 +703,7 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Test include/exclude logic in format_args(),
+	 * Test include/exclude logic in format_args().
 	 *
 	 * @since 3.4
 	 * @group term
@@ -739,7 +739,7 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Test name and slug logic in format_args(),
+	 * Test name and slug logic in format_args().
 	 *
 	 * @since 3.4
 	 * @group term
@@ -766,7 +766,7 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Test term_taxonomy_id and hierarchical logic in format_args(),
+	 * Test term_taxonomy_id and hierarchical logic in format_args().
 	 *
 	 * @since 3.4
 	 * @group term
@@ -789,8 +789,93 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		echo wp_json_encode( $args, JSON_PRETTY_PRINT );
-
 		$this->assertSame( 1, $args['post_filter']['bool']['must'][0]['range']['hierarchy.children.count']['gte'] );
+	}
+
+	/**
+	 * Test hierarchical logic when querying ES.
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testHierarchicalTerms() {
+
+		// testFormatArgsTermTaxIdHierarchical checks for the correct
+		// formatting of the hierarchical args. Now we will validate
+		// we're only getting terms that have non-empty children.
+		$childless_term_id = Functions\create_and_sync_term( 'childless-term', 'Childless Category', 'The parent category without children', 'category' );
+
+		$parent_term_id = Functions\create_and_sync_term( 'parent-term', 'Parent Category', 'Parent/Child Terms', 'category' );
+		$child_term_id  = Functions\create_and_sync_term( 'child-term', 'Child Category', 'Parent/Child Terms', 'category', [], $parent_term_id );
+
+		// These parent/child terms are created, but not assigned to the post.
+		$parent_term_id_2 = Functions\create_and_sync_term( 'parent-term-2', 'Parent Category 2', 'Parent/Child Terms', 'category' );
+		$child_term_id_2  = Functions\create_and_sync_term( 'child-term-2', 'Child Category 2', 'Parent/Child Terms', 'category', [], $parent_term_id_2 );
+
+		$post_args = [
+			'post_type'     => 'post',
+			'post_status'   => 'publish',
+			'post_category' => [ $parent_term_id, $child_term_id, $childless_term_id ],
+		];
+
+		Functions\create_and_sync_post( $post_args );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$parent_term = get_term( $parent_term_id, 'category' );
+		$child_term  = get_term( $child_term_id, 'category' );
+
+		$this->assertSame( $parent_term->term_id, $child_term->parent );
+
+		$children = get_term_children( $parent_term_id, $parent_term->taxonomy );
+
+		// This should only contain one term, the parent term that has
+		// the child term since.
+		$terms = get_terms(
+			[
+				'taxonomy'     => 'category',
+				'hierarchical' => false,
+				'ep_integrate' => true,
+				'include'      => [
+					$childless_term_id,
+					$parent_term_id,
+					$child_term_id,
+					$parent_term_id_2,
+					$child_term_id_2,
+				],
+			]
+		);
+
+		$this->assertCount( 1, $terms );
+		$this->assertSame( $parent_term_id, $terms[0]->term_id );
+
+		// This should contain the three terms that are assigned to the post.
+		$terms = get_terms(
+			[
+				'taxonomy'     => 'category',
+				'hierarchical' => true, // This is the default value.
+				'ep_integrate' => true,
+				'include'      => [
+					$childless_term_id,
+					$parent_term_id,
+					$child_term_id,
+					$parent_term_id_2,
+					$child_term_id_2,
+				],
+			]
+		);
+
+		$this->assertCount( 3, $terms );
+
+		$term_ids = wp_list_pluck( $terms, 'term_id' );
+
+		$this->assertContains( $childless_term_id, $term_ids );
+		$this->assertContains( $parent_term_id, $term_ids );
+		$this->assertContains( $child_term_id, $term_ids );
+
+		$this->assertNotContains( $parent_term_id_2, $term_ids );
+		$this->assertNotContains( $child_term_id_2, $term_ids );
 	}
 }
