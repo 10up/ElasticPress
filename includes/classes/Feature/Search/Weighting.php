@@ -553,7 +553,12 @@ class Weighting {
 
 			// grab the query and keep track of whether or not it is nested in a function score
 			$function_score = isset( $formatted_args['query']['function_score'] );
-			$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
+			$query          = null;
+			if ( $function_score ) {
+				$query = $formatted_args['query']['function_score']['query'];
+			} elseif ( isset( $formatted_args['query'] ) ) {
+				$query = $formatted_args['query'];
+			}
 
 			foreach ( (array) $args['post_type'] as $post_type ) {
 				if ( false === $this->post_type_has_fields( $post_type, $args ) ) {
