@@ -258,4 +258,16 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			}
 		} catch ( \Exception $e ) {}
 	}
+
+	/**
+	 * Check if we're using ElasticPress.io.
+	 *
+	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
+	 */
+	protected function isElasticPressIo( $actor ) {
+		$actor->moveTo( '/wp-admin/admin.php?page=elasticpress-settings' );
+		$host = $actor->getElementAttribute( '#ep_host', 'value' );
+
+		return strpos( $host, 'hosted-elasticpress.io' );
+	}
 }

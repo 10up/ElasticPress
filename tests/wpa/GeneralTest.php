@@ -89,6 +89,12 @@ class GeneralTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
+		if ( $this->isElasticPressIo( $I ) ) {
+			return;
+		}
+
+		$this->runCommand( 'wp elasticpress index --setup' );
+
 		$this->deactivatePlugin( $I );
 
 		$this->activatePlugin( $I, 'unsupported-elasticsearch-version' );
