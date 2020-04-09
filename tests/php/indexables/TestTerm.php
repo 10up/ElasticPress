@@ -1237,5 +1237,22 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertCount( 3, $results['objects'] );
 		$this->assertSame( 4, $results['total_objects'] );
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$results = $term->query_db(
+			[
+				'ep_integrate' => false,
+				'number'       => 10,
+				'per_page'     => 3,
+				'offset'       => 20,
+				'orderby'      => 'id',
+				'order'        => 'desc',
+				'taxonomy'     => 'post_tag',
+				'hide_empty'   => false,
+			]
+		);
+
+		$this->assertSame( 0, $results['total_objects'] );
 	}
 }
