@@ -878,4 +878,48 @@ class TestTerm extends BaseTestCase {
 		$this->assertNotContains( $parent_term_id_2, $term_ids );
 		$this->assertNotContains( $child_term_id_2, $term_ids );
 	}
+
+	/**
+	 * Test remap_terms() function.
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testRemapTerms() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$new_term = wp_insert_term(
+			'testRemapTerms',
+			'category',
+			[
+				'description' => 'Test remap_terms() function',
+				'slug'        => 'test-remap-terms-function',
+			]
+		);
+
+		$this->assertGreaterThan( 0, $new_term['term_id'] );
+
+		$new_term = get_term( $new_term['term_id'], 'category' );
+
+		$this->assertTrue( is_a( $new_term, '\WP_Term' ) );
+
+		$current_term = $new_term;
+
+		$term->remap_terms( $new_term );
+
+		$this->assertObjectHasAttribute( 'ID', $new_term );
+		$this->assertObjectHasAttribute( 'term_id', $new_term );
+		$this->assertObjectHasAttribute( 'name', $new_term );
+		$this->assertObjectHasAttribute( 'slug', $new_term );
+		$this->assertObjectHasAttribute( 'term_group', $new_term );
+		$this->assertObjectHasAttribute( 'term_taxonomy_id', $new_term );
+		$this->assertObjectHasAttribute( 'taxonomy', $new_term );
+		$this->assertObjectHasAttribute( 'description', $new_term );
+		$this->assertObjectHasAttribute( 'parent', $new_term );
+		$this->assertObjectHasAttribute( 'count', $new_term );
+
+		$this->assertSame( $new_term->ID, $current_term->term_id );
+		$this->assertSame( $new_term->term_id, $current_term->term_id );
+	}
 }
