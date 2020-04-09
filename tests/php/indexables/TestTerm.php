@@ -1102,6 +1102,41 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Tests parse_order.
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testParseOrder() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$args = $term->format_args(
+			[
+				'order' => 2,
+			]
+		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['name.sortable']['order'] );
+
+		$args = $term->format_args(
+			[
+				'order' => 'ASC',
+			]
+		);
+
+		$this->assertSame( 'asc', $args['sort'][0]['name.sortable']['order'] );
+
+		$args = $term->format_args(
+			[
+				'order' => 'Bacon Ipsum',
+			]
+		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['name.sortable']['order'] );
+	}
+
+	/**
 	 * Test protected meta key functionality.
 	 *
 	 * @since 3.4
