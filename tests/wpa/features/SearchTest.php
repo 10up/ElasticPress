@@ -65,14 +65,13 @@ class FeatureSearchTest extends TestBase {
 	 * @testdox If a user searches “10up loves elasticpress” with is in the post_content of two exact duplicate posts, the newer post will show up higher.
 	 */
 	public function testNewerDuplicatedPostsShowHigher() {
-		return;
-
-		$this->runCommand( 'wp elasticpress index --setup' );
 
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
 
+		$this->runCommand( 'wp elasticpress index --setup' );
+
 		$this->publishPost( [
 			'title'   => 'Duplicated post',
 			'content' => '10up loves elasticpress',
@@ -82,9 +81,10 @@ class FeatureSearchTest extends TestBase {
 			'title'   => 'Duplicated post',
 			'content' => '10up loves elasticpress',
 		], $I );
+
+		sleep( 1 );
 
 		$I->moveTo( '/?s=10up+loves+elasticpress' );
-
 
 		$I->seeText( '10up loves elasticpress', '#site-content article:nth-of-type(1)' );
 		$I->seeText( '10up loves elasticpress', '#site-content article:nth-of-type(2)' );
