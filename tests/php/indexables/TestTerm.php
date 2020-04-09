@@ -880,6 +880,122 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Test search logic in format_args().
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testFormatArgsSearch() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		// Default search fields.
+		$args = $term->format_args(
+			[
+				'search' => 'Bacon Ipsum',
+			]
+		);
+
+		$this->assertSame( 'Bacon Ipsum', $args['query']['bool']['should'][0]['multi_match']['query'] );
+		$this->assertCount( 4, $args['query']['bool']['should'][0]['multi_match']['fields'] );
+		$this->assertSame( 'name', $args['query']['bool']['should'][0]['multi_match']['fields'][0] );
+		$this->assertSame( 'slug', $args['query']['bool']['should'][0]['multi_match']['fields'][1] );
+		$this->assertSame( 'taxonomy', $args['query']['bool']['should'][0]['multi_match']['fields'][2] );
+		$this->assertSame( 'description', $args['query']['bool']['should'][0]['multi_match']['fields'][3] );
+
+		// Verify the rest of the multi_match fields.
+		$this->assertCount( 3, $args['query']['bool']['should'] );
+		$this->assertSame( 'Bacon Ipsum', $args['query']['bool']['should'][0]['multi_match']['query'] );
+		$this->assertSame( 'Bacon Ipsum', $args['query']['bool']['should'][1]['multi_match']['query'] );
+		$this->assertSame( 'Bacon Ipsum', $args['query']['bool']['should'][2]['multi_match']['query'] );
+
+		$this->assertSame( 2, $args['query']['bool']['should'][1]['multi_match']['boost'] );
+		$this->assertSame( 0, $args['query']['bool']['should'][1]['multi_match']['fuzziness'] );
+		$this->assertSame( 'and', $args['query']['bool']['should'][1]['multi_match']['operator'] );
+
+		$this->assertSame( 1, $args['query']['bool']['should'][2]['multi_match']['fuzziness'] );
+
+		// Custom search fields.
+		$args = $term->format_args(
+			[
+				'search' => 'Bacon Ipsum',
+				'search_fields' => [
+					'name',
+					'description',
+					'meta' => [
+						'custom_key',
+					],
+				],
+			]
+		);
+
+		$this->assertSame( 'Bacon Ipsum', $args['query']['bool']['should'][0]['multi_match']['query'] );
+		$this->assertCount( 3, $args['query']['bool']['should'][0]['multi_match']['fields'] );
+		$this->assertSame( 'name', $args['query']['bool']['should'][0]['multi_match']['fields'][0] );
+		$this->assertSame( 'description', $args['query']['bool']['should'][0]['multi_match']['fields'][1] );
+		$this->assertSame( 'meta.custom_key.value', $args['query']['bool']['should'][0]['multi_match']['fields'][2] );
+
+		$args = $term->format_args(
+			[
+				'name__like' => 'Bacon Ipsum',
+			]
+		);
+
+		// Only query the name field.
+		$this->assertSame( 'Bacon Ipsum', $args['query']['bool']['should'][0]['multi_match']['query'] );
+		$this->assertCount( 1, $args['query']['bool']['should'][0]['multi_match']['fields'] );
+		$this->assertSame( 'name', $args['query']['bool']['should'][0]['multi_match']['fields'][0] );
+
+		$args = $term->format_args(
+			[
+				'description__like' => 'Bacon Ipsum',
+			]
+		);
+
+		// Only query the name field.
+		$this->assertSame( 'Bacon Ipsum', $args['query']['bool']['should'][0]['multi_match']['query'] );
+		$this->assertCount( 1, $args['query']['bool']['should'][0]['multi_match']['fields'] );
+		$this->assertSame( 'description', $args['query']['bool']['should'][0]['multi_match']['fields'][0] );
+	}
+
+	/**
+	 * Test search logic in format_args().
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testFormatArgsChildParent() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$args = $term->format_args(
+			[
+				'child_of' => 123,
+				'taxonomy' => 'category',
+			]
+		);
+
+		$this->assertSame( 'category', $args['post_filter']['bool']['must'][0]['term']['taxonomy.raw'] );
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must'][0]['match_phrase']['hierarchy.ancestors.terms'] );
+
+		$args = $term->format_args(
+			[
+				'parent' => 123,
+			]
+		);
+
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must']['term']['parent'] );
+
+		$args = $term->format_args(
+			[
+				'childless' => true,
+			]
+		);
+
+		$this->assertSame( 0, $args['post_filter']['bool']['must'][0]['bool']['must']['term']['hierarchy.children.terms'] );
+	}
+
+	/**
 	 * Test remap_terms() function.
 	 *
 	 * @since 3.4
