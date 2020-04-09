@@ -1209,4 +1209,33 @@ class TestTerm extends BaseTestCase {
 		$this->assertSame( $new_term->ID, $current_term->term_id );
 		$this->assertSame( $new_term->term_id, $current_term->term_id );
 	}
+
+	/**
+	 * Test query_db() function.
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testQueryDb() {
+
+		$this->createAndIndexTerms();
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$results = $term->query_db(
+			[
+				'ep_integrate' => false,
+				'number'       => 10,
+				'per_page'     => 3,
+				'offset'       => 0,
+				'orderby'      => 'id',
+				'order'        => 'desc',
+				'taxonomy'     => 'post_tag',
+				'hide_empty'   => false,
+			]
+		);
+
+		$this->assertCount( 3, $results['objects'] );
+		$this->assertSame( 4, $results['total_objects'] );
+	}
 }
