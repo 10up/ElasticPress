@@ -1091,6 +1091,14 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertSame( 'term_taxonomy_id', $args['_source']['include'][0] );
+
+		$args = $term->format_args(
+			[
+				'fields' => 'names',
+			]
+		);
+
+		$this->assertSame( 'name', $args['_source']['include'][0] );
 	}
 
 	/**
