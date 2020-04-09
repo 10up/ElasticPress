@@ -996,6 +996,50 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Test search logic in format_args().
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testFormatArgsMeta() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$args = $term->format_args(
+			[
+				'meta_key'     => 'custom_key',
+				'meta_value'   => 'custom value',
+				'meta_compare' => '=',
+			]
+		);
+
+		$this->assertSame( 'custom value', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['meta.custom_key.raw'][0] );
+
+		$args = $term->format_args(
+			[
+				'meta_key'     => 'custom_key',
+				'meta_value'   => 'custom value',
+				'meta_compare' => '!=',
+			]
+		);
+
+		$this->assertSame( 'custom value', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['bool']['must_not'][0]['terms']['meta.custom_key.raw'][0] );
+
+		$args = $term->format_args(
+			[
+				'meta_query' => [
+					[
+						'key'   => 'custom_key',
+						'value' => 'custom value',
+					],
+				],
+			]
+		);
+
+		$this->assertSame( 'custom value', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['meta.custom_key.raw'][0] );
+	}
+
+	/**
 	 * Test remap_terms() function.
 	 *
 	 * @since 3.4
