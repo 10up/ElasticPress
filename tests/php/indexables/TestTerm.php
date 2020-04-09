@@ -1102,6 +1102,35 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Test protected meta key functionality.
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testPrepareMetaProtectedKeys() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$callback = function( $keys ) {
+			$keys[] = '_custom_protected_key';
+			return $keys;
+		};
+
+		$this->assertTrue( is_protected_meta( '_custom_protected_key' ) );
+
+		$term_id = Functions\create_and_sync_term( 'protected-meta', 'Protected Meta', '', 'category' );
+		update_term_meta( $term_id, '_custom_protected_key', 123 );
+
+		add_filter( 'ep_prepare_term_meta_allowed_protected_keys', $callback );
+
+		$prepared_meta = $term->prepare_meta( $term_id );
+
+		remove_filter( 'ep_prepare_term_meta_allowed_protected_keys', $callback );
+
+		$this->assertSame( '123', $prepared_meta['_custom_protected_key'][0] );
+	}
+
+	/**
 	 * Test remap_terms() function.
 	 *
 	 * @since 3.4
