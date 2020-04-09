@@ -81,39 +81,39 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 				'post' => [
 					'post_title'   => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 					'post_content' => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 					'post_excerpt' => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 
 					'author_name'  => [
 						'weight'  => 0,
-						'enabled' => 0,
+						'enabled' => false,
 					],
 				],
 				'page' => [
 					'post_title'   => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 					'post_content' => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 					'post_excerpt' => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 
 					'author_name'  => [
 						'weight'  => 0,
-						'enabled' => 0,
+						'enabled' => false,
 					],
 				],
 			];
