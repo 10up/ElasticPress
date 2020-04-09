@@ -1040,6 +1040,60 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Test search logic in format_args().
+	 *
+	 * @since 3.4
+	 * @group term
+	 */
+	public function testFormatArgsFields() {
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		$args = $term->format_args(
+			[
+				'fields' => 'ids',
+			]
+		);
+
+		$this->assertSame( 'term_id', $args['_source']['include'][0] );
+
+		$args = $term->format_args(
+			[
+				'fields' => 'id=>name',
+			]
+		);
+
+		$this->assertSame( 'term_id', $args['_source']['include'][0] );
+		$this->assertSame( 'name', $args['_source']['include'][1] );
+
+		$args = $term->format_args(
+			[
+				'fields' => 'id=>parent',
+			]
+		);
+
+		$this->assertSame( 'term_id', $args['_source']['include'][0] );
+		$this->assertSame( 'parent', $args['_source']['include'][1] );
+
+		$args = $term->format_args(
+			[
+				'fields' => 'id=>slug',
+			]
+		);
+
+		$this->assertSame( 'term_id', $args['_source']['include'][0] );
+		$this->assertSame( 'slug', $args['_source']['include'][1] );
+
+		$args = $term->format_args(
+			[
+				'fields' => 'tt_ids',
+			]
+		);
+
+		$this->assertSame( 'term_taxonomy_id', $args['_source']['include'][0] );
+	}
+
+	/**
 	 * Test remap_terms() function.
 	 *
 	 * @since 3.4
