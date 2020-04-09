@@ -228,6 +228,7 @@ class TestTerm extends BaseTestCase {
 		$this->assertEquals( 4, count( $term_query->terms ) );
 
 		// Now try with Elasticsearch.
+		// *** TODO, need to confirm hierarchical queries with this when hide_empty is false.
 		$term_query = new \WP_Term_Query(
 			[
 				'ep_integrate' => true,
