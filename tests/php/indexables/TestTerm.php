@@ -1103,7 +1103,7 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Tests parse_order.
+	 * Tests parse_order and parse_orderby.
 	 *
 	 * @since 3.4
 	 * @group term
@@ -1133,6 +1133,52 @@ class TestTerm extends BaseTestCase {
 				'order' => 'Bacon Ipsum',
 			]
 		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['name.sortable']['order'] );
+
+		$args = $term->format_args(
+			[
+				'orderby' => 'term_group',
+			]
+		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['term_group.long']['order'] );
+
+		$args = $term->format_args(
+			[
+				'orderby' => 'term_group',
+			]
+		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['term_group.long']['order'] );
+
+		$args = $term->format_args(
+			[
+				'orderby' => 'count',
+			]
+		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['count.long']['order'] );
+
+		$args = $term->format_args(
+			[
+				'meta_key' => 'custom_key',
+				'orderby'  => 'meta_value',
+			]
+		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['meta.custom_key.value']['order'] );
+
+		$args = $term->format_args(
+			[
+				'meta_key' => 'custom_key',
+				'orderby'  => 'meta_value_num',
+			]
+		);
+
+		$this->assertSame( 'desc', $args['sort'][0]['meta.custom_key.long']['order'] );
+
+		$args = $term->format_args( [] );
 
 		$this->assertSame( 'desc', $args['sort'][0]['name.sortable']['order'] );
 	}
@@ -1254,5 +1300,54 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertSame( 0, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests additional logic in put_mapping().
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testPutMapping() {
+
+		// This lets us trigger the ep_fallback_elasticsearch_version filter.
+		add_filter( 'ep_elasticsearch_version', '__return_false' );
+
+		$term = new \ElasticPress\Indexable\Term\Term();
+
+		// Test the mapping files for different ES versions.
+		$version_and_file = [
+			'4.0' => 'pre-5-0.php',
+			'5.1' => 'initial.php',
+			'7.0' => '7-0.php',
+		];
+
+		foreach ( $version_and_file as $version => $file ) {
+
+			$version_callback = function() use ( $version ) {
+				return $version;
+			};
+
+			// Callback to test the mapping file that was selected.
+			$assert_callback = function( $mapping_file ) use ( $file ) {
+				$this->assertSame( $file, basename( $mapping_file ) );
+				return $mapping_file;
+			};
+
+			// Tell EP that we're running a specific ES version.
+			add_filter( 'ep_fallback_elasticsearch_version', $version_callback );
+
+			// Turn on the test for the mapping file.
+			add_filter( 'ep_term_mapping_file', $assert_callback );
+
+			// Run put_mapping(), which will trigger these filters above
+			// and run the tests.
+			$term->put_mapping();
+
+			remove_filter( 'ep_fallback_elasticsearch_version', $version_callback );
+			remove_filter( 'ep_term_mapping_file', $assert_callback );
+		}
+
+		remove_filter( 'ep_elasticsearch_version', '__return_false' );
 	}
 }
