@@ -1178,9 +1178,13 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertSame( 'desc', $args['sort'][0]['meta.custom_key.long']['order'] );
 
-		$args = $term->format_args( [] );
+		$args = $term->format_args(
+			[
+				'orderby'  => 'custom',
+			]
+		);
 
-		$this->assertSame( 'desc', $args['sort'][0]['name.sortable']['order'] );
+		$this->assertSame( 'desc', $args['sort'][0]['custom']['order'] );
 	}
 
 	/**
