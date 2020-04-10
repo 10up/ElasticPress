@@ -804,19 +804,22 @@ class TestTerm extends BaseTestCase {
 		// testFormatArgsTermTaxIdHierarchical checks for the correct
 		// formatting of the hierarchical args. Now we will validate
 		// we're only getting terms that have non-empty children.
-		$childless_term_id = Functions\create_and_sync_term( 'childless-term', 'Childless Category', 'The parent category without children', 'category' );
+		// This term is childless and assigned to the post.
+		$childless_term_id = Functions\create_and_sync_term( 'childless-term-post', 'Childless Category', 'The parent category without children', 'category' );
 
-		$parent_term_id = Functions\create_and_sync_term( 'parent-term', 'Parent Category', 'Parent/Child Terms', 'category' );
-		$child_term_id  = Functions\create_and_sync_term( 'child-term', 'Child Category', 'Parent/Child Terms', 'category', [], $parent_term_id );
+		// This parent term is not assigned, but the child term is.
+		$parent_term_id = Functions\create_and_sync_term( 'parent-term-no-post', 'Parent Category', 'Parent/Child Terms', 'category' );
+		$child_term_id  = Functions\create_and_sync_term( 'child-term-post', 'Child Category', 'Parent/Child Terms', 'category', [], $parent_term_id );
 
-		// These parent/child terms are created, but not assigned to the post.
-		$parent_term_id_2 = Functions\create_and_sync_term( 'parent-term-2', 'Parent Category 2', 'Parent/Child Terms', 'category' );
-		$child_term_id_2  = Functions\create_and_sync_term( 'child-term-2', 'Child Category 2', 'Parent/Child Terms', 'category', [], $parent_term_id_2 );
+		// These two parent/child terms are created, but not assigned to the post.
+		$parent_term_id_2 = Functions\create_and_sync_term( 'parent-term-2-no-post', 'Parent Category 2', 'Parent/Child Terms', 'category' );
+		$child_term_id_2  = Functions\create_and_sync_term( 'child-term-2-no-post', 'Child Category 2', 'Parent/Child Terms', 'category', [], $parent_term_id_2 );
 
+		// Assign the parent term, and the standalone childless term.
 		$post_args = [
 			'post_type'     => 'post',
 			'post_status'   => 'publish',
-			'post_category' => [ $parent_term_id, $child_term_id, $childless_term_id ],
+			'post_category' => [ $child_term_id, $childless_term_id ],
 		];
 
 		Functions\create_and_sync_post( $post_args );
@@ -831,6 +834,64 @@ class TestTerm extends BaseTestCase {
 		$this->assertSame( $parent_term->term_id, $child_term->parent );
 
 		$children = get_term_children( $parent_term_id, $parent_term->taxonomy );
+
+		// First, we're going to get the data from WP core so we can match
+		// it to the same ES search, four different sets of slugs.
+		$wp_slugs = [
+			'hierarchical_false_empty_false' => [],
+			'hierarchical_false_empty_true'  => [],
+			'hierarchical_true_empty_true'   => [],
+			'hierarchical_true_empty_false'  => [],
+		];
+
+		foreach ( array_keys( $wp_slugs ) as $query_type ) {
+
+			$query_params = explode( '_', $query_type );
+
+			$terms = get_terms(
+				[
+					'taxonomy'     => 'category',
+					'ep_integrate' => false,
+					'hierarchical' => 'true' === $query_params[1],
+					'hide_empty'   => 'true' === $query_params[3],
+					'fields'       => 'id=>slug',
+				]
+			);
+
+			$wp_slugs[ $query_type ] = array_values( $terms );
+		}
+
+		// We should have a list list this.
+		// phpcs:disable
+		//{
+		//"hierarchical_false_empty_false": [
+		//		"child-term-post",
+		//		"child-term-2-no-post",
+		//		"childless-term-post",
+		//		"parent-term-no-post",
+		//		"parent-term-2-no-post",
+		//		"uncategorized"
+		//	],
+		//	"hierarchical_false_empty_true": [
+		//		"child-term-post",
+		//		"childless-term-post"
+		//	],
+		//		"hierarchical_true_empty_true": [
+		//		"child-term-post",
+		//		"childless-term-post",
+		//		"parent-term-no-post"
+		//	],
+		//	"hierarchical_true_empty_false": [
+		//		"child-term-post",
+		//		"child-term-2-no-post",
+		//		"childless-term-post",
+		//		"parent-term-no-post",
+		//		"parent-term-2-no-post",
+		//		"uncategorized"
+		//	]
+		//}
+		//// phpcs:enable
+		return;
 
 		// This should only contain one term, the parent term that has
 		// the child term since.
