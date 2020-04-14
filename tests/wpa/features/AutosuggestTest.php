@@ -19,9 +19,9 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->moveTo( '/' );
 
-		$I->waitUntilElementVisible( '.desktop-search-toggle' );
+		$I->waitUntilElementVisible( '.search-toggle' );
 
-		$I->click( '.desktop-search-toggle' );
+		$I->click( '.search-toggle' );
 
 		$I->waitUntilElementVisible( '#search-form-1' );
 
@@ -44,9 +44,9 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->moveTo( '/' );
 
-		$I->waitUntilElementVisible( '.desktop-search-toggle' );
+		$I->waitUntilElementVisible( '.search-toggle' );
 
-		$I->click( '.desktop-search-toggle' );
+		$I->click( '.search-toggle' );
 
 		$I->waitUntilElementVisible( '#search-form-1' );
 
@@ -81,9 +81,9 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->moveTo( '/' );
 
-		$I->waitUntilElementVisible( '.desktop-search-toggle' );
+		$I->waitUntilElementVisible( '.search-toggle' );
 
-		$I->click( '.desktop-search-toggle' );
+		$I->click( '.search-toggle' );
 
 		$I->waitUntilElementVisible( '#search-form-1' );
 
@@ -106,9 +106,9 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->moveTo( '/' );
 
-		$I->waitUntilElementVisible( '.desktop-search-toggle' );
+		$I->waitUntilElementVisible( '.search-toggle' );
 
-		$I->click( '.desktop-search-toggle' );
+		$I->click( '.search-toggle' );
 
 		$I->waitUntilElementVisible( '#search-form-1' );
 
@@ -124,7 +124,7 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->click( '.autosuggest-list > li:first-child span' );
 
-		$I->waitUntilElementVisible( '.desktop-search-toggle' );
+		$I->waitUntilElementVisible( '.search-toggle' );
 
 		$this->assertEquals( $I->getCurrentUrl(), $url );
 	}
