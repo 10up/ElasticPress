@@ -9,7 +9,7 @@
       "./node_modules"
     ],
     "enforce_clean_db": true,
-    "snapshot_id": "649bacfc153184422d815a5d4e4f6310",
+    "snapshot_id": "7ddc122a185867cb04e4a2a0f701a44d",
     "before_scripts" : [
       "mv tests/test-plugins/* ../"
     ]

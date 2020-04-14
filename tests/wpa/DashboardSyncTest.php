@@ -73,9 +73,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
 
-		foreach ( $this->indexes as $index_name ) {
-			$I->seeText( $index_name );
-		}
+		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
 
 		$this->deactivatePlugin( $I, 'elasticpress', true );
 
