@@ -1416,7 +1416,12 @@ class Post extends Indexable {
 			$single_tax_query = $tax_queries;
 			if ( ! empty( $single_tax_query['taxonomy'] ) ) {
 				$terms = isset( $single_tax_query['terms'] ) ? (array) $single_tax_query['terms'] : array();
-				$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
+
+				if ( ! empty( $single_tax_query['field'] ) && 'id' !== $single_tax_query['field'] ) {
+					$field = $single_tax_query['field'];
+				} else {
+					$field = 'term_id';
+				}
 
 				if ( 'name' === $field ) {
 					$field = 'name.raw';
