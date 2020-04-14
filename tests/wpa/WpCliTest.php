@@ -235,12 +235,12 @@ class WpCliTest extends TestBase {
 		$this->deactivatePlugin( $I );
 
 		$this->activatePlugin( $I, 'elasticpress', true );
-		
-		$this->runCommand( 'wp elasticpress index --setup' );
 
 		$I->moveTo( 'wp-admin/network/sites.php' );
 
 		$I->checkOptions( '.index-toggle' );
+
+		$this->runCommand( 'wp elasticpress delete-index --network-wide' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress put-mapping --network-wide' )['stdout'];
 
