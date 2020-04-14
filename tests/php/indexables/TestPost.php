@@ -136,6 +136,34 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a post sync on comment count update
+	 *
+	 * @group post
+	 */
+	public function testPostSyncOnCommentCountUpdate() {
+		$post_id = Functions\create_and_sync_post();
+		
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$post_no_comments = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		wp_insert_comment( 
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_author' => 'Testy Testman',
+				'comment_content' => 'Test comment',
+			)
+		);
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		
+		$post_with_comments = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		$this->assertEquals( 0, intval( $post_no_comments['comment_count'] ), 'comment count for post should be 0 initially' );
+		$this->assertEquals( 1, intval( $post_with_comments['comment_count'] ), 'comment count for post should be 1 after sync' );
+	}
+
+	/**
 	 * Test pagination with offset
 	 *
 	 * @since 2.1
