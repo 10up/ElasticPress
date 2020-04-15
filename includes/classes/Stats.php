@@ -157,9 +157,12 @@ class Stats {
 		}
 
 		// Filter the general list of indices to contain only the ones we care about
-		$filtered_indices = array_filter( $indices, function ( $index ) use ( $site_indices ) {
-			return in_array( $index['index'], $site_indices, true );
-		} );
+		$filtered_indices = array_filter(
+			$indices,
+			function( $index ) use ( $site_indices ) {
+				return in_array( $index['index'], $site_indices, true );
+			}
+		);
 
 		/**
 		 * Allow sites to select which indices will be displayed in the Index Health page
@@ -222,6 +225,7 @@ class Stats {
 	 *
 	 * @param string $index_name index name
 	 * @param string $health     index health status
+	 * @param int    $i          index unused value 
 	 *
 	 * @since 3.x
 	 */
