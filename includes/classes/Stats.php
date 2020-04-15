@@ -225,7 +225,7 @@ class Stats {
 	 *
 	 * @param string $index_name index name
 	 * @param string $health     index health status
-	 * @param int    $i          index unused value 
+	 * @param int    $i          index unused value
 	 *
 	 * @since 3.x
 	 */
