@@ -197,7 +197,7 @@ class Search extends Feature {
 				 * @return  {string} New decay function
 				 */
 				$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
-				
+
 				$date_score = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],

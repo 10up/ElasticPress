@@ -1222,14 +1222,14 @@ class Post extends Indexable {
 		if ( ! empty( $args['post_status'] ) ) {
 			// should NEVER be "any" but just in case
 			if ( 'any' !== $args['post_status'] ) {
-				$post_status    = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
+				$post_status = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
 				// Flatten out the array
-				$post_status    = array_values( $post_status );
-				$post_status    = array_map( 'trim', $post_status );
+				$post_status = array_values( $post_status );
+				$post_status = array_map( 'trim', $post_status );
 				$terms_map_name = 'terms';
 				if ( count( $post_status ) < 2 ) {
 					$terms_map_name = 'term';
-					$post_status    = $post_status[0];
+					$post_status = $post_status[0];
 				}
 
 				$filter['bool']['must'][] = array(
@@ -1630,16 +1630,16 @@ class Post extends Indexable {
 	 * Check if a value matches a protected parameter
 	 *
 	 * @see https://developer.wordpress.org/reference/classes/wp_query/#parameters List of protected parameters
-	 * 
+	 *
 	 * @param string $value The value to test
 	 * @since 3.4
 	 * @return bool
 	 */
 	private function is_protected_parameter( $value ) {
-		if( ! is_string( $value ) ) {
+		if ( ! is_string( $value ) ) {
 			return false;
 		}
-		
+
 		$protected_parameter_list = array(
 			'author',
 			'author__in',
