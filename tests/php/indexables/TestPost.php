@@ -4368,6 +4368,115 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests the fallback code for filters and relations.
+	 *
+	 * @group post
+	 */
+	public function testDateQueryFiltersRelation() {
+
+		$date_query = new \ElasticPress\Indexable\Post\DateQuery(
+			[
+				'relation' => '',
+				[
+					'year' => 0,
+				],
+			]
+		);
+
+		$filter = $date_query->get_es_filter();
+
+		$this->assertTrue( is_array( $filter ) );
+		$this->assertCount( 1, $filter );
+		$this->assertSame( 'and', array_key_first( $filter ) );
+	}
+
+	/**
+	 * Tests additional code for validate_date_values() and simple_es_date_filter().
+	 *
+	 * @group post
+	 */
+	public function testDateQueryValidateDateValues() {
+
+		$date_query = new \ElasticPress\Indexable\Post\DateQuery( [] );
+
+		$this->assertFalse( $date_query->validate_date_values() );
+
+		$valid = $date_query->validate_date_values(
+			[
+				'after' => [ '2020' ],
+			]
+		);
+
+		$this->assertTrue( $valid );
+
+		$valid = $date_query->validate_date_values(
+			[
+				'year' => [ '2019', '2020' ],
+			]
+		);
+
+		$this->assertTrue( $valid );
+
+		$results = \ElasticPress\Indexable\Post\DateQuery::simple_es_date_filter(
+			[
+				'w' => 10,
+			]
+		);
+
+		$this->assertTrue( is_array( $results ) );
+		$this->assertSame( 10, $results['bool']['must'][0]['term']['date_terms.week'] );
+	}
+
+	/**
+	 * Tests invalid dates for validate_date_values().
+	 *
+	 * @group post
+	 */
+	public function testDateQueryValidateDateDoingItWrong() {
+
+		$this->setExpectedIncorrectUsage( 'ElasticPress\Indexable\Post\DateQuery' );
+
+		$date_query = new \ElasticPress\Indexable\Post\DateQuery( [] );
+
+		$valid = $date_query->validate_date_values(
+			[
+				'compare' => 'BETWEEN',
+				'month'   => [ 0, 1 ],
+			]
+		);
+
+		$this->assertFalse( $valid );
+
+		$valid = $date_query->validate_date_values(
+			[
+				'compare' => 'BETWEEN',
+				'month'   => [ 13, 14 ],
+			]
+		);
+
+		$this->assertFalse( $valid );
+
+		$valid = $date_query->validate_date_values(
+			[
+				'month' => '2',
+				'day'   => '30',
+				'year'  => '2020',
+			]
+		);
+
+		$this->assertFalse( $valid );
+
+		$valid = $date_query->validate_date_values(
+			[
+				'month' => '2',
+				'day'   => '30',
+			]
+		);
+
+		$this->assertFalse( $valid );
+	}
+
+	/**
 	 * Test a date query with BETWEEN comparison
 	 *
 	 * @group post
@@ -4470,9 +4579,58 @@ class TestPost extends BaseTestCase {
 			),
 		);
 
+		$date_query = new \ElasticPress\Indexable\Post\DateQuery(
+			[
+				'w' => 10,
+			]
+		);
+
+		$filter = $date_query->get_es_filter();
+
+		$this->assertTrue( is_array( $filter ) );
+		$this->assertSame( 10, $filter['and']['bool']['must'][0]['term']['date_terms.week'] );
+
 		$query = new \WP_Query( $args );
 		$this->assertEquals( $query->post_count, 4 );
 		$this->assertEquals( $query->found_posts, 4 );
+
+		$date_query = new \ElasticPress\Indexable\Post\DateQuery(
+			[
+				'monthnum' => 1,
+				'compare'  => '!=',
+			]
+		);
+
+		$filter = $date_query->get_es_filter();
+
+		$this->assertTrue( is_array( $filter ) );
+		$this->assertSame( 1, $filter['and']['bool']['must_not'][0]['term']['date_terms.month'] );
+
+		$date_query = new \ElasticPress\Indexable\Post\DateQuery(
+			[
+				'monthnum' => [ 1, 2 ],
+				'compare'  => 'IN',
+			]
+		);
+
+		$filter = $date_query->get_es_filter();
+
+		$this->assertTrue( is_array( $filter ) );
+		$this->assertSame( 1, $filter['and']['bool']['should'][0]['term']['date_terms.month'] );
+		$this->assertSame( 2, $filter['and']['bool']['should'][1]['term']['date_terms.month'] );
+
+		$date_query = new \ElasticPress\Indexable\Post\DateQuery(
+			[
+				'monthnum' => [ 1, 2 ],
+				'compare'  => 'NOT IN',
+			]
+		);
+
+		$filter = $date_query->get_es_filter();
+
+		$this->assertTrue( is_array( $filter ) );
+		$this->assertSame( 1, $filter['and']['bool']['must_not'][0]['term']['date_terms.month'] );
+		$this->assertSame( 2, $filter['and']['bool']['must_not'][1]['term']['date_terms.month'] );
 	}
 
 	/**

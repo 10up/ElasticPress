@@ -622,7 +622,7 @@ class Elasticsearch {
 		if ( is_wp_error( $request ) ) {
 			return false;
 		}
-		
+
 		$response_body = wp_remote_retrieve_body( $request );
 
 		$response = json_decode( $response_body, true );
