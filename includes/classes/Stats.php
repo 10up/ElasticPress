@@ -147,7 +147,7 @@ class Stats {
 			return;
 		}
 
-		// if the plugin is network activated we only want the data from the indexable WP indexes, not any others
+		// If the plugin is network activated we only want the data from the indexable WP indexes, not any others.
 		if ( $network_activated ) {
 			$indexable_sites = Utils\get_sites();
 			foreach ( $indexable_sites as $site ) {
@@ -156,10 +156,13 @@ class Stats {
 			}
 		}
 
-		// Filter the general list of indices to contain only the ones we care about
-		$filtered_indices = array_filter( $indices, function ( $index ) use ( $site_indices ) {
-			return in_array( $index['index'], $site_indices, true );
-		} );
+		// Filter the general list of indices to contain only the ones we care about.
+		$filtered_indices = array_filter(
+			$indices,
+			function ( $index ) use ( $site_indices ) {
+				return in_array( $index['index'], $site_indices, true );
+			}
+		);
 
 		/**
 		 * Allow sites to select which indices will be displayed in the Index Health page
