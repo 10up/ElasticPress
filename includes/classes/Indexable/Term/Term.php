@@ -261,7 +261,8 @@ class Term extends Indexable {
 		/**
 		 * Support `hierarchical` query var
 		 */
-		if ( isset( $query_vars['hierarchical'] ) && false === $query_vars['hierarchical'] ) {
+		$hide_empty = isset( $query_vars['hide_empty'] ) ? $query_vars['hide_empty'] : '';
+		if ( true === $hide_empty ) {
 			$filter['bool']['must'][] = [
 				'range' => [
 					'hierarchy.children.count' => [
@@ -708,7 +709,9 @@ class Term extends Indexable {
 
 		$query = new WP_Term_Query( $args );
 
-		array_walk( $query->terms, array( $this, 'remap_terms' ) );
+		if ( is_array( $query->terms ) ) {
+			array_walk( $query->terms, array( $this, 'remap_terms' ) );
+		}
 
 		return [
 			'objects'       => $query->terms,

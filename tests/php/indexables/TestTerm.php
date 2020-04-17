@@ -787,10 +787,12 @@ class TestTerm extends BaseTestCase {
 		$args = $term->format_args(
 			[
 				'hierarchical' => false,
+				'hide_empty'   => true,
 			]
 		);
 
-		$this->assertSame( 1, $args['post_filter']['bool']['must'][0]['range']['hierarchy.children.count']['gte'] );
+		$this->assertSame( 1, $args['post_filter']['bool']['must'][0]['range']['count']['gte'] );
+		$this->assertSame( 1, $args['post_filter']['bool']['must'][1]['range']['hierarchy.children.count']['gte'] );
 	}
 
 	/**
@@ -859,6 +861,14 @@ class TestTerm extends BaseTestCase {
 			);
 
 			$wp_slugs[ $query_type ] = array_values( $terms );
+
+			// Remove uncategorized, not synced to ES.
+			$wp_slugs[ $query_type ] = array_filter(
+				$wp_slugs[ $query_type ],
+				function( $slug ) {
+					return 'uncategorized' !== $slug;
+				}
+			);
 		}
 
 		// We should have a list list this.
@@ -870,7 +880,6 @@ class TestTerm extends BaseTestCase {
 		//		"childless-term-post",
 		//		"parent-term-no-post",
 		//		"parent-term-2-no-post",
-		//		"uncategorized"
 		//	],
 		//	"hierarchical_false_empty_true": [
 		//		"child-term-post",
@@ -887,58 +896,39 @@ class TestTerm extends BaseTestCase {
 		//		"childless-term-post",
 		//		"parent-term-no-post",
 		//		"parent-term-2-no-post",
-		//		"uncategorized"
 		//	]
 		//}
 		//// phpcs:enable
-		return;
 
-		// This should only contain one term, the parent term that has
-		// the child term since.
-		$terms = get_terms(
-			[
-				'taxonomy'     => 'category',
-				'hierarchical' => false,
-				'ep_integrate' => true,
-				'include'      => [
-					$childless_term_id,
-					$parent_term_id,
-					$child_term_id,
-					$parent_term_id_2,
-					$child_term_id_2,
-				],
-			]
-		);
+		// Now run the same queries against ES.
+		$es_slugs = [
+			'hierarchical_false_empty_false' => [],
+			'hierarchical_false_empty_true'  => [],
+			'hierarchical_true_empty_true'   => [],
+			'hierarchical_true_empty_false'  => [],
+		];
 
-		$this->assertCount( 1, $terms );
-		$this->assertSame( $parent_term_id, $terms[0]->term_id );
+		foreach ( array_keys( $es_slugs ) as $query_type ) {
 
-		// This should contain the three terms that are assigned to the post.
-		$terms = get_terms(
-			[
-				'taxonomy'     => 'category',
-				'hierarchical' => true, // This is the default value.
-				'ep_integrate' => true,
-				'include'      => [
-					$childless_term_id,
-					$parent_term_id,
-					$child_term_id,
-					$parent_term_id_2,
-					$child_term_id_2,
-				],
-			]
-		);
+			$query_params = explode( '_', $query_type );
 
-		$this->assertCount( 3, $terms );
+			$terms = get_terms(
+				[
+					'taxonomy'     => 'category',
+					'ep_integrate' => true,
+					'hierarchical' => 'true' === $query_params[1],
+					'hide_empty'   => 'true' === $query_params[3],
+					'fields'       => 'id=>slug',
+				]
+			);
 
-		$term_ids = wp_list_pluck( $terms, 'term_id' );
+			$es_slugs[ $query_type ] = array_values( $terms );
+		}
 
-		$this->assertContains( $childless_term_id, $term_ids );
-		$this->assertContains( $parent_term_id, $term_ids );
-		$this->assertContains( $child_term_id, $term_ids );
-
-		$this->assertNotContains( $parent_term_id_2, $term_ids );
-		$this->assertNotContains( $child_term_id_2, $term_ids );
+		foreach ( array_keys( $es_slugs ) as $key ) {
+			$diff = array_diff( $wp_slugs[ $key ], $es_slugs[ $key ] );
+			$this->assertEmpty( $diff, "Term slugs from ES don't match term slugs from WP for " . $key . ', diff: ' . wp_json_encode( $diff ) );
+		}
 	}
 
 	/**
