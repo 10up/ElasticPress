@@ -21,9 +21,13 @@ class FeatureDocumentTest extends TestBase {
 			return;
 		}
 
-		$this->maybeSync( $I );
-
 		$this->activateDocumentFeature( $I );
+
+		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+
+		$I->click( '.start-sync' );
+
+		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
 		$this->uploadFile( $I, dirname( __DIR__ ) . '/test-docs/pdf-file.pdf' );
 
@@ -91,13 +95,17 @@ class FeatureDocumentTest extends TestBase {
 	private function activateDocumentFeature( $actor ) {
 		$actor->moveTo( '/wp-admin/admin.php?page=elasticpress' );
 
-		$actor->click( '.ep-feature-documents .settings-button' );
+		$class = $actor->getElementAttribute( '.ep-feature-documents', 'class' );
 
-		$actor->click( '#feature_active_documents_enabled' );
+		if ( strpos( $class, 'feature-active' ) === false ) {
+			$actor->click( '.ep-feature-documents .settings-button' );
 
-		$actor->click( 'a.save-settings[data-feature="documents"]' );
+			$actor->click( '#feature_active_documents_enabled' );
 
-		sleep( 2 );
+			$actor->click( 'a.save-settings[data-feature="documents"]' );
+
+			sleep( 2 );
+		}
 	}
 
 	private function maybeSync( $actor ) {

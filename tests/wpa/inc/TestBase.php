@@ -233,14 +233,12 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		}
 
 		try {
-			$element = $actor->getElement( '[data-slug="' . $slug . '"] .deactivate a' );
+			$element = $actor->getElement( '[data-slug="' . $slug . '"] .activate a' );
 			if ( $element ) {
 				$actor->click( $element );
 				$actor->waitUntilElementVisible( '#message' );
 			}
 		} catch ( \Exception $e ) {}
-		$actor->click( '[data-slug="' . $slug . '"] .activate a' );
-		$actor->waitUntilElementVisible( '#message' );
 	}
 
 	/**

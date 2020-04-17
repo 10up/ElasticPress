@@ -8,8 +8,8 @@
     "exclude": [
       "./node_modules"
     ],
-    "enforce_clean_db": true,
-    "snapshot_id": "7ddc122a185867cb04e4a2a0f701a44d",
+    "enforce_clean_db": false,
+    "snapshot_id": "4e38780a2545d8325df2008391666a2f",
     "before_scripts" : [
       "mv tests/wpa/test-plugins/* ../"
     ]
