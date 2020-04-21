@@ -334,42 +334,6 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Make sure proper non-hierarchical taxonomies are synced with post.
-	 *
-	 * @since 3.5
-	 * @group post
-	 */
-	public function testPostTermSyncOnTermEdited() {
-		$term = wp_insert_term( 'Test Category', 'category', array( 'slug' => 'test-category' ) );
-
-		$post_id = Functions\create_and_sync_post(
-			array(
-				'post_category' => array( $term['term_id'] ),
-			)
-		);
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
-
-		// Update the term
-		wp_update_term( $term['term_id'], 'category', array( 'slug' => 'new-slug', 'name' => 'New Name' ) );
-
-		$this->applied_filters = array();
-
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
-
-		// Check if ES post sync filter has been triggered
-		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
-
-		// Check if new term slug was synced
-		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
-
-		$this->assertEquals( 'new-slug', $post['terms']['category'][ 0 ]['slug'] );
-		$this->assertEquals( 'New Name', $post['terms']['category'][ 0 ]['name'] );
-	}
-
-	/**
 	 * Make sure that when terms associated with a post are deleted that the posts are reindexed
 	 *
 	 * @since 3.5
