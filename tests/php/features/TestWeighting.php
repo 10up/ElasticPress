@@ -284,72 +284,52 @@ class TestWeighting extends BaseTestCase {
 		$this->assertEquals( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['s' => '' ] ) );
 	}
 
-	public function testDoWeightingWithoutFunctionScore() {
+	public function testDoWeightingWithDefaultConfig() {
 		unset( $GLOBALS['current_screen'] );
 
-		$this->get_weighting_feature()->save_weighting_configuration( $this->weighting_settings );
+		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ... $this->getArgs() );
 
-		$args = ['s' => 'blog', 'post_type' => ['post', 'page'] ];
-
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( $this->formatted_args, $args );
-
-		$this->assertEquals( 2, count( $new_formatted_args['query']['bool']['should'] ) );
+		// We have 4 searchable post types.
+		$this->assertEquals( 4, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
 	}
 
-	public function testDoWeightingWithFunctionScore() {
+	public function testDoWeightingWithCustomConfig() {
 		unset( $GLOBALS['current_screen'] );
 
 		$this->get_weighting_feature()->save_weighting_configuration( $this->weighting_settings );
 
-		$args = ['s' => 'blog', 'post_type' => ['post', 'page'] ];
-
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( $this->formatted_args_with_function_score, $args );
+		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->getArgs() );
 
 		$this->assertEquals( 2, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
 	}
 
-	public function testDoWeightingWithoutPageFields() {
-		unset( $GLOBALS['current_screen'] );
+	public function getArgs() {
+		$post = new \ElasticPress\Indexable\Post\Post();
 
-		$weighting_settings = [
-			'weighting' => [
-				'post' => [
-					'post_title' => [
-						'enabled' => 'on',
-						'weight'  => 1
-					]
-				],
-			]
-		];
-		$this->get_weighting_feature()->save_weighting_configuration( $weighting_settings );
-
-		$args = ['s' => 'blog', 'post_type' => ['post', 'page'] ];
-
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( $this->formatted_args, $args );
-
-		$this->assertEquals( 1, count( $new_formatted_args['query']['bool']['should'] ) );
-	}
-
-	public function testDoWeightingWithoutPageWeightConfig() {
-		unset( $GLOBALS['current_screen'] );
-		add_filter( 'ep_weighting_configuration_for_search', function( $config ) {
-			return array_filter(
-				$config,
-				function( $key ) {
-					return $key != 'page';
-				},
-				ARRAY_FILTER_USE_KEY
-			);
-		} );
+		$query = new \WP_Query( [ 's' => 'blog' ] );
+		$query_vars = $query->query_vars;
 
 
-		$this->get_weighting_feature()->save_weighting_configuration( $this->weighting_settings );
+		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'], $query );
 
-		$args = ['s' => 'blog', 'post_type' => ['post', 'page'] ];
+		if ( 'any' === $query_vars['post_type'] ) {
+			unset( $query_vars['post_type'] );
+		}
 
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( $this->formatted_args, $args );
+		/**
+		 * If not search and not set default to post. If not set and is search, use searchable post types
+		 */
+		if ( empty( $query_vars['post_type'] ) ) {
+			if ( empty( $query_vars['s'] ) ) {
+				$query_vars['post_type'] = 'post';
+			} else {
+				$query_vars['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
+			}
+		}
 
-		$this->assertEquals( 2, count( $new_formatted_args['query']['bool']['should'] ) );
+		$formatted_args = $post->format_args( $query_vars, $query );
+
+		return [ $formatted_args, $query_vars ];
 	}
 
 	public $weighting_settings = [
@@ -394,271 +374,4 @@ class TestWeighting extends BaseTestCase {
 			],
 		]
 	];
-
-	public $formatted_args = [
-		'from' => 0,
-		'size' => 10,
-		'sort' => [
-			0 => [
-				'_score' => [
-					'order' => 'desc',
-				],
-			],
-		],
-		'query' => [
-			'bool' => [
-				'should' => [
-					0 => [
-						'multi_match' => [
-							'query' => 'blog',
-							'type' => 'phrase',
-							'fields' => [
-								0 => 'post_title',
-								1 => 'post_excerpt',
-								2 => 'post_content',
-							],
-							'boost' => 4,
-						],
-					],
-					1 => [
-						'multi_match' => [
-							'query' => 'blog',
-							'fields' => [
-								0 => 'post_title',
-								1 => 'post_excerpt',
-								2 => 'post_content',
-							],
-							'boost' => 2,
-							'fuzziness' => 0,
-							'operator' => 'and',
-						],
-					],
-					2 => [
-						'multi_match' => [
-							'query' => 'blog',
-							'fields' => [
-								0 => 'post_title',
-								1 => 'post_excerpt',
-								2 => 'post_content',
-							],
-							'fuzziness' => 'auto',
-						],
-					],
-				],
-			],
-		],
-		'post_filter' => [
-			'bool' => [
-				'must' => [
-					0 => [
-						'terms' => [
-							'post_type.raw' => [
-								0 => 'post',
-								1 => 'page',
-							],
-						],
-					],
-					1 => [
-						'terms' => [
-							'post_status' => [
-								0 => 'publish',
-							],
-						],
-					],
-				],
-			],
-		],
-		'aggs' => [
-			'terms' => [
-				'filter' => [
-					'bool' => [
-						'must' => [
-							0 => [
-								'terms' => [
-									'post_type.raw' => [
-										0 => 'post',
-										1 => 'page',
-									],
-								],
-							],
-							1 => [
-								'terms' => [
-									'post_status' => [
-										0 => 'publish',
-									],
-								],
-							],
-						],
-					],
-				],
-				'aggs' => [
-					'category' => [
-						'terms' => [
-							'size' => 10000,
-							'field' => 'terms.category.slug',
-						],
-					],
-					'post_tag' => [
-						'terms' => [
-							'size' => 10000,
-							'field' => 'terms.post_tag.slug',
-						],
-					],
-					'post_format' => [
-						'terms' => [
-							'size' => 10000,
-							'field' => 'terms.post_format.slug',
-						],
-					],
-					'ep_custom_result' => [
-						'terms' => [
-							'size' => 10000,
-							'field' => 'terms.ep_custom_result.slug',
-						],
-					],
-				],
-			],
-		],
-	];
-
-	public $formatted_args_with_function_score = [
-		'from' => 0,
-		'size' => 10,
-		'sort' => [
-			0 => [
-				'_score' => [
-					'order' => 'desc']]],
-					'query' => [
-						'function_score' => [
-							'query' => [
-								'bool' => [
-									'should' => [
-										0 => [
-											'multi_match' => [
-												'query' => 'blog',
-												'type' => 'phrase',
-												'fields' => [
-													0 => 'post_title',
-													1 => 'post_excerpt',
-													2 => 'post_content',
-												],
-												'boost' => 4,
-											],
-										],
-										1 => [
-											'multi_match' => [
-												'query' => 'blog',
-												'fields' => [
-													0 => 'post_title',
-													1 => 'post_excerpt',
-													2 => 'post_content',
-												],
-												'boost' => 2,
-												'fuzziness' => 0,
-												'operator' => 'and',
-											],
-										],
-										2 => [
-											'multi_match' => [
-												'query' => 'blog',
-												'fields' => [
-													0 => 'post_title',
-													1 => 'post_excerpt',
-													2 => 'post_content',
-												],
-												'fuzziness' => 'auto',
-											],
-										],
-									],
-								],
-							],
-							'functions' => [
-								0 => [
-									'exp' => [
-										'post_date_gmt' => [
-											'scale' => '14d',
-											'decay' => 0.25,
-											'offset' => '7d',
-										],
-									],
-								],
-							],
-							'score_mode' => 'avg',
-							'boost_mode' => 'sum',
-						],
-					],
-					'post_filter' => [
-						'bool' => [
-							'must' => [
-								0 => [
-									'terms' => [
-										'post_type.raw' => [
-											0 => 'post',
-											1 => 'page',
-										],
-									],
-								],
-								1 => [
-									'terms' => [
-										'post_status' => [
-											0 => 'publish',
-										],
-									],
-								],
-							],
-						],
-					],
-					'aggs' => [
-						'terms' => [
-							'filter' => [
-								'bool' => [
-									'must' => [
-										0 => [
-											'terms' => [
-												'post_type.raw' => [
-													0 => 'post',
-													1 => 'page',
-												],
-											],
-										],
-										1 => [
-											'terms' => [
-												'post_status' => [
-													0 => 'publish',
-												],
-											],
-										],
-									],
-								],
-							],
-							'aggs' => [
-								'category' => [
-									'terms' => [
-										'size' => 10000,
-										'field' => 'terms.category.slug',
-									],
-								],
-								'post_tag' => [
-									'terms' => [
-										'size' => 10000,
-										'field' => 'terms.post_tag.slug',
-									],
-								],
-								'post_format' => [
-									'terms' => [
-										'size' => 10000,
-										'field' => 'terms.post_format.slug',
-									],
-								],
-								'ep_custom_result' => [
-									'terms' => [
-										'size' => 10000,
-										'field' => 'terms.ep_custom_result.slug',
-									],
-								],
-							],
-						],
-					],
-	];
-
 }

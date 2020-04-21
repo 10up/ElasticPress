@@ -333,7 +333,7 @@ class Weighting {
 	/**
 	 * We need this method to test handle_save properly.
 	 *
-	 * @params string $redirect_url Redirect URL.
+	 * @param string $redirect_url Redirect URL.
 	 */
 	protected function redirect( $redirect_url ) {
 		// @codeCoverageIgnoreStart
