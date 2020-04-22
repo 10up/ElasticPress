@@ -142,4 +142,35 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertNotFalse( strpos( $output, 'ordering-app' ) );
 	}
 
+	public function testGetPointerData() {
+		$post_id_1  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_id_2  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$pointer_id = Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+
+		update_post_meta( $pointer_id, 'pointers', [
+			[ 'ID' => $post_id_1, 'order' => 1 ],
+			[ 'ID' => $post_id_2, 'order' => 2 ],
+		] );
+
+		$GLOBALS['post'] = get_post( $pointer_id );
+
+		$localized_data = $this->get_feature()->get_pointer_data_for_localize();
+
+		$this->assertEquals( 2, count( $localized_data ) );
+		$this->assertArrayHasKey( 'pointers', $localized_data );
+		$this->assertArrayHasKey( 'posts', $localized_data );
+		$this->assertEquals( $post_id_1, $localized_data['pointers'][0]['ID'] );
+		$this->assertEquals( $post_id_2, $localized_data['pointers'][1]['ID'] );
+		$this->assertTrue( $localized_data['posts'][$post_id_1] instanceof \WP_Post );
+		$this->assertTrue( $localized_data['posts'][$post_id_2] instanceof \WP_Post );
+	}
+
+	public function testEnqueueScripts() {
+		$this->assertFalse( wp_script_is( 'ep_ordering_scripts' ) );
+		$GLOBALS['pagenow'] = 'post-new.php';
+		set_current_screen( 'ep-pointer' );
+		$this->get_feature()->admin_enqueue_scripts();
+		$this->assertTrue( wp_script_is( 'ep_ordering_scripts' ) );
+	}
+
 }
