@@ -291,4 +291,21 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertFalse( $this->get_feature()->create_or_return_custom_result_term( 'test' ) );
 	}
 
+	public function testExcludeCustomResultsWeightingFields() {
+		$fields = [
+			'taxonomies' => [
+				'children' => [
+					'terms.category.name' => [],
+					'terms.post_tag.name' => [],
+					'terms.ep_custom_result.name' => [],
+				],
+			],
+		];
+
+		$result = $this->get_feature()->weighting_fields_for_post_type( $fields, 'post' );
+
+		$this->assertFalse( in_array( 'terms.ep_custom_result.name', $result['taxonomies']['children'] ) );
+		$this->assertEquals( 2, count( $result['taxonomies']['children'] ) );
+	}
+
 }
