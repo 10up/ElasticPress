@@ -118,4 +118,28 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertEquals( 'test_submenu_file', $this->get_feature()->submenu_file( 'test_submenu_file' ) );
 	}
 
+	public function testRegisterPostType() {
+		$post_types = get_post_types();
+		$this->assertTrue( in_array( 'ep-pointer', $post_types ) );
+
+		$taxonomies = get_taxonomies();
+		$this->assertTrue( in_array( 'ep_custom_result', $taxonomies ) );
+	}
+
+	public function testRegisterMetaBox() {
+		global $wp_meta_boxes;
+		$this->get_feature()->register_meta_box();
+		$this->assertArrayHasKey( 'ep-ordering', $wp_meta_boxes['ep-pointer-network']['normal']['default'] );
+		$this->assertEquals( 'Manage Results', $wp_meta_boxes['ep-pointer-network']['normal']['default']['ep-ordering']['title'] );
+	}
+
+	public function testRenderMetaBox() {
+		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+
+		ob_start();
+		$this->get_feature()->render_meta_box( get_post( $post_id ) );
+		$output = ob_get_clean();
+		$this->assertNotFalse( strpos( $output, 'ordering-app' ) );
+	}
+
 }
