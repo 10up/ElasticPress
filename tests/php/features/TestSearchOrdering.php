@@ -354,7 +354,6 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testPostsResults() {
-
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
@@ -377,7 +376,6 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
 
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id_1, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$query = new \WP_Query( [ 's' => 'findme' ] );
@@ -387,4 +385,31 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertEquals( 3, count( $new_posts ) );
 		$this->assertEquals( $post_id_1, $new_posts[0]->ID );
 	}
+
+	public function testRestApiInit() {
+		global $wp_rest_server;
+		add_filter( 'rest_url', [ $this, 'filter_rest_url_for_leading_slash' ], 10, 2 );
+		/** @var WP_REST_Server $wp_rest_server */
+		$wp_rest_server = new \WP_REST_Server;
+		do_action( 'rest_api_init', $wp_rest_server );
+
+		$routes = $wp_rest_server->get_routes();
+		$this->assertArrayHasKey( '/elasticpress/v1', $routes );
+		$this->assertArrayHasKey( '/elasticpress/v1/pointer_search', $routes );
+		$this->assertArrayHasKey( '/elasticpress/v1/pointer_preview', $routes );
+
+		remove_filter( 'rest_url', [ $this, 'filter_rest_url_for_leading_slash' ], 10, 2 );
+	}
+
+	public function filter_rest_url_for_leading_slash( $url, $path ) {
+		if ( is_multisite() || get_option( 'permalink_structure' ) ) {
+			return $url;
+		}
+
+		// Make sure path for rest_url has a leading slash for proper resolution.
+		$this->assertTrue( 0 === strpos( $path, '/' ), 'REST API URL should have a leading slash.' );
+
+		return $url;
+	}
+
 }
