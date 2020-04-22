@@ -308,4 +308,33 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertEquals( 2, count( $result['taxonomies']['children'] ) );
 	}
 
+	public function testFilterWeightingConfig() {
+		$config = [
+			'post' => [
+				'post_title'   => [
+					'weight'  => 1,
+					'enabled' => true,
+				],
+				'post_content' => [
+					'weight'  => 1,
+					'enabled' => true,
+				],
+				'post_excerpt' => [
+					'weight'  => 1,
+					'enabled' => true,
+				],
+
+				'author_name'  => [
+					'weight'  => 0,
+					'enabled' => false,
+				],
+			],
+		];
+
+		$updated_config = $this->get_feature()->filter_weighting_configuration( $config, [] );
+
+		$this->assertEquals( 5, count( $updated_config['post'] ) );
+		$this->assertArrayHasKey( 'terms.ep_custom_result.name', $updated_config['post'] );
+	}
+
 }
