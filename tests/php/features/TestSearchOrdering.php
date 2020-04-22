@@ -72,4 +72,20 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertArrayHasKey( 'ep-pointer', $messages );
 	}
 
+	public function testOutputFeatureBoxSummary() {
+		ob_start();
+		$this->get_feature()->output_feature_box_summary();
+		$output = ob_get_clean();
+
+		$this->assertNotFalse( strpos( $output, 'Insert specific posts into search results for specific search queries.') );
+	}
+
+	public function testOutputFeatureBoxLong() {
+		ob_start();
+		$this->get_feature()->output_feature_box_long();
+		$output = ob_get_clean();
+
+		$this->assertNotFalse( strpos( $output, 'Selected posts will be inserted into search results in the specified position.') );
+	}
+
 }
