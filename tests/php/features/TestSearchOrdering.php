@@ -64,4 +64,12 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertEquals( 'Custom Search Results', $instance->title );
 	}
 
+	public function testFilterUpdatedMessages() {
+		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$GLOBALS['post'] = get_post( $post_id );
+		$messages = $this->get_feature()->filter_updated_messages([]);
+
+		$this->assertArrayHasKey( 'ep-pointer', $messages );
+	}
+
 }
