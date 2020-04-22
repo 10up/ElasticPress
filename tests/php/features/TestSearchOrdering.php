@@ -337,4 +337,21 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertArrayHasKey( 'terms.ep_custom_result.name', $updated_config['post'] );
 	}
 
+	public function testFilterEnterTitleHere() {
+		$this->assertEquals( 'Nothing changes', $this->get_feature()->filter_enter_title_here( 'Nothing changes' ) );
+
+		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
+
+		$GLOBALS['post'] = get_post( $pointer_id );
+
+		$this->assertEquals( 'Enter Search Query', $this->get_feature()->filter_enter_title_here( 'Nothing changes' ) );
+	}
+
+	public function testFilterColumnNames() {
+		$columns = [ 'title' => 'Post title' ];
+		$result = $this->get_feature()->filter_column_names( $columns );
+
+		$this->assertArrayHasKey( 'title', $result );
+		$this->assertEquals( 'Search Query', $result['title'] );
+	}
 }
