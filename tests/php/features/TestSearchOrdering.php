@@ -173,4 +173,122 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertTrue( wp_script_is( 'ep_ordering_scripts' ) );
 	}
 
+	public function testSavePostEarlyReturn() {
+		$pointer_id = Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+		$return = $this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+		$this->assertNull( $return );
+
+		wp_set_current_user($this->factory->user->create( array( 'role' => 'subscriber' ) ) );
+		$_POST = [ 'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ) ];
+
+		$return = $this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+		$this->assertNull( $return );
+
+	}
+
+	public function testSavePost() {
+		$post_id_1  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_id_2  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts' => json_encode( [
+				[ 'ID' => $post_id_1, 'order' => 1 ],
+				[ 'ID' => $post_id_2, 'order' => 2 ],
+			] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+
+		$pointers_data = get_post_meta( $pointer_id, 'pointers', true );
+
+		$this->assertEquals( 2, count( $pointers_data ) );
+		$this->assertEquals( $post_id_1, $pointers_data[0]['ID'] );
+		$this->assertEquals( $post_id_2, $pointers_data[1]['ID'] );
+		$this->assertEquals( 'findme', get_post_meta( $pointer_id, 'search_term', true ) );
+		$terms = wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' );
+		$this->assertTrue( in_array( 'findme', $terms ) );
+
+		/**
+		 * Test change search term.
+		 */
+		$post_id_3  = Functions\create_and_sync_post( array( 'post_content' => '10up test 1' ) );
+		$post_id_4  = Functions\create_and_sync_post( array( 'post_content' => '10up test 2' ) );
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts' => json_encode( [
+				[ 'ID' => $post_id_3, 'order' => 1 ],
+				[ 'ID' => $post_id_4, 'order' => 2 ],
+				[ 'ID' => $post_id_2, 'order' => 3 ],
+			] ),
+		];
+
+		wp_update_post( [
+			'ID'         => $pointer_id,
+			'post_title' => '10up',
+		] );
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+		$this->assertEquals( '10up', get_post_meta( $pointer_id, 'search_term', true ) );
+
+		$this->assertFalse( get_the_terms( $post_id_1, 'ep_custom_result' ) );
+	}
+
+	public function testSaveUnpublishedPost() {
+		$post_id_1  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 2' ] );
+		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'draft', 'post_type' => 'ep-pointer' ] );
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts' => json_encode( [
+				[ 'ID' => $post_id_1, 'order' => 1 ],
+				[ 'ID' => $post_id_2, 'order' => 2 ],
+			] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+
+		$pointers_data = get_post_meta( $pointer_id, 'pointers', true );
+
+		$this->assertFalse( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' );
+	}
+
+	public function testSavePostMaxCustomResults() {
+		update_option( 'posts_per_page', 2 );
+		$post_id_1  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 2' ] );
+		$post_id_3  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 3' ] );
+		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts' => json_encode( [
+				[ 'ID' => $post_id_1, 'order' => 1 ],
+				[ 'ID' => $post_id_2, 'order' => 2 ],
+				[ 'ID' => $post_id_3, 'order' => 3 ],
+			] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+
+		$pointers_data = get_post_meta( $pointer_id, 'pointers', true );
+
+		$this->assertEquals( 2, count( $pointers_data ) );
+		$this->assertEquals( $post_id_1, $pointers_data[0]['ID'] );
+		$this->assertEquals( $post_id_2, $pointers_data[1]['ID'] );
+		$this->assertEquals( 'findme', get_post_meta( $pointer_id, 'search_term', true ) );
+		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) ) );
+		$this->assertFalse( get_the_terms( $post_id_3, 'ep_custom_result' ), 'name' );
+	}
+
+	public function testCreateTermFailed() {
+		add_filter( 'pre_insert_term', function() {
+			return new \WP_Error( 'test_error' );
+		} );
+
+		$this->assertFalse( $this->get_feature()->create_or_return_custom_result_term( 'test' ) );
+	}
+
 }
