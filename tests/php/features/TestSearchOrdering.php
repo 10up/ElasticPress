@@ -34,8 +34,6 @@ class TestSearchOrdering extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
 
 		$this->setup_test_post_type();
-		ElasticPress\Features::factory()->activate_feature( 'search' );
-		ElasticPress\Features::factory()->activate_feature( 'searchordering' );
 	}
 
 	/**
@@ -353,5 +351,40 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$this->assertArrayHasKey( 'title', $result );
 		$this->assertEquals( 'Search Query', $result['title'] );
+	}
+
+	public function testPostsResults() {
+
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		add_filter( 'ep_sync_terms_allow_hierarchy', '__return_false', 100, 1 );
+
+		$post_id_1  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 2' ] );
+		$post_id_3  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 3' ] );
+
+
+		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts' => json_encode( [
+				[ 'ID' => $post_id_1, 'order' => 1 ],
+			] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id_1, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query( [ 's' => 'findme' ] );
+
+		$new_posts = $this->get_feature()->posts_results( $query->posts, $query );
+
+		$this->assertEquals( 3, count( $new_posts ) );
+		$this->assertEquals( $post_id_1, $new_posts[0]->ID );
 	}
 }
