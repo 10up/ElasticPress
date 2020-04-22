@@ -88,4 +88,34 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertNotFalse( strpos( $output, 'Selected posts will be inserted into search results in the specified position.') );
 	}
 
+	public function testAdminMenu() {
+		$site_url = trailingslashit( get_option( 'siteurl' ) );
+
+		add_menu_page(
+			'ElasticPress',
+			'ElasticPress',
+			'manage_options',
+			'elasticpress'
+		);
+
+		$this->get_feature()->admin_menu();
+
+		$menu = $GLOBALS['submenu'];
+
+		$this->assertEquals( 2, count( $menu['elasticpress'] ) );
+		$this->assertEquals( 'Custom Results', $menu['elasticpress'][1][0] );
+	}
+
+	public function testParentFile() {
+		set_current_screen( 'front' );
+
+		$this->assertEquals( 'test_parent_file', $this->get_feature()->parent_file( 'test_parent_file' ) );
+	}
+
+	public function testSubmenuFile() {
+		set_current_screen( 'front' );
+
+		$this->assertEquals( 'test_submenu_file', $this->get_feature()->submenu_file( 'test_submenu_file' ) );
+	}
+
 }
