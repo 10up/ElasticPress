@@ -58,4 +58,10 @@ class TestSearchOrdering extends BaseTestCase {
 		return ElasticPress\Features::factory()->get_registered_feature( 'searchordering' );
 	}
 
+	public function testConstruct() {
+		$instance = new \ElasticPress\Feature\SearchOrdering\SearchOrdering();
+		$this->assertEquals( 'searchordering', $instance->slug );
+		$this->assertEquals( 'Custom Search Results', $instance->title );
+	}
+
 }
