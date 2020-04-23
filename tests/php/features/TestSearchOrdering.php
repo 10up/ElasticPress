@@ -250,7 +250,7 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$pointers_data = get_post_meta( $pointer_id, 'pointers', true );
 
-		$this->assertFalse( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' );
+		$this->assertFalse( get_the_terms( $post_id_1, 'ep_custom_result' ) );
 	}
 
 	public function testSavePostMaxCustomResults() {
@@ -278,7 +278,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertEquals( $post_id_2, $pointers_data[1]['ID'] );
 		$this->assertEquals( 'findme', get_post_meta( $pointer_id, 'search_term', true ) );
 		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) ) );
-		$this->assertFalse( get_the_terms( $post_id_3, 'ep_custom_result' ), 'name' );
+		$this->assertFalse( get_the_terms( $post_id_3, 'ep_custom_result' ) );
 	}
 
 	public function testCreateTermFailed() {
@@ -397,6 +397,14 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertArrayHasKey( '/elasticpress/v1/pointer_search', $routes );
 		$this->assertArrayHasKey( '/elasticpress/v1/pointer_preview', $routes );
 
+		$request = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_search' );
+		$response = $wp_rest_server->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+
+		$request = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_preview' );
+		$response = $wp_rest_server->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+
 		remove_filter( 'rest_url', [ $this, 'filter_rest_url_for_leading_slash' ], 10, 2 );
 	}
 
@@ -430,5 +438,58 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$this->assertTrue( in_array( $post_id_1, $post_ids ) );
 		$this->assertTrue( in_array( $post_id_2, $post_ids ) );
+	}
+
+	public function testHandlePostTrash() {
+		$post_id_1  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_id_2  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
+
+		// Test non ep-pointer post type.
+		$this->assertNull( $this->get_feature()->handle_post_trash( $post_id_1) );
+
+		// Test empty pointers
+		$this->assertNull( $this->get_feature()->handle_post_trash( $pointer_id) );
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts' => json_encode( [
+				[ 'ID' => $post_id_1, 'order' => 1 ],
+				[ 'ID' => $post_id_2, 'order' => 2 ],
+			] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) ) );
+
+		$this->get_feature()->handle_post_trash( $pointer_id );
+
+		$this->assertFalse( get_the_terms( $post_id_1, 'ep_custom_result' ) );
+	}
+
+	public function testHandlePostUntrash() {
+		$post_id_1  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_id_2  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts' => json_encode( [
+				[ 'ID' => $post_id_1, 'order' => 1 ],
+				[ 'ID' => $post_id_2, 'order' => 2 ],
+			] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+
+		$this->get_feature()->handle_post_trash( $pointer_id );
+
+		// Test non ep-pointer post type.
+		$this->assertNull( $this->get_feature()->handle_post_untrash( $post_id_1) );
+
+		$this->get_feature()->handle_post_untrash( $pointer_id );
+
+		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) ) );
+		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_2, 'ep_custom_result' ), 'name' ) ) );
 	}
 }
