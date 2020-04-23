@@ -34,6 +34,11 @@ class TestSearchOrdering extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
 
 		$this->setup_test_post_type();
+
+		// Backup the original
+		$this->original_post = $GLOBALS['post'];
+		$this->original_pagenow = $GLOBALS['pagenow'];
+		$this->original_screen = get_current_screen();
 	}
 
 	/**
@@ -44,9 +49,12 @@ class TestSearchOrdering extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
+
+		// Restore the original
+		$GLOBALS['post'] = $this->original_post;
+		$GLOBALS['pagenow'] = $this->original_pagenow;
+		set_current_screen( $this->original_screen );
 	}
 
 	/**
@@ -65,6 +73,7 @@ class TestSearchOrdering extends BaseTestCase {
 	public function testSetupWithSearchDisabled() {
 		ElasticPress\Features::factory()->deactivate_feature( 'search' );
 		$this->assertFalse( $this->get_feature()->setup() );
+		ElasticPress\Features::factory()->activate_feature( 'search' );
 	}
 
 	public function testFilterUpdatedMessages() {
