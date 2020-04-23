@@ -62,6 +62,11 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertEquals( 'Custom Search Results', $instance->title );
 	}
 
+	public function testSetupWithSearchDisabled() {
+		ElasticPress\Features::factory()->deactivate_feature( 'search' );
+		$this->assertFalse( $this->get_feature()->setup() );
+	}
+
 	public function testFilterUpdatedMessages() {
 		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
 		$GLOBALS['post'] = get_post( $post_id );
@@ -117,6 +122,7 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testRegisterPostType() {
+		$this->get_feature()->register_post_type();
 		$post_types = get_post_types();
 		$this->assertTrue( in_array( 'ep-pointer', $post_types ) );
 
@@ -281,12 +287,16 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertFalse( get_the_terms( $post_id_3, 'ep_custom_result' ) );
 	}
 
+	public function create_term_failed() {
+		return new \WP_Error( 'test_error' );
+	}
+
 	public function testCreateTermFailed() {
-		add_filter( 'pre_insert_term', function() {
-			return new \WP_Error( 'test_error' );
-		} );
+		add_filter( 'pre_insert_term', [ $this, 'create_term_failed'] );
 
 		$this->assertFalse( $this->get_feature()->create_or_return_custom_result_term( 'test' ) );
+
+		remove_filter( 'pre_insert_term', [ $this, 'create_term_failed'] );
 	}
 
 	public function testExcludeCustomResultsWeightingFields() {
