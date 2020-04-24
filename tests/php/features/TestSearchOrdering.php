@@ -36,7 +36,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->setup_test_post_type();
 
 		// Backup the original
-		$this->original_post = $GLOBALS['post'];
+		$this->original_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : '';
 		$this->original_pagenow = $GLOBALS['pagenow'];
 		$this->original_screen = get_current_screen();
 	}
@@ -54,7 +54,9 @@ class TestSearchOrdering extends BaseTestCase {
 		// Restore the original
 		$GLOBALS['post'] = $this->original_post;
 		$GLOBALS['pagenow'] = $this->original_pagenow;
-		set_current_screen( $this->original_screen );
+		if ( $this->original_screen instanceof \WP_Screen ) {
+			set_current_screen( $this->original_screen );
+		}
 	}
 
 	/**
@@ -66,8 +68,8 @@ class TestSearchOrdering extends BaseTestCase {
 
 	public function testConstruct() {
 		$instance = new \ElasticPress\Feature\SearchOrdering\SearchOrdering();
-		$this->assertEquals( 'searchordering', $instance->slug );
-		$this->assertEquals( 'Custom Search Results', $instance->title );
+		$this->assertSame( 'searchordering', $instance->slug );
+		$this->assertSame( 'Custom Search Results', $instance->title );
 	}
 
 	public function testSetupWithSearchDisabled() {
@@ -89,7 +91,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertNotFalse( strpos( $output, 'Insert specific posts into search results for specific search queries.') );
+		$this->assertContains( 'Insert specific posts into search results for specific search queries.', $output );
 	}
 
 	public function testOutputFeatureBoxLong() {
@@ -97,7 +99,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_long();
 		$output = ob_get_clean();
 
-		$this->assertNotFalse( strpos( $output, 'Selected posts will be inserted into search results in the specified position.') );
+		$this->assertContains( 'Selected posts will be inserted into search results in the specified position.', $output );
 	}
 
 	public function testAdminMenu() {
@@ -121,22 +123,22 @@ class TestSearchOrdering extends BaseTestCase {
 	public function testParentFile() {
 		set_current_screen( 'front' );
 
-		$this->assertEquals( 'test_parent_file', $this->get_feature()->parent_file( 'test_parent_file' ) );
+		$this->assertSame( 'test_parent_file', $this->get_feature()->parent_file( 'test_parent_file' ) );
 	}
 
 	public function testSubmenuFile() {
 		set_current_screen( 'front' );
 
-		$this->assertEquals( 'test_submenu_file', $this->get_feature()->submenu_file( 'test_submenu_file' ) );
+		$this->assertSame( 'test_submenu_file', $this->get_feature()->submenu_file( 'test_submenu_file' ) );
 	}
 
 	public function testRegisterPostType() {
 		$this->get_feature()->register_post_type();
 		$post_types = get_post_types();
-		$this->assertTrue( in_array( 'ep-pointer', $post_types ) );
+		$this->assertContains( 'ep-pointer', $post_types );
 
 		$taxonomies = get_taxonomies();
-		$this->assertTrue( in_array( 'ep_custom_result', $taxonomies ) );
+		$this->assertContains( 'ep_custom_result', $taxonomies );
 	}
 
 	public function testRegisterMetaBox() {
@@ -152,7 +154,7 @@ class TestSearchOrdering extends BaseTestCase {
 		ob_start();
 		$this->get_feature()->render_meta_box( get_post( $post_id ) );
 		$output = ob_get_clean();
-		$this->assertNotFalse( strpos( $output, 'ordering-app' ) );
+		$this->assertContains( 'ordering-app', $output );
 	}
 
 	public function testGetPointerData() {
@@ -174,8 +176,8 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertArrayHasKey( 'posts', $localized_data );
 		$this->assertEquals( $post_id_1, $localized_data['pointers'][0]['ID'] );
 		$this->assertEquals( $post_id_2, $localized_data['pointers'][1]['ID'] );
-		$this->assertTrue( $localized_data['posts'][$post_id_1] instanceof \WP_Post );
-		$this->assertTrue( $localized_data['posts'][$post_id_2] instanceof \WP_Post );
+		$this->assertInstanceOf( '\WP_Post', $localized_data['posts'][$post_id_1] );
+		$this->assertInstanceOf( '\WP_Post', $localized_data['posts'][$post_id_2] );
 	}
 
 	public function testEnqueueScripts() {
@@ -221,7 +223,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertEquals( $post_id_2, $pointers_data[1]['ID'] );
 		$this->assertEquals( 'findme', get_post_meta( $pointer_id, 'search_term', true ) );
 		$terms = wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' );
-		$this->assertTrue( in_array( 'findme', $terms ) );
+		$this->assertContains( 'findme', $terms );
 
 		/**
 		 * Test change search term.
@@ -292,20 +294,20 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertEquals( $post_id_1, $pointers_data[0]['ID'] );
 		$this->assertEquals( $post_id_2, $pointers_data[1]['ID'] );
 		$this->assertEquals( 'findme', get_post_meta( $pointer_id, 'search_term', true ) );
-		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) ) );
+		$this->assertContains( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) );
 		$this->assertFalse( get_the_terms( $post_id_3, 'ep_custom_result' ) );
 	}
 
-	public function create_term_failed() {
-		return new \WP_Error( 'test_error' );
-	}
-
 	public function testCreateTermFailed() {
-		add_filter( 'pre_insert_term', [ $this, 'create_term_failed'] );
+		$create_term_failed = function() {
+			return new \WP_Error( 'test_error' );
+		};
+
+		add_filter( 'pre_insert_term', $create_term_failed );
 
 		$this->assertFalse( $this->get_feature()->create_or_return_custom_result_term( 'test' ) );
 
-		remove_filter( 'pre_insert_term', [ $this, 'create_term_failed'] );
+		remove_filter( 'pre_insert_term', $create_term_failed );
 	}
 
 	public function testExcludeCustomResultsWeightingFields() {
@@ -321,7 +323,7 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$result = $this->get_feature()->weighting_fields_for_post_type( $fields, 'post' );
 
-		$this->assertFalse( in_array( 'terms.ep_custom_result.name', $result['taxonomies']['children'] ) );
+		$this->assertNotContains(  'terms.ep_custom_result.name', $result['taxonomies']['children'] );
 		$this->assertEquals( 2, count( $result['taxonomies']['children'] ) );
 	}
 
@@ -433,7 +435,7 @@ class TestSearchOrdering extends BaseTestCase {
 		}
 
 		// Make sure path for rest_url has a leading slash for proper resolution.
-		$this->assertTrue( 0 === strpos( $path, '/' ), 'REST API URL should have a leading slash.' );
+		$this->assertStringStartsWith( '/', $path, 'REST API URL should have a leading slash.' );
 
 		return $url;
 	}
@@ -455,8 +457,8 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$post_ids = wp_list_pluck( $response, 'ID' );
 
-		$this->assertTrue( in_array( $post_id_1, $post_ids ) );
-		$this->assertTrue( in_array( $post_id_2, $post_ids ) );
+		$this->assertContains( $post_id_1, $post_ids );
+		$this->assertContains( $post_id_2, $post_ids );
 	}
 
 	public function testHandlePostTrash() {
@@ -479,7 +481,7 @@ class TestSearchOrdering extends BaseTestCase {
 		];
 
 		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
-		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) ) );
+		$this->assertContains( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) );
 
 		$this->get_feature()->handle_post_trash( $pointer_id );
 
@@ -508,7 +510,7 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$this->get_feature()->handle_post_untrash( $pointer_id );
 
-		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) ) );
-		$this->assertTrue( in_array( 'findme', wp_list_pluck( get_the_terms( $post_id_2, 'ep_custom_result' ), 'name' ) ) );
+		$this->assertContains( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) );
+		$this->assertContains( 'findme', wp_list_pluck( get_the_terms( $post_id_2, 'ep_custom_result' ), 'name' ) );
 	}
 }
