@@ -85,8 +85,7 @@ class TestWeighting extends BaseTestCase {
 
 		$this->assertEquals( count( $searchable_post_types ), count( array_keys( $weighting_configuration ) ) );
 
-		$this->assertFalse( in_array( 'ep_test_not_public', array_keys( $weighting_configuration ), true ) );
-
+		$this->assertNotContains( 'ep_test_not_public', array_keys( $weighting_configuration ) );
 	}
 
 	/**
@@ -95,7 +94,7 @@ class TestWeighting extends BaseTestCase {
 	public function testWeightingConfiguration() {
 
 		$weighting_ep_test = $this->get_weighting_feature()->get_post_type_default_settings( 'ep_test' );
-		$this->assertTrue( $weighting_ep_test['post_title']['enabled'] );
+		$this->assertEquals( true, $weighting_ep_test['post_title']['enabled'] );
 
 		$weighting_configuration = $this->get_weighting_feature()->get_weighting_configuration();
 		$this->assertEmpty( $weighting_configuration );
@@ -114,14 +113,14 @@ class TestWeighting extends BaseTestCase {
 		// enable post_title weighting
 		$this->get_weighting_feature()->save_weighting_configuration( $weighting_settings );
 		$weighting_configuration = $this->get_weighting_feature()->get_weighting_configuration();
-		$this->assertTrue( $weighting_configuration['post']['post_title']['enabled'] );
+		$this->assertEquals( true, $weighting_configuration['post']['post_title']['enabled'] );
 		$this->assertEquals( 1, $weighting_configuration['post']['post_title']['weight'] );
 
 		// disable post_title weighting
 		$weighting_settings['weighting']['post']['post_title']['enabled'] = '';
 		$this->get_weighting_feature()->save_weighting_configuration( $weighting_settings );
 		$weighting_configuration = $this->get_weighting_feature()->get_weighting_configuration();
-		$this->assertFalse( $weighting_configuration['post']['post_title']['enabled'] );
+		$this->assertEquals( false, $weighting_configuration['post']['post_title']['enabled'] );
 
 	}
 
@@ -129,9 +128,9 @@ class TestWeighting extends BaseTestCase {
 		$fields = $this->get_weighting_feature()->get_weightable_fields_for_post_type( 'ep_test' );
 
 		$this->assertEquals( 2, count( $fields ) );
-		$this->assertTrue( in_array( 'post_title', array_keys( $fields['attributes']['children'] ) ) );
-		$this->assertTrue( in_array( 'terms.category.name', array_keys( $fields['taxonomies']['children'] ) ) );
-		$this->assertTrue( in_array( 'terms.post_tag.name', array_keys( $fields['taxonomies']['children'] ) ) );
+		$this->assertContains( 'post_title', array_keys( $fields['attributes']['children'] ) );
+		$this->assertContains( 'terms.category.name', array_keys( $fields['taxonomies']['children'] ) );
+		$this->assertContains( 'terms.post_tag.name', array_keys( $fields['taxonomies']['children'] ) );
 	}
 
 	public function testAddWeightingSubmenuPage() {
@@ -157,11 +156,11 @@ class TestWeighting extends BaseTestCase {
 		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 		$post_types = $search->get_searchable_post_types();
 
-		$this->assertRegexp( '/Manage Search Fields &amp; Weighting/', $content );
+		$this->assertContains( 'Manage Search Fields &amp; Weighting', $content );
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_object = get_post_type_object( $post_type );
-			$this->assertRegexp( '/<h2 class="hndle">'.$post_type_object->labels->menu_name.'/', $content );
+			$this->assertcontains( '<h2 class="hndle">'.$post_type_object->labels->menu_name, $content );
 		}
 	}
 
@@ -171,7 +170,7 @@ class TestWeighting extends BaseTestCase {
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
 
-		$this->assertRegexp( '/Changes Saved/', $content );
+		$this->assertcontains( 'Changes Saved', $content );
 	}
 
 	public function testRenderSettingsPageSaveFailed() {
@@ -180,7 +179,7 @@ class TestWeighting extends BaseTestCase {
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
 
-		$this->assertRegexp( '/An error occurred when saving/', $content );
+		$this->assertcontains( 'An error occurred when saving', $content );
 	}
 
 
@@ -236,7 +235,7 @@ class TestWeighting extends BaseTestCase {
 			return array_merge( $config, [ 'invalid_post_type' ] );
 		} );
 
-		$this->assertFalse( in_array( 'invalid_post_type', $this->get_weighting_feature()->save_weighting_configuration( $weighting_settings ) ) );
+		$this->assertNotContains( 'invalid_post_type', $this->get_weighting_feature()->save_weighting_configuration( $weighting_settings ) );
 	}
 
 	public function testRecursivelyInjectWeightsToFieldsInvalidArgs() {
@@ -268,25 +267,22 @@ class TestWeighting extends BaseTestCase {
 
 	public function testDoWeightingWithQueryContainsSearchFields() {
 		// Test search fields are set on the query.
-		$this->assertEquals( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['search_fields' => [ 'post_title' ] ] ) );
+		$this->assertSame( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['search_fields' => [ 'post_title' ] ] ) );
 	}
 
 	public function testDoWeightingInAdmin() {
 		// Test if we're in admin area.
 		set_current_screen( 'edit-post' );
-		$this->assertEquals( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['s' => 'blog' ] ) );
+		$this->assertSame( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['s' => 'blog' ] ) );
+		set_current_screen( 'front' );
 	}
 
 	public function testDoWeightingWithEmptySearchQuery() {
-		unset( $GLOBALS['current_screen'] );
-
 		// Test if search query is empty.
-		$this->assertEquals( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['s' => '' ] ) );
+		$this->assertSame( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['s' => '' ] ) );
 	}
 
 	public function testDoWeightingWithDefaultConfig() {
-		unset( $GLOBALS['current_screen'] );
-
 		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ... $this->getArgs() );
 
 		// We have 4 searchable post types.
@@ -294,8 +290,6 @@ class TestWeighting extends BaseTestCase {
 	}
 
 	public function testDoWeightingWithCustomConfig() {
-		unset( $GLOBALS['current_screen'] );
-
 		$this->get_weighting_feature()->save_weighting_configuration( $this->weighting_settings );
 
 		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->getArgs() );
