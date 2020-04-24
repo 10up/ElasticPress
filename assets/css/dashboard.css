@@ -626,6 +626,11 @@ h2.ep-list-features {
  * Weighting
  */
 
+.weighting-settings-wrapper {
+	display: flex;
+	grid-gap: 1rem;
+}
+
 .weighting-settings .postbox {
 	max-width: 650px;
 	box-sizing: border-box;
@@ -640,6 +645,7 @@ h2.ep-list-features {
 	cursor: inherit;
 }
 
+.weighting-settings .preview-box,
 .weighting-settings fieldset {
 	padding: 10px;
 }
@@ -799,6 +805,40 @@ h2.ep-list-features {
 	background: #1e8cbe;
 }
 
+
+/*
+* Preview
+*/
+
+.weighting-preview-wrapper {
+	flex-grow: 1;
+	min-width: 500px;
+}
+
+.weighting-preview-wrapper .preview-box {
+	padding: 10px;
+}
+
+.weighting-preview-wrapper  .preview-box label {
+	maring-right: 10px;
+}
+
+.weighting-preview-wrapper  .preview-box label > span {
+	display: block;
+	margin-bottom: 4px;
+	padding: 0 2px;
+}
+
+.weighting-preview-wrapper .preview-posts {
+	display: flex;
+}
+
+.weighting-preview-wrapper .preview-posts__results {
+	width: 50%;
+	padding-top: 10px;
+	margin-top: 10px;
+	padding-right: 24px;
+}
 
 /**
  * Animations

@@ -23,7 +23,39 @@ class Weighting {
 	public function setup() {
 		add_action( 'admin_menu', [ $this, 'add_weighting_submenu_page' ], 15 );
 		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
+		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
+	}
+
+	public function admin_enqueue_scripts() {
+		global $pagenow; // post-new.php or post.php
+
+		$screen = get_current_screen();
+
+		if ( in_array( $pagenow, [ 'admin.php' ], true ) && $screen instanceof \WP_Screen && $screen->id === 'elasticpress_page_elasticpress-weighting' ) {
+			wp_enqueue_script( 'ep_weighting_scripts', EP_URL . 'dist/js/weighting-script.min.js', [ 'jquery' ], EP_VERSION, true );
+
+			// get current weighting settings from the DB, and
+			// merge into the array below so that we can capture
+			// and use it intially
+			$current_values = $this->get_weighting_configuration();
+
+			// print_r( $current_values );
+
+			wp_localize_script(
+				'ep_weighting_scripts',
+				'epWeighting',
+					[
+						'searchEndpoint' => rest_url( 'elasticpress/v1/weighting_preview' ),
+						'nonce'          => wp_create_nonce( 'save-weight-settings' ),
+						'restApiRoot'    => rest_url( '/' ),
+						'postsPerPage'   => (int) get_option( 'posts_per_page', 10 ),
+						'postTypes'		=> $current_values
+					]
+
+			);
+		}
 	}
 
 	/**
@@ -186,53 +218,61 @@ class Weighting {
 			<p><?php esc_html_e( 'Adding more weight to an item will mean it will have more presence during searches. Add more weight to the items that are more important and need more prominence during searches.', 'elasticpress' ); ?></p>
 			<p><?php esc_html_e( 'For example, adding more weight to the title attribute will cause search matches on the post title to appear more prominently.', 'elasticpress' ); ?></p>
 
-			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" class="weighting-settings metabox-holder">
-				<input type="hidden" name="action" value="ep-weighting">
-				<?php wp_nonce_field( 'save-weighting', 'ep-weighting-nonce' ); ?>
-				<?php
-				if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
-					if ( $_GET['settings-updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification
-						?>
-						<div class="notice notice-success is-dismissible">
-							<p><?php esc_html_e( 'Changes Saved!', 'elasticpress' ); ?></p>
-						</div>
-					<?php else : ?>
-						<div class="notice notice-error is-dismissible">
-							<p><?php esc_html_e( 'An error occurred when saving!', 'elasticpress' ); ?></p>
-						</div>
-						<?php
-					endif;
-				endif;
-
-				/** Features Class @var Features $features */
-				$features = Features::factory();
-
-				/** Search Feature @var Feature\Search\Search $search */
-				$search = $features->get_registered_feature( 'search' );
-
-				$post_types = $search->get_searchable_post_types();
-
-				$current_values = $this->get_weighting_configuration();
-
-				foreach ( $post_types as $post_type ) :
-					$fields           = $this->get_weightable_fields_for_post_type( $post_type );
-					$post_type_object = get_post_type_object( $post_type );
-					?>
-					<div class="postbox">
-						<h2 class="hndle"><?php echo esc_html( $post_type_object->labels->menu_name ); ?></h2>
-
-						<?php
-						foreach ( $fields as $field_group ) :
-							$this->render_settings_section( $post_type, $field_group, $current_values );
-						endforeach;
-						?>
-					</div>
+			<div class="weighting-settings-wrapper">
+				<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" class="weighting-settings metabox-holder" id="weight-settings">
+					<input type="hidden" name="action" value="ep-weighting">
+					<?php wp_nonce_field( 'save-weighting', 'ep-weighting-nonce' ); ?>
 					<?php
-				endforeach;
+					if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
+						if ( $_GET['settings-updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification
+							?>
+							<div class="notice notice-success is-dismissible">
+								<p><?php esc_html_e( 'Changes Saved!', 'elasticpress' ); ?></p>
+							</div>
+						<?php else : ?>
+							<div class="notice notice-error is-dismissible">
+								<p><?php esc_html_e( 'An error occurred when saving!', 'elasticpress' ); ?></p>
+							</div>
+							<?php
+						endif;
+					endif;
 
-				submit_button();
-				?>
-			</form>
+					/** Features Class @var Features $features */
+					$features = Features::factory();
+
+					/** Search Feature @var Feature\Search\Search $search */
+					$search = $features->get_registered_feature( 'search' );
+
+					$post_types = $search->get_searchable_post_types();
+
+					$current_values = $this->get_weighting_configuration();
+
+					foreach ( $post_types as $post_type ) :
+						$fields           = $this->get_weightable_fields_for_post_type( $post_type );
+						$post_type_object = get_post_type_object( $post_type );
+						?>
+						<div class="postbox">
+							<h2 class="hndle"><?php echo esc_html( $post_type_object->labels->menu_name ); ?></h2>
+
+							<?php
+							foreach ( $fields as $field_group ) :
+								$this->render_settings_section( $post_type, $field_group, $current_values );
+							endforeach;
+							?>
+						</div>
+						<?php
+					endforeach;
+
+					submit_button();
+					?>
+				</form>
+				<div class="metabox-holder weighting-preview-wrapper">
+					<div class="postbox">
+						<h2 class="hndle">Search Results Preview</h2>
+						<div class="preview-box" id="weighting-preview"></div>
+					</div>
+				</div>
+			</div>
 		</div>
 		<?php
 	}
@@ -616,5 +656,98 @@ class Weighting {
 		}
 
 		return $formatted_args;
+	}
+
+
+	/**
+	 * Registers the API endpoint for searching from the admin interface
+	 */
+	public function rest_api_init() {
+		register_rest_route(
+			'elasticpress/v1',
+			'weighting_preview',
+			[
+				'methods'  => 'GET',
+				'callback' => [ $this, 'handle_weighting_preview' ],
+				'args'     => [
+					's' => [
+						'validate_callback' => function ( $param ) {
+							return ! empty( $param );
+						},
+						'required'          => true,
+					],
+				],
+			]
+		);
+
+		register_rest_route(
+			'elasticpress/v1',
+			'weighting_search',
+			[
+				'methods'  => 'GET',
+				'callback' => [ $this, 'handle_weighting_search' ],
+				'args'     => [
+					's' => [
+						'validate_callback' => function ( $param ) {
+							return ! empty( $param );
+						},
+						'required'          => true,
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Handles the search for posts from the admin interface for the post type
+	 *
+	 * @param \WP_REST_Request $request Rest request
+	 *
+	 * @return array
+	 */
+	public function handle_weighting_search( $request ) {
+		$search = $request->get_param( 's' );
+
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+
+		/** Search Feature @var Feature\Search\Search $search */
+		$search_feature = $features->get_registered_feature( 'search' );
+
+		$post_types = $search_feature->get_searchable_post_types();
+
+		$query = new \WP_Query(
+			[
+				'post_type'   => $post_types,
+				'post_status' => 'publish',
+				's'           => $search,
+			]
+		);
+
+		return $query->posts;
+	}
+
+	/**
+	 * Handles the search preview on the pointer edit screen
+	 *
+	 * @param \WP_REST_Request $request Rest request
+	 *
+	 * @return array
+	 */
+	public function handle_weighting_preview( $request ) {
+		remove_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
+
+		$search = $request->get_param( 's' );
+
+		$query = new \WP_Query(
+			[
+				's'                => $search,
+				'exclude_pointers' => true,
+			]
+		);
+
+		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
+
+		return $query->posts;
 	}
 }
