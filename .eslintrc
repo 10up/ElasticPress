@@ -13,6 +13,6 @@
     "no-unused-vars": [ 1 ]
   },
   "globals": {
-    "wp": true,
+    "wp": true
   }
 }

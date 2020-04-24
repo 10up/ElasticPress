@@ -16,7 +16,7 @@ window.addEventListener( 'load', function() {
 					checked: checked,
 				}, () => {
 					document.getElementById(
-						`switch-label-${ 
+						`switch-label-${
 							this.dataset.blogid}` ).innerHTML = ( this.checked ) ?
 						'On' :
 						'Off';

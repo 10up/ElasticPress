@@ -8,7 +8,7 @@ import {
 import 'element-closest';
 import 'promise-polyfill/src/polyfill';
 // import 'whatwg-fetch';
-import { epas, fetch } from 'window';
+import { epas } from 'window';
 
 /**
  * Submit the search form
