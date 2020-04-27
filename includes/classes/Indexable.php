@@ -317,7 +317,24 @@ abstract class Indexable {
 			$body .= "\n\n";
 		}
 
-		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+		$result = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+		$return = $result;
+
+		if ( is_wp_error( $result ) ) {
+			$return = false;
+		}
+
+		/**
+		 * Perform actions after a bulk indexing is completed
+		 *
+		 * @hook ep_after_bulk_index
+		 * @param {array} $object_ids List of object ids attempted to be indexed
+		 * @param {string} $slug Current indexable slug
+		 * @param {array|bool} $return Result of the Elasticsearch query. False on error.
+		 */
+		do_action( 'ep_after_bulk_index', $object_ids, $this->slug, $return );
+
+		return $result;
 	}
 
 	/**
