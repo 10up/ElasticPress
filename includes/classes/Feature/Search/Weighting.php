@@ -411,6 +411,9 @@ class Weighting {
 			/** override default post_type settings while saving */
 			$new_config[ $post_type ] = array();
 
+
+			// this!!
+
 			if ( isset( $settings['weighting'][ $post_type ] ) ) {
 				foreach ( $settings['weighting'][ $post_type ] as $weighting_field => $weighting_values ) {
 					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
@@ -665,17 +668,23 @@ class Weighting {
 	public function rest_api_init() {
 		register_rest_route(
 			'elasticpress/v1',
-			'weighting_preview',
+			'weighting_test',
 			[
-				'methods'  => 'GET',
-				'callback' => [ $this, 'handle_weighting_preview' ],
+				'methods'  => 'POST',
+				'callback' => [ $this, 'handle_weighting_test' ],
 				'args'     => [
 					's' => [
 						'validate_callback' => function ( $param ) {
 							return ! empty( $param );
 						},
 						'required'          => true,
-					],
+					]
+					// 'data' => [
+					// 	'validate_callback' => function ( $param ) {
+					// 		return ! empty( $param );
+					// 	},
+					// 	'required'          => true,
+					// ]
 				],
 			]
 		);
@@ -699,7 +708,8 @@ class Weighting {
 	}
 
 	/**
-	 * Handles the search for posts from the admin interface for the post type
+	 * Handles the search for posts from the admin interface
+	 * with the currrent weight settings from the DB
 	 *
 	 * @param \WP_REST_Request $request Rest request
 	 *
@@ -728,26 +738,42 @@ class Weighting {
 	}
 
 	/**
-	 * Handles the search preview on the pointer edit screen
+	 * Handles the search preview using the modified weight
+	 * setting from the admin
 	 *
 	 * @param \WP_REST_Request $request Rest request
 	 *
 	 * @return array
 	 */
-	public function handle_weighting_preview( $request ) {
-		remove_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
-
+	public function handle_weighting_test( $request ) {
 		$search = $request->get_param( 's' );
+		$settings = $request[ 'settings'];
+
+
+		// set the filters for the weighitng settings
+		$test_weighting = format_test_weighting_data( $settings );
+		apply_filters( 'ep_weighting_configuration', $test_weighting, [] );
+		// without saving them...
+
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+
+		/** Search Feature @var Feature\Search\Search $search */
+		$search_feature = $features->get_registered_feature( 'search' );
+
+		$post_types = $search_feature->get_searchable_post_types();
+
+		// can we get the values from the DOM here with the updated
+		// weighting settings??
 
 		$query = new \WP_Query(
 			[
-				's'                => $search,
-				'exclude_pointers' => true,
+				'post_type'   => $post_types,
+				'post_status' => 'publish',
+				's'           => $search,
 			]
 		);
 
-		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
-
-		return $query->posts;
+		return  $request['message']; //$query->posts;
 	}
 }

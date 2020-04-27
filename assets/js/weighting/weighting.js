@@ -11,15 +11,21 @@ const Weighting = () => {
 	const [searchTerm, setSearchTerm] = useState( '' );
 
 	const [defaultLoading, setDefaultLoading] = useState( false );
-	const [defaultResults, setDefaultResults] = useState( [] );
+	const [resultsFromDefaultValues, setResultsFromDefaultValues] = useState( [] );
+
+	const [defaultWeightSettings, setDefaultWeightSettings] = useState( {} );
 
 	const [testLoading, setTestLoading] = useState( false );
-	const [testResults, setTestResults] = useState( [] );
+	const [resultsFromTestValues, setResultsFromTestValues] = useState( [] );
 
 	/**
 	 * Fires only on componentDidMount with empty []
 	 */
 	useEffect( () => {
+		// captureUpdatedtWeightingValues();
+		const defaultSettings = window.epWeighting.postTypes;
+		setDefaultWeightSettings( defaultSettings );
+
 		captureUpdatedtWeightingValues();
 	}, [] );
 
@@ -28,9 +34,23 @@ const Weighting = () => {
 	 * Get the current values of the weights in the UI
 	 */
 	const captureUpdatedtWeightingValues = () => {
-		const weightForm = document.forms.find( form => 'weight-settings' == form.id );
-		console.log( weightForm );
+		const weightForm = document.forms;
+		const form = Array.from( weightForm ).find( form => 'weight-settings' == form.id ).elements;
+		// console.log( form );
+
+		const values = [].map.call( form, el => {
+			return {
+				name: el.name,
+				value: el.value
+			};
+		} )
+			.filter( value => value.name.startsWith( 'weighting' ) && 'undefined' !== name.value );
+
+		console.log( values );
+
+		// return formattedValues;
 	};
+
 
 
 	/**
@@ -40,24 +60,58 @@ const Weighting = () => {
 	const handleSubmit = e => {
 		e.preventDefault();
 		console.log( 'submitted!' );
-		searchWithCurrentWeighingSettings();
+		// const defaultSearch = searchWithCurrentWeightingSettings();
+		const updatedSearch = searchWithUpdatedWeightingSettings();
+
+		Promise.all( [
+			// defaultSearch,
+			updatedSearch
+		] );
 	};
 
 	/**
 	 * Search with the current weighting settings
 	 */
-	const searchWithCurrentWeighingSettings = async () => {
+	const searchWithCurrentWeightingSettings = async () => {
 		try {
 			setDefaultLoading( true );
 			const results = await apiFetch( {
-				path: `/elasticpress/v1/weighting_search?s=${searchTerm}`,
+				path: `/elasticpress/v1/weighting_search?s=${searchTerm}`
 			} );
-			setDefaultResults( results );
+			setResultsFromDefaultValues( results );
 
 		} catch ( error ) {
-			console.error( 'There was a problem fetching the posts.', error );
+			console.error( 'There was a problem fetching the results.', error );
 		} finally {
 			setDefaultLoading( false );
+		}
+	};
+
+
+	/**
+	 * Search with the current weighting settings
+	 */
+	const searchWithUpdatedWeightingSettings = async () => {
+		// first thing's first
+		const values = captureUpdatedtWeightingValues();
+
+		// then...
+		try {
+			setTestLoading( true );
+			const results = await apiFetch( {
+				path: `/elasticpress/v1/weighting_test?s=${searchTerm}`,
+				method: 'POST',
+				data: {
+					settings: JSON.stringify( values )
+				}
+			} );
+			console.log( results );
+			setResultsFromTestValues( results );
+
+		} catch ( error ) {
+			console.error( 'There was a problem fetching the test results.', error );
+		} finally {
+			setTestLoading( false );
 		}
 	};
 
@@ -85,9 +139,9 @@ const Weighting = () => {
 			<div className="preview-posts">
 				<div className="preview-posts__results">
 					<h4>Current Results:</h4>
-					{!defaultLoading && defaultResults && (
+					{!defaultLoading && resultsFromDefaultValues && (
 						<ul>
-							<SearchResults results={defaultResults} />
+							<SearchResults results={resultsFromDefaultValues} />
 						</ul>
 					)}
 					{defaultLoading && (
@@ -96,11 +150,14 @@ const Weighting = () => {
 				</div>
 				<div className="preview-posts__results">
 					<h4>Test Results:</h4>
-					{/* {defaultResults && (
+					{!testLoading && resultsFromTestValues && (
 						<ul>
-							{testResults.map( result => <SearchResults result={result} /> )}
+							<SearchResults results={resultsFromTestValues} />
 						</ul>
-					)} */}
+					)}
+					{testLoading && (
+						<p>Loading...</p>
+					)}
 				</div>
 			</div>
 		</div>
