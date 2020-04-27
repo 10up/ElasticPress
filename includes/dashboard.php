@@ -47,7 +47,7 @@ function setup() {
 	add_filter( 'plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_filter( 'network_admin_plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
-	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
+	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
 	add_filter( 'wpmu_blogs_columns', __NAMESPACE__ . '\filter_blogs_columns', 10, 1 );
 	add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
@@ -926,7 +926,7 @@ function action_admin_menu() {
  * @param string $language The current language.
  * @return string          The updated language.
  */
-function use_language_in_setting( $language = 'english' ) {
+function use_language_in_setting( $language = 'english', $context ) {
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
@@ -989,11 +989,50 @@ function use_language_in_setting( $language = 'english' ) {
 		'thai'       => [ 'th' ],
 	];
 
+	/**
+	 * Languages supported in Elasticsearch snowball token filters.
+	 *
+	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-snowball-tokenfilter.html
+	 */
+	$es_snowball_languages = [
+		'Armenian',
+		'Basque',
+		'Catalan',
+		'Danish',
+		'Dutch',
+		'English',
+		'Finnish',
+		'French',
+		'German',
+		'German2', // currently unused
+		'Hungarian',
+		'Italian',
+		'Kp', // currently unused
+		'Lithuanian',
+		'Lovins', // currently unused
+		'Norwegian',
+		'Porter', // currently unused
+		'Portuguese',
+		'Romanian',
+		'Russian',
+		'Spanish',
+		'Swedish',
+		'Turkish',
+	];
+
 	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
 		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
 			$language = $analyzer_name;
 			break;
 		}
+	}
+
+	if( 'filter_ewp_snowball' === $context ) {
+		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
+			return ucfirst( $language );
+		}
+
+		return 'English';
 	}
 
 	return $language;
