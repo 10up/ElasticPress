@@ -943,51 +943,60 @@ function use_language_in_setting( $language = 'english' ) {
 		return $language;
 	}
 
-	$english_name = strtolower( $translations[ $ep_language ]['english_name'] );
+	$wp_language = $translations[ $ep_language ]['language'];
 
 	/**
 	 * Languages supported in Elasticsearch mappings.
+	 * Array format: Elasticsearch analyzer name => WordPress language package name
 	 *
 	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
 	 */
-	$ep_languages = [
-		'arabic',
-		'armenian',
-		'basque',
-		'bengali',
-		'brazilian',
-		'bulgarian',
-		'catalan',
-		'cjk',
-		'czech',
-		'danish',
-		'dutch',
-		'english',
-		'finnish',
-		'french',
-		'galician',
-		'german',
-		'greek',
-		'hindi',
-		'hungarian',
-		'indonesian',
-		'irish',
-		'italian',
-		'latvian',
-		'lithuanian',
-		'norwegian',
-		'persian',
-		'portuguese',
-		'romanian',
-		'russian',
-		'sorani',
-		'spanish',
-		'swedish',
-		'turkish',
-		'thai',
+	$es_languages = [
+		'arabic'     => [ 'ar', 'ary' ], // Arabic, Moroccan Arabic
+		'armenian'   => [ 'hy' ], // Armenian
+		'basque'     => [ 'eu' ], // Basque
+		'bengali'    => [ 'bn', 'bn_BD' ], // Bengali (Bangladesh)
+		'brazilian'  => [ 'pt_BR' ], // Portuguese (Brazilian)
+		'bulgarian'  => [ 'bg' ], // Bulgarian
+		'catalan'    => [ 'ca' ], // Catalan
+		'cjk'        => [ 'cjk' ], // CJK characters
+		'czech'      => [ 'cs' ], // Czech
+		'danish'     => [ 'da' ],
+		'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
+		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_ZA' ],
+		'estonian'   => [ 'et' ],
+		'finnish'    => [ 'fi' ],
+		'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
+		'galician'   => [ 'gl_ES' ],
+		'german'     => [ 'de', 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal', 'de_AT' ],
+		'greek'      => [ 'el' ],
+		'hindi'      => [ 'hi_IN' ],
+		'hungarian'  => [ 'hu_HU' ],
+		'indonesian' => [ 'id_ID' ],
+		'irish'      => [],
+		'italian'    => [ 'it_IT' ],
+		'latvian'    => [ 'lv' ],
+		'lithuanian' => [ 'lt_LT' ],
+		'norwegian'  => [ 'nb_NO' ],
+		'persian'    => [ 'fa_IR' ],
+		'portuguese' => [ 'pt', 'pt_AO', 'pt_BR', 'pt_PT', 'pt_PT_ao90' ],
+		'romanian'   => [ 'ro_RO' ],
+		'russian'    => [ 'ru_RU' ],
+		'sorani'     => [ 'ckb' ],
+		'spanish'    => [ 'es_CR', 'es_MX', 'es_VE', 'es_AR', 'es_CL', 'es_GT', 'es_PE', 'es_ES', 'es_UY', 'es_CO' ],
+		'swedish'    => [ 'sv_SE' ],
+		'turkish'    => [ 'tr_TR' ],
+		'thai'       => [ 'th' ],
 	];
 
-	return in_array( $english_name, $ep_languages, true ) ? $english_name : $language;
+	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
+		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
+			$language = $analyzer_name;
+			break;
+		}
+	}
+
+	return $language;
 }
 
 /**
