@@ -1233,10 +1233,10 @@ class Post extends Indexable {
 					'bool' => array(
 						'filter' => array(
 							'script' => array(
-								'script' => array( 
+								'script' => array(
 									'source' => $custom_query,
-									'lang' => 'painless',
-								)
+									'lang'   => 'painless',
+								),
 							),
 						),
 					),
