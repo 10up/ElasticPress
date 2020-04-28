@@ -1228,14 +1228,14 @@ class Post extends Indexable {
 		}
 
 		if ( ! empty( $args['custom_query'] ) ) {
-			foreach($args['custom_query'] as $customQuery){
+			foreach ( $args['custom_query'] as $custom_query ) {
 				$filter['bool']['must'][] = array(
-					"bool" => array(
-						"filter" => array(
+					'bool' => array(
+						'filter' => array(
 							'script' => array(
 								'script' => array( 
-									"source" => $customQuery,
-									"lang" => "painless"
+									'source' => $custom_query,
+									'lang' => 'painless',
 								)
 							),
 						),
@@ -1243,8 +1243,6 @@ class Post extends Indexable {
 				);
 			}
 		}
-
-
 
 		/**
 		 * Like WP_Query in search context, if no post_status is specified we default to "any". To
