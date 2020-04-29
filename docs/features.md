@@ -37,3 +37,7 @@ Add controls to your website to filter content by one or more taxonomies.
 ## Users (requires WordPress 5.1+)
 
 Improve user search relevancy and query performance.
+
+## Terms (requires WordPress 5.3+)
+
+Improve term search relevancy and query performance.

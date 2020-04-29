@@ -40,7 +40,7 @@
     "lint-fix": "phpcbf elasticpress.php includes",
     "test": "phpunit  --group=testMultipleTests --verbose --debug",
     "test-single-site": "phpunit -c single-site.xml.dist",
-    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password mysql latest true"
+    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password mysql trunk true"
   },
   "extra": {
     "installer-paths": {

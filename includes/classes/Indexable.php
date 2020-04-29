@@ -330,7 +330,7 @@ abstract class Indexable {
 	/**
 	 * Check to see if we should allow elasticpress to override this query
 	 *
-	 * @param WP_Query|WP_User_Query $query WP_Query or WP_User_Query instance
+	 * @param \WP_Query|\WP_User_Query|\WP_Term_Query $query WP_Query or WP_User_Query or WP_Term_Query instance
 	 * @return bool
 	 * @since 3.0
 	 */
