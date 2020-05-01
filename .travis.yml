@@ -18,7 +18,7 @@ cache:
 
 env:
   global:
-  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="7.5.0"
+  - WP_VERSION=latest ES_VERSION="7.5.0"
 
 before_install:
   - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ES_VERSION-amd64.deb
