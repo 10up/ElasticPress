@@ -5546,6 +5546,17 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMaybeSwitchToBlog() {
 
+		// Do an assert here for both single and multisite tests so we
+		// don't get a warning.
+		$multisite = defined( 'WP_TESTS_MULTISITE' ) && '1' === WP_TESTS_MULTISITE;
+
+		$this->assertSame( $multisite, is_multisite() );
+
+		// Only continue if this is in multisite.
+		if ( ! is_multisite() ) {
+			return;
+		}
+
 		$sites      = get_sites();
 		$blog_1_id  = get_current_blog_id();
 		$blog_2_id  = false;
