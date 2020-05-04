@@ -71,3 +71,58 @@ export const findAncestor = ( el, className ) => {
 export const pluck = ( array, key ) => {
 	return array.map( ( o ) => o[key] );
 };
+
+
+/**
+ * Formats object like a url query string, which is how ajax methods
+ * in PHP expect to receive the data, e.g. action_wp_ajax_ep_save_feature
+ * from dashboard.php
+ *
+ * @param {object} obj - js object
+ */
+export const formatPostBody = obj => {
+	return Object.keys( obj )
+		.map( key => `${encodeURIComponent( key )}=${encodeURIComponent( obj[key] )}` )
+		.join( '&' )
+		.replace( /%20/g, '+' );
+};
+
+
+/**
+ * Decorated helper function to show node/NodeList/array of nodes
+ *
+ * @param {array} els - Nodelist/array of Nodes to show
+ */
+export const showElements = els => showOrHideNodes( els, '');
+
+
+/**
+ * Decorated helper function to hide node/NodeList/array of nodes
+ *
+ * @param {array} els - Nodelist/array of Nodes to show
+ */
+export const hideElements = els => showOrHideNodes( els, 'none');
+
+
+/**
+ * Helper method to wrap show/hide elements. Not exported.
+ *
+ * @param {array} nodes - could possibly be a single node, or an array of nodes
+ * @param {string} display
+ */
+const showOrHideNodes = (els, display) => {
+	let nodes = [];
+
+	// convert nodelist to array
+	if( NodeList.prototype.isPrototypeOf( els ) ) {
+		nodes = Array.from( els );
+	}
+
+	// if not converted, then it was a single node,
+	// so create an array
+	if( !nodes.length && !Array.isArray( els ) ) {
+		nodes.push( els );
+	}
+
+	nodes.forEach( el => el.style.display = display );
+}
