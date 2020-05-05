@@ -24,6 +24,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Facets extends Feature {
 
 	/**
+	 * Facet query
+	 *
+	 * @var array
+	 */
+	public $placeholder_query = [];
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -35,7 +42,8 @@ class Facets extends Feature {
 
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
-			'match_type' => 'all',
+			'match_type'   => 'all',
+			'ajax_enabled' => false,
 		];
 
 		parent::__construct();
@@ -54,6 +62,113 @@ class Facets extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
+
+		$settings = $this->get_settings();
+
+		if ( true === (bool) $settings['ajax_enabled'] ) {
+			add_filter( 'the_posts', [ $this, 'inject_templating_post' ], PHP_INT_MAX, 2 );
+			add_action( 'the_post', [ $this, 'maybe_buffer_template_item' ] );
+			add_action( 'loop_end', [ $this, 'maybe_capture_template_output' ] );
+			add_action( 'wp_footer', [ $this, 'output_templating_post' ] );
+			add_filter( 'post_link', [ $this, 'maybe_replace_post_link' ], 10, 2 );
+		}
+
+	}
+
+	/**
+	 * Replace permalink for templating purpose
+	 *
+	 * @param String   $link Post permalink
+	 * @param \WP_Post $post Post Object
+	 *
+	 * @return string
+	 */
+	public function maybe_replace_post_link( $link, $post ) {
+		if ( - 99999999999 === $post->ID ) {
+			$link = '{{PERMALINK}}';
+		}
+
+		return $link;
+	}
+
+	/**
+	 * HTML Output of the templating post
+	 */
+	public function output_templating_post() {
+		global $ep_facet_output;
+
+		$settings = $this->get_settings();
+
+		if( ! empty( $settings['ajax_template'] ) ) {
+			$template = file_get_contents( locate_template( $settings['ajax_template'] ) );
+			echo $template;
+		} else{
+			if ( ! empty( $ep_facet_output ) ) {
+				echo '<template id="ep-facet-sample-result">' . $ep_facet_output . '</template>'; // phpcs:ignore
+			}
+		}
+
+	}
+
+	/**
+	 * Start output buffering for template post
+	 *
+	 * @param \WP_Post $post Post object
+	 */
+	public function maybe_buffer_template_item( $post ) {
+		global $ep_facet_buffer;
+		if ( - 99999999999 === $post->ID ) {
+			ob_start();
+			$ep_facet_buffer = true;
+		}
+	}
+
+	/**
+	 * Stop autput buffering for template post
+	 *
+	 * @param \WP_Query $query WP Query
+	 */
+	public function maybe_capture_template_output( $query ) {
+		global $ep_facet_buffer, $ep_facet_output;
+		if ( true === $ep_facet_buffer ) {
+			$ep_facet_output = ob_get_clean();
+			$ep_facet_buffer = false;
+		}
+	}
+
+	/**
+	 * Inject fake post to search loop
+	 *
+	 * @param \WP_Post  $post  Post object
+	 * @param \WP_Query $query WP Query
+	 *
+	 * @return array
+	 */
+	public function inject_templating_post( $post, $query ) {
+		if ( $query->is_main_query() && $query->is_search() ) {
+			$fake_post                        = new \stdClass();
+			$fake_post->ID                    = - 99999999999;
+			$fake_post->post_author           = 1;
+			$fake_post->post_date             = current_time( 'mysql' );
+			$fake_post->post_date_gmt         = current_time( 'mysql' );
+			$fake_post->post_title            = '{{POST_TITLE}}';
+			$fake_post->post_excerpt          = '{{POST_EXCERPT}}';
+			$fake_post->post_content          = '{{POST_CONTENT}}';
+			$fake_post->post_content_filtered = '{{POST_CONTENT_FILTERED}}';
+			$fake_post->post_status           = 'publish';
+			$fake_post->comment_status        = 'closed';
+			$fake_post->ping_status           = 'closed';
+			$fake_post->post_name             = 'ep-facets-templating-post';
+			$fake_post->post_type             = 'post';
+			$fake_post->filter                = 'raw';
+			$fake_post->permalink             = '{{PERMALINK}}';
+
+			$templating_post = new \WP_Post( $fake_post );
+
+			$post[]          = $templating_post;
+		}
+
+		return $post;
 	}
 
 	/**
@@ -69,6 +184,9 @@ class Facets extends Feature {
 		}
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
+		echo '<pre>';
+		print_r( $settings );
+		echo '</pre>';
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
@@ -78,6 +196,31 @@ class Facets extends Feature {
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'AJAX', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="ajax_enabled"><input name="ajax_enabled" id="ajax_enabled" data-field-name="ajax_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['ajax_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="ajax_disabled"><input name="ajax_enabled" id="ajax_disabled" data-field-name="ajax_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['ajax_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+			</div>
+		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><label for="feature_ajax_selector"><?php esc_html_e( 'DOM Selector', 'elasticpress' ); ?></label></div>
+			<div class="input-wrap">
+				<input value="<?php echo empty( $settings['ajax_selector'] ) ? '#main' : esc_html( $settings['ajax_selector'] ); ?>" type="text" data-field-name="ajax_selector" class="setting-field" id="feature_ajax_selector">
+				<p class="field-description"><?php esc_html_e( 'Target selector to replace the content.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><label for="feature_ajax_template"><?php esc_html_e( 'Template File', 'elasticpress' ); ?></label></div>
+			<div class="input-wrap">
+				<input value="<?php echo empty( $settings['ajax_template'] ) ? '' : esc_html( $settings['ajax_template'] ); ?>" type="text" data-field-name="ajax_template" class="setting-field" id="feature_ajax_template">
+				<p class="field-description"><?php esc_html_e( 'Add a path from the root of your theme to use as the template for showing a post in the ajax results. E.g. partials/file-name.php', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
 		<?php
 	}
 
@@ -94,6 +237,11 @@ class Facets extends Feature {
 		if ( empty( $query_args['ep_facet'] ) ) {
 			return $args;
 		}
+
+		/**
+		 * Catch current query for FE use
+		 */
+		$this->placeholder_query = $args;
 
 		// @todo For some reason these are appearing in the query args, need to investigate
 		unset( $query_args['category_name'] );
@@ -173,6 +321,26 @@ class Facets extends Feature {
 			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
 			EP_VERSION
+		);
+
+		$settings = $this->get_settings();
+
+		$facet_options = [
+			'ajax_enabled' => (int) ( $settings['ajax_enabled'] ),
+			'selector'     => empty( $settings['ajax_selector'] ) ? '' : esc_html( $settings['ajax_selector'] ),
+			'query'        => $this->placeholder_query,
+			'match_type'   => $settings['match_type'],
+			'endpointUrl'  => trailingslashit( Utils\get_host() ) . Indexables::factory()->get( 'post' )->get_index_name() . '/_search',
+		];
+
+		if ( Utils\is_epio() ) {
+			$facet_options['addFacetsHeader'] = true;
+		}
+
+		wp_localize_script(
+			'elasticpress-facets',
+			'epfacets',
+			$facet_options
 		);
 	}
 
