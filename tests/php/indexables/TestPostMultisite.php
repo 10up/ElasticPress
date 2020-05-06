@@ -1095,13 +1095,6 @@ class TestPostMultisite extends BaseTestCase {
 			'sites'         => 'all',
 			'post_type'     => 'ep_test',
 			'author'        => $user_id,
-			'tax_query'     => array(
-				array(
-					'taxonomy' => 'post_tag',
-					'terms'    => array( 'term' ),
-					'field'    => 'slug',
-				),
-			),
 			'search_fields' => array(
 				'post_title',
 				'post_excerpt',

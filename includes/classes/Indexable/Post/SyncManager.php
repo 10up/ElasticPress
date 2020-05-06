@@ -13,7 +13,9 @@ use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -28,7 +30,9 @@ class SyncManager extends SyncManagerAbstract {
 	 */
 	public function setup() {
 		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
@@ -67,7 +71,9 @@ class SyncManager extends SyncManagerAbstract {
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			// Bypass saving if doing autosave
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$post = get_post( $object_id );
@@ -166,7 +172,9 @@ class SyncManager extends SyncManagerAbstract {
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			// Bypass saving if doing autosave
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		/**
@@ -228,7 +236,9 @@ class SyncManager extends SyncManagerAbstract {
 	 */
 	public function action_create_blog_index( $blog ) {
 		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );

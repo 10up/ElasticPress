@@ -95,11 +95,11 @@ class QueryIntegration {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document['ID'];
 				}
-			} else if ( is_array( $fields ) ) {
+			} elseif ( is_array( $fields ) ) {
 				// WP_User_Query returns a stdClass.
 				foreach ( $ep_query['documents'] as $document ) {
 
-					$user = new \stdClass();
+					$user                = new \stdClass();
 					$user->elasticsearch = true; // Super useful for debugging.
 
 					foreach ( $fields as $field ) {
@@ -108,7 +108,7 @@ class QueryIntegration {
 
 					$new_users[] = $user;
 				}
-			} else if ( is_string( $fields ) && ! empty( $fields ) && 'all' !== $fields ) {
+			} elseif ( is_string( $fields ) && ! empty( $fields ) && 'all' !== $fields ) {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document[ $fields ];
 				}
