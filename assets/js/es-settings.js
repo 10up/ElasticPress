@@ -26,8 +26,7 @@ const handleInputChange = (event) => {
 /**
  * ToggleActiveTab
  *
- * @param e
- * @param {event} event - click event
+ * @param {event} e - click event
  */
 const toggleActiveTab = (e) => {
 	e.preventDefault();

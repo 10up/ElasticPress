@@ -76,29 +76,28 @@ h2.ep-list-features {
 	padding-right: 3px;
 	height: 39px;
 	line-height: 39px;
-	display: inline-block;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .ep-header-menu .icons .dashicons-update {
 	font-size: 29px;
-	margin-right: 10px;
-	top: -3px;
 }
 
 .ep-header-menu .icons a {
 	font-size: 27px;
-	vertical-align: middle;
 	color: inherit;
 	position: relative;
-	top: -3px;
-	margin-left: 8px;
+	margin-left: 12px;
 	cursor: pointer;
+	width: 27px;
+    height: 27px;
 }
 
 .ep-header-menu .icons .dashicons-no,
 .ep-header-menu .icons .dashicons-controls-play,
 .ep-header-menu .icons .dashicons-controls-pause {
-	top: 1px;
 	font-size: 30px;
 }
 

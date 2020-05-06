@@ -1,4 +1,5 @@
 /* eslint-disable no-use-before-define, no-lonely-if, no-restricted-globals */
+
 /**
  * This file handles the syncing functions for the ES indeces.
  */
@@ -6,8 +7,6 @@
 import { showElements, hideElements } from './utils/helpers';
 
 const { ajaxurl, epDash } = window;
-
-// DOM nodes
 const featuresContainer = document.querySelector('.ep-features');
 const errorOverlay = document.querySelector('.error-overlay');
 const progressBar = document.querySelector('.progress-bar');
@@ -498,6 +497,7 @@ export const sync = async () => {
  *
  * @param {Node} feature - feature box container
  * @param {string} featureName - string name of the ep feature to index
+ * @returns {Function}
  */
 export const handleReindexAfterSave = (feature, featureName) =>
 	initializeSync(feature, featureName, true);

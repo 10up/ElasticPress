@@ -6,8 +6,8 @@
  *
  * @returns {Array} new array containing the data specified in the key
  */
-function pluck( array, key ) {
-	return array.map( ( o ) => o[key] );
+function pluck(array, key) {
+	return array.map((o) => o[key]);
 }
 
 export default { pluck };

@@ -2,26 +2,23 @@
  * Simple throttling function for waiting a set amount of time after the last keypress
  * So we don't overload the server with too many requests at once
  *
- * @param func
- * @param wait
- * @returns {Function}
+ * @param {Function} fn - function to be debounced
+ * @param {number} delay - integer
+ * @returns {Function} - new function, with the provided function wrapped in a timeout
  */
-export function debounce( func, wait ) {
-	let timeout;
+function debounce(fn, delay) {
+	let timer = null;
 
-	return function() {
-		const context = this, args = arguments;
+	return function debouncedFunction(...args) {
+		const context = this;
+		window.clearTimeout(timer);
 
-		/**
-		 *
-		 */
-		const later = function() {
-			timeout = null;
-			func.apply( context, args );
-		};
-
-		clearTimeout( timeout );
-
-		timeout = setTimeout( later, wait );
+		timer = window.setTimeout(() => {
+			fn.apply(context, args);
+		}, delay);
 	};
 }
+
+export default {
+	debounce,
+};
