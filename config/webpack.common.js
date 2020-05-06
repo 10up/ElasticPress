@@ -57,6 +57,7 @@ module.exports = {
 			// Lint JS.
 			{
 				test: /\.js$/,
+				exclude: /node_modules/,
 				enforce: 'pre',
 				loader: 'eslint-loader',
 				options: {
