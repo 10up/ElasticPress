@@ -27,11 +27,11 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->typeInField( '#search-form-1', 'blog' );
 
-		$I->waitUntilElementVisible( '.ep-autosuggest' );
+		$I->waitUntilElementVisible( '.ep-autosuggest-container' );
 
-		$I->seeElement( '.ep-autosuggest' );
+		$I->seeElement( '.ep-autosuggest-container' );
 
-		$I->seeText( 'a Blog page', '.ep-autosuggest' );
+		$I->seeText( 'a Blog page', '.ep-autosuggest-container' );
 	}
 
 	/**
@@ -52,11 +52,11 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->typeInField( '#search-form-1', 'Markup: HTML Tags and Formatting' );
 
-		$I->waitUntilElementVisible( '.ep-autosuggest' );
+		$I->waitUntilElementVisible( '.ep-autosuggest-container' );
 
-		$I->seeElement( '.ep-autosuggest' );
+		$I->seeElement( '.ep-autosuggest-container' );
 
-		$I->seeText( 'Markup: HTML Tags and Formatting', '.ep-autosuggest' );
+		$I->seeText( 'Markup: HTML Tags and Formatting', '.ep-autosuggest-container' );
 	}
 
 	/**
@@ -89,11 +89,11 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->typeInField( '#search-form-1', 'aciform' );
 
-		$I->waitUntilElementVisible( '.ep-autosuggest' );
+		$I->waitUntilElementVisible( '.ep-autosuggest-container' );
 
-		$I->seeElement( '.ep-autosuggest' );
+		$I->seeElement( '.ep-autosuggest-container' );
 
-		$I->seeText( 'Keyboard navigation', '.ep-autosuggest' );
+		$I->seeText( 'Keyboard navigation', '.ep-autosuggest-container' );
 	}
 
 	/**
@@ -114,11 +114,11 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->typeInField( '#search-form-1', 'blog' );
 
-		$I->waitUntilElementVisible( '.ep-autosuggest' );
+		$I->waitUntilElementVisible( '.ep-autosuggest-container' );
 
-		$I->seeElement( '.ep-autosuggest' );
+		$I->seeElement( '.ep-autosuggest-container' );
 
-		$I->seeText( 'a Blog page', '.ep-autosuggest' );
+		$I->seeText( 'a Blog page', '.ep-autosuggest-container' );
 
 		$url = $I->getElementAttribute( '.autosuggest-list > li:first-child span', 'data-url' );
 
