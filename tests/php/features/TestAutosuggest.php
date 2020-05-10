@@ -137,7 +137,10 @@ class TestAutosuggest extends BaseTestCase {
     }
 
     public function testSetFuzziness() {
+        set_current_screen( 'edit.php' );
         $this->assertequals( 2, $this->get_feature()->set_fuzziness( 2, [], [] ) );
+        $this->assertequals( 2, $this->get_feature()->set_fuzziness( 2, [], [ 's' => 'test' ] ) );
+        set_current_screen( 'front' );
         $this->assertequals( 'auto', $this->get_feature()->set_fuzziness( 2, [], [ 's' => 'test' ] ) );
     }
 }
