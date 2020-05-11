@@ -143,4 +143,24 @@ class TestAutosuggest extends BaseTestCase {
         set_current_screen( 'front' );
         $this->assertequals( 'auto', $this->get_feature()->set_fuzziness( 2, [], [ 's' => 'test' ] ) );
     }
+
+    public function testFilterTermSuggest() {
+        $post_args = [];
+        $this->assertEquals( [], $this->get_feature()->filter_term_suggest( $post_args ) );
+
+        $post_args = [
+            'terms' => [
+                'category' => [
+                    [
+                        'name' => 'test-category',
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->get_feature()->filter_term_suggest( $post_args );
+
+        $this->assertArrayHasKey( 'term_suggest', $result );
+        $this->assertContains( 'test-category', $result['term_suggest'] );
+    }
 }
