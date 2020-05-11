@@ -209,4 +209,12 @@ class TestAutosuggest extends BaseTestCase {
         $this->assertArrayHasKey( 'hello', $this->get_feature()->apply_autosuggest_weighting( [] ) );
         $this->assertContains( 'world', $this->get_feature()->apply_autosuggest_weighting( [] ) );
     }
+
+    public function testRequirementsStatus() {
+        $status = $this->get_feature()->requirements_status();
+
+        $this->assertAttributeEquals( 1, 'code', $status );
+        $this->assertEquals( 2, count( $status->message ) );
+    }
+
 }
