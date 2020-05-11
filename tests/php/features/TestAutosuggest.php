@@ -163,4 +163,26 @@ class TestAutosuggest extends BaseTestCase {
         $this->assertArrayHasKey( 'term_suggest', $result );
         $this->assertContains( 'test-category', $result['term_suggest'] );
     }
+
+    public function testEnqueueScripts() {
+        $this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
+        $this->get_feature()->enqueue_scripts();
+        $this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
+
+        $filter = function() {
+            return [
+                'autosuggest' => [
+                    'endpoint_url' => 'http://example.com',
+                ],
+            ];
+        };
+
+        add_filter( 'pre_site_option_ep_feature_settings', $filter );
+
+        $this->get_feature()->enqueue_scripts();
+        $this->assertTrue( wp_script_is( 'elasticpress-autosuggest' ) );
+        
+        remove_filter( 'pre_site_option_ep_feature_settings', $filter );
+    }
+
 }
