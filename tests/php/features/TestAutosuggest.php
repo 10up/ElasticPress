@@ -193,4 +193,20 @@ class TestAutosuggest extends BaseTestCase {
         $this->assertContains( 'ep_autosuggest_placeholder', $query );
     }
 
+    public function testReturnEmptyPosts() {
+        $this->assertEmpty( $this->get_feature()->return_empty_posts() );
+    }
+
+    public function testApplyAutosuggestWeighting() {
+        $filter = function() {
+            return [ 'hello' => 'world' ];
+        };
+
+        $this->assertEquals( [], $this->get_feature()->apply_autosuggest_weighting( [] ) );
+
+        add_filter( 'ep_weighting_configuration_for_autosuggest', $filter );
+
+        $this->assertArrayHasKey( 'hello', $this->get_feature()->apply_autosuggest_weighting( [] ) );
+        $this->assertContains( 'world', $this->get_feature()->apply_autosuggest_weighting( [] ) );
+    }
 }
