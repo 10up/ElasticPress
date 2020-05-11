@@ -185,4 +185,12 @@ class TestAutosuggest extends BaseTestCase {
         remove_filter( 'pre_site_option_ep_feature_settings', $filter );
     }
 
+    public function testGenerateSearchQuery() {
+        $query = $this->get_feature()->generate_search_query();
+
+        $this->assertArrayHasKey( 'body', $query );
+        $this->assertArrayHasKey( 'placeholder', $query );
+        $this->assertContains( 'ep_autosuggest_placeholder', $query );
+    }
+
 }
