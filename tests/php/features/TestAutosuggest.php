@@ -208,6 +208,8 @@ class TestAutosuggest extends BaseTestCase {
 
         $this->assertArrayHasKey( 'hello', $this->get_feature()->apply_autosuggest_weighting( [] ) );
         $this->assertContains( 'world', $this->get_feature()->apply_autosuggest_weighting( [] ) );
+
+        remove_filter( 'ep_weighting_configuration_for_autosuggest', $filter );
     }
 
     public function testRequirementsStatus() {
