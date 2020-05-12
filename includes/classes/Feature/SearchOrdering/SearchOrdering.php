@@ -62,7 +62,7 @@ class SearchOrdering extends Feature {
 
 		if ( ! $search->is_active() && $this->is_active() ) {
 			$features->deactivate_feature( $this->slug );
-			return;
+			return false;
 		}
 
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 50 );
