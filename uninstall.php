@@ -39,7 +39,7 @@ class EP_Uninstaller {
 		}
 
 		// Not uninstalling this plugin.
-		if ( dirname( WP_UNINSTALL_PLUGIN ) !== dirname( EP_FILE ) ) {
+		if ( dirname( WP_UNINSTALL_PLUGIN ) !== dirname( plugin_basename( __FILE__ ) ) ) {
 			$this->exit_uninstaller();
 		}
 
