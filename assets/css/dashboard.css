@@ -628,6 +628,11 @@ h2.ep-list-features {
 
 .weighting-settings .postbox {
 	max-width: 650px;
+	box-sizing: border-box;
+
+	* {
+		box-sizing: border-box;
+	}
 }
 
 .weighting-settings .postbox h2.hndle {
@@ -648,6 +653,7 @@ h2.ep-list-features {
 
 .weighting-settings fieldset p {
 	display: inline-block;
+	float: left;
 	margin: 0;
 }
 
@@ -669,8 +675,14 @@ h2.ep-list-features {
 	width: 120px;
 }
 
+.weighting-settings .weighting {
+	display: flex;
+	align-items: center;
+}
+
 .weighting-settings .weighting label {
-	width: 60px; /* not localization friendly */
+	min-width: 80px;
+	margin-right: 10px;
 }
 
 .weighting-settings input[type=range] {

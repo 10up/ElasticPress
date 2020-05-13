@@ -13,7 +13,9 @@ use \WP_Query as WP_Query;
 use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -113,8 +115,19 @@ class QueryIntegration {
 			 * Manually setting a header as $wp_query isn't yet initialized when we
 			 * call: add_filter('wp_headers', 'filter_wp_headers');
 			 */
+			// @codeCoverageIgnoreStart
 			header( 'X-ElasticPress-Query: true' );
+			// @codeCoverageIgnoreEnd
 		}
+	}
+
+	/**
+	 * Gets the blog ID that the class is currently switched to.
+	 *
+	 * @return int
+	 */
+	public function get_switched() {
+		return $this->switched;
 	}
 
 	/**
@@ -125,7 +138,9 @@ class QueryIntegration {
 	 */
 	public function maybe_switch_to_blog( $post ) {
 		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( ! empty( $post->site_id ) && get_current_blog_id() !== $post->site_id ) {
@@ -154,7 +169,9 @@ class QueryIntegration {
 	 */
 	public function maybe_restore_blog( $query ) {
 		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( $this->switched ) {
@@ -256,7 +273,9 @@ class QueryIntegration {
 			$scope = apply_filters( 'ep_search_scope', $scope );
 
 			if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+				// @codeCoverageIgnoreStart
 				$scope = 'current';
+				// @codeCoverageIgnoreEnd
 			}
 
 			$index = null;
