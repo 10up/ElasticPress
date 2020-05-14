@@ -124,12 +124,23 @@ class TestSearchOrdering extends BaseTestCase {
 		set_current_screen( 'front' );
 
 		$this->assertSame( 'test_parent_file', $this->get_feature()->parent_file( 'test_parent_file' ) );
+
+
+		if ( ! $this->is_network_activate() ) {
+			set_current_screen( 'ep-pointer' );
+			$this->assertSame( 'elasticpress', $this->get_feature()->parent_file( 'test_parent_file' ) );
+		}
 	}
 
 	public function testSubmenuFile() {
 		set_current_screen( 'front' );
 
 		$this->assertSame( 'test_submenu_file', $this->get_feature()->submenu_file( 'test_submenu_file' ) );
+
+		if ( ! $this->is_network_activate() ) {
+			set_current_screen( 'ep-pointer' );
+			$this->assertSame( 'edit.php?post_type=ep-pointer', $this->get_feature()->submenu_file( 'test_submenu_file' ) );
+		}
 	}
 
 	public function testRegisterPostType() {
