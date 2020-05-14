@@ -327,8 +327,19 @@ class Weighting {
 			]
 		);
 
+		$this->redirect( $redirect_url );
+	}
+
+	/**
+	 * We need this method to test handle_save properly.
+	 *
+	 * @param string $redirect_url Redirect URL.
+	 */
+	protected function redirect( $redirect_url ) {
+		// @codeCoverageIgnoreStart
 		wp_safe_redirect( $redirect_url );
 		exit();
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**

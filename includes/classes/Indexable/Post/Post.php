@@ -14,7 +14,9 @@ use \WP_Query as WP_Query;
 use \WP_User as WP_User;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -716,42 +718,66 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		switch ( $args ) {
-			case ! empty( $args['category_name'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['category_name'] ),
-					'field'    => 'slug',
+		if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'category',
+				'terms'    => array( $args['category_name'] ),
+				'field'    => 'slug',
+			);
+		}
+
+		if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'category',
+				'terms'    => array( $args['cat'] ),
+				'field'    => 'term_id',
+			);
+		}
+
+		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'post_tag',
+				'terms'    => array( $args['tag'] ),
+				'field'    => 'slug',
+			);
+		}
+
+		$has_tag__and = false;
+
+		if ( isset( $args['tag__and'] ) && ! empty( $args['tag__and'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'post_tag',
+				'terms'    => $args['tag__and'],
+				'field'    => 'term_id',
+			);
+
+			$has_tag__and = true;
+		}
+
+		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) ) {
+
+			// If you pass tag__in as a parameter, core adds the first
+			// term ID as tag_id, so we only need to append it if we have
+			// already added term IDs.
+			if ( $has_tag__and ) {
+
+				$args['tax_query'] = array_map(
+					function( $tax_query ) use ( $args ) {
+						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'] ) ) {
+							$tax_query['terms'][] = $args['tag_id'];
+						}
+
+						return $tax_query;
+					},
+					$args['tax_query']
 				);
-				break;
-			case ! empty( $args['cat'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['cat'] ),
-					'field'    => 'id',
-				);
-				break;
-			case ! empty( $args['tag'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => array( $args['tag'] ),
-					'field'    => 'slug',
-				);
-				break;
-			case ! empty( $args['tag__and'] ):
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => $args['tag__and'],
-					'field'    => 'term_id',
-				);
-				break;
-			case ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ):
+			} else {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'post_tag',
 					'terms'    => $args['tag_id'],
 					'field'    => 'term_id',
 				);
-				break;
+			}
 		}
 
 		/**
@@ -1147,9 +1173,22 @@ class Post extends Indexable {
 		$sticky_posts = get_option( 'sticky_posts' );
 		$sticky_posts = ( is_array( $sticky_posts ) && empty( $sticky_posts ) ) ? false : $sticky_posts;
 
+		/**
+		 * Filter whether to enable sticky posts for this request
+		 *
+		 * @hook ep_enable_sticky_posts
+		 *
+		 * @param {bool}  $allow          Allow sticky posts for this request
+		 * @param {array} $args           Query variables
+		 * @param {array} $formatted_args EP formatted args
+		 *
+		 * @return  {bool} $allow
+		 */
+		$enable_sticky_posts = apply_filters( 'ep_enable_sticky_posts', is_home(), $args, $formatted_args );
+
 		if ( false !== $sticky_posts
-			&& is_home()
-			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ), true ) ) {
+			&& $enable_sticky_posts
+			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
 			$new_sort = [
 				[
 					'_score' => [
@@ -1342,7 +1381,9 @@ class Post extends Indexable {
 		 * @param {array} $query Query part
 		 * @return  {array} New query
 		 */
-		return apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
+		$formatted_args = apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
+
+		return $formatted_args;
 	}
 
 	/**
@@ -1495,9 +1536,13 @@ class Post extends Indexable {
 	 * @return string The sanitized 'order' query variable.
 	 */
 	protected function parse_order( $order ) {
+		// Core will always set sort order to DESC for any invalid value,
+		// so we can't do any automated testing of this function.
+		// @codeCoverageIgnoreStart
 		if ( ! is_string( $order ) || empty( $order ) ) {
 			return 'desc';
 		}
+		// @codeCoverageIgnoreEnd
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'asc';
