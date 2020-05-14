@@ -144,8 +144,13 @@ class TestSearchOrdering extends BaseTestCase {
 	public function testRegisterMetaBox() {
 		global $wp_meta_boxes;
 		$this->get_feature()->register_meta_box();
-		$this->assertArrayHasKey( 'ep-ordering', $wp_meta_boxes['ep-pointer-network']['normal']['default'] );
-		$this->assertEquals( 'Manage Results', $wp_meta_boxes['ep-pointer-network']['normal']['default']['ep-ordering']['title'] );
+		if ( $this->is_network_activate() ) {
+			$this->assertArrayHasKey( 'ep-ordering', $wp_meta_boxes['ep-pointer-network']['normal']['default'] );
+			$this->assertEquals( 'Manage Results', $wp_meta_boxes['ep-pointer-network']['normal']['default']['ep-ordering']['title'] );
+		} else {
+			$this->assertArrayHasKey( 'ep-ordering', $wp_meta_boxes['ep-pointer']['normal']['default'] );
+			$this->assertEquals( 'Manage Results', $wp_meta_boxes['ep-pointer']['normal']['default']['ep-ordering']['title'] );
+		}
 	}
 
 	public function testRenderMetaBox() {
