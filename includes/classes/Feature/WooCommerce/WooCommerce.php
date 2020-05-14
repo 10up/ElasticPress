@@ -548,9 +548,9 @@ class WooCommerce extends Feature {
 				'ID'                 => 'ID',
 				'menu_order'         => 'menu_order title date',
 				'menu_order title'   => 'menu_order title date',
-				'total_sales'        => 'meta.total_sales.long date',
+				'total_sales'        => 'meta.total_sales.double date',
 				'_wc_average_rating' => 'meta._wc_average_rating.double date',
-				'_price'             => 'meta._price.long date',
+				'_price'             => 'meta._price.double date',
 			)
 		);
 
