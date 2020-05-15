@@ -135,27 +135,20 @@ function create_and_sync_term( $slug, $name, $description, $taxonomy, $posts = [
  * @since  3.0
  */
 function create_date_query_posts() {
-	$beginning_tz = date_default_timezone_get();
-
-	date_default_timezone_set( 'America/Los_Angeles' ); // phpcs:ignore
-
-	$post_date = strtotime( 'January 6th, 2012 11:59PM' );
+	$post_date = wp_date( 'U', strtotime( 'January 6th, 2012 11:59PM' ) );
 
 	for ( $i = 0; $i <= 10; ++$i ) {
-
 		create_and_sync_post(
 			array(
 				'post_title'    => 'post_title ' . $i,
 				'post_content'  => 'findme',
-				'post_date'     => date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
-				'post_date_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+				'post_date'     => wp_date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+				'post_date_gmt' => wp_date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ), new \DateTimeZone( 'GMT' ) ),
 			)
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 	}
-
-	date_default_timezone_set( $beginning_tz ); // phpcs:ignore
 }
 
 /**

@@ -12,6 +12,7 @@ namespace ElasticPress;
 
 use \WP_CLI_Command as WP_CLI_Command;
 use \WP_CLI as WP_CLI;
+use \WP_Hook as WP_Hook;
 use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch as Elasticsearch;
@@ -25,14 +26,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * CLI Commands for ElasticPress
  */
 class Command extends WP_CLI_Command {
-
-	/**
-	 * Holds whether it's network transient or not
-	 *
-	 * @since 2.1.1
-	 * @var  array
-	 */
-	private $is_network_transient = false;
 
 	/**
 	 * Holds time until transient expires
@@ -107,7 +100,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		if ( EP_IS_NETWORK ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$active_features = get_site_option( 'ep_feature_settings', [] );
 		} else {
 			$active_features = get_option( 'ep_feature_settings', [] );
@@ -136,7 +129,7 @@ class Command extends WP_CLI_Command {
 	public function list_features( $args, $assoc_args ) {
 
 		if ( empty( $assoc_args['all'] ) ) {
-			if ( EP_IS_NETWORK ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$features = get_site_option( 'ep_feature_settings', [] );
 			} else {
 				$features = get_option( 'ep_feature_settings', [] );
@@ -517,7 +510,7 @@ class Command extends WP_CLI_Command {
 		global $wp_actions;
 
 		if ( ! function_exists( 'pcntl_signal' ) ) {
-			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp transient delete ep_wpcli_sync` in case the process is killed.' ) );
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp elasticpress clear-index` in case the process is killed.' ) );
 		} else {
 			declare( ticks = 1 );
 			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );
@@ -555,8 +548,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		if ( EP_IS_NETWORK ) {
-			$this->is_network_transient = true;
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
@@ -565,7 +557,7 @@ class Command extends WP_CLI_Command {
 		timer_start();
 
 		// This clears away dashboard notifications.
-		if ( EP_IS_NETWORK ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			update_site_option( 'ep_last_sync', time() );
 			delete_site_option( 'ep_need_upgrade_sync' );
 			delete_site_option( 'ep_feature_auto_activated_sync' );
@@ -1138,7 +1130,7 @@ class Command extends WP_CLI_Command {
 	 */
 	private function index_occurring() {
 
-		if ( EP_IS_NETWORK ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dashboard_syncing = get_site_option( 'ep_index_meta' );
 			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
 		} else {
@@ -1157,7 +1149,7 @@ class Command extends WP_CLI_Command {
 	 * @since 2.2
 	 */
 	private function reset_transient() {
-		if ( $this->is_network_transient ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 		} else {
 			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
@@ -1170,11 +1162,25 @@ class Command extends WP_CLI_Command {
 	 * @since 3.1
 	 */
 	private function delete_transient() {
-		if ( $this->is_network_transient ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_wpcli_sync' );
 		} else {
 			delete_transient( 'ep_wpcli_sync' );
 		}
+	}
+
+	/**
+	 * If an index was stopped prematurely and won't start again, this will clear this
+	 * cached data such that a new index can start.
+	 *
+	 * @subcommand clear-index
+	 * @alias delete-transient
+	 * @since      3.4
+	 */
+	public function clear_index() {
+		$this->delete_transient();
+
+		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
 
 
@@ -1183,7 +1189,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @param array $assoc_args Associative CLI args.
 	 *
-	 * @since 3.x
+	 * @since 3.4
 	 */
 	private function maybe_change_host( $assoc_args ) {
 		if ( isset( $assoc_args['ep-host'] ) ) {
@@ -1202,7 +1208,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @param array $assoc_args Associative CLI args.
 	 *
-	 * @since 3.x
+	 * @since 3.4
 	 */
 	private function maybe_change_index_prefix( $assoc_args ) {
 		if ( isset( $assoc_args['ep-prefix'] ) ) {
