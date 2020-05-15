@@ -36,7 +36,13 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			$cluster_indexes = json_decode( $this->runCommand( 'wp elasticpress get-cluster-indexes' )['stdout'], true );
 
 			foreach ( (array) $cluster_indexes as $index ) {
-				$this->runCommand( 'wp elasticpress delete-index --index-name=' . $index['index'] );
+				if ( $docker_cid = $this->getDockerContainerId() ) {
+					if ( false !== strpos( $index['index'], $docker_cid) ) {
+						$this->runCommand( 'wp elasticpress delete-index --index-name=' . $index['index'] );
+					}
+				} else {
+					$this->runCommand( 'wp elasticpress delete-index --index-name=' . $index['index'] );
+				}
 			}
 
 			$this->indexes = json_decode( $this->runCommand( 'wp elasticpress get-indexes' )['stdout'], true );
@@ -274,5 +280,9 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		$host = $actor->getElementAttribute( '#ep_host', 'value' );
 
 		return strpos( $host, 'hosted-elasticpress.io' );
+	}
+
+	protected function getDockerContainerId() {
+		return  exec( 'cat /etc/hostname' );
 	}
 }
