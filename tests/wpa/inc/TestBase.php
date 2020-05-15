@@ -19,12 +19,6 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 */
 	protected $indexes = [];
 
-	public function tearDown() {
-		parent::tearDown();
-
-		$this->runCommand( 'wp elasticpress delete-index' );
-	}
-
 	/**
 	 * Setup functionality
 	 */
@@ -35,11 +29,6 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		if ( ! $initialized ) {
 			$initialized = true;
-
-			/**
-			 * Delete all current indexes before we start
-			 */
-			$this->runCommand( 'wp elasticpress delete-index' );
 
 			$this->indexes = json_decode( $this->runCommand( 'wp elasticpress get-indexes' )['stdout'], true );
 
@@ -123,6 +112,14 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			$this->updateWeighting( $weighting );
 		}
 	}
+
+	public function tearDown() {
+		parent::tearDown();
+
+		// Delete indexes after we're done.
+		$this->runCommand( 'wp elasticpress delete-index' );
+	}
+
 
 	/**
 	 * Update EP weighting
