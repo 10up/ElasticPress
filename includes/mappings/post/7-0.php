@@ -413,6 +413,120 @@ return array(
 					),
 				),
 			),
+			'date_gmt_terms' => array(
+				'type'       => 'object',
+				'properties' => array(
+					'year'          => array( // 4 digit year (e.g. 2011).
+						'type' => 'integer',
+					),
+					'month'         => array( // Month number (from 1 to 12) alternate name 'monthnum'.
+						'type' => 'integer',
+					),
+					'm'             => array( // YearMonth (For e.g.: 201307).
+						'type' => 'integer',
+					),
+					'week'          => array( // Week of the year (from 0 to 53) alternate name 'w'.
+						'type' => 'integer',
+					),
+					'day'           => array( // Day of the month (from 1 to 31).
+						'type' => 'integer',
+					),
+					'dayofweek'     => array( // Accepts numbers 1-7 (1 is Sunday).
+						'type' => 'integer',
+					),
+					'dayofweek_iso' => array( // Accepts numbers 1-7 (1 is Monday).
+						'type' => 'integer',
+					),
+					'dayofyear'     => array( // Accepts numbers 1-366.
+						'type' => 'integer',
+					),
+					'hour'          => array( // Hour (from 0 to 23).
+						'type' => 'integer',
+					),
+					'minute'        => array( // Minute (from 0 to 59).
+						'type' => 'integer',
+					),
+					'second'        => array( // Second (0 to 59).
+						'type' => 'integer',
+					),
+				),
+			),
+			'modified_date_terms'   => array(
+				'type'       => 'object',
+				'properties' => array(
+					'year'          => array( // 4 digit year (e.g. 2011).
+						'type' => 'integer',
+					),
+					'month'         => array( // Month number (from 1 to 12) alternate name 'monthnum'.
+						'type' => 'integer',
+					),
+					'm'             => array( // YearMonth (For e.g.: 201307).
+						'type' => 'integer',
+					),
+					'week'          => array( // Week of the year (from 0 to 53) alternate name 'w'.
+						'type' => 'integer',
+					),
+					'day'           => array( // Day of the month (from 1 to 31).
+						'type' => 'integer',
+					),
+					'dayofweek'     => array( // Accepts numbers 1-7 (1 is Sunday).
+						'type' => 'integer',
+					),
+					'dayofweek_iso' => array( // Accepts numbers 1-7 (1 is Monday).
+						'type' => 'integer',
+					),
+					'dayofyear'     => array( // Accepts numbers 1-366.
+						'type' => 'integer',
+					),
+					'hour'          => array( // Hour (from 0 to 23).
+						'type' => 'integer',
+					),
+					'minute'        => array( // Minute (from 0 to 59).
+						'type' => 'integer',
+					),
+					'second'        => array( // Second (0 to 59).
+						'type' => 'integer',
+					),
+				),
+			),
+			'modified_date_gmt_terms' => array(
+				'type'       => 'object',
+				'properties' => array(
+					'year'          => array( // 4 digit year (e.g. 2011).
+						'type' => 'integer',
+					),
+					'month'         => array( // Month number (from 1 to 12) alternate name 'monthnum'.
+						'type' => 'integer',
+					),
+					'm'             => array( // YearMonth (For e.g.: 201307).
+						'type' => 'integer',
+					),
+					'week'          => array( // Week of the year (from 0 to 53) alternate name 'w'.
+						'type' => 'integer',
+					),
+					'day'           => array( // Day of the month (from 1 to 31).
+						'type' => 'integer',
+					),
+					'dayofweek'     => array( // Accepts numbers 1-7 (1 is Sunday).
+						'type' => 'integer',
+					),
+					'dayofweek_iso' => array( // Accepts numbers 1-7 (1 is Monday).
+						'type' => 'integer',
+					),
+					'dayofyear'     => array( // Accepts numbers 1-366.
+						'type' => 'integer',
+					),
+					'hour'          => array( // Hour (from 0 to 23).
+						'type' => 'integer',
+					),
+					'minute'        => array( // Minute (from 0 to 59).
+						'type' => 'integer',
+					),
+					'second'        => array( // Second (0 to 59).
+						'type' => 'integer',
+					),
+				),
+			),
 		),
 	),
 );
