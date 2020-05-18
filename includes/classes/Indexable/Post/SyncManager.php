@@ -13,7 +13,9 @@ use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -67,7 +69,9 @@ class SyncManager extends SyncManagerAbstract {
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			// Bypass saving if doing autosave
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$post = get_post( $object_id );
@@ -178,7 +182,9 @@ class SyncManager extends SyncManagerAbstract {
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			// Bypass saving if doing autosave
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		/**
@@ -240,7 +246,9 @@ class SyncManager extends SyncManagerAbstract {
 	 */
 	public function action_create_blog_index( $blog ) {
 		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( $this->kill_sync() ) {
