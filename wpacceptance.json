@@ -2,7 +2,8 @@
   "name": "elasticpress",
   "tests": [
     "./tests/wpa/*Test.php",
-    "./tests/wpa/**/*Test.php"
+    "./tests/wpa/**/*Test.php",
+    "./tests/wpa/after-test/*.php"
     ],
     "bootstrap": "./tests/wpa/bootstrap.php",
     "exclude": [
