@@ -113,14 +113,6 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		}
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-
-		// Delete indexes after we're done.
-		$this->runCommand( 'wp elasticpress delete-index' );
-	}
-
-
 	/**
 	 * Update EP weighting
 	 *
@@ -211,7 +203,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
 
-		// Some time we can't click the publish button using this method $actor->click( '.editor-post-publish-button' );	
+		// Some time we can't click the publish button using this method $actor->click( '.editor-post-publish-button' );
 		$actor->executeJavaScript( 'document.querySelector( ".editor-post-publish-button" ).click();' );
 
 		$actor->waitUntilElementVisible( '.components-notice' );
