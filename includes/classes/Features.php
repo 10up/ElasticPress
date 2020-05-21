@@ -269,6 +269,12 @@ class Features {
 	 * @since  2.1
 	 */
 	public function setup_features() {
+		/**
+		 * Fires before features are setup
+		 *
+		 * @hook ep_setup_features
+		 * @since  2.1
+		 */
 		do_action( 'ep_setup_features' );
 
 		foreach ( $this->registered_features as $feature_slug => $feature ) {

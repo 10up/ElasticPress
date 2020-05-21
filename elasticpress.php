@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.2.2
+ * Version:     3.4.1
  * Author:      10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -27,7 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
-define( 'EP_VERSION', '3.2.2' );
+define( 'EP_FILE', plugin_basename( __FILE__ ) );
+define( 'EP_VERSION', '3.4.1' );
 
 /**
  * PSR-4-ish autoloading
@@ -69,72 +70,86 @@ spl_autoload_register(
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '6.4' );
+define( 'EP_ES_VERSION_MAX', '7.5' );
 define( 'EP_ES_VERSION_MIN', '5.0' );
 
 require_once __DIR__ . '/includes/compat.php';
 require_once __DIR__ . '/includes/utils.php';
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
-$network_activated = Utils\is_network_activated( plugin_basename( __FILE__ ) );
+$network_activated = Utils\is_network_activated( EP_FILE );
 
 if ( $network_activated ) {
 	define( 'EP_IS_NETWORK', true );
 }
 
-global $wp_version;
-
 /**
- * Handle indexables
+ * Sets up the indexables and features.
+ *
+ * @return void
  */
-Indexables::factory()->register( new Indexable\Post\Post() );
+function register_indexable_posts() {
+	global $wp_version;
 
-/**
- * Handle features
- */
-Features::factory()->register_feature(
-	new Feature\Search\Search()
-);
+	/**
+	 * Handle indexables
+	 */
+	Indexables::factory()->register( new Indexable\Post\Post() );
 
-Features::factory()->register_feature(
-	new Feature\ProtectedContent\ProtectedContent()
-);
-
-Features::factory()->register_feature(
-	new Feature\Autosuggest\Autosuggest()
-);
-
-Features::factory()->register_feature(
-	new Feature\RelatedPosts\RelatedPosts()
-);
-
-Features::factory()->register_feature(
-	new Feature\WooCommerce\WooCommerce()
-);
-
-Features::factory()->register_feature(
-	new Feature\Facets\Facets()
-);
-
-Features::factory()->register_feature(
-	new Feature\Documents\Documents()
-);
-
-if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+	/**
+	 * Handle features
+	 */
 	Features::factory()->register_feature(
-		new Feature\Users\Users()
+		new Feature\Search\Search()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\ProtectedContent\ProtectedContent()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Autosuggest\Autosuggest()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\RelatedPosts\RelatedPosts()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\WooCommerce\WooCommerce()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Facets\Facets()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\Documents\Documents()
+	);
+
+	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Comments\Comments()
+		);
+	}
+
+	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Terms\Terms()
+		);
+	}
+
+	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Users\Users()
+		);
+	}
+
+	Features::factory()->register_feature(
+		new Feature\SearchOrdering\SearchOrdering()
 	);
 }
-
-if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-	Features::factory()->register_feature(
-		new Feature\Comments\Comments()
-	);
-}
-
-Features::factory()->register_feature(
-	new Feature\SearchOrdering\SearchOrdering()
-);
+add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
@@ -187,7 +202,7 @@ function handle_upgrades() {
 		$last_sync = get_option( 'ep_last_sync', 'never' );
 	}
 
-	// No need to upgrade since we've never synced
+	// No need to upgrade since we've never synced.
 	if ( empty( $last_sync ) || 'never' === $last_sync ) {
 		return;
 	}
@@ -212,6 +227,8 @@ function handle_upgrades() {
 			'2.7',
 			'3.0',
 			'3.1',
+			'3.3',
+			'3.4',
 		)
 	);
 
@@ -256,4 +273,10 @@ function setup_misc() {
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
 
+/**
+ * Fires after Elasticpress plugin is loaded
+ *
+ * @since  2.0
+ * @hook elasticpress_loaded
+ */
 do_action( 'elasticpress_loaded' );

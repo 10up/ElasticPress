@@ -61,6 +61,15 @@ abstract class Indexable {
 	 * @return int
 	 */
 	public function get_bulk_items_per_page() {
+		/**
+		 * Filter bulk items to sync per batch
+		 *
+		 * @hook ep_bulk_items_per_page
+		 * @param  {int} $number Number of items per batch
+		 * @param  {Indexable} $indexable Current indexable
+		 * @return  {int} New number of items
+		 * @since  3.0
+		 */
 		return apply_filters( 'ep_bulk_items_per_page', 350, $this );
 	}
 
@@ -102,6 +111,16 @@ abstract class Indexable {
 			$index_name = $prefix . '-' . $index_name;
 		}
 
+		/**
+		 * Filter index name
+		 *
+		 * @hook ep_index_name
+		 * @param  {string} $index_name Name of index
+		 * @param  {int} $blog_id Blog ID
+		 * @param  {Indexable} $indexable Current indexable
+		 * @return  {string} Index name
+		 * @since  3.0
+		 */
 		return apply_filters( 'ep_index_name', $index_name, $blog_id, $this );
 	}
 
@@ -124,6 +143,13 @@ abstract class Indexable {
 			$alias = $prefix . '-' . $alias;
 		}
 
+		/**
+		 * Filter global/network Elasticsearch alias
+		 *
+		 * @hook ep_global_alias
+		 * @param  {string} $number Current alias
+		 * @return  {string} New alias
+		 */
 		return apply_filters( 'ep_global_alias', $alias );
 	}
 
@@ -197,14 +223,39 @@ abstract class Indexable {
 			return false;
 		}
 
+		/**
+		 * Conditionally kill indexing on a specific object
+		 *
+		 * @hook ep_{indexable_slug}_index_kill
+		 * @param  {bool} $kill True to not index
+		 * @param {int} $object_id Id of object to index
+		 * @since  3.0
+		 * @return {bool}  New kill value
+		 */
 		if ( apply_filters( 'ep_' . $this->slug . '_index_kill', false, $object_id ) ) {
 			return false;
 		}
 
+		/**
+		 * Filter document before index
+		 *
+		 * @hook ep_pre_index_{indexable_slug}
+		 * @param  {array} $document Document to index
+		 * @return {array} New document
+		 * @since  3.0
+		 */
 		$document = apply_filters( 'ep_pre_index_' . $this->slug, $document );
 
 		$return = Elasticsearch::factory()->index_document( $this->get_index_name(), $this->slug, $document, $blocking );
 
+		/**
+		 * Fires after document is indexed
+		 *
+		 * @hook ep_after_index_{indexable_slug}
+		 * @param  {array} $document Document to index
+		 * @param  {array|boolean} $return ES response on success, false on failure
+		 * @since  3.0
+		 */
 		do_action( 'ep_after_index_' . $this->slug, $document, $return );
 
 		return $return;
@@ -240,6 +291,15 @@ abstract class Indexable {
 
 			$document = $this->prepare_document( $object_id );
 
+			/**
+			 * Conditionally kill indexing on a specific object
+			 *
+			 * @hook ep_bulk_index_action_args
+			 * @param  {array} $action_args Bulk action arguments
+			 * @param {array} $document Document to index
+			 * @since  3.0
+			 * @return {array}  New action args
+			 */
 			$body .= wp_json_encode( apply_filters( 'ep_bulk_index_action_args', $action_args, $document ) ) . "\n";
 			$body .= addcslashes( wp_json_encode( $document ), "\n" );
 
@@ -255,21 +315,22 @@ abstract class Indexable {
 	 * @param  array  $formatted_args Formatted es query arguments.
 	 * @param  array  $query_args WP_Query args.
 	 * @param  string $index Index(es) to query. Comma separate for multiple. Defaults to current.
+	 * @param  mixed  $query_object Could be WP_Query, WP_User_Query, etc.
 	 * @since  3.0
 	 * @return array
 	 */
-	public function query_es( $formatted_args, $query_args, $index = null ) {
+	public function query_es( $formatted_args, $query_args, $index = null, $query_object = null ) {
 		if ( null === $index ) {
 			$index = $this->get_index_name();
 		}
 
-		return Elasticsearch::factory()->query( $index, $this->slug, $formatted_args, $query_args );
+		return Elasticsearch::factory()->query( $index, $this->slug, $formatted_args, $query_args, $query_object );
 	}
 
 	/**
 	 * Check to see if we should allow elasticpress to override this query
 	 *
-	 * @param WP_Query|WP_User_Query $query WP_Query or WP_User_Query instance
+	 * @param \WP_Query|\WP_User_Query|\WP_Term_Query $query WP_Query or WP_User_Query or WP_Term_Query instance
 	 * @return bool
 	 * @since 3.0
 	 */
@@ -280,6 +341,14 @@ abstract class Indexable {
 			$enabled = true;
 		}
 
+		/**
+		 * Determine if ElasticPress should integrate with a query
+		 *
+		 * @hook ep_elasticpress_enabled
+		 * @param  {bool} $enabled Whether to integrate with Elasticsearch or not
+		 * @param {WP_Query} $query WP_Query to evaluate
+		 * @return {bool}  Enabled value
+		 */
 		$enabled = apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
 
 		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {

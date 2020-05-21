@@ -79,6 +79,13 @@ abstract class Feature {
 	 * @since  3.0
 	 */
 	public function __construct() {
+		/**
+		 * Fires when Feature object is created
+		 *
+		 * @hook ep_feature_create
+		 * @param {Feature} $feature Current feature
+		 * @since  3.0
+		 */
 		do_action( 'ep_feature_create', $this );
 	}
 
@@ -91,6 +98,15 @@ abstract class Feature {
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 0 );
 
+		/**
+		 * Filter feature requirement status
+		 *
+		 * @hook ep_{indexable_slug}_index_kill
+		 * @param  {FeatureRequirementStatus} $status Current feature requirement status
+		 * @param {Feature} $feature Current feature
+		 * @since  2.2
+		 * @return {FeatureRequirementStatus}  New status
+		 */
 		return apply_filters( 'ep_feature_requirements_status', $status, $this );
 	}
 
@@ -129,6 +145,16 @@ abstract class Feature {
 			$active = true;
 		}
 
+		/**
+		 * Filter whether a feature is active or not
+		 *
+		 * @hook ep_feature_active
+		 * @param  {bool} $active Whether feature is active or not
+		 * @param {array} $feature_settings Current feature settings
+		 * @param  {Feature} $feature Current feature
+		 * @since  2.2
+		 * @return {bool}  New active value
+		 */
 		return apply_filters( 'ep_feature_active', $active, $feature_settings, $this );
 	}
 
@@ -138,6 +164,14 @@ abstract class Feature {
 	 * @since 2.1
 	 */
 	public function post_activation() {
+		/**
+		 * Fires after feature is activated
+		 *
+		 * @hook ep_feature_post_activation
+		 * @param  {string} $slug Feature slug
+		 * @param {Feature} $feature Current feature
+		 * @since  2.1
+		 */
 		do_action( 'ep_feature_post_activation', $this->slug, $this );
 	}
 
@@ -149,6 +183,14 @@ abstract class Feature {
 	public function output_feature_box() {
 		$this->output_feature_box_summary();
 
+		/**
+		 * Fires before feature box summary is shown
+		 *
+		 * @hook ep_feature_box_summary
+		 * @param  {string} $slug Feature slug
+		 * @param {Feature} $feature Current feature
+		 * @since  2.1
+		 */
 		do_action( 'ep_feature_box_summary', $this->slug, $this );
 		?>
 
@@ -158,7 +200,18 @@ abstract class Feature {
 			<?php $this->output_feature_box_long(); ?>
 
 			<p><a class="collapse"><?php esc_html_e( 'Collapse', 'elasticpress' ); ?></a></p>
-			<?php do_action( 'ep_feature_box_long', $this->slug, $this ); ?>
+
+			<?php
+			/**
+			 * Fires after feature long description
+			 *
+			 * @hook ep_feature_box_long
+			 * @param  {string} $slug Feature slug
+			 * @param {Feature} $feature Current feature
+			 * @since  2.1
+			 */
+			do_action( 'ep_feature_box_long', $this->slug, $this );
+			?>
 
 		</div>
 		<?php

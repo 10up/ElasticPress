@@ -47,7 +47,7 @@ function setup() {
 	add_filter( 'plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_filter( 'network_admin_plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
-	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
+	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
 	add_filter( 'wpmu_blogs_columns', __NAMESPACE__ . '\filter_blogs_columns', 10, 1 );
 	add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
@@ -130,6 +130,14 @@ function log_version_query_error( $query ) {
 
 	// Are we logging the version query results?
 	if ( '1' === $logging ) {
+		/**
+		 * Filter how long results of Elasticsearch version query are stored
+		 *
+		 * @since  23.0
+		 * @hook ep_es_info_cache_expiration
+		 * @param  {int} Time in seconds
+		 * @return  {int} New time in seconds
+		 */
 		$cache_time         = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
 		$response_code_key  = 'ep_es_info_response_code';
 		$response_error_key = 'ep_es_info_response_error';
@@ -264,7 +272,14 @@ function maybe_notice( $force = false ) {
 		}
 	}
 
-	// Turn on logging for the version query.
+	/**
+	 * Filter how long results of Elasticsearch version query are stored
+	 *
+	 * @since  23.0
+	 * @hook ep_es_info_cache_expiration
+	 * @param  {int} Time in seconds
+	 * @return  {int} New time in seconds
+	 */
 	$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -430,6 +445,13 @@ function action_wp_ajax_ep_index() {
 			}
 		}
 
+		/**
+		 * Fires at start of new index
+		 *
+		 * @since  2.1
+		 * @hook ep_dashboard_start_index
+		 * @param  {array} $index_meta Index meta information
+		 */
 		do_action( 'ep_dashboard_start_index', $index_meta );
 	} elseif ( ! empty( $index_meta['sync_stack'] ) && $index_meta['offset'] >= $index_meta['found_items'] ) {
 		$status = 'start';
@@ -441,6 +463,14 @@ function action_wp_ajax_ep_index() {
 		$index_meta['start'] = false;
 	}
 
+	/**
+	 * Filter index meta during dashboard sync
+	 *
+	 * @since  3.0
+	 * @hook ep_index_meta
+	 * @param  {array} $index_meta Current index meta
+	 * @return  {array} New index meta
+	 */
 	$index_meta = apply_filters( 'ep_index_meta', $index_meta );
 	$indexable  = Indexables::factory()->get( $index_meta['current_sync_item']['indexable'] );
 
@@ -449,11 +479,28 @@ function action_wp_ajax_ep_index() {
 	}
 
 	if ( ! empty( $index_meta['start'] ) ) {
+		/**
+		 * Filter whether we should delete index and send new mapping at the start of the sync
+		 *
+		 * @since  2.1
+		 * @hook ep_skip_index_reset
+		 * @param  {bool} $skip True means skip
+		 * @param  {array} $index_meta Current index meta
+		 * @return  {bool} New skip value
+		 */
 		if ( ! apply_filters( 'ep_skip_index_reset', false, $index_meta ) ) {
 			$indexable->delete_index();
 
 			$indexable->put_mapping();
 
+			/**
+			 * Fires after dashboard put mapping is completed
+			 *
+			 * @since  2.1
+			 * @hook ep_dashboard_put_mapping
+			 * @param  {array} $index_meta Index meta information
+			 * @param  {string} $status Current indexing status
+			 */
 			do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
 		}
 	}
@@ -464,10 +511,33 @@ function action_wp_ajax_ep_index() {
 		$bulk_setting = get_option( 'ep_bulk_setting', 350 );
 	}
 
+	/**
+	 * Filter number of items to index per cycle in the dashboard
+	 *
+	 * @since  2.1
+	 * @hook ep_index_default_per_page
+	 * @param  {int} Entries per cycle
+	 * @return  {int} New number of entries
+	 */
 	$per_page = apply_filters( 'ep_index_default_per_page', $bulk_setting );
 
+	/**
+	 * Fires right before entries are about to be indexed in a dashboard sync
+	 *
+	 * @since  2.1
+	 * @hook ep_pre_dashboard_index
+	 * @param  {array} $args Args to query content with
+	 */
 	do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
 
+	/**
+	 * Filters arguments used to query for content for each indexable
+	 *
+	 * @since  3.0
+	 * @hook ep_dashboard_index_args
+	 * @param  {array} $args Args to query content with
+	 * @return  {array} New query args
+	 */
 	$args = apply_filters(
 		'ep_dashboard_index_args',
 		[
@@ -487,6 +557,15 @@ function action_wp_ajax_ep_index() {
 			foreach ( $query['objects'] as $object ) {
 				$killed_item_count = 0;
 
+				/**
+				 * Filter whether to not sync sepcific item in dashboard or not
+				 *
+				 * @since  2.1
+				 * @hook ep_item_sync_kill
+				 * @param  {boolean} $kill False means dont sync
+				 * @param  {array} $object Object to sync
+				 * @return {Indexable} Indexable that object belongs to
+				 */
 				if ( apply_filters( 'ep_item_sync_kill', false, $object, $indexable ) ) {
 					$killed_item_count++;
 				} else {
@@ -657,6 +736,14 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		$indexables = Indexables::factory()->get_all();
 
+		/**
+		 * Filter indexable labels used in dashboard sync UI
+		 *
+		 * @since  3.0
+		 * @hook ep_dashboard_indexable_labels
+		 * @param  {array} $labels Current indexable lables
+		 * @return {array} New labels
+		 */
 		$data['sync_indexable_labels'] = apply_filters(
 			'ep_dashboard_indexable_labels',
 			[
@@ -667,6 +754,10 @@ function action_admin_enqueue_dashboard_scripts() {
 				'post' => [
 					'singular' => esc_html__( 'Post', 'elasticpress' ),
 					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
+				],
+				'term' => [
+					'singular' => esc_html__( 'Term', 'elasticpress' ),
+					'plural'   => esc_html__( 'Terms', 'elasticpress' ),
 				],
 				'user' => [
 					'singular' => esc_html__( 'User', 'elasticpress' ),
@@ -839,7 +930,7 @@ function action_admin_menu() {
  * @param string $language The current language.
  * @return string          The updated language.
  */
-function use_language_in_setting( $language = 'english' ) {
+function use_language_in_setting( $language = 'english', $context ) {
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
@@ -856,51 +947,99 @@ function use_language_in_setting( $language = 'english' ) {
 		return $language;
 	}
 
-	$english_name = strtolower( $translations[ $ep_language ]['english_name'] );
+	$wp_language = $translations[ $ep_language ]['language'];
 
 	/**
 	 * Languages supported in Elasticsearch mappings.
+	 * Array format: Elasticsearch analyzer name => WordPress language package name
 	 *
 	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
 	 */
-	$ep_languages = [
-		'arabic',
-		'armenian',
-		'basque',
-		'bengali',
-		'brazilian',
-		'bulgarian',
-		'catalan',
-		'cjk',
-		'czech',
-		'danish',
-		'dutch',
-		'english',
-		'finnish',
-		'french',
-		'galician',
-		'german',
-		'greek',
-		'hindi',
-		'hungarian',
-		'indonesian',
-		'irish',
-		'italian',
-		'latvian',
-		'lithuanian',
-		'norwegian',
-		'persian',
-		'portuguese',
-		'romanian',
-		'russian',
-		'sorani',
-		'spanish',
-		'swedish',
-		'turkish',
-		'thai',
+	$es_languages = [
+		'arabic'     => [ 'ar', 'ary' ],
+		'armenian'   => [ 'hy' ],
+		'basque'     => [ 'eu' ],
+		'bengali'    => [ 'bn', 'bn_BD' ],
+		'brazilian'  => [ 'pt_BR' ],
+		'bulgarian'  => [ 'bg' ],
+		'catalan'    => [ 'ca' ],
+		'cjk'        => [], // CJK characters (not a language)
+		'czech'      => [ 'cs' ],
+		'danish'     => [ 'da' ],
+		'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
+		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_ZA' ],
+		'estonian'   => [ 'et' ],
+		'finnish'    => [ 'fi' ],
+		'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
+		'galician'   => [ 'gl_ES' ],
+		'german'     => [ 'de', 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal', 'de_AT' ],
+		'greek'      => [ 'el' ],
+		'hindi'      => [ 'hi_IN' ],
+		'hungarian'  => [ 'hu_HU' ],
+		'indonesian' => [ 'id_ID' ],
+		'irish'      => [], // WordPress doesn't support Irish as an active locale currently
+		'italian'    => [ 'it_IT' ],
+		'latvian'    => [ 'lv' ],
+		'lithuanian' => [ 'lt_LT' ],
+		'norwegian'  => [ 'nb_NO' ],
+		'persian'    => [ 'fa_IR' ],
+		'portuguese' => [ 'pt', 'pt_AO', 'pt_PT', 'pt_PT_ao90' ],
+		'romanian'   => [ 'ro_RO' ],
+		'russian'    => [ 'ru_RU' ],
+		'sorani'     => [ 'ckb' ],
+		'spanish'    => [ 'es_CR', 'es_MX', 'es_VE', 'es_AR', 'es_CL', 'es_GT', 'es_PE', 'es_ES', 'es_UY', 'es_CO' ],
+		'swedish'    => [ 'sv_SE' ],
+		'turkish'    => [ 'tr_TR' ],
+		'thai'       => [ 'th' ],
 	];
 
-	return in_array( $english_name, $ep_languages, true ) ? $english_name : $language;
+	/**
+	 * Languages supported in Elasticsearch snowball token filters.
+	 *
+	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-snowball-tokenfilter.html
+	 */
+	$es_snowball_languages = [
+		'Armenian',
+		'Basque',
+		'Catalan',
+		'Danish',
+		'Dutch',
+		'English',
+		'Finnish',
+		'French',
+		'German',
+		'German2', // currently unused
+		'Hungarian',
+		'Italian',
+		'Kp', // currently unused
+		'Lithuanian',
+		'Lovins', // currently unused
+		'Norwegian',
+		'Porter', // currently unused
+		'Portuguese',
+		'Romanian',
+		'Russian',
+		'Spanish',
+		'Swedish',
+		'Turkish',
+	];
+
+	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
+		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
+			$language = $analyzer_name;
+			break;
+		}
+	}
+
+	if( 'filter_ewp_snowball' === $context ) {
+		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
+			return ucfirst( $language );
+		}
+
+		return 'English';
+	}
+
+	return $language;
 }
 
 /**

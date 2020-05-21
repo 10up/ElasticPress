@@ -62,7 +62,7 @@ class SearchOrdering extends Feature {
 
 		if ( ! $search->is_active() && $this->is_active() ) {
 			$features->deactivate_feature( $this->slug );
-			return;
+			return false;
 		}
 
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 50 );
@@ -739,6 +739,10 @@ class SearchOrdering extends Feature {
 
 		$pointers = get_post_meta( $post_id, 'pointers', true );
 		$term     = $this->create_or_return_custom_result_term( $post->post_title );
+
+		if ( empty( $pointers ) ) {
+			return;
+		}
 
 		foreach ( $pointers as $pointer ) {
 			$ref_id = $pointer['ID'];

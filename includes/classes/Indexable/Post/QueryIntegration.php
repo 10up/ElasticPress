@@ -13,7 +13,9 @@ use \WP_Query as WP_Query;
 use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -64,6 +66,14 @@ class QueryIntegration {
 	 * @return int
 	 */
 	public function found_posts( $found_posts, $query ) {
+		/**
+		 * Filter to skip WP Query integration
+		 *
+		 * @hook ep_skip_query_integration
+		 * @param  {bool} $skip True to skip
+		 * @param  {WP_Query} $query WP Query to evaluate
+		 * @return  {bool} New skip value
+		 */
 		if ( ( isset( $query->elasticsearch_success ) && false === $query->elasticsearch_success ) || ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) ) {
 			return $found_posts;
 		}
@@ -78,6 +88,14 @@ class QueryIntegration {
 	 * @since 0.9
 	 */
 	public function add_es_header( $query ) {
+		/**
+		 * Filter to skip WP Query integration
+		 *
+		 * @hook ep_skip_query_integration
+		 * @param  {bool} $skip True to skip
+		 * @param  {WP_Query} $query WP Query to evaluate
+		 * @return  {bool} New skip value
+		 */
 		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return;
 		}
@@ -97,8 +115,19 @@ class QueryIntegration {
 			 * Manually setting a header as $wp_query isn't yet initialized when we
 			 * call: add_filter('wp_headers', 'filter_wp_headers');
 			 */
+			// @codeCoverageIgnoreStart
 			header( 'X-ElasticPress-Query: true' );
+			// @codeCoverageIgnoreEnd
 		}
+	}
+
+	/**
+	 * Gets the blog ID that the class is currently switched to.
+	 *
+	 * @return int
+	 */
+	public function get_switched() {
+		return $this->switched;
 	}
 
 	/**
@@ -109,7 +138,9 @@ class QueryIntegration {
 	 */
 	public function maybe_switch_to_blog( $post ) {
 		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( ! empty( $post->site_id ) && get_current_blog_id() !== $post->site_id ) {
@@ -138,7 +169,9 @@ class QueryIntegration {
 	 */
 	public function maybe_restore_blog( $query ) {
 		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( $this->switched ) {
@@ -159,6 +192,14 @@ class QueryIntegration {
 	public function get_es_posts( $posts, $query ) {
 		global $wpdb;
 
+		/**
+		 * Filter to skip WP Query integration
+		 *
+		 * @hook ep_skip_query_integration
+		 * @param  {bool} $skip True to skip
+		 * @param  {WP_Query} $query WP Query to evaluate
+		 * @return  {bool} New skip value
+		 */
 		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return $posts;
 		}
@@ -166,9 +207,13 @@ class QueryIntegration {
 		$query_vars = $query->query_vars;
 
 		/**
-		 * Allows us to filter in searchable post types if needed
+		 * Filter post type query variables before WP Query
 		 *
 		 * @since  2.1
+		 * @hook ep_query_post_type
+		 * @param  {string|array} $post_types Post types
+		 * @param  {WP_Query} $query WP Query object
+		 * @return  {string|array} New post types
 		 */
 		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'], $query );
 
@@ -196,6 +241,14 @@ class QueryIntegration {
 			return [];
 		}
 
+		/**
+		 * Filter cached posts pre-post query
+		 *
+		 * @hook ep_wp_query_cached_posts
+		 * @param  {array} $posts Array of posts
+		 * @param  {WP_Query} $query WP Query object
+		 * @return  {array} New cached posts
+		 */
 		$new_posts = apply_filters( 'ep_wp_query_cached_posts', [], $query );
 
 		$ep_query = null;
@@ -210,17 +263,19 @@ class QueryIntegration {
 			$formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_vars, $query );
 
 			/**
-			 * Filter search scope
+			 * Filter post query scope
 			 *
-			 * @since 2.1
-			 *
-			 * @param mixed $scope The search scope. Accepts `all` (string), a single
-			 *                     site id (int or string), or an array of site ids (array).
+			 * @hook ep_search_scope
+			 * @param  {string} $scope Current scope
+			 * @return  {string} New scope
+			 * @since  2.1
 			 */
 			$scope = apply_filters( 'ep_search_scope', $scope );
 
 			if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+				// @codeCoverageIgnoreStart
 				$scope = 'current';
+				// @codeCoverageIgnoreEnd
 			}
 
 			$index = null;
@@ -239,7 +294,7 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			}
 
-			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index );
+			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index, $query );
 
 			/**
 			 * ES failed. Go back to MySQL.
@@ -272,15 +327,38 @@ class QueryIntegration {
 					break;
 			}
 
+			/**
+			 * Fires after non cached post query
+			 *
+			 * @hook ep_wp_query_non_cached_search
+			 * @param {array} $new_posts Array of posts from query
+			 * @param  {array} $ep_query Raw Elasticsearch query
+			 * @param  {WP_Query} $query WordPress query
+			 */
 			do_action( 'ep_wp_query_non_cached_search', $new_posts, $ep_query, $query );
 		}
 
 		$this->posts_by_query[ spl_object_hash( $query ) ] = $new_posts;
 
+		/**
+		 * Fires before returning posts from query
+		 *
+		 * @hook ep_wp_query
+		 * @param {array} $new_posts Array of posts from query
+		 * @param  {array} $ep_query Raw Elasticsearch query
+		 * @param  {WP_Query} $query WordPress query
+		 */
 		do_action( 'ep_wp_query', $new_posts, $ep_query, $query );
 
 		/**
+		 * Fires before returning posts from query
+		 *
 		 * Pre-3.0 backwards compat
+		 *
+		 * @hook ep_wp_query_search
+		 * @param {array} $new_posts Array of posts from query
+		 * @param  {array} $ep_query Raw Elasticsearch query
+		 * @param  {WP_Query} $query WordPress query
 		 */
 		do_action( 'ep_wp_query_search', $new_posts, $ep_query, $query );
 
@@ -307,7 +385,13 @@ class QueryIntegration {
 			if ( ! empty( $post_array['site_id'] ) ) {
 				$post->site_id = $post_array['site_id'];
 			}
-			// ep_search_request_args
+			/**
+			 * Filter post object properties set after query
+			 *
+			 * @hook ep_search_post_return_args
+			 * @param  {array} $properties Post properties
+			 * @return  {array} New properties
+			 */
 			$post_return_args = apply_filters(
 				'ep_search_post_return_args',
 				array(

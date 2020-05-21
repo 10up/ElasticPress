@@ -2,9 +2,9 @@
 Contributors: tlovett1, vhauri, tott, oscarssanchez, cmmarslender, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
-Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
+Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Requires at least: 3.7.1
-Tested up to: 5.3
+Tested up to: 5.4
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -43,10 +43,77 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 3.2.2 =
+= 3.4.1 =
+
+* Make weighting dashboard flex containers to prevent the slider from changing size. Props [@mlaroy](https://github.com/mlaroy).
+* Fix issue where weightings wouldn't save properly for certain post types. Props [mustafauysal](https://github.com/mustafauysal).
+* Fix bug where terms wouldn't finish syncing in certain scenarios.
+* Properly order WooCommerce products using double to account for decimals. Props [@oscarsanchez](https://github.com/oscarsanchez).
+* Show current indices in index health dashboard. Props [moraleida](https://github.com/moraleida).
+
+= 3.4 =
+
+* Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
+* Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
+* Support all taxonomies in root of `WP_Query`
+* Readd `ep_retrieve_aggregations` hook for backwards compatibility
+* Move indexable posts class registration into a function that runs in the `plugins_loaded` action. Props [petenelson](https://github.com/petenelson).
+* Fix author name in weighting and use post_author.display_name for weighted author field search. Props [petenelson](https://github.com/petenelson).
+* Add `ep_prepared_*_meta` filters
+* Refactor CLI indexing code for simplicity.
+* Limit indexed Protected Content post types removing `revision`, `oembed_cache`, `custom_css`, `user_request`, `customize_changeset`, and `wp_block`.
+* Cast taxonomy slug to array in case it's already an array in `WP_Query`.
+* Remove unnecessary usage of `--network-wide` CLI paramter.
+* Add name, nickname, and display name to fields used for user search.
+* Add `clear-transient` WP CLI command.
+* Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
+
+= 3.3 =
+
+* Officially support Elasticsearch 7.5
+* Add optional Google Analytics Autosuggest tracking Event
+* Fix single node warning before sync has occurred.
+* When `ep_integrate` is set to false, do not apply faceting.
+* Fix search ordering error when there are no pointers.
+* Add filter `ep_get_hits_from_query` to modify retrieved Elasticsearch hits.
+* Make sure `post_type` array does not include keys. Fixes a bbPress issue.
+* Pass query object to EP response so we can check for main query. This fixes a faceting bug.
+* Add EP-Search-Term header to autosuggest requests to EP.io
+* Clean up indexing transient on sigkill
+
+= 3.2.6 =
+This is a bugfix release
+
+* Under some edge conditions content for autosuggest can be large - don't cache it
+
+= 3.2.5 =
 This is a bug fix version.
 
-* Ensure stats are built prior to showing cluster health notice.
+* Fix WP <5.0 fatal error on register_block_type.
+
+= 3.2.4 =
+This is a bug fix version.
+
+* Fix Gutenberg block initialization
+* Fix Autosuggest: remove filter with proper priority in query generation. Props [Maxdw](https://github.com/Maxdw).
+* Fix Autosuggest: returning WP_Error for non object cache autosuggest queries causes issue. Fallback to transient
+
+= 3.2.3 =
+This is a bug fix version.
+
+* Ensure query building for Autosuggest does not fallback to WPDB.
+
+= 3.2.2 =
+This is a bug fix version with some feature additions.
+
+* Fix PHPCS errors. Props [mmcachran](https://github.com/mmcachran)
+* Fix ensuring stats are built prior to requesting information
+* Fix related post block enqueue block assets on the frontend
+* Fix custom order results change webpack config for externals:lodash
+* Fix don't overwrite search fields
+* Autosuggest queries generated though PHP instead of JavaScript
+* Add WP Acceptance tests
+* Add new WP-CLI commands: get_indexes and get_cluster_indexes
 
 = 3.2.1 =
 This is a bug fix version.
