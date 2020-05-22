@@ -646,10 +646,10 @@ class Weighting {
 	 * @return array Modified weighting configuration.
 	 */
 	public function add_weighted_fields( $weight_config, $search_fields, $post_type ) {
-		$product_config = ( isset( $weight_config[ $post_type ] ) ) ? $weight_config[ $post_type ] : array();
+		$post_type_config = ( isset( $weight_config[ $post_type ] ) ) ? $weight_config[ $post_type ] : array();
 		foreach ( $search_fields as $key => $search_field ) {
 			if ( is_integer( $key ) ) {
-				$this->set_weighted_field( $product_config, $search_field );
+				$this->set_weighted_field( $post_type_config, $search_field );
 			} else {
 				foreach ( $search_field as $sub_field ) {
 					if ( 'taxonomies' === $key ) {
@@ -657,11 +657,11 @@ class Weighting {
 					} else {
 						$field_name = $key . '.' . $sub_field . '.value';
 					}
-					$this->set_weighted_field( $product_config, $field_name );
+					$this->set_weighted_field( $post_type_config, $field_name );
 				}
 			}
 		}
-		$weight_config[ $post_type ] = $product_config;
+		$weight_config[ $post_type ] = $post_type_config;
 		return $weight_config;
 	}
 
