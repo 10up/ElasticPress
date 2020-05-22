@@ -1,6 +1,6 @@
 In ElasticPress 3.0, we’ve introduced the concept of Indexables. In the past, ElasticPress integrated with WordPress’ WP_Query API, which enabled redirection of WP_Query queries through Elasticsearch instead of MySQL. Indexables takes this a step further, enabling indexing, search, and queries on any queryable object in WordPress.
 
-As of 3.0, ElasticPress ships with two built-in Indexables: Posts, Terms, and Users. The Posts Indexable roughly corresponds to the previous WP_Query integration, and the Users Indexable adds support for WP_User_Query in ElasticPress. The Terms Indexable adds support for [WP_Term_Query](https://developer.wordpress.org/reference/classes/wp_term_query/). Future versions of ElasticPress will include additional WordPress APIs (such as WP_Comment_Query), and you can also create your own custom Indexables by extending the Indexable class.
+As of 3.5, ElasticPress ships with four built-in Indexables: Posts, Terms, and Users. The Posts Indexable roughly corresponds to the previous WP_Query integration, the Users Indexable adds support for WP_User_Query in ElasticPress, the Comments Indexable adds support for [WP_Comment_Query](https://developer.wordpress.org/reference/classes/WP_Comment_Query/), and the Terms Indexable adds support for [WP_Term_Query](https://developer.wordpress.org/reference/classes/wp_term_query/). Future versions of ElasticPress will include additional WordPress APIs, and you can also create your own custom Indexables by extending the Indexable class.
 
 ## Post Indexable
 
@@ -533,3 +533,152 @@ The User Indexable is only enabled if the User feature is activated. ElasticPres
 * ```search_columns```
 
     Specify columns in the user database table to be searched. NB: this is merged into ```search_fields``` before being sent to Elasticsearch with ```search_fields``` overwriting ```search_columns```.
+
+## Comment Indexable
+The Comment Indexable is only enabled if the Comment feature is activated. ElasticPress integrates with `WP_Comment_Query` if the `ep_integrate` or `s` (search) parameter passed (see below) to the query object. ElasticPress converts `WP_Comment_Query` arguments to Elasticsearch readable queries. Supported `WP_Comment_Query` parameters are listed and explained below.
+
+### Supported WP_Comment_Query Parameters
+
+* ```number``` (*int*)
+
+    The maximum returned number of results.
+
+* ```offset``` (*int*)
+
+    Offset the returned results (needed in pagination).
+
+* ```paged``` (*int*)
+
+    Defines the page of results to return. When used with ```$offset```, ```$offset``` takes precedence. Default 1.
+
+* ```orderby``` (*string*)
+
+    Order results by a specific field name. Supports: ```comment_agent```, ```comment_approved```, `comment_author`, `comment_author_email`, ```comment_author_IP```, ```comment_author_url```, ```comment_content```, ```comment_date```, ```comment_date_gmt```, ```comment_ID```, ```comment_karma```, ```comment_parent```, ```comment_post_ID```, ```comment_type```, ```user_id```, ```meta_value``` and ```meta_value_num```; anything else will be interpretted as a document path i.e. `meta.my_key.long` or `meta.my_key.raw`. Default is ```comment_date_gmt```.
+
+* ```order``` (*string*)
+
+    Which direction to order results in. Accepts ```ASC``` and ```DESC```. Default is ```DESC```.
+
+* ```author_email``` (*string*)
+
+    Single email address that should match the comment author email address.
+
+* ```author_url``` (*string*)
+
+    Single URL that should match the comment author URL value.
+
+* ```user_id``` (*int*)
+
+    Only show comments that match a specific user ID.
+
+* ```author__in``` (*array*)
+
+    An array of author IDs to include comments for.
+
+* ```author__not_in``` (*array*)
+    An array of author IDs to exclude from results.
+
+* ```comment_in``` (*array*)
+
+    An array of comment IDs to include comments for.
+
+* ```comment__not_in``` (*array*)
+
+    An array of comment IDs to exclude from results.
+
+* ```date_query``` (*array*)
+
+    ```date_query``` accepts an array of keys and values (array|string|int) to find comments created on
+    specific dates/times. See the ```WP_Query``` ```date_query``` documentation for a list of supported fields.
+* ```fields``` (*string*)
+    Which fields to return. Accepts ```ids``` or empty for all fields.
+* ```count``` (*boolean*)
+    Return a comment count. Accepts ```true``` or ```false```. Default ```false```.
+* ```karma``` (*int*)
+    Karma score to retrieve matching comments for.
+* ```meta_key``` (*string*)
+    Allows you to query comment meta with the defined key.
+* ```meta_value``` (*string*)
+    Include comments with a matching comment meta value. Requires ```$meta_key``` to be set.
+* ```meta_query``` (*array*)
+    Filter comments by comment meta conditions. Meta arrays and objects are serialized due to limitations of Elasticsearch. See the ```WP_Query``` ```meta_query``` documentation for supported fields. Takes an array of form:
+    ```php
+    new WP_Comment_Query( array(
+        'search'     => 'search phrase',
+        'meta_query' => array(
+            array(
+                'key'     => 'key_name',
+                'value'   => 'meta value',
+                'compare' => '=',
+            ),
+        ),
+    ) );
+* ```hierarchical``` (*boolean|string*)
+    Whether to include comment descendants in the results. Accepted values are ```threaded```, ```flat``` or ```false```. Default ```false```. This parameter is ignored if ```$fields``` is set to ```ids```.
+* ```parent``` (*int*)
+    Only show comments that match a specific parent ID.
+* ```parent__in``` (*array*)
+    An array of parents IDs to include comments for.
+* ```parent__not_in``` (*array*)
+    An array of parent IDs to exclude from results.
+* ```post_author``` (*int*)
+    Only show comments that are associated with a specific post author ID.
+* ```post_author__in``` (*array*)
+    An array of post author IDs to include comments for.
+* ```post_author__not_in``` (*array*)
+    An array of post author IDs to exclude from results.
+* ```post_id``` (*int*)
+    Only show comments that are associated with a specific post ID.
+* ```post__in``` (*array*)
+    An array of post IDs to include comments for.
+* ```post__not_in``` (*array*)
+    An array of post IDs to exclude from results.
+* ```post_status``` (*string|array*)
+    Post status or array of post statuses to retrieve affiliated comments for. Pass 'any' to match any value.
+* ```post_type``` (*string*)
+    Post type to retrieve affiliated comments for. Pass 'any' to match any value.
+* ```post_name``` (*string*)
+    Post name to retrieve affiliated comments for.
+* ```post_parent``` (*int*)
+    Post parent ID to retrieve affiliated comments for.
+* ```search``` (*string*)
+    Search keyword. By default used to search against ```comment_author```, ```comment_author_email```, ```comment_author_url```, ```comment_author_IP``` and ```comment_content```.
+* ```status``` (*string|array*)
+    Comment stati to limit results by. Accepts an array or space/comma-separated list of ```hold``` (```comment_status=0```), ```approve``` (```comment_status=1```), ```all```, or a custom comment status. Default ```all```.
+* ```include_unapproved``` (*array*)
+    Array of IDs or email addresses of users whose unapproved comments will be returned by the query regardless of ```$status```.
+* ```type``` (*string|array*)
+    Include comments of a given type, or array of types. Accepts ```comment```, ```pings```, or any custom type string.
+* ```type__in``` (*array*)
+    An array of comment types to include comments for.
+* ```type__not_in``` (*array*)
+    An array of comment types to exclude from results.
+The following are special parameters that are only supported by ElasticPress.
+* ```search_fields``` (*array*)
+    If not specified, defaults to ```array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_author_IP', 'comment_content' )```.
+    * ```comment_author``` (*string*)
+        Applies current search to comment author name.
+    * ```comment_author_email``` (*string*)
+        Applies current search to comment author email.
+    * ```comment_author_url``` (*string*)
+        Applies current search to comment author URL.
+    * ```comment_author_IP``` (*string*)
+        Applies current search to comment author IP address.
+    * ```comment_content``` (*string*)
+        Applies current search to comment content.
+    * ```meta``` (*string* => *array*/*string*)
+        Applies the current search to comment meta. The following will fuzzy search across ```comment_author```, ```comment_content```, and comment meta keys ```meta_key_1``` and ```meta_key_2```:
+        ```php
+        new WP_Comment_Query( array(
+            'search'        => 'meta search phrase',
+            'search_fields' => array(
+                'comment_author',
+                'comment_content',
+                'meta' => array( 'meta_key_1', 'meta_key_2' ),
+            ),
+        ) );
+        ```
+
+* ```sites``` (*int*/*string*/*array*)
+
+    This parameter only applies in a multi-site environment. It lets you search for comments on specific sites or across the network.
