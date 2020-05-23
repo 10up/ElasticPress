@@ -130,6 +130,37 @@ function create_and_sync_term( $slug, $name, $description, $taxonomy, $posts = [
 }
 
 /**
+ * Create and sync a comment
+ *
+ * @param  string $comment Comment content.
+ * @param  int    $post_id Post ID.
+ * @param  int    $parent  Parent comment ID.
+ *
+ * @since  3.5
+ *
+ * @return int Comment ID.
+ */
+function create_and_sync_comment( $comment, $post_id = 0, $parent = 0 ) {
+	$args = [
+		'comment_content' => $comment
+	];
+
+	if ( ! empty( $parent ) ) {
+		$args['comment_parent'] = $parent;
+	}
+
+	if ( ! empty( $post_id ) ) {
+		$args['comment_post_ID'] = $post_id;
+	}
+
+	$comment_id = wp_insert_comment( $args );
+
+	ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id, true );
+
+	return $comment_id;
+}
+
+/**
  * Create posts for date query testing
  *
  * @since  3.0
