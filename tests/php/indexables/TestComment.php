@@ -73,4 +73,123 @@ class TestComment extends BaseTestCase {
 		}
 	}
 
+	/**
+	 * Test a simple comment sync
+	 *
+	 * @since 3.5
+	 * @group post
+	 */
+	public function testCommentSync() {
+		add_action(
+			'ep_sync_comment_on_transition',
+			function() {
+				$this->fired_actions['ep_sync_comment_on_transition'] = true;
+			}
+		);
+
+		$post_id = Functions\create_and_sync_post();
+
+		$comment_id = wp_insert_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+
+		ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertArrayHasKey( 'ep_sync_comment_on_transition', $this->fired_actions );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_sync_comment_on_transition'] ) );
+
+		$comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $comment_id );
+
+		$this->assertnotEmpty( $comment );
+	}
+
+	/**
+	 * Test a simple comment sync with meta
+	 *
+	 * @since 3.5
+	 * @group comment
+	 */
+	public function testCommentSyncMeta() {
+		$post_id = Functions\create_and_sync_post();
+
+		$comment_id = wp_insert_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+		] );
+
+		update_comment_meta( $comment_id, 'new_meta', 'test' );
+
+		ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $comment_id );
+
+		$this->assertEquals( 'test', $comment['meta']['new_meta'][0]['value'] );
+	}
+
+	/**
+	 * Test a simple comment sync on meta update
+	 *
+	 * @since 3.5
+	 * @group comment
+	 */
+	public function testCommentSyncOnMetaUpdate() {
+		$post_id = Functions\create_and_sync_post();
+
+		$comment_id = wp_insert_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+		] );
+
+		update_comment_meta( $comment_id, 'test_key', true );
+
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+		$this->assertnotEmpty( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->add_to_queue( $comment_id ) );
+	}
+
+	/**
+	 * Test comment sync kill.
+	 *
+	 * @since 3.5
+	 * @group comment
+	 */
+	public function testCommentSyncKill() {
+		$post_id = Functions\create_and_sync_post();
+
+		$created_comment_id = wp_insert_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+		] );
+
+		add_action(
+			'ep_sync_comment_on_transition',
+			function() {
+				$this->fired_actions['ep_sync_comment_on_transition'] = true;
+			}
+		);
+
+		add_filter(
+			'ep_comment_sync_kill',
+			function( $kill, $comment_id ) use ( $created_comment_id ) {
+				if ( $created_comment_id === $comment_id ) {
+					return true;
+				}
+
+				return $kill;
+			},
+			10,
+			2
+		);
+
+		ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->action_sync_on_update( $created_comment_id );
+
+		$this->assertArrayNotHasKey( 'ep_sync_comment_on_transition', $this->fired_actions );
+	}
 }
