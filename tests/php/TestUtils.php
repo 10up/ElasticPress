@@ -95,6 +95,8 @@ class TestUtils extends BaseTestCase {
 		update_option( 'ep_indexable', 'no' );
 
 		$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
+
+		delete_option( 'ep_indexable' );
 	}
 
 	/**

@@ -192,4 +192,57 @@ class TestComment extends BaseTestCase {
 
 		$this->assertArrayNotHasKey( 'ep_sync_comment_on_transition', $this->fired_actions );
 	}
+
+	/**
+	 * Test a basic comment query with and without ElasticPress
+	 *
+	 * @since 3.3
+	 * @group comment
+	 */
+	public function testBasicCommentQuery() {
+
+		$post_id = Functions\create_and_sync_post();
+
+		Functions\create_and_sync_comment( 'Test comment', $post_id );
+		Functions\create_and_sync_comment( 'Test comment 2', $post_id );
+		Functions\create_and_sync_comment( 'Test comment 3', $post_id );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// First try without ES and make sure everything is right.
+		$comments = (new \WP_Comment_Query())->query( [] );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( empty( $comment->elasticsearch ) );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+
+		// Now try with Elasticsearch.
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+		] );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+
+		// Test some of the filters and defaults.
+		$return_2 = function() {
+			return 2;
+		};
+
+		add_filter( 'ep_max_results_window', $return_2 );
+
+		// Now try with Elasticsearch.
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+		] );
+
+		$this->assertEquals( 2, count( $comments ) );
+
+		remove_filter( 'ep_max_results_window', $return_2 );
+	}
 }
