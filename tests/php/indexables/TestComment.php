@@ -283,4 +283,18 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	public function testCommentQueryOffset() {
+		$this->createComments( 6 );
+
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+			'offset' => 3,
+		] );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+	}
 }
