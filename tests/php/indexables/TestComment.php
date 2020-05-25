@@ -267,4 +267,20 @@ class TestComment extends BaseTestCase {
 
 		remove_filter( 'ep_max_results_window', $return_2 );
 	}
+
+	public function testCommentQueryNumber() {
+		$this->createComments();
+
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+			'number' => 2,
+		] );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
+	}
+
 }
