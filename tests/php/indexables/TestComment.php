@@ -74,6 +74,34 @@ class TestComment extends BaseTestCase {
 	}
 
 	/**
+	 * Create test comments.
+	 */
+	public function createComments( $number = 4, $has_child = false ) {
+		$parent_comment_id = $child_comment_id = 0;
+		$comments_id = [];
+
+		$post_id = Functions\create_and_sync_post();
+
+		for( $i = 1; $i <= $number; $i++ ) {
+			$comments_id = Functions\create_and_sync_comment( 'Test comment ' . $i, $post_id );
+		}
+
+		if( $has_child ) {
+			$parent_id = Functions\create_and_sync_comment( 'Test parent comment ', $post_id );
+			$child_id  = Functions\create_and_sync_comment( 'Test child comment ', $post_id, $parent_id );
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		return [
+			'post_id'           => $post_id,
+			'parent_comment_id' =>  $parent_comment_id,
+			'child_comment_id'  => $child_comment_id,
+			'comments_id'       => $comments_id,
+		];
+	}
+
+	/**
 	 * Test a simple comment sync
 	 *
 	 * @since 3.5
@@ -201,13 +229,7 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testBasicCommentQuery() {
 
-		$post_id = Functions\create_and_sync_post();
-
-		Functions\create_and_sync_comment( 'Test comment', $post_id );
-		Functions\create_and_sync_comment( 'Test comment 2', $post_id );
-		Functions\create_and_sync_comment( 'Test comment 3', $post_id );
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$this->createComments( 3 );
 
 		// First try without ES and make sure everything is right.
 		$comments = (new \WP_Comment_Query())->query( [] );
