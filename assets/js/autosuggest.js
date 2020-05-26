@@ -2,7 +2,8 @@
 import { findAncestor, escapeDoubleQuotes, replaceGlobally, debounce } from './utils/helpers';
 import 'element-closest';
 import 'promise-polyfill/src/polyfill';
-// import 'whatwg-fetch';
+import 'whatwg-fetch';
+
 const { epas } = window;
 
 /**

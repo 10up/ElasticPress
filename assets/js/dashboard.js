@@ -1,6 +1,7 @@
 /* eslint-disable camelcase, import/no-unresolved, no-use-before-define */
 import 'promise-polyfill/src/polyfill';
 import { ajaxurl, epDash } from 'window';
+import 'whatwg-fetch';
 import { initSyncFunctions, handleReindexAfterSave } from './es-sync';
 import initSettingsPage from './es-settings';
 import { findAncestor } from './utils/helpers';
@@ -142,7 +143,7 @@ const updateFeature = async (feature, settings, featureName) => {
 
 	try {
 		feature.classList.add('saving');
-		const res = await fetch(ajaxurl, fetchConfig);
+		const res = await window.fetch(ajaxurl, fetchConfig);
 		const response = await res.json();
 
 		// when complete...

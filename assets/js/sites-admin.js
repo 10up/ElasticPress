@@ -1,3 +1,4 @@
+import 'whatwg-fetch';
 /* eslint-disable no-plusplus */
 const { epsa } = window;
 
@@ -19,7 +20,7 @@ const handleToggleClick = async function handleToggleClick() {
 
 	try {
 		// fetch doesn't allow a body object in the config for GET requests
-		const res = await fetch(`${epsa.ajax_url}?${encodedParams}`, {
+		const res = await window.fetch(`${epsa.ajax_url}?${encodedParams}`, {
 			method: 'GET',
 		});
 		const response = await res.json();

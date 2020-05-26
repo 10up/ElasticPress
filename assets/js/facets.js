@@ -32,12 +32,15 @@ const initListener = () => {
 	const facetTerms = document.querySelector('.widget_ep-facet .terms');
 	const facetSearchInput = document.querySelector('.widget_ep-facet .facet-search');
 	const debounceFacetFilter = debounce(handleFacetSearch, 200);
-	facetSearchInput.addEventListener('keyup', (event) => {
-		if (event.keyCode === 13) {
-			return;
-		}
-		debounceFacetFilter(event, facetTerms);
-	});
+
+	if (facetSearchInput) {
+		facetSearchInput.addEventListener('keyup', (event) => {
+			if (event.keyCode === 13) {
+				return;
+			}
+			debounceFacetFilter(event, facetTerms);
+		});
+	}
 };
 
 document.addEventListener('DOMContentLoaded', initListener);

@@ -3,7 +3,7 @@
 /**
  * This file handles the syncing functions for the ES indeces.
  */
-
+import 'whatwg-fetch';
 import { showElements, hideElements } from './utils/helpers';
 
 const { ajaxurl, epDash } = window;
@@ -404,7 +404,7 @@ const cancelSync = () => {
 		},
 	};
 
-	fetch(ajaxurl, fetchConfig);
+	window.fetch(ajaxurl, fetchConfig);
 };
 
 /**
@@ -427,7 +427,7 @@ export const sync = async () => {
 	};
 
 	try {
-		const res = await fetch(ajaxurl, fetchConfig);
+		const res = await window.fetch(ajaxurl, fetchConfig);
 		const response = await res.json();
 
 		if (syncState.status !== 'sync') {

@@ -1,4 +1,6 @@
 /* eslint-disable import/no-unresolved */
+import 'whatwg-fetch';
+
 const { epAdmin, ajaxurl } = window;
 
 /**
@@ -35,7 +37,7 @@ const handleDismissAdminNotices = () => {
 
 		// set request to the back end to dismiss
 		// the current notice
-		fetch(ajaxurl, {
+		window.fetch(ajaxurl, {
 			method: 'POST',
 			body: JSON.stringify(postData),
 		});
