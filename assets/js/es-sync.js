@@ -81,7 +81,6 @@ const checkInitialSyncStatus = () => {
 		if (epDash.index_meta.wpcli_sync) {
 			// this sync was done via CLI
 			// so we go ahead and update the progress bar
-			// syncStatus = 'wpcli';
 			setSyncState('status', 'wpcli');
 			updateSyncDash();
 		} else {
@@ -112,25 +111,21 @@ const updateProgressBarFromUserTriggeredSync = () => {
 	}
 
 	if (epDash.index_meta.current_sync_item) {
-		// currentSyncItem = epDash.index_meta.current_sync_item;
 		setSyncState('currentItem', epDash.index_meta.current_sync_item);
 	}
 
 	if (epDash.index_meta.site_stack) {
-		// syncStack = epDash.index_meta.sync_stack;
 		setSyncState('stack', epDash.index_meta.sync_stack);
 	}
 
 	if (syncState.stack && syncState.stack.length) {
 		// We are mid sync
 		if (epDash.auto_start_index) {
-			// syncStatus = 'sync';
 			setSyncState('status', 'sync');
 			updateHistory();
 			updateSyncDash();
 			sync();
 		} else {
-			// syncStatus = 'pause';
 			setSyncState('status', 'pause');
 			updateSyncDash();
 		}
