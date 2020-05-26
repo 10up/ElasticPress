@@ -48,7 +48,6 @@
     "webpack-fix-style-only-entries": "^0.2.1",
     "webpack-merge": "^4.2.1",
     "webpackbar": "^3.1.5",
-    "whatwg-fetch": "^3.0.0",
     "wp-hookdoc": "^0.2.0"
   },
   "scripts": {
@@ -82,6 +81,7 @@
     "react-dom": "^16.9.0",
     "react-beautiful-dnd": "^11.0.5",
     "@wordpress/api-fetch": "^3.14.0",
-    "@wordpress/i18n": "^3.5.0"
+    "@wordpress/i18n": "^3.5.0",
+    "whatwg-fetch": "^3.0.0"
   }
 }
