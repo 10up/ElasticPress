@@ -136,9 +136,11 @@ class Command extends WP_CLI_Command {
 			}
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
 
-			foreach ( $features as $key => $feature ) {
-				if ( $feature['active'] ) {
-					WP_CLI::line( $key );
+			foreach ( array_keys( $features ) as $feature_slug ) {
+				$feature = Features::factory()->get_registered_feature( $feature_slug );
+
+				if ( $feature->is_active() ) {
+					WP_CLI::line( $feature_slug );
 				}
 			}
 		} else {
