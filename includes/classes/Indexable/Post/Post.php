@@ -1173,8 +1173,21 @@ class Post extends Indexable {
 		$sticky_posts = get_option( 'sticky_posts' );
 		$sticky_posts = ( is_array( $sticky_posts ) && empty( $sticky_posts ) ) ? false : $sticky_posts;
 
+		/**
+		 * Filter whether to enable sticky posts for this request
+		 *
+		 * @hook ep_enable_sticky_posts
+		 *
+		 * @param {bool}  $allow          Allow sticky posts for this request
+		 * @param {array} $args           Query variables
+		 * @param {array} $formatted_args EP formatted args
+		 *
+		 * @return  {bool} $allow
+		 */
+		$enable_sticky_posts = apply_filters( 'ep_enable_sticky_posts', is_home(), $args, $formatted_args );
+
 		if ( false !== $sticky_posts
-			&& is_home()
+			&& $enable_sticky_posts
 			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
 			$new_sort = [
 				[
