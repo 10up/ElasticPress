@@ -521,6 +521,16 @@ class Post extends Indexable {
 		 */
 		$meta = apply_filters( 'ep_prepare_meta_data', (array) get_post_meta( $post->ID ), $post );
 
+		/**
+		 * Make sure that proper post meta is being saved for
+		 * password protected posts.
+		 * 
+		 * @since 3.4.2
+		 */
+		if ( ! empty( $post->post_password ) ) {	
+			$meta['password_protected'] = true;	
+		}
+
 		if ( empty( $meta ) ) {
 			/**
 			 * Filter final list of prepared meta.
@@ -956,6 +966,24 @@ class Post extends Indexable {
 		}
 
 		$meta_queries = [];
+
+		/**
+		 * Make sure that for non-admin users we don't display
+		 * password protected posts in search results.
+		 * 
+		 * @hook ep_search_password_protected
+		 * @param  {bool} $not_is_admin Default value returned by !is_admin()
+		 * @return  {bool} Display or not password protected posts in search results
+		 * 
+		 * @since 3.4.2
+		 */
+		if ( apply_filter( 'ep_search_password_protected', ! is_admin()) ) {
+			$meta_queries[] = array(
+				'key'     => 'password_protected',
+				'value'   => true,
+				'compare' => '!=',
+			);
+		}
 
 		/**
 		 * Support meta_key
