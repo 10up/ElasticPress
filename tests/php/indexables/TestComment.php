@@ -326,4 +326,53 @@ class TestComment extends BaseTestCase {
 		$this->assertLessThan( $ids[2], $ids[1] );
 		$this->assertLessThan( $ids[3], $ids[2] );
 	}
+
+	public function testCommentDelete() {
+		add_action(
+			'ep_sync_comment_on_transition',
+			function() {
+				$this->fired_actions['ep_sync_comment_on_transition'] = true;
+			}
+		);
+
+		add_action(
+			'deleted_comment',
+			function() {
+				$this->fired_actions['deleted_comment'] = true;
+			}
+		);
+
+		$post_id = Functions\create_and_sync_post();
+
+		$comment_id = wp_insert_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+
+		ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id );
+
+		$this->assertArrayHasKey( 'ep_sync_comment_on_transition', $this->fired_actions );
+
+		$this->assertNotEmpty( $this->fired_actions['ep_sync_comment_on_transition'] );
+
+		$comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $comment_id );
+
+		$this->assertNotEmpty( $comment );
+
+		wp_delete_comment( $comment_id, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertArrayHasKey( 'deleted_comment', $this->fired_actions );
+
+		$this->assertNotEmpty( $this->fired_actions['deleted_comment'] );
+
+		$comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $comment_id );
+
+		$this->assertEmpty( $comment );
+	}
 }
