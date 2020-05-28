@@ -532,7 +532,7 @@ class TestComment extends BaseTestCase {
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
-			$this->assertAttributeContains( 'joe@example.com', 'comment_author_email', $comment );
+			$this->assertAttributeEquals( 'joe@example.com', 'comment_author_email', $comment );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -574,9 +574,55 @@ class TestComment extends BaseTestCase {
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
-			$this->assertAttributeContains( 'http://example.com', 'comment_author_url', $comment );
+			$this->assertAttributeEquals( 'http://example.com', 'comment_author_url', $comment );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
+	}
+
+	public function testCommentQueryUserId() {
+		$current_user_id = get_current_user_id();
+
+		$post_id = Functions\create_and_sync_post();
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+			'user_id' => $current_user_id,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 2',
+			'comment_post_ID' => $post_id,
+			'user_id' => $current_user_id,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 3',
+			'comment_post_ID' => $post_id,
+			'user_id' => $current_user_id,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 4',
+			'comment_post_ID' => $post_id,
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'user_id' => $current_user_id,
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertAttributeEquals( $current_user_id, 'user_id', $comment );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
 	}
 }
