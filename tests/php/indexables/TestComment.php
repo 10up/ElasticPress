@@ -297,4 +297,33 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 	}
+
+	public function testCommentQueryOrderCommentID() {
+		$this->createComments();
+
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+			'orderby'      => 'comment_ID',
+		] );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$ids = wp_list_pluck( $comments, 'comment_ID' );
+		$this->assertGreaterThan( $ids[1], $ids[0] );
+		$this->assertGreaterThan( $ids[2], $ids[1] );
+		$this->assertGreaterThan( $ids[3], $ids[2] );
+
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+			'orderby'      => 'comment_ID',
+			'order'        => 'ASC',
+		] );
+
+		$ids = wp_list_pluck( $comments, 'comment_ID' );
+		$this->assertLessThan( $ids[1], $ids[0] );
+		$this->assertLessThan( $ids[2], $ids[1] );
+		$this->assertLessThan( $ids[3], $ids[2] );
+	}
 }
