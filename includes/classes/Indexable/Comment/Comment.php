@@ -233,7 +233,7 @@ class Comment extends Indexable {
 			switch ( $query_vars['fields'] ) {
 				case 'ids':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'comment_ID',
 						],
 					];
