@@ -987,25 +987,25 @@ class Comment extends Indexable {
 			];
 		} elseif ( 'comment_ID' === $orderby ) {
 			$sort[] = [
-				'comment_ID.long' => [
+				'comment_ID' => [
 					'order' => $order,
 				],
 			];
 		} elseif ( 'comment_karma' === $orderby ) {
 			$sort[] = [
-				'comment_karma.long' => [
+				'comment_karma' => [
 					'order' => $order,
 				],
 			];
 		} elseif ( 'comment_parent' === $orderby ) {
 			$sort[] = [
-				'comment_parent.long' => [
+				'comment_parent' => [
 					'order' => $order,
 				],
 			];
 		} elseif ( 'comment_post_ID' === $orderby ) {
 			$sort[] = [
-				'comment_post_ID.long' => [
+				'comment_post_ID' => [
 					'order' => $order,
 				],
 			];
@@ -1017,7 +1017,7 @@ class Comment extends Indexable {
 			];
 		} elseif ( 'user_id' === $orderby ) {
 			$sort[] = [
-				'user_id.long' => [
+				'user_id' => [
 					'order' => $order,
 				],
 			];
