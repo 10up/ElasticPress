@@ -327,6 +327,22 @@ class TestComment extends BaseTestCase {
 		$this->assertLessThan( $ids[3], $ids[2] );
 	}
 
+	public function testCommentQueryIds() {
+
+		$created_comments = $this->createComments( 3 );
+
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+			'fields' => 'ids',
+		] );
+
+		foreach ( $comments as $comment ) {
+			$this->assertContains( $comment, $created_comments['comment_ids'] );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+	}
+
 	public function testCommentDelete() {
 		add_action(
 			'ep_sync_comment_on_transition',
