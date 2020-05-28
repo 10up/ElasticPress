@@ -140,18 +140,14 @@ function create_and_sync_term( $slug, $name, $description, $taxonomy, $posts = [
  *
  * @return int Comment ID.
  */
-function create_and_sync_comment( $comment, $post_id = 0, $parent = 0 ) {
-	$args = [
-		'comment_content' => $comment
-	];
+function create_and_sync_comment( $args = [] ) {
 
-	if ( ! empty( $parent ) ) {
-		$args['comment_parent'] = $parent;
-	}
-
-	if ( ! empty( $post_id ) ) {
-		$args['comment_post_ID'] = $post_id;
-	}
+	$args = array_merge(
+		[
+			'comment_content' => 'Test comment'
+		],
+		$args
+	);
 
 	$comment_id = wp_insert_comment( $args );
 

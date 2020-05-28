@@ -84,13 +84,23 @@ class TestComment extends BaseTestCase {
 
 		if( $number > 0 ) {
 			for( $i = 1; $i <= $number; $i++ ) {
-				$comment_ids[] = Functions\create_and_sync_comment( 'Test comment ' . $i, $post_id );
+				$comment_ids[] = Functions\create_and_sync_comment( [
+					'comment_content' => 'Test comment ' . $i,
+					'comment_post_ID' => $post_id
+				] );
 			}
 		}
 
 		if( $has_child ) {
-			$parent_comment_id = Functions\create_and_sync_comment( 'Test parent comment ', $post_id );
-			$child_comment_id  = Functions\create_and_sync_comment( 'Test child comment ', $post_id, $parent_comment_id );
+			$parent_comment_id = Functions\create_and_sync_comment( [
+				'comment_content' => 'Test parent comment ',
+				'comment_post_ID' => $post_id
+			] );
+			$child_comment_id  = Functions\create_and_sync_comment( [
+				'comment_content' => 'Test child comment ',
+				'comment_post_ID' => $post_id,
+				'comment_parent' => $parent_comment_id,
+			] );
 		}
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -333,8 +343,14 @@ class TestComment extends BaseTestCase {
 		$post_id_1 = Functions\create_and_sync_post();
 		$post_id_2 = Functions\create_and_sync_post();
 
-		$comment_ids[] = Functions\create_and_sync_comment( 'Test comment 1', $post_id_1 );
-		$comment_ids[] = Functions\create_and_sync_comment( 'Test comment 2', $post_id_2 );
+		$comment_ids[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id_1,
+		] );
+		$comment_ids[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 2',
+			'comment_post_ID' => $post_id_2
+		] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -481,5 +497,44 @@ class TestComment extends BaseTestCase {
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
+	}
+
+	public function testCommentQueryAuthorEmail() {
+		$post_id = Functions\create_and_sync_post();
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+			'comment_author_email' => 'joe@example.com',
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 2',
+			'comment_post_ID' => $post_id,
+			'comment_author_email' => 'doe@example.com',
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 3',
+			'comment_post_ID' => $post_id,
+			'comment_author_email' => 'joe@example.com',
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'author_email' => 'joe@example.com',
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertAttributeContains( 'joe@example.com', 'comment_author_email', $comment );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
 	}
 }
