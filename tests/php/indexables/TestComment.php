@@ -327,6 +327,33 @@ class TestComment extends BaseTestCase {
 		$this->assertLessThan( $ids[3], $ids[2] );
 	}
 
+	public function testCommentQueryOrderCommentPostID() {
+		$post_id_1 = Functions\create_and_sync_post();
+		$post_id_2 = Functions\create_and_sync_post();
+
+		$comment_ids[] = Functions\create_and_sync_comment( 'Test comment 1', $post_id_1 );
+		$comment_ids[] = Functions\create_and_sync_comment( 'Test comment 2', $post_id_2 );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+			'orderby'      => 'comment_post_ID',
+		] );
+
+		$this->assertEquals( 'Test comment 2', $comments[0]->comment_content );
+		$this->assertEquals( 'Test comment 1', $comments[1]->comment_content );
+
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+			'orderby'      => 'comment_post_ID',
+			'order'        => 'ASC',
+		] );
+
+		$this->assertEquals( 'Test comment 2', $comments[1]->comment_content );
+		$this->assertEquals( 'Test comment 1', $comments[0]->comment_content );
+	}
+
 	public function testCommentQueryIds() {
 
 		$created_comments = $this->createComments( 3 );
