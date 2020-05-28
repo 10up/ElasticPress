@@ -714,4 +714,47 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 	}
+
+	public function testCommentQueryCommentIn() {
+		$created_comments = $this->createComments();
+
+		$test_comments = [ $created_comments['comment_ids'][0], $created_comments['comment_ids'][1] ];
+
+		$args = [
+			'ep_integrate' => true,
+			'comment__in' => $test_comments,
+			'number' => 2,
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_ID, $test_comments ) );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
+	}
+
+	public function testCommentQueryCommentNotIn() {
+		$created_comments = $this->createComments( 5 );
+
+		$test_comments = [ $created_comments['comment_ids'][0], $created_comments['comment_ids'][1] ];
+
+		$args = [
+			'ep_integrate' => true,
+			'comment__not_in' => $test_comments,
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertFalse( in_array( $comment->comment_ID, $test_comments ) );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+	}
 }
