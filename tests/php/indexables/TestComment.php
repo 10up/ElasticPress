@@ -343,6 +343,18 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 	}
 
+	public function testCommentQueryCount() {
+
+		$this->createComments( 3 );
+
+		$comments = (new \WP_Comment_Query())->query( [
+			'ep_integrate' => true,
+			'fields' => 'count',
+		] );
+
+		$this->assertEquals( 3, $comments );
+	}
+
 	public function testCommentDelete() {
 		add_action(
 			'ep_sync_comment_on_transition',
