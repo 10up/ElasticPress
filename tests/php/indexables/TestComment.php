@@ -82,8 +82,10 @@ class TestComment extends BaseTestCase {
 
 		$post_id = Functions\create_and_sync_post();
 
-		for( $i = 1; $i <= $number; $i++ ) {
-			$comment_ids[] = Functions\create_and_sync_comment( 'Test comment ' . $i, $post_id );
+		if( $number > 0 ) {
+			for( $i = 1; $i <= $number; $i++ ) {
+				$comment_ids[] = Functions\create_and_sync_comment( 'Test comment ' . $i, $post_id );
+			}
 		}
 
 		if( $has_child ) {
@@ -380,6 +382,36 @@ class TestComment extends BaseTestCase {
 		] );
 
 		$this->assertEquals( 3, $comments );
+	}
+
+	public function testCommentQueryHierarchical() {
+		$this->createComments( 0, true );
+
+		$args = [
+			'hierarchical' => 'threaded',
+			'ep_integrate' => true,
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+
+		$comments = $comments_query->query( $args );
+
+		$this->assertEquals( 1, count( $comments ) );
+		$this->assertObjectHasAttribute( 'children', reset( $comments ) );
+
+		$args = [
+			'hierarchical' => 'flat',
+			'ep_integrate' => true,
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+
+		$comments = $comments_query->query( $args );
+
+		$this->assertEquals( 2, count( $comments ) );
+		foreach( $comments as $comment ) {
+			$this->assertObjectNotHasAttribute( 'children', $comment );
+		}
 	}
 
 	public function testCommentDelete() {
