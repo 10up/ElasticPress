@@ -462,4 +462,24 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEmpty( $comment );
 	}
+
+	public function testCommentQueryPaged() {
+
+		$this->createComments( 7 );
+
+		$args = [
+			'ep_integrate' => true,
+			'paged' => 2,
+			'number' => 4,
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+	}
 }

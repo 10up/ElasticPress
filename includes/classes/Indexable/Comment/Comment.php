@@ -91,7 +91,7 @@ class Comment extends Indexable {
 		 * If `offset` is used, that takes precendence
 		 * over this.
 		 */
-		if ( isset( $query_vars['paged'] ) && ! isset( $query_vars['offset'] ) && $query_vars['paged'] > 1 ) {
+		if ( isset( $query_vars['paged'] ) && empty( $query_vars['offset'] ) && $query_vars['paged'] > 1 ) {
 			$formatted_args['from'] = $number * ( $query_vars['paged'] - 1 );
 		}
 
