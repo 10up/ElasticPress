@@ -74,7 +74,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function action_sync_on_delete( $comment_id ) {
-		if ( ! current_user_can( 'delete_comment', $comment_id ) ) {
+		if ( ! current_user_can( 'moderate_comments', $comment_id ) ) {
 			return;
 		}
 
