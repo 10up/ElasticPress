@@ -78,17 +78,17 @@ class TestComment extends BaseTestCase {
 	 */
 	public function createComments( $number = 4, $has_child = false ) {
 		$parent_comment_id = $child_comment_id = 0;
-		$comments_id = [];
+		$comment_ids = [];
 
 		$post_id = Functions\create_and_sync_post();
 
 		for( $i = 1; $i <= $number; $i++ ) {
-			$comments_id = Functions\create_and_sync_comment( 'Test comment ' . $i, $post_id );
+			$comment_ids[] = Functions\create_and_sync_comment( 'Test comment ' . $i, $post_id );
 		}
 
 		if( $has_child ) {
-			$parent_id = Functions\create_and_sync_comment( 'Test parent comment ', $post_id );
-			$child_id  = Functions\create_and_sync_comment( 'Test child comment ', $post_id, $parent_id );
+			$parent_comment_id = Functions\create_and_sync_comment( 'Test parent comment ', $post_id );
+			$child_comment_id  = Functions\create_and_sync_comment( 'Test child comment ', $post_id, $parent_comment_id );
 		}
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -97,7 +97,7 @@ class TestComment extends BaseTestCase {
 			'post_id'           => $post_id,
 			'parent_comment_id' =>  $parent_comment_id,
 			'child_comment_id'  => $child_comment_id,
-			'comments_id'       => $comments_id,
+			'comment_ids'       => $comment_ids,
 		];
 	}
 
