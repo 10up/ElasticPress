@@ -1017,4 +1017,93 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 4, count( $comments ) );
 	}
+
+	public function testCommentQueryPostAuthor() {
+
+		$user_id_1 = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$user_id_2 = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$user_id_3 = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		$post_id_1 = Functions\create_and_sync_post( [ 'post_author' => $user_id_1 ] );
+		$post_id_2 = Functions\create_and_sync_post( [ 'post_author' => $user_id_1 ] );
+		$post_id_3 = Functions\create_and_sync_post( [ 'post_author' => $user_id_2 ] );
+		$post_id_4 = Functions\create_and_sync_post( [ 'post_author' => $user_id_3 ] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_1,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_1,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_2,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_2,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_3,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_4,
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'post_author' => $user_id_1,
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2 ] ) );
+		}
+
+		$this->assertEquals( 4, count( $comments ) );
+
+		$args = [
+			'ep_integrate' => true,
+			'post_author__in' => [ $user_id_1, $user_id_2 ],
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] ) );
+		}
+
+		$this->assertEquals( 5, count( $comments ) );
+
+		$args = [
+			'ep_integrate' => true,
+			'post_author__not_in' => [ $user_id_1 ],
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_3, $post_id_4 ] ) );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
+	}
 }
