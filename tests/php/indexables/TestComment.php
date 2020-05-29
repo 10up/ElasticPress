@@ -987,8 +987,6 @@ class TestComment extends BaseTestCase {
 		$comments_query = new \WP_Comment_Query( $args );
 		$comments = $comments_query->query( $args );
 
-		var_dump( $created_comments );
-		var_dump( $comments );
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $created_comments['child_comment_id'], $comment->comment_ID );
@@ -1008,8 +1006,6 @@ class TestComment extends BaseTestCase {
 		$comments_query = new \WP_Comment_Query( $args );
 		$comments = $comments_query->query( $args );
 
-		var_dump( $created_comments );
-		var_dump( $comments );
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
 			$this->assertNotEquals( $created_comments['child_comment_id'], $comment->comment_ID );
@@ -1121,7 +1117,7 @@ class TestComment extends BaseTestCase {
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
-			$this->assertTrue( in_array( $comment->comment_post_ID, $created_comments['comment_ids'] ) );
+			$this->assertTrue( in_array( $comment->comment_ID, $created_comments['comment_ids'] ) );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
@@ -1136,7 +1132,7 @@ class TestComment extends BaseTestCase {
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
-			$this->assertTrue( in_array( $comment->comment_post_ID, $created_comments['comment_ids'] ) );
+			$this->assertTrue( in_array( $comment->comment_ID, $created_comments['comment_ids'] ) );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
