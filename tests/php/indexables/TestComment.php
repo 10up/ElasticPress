@@ -875,4 +875,104 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 	}
+
+	public function testCommentQueryMeta() {
+
+		$post_id = Functions\create_and_sync_post();
+		$match = [];
+
+		$match[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_meta' => [
+				'test_meta' => 'test_value'
+			]
+		] );
+
+		$not_match = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$match[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_meta' => [
+				'test_meta' => 'test_value'
+			]
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'meta_key' => 'test_meta',
+			'meta_value' => 'test_value',
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
+			$this->assertNotEquals( $comment->comment_ID, $not_match );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
+	}
+
+	public function testCommentQueryMetaQuery() {
+
+		$post_id = Functions\create_and_sync_post();
+		$match = [];
+
+		$not_match = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_meta' => [
+				'weight' => 10
+			]
+		] );
+
+		$match[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_meta' => [
+				'weight' => 20
+			]
+		] );
+
+		$match[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_meta' => [
+				'weight' => 50
+			]
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'meta_query' => [
+				[
+					'key'   => 'weight',
+					'value' => 15,
+					'compare' => '>',
+				]
+			]
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
+			$this->assertNotEquals( $comment->comment_ID, $not_match );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
+	}
 }
