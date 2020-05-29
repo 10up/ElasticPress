@@ -757,4 +757,73 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 	}
+
+	public function testCommentQueryDateQuery() {
+
+		$post_id = Functions\create_and_sync_post();
+		$in_range = [];
+		$out_range = [];
+
+		$in_range[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_date_gmt' => '2020-05-21',
+			'comment_date' => '2020-05-21',
+		] );
+
+		$out_range[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_date_gmt' => '2020-05-19',
+			'comment_date' => '2020-05-19',
+		] );
+
+		$in_range[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_date_gmt' => '2020-05-25',
+			'comment_date' => '2020-05-25',
+		] );
+
+		$out_range[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_date_gmt' => '2020-05-29',
+			'comment_date' => '2020-05-29',
+		] );
+
+		$out_range[] = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id,
+			'comment_date_gmt' => '2020-06-15',
+			'comment_date' => '2020-06-15',
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$date_query = array(
+			'relation' => 'AND',
+			array(
+				'column' => 'comment_date',
+				'after' => '2020-05-20',
+				'before' => '2020-05-27',
+			),
+		);
+
+		$args = [
+			'ep_integrate' => true,
+			'date_query' => $date_query,
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_ID, $in_range ) );
+			$this->assertFalse( in_array( $comment->comment_ID, $out_range ) );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
+	}
 }
