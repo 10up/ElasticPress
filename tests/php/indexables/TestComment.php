@@ -1156,4 +1156,61 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 4, count( $comments ) );
 	}
+
+	public function testCommentQueryPostStatus() {
+
+		$post_id_1 = Functions\create_and_sync_post( [ 'post_status' => 'publish' ] );
+		$post_id_2 = Functions\create_and_sync_post( [ 'post_status' => 'draft' ] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_1,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_1,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_1,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_2,
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'post_status' => 'publish',
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertEquals( $comment->comment_post_ID, $post_id_1  );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+
+		$args = [
+			'ep_integrate' => true,
+			'post_status' => [ 'draft', 'publish' ],
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 4, count( $comments ) );
+	}
 }
