@@ -1209,4 +1209,48 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 4, count( $comments ) );
 	}
+
+	public function testCommentQueryPostType() {
+
+		$post_id_1 = Functions\create_and_sync_post( [ 'post_type' => 'post' ] );
+		$post_id_2 = Functions\create_and_sync_post( [ 'post_type' => 'page' ] );
+		$post_id_3 = Functions\create_and_sync_post( [ 'post_type' => 'post' ] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_1,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_2,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_2,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment',
+			'comment_post_ID' => $post_id_3,
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'post_type' => 'post',
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_3 ] ) );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
+	}
 }
