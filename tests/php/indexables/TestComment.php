@@ -1106,4 +1106,54 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 	}
+
+	public function testCommentQueryPostId() {
+		$this->createComments();
+		$created_comments = $this->createComments( 3 );
+
+		$args = [
+			'ep_integrate' => true,
+			'post_id' => $created_comments['post_id'],
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_post_ID, $created_comments['comment_ids'] ) );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+
+		$args = [
+			'ep_integrate' => true,
+			'post__in' => [ $created_comments['post_id'] ],
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertTrue( in_array( $comment->comment_post_ID, $created_comments['comment_ids'] ) );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+
+		$args = [
+			'ep_integrate' => true,
+			'post__not_in' => [ $created_comments['post_id'] ],
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertFalse( in_array( $comment->comment_post_ID, $created_comments['comment_ids'] ) );
+		}
+
+		$this->assertEquals( 4, count( $comments ) );
+	}
 }
