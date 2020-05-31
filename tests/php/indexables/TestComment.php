@@ -1291,4 +1291,40 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 	}
+
+	public function testCommentQuerySearch() {
+		$post_id = Functions\create_and_sync_post();
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 2',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$comment_id = Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 3',
+			'comment_post_ID' => $post_id,
+		] );
+
+		update_comment_meta( $comment_id, 'test_meta', 'start here' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'search' => 'test comment',
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+	}
 }
