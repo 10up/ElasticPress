@@ -153,7 +153,7 @@ function create_and_sync_comment( $args = [] ) {
 
 	ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id, true );
 
-	return $comment_id;
+	return (int) $comment_id;
 }
 
 /**
