@@ -133,13 +133,13 @@ return [
 					'type' => 'long',
 				],
 				'comment_post_status'    => [
-					'type' => 'text',
+					'type' => 'keyword',
 				],
 				'comment_post_type'      => [
-					'type' => 'text',
+					'type' => 'keyword',
 				],
 				'comment_post_name'      => [
-					'type' => 'text',
+					'type' => 'keyword',
 				],
 				'comment_post_parent'    => [
 					'type' => 'long',
