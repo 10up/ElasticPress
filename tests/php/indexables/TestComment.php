@@ -1401,4 +1401,85 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 	}
+
+	public function testCommentQueryType() {
+
+		$post_id = Functions\create_and_sync_post();
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+			'comment_type' => 'pingback',
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 2',
+			'comment_post_ID' => $post_id,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 3',
+			'comment_post_ID' => $post_id,
+			'comment_type' => 'trackback',
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'type' => 'comment',
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 1, count( $comments ) );
+
+		$args = [
+			'ep_integrate' => true,
+			'type' => 'trackback,pingback',
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 2, count( $comments ) );
+
+		$args = [
+			'ep_integrate' => true,
+			'type__in' => [ 'trackback', 'pingback', 'comment' ],
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 3, count( $comments ) );
+
+		$args = [
+			'ep_integrate' => true,
+			'type__not_in' => [ 'trackback', 'pingback' ],
+		];
+
+		$comments_query = new \WP_Comment_Query( $args );
+		$comments = $comments_query->query( $args );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertEquals( 1, count( $comments ) );
+	}
+
 }
