@@ -1,4 +1,4 @@
-/* eslint-disable import/no-unresolved, no-plusplus, no-unused-vars */
+/* eslint-disable no-plusplus, no-unused-vars */
 
 /**
  *

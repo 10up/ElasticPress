@@ -61,7 +61,7 @@ const setWeightLabelsFromRangeValues = () => {
 	const handleRangeChange = (event) => {
 		const rangeInput = event.target;
 		const label = rangeInput.previousElementSibling.querySelector('.weighting-value');
-		label.innerHTML = rangeInput.value;
+		label.textContent = rangeInput.value;
 	};
 
 	rangeInputs.forEach((rangeInput) => rangeInput.addEventListener('change', handleRangeChange));
@@ -94,7 +94,7 @@ const handleWeightFields = () => {
 
 		// get new weight display value, and set it
 		const newWeightDisplay = !checkbox.checked ? '0' : rangeInput.value;
-		weightDisplay.innerHTML = newWeightDisplay;
+		weightDisplay.textContent = newWeightDisplay;
 	};
 
 	// add listener to each checkbox
