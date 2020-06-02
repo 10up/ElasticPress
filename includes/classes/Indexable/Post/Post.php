@@ -1320,7 +1320,7 @@ class Post extends Indexable {
 			switch ( $args['fields'] ) {
 				case 'ids':
 					$formatted_args['_source'] = array(
-						'include' => array(
+						'includes' => array(
 							'post_id',
 						),
 					);
@@ -1328,7 +1328,7 @@ class Post extends Indexable {
 
 				case 'id=>parent':
 					$formatted_args['_source'] = array(
-						'include' => array(
+						'includes' => array(
 							'post_id',
 							'post_parent',
 						),

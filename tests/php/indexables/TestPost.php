@@ -5089,7 +5089,7 @@ class TestPost extends BaseTestCase {
 		// Create a sticky post.
 		$sticky_post_id = Functions\create_and_sync_post();
 		stick_post( $sticky_post_id );
-	
+
 		$sticky_posts = get_option( 'sticky_posts' );
 		$this->assertNotEmpty( $sticky_posts );
 
@@ -5153,7 +5153,7 @@ class TestPost extends BaseTestCase {
 			new \WP_Query()
 		);
 
-		$this->assertContains( 'post_id', $args['_source']['include'] );
+		$this->assertContains( 'post_id', $args['_source']['includes'] );
 
 		$args = $post->format_args(
 			[
@@ -5162,8 +5162,8 @@ class TestPost extends BaseTestCase {
 			new \WP_Query()
 		);
 
-		$this->assertContains( 'post_id', $args['_source']['include'] );
-		$this->assertContains( 'post_parent', $args['_source']['include'] );
+		$this->assertContains( 'post_id', $args['_source']['includes'] );
+		$this->assertContains( 'post_parent', $args['_source']['includes'] );
 	}
 
 	/**
