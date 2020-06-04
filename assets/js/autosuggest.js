@@ -204,7 +204,7 @@ function updateAutosuggestBox(options, input) {
 			value,
 			`<span class="ep-autosuggest-highlight">${value}</span>`,
 		);
-		itemString += `<li class="autosuggest-item">
+		itemString += `<li class="autosuggest-item" role="option" aria-selected="false">
 				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}">
 					${highlightedText}
 				</a>
@@ -234,7 +234,7 @@ function updateAutosuggestBox(options, input) {
  * @returns {boolean} returns true
  */
 function hideAutosuggestBox() {
-	const lists = document.querySelectorAll('.ep-autosuggest-list');
+	const lists = document.querySelectorAll('.autosuggest-list');
 	const containers = document.querySelectorAll('.ep-autosuggest');
 
 	// empty all EP results lists
@@ -316,7 +316,7 @@ function init() {
 	epAutosuggest.classList.add('ep-autosuggest');
 	const autosuggestList = document.createElement('ul');
 	autosuggestList.classList.add('autosuggest-list');
-	autosuggestList.setAttribute( 'role', 'listbox' );
+	autosuggestList.setAttribute('role', 'listbox');
 	epAutosuggest.appendChild(autosuggestList);
 
 	// Build the auto-suggest containers
@@ -348,11 +348,14 @@ function init() {
 		input.dispatchEvent(event);
 	});
 
-	if ( 0 < epInputs.length ) {
-		epAutosuggest.setAttribute( 'style', `
+	if (epInputs.length > 0) {
+		epAutosuggest.setAttribute(
+			'style',
+			`
 			top: ${epInputs[0].offsetHeight - 1};
-			background-color: ${getComputedStyle( epInputs[0], 'background-color' )}
-		` );
+			background-color: ${getComputedStyle(epInputs[0], 'background-color')}
+		`,
+		);
 	}
 
 	/**
@@ -412,7 +415,10 @@ function init() {
 		 * helper function to deselect results
 		 */
 		const deSelectResults = () => {
-			results.forEach((result) => result.classList.remove('selected'));
+			results.forEach((result) => {
+				result.classList.remove('selected');
+				result.setAttribute('aria-selected', 'false');
+			});
 		};
 
 		/**
@@ -422,6 +428,7 @@ function init() {
 			if (currentIndex >= 0) {
 				const el = results[currentIndex];
 				el.classList.add('selected');
+				el.setAttribute('aria-selected', 'true');
 			}
 		};
 
