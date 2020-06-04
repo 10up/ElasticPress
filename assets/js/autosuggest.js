@@ -348,10 +348,12 @@ function init() {
 		input.dispatchEvent(event);
 	});
 
-	epAutosuggest.style = `
-		top: ${epInputs[0].offsetHeight - 1};
-		background-color: ${getComputedStyle(epInputs[0], 'background-color')}
-	`;
+	if ( 0 < epInputs.length ) {
+		epAutosuggest.setAttribute( 'style', `
+			top: ${epInputs[0].offsetHeight - 1};
+			background-color: ${getComputedStyle( epInputs[0], 'background-color' )}
+		` );
+	}
 
 	/**
 	 * Helper function to format search results for consumption
