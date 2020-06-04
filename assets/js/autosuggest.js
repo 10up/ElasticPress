@@ -316,6 +316,7 @@ function init() {
 	epAutosuggest.classList.add('ep-autosuggest');
 	const autosuggestList = document.createElement('ul');
 	autosuggestList.classList.add('autosuggest-list');
+	autosuggestList.setAttribute( 'role', 'listbox' );
 	epAutosuggest.appendChild(autosuggestList);
 
 	// Build the auto-suggest containers
