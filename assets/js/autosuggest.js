@@ -199,14 +199,22 @@ function updateAutosuggestBox(options, input) {
 		const { text, url } = options[i];
 		const escapedText = escapeDoubleQuotes(text);
 
-		// TODO: use some regex magic to match upper/lower/capital case??
-		const highlightedText = escapedText.replace(
-			value,
-			`<span class="ep-autosuggest-highlight">${value}</span>`,
-		);
-		itemString += `<li class="autosuggest-item" role="option" aria-selected="false">
+		const searchParts = value.trim().split(' ');
+		let resultsText = escapedText;
+		// uses some regex magic to match upper/lower/capital case
+		searchParts.forEach((word) => {
+			const regex = new RegExp(`(${word.trim()})`, 'gi');
+			if (word.length > 1) {
+				resultsText = resultsText.replace(
+					regex,
+					`<span class="ep-autosuggest-highlight">$1</span>`,
+				);
+			}
+		});
+
+		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
 				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}">
-					${highlightedText}
+					${resultsText}
 				</a>
 			</li>`;
 	}
