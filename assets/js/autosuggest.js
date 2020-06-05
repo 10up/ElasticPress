@@ -16,6 +16,28 @@ function submitSearchForm(input) {
 }
 
 /**
+ * Set the expanded aria state on the input
+ *
+ * @param bool haveOptions - whether or not the autosuggest list contains results
+ * @param haveOptions
+ * @param {Node} input - search input
+ */
+function toggleInputAria(haveOptions, input) {
+	input.setAttribute('aria-expanded', haveOptions);
+}
+
+/**
+ * Set the active descendant aria attribute input
+ *
+ * @param string id - id of the currently selected element
+ * @param id
+ * @param {Node} input - search input
+ */
+function setInputActiveDescendant(id, input) {
+	input.setAttribute('aria-activedescendant', id);
+}
+
+/**
  * Take selected item and fill the search input
  *
  * @param {Node} input - input element
@@ -437,6 +459,7 @@ function init() {
 				const el = results[currentIndex];
 				el.classList.add('selected');
 				el.setAttribute('aria-selected', 'true');
+				setInputActiveDescendant(el.id, input);
 			}
 		};
 
@@ -541,6 +564,8 @@ function init() {
 
 		if (event.keyCode === 27) {
 			hideAutosuggestBox();
+			toggleInputAria(false, event.target);
+			setInputActiveDescendant('', event.target);
 			return;
 		}
 
