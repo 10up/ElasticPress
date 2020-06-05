@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import 'whatwg-fetch';
 
 const { epAdmin, ajaxurl } = window;
