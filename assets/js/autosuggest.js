@@ -407,7 +407,7 @@ function init() {
 		const input = event.target;
 		const container = findAncestor(input, 'ep-autosuggest-container');
 		const suggestList = container.querySelector('.autosuggest-list');
-		const results = suggestList.querySelectorAll('.autosuggest-item');
+		const results = suggestList.children;
 
 		/**
 		 * helper function to get the currently selected result
