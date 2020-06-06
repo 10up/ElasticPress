@@ -9,7 +9,6 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Feature as Feature;
-use ElasticPress\Features;
 use ElasticPress\Indexables as Indexables;
 
 /**
@@ -282,15 +281,7 @@ class Search extends Feature {
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
-		global $pagenow;
-
 		if ( ! is_a( $query, 'WP_Query' ) ) {
-			return $enabled;
-		}
-
-		// Do not integrate if the documents feature is not enabled, as media will not be indexed and will return 0 results.
-		$documents_feature = Features::factory()->get_registered_feature( 'documents' );
-		if ( 'upload.php' === $pagenow && ! $documents_feature->is_active() ) {
 			return $enabled;
 		}
 
@@ -337,6 +328,4 @@ class Search extends Feature {
 		</div>
 		<?php
 	}
-
-
 }
