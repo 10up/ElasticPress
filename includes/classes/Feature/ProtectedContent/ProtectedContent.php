@@ -126,7 +126,7 @@ class ProtectedContent extends Feature {
 		 */
 		$post_types = array(
 			'post'       => 'post',
-			'attachment' => 'attachment'
+			'attachment' => 'attachment',
 		);
 
 		/**
