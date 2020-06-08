@@ -93,7 +93,7 @@ class ProtectedContent extends Feature {
 		}
 
 		// By default, attachments are not indexed, we have to make sure they are included (Could already be included by documents feature).
-		if ( ! empty( $post_types['attachment'] ) ) {
+		if ( empty( $post_types['attachment'] ) ) {
 			$post_types['attachment'] = 'attachment';
 		}
 
