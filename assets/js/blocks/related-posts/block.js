@@ -7,25 +7,27 @@ const { registerBlockType } = wp.blocks;
 registerBlockType( 'elasticpress/related-posts', {
 	title: 'Related Posts (ElasticPress)',
 	supports: {
-		align: true
+		align: true,
 	},
 	category: 'widgets',
 	attributes: {
 		alignment: {
 			type: 'string',
-			default: 'none'
+			default: 'none',
 		},
 		number: {
 			type: 'number',
-			default: 5
-		}
+			default: 5,
+		},
 	},
 
 	/**
 	 * Handle edit
+	 *
+	 * @param props
 	 */
 	edit( props ) {
-		return <Edit { ...props } />;
+		return <Edit {...props} />;
 	},
 
 	/**

@@ -9,12 +9,16 @@ import React from 'react';
 const SearchResults = ( { results } ) => {
 	return (
 		<ul>
-			{results.map( result => {
+			{results.map( ( result ) => {
 				return (
 					<li>
 						<h5>{result.post_title}</h5>
 						{result.post_content && (
-							<p dangerouslySetInnerHTML={{ __html: `${result.post_content.substring( 0, 100 )  }...` }}></p>
+							<p
+								dangerouslySetInnerHTML={{
+									__html: `${result.post_content.substring( 0, 100 )}...`,
+								}}
+							></p>
 						)}
 					</li>
 				);

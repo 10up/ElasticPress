@@ -29,35 +29,35 @@ const Weighting = () => {
 		captureUpdatedtWeightingValues();
 	}, [] );
 
-
 	/**
 	 * Get the current values of the weights in the UI
 	 */
 	const captureUpdatedtWeightingValues = () => {
 		const weightForm = document.forms;
-		const form = Array.from( weightForm ).find( form => 'weight-settings' == form.id ).elements;
+		const form = Array.from( weightForm ).find( ( form ) => 'weight-settings' == form.id ).elements;
 		// console.log( form );
 
-		const values = [].map.call( form, el => {
-			return {
-				name: el.name,
-				value: el.value
-			};
-		} )
-			.filter( value => value.name.startsWith( 'weighting' ) && 'undefined' !== name.value );
+		const values = [].map
+			.call( form, ( el ) => {
+				return {
+					name: el.name,
+					value: el.value,
+				};
+			} )
+			.filter( ( value ) => value.name.startsWith( 'weighting' ) && 'undefined' !== name.value );
 
 		console.log( values );
 
 		// return formattedValues;
 	};
 
-
-
 	/**
 	 * Handle the form submit, for when the user changes
 	 * the search term
+	 *
+	 * @param e
 	 */
-	const handleSubmit = e => {
+	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		console.log( 'submitted!' );
 		// const defaultSearch = searchWithCurrentWeightingSettings();
@@ -65,7 +65,7 @@ const Weighting = () => {
 
 		Promise.all( [
 			// defaultSearch,
-			updatedSearch
+			updatedSearch,
 		] );
 	};
 
@@ -76,17 +76,15 @@ const Weighting = () => {
 		try {
 			setDefaultLoading( true );
 			const results = await apiFetch( {
-				path: `/elasticpress/v1/weighting_search?s=${searchTerm}`
+				path: `/elasticpress/v1/weighting_search?s=${searchTerm}`,
 			} );
 			setResultsFromDefaultValues( results );
-
 		} catch ( error ) {
 			console.error( 'There was a problem fetching the results.', error );
 		} finally {
 			setDefaultLoading( false );
 		}
 	};
-
 
 	/**
 	 * Search with the current weighting settings
@@ -102,12 +100,11 @@ const Weighting = () => {
 				path: `/elasticpress/v1/weighting_test?s=${searchTerm}`,
 				method: 'POST',
 				data: {
-					settings: JSON.stringify( values )
-				}
+					settings: JSON.stringify( values ),
+				},
 			} );
 			console.log( results );
 			setResultsFromTestValues( results );
-
 		} catch ( error ) {
 			console.error( 'There was a problem fetching the test results.', error );
 		} finally {
@@ -117,6 +114,8 @@ const Weighting = () => {
 
 	/**
 	 * Search with the test weighting settings
+	 *
+	 * @param e
 	 */
 	// const searchWithTestWeighingSettings = () => {
 
@@ -131,7 +130,7 @@ const Weighting = () => {
 						type="text"
 						placeholder="Search term..."
 						value={searchTerm}
-						onChange={e => setSearchTerm( e.target.value )}
+						onChange={( e ) => setSearchTerm( e.target.value )}
 					/>
 				</label>
 				<input type="submit" value="Search" className="button button-primary" />
@@ -144,9 +143,7 @@ const Weighting = () => {
 							<SearchResults results={resultsFromDefaultValues} />
 						</ul>
 					)}
-					{defaultLoading && (
-						<p>Loading...</p>
-					)}
+					{defaultLoading && <p>Loading...</p>}
 				</div>
 				<div className="preview-posts__results">
 					<h4>Test Results:</h4>
@@ -155,9 +152,7 @@ const Weighting = () => {
 							<SearchResults results={resultsFromTestValues} />
 						</ul>
 					)}
-					{testLoading && (
-						<p>Loading...</p>
-					)}
+					{testLoading && <p>Loading...</p>}
 				</div>
 			</div>
 		</div>

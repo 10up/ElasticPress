@@ -13,27 +13,29 @@ const $cancelSyncButton = jQuery( document.getElementsByClassName( 'cancel-sync'
 const $epCredentialsTab = jQuery( document.getElementsByClassName( 'ep-credentials-tab' ) );
 const $epCredentialsHostLabel = jQuery( '.ep-host-row label' );
 const $epCredentialsHostLegend = jQuery( document.getElementsByClassName( 'ep-host-legend' ) );
-const $epCredentialsAdditionalFields = jQuery( document.getElementsByClassName( 'ep-additional-fields' ) );
+const $epCredentialsAdditionalFields = jQuery(
+	document.getElementsByClassName( 'ep-additional-fields' ),
+);
 const epHostField = document.getElementById( 'ep_host' );
 const epHost = epHostField ? epHostField.value : null;
 let epHostNewValue = '';
 
-let syncStatus = 'sync',
-	featureSync = false,
-	currentSyncItem,
-	syncStack,
-	processed = 0,
-	toProcess = 0;
+let syncStatus = 'sync';
+let featureSync = false;
+let currentSyncItem;
+let syncStack;
+let processed = 0;
+let toProcess = 0;
 
-$features.on( 'click', '.learn-more, .collapse', function() {
+$features.on( 'click', '.learn-more, .collapse', function () {
 	jQuery( this ).parents( '.ep-feature' ).toggleClass( 'show-full' );
 } );
 
-$features.on( 'click', '.settings-button', function() {
+$features.on( 'click', '.settings-button', function () {
 	jQuery( this ).parents( '.ep-feature' ).toggleClass( 'show-settings' );
 } );
 
-$features.on( 'click', '.save-settings', function( event ) {
+$features.on( 'click', '.save-settings', function ( event ) {
 	event.preventDefault();
 
 	if ( jQuery( this ).hasClass( 'disabled' ) ) {
@@ -41,11 +43,11 @@ $features.on( 'click', '.save-settings', function( event ) {
 	}
 
 	const feature = event.target.getAttribute( 'data-feature' );
-	const $feature = $features.find( `.ep-feature-${  feature}` );
+	const $feature = $features.find( `.ep-feature-${feature}` );
 	const settings = {};
 	const $settings = $feature.find( '.setting-field' );
 
-	$settings.each( function() {
+	$settings.each( function () {
 		const $this = jQuery( this );
 		const type = $this.attr( 'type' );
 		const name = $this.attr( 'data-field-name' );
@@ -53,58 +55,63 @@ $features.on( 'click', '.save-settings', function( event ) {
 
 		if ( 'radio' === type ) {
 			if ( $this.is( ':checked' ) ) {
-				settings[ name ] = value;
+				settings[name] = value;
 			}
 		} else {
-			settings[ name ] = value;
+			settings[name] = value;
 		}
 	} );
 
 	$feature.addClass( 'saving' );
 
-	jQuery.ajax( {
-		method: 'post',
-		url: ajaxurl,
-		data: {
-			action: 'ep_save_feature',
-			feature: feature,
-			nonce: epDash.nonce,
-			settings: settings
-		}
-	} ).done( ( response ) => {
-		setTimeout( () => {
-			$feature.removeClass( 'saving' );
+	jQuery
+		.ajax( {
+			method: 'post',
+			url: ajaxurl,
+			data: {
+				action: 'ep_save_feature',
+				feature,
+				nonce: epDash.nonce,
+				settings,
+			},
+		} )
+		.done( ( response ) => {
+			setTimeout( () => {
+				$feature.removeClass( 'saving' );
 
-			if ( '1' === settings.active ) {
-				$feature.addClass( 'feature-active' );
-			} else {
+				if ( '1' === settings.active ) {
+					$feature.addClass( 'feature-active' );
+				} else {
+					$feature.removeClass( 'feature-active' );
+				}
+
+				if ( response.data.reindex ) {
+					syncStatus = 'initialsync';
+
+					updateSyncDash();
+
+					// On initial sync, remove dashboard warnings that dont make sense
+					jQuery(
+						'[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]',
+					).remove();
+
+					syncStatus = 'sync';
+
+					$feature.addClass( 'feature-syncing' );
+
+					featureSync = feature;
+
+					sync();
+				}
+			}, 700 );
+		} )
+		.error( () => {
+			setTimeout( () => {
+				$feature.removeClass( 'saving' );
 				$feature.removeClass( 'feature-active' );
-			}
-
-			if ( response.data.reindex ) {
-				syncStatus = 'initialsync';
-
-				updateSyncDash();
-
-				// On initial sync, remove dashboard warnings that dont make sense
-				jQuery( '[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]' ).remove();
-
-				syncStatus = 'sync';
-
-				$feature.addClass( 'feature-syncing' );
-
-				featureSync = feature;
-
-				sync();
-			}
-		}, 700 );
-	} ).error( () => {
-		setTimeout( () => {
-			$feature.removeClass( 'saving' );
-			$feature.removeClass( 'feature-active' );
-			$feature.removeClass( 'feature-syncing' );
-		}, 700 );
-	} );
+				$feature.removeClass( 'feature-syncing' );
+			}, 700 );
+		} );
 } );
 
 if ( epDash.index_meta ) {
@@ -113,7 +120,7 @@ if ( epDash.index_meta ) {
 		updateSyncDash();
 	} else {
 		processed = epDash.index_meta.offset;
-		toProcess = epDash.index_meta['found_items'];
+		toProcess = epDash.index_meta.found_items;
 
 		if ( epDash.index_meta.feature_sync ) {
 			featureSync = epDash.index_meta.feature_sync;
@@ -132,7 +139,11 @@ if ( epDash.index_meta ) {
 			if ( epDash.auto_start_index ) {
 				syncStatus = 'sync';
 
-				history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
+				history.pushState(
+					{},
+					document.title,
+					document.location.pathname + document.location.search.replace( /&do_sync/, '' ),
+				);
 
 				updateSyncDash();
 				sync();
@@ -140,24 +151,26 @@ if ( epDash.index_meta ) {
 				syncStatus = 'pause';
 				updateSyncDash();
 			}
+		} else if ( 0 === toProcess && !epDash.index_meta.start ) {
+			// Sync finished
+			syncStatus = 'finished';
+			updateSyncDash();
 		} else {
-			if ( 0 === toProcess && ! epDash.index_meta.start ) {
-				// Sync finished
-				syncStatus = 'finished';
+			// We are mid sync
+			if ( epDash.auto_start_index ) {
+				syncStatus = 'sync';
+
+				history.pushState(
+					{},
+					document.title,
+					document.location.pathname + document.location.search.replace( /&do_sync/, '' ),
+				);
+
 				updateSyncDash();
+				sync();
 			} else {
-				// We are mid sync
-				if ( epDash.auto_start_index ) {
-					syncStatus = 'sync';
-
-					history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
-
-					updateSyncDash();
-					sync();
-				} else {
-					syncStatus = 'pause';
-					updateSyncDash();
-				}
+				syncStatus = 'pause';
+				updateSyncDash();
 			}
 		}
 	}
@@ -170,7 +183,11 @@ if ( epDash.index_meta ) {
 
 		syncStatus = 'sync';
 
-		history.pushState( {}, document.title, document.location.pathname + document.location.search.replace( /&do_sync/, '' ) );
+		history.pushState(
+			{},
+			document.title,
+			document.location.pathname + document.location.search.replace( /&do_sync/, '' ),
+		);
 
 		sync();
 	}
@@ -185,8 +202,8 @@ function updateSyncDash() {
 	if ( 0 === processed ) {
 		$progressBar.css( { width: '1%' } );
 	} else {
-		const width = parseInt( processed ) / parseInt( toProcess ) * 100;
-		$progressBar.css( { width: `${width  }%` } );
+		const width = ( parseInt( processed ) / parseInt( toProcess ) ) * 100;
+		$progressBar.css( { width: `${width}%` } );
 	}
 
 	if ( 'initialsync' === syncStatus ) {
@@ -207,11 +224,13 @@ function updateSyncDash() {
 
 		if ( currentSyncItem ) {
 			if ( currentSyncItem.indexable ) {
-				text += ` ${  epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase()  } ${  parseInt( processed )  }/${  parseInt( toProcess )}`;
+				text += ` ${epDash.sync_indexable_labels[
+					currentSyncItem.indexable
+				].plural.toLowerCase()} ${parseInt( processed )}/${parseInt( toProcess )}`;
 			}
 
 			if ( currentSyncItem.url ) {
-				text += ` (${  currentSyncItem.url  })`;
+				text += ` (${currentSyncItem.url})`;
 			}
 		}
 
@@ -229,11 +248,13 @@ function updateSyncDash() {
 		text = epDash.sync_paused;
 
 		if ( toProcess && 0 !== toProcess ) {
-			text += `, ${  parseInt( processed )  }/${  parseInt( toProcess )  } ${  epDash.sync_indexable_labels[ currentSyncItem.indexable ].plural.toLowerCase()}`;
+			text += `, ${parseInt( processed )}/${parseInt( toProcess )} ${epDash.sync_indexable_labels[
+				currentSyncItem.indexable
+			].plural.toLowerCase()}`;
 		}
 
 		if ( currentSyncItem && currentSyncItem.url ) {
-			text += ` (${  currentSyncItem.url  })`;
+			text += ` (${currentSyncItem.url})`;
 		}
 
 		$syncStatusText.text( text );
@@ -270,7 +291,7 @@ function updateSyncDash() {
 		$progressBar.hide();
 
 		if ( featureSync ) {
-			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;
@@ -289,7 +310,7 @@ function updateSyncDash() {
 		$startSyncButton.show();
 
 		if ( featureSync ) {
-			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;
@@ -305,7 +326,7 @@ function updateSyncDash() {
 		$errorOverlay.removeClass( 'syncing' );
 
 		if ( featureSync ) {
-			$features.find( `.ep-feature-${  featureSync}` ).removeClass( 'feature-syncing' );
+			$features.find( `.ep-feature-${featureSync}` ).removeClass( 'feature-syncing' );
 		}
 
 		featureSync = null;
@@ -325,8 +346,8 @@ function cancelSync() {
 		url: ajaxurl,
 		data: {
 			action: 'ep_cancel_index',
-			nonce: epDash.nonce
-		}
+			nonce: epDash.nonce,
+		},
 	} );
 }
 
@@ -334,64 +355,70 @@ function cancelSync() {
  * Perform an elasticpress sync
  */
 function sync() {
-	jQuery.ajax( {
-		method: 'post',
-		url: ajaxurl,
-		data: {
-			action: 'ep_index',
-			feature_sync: featureSync,
-			nonce: epDash.nonce
-		}
-	} ).done( ( response ) => {
-		if ( 'sync' !== syncStatus ) {
-			return;
-		}
-
-		toProcess = response.data.found_items;
-		processed = response.data.offset;
-
-		if ( response.data.sync_stack ) {
-			syncStack = response.data.sync_stack;
-		}
-
-		if ( response.data.current_sync_item ) {
-			currentSyncItem = response.data.current_sync_item;
-		}
-
-		if ( syncStack && syncStack.length ) {
-			// We are mid multisite sync
-			syncStatus = 'sync';
-			updateSyncDash();
-
-			sync();
-			return;
-		}
-
-		if ( 0 === response.data.found_items && ! response.data.start ) {
-			// Sync finished
-			syncStatus = 'finished';
-			updateSyncDash();
-
-			if ( epDash.install_sync ) {
-				document.location.replace( epDash.install_complete_url );
+	jQuery
+		.ajax( {
+			method: 'post',
+			url: ajaxurl,
+			data: {
+				action: 'ep_index',
+				feature_sync: featureSync,
+				nonce: epDash.nonce,
+			},
+		} )
+		.done( ( response ) => {
+			if ( 'sync' !== syncStatus ) {
+				return;
 			}
 
-		} else {
-			// We are starting a sync
-			syncStatus = 'sync';
-			updateSyncDash();
+			toProcess = response.data.found_items;
+			processed = response.data.offset;
 
-			sync();
-		}
-	} ).error( ( response ) => {
-		if ( response && response.status && 400 <= parseInt( response.status ) && 600 > parseInt( response.status ) ) {
-			syncStatus = 'error';
-			updateSyncDash();
+			if ( response.data.sync_stack ) {
+				syncStack = response.data.sync_stack;
+			}
 
-			cancelSync();
-		}
-	} );
+			if ( response.data.current_sync_item ) {
+				currentSyncItem = response.data.current_sync_item;
+			}
 
+			if ( syncStack && syncStack.length ) {
+				// We are mid multisite sync
+				syncStatus = 'sync';
+				updateSyncDash();
+
+				sync();
+				return;
+			}
+
+			if ( 0 === response.data.found_items && !response.data.start ) {
+				// Sync finished
+				syncStatus = 'finished';
+				updateSyncDash();
+
+				if ( epDash.install_sync ) {
+					document.location.replace( epDash.install_complete_url );
+				}
+			} else {
+				// We are starting a sync
+				syncStatus = 'sync';
+				updateSyncDash();
+
+				sync();
+			}
+		} )
+		.error( ( response ) => {
+			if (
+				response &&
+				response.status &&
+				400 <= parseInt( response.status ) &&
+				600 > parseInt( response.status )
+			) {
+				syncStatus = 'error';
+				updateSyncDash();
+
+				cancelSync();
+			}
+		} );
 }
 
 $startSyncButton.on( 'click', () => {
@@ -400,7 +427,9 @@ $startSyncButton.on( 'click', () => {
 	updateSyncDash();
 
 	// On initial sync, remove dashboard warnings that dont make sense
-	jQuery( '[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]' ).remove();
+	jQuery(
+		'[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]',
+	).remove();
 
 	syncStatus = 'sync';
 	sync();

@@ -4,6 +4,8 @@ import { epas } from 'window';
 
 /**
  * Submit the search form
+ *
+ * @param $localInput
  * @param object $localInput
  */
 function submitSearchForm( $localInput ) {
@@ -12,6 +14,9 @@ function submitSearchForm( $localInput ) {
 
 /**
  * Take selected item and fill the search input
+ *
+ * @param $localInput
+ * @param text
  * @param event
  */
 function selectAutosuggestItem( $localInput, text ) {
@@ -21,20 +26,21 @@ function selectAutosuggestItem( $localInput, text ) {
 /**
  * Navigate to the selected item, and provides
  * event hook for JS customizations, like GA
+ *
+ * @param $localInput
+ * @param url
  * @param event
  */
 function goToAutosuggestItem( $localInput, url ) {
-
 	const detail = {
 		searchTerm: $localInput[0].value,
-		url
+		url,
 	};
 
 	triggerEvents( detail );
 
 	window.location.href = url;
 }
-
 
 /**
  * Fires events when autosuggest results are clicked,
@@ -46,13 +52,13 @@ function triggerEvents( detail ) {
 	const event = new CustomEvent( 'ep-autosuggest-click', { detail } );
 	window.dispatchEvent( event );
 
-	if( detail.searchTerm && 1 === parseInt( epas.triggerAnalytics ) && 'function' == typeof gtag ) {
+	if ( detail.searchTerm && 1 === parseInt( epas.triggerAnalytics ) && 'function' === typeof gtag ) {
 		const action = `click - ${detail.searchTerm}`;
 		// eslint-disable-next-line no-undef
 		gtag( 'event', action, {
-			'event_category' : 'EP :: Autosuggest',
-			'event_label' : detail.url,
-			'transport_type' : 'beacon',
+			event_category: 'EP :: Autosuggest',
+			event_label: detail.url,
+			transport_type: 'beacon',
 		} );
 	}
 }
@@ -66,7 +72,6 @@ function triggerEvents( detail ) {
  * @param element
  */
 function selectItem( $localInput, element ) {
-
 	if ( 'navigate' === epas.action ) {
 		return goToAutosuggestItem( $localInput, element.dataset.url );
 	}
@@ -87,8 +92,8 @@ function debounce( fn, delay ) {
 	let timer = null;
 
 	return () => {
-		const context = this,
-			args = arguments;
+		const context = this;
+		const args = arguments;
 
 		window.clearTimeout( timer );
 
@@ -98,7 +103,6 @@ function debounce( fn, delay ) {
 	};
 }
 
-
 /**
  * Build the search query from the search text - the query is generated in PHP
  * and passed into the front end as window.epas = { "query...
@@ -106,8 +110,7 @@ function debounce( fn, delay ) {
  * @returns json
  */
 function getJsonQuery() {
-
-	if( 'undefined' == typeof window.epas ) {
+	if ( 'undefined' === typeof window.epas ) {
 		const error = 'No epas object defined';
 
 		// eslint-disable-next-line no-console
@@ -118,17 +121,15 @@ function getJsonQuery() {
 	return window.epas;
 }
 
-
 /**
  * Helper function to escape input to be treated as a literal string with a RegEx
  *
  * @param string
  * @returns string
  */
-function escapeRegExp( string ){
+function escapeRegExp( string ) {
 	return string.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
 }
-
 
 /**
  * Helper function to escape input to be treated as a literal string with a RegEx
@@ -141,7 +142,6 @@ function escapeRegExp( string ){
 function replaceGlobally( string, term, replacement ) {
 	return string.replace( new RegExp( escapeRegExp( term ), 'g' ), replacement );
 }
-
 
 /**
  * Build the search query from the search text
@@ -156,15 +156,14 @@ function buildSearchQuery( searchText, placeholder, { query } ) {
 	return newQuery;
 }
 
-
 /**
  * Build the ajax request
  *
  * @param query - json string
+ * @param searchTerm
  * @returns AJAX object request
  */
 function esSearch( query, searchTerm ) {
-
 	// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
 	jQuery.support.cors = true;
 
@@ -174,13 +173,13 @@ function esSearch( query, searchTerm ) {
 		dataType: 'json',
 		crossDomain: true,
 		contentType: 'application/json; charset=utf-8',
-		data: query // no longer need to JSON.stringify
+		data: query, // no longer need to JSON.stringify
 	};
 
 	// only applies headers if using ep.io endpoint
-	if( epas.addSearchTermHeader ) {
+	if ( epas.addSearchTermHeader ) {
 		ajaxConfig.headers = {
-			'EP-Search-Term': searchTerm
+			'EP-Search-Term': searchTerm,
 		};
 	}
 
@@ -201,14 +200,17 @@ function escapeDoubleQuotes( str ) {
  * Update the auto suggest box with new options or hide if none
  *
  * @param options
- * @return void
+ * @param $localInput
+ * @returns void
  */
 function updateAutosuggestBox( options, $localInput ) {
-	let i,
-		itemString = '';
+	let i;
+	let itemString = '';
 
-	const $localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
-		$localSuggestList = $localESContainer.find( '.autosuggest-list' );
+	const $localESContainer = $localInput
+		.closest( '.ep-autosuggest-container' )
+		.find( '.ep-autosuggest' );
+	const $localSuggestList = $localESContainer.find( '.autosuggest-list' );
 
 	$localSuggestList.empty();
 
@@ -223,7 +225,9 @@ function updateAutosuggestBox( options, $localInput ) {
 
 	for ( i = 0; i < options.length; ++i ) {
 		const { text, url } = options[i];
-		itemString += `<li><span class="autosuggest-item" data-search="${  escapeDoubleQuotes( text )  }" data-url="${  url  }">${  escapeDoubleQuotes( text )  }</span></li>`;
+		itemString += `<li><span class="autosuggest-item" data-search="${escapeDoubleQuotes(
+			text,
+		)}" data-url="${url}">${escapeDoubleQuotes( text )}</span></li>`;
 	}
 	jQuery( itemString ).appendTo( $localSuggestList );
 
@@ -237,7 +241,9 @@ function updateAutosuggestBox( options, $localInput ) {
 	// Listen to the input for up and down navigation between autosuggest items
 	$localInput.on( 'keydown', ( event ) => {
 		if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode ) {
-			const $results = $localInput.closest( '.ep-autosuggest-container' ).find( '.autosuggest-list li' );
+			const $results = $localInput
+				.closest( '.ep-autosuggest-container' )
+				.find( '.autosuggest-list li' );
 			const $current = $results.filter( '.selected' );
 			let $next;
 
@@ -246,7 +252,7 @@ function updateAutosuggestBox( options, $localInput ) {
 						$next = $current.prev();
 						break;
 					case 40: // Down
-						if ( ! $results.hasClass( 'selected' ) ) {
+						if ( !$results.hasClass( 'selected' ) ) {
 							$results.first().addClass( 'selected' );
 							$next = $results.first();
 						} else {
@@ -257,10 +263,9 @@ function updateAutosuggestBox( options, $localInput ) {
 						if ( $results.hasClass( 'selected' ) ) {
 							selectItem( $localInput, $current.children( 'span' ).get( 0 ) );
 							return false;
-						} else {
-						// No item selected
-							return;
 						}
+						// No item selected
+						return;
 			}
 
 			// only check next element if up and down key pressed
@@ -275,17 +280,14 @@ function updateAutosuggestBox( options, $localInput ) {
 			if ( 38 === event.keyCode ) {
 				return false;
 			}
-
-			return;
 		}
-
 	} );
 }
 
 /**
  * Hide the auto suggest box
  *
- * @return void
+ * @returns void
  */
 function hideAutosuggestBox() {
 	jQuery( '.autosuggest-list' ).empty();
@@ -309,10 +311,10 @@ function checkForOrderedPosts( hits, searchTerm ) {
 		// Should we retain this hit in its current position?
 		let retain = true;
 
-		if ( undefined !== hit._source.terms && undefined !== hit._source.terms[ taxName ] ) {
-			hit._source.terms[ taxName ].map( currentTerm => {
+		if ( undefined !== hit._source.terms && undefined !== hit._source.terms[taxName] ) {
+			hit._source.terms[taxName].map( ( currentTerm ) => {
 				if ( currentTerm.name.toLowerCase() === searchTerm ) {
-					toInsert[ currentTerm.term_order ] = hit;
+					toInsert[currentTerm.term_order] = hit;
 
 					retain = false;
 				}
@@ -324,13 +326,15 @@ function checkForOrderedPosts( hits, searchTerm ) {
 
 	const orderedInserts = {};
 
-	Object.keys( toInsert ).sort().map( key => {
-		orderedInserts[ key ] = toInsert[ key ];
-	} );
+	Object.keys( toInsert )
+		.sort()
+		.map( ( key ) => {
+			orderedInserts[key] = toInsert[key];
+		} );
 
 	if ( 0 < Object.keys( orderedInserts ).length ) {
-		Object.keys( orderedInserts ).map( key => {
-			const insertItem = orderedInserts[ key ];
+		Object.keys( orderedInserts ).map( ( key ) => {
+			const insertItem = orderedInserts[key];
 
 			hits.splice( key - 1, 0, insertItem );
 		} );
@@ -341,8 +345,12 @@ function checkForOrderedPosts( hits, searchTerm ) {
 
 // No host/index set
 if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
-	const $epInput       = jQuery( `.ep-autosuggest, input[type="search"], .search-field, ${  epas.selector}`  );
-	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
+	const $epInput = jQuery(
+		`.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}`,
+	);
+	const $epAutosuggest = jQuery(
+		'<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>',
+	);
 
 	/**
 	 * Build the auto-suggest container
@@ -356,11 +364,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 
 		$epContainer.insertAfter( $input );
 		const $epLabel = $input.siblings( 'label' );
-		$input
-			.closest( 'form' )
-			.find( '.ep-autosuggest-container' )
-			.append( $epLabel )
-			.append( $input );
+		$input.closest( 'form' ).find( '.ep-autosuggest-container' ).append( $epLabel ).append( $input );
 
 		$epAutosuggest.clone().insertAfter( $input );
 
@@ -369,7 +373,7 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 
 	$epAutosuggest.css( {
 		top: $epInput.outerHeight() - 1,
-		'background-color': $epInput.css( 'background-color' )
+		'background-color': $epInput.css( 'background-color' ),
 	} );
 
 	/**
@@ -395,72 +399,80 @@ if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
 	 */
 	$epInput.each( ( key, localInput ) => {
 		const $localInput = jQuery( localInput );
-		$localInput.on( 'keyup', debounce( ( event ) => {
-			if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode || 27 === event.keyCode ) {
-				return;
-			}
+		$localInput.on(
+			'keyup',
+			debounce( ( event ) => {
+				if (
+					38 === event.keyCode ||
+					40 === event.keyCode ||
+					13 === event.keyCode ||
+					27 === event.keyCode
+				) {
+					return;
+				}
 
-			const searchText = $localInput.val();
-			const placeholder = 'ep_autosuggest_placeholder';
-			const queryJSON = getJsonQuery();
+				const searchText = $localInput.val();
+				const placeholder = 'ep_autosuggest_placeholder';
+				const queryJSON = getJsonQuery();
 
-			if( queryJSON.error ) {
-				return;
-			}
+				if ( queryJSON.error ) {
+					return;
+				}
 
-			let query;
-			let request;
-			const postTypes = epas.postTypes;
-			const postStatus = epas.postStatus;
-			const searchFields = epas.searchFields;
-			const weightingSettings = Object.assign( {}, epas.weightingDefaults, epas.weighting );
+				let query;
+				let request;
+				const { postTypes } = epas;
+				const { postStatus } = epas;
+				const { searchFields } = epas;
+				const weightingSettings = { ...epas.weightingDefaults, ...epas.weighting };
 
-			if ( 2 <= searchText.length ) {
-				query = buildSearchQuery( searchText, placeholder, queryJSON );
-				request = esSearch( query, searchText );
+				if ( 2 <= searchText.length ) {
+					query = buildSearchQuery( searchText, placeholder, queryJSON );
+					request = esSearch( query, searchText );
 
-				request.done( ( response ) => {
-					if ( 0 < response._shards.successful ) {
-						const usedPosts = {};
-						const filteredObjects = [];
+					request.done( ( response ) => {
+						if ( 0 < response._shards.successful ) {
+							const usedPosts = {};
+							const filteredObjects = [];
 
-						const hits = checkForOrderedPosts( response.hits.hits, searchText );
+							const hits = checkForOrderedPosts( response.hits.hits, searchText );
 
-						jQuery.each( hits, ( index, element ) => {
-							const text = element._source.post_title;
-							const url = element._source.permalink;
-							const postId = element._source.post_id;
+							jQuery.each( hits, ( index, element ) => {
+								const text = element._source.post_title;
+								const url = element._source.permalink;
+								const postId = element._source.post_id;
 
-							if( ! usedPosts[ postId ] ) {
-								usedPosts[ postId ] = true;
+								if ( !usedPosts[postId] ) {
+									usedPosts[postId] = true;
 
-								filteredObjects.push( {
-									'text': text,
-									'url': url
-								} );
+									filteredObjects.push( {
+										text,
+										url,
+									} );
+								}
+							} );
+
+							if ( 0 === filteredObjects.length ) {
+								hideAutosuggestBox();
+							} else {
+								updateAutosuggestBox( filteredObjects, $localInput );
 							}
-						} );
-
-						if ( 0 === filteredObjects.length ) {
-							hideAutosuggestBox();
 						} else {
-							updateAutosuggestBox( filteredObjects, $localInput );
+							hideAutosuggestBox();
 						}
-					} else {
-						hideAutosuggestBox();
-					}
-				} );
-			} else if ( 0 === searchText.length ) {
-				hideAutosuggestBox();
-			}
-		}, 200 ) );
+					} );
+				} else if ( 0 === searchText.length ) {
+					hideAutosuggestBox();
+				}
+			}, 200 ),
+		);
 	} );
 
 	// Publically expose API
 	window.epasAPI = {
-		hideAutosuggestBox: hideAutosuggestBox,
-		updateAutosuggestBox: updateAutosuggestBox,
-		esSearch: esSearch,
-		buildSearchQuery: buildSearchQuery
+		hideAutosuggestBox,
+		updateAutosuggestBox,
+		esSearch,
+		buildSearchQuery,
 	};
 }
