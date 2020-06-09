@@ -55,7 +55,7 @@ export const escapeDoubleQuotes = (str) => str.replace(/\\([\s\S])|(")/g, '&quot
  * @param {*} className - class attribute to search for
  * @returns {Element} - ancestor element of provided el
  */
-export const findAncestor = (el, className) => {
+export const findAncestorByClass = (el, className) => {
 	// eslint-disable-next-line
 	while ( ( el = el.parentElement ) && !el.classList.contains( className ) );
 	return el;

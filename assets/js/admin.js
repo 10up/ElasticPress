@@ -1,4 +1,5 @@
 import 'whatwg-fetch';
+import 'element-closest';
 
 const { epAdmin, ajaxurl } = window;
 
@@ -59,7 +60,8 @@ const setWeightLabelsFromRangeValues = () => {
 	 */
 	const handleRangeChange = (event) => {
 		const rangeInput = event.target;
-		const label = rangeInput.previousElementSibling.querySelector('.weighting-value');
+		const fieldset = rangeInput.closest('fieldset');
+		const label = fieldset.querySelector('.weighting-value');
 		label.textContent = rangeInput.value;
 	};
 
@@ -83,13 +85,16 @@ const handleWeightFields = () => {
 	 */
 	const handleCheckboxChange = (event) => {
 		const checkbox = event.target;
-		const rangeInput = checkbox.parentNode.nextElementSibling.querySelector(
-			'input[type=range]',
-		);
-		const weightDisplay = rangeInput.previousElementSibling.querySelector('.weighting-value');
+		const fieldset = checkbox.closest('fieldset');
+		const rangeInput = fieldset.querySelector('input[type=range]');
+		const weightDisplay = fieldset.querySelector('.weighting-value');
 
 		// toggle range input
-		rangeInput.setAttribute('disabled', !checkbox.checked);
+		if (checkbox.checked) {
+			rangeInput.removeAttribute('disabled');
+		} else {
+			rangeInput.setAttribute('disabled', 'true');
+		}
 
 		// get new weight display value, and set it
 		const newWeightDisplay = !checkbox.checked ? '0' : rangeInput.value;

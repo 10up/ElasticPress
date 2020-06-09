@@ -4,7 +4,7 @@ import { ajaxurl, epDash } from 'window';
 import 'whatwg-fetch';
 import { initSyncFunctions, handleReindexAfterSave } from './es-sync';
 import initSettingsPage from './es-settings';
-import { findAncestor } from './utils/helpers';
+import { findAncestorByClass } from './utils/helpers';
 
 let features;
 
@@ -59,7 +59,7 @@ const handleFeatureClicks = (event) => {
  * @param {string} matchClass - optional class to match on the parent, defaults to 'ep-feature'
  */
 const toggleClassOnParent = (childNode, className, matchClass = 'ep-feature') => {
-	const parent = findAncestor(childNode, matchClass);
+	const parent = findAncestorByClass(childNode, matchClass);
 	if (!parent.classList.contains(className)) {
 		parent.classList.add(className);
 	} else {

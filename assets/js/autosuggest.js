@@ -1,10 +1,29 @@
-/* eslint-disable camelcase, no-underscore-dangle */
-import { findAncestor, escapeDoubleQuotes, replaceGlobally, debounce } from './utils/helpers';
+/* eslint-disable camelcase, no-underscore-dangle, no-use-before-define */
+import {
+	findAncestorByClass,
+	escapeDoubleQuotes,
+	replaceGlobally,
+	debounce,
+} from './utils/helpers';
 import 'element-closest';
 import 'promise-polyfill/src/polyfill';
 import 'whatwg-fetch';
 
 const { epas } = window;
+
+// Ensure we have an endpoint URL, or
+// else this shouldn't happen
+if (epas.endpointUrl && epas.endpointUrl !== '') {
+	init();
+
+	// Publically expose API
+	window.epasAPI = {
+		hideAutosuggestBox,
+		updateAutosuggestBox,
+		esSearch,
+		buildSearchQuery,
+	};
+}
 
 /**
  * Submit the search form
@@ -18,8 +37,7 @@ function submitSearchForm(input) {
 /**
  * Set the expanded aria state on the input
  *
- * @param bool haveOptions - whether or not the autosuggest list contains results
- * @param haveOptions
+ * @param {boolean} haveOptions - whether or not the autosuggest list contains results
  * @param {Node} input - search input
  */
 function toggleInputAria(haveOptions, input) {
@@ -29,8 +47,7 @@ function toggleInputAria(haveOptions, input) {
 /**
  * Set the active descendant aria attribute input
  *
- * @param string id - id of the currently selected element
- * @param id
+ * @param {string} id - id of the currently selected element
  * @param {Node} input - search input
  */
 function setInputActiveDescendant(id, input) {
@@ -195,7 +212,7 @@ function updateAutosuggestBox(options, input) {
 
 	// get the search term for use later on
 	const { value } = input;
-	const container = findAncestor(input, 'ep-autosuggest-container');
+	const container = findAncestorByClass(input, 'ep-autosuggest-container');
 	const resultsContainer = container.querySelector('.ep-autosuggest');
 	const suggestList = resultsContainer.querySelector('.autosuggest-list');
 
@@ -427,7 +444,7 @@ function init() {
 		}
 
 		const input = event.target;
-		const container = findAncestor(input, 'ep-autosuggest-container');
+		const container = findAncestorByClass(input, 'ep-autosuggest-container');
 		const suggestList = container.querySelector('.autosuggest-list');
 		const results = suggestList.children;
 
@@ -593,18 +610,4 @@ function init() {
 		input.addEventListener('keyup', handleKeyup);
 		// input.addEventListener( 'blur', hideAutosuggestBox );
 	});
-}
-
-// Ensure we have an endpoint URL, or
-// else this shouldn't happen
-if (epas.endpointUrl && epas.endpointUrl !== '') {
-	init();
-
-	// Publically expose API
-	window.epasAPI = {
-		hideAutosuggestBox,
-		updateAutosuggestBox,
-		esSearch,
-		buildSearchQuery,
-	};
 }
