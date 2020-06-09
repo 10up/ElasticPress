@@ -47,6 +47,7 @@ const Weighting = () => {
 			.filter( ( value ) => value.name.startsWith( 'weighting' ) && 'undefined' !== name.value );
 
 		console.log( values );
+		return values;
 
 		// return formattedValues;
 	};
@@ -60,11 +61,11 @@ const Weighting = () => {
 	const handleSubmit = ( e ) => {
 		e.preventDefault();
 		console.log( 'submitted!' );
-		// const defaultSearch = searchWithCurrentWeightingSettings();
+		const defaultSearch = searchWithCurrentWeightingSettings();
 		const updatedSearch = searchWithUpdatedWeightingSettings();
 
 		Promise.all( [
-			// defaultSearch,
+			defaultSearch,
 			updatedSearch,
 		] );
 	};
@@ -92,6 +93,8 @@ const Weighting = () => {
 	const searchWithUpdatedWeightingSettings = async () => {
 		// first thing's first
 		const values = captureUpdatedtWeightingValues();
+
+		console.log( {values} );
 
 		// then...
 		try {
