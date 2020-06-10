@@ -779,7 +779,7 @@ class Comment extends Indexable {
 			'comment_karma'          => $comment->comment_karma,
 			'comment_approved'       => $comment->comment_approved,
 			'comment_agent'          => $comment->comment_agent,
-			'comment_type'           => $comment->comment_type,
+			'comment_type'           => $comment->comment_type ? $comment->comment_type : 'comment',
 			'comment_parent'         => $comment->comment_parent,
 			'user_id'                => $comment->user_id,
 			'meta'                   => $this->prepare_meta_types( $this->prepare_meta( $comment->comment_ID ) ),
