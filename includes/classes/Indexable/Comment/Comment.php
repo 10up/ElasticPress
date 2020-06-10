@@ -639,7 +639,7 @@ class Comment extends Indexable {
 
 			$filter['bool']['must'][] = [
 				$terms_map_name => [
-					'comment_type' => $types,
+					'comment_type.raw' => $types,
 				],
 			];
 
@@ -652,7 +652,7 @@ class Comment extends Indexable {
 		if ( ! empty( $query_vars['type__in'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'terms' => [
-					'comment_type' => array_values( (array) $query_vars['type__in'] ),
+					'comment_type.raw' => array_values( (array) $query_vars['type__in'] ),
 				],
 			];
 
@@ -665,7 +665,7 @@ class Comment extends Indexable {
 		if ( ! empty( $query_vars['type__not_in'] ) ) {
 			$filter['bool']['must'][]['bool']['must_not'] = [
 				'terms' => [
-					'comment_type' => array_values( (array) $query_vars['type__not_in'] ),
+					'comment_type.raw' => array_values( (array) $query_vars['type__not_in'] ),
 				],
 			];
 
