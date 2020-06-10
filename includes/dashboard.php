@@ -751,15 +751,15 @@ function action_admin_enqueue_dashboard_scripts() {
 					'singular' => esc_html__( 'Comment', 'elasticpress' ),
 					'plural'   => esc_html__( 'Comments', 'elasticpress' ),
 				],
-				'post' => [
+				'post'    => [
 					'singular' => esc_html__( 'Post', 'elasticpress' ),
 					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
 				],
-				'term' => [
+				'term'    => [
 					'singular' => esc_html__( 'Term', 'elasticpress' ),
 					'plural'   => esc_html__( 'Terms', 'elasticpress' ),
 				],
-				'user' => [
+				'user'    => [
 					'singular' => esc_html__( 'User', 'elasticpress' ),
 					'plural'   => esc_html__( 'Users', 'elasticpress' ),
 				],
@@ -928,6 +928,7 @@ function action_admin_menu() {
  * Uses the language from EP settings in mapping.
  *
  * @param string $language The current language.
+ * @param string $context  The language context.
  * @return string          The updated language.
  */
 function use_language_in_setting( $language = 'english', $context ) {
@@ -1031,7 +1032,7 @@ function use_language_in_setting( $language = 'english', $context ) {
 		}
 	}
 
-	if( 'filter_ewp_snowball' === $context ) {
+	if ( 'filter_ewp_snowball' === $context ) {
 		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
 			return ucfirst( $language );
 		}
