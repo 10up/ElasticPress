@@ -14,12 +14,13 @@ return [
 	'settings' => [
 		'index.mapping.total_fields.limit' => apply_filters( 'ep_comment_total_field_limit', 5000 ),
 		'index.max_result_window'          => apply_filters( 'ep_comment_max_result_window', 1000000 ),
+		'index.mapping.ignore_malformed'   => apply_filters( 'ep_ignore_malformed', true ),
 		'index.max_shingle_diff'           => apply_filters( 'ep_max_shingle_diff', 8 ),
 		'analysis'                         => [
 			'analyzer'   => [
 				'default'          => [
 					'tokenizer' => 'standard',
-					'filter'    => [ 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ],
+					'filter'    => [ 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ],
 					'language'  => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				],
 				'shingle_analyzer' => [
