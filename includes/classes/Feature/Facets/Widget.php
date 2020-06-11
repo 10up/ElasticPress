@@ -270,9 +270,9 @@ class Widget extends WP_Widget {
 					</div>
 				<?php endforeach; ?>
 			</div>
+			<?php $facet_html = ob_get_clean(); ?>
 		</div>
 		<?php
-		$facet_html = ob_get_clean();
 
 		// phpcs:disable
 		/**
