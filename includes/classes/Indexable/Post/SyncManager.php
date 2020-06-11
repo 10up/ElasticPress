@@ -138,6 +138,17 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		/**
+		 *  Filter to allow skipping this action in case of custom handling
+		 *
+		 *  @hook ep_skip_action_edited_term
+		 *  @param {bool} $skip Current value of whether to skip running action_edited_term or not
+		 *  @return {bool}  New value of whether to skip running action_edited_term or not
+		 */
+		if ( apply_filters( 'ep_skip_action_edited_term', false, $term_id, $tt_id, $taxonomy ) ) {
+			return;
+		}
+
 		// Find ID of all attached posts (query lifted from wp_delete_term())
 		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $tt_id ) );
 
@@ -152,6 +163,11 @@ class SyncManager extends SyncManagerAbstract {
 			$post_type = get_post_type( $post_id );
 
 			$post = get_post( $post_id );
+
+			// If post not found, skip to the next iteration
+			if ( ! is_object( $post ) ) {
+				continue;
+			}
 
 			$indexable_post_statuses = $indexable->get_indexable_post_status();
 
