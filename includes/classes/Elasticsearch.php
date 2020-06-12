@@ -8,6 +8,7 @@
 
 namespace ElasticPress;
 
+use function ElasticPress\Dashboard\action_wp_ajax_ep_index;
 use ElasticPress\Utils as Utils;
 use \WP_Error as WP_Error;
 
@@ -802,11 +803,31 @@ class Elasticsearch {
 		$request_args = array(
 			'method'  => 'POST',
 			'body'    => $body,
-			'timeout' => apply_filters( 'ep_bulk_index_timeout', 30 ),
+			'timeout' => apply_filters( 'ep_bulk_index_timeout', 10 ),
 		);
 
 		$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
 
+		$bulk_setting = intval( get_option( 'ep_bulk_setting' ) );
+
+		/**
+		 * If the request failed, cut the current per page setting by 50%
+		 */
+		if ( ! empty( $request->errors['http_request_failed'] ) && $bulk_setting !== 1  ) {
+			update_option( 'ep_bulk_setting', intval( $bulk_setting / 2 ) );
+			action_wp_ajax_ep_index();
+		}
+		/**
+		 * If we have the lowest bulk setting, let's try to bump the timeout and repeat the request.
+		 */
+		elseif ( $bulk_setting === 1 && ! empty( $request->errors['http_request_failed'] ) ) {
+			$request_args['timeout'] = apply_filters( 'ep_bulk_index_timeout', 10000 );
+			$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
+		}
+
+		/**
+		 * Give up if anything above works.
+		 */
 		if ( is_wp_error( $request ) ) {
 			return $request;
 		}
