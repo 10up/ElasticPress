@@ -101,7 +101,7 @@ class Elasticsearch {
 		$request_args = array(
 			'body'     => $encoded_document,
 			'method'   => 'POST',
-			'timeout'  => 15,
+			'timeout'  => apply_filters( 'ep_index_document_timeout', 15 ),
 			'blocking' => $blocking,
 		);
 
@@ -802,7 +802,7 @@ class Elasticsearch {
 		$request_args = array(
 			'method'  => 'POST',
 			'body'    => $body,
-			'timeout' => 30,
+			'timeout' => apply_filters( 'ep_bulk_index_timeout', 30 ),
 		);
 
 		$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
@@ -924,9 +924,10 @@ class Elasticsearch {
 
 			$request_response_code = (int) wp_remote_retrieve_response_code( $request );
 
-			$is_valid_res = ( $request_response_code >= 200 && $request_response_code <= 299 );
+			$is_valid_res            = ( $request_response_code >= 200 && $request_response_code <= 299 );
+			$is_non_blocking_request = ( 0 === $request_response_code );
 
-			if ( false === $request || is_wp_error( $request ) || ! $is_valid_res ) {
+			if ( false === $request || is_wp_error( $request ) || ( ! $is_valid_res && ! $is_non_blocking_request ) ) {
 				$failures++;
 
 				/**
