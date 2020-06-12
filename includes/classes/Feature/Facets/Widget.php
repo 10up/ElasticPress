@@ -274,6 +274,10 @@ class Widget extends WP_Widget {
 		</div>
 		<?php
 
+		// Enqueue Script & Styles
+		wp_enqueue_script( 'elasticpress-facets' );
+		wp_enqueue_style( 'elasticpress-facets' );
+
 		// phpcs:disable
 		/**
 		 * Filter facet search widget HTML
