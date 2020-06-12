@@ -433,25 +433,6 @@ class WooCommerce extends Feature {
 					);
 
 					$query->set( 'search_fields', $search_fields );
-				} elseif ( 'product' === $post_type ) {
-					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
-
-					// Remove author_name from this search.
-					$search_fields = $this->remove_author( $search_fields );
-
-					foreach ( $search_fields as $field_key => $field ) {
-						if ( 'author_name' === $field ) {
-							unset( $search_fields[ $field_key ] );
-						}
-					}
-
-					$search_fields['meta']       = ( ! empty( $search_fields['meta'] ) ) ? $search_fields['meta'] : [];
-					$search_fields['taxonomies'] = ( ! empty( $search_fields['taxonomies'] ) ) ? $search_fields['taxonomies'] : [];
-
-					$search_fields['meta']       = array_merge( $search_fields['meta'], array( '_sku' ) );
-					$search_fields['taxonomies'] = array_merge( $search_fields['taxonomies'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
-
-					$query->set( 'search_fields', $search_fields );
 				}
 			} else {
 				/**
@@ -718,6 +699,29 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Add WooCommerce Fields to the Weighting Dashboard.
+	 *
+	 * @since 3.x
+	 *
+	 * @param array  $fields    Current weighting fields.
+	 * @param string $post_type Current post type.
+	 * @return array            New fields.
+	 */
+	public function add_product_attributes_to_weighting( $fields, $post_type ) {
+		if ( 'product' === $post_type ) {
+			unset( $fields['attributes']['children']['author_name'] );
+
+			$sku_key = 'meta._sku.value';
+
+			$fields['attributes']['children'][ $sku_key ] = array(
+				'key'   => $sku_key,
+				'label' => __( 'SKU', 'elasticpress' ),
+			);
+		}
+		return $fields;
+	}
+
+	/**
 	 * Add WC post type to autosuggest
 	 *
 	 * @param array $post_types Array of post types (e.g. post, page).
@@ -753,6 +757,7 @@ class WooCommerce extends Feature {
 			add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
+			add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
 		}
 	}
 
