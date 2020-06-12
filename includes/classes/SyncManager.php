@@ -159,10 +159,10 @@ abstract class SyncManager {
 		/**
 		 * Filter whether to bypass sync.
 		 *
-		 * @since  TODO
-		 * @hook   ep_sync_kill
-		 * @param  {boolean} $kill True if WP_IMPORTING is defined and true, else false.
-		 * @param  {array} $indexable_slug Indexable slug.
+		 * @since 3.4.2
+		 * @hook  ep_sync_indexable_kill
+		 * @param {boolean} $kill True if WP_IMPORTING is defined and true, else false.
+		 * @param {array} $indexable_slug Indexable slug.
 		 */
 		return apply_filters( 'ep_sync_indexable_kill', $is_importing, $this->indexable_slug );
 	}
