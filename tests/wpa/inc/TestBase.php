@@ -30,15 +30,6 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		if ( ! $initialized ) {
 			$initialized = true;
 
-			/**
-			 * Delete all current indexes before we start
-			 */
-			$cluster_indexes = json_decode( $this->runCommand( 'wp elasticpress get-cluster-indexes' )['stdout'], true );
-
-			foreach ( (array) $cluster_indexes as $index ) {
-				$this->runCommand( 'wp elasticpress delete-index --index-name=' . $index['index'] );
-			}
-
 			$this->indexes = json_decode( $this->runCommand( 'wp elasticpress get-indexes' )['stdout'], true );
 
 			/**

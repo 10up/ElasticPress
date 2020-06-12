@@ -101,7 +101,7 @@ class Elasticsearch {
 		$request_args = array(
 			'body'     => $encoded_document,
 			'method'   => 'POST',
-			'timeout'  => 15,
+			'timeout'  => apply_filters( 'ep_index_document_timeout', 15 ),
 			'blocking' => $blocking,
 		);
 
@@ -806,7 +806,7 @@ class Elasticsearch {
 		$request_args = array(
 			'method'  => 'POST',
 			'body'    => $body,
-			'timeout' => 30,
+			'timeout' => apply_filters( 'ep_bulk_index_timeout', 30 ),
 		);
 
 		$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
