@@ -51,6 +51,7 @@ Bug fixes:
 * Add `rel="nofollow"` to facet links. Props [mlaroy](https://github.com/mlaroy).
 * Facets widget: Move <div> outside ob_start(). Props [kallehauge](https://github.com/kallehauge).
 * Load facet scripts and styles only when they are really necessary. Props [goaround](https://github.com/goaround).
+* Index attachments with Protected Content and query for them in media search. Props [oscarsanchez](https://github.com/oscarsanchez).
 
 Enhancements:
 * Add filter for enabling sticky posts.  Props [shadyvb](https://github.com/shadyvb).
