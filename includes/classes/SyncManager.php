@@ -149,7 +149,7 @@ abstract class SyncManager {
 	 * Returns true or false depending on the value of the WP_IMPORTING global.
 	 * Contains the 'ep_sync_indexable_kill' filter that enables overriding the default behavior.
 	 *
-	 * @since TODO
+	 * @since 3.4.2
 	 * @return bool
 	 */
 	public function kill_sync() {
