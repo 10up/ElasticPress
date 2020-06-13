@@ -145,7 +145,6 @@ function register_indexable_posts() {
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
-
 /**
  * Set the availability of dashboard sync functionality. Defaults to true (enabled).
  *

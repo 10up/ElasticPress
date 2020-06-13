@@ -99,7 +99,6 @@ class Screen {
 			case 'health':
 				require_once __DIR__ . '/../partials/stats-page.php';
 				break;
-
 		}
 	}
 

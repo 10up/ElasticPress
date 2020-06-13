@@ -8,20 +8,18 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Features;
-use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Feature as Feature;
 
 /**
- * Controls search weighting and search fields dashboard
+ * Highlights Search results.
  *
  * @package ElasticPress\Feature\Search
  */
 class Highlighting {
 
 	/**
-	 * Initialize feature setting it's config
+	 * Initialize feature setting it's config.
 	 *
-	 * @since  VERSION
 	 */
 	public function __construct() {
 		$this->default_tags = [
@@ -41,7 +39,7 @@ class Highlighting {
 	}
 
 	/**
-	 * Sets up the weighting module
+	 * Sets up the highlighting module.
 	 */
 	public function setup() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
@@ -50,9 +48,8 @@ class Highlighting {
 		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
 	}
 
-
 	/**
-	 * Enqueue styles for highlighting
+	 * Enqueue styles for highlighting.
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_style(
@@ -73,15 +70,11 @@ class Highlighting {
 				}";
 			wp_add_inline_style( 'searchterm-highlighting', $inline_color );
 		}
-
 	}
 
-
 	/**
-	 * Set default fields to highilight, and outputs
-	 * the tags on the front end
-	 *
-	 * @since VERSION
+	 * Set default fields to highlight, and outputs
+	 * the tags on the front end.
 	 *
 	 * @param array $formatted_args ep_formatted_args array
 	 * @param array $args WP_Query args
@@ -148,9 +141,8 @@ class Highlighting {
 		return $formatted_args;
 	}
 
-
 	/**
-	 * Returns the current highlighting configuration
+	 * Returns the current highlighting configuration.
 	 *
 	 * @return array
 	 */
@@ -164,9 +156,8 @@ class Highlighting {
 		return $search->get_settings();
 	}
 
-
 	/**
-	 * called by ep_highlighting_excerpt filter
+	 * called by ep_highlighting_excerpt filter.
 	 *
 	 * Replaces the default excerpt with the custom excerpt, allowing
 	 * for the selected tag to be displayed in it.
@@ -188,11 +179,9 @@ class Highlighting {
 		}
 	}
 
-
-
 	/**
-	 * called by allow_excerpt_html
-	 * logic for the excerpt filter allowing the currentlty selected tag
+	 * Called by allow_excerpt_html
+	 * logic for the excerpt filter allowing the currently selected tag.
 	 *
 	 * @param string $text - excerpt string
 	 * @return string $text - the new excerpt
@@ -227,10 +216,8 @@ class Highlighting {
 		return $text;
 	}
 
-
-
 	/**
-	 * helper filter to check if the tag is allowed
+	 * Helper filter to check if the tag is allowed
 	 *
 	 * @param string $tag - html tag
 	 * @return string

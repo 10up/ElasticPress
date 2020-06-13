@@ -242,7 +242,9 @@ class TestSearch extends BaseTestCase {
 	}
 
 	/**
-	 * test allowed tags
+	 * Test allowed tags for highlighting sub-feature.
+	 *
+	 * @group search
 	 */
 	public function testAllowedTags() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
@@ -251,19 +253,17 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-
 		// a tag that is in the array of allowed tags
-		$not_allowed = 'span';
-
+		$allowed_tag = 'span';
 		$highlighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting;
-		$tag = $highlighting->get_highlighting_tag( $not_allowed );
 
-		$this->assertTrue( $tag == 'span' );
+		$this->assertTrue( $highlighting->get_highlighting_tag( $allowed_tag ) === 'span' );
 	}
 
-
 	/**
-	 * test not-allowed tags
+	 * Test not-allowed tags for highlighting sub-feature.
+	 *
+	 * @group search
 	 */
 	public function testNotAllowedTags() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
@@ -272,18 +272,19 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-
 		// a tag that is not in the array of allowed tags
-		$not_allowed = 'div';
-		$highlighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting;
-		$tag = $highlighting->get_highlighting_tag( $not_allowed );
+		$not_allowed_tag = 'div';
+		$highlighting    = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting;
 
-		$this->assertTrue( $tag == 'mark' );
+		$this->assertTrue( $highlighting->get_highlighting_tag( $not_allowed_tag ) == 'mark' );
 	}
 
-
 	/**
-	 * test color
+	 * Test default color for highlighting sub-feature.
+	 *
+	 * Default should be empty.
+	 *
+	 * @group search
 	 */
 	public function testDefaultColor() {
 		ElasticPress\Features::factory()->activate_feature( 'search' );
@@ -294,18 +295,19 @@ class TestSearch extends BaseTestCase {
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$highlighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting->default_settings;
-		$settings = array_merge( $settings, $highlighting );
-
+		$highlighting  = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting->default_settings;
+		$settings      = array_merge( $settings, $highlighting );
 		$default_color = $settings['highlight_color'];
-		$this->assertTrue( $default_color == '' );
+
+		$this->assertEmpty( $default_color, 'The default color is not empty' );
 	}
 
-
 	/**
-	 * Testing possible color setting
+	 * Testing changing color and tag settings for highlighting sub-feature.
+	 *
+	 * @group search
 	 */
-	public function testColorSetting() {
+	public function testHighlightSetting() {
 
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->setup_features();
@@ -313,53 +315,28 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		$data = ElasticPress\Features::factory()->update_feature(
+		ElasticPress\Features::factory()->update_feature(
 			'search',
 			array(
 				'active' 			=> true,
 				'highlight_enabled' => '1',
 				'highlight_color' 	=> '#ff0',
-			)
-		);
-
-		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
-
-		$updated_color = $settings['highlight_color'];
-		$this->assertTrue( $settings['highlight_color'] == '#ff0' );
-	}
-
-
-	/**
-	 * Testing possible color setting
-	 */
-	public function testTagSetting() {
-
-		ElasticPress\Features::factory()->activate_feature( 'search' );
-		ElasticPress\Features::factory()->setup_features();
-
-		// Need to call this since it's hooked to init
-		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
-
-		$data = ElasticPress\Features::factory()->update_feature(
-			'search',
-			array(
-				'active' 			=> true,
-				'highlight_enabled' => 1,
 				'highlight_tag' 	=> 'span',
 			)
 		);
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$updated_tag = $settings['highlight_tag'];
-		$this->assertTrue( $updated_tag == 'span' );
+		$this->assertTrue( $settings['highlight_color'] === '#ff0' );
+		$this->assertTrue( $settings['highlight_tag'] === 'span' );
 	}
 
-
 	/**
-	 * Testing possible color setting
+	 * Testing setting a tag that's not allowed
 	 *
-	 * Leverages the ep_highlighting_tag filter used when updating settings
+	 * Leverages the ep_highlighting_tag filter used when updating settings.
+	 * Should return 'mark' as the tag
+	 *
 	 */
 	public function testBadTagSetting() {
 
@@ -369,7 +346,7 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		$data = ElasticPress\Features::factory()->update_feature(
+		ElasticPress\Features::factory()->update_feature(
 			'search',
 			array(
 				'active' 			=> true,
@@ -379,11 +356,10 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
+		$tag      = apply_filters( 'ep_highlighting_tag', $settings['highlight_tag'] );
 
-		$updated_tag = apply_filters( 'ep_highlighting_tag', $settings['highlight_tag'] );
-		$this->assertTrue( $updated_tag == 'mark' );
+		$this->assertTrue( $tag === 'mark' );
 	}
-
 
 	/**
 	 * Testing excerpt settings
@@ -396,7 +372,7 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		$data = ElasticPress\Features::factory()->update_feature(
+		ElasticPress\Features::factory()->update_feature(
 			'search',
 			array(
 				'active'			=> 1,
@@ -407,7 +383,6 @@ class TestSearch extends BaseTestCase {
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$active_excerpt = $settings['highlight_excerpt'];
-		$this->assertTrue( $active_excerpt == '1' );
+		$this->assertTrue( $settings['highlight_excerpt'] === '1' );
 	}
 }
