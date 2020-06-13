@@ -16,6 +16,19 @@ use ElasticPress\Feature as Feature;
  * @package ElasticPress\Feature\Search
  */
 class Highlighting {
+	/**
+	 * Default tags allowed to highlight search terms.
+	 *
+	 * @var array
+	 */
+	public $default_tags;
+
+	/**
+	 * Default settings for the feature.
+	 *
+	 * @var array
+	 */
+	public $default_settings;
 
 	/**
 	 * Initialize feature setting it's config.
@@ -217,7 +230,7 @@ class Highlighting {
 	}
 
 	/**
-	 * Helper filter to check if the tag is allowed
+	 * Helper filter to check if the tag is allowed.
 	 *
 	 * @param string $tag - html tag
 	 * @return string
