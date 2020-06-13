@@ -929,6 +929,7 @@ function action_admin_menu() {
  * Uses the language from EP settings in mapping.
  *
  * @param string $language The current language.
+ * @param string $context  The context where the function is running.
  * @return string          The updated language.
  */
 function use_language_in_setting( $language = 'english', $context ) {
@@ -1032,7 +1033,7 @@ function use_language_in_setting( $language = 'english', $context ) {
 		}
 	}
 
-	if( 'filter_ewp_snowball' === $context ) {
+	if ( 'filter_ewp_snowball' === $context ) {
 		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
 			return ucfirst( $language );
 		}
