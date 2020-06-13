@@ -32,7 +32,6 @@ class Highlighting {
 
 	/**
 	 * Initialize feature setting it's config.
-	 *
 	 */
 	public function __construct() {
 		$this->default_tags = [
@@ -44,7 +43,7 @@ class Highlighting {
 		];
 
 		$this->default_settings = [
-			'highlight_enabled'	=> 'off',
+			'highlight_enabled' => 'off',
 			'highlight_excerpt' => 'off',
 			'highlight_tag'     => 'mark',
 			'highlight_color'   => '',
@@ -100,7 +99,7 @@ class Highlighting {
 		$settings = $this->get_highlighting_configuration();
 		$settings = wp_parse_args( $settings, $this->default_settings );
 
-		if ( $settings['highlight_enabled'] !== '1' ) {
+		if ( '1' !== $settings['highlight_enabled'] ) {
 			return $formatted_args;
 		}
 
