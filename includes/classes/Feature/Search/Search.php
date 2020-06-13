@@ -329,10 +329,10 @@ class Search extends Feature {
 		$settings = wp_parse_args( $decaying_settings, $this->default_settings );
 
 		$highlighting_settings = $this->highlighting->default_settings;
-		$settings = wp_parse_args( $highlighting_settings, $settings );
+		$settings              = wp_parse_args( $highlighting_settings, $settings );
 
 		$highlight_color = ( ! empty( $settings['highlight_color'] ) ) ? $settings['highlight_color'] : null;
-		$tag_options = $this->highlighting->default_tags;
+		$tag_options     = $this->highlighting->default_tags;
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>

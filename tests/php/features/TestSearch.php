@@ -257,7 +257,7 @@ class TestSearch extends BaseTestCase {
 		$allowed_tag = 'span';
 		$highlighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting;
 
-		$this->assertTrue( $highlighting->get_highlighting_tag( $allowed_tag ) === 'span' );
+		$this->assertTrue( 'span' === $highlighting->get_highlighting_tag( $allowed_tag ) );
 	}
 
 	/**
@@ -276,7 +276,7 @@ class TestSearch extends BaseTestCase {
 		$not_allowed_tag = 'div';
 		$highlighting    = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting;
 
-		$this->assertTrue( $highlighting->get_highlighting_tag( $not_allowed_tag ) == 'mark' );
+		$this->assertTrue( 'mark' === $highlighting->get_highlighting_tag( $not_allowed_tag ) );
 	}
 
 	/**
@@ -327,8 +327,8 @@ class TestSearch extends BaseTestCase {
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$this->assertTrue( $settings['highlight_color'] === '#ff0' );
-		$this->assertTrue( $settings['highlight_tag'] === 'span' );
+		$this->assertTrue( '#ff0' === $settings['highlight_color'] );
+		$this->assertTrue( 'span' === $settings['highlight_tag'] );
 	}
 
 	/**
@@ -358,7 +358,7 @@ class TestSearch extends BaseTestCase {
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 		$tag      = apply_filters( 'ep_highlighting_tag', $settings['highlight_tag'] );
 
-		$this->assertTrue( $tag === 'mark' );
+		$this->assertTrue( 'mark' === $tag );
 	}
 
 	/**
@@ -383,6 +383,6 @@ class TestSearch extends BaseTestCase {
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$this->assertTrue( $settings['highlight_excerpt'] === '1' );
+		$this->assertTrue( '1' === $settings['highlight_excerpt'] );
 	}
 }
