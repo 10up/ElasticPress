@@ -43,8 +43,8 @@ class Highlighting {
 		];
 
 		$this->default_settings = [
-			'highlight_enabled' => 'off',
-			'highlight_excerpt' => 'off',
+			'highlight_enabled' => false,
+			'highlight_excerpt' => false,
 			'highlight_tag'     => 'mark',
 			'highlight_color'   => '',
 		];
@@ -58,6 +58,7 @@ class Highlighting {
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
 		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
+		add_filter( 'ep_sanitize_feature_settings', [ $this, 'sanitize_highlighting_settings' ], 10, 2 );
 	}
 
 	/**
@@ -99,7 +100,7 @@ class Highlighting {
 		$settings = $this->get_highlighting_configuration();
 		$settings = wp_parse_args( $settings, $this->default_settings );
 
-		if ( '1' !== $settings['highlight_enabled'] ) {
+		if ( true !== $settings['highlight_enabled'] ) {
 			return $formatted_args;
 		}
 
@@ -185,7 +186,7 @@ class Highlighting {
 
 		$settings = $this->get_highlighting_configuration();
 
-		if ( ! empty( $_GET['s'] ) && ! empty( $settings['highlight_excerpt'] ) && '1' === $settings['highlight_excerpt'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! empty( $_GET['s'] ) && ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
 		}
@@ -246,4 +247,23 @@ class Highlighting {
 		return $this->highlighting_tag;
 	}
 
-}
+	/**
+	 * Sanitizes our highlighting settings.
+	 *
+	 * Makes sure we save actual booleans.
+	 *
+	 * @param $settings
+	 * @return mixed
+	 */
+	public function sanitize_highlighting_settings( $settings ) {
+		if ( ! empty( $settings['search']['highlight_excerpt'] ) ) {
+			$settings['search']['highlight_excerpt'] = (bool) $settings['search']['highlight_excerpt'];
+		}
+
+		if ( ! empty( $settings['search']['highlight_enabled'] ) ) {
+			$settings['search']['highlight_enabled'] = (bool) $settings['search']['highlight_enabled'];
+		}
+
+		return $settings;
+	}
+ }

@@ -254,7 +254,7 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
 		// a tag that is in the array of allowed tags
-		$allowed_tag = 'span';
+		$allowed_tag  = 'span';
 		$highlighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting;
 
 		$this->assertTrue( 'span' === $highlighting->get_highlighting_tag( $allowed_tag ) );
@@ -319,7 +319,7 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active' 			=> true,
-				'highlight_enabled' => '1',
+				'highlight_enabled' => true,
 				'highlight_color' 	=> '#ff0',
 				'highlight_tag' 	=> 'span',
 			)
@@ -335,8 +335,9 @@ class TestSearch extends BaseTestCase {
 	 * Testing setting a tag that's not allowed
 	 *
 	 * Leverages the ep_highlighting_tag filter used when updating settings.
-	 * Should return 'mark' as the tag
+	 * Should return 'mark' as the tag.
 	 *
+	 * @group search
 	 */
 	public function testBadTagSetting() {
 
@@ -349,9 +350,9 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Features::factory()->update_feature(
 			'search',
 			array(
-				'active' 			=> true,
-				'highlight_enabled' => 1,
-				'highlight_tag'		=> 'div'
+				'active'            => true,
+				'highlight_enabled' => true,
+				'highlight_tag'     => 'div'
 			)
 		);
 
@@ -362,7 +363,9 @@ class TestSearch extends BaseTestCase {
 	}
 
 	/**
-	 * Testing excerpt settings
+	 * Testing excerpt enabled on settings
+	 *
+	 * @group search
 	 */
 	public function testExcerptSetting() {
 
@@ -375,14 +378,14 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Features::factory()->update_feature(
 			'search',
 			array(
-				'active'			=> 1,
-				'highlight_enabled' => '1',
-				'highlight_excerpt' => '1'
+				'active'            => true,
+				'highlight_enabled' => true,
+				'highlight_excerpt' => true
 			)
 		);
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$this->assertTrue( '1' === $settings['highlight_excerpt'] );
+		$this->assertTrue( $settings['highlight_excerpt'] );
 	}
 }
