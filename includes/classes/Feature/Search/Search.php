@@ -61,7 +61,7 @@ class Search extends Feature {
 		$this->weighting = new Weighting();
 		$this->weighting->setup();
 
-		// Set up weighting sub-module
+		// Set up highlighting sub-module
 		$this->highlighting = new Highlighting();
 		$this->highlighting->setup();
 	}
@@ -326,13 +326,9 @@ class Search extends Feature {
 			$decaying_settings = [];
 		}
 
-		$settings = wp_parse_args( $decaying_settings, $this->default_settings );
-
-		$highlighting_settings = $this->highlighting->default_settings;
-		$settings              = wp_parse_args( $highlighting_settings, $settings );
-
+		$settings        = wp_parse_args( $decaying_settings, $this->default_settings );
+		$settings        = wp_parse_args( $settings, $this->highlighting->default_settings );
 		$highlight_color = ( ! empty( $settings['highlight_color'] ) ) ? $settings['highlight_color'] : null;
-		$tag_options     = $this->highlighting->default_tags;
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
@@ -356,8 +352,8 @@ class Search extends Feature {
 						<label for="highlight-tag" class="field-name status"><?php echo esc_html_e( 'Highlight Tag: ', 'elasticpress' ); ?></label>
 						<select id="highlight-tag" name="highlight-tag" class="setting-field" data-field-name="highlight_tag">
 							<?php
-							foreach ( $tag_options as $option ) :
-								echo '<option value="' . esc_attr( $option ) . '" ' . selected( $option, $highlighting_settings['highlight_tag'] ) . '>' . esc_html( $option ) . '</option>';
+							foreach ( $this->highlighting->default_tags as $option ) :
+								echo '<option value="' . esc_attr( $option ) . '" ' . selected( $option, $settings['highlight_tag'] ) . '>' . esc_html( $option ) . '</option>';
 							endforeach;
 							?>
 						</select>

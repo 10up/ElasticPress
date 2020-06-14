@@ -49,7 +49,7 @@ class Highlighting {
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
 		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
-		add_filter( 'ep_sanitize_feature_settings', [ $this, 'sanitize_highlighting_settings' ], 10, 2 );
+		add_filter( 'ep_sanitize_feature_settings', [ $this, 'sanitize_highlighting_settings' ] );
 	}
 
 	/**
