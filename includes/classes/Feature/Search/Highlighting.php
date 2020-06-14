@@ -227,15 +227,11 @@ class Highlighting {
 	 * @return string
 	 */
 	public function get_highlighting_tag( $tag ) {
-		$this->highlighting_tag = $tag;
-
-		$options = $this->default_tags;
-
-		if ( ! in_array( $tag, $options, true ) ) {
-			$this->highlighting_tag = 'mark';
+		if ( ! in_array( $tag, $this->default_tags, true ) ) {
+			$tag = 'mark';
 		}
 
-		return $this->highlighting_tag;
+		return $tag;
 	}
 
 	/**
