@@ -21,34 +21,25 @@ class Highlighting {
 	 *
 	 * @var array
 	 */
-	public $default_tags;
+	public $default_tags = [
+		'mark',
+		'span',
+		'strong',
+		'em',
+		'i',
+	];
 
 	/**
-	 * Default settings for the feature.
+	 * Default settings of the feature.
 	 *
 	 * @var array
 	 */
-	public $default_settings;
-
-	/**
-	 * Initialize feature setting it's config.
-	 */
-	public function __construct() {
-		$this->default_tags = [
-			'mark',
-			'span',
-			'strong',
-			'em',
-			'i',
-		];
-
-		$this->default_settings = [
-			'highlight_enabled' => false,
-			'highlight_excerpt' => false,
-			'highlight_tag'     => 'mark',
-			'highlight_color'   => '',
-		];
-	}
+	public $default_settings = [
+		'highlight_enabled' => false,
+		'highlight_excerpt' => false,
+		'highlight_tag'     => 'mark',
+		'highlight_color'   => '',
+	];
 
 	/**
 	 * Sets up the highlighting module.
