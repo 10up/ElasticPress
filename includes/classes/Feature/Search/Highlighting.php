@@ -237,9 +237,7 @@ class Highlighting {
 	/**
 	 * Sanitizes our highlighting settings.
 	 *
-	 * Makes sure we save actual booleans.
-	 *
-	 * @param $settings
+	 * @param array $settings Array of current settings
 	 * @return mixed
 	 */
 	public function sanitize_highlighting_settings( $settings ) {
@@ -253,4 +251,4 @@ class Highlighting {
 
 		return $settings;
 	}
- }
+}
