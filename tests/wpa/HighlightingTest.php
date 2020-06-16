@@ -1,12 +1,12 @@
 <?php
 /**
- * Basic test class
+ * HighlightingTest class
  *
  * @package elasticpress
  */
 
 /**
- * PHPUnit test class
+ * Sub-Feature Highlighting Class
  */
 class HighlightingTest extends TestBase {
 
@@ -18,9 +18,9 @@ class HighlightingTest extends TestBase {
 	}
 
 	/**
-	 * Test a simple sync
+	 * Test seeing a document being highlighted.
 	 *
-	 * @testdox I can successfully run an index in the single site dashboard and see the indexes in the health page.
+	 * @testdox I can successfully index a document and see it has been highlighted with the .ep-highlight class when I search for it.
 	 */
 	public function testHighlightingColor() {
 		$I = $this->openBrowserPage();
