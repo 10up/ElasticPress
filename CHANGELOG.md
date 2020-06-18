@@ -27,7 +27,7 @@ Enhancements:
 * Properly order WooCommerce products using double to account for decimals. Props [@oscarsanchez](https://github.com/oscarsanchez).
 * Show current indices in index health dashboard. Props [moraleida](https://github.com/moraleida).
 
-## [3.4]
+## [3.4.0]
 
 * Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
 * Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
@@ -44,7 +44,7 @@ Enhancements:
 * Add `clear-transient` WP CLI command.
 * Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
 
-## [3.3] - 2018-12-18
+## [3.3.0] - 2018-12-18
 
 * Officially support Elasticsearch 7.5
 * Add optional Google Analytics Autosuggest tracking Event
@@ -90,7 +90,7 @@ Enhancements:
 
 * Fix Gutenberg breaking issue with Related Posts and image blocks. Props [adamsilverstein](https://github.com/adamsilverstein)
 
-## [3.2] - 2019-10-08
+## [3.2.0] - 2019-10-08
 
 * Improve block asset enqueueing: hook on `enqueue_block_editor_assets`. Props [adamsilverstein](https://github.com/adamsilverstein).
 * Handle empty search weighting fields bug.
@@ -800,7 +800,20 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 ## [0.1.0]
 - Initial plugin release
 
-[Unreleased]: https://github.com/10up/ElasticPress/compare/3.0.3...develop
+[Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.4.2]: https://github.com/10up/ElasticPress/compare/3.4.1...3.4.2
+[3.4.1]: https://github.com/10up/ElasticPress/compare/3.4...3.4.1
+[3.4.0]: https://github.com/10up/ElasticPress/compare/3.3...3.4
+[3.3.0]: https://github.com/10up/ElasticPress/compare/3.2.6...3.3
+[3.2.6]: https://github.com/10up/ElasticPress/compare/3.2.5...3.2.6
+[3.2.5]: https://github.com/10up/ElasticPress/compare/3.2.4...3.2.5
+[3.2.4]: https://github.com/10up/ElasticPress/compare/3.2.3...3.2.4
+[3.2.3]: https://github.com/10up/ElasticPress/compare/3.2.2...3.2.3
+[3.2.2]: https://github.com/10up/ElasticPress/compare/3.2.1...3.2.2
+[3.2.1]: https://github.com/10up/ElasticPress/compare/3.2...3.2.1
+[3.2.0]: https://github.com/10up/ElasticPress/compare/3.1.1...3.2
+[3.1.1]: https://github.com/10up/ElasticPress/compare/3.1...3.1.1
+[3.1.0]: https://github.com/10up/ElasticPress/compare/3.0.3...3.1
 [3.0.3]: https://github.com/10up/ElasticPress/compare/3.0.2...3.0.3
 [3.0.2]: https://github.com/10up/ElasticPress/compare/3.0.1...3.0.2
 [3.0.1]: https://github.com/10up/ElasticPress/compare/3.0...3.0.1
