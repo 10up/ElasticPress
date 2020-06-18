@@ -18,7 +18,6 @@ Enhancements:
 * Add sync kill filter. Props [barryceelen](https://github.com/barryceelen).
 * Add timeout filters for bulk_index and index_document. Props [@oscarsanchez](https://github.com/oscarsanchez).
 
-
 ## [3.4.1] - 2020-3-31
 
 * Make weighting dashboard flex containers to prevent the slider from changing size. Props [@mlaroy](https://github.com/mlaroy).
@@ -27,7 +26,7 @@ Enhancements:
 * Properly order WooCommerce products using double to account for decimals. Props [@oscarsanchez](https://github.com/oscarsanchez).
 * Show current indices in index health dashboard. Props [moraleida](https://github.com/moraleida).
 
-## [3.4.0]
+## [3.4.0] - 2020-03-03
 
 * Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
 * Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
@@ -797,7 +796,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 ### Fixed
 - Escaping issues
 
-## [0.1.0]
+## 0.1.0 - Unknown
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
@@ -860,4 +859,3 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 [0.9.1]: https://github.com/10up/ElasticPress/compare/0.9...0.9.1
 [0.9]: https://github.com/10up/ElasticPress/compare/0.1.2...0.9
 [0.1.2]: https://github.com/10up/ElasticPress/releases/tag/0.1.2
-[0.1.0]: https://plugins.trac.wordpress.org/changeset/1010633/elasticpress/
