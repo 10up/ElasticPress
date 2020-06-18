@@ -52,10 +52,12 @@ Bug fixes:
 * Facets widget: Move <div> outside ob_start(). Props [kallehauge](https://github.com/kallehauge).
 * Load facet scripts and styles only when they are really necessary. Props [goaround](https://github.com/goaround).
 * Index attachments with Protected Content and query for them in media search. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Fixed `Deprecated field [include] used, expected [includes] instead.`. Props [dinhtungdu](https://github.com/dinhtungdu).
 
 Enhancements:
 * Add filter for enabling sticky posts.  Props [shadyvb](https://github.com/shadyvb).
 * Add sync kill filter. Props [barryceelen](https://github.com/barryceelen).
+* Add timeout filters for bulk_index and index_document. Props [@oscarsanchez](https://github.com/oscarsanchez).
 
 = 3.4.1 =
 
