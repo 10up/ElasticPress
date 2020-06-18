@@ -13,7 +13,9 @@ use ElasticPress\Elasticsearch as Elasticsearch;
 use \WP_Term_Query as WP_Term_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -91,6 +93,13 @@ class Term extends Indexable {
 		// Set sort order, default is 'ASC'.
 		if ( ! empty( $query_vars['order'] ) ) {
 			$order = $this->parse_order( $query_vars['order'] );
+		} else {
+			$order = 'desc';
+		}
+
+		// Set orderby, default is 'name'.
+		if ( empty( $query_vars['orderby'] ) ) {
+			$query_vars['orderby'] = 'name';
 		}
 
 		// Set sort type.
@@ -252,7 +261,8 @@ class Term extends Indexable {
 		/**
 		 * Support `hierarchical` query var
 		 */
-		if ( ! empty( $query_vars['hierarchical'] ) && false === $query_vars['hierarchical'] ) {
+		$hide_empty = isset( $query_vars['hide_empty'] ) ? $query_vars['hide_empty'] : '';
+		if ( true === $hide_empty ) {
 			$filter['bool']['must'][] = [
 				'range' => [
 					'hierarchy.children.count' => [
@@ -481,7 +491,7 @@ class Term extends Indexable {
 			switch ( $query_vars['fields'] ) {
 				case 'ids':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_id',
 						],
 					];
@@ -489,7 +499,7 @@ class Term extends Indexable {
 
 				case 'id=>name':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_id',
 							'name',
 						],
@@ -498,7 +508,7 @@ class Term extends Indexable {
 
 				case 'id=>parent':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_id',
 							'parent',
 						],
@@ -507,7 +517,7 @@ class Term extends Indexable {
 
 				case 'id=>slug':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_id',
 							'slug',
 						],
@@ -516,14 +526,14 @@ class Term extends Indexable {
 
 				case 'names':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'name',
 						],
 					];
 					break;
 				case 'tt_ids':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_taxonomy_id',
 						],
 					];
@@ -699,7 +709,9 @@ class Term extends Indexable {
 
 		$query = new WP_Term_Query( $args );
 
-		array_walk( $query->terms, array( $this, 'remap_terms' ) );
+		if ( is_array( $query->terms ) ) {
+			array_walk( $query->terms, array( $this, 'remap_terms' ) );
+		}
 
 		return [
 			'objects'       => $query->terms,

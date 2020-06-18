@@ -84,6 +84,8 @@ class BasicTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
+		sleep( 2 );
+
 		$I->moveTo( '/?s=Test+ElasticPress+1' );
 
 		$I->seeText( 'Test ElasticPress 1', '.hentry' );

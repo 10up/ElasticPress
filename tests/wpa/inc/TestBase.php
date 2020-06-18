@@ -30,15 +30,6 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		if ( ! $initialized ) {
 			$initialized = true;
 
-			/**
-			 * Delete all current indexes before we start
-			 */
-			$cluster_indexes = json_decode( $this->runCommand( 'wp elasticpress get-cluster-indexes' )['stdout'], true );
-
-			foreach ( $cluster_indexes as $index ) {
-				$this->runCommand( 'wp elasticpress delete-index --index-name=' . $index['index'] );
-			}
-
 			$this->indexes = json_decode( $this->runCommand( 'wp elasticpress get-indexes' )['stdout'], true );
 
 			/**
@@ -81,39 +72,39 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 				'post' => [
 					'post_title'   => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 					'post_content' => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 					'post_excerpt' => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 
 					'author_name'  => [
 						'weight'  => 0,
-						'enabled' => 0,
+						'enabled' => false,
 					],
 				],
 				'page' => [
 					'post_title'   => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 					'post_content' => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 					'post_excerpt' => [
 						'weight'  => 1,
-						'enabled' => 1,
+						'enabled' => true,
 					],
 
 					'author_name'  => [
 						'weight'  => 0,
-						'enabled' => 0,
+						'enabled' => false,
 					],
 				],
 			];
@@ -202,18 +193,87 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		usleep( 100 );
 
-		$actor->waitUntilElementVisible( '.editor-post-publish-panel__toggle' );
+		// Post Status.
+		if ( isset( $data['status'] ) && 'draft' === $data['status'] ) {
 
-		$actor->waitUntilElementEnabled( '.editor-post-publish-panel__toggle' );
+			$actor->click( '.editor-post-save-draft' );
 
-		$actor->click( '.editor-post-publish-panel__toggle' );
+			$actor->waitUntilElementContainsText( 'Saved', '.editor-post-saved-state' );
 
-		$actor->waitUntilElementVisible( '.editor-post-publish-button' );
+		} else {
 
-		$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
+			$actor->waitUntilElementVisible( '.editor-post-publish-panel__toggle' );
 
-		$actor->click( '.editor-post-publish-button' );
+			$actor->waitUntilElementEnabled( '.editor-post-publish-panel__toggle' );
 
-		$actor->waitUntilElementVisible( '.components-notice' );
+			$actor->click( '.editor-post-publish-panel__toggle' );
+
+			// Some time we can't click the publish button using this method $actor->click( '.editor-post-publish-button' );	
+			$actor->executeJavaScript( 'document.querySelector( ".editor-post-publish-button" ).click();' );
+
+			$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
+
+			$actor->click( '.editor-post-publish-button' );
+
+			$actor->waitUntilElementVisible( '.components-notice' );
+		}
+	}
+
+	/**
+	 * Activate the plugin.
+	 *
+	 * @param \WPAcceptance\PHPUnit\Actor $actor   The actor.
+	 * @param string                      $slug    Plugin slug.
+	 * @param bool                        $network Multisite?
+	 */
+	protected function activatePlugin( $actor, $slug = 'elasticpress', $network = false ) {
+		if ( $network ) {
+			$actor->moveTo( '/wp-admin/network/plugins.php' );
+		} else {
+			$actor->moveTo( '/wp-admin/plugins.php' );
+		}
+
+		try {
+			$element = $actor->getElement( '[data-slug="' . $slug . '"] .activate a' );
+			if ( $element ) {
+				$actor->click( $element );
+				$actor->waitUntilElementVisible( '#message' );
+			}
+		} catch ( \Exception $e ) {}
+	}
+
+	/**
+	 * Deactivate the plugin.
+	 *
+	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
+	 * @param string                      $slug  Plugin slug.
+	 * @param bool                        $network Multisite?
+	 */
+	protected function deactivatePlugin( $actor, $slug = 'elasticpress', $network = false ) {
+		if ( $network ) {
+			$actor->moveTo( '/wp-admin/network/plugins.php' );
+		} else {
+			$actor->moveTo( '/wp-admin/plugins.php' );
+		}
+
+		try {
+			$element = $actor->getElement( '[data-slug="' . $slug . '"] .deactivate a' );
+			if ( $element ) {
+				$actor->click( $element );
+				$actor->waitUntilElementVisible( '#message' );
+			}
+		} catch ( \Exception $e ) {}
+	}
+
+	/**
+	 * Check if we're using ElasticPress.io.
+	 *
+	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
+	 */
+	protected function isElasticPressIo( $actor ) {
+		$actor->moveTo( '/wp-admin/admin.php?page=elasticpress-settings' );
+		$host = $actor->getElementAttribute( '#ep_host', 'value' );
+
+		return strpos( $host, 'hosted-elasticpress.io' );
 	}
 }
