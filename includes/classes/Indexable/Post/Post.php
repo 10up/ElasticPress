@@ -1287,10 +1287,14 @@ class Post extends Indexable {
 						)
 					)
 				);
+			}
 
-				if ( is_user_logged_in() ) {
-					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
-				}
+			/**
+			 * Per WP default behavior, private post statuses should only be visible to editors and
+			 * administrators. Even in the front-end.
+			 */
+			if ( current_user_can( 'administrator' ) || current_user_can( 'editor' ) ) {
+				$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
 			}
 
 			$statuses = array_values( $statuses );
