@@ -141,7 +141,7 @@ class SyncManager extends SyncManagerAbstract {
 		 * @param  {int} $post_id ID of post
 		 * @return {boolean} New value
 		 */
-		if ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) && ! defined( 'WP_CLI' ) && ! WP_CLI ) {
 			return;
 		}
 
