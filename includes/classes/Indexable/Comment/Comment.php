@@ -740,7 +740,7 @@ class Comment extends Indexable {
 
 		return [
 			'objects'       => $query->comments,
-			'total_objects' => absint( $all_query ),
+			'total_objects' => absint( $all_query->get_comments() ),
 		];
 	}
 
