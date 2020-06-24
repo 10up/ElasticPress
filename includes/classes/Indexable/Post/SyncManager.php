@@ -29,12 +29,6 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.2
 	 */
 	public function setup() {
-		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
-			// @codeCoverageIgnoreStart
-			return;
-			// @codeCoverageIgnoreEnd
-		}
-
 		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
 			return;
 		}
@@ -64,6 +58,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		$indexable = Indexables::factory()->get( 'post' );
 
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
@@ -106,6 +104,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @param int $blog_id WP Blog ID.
 	 */
 	public function action_delete_blog_from_index( $blog_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		$indexable = Indexables::factory()->get( 'post' );
 
 		/**
@@ -127,6 +129,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_delete_post( $post_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		/**
 		 * Filter whether to skip the permissions check on deleting a post
 		 *
@@ -167,6 +173,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_sync_on_update( $post_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		$indexable = Indexables::factory()->get( 'post' );
 		$post_type = get_post_type( $post_id );
 
@@ -239,6 +249,10 @@ class SyncManager extends SyncManagerAbstract {
 			// @codeCoverageIgnoreStart
 			return;
 			// @codeCoverageIgnoreEnd
+		}
+
+		if ( $this->kill_sync() ) {
+			return;
 		}
 
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );

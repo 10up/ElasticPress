@@ -27,10 +27,6 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.0
 	 */
 	public function setup() {
-		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
-			return;
-		}
-
 		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
 			return;
 		}
@@ -56,6 +52,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		$indexable = Indexables::factory()->get( 'user' );
 
 		$this->add_to_queue( $object_id );
@@ -68,6 +68,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.0
 	 */
 	public function action_delete_user( $user_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			return;
 		}
@@ -82,6 +86,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.0
 	 */
 	public function action_sync_on_update( $user_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			return;
 		}

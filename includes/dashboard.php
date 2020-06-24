@@ -928,7 +928,7 @@ function action_admin_menu() {
  * Uses the language from EP settings in mapping.
  *
  * @param string $language The current language.
- * @param string $context  The language context.
+ * @param string $context  The context where the function is running.
  * @return string          The updated language.
  */
 function use_language_in_setting( $language = 'english', $context ) {

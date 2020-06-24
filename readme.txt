@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Requires at least: 3.7.1
-Tested up to: 5.4
+Tested up to: 5.5
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -42,6 +42,22 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 5. Enjoy!
 
 == Changelog ==
+
+= 3.4.2 =
+
+Bug fixes:
+* uninstall.php: Change the EP_FILE const to its value. Props [felipeelia](https://github.com/felipeelia).
+* Fix list features WP CLI command. Props [felipeelia](https://github.com/felipeelia).
+* Add `rel="nofollow"` to facet links. Props [mlaroy](https://github.com/mlaroy).
+* Facets widget: Move <div> outside ob_start(). Props [kallehauge](https://github.com/kallehauge).
+* Load facet scripts and styles only when they are really necessary. Props [goaround](https://github.com/goaround).
+* Index attachments with Protected Content and query for them in media search. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Fixed `Deprecated field [include] used, expected [includes] instead.`. Props [dinhtungdu](https://github.com/dinhtungdu).
+
+Enhancements:
+* Add filter for enabling sticky posts.  Props [shadyvb](https://github.com/shadyvb).
+* Add sync kill filter. Props [barryceelen](https://github.com/barryceelen).
+* Add timeout filters for bulk_index and index_document. Props [@oscarsanchez](https://github.com/oscarsanchez).
 
 = 3.4.1 =
 
