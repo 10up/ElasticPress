@@ -716,9 +716,12 @@ class Comment extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$total_objects = get_comments(
-			[
-				'count' => true,
-			]
+			apply_filters(
+				'ep_comment_query_all_args',
+				[
+					'count' => true,
+				]
+			)
 		);
 
 		$defaults = [
