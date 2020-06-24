@@ -180,40 +180,12 @@ class QueryIntegration {
 		$hierarchical = $query_vars['hierarchical'] ?? false;
 
 		foreach ( $comments as $comment_array ) {
-			$comment = new \stdClass();
-
-			$comment->ID      = $comment_array['comment_ID'];
-			$comment->site_id = get_current_blog_id();
+			$comment = new \WP_Comment( (object) $comment_array );
 
 			if ( ! empty( $comment_array['site_id'] ) ) {
 				$comment->site_id = $comment_array['site_id'];
-			}
-
-			$comment_return_args = apply_filters(
-				'ep_search_comment_return_args',
-				[
-					'comment_ID',
-					'comment_post_ID',
-					'comment_author',
-					'comment_author_email',
-					'comment_author_url',
-					'comment_author_IP',
-					'comment_date',
-					'comment_date_gmt',
-					'comment_content',
-					'comment_karma',
-					'comment_approved',
-					'comment_agent',
-					'comment_type',
-					'comment_parent',
-					'user_id',
-				]
-			);
-
-			foreach ( $comment_return_args as $key ) {
-				if ( isset( $comment_array[ $key ] ) ) {
-					$comment->$key = $comment_array[ $key ];
-				}
+			} else {
+				$comment->site_id = get_current_blog_id();
 			}
 
 			$comment->elasticsearch = true; // Super useful for debugging
