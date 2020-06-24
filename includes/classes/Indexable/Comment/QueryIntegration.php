@@ -179,7 +179,29 @@ class QueryIntegration {
 	protected function format_hits_as_comments( $comments, $new_comments, $query_vars ) {
 		$hierarchical = $query_vars['hierarchical'] ?? false;
 
+		$comment_return_args = apply_filters(
+			'ep_search_comment_return_args',
+			[
+				'comment_ID',
+				'comment_post_ID',
+				'comment_author',
+				'comment_author_email',
+				'comment_author_url',
+				'comment_author_IP',
+				'comment_date',
+				'comment_date_gmt',
+				'comment_content',
+				'comment_karma',
+				'comment_approved',
+				'comment_agent',
+				'comment_type',
+				'comment_parent',
+				'user_id',
+			]
+		);
+
 		foreach ( $comments as $comment_array ) {
+			$comment_array = array_intersect_key( $comment_array, $comment_return_args );
 			$comment = new \WP_Comment( (object) $comment_array );
 
 			if ( ! empty( $comment_array['site_id'] ) ) {
