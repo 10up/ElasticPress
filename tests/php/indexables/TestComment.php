@@ -313,14 +313,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryOrderCommentContent() {
 		$this->createComments();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby' => 'comment_content',
 			'order' => 'ASC',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -328,14 +326,12 @@ class TestComment extends BaseTestCase {
 
 		$this->assertAttributeEquals( 'Test comment 4', 'comment_content', $comments[3] );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby' => 'comment_content',
 			'order' => 'DESC',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		$this->assertAttributeEquals( 'Test comment 1', 'comment_content', $comments[3] );
 	}
@@ -433,26 +429,22 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryHierarchical() {
 		$this->createComments( 0, true );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'hierarchical' => 'threaded',
 			'ep_integrate' => true,
-		];
+		] );
 
-		$comments_query = new \WP_Comment_Query( $args );
-
-		$comments = $comments_query->query( $args );
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
 		$this->assertObjectHasAttribute( 'children', reset( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'hierarchical' => 'flat',
 			'ep_integrate' => true,
-		];
+		] );
 
-		$comments_query = new \WP_Comment_Query( $args );
-
-		$comments = $comments_query->query( $args );
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 		foreach( $comments as $comment ) {
@@ -513,14 +505,12 @@ class TestComment extends BaseTestCase {
 
 		$this->createComments( 7 );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'paged' => 2,
 			'number' => 4,
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -552,13 +542,12 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'author_email' => 'joe@example.com',
-		];
+		] );
 
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -567,14 +556,13 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby' => 'comment_author_email',
 			'order' => 'ASC'
-		];
+		] );
 
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -608,13 +596,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'author_url' => 'http://example.com',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -623,14 +609,12 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby' => 'comment_author_url',
 			'order' => 'ASC',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -669,13 +653,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'user_id' => $current_user_id,
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -716,13 +698,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'author__in' => [ $current_user_id, $another_author_id ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -758,13 +738,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'author__not_in' => [ $another_author_id ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -779,14 +757,12 @@ class TestComment extends BaseTestCase {
 
 		$test_comments = [ $created_comments['comment_ids'][0], $created_comments['comment_ids'][1] ];
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'comment__in' => $test_comments,
 			'number' => 2,
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -801,13 +777,11 @@ class TestComment extends BaseTestCase {
 
 		$test_comments = [ $created_comments['comment_ids'][0], $created_comments['comment_ids'][1] ];
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'comment__not_in' => $test_comments,
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -869,13 +843,11 @@ class TestComment extends BaseTestCase {
 			),
 		);
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'date_query' => $date_query,
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -885,14 +857,12 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby' => 'comment_date',
 			'order' => 'ASC',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -902,14 +872,12 @@ class TestComment extends BaseTestCase {
 		$this->assertAttributeEquals( '2020-05-21 00:00:00', 'comment_date', $comments[1] );
 		$this->assertAttributeEquals( '2020-06-15 00:00:00', 'comment_date', $comments[4] );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby' => 'comment_date',
 			'order' => 'DESC',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		$this->assertAttributeEquals( '2020-05-19 00:00:00', 'comment_date', $comments[4] );
 		$this->assertAttributeEquals( '2020-05-21 00:00:00', 'comment_date', $comments[3] );
@@ -948,13 +916,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'karma' => 9,
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -993,14 +959,12 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'meta_key' => 'test_meta',
 			'meta_value' => 'test_value',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1042,7 +1006,7 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'meta_query' => [
 				[
@@ -1051,10 +1015,8 @@ class TestComment extends BaseTestCase {
 					'compare' => '>',
 				]
 			]
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1068,13 +1030,11 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryParentIn() {
 		$created_comments = $this->createComments( 3, true );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'parent__in' => [ $created_comments['parent_comment_id'] ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1087,13 +1047,11 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryParentNotIn() {
 		$created_comments = $this->createComments( 3, true );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'parent__not_in' => [ $created_comments['parent_comment_id'] ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1146,13 +1104,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_author' => $user_id_1,
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1161,13 +1117,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 4, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_author__in' => [ $user_id_1, $user_id_2 ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1176,13 +1130,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 5, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_author__not_in' => [ $user_id_1 ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1196,13 +1148,11 @@ class TestComment extends BaseTestCase {
 		$this->createComments();
 		$created_comments = $this->createComments( 3 );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_id' => $created_comments['post_id'],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1211,13 +1161,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post__in' => [ $created_comments['post_id'] ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1226,13 +1174,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post__not_in' => [ $created_comments['post_id'] ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1269,13 +1215,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_status' => 'publish',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1284,13 +1228,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_status' => [ 'draft', 'publish' ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1327,13 +1269,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_type' => 'post',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1365,13 +1305,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_parent' => $post_id_1,
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1405,12 +1343,10 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'search' => 'test comment',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1418,17 +1354,15 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'search' => 'start',
 			'search_fields' => [
 				'meta' => [
 					'test_meta_key',
 				]
 			],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1465,13 +1399,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'status' => 'approve',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1479,13 +1411,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 1, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'status' => 'hold',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1493,17 +1423,15 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'status' => 'approve',
 			'include_unapproved' => [
 				'joe@example.com',
 				$user_id,
 			],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1511,14 +1439,12 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'status' => 'all',
 			'orderby' => 'comment_approved',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1526,15 +1452,13 @@ class TestComment extends BaseTestCase {
 
 		$this->assertAttributeEquals( '1', 'comment_approved', $comments[0] );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'status' => 'all',
 			'orderby' => 'comment_approved',
 			'order' => 'ASC',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1566,13 +1490,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'type' => 'comment',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1580,13 +1502,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 1, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'type' => 'trackback,pingback',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1594,13 +1514,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'type__in' => [ 'trackback', 'pingback', 'comment' ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1608,13 +1526,11 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'type__not_in' => [ 'trackback', 'pingback' ],
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
@@ -1650,13 +1566,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'post_name' => 'start-here',
-		];
-
-		$comments_query = new \WP_Comment_Query( $args );
-		$comments = $comments_query->query( $args );
+		] );
+		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
 			$this->assertTrue( $comment->elasticsearch );
