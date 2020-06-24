@@ -715,7 +715,7 @@ class Comment extends Indexable {
 	 * @return array
 	 */
 	public function query_db( $args ) {
-		$all_query = new WP_Comment_Query(
+		$total_objects = get_comments(
 			[
 				'count' => true,
 			]
@@ -740,7 +740,7 @@ class Comment extends Indexable {
 
 		return [
 			'objects'       => $query->comments,
-			'total_objects' => absint( $all_query->get_comments() ),
+			'total_objects' => $total_objects,
 		];
 	}
 
