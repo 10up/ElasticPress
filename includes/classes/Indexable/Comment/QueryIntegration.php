@@ -144,6 +144,7 @@ class QueryIntegration {
 		}
 
 		$query->found_comments        = $ep_query['found_documents'];
+		$query->max_num_pages         = $query->query_vars['number'] <= 0 ? 1 : max( 1, ceil( $query->found_comments / absint( $query->query_vars['number'] ) ) );
 		$query->elasticsearch_success = true;
 
 		// Determine how we should format the results from ES based on the fields parameter.
