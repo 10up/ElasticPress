@@ -11,12 +11,12 @@
 	display: none;
 }
 
-.widget_ep-facet .empty-term {
+.widget_ep-facet .empty-term:not(.selected) {
 	position: relative;
 	opacity: .5;
 }
 
-.widget_ep-facet .empty-term:after {
+.widget_ep-facet .empty-term:not(.selected):after {
 	z-index: 2;
 	content: ' ';
 	display: block;
