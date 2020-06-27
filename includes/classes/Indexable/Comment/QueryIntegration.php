@@ -143,7 +143,7 @@ class QueryIntegration {
 			return count( $ep_query['documents'] );
 		}
 
-		$query->found_comments        = $ep_query['found_documents'];
+		$query->found_comments        = $ep_query['found_documents']['value'];
 		$query->max_num_pages         = $query->query_vars['number'] <= 0 ? 1 : max( 1, ceil( $query->found_comments / absint( $query->query_vars['number'] ) ) );
 		$query->elasticsearch_success = true;
 
@@ -201,13 +201,19 @@ class QueryIntegration {
 		);
 
 		foreach ( $comments as $comment_array ) {
-			$comment_array = array_intersect_key( $comment_array, $comment_return_args );
-			$comment = new \WP_Comment( (object) $comment_array );
+			$comment = new \stdClass();
+
+			$comment->ID      = $comment_array['comment_ID'];
+			$comment->site_id = get_current_blog_id();
 
 			if ( ! empty( $comment_array['site_id'] ) ) {
 				$comment->site_id = $comment_array['site_id'];
-			} else {
-				$comment->site_id = get_current_blog_id();
+			}
+
+			foreach ( $comment_return_args as $key ) {
+				if ( isset( $comment_array[ $key ] ) ) {
+					$comment->$key = $comment_array[ $key ];
+				}
 			}
 
 			$comment->elasticsearch = true; // Super useful for debugging
