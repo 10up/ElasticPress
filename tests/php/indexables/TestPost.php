@@ -5155,7 +5155,7 @@ class TestPost extends BaseTestCase {
 			new \WP_Query()
 		);
 
-		$this->assertContains( 'post_id', $args['_source']['include'] );
+		$this->assertContains( 'post_id', $args['_source']['includes'] );
 
 		$args = $post->format_args(
 			[
@@ -5164,8 +5164,8 @@ class TestPost extends BaseTestCase {
 			new \WP_Query()
 		);
 
-		$this->assertContains( 'post_id', $args['_source']['include'] );
-		$this->assertContains( 'post_parent', $args['_source']['include'] );
+		$this->assertContains( 'post_id', $args['_source']['includes'] );
+		$this->assertContains( 'post_parent', $args['_source']['includes'] );
 	}
 
 	/**

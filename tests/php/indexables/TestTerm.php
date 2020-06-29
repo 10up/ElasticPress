@@ -1107,7 +1107,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'term_id', $args['_source']['include'][0] );
+		$this->assertSame( 'term_id', $args['_source']['includes'][0] );
 
 		$args = $term->format_args(
 			[
@@ -1115,8 +1115,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'term_id', $args['_source']['include'][0] );
-		$this->assertSame( 'name', $args['_source']['include'][1] );
+		$this->assertSame( 'term_id', $args['_source']['includes'][0] );
+		$this->assertSame( 'name', $args['_source']['includes'][1] );
 
 		$args = $term->format_args(
 			[
@@ -1124,8 +1124,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'term_id', $args['_source']['include'][0] );
-		$this->assertSame( 'parent', $args['_source']['include'][1] );
+		$this->assertSame( 'term_id', $args['_source']['includes'][0] );
+		$this->assertSame( 'parent', $args['_source']['includes'][1] );
 
 		$args = $term->format_args(
 			[
@@ -1133,8 +1133,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'term_id', $args['_source']['include'][0] );
-		$this->assertSame( 'slug', $args['_source']['include'][1] );
+		$this->assertSame( 'term_id', $args['_source']['includes'][0] );
+		$this->assertSame( 'slug', $args['_source']['includes'][1] );
 
 		$args = $term->format_args(
 			[
@@ -1142,7 +1142,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'term_taxonomy_id', $args['_source']['include'][0] );
+		$this->assertSame( 'term_taxonomy_id', $args['_source']['includes'][0] );
 
 		$args = $term->format_args(
 			[
@@ -1150,7 +1150,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'name', $args['_source']['include'][0] );
+		$this->assertSame( 'name', $args['_source']['includes'][0] );
 	}
 
 	/**
