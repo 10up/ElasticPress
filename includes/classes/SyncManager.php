@@ -144,6 +144,30 @@ abstract class SyncManager {
 	}
 
 	/**
+	 * Determine whether syncing an indexable should take place.
+	 *
+	 * Returns true or false depending on the value of the WP_IMPORTING global.
+	 * Contains the 'ep_sync_indexable_kill' filter that enables overriding the default behavior.
+	 *
+	 * @since 3.4.2
+	 * @return bool
+	 */
+	public function kill_sync() {
+
+		$is_importing = defined( 'WP_IMPORTING' ) && true === WP_IMPORTING;
+
+		/**
+		 * Filter whether to bypass sync.
+		 *
+		 * @since 3.4.2
+		 * @hook  ep_sync_indexable_kill
+		 * @param {boolean} $kill True if WP_IMPORTING is defined and true, else false.
+		 * @param {array} $indexable_slug Indexable slug.
+		 */
+		return apply_filters( 'ep_sync_indexable_kill', $is_importing, $this->indexable_slug );
+	}
+
+	/**
 	 * Implementation should setup hooks/filters
 	 *
 	 * @since 3.0

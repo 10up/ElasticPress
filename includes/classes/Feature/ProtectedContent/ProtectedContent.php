@@ -92,6 +92,9 @@ class ProtectedContent extends Feature {
 			unset( $pc_post_types['user_request'] );
 		}
 
+		// By default, attachments are not indexed, we have to make sure they are included (Could already be included by documents feature).
+		$post_types['attachment'] = 'attachment';
+
 		// Merge non public post types with any pre-filtered post_type
 		return array_merge( $post_types, $pc_post_types );
 	}
@@ -120,7 +123,8 @@ class ProtectedContent extends Feature {
 		 * @var array
 		 */
 		$post_types = array(
-			'post' => 'post',
+			'post'       => 'post',
+			'attachment' => 'attachment',
 		);
 
 		/**
