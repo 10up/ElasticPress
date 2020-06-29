@@ -84,7 +84,7 @@ class BasicTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
-		sleep( 5 );
+		sleep( 2 );
 
 		$I->moveTo( '/?s=Test+ElasticPress+1' );
 
