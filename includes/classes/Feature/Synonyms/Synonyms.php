@@ -167,7 +167,7 @@ class Synonyms extends Feature {
 
 		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
 			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_SANITIZE_STRING );
-			$post_id  = wp_insert_post(
+			$post_id  = ! ! wp_insert_post(
 				[
 					'ID'           => $this->get_synonym_post_id(),
 					'post_content' => trim( sanitize_textarea_field( $synonyms ) ),
