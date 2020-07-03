@@ -229,6 +229,16 @@ class Synonyms extends Feature {
 								name="<?php echo esc_attr( $this->get_synonym_field() ); ?>"
 								rows="20"
 							><?php echo esc_html( $post->post_content ); ?></textarea>
+							<legend class="description">
+								<?php esc_html_e( 'For instructions on how to use this file, see the ', 'elasticpress' ); ?>
+								<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html">
+									<?php esc_html_e( 'Elasticsearch synonym filter documentation', 'elasticpress' ); ?>
+								</a>
+								<?php esc_html_e( 'or ', 'elasticpress' ); ?>
+								<a href="https://lucene.apache.org/core/6_6_2/analyzers-common/org/apache/lucene/analysis/synonym/SolrSynonymParser.html">
+									<?php esc_html_e( 'SolrSynonymParser documentation.' ); ?>
+								</a>
+							</legend>
 						</td>
 					</tr>
 				</table>
