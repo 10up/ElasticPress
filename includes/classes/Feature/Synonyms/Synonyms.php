@@ -57,6 +57,8 @@ class Synonyms extends Feature {
 		/** Features Class @var Features $features */
 		$features = Features::factory();
 
+		$features->register_feature( $this );
+
 		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
