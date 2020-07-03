@@ -197,7 +197,7 @@ class Synonyms extends Feature {
 			esc_html__( 'Synonyms', 'elasticpress' ),
 			esc_html__( 'Synonyms', 'elasticpress' ),
 			'manage_options',
-			'synonyms',
+			'elasticpress-synonyms',
 			[ $this, 'admin_page' ]
 		);
 	}
@@ -208,6 +208,7 @@ class Synonyms extends Feature {
 	 * @return void
 	 */
 	public function admin_page() {
+		include EP_PATH . '/includes/partials/header.php';
 		$synonym_post_id = $this->get_synonym_post_id();
 		$post            = get_post( $synonym_post_id );
 		?>
