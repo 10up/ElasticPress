@@ -77,6 +77,9 @@ class Synonyms extends Feature {
 		$action = $this->get_action();
 		add_action( "admin_post_$action", [ $this, 'handle_update_synonyms' ] );
 
+		// Handle the admin notices.
+		add_action( 'admin_notices', [ $this, 'admin_notices' ] );
+
 		// Add the synonyms to the elasticsearch query.
 		add_filter( 'ep_config_mapping', [ $this, 'add_search_synonyms' ] );
 
@@ -175,7 +178,7 @@ class Synonyms extends Feature {
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'success' => (string) ! ! $post_id,
+					'ep_synonym_update' => $post_id ? 'success' : 'error',
 				],
 				esc_url_raw( $referer )
 			)
@@ -209,7 +212,7 @@ class Synonyms extends Feature {
 		$post            = get_post( $synonym_post_id );
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Synonyms', 'elasticpress' ); ?>
+			<h1><?php esc_html_e( 'Synonyms', 'elasticpress' ); ?></h1>
 			<form action="<?php echo esc_url( $this->get_form_action() ); ?>" method="POST">
 				<?php $this->form_hidden_fields(); ?>
 				<table class="form-table">
@@ -239,6 +242,34 @@ class Synonyms extends Feature {
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Admin notices.
+	 *
+	 * @return void
+	 */
+	public function admin_notices() {
+		if ( ! $this->is_synonym_page() ) {
+			return;
+		}
+
+		$update = filter_input( INPUT_GET, 'ep_synonym_update', FILTER_SANITIZE_STRING );
+
+		if ( ! in_array( $update, [ 'success', 'error' ], true ) ) {
+			return;
+		}
+
+		$class   = ( 'success' === $update ? 'notice-success' : 'notice-error' ) . ' notice';
+		$message = ( 'success' === $update )
+			? __( 'Successfully stored updated synonym list. Re-sync ElasticPress to have your changes take affect.', 'elasticpress' )
+			: __( 'There was an error updating the synonym list.', 'elasticpress' );
+
+		printf(
+			'<div class="%1$s"><p>%2$s</p></div>',
+			esc_attr( $class ),
+			esc_html( $message )
+		);
 	}
 
 	/**
@@ -411,5 +442,23 @@ class Synonyms extends Feature {
 	 */
 	protected function get_action() {
 		return 'ep_synonyms_update';
+	}
+
+	/**
+	 * Is this our synonym page.
+	 *
+	 * @return boolean
+	 */
+	protected function is_synonym_page() {
+		if ( ! function_exists( '\get_current_screen' ) ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		return (
+			'elasticpress' === $screen->parent_base &&
+			'elasticpress_page_elasticpress-synonyms' === $screen->base
+		);
 	}
 }
