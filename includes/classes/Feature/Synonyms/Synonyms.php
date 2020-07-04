@@ -314,7 +314,12 @@ class Synonyms extends Feature {
 	 */
 	public function get_synonym_post_id() {
 		if ( ! $this->synonym_post_id ) {
-			$this->synonym_post_id = get_option( 'elasticpress_synonyms_post_id', false );
+
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$this->synonym_post_id = get_site_option( 'elasticpress_synonyms_post_id', false );
+			} else {
+				$this->synonym_post_id = get_option( 'elasticpress_synonyms_post_id', false );
+			}
 
 			if ( false === $this->synonym_post_id ) {
 				$post_id = wp_insert_post(
