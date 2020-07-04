@@ -325,7 +325,7 @@ class Synonyms extends Feature {
 				$post_id = wp_insert_post(
 					[
 						'post_title'   => __( 'Elasticpress Synonyms', 'elasticpress' ),
-						'post_content' => __( 'cash => money', 'elasticpress' ),
+						'post_content' => $this->example_synonym_list(),
 						'post_type'    => self::POST_TYPE_NAME,
 					]
 				);
@@ -475,6 +475,50 @@ class Synonyms extends Feature {
 		return (
 			'elasticpress' === $screen->parent_base &&
 			'elasticpress_page_elasticpress-synonyms' === $screen->base
+		);
+	}
+
+	/**
+	 * An example synonym that we initialize new synonyms lists with.
+	 *
+	 * @return string
+	 */
+	protected function example_synonym_list() {
+		return implode(
+			PHP_EOL,
+			[
+				__( '# Blank lines and lines starting with pound are comments.', 'elasticpress' ),
+				'',
+				__( '# Explicit mappings match any token sequence on the LHS of "=>"', 'elasticpress' ),
+				__( '# and replace with all alternatives on the RHS.  These types of mappings', 'elasticpress' ),
+				__( '# ignore the expand parameter in the schema.', 'elasticpress' ),
+				__( '# Examples:', 'elasticpress' ),
+				'i-pod, i pod => ipod',
+				'sea biscuit, sea biscit => seabiscuit',
+				'',
+				__( '# Equivalent synonyms may be separated with commas and give', 'elasticpress' ),
+				__( '# no explicit mapping.  In this case the mapping behavior will', 'elasticpress' ),
+				__( '# be taken from the expand parameter in the schema.  This allows', 'elasticpress' ),
+				__( '# the same synonym file to be used in different synonym handling strategies.', 'elasticpress' ),
+				__( '# Examples:', 'elasticpress' ),
+				'ipod, i-pod, i pod',
+				'foozball , foosball',
+				'universe , cosmos',
+				'lol, laughing out loud',
+				'',
+				__( '# If expand==true, "ipod, i-pod, i pod" is equivalent', 'elasticpress' ),
+				__( '# to the explicit mapping:', 'elasticpress' ),
+				'ipod, i-pod, i pod => ipod, i-pod, i pod',
+				__( '# If expand==false, "ipod, i-pod, i pod" is equivalent', 'elasticpress' ),
+				__( '# to the explicit mapping:', 'elasticpress' ),
+				'ipod, i-pod, i pod => ipod',
+				'',
+				__( '# Multiple synonym mapping entries are merged.', 'elasticpress' ),
+				'foo => foo bar',
+				'foo => baz',
+				__( '# is equivalent to', 'elasticpress' ),
+				'foo => foo bar, baz',
+			]
 		);
 	}
 }
