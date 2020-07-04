@@ -394,7 +394,7 @@ class Synonyms extends Feature {
 			return false;
 		}
 
-		return $synonym;
+		return filter_var( $synonym, FILTER_SANITIZE_STRING );
 	}
 
 	/**
