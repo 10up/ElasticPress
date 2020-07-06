@@ -100,6 +100,21 @@ class SyncManager extends SyncManagerAbstract {
 
 		$post = get_post( $object_id );
 
+		/**
+		 * Filter to allow skipping a sync triggered by meta changes
+		 *
+		 * @hook ep_skip_post_meta_sync
+		 * @param {bool} $skip True meanas kill sync for post
+		 * @param {WP_Post} $post The post that's attempting to be synced
+		 * @param {int} $meta_id ID of the meta that triggered the sync
+		 * @param {string} $meta_key The key of the meta that triggered the sync
+		 * @param {string} $meta_value The value of the meta that triggered the sync
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_post_meta_sync', false, $post, $meta_id, $meta_key, $meta_value ) ) {
+			return;
+		}
+
 		if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
