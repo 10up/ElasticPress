@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Feature as Feature;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Indexable\Post\SyncManager;
 use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -699,6 +700,41 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Create artificial meta key used for searching products by their variations SKUs.
+	 *
+	 * @since TBD
+	 *
+	 * @param array $post_args Post arguments.
+	 * @param int $post_id Post ID.
+	 *
+	 * @return array
+	 */
+	public function add_variations_skus_meta( $post_args, $post_id ) {
+		if ( 'product' !== get_post_type( $post_id ) ) {
+			return $post_args;
+		}
+
+		global $wpdb;
+
+		$skus = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT {$wpdb->posts}.ID, {$wpdb->postmeta}.meta_value FROM {$wpdb->posts} LEFT JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID = {$wpdb->postmeta}.post_id  WHERE {$wpdb->postmeta}.meta_key = '_sku' AND {$wpdb->postmeta}.meta_value != '' AND {$wpdb->posts}.post_parent = %d",
+				$post_id
+			),
+			ARRAY_A
+		);
+
+		$meta = [
+			'__wc_ep_variations_skus' => ( empty( $skus ) || ! is_array( $skus ) ) ? '' : implode( '|', wp_list_pluck( $skus, 'meta_value' ) ),
+		];
+
+		$post_indexable    = Indexables::factory()->get( 'post' );
+		$post_args['meta'] = array_merge( $post_args['meta'], $post_indexable->prepare_meta_types( $meta ) );
+
+		return $post_args;
+	}
+
+	/**
 	 * Add WooCommerce Product Attributes to EP Facets.
 	 *
 	 * @param array $taxonomies Taxonomies array
@@ -747,12 +783,16 @@ class WooCommerce extends Feature {
 			add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 			add_filter( 'ep_sync_taxonomies', [ $this, 'whitelist_taxonomies' ], 10, 2 );
 			add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
+			add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_variations_skus_meta' ], 20, 2 );
+			add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'sync_variation_parent' ], 12, 2 );
 			add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 			add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
 			add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 			add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
+			add_filter( 'ep_search_fields', [ $this, 'admin_variations_skus_search' ], 9999, 2 );
+			add_action( 'delete_post', [ $this, 'update_parent_on_delete_variation' ], 10, 1 );
 		}
 	}
 
@@ -959,4 +999,79 @@ class WooCommerce extends Feature {
 
 		return true;
 	}
+
+	/**
+	 * Trigger parent syncing when product variation meta are updated.
+	 *
+	 * Parent has to be synced if product variation SKU changes.
+	 *
+	 * @since TBD
+	 *
+	 * @param array $post_args Post arguments.
+	 * @param int $post_id Post ID.
+	 *
+	 * @return array
+	 */
+	public function sync_variation_parent( $post_args, $post_id ) {
+		if ( 'product_variation' !== get_post_type( $post_id ) ) {
+			return $post_args;
+		}
+
+		$post         = get_post( $post_id );
+		$sync_manager = new SyncManager( 'post' );
+		$sync_manager->action_queue_meta_sync( 0, $post->post_parent, '', '' );
+
+		if ( ! defined( 'EP_SYNC_CHUNK_LIMIT' ) ) {
+			$sync_manager->index_sync_queue();
+		}
+
+		return $post_args;
+	}
+
+	/**
+	 * Handle product variation deletion.
+	 *
+	 * @since TBD
+	 *
+	 * @param int $post_id Post ID.
+	 */
+	public function update_parent_on_delete_variation( $post_id ) {
+		if ( 'product_variation' !== get_post_type( $post_id ) ) {
+			return;
+		}
+
+		$sync_manager = new SyncManager( 'post' );
+
+		$sync_manager->action_queue_meta_sync( 0, $post_id, '', '' );
+
+		if ( ! defined( 'EP_SYNC_CHUNK_LIMIT' ) ) {
+			$sync_manager->index_sync_queue();
+		}
+	}
+
+	/**
+	 * Make variation SKUs searchable in the admin product overview list.
+	 *
+	 * This is default behaviour by WooCommerce and is normally handled
+	 * by a SQL alter filter.
+	 * Enhance WooCommerce search by adding search by artificial meta key containing list of product variations SKUs.
+	 *
+	 * @since TBD
+	 *
+	 * @param array $search_fields Search fields.
+	 * @param array $args          Query args.
+	 *
+	 * @return array
+	 */
+	public function admin_variations_skus_search( $search_fields, $args ) {
+		global $pagenow;
+		if ( ! is_array( $search_fields ) || 'edit.php' != $pagenow || empty( $args['post_type'] ) || 'product' !== $args['post_type'] || empty( $args['s'] ) ) {
+			return $search_fields;
+		}
+
+		$search_fields[] = 'meta.__wc_ep_variations_skus.value';
+
+		return $search_fields;
+	}
+
 }
