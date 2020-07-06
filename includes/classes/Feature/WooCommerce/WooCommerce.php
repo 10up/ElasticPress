@@ -705,7 +705,7 @@ class WooCommerce extends Feature {
 	 * @since TBD
 	 *
 	 * @param array $post_args Post arguments.
-	 * @param int $post_id Post ID.
+	 * @param int   $post_id Post ID.
 	 *
 	 * @return array
 	 */
@@ -1008,7 +1008,7 @@ class WooCommerce extends Feature {
 	 * @since TBD
 	 *
 	 * @param array $post_args Post arguments.
-	 * @param int $post_id Post ID.
+	 * @param int   $post_id Post ID.
 	 *
 	 * @return array
 	 */
@@ -1065,7 +1065,7 @@ class WooCommerce extends Feature {
 	 */
 	public function admin_variations_skus_search( $search_fields, $args ) {
 		global $pagenow;
-		if ( ! is_array( $search_fields ) || 'edit.php' != $pagenow || empty( $args['post_type'] ) || 'product' !== $args['post_type'] || empty( $args['s'] ) ) {
+		if ( ! is_array( $search_fields ) || 'edit.php' !== $pagenow || empty( $args['post_type'] ) || 'product' !== $args['post_type'] || empty( $args['s'] ) ) {
 			return $search_fields;
 		}
 
