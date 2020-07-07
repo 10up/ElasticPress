@@ -104,7 +104,7 @@ class SyncManager extends SyncManagerAbstract {
 		 * Filter to allow skipping a sync triggered by meta changes
 		 *
 		 * @hook ep_skip_post_meta_sync
-		 * @param {bool} $skip True meanas kill sync for post
+		 * @param {bool} $skip True means kill sync for post
 		 * @param {WP_Post} $post The post that's attempting to be synced
 		 * @param {int} $meta_id ID of the meta that triggered the sync
 		 * @param {string} $meta_key The key of the meta that triggered the sync
