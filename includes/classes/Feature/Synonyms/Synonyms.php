@@ -109,7 +109,7 @@ class Synonyms extends Feature {
 	}
 
 	/**
-	 * Adds search synonyms.
+	 * Add search synonyms.
 	 *
 	 * @param array $mapping Elasticsearch mapping
 	 *
