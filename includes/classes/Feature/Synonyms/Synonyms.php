@@ -125,6 +125,11 @@ class Synonyms extends Feature {
 		 */
 		$synonyms = apply_filters( 'ep_search_synonyms', $this->get_synonyms(), $mapping );
 
+		// Ensure we have synonyms to add.
+		if ( empty( $synonyms ) ) {
+			return $mapping;
+		}
+
 		// Ensure we have filters and that it is an array.
 		if ( ! isset( $mapping['settings']['analysis']['filter'] )
 			|| ! is_array( $mapping['settings']['analysis']['filter'] )
