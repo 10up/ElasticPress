@@ -296,7 +296,6 @@ class Synonyms extends Feature {
 			'show_ui'            => false,
 			'show_in_menu'       => false,
 			'query_var'          => true,
-			'rewrite'            => [ 'slug' => 'ep-synonyms' ],
 			'capability_type'    => 'post',
 			'has_archive'        => false,
 			'hierarchical'       => false,
