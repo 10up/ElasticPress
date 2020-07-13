@@ -398,7 +398,7 @@ class User extends Indexable {
 			 * search columns into search_fields. search_fields overwrites search_columns.
 			 */
 			if ( ! empty( $search_fields ) ) {
-				$_med_search_fields = [];
+				$prepared_search_fields = [];
 
 				// WP_User_Query uses shortened column names so we need to expand those.
 				if ( ! empty( $search_fields['login'] ) ) {
