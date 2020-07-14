@@ -19,7 +19,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array
  */
 function get_epio_credentials() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
+	if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) {
+		$raw_credentials = explode( ':', EP_CREDENTIALS );
+		if ( is_array( $raw_credentials ) && 2 === count( $raw_credentials ) ) {
+			$credentials = array(
+				'username' => $raw_credentials[0],
+				'token'    => $raw_credentials[1],
+			);
+		}
+		$credentials = sanitize_credentials( $credentials );
+	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
 		$credentials = sanitize_credentials( get_site_option( 'ep_credentials', false ) );
 	} elseif ( is_epio() ) {
 		$credentials = sanitize_credentials( get_option( 'ep_credentials', false ) );
