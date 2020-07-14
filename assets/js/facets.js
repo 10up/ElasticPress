@@ -1,27 +1,46 @@
-import jQuery from 'jquery';
-import _ from 'underscores';
-
-const facetTerms = document.querySelectorAll( '.widget_ep-facet .terms' );
+import { debounce } from './utils/helpers';
 
 /**
- * Drill down facet choices
+ * Filters the facets to match the input search term when
+ * the number of terms exceeds the threshold determined
+ * by the ep_facet_search_threshold filter
+ *
+ * @param {event} event - keyup
+ * @param {Node} facetTerms - DOM node to search for matching terms
  */
-jQuery( facetTerms ).on( 'keyup', '.facet-search', _.debounce( ( event ) => {
-	if ( 13 === event.keyCode ) {
-		return;
-	}
+const handleFacetSearch = (event, facetTerms) => {
+	const { target } = event;
+	const searchTerm = target.value.replace(/\s/g, '').toLowerCase();
+	const terms = facetTerms.querySelectorAll('.term');
 
-	const searchTerm = event.currentTarget.value.replace( /\s/g, '' ).toLowerCase();
-	const terms = event.delegateTarget.querySelectorAll( '.term' );
+	terms.forEach((term) => {
+		const slug = term.getAttribute('data-term-slug');
+		const name = term.getAttribute('data-term-name');
 
-	terms.forEach( ( term ) => {
-		const slug = term.getAttribute( 'data-term-slug' );
-		const name = term.getAttribute( 'data-term-name' );
-
-		if ( name.includes( searchTerm ) || slug.includes( searchTerm ) ) {
-			term.classList.remove( 'hide' );
+		if (name.includes(searchTerm) || slug.includes(searchTerm)) {
+			term.classList.remove('hide');
 		} else {
-			term.classList.add( 'hide' );
+			term.classList.add('hide');
 		}
-	} );
-}, 200 ) );
+	});
+};
+
+/**
+ * Filter facet choices to match the search field term
+ */
+const initListener = () => {
+	const facetTerms = document.querySelector('.widget_ep-facet .terms');
+	const facetSearchInput = document.querySelector('.widget_ep-facet .facet-search');
+	const debounceFacetFilter = debounce(handleFacetSearch, 200);
+
+	if (facetSearchInput) {
+		facetSearchInput.addEventListener('keyup', (event) => {
+			if (event.keyCode === 13) {
+				return;
+			}
+			debounceFacetFilter(event, facetTerms);
+		});
+	}
+};
+
+document.addEventListener('DOMContentLoaded', initListener);

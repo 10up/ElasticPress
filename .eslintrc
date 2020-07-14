@@ -10,9 +10,14 @@
     "no-alert": [ 1 ],
     "camelcase": [ 1 ],
     "no-debugger": [ 1 ],
-    "no-unused-vars": [ 1 ]
+    "no-unused-vars": [ 1 ],
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": true}]
   },
   "globals": {
     "wp": true,
+    "window": true
+  },
+  "env": {
+    "browser": true
   }
 }

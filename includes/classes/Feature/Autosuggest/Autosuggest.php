@@ -323,7 +323,7 @@ class Autosuggest extends Feature {
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
 			EP_URL . 'dist/js/autosuggest-script.min.js',
-			array( 'jquery' ),
+			[],
 			EP_VERSION,
 			true
 		);
