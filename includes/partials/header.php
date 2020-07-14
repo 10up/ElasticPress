@@ -26,7 +26,7 @@ $base_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'networ
 			<a class="dashicons resume-sync dashicons-controls-play"></a>
 			<a class="dashicons cancel-sync dashicons-no"></a>
 			<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC ) : ?>
-				<a class="dashicons start-sync dashicons-update"></a>
+				<a class="dashicons start-sync dashicons-update" href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-sync' ) ); ?>"></a>
 			<?php endif; ?>
 		<?php endif; ?>
 		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic"></a>

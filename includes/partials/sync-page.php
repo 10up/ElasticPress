@@ -11,7 +11,7 @@ require_once __DIR__ . '/header.php';
 		<p><?php esc_html_e( 'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes. You may also be prompted to run a sync after updates to the ElasticPress plugin.', 'elasticpress' ); ?></p>
 		<p><?php esc_html_e( 'Running this will sync any missing data to your Elasticsearch index. Your search results will be unaffected in the meantime.', 'elasticpress' ); ?></p>
 
-		<?php submit_button( __('Let&rsquo;s go!', 'elasticpress' ), 'primary large' ); ?>
+		<p class="submit"><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress&do_sync' ) ); ?>" class="button button-primary button-large"><?php esc_html_e( 'Let&rsquo;s go!', 'elasticpress' ); ?></a></p>
 	</div>
 
 	<div class="card">

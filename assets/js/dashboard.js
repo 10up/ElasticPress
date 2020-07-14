@@ -394,18 +394,6 @@ function sync() {
 
 }
 
-$startSyncButton.on( 'click', () => {
-	syncStatus = 'initialsync';
-
-	updateSyncDash();
-
-	// On initial sync, remove dashboard warnings that dont make sense
-	jQuery( '[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]' ).remove();
-
-	syncStatus = 'sync';
-	sync();
-} );
-
 $pauseSyncButton.on( 'click', () => {
 	syncStatus = 'pause';
 
