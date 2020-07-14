@@ -701,7 +701,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'sync' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard-styles.min.css', [], EP_VERSION );
 	}
 
@@ -916,6 +916,15 @@ function action_admin_menu() {
 		esc_html__( 'Index Health', 'elasticpress' ),
 		$capability,
 		'elasticpress-health',
+		__NAMESPACE__ . '\resolve_screen'
+	);
+
+	add_submenu_page(
+		'elasticpress',
+		'ElasticPress ' . esc_html__( 'Sync', 'elasticpress' ),
+		esc_html__( 'Sync', 'elasticpress' ),
+		$capability,
+		'elasticpress-sync',
 		__NAMESPACE__ . '\resolve_screen'
 	);
 }
