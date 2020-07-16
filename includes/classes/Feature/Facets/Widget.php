@@ -271,27 +271,29 @@ class Widget extends WP_Widget {
 				<?php endforeach; ?>
 			</div>
 			<?php $facet_html = ob_get_clean(); ?>
+
+			<?php
+			// phpcs:disable
+			/**
+			 * Filter facet search widget HTML
+			 *
+			 * @hook ep_facet_search_widget
+			 * @param  {string} $facet_html Widget HTML
+			 * @param  {array} $selected_filters Selected filters
+			 * @param  {array} $terms_by_slug Terms by slug
+			 * @param  {array} $outputted_terms Outputted $terms
+			 * @param  {string} $title Widget title
+			 * @return  {string} New HTML
+			 */
+			echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] );
+			// phpcs:enable
+			?>
 		</div>
 		<?php
 
 		// Enqueue Script & Styles
 		wp_enqueue_script( 'elasticpress-facets' );
 		wp_enqueue_style( 'elasticpress-facets' );
-
-		// phpcs:disable
-		/**
-		 * Filter facet search widget HTML
-		 *
-		 * @hook ep_facet_search_widget
-		 * @param  {string} $facet_html Widget HTML
-		 * @param  {array} $selected_filters Selected filters
-		 * @param  {array} $terms_by_slug Terms by slug
-		 * @param  {array} $outputted_terms Outputted $terms
-		 * @param  {string} $title Widget title
-		 * @return  {string} New HTML
-		 */
-		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] );
-		// phpcs:enable
 
 		echo wp_kses_post( $args['after_widget'] );
 	}
