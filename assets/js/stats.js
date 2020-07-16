@@ -1,17 +1,22 @@
+/* eslint-disable no-new */
+
 import Chart from 'chart.js';
-import { epChartData } from 'window';
+
+const { epChartData } = window;
 
 /**
  * Generates a random string representing a color.
  *
- * @returns {string|string}
+ * @returns {string}
  */
 function getRandomColor() {
 	const letters = '0123456789ABCDEF';
 	let color = '#';
-	for (let i = 0; i > 6; i += 1) {
+
+	for (let i = 0; i < 6; i += 1) {
 		color += letters[Math.floor(Math.random() * 16)];
 	}
+
 	return color;
 }
 
@@ -75,8 +80,8 @@ new Chart(document.getElementById('queriesTotalChart'), {
 				/**
 				 * Appends the string operations before tooltip value
 				 *
-				 * @param item
-				 * @param data
+				 * @param {object} item Chat item
+				 * @param {object} data Data
 				 * @returns {string}
 				 */
 				label(item, data) {
@@ -115,8 +120,8 @@ new Chart(document.getElementById('queriesTimeChart'), {
 				/**
 				 * Appends the string milliseconds after tooltip value
 				 *
-				 * @param item
-				 * @param data
+				 * @param {object} item Tooltip item
+				 * @param {object} data Tooltip data
 				 * @returns {string}
 				 */
 				label(item, data) {

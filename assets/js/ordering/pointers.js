@@ -7,19 +7,13 @@ import { pluck, debounce } from '../utils/helpers';
 
 apiFetch.use(apiFetch.createRootURLMiddleware(window.epOrdering.restApiRoot));
 
-/**
- * Pointer component
- *
- * @param searchResults
- * @param pointer
- */
 export class Pointers extends Component {
 	titleInput = null;
 
 	/**
 	 * Initializes the component with initial state set by WP
 	 *
-	 * @param props
+	 * @param {object} props Component props
 	 */
 	constructor(props) {
 		super(props);
@@ -80,7 +74,7 @@ export class Pointers extends Component {
 		let { pointers } = this.state;
 
 		const setIds = {};
-		merged.map((item) => {
+		merged.forEach((item) => {
 			setIds[item.ID] = item;
 		});
 
@@ -88,7 +82,7 @@ export class Pointers extends Component {
 			return a.order > b.order ? 1 : -1;
 		});
 
-		pointers.map((pointer) => {
+		pointers.forEach((pointer) => {
 			// Remove the original if a duplicate
 			if (setIds[pointer.ID]) {
 				delete merged[merged.indexOf(setIds[pointer.ID])];
@@ -113,8 +107,6 @@ export class Pointers extends Component {
 		apiFetch({
 			path: `/elasticpress/v1/pointer_search?s=${searchTerm}`,
 		}).then((result) => {
-			const { searchResults } = this.state;
-
 			searchResults[searchTerm] = result;
 
 			this.setState({ searchResults });
@@ -134,7 +126,7 @@ export class Pointers extends Component {
 			availablePositions[i] = true;
 		}
 
-		pointers.map((item) => {
+		pointers.forEach((item) => {
 			delete availablePositions[item.order];
 		});
 
@@ -150,7 +142,7 @@ export class Pointers extends Component {
 	/**
 	 * Adds a new pointer. We place the new pointer at the highest available position
 	 *
-	 * @param post
+	 * @param {object} post Post object
 	 */
 	addPointer = (post) => {
 		const id = post.ID;
@@ -164,10 +156,12 @@ export class Pointers extends Component {
 		const position = this.getNextAvailablePosition();
 
 		if (!position) {
+			/* eslint-disable no-alert */
 			window.alert(
 				__('You have added the maximum number of custom results.', 'elasticpress'),
-			); // eslint-disable-line no-alert
-			return false;
+			);
+			/* eslint-enable no-alert */
+			return;
 		}
 
 		pointers.push({
@@ -184,7 +178,7 @@ export class Pointers extends Component {
 	 * Only the pointers are able to be dragged around, so all we need to do is increase any pointer by one that is
 	 * either at the current position or greater
 	 *
-	 * @param result
+	 * @param {object} result Dragged object
 	 */
 	onDragComplete = (result) => {
 		// dropped outside the list
@@ -209,7 +203,7 @@ export class Pointers extends Component {
 		// Now _all_ the items are in order - grab the pointers and set the new positions to state
 		const pointers = [];
 
-		items.map((item, index) => {
+		items.forEach((item, index) => {
 			if (item.order) {
 				// Reordering an existing pointer
 				pointers.push({
@@ -260,7 +254,7 @@ export class Pointers extends Component {
 
 		// We need to reference these by ID later
 		const defaultResultsById = {};
-		defaultResults[this.state.title].map((item) => {
+		defaultResults[this.state.title].forEach((item) => {
 			defaultResultsById[item.ID] = item;
 		});
 
@@ -324,12 +318,12 @@ export class Pointers extends Component {
 													index={index}
 													isDragDisabled={false}
 												>
-													{(provided) => (
+													{(component) => (
 														<div
 															className={`next-page-notice ${index}`}
-															ref={provided.innerRef}
-															{...provided.draggableProps}
-															{...provided.dragHandleProps}
+															ref={component.innerRef}
+															{...component.draggableProps}
+															{...component.dragHandleProps}
 														>
 															<span>
 																{__(
@@ -347,11 +341,11 @@ export class Pointers extends Component {
 												draggableId={item.ID}
 												index={draggableIndex}
 											>
-												{(provided) => (
+												{(provided2) => (
 													<div
 														className={`pointer ${draggableIndex}`}
-														ref={provided.innerRef}
-														{...provided.draggableProps}
+														ref={provided2.innerRef}
+														{...provided2.draggableProps}
 													>
 														{item.order && isDefaultResult === true && (
 															<span className="pointer-type">RD</span>
@@ -366,7 +360,7 @@ export class Pointers extends Component {
 														<div className="pointer-actions">
 															<span
 																className="dashicons dashicons-menu handle"
-																{...provided.dragHandleProps}
+																{...provided2.dragHandleProps}
 																title={__(
 																	'Drag post up or down to reposition',
 																	'elasticpress',
@@ -443,7 +437,7 @@ export class Pointers extends Component {
 
 	searchResults = (searchResults) => {
 		if (this.state.searchText === '') {
-			return;
+			return null;
 		}
 
 		if (searchResults === false) {

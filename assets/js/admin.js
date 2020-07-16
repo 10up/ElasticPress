@@ -1,5 +1,4 @@
-import jQuery from 'jquery';
-import { epAdmin, ajaxurl } from 'window';
+const { epAdmin, ajaxurl } = window;
 
 jQuery('.notice').on('click', '.notice-dismiss', (event) => {
 	const notice = event.delegateTarget.getAttribute('data-ep-notice');

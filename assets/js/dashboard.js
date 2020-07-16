@@ -1,6 +1,5 @@
-/* eslint-disable camelcase */
-import jQuery from 'jquery';
-import { ajaxurl, epDash } from 'window';
+/* eslint-disable camelcase, no-use-before-define */
+const { ajaxurl, epDash, history } = window;
 
 const $features = jQuery(document.getElementsByClassName('ep-features'));
 const $errorOverlay = jQuery(document.getElementsByClassName('error-overlay'));
@@ -202,7 +201,7 @@ function updateSyncDash() {
 	if (processed === 0) {
 		$progressBar.css({ width: '1%' });
 	} else {
-		const width = (parseInt(processed) / parseInt(toProcess)) * 100;
+		const width = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
 		$progressBar.css({ width: `${width}%` });
 	}
 
@@ -226,7 +225,7 @@ function updateSyncDash() {
 			if (currentSyncItem.indexable) {
 				text += ` ${epDash.sync_indexable_labels[
 					currentSyncItem.indexable
-				].plural.toLowerCase()} ${parseInt(processed)}/${parseInt(toProcess)}`;
+				].plural.toLowerCase()} ${parseInt(processed, 10)}/${parseInt(toProcess, 10)}`;
 			}
 
 			if (currentSyncItem.url) {
@@ -248,9 +247,10 @@ function updateSyncDash() {
 		text = epDash.sync_paused;
 
 		if (toProcess && toProcess !== 0) {
-			text += `, ${parseInt(processed)}/${parseInt(toProcess)} ${epDash.sync_indexable_labels[
-				currentSyncItem.indexable
-			].plural.toLowerCase()}`;
+			text += `, ${parseInt(processed, 10)}/${parseInt(
+				toProcess,
+				10,
+			)} ${epDash.sync_indexable_labels[currentSyncItem.indexable].plural.toLowerCase()}`;
 		}
 
 		if (currentSyncItem && currentSyncItem.url) {
@@ -410,8 +410,8 @@ function sync() {
 			if (
 				response &&
 				response.status &&
-				parseInt(response.status) >= 400 &&
-				parseInt(response.status) < 600
+				parseInt(response.status, 10) >= 400 &&
+				parseInt(response.status, 10) < 600
 			) {
 				syncStatus = 'error';
 				updateSyncDash();

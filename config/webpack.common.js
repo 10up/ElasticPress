@@ -36,9 +36,6 @@ module.exports = {
 
 	// External objects.
 	externals: {
-		jquery: 'jQuery',
-		underscores: '_',
-		window: 'window',
 		lodash: {
 			commonjs: 'lodash',
 			amd: 'lodash',
@@ -62,6 +59,7 @@ module.exports = {
 				loader: 'eslint-loader',
 				options: {
 					fix: true,
+					emitWarning: true,
 				},
 			},
 

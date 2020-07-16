@@ -1,5 +1,4 @@
-import jQuery from 'jquery';
-import { epsa } from 'window';
+const { epsa } = window;
 
 window.addEventListener('load', function () {
 	const toggles = document.getElementsByClassName('index-toggle');

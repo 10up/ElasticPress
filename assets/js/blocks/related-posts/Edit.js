@@ -15,7 +15,7 @@ class Edit extends Component {
 	/**
 	 * Setup class
 	 *
-	 * @param props
+	 * @param {object} props Component properties
 	 */
 	constructor(props) {
 		super(props);
@@ -53,9 +53,6 @@ class Edit extends Component {
 			});
 	}
 
-	/**
-	 * Render block
-	 */
 	render() {
 		const {
 			attributes: { alignment, number },
