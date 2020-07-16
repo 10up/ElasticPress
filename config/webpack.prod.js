@@ -7,7 +7,7 @@ const settings = require('./webpack.settings.js');
 module.exports = merge(common, {
 	mode: 'production',
 
-	devtool: 'inline-source-map',
+	devtool: 'source-map',
 
 	plugins: [
 		// Run BrowserSync.
