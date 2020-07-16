@@ -32,6 +32,7 @@ module.exports = merge(common, {
 				cache: true,
 				parallel: true,
 				sourceMap: true,
+				extractComments: false,
 				terserOptions: {
 					parse: {
 						// We want terser to parse ecma 8 code. However, we don't want it
