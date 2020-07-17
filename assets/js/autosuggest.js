@@ -1,60 +1,109 @@
-/* eslint-disable camelcase */
-import jQuery from 'jquery';
-import { epas } from 'window';
+/* eslint-disable camelcase, no-underscore-dangle, no-use-before-define */
+import {
+	findAncestorByClass,
+	escapeDoubleQuotes,
+	replaceGlobally,
+	debounce,
+} from './utils/helpers';
+import 'element-closest';
+import 'promise-polyfill/src/polyfill';
+import 'whatwg-fetch';
+
+const { epas } = window;
+
+// Ensure we have an endpoint URL, or
+// else this shouldn't happen
+if (epas.endpointUrl && epas.endpointUrl !== '') {
+	init();
+
+	// Publically expose API
+	window.epasAPI = {
+		hideAutosuggestBox,
+		updateAutosuggestBox,
+		esSearch,
+		buildSearchQuery,
+	};
+}
 
 /**
  * Submit the search form
- * @param object $localInput
+ *
+ * @param {Node} input - input element
  */
-function submitSearchForm( $localInput ) {
-	$localInput.closest( 'form' ).submit();
+function submitSearchForm(input) {
+	input.closest('form').submit();
+}
+
+/**
+ * Set the expanded aria state on the input
+ *
+ * @param {boolean} haveOptions - whether or not the autosuggest list contains results
+ * @param {Node} input - search input
+ */
+function toggleInputAria(haveOptions, input) {
+	input.setAttribute('aria-expanded', haveOptions);
+}
+
+/**
+ * Set the active descendant aria attribute input
+ *
+ * @param {string} id - id of the currently selected element
+ * @param {Node} input - search input
+ */
+function setInputActiveDescendant(id, input) {
+	input.setAttribute('aria-activedescendant', id);
 }
 
 /**
  * Take selected item and fill the search input
- * @param event
+ *
+ * @param {Node} input - input element
+ * @param {string} text - new input value
  */
-function selectAutosuggestItem( $localInput, text ) {
-	$localInput.val( text );
+function selectAutosuggestItem(input, text) {
+	input.value = text; // eslint-disable-line no-param-reassign
 }
-
-/**
- * Navigate to the selected item, and provides
- * event hook for JS customizations, like GA
- * @param event
- */
-function goToAutosuggestItem( $localInput, url ) {
-
-	const detail = {
-		searchTerm: $localInput[0].value,
-		url
-	};
-
-	triggerEvents( detail );
-
-	window.location.href = url;
-}
-
 
 /**
  * Fires events when autosuggest results are clicked,
  * and if GA tracking is activated
  *
- * @param detail
+ * @param {object} detail - value to pass on to the Custom Event
  */
-function triggerEvents( detail ) {
-	const event = new CustomEvent( 'ep-autosuggest-click', { detail } );
-	window.dispatchEvent( event );
+function triggerAutosuggestEvent(detail) {
+	const event = new CustomEvent('ep-autosuggest-click', { detail });
+	window.dispatchEvent(event);
 
-	if( detail.searchTerm && 1 === parseInt( epas.triggerAnalytics ) && 'function' == typeof gtag ) {
+	if (
+		detail.searchTerm &&
+		parseInt(epas.triggerAnalytics, 10) === 1 &&
+		typeof gtag === 'function'
+	) {
 		const action = `click - ${detail.searchTerm}`;
 		// eslint-disable-next-line no-undef
-		gtag( 'event', action, {
-			'event_category' : 'EP :: Autosuggest',
-			'event_label' : detail.url,
-			'transport_type' : 'beacon',
-		} );
+		gtag('event', action, {
+			event_category: 'EP :: Autosuggest',
+			event_label: detail.url,
+			transport_type: 'beacon',
+		});
 	}
+}
+
+/**
+ * Navigate to the selected item, and provides
+ * event hook for JS customizations, like GA
+ *
+ * @param {string} searchTerm - user defined search term
+ * @param {string} url - post url from dataset in search result
+ */
+function goToAutosuggestItem(searchTerm, url) {
+	const detail = {
+		searchTerm,
+		url,
+	};
+
+	triggerAutosuggestEvent(detail);
+	window.location.href = url;
 }
 
 /**
@@ -62,405 +111,503 @@ function triggerEvents( detail ) {
  * If epas.action is set to "navigate" (the default), redirects the browser to the URL of the selected item
  * If epas.action is set to any other value (such as "search"), fill in the value and perform the search
  *
- * @param $localInput
- * @param element
+ * @param {Node} input - search input
+ * @param {Node} element - search term result item
+ * @returns {Function} calls the submitSearchForm function
  */
-function selectItem( $localInput, element ) {
-
-	if ( 'navigate' === epas.action ) {
-		return goToAutosuggestItem( $localInput, element.dataset.url );
+function selectItem(input, element) {
+	if (epas.action === 'navigate') {
+		return goToAutosuggestItem(input.value, element.dataset.url);
 	}
 
-	selectAutosuggestItem( $localInput, element.innerText );
-	submitSearchForm( $localInput );
+	selectAutosuggestItem(input, element.innerText);
+	return submitSearchForm(input);
 }
-
-/**
- * Simple throttling function for waiting a set amount of time after the last keypress
- * So we don't overload the server with too many requests at once
- *
- * @param fn
- * @param delay
- * @returns {Function}
- */
-function debounce( fn, delay ) {
-	let timer = null;
-
-	return () => {
-		const context = this,
-			args = arguments;
-
-		window.clearTimeout( timer );
-
-		timer = window.setTimeout( () => {
-			fn.apply( context, args );
-		}, delay );
-	};
-}
-
 
 /**
  * Build the search query from the search text - the query is generated in PHP
  * and passed into the front end as window.epas = { "query...
  *
- * @returns json
+ * @returns {string} json string
  */
 function getJsonQuery() {
-
-	if( 'undefined' == typeof window.epas ) {
+	if (typeof window.epas === 'undefined') {
 		const error = 'No epas object defined';
 
 		// eslint-disable-next-line no-console
-		console.warn( error );
+		console.warn(error);
 		return { error };
 	}
 
 	return window.epas;
 }
 
-
-/**
- * Helper function to escape input to be treated as a literal string with a RegEx
- *
- * @param string
- * @returns string
- */
-function escapeRegExp( string ){
-	return string.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' );
-}
-
-
-/**
- * Helper function to escape input to be treated as a literal string with a RegEx
- *
- * @param string - string
- * @param term - string
- * @param replacement - string
- * @returns string
- */
-function replaceGlobally( string, term, replacement ) {
-	return string.replace( new RegExp( escapeRegExp( term ), 'g' ), replacement );
-}
-
-
 /**
  * Build the search query from the search text
  *
- * @param searchText - string
- * @param placeholder - string
- * @param { query } - desructured json query string
- * @returns json string
+ * @param {string} searchText - user search string
+ * @param {string} placeholder - placeholder text to replace
+ * @param {object} query - desructured json query string
+ * @returns {string} json representation of search query
  */
-function buildSearchQuery( searchText, placeholder, { query } ) {
-	const newQuery = replaceGlobally( query, placeholder, searchText );
+function buildSearchQuery(searchText, placeholder, { query }) {
+	const newQuery = replaceGlobally(query, placeholder, searchText);
 	return newQuery;
 }
-
 
 /**
  * Build the ajax request
  *
- * @param query - json string
- * @returns AJAX object request
+ * @param {string} query - json string
+ * @param {string} searchTerm - user search term
+ * @returns {object} AJAX object request
  */
-function esSearch( query, searchTerm ) {
-
-	// Fixes <=IE9 jQuery AJAX bug that prevents ajax request from firing
-	jQuery.support.cors = true;
-
-	const ajaxConfig = {
-		url: epas.endpointUrl,
-		type: 'post',
-		dataType: 'json',
-		crossDomain: true,
-		contentType: 'application/json; charset=utf-8',
-		data: query // no longer need to JSON.stringify
+async function esSearch(query, searchTerm) {
+	const fetchConfig = {
+		body: query,
+		method: 'POST',
+		mode: 'cors',
+		headers: {
+			'Content-Type': 'application/json; charset=utf-8',
+		},
 	};
 
 	// only applies headers if using ep.io endpoint
-	if( epas.addSearchTermHeader ) {
-		ajaxConfig.headers = {
-			'EP-Search-Term': searchTerm
-		};
+	if (epas.addSearchTermHeader) {
+		fetchConfig.headers['EP-Search-Term'] = searchTerm;
 	}
 
-	return jQuery.ajax( ajaxConfig );
-}
+	try {
+		const response = await window.fetch(epas.endpointUrl, fetchConfig);
+		if (!response.ok) {
+			throw Error(response.statusText);
+		}
 
-/**
- * Escapes double quotes for specific data-attr
- *
- * @param str
- * @returns string The escaped string
- */
-function escapeDoubleQuotes( str ) {
-	return str.replace( /\\([\s\S])|(")/g, '&quot;' );
+		const data = await response.json();
+
+		// allow for filtered data before returning it to
+		// be output on the front end
+		if (typeof window.epDataFilter !== 'undefined') {
+			return window.epDataFilter(data, searchTerm);
+		}
+
+		return data;
+	} catch (error) {
+		// eslint-disable-next-line no-console
+		console.error(error);
+		return error;
+	}
 }
 
 /**
  * Update the auto suggest box with new options or hide if none
  *
- * @param options
- * @return void
+ * @param {Array} options - formatted results
+ * @param {string} input - search string
+ * @returns {boolean} return true
  */
-function updateAutosuggestBox( options, $localInput ) {
-	let i,
-		itemString = '';
+function updateAutosuggestBox(options, input) {
+	let i;
+	let itemString = '';
 
-	const $localESContainer = $localInput.closest( '.ep-autosuggest-container' ).find( '.ep-autosuggest' ),
-		$localSuggestList = $localESContainer.find( '.autosuggest-list' );
+	// get the search term for use later on
+	const { value } = input;
+	const container = findAncestorByClass(input, 'ep-autosuggest-container');
+	const resultsContainer = container.querySelector('.ep-autosuggest');
+	const suggestList = resultsContainer.querySelector('.autosuggest-list');
 
-	$localSuggestList.empty();
+	// empty the the list of all child nodes
+	while (suggestList.firstChild) {
+		suggestList.removeChild(suggestList.firstChild);
+	}
 
-	// Don't listen to potentially previously set items
-	jQuery( '.autosuggest-item' ).off();
-
-	if ( 0 < options.length ) {
-		$localESContainer.show();
+	if (options.length > 0) {
+		resultsContainer.style = 'display: block;';
 	} else {
-		$localESContainer.hide();
+		resultsContainer.style = 'display: none;';
 	}
 
-	for ( i = 0; i < options.length; ++i ) {
+	// anticipating the future... a setting where we configure
+	// a limit of results to show, and optionally append a
+	// link to "all results" or something of that nature
+	const resultsLimit = options.length;
+
+	// create markup for list items
+	// eslint-disable-next-line
+	for ( i = 0; resultsLimit > i; ++i ) {
 		const { text, url } = options[i];
-		itemString += `<li><span class="autosuggest-item" data-search="${  escapeDoubleQuotes( text )  }" data-url="${  url  }">${  escapeDoubleQuotes( text )  }</span></li>`;
+		const escapedText = escapeDoubleQuotes(text);
+
+		const searchParts = value.trim().split(' ');
+		let resultsText = escapedText;
+		// uses some regex magic to match upper/lower/capital case
+		searchParts.forEach((word) => {
+			const regex = new RegExp(`(${word.trim()})`, 'gi');
+			if (word.length > 1) {
+				resultsText = resultsText.replace(
+					regex,
+					`<span class="ep-autosuggest-highlight">$1</span>`,
+				);
+			}
+		});
+
+		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
+				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}">
+					${resultsText}
+				</a>
+			</li>`;
 	}
-	jQuery( itemString ).appendTo( $localSuggestList );
 
-	// Listen to items to auto-fill search box and submit form
-	jQuery( '.autosuggest-item' ).on( 'click', ( event ) => {
-		selectItem( $localInput, event.target );
-	} );
+	// append list items to the list
+	suggestList.innerHTML = itemString;
 
-	$localInput.off( 'keydown' );
+	const autosuggestItems = Array.from(document.querySelectorAll('.autosuggest-link'));
 
-	// Listen to the input for up and down navigation between autosuggest items
-	$localInput.on( 'keydown', ( event ) => {
-		if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode ) {
-			const $results = $localInput.closest( '.ep-autosuggest-container' ).find( '.autosuggest-list li' );
-			const $current = $results.filter( '.selected' );
-			let $next;
+	suggestList.addEventListener('click', (event) => {
+		event.preventDefault();
+		const { srcElement } = event;
 
-			switch ( event.keyCode ) {
-					case 38: // Up
-						$next = $current.prev();
-						break;
-					case 40: // Down
-						if ( ! $results.hasClass( 'selected' ) ) {
-							$results.first().addClass( 'selected' );
-							$next = $results.first();
-						} else {
-							$next = $current.next();
-						}
-						break;
-					case 13: // Enter
-						if ( $results.hasClass( 'selected' ) ) {
-							selectItem( $localInput, $current.children( 'span' ).get( 0 ) );
-							return false;
-						} else {
-						// No item selected
-							return;
-						}
-			}
-
-			// only check next element if up and down key pressed
-			if ( $next.is( 'li' ) ) {
-				$current.removeClass( 'selected' );
-				$next.addClass( 'selected' );
-			} else {
-				$results.removeClass( 'selected' );
-			}
-
-			// keep cursor from heading back to the beginning in the input
-			if ( 38 === event.keyCode ) {
-				return false;
-			}
-
-			return;
+		if (autosuggestItems.includes(srcElement)) {
+			selectItem(input, srcElement);
 		}
+	});
 
-	} );
+	return true;
 }
 
 /**
  * Hide the auto suggest box
  *
- * @return void
+ * @returns {boolean} returns true
  */
 function hideAutosuggestBox() {
-	jQuery( '.autosuggest-list' ).empty();
-	jQuery( '.ep-autosuggest' ).hide();
+	const lists = document.querySelectorAll('.autosuggest-list');
+	const containers = document.querySelectorAll('.ep-autosuggest');
+
+	// empty all EP results lists
+	lists.forEach((list) => {
+		while (list.firstChild) {
+			list.removeChild(list.firstChild);
+		}
+	});
+
+	// hide all EP results containers
+	containers.forEach((container) => {
+		// eslint-disable-next-line
+		container.style = 'display: none;';
+	});
+
+	return true;
 }
 
 /**
  * Checks for any manually ordered posts and puts them in the correct place
  *
- * @param hits
- * @param searchTerm
+ * @param {Array} hits - ES results
+ * @param {string} searchTerm - user search term
+ * @returns {object} formatted hits
  */
-function checkForOrderedPosts( hits, searchTerm ) {
-	const taxName = 'ep_custom_result';
-
-	searchTerm = searchTerm.toLowerCase();
-
+function checkForOrderedPosts(hits, searchTerm) {
 	const toInsert = {};
+	const taxName = 'ep_custom_result';
+	const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-	hits = hits.filter( ( hit ) => {
+	const filteredHits = hits.filter((hit) => {
 		// Should we retain this hit in its current position?
 		let retain = true;
 
-		if ( undefined !== hit._source.terms && undefined !== hit._source.terms[ taxName ] ) {
-			hit._source.terms[ taxName ].map( currentTerm => {
-				if ( currentTerm.name.toLowerCase() === searchTerm ) {
-					toInsert[ currentTerm.term_order ] = hit;
+		if (undefined !== hit._source.terms && undefined !== hit._source.terms[taxName]) {
+			hit._source.terms[taxName].forEach((currentTerm) => {
+				if (currentTerm.name.toLowerCase() === lowerCaseSearchTerm) {
+					toInsert[currentTerm.term_order] = hit;
 
 					retain = false;
 				}
-			} );
+			});
 		}
 
 		return retain;
-	} );
+	});
 
 	const orderedInserts = {};
 
-	Object.keys( toInsert ).sort().map( key => {
-		orderedInserts[ key ] = toInsert[ key ];
-	} );
+	Object.keys(toInsert)
+		.sort()
+		.forEach((key) => {
+			orderedInserts[key] = toInsert[key];
+		});
 
-	if ( 0 < Object.keys( orderedInserts ).length ) {
-		Object.keys( orderedInserts ).map( key => {
-			const insertItem = orderedInserts[ key ];
+	if (Object.keys(orderedInserts).length > 0) {
+		Object.keys(orderedInserts).forEach((key) => {
+			const insertItem = orderedInserts[key];
 
-			hits.splice( key - 1, 0, insertItem );
-		} );
+			filteredHits.splice(key - 1, 0, insertItem);
+		});
 	}
 
 	return hits;
 }
 
-// No host/index set
-if ( epas.endpointUrl && '' !== epas.endpointUrl ) {
-	const $epInput       = jQuery( `.ep-autosuggest, input[type="search"], .search-field, ${  epas.selector}`  );
-	const $epAutosuggest = jQuery( '<div class="ep-autosuggest"><ul class="autosuggest-list"></ul></div>' );
+/**
+ * init method called if the epas endpoint is defined
+ */
+function init() {
+	const epInputNodes = document.querySelectorAll(
+		`.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}`,
+	);
 
-	/**
-	 * Build the auto-suggest container
-	 */
-	$epInput.each( ( key, input ) => {
-		const $epContainer = jQuery( '<div class="ep-autosuggest-container"></div>' );
-		const $input = jQuery( input );
+	// build the container into which we place the search results.
+	// These will be cloned later for each instance
+	// of autosuggest inputs
+	const epAutosuggest = document.createElement('div');
+	epAutosuggest.classList.add('ep-autosuggest');
+	const autosuggestList = document.createElement('ul');
+	autosuggestList.classList.add('autosuggest-list');
+	autosuggestList.setAttribute('role', 'listbox');
+	epAutosuggest.appendChild(autosuggestList);
+
+	// Build the auto-suggest containers
+	// excluding the facet search field
+	const epInputs = Array.from(epInputNodes).filter(
+		(node) => !node.classList.contains('facet-search'),
+	);
+	epInputs.forEach((input) => {
+		const epContainer = document.createElement('div');
+		epContainer.classList.add('ep-autosuggest-container');
 
 		// Disable autocomplete
-		$input.attr( 'autocomplete', 'off' );
+		input.setAttribute('autocomplete', 'off');
 
-		$epContainer.insertAfter( $input );
-		const $epLabel = $input.siblings( 'label' );
-		$input
-			.closest( 'form' )
-			.find( '.ep-autosuggest-container' )
-			.append( $epLabel )
-			.append( $input );
+		// insert the container - later we will place
+		// the input inside this container
+		input.insertAdjacentElement('afterend', epContainer);
 
-		$epAutosuggest.clone().insertAfter( $input );
+		// move the input inside the container
+		const form = input.closest('form');
+		const container = form.querySelector('.ep-autosuggest-container');
+		container.appendChild(input);
 
-		$input.trigger( 'elasticpress.input.moved' );
-	} );
+		const clonedContainer = epAutosuggest.cloneNode(true);
+		input.insertAdjacentElement('afterend', clonedContainer);
 
-	$epAutosuggest.css( {
-		top: $epInput.outerHeight() - 1,
-		'background-color': $epInput.css( 'background-color' )
-	} );
+		// announce that this is has been done
+		const event = new CustomEvent('elasticpress.input.moved');
+		input.dispatchEvent(event);
+	});
 
-	/**
-	 * Singular bindings for up and down to prevent normal actions so we can use them to navigate
-	 * our autosuggest list
-	 * Listen to the escape key to close the autosuggest box
-	 */
-	jQuery( $epInput ).each( ( key, value ) => {
-		jQuery( value ).on( 'keyup keydown keypress', ( event ) => {
-			if ( 38 === event.keyCode || 40 === event.keyCode ) {
-				event.preventDefault();
-			}
-			if ( 27 === event.keyCode ) {
-				hideAutosuggestBox();
-			}
-		} );
-	} );
+	if (epInputs.length > 0) {
+		epAutosuggest.setAttribute(
+			'style',
+			`
+			top: ${epInputs[0].offsetHeight - 1};
+			background-color: ${getComputedStyle(epInputs[0], 'background-color')}
+		`,
+		);
+	}
 
 	/**
-	 * Listen for any keyup events, throttle them to a min threshold of time
-	 * and then send them for a query to the Elasticsearch server
+	 * Helper function to format search results for consumption
+	 * by the updateAutosuggestBox function
 	 *
+	 * @param {object} hits - results from ES
+	 * @returns {Array} formatted hits
 	 */
-	$epInput.each( ( key, localInput ) => {
-		const $localInput = jQuery( localInput );
-		$localInput.on( 'keyup', debounce( ( event ) => {
-			if ( 38 === event.keyCode || 40 === event.keyCode || 13 === event.keyCode || 27 === event.keyCode ) {
-				return;
+	const formatSearchResults = (hits) => {
+		return hits.map((hit) => {
+			const text = hit._source.post_title;
+			const url = hit._source.permalink;
+
+			return { text, url };
+		});
+	};
+
+	// to be used by the handleUpDown function
+	// to keep track of the currently selected result
+	let currentIndex;
+
+	// these are the keycodes we listen for in handleUpDown,
+	// and in handleKeyup
+	const keyCodes = [
+		38, // up
+		40, // down
+		13, // enter
+	];
+
+	/**
+	 * Handles keyup event on the search input
+	 *
+	 * @param {event} event - keyup event
+	 */
+	const handleUpDown = (event) => {
+		if (!keyCodes.includes(event.keyCode)) {
+			return;
+		}
+
+		const input = event.target;
+		const container = findAncestorByClass(input, 'ep-autosuggest-container');
+		const suggestList = container.querySelector('.autosuggest-list');
+		const results = suggestList.children;
+
+		/**
+		 * helper function to get the currently selected result
+		 *
+		 * @returns {number} index of the selected search result
+		 */
+		const getSelectedResultIndex = () => {
+			const resultsArr = Array.from(results);
+			return resultsArr.findIndex((result) => result.classList.contains('selected'));
+		};
+
+		/**
+		 * helper function to deselect results
+		 */
+		const deSelectResults = () => {
+			results.forEach((result) => {
+				result.classList.remove('selected');
+				result.setAttribute('aria-selected', 'false');
+			});
+		};
+
+		/**
+		 * helper function to selected the next result
+		 */
+		const selectNextResult = () => {
+			if (currentIndex >= 0) {
+				const el = results[currentIndex];
+				el.classList.add('selected');
+				el.setAttribute('aria-selected', 'true');
+				setInputActiveDescendant(el.id, input);
 			}
+		};
 
-			const searchText = $localInput.val();
-			const placeholder = 'ep_autosuggest_placeholder';
-			const queryJSON = getJsonQuery();
+		// select next or previous based on keyCode
+		// if enter, navigate to that element
+		switch (event.keyCode) {
+			case 38: // Up
+				// don't go less than the 0th index
+				currentIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : 0;
+				deSelectResults();
+				break;
+			case 40: // Down
+				if (typeof currentIndex === 'undefined') {
+					// index is not yet defined, so let's
+					// start with the first one
+					currentIndex = 0;
+				} else {
+					const current = getSelectedResultIndex();
 
-			if( queryJSON.error ) {
-				return;
-			}
-
-			let query;
-			let request;
-			const postTypes = epas.postTypes;
-			const postStatus = epas.postStatus;
-			const searchFields = epas.searchFields;
-			const weightingSettings = Object.assign( {}, epas.weightingDefaults, epas.weighting );
-
-			if ( 2 <= searchText.length ) {
-				query = buildSearchQuery( searchText, placeholder, queryJSON );
-				request = esSearch( query, searchText );
-
-				request.done( ( response ) => {
-					if ( 0 < response._shards.successful ) {
-						const usedPosts = {};
-						const filteredObjects = [];
-
-						const hits = checkForOrderedPosts( response.hits.hits, searchText );
-
-						jQuery.each( hits, ( index, element ) => {
-							const text = element._source.post_title;
-							const url = element._source.permalink;
-							const postId = element._source.post_id;
-
-							if( ! usedPosts[ postId ] ) {
-								usedPosts[ postId ] = true;
-
-								filteredObjects.push( {
-									'text': text,
-									'url': url
-								} );
-							}
-						} );
-
-						if ( 0 === filteredObjects.length ) {
-							hideAutosuggestBox();
-						} else {
-							updateAutosuggestBox( filteredObjects, $localInput );
-						}
-					} else {
-						hideAutosuggestBox();
+					// check for existence of next result
+					if (results[current + 1]) {
+						currentIndex = current + 1;
+						deSelectResults();
 					}
-				} );
-			} else if ( 0 === searchText.length ) {
+				}
+				break;
+			case 13: // Enter
+				if (results[currentIndex].classList.contains('selected')) {
+					// navigate to the item defined in the span's data-url attribute
+					selectItem(input, results[currentIndex].querySelector('.autosuggest-link'));
+				}
+				break;
+			default:
+				// No item selected
+				break;
+		}
+
+		// only check next element if up and down key pressed
+		if (results[currentIndex] && results[currentIndex].classList.contains('autosuggest-item')) {
+			selectNextResult();
+		} else {
+			deSelectResults();
+		}
+
+		// keep cursor from heading back to the beginning in the input
+		if (event.keyCode === 38) {
+			// return false;
+			event.preventDefault();
+		}
+	};
+
+	/**
+	 * Calls the ajax request, and outputs the results.
+	 * Called by the handleKeyup callback, debounced.
+	 *
+	 * @param {Node} input - search input field
+	 */
+	const fetchResults = async (input) => {
+		const searchText = input.value;
+		const placeholder = 'ep_autosuggest_placeholder';
+
+		// retrieves the PHP-genereated query to pass to ElasticSearch
+		const queryJSON = getJsonQuery();
+
+		if (queryJSON.error) {
+			return;
+		}
+
+		if (searchText.length >= 2) {
+			const query = buildSearchQuery(searchText, placeholder, queryJSON);
+
+			// fetch the results
+			const response = await esSearch(query, searchText);
+
+			if (response && response._shards && response._shards.successful > 0) {
+				const hits = checkForOrderedPosts(response.hits.hits, searchText);
+				const formattedResults = formatSearchResults(hits);
+
+				if (formattedResults.length === 0) {
+					hideAutosuggestBox();
+				} else {
+					updateAutosuggestBox(formattedResults, input);
+				}
+			} else {
 				hideAutosuggestBox();
 			}
-		}, 200 ) );
-	} );
-
-	// Publically expose API
-	window.epasAPI = {
-		hideAutosuggestBox: hideAutosuggestBox,
-		updateAutosuggestBox: updateAutosuggestBox,
-		esSearch: esSearch,
-		buildSearchQuery: buildSearchQuery
+		} else if (searchText.length === 0) {
+			hideAutosuggestBox();
+		}
 	};
+
+	/**
+	 * Callback for keyup in Autosuggest container.
+	 *
+	 * Calls a debounced function to get the search results via
+	 * ajax request.
+	 *
+	 * @param {event} event - keyup event
+	 */
+	const handleKeyup = (event) => {
+		event.preventDefault();
+
+		if (event.keyCode === 27) {
+			hideAutosuggestBox();
+			toggleInputAria(false, event.target);
+			setInputActiveDescendant('', event.target);
+			return;
+		}
+
+		if (keyCodes.includes(event.keyCode)) {
+			handleUpDown(event);
+			return;
+		}
+
+		const input = event.target;
+		const debounceFetchResults = debounce(fetchResults, 200);
+		debounceFetchResults(input);
+	};
+
+	/**
+	 * Listen for any events:
+	 *
+	 * keyup
+	 * send them for a query to the Elasticsearch server
+	 * handle up and down keys to move between results
+	 *
+	 * blur
+	 * hide the autosuggest box
+	 */
+	epInputs.forEach((input) => {
+		input.addEventListener('keyup', handleKeyup);
+		// input.addEventListener( 'blur', hideAutosuggestBox );
+	});
 }
