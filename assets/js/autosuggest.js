@@ -551,7 +551,7 @@ function init() {
 			// fetch the results
 			const response = await esSearch(query, searchText);
 
-			if (response && response._shards.successful > 0) {
+			if (response && response._shards && response._shards.successful > 0) {
 				const hits = checkForOrderedPosts(response.hits.hits, searchText);
 				const formattedResults = formatSearchResults(hits);
 
