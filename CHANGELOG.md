@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.4.3] - 2020-07-21
+
+Enhancements:
+* Remove jQuery from front end JavaScript dependencies.
+
+Bug Fixes:
+* Fix accessibility bug on autosuggest.
+* Fix broken facet search.
+
 ## [3.4.2] - 2020-06-17
 
 Bug fixes:
