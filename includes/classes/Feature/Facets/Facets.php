@@ -163,7 +163,7 @@ class Facets extends Feature {
 		wp_register_script(
 			'elasticpress-facets',
 			EP_URL . 'dist/js/facets-script.min.js',
-			[ 'jquery', 'underscore' ],
+			[],
 			EP_VERSION,
 			true
 		);

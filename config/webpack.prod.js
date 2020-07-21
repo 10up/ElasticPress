@@ -1,15 +1,13 @@
-/* global module, require */
+const merge = require('webpack-merge');
+const TerserPlugin = require('terser-webpack-plugin');
+const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
+const common = require('./webpack.common.js');
+const settings = require('./webpack.settings.js');
 
-const merge = require( 'webpack-merge' );
-const common = require( './webpack.common.js' );
-const TerserPlugin = require( 'terser-webpack-plugin' );
-const settings = require( './webpack.settings.js' );
-const BrowserSyncPlugin = require( 'browser-sync-webpack-plugin' );
-
-module.exports = merge( common, {
+module.exports = merge(common, {
 	mode: 'production',
 
-	devtool: 'inline-source-map',
+	devtool: 'source-map',
 
 	plugins: [
 		// Run BrowserSync.
@@ -24,16 +22,17 @@ module.exports = merge( common, {
 			{
 				injectCss: true,
 				reload: false,
-			}
+			},
 		),
 	],
 
 	optimization: {
 		minimizer: [
-			new TerserPlugin( {
+			new TerserPlugin({
 				cache: true,
 				parallel: true,
 				sourceMap: true,
+				extractComments: false,
 				terserOptions: {
 					parse: {
 						// We want terser to parse ecma 8 code. However, we don't want it
@@ -41,7 +40,7 @@ module.exports = merge( common, {
 						// into invalid ecma 5 code. This is why the 'compress' and 'output'
 						// sections only apply transformations that are ecma 5 safe
 						// https://github.com/facebook/create-react-app/pull/4234
-						ecma: 8
+						ecma: 8,
 					},
 					compress: {
 						ecma: 5,
@@ -55,15 +54,15 @@ module.exports = merge( common, {
 						// https://github.com/facebook/create-react-app/issues/5250
 						// Pending futher investigation:
 						// https://github.com/terser-js/terser/issues/120
-						inline: 2
+						inline: 2,
 					},
 					output: {
 						ecma: 5,
-						comments: false
+						comments: false,
 					},
-					ie8: false
-				}
-			} )
+					ie8: false,
+				},
+			}),
 		],
 	},
-} );
+});

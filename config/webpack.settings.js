@@ -1,5 +1,3 @@
-/* global module */
-
 // Webpack settings exports.
 module.exports = {
 	entries: {
@@ -20,21 +18,21 @@ module.exports = {
 		'autosuggest-styles': './assets/css/autosuggest.css',
 		'sites-admin-styles': './assets/css/sites-admin.css',
 		'ordering-styles': './assets/css/ordering.css',
-		'related-posts-block-styles': './assets/css/related-posts-block.css'
+		'related-posts-block-styles': './assets/css/related-posts-block.css',
 	},
 	filename: {
 		js: 'js/[name].min.js',
-		css: 'css/[name].min.css'
+		css: 'css/[name].min.css',
 	},
 	paths: {
 		src: {
 			base: './assets/',
 			css: './assets/css/',
-			js: './assets/js/'
+			js: './assets/js/',
 		},
 		dist: {
 			base: './dist/',
-			clean: ['./images', './css', './js']
+			clean: ['./images', './css', './js'],
 		},
 	},
 	stats: {
@@ -49,11 +47,11 @@ module.exports = {
 		errorDetails: true,
 		excludeAssets: /\.(jpe?g|png|gif|svg|woff|woff2)$/i,
 		moduleTrace: true,
-		performance: true
+		performance: true,
 	},
 	copyWebpackConfig: {
 		from: '**/*.{jpg,jpeg,png,gif,svg,eot,ttf,woff,woff2}',
-		to: '[path][name].[ext]'
+		to: '[path][name].[ext]',
 	},
 	BrowserSyncConfig: {
 		host: 'localhost',
@@ -66,13 +64,13 @@ module.exports = {
 			'dist/css/**/*.css',
 			'dist/svg/**/*.svg',
 			'dist/images/**/*.{jpg,jpeg,png,gif}',
-			'dist/fonts/**/*.{eot,ttf,woff,woff2,svg}'
-		]
+			'dist/fonts/**/*.{eot,ttf,woff,woff2,svg}',
+		],
 	},
 	performance: {
-		maxAssetSize: 100000
+		maxAssetSize: 100000,
 	},
 	manifestConfig: {
-		basePath: ''
+		basePath: '',
 	},
 };
