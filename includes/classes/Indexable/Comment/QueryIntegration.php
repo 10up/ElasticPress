@@ -132,7 +132,7 @@ class QueryIntegration {
 			$this->index = implode( ',', $this->index );
 		}
 
-		$ep_query = $this->indexable->query_es( $formatted_args, $query->query_vars, $this->index );
+		$ep_query = $this->indexable->query_es( $formatted_args, $query->query_vars, $this->index, $query );
 
 		if ( false === $ep_query ) {
 			$query->elasticsearch_success = false;
