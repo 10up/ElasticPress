@@ -10,9 +10,18 @@
     "no-alert": [ 1 ],
     "camelcase": [ 1 ],
     "no-debugger": [ 1 ],
-    "no-unused-vars": [ 1 ]
+    "no-unused-vars": [ 1 ],
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": true}],
+    "no-plusplus": [ 0 ],
+    "import/prefer-default-export": [ 0 ],
+    "no-lonely-if": [ 0 ],
+    "func-names": [ 0 ]
   },
   "globals": {
     "wp": true,
+    "jQuery": true
+  },
+  "env": {
+    "browser": true
   }
 }
