@@ -203,10 +203,11 @@ async function esSearch(query, searchTerm) {
  * Update the auto suggest box with new options or hide if none
  *
  * @param {Array} options - formatted results
+ * @param {Array} hits - all
  * @param {string} input - search string
  * @returns {boolean} return true
  */
-function updateAutosuggestBox(options, input) {
+function updateAutosuggestBox(options, input, hits) {
 	let i;
 	let itemString = '';
 
@@ -250,12 +251,19 @@ function updateAutosuggestBox(options, input) {
 				);
 			}
 		});
-
-		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
+		let link_pattern = `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
 				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}">
 					${resultsText}
 				</a>
 			</li>`;
+
+		// to create custom style for autosuggest links
+		// E.g. to add featured image or taxonomy terms, or authors
+		if(Object.prototype.hasOwnProperty.call(epas, 'link_pattern_callback' )){
+			link_pattern = window[epas.link_pattern_callback](value, options[i], hits[i]);
+		}
+
+		itemString += link_pattern;
 	}
 
 	// append list items to the list
@@ -558,7 +566,7 @@ function init() {
 				if (formattedResults.length === 0) {
 					hideAutosuggestBox();
 				} else {
-					updateAutosuggestBox(formattedResults, input);
+					updateAutosuggestBox(formattedResults, input, hits);
 				}
 			} else {
 				hideAutosuggestBox();
