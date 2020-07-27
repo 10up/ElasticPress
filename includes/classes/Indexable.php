@@ -183,6 +183,14 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	public function delete( $object_id, $blocking = true ) {
+		/**
+		 * Fires before object deletion
+		 *
+		 * @hook ep_delete_{indexable_slug}
+		 * @param  {int} $object_id ID of object being deleted
+		 */
+		do_action( 'ep_delete_' . $this->slug, $object_id );
+
 		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
 	}
 
