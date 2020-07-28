@@ -856,11 +856,7 @@ class User extends Indexable {
 		$prepared_roles = [];
 
 		foreach ( $sites as $site ) {
-			$maybe_in_array_roles = get_user_meta( $user_id, $wpdb->get_blog_prefix( $site['blog_id'] ) . 'capabilities', true );
-			
-			$roles = is_array($maybe_in_array_roles) 
-				? $maybe_in_array_roles 
-				: array( $maybe_in_array_roles );
+			$roles = (array) get_user_meta( $user_id, $wpdb->get_blog_prefix( $site['blog_id'] ) . 'capabilities', true );
 
 			if ( ! empty( $roles ) ) {
 				$prepared_roles[ (int) $site['blog_id'] ] = [
