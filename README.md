@@ -24,6 +24,10 @@ ElasticPress has an in depth documentation site. [Visit the docs ☞](http://10u
 * [WordPress](http://wordpress.org) 3.7.1+
 * [PHP](https://php.net/) 5.4+
 
+## React Components
+
+Interested in integrating ElasticPress in your headless WordPress website? Check out [ElasticPress React](https://github.com/10up/elasticpress-react).
+
 ## Issues
 
 If you identify any errors or have an idea for improving the plugin, please [open an issue](https://github.com/10up/ElasticPress/issues?state=open). We're excited to see what the community thinks of this project, and we would love your input!
