@@ -268,6 +268,14 @@ function setup_misc() {
 add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
 
 /**
+ * Load integrations.
+ */
+function setup_integrations() {
+	new Integration\CoAuthorsPlus\CoAuthorsPlus();
+}
+add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_integrations' );
+
+/**
  * Fires after Elasticpress plugin is loaded
  *
  * @since  2.0
