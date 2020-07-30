@@ -4,7 +4,6 @@
  *
  * All integrations extend this class.
  *
- * @since
  * @package elasticpress
  */
 
@@ -20,8 +19,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 abstract class Integration {
 	/**
 	 * Setup actions and filters.
-	 *
-	 * @since  2.1
 	 */
 	abstract public function setup();
 
@@ -32,9 +29,7 @@ abstract class Integration {
 	abstract public function is_active();
 
 	/**
-	 * Create feature
-	 *
-	 * @since  3.0
+	 * Integration constructor.
 	 */
 	public function __construct() {
 		if ( ! $this->is_active() ) {

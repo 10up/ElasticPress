@@ -9,11 +9,12 @@ namespace ElasticPress\Integration\CoAuthorsPlus;
 
 use ElasticPress\Integration as Integration;
 
+/**
+ * ElasticPress Co-Author Plus integration.
+ */
 class CoAuthorsPlus extends Integration {
 	/**
 	 * Setup actions and filters.
-	 *
-	 * @since  2.1
 	 */
 	public function setup() {
 		add_filter( 'ep_before_format_post_args', array( $this, 'update_query_var' ) );
@@ -30,6 +31,11 @@ class CoAuthorsPlus extends Integration {
 		return is_a( $coauthors_plus, 'CoAuthors_Plus' );
 	}
 
+	/**
+	 * Convert author query to tax query for guest author.
+	 *
+	 * @param array $args WP Query vars.
+	 */
 	public function update_query_var( $args ) {
 		if ( empty( $args['author_name'] ) ) {
 			return $args;
@@ -39,7 +45,7 @@ class CoAuthorsPlus extends Integration {
 
 		$guest_author = $coauthors_plus->guest_authors->get_guest_author_by( 'login', $args['author_name'] );
 
-		if($guest_author) {
+		if ( $guest_author ) {
 
 			$args['tax_query'][] = array(
 				'taxonomy' => 'author',
@@ -55,12 +61,17 @@ class CoAuthorsPlus extends Integration {
 				'field'    => 'term_id',
 			);
 
-			unset($args['author_name']);
+			unset( $args['author_name'] );
 		}
 
 		return $args;
 	}
 
+	/**
+	 * Include author taxonomy when indexing posts.
+	 *
+	 * @param array $taxonomies Selected taxonomies.
+	 */
 	public function include_author_term( $taxonomies ) {
 		$taxonomies[] = get_taxonomy( 'author' );
 		return $taxonomies;

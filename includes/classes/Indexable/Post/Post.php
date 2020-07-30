@@ -610,7 +610,7 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function format_args( $args, $wp_query ) {
-		$args = apply_filters( 'ep_before_format_post_args', $args, $wp_query);
+		$args = apply_filters( 'ep_before_format_post_args', $args, $wp_query );
 
 		if ( ! empty( $args['posts_per_page'] ) ) {
 			$posts_per_page = (int) $args['posts_per_page'];
