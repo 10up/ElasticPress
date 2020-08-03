@@ -1,0 +1,40 @@
+.synonym-alternatives-editor {
+	display: flex;
+
+	& > .postbox {
+		width: 100%;
+
+		& > .hndle {
+			display: flex;
+		}
+	}
+
+	& .synonym-alternative-editor {
+		display: flex;
+	}
+
+	& .ep-synonyms__linked-multi-input {
+		flex: 1;
+		margin-bottom: 0.5em;
+	}
+
+	& .ep-synonyms__input {
+		border: 1px solid hsl( 0, 0%, 80% );
+		margin-bottom: 0.5em;
+		margin-right: 1em;
+		width: 10em;
+	}
+
+	& .synonym-alternatives__primary-heading {
+		width: 11em;
+	}
+
+	& .synonym-alternatives__input-heading {
+		flex: 1;
+	}
+}
+
+.synonym-alternative-editor,
+.synonym-set-editor {
+	margin-bottom: 0.5em;
+}
