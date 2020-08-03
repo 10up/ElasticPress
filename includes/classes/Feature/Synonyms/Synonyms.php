@@ -72,6 +72,7 @@ class Synonyms extends Feature {
 
 		// Setup the UI.
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 50 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'scripts' ] );
 
 		// Handle the update synonyms action.
 		$action = $this->get_action();
@@ -208,6 +209,28 @@ class Synonyms extends Feature {
 	}
 
 	/**
+	 * Enqueues scripts and styles.
+	 *
+	 * @return void
+	 */
+	public function scripts() {
+		if ( ! $this->is_synonym_page() ) {
+			return;
+		}
+
+		wp_enqueue_script( 'ep_synonyms_scripts', EP_URL . 'dist/js/synonyms-script.min.js', [], EP_VERSION, true );
+		wp_enqueue_style( 'ep_synonyms_styles', EP_URL . 'dist/css/synonyms-styles.min.css', [], EP_VERSION, 'all' );
+		wp_localize_script(
+			'ep_synonyms_scripts',
+			'epSynonyms',
+			array(
+				'i18n' => $this->get_localized_strings(),
+				'data' => $this->get_localized_data(),
+			)
+		);
+	}
+
+	/**
 	 * Renders the synonyms settings page.
 	 *
 	 * @return void
@@ -218,36 +241,11 @@ class Synonyms extends Feature {
 		$post            = get_post( $synonym_post_id );
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Synonyms', 'elasticpress' ); ?></h1>
+			<h1><?php esc_html_e( 'Manage Synonyms', 'elasticpress' ); ?></h1>
+			<p><?php esc_html_e( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ); ?></p>
 			<form action="<?php echo esc_url( $this->get_form_action() ); ?>" method="POST">
 				<?php $this->form_hidden_fields(); ?>
-				<table class="form-table">
-					<tr>
-						<th scope="row">
-							<label for="ep-synonym-input">
-								<?php esc_html_e( 'Synonyms', 'elasticpress' ); ?>
-							</label>
-						</th>
-						<td>
-							<textarea
-								class="large-text"
-								id="ep-synonym-input"
-								name="<?php echo esc_attr( $this->get_synonym_field() ); ?>"
-								rows="20"
-							><?php echo esc_html( $post->post_content ); ?></textarea>
-							<legend class="description">
-								<?php esc_html_e( 'For instructions on how to use this file, see the ', 'elasticpress' ); ?>
-								<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html">
-									<?php esc_html_e( 'Elasticsearch synonym filter documentation', 'elasticpress' ); ?>
-								</a>
-								<?php esc_html_e( 'or ', 'elasticpress' ); ?>
-								<a href="https://lucene.apache.org/core/6_6_2/analyzers-common/org/apache/lucene/analysis/synonym/SolrSynonymParser.html">
-									<?php esc_html_e( 'SolrSynonymParser documentation.' ); ?>
-								</a>
-							</legend>
-						</td>
-					</tr>
-				</table>
+				<div id="synonym-root"></div>
 				<?php
 				submit_button(
 					( empty( $post->post_content ) )
@@ -475,11 +473,7 @@ class Synonyms extends Feature {
 		}
 
 		$screen = get_current_screen();
-
-		return (
-			'elasticpress' === $screen->parent_base &&
-			'elasticpress_page_elasticpress-synonyms' === $screen->base
-		);
+		return ( 'elasticpress_page_elasticpress-synonyms' === $screen->base );
 	}
 
 	/**
@@ -523,6 +517,89 @@ class Synonyms extends Feature {
 				__( '# is equivalent to', 'elasticpress' ),
 				'foo => foo bar, baz',
 			]
+		);
+	}
+
+	/**
+	 * Gets localized strings for use on the front end.
+	 *
+	 * @return array
+	 */
+	protected function get_localized_strings() {
+		return array(
+			'setsTitle'                  => __( 'Sets', 'elasticpress' ),
+			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is usefule where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
+			'setsInputHeading'           => __( 'Comma separated list of terms', 'elasticpress' ),
+			'setsAddButtonText'          => __( 'Add Set', 'elasticpress' ),
+
+			'alternativesTitle'          => __( 'Alternatives', 'elasticpress' ),
+			'alternativesDescription'    => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include resutls for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
+			'alternativesPrimaryHeading' => __( 'Primary term', 'elasticpress' ),
+			'alternativesInputHeading'   => __( 'Comma separated list of alternatives', 'elasticpress' ),
+			'alternativesAddButtonText'  => __( 'Add Alternative', 'elasticpress' ),
+
+			'solrTitle'                  => __( 'Solr', 'elasticpress' ),
+			'solrDescription'            => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
+			'solrInputHeading'           => __( 'SolrSynonym Text', 'elasticpress' ),
+			'solrEditButtonText'         => __( 'Edit File (Advanced)', 'elasticpress' ),
+			'solrApplyButtonText'        => __( 'Apply Changes', 'elasticpress' ),
+
+			'synonymsTextareaInputName'  => $this->get_synonym_field(),
+		);
+	}
+
+	/**
+	 * Get data to export to the frontend with localization strings.
+	 *
+	 * @return array
+	 */
+	protected function get_localized_data() {
+		$data     = array(
+			'sets'         => array(),
+			'alternatives' => array(),
+		);
+		$synonyms = $this->get_synonyms();
+
+		foreach ( $synonyms as $line ) {
+			$synonym = array();
+			if ( strpos( $line, '=>' ) ) {
+				$tokens = explode( '=>', $line );
+				array_push( $synonym, self::prepare_localized_token( $tokens[0], true ) );
+				array_push(
+					$synonym,
+					...array_map(
+						array( __CLASS__, 'prepare_localized_token' ),
+						explode( ',', $tokens[1] )
+					)
+				);
+				array_push( $data['alternatives'], $synonym );
+			} else {
+				array_push(
+					$synonym,
+					...array_map(
+						array( __CLASS__, 'prepare_localized_token' ),
+						explode( ',', $line )
+					)
+				);
+				array_push( $data['sets'], $synonym );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Prepare localized token.
+	 *
+	 * @param string  $token    The synonym token to prepare.
+	 * @param boolean $primary Whether this string is the primary term of an alternative.
+	 * @return array
+	 */
+	protected static function prepare_localized_token( $token, $primary = false ) {
+		return array(
+			'label'   => trim( sanitize_text_field( $token ) ),
+			'value'   => trim( sanitize_text_field( $token ) ),
+			'primary' => $primary,
 		);
 	}
 }
