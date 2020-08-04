@@ -1333,6 +1333,7 @@ class Elasticsearch {
 	 */
 	protected function add_query_log( $query ) {
 		$log_enabled = false;
+
 		if ( defined( 'EP_QUERY_LOG' ) ) {
 			$log_enabled = EP_QUERY_LOG;
 		} elseif ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
