@@ -1322,11 +1322,11 @@ class Elasticsearch {
 
 	/**
 	 * Query logging.
-
+	 *
 	 * If EP_QUERY_LOG is defined, use its value to control if
 	 * query logging is enabled. If not, only enable it if WP_DEBUG
 	 * or WP_EP_DEBUG are enabled.
-
+	 *
 	 * Calls action 'ep_add_query_log' if you want to access the
 	 * query outside of the ElasticPress plugin. This runs regardless
 	 * of debug settings.
