@@ -8,24 +8,26 @@ import { Dispatch } from '../../context';
  * @param {Array} synonyms
  * @param {Number} index
  */
-export default function LinkedMultiInput( { index, synonyms, removeAction, updateAction } ) {
+export default function LinkedMultiInput( { id, synonyms, removeAction, updateAction } ) {
 	const dispatch = useContext( Dispatch );
 	const [ tokens, setTokens ] = useState( synonyms || [] );
 
 	useEffect( () => {
-		dispatch( { type: updateAction, data: { index, tokens } } );
+		if ( tokens != synonyms ) {
+			dispatch( { type: updateAction, data: { id, tokens } } );
+		}
 	}, [ tokens ] );
 
 	/**
 	 * Handle clearing the synonym.
 	 */
 	const handleClear = () => {
-		dispatch( { type: removeAction, data: index } );
+		dispatch( { type: removeAction, data: id } );
 	};
 
 	return (
 		<MultiInput
-			key={index}
+			key={id}
 			className="ep-synonyms__linked-multi-input"
 			tokens={tokens}
 			setTokens={setTokens}

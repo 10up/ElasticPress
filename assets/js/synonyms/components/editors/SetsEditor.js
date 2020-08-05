@@ -24,13 +24,13 @@ export default function SetsEditor( { sets } ) {
 				<h2 className="hndle"><span>{ setsInputHeading }</span></h2>
 				<div className="inside">
 					{
-						sets.map( ( synonyms, i ) => (
-							<div className="synonym-set-editor" key={i}>
+						sets.map( ( { synonyms, id } ) => (
+							<div className="synonym-set-editor" key={id}>
 								<LinkedMultiInput
 									updateAction="UPDATE_SET"
 									removeAction="REMOVE_SET"
 									synonyms={synonyms}
-									index={i}
+									id={id}
 								/>
 							</div>
 						) )

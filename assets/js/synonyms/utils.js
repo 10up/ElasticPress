@@ -1,3 +1,23 @@
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * Generate universally unique identifier.
+ */
+const uuid = () => {
+	return uuidv4();
+};
+
+/**
+ * Map entry
+ * @param {Array} synonyms
+ */
+const mapEntry = ( synonyms = [], id = '' ) => {
+	return {
+		id: id.length ? id : uuidv4(),
+		synonyms
+	};
+};
+
 /**
  * Reduce state to Solr spec.
  * @param {Object} state
@@ -7,18 +27,18 @@ const reduceStateToSolr = ( { sets, alternatives } ) => {
 
 	// Handle sets.
 	synonyms.push( '# Defined sets ( equivalent synonyms).' );
-	synonyms.push( ...sets.map( set => set.map( ( { value } ) => value ).join( ', ' ) ) );
+	synonyms.push( ...sets.map( ( {synonyms} ) => synonyms.map( ( { value } ) => value ).join( ', ' ) ) );
 
 	// Handle alternatives.
 	synonyms.push( '\r' );
 	synonyms.push( '# Defined alternatives (explicit mappings).' );
 	synonyms.push(
 		...alternatives.map( alternative => (
-			alternative.find( item => item.primary && item.value.length )
-				? alternative.find( item => item.primary ).value
+			alternative.synonyms.find( item => item.primary && item.value.length )
+				? alternative.synonyms.find( item => item.primary ).value
 					.concat( ' => ' )
 					.concat(
-						alternative
+						alternative.synonyms
 							.filter( i => ! i.primary )
 							.map( ( { value } ) => value ).
 							join( ', ' )
@@ -65,10 +85,10 @@ const reduceSolrToState = ( solr, currentState ) => {
 							...newState,
 							alternatives: [
 								...newState.alternatives,
-								[
+								mapEntry( [
 									formatToken( parts[0].trim(), true ),
 									...parts[1].split( ',' ).map( token => formatToken( token.trim() ) )
-								]
+								] )
 							]
 						} );
 					}
@@ -77,9 +97,9 @@ const reduceSolrToState = ( solr, currentState ) => {
 						...newState,
 						sets: [
 							...newState.sets,
-							[
+							mapEntry( [
 								...line.split( ',' ).map( token => formatToken( token.trim() ) )
-							]
+							] )
 						]
 					} );
 				},
@@ -91,4 +111,6 @@ const reduceSolrToState = ( solr, currentState ) => {
 export {
 	reduceStateToSolr,
 	reduceSolrToState,
+	uuid,
+	mapEntry,
 };

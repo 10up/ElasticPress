@@ -31,12 +31,13 @@ export default function AlterativesEditor( { alternatives } ) {
 				</h2>
 				<div className="inside">
 					{
-						alternatives.map( ( synonyms, i ) => (
+						alternatives.map( ( { synonyms, id } ) => (
 							<AlternativeEditor
 								updateAction="UPDATE_ALTERNATIVE"
 								removeAction="REMOVE_ALTERNATIVE"
 								synonyms={synonyms}
-								index={i}
+								key={id}
+								id={id}
 							/>
 						) )
 					}

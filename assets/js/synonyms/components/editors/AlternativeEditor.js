@@ -25,7 +25,7 @@ export default function AlternativeEditor( props ) {
 	useEffect( () => {
 		dispatch( {
 			type: 'UPDATE_ALTERNATIVE_PRIMARY',
-			data: { index: props.index, token: createPrimaryToken( primaryTerm ) }
+			data: { id: props.id, token: createPrimaryToken( primaryTerm ) }
 		} );
 	}, [ primaryTerm ] );
 

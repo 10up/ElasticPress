@@ -1,4 +1,4 @@
-import { reduceSolrToState } from '../utils';
+import { reduceSolrToState, uuid, mapEntry } from '../utils';
 
 /**
  * The synonym editor reducer.
@@ -8,8 +8,8 @@ const { alternatives, sets } = window.epSynonyms.data;
 
 const initialState = {
 	isSolrEditable: false,
-	alternatives: alternatives ? alternatives: [ [] ],
-	sets: sets ? sets : [ [] ],
+	alternatives: alternatives ? alternatives.map( mapEntry ) : [ mapEntry() ],
+	sets: sets ? sets.map( mapEntry ) : [ mapEntry() ],
 };
 
 /**
@@ -20,38 +20,74 @@ const initialState = {
  * @return {Object} New state.
  */
 const editorReducer = ( state, action ) => {
+	console.log( action );
 	switch( action.type ) {
 			case 'ADD_SET':
-				state.sets.push( [] );
-				return { ...state };
-			case 'UPDATE_SET':
-				state.sets.splice( action.data.index, 1, action.data.tokens );
-				return { ...state };
-			case 'REMOVE_SET':
 				return {
 					...state,
 					sets: [
-						...state.sets.filter( ( t, i ) => i !== action.data )
+						...state.sets,
+						mapEntry()
 					]
 				};
+			case 'UPDATE_SET':
+				return {
+					...state,
+					sets: state.sets.map( ( entry ) => {
+						if ( entry.id !== action.data.id ) {
+							return entry;
+						}
+						return mapEntry( action.data.tokens, action.data.id );
+					} )
+				};
+			case 'REMOVE_SET':
+				return {
+					...state,
+					sets: state.sets.filter( ( { id } ) => id !== action.data )
+				};
 			case 'ADD_ALTERNATIVE':
-				state.alternatives.push( [] );
-				return { ...state };
+				return {
+					...state,
+					alternatives: [
+						...state.alternatives,
+						mapEntry()
+					]
+				};
 			case 'UPDATE_ALTERNATIVE':
-				state.alternatives.splice( action.data.index, 1, [
-					...action.data.tokens,
-					...state.alternatives[ action.data.index ].filter( t => t.primary )
-				] );
-				return { ...state };
-			case 'REMOVE_ALTERNATIVE':
-				state.alternatives.splice( action.data, 1 );
-				return { ...state };
+				return {
+					...state,
+					alternatives: [
+						...state.alternatives.map( ( entry ) => {
+							if ( entry.id !== action.data.id ) {
+								return entry;
+							}
+							return mapEntry( [
+								...action.data.tokens,
+								...entry.synonyms.filter( ( t ) => t.primary )
+							], action.data.id );
+						} ),
+					]
+				};
 			case 'UPDATE_ALTERNATIVE_PRIMARY':
-				state.alternatives[ action.data.index ] = [
-					...state.alternatives[ action.data.index ].filter( t => ! t.primary ),
-					action.data.token
-				];
-				return { ...state };
+				return {
+					...state,
+					alternatives: [
+						...state.alternatives.map( ( entry ) => {
+							if ( entry.id !== action.data.id ) {
+								return entry;
+							}
+							return mapEntry( [
+								action.data.token,
+								...entry.synonyms.filter( ( t ) => ! t.primary )
+							], action.data.id );
+						} ),
+					]
+				};
+			case 'REMOVE_ALTERNATIVE':
+				return {
+					...state,
+					alternatives: state.alternatives.filter( ( { id } ) => id !== action.data )
+				};
 			case 'SET_SOLR_EDITABLE':
 				return {
 					...state,
