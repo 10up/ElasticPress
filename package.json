@@ -40,6 +40,7 @@
     "react-dom": "^16.9.0",
     "react-select": "^3.1.0",
     "terser": "^3.17.0",
+    "uuid": "^8.3.0",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0",
     "webpack-fix-style-only-entries": "^0.2.1",
