@@ -531,6 +531,7 @@ class Synonyms extends Feature {
 		$data     = array(
 			'sets'         => array(),
 			'alternatives' => array(),
+			'solrVisible'  => ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ),
 		);
 		$synonyms = $this->get_synonyms();
 

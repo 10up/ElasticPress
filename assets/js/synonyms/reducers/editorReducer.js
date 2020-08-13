@@ -4,11 +4,11 @@ import { reduceSolrToState, mapEntry } from '../utils';
  * The synonym editor reducer.
  */
 
-const { alternatives, sets } = window.epSynonyms.data;
+const { alternatives, sets, solrVisible } = window.epSynonyms.data;
 
 const initialState = {
 	isSolrEditable: false,
-	isSolrVisible: false,
+	isSolrVisible: !!solrVisible || false,
 	alternatives: alternatives ? alternatives.map(mapEntry) : [mapEntry()],
 	sets: sets ? sets.map(mapEntry) : [mapEntry()],
 };

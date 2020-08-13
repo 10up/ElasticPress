@@ -11,7 +11,7 @@ export default function SolrEditor() {
 	const state = useContext(State);
 	const dispatch = useContext(Dispatch);
 	const reducedState = reduceStateToSolr(state);
-	const { isSolrEditable } = state;
+	const { isSolrEditable, isSolrVisible } = state;
 	const [solr, setSolr] = useState(reducedState);
 	const [editing, setEditing] = useState(isSolrEditable);
 	const {
@@ -43,7 +43,7 @@ export default function SolrEditor() {
 	};
 
 	return (
-		<div className="synonym-solr-editor metabox-holder">
+		<div className={`synonym-solr-editor metabox-holder ${!isSolrVisible ? 'hidden' : ''}`}>
 			<div className="postbox">
 				<h2 className="hndle">
 					<span>{solrInputHeading}</span>

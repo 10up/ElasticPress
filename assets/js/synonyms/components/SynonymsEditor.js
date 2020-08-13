@@ -28,20 +28,16 @@ export default function SynonymsEditor() {
 				<p>{setsDescription}</p>
 				{!isSolrEditable && <SetsEditor sets={sets} />}
 			</div>
-
 			<div className="synonym-editor synonym-editor__alteratives">
 				<h2>{`${alternativesTitle} (${alternatives.length})`}</h2>
 				<p>{alternativesDescription}</p>
 				{!isSolrEditable && <AlterativesEditor alternatives={alternatives} />}
 			</div>
-
-			{isSolrVisible && (
-				<div className="synonym-editor synonym-editor__solr">
-					<h2>{solrTitle}</h2>
-					<p>{solrDescription}</p>
-					<SolrEditor />
-				</div>
-			)}
+			<div className="synonym-editor synonym-editor__solr">
+				{isSolrVisible && <h2>{solrTitle}</h2>}
+				{isSolrVisible && <p>{solrDescription}</p>}
+				<SolrEditor />
+			</div>
 		</>
 	);
 }
