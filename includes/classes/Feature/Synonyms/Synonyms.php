@@ -502,12 +502,12 @@ class Synonyms extends Feature {
 	protected function get_localized_strings() {
 		return array(
 			'setsTitle'                  => __( 'Sets', 'elasticpress' ),
-			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is usefule where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
+			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
 			'setsInputHeading'           => __( 'Comma separated list of terms', 'elasticpress' ),
 			'setsAddButtonText'          => __( 'Add Set', 'elasticpress' ),
 
 			'alternativesTitle'          => __( 'Alternatives', 'elasticpress' ),
-			'alternativesDescription'    => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include resutls for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
+			'alternativesDescription'    => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
 			'alternativesPrimaryHeading' => __( 'Primary term', 'elasticpress' ),
 			'alternativesInputHeading'   => __( 'Comma separated list of alternatives', 'elasticpress' ),
 			'alternativesAddButtonText'  => __( 'Add Alternative', 'elasticpress' ),

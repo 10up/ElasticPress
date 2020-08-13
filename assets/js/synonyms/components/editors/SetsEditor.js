@@ -10,7 +10,7 @@ import { Dispatch } from '../../context';
  */
 export default function SetsEditor({ sets }) {
 	const dispatch = useContext(Dispatch);
-	const { setsInputHeading } = window.epSynonyms.i18n;
+	const { setsInputHeading, setsAddButtonText } = window.epSynonyms.i18n;
 
 	/**
 	 * Handle click.
@@ -40,7 +40,7 @@ export default function SetsEditor({ sets }) {
 						</div>
 					))}
 					<button className="button button-secondary" onClick={handleClick}>
-						Add Set
+						{setsAddButtonText}
 					</button>
 				</div>
 			</div>

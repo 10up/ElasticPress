@@ -10,7 +10,11 @@ import { Dispatch } from '../../context';
  */
 export default function AlterativesEditor({ alternatives }) {
 	const dispatch = useContext(Dispatch);
-	const { alternativesInputHeading, alternativesPrimaryHeading } = window.epSynonyms.i18n;
+	const {
+		alternativesInputHeading,
+		alternativesPrimaryHeading,
+		alternativesAddButtonText,
+	} = window.epSynonyms.i18n;
 
 	/**
 	 * Handle click.
@@ -44,7 +48,7 @@ export default function AlterativesEditor({ alternatives }) {
 						/>
 					))}
 					<button className="button button-secondary" onClick={handleClick}>
-						Add Set
+						{alternativesAddButtonText}
 					</button>
 				</div>
 			</div>
