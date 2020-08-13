@@ -512,7 +512,7 @@ class Synonyms extends Feature {
 			'alternativesInputHeading'   => __( 'Comma separated list of alternatives', 'elasticpress' ),
 			'alternativesAddButtonText'  => __( 'Add Alternative', 'elasticpress' ),
 
-			'solrTitle'                  => __( 'Solr', 'elasticpress' ),
+			'solrTitle'                  => __( 'Advanced Synonym Editor', 'elasticpress' ),
 			'solrDescription'            => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
 			'solrInputHeading'           => __( 'SolrSynonym Text', 'elasticpress' ),
 			'solrEditButtonText'         => __( 'Edit File (Advanced)', 'elasticpress' ),
