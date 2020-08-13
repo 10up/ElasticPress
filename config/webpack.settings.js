@@ -20,6 +20,7 @@ module.exports = {
 		'sites-admin-styles': './assets/css/sites-admin.css',
 		'ordering-styles': './assets/css/ordering.css',
 		'related-posts-block-styles': './assets/css/related-posts-block.css',
+		'synonyms-styles': './assets/css/synonyms.css'
 	},
 	filename: {
 		js: 'js/[name].min.js',
