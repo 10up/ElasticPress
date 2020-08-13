@@ -28,14 +28,23 @@ export default function MultiInput(props) {
 	 * @param {React.SyntheticEvent} event Keydown event.
 	 */
 	const handleKeyDown = (event) => {
-		if (!tokens) return;
 		switch (event.key) {
+			case ',':
 			case 'Enter':
+				if (!tokens || !inputValue.length) {
+					event.preventDefault();
+					break;
+				}
 				if (tokens.map(({ value }) => value).indexOf(inputValue.trim()) === -1) {
 					setTokens([...tokens, createOption(inputValue)]);
 				}
 				setInputValue('');
 				event.preventDefault();
+				break;
+			case 'Backspace':
+				if (!inputValue && !tokens.length && onClear) {
+					onClear();
+				}
 				break;
 			default:
 		}
@@ -77,6 +86,7 @@ export default function MultiInput(props) {
 			onKeyDown={handleKeyDown}
 			placeholder="Type a synonym and press enter..."
 			value={tokens}
+			ref={inputEl}
 		/>
 	);
 }
