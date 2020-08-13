@@ -4,25 +4,25 @@ import { Dispatch } from '../../context';
 
 /**
  * Linked MultiInput
- * @param {String} synonymType
- * @param {Array} synonyms
- * @param {Number} index
+ *
+ * @param {object} props Props.
+ * @returns {React.FC}
  */
-export default function LinkedMultiInput( { id, synonyms, removeAction, updateAction } ) {
-	const dispatch = useContext( Dispatch );
-	const [ tokens, setTokens ] = useState( synonyms || [] );
+export default function LinkedMultiInput({ id, synonyms, removeAction, updateAction }) {
+	const dispatch = useContext(Dispatch);
+	const [tokens, setTokens] = useState(synonyms || []);
 
-	useEffect( () => {
-		if ( tokens != synonyms ) {
-			dispatch( { type: updateAction, data: { id, tokens } } );
+	useEffect(() => {
+		if (tokens !== synonyms) {
+			dispatch({ type: updateAction, data: { id, tokens } });
 		}
-	}, [ tokens ] );
+	}, [tokens]);
 
 	/**
 	 * Handle clearing the synonym.
 	 */
 	const handleClear = () => {
-		dispatch( { type: removeAction, data: id } );
+		dispatch({ type: removeAction, data: id });
 	};
 
 	return (

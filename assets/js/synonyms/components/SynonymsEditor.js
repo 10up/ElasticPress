@@ -6,10 +6,12 @@ import SolrEditor from './editors/SolrEditor';
 
 /**
  * Synonyms editor component.
+ *
+ * @returns {React.FC}
  */
 export default function SynonymsEditor() {
-	const state = useContext( State );
-	const { alternatives, sets, isSolrEditable } = state;
+	const state = useContext(State);
+	const { alternatives, sets, isSolrEditable, isSolrVisible } = state;
 	const {
 		alternativesTitle,
 		alternativesDescription,
@@ -22,22 +24,24 @@ export default function SynonymsEditor() {
 	return (
 		<>
 			<div className="synonym-editor synonym-editor__sets">
-				<h2>{ `${setsTitle} (${sets.length})` }</h2>
-				<p>{ setsDescription }</p>
-				{ ! isSolrEditable && <SetsEditor sets={sets}/> }
+				<h2>{`${setsTitle} (${sets.length})`}</h2>
+				<p>{setsDescription}</p>
+				{!isSolrEditable && <SetsEditor sets={sets} />}
 			</div>
 
 			<div className="synonym-editor synonym-editor__alteratives">
-				<h2>{ `${alternativesTitle} (${alternatives.length})` }</h2>
-				<p>{ alternativesDescription }</p>
-				{ ! isSolrEditable && <AlterativesEditor alternatives={alternatives}/> }
+				<h2>{`${alternativesTitle} (${alternatives.length})`}</h2>
+				<p>{alternativesDescription}</p>
+				{!isSolrEditable && <AlterativesEditor alternatives={alternatives} />}
 			</div>
 
-			<div className="synonym-editor synonym-editor__solr">
-				<h2>{ solrTitle }</h2>
-				<p>{ solrDescription }</p>
-				<SolrEditor />
-			</div>
+			{isSolrVisible && (
+				<div className="synonym-editor synonym-editor__solr">
+					<h2>{solrTitle}</h2>
+					<p>{solrDescription}</p>
+					<SolrEditor />
+				</div>
+			)}
 		</>
 	);
 }

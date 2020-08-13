@@ -6,12 +6,14 @@ const SELECTOR = '#synonym-root';
 
 /**
  * Get Root.
+ *
+ * @returns {string}
  */
-const getRoot = () => document.querySelector( SELECTOR ) || false;
+const getRoot = () => document.querySelector(SELECTOR) || false;
 
 ReactDOM.render(
 	<AppContext>
 		<SynonymsEditor />
 	</AppContext>,
-	getRoot()
+	getRoot(),
 );

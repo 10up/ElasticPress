@@ -3,66 +3,77 @@ import CreatableSelect from 'react-select/creatable';
 
 /**
  * Synonyms editor component.
+ *
+ * @param {object} props Props.
+ * @returns {React.FC}
  */
-export default function MultiInput( props ) {
+export default function MultiInput(props) {
 	const { tokens, setTokens, onClear } = props;
-	const [ inputValue, setInputValue] = useState( '' );
+	const [inputValue, setInputValue] = useState('');
 
 	/**
 	 * Create option.
-	 * @param {String} label
-	 * @return {Object}
+	 *
+	 * @param {string} label Option label.
+	 * @returns {object}
 	 */
-	const createOption = label => ( {
+	const createOption = (label) => ({
 		label,
 		value: label,
-	} );
+	});
 
 	/**
 	 * Handle key down.
-	 * @param {SyntheticEvent} event
+	 *
+	 * @param {React.SyntheticEvent} event Keydown event.
 	 */
-	const handleKeyDown = ( event ) => {
-		if ( ! tokens ) return;
-		switch ( event.key ) {
-				case 'Enter':
-				case 'Tab':
-					if ( ( -1 === tokens.map( ( {value} ) => value ).indexOf( inputValue.trim() ) ) ) {
-						setTokens( [ ...tokens, createOption( inputValue ) ] );
-					}
-					setInputValue( '' );
-					event.preventDefault();
+	const handleKeyDown = (event) => {
+		if (!tokens) return;
+		switch (event.key) {
+			case 'Enter':
+				if (tokens.map(({ value }) => value).indexOf(inputValue.trim()) === -1) {
+					setTokens([...tokens, createOption(inputValue)]);
+				}
+				setInputValue('');
+				event.preventDefault();
+				break;
+			default:
 		}
 	};
 
 	/**
 	 * Handle change.
-	 * @param {String} value
-	 * @param {Object} data
+	 *
+	 * @param {string} _value The value.
+	 * @param {object} data   Data with the action.
 	 */
-	const handleChange = ( value, data ) => {
-		switch ( data.action ) {
-				case 'remove-value':
-					setTokens( [ ...tokens.filter( ( {value} ) => value !== data.removedValue.value ) ] );
+	const handleChange = (_value, data) => {
+		switch (data.action) {
+			case 'remove-value':
+				setTokens([...tokens.filter(({ value }) => value !== data.removedValue.value)]);
+				break;
+			case 'clear':
+				if (onClear) {
+					onClear();
 					break;
-				case 'clear':
-					onClear ? onClear() : setTokens( [] );
-					break;
-				default:
-					break;
+				}
+				setTokens([]);
+				break;
+			default:
+				break;
 		}
 	};
 
 	return (
 		<CreatableSelect
-			{ ...props }
+			{...props}
 			isMulti
-			components={ { DropdownIndicator: null } }
+			components={{ DropdownIndicator: null }}
 			inputValue={inputValue}
 			isClearable
 			menuIsOpen={false}
 			onChange={handleChange}
-			onInputChange={ val => setInputValue( val ) }
+			onInputChange={(val) => setInputValue(val)}
 			onKeyDown={handleKeyDown}
 			placeholder="Type a synonym and press enter..."
 			value={tokens}

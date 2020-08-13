@@ -4,42 +4,47 @@ import { Dispatch } from '../../context';
 
 /**
  * Alternative Editor
+ *
+ * @param {object} props Props.
+ * @returns {React.FC}
  */
-export default function AlternativeEditor( props ) {
-	const primary = props.synonyms.find( item => item.primary );
-	const [ primaryTerm, setPrimaryTerm ] = useState( primary ? primary.value : '' );
-	const dispatch = useContext( Dispatch );
+export default function AlternativeEditor(props) {
+	const primary = props.synonyms.find((item) => item.primary);
+	const [primaryTerm, setPrimaryTerm] = useState(primary ? primary.value : '');
+	const dispatch = useContext(Dispatch);
 
 	/**
 	 * Create primary token
-	 * @param {String} label Label.
+	 *
+	 * @param {string} label Label.
+	 * @returns {object}
 	 */
-	const createPrimaryToken = label => {
+	const createPrimaryToken = (label) => {
 		return {
 			label,
 			value: label,
-			primary: true
+			primary: true,
 		};
 	};
 
-	useEffect( () => {
-		dispatch( {
+	useEffect(() => {
+		dispatch({
 			type: 'UPDATE_ALTERNATIVE_PRIMARY',
-			data: { id: props.id, token: createPrimaryToken( primaryTerm ) }
-		} );
-	}, [ primaryTerm ] );
+			data: { id: props.id, token: createPrimaryToken(primaryTerm) },
+		});
+	}, [primaryTerm]);
 
-	return(
+	return (
 		<div className="synonym-alternative-editor">
 			<input
 				type="text"
 				className="ep-synonyms__input"
-				onChange={ e => setPrimaryTerm( e.target.value ) }
+				onChange={(e) => setPrimaryTerm(e.target.value)}
 				value={primaryTerm}
 			/>
 			<LinkedMultiInput
-				{ ...props }
-				synonyms={ props.synonyms.filter( item => ! item.primary ) }
+				{...props}
+				synonyms={props.synonyms.filter((item) => !item.primary)}
 			/>
 		</div>
 	);

@@ -4,59 +4,63 @@ import { reduceStateToSolr } from '../../utils';
 
 /**
  * Synonym Inspector
+ *
+ * @returns {React.FC}
  */
 export default function SolrEditor() {
-	const state = useContext( State );
-	const dispatch = useContext( Dispatch );
-	const reducedState = reduceStateToSolr( state );
+	const state = useContext(State);
+	const dispatch = useContext(Dispatch);
+	const reducedState = reduceStateToSolr(state);
 	const { isSolrEditable } = state;
-	const [ solr, setSolr ] = useState( reducedState );
-	const [ editing, setEditing ] = useState( isSolrEditable );
+	const [solr, setSolr] = useState(reducedState);
+	const [editing, setEditing] = useState(isSolrEditable);
 	const {
 		synonymsTextareaInputName,
 		solrInputHeading,
 		solrEditButtonText,
-		solrApplyButtonText
+		solrApplyButtonText,
 	} = window.epSynonyms.i18n;
 
-	useEffect( () => {
-		setSolr( reducedState );
-	}, [ reducedState ] );
+	useEffect(() => {
+		setSolr(reducedState);
+	}, [reducedState]);
 
-	useEffect( () => {
-		if ( ! editing && solr !== reducedState ) {
-			dispatch( { type: 'REDUCE_STATE_FROM_SOLR', data: solr } );
+	useEffect(() => {
+		if (!editing && solr !== reducedState) {
+			dispatch({ type: 'REDUCE_STATE_FROM_SOLR', data: solr });
 		}
-		dispatch( { type: 'SET_SOLR_EDITABLE', data: editing } );
-	}, [ editing ] );
+		dispatch({ type: 'SET_SOLR_EDITABLE', data: editing });
+	}, [editing]);
 
 	/**
 	 * Toggle Solr Editable
-	 * @param {SytheticEvent} e
+	 *
+	 * @param {React.SytheticEvent} e Event
 	 */
-	const toggleSolrEditable = e => {
-		setEditing( ! editing );
+	const toggleSolrEditable = (e) => {
+		setEditing(!editing);
 		e.preventDefault();
 	};
 
-	return(
+	return (
 		<div className="synonym-solr-editor metabox-holder">
 			<div className="postbox">
-				<h2 className="hndle"><span>{solrInputHeading}</span></h2>
+				<h2 className="hndle">
+					<span>{solrInputHeading}</span>
+				</h2>
 				<div className="inside">
 					<textarea
 						className="large-text"
 						id="ep-synonym-input"
 						name={synonymsTextareaInputName}
 						rows="20"
-						value={ solr }
-						readOnly={ ! editing }
-						onChange={ e => setSolr( e.target.value ) }
+						value={solr}
+						readOnly={!editing}
+						onChange={(e) => setSolr(e.target.value)}
 					/>
-					<button
-						className="button button-secondary"
-						onClick={ toggleSolrEditable }
-					>{ editing ? solrApplyButtonText : solrEditButtonText }</button>
+					<button className="button button-secondary" onClick={toggleSolrEditable}>
+						{editing ? solrApplyButtonText : solrEditButtonText}
+					</button>
 				</div>
 			</div>
 		</div>
