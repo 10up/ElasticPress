@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import LinkedMultiInput from '../shared/LinkedMultiInput';
 import { Dispatch } from '../../context';
 
@@ -12,6 +12,7 @@ export default function AlternativeEditor(props) {
 	const primary = props.synonyms.find((item) => item.primary);
 	const [primaryTerm, setPrimaryTerm] = useState(primary ? primary.value : '');
 	const dispatch = useContext(Dispatch);
+	const primaryRef = useRef(null);
 
 	/**
 	 * Create primary token
@@ -34,6 +35,10 @@ export default function AlternativeEditor(props) {
 		});
 	}, [primaryTerm]);
 
+	useEffect(() => {
+		primaryRef.current.focus();
+	}, [primaryRef]);
+
 	return (
 		<div className="synonym-alternative-editor">
 			<input
@@ -41,6 +46,7 @@ export default function AlternativeEditor(props) {
 				className="ep-synonyms__input"
 				onChange={(e) => setPrimaryTerm(e.target.value)}
 				value={primaryTerm}
+				ref={primaryRef}
 			/>
 			<LinkedMultiInput
 				{...props}

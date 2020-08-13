@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import AlternativeEditor from './AlternativeEditor';
-import { Dispatch } from '../../context';
+import { Dispatch, State } from '../../context';
 
 /**
  * Synonyms editor component.
@@ -10,6 +10,7 @@ import { Dispatch } from '../../context';
  */
 export default function AlterativesEditor({ alternatives }) {
 	const dispatch = useContext(Dispatch);
+	const state = useContext(State);
 	const {
 		alternativesInputHeading,
 		alternativesPrimaryHeading,
@@ -22,7 +23,10 @@ export default function AlterativesEditor({ alternatives }) {
 	 * @param {React.SyntheticEvent} e Event.
 	 */
 	const handleClick = (e) => {
-		dispatch({ type: 'ADD_ALTERNATIVE' });
+		const [lastItem] = state.alternatives.slice(-1);
+		if (!alternatives || lastItem.synonyms.filter(({ value }) => value.length).length) {
+			dispatch({ type: 'ADD_ALTERNATIVE' });
+		}
 		e.preventDefault();
 	};
 

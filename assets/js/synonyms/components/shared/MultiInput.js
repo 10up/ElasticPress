@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
 
 /**
@@ -8,8 +8,9 @@ import CreatableSelect from 'react-select/creatable';
  * @returns {React.FC}
  */
 export default function MultiInput(props) {
-	const { tokens, setTokens, onClear } = props;
+	const { tokens, setTokens, onClear, initialFocus, clearOnEmpty } = props;
 	const [inputValue, setInputValue] = useState('');
+	const inputRef = useRef(null);
 
 	/**
 	 * Create option.
@@ -42,7 +43,7 @@ export default function MultiInput(props) {
 				event.preventDefault();
 				break;
 			case 'Backspace':
-				if (!inputValue && !tokens.length && onClear) {
+				if (!inputValue && !tokens.length && onClear && clearOnEmpty) {
 					onClear();
 				}
 				break;
@@ -73,6 +74,12 @@ export default function MultiInput(props) {
 		}
 	};
 
+	useEffect(() => {
+		if (initialFocus) {
+			inputRef.current.focus();
+		}
+	}, [inputRef, initialFocus]);
+
 	return (
 		<CreatableSelect
 			{...props}
@@ -86,7 +93,7 @@ export default function MultiInput(props) {
 			onKeyDown={handleKeyDown}
 			placeholder="Type a synonym and press enter..."
 			value={tokens}
-			ref={inputEl}
+			ref={inputRef}
 		/>
 	);
 }

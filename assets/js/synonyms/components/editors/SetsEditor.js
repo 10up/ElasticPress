@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import LinkedMultiInput from '../shared/LinkedMultiInput';
-import { Dispatch } from '../../context';
+import { Dispatch, State } from '../../context';
 
 /**
  * Synonyms editor component.
@@ -10,6 +10,7 @@ import { Dispatch } from '../../context';
  */
 export default function SetsEditor({ sets }) {
 	const dispatch = useContext(Dispatch);
+	const state = useContext(State);
 	const { setsInputHeading, setsAddButtonText } = window.epSynonyms.i18n;
 
 	/**
@@ -18,7 +19,10 @@ export default function SetsEditor({ sets }) {
 	 * @param {React.SyntheticEvent} e Event
 	 */
 	const handleClick = (e) => {
-		dispatch({ type: 'ADD_SET' });
+		const [lastSet] = state.sets.slice(-1);
+		if (!sets.length || lastSet.synonyms.length) {
+			dispatch({ type: 'ADD_SET' });
+		}
 		e.preventDefault();
 	};
 
@@ -36,6 +40,8 @@ export default function SetsEditor({ sets }) {
 								removeAction="REMOVE_SET"
 								synonyms={synonyms}
 								id={id}
+								initialFocus={true}
+								clearOnEmpty={true}
 							/>
 						</div>
 					))}

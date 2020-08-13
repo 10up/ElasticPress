@@ -8,7 +8,14 @@ import { Dispatch } from '../../context';
  * @param {object} props Props.
  * @returns {React.FC}
  */
-export default function LinkedMultiInput({ id, synonyms, removeAction, updateAction }) {
+export default function LinkedMultiInput({
+	id,
+	synonyms,
+	removeAction,
+	updateAction,
+	initialFocus,
+	clearOnEmpty,
+}) {
 	const dispatch = useContext(Dispatch);
 	const [tokens, setTokens] = useState(synonyms || []);
 
@@ -32,6 +39,8 @@ export default function LinkedMultiInput({ id, synonyms, removeAction, updateAct
 			tokens={tokens}
 			setTokens={setTokens}
 			onClear={handleClear}
+			initialFocus={initialFocus}
+			clearOnEmpty={clearOnEmpty}
 		/>
 	);
 }
