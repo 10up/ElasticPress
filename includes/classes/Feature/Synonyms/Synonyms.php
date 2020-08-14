@@ -9,6 +9,8 @@ namespace ElasticPress\Feature\Synonyms;
 
 use ElasticPress\Feature;
 use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -179,12 +181,24 @@ class Synonyms extends Feature {
 					'post_content' => trim( sanitize_textarea_field( $synonyms ) ),
 				]
 			);
+
+			// Construct the update synonym filter setting.
+			$setting['index']['analysis']['filter']['ep_synonyms_filter'] = [
+				'type'     => 'synonym',
+				'lenient'  => true,
+				'synonyms' => $this->get_synonyms(),
+			];
+
+			// Update the index with the new synonyms.
+			$indexable  = Indexables::factory()->get( 'post' );
+			$index_name = $indexable->get_index_name();
+			$update     = Elasticsearch::factory()->update_index_settings( $index_name, $setting, true );
 		}
 
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'ep_synonym_update' => $post_id ? 'success' : 'error',
+					'ep_synonym_update' => ( $post_id && $update_index ) ? 'success' : 'error',
 				],
 				esc_url_raw( $referer )
 			)
@@ -276,7 +290,7 @@ class Synonyms extends Feature {
 
 		$class   = ( 'success' === $update ? 'notice-success' : 'notice-error' ) . ' notice';
 		$message = ( 'success' === $update )
-			? __( 'Successfully stored updated synonym list. Re-sync ElasticPress to have your changes take affect.', 'elasticpress' )
+			? __( 'Successfully updated synonym filter.', 'elasticpress' )
 			: __( 'There was an error updating the synonym list.', 'elasticpress' );
 
 		printf(
@@ -396,7 +410,7 @@ class Synonyms extends Feature {
 			return false;
 		}
 
-		return filter_var( $synonym, FILTER_SANITIZE_STRING );
+		return filter_var( trim( $synonym ), FILTER_SANITIZE_STRING );
 	}
 
 	/**
