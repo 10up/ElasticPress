@@ -44,8 +44,7 @@ class Synonyms extends Feature {
 	public function __construct() {
 		$this->slug                     = 'synonyms';
 		$this->title                    = esc_html__( 'Synonyms', 'elasticpress' );
-		$this->requires_install_reindex = false;
-		$this->default_settings         = [];
+		$this->requires_install_reindex = true;
 
 		parent::__construct();
 	}
@@ -129,7 +128,7 @@ class Synonyms extends Feature {
 		$synonyms = apply_filters( 'ep_search_synonyms', $this->get_synonyms(), $mapping );
 
 		// Ensure we have synonyms to add.
-		if ( empty( $synonyms ) ) {
+		if ( ! is_array( $synonyms ) ) {
 			return $mapping;
 		}
 
@@ -198,7 +197,7 @@ class Synonyms extends Feature {
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'ep_synonym_update' => ( $post_id && $update_index ) ? 'success' : 'error',
+					'ep_synonym_update' => ( $post_id && $update ) ? 'success' : 'error',
 				],
 				esc_url_raw( $referer )
 			)
@@ -330,12 +329,7 @@ class Synonyms extends Feature {
 	 */
 	public function get_synonym_post_id() {
 		if ( ! $this->synonym_post_id ) {
-
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$this->synonym_post_id = get_site_option( 'elasticpress_synonyms_post_id', false );
-			} else {
-				$this->synonym_post_id = get_option( 'elasticpress_synonyms_post_id', false );
-			}
+			$this->synonym_post_id = get_option( 'elasticpress_synonyms_post_id', false );
 
 			if ( false === $this->synonym_post_id ) {
 				$post_id = wp_insert_post(
