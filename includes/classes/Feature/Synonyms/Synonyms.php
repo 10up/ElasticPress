@@ -181,17 +181,7 @@ class Synonyms extends Feature {
 				]
 			);
 
-			// Construct the update synonym filter setting.
-			$setting['index']['analysis']['filter']['ep_synonyms_filter'] = [
-				'type'     => 'synonym',
-				'lenient'  => true,
-				'synonyms' => $this->get_synonyms(),
-			];
-
-			// Update the index with the new synonyms.
-			$indexable  = Indexables::factory()->get( 'post' );
-			$index_name = $indexable->get_index_name();
-			$update     = Elasticsearch::factory()->update_index_settings( $index_name, $setting, true );
+			$update = $this->update_synonyms();
 		}
 
 		wp_safe_redirect(
@@ -203,6 +193,26 @@ class Synonyms extends Feature {
 			)
 		);
 		exit;
+	}
+
+	/**
+	 * Update synonyms.
+	 *
+	 * @return boolean
+	 */
+	public function update_synonyms() {
+		// Construct the update synonym filter setting.
+		$setting['index']['analysis']['filter']['ep_synonyms_filter'] = [
+			'type'     => 'synonym',
+			'lenient'  => true,
+			'synonyms' => $this->get_synonyms(),
+		];
+
+		// Update the index with the new synonyms.
+		$indexable  = Indexables::factory()->get( 'post' );
+		$index_name = $indexable->get_index_name();
+
+		return Elasticsearch::factory()->update_index_settings( $index_name, $setting, true );
 	}
 
 	/**
