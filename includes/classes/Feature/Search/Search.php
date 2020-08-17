@@ -8,6 +8,7 @@
 
 namespace ElasticPress\Feature\Search;
 
+use ElasticPress\Features as Features;
 use ElasticPress\Feature as Feature;
 use ElasticPress\Indexables as Indexables;
 
@@ -36,6 +37,7 @@ class Search extends Feature {
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
 			'decaying_enabled' => true,
+			'narrow_search'    => false,
 		];
 
 		parent::__construct();
@@ -98,6 +100,7 @@ class Search extends Feature {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 10, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
+		add_filter( 'ep_formatted_args', [ $this, 'set_to_exact' ], 10, 2 );
 	}
 
 	/**
@@ -281,7 +284,7 @@ class Search extends Feature {
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
-		if ( ! is_a( $query, 'WP_Query' ) ) {
+		if ( ! is_a( $query, '\WP_Query' ) ) {
 			return $enabled;
 		}
 
@@ -309,23 +312,76 @@ class Search extends Feature {
 	 * @since 2.4
 	 */
 	public function output_feature_box_settings() {
-		$decaying_settings = $this->get_settings();
+		$settings = $this->get_settings();
+		$settings = ! empty( $settings ) ? $settings : [];
 
-		if ( ! $decaying_settings ) {
-			$decaying_settings = [];
-		}
-
-		$decaying_settings = wp_parse_args( $decaying_settings, $this->default_settings );
+		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+			</div>
+		</div>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name narrow-search"><?php esc_html_e( 'Narrow Search', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="narrow_search_enabled"><input name="narrow_search" id="narrow_search_enabled" data-field-name="narrow_search" class="setting-field" type="radio" <?php if ( (bool) $settings['narrow_search'] ) : ?>checked<?php endif; ?> value="1" /><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br />
+				<label for="narrow_search_disabled"><input name="narrow_search" id="narrow_search_disabled" data-field-name="narrow_search" class="setting-field" type="radio" <?php if ( ! (bool) $settings['narrow_search'] ) : ?>checked<?php endif; ?> value="0" /><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 			<br class="clear">
 			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ); ?>"><?php esc_html_e( 'Advanced fields and weighting settings', 'elasticpress' ); ?></a></p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Narrow search results if enabled in settings.
+	 *
+	 * @param array $formatted_args Formatted query arguments.
+	 * @param array $args           Query arguments.
+	 * @return array                Modified formatted arguments.
+	 */
+	public function set_to_exact( $formatted_args, $args ) {
+		// Bail early if not a search query.
+		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+
+		$feature  = Features::factory()->get_registered_feature( 'search' );
+		$settings = method_exists( $feature, 'get_settings' ) ? $feature->get_settings() : [];
+
+		$settings = wp_parse_args(
+			$settings,
+			[
+				'decaying_enabled' => true,
+				'narrow_search'    => false,
+			]
+		);
+
+		// Bail early if not narrowing search.
+		if ( ! $settings['narrow_search'] ) {
+			return $formatted_args;
+		}
+
+		// Bail early if no should query.
+		if ( empty( $formatted_args['query']['function_score']['query']['bool']['should'] ) ) {
+			return $formatted_args;
+		}
+
+		// Create/change the bool query from should to must.
+		$formatted_args['query']['function_score']['query']['bool']['must'] = $formatted_args['query']['function_score']['query']['bool']['should'];
+
+		// Add the operator AND to the new bool query.
+		$formatted_args['query']['function_score']['query']['bool']['must'][0]['multi_match']['operator'] = 'AND';
+
+		// Erase the old should query.
+		unset( $formatted_args['query']['function_score']['query']['bool']['should'] );
+
+		// Erase the phrase matching (or not, if you don't want it).
+		unset( $formatted_args['query']['function_score']['query']['bool']['must'][0]['multi_match']['type'] );
+
+		return $formatted_args;
 	}
 }
