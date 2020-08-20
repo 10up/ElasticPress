@@ -45,6 +45,9 @@ class Synonyms extends Feature {
 		$this->slug                     = 'synonyms';
 		$this->title                    = esc_html__( 'Synonyms', 'elasticpress' );
 		$this->requires_install_reindex = true;
+		$this->default_settings         = [
+			'advanced_synonym_editor' => false,
+		];
 
 		parent::__construct();
 	}
@@ -107,6 +110,56 @@ class Synonyms extends Feature {
 	public function output_feature_box_long() {
 		?>
 		<p><?php esc_html_e( 'Create a custom synonym filter to allow ElasticPress to match alternative spellings or synonyms of your most popular search terms.', 'elasticpress' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Output feature box settings.
+	 *
+	 * @return void
+	 */
+	public function output_feature_box_settings() {
+		$settings = $this->get_settings();
+
+		if ( ! $settings ) {
+			$settings = [];
+		}
+
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		?>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Enable Advanced Synonym Editor', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="enable_advanced_synonym_editor">
+					<input
+						name="advanced_synonym_editor"
+						id="enable_advanced_synonym_editor"
+						data-field-name="advanced_synonym_editor"
+						class="setting-field"
+						<?php checked( (bool) $settings['advanced_synonym_editor'] ); ?>
+						type="radio"
+						value="1"
+					>
+					<?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
+				</label>
+				<br>
+				<label for="disable_advanced_synonym_editor">
+					<input
+						name="advanced_synonym_editor"
+						id="disable_advanced_synonym_editor"
+						data-field-name="advanced_synonym_editor"
+						class="setting-field"
+						<?php checked( ! (bool) $settings['advanced_synonym_editor'] ); ?>
+						type="radio"
+						value="0"
+					>
+					<?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
+				</label>
+				<p class="field-description"><?php esc_html_e( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
 		<?php
 	}
 
@@ -549,7 +602,7 @@ class Synonyms extends Feature {
 		$data     = array(
 			'sets'         => array(),
 			'alternatives' => array(),
-			'solrVisible'  => ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ),
+			'solrVisible'  => $this->advanced_editor_enabled(),
 		);
 		$synonyms = $this->get_synonyms();
 
@@ -579,6 +632,25 @@ class Synonyms extends Feature {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Advanced editor enabled.
+	 *
+	 * @return boolean
+	 */
+	public function advanced_editor_enabled() {
+		$settings = $this->get_settings();
+		$settings = wp_parse_args( is_array( $settings ) ? $settings : [], $this->default_settings );
+		$enabled  = (bool) $settings['advanced_synonym_editor'];
+
+		/**
+		 * Filter whether to display the synonyms advanced editor.
+		 *
+		 * @hook ep_synonyms_advanced_editor_enable
+		 * @return  {boolean} Boolean true to display advanced editor. Default false.
+		 */
+		return (bool) apply_filters( 'ep_synonyms_advanced_editor_enable', $enabled );
 	}
 
 	/**
