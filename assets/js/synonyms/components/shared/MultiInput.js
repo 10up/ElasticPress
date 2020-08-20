@@ -94,6 +94,12 @@ export default function MultiInput(props) {
 			placeholder="Type a synonym and press enter..."
 			value={tokens}
 			ref={inputRef}
+			styles={{
+				control: (styles) => ({
+					...styles,
+					cursor: 'pointer',
+				}),
+			}}
 		/>
 	);
 }
