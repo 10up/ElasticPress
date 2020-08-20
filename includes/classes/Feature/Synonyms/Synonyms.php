@@ -11,6 +11,7 @@ use ElasticPress\Feature;
 use ElasticPress\Features;
 use ElasticPress\Indexables;
 use ElasticPress\Elasticsearch;
+use ElasticPress\FeatureRequirementsStatus;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
