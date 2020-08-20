@@ -53,6 +53,27 @@ class Synonyms extends Feature {
 	}
 
 	/**
+	 * Returns requirements status of feature
+	 *
+	 * Requires the search feature to be activated
+	 *
+	 * @return FeatureRequirementsStatus
+	 */
+	public function requirements_status() {
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+
+		/** Search Feature @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		if ( ! $search->is_active() ) {
+			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
+		}
+
+		return parent::requirements_status();
+	}
+
+	/**
 	 * Setup Feature Functionality
 	 *
 	 * @return bool
