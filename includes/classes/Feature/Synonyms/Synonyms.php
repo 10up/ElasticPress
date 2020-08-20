@@ -113,6 +113,11 @@ class Synonyms extends Feature {
 		<?php
 	}
 
+	/**
+	 * Output feature box settings.
+	 *
+	 * @return void
+	 */
 	public function output_feature_box_settings() {
 		$settings = $this->get_settings();
 
