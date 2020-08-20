@@ -40,8 +40,6 @@ export default function SetsEditor({ sets }) {
 								removeAction="REMOVE_SET"
 								synonyms={synonyms}
 								id={id}
-								initialFocus={true}
-								clearOnEmpty={true}
 							/>
 						</div>
 					))}

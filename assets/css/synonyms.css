@@ -1,4 +1,5 @@
-.synonym-alternatives-editor {
+.synonym-alternatives-editor,
+.synonym-set-editor {
 	display: flex;
 
 	& > .postbox {
@@ -37,4 +38,12 @@
 .synonym-alternative-editor,
 .synonym-set-editor {
 	margin-bottom: 0.5em;
+}
+
+button.synonym__remove {
+	background-color: transparent;
+	border: none;
+	color: #a00;
+	cursor: pointer;
+	margin: 0 0 0.5em 0.5em;
 }

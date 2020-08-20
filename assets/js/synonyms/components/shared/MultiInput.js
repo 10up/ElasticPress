@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import CreatableSelect from 'react-select/creatable';
 
 /**
@@ -8,9 +8,8 @@ import CreatableSelect from 'react-select/creatable';
  * @returns {React.FC}
  */
 export default function MultiInput(props) {
-	const { tokens, setTokens, onClear, initialFocus, clearOnEmpty } = props;
+	const { tokens, setTokens } = props;
 	const [inputValue, setInputValue] = useState('');
-	const inputRef = useRef(null);
 
 	/**
 	 * Create option.
@@ -42,11 +41,6 @@ export default function MultiInput(props) {
 				setInputValue('');
 				event.preventDefault();
 				break;
-			case 'Backspace':
-				if (!inputValue && !tokens.length && onClear && clearOnEmpty) {
-					onClear();
-				}
-				break;
 			default:
 		}
 	};
@@ -62,23 +56,10 @@ export default function MultiInput(props) {
 			case 'remove-value':
 				setTokens([...tokens.filter(({ value }) => value !== data.removedValue.value)]);
 				break;
-			case 'clear':
-				if (onClear) {
-					onClear();
-					break;
-				}
-				setTokens([]);
-				break;
 			default:
 				break;
 		}
 	};
-
-	useEffect(() => {
-		if (initialFocus) {
-			inputRef.current.focus();
-		}
-	}, [inputRef, initialFocus]);
 
 	return (
 		<CreatableSelect
@@ -86,14 +67,14 @@ export default function MultiInput(props) {
 			isMulti
 			components={{ DropdownIndicator: null }}
 			inputValue={inputValue}
-			isClearable
+			isClearable={false}
 			menuIsOpen={false}
+			autoFocus={true}
 			onChange={handleChange}
 			onInputChange={(val) => setInputValue(val)}
 			onKeyDown={handleKeyDown}
 			placeholder="Type a synonym and press enter..."
 			value={tokens}
-			ref={inputRef}
 		/>
 	);
 }

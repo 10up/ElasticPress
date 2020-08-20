@@ -13,7 +13,6 @@ export default function LinkedMultiInput({
 	synonyms,
 	removeAction,
 	updateAction,
-	initialFocus,
 	clearOnEmpty,
 }) {
 	const dispatch = useContext(Dispatch);
@@ -33,14 +32,17 @@ export default function LinkedMultiInput({
 	};
 
 	return (
-		<MultiInput
-			key={id}
-			className="ep-synonyms__linked-multi-input"
-			tokens={tokens}
-			setTokens={setTokens}
-			onClear={handleClear}
-			initialFocus={initialFocus}
-			clearOnEmpty={clearOnEmpty}
-		/>
+		<>
+			<MultiInput
+				key={id}
+				className="ep-synonyms__linked-multi-input"
+				tokens={tokens}
+				setTokens={setTokens}
+			/>
+			<button className="synonym__remove" type="button" onClick={handleClear}>
+				<span class="dashicons dashicons-dismiss"></span>
+				<span>Remove</span>
+			</button>
+		</>
 	);
 }
