@@ -5,7 +5,7 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Synonyms;
+namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Feature;
 use ElasticPress\Features;
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 3.4
  * @package ElasticPress\Feature\Synonyms
  */
-class Synonyms extends Feature {
+class Synonyms {
 
 	/**
 	 * Internal name of the post type
@@ -49,8 +49,19 @@ class Synonyms extends Feature {
 		$this->default_settings         = [
 			'advanced_synonym_editor' => false,
 		];
+	}
 
-		parent::__construct();
+	/**
+	 * Get search feature.
+	 *
+	 * @return Search
+	 */
+	public function get_search_feature() {
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+
+		/** Search Feature @var Feature\Search\Search $search */
+		return $features->get_registered_feature( 'search' );
 	}
 
 	/**
@@ -61,17 +72,13 @@ class Synonyms extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		/** Features Class @var Features $features */
-		$features = Features::factory();
-
-		/** Search Feature @var Feature\Search\Search $search */
-		$search = $features->get_registered_feature( 'search' );
+		$search = $this->get_search_feature();
 
 		if ( ! $search->is_active() ) {
 			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
 		}
 
-		return parent::requirements_status();
+		return new FeatureRequirementsStatus( 0 );
 	}
 
 	/**
@@ -80,16 +87,7 @@ class Synonyms extends Feature {
 	 * @return bool
 	 */
 	public function setup() {
-		/** Features Class @var Features $features */
-		$features = Features::factory();
-
-		$features->register_feature( $this );
-
-		/** Search Feature @var Feature\Search\Search $search */
-		$search = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() && $this->is_active() ) {
-			$features->deactivate_feature( $this->slug );
+		if ( (bool) $this->requirements_status()->code ) {
 			return false;
 		}
 
@@ -111,78 +109,6 @@ class Synonyms extends Feature {
 		add_filter( 'ep_config_mapping', [ $this, 'add_search_synonyms' ] );
 
 		return true;
-	}
-
-	/**
-	 * Output feature box summary.
-	 *
-	 * @return void
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Add synonyms to your searches.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
-	 * Output feature box long.
-	 *
-	 * @return void
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'Create a custom synonym filter to allow ElasticPress to match alternative spellings or synonyms of your most popular search terms.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
-	 * Output feature box settings.
-	 *
-	 * @return void
-	 */
-	public function output_feature_box_settings() {
-		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
-		?>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
-			<div class="field-name status"><?php esc_html_e( 'Enable Advanced Synonym Editor', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label for="enable_advanced_synonym_editor">
-					<input
-						name="advanced_synonym_editor"
-						id="enable_advanced_synonym_editor"
-						data-field-name="advanced_synonym_editor"
-						class="setting-field"
-						<?php checked( (bool) $settings['advanced_synonym_editor'] ); ?>
-						type="radio"
-						value="1"
-					>
-					<?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
-				</label>
-				<br>
-				<label for="disable_advanced_synonym_editor">
-					<input
-						name="advanced_synonym_editor"
-						id="disable_advanced_synonym_editor"
-						data-field-name="advanced_synonym_editor"
-						class="setting-field"
-						<?php checked( ! (bool) $settings['advanced_synonym_editor'] ); ?>
-						type="radio"
-						value="0"
-					>
-					<?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
-				</label>
-				<p class="field-description"><?php esc_html_e( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-
-		<?php
 	}
 
 	/**
@@ -598,7 +524,7 @@ class Synonyms extends Feature {
 			'alternativesPrimaryHeading' => __( 'Primary term', 'elasticpress' ),
 			'alternativesInputHeading'   => __( 'Comma separated list of alternatives', 'elasticpress' ),
 			'alternativesAddButtonText'  => __( 'Add Alternative', 'elasticpress' ),
-			'alternativesErrorMessage'   => __( 'You must enter both a primary term and at least one alternative term.'),
+			'alternativesErrorMessage'   => __( 'You must enter both a primary term and at least one alternative term.', 'elasticpress' ),
 
 			'solrTitle'                  => __( 'Advanced Synonym Editor', 'elasticpress' ),
 			'solrDescription'            => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
@@ -660,8 +586,9 @@ class Synonyms extends Feature {
 	 * @return boolean
 	 */
 	public function advanced_editor_enabled() {
-		$settings = $this->get_settings();
-		$settings = wp_parse_args( is_array( $settings ) ? $settings : [], $this->default_settings );
+		$search   = $this->get_search_feature();
+		$settings = $search->get_settings();
+		$settings = wp_parse_args( is_array( $settings ) ? $settings : [], $search->default_settings );
 		$enabled  = (bool) $settings['advanced_synonym_editor'];
 
 		/**
