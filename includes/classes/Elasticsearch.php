@@ -707,6 +707,36 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Get current index mapping from Elasticsearch.
+	 *
+	 * @param  string $index The index name.
+	 * @since  3.5
+	 * @return array
+	 */
+	public function get_mapping( $index ) {
+		$request_args = [
+			'method'  => 'GET',
+			'timeout' => 30,
+		];
+
+		$request = $this->remote_request( $index, $request_args, [], 'get_mapping' );
+
+		if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
+			return [];
+		}
+
+		$body = wp_remote_retrieve_body( $request );
+
+		if ( ! $body ) {
+			return [];
+		}
+
+		$mapping = json_decode( $body, true );
+
+		return is_array( $mapping ) ? $mapping : [];
+	}
+
+	/**
 	 * Close an open index.
 	 *
 	 * @param  string $index Index name.
