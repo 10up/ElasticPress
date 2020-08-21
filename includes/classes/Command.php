@@ -863,6 +863,7 @@ class Command extends WP_CLI_Command {
 									}
 
 									WP_CLI::warning( implode( "\n", $response->get_error_messages() ) );
+									continue;
 								}
 
 								if ( isset( $response['errors'] ) && true === $response['errors'] ) {
