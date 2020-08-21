@@ -31,6 +31,20 @@ class Synonyms {
 	const POST_TYPE_NAME = 'ep-synonym';
 
 	/**
+	 * Indices that should receive the synonym filter.
+	 *
+	 * @var array
+	 */
+	public $affected_indices;
+
+	/**
+	 * Elasticsearch Synonym Filter Name
+	 *
+	 * @var string
+	 */
+	public $filter_name;
+
+	/**
 	 * Synonym post id.
 	 *
 	 * @var int
@@ -43,12 +57,8 @@ class Synonyms {
 	 * @since  3.4
 	 */
 	public function __construct() {
-		$this->slug                     = 'synonyms';
-		$this->title                    = esc_html__( 'Synonyms', 'elasticpress' );
-		$this->requires_install_reindex = true;
-		$this->default_settings         = [
-			'advanced_synonym_editor' => false,
-		];
+		$this->filter_name      = 'ep_synonyms_filter';
+		$this->affected_indices = [ 'post' ];
 	}
 
 	/**
@@ -106,130 +116,9 @@ class Synonyms {
 		add_action( 'admin_notices', [ $this, 'admin_notices' ] );
 
 		// Add the synonyms to the elasticsearch query.
-		add_filter( 'ep_config_mapping', [ $this, 'add_search_synonyms' ] );
+		add_filter( 'ep_config_mapping', [ $this, 'add_search_synonyms' ], 20, 2 );
 
 		return true;
-	}
-
-	/**
-	 * Add search synonyms.
-	 *
-	 * @param array $mapping Elasticsearch mapping
-	 *
-	 * @return array
-	 */
-	public function add_search_synonyms( $mapping ) {
-		/**
-		 * Filter array of synonyms to add to a custom synonym filter.
-		 *
-		 * @hook ep_search_synonyms
-		 * @param  {array} $mapping The elasticsearch mapping.
-		 * @return  {array} The new array of search synonyms.
-		 */
-		$synonyms = apply_filters( 'ep_search_synonyms', $this->get_synonyms(), $mapping );
-
-		// Ensure we have synonyms to add.
-		if ( ! is_array( $synonyms ) ) {
-			return $mapping;
-		}
-
-		// Ensure we have filters and that it is an array.
-		if ( ! isset( $mapping['settings']['analysis']['filter'] )
-			|| ! is_array( $mapping['settings']['analysis']['filter'] )
-		) {
-			return $mapping;
-		}
-
-		// Ensure we have analyzers and that it is an array.
-		if ( ! isset( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
-			|| ! is_array( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
-		) {
-			return $mapping;
-		}
-
-		// Create a custom synonym filter for EP.
-		$mapping['settings']['analysis']['filter']['ep_synonyms_filter'] = array(
-			'type'     => 'synonym',
-			'lenient'  => true,
-			'synonyms' => $synonyms,
-		);
-
-		// Tell the analyzer to use our newly created filter.
-		$mapping['settings']['analysis']['analyzer']['default']['filter'] = array_merge(
-			[ 'ep_synonyms_filter' ],
-			$mapping['settings']['analysis']['analyzer']['default']['filter']
-		);
-
-		return $mapping;
-	}
-
-	/**
-	 * Handles updating the synonym list.
-	 *
-	 * @return void
-	 */
-	public function handle_update_synonyms() {
-		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_STRING );
-		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_STRING );
-		$post_id = false;
-
-		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
-			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_SANITIZE_STRING );
-			$post_id  = ! ! wp_insert_post(
-				[
-					'ID'           => $this->get_synonym_post_id(),
-					'post_content' => trim( sanitize_textarea_field( $synonyms ) ),
-				]
-			);
-
-			$update = $this->update_synonyms();
-		}
-
-		wp_safe_redirect(
-			add_query_arg(
-				[
-					'ep_synonym_update' => ( $post_id && $update ) ? 'success' : 'error',
-				],
-				esc_url_raw( $referer )
-			)
-		);
-		exit;
-	}
-
-	/**
-	 * Update synonyms.
-	 *
-	 * @return boolean
-	 */
-	public function update_synonyms() {
-		// Construct the update synonym filter setting.
-		$setting['index']['analysis']['filter']['ep_synonyms_filter'] = [
-			'type'     => 'synonym',
-			'lenient'  => true,
-			'synonyms' => $this->get_synonyms(),
-		];
-
-		// Update the index with the new synonyms.
-		$indexable  = Indexables::factory()->get( 'post' );
-		$index_name = $indexable->get_index_name();
-
-		return Elasticsearch::factory()->update_index_settings( $index_name, $setting, true );
-	}
-
-	/**
-	 * Adds the synonyms settings page to the admin menu.
-	 *
-	 * @return void
-	 */
-	public function admin_menu() {
-		add_submenu_page(
-			'elasticpress',
-			esc_html__( 'Synonyms', 'elasticpress' ),
-			esc_html__( 'Synonyms', 'elasticpress' ),
-			'manage_options',
-			'elasticpress-synonyms',
-			[ $this, 'admin_page' ]
-		);
 	}
 
 	/**
@@ -251,6 +140,22 @@ class Synonyms {
 				'i18n' => $this->get_localized_strings(),
 				'data' => $this->get_localized_data(),
 			)
+		);
+	}
+
+	/**
+	 * Adds the synonyms settings page to the admin menu.
+	 *
+	 * @return void
+	 */
+	public function admin_menu() {
+		add_submenu_page(
+			'elasticpress',
+			esc_html__( 'Synonyms', 'elasticpress' ),
+			esc_html__( 'Synonyms', 'elasticpress' ),
+			'manage_options',
+			'elasticpress-synonyms',
+			[ $this, 'admin_page' ]
 		);
 	}
 
@@ -376,13 +281,19 @@ class Synonyms {
 	 */
 	public function get_synonyms() {
 		$synonyms_raw = $this->get_synonyms_raw();
-		$synonyms     = explode( PHP_EOL, $synonyms_raw );
-
-		return array_values(
+		$synonyms     = array_values(
 			array_filter(
-				array_map( [ $this, 'validate_synonym' ], $synonyms )
+				array_map( [ $this, 'validate_synonym' ], explode( PHP_EOL, $synonyms_raw ) )
 			)
 		);
+
+		/**
+		 * Filter array of synonyms to add to a custom synonym filter.
+		 *
+		 * @hook ep_synonyms
+		 * @return  {array} The new array of search synonyms.
+		 */
+		return apply_filters( 'ep_synonyms', $synonyms );
 	}
 
 	/**
@@ -412,22 +323,192 @@ class Synonyms {
 	}
 
 	/**
+	 * Add search synonyms.
+	 *
+	 * @param array  $mapping Elasticsearch mapping.
+	 * @param string $index  Index name.
+	 * @return array
+	 */
+	public function add_search_synonyms( $mapping, $index ) {
+		$synonyms    = $this->get_synonyms();
+		$indices     = $this->get_affected_indices();
+		$filter_name = $this->get_synonym_filter_name();
+
+		// Ensure we should affect this mapping.
+		if ( ! in_array( $index, $indices, true ) ) {
+			return $mapping;
+		}
+
+		// Ensure we have synonyms to add.
+		if ( ! is_array( $synonyms ) ) {
+			return $mapping;
+		}
+
+		// Ensure we have filters and that it is an array.
+		if ( ! isset( $mapping['settings']['analysis']['filter'] )
+			|| ! is_array( $mapping['settings']['analysis']['filter'] )
+		) {
+			return $mapping;
+		}
+
+		// Ensure we have analyzers and that it is an array.
+		if ( ! isset( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
+			|| ! is_array( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
+		) {
+			return $mapping;
+		}
+
+		// Create a custom synonym filter for EP.
+		$mapping['settings']['analysis']['filter'][ $filter_name ] = $this->get_synonym_filter();
+
+		// Tell the analyzer to use our newly created filter.
+		$mapping['settings']['analysis']['analyzer']['default']['filter'] = array_merge(
+			[ $filter_name ],
+			$mapping['settings']['analysis']['analyzer']['default']['filter']
+		);
+
+		return $mapping;
+	}
+
+	/**
+	 * Handles updating the synonym list.
+	 *
+	 * @return void
+	 */
+	public function handle_update_synonyms() {
+		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_STRING );
+		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_STRING );
+		$post_id = false;
+
+		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
+			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_SANITIZE_STRING );
+			$post_id  = ! ! wp_insert_post(
+				[
+					'ID'           => $this->get_synonym_post_id(),
+					'post_content' => trim( sanitize_textarea_field( $synonyms ) ),
+				]
+			);
+
+			$update = $this->update_synonyms();
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'ep_synonym_update' => ( $post_id && $update ) ? 'success' : 'error',
+				],
+				esc_url_raw( $referer )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Update synonyms.
+	 *
+	 * @return boolean
+	 */
+	public function update_synonyms() {
+		return array_reduce(
+			$this->get_affected_indices(),
+			function( $success, $index ) {
+				$mapping = Elasticsearch::factory()->get_mapping( $index );
+				$filters = $mapping[ $index ]['settings']['index']['analysis']['analyzer']['default']['filter'];
+
+				// Construct the synonym filter.
+				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $this->get_synonym_filter();
+
+				// Add the analyzer.
+				$setting['index']['analysis']['analyzer']['default']['filter'] = array_merge(
+					[ $this->get_synonym_filter_name() ],
+					$filters
+				);
+
+				// Put it to Elasticsearch.
+				$update = Elasticsearch::factory()->update_index_settings( $index, $setting, true );
+				return $success ? $update : false;
+			},
+			true
+		);
+	}
+
+	/**
+	 * Get affected indices.
+	 *
+	 * @return array
+	 */
+	public function get_affected_indices() {
+		/**
+		 * Filter the indices that use the synonym filter.
+		 *
+		 * @return array Array of index names.
+		 */
+		$indices = apply_filters( 'ep_synonyms_affected_indices', $this->affected_indices );
+
+		return array_filter(
+			array_map(
+				function( $index ) {
+					$indexable = Indexables::factory()->get( $index );
+					return $indexable ? $indexable->get_index_name() : false;
+				},
+				$indices
+			)
+		);
+	}
+
+	/**
+	 * Get synonym filter name.
+	 *
+	 * @return string
+	 */
+	public function get_synonym_filter_name() {
+		/**
+		 * Filter name of the synonym filter set in elasticsearch.
+		 *
+		 * @hook ep_synonyms_filter_name
+		 * @return  {string} The name of the synonyms filter.
+		 */
+		return apply_filters( 'ep_synonyms_filter_name', $this->filter_name );
+	}
+
+	/**
+	 * Get synonym filter.
+	 *
+	 * @return array
+	 */
+	public function get_synonym_filter() {
+		/**
+		 * Filter the synonym filter set in elasticsearch.
+		 *
+		 * @hook ep_synonyms_filter
+		 * @return  {array} The synonym search filter.
+		 */
+		return apply_filters(
+			'ep_synonyms_filter',
+			[
+				'type'     => 'synonym',
+				'lenient'  => true,
+				'synonyms' => $this->get_synonyms(),
+			]
+		);
+	}
+
+	/**
 	 * Get form action for admin page.
 	 *
 	 * @access protected
 	 * @return string The admin post form action url.
 	 */
-	protected function get_form_action() {
+	public function get_form_action() {
 		return esc_url_raw( admin_url( 'admin-post.php' ) );
 	}
 
 	/**
 	 * Render admin page form hidden fields.
 	 *
-	 * @access protected
 	 * @return void
 	 */
-	protected function form_hidden_fields() {
+	public function form_hidden_fields() {
 		wp_nonce_field( $this->get_nonce_action(), $this->get_nonce_field() );
 		?>
 		<input type="hidden" name="action" value="<?php echo esc_attr( $this->get_action() ); ?>" />
@@ -437,40 +518,36 @@ class Synonyms {
 	/**
 	 * Get nonce action for admin page form.
 	 *
-	 * @access protected
 	 * @return string
 	 */
-	protected function get_nonce_action() {
+	public function get_nonce_action() {
 		return $this->get_action();
 	}
 
 	/**
 	 * Get nonce field for admin page form.
 	 *
-	 * @access protected
 	 * @return string
 	 */
-	protected function get_nonce_field() {
+	public function get_nonce_field() {
 		return 'ep_synonyms_nonce';
 	}
 
 	/**
 	 * Get synonym field name for admin page form.
 	 *
-	 * @access protected
 	 * @return string
 	 */
-	protected function get_synonym_field() {
+	public function get_synonym_field() {
 		return 'ep_synonyms';
 	}
 
 	/**
 	 * Get the action slug for admin page form.
 	 *
-	 * @access protected
 	 * @return string
 	 */
-	protected function get_action() {
+	public function get_action() {
 		return 'ep_synonyms_update';
 	}
 
@@ -479,7 +556,7 @@ class Synonyms {
 	 *
 	 * @return boolean
 	 */
-	protected function is_synonym_page() {
+	public function is_synonym_page() {
 		if ( ! function_exists( '\get_current_screen' ) ) {
 			return false;
 		}
@@ -493,7 +570,7 @@ class Synonyms {
 	 *
 	 * @return string
 	 */
-	protected function example_synonym_list() {
+	public function example_synonym_list() {
 		return implode(
 			PHP_EOL,
 			[
@@ -511,7 +588,7 @@ class Synonyms {
 	 *
 	 * @return array
 	 */
-	protected function get_localized_strings() {
+	public function get_localized_strings() {
 		return array(
 			'setsTitle'                  => __( 'Sets', 'elasticpress' ),
 			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
@@ -544,7 +621,7 @@ class Synonyms {
 	 *
 	 * @return array
 	 */
-	protected function get_localized_data() {
+	public function get_localized_data() {
 		$data     = array(
 			'sets'         => array(),
 			'alternatives' => array(),
@@ -607,7 +684,7 @@ class Synonyms {
 	 * @param boolean $primary Whether this string is the primary term of an alternative.
 	 * @return array
 	 */
-	protected static function prepare_localized_token( $token, $primary = false ) {
+	public static function prepare_localized_token( $token, $primary = false ) {
 		return array(
 			'label'   => trim( sanitize_text_field( $token ) ),
 			'value'   => trim( sanitize_text_field( $token ) ),
