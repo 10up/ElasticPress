@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { State } from '../context';
+import React, { useContext, useEffect } from 'react';
+import { State, Dispatch } from '../context';
 import SetsEditor from './editors/SetsEditor';
 import AlterativesEditor from './editors/AlternativesEditor';
 import SolrEditor from './editors/SolrEditor';
@@ -11,7 +11,8 @@ import SolrEditor from './editors/SolrEditor';
  */
 export default function SynonymsEditor() {
 	const state = useContext(State);
-	const { alternatives, sets, isSolrEditable, isSolrVisible } = state;
+	const dispatch = useContext(Dispatch);
+	const { alternatives, sets, isSolrEditable, isSolrVisible, dirty, submit } = state;
 	const {
 		alternativesTitle,
 		alternativesDescription,
@@ -19,7 +20,34 @@ export default function SynonymsEditor() {
 		setsDescription,
 		solrTitle,
 		solrDescription,
+		submitText,
 	} = window.epSynonyms.i18n;
+
+	/**
+	 * Checks if the form is valid.
+	 *
+	 * @param {object} _state Current state.
+	 * @returns {boolean}
+	 */
+	const isValid = (_state) => {
+		return [..._state.sets, ..._state.alternatives].reduce((valid, item) => {
+			return !valid ? valid : item.valid;
+		}, true);
+	};
+
+	/**
+	 * Handles submitting the form.
+	 */
+	const handleSubmit = () => {
+		dispatch({ type: 'VALIDATE_ALL' });
+		dispatch({ type: 'SUBMIT' });
+	};
+
+	useEffect(() => {
+		if (submit && !dirty && isValid(state)) {
+			document.querySelector('.wrap form').submit();
+		}
+	}, [submit, dirty]);
 
 	return (
 		<>
@@ -38,6 +66,9 @@ export default function SynonymsEditor() {
 				{isSolrVisible && <p>{solrDescription}</p>}
 				<SolrEditor />
 			</div>
+			<button onClick={handleSubmit} type="button" className="button button-primary">
+				{submitText}
+			</button>
 		</>
 	);
 }

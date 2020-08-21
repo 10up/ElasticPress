@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { Fragment, useContext } from 'react';
 import AlternativeEditor from './AlternativeEditor';
 import { Dispatch, State } from '../../context';
 
@@ -15,6 +15,7 @@ export default function AlterativesEditor({ alternatives }) {
 		alternativesInputHeading,
 		alternativesPrimaryHeading,
 		alternativesAddButtonText,
+		alternativesErrorMessage,
 	} = window.epSynonyms.i18n;
 
 	/**
@@ -42,14 +43,19 @@ export default function AlterativesEditor({ alternatives }) {
 					</span>
 				</h2>
 				<div className="inside">
-					{alternatives.map(({ synonyms, id }) => (
-						<AlternativeEditor
-							updateAction="UPDATE_ALTERNATIVE"
-							removeAction="REMOVE_ALTERNATIVE"
-							synonyms={synonyms}
-							key={id}
-							id={id}
-						/>
+					{alternatives.map((props) => (
+						<Fragment key={props.id}>
+							<div className="synonym-alternative-editor">
+								<AlternativeEditor
+									{...props}
+									updateAction="UPDATE_ALTERNATIVE"
+									removeAction="REMOVE_ALTERNATIVE"
+								/>
+							</div>
+							{!props.valid && (
+								<p className="synonym__validation">{alternativesErrorMessage}</p>
+							)}
+						</Fragment>
 					))}
 					<button className="button button-secondary" onClick={handleClick}>
 						{alternativesAddButtonText}

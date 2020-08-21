@@ -54,7 +54,7 @@ export default function AlternativeEditor(props) {
 	}, [primaryRef]);
 
 	return (
-		<div className="synonym-alternative-editor">
+		<>
 			<input
 				type="text"
 				className="ep-synonyms__input"
@@ -67,6 +67,6 @@ export default function AlternativeEditor(props) {
 				{...props}
 				synonyms={props.synonyms.filter((item) => !item.primary)}
 			/>
-		</div>
+		</>
 	);
 }

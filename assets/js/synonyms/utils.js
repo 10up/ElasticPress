@@ -20,6 +20,7 @@ const mapEntry = (synonyms = [], id = '') => {
 	return {
 		id: id.length ? id : uuidv4(),
 		synonyms,
+		valid: true,
 	};
 };
 

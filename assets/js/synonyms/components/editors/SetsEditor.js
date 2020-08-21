@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, Fragment } from 'react';
 import LinkedMultiInput from '../shared/LinkedMultiInput';
 import { Dispatch, State } from '../../context';
 
@@ -11,7 +11,7 @@ import { Dispatch, State } from '../../context';
 export default function SetsEditor({ sets }) {
 	const dispatch = useContext(Dispatch);
 	const state = useContext(State);
-	const { setsInputHeading, setsAddButtonText } = window.epSynonyms.i18n;
+	const { setsInputHeading, setsAddButtonText, setsErrorMessage } = window.epSynonyms.i18n;
 
 	/**
 	 * Handle click.
@@ -33,15 +33,19 @@ export default function SetsEditor({ sets }) {
 					<span>{setsInputHeading}</span>
 				</h2>
 				<div className="inside">
-					{sets.map(({ synonyms, id }) => (
-						<div className="synonym-set-editor" key={id}>
-							<LinkedMultiInput
-								updateAction="UPDATE_SET"
-								removeAction="REMOVE_SET"
-								synonyms={synonyms}
-								id={id}
-							/>
-						</div>
+					{sets.map((props) => (
+						<Fragment key={props.id}>
+							<div className="synonym-set-editor">
+								<LinkedMultiInput
+									{...props}
+									updateAction="UPDATE_SET"
+									removeAction="REMOVE_SET"
+								/>
+							</div>
+							{!props.valid && (
+								<p className="synonym__validation">{setsErrorMessage}</p>
+							)}
+						</Fragment>
 					))}
 					<button className="button button-secondary" onClick={handleClick}>
 						{setsAddButtonText}

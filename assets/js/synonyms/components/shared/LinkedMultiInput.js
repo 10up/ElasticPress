@@ -8,15 +8,10 @@ import { Dispatch } from '../../context';
  * @param {object} props Props.
  * @returns {React.FC}
  */
-export default function LinkedMultiInput({
-	id,
-	synonyms,
-	removeAction,
-	updateAction,
-	clearOnEmpty,
-}) {
+export default function LinkedMultiInput({ id, synonyms, removeAction, updateAction }) {
 	const dispatch = useContext(Dispatch);
 	const [tokens, setTokens] = useState(synonyms || []);
+	const { removeItemText } = window.epSynonyms.i18n;
 
 	useEffect(() => {
 		if (tokens !== synonyms) {
@@ -40,8 +35,8 @@ export default function LinkedMultiInput({
 				setTokens={setTokens}
 			/>
 			<button className="synonym__remove" type="button" onClick={handleClear}>
-				<span class="dashicons dashicons-dismiss"></span>
-				<span>Remove</span>
+				<span className="dashicons dashicons-dismiss"></span>
+				<span>{removeItemText}</span>
 			</button>
 		</>
 	);

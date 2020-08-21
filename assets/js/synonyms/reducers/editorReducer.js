@@ -11,6 +11,8 @@ const initialState = {
 	isSolrVisible: !!solrVisible || false,
 	alternatives: alternatives ? alternatives.map(mapEntry) : [mapEntry()],
 	sets: sets ? sets.map(mapEntry) : [mapEntry()],
+	dirty: false,
+	submit: false,
 };
 
 /**
@@ -26,6 +28,7 @@ const editorReducer = (state, action) => {
 			return {
 				...state,
 				sets: [...state.sets, mapEntry()],
+				dirty: true,
 			};
 		case 'UPDATE_SET':
 			return {
@@ -36,6 +39,7 @@ const editorReducer = (state, action) => {
 					}
 					return mapEntry(action.data.tokens, action.data.id);
 				}),
+				dirty: true,
 			};
 		case 'REMOVE_SET':
 			return {
@@ -46,6 +50,7 @@ const editorReducer = (state, action) => {
 			return {
 				...state,
 				alternatives: [...state.alternatives, mapEntry()],
+				dirty: true,
 			};
 		case 'UPDATE_ALTERNATIVE':
 			return {
@@ -61,6 +66,7 @@ const editorReducer = (state, action) => {
 						);
 					}),
 				],
+				dirty: true,
 			};
 		case 'UPDATE_ALTERNATIVE_PRIMARY':
 			return {
@@ -76,6 +82,7 @@ const editorReducer = (state, action) => {
 						);
 					}),
 				],
+				dirty: true,
 			};
 		case 'REMOVE_ALTERNATIVE':
 			return {
@@ -88,7 +95,32 @@ const editorReducer = (state, action) => {
 				isSolrEditable: !!action.data,
 			};
 		case 'REDUCE_STATE_FROM_SOLR':
-			return reduceSolrToState(action.data, state);
+			return {
+				...reduceSolrToState(action.data, state),
+				dirty: true,
+			};
+		case 'VALIDATE_ALL':
+			return {
+				...state,
+				sets: state.sets.map((set) => ({
+					...set,
+					valid: set.synonyms.length > 1,
+				})),
+				alternatives: state.alternatives.map((alternative) => ({
+					...alternative,
+					valid:
+						alternative.synonyms.length > 1 &&
+						!!alternative.synonyms.filter(
+							({ primary, value }) => primary && value.length,
+						).length,
+				})),
+				dirty: false,
+			};
+		case 'SUBMIT':
+			return {
+				...state,
+				submit: true,
+			};
 		default:
 			return state;
 	}
