@@ -322,13 +322,6 @@ class Synonyms extends Feature {
 			<form action="<?php echo esc_url( $this->get_form_action() ); ?>" method="POST">
 				<?php $this->form_hidden_fields(); ?>
 				<div id="synonym-root"></div>
-				<?php
-				submit_button(
-					( empty( $post->post_content ) )
-						? __( 'Add Synonyms', 'elasticpress' )
-						: __( 'Update Synonyms', 'elasticpress' )
-				);
-				?>
 			</form>
 		</div>
 		<?php
@@ -576,18 +569,23 @@ class Synonyms extends Feature {
 			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
 			'setsInputHeading'           => __( 'Comma separated list of terms', 'elasticpress' ),
 			'setsAddButtonText'          => __( 'Add Set', 'elasticpress' ),
+			'setsErrorMessage'           => __( 'This set must contain at least 2 terms.', 'elasticpress' ),
 
 			'alternativesTitle'          => __( 'Alternatives', 'elasticpress' ),
 			'alternativesDescription'    => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
 			'alternativesPrimaryHeading' => __( 'Primary term', 'elasticpress' ),
 			'alternativesInputHeading'   => __( 'Comma separated list of alternatives', 'elasticpress' ),
 			'alternativesAddButtonText'  => __( 'Add Alternative', 'elasticpress' ),
+			'alternativesErrorMessage'   => __( 'You must enter both a primary term and at least one alternative term.'),
 
 			'solrTitle'                  => __( 'Advanced Synonym Editor', 'elasticpress' ),
 			'solrDescription'            => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
 			'solrInputHeading'           => __( 'SolrSynonym Text', 'elasticpress' ),
 			'solrEditButtonText'         => __( 'Edit File (Advanced)', 'elasticpress' ),
 			'solrApplyButtonText'        => __( 'Apply Changes', 'elasticpress' ),
+
+			'removeItemText'             => __( 'Remove', 'elasticpress' ),
+			'submitText'                 => __( 'Update Synonyms', 'elasticpress' ),
 
 			'synonymsTextareaInputName'  => $this->get_synonym_field(),
 		);
