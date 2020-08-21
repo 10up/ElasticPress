@@ -75,6 +75,12 @@ export default function MultiInput(props) {
 			onKeyDown={handleKeyDown}
 			placeholder="Type a synonym and press enter..."
 			value={tokens}
+			styles={{
+				control: (styles) => ({
+					...styles,
+					cursor: 'pointer',
+				}),
+			}}
 		/>
 	);
 }

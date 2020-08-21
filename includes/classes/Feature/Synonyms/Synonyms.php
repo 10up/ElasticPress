@@ -11,6 +11,7 @@ use ElasticPress\Feature;
 use ElasticPress\Features;
 use ElasticPress\Indexables;
 use ElasticPress\Elasticsearch;
+use ElasticPress\FeatureRequirementsStatus;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -50,6 +51,27 @@ class Synonyms extends Feature {
 		];
 
 		parent::__construct();
+	}
+
+	/**
+	 * Returns requirements status of feature
+	 *
+	 * Requires the search feature to be activated
+	 *
+	 * @return FeatureRequirementsStatus
+	 */
+	public function requirements_status() {
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+
+		/** Search Feature @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+
+		if ( ! $search->is_active() ) {
+			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
+		}
+
+		return parent::requirements_status();
 	}
 
 	/**
