@@ -464,7 +464,14 @@ abstract class Indexable {
 			$datetime = '1971-01-01 00:00:01';
 			$time     = '00:00:01';
 
-			if ( false !== $timestamp ) {
+			/**
+			 * Workaround for `strtotime` potentially producing valid timestamps that would result in 5 digit years
+			 * which DateTime::__construct() can't handle,
+			 * resulting in an 'Uncaught Error: Call to a member function getTimestamp() on bool' in date_i18n.
+			 *
+			 * This better be fixed by 9999-12-31 23:59:59
+			 */
+			if ( false !== $timestamp && 253402300799 > $timestamp ) {
 				$date     = date_i18n( 'Y-m-d', $timestamp );
 				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
 				$time     = date_i18n( 'H:i:s', $timestamp );
