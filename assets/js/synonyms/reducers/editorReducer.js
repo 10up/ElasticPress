@@ -4,11 +4,11 @@ import { reduceSolrToState, mapEntry } from '../utils';
  * The synonym editor reducer.
  */
 
-const { alternatives, sets, solrVisible } = window.epSynonyms.data;
+const { alternatives, sets, initialMode } = window.epSynonyms.data;
 
 const initialState = {
-	isSolrEditable: false,
-	isSolrVisible: !!solrVisible || false,
+	isSolrEditable: initialMode === 'advanced',
+	isSolrVisible: initialMode === 'advanced',
 	alternatives: alternatives ? alternatives.map(mapEntry) : [mapEntry()],
 	sets: sets ? sets.map(mapEntry) : [mapEntry()],
 	dirty: false,
@@ -93,6 +93,7 @@ const editorReducer = (state, action) => {
 			return {
 				...state,
 				isSolrEditable: !!action.data,
+				isSolrVisible: !!action.data,
 			};
 		case 'REDUCE_STATE_FROM_SOLR':
 			return {

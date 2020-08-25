@@ -14,6 +14,10 @@ export default function SynonymsEditor() {
 	const dispatch = useContext(Dispatch);
 	const { alternatives, sets, isSolrEditable, isSolrVisible, dirty, submit } = state;
 	const {
+		pageHeading,
+		pageDescription,
+		pageToggleAdvanceText,
+		pageToggleSimpleText,
 		alternativesTitle,
 		alternativesDescription,
 		setsTitle,
@@ -43,6 +47,13 @@ export default function SynonymsEditor() {
 		dispatch({ type: 'SUBMIT' });
 	};
 
+	/**
+	 * Handle toggling the editor type.
+	 */
+	const handleToggleAdvance = () => {
+		dispatch({ type: 'SET_SOLR_EDITABLE', data: !isSolrEditable });
+	};
+
 	useEffect(() => {
 		if (submit && !dirty && isValid(state)) {
 			document.querySelector('.wrap form').submit();
@@ -51,24 +62,49 @@ export default function SynonymsEditor() {
 
 	return (
 		<>
-			<div className="synonym-editor synonym-editor__sets">
-				<h2>{`${setsTitle} (${sets.length})`}</h2>
-				<p>{setsDescription}</p>
-				{!isSolrEditable && <SetsEditor sets={sets} />}
-			</div>
-			<div className="synonym-editor synonym-editor__alteratives">
-				<h2>{`${alternativesTitle} (${alternatives.length})`}</h2>
-				<p>{alternativesDescription}</p>
-				{!isSolrEditable && <AlterativesEditor alternatives={alternatives} />}
-			</div>
+			<h1>
+				{pageHeading}
+				<button onClick={handleToggleAdvance} type="button" className="page-title-action">
+					{isSolrEditable ? pageToggleSimpleText : pageToggleAdvanceText}
+				</button>
+			</h1>
+			<p>{pageDescription}</p>
+
+			{!isSolrEditable && (
+				<>
+					<div className="synonym-editor synonym-editor__sets">
+						<h2>{`${setsTitle} (${sets.length})`}</h2>
+						<p>{setsDescription}</p>
+						<SetsEditor sets={sets} />
+					</div>
+					<div className="synonym-editor synonym-editor__alteratives">
+						<h2>{`${alternativesTitle} (${alternatives.length})`}</h2>
+						<p>{alternativesDescription}</p>
+						<AlterativesEditor alternatives={alternatives} />
+					</div>
+				</>
+			)}
+
 			<div className="synonym-editor synonym-editor__solr">
 				{isSolrVisible && <h2>{solrTitle}</h2>}
 				{isSolrVisible && <p>{solrDescription}</p>}
 				<SolrEditor />
 			</div>
-			<button onClick={handleSubmit} type="button" className="button button-primary">
-				{submitText}
-			</button>
+
+			<input
+				type="hidden"
+				name="synonyms_editor_mode"
+				value={isSolrEditable ? 'advanced' : 'simple'}
+			/>
+
+			<div className="synonym-btn-group">
+				<button onClick={handleToggleAdvance} type="button" className="button">
+					{isSolrEditable ? pageToggleSimpleText : pageToggleAdvanceText}
+				</button>
+				<button onClick={handleSubmit} type="button" className="button button-primary">
+					{submitText}
+				</button>
+			</div>
 		</>
 	);
 }
