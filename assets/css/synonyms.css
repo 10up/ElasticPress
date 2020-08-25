@@ -63,3 +63,7 @@ button.synonym__remove {
 	font-style: italic;
 	margin: 0 0 0.625em 0.5em;
 }
+
+.synonym-btn-group button.button {
+	margin-right: 0.625em;
+}
