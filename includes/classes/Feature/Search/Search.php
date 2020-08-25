@@ -41,8 +41,8 @@ class Search extends Feature {
 
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
-			'decaying_enabled'        => true,
-			'advanced_synonym_editor' => false,
+			'decaying_enabled'     => true,
+			'synonyms_editor_mode' => 'simple',
 		];
 
 		parent::__construct();
@@ -335,37 +335,6 @@ class Search extends Feature {
 			</div>
 			<br class="clear">
 			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ); ?>"><?php esc_html_e( 'Advanced fields and weighting settings', 'elasticpress' ); ?></a></p>
-		</div>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
-			<div class="field-name status"><?php esc_html_e( 'Enable Advanced Synonym Editor', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label for="enable_advanced_synonym_editor">
-					<input
-						name="advanced_synonym_editor"
-						id="enable_advanced_synonym_editor"
-						data-field-name="advanced_synonym_editor"
-						class="setting-field"
-						<?php checked( (bool) $settings['advanced_synonym_editor'] ); ?>
-						type="radio"
-						value="1"
-					>
-					<?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
-				</label>
-				<br>
-				<label for="disable_advanced_synonym_editor">
-					<input
-						name="advanced_synonym_editor"
-						id="disable_advanced_synonym_editor"
-						data-field-name="advanced_synonym_editor"
-						class="setting-field"
-						<?php checked( ! (bool) $settings['advanced_synonym_editor'] ); ?>
-						type="radio"
-						value="0"
-					>
-					<?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
-				</label>
-			</div>
-			<br class="clear">
 			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) ); ?>"><?php esc_html_e( 'Add synonyms to your post searches', 'elasticpress' ); ?></a></p>
 		</div>
 		<?php

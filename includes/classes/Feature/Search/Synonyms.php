@@ -170,8 +170,6 @@ class Synonyms {
 		$post            = get_post( $synonym_post_id );
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Manage Synonyms', 'elasticpress' ); ?></h1>
-			<p><?php esc_html_e( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ); ?></p>
 			<form action="<?php echo esc_url( $this->get_form_action() ); ?>" method="POST">
 				<?php $this->form_hidden_fields(); ?>
 				<div id="synonym-root"></div>
@@ -382,6 +380,7 @@ class Synonyms {
 
 		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
 			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_SANITIZE_STRING );
+			$mode     = filter_input( INPUT_POST, 'synonyms_editor_mode', FILTER_SANITIZE_STRING );
 			$post_id  = ! ! wp_insert_post(
 				[
 					'ID'           => $this->get_synonym_post_id(),
@@ -390,6 +389,9 @@ class Synonyms {
 			);
 
 			$update = $this->update_synonyms();
+			if ( in_array( $mode, [ 'advanced', 'simple' ], true ) ) {
+				$this->save_editor_mode( $mode );
+			}
 		}
 
 		wp_safe_redirect(
@@ -590,6 +592,11 @@ class Synonyms {
 	 */
 	public function get_localized_strings() {
 		return array(
+			'pageHeading'                => __( 'Manage Synonyms', 'elasticpress' ),
+			'pageDescription'            => __( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ),
+			'pageToggleAdvanceText'      => __( 'Toggle Advanced Editor', 'elasticpress' ),
+			'pageToggleSimpleText'       => __( 'Toggle Simple Editor', 'elasticpress' ),
+
 			'setsTitle'                  => __( 'Sets', 'elasticpress' ),
 			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
 			'setsInputHeading'           => __( 'Comma separated list of terms', 'elasticpress' ),
@@ -606,8 +613,6 @@ class Synonyms {
 			'solrTitle'                  => __( 'Advanced Synonym Editor', 'elasticpress' ),
 			'solrDescription'            => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
 			'solrInputHeading'           => __( 'SolrSynonym Text', 'elasticpress' ),
-			'solrEditButtonText'         => __( 'Edit File (Advanced)', 'elasticpress' ),
-			'solrApplyButtonText'        => __( 'Apply Changes', 'elasticpress' ),
 
 			'removeItemText'             => __( 'Remove', 'elasticpress' ),
 			'submitText'                 => __( 'Update Synonyms', 'elasticpress' ),
@@ -625,7 +630,7 @@ class Synonyms {
 		$data     = array(
 			'sets'         => array(),
 			'alternatives' => array(),
-			'solrVisible'  => $this->advanced_editor_enabled(),
+			'initialMode'  => $this->synonyms_editor_mode(),
 		);
 		$synonyms = $this->get_synonyms();
 
@@ -658,23 +663,44 @@ class Synonyms {
 	}
 
 	/**
-	 * Advanced editor enabled.
+	 * Saves the editor mode.
+	 *
+	 * @param  string $mode The mode, one of "advanced" or "simple".
+	 * @return void
+	 */
+	public function save_editor_mode( $mode ) {
+		$search   = $this->get_search_feature();
+		$settings = $search->get_settings();
+
+		if ( isset( $settings['synonyms_editor_mode'] ) && $settings['synonyms_editor_mode'] === $mode ) {
+			return;
+		}
+
+		$settings['synonyms_editor_mode'] = $mode;
+		$features                         = Features::factory();
+		$features->update_feature( $search->slug, $settings, false );
+	}
+
+	/**
+	 * Get the stored editor mode. Default simple.
 	 *
 	 * @return boolean
 	 */
-	public function advanced_editor_enabled() {
+	public function synonyms_editor_mode() {
 		$search   = $this->get_search_feature();
 		$settings = $search->get_settings();
 		$settings = wp_parse_args( is_array( $settings ) ? $settings : [], $search->default_settings );
-		$enabled  = (bool) $settings['advanced_synonym_editor'];
+		$mode     = $settings['synonyms_editor_mode'];
 
 		/**
-		 * Filter whether to display the synonyms advanced editor.
+		 * Filter the default synonyms editor mode.
 		 *
-		 * @hook ep_synonyms_advanced_editor_enable
-		 * @return  {boolean} Boolean true to display advanced editor. Default false.
+		 * @hook ep_synonyms_editor_mode
+		 * @return  {string} One of 'simple' or 'advanced'.
 		 */
-		return (bool) apply_filters( 'ep_synonyms_advanced_editor_enable', $enabled );
+		$filtered = apply_filters( 'ep_synonyms_editor_mode', $mode );
+
+		return in_array( $filtered, [ 'simple', 'advanced' ], true ) ? $filtered : 'simple';
 	}
 
 	/**
