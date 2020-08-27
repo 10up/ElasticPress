@@ -15,6 +15,12 @@ use ElasticPress\Indexables as Indexables;
  * Search feature class
  */
 class Search extends Feature {
+	/**
+	 * Synonyms Class (Sub Feature)
+	 *
+	 * @var Synonyms
+	 */
+	public $synonyms;
 
 	/**
 	 * Weighting Class (Sub Feature)
@@ -35,7 +41,8 @@ class Search extends Feature {
 
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
-			'decaying_enabled' => true,
+			'decaying_enabled'     => true,
+			'synonyms_editor_mode' => 'simple',
 		];
 
 		parent::__construct();
@@ -53,6 +60,9 @@ class Search extends Feature {
 		// Set up weighting sub-module
 		$this->weighting = new Weighting();
 		$this->weighting->setup();
+
+		$this->synonyms = new Synonyms();
+		$this->synonyms->setup();
 	}
 
 	/**
@@ -309,22 +319,23 @@ class Search extends Feature {
 	 * @since 2.4
 	 */
 	public function output_feature_box_settings() {
-		$decaying_settings = $this->get_settings();
+		$settings = $this->get_settings();
 
-		if ( ! $decaying_settings ) {
-			$decaying_settings = [];
+		if ( ! $settings ) {
+			$settings = [];
 		}
 
-		$decaying_settings = wp_parse_args( $decaying_settings, $this->default_settings );
+		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $decaying_settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 			<br class="clear">
 			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ); ?>"><?php esc_html_e( 'Advanced fields and weighting settings', 'elasticpress' ); ?></a></p>
+			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) ); ?>"><?php esc_html_e( 'Add synonyms to your post searches', 'elasticpress' ); ?></a></p>
 		</div>
 		<?php
 	}

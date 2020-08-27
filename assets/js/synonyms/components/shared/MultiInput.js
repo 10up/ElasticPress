@@ -1,0 +1,86 @@
+import React, { useState } from 'react';
+import CreatableSelect from 'react-select/creatable';
+
+/**
+ * Synonyms editor component.
+ *
+ * @param {object} props Props.
+ * @returns {React.FC}
+ */
+export default function MultiInput(props) {
+	const { tokens, setTokens } = props;
+	const [inputValue, setInputValue] = useState('');
+
+	/**
+	 * Create option.
+	 *
+	 * @param {string} label Option label.
+	 * @returns {object}
+	 */
+	const createOption = (label) => ({
+		label,
+		value: label,
+	});
+
+	/**
+	 * Handle key down.
+	 *
+	 * @param {React.SyntheticEvent} event Keydown event.
+	 */
+	const handleKeyDown = (event) => {
+		switch (event.key) {
+			case ',':
+			case 'Enter':
+				if (!tokens || !inputValue.length) {
+					event.preventDefault();
+					break;
+				}
+				if (tokens.map(({ value }) => value).indexOf(inputValue.trim()) === -1) {
+					setTokens([...tokens, createOption(inputValue)]);
+				}
+				setInputValue('');
+				event.preventDefault();
+				break;
+			default:
+		}
+	};
+
+	/**
+	 * Handle change.
+	 *
+	 * @param {string} _value The value.
+	 * @param {object} data   Data with the action.
+	 */
+	const handleChange = (_value, data) => {
+		switch (data.action) {
+			case 'remove-value':
+				setTokens([...tokens.filter(({ value }) => value !== data.removedValue.value)]);
+				break;
+			default:
+				break;
+		}
+	};
+
+	return (
+		<CreatableSelect
+			{...props}
+			isMulti
+			components={{ DropdownIndicator: null }}
+			inputValue={inputValue}
+			isClearable={false}
+			menuIsOpen={false}
+			autoFocus={true}
+			onChange={handleChange}
+			onInputChange={(val) => setInputValue(val)}
+			onKeyDown={handleKeyDown}
+			placeholder="Type a synonym and press enter..."
+			value={tokens}
+			styles={{
+				control: (styles) => ({
+					...styles,
+					cursor: 'pointer',
+				}),
+			}}
+		/>
+	);
+}
