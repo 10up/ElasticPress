@@ -355,7 +355,7 @@ class Facets extends Feature {
 		);
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 0 === strpos( $key, 'filter' ) ) {
+			if ( 0 === strpos( $key, 'filter_' ) ) {
 				$taxonomy = str_replace( 'filter_', '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(
