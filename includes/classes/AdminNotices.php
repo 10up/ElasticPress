@@ -80,7 +80,10 @@ class AdminNotices {
 	 */
 	protected function process_using_autosuggest_defaults_notice() {
 		$feature = Features::factory()->get_registered_feature( 'autosuggest' );
-
+		if ( ! $feature instanceof Feature ) {
+			return false;
+		}
+		
 		if ( ! $feature->is_active() ) {
 			return false;
 		}
