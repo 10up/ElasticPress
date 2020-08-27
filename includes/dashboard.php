@@ -39,6 +39,7 @@ function setup() {
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_admin_scripts' );
 	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
+	add_action( 'admin_init', __NAMESPACE__ . '\maybe_skip_install' );
 	add_action( 'wp_ajax_ep_index', __NAMESPACE__ . '\action_wp_ajax_ep_index' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
 	add_action( 'wp_ajax_ep_cancel_index', __NAMESPACE__ . '\action_wp_ajax_ep_cancel_index' );
@@ -165,6 +166,29 @@ function log_version_query_error( $query ) {
 			delete_transient( $logging_key );
 		}
 	}
+}
+
+/**
+ * Allow user to skip install process.
+ *
+ * @since  3.5
+ */
+function maybe_skip_install() {
+	if ( ! is_admin() && ! is_network_admin() ) {
+		return;
+	}
+
+	if ( empty( $_GET['ep-skip-install'] ) || empty( $_GET['nonce'] ) || ! wp_verify_nonce( $_GET['nonce'], 'ep-skip-install' ) || ! in_array( Screen::factory()->get_current_screen(), [ 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		return;
+	}
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		update_site_option( 'ep_skip_install', true );
+	} else {
+		update_option( 'ep_skip_install', true );
+	}
+
+	wp_safe_redirect( admin_url( 'admin.php?page=elasticpress' ) );
 }
 
 /**
