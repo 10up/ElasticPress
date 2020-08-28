@@ -50,6 +50,32 @@ class Search extends Feature {
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
 
+		// Register page meta
+		register_post_meta(
+			['page', 'post'],
+			'exclude_from_search',
+			[
+				'show_in_rest'  => true,
+				'single'        => true,
+				'type'          => 'boolean',
+			]
+		);
+
+		wp_enqueue_script(
+			'ep-exclude-search',
+			EP_URL . 'dist/js/exclude-search-script.min.js',
+			[ 
+				'wp-i18n',
+				'wp-data',
+				'wp-plugins',
+				'wp-element',
+				'wp-components',
+				'wp-edit-post',
+			],
+			EP_VERSION,
+			true
+		);
+
 		// Set up weighting sub-module
 		$this->weighting = new Weighting();
 		$this->weighting->setup();
