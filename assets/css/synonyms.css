@@ -1,3 +1,17 @@
+#synonym-root {
+	& .page-title-action {
+		margin-left: 10px;
+	}
+
+	& .postbox .hndle {
+		cursor: default;
+	}
+
+	& h2 {
+		color: #23282d;
+	}
+}
+
 .synonym-alternatives-editor,
 .synonym-set-editor {
 	display: flex;
@@ -34,6 +48,10 @@
 		flex: 1;
 	}
 
+	& .ep-synonyms__linked-multi-input input:focus {
+		box-shadow: none;
+	}
+
 	&.invalid input {
 		border-color: #a00;
 	}
@@ -49,7 +67,12 @@ button.synonym__remove {
 	border: none;
 	color: #a00;
 	cursor: pointer;
-	margin: 0 0 0.5em 0.5em;
+	margin: -8px 0 0 10px;
+	padding: 0;
+
+	& .dashicons-dismiss {
+		margin: -2px 2px 0 0;
+	}
 }
 
 .synonym__validation::before {

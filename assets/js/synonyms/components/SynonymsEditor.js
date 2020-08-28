@@ -62,8 +62,8 @@ export default function SynonymsEditor() {
 
 	return (
 		<>
-			<h1>
-				{pageHeading}
+			<h1 className="wp-heading-inline">
+				{pageHeading}{' '}
 				<button onClick={handleToggleAdvance} type="button" className="page-title-action">
 					{isSolrEditable ? pageToggleSimpleText : pageToggleAdvanceText}
 				</button>
@@ -98,9 +98,6 @@ export default function SynonymsEditor() {
 			/>
 
 			<div className="synonym-btn-group">
-				<button onClick={handleToggleAdvance} type="button" className="button">
-					{isSolrEditable ? pageToggleSimpleText : pageToggleAdvanceText}
-				</button>
 				<button onClick={handleSubmit} type="button" className="button button-primary">
 					{submitText}
 				</button>
