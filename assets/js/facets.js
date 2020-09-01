@@ -1,6 +1,28 @@
 import { debounce } from './utils/helpers';
 
 const facetTerms = document.querySelector('.widget_ep-facet .terms');
+const terms = facetTerms.querySelectorAll('.term');
+
+/**
+ * Filters the results when a facet is selected
+ *
+ * @param {event} event - click on term
+ */
+const filterResults = (event) => {
+	if (event.target.nodeName.toLowerCase() === 'input') {
+		const baseUrl = window.location.origin;
+		const searchUrl = event.target.value;
+		const queryUrl = `${baseUrl}${searchUrl}`;
+		window.location.href = queryUrl;
+	}
+};
+
+/**
+ * Adds an event listener for each of the facets
+ */
+terms.forEach((term) => {
+	term.addEventListener('click', filterResults);
+});
 
 /**
  * Filters the facets to match the input search term when
@@ -12,7 +34,6 @@ const facetTerms = document.querySelector('.widget_ep-facet .terms');
 const handleFacetSearch = (event) => {
 	const { target } = event;
 	const searchTerm = target.value.replace(/\s/g, '').toLowerCase();
-	const terms = facetTerms.querySelectorAll('.term');
 
 	terms.forEach((term) => {
 		const slug = term.getAttribute('data-term-slug');

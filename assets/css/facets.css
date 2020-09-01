@@ -2,6 +2,18 @@
 	margin-bottom: 1rem
 }
 
+.widget_ep-facet input[type="checkbox"] {
+	cursor: pointer;
+	position: absolute;
+	opacity: 0;
+	height: 0;
+	width: 0;
+}
+
+.widget_ep-facet input[type="submit"] {
+	margin-bottom: 1em;
+}
+
 .widget_ep-facet .searchable .inner {
 	max-height: 20em;
 	overflow: scroll;
@@ -50,21 +62,53 @@
 
 .widget_ep-facet input[disabled] {
 	cursor: pointer;
+	display: none;
 	opacity: 1;
 }
 
-.widget_ep-facet .term a {
-	position: relative;
-	text-decoration: none;
 
-	&:after {
-		content: ' ';
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		display: block;
-		position: absolute;
-		z-index: 1;
-	}
+.ep-term-label {
+	display: block;
+	position: relative;
+	padding-left: 25px;
+	margin-bottom: 12px;
+	cursor: pointer;
+	user-select: none;
+  }
+  
+.checkmark {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 20px;
+	width: 20px;
+	background-color: #eee;
 }
+  
+  .ep-term-label:hover input ~ .checkmark {
+	background-color: #ccc;
+  }
+  
+  .ep-term-label input:checked ~ .checkmark {
+	background-color: #5e5e5e;
+  }
+  
+  .checkmark:after {
+	content: "";
+	position: absolute;
+	display: none;
+  }
+  
+  .ep-term-label input:checked ~ .checkmark:after {
+	display: block;
+  }
+  
+  .ep-term-label .checkmark:after {
+	left: 7px;
+	top: 4px;
+	width: 5px;
+	height: 10px;
+	border: solid white;
+	border-width: 0 3px 3px 0;
+	transform: rotate(45deg);
+  }
