@@ -252,7 +252,7 @@ function updateAutosuggestBox(options, input) {
 		});
 
 		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
-				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}">
+				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}"  tabindex="-1">
 					${resultsText}
 				</a>
 			</li>`;
