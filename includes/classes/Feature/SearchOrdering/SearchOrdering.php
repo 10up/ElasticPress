@@ -638,9 +638,10 @@ class SearchOrdering extends Feature {
 			'elasticpress/v1',
 			'pointer_search',
 			[
-				'methods'  => 'GET',
-				'callback' => [ $this, 'handle_pointer_search' ],
-				'args'     => [
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'handle_pointer_search' ],
+				'permission_callback' => '__return_true',
+				'args'                => [
 					's' => [
 						'validate_callback' => function ( $param ) {
 							return ! empty( $param );
@@ -655,9 +656,10 @@ class SearchOrdering extends Feature {
 			'elasticpress/v1',
 			'pointer_preview',
 			[
-				'methods'  => 'GET',
-				'callback' => [ $this, 'handle_pointer_preview' ],
-				'args'     => [
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'handle_pointer_preview' ],
+				'permission_callback' => '__return_true',
+				'args'                => [
 					's' => [
 						'validate_callback' => function ( $param ) {
 							return ! empty( $param );

@@ -1,0 +1,69 @@
+.synonym-alternatives-editor,
+.synonym-set-editor {
+	display: flex;
+
+	& > .postbox {
+		width: 100%;
+
+		& > .hndle {
+			display: flex;
+		}
+	}
+
+	& .synonym-alternative-editor {
+		display: flex;
+	}
+
+	& .ep-synonyms__linked-multi-input {
+		flex: 1;
+		margin-bottom: 0.5em;
+	}
+
+	& .ep-synonyms__input {
+		border: 1px solid hsl( 0, 0%, 80% );
+		margin-bottom: 0.5em;
+		margin-right: 1em;
+		width: 10em;
+	}
+
+	& .synonym-alternatives__primary-heading {
+		width: 11em;
+	}
+
+	& .synonym-alternatives__input-heading {
+		flex: 1;
+	}
+
+	&.invalid input {
+		border-color: #a00;
+	}
+}
+
+.synonym-alternative-editor,
+.synonym-set-editor {
+	margin-top: 0.625em;
+}
+
+button.synonym__remove {
+	background-color: transparent;
+	border: none;
+	color: #a00;
+	cursor: pointer;
+	margin: 0 0 0.5em 0.5em;
+}
+
+.synonym__validation::before {
+	content: '';
+	flex-basis: 100%;
+	height: 0;
+}
+
+.synonym__validation {
+	color: #a00;
+	font-style: italic;
+	margin: 0 0 0.625em 0.5em;
+}
+
+.synonym-btn-group button.button {
+	margin-right: 0.625em;
+}
