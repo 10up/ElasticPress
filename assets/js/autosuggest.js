@@ -578,8 +578,7 @@ function init() {
 	 */
 	const handleKeyup = (event) => {
 		event.preventDefault();
-
-		if (event.keyCode === 27) {
+		if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
 			hideAutosuggestBox();
 			toggleInputAria(false, event.target);
 			setInputActiveDescendant('', event.target);
@@ -608,6 +607,6 @@ function init() {
 	 */
 	epInputs.forEach((input) => {
 		input.addEventListener('keyup', handleKeyup);
-		// input.addEventListener( 'blur', hideAutosuggestBox );
+		input.addEventListener('blur', hideAutosuggestBox);
 	});
 }
