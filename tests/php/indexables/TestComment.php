@@ -427,7 +427,7 @@ class TestComment extends BaseTestCase {
 	}
 
 	public function testCommentQueryHierarchical() {
-		$this->createComments( 0, true );
+		$created_comments = $this->createComments( 0, true );
 
 		$comments_query = new \WP_Comment_Query( [
 			'hierarchical' => 'threaded',
@@ -437,7 +437,8 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
-		$this->assertObjectHasAttribute( 'children', reset( $comments ) );
+		$parent_comment = reset( $comments );
+		$this->assertNotFalse( $parent_comment->get_child( $created_comments['child_comment_id'] ) );
 
 		$comments_query = new \WP_Comment_Query( [
 			'hierarchical' => 'flat',
@@ -448,7 +449,7 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 		foreach( $comments as $comment ) {
-			$this->assertObjectNotHasAttribute( 'children', $comment );
+			$this->assertFalse( $comment->get_child( $created_comments['child_comment_id'] ) );
 		}
 	}
 
