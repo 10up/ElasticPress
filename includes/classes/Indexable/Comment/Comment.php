@@ -715,6 +715,12 @@ class Comment extends Indexable {
 	 * @return array
 	 */
 	public function query_db( $args ) {
+		/**
+		 * We use get_comment() here instead of new WP_Comment_Query( $args ) to save DB query.
+		 *
+		 * get_comment() queries the DB only one. While using the combination of
+		 * WP_Comment_Query( $args ) and WP_Comment_Query::get_comments() takes two DB queries.
+		 */
 		$total_objects = get_comments(
 			apply_filters(
 				'ep_comment_query_all_args',
