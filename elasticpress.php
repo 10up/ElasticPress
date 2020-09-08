@@ -70,7 +70,7 @@ spl_autoload_register(
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '7.5' );
+define( 'EP_ES_VERSION_MAX', '7.9' );
 define( 'EP_ES_VERSION_MIN', '5.0' );
 
 require_once __DIR__ . '/includes/compat.php';
