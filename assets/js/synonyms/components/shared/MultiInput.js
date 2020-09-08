@@ -61,6 +61,32 @@ export default function MultiInput(props) {
 		}
 	};
 
+	const customStyles = {
+		input: (styles) => ({
+			...styles,
+			cursor: 'text',
+			fontSize: '14px',
+			padding: 0,
+		}),
+		control: (styles) => ({
+			...styles,
+			cursor: 'text',
+		}),
+		multiValue: (styles) => ({
+			...styles,
+			padding: '4px',
+		}),
+		multiValueLabel: (styles) => ({
+			...styles,
+			fontSize: '14px',
+		}),
+		multiValueRemove: (styles) => ({
+			...styles,
+			cursor: 'pointer',
+			paddingTop: '2px',
+		}),
+	};
+
 	return (
 		<CreatableSelect
 			{...props}
@@ -75,12 +101,7 @@ export default function MultiInput(props) {
 			onKeyDown={handleKeyDown}
 			placeholder="Type a synonym and press enter..."
 			value={tokens}
-			styles={{
-				control: (styles) => ({
-					...styles,
-					cursor: 'pointer',
-				}),
-			}}
+			styles={customStyles}
 		/>
 	);
 }

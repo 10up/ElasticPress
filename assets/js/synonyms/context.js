@@ -13,8 +13,6 @@ const Dispatch = createContext();
 const AppContext = (props) => {
 	const [state, dispatch] = useReducer(editorReducer, initialState);
 
-	window.appState = state;
-	window.appDispatch = dispatch;
 	return (
 		<State.Provider value={state}>
 			<Dispatch.Provider value={dispatch}>{props.children}</Dispatch.Provider>
