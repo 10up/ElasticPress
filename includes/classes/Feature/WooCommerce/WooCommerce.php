@@ -840,6 +840,7 @@ class WooCommerce extends Feature {
 			/**
 			 * This logic is iffy but the WC price filter widget is not intended for use with search anyway
 			 */
+			$old_query = $args['query']['bool'];
 			unset( $args['query']['bool']['should'] );
 
 			if ( ! empty( $_GET['min_price'] ) ) {
@@ -851,7 +852,7 @@ class WooCommerce extends Feature {
 			}
 
 			$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
-			$args['query']['bool']['must'][1]['bool']                               = $args['query']['bool'];
+			$args['query']['bool']['must'][1]['bool']                               = $old_query;
 		} else {
 			unset( $args['query']['match_all'] );
 
