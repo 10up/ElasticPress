@@ -30,6 +30,13 @@ class Search extends Feature {
 	public $weighting;
 
 	/**
+	 * Highlighting Class (Sub Feature)
+	 *
+	 * @var Highlighting
+	 */
+	public $highlighting;
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -60,6 +67,10 @@ class Search extends Feature {
 		// Set up weighting sub-module
 		$this->weighting = new Weighting();
 		$this->weighting->setup();
+
+		// Set up highlighting sub-module
+		$this->highlighting = new Highlighting();
+		$this->highlighting->setup();
 
 		$this->synonyms = new Synonyms();
 		$this->synonyms->setup();
@@ -325,7 +336,9 @@ class Search extends Feature {
 			$settings = [];
 		}
 
-		$settings = wp_parse_args( $settings, $this->default_settings );
+		$settings = wp_parse_args( $decaying_settings, $this->default_settings );
+		$settings = wp_parse_args( $settings, $this->highlighting->default_settings );
+
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
@@ -333,10 +346,40 @@ class Search extends Feature {
 				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
 				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
-			<br class="clear">
-			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ); ?>"><?php esc_html_e( 'Advanced fields and weighting settings', 'elasticpress' ); ?></a></p>
-			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) ); ?>"><?php esc_html_e( 'Add synonyms to your post searches', 'elasticpress' ); ?></a></p>
 		</div>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Highlighting status', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="highlighting_enabled"><input name="highlight_enabled" id="highlighting_enabled" data-field-name="highlight_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['highlight_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="highlighting_disabled"><input name="highlight_enabled" id="highlighting_disabled" data-field-name="highlight_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['highlight_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<p class="field-description"><?php esc_html_e( 'Wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the "ep-highlight" class for easy styling.' ); ?></p>
+			</div>
+		</div>
+		<div class="field" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<label for="highlight-tag" class="field-name status"><?php echo esc_html_e( 'Highlight tag ', 'elasticpress' ); ?></label>
+			<div class="input-wrap">
+				<select id="highlight-tag" name="highlight-tag" class="setting-field" data-field-name="highlight_tag">
+					<?php
+					foreach ( $this->highlighting->default_tags as $option ) :
+						echo '<option value="' . esc_attr( $option ) . '" ' . selected( $option, $settings['highlight_tag'] ) . '>' . esc_html( $option ) . '</option>';
+					endforeach;
+					?>
+				</select>
+			</div>
+		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Excerpt highlighting', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="highlight_excerpt_enabled"><input name="highlight_excerpt" id="highlight_excerpt_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['highlight_excerpt'] ) : ?>checked<?php endif; ?>  value="1" data-field-name="highlight_excerpt"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label for="highlight_excerpt_disabled"><input name="highlight_excerpt" id="highlight_excerpt_disabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['highlight_excerpt'] ) : ?>checked<?php endif; ?>  value="0" data-field-name="highlight_excerpt"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<p class="field-description"><?php esc_html_e( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results. ', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
+		<br class="clear">
+		<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ); ?>"><?php esc_html_e( 'Advanced fields and weighting settings', 'elasticpress' ); ?></a></p>
+		<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) ); ?>"><?php esc_html_e( 'Add synonyms to your post searches', 'elasticpress' ); ?></a></p>
 		<?php
 	}
 }

@@ -725,12 +725,16 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'highlighting' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard-styles.min.css', [], EP_VERSION );
 	}
 
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'highlighting' ], true ) ) {
+		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
+	}
+
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
-		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard-script.min.js', [ 'jquery' ], EP_VERSION, true );
+		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard-script.min.js', [ 'jquery', 'wp-color-picker' ], EP_VERSION, true );
 
 		$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
