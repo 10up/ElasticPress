@@ -246,7 +246,7 @@ function updateAutosuggestBox(options, input) {
 			if (word.length > 1) {
 				resultsText = resultsText.replace(
 					regex,
-					`<span class="ep-autosuggest-highlight">$1</span>`,
+					'<span class="ep-autosuggest-highlight">$1</span>',
 				);
 			}
 		});
