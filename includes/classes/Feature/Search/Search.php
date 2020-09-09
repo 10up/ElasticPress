@@ -337,7 +337,7 @@ class Search extends Feature {
 		}
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
-		$settings = wp_parse_args( $settings, $this->highlighting->default_settings );
+		$settings = wp_parse_args( $settings, Highlighting::$default_settings );
 
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
@@ -360,7 +360,7 @@ class Search extends Feature {
 			<div class="input-wrap">
 				<select id="highlight-tag" name="highlight-tag" class="setting-field" data-field-name="highlight_tag">
 					<?php
-					foreach ( $this->highlighting->default_tags as $option ) :
+					foreach ( Highlighting::$default_tags as $option ) :
 						echo '<option value="' . esc_attr( $option ) . '" ' . selected( $option, $settings['highlight_tag'] ) . '>' . esc_html( $option ) . '</option>';
 					endforeach;
 					?>

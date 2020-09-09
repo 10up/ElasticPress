@@ -8,7 +8,7 @@
 
 **Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0, 3.1, and 3.3 require re-syncing.
 
-*Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
+* Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
 
 ## Overview
 
