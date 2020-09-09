@@ -9,13 +9,14 @@
 export function debounce( func, wait ) {
 	let timeout;
 
-	return function() {
-		const context = this, args = arguments;
+	return function () {
+		const context = this;
+		const args = arguments;
 
 		/**
 		 *
 		 */
-		const later = function() {
+		const later = function () {
 			timeout = null;
 			func.apply( context, args );
 		};

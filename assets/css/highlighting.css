@@ -1,9 +1,5 @@
-:root {
-    --highlight-color: inherit;
-}
-
 .ep-highlight {
     font-weight: bold;
-    background: none;
-    color: var(--highlight-color);
+	font-style: italic;
+	background-color: transparent;
 }

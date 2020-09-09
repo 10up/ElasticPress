@@ -706,8 +706,7 @@ function action_admin_enqueue_dashboard_scripts() {
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'highlighting' ], true ) ) {
-		wp_enqueue_style( 'wp-color-picker' );
-		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/admin-script.min.js', [ 'jquery', 'wp-color-picker' ], EP_VERSION, true );
+		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {

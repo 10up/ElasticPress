@@ -35,10 +35,9 @@ class Highlighting {
 	 * @var array
 	 */
 	public $default_settings = [
-		'highlight_enabled' => false,
+		'highlight_enabled' => true,
 		'highlight_excerpt' => false,
 		'highlight_tag'     => 'mark',
-		'highlight_color'   => '',
 	];
 
 	/**
@@ -62,18 +61,6 @@ class Highlighting {
 			[],
 			EP_VERSION
 		);
-
-		// retrieve settings to ge the current color value
-		$settings = $this->get_highlighting_configuration();
-
-		// check for value before inlining the style
-		if ( ! empty( $settings['highlight_color'] ) ) {
-			$inline_color = "
-				:root{
-					--highlight-color: {$settings['highlight_color']};
-				}";
-			wp_add_inline_style( 'searchterm-highlighting', $inline_color );
-		}
 	}
 
 	/**

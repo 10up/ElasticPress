@@ -1,18 +1,20 @@
 // External
 import React, { Component } from 'react';
 import apiFetch from '@wordpress/api-fetch';
-import { debounce } from '../utils/debounce';
-import { pluck } from '../utils/pluck';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { __ } from '@wordpress/i18n';
+import { debounce } from '../utils/debounce';
+import { pluck } from '../utils/pluck';
 
 apiFetch.use( apiFetch.createRootURLMiddleware( window.epOrdering.restApiRoot ) );
 
 /**
  * Pointer component
+ *
+ * @param searchResults
+ * @param pointer
  */
 export class Pointers extends Component {
-
 	titleInput = null;
 
 	/**
@@ -56,11 +58,10 @@ export class Pointers extends Component {
 
 		apiFetch( {
 			path: `/elasticpress/v1/pointer_preview?s=${searchTerm}`,
-		} ).then( result => {
-
+		} ).then( ( result ) => {
 			const { defaultResults } = this.state;
 
-			defaultResults[ searchTerm ] = result;
+			defaultResults[searchTerm] = result;
 
 			this.setState( { defaultResults } );
 		} );
@@ -69,30 +70,30 @@ export class Pointers extends Component {
 	removePointer = ( pointer ) => {
 		let { pointers } = this.state;
 
-		delete pointers[ pointers.indexOf( pointer ) ];
-		pointers = pointers.filter( item => null !== item );
+		delete pointers[pointers.indexOf( pointer )];
+		pointers = pointers.filter( ( item ) => null !== item );
 
 		this.setState( { pointers } );
 	};
 
 	getMergedPosts = () => {
-		let merged = this.state.defaultResults[ this.state.title ].slice();
-		let pointers = this.state.pointers;
+		let merged = this.state.defaultResults[this.state.title].slice();
+		let { pointers } = this.state;
 
 		const setIds = {};
-		merged.map( item => {
-			setIds[ item.ID ] = item;
+		merged.map( ( item ) => {
+			setIds[item.ID] = item;
 		} );
 
 		pointers = pointers.sort( ( a, b ) => {
 			return a.order > b.order ? 1 : -1;
 		} );
 
-		pointers.map( pointer => {
+		pointers.map( ( pointer ) => {
 			// Remove the original if a duplicate
-			if ( setIds[ pointer.ID ] ) {
-				delete merged[ merged.indexOf( setIds[ pointer.ID ] ) ];
-				merged = merged.filter( item => item );
+			if ( setIds[pointer.ID] ) {
+				delete merged[merged.indexOf( setIds[pointer.ID] )];
+				merged = merged.filter( ( item ) => item );
 			}
 
 			// Insert into proper location
@@ -107,15 +108,15 @@ export class Pointers extends Component {
 
 		// Set loading state
 		const { searchResults } = this.state;
-		searchResults[ searchTerm ] = false;
+		searchResults[searchTerm] = false;
 		this.setState( { searchResults } );
 
 		apiFetch( {
-			path: `/elasticpress/v1/pointer_search?s=${searchTerm}`
-		} ).then( result => {
+			path: `/elasticpress/v1/pointer_search?s=${searchTerm}`,
+		} ).then( ( result ) => {
 			const { searchResults } = this.state;
 
-			searchResults[ searchTerm ] = result;
+			searchResults[searchTerm] = result;
 
 			this.setState( { searchResults } );
 		} );
@@ -123,6 +124,7 @@ export class Pointers extends Component {
 
 	/**
 	 * Gets the next available position for a pointer
+	 *
 	 * @returns {number}
 	 */
 	getNextAvailablePosition = () => {
@@ -130,11 +132,11 @@ export class Pointers extends Component {
 		const availablePositions = {};
 
 		for ( let i = 1; i <= window.epOrdering.postsPerPage; i++ ) {
-			availablePositions[ i ] = true;
+			availablePositions[i] = true;
 		}
 
-		pointers.map( item => {
-			delete availablePositions[ item.order ];
+		pointers.map( ( item ) => {
+			delete availablePositions[item.order];
 		} );
 
 		const keys = Object.keys( availablePositions );
@@ -155,15 +157,17 @@ export class Pointers extends Component {
 		const id = post.ID;
 		const { posts, pointers } = this.state;
 
-		if ( ! posts[ id ] ) {
-			posts[ id ] = post;
+		if ( !posts[id] ) {
+			posts[id] = post;
 			this.setState( { posts } );
 		}
 
 		const position = this.getNextAvailablePosition();
 
-		if ( ! position ) {
-			window.alert( __( 'You have added the maximum number of custom results.', 'elasticpress' ) ); // eslint-disable-line no-alert
+		if ( !position ) {
+			window.alert(
+				__( 'You have added the maximum number of custom results.', 'elasticpress' ),
+			); // eslint-disable-line no-alert
 			return false;
 		}
 
@@ -185,7 +189,7 @@ export class Pointers extends Component {
 	 */
 	onDragComplete = ( result ) => {
 		// dropped outside the list
-		if ( ! result.destination ) {
+		if ( !result.destination ) {
 			return;
 		}
 
@@ -193,8 +197,12 @@ export class Pointers extends Component {
 
 		// Offsetting indexes when over posts per page to account for the non-sortable notice
 		const ppp = parseInt( window.epOrdering.postsPerPage, 10 );
-		const startIndex = result.source.index >= ppp ? result.source.index - 1 : result.source.index;
-		const endIndex = result.destination.index > ppp ? result.destination.index - 1 : result.destination.index;
+		const startIndex =
+			result.source.index >= ppp ? result.source.index - 1 : result.source.index;
+		const endIndex =
+			result.destination.index > ppp
+				? result.destination.index - 1
+				: result.destination.index;
 
 		const [removed] = items.splice( startIndex, 1 );
 		items.splice( endIndex, 0, removed );
@@ -232,37 +240,48 @@ export class Pointers extends Component {
 		if ( 0 === this.state.title.length ) {
 			return (
 				<div className="new-post">
-					<p>{ __( 'Enter your search query above to preview the results.', 'elasticpress' ) }</p>
+					<p>
+						{__(
+							'Enter your search query above to preview the results.',
+							'elasticpress',
+						)}
+					</p>
 				</div>
 			);
 		}
 
-		if ( ! defaultResults[ this.state.title ] ) {
+		if ( !defaultResults[this.state.title] ) {
 			return (
 				<div className="loading">
 					<div className="spinner is-active"></div>
-					<span>{ __( 'Loading Result Preview...', 'elasticpress' ) }</span>
+					<span>{__( 'Loading Result Preview...', 'elasticpress' )}</span>
 				</div>
 			);
 		}
 
 		// We need to reference these by ID later
 		const defaultResultsById = {};
-		defaultResults[ this.state.title ].map( item => {
-			defaultResultsById[ item.ID ] = item;
+		defaultResults[this.state.title].map( ( item ) => {
+			defaultResultsById[item.ID] = item;
 		} );
 
 		const mergedPosts = this.getMergedPosts();
 		const renderedIds = pluck( this.state.pointers, 'ID' );
 
-		const searchResults = this.state.searchResults[ this.state.searchText ] ?
-			this.state.searchResults[ this.state.searchText ].filter( item => -1 === renderedIds.indexOf( item.ID ) ) :
-			false;
+		const searchResults = this.state.searchResults[this.state.searchText]
+			? this.state.searchResults[this.state.searchText].filter(
+				( item ) => -1 === renderedIds.indexOf( item.ID ),
+			)
+			: false;
 
 		return (
 			<div>
 				<input type="hidden" name="search-ordering-nonce" value={window.epOrdering.nonce} />
-				<input type="hidden" name="ordered_posts" value={ JSON.stringify( this.state.pointers ) }/>
+				<input
+					type="hidden"
+					name="ordered_posts"
+					value={JSON.stringify( this.state.pointers )}
+				/>
 				<DragDropContext onDragEnd={this.onDragComplete}>
 					<Droppable droppableId="droppable">
 						{( provided ) => (
@@ -272,22 +291,40 @@ export class Pointers extends Component {
 								ref={provided.innerRef}
 							>
 								{mergedPosts.map( ( item, index ) => {
+									const draggableIndex =
+										parseInt( window.epOrdering.postsPerPage, 10 ) <= index
+											? index + 1
+											: index;
 
-									const draggableIndex = parseInt( window.epOrdering.postsPerPage, 10 ) <= index ? index + 1 : index;
-
-									let title = item.title;
+									let { title } = item;
 									if ( undefined === title ) {
-										title = undefined !== posts[ item.ID ] ? posts[ item.ID ].post_title : defaultResultsById[ item.ID ].post_title;
+										title =
+											undefined !== posts[item.ID]
+												? posts[item.ID].post_title
+												: defaultResultsById[item.ID].post_title;
 									}
 
 									// Determine if this result is part of default search results or not
-									const isDefaultResult = undefined !== defaultResultsById[ item.ID ];
-									const tooltipText = true === isDefaultResult ? __( 'Return to original position', 'elasticpress' ) : __( 'Remove custom result from results list', 'elasticpress' );
+									const isDefaultResult =
+										undefined !== defaultResultsById[item.ID];
+									const tooltipText =
+										true === isDefaultResult
+											? __( 'Return to original position', 'elasticpress' )
+											: __(
+												'Remove custom result from results list',
+												'elasticpress',
+											);
 
 									return (
 										<React.Fragment key={index}>
-											{ parseInt( window.epOrdering.postsPerPage, 10 ) === index && (
-												<Draggable key='divider' draggableId='divider' index={index} isDragDisabled={false}>
+											{parseInt( window.epOrdering.postsPerPage, 10 ) ===
+												index && (
+												<Draggable
+													key="divider"
+													draggableId="divider"
+													index={index}
+													isDragDisabled={false}
+												>
 													{( provided ) => (
 														<div
 															className={`next-page-notice ${index}`}
@@ -295,38 +332,67 @@ export class Pointers extends Component {
 															{...provided.draggableProps}
 															{...provided.dragHandleProps}
 														>
-															<span>{ __( 'The following posts have been displaced to the next page of search results.', 'elasticpress' ) }</span>
+															<span>
+																{__(
+																	'The following posts have been displaced to the next page of search results.',
+																	'elasticpress',
+																)}
+															</span>
 														</div>
 													)}
 												</Draggable>
-											) }
+											)}
 
-											<Draggable key={item.ID} draggableId={item.ID} index={draggableIndex}>
+											<Draggable
+												key={item.ID}
+												draggableId={item.ID}
+												index={draggableIndex}
+											>
 												{( provided ) => (
 													<div
 														className={`pointer ${draggableIndex}`}
 														ref={provided.innerRef}
 														{...provided.draggableProps}
 													>
-														{ item.order && true === isDefaultResult && (
-															<span className='pointer-type'>RD</span>
-														) }
-														{ item.order && false === isDefaultResult && (
-															<span className='pointer-type'>CR</span>
+														{item.order && true === isDefaultResult && (
+															<span className="pointer-type">RD</span>
+														)}
+														{item.order &&
+															false === isDefaultResult && (
+															<span className="pointer-type">
+																	CR
+															</span>
 														)}
 														<strong className="title">{title}</strong>
 														<div className="pointer-actions">
-															<span className="dashicons dashicons-menu handle" {...provided.dragHandleProps} title={ __( 'Drag post up or down to reposition', 'elasticpress' ) }></span>
-															{ item.order && (
-																<span title={tooltipText} className="dashicons dashicons-undo delete-pointer" onClick={ e => { e.preventDefault(); this.removePointer( item ); } }><span className="screen-reader-text">Remove Post</span></span>
-															) }
+															<span
+																className="dashicons dashicons-menu handle"
+																{...provided.dragHandleProps}
+																title={__(
+																	'Drag post up or down to reposition',
+																	'elasticpress',
+																)}
+															></span>
+															{item.order && (
+																<span
+																	title={tooltipText}
+																	className="dashicons dashicons-undo delete-pointer"
+																	onClick={( e ) => {
+																		e.preventDefault();
+																		this.removePointer( item );
+																	}}
+																>
+																	<span className="screen-reader-text">
+																		Remove Post
+																	</span>
+																</span>
+															)}
 														</div>
 													</div>
 												)}
 											</Draggable>
 										</React.Fragment>
 									);
-
 								} )}
 								{provided.placeholder}
 							</div>
@@ -335,20 +401,25 @@ export class Pointers extends Component {
 				</DragDropContext>
 
 				<div className="legend">
-					<div className='legend-item'>
-						<span className='pointer-type'>CR</span>
-						<span className='type-description'>{ __( 'Custom Result (manually added to list)', 'elasticpress' ) }</span>
+					<div className="legend-item">
+						<span className="pointer-type">CR</span>
+						<span className="type-description">
+							{__( 'Custom Result (manually added to list)', 'elasticpress' )}
+						</span>
 					</div>
-					<div className='legend-item'>
-						<span className='pointer-type'>RD</span>
-						<span className='type-description'>{ __( 'Reordered Default (originally in results, but repositioned)' , 'elasticpress' ) }</span>
+					<div className="legend-item">
+						<span className="pointer-type">RD</span>
+						<span className="type-description">
+							{__(
+								'Reordered Default (originally in results, but repositioned)',
+								'elasticpress',
+							)}
+						</span>
 					</div>
 				</div>
 
 				<div className="pointer-search">
-					<h2 className="section-title">
-						{ __( 'Add to results', 'elasticpress' ) }
-					</h2>
+					<h2 className="section-title">{__( 'Add to results', 'elasticpress' )}</h2>
 
 					<div className="search-wrapper">
 						<div className="input-wrap">
@@ -356,16 +427,15 @@ export class Pointers extends Component {
 								type="text"
 								className="widefat search-pointers"
 								placeholder="Search for Post"
-								value={ this.state.searchText }
-								onChange={ e => {
+								value={this.state.searchText}
+								onChange={( e ) => {
 									this.setState( { searchText: e.target.value } );
 									this.doSearch();
-								} }/>
+								}}
+							/>
 						</div>
 
-						<div className="pointer-results">
-							{ this.searchResults( searchResults ) }
-						</div>
+						<div className="pointer-results">{this.searchResults( searchResults )}</div>
 					</div>
 				</div>
 			</div>
@@ -379,7 +449,7 @@ export class Pointers extends Component {
 
 		if ( false === searchResults ) {
 			return (
-				<div className='loading'>
+				<div className="loading">
 					<div className="spinner is-active"></div>
 					Loading...
 				</div>
@@ -387,21 +457,24 @@ export class Pointers extends Component {
 		}
 
 		if ( 0 === searchResults.length ) {
-			return (
-				<div className='no-results'>{ __( 'No results found.', 'elasticpress' ) }</div>
-			);
+			return <div className="no-results">{__( 'No results found.', 'elasticpress' )}</div>;
 		}
 
-		return searchResults.map( result => {
+		return searchResults.map( ( result ) => {
 			return (
 				<div className="pointer-result" key={result.ID}>
 					<span className="title">{result.post_title}</span>
-					<span className="dashicons dashicons-plus add-pointer" onClick={ e => { e.preventDefault(); this.addPointer( result ); } }>
-						<span className="screen-reader-text">{ __( 'Add Post', 'elasticpress' ) }</span>
+					<span
+						className="dashicons dashicons-plus add-pointer"
+						onClick={( e ) => {
+							e.preventDefault();
+							this.addPointer( result );
+						}}
+					>
+						<span className="screen-reader-text">{__( 'Add Post', 'elasticpress' )}</span>
 					</span>
 				</div>
 			);
 		} );
 	};
-
 }
