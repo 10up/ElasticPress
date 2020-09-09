@@ -336,7 +336,7 @@ class Search extends Feature {
 			$settings = [];
 		}
 
-		$settings = wp_parse_args( $decaying_settings, $this->default_settings );
+		$settings = wp_parse_args( $settings, $this->default_settings );
 		$settings = wp_parse_args( $settings, $this->highlighting->default_settings );
 
 		?>
