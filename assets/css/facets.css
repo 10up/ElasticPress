@@ -55,6 +55,7 @@
 
 .widget_ep-facet .term a {
 	position: relative;
+	text-decoration: none;
 
 	&:after {
 		content: ' ';

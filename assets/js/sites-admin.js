@@ -1,10 +1,9 @@
-import jQuery from 'jquery';
-import { epsa } from 'window';
+const { epsa } = window;
 
-window.addEventListener( 'load', function () {
-	const toggles = document.getElementsByClassName( 'index-toggle' );
-	for ( let i = 0; i < toggles.length; i++ ) {
-		toggles[i].addEventListener( 'click', function () {
+window.addEventListener('load', function () {
+	const toggles = document.getElementsByClassName('index-toggle');
+	for (let i = 0; i < toggles.length; i++) {
+		toggles[i].addEventListener('click', function () {
 			const checked = this.checked ? 'yes' : 'no';
 
 			jQuery.get(
@@ -16,12 +15,12 @@ window.addEventListener( 'load', function () {
 					checked,
 				},
 				() => {
-					document.getElementById( `switch-label-${this.dataset.blogid}` ).innerHTML = this
+					document.getElementById(`switch-label-${this.dataset.blogid}`).innerHTML = this
 						.checked
 						? 'On'
 						: 'Off';
 				},
 			);
-		} );
+		});
 	}
-} );
+});

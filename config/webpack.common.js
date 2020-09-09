@@ -1,23 +1,23 @@
-/* global process, module, require */
-
-const path = require( 'path' );
-const CleanWebpackPlugin = require( 'clean-webpack-plugin' );
-const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
-const FixStyleOnlyEntriesPlugin = require( 'webpack-fix-style-only-entries' );
-const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
-const WebpackBar = require( 'webpackbar' );
+const path = require('path');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const FixStyleOnlyEntriesPlugin = require('webpack-fix-style-only-entries');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const WebpackBar = require('webpackbar');
 
 // Config files.
-const settings = require( './webpack.settings.js' );
+const settings = require('./webpack.settings.js');
 
 /**
  * Configure entries.
+ *
+ * @returns {*}
  */
 const configureEntries = () => {
 	const entries = {};
 
-	for ( const [ key, value ] of Object.entries( settings.entries ) ) {
-		entries[ key ] = path.resolve( process.cwd(), value );
+	for (const [key, value] of Object.entries(settings.entries)) {
+		entries[key] = path.resolve(process.cwd(), value);
 	}
 
 	return entries;
@@ -26,7 +26,7 @@ const configureEntries = () => {
 module.exports = {
 	entry: configureEntries(),
 	output: {
-		path: path.resolve( process.cwd(), settings.paths.dist.base ),
+		path: path.resolve(process.cwd(), settings.paths.dist.base),
 		filename: settings.filename.js,
 	},
 
@@ -36,14 +36,11 @@ module.exports = {
 
 	// External objects.
 	externals: {
-		jquery: 'jQuery',
-		underscores: '_',
-		window: 'window',
 		lodash: {
 			commonjs: 'lodash',
 			amd: 'lodash',
-			root: '_'
-		}
+			root: '_',
+		},
 	},
 
 	// Performance settings.
@@ -57,11 +54,13 @@ module.exports = {
 			// Lint JS.
 			{
 				test: /\.js$/,
+				exclude: /node_modules/,
 				enforce: 'pre',
 				loader: 'eslint-loader',
 				options: {
-					fix: true
-				}
+					fix: true,
+					emitWarning: true,
+				},
 			},
 
 			// Scripts.
@@ -73,10 +72,13 @@ module.exports = {
 						loader: 'babel-loader',
 						options: {
 							presets: [
-								[ '@babel/preset-env', {
-									'useBuiltIns': 'usage',
-									'corejs': 3,
-								} ]
+								[
+									'@babel/preset-env',
+									{
+										useBuiltIns: 'usage',
+										corejs: 3,
+									},
+								],
 							],
 							cacheDirectory: true,
 							sourceMap: true,
@@ -88,7 +90,7 @@ module.exports = {
 			// Styles.
 			{
 				test: /\.css$/,
-				include: path.resolve( process.cwd(), settings.paths.src.css ),
+				include: path.resolve(process.cwd(), settings.paths.src.css),
 				use: [
 					{
 						loader: MiniCssExtractPlugin.loader,
@@ -113,30 +115,29 @@ module.exports = {
 	},
 
 	plugins: [
-
 		// Remove the extra JS files Webpack creates for CSS entries.
 		// This should be fixed in Webpack 5.
-		new FixStyleOnlyEntriesPlugin( {
+		new FixStyleOnlyEntriesPlugin({
 			silent: true,
-		} ),
+		}),
 
 		// Clean the `dist` folder on build.
 		new CleanWebpackPlugin(),
 
 		// Extract CSS into individual files.
-		new MiniCssExtractPlugin( {
+		new MiniCssExtractPlugin({
 			filename: settings.filename.css,
 			chunkFilename: '[id].css',
-		} ),
+		}),
 
 		// Copy static assets to the `dist` folder.
-		new CopyWebpackPlugin( [
+		new CopyWebpackPlugin([
 			{
 				from: settings.copyWebpackConfig.from,
 				to: settings.copyWebpackConfig.to,
-				context: path.resolve( process.cwd(), settings.paths.src.base ),
+				context: path.resolve(process.cwd(), settings.paths.src.base),
 			},
-		] ),
+		]),
 
 		// Fancy WebpackBar.
 		new WebpackBar(),

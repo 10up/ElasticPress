@@ -1,34 +1,39 @@
+/* eslint-disable no-new */
+
 import Chart from 'chart.js';
-import { epChartData } from 'window';
+
+const { epChartData } = window;
 
 /**
  * Generates a random string representing a color.
  *
- * @returns {string|string}
+ * @returns {string}
  */
 function getRandomColor() {
 	const letters = '0123456789ABCDEF';
 	let color = '#';
-	for ( let i = 0; 6 < i; i++ ) {
-		color += letters[Math.floor( Math.random() * 16 )];
+
+	for (let i = 0; i < 6; i += 1) {
+		color += letters[Math.floor(Math.random() * 16)];
 	}
+
 	return color;
 }
 
-const barData = Object.entries( epChartData.indices_data );
+const barData = Object.entries(epChartData.indices_data);
 const barLabels = [];
 const barDocs = [];
 const barColors = [];
 
 Chart.defaults.global.legend.labels.usePointStyle = true;
 
-barData.forEach( function ( data ) {
-	barLabels.push( data[1].name );
-	barDocs.push( data[1].docs );
-	barColors.push( getRandomColor() );
-} );
+barData.forEach(function (data) {
+	barLabels.push(data[1].name);
+	barDocs.push(data[1].docs);
+	barColors.push(getRandomColor());
+});
 
-new Chart( document.getElementById( 'documentChart' ), {
+new Chart(document.getElementById('documentChart'), {
 	type: 'horizontalBar',
 	data: {
 		labels: barLabels,
@@ -48,9 +53,9 @@ new Chart( document.getElementById( 'documentChart' ), {
 			display: true,
 		},
 	},
-} );
+});
 
-new Chart( document.getElementById( 'queriesTotalChart' ), {
+new Chart(document.getElementById('queriesTotalChart'), {
 	type: 'pie',
 	data: {
 		labels: ['Indexing operations', 'Total Query operations'],
@@ -75,11 +80,11 @@ new Chart( document.getElementById( 'queriesTotalChart' ), {
 				/**
 				 * Appends the string operations before tooltip value
 				 *
-				 * @param item
-				 * @param data
+				 * @param {object} item Chat item
+				 * @param {object} data Data
 				 * @returns {string}
 				 */
-				label( item, data ) {
+				label(item, data) {
 					const dataset = data.datasets[item.datasetIndex];
 					const currentValue = dataset.data[item.index];
 
@@ -88,9 +93,9 @@ new Chart( document.getElementById( 'queriesTotalChart' ), {
 			},
 		},
 	},
-} );
+});
 
-new Chart( document.getElementById( 'queriesTimeChart' ), {
+new Chart(document.getElementById('queriesTimeChart'), {
 	type: 'pie',
 	data: {
 		labels: ['Avg indexing time in ms', 'Avg query time in ms'],
@@ -115,11 +120,11 @@ new Chart( document.getElementById( 'queriesTimeChart' ), {
 				/**
 				 * Appends the string milliseconds after tooltip value
 				 *
-				 * @param item
-				 * @param data
+				 * @param {object} item Tooltip item
+				 * @param {object} data Tooltip data
 				 * @returns {string}
 				 */
-				label( item, data ) {
+				label(item, data) {
 					const dataset = data.datasets[item.datasetIndex];
 					const currentValue = dataset.data[item.index];
 
@@ -128,4 +133,4 @@ new Chart( document.getElementById( 'queriesTimeChart' ), {
 			},
 		},
 	},
-} );
+});

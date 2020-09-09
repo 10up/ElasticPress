@@ -1,5 +1,3 @@
-/* global wp */
-
 const { __ } = wp.i18n;
 
 const { AlignmentToolbar, BlockControls, InspectorControls } = wp.editor;
@@ -17,10 +15,10 @@ class Edit extends Component {
 	/**
 	 * Setup class
 	 *
-	 * @param props
+	 * @param {object} props Component properties
 	 */
-	constructor( props ) {
-		super( props );
+	constructor(props) {
+		super(props);
 
 		const {
 			attributes: { number },
@@ -41,23 +39,20 @@ class Edit extends Component {
 		};
 
 		this.fetchRequest = wp
-			.apiFetch( {
+			.apiFetch({
 				path: addQueryArgs(
-					`/wp/v2/posts/${wp.data.select( 'core/editor' ).getCurrentPostId()}/related`,
+					`/wp/v2/posts/${wp.data.select('core/editor').getCurrentPostId()}/related`,
 					urlArgs,
 				),
-			} )
-			.then( ( posts ) => {
-				this.setState( { posts } );
-			} )
-			.catch( () => {
-				this.setState( { posts: false } );
-			} );
+			})
+			.then((posts) => {
+				this.setState({ posts });
+			})
+			.catch(() => {
+				this.setState({ posts: false });
+			});
 	}
 
-	/**
-	 * Render block
-	 */
 	render() {
 		const {
 			attributes: { alignment, number },
@@ -66,33 +61,33 @@ class Edit extends Component {
 		} = this.props;
 		const { posts } = this.state;
 
-		const displayPosts = posts.length > number ? posts.slice( 0, number ) : posts;
+		const displayPosts = posts.length > number ? posts.slice(0, number) : posts;
 
 		return (
 			<Fragment>
 				<BlockControls>
 					<AlignmentToolbar
 						value={alignment}
-						onChange={( newValue ) => setAttributes( { alignment: newValue } )}
+						onChange={(newValue) => setAttributes({ alignment: newValue })}
 					/>
 				</BlockControls>
 				<InspectorControls>
-					<PanelBody title={__( 'Related Post Settings' )}>
+					<PanelBody title={__('Related Post Settings')}>
 						<QueryControls
 							numberOfItems={number}
-							onNumberOfItemsChange={( value ) => setAttributes( { number: value } )}
+							onNumberOfItemsChange={(value) => setAttributes({ number: value })}
 						/>
 					</PanelBody>
 				</InspectorControls>
 
 				<div className={className}>
-					{false === displayPosts || 0 === displayPosts.length ? (
-						<Placeholder icon="admin-post" label={__( 'Related Posts' )}>
-							{false === posts ? <Spinner /> : __( 'No related posts yet.' )}
+					{displayPosts === false || displayPosts.length === 0 ? (
+						<Placeholder icon="admin-post" label={__('Related Posts')}>
+							{posts === false ? <Spinner /> : __('No related posts yet.')}
 						</Placeholder>
 					) : (
 						<ul style={{ textAlign: alignment }}>
-							{displayPosts.map( ( post, i ) => {
+							{displayPosts.map((post, i) => {
 								const titleTrimmed = post.title.rendered.trim();
 								return (
 									<li key={i}>
@@ -100,12 +95,12 @@ class Edit extends Component {
 											{titleTrimmed ? (
 												<RawHTML>{titleTrimmed}</RawHTML>
 											) : (
-												__( '(Untitled)', 'elasticpress' )
+												__('(Untitled)', 'elasticpress')
 											)}
 										</a>
 									</li>
 								);
-							} )}
+							})}
 						</ul>
 					)}
 				</div>

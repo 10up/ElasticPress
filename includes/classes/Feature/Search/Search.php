@@ -15,6 +15,12 @@ use ElasticPress\Indexables as Indexables;
  * Search feature class
  */
 class Search extends Feature {
+	/**
+	 * Synonyms Class (Sub Feature)
+	 *
+	 * @var Synonyms
+	 */
+	public $synonyms;
 
 	/**
 	 * Weighting Class (Sub Feature)
@@ -42,7 +48,8 @@ class Search extends Feature {
 
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
-			'decaying_enabled' => true,
+			'decaying_enabled'     => true,
+			'synonyms_editor_mode' => 'simple',
 		];
 
 		parent::__construct();
@@ -64,6 +71,9 @@ class Search extends Feature {
 		// Set up highlighting sub-module
 		$this->highlighting = new Highlighting();
 		$this->highlighting->setup();
+
+		$this->synonyms = new Synonyms();
+		$this->synonyms->setup();
 	}
 
 	/**
@@ -320,10 +330,10 @@ class Search extends Feature {
 	 * @since 2.4
 	 */
 	public function output_feature_box_settings() {
-		$decaying_settings = $this->get_settings();
+		$settings = $this->get_settings();
 
-		if ( ! $decaying_settings ) {
-			$decaying_settings = [];
+		if ( ! $settings ) {
+			$settings = [];
 		}
 
 		$settings = wp_parse_args( $decaying_settings, $this->default_settings );
@@ -366,6 +376,10 @@ class Search extends Feature {
 				<p class="field-description"><?php esc_html_e( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results. ', 'elasticpress' ); ?></p>
 			</div>
 		</div>
+
+		<br class="clear">
+		<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ); ?>"><?php esc_html_e( 'Advanced fields and weighting settings', 'elasticpress' ); ?></a></p>
+		<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) ); ?>"><?php esc_html_e( 'Add synonyms to your post searches', 'elasticpress' ); ?></a></p>
 		<?php
 	}
 }

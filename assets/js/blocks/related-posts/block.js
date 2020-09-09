@@ -1,10 +1,8 @@
-/* global wp */
-
 import Edit from './Edit';
 
 const { registerBlockType } = wp.blocks;
 
-registerBlockType( 'elasticpress/related-posts', {
+registerBlockType('elasticpress/related-posts', {
 	title: 'Related Posts (ElasticPress)',
 	supports: {
 		align: true,
@@ -24,16 +22,19 @@ registerBlockType( 'elasticpress/related-posts', {
 	/**
 	 * Handle edit
 	 *
-	 * @param props
+	 * @param {object} props Component properties
+	 * @returns {*}
 	 */
-	edit( props ) {
+	edit(props) {
 		return <Edit {...props} />;
 	},
 
 	/**
 	 * Handle save
+	 *
+	 * @returns {void}
 	 */
 	save() {
 		return null;
 	},
-} );
+});
