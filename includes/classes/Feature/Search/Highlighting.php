@@ -76,7 +76,7 @@ class Highlighting {
 
 		// get current config
 		$settings = $this->get_highlighting_configuration();
-		$settings = wp_parse_args( $settings, self::default_settings );
+		$settings = wp_parse_args( $settings, self::$default_settings );
 
 		if ( true !== $settings['highlight_enabled'] ) {
 			return $formatted_args;
@@ -214,7 +214,7 @@ class Highlighting {
 	 * @return string
 	 */
 	public function get_highlighting_tag( $tag ) {
-		if ( ! in_array( $tag, self::default_tags, true ) ) {
+		if ( ! in_array( $tag, self::$default_tags, true ) ) {
 			$tag = 'mark';
 		}
 
