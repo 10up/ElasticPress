@@ -151,6 +151,9 @@ class Widget extends WP_Widget {
 			endif;
 			ob_start();
 			?>
+			<noscript>
+				<input type="submit" value="Apply Filter">
+			</noscript>
 
 			<div class="inner">
 				<?php if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) ) : ?>
