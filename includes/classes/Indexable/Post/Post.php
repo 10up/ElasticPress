@@ -907,25 +907,61 @@ class Post extends Indexable {
 		/**
 		 * Add support for post_mime_type
 		 *
-		 * If we have array, it will be fool text search filter.
-		 * If we have string(like filter images in media screen), we will have mime type "image" so need to check it as
-		 * regexp filter.
+		 * Values can be in multiple forms such as "image", "image/*" or "image/jpeg". A single string
+		 * or an array of mime types can be passed 
 		 *
 		 * @since 2.3
 		 */
 		if ( ! empty( $args['post_mime_type'] ) ) {
-			if ( is_array( $args['post_mime_type'] ) ) {
-				$filter['bool']['must'][] = array(
+			if ( is_string( $args['post_mime_type'] ) ) {
+				$mime_types = array_map( 'trim', explode( ',', $args['post_mime_type'] ) );
+			} else {
+				$mime_types = (array) $args['post_mime_type'];
+			}
+			
+			// Collect fully qualified mime types here e.g. image/jpeg.
+			$terms = array();
+			// Collect prefix types here e.g. image, image/*.
+			$prefixes = array();
+
+			foreach ( $mime_types as $type ) {
+				// Remove trailing slashes and wildcards.
+				$type = rtrim( $type, './*' );
+
+				if ( strpos( $type, '/' ) !== false ) {
+					// If a slash is still present assume this is a fully qualified mime type.
+					$terms[] = $type;
+				} else {
+					// Otherwise treat as a mime type prefix.
+					$prefixes[] = $type;
+				}
+			}
+
+			$mime_type_filter = [];
+
+			if ( ! empty( $terms ) ) {
+				$mime_type_filter[] = array(
 					'terms' => array(
-						'post_mime_type' => (array) $args['post_mime_type'],
+						'post_mime_type' => $terms,
 					),
 				);
+			}
 
-				$use_filters = true;
-			} elseif ( is_string( $args['post_mime_type'] ) ) {
+			if ( ! empty( $prefixes ) ) {
+				foreach ( $prefixes as $prefix ) {
+					$mime_type_filter[] = array(
+						'prefix' => array(
+							'post_mime_type' => $prefix,
+						),
+					);
+				}
+			}
+
+			// Add a compound query for the mime type terms and prefixes.
+			if ( ! empty( $mime_type_filter ) ) {
 				$filter['bool']['must'][] = array(
-					'regexp' => array(
-						'post_mime_type' => $args['post_mime_type'] . '.*',
+					'bool' => array(
+						'should' => $mime_type_filter,
 					),
 				);
 
