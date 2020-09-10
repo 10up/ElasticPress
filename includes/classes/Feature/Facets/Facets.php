@@ -78,6 +78,19 @@ class Facets extends Feature {
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
+
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Facet Display', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label class="switch-container">
+					<div class="switch">
+						<input id="facet_style" class="toggle-state" data-field-name="facet_style" class="setting-field" type="checkbox" <?php if ( 'collapsilbe' === $settings['facet_style'] ) : ?>checked<?php endif; ?> value="collapsible">
+						<div class="slider"></div>
+					</div>
+					<span class="switch-label"><?php echo wp_kses_post( __( 'Display facet as a dropdown', 'elasticpress' ) ); ?></span>
+				</label>
+			</div>
+		</div>
 		<?php
 	}
 

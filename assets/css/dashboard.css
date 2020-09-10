@@ -374,6 +374,64 @@ h2.ep-list-features {
 	  width: 75%;
 	  display: block;
 	  float: right;
+
+	  & .switch-container {
+		  align-items: center;
+		  display: flex;
+	  }
+
+	  & .switch {
+		display: inline-block;
+		position: relative;
+		width: 28px;
+		height: 14px;
+	  }
+
+	  & .switch-label {
+		  padding-left: 0.5em;
+	  }
+	  
+	  & .switch input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	  }
+	  
+	  & .slider {
+		background-color: #efefef;
+		border-radius: 14px;
+		bottom: 0;
+		cursor: pointer;
+		left: 0;
+		position: absolute;
+		right: 0;
+		top: 0;
+		transition: .4s;
+	  }
+	  
+	  & .slider:before {
+		background-color: white;
+		border-radius: 50%;
+		content: "";
+		height: 14px;
+		left: 2px;
+		position: absolute;
+		top: 2px;
+		width: 14px;
+		transition: .4s;
+	  }
+	  
+	  & input:checked + .slider {
+		background-color: #1e8cbe;
+	  }
+	  
+	  & input:focus + .slider {
+		box-shadow: 0 0 1px #1e8cbe;
+	  }
+	  
+	  & input:checked + .slider:before {
+		transform: translateX(9px);
+	  }
   }
 
 & .field-description {
