@@ -143,7 +143,7 @@ class Widget extends WP_Widget {
 		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
 		?>
 
-		<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
+		<form class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
 				<?php // translators: Taxonomy Name ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
@@ -171,10 +171,11 @@ class Widget extends WP_Widget {
 							}
 							?>
 							<div class="term selected level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
-								<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow">
-									<input type="checkbox" checked>
+								<label class="ep-term-label">
+									<input type="checkbox" checked value="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
+									<span class="checkmark"></span>
 									<?php echo esc_html( $term->name ); ?>
-								</a>
+								</label>
 							</div>
 							<?php
 						} else {
@@ -234,10 +235,11 @@ class Widget extends WP_Widget {
 								}
 								?>
 								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow">
-										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?>>
+									<label class="ep-term-label">
+										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?> value="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>">
+										<span class="checkmark"></span>
 										<?php echo esc_html( $term->name ); ?>
-									</a>
+										</label>
 								</div>
 								<?php
 							}
@@ -263,10 +265,11 @@ class Widget extends WP_Widget {
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 					?>
 					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?> rel="nofollow">
-							<input type="checkbox">
+						<label class="ep-term-label">
+							<input type="checkbox" <?php if ( ! empty( $term->count ) ) : ?>value="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?>>
+							<span class="checkmark"></span>
 							<?php echo esc_html( $term->name ); ?>
-						</a>
+						</label>
 					</div>
 				<?php endforeach; ?>
 			</div>
@@ -288,7 +291,7 @@ class Widget extends WP_Widget {
 			echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] );
 			// phpcs:enable
 			?>
-		</div>
+		</form>
 		<?php
 
 		// Enqueue Script & Styles
