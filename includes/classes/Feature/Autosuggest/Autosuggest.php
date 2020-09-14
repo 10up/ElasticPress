@@ -86,6 +86,7 @@ class Autosuggest extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
 		add_filter( 'ep_fuzziness_arg', [ $this, 'set_fuzziness' ], 10, 3 );
 		add_filter( 'ep_weighted_query_for_post_type', [ $this, 'adjust_fuzzy_fields' ], 10, 3 );
+		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_autosuggest_allowed' ] );
 	}
 
 	/**
@@ -122,6 +123,7 @@ class Autosuggest extends Feature {
 		<?php
 
 		if ( Utils\is_epio() ) {
+			$this->epio_allowed_parameters();
 			return;
 		}
 
@@ -582,6 +584,124 @@ class Autosuggest extends Feature {
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Send the allowed parameters for autosuggest to ElasticPress.io.
+	 */
+	public function epio_send_autosuggest_allowed() {
+		$search_feature = Features::factory()->get_registered_feature( 'search' );
+
+		$post_types = $search_feature->get_searchable_post_types();
+
+		/** This filter is documented in the generate_search_query() method. */
+		$post_types = apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) );
+
+		$post_status = get_post_stati(
+			[
+				'public'              => true,
+				'exclude_from_search' => false,
+			]
+		);
+
+		/** This filter is documented in the generate_search_query() method. */
+		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
+
+		$weighting_config = $search_feature->weighting->get_weighting_configuration();
+
+		$fields = [
+			'post_title.suggest',
+			'terms.ep_custom_result.name',
+		];
+		foreach ( $weighting_config as $post_type_fields ) {
+			$fields = array_merge( $fields, array_keys( $post_type_fields ) );
+		}
+
+		$fields = array_unique( $fields );
+
+		$post_author = array_search( 'author_name', $fields, true );
+		if ( false !== $post_author ) {
+			$fields[ $post_author ] = 'post_author.display_name';
+		}
+
+		$allowed_params = [
+			'post_type'   => $post_types,
+			'post_status' => $post_status,
+			'fields'      => $fields,
+		];
+
+		/**
+		 * Filter allowed parameters before sending to ElasticPress.io.
+		 *
+		 * @since  3.5.x
+		 * @hook ep_autosuggest_allowed_parameters
+		 * @param  {array} $allowed_params Allowed parameters. Multidimensional array keyed by 'post_type', 'post_status', and 'fields'.
+		 * @return  {array} New allowed parameters
+		 */
+		$allowed_params = apply_filters( 'ep_autosuggest_allowed_parameters', $allowed_params );
+
+		$path = Indexables::factory()->get( 'post' )->get_index_name() . '/set-autosuggest-allowed';
+		Elasticsearch::factory()->remote_request(
+			$path,
+			[
+				'method' => 'POST',
+				'body'   => wp_json_encode( $allowed_params ),
+			]
+		);
+	}
+
+	/**
+	 * Retrieve the allowed parameters for autosuggest from ElasticPress.io.
+	 *
+	 * @return array
+	 */
+	public function epio_retrieve_autosuggest_allowed() {
+		$response = Elasticsearch::factory()->remote_request(
+			Indexables::factory()->get( 'post' )->get_index_name() . '/get-autosuggest-allowed'
+		);
+
+		$body = wp_remote_retrieve_body( $response, true );
+		return json_decode( $body );
+	}
+
+	/**
+	 * Output the current allowed parameters for autosuggest stored in ElasticPress.io.
+	 */
+	public function epio_allowed_parameters() {
+		$allowed_params = $this->epio_retrieve_autosuggest_allowed();
+		if ( is_wp_error( $allowed_params ) || ( isset( $allowed_params['status'] ) && 200 !== $allowed_params['status'] ) ) {
+			return;
+		}
+		?>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Allowed Parameters', 'elasticpress' ); ?></label></div>
+			<div class="input-wrap">
+				<?php
+				if ( empty( $allowed_params ) ) {
+					?>
+					<p>
+						<?php
+						printf(
+							/* translators: 1: <a> tag; 2. </a> */
+							esc_html__( 'It seems allowed parameters were not set yet. You can do that visiting %1$sthe weighting dashboard page%2$s and clicking on the "Save Changes".', 'elasticpress' ),
+							'<a href="' . esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ) . '">',
+							'</a>'
+						);
+						?>
+					</p>
+					<?php
+				} else {
+					$fields = [
+						wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
+						wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
+						wp_sprintf( esc_html__( 'Fields: %l', 'elasticpress' ), $allowed_params['postFields'] ),
+					];
+					echo implode( '<br>', $fields ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				}
+				?>
+			</div>
+		</div>
+		<?php
 	}
 }
 

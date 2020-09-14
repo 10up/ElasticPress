@@ -396,6 +396,14 @@ class Weighting {
 
 		update_option( 'elasticpress_weighting', $final_config );
 
+		/**
+		 * Fires right after the weighting configuration is saved.
+		 *
+		 * @since  3.5.x
+		 * @hook ep_saved_weighting_configuration
+		 */
+		do_action( 'ep_saved_weighting_configuration' );
+
 		return $final_config;
 	}
 
