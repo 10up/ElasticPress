@@ -38,7 +38,11 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			$this->updateFeatureSettings(
 				[
 					'search'            => [
-						'active' => 1,
+						'active'            => 1,
+						'highlight_enabled' => true,
+						'highlight_excerpt' => true,
+						'highlight_tag'     => 'mark',
+						'highlight_color'   => '#157d84',
 					],
 					'related_posts'     => [
 						'active' => 1,

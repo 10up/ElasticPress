@@ -594,8 +594,8 @@ class Synonyms {
 		return array(
 			'pageHeading'                => __( 'Manage Synonyms', 'elasticpress' ),
 			'pageDescription'            => __( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ),
-			'pageToggleAdvanceText'      => __( 'Toggle Advanced Editor', 'elasticpress' ),
-			'pageToggleSimpleText'       => __( 'Toggle Simple Editor', 'elasticpress' ),
+			'pageToggleAdvanceText'      => __( 'Switch to Advanced Text Editor', 'elasticpress' ),
+			'pageToggleSimpleText'       => __( 'Switch to Visual Editor', 'elasticpress' ),
 
 			'setsTitle'                  => __( 'Sets', 'elasticpress' ),
 			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
