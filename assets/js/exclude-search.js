@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+
 const {
 	i18n: { __ },
 	data: { useSelect, useDispatch },
@@ -10,17 +12,17 @@ const {
 const ExcludeFromSearch = () => {
 	const {
 		meta,
-		meta: { exclude_from_search = false },
+		meta: { _exclude_from_search = false },
 	} = useSelect((select) => ({
 		meta: select('core/editor').getEditedPostAttribute('meta') || {},
 	}));
 	const { editPost } = useDispatch('core/editor');
-	const [excludeFromSearch, setExcludeFromSearch] = useState(exclude_from_search);
+	const [excludeFromSearch, setExcludeFromSearch] = useState(_exclude_from_search);
 	useEffect(() => {
 		editPost({
 			meta: {
 				...meta,
-				exclude_from_search: excludeFromSearch,
+				_exclude_from_search: excludeFromSearch,
 			},
 		});
 	}, [excludeFromSearch]);
@@ -40,3 +42,5 @@ registerPlugin('ep-exclude-from-search', {
 	render: ExcludeFromSearch,
 	icon: null,
 });
+
+/* eslint-enable camelcase */

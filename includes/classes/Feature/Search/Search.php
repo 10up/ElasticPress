@@ -48,6 +48,22 @@ class Search extends Feature {
 		parent::__construct();
 	}
 
+	function register_meta() {
+		register_post_meta(
+			['page', 'post'],
+			'_exclude_from_search',
+			[
+				'show_in_rest'  => true,
+				'single'        => true,
+				'type'          => 'boolean',
+				'sanitize_callback' => 'sanitize_text_field',
+				'auth_callback' => function() { 
+					return current_user_can('edit_posts');
+				}
+			]
+		);
+	}
+
 	/**
 	 * We need to delay search setup up since it will fire after protected content and protected
 	 * content filters into the search setup
@@ -56,17 +72,7 @@ class Search extends Feature {
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
-
-		// Register page meta
-		register_post_meta(
-			['page', 'post'],
-			'exclude_from_search',
-			[
-				'show_in_rest'  => true,
-				'single'        => true,
-				'type'          => 'boolean',
-			]
-		);
+		add_action( 'init', [ $this, 'register_meta' ] );
 
 		wp_enqueue_script(
 			'ep-exclude-search',
