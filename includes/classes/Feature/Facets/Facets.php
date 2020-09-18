@@ -36,7 +36,6 @@ class Facets extends Feature {
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
 			'match_type' => 'all',
-			'facet_type' => 'checkboxes'
 		];
 
 		parent::__construct();
@@ -79,15 +78,6 @@ class Facets extends Feature {
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
-
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
-			<div class="field-name status"><?php esc_html_e( 'Facet Display', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label for="facet_type_checkboxes"><input name="facet_type" id="facet_type_checkboxes" data-field-name="facet_type" class="setting-field" type="radio" <?php if ( 'checkboxes' === $settings['facet_type'] ) : ?>checked<?php endif; ?> value="checkboxes"><?php echo wp_kses_post( __( 'Display facets as a list of checkboxes', 'elasticpress' ) ); ?></label><br>
-				<label for="facet_type_accordion"><input name="facet_type" id="facet_type_accordion" data-field-name="facet_type" class="setting-field" type="radio" <?php if ( 'accordion' === $settings['facet_type'] ) : ?>checked<?php endif; ?> value="accordion"><?php echo wp_kses_post( __( 'Didplay facets in an accordion', 'elasticpress' ) ); ?></label>
-				<p class="field-description"><?php esc_html_e( 'Facets displayed as an accordion will initally show only top level results.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
 		<?php
 	}
 
@@ -121,7 +111,6 @@ class Facets extends Feature {
 			$settings,
 			array(
 				'match_type' => 'all',
-				'facet_type' => 'checkboxes'
 			)
 		);
 
@@ -288,7 +277,6 @@ class Facets extends Feature {
 			$settings,
 			array(
 				'match_type' => 'all',
-				'facet_type' => 'checkboxes',
 			)
 		);
 

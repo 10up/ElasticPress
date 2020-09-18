@@ -72,7 +72,7 @@ class Widget extends WP_Widget {
 		$selected_filters = $feature->get_selected();
 
 		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
-		$facet_type = ( ! empty( $instance['facet_type'] ) ) ? $instance['facet_type'] : 'checkboxes';
+
 
 		/**
 		 * Get all the terms so we know if we should output the widget
@@ -119,6 +119,7 @@ class Widget extends WP_Widget {
 
 		$orderby = isset( $instance['orderby'] ) ? $instance['orderby'] : 'count';
 		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
+		$display = isset( $instance['display'] ) ? $instance['display'] : 'list';
 
 		$terms     = Utils\get_term_tree( $terms, $orderby, $order, true );
 		$term_tree = Utils\get_term_tree( $terms, 'count', 'desc', false );
@@ -144,7 +145,7 @@ class Widget extends WP_Widget {
 		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
 		?>
 
-		<form class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
+		<form class="terms display_<?php echo esc_attr( $display ); ?> <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
 				<?php // translators: Taxonomy Name ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
@@ -363,7 +364,6 @@ class Widget extends WP_Widget {
 			$settings,
 			array(
 				'match_type' => 'all',
-				'facet_type' => 'checkboxes',
 			)
 		);
 
@@ -380,6 +380,7 @@ class Widget extends WP_Widget {
 		$facet   = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
 		$orderby = ( ! empty( $instance['orderby'] ) ) ? $instance['orderby'] : '';
 		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
+		$display   = ( ! empty( $instance['display'] ) ) ? $instance['display'] : '';
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
 		/**
@@ -400,6 +401,11 @@ class Widget extends WP_Widget {
 			'desc' => __( 'Descending', 'elasticpress' ),
 			'asc'  => __( 'Ascending', 'elasticpress' ),
 		];
+
+		$display_options = [
+			'list' => __( 'List', 'list'),
+			'accordion' => __( 'Accordion List', 'accordion'),
+		]
 
 		?>
 		<div class="widget-ep-facet">
@@ -450,6 +456,20 @@ class Widget extends WP_Widget {
 				</select>
 			</p>
 
+			<p>
+				<label for="<?php echo esc_attr( $this->get_field_id( 'display' ) ); ?>">
+					<?php esc_html_e( 'Display as:', 'elasticpress' ); ?>
+				</label><br>
+
+				<select id="<?php echo esc_attr( $this->get_field_id( 'display' ) ); ?>"
+						name="<?php echo esc_attr( $this->get_field_name( 'display' ) ); ?>">
+					<?php foreach ( $display_options as $name => $title ) : ?>
+						<option <?php selected( $display, $name ); ?>
+								value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</p>
+
 			<?php // translators: "all" or "any", depending on configuration values, 3: URL ?>
 			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $match_type_set, $match_type_not_set, esc_url( $dashboard_url ) ) ); ?></p>
 		</div>
@@ -466,12 +486,11 @@ class Widget extends WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance = [];
-
-		$instance['title']   = sanitize_text_field( $new_instance['title'] );
-		$instance['facet']   = sanitize_text_field( $new_instance['facet'] );
-		$instance['orderby'] = sanitize_text_field( $new_instance['orderby'] );
-		$instance['order']   = sanitize_text_field( $new_instance['order'] );
-
+		$instance['title']      = sanitize_text_field( $new_instance['title'] );
+		$instance['facet']      = sanitize_text_field( $new_instance['facet'] );
+		$instance['orderby']    = sanitize_text_field( $new_instance['orderby'] );
+		$instance['order']      = sanitize_text_field( $new_instance['order'] );
+		$instance['display']      = sanitize_text_field( $new_instance['display'] );
 		return $instance;
 	}
 }
