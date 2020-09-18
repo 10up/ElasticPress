@@ -72,6 +72,7 @@ class Widget extends WP_Widget {
 		$selected_filters = $feature->get_selected();
 
 		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
+		$facet_type = ( ! empty( $instance['facet_type'] ) ) ? $instance['facet_type'] : 'checkboxes';
 
 		/**
 		 * Get all the terms so we know if we should output the widget
@@ -362,16 +363,18 @@ class Widget extends WP_Widget {
 			$settings,
 			array(
 				'match_type' => 'all',
+				'facet_type' => 'checkboxes',
 			)
 		);
 
-		$set     = esc_html__( 'all', 'elasticpress' );
-		$not_set = esc_html__( 'any', 'elasticpress' );
+		$match_type_set     = esc_html__( 'all', 'elasticpress' );
+		$match_type_not_set = esc_html__( 'any', 'elasticpress' );
 
 		if ( 'any' === $settings['match_type'] ) {
-			$set     = esc_html__( 'any', 'elasticpress' );
-			$not_set = esc_html__( 'all', 'elasticpress' );
+			$match_type_set     = esc_html__( 'any', 'elasticpress' );
+			$match_type_not_set = esc_html__( 'all', 'elasticpress' );
 		}
+
 
 		$title   = ( ! empty( $instance['title'] ) ) ? $instance['title'] : '';
 		$facet   = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
@@ -448,7 +451,7 @@ class Widget extends WP_Widget {
 			</p>
 
 			<?php // translators: "all" or "any", depending on configuration values, 3: URL ?>
-			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
+			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $match_type_set, $match_type_not_set, esc_url( $dashboard_url ) ) ); ?></p>
 		</div>
 
 		<?php
