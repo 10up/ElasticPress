@@ -11,6 +11,8 @@ namespace ElasticPress;
 use ElasticPress\Utils as Utils;
 use \WP_Error as WP_Error;
 
+use function ElasticPress\Dashboard\action_wp_ajax_ep_index;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -916,11 +918,28 @@ class Elasticsearch {
 			'timeout' => apply_filters( 'ep_bulk_index_timeout', 30 ),
 		);
 
+		if ( $this->maybe_pre_tune_bulk_setting( $body ) ) {
+			return action_wp_ajax_ep_index();
+		}
+
+		$start_time = microtime( true );
+
 		$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
 
+		$exec_time = microtime( true ) - $start_time;
+
 		if ( is_wp_error( $request ) ) {
+
+			if ( strpos( $request->get_error_message(), 'timed out' ) ) {
+				$current_setting = get_option( 'ep_bulk_setting' );
+				update_option( 'ep_bulk_setting', ceil( $current_setting / 2 ) );
+				return action_wp_ajax_ep_index();
+			}
+
 			return $request;
 		}
+
+		$this->try_tuning_bulk_setting( $exec_time );
 
 		$response = wp_remote_retrieve_response_code( $request );
 
@@ -929,6 +948,52 @@ class Elasticsearch {
 		}
 
 		return json_decode( wp_remote_retrieve_body( $request ), true );
+	}
+
+	/**
+	 * Try to tune the bulk setting if we have documents in queue.
+	 * 
+	 * @param string $body Encoded JSON.
+	 *
+	 * @return bool
+	 */
+	private function maybe_pre_tune_bulk_setting( $body ) {
+		$current_setting = get_option( 'ep_bulk_setting' );
+
+		if ( substr_count( $body, 'attachments' ) > 5 ) {
+			update_option( 'ep_bulk_setting', ceil( $current_setting / 4 ) );
+			set_transient( 'ep_pre_tuning', true, HOUR_IN_SECONDS );
+			return true;
+		}
+
+		delete_transient( 'ep_pre_tuning' );
+		return false;
+	}
+
+	/**
+	 * Try to tune bulk setting after timing the request.
+	 *
+	 * @param float $exec_time Execution time of the request.
+	 */
+	private function try_tuning_bulk_setting( $exec_time ) {
+
+		if ( get_transient( 'ep_pre_tuning' ) ) {
+			return;
+		}
+
+		$current_setting = get_option( 'ep_bulk_setting' );
+
+		if ( $exec_time > 20 ) {
+			$current_setting = ceil( $current_setting / 1.5 );
+		} else if ( $exec_time > 15 ) {
+			$current_setting = ceil( $current_setting * 0.75 );
+		}
+
+		if ( $exec_time < 10 ) {
+			$current_setting = ceil( $current_setting * 1.25 );
+		}
+
+		update_option( 'ep_bulk_setting', $current_setting );
 	}
 
 	/**
