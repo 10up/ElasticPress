@@ -459,3 +459,30 @@ function get_language() {
 	 */
 	return apply_filters( 'ep_default_language', $ep_language );
 }
+
+/**
+ * Get EP option for both single and multisites.
+ *
+ * @param string $key Option key.
+ */
+function get_ep_option( $key ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return get_site_option( $key );
+	} else {
+		return get_option( $key );
+	}
+}
+
+/**
+ * Update EP option for both single and multisites.
+ *
+ * @param string $key   Option key.
+ * @param mixed  $value Option value to be set.
+ */
+function update_ep_option( $key, $value ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return update_site_option( $key, $value );
+	} else {
+		return update_option( $key, $value );
+	}
+}
