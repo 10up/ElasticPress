@@ -923,7 +923,7 @@ class Elasticsearch {
 		/**
 		 * Try to tune the bulk setting if we have documents in queue.
 		 */
-		if ( substr_count( $body, 'attachments' ) > 5 ) {
+		if ( substr_count( $body, '"attachments":[{"data":' ) > 5 ) {
 			Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 4 ) );
 			set_transient( 'ep_pre_tuning', true, HOUR_IN_SECONDS );
 			return action_wp_ajax_ep_index();
