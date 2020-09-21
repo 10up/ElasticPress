@@ -433,6 +433,25 @@ class WooCommerce extends Feature {
 					);
 
 					$query->set( 'search_fields', $search_fields );
+				} elseif ( 'product' === $post_type && is_plugin_active_for_network( EP_FILE ) ) {
+					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
+
+					// Remove author_name from this search.
+					$search_fields = $this->remove_author( $search_fields );
+
+					foreach ( $search_fields as $field_key => $field ) {
+						if ( 'author_name' === $field ) {
+							unset( $search_fields[ $field_key ] );
+						}
+					}
+
+					$search_fields['meta']       = ( ! empty( $search_fields['meta'] ) ) ? $search_fields['meta'] : [];
+					$search_fields['taxonomies'] = ( ! empty( $search_fields['taxonomies'] ) ) ? $search_fields['taxonomies'] : [];
+
+					$search_fields['meta']       = array_merge( $search_fields['meta'], array( '_sku' ) );
+					$search_fields['taxonomies'] = array_merge( $search_fields['taxonomies'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
+
+					$query->set( 'search_fields', $search_fields );
 				}
 			} else {
 				/**
