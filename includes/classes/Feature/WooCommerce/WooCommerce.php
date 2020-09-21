@@ -433,7 +433,7 @@ class WooCommerce extends Feature {
 					);
 
 					$query->set( 'search_fields', $search_fields );
-				} elseif ( 'product' === $post_type && is_plugin_active_for_network( EP_FILE ) ) {
+				} elseif ( 'product' === $post_type && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 					// Remove author_name from this search.
