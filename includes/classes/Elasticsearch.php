@@ -939,8 +939,7 @@ class Elasticsearch {
 
 		if ( is_wp_error( $request ) ) {
 
-			// @todo need a max retry filter here
-			if ( strpos( $request->get_error_message(), 'timed out' ) ) {
+			if ( $current_setting > 1 && strpos( $request->get_error_message(), 'timed out' ) ) {
 				Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 2 ) );
 				return action_wp_ajax_ep_index();
 			}
