@@ -982,6 +982,18 @@ class Elasticsearch {
 			$current_setting = ceil( $current_setting * 1.25 );
 		}
 
+		/**
+		 * Filter the maximum bulk setting can be set.
+		 *
+		 * @hook ep_max_bulk_setting
+		 * @return {int} Max bulk setting can be set.
+		 */
+		$max_bulk_setting = apply_filters( 'ep_max_bulk_setting', 500 );
+
+		if ( $current_setting > $max_bulk_setting ) {
+			$current_setting = $max_bulk_setting;
+		}
+
 		Utils\update_ep_option( 'ep_bulk_setting', $current_setting );
 	}
 
