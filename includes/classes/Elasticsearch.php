@@ -918,8 +918,17 @@ class Elasticsearch {
 			'timeout' => apply_filters( 'ep_bulk_index_timeout', 30 ),
 		);
 
-		if ( $this->maybe_pre_tune_bulk_setting( $body ) ) {
+		$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
+
+		/**
+		 * Try to tune the bulk setting if we have documents in queue.
+		 */
+		if ( substr_count( $body, 'attachments' ) > 5 ) {
+			Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 4 ) );
+			set_transient( 'ep_pre_tuning', true, HOUR_IN_SECONDS );
 			return action_wp_ajax_ep_index();
+		} else {
+			delete_transient( 'ep_pre_tuning' );
 		}
 
 		$start_time = microtime( true );
@@ -930,9 +939,9 @@ class Elasticsearch {
 
 		if ( is_wp_error( $request ) ) {
 
+			// @todo need a max retry filter here
 			if ( strpos( $request->get_error_message(), 'timed out' ) ) {
-				$current_setting = get_option( 'ep_bulk_setting' );
-				update_option( 'ep_bulk_setting', ceil( $current_setting / 2 ) );
+				Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 2 ) );
 				return action_wp_ajax_ep_index();
 			}
 
@@ -951,26 +960,6 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Try to tune the bulk setting if we have documents in queue.
-	 * 
-	 * @param string $body Encoded JSON.
-	 *
-	 * @return bool
-	 */
-	private function maybe_pre_tune_bulk_setting( $body ) {
-		$current_setting = get_option( 'ep_bulk_setting' );
-
-		if ( substr_count( $body, 'attachments' ) > 5 ) {
-			update_option( 'ep_bulk_setting', ceil( $current_setting / 4 ) );
-			set_transient( 'ep_pre_tuning', true, HOUR_IN_SECONDS );
-			return true;
-		}
-
-		delete_transient( 'ep_pre_tuning' );
-		return false;
-	}
-
-	/**
 	 * Try to tune bulk setting after timing the request.
 	 *
 	 * @param float $exec_time Execution time of the request.
@@ -981,7 +970,7 @@ class Elasticsearch {
 			return;
 		}
 
-		$current_setting = get_option( 'ep_bulk_setting' );
+		$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
 
 		if ( $exec_time > 20 ) {
 			$current_setting = ceil( $current_setting / 1.5 );
@@ -993,7 +982,7 @@ class Elasticsearch {
 			$current_setting = ceil( $current_setting * 1.25 );
 		}
 
-		update_option( 'ep_bulk_setting', $current_setting );
+		Utils\update_ep_option( 'ep_bulk_setting', $current_setting );
 	}
 
 	/**
