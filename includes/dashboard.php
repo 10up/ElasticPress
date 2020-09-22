@@ -931,6 +931,15 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		'elasticpress',
+		'ElasticPress ' . esc_html__( 'Features', 'elasticpress' ),
+		esc_html__( 'Features', 'elasticpress' ),
+		$capability,
+		'elasticpress',
+		__NAMESPACE__ . '\resolve_screen'
+	);
+
+	add_submenu_page(
+		'elasticpress',
 		'ElasticPress ' . esc_html__( 'Settings', 'elasticpress' ),
 		esc_html__( 'Settings', 'elasticpress' ),
 		$capability,
