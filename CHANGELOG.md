@@ -25,6 +25,7 @@ Enhancements:
 * Add functionality for skipping ElasticPress install.
 * Increase max supported Elasticsearch version to 7.9.
 * Add filter to prepared user meta data. Props [g-kanoufi](https://github.com/g-kanoufi).
+* Improve Terms Feature terminology to remove confusion.
 
 
 ## [3.4.3] - 2020-07-21
