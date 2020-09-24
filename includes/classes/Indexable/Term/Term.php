@@ -481,7 +481,7 @@ class Term extends Indexable {
 			switch ( $query_vars['fields'] ) {
 				case 'ids':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_id',
 						],
 					];
@@ -489,7 +489,7 @@ class Term extends Indexable {
 
 				case 'id=>name':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_id',
 							'name',
 						],
@@ -498,7 +498,7 @@ class Term extends Indexable {
 
 				case 'id=>parent':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_id',
 							'parent',
 						],
@@ -507,7 +507,7 @@ class Term extends Indexable {
 
 				case 'id=>slug':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_id',
 							'slug',
 						],
@@ -516,14 +516,14 @@ class Term extends Indexable {
 
 				case 'names':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'name',
 						],
 					];
 					break;
 				case 'tt_ids':
 					$formatted_args['_source'] = [
-						'include' => [
+						'includes' => [
 							'term_taxonomy_id',
 						],
 					];
