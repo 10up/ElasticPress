@@ -8,8 +8,8 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Indexables as Indexables;
 use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -169,6 +169,12 @@ class SyncManager extends SyncManagerAbstract {
 		do_action( 'ep_delete_post', $post_id );
 
 		Indexables::factory()->get( 'post' )->delete( $post_id, false );
+
+        /**
+		 * Make sure to reset sync queue in case an shutdown happens before a redirect
+		 * when a redirect has already been triggered.
+		 */
+		$this->sync_queue = [];
 	}
 
 	/**
