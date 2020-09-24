@@ -17,7 +17,7 @@ Bug fixes:
 * uninstall.php: Change the EP_FILE const to its value. Props [felipeelia](https://github.com/felipeelia).
 * Fix list features WP CLI command. Props [felipeelia](https://github.com/felipeelia).
 * Add `rel="nofollow"` to facet links. Props [mlaroy](https://github.com/mlaroy).
-* Facets widget: Move <div> outside ob_start(). Props [kallehauge](https://github.com/kallehauge).
+* Facets widget: Move `<div>` outside `ob_start()`. Props [kallehauge](https://github.com/kallehauge).
 * Load facet scripts and styles only when they are really necessary. Props [goaround](https://github.com/goaround).
 * Index attachments with Protected Content and query for them in media search. Props [oscarsanchez](https://github.com/oscarsanchez).
 * Fixed `Deprecated field [include] used, expected [includes] instead.`. Props [dinhtungdu](https://github.com/dinhtungdu).
@@ -27,7 +27,6 @@ Enhancements:
 * Add sync kill filter. Props [barryceelen](https://github.com/barryceelen).
 * Add timeout filters for bulk_index and index_document. Props [@oscarsanchez](https://github.com/oscarsanchez).
 
-
 ## [3.4.1] - 2020-3-31
 
 * Make weighting dashboard flex containers to prevent the slider from changing size. Props [@mlaroy](https://github.com/mlaroy).
@@ -36,7 +35,7 @@ Enhancements:
 * Properly order WooCommerce products using double to account for decimals. Props [@oscarsanchez](https://github.com/oscarsanchez).
 * Show current indices in index health dashboard. Props [moraleida](https://github.com/moraleida).
 
-## [3.4]
+## [3.4.0] - 2020-03-03
 
 * Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
 * Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
@@ -53,7 +52,7 @@ Enhancements:
 * Add `clear-transient` WP CLI command.
 * Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
 
-## [3.3] - 2018-12-18
+## [3.3.0] - 2018-12-18
 
 * Officially support Elasticsearch 7.5
 * Add optional Google Analytics Autosuggest tracking Event
@@ -99,7 +98,7 @@ Enhancements:
 
 * Fix Gutenberg breaking issue with Related Posts and image blocks. Props [adamsilverstein](https://github.com/adamsilverstein)
 
-## [3.2] - 2019-10-08
+## [3.2.0] - 2019-10-08
 
 * Improve block asset enqueueing: hook on `enqueue_block_editor_assets`. Props [adamsilverstein](https://github.com/adamsilverstein).
 * Handle empty search weighting fields bug.
@@ -806,10 +805,23 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 ### Fixed
 - Escaping issues
 
-## [0.1.0]
+## 0.1.0 - Unknown
 - Initial plugin release
 
-[Unreleased]: https://github.com/10up/ElasticPress/compare/3.0.3...develop
+[Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.4.2]: https://github.com/10up/ElasticPress/compare/3.4.1...3.4.2
+[3.4.1]: https://github.com/10up/ElasticPress/compare/3.4...3.4.1
+[3.4.0]: https://github.com/10up/ElasticPress/compare/3.3...3.4
+[3.3.0]: https://github.com/10up/ElasticPress/compare/3.2.6...3.3
+[3.2.6]: https://github.com/10up/ElasticPress/compare/3.2.5...3.2.6
+[3.2.5]: https://github.com/10up/ElasticPress/compare/3.2.4...3.2.5
+[3.2.4]: https://github.com/10up/ElasticPress/compare/3.2.3...3.2.4
+[3.2.3]: https://github.com/10up/ElasticPress/compare/3.2.2...3.2.3
+[3.2.2]: https://github.com/10up/ElasticPress/compare/3.2.1...3.2.2
+[3.2.1]: https://github.com/10up/ElasticPress/compare/3.2...3.2.1
+[3.2.0]: https://github.com/10up/ElasticPress/compare/3.1.1...3.2
+[3.1.1]: https://github.com/10up/ElasticPress/compare/3.1...3.1.1
+[3.1.0]: https://github.com/10up/ElasticPress/compare/3.0.3...3.1
 [3.0.3]: https://github.com/10up/ElasticPress/compare/3.0.2...3.0.3
 [3.0.2]: https://github.com/10up/ElasticPress/compare/3.0.1...3.0.2
 [3.0.1]: https://github.com/10up/ElasticPress/compare/3.0...3.0.1
@@ -856,4 +868,3 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 [0.9.1]: https://github.com/10up/ElasticPress/compare/0.9...0.9.1
 [0.9]: https://github.com/10up/ElasticPress/compare/0.1.2...0.9
 [0.1.2]: https://github.com/10up/ElasticPress/releases/tag/0.1.2
-[0.1.0]: https://plugins.trac.wordpress.org/changeset/1010633/elasticpress/
