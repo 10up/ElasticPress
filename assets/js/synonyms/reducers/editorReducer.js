@@ -45,6 +45,7 @@ const editorReducer = (state, action) => {
 			return {
 				...state,
 				sets: state.sets.filter(({ id }) => id !== action.data),
+				dirty: true,
 			};
 		case 'ADD_ALTERNATIVE':
 			return {
@@ -88,6 +89,7 @@ const editorReducer = (state, action) => {
 			return {
 				...state,
 				alternatives: state.alternatives.filter(({ id }) => id !== action.data),
+				dirty: true,
 			};
 		case 'SET_SOLR_EDITABLE':
 			return {
