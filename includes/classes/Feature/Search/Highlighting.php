@@ -72,6 +72,7 @@ class Highlighting {
 	 * @return array $formatted_args formatted args with search highlight tags
 	 */
 	public function add_search_highlight_tags( $formatted_args, $args ) {
+
 		apply_filters( 'ep_highlighting_excerpt', [] );
 
 		// get current config
@@ -83,6 +84,10 @@ class Highlighting {
 		}
 
 		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+
+		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 			return $formatted_args;
 		}
 
