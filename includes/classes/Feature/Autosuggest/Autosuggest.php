@@ -630,7 +630,7 @@ class Autosuggest extends Feature {
 	 * Send the allowed parameters for autosuggest to ElasticPress.io.
 	 */
 	public function epio_send_autosuggest_allowed() {
-		if ( ! wp_verify_nonce( $_REQUEST['ep_epio_nonce'], 'ep-epio-set-autosuggest' ) ) {
+		if ( ! empty( $_REQUEST['ep_epio_nonce'] ) && ! wp_verify_nonce( $_REQUEST['ep_epio_nonce'], 'ep-epio-set-autosuggest' ) ) {
 			return;
 		}
 		if ( empty( $_GET['ep_epio_set_autosuggest'] ) ) {
