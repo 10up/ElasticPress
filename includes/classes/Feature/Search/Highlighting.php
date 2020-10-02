@@ -117,8 +117,14 @@ class Highlighting {
 		$current_tag   = $settings['highlight_tag'];
 		$highlight_tag = apply_filters( 'ep_highlighting_tag', $current_tag );
 
-		// default class
-		$highlight_class = 'ep-highlight';
+		/**
+		 * Filter class applied to search highlight tags
+		 *
+		 * @hook ep_highlighting_class
+		 * @param  {string} $class Highlighting class
+		 * @return  {string} New highlighting class
+		 */
+		$highlight_class = apply_filters( 'ep_highlighting_class', 'ep-highlight' );
 
 		// tags
 		$opening_tag = '<' . $highlight_tag . ' class="' . $highlight_class . '">';
