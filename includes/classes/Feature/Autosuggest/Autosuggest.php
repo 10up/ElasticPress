@@ -86,7 +86,10 @@ class Autosuggest extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
 		add_filter( 'ep_fuzziness_arg', [ $this, 'set_fuzziness' ], 10, 3 );
 		add_filter( 'ep_weighted_query_for_post_type', [ $this, 'adjust_fuzzy_fields' ], 10, 3 );
-		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_autosuggest_allowed' ] );
+		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_autosuggest_public_request' ] );
+		add_filter( 'wp', [ $this, 'epio_send_autosuggest_allowed' ] );
+		add_filter( 'ep_pre_dashboard_index', [ $this, 'epio_send_autosuggest_public_request' ] );
+		add_filter( 'ep_wp_cli_pre_index', [ $this, 'epio_send_autosuggest_public_request' ] );
 	}
 
 	/**
@@ -587,67 +590,92 @@ class Autosuggest extends Feature {
 	}
 
 	/**
+	 * Do a non-blocking search query to force the autosuggest hash to update.
+	 *
+	 * This request has to happen in a public environment, so all code testing if `is_admin()`
+	 * are properly executed.
+	 */
+	public function epio_send_autosuggest_public_request() {
+		$url = add_query_arg(
+			[
+				's'                       => 'search test',
+				'ep_epio_set_autosuggest' => 1,
+				'ep_epio_nonce'           => wp_create_nonce( 'ep-epio-set-autosuggest' ),
+				'nocache'                 => 1,
+			],
+			home_url( '/' )
+		);
+
+		// Pass the same cookies, so the same authenticated user is used (and we can check the nonce).
+		$cookies = [];
+		foreach ( $_COOKIE as $name => $value ) {
+			$cookies[] = new \WP_Http_Cookie(
+				[
+					'name'  => $name,
+					'value' => $value,
+				]
+			);
+		}
+
+		wp_remote_get(
+			$url,
+			[
+				'cookies'  => $cookies,
+				'blocking' => false,
+			]
+		);
+	}
+
+	/**
 	 * Send the allowed parameters for autosuggest to ElasticPress.io.
 	 */
 	public function epio_send_autosuggest_allowed() {
-		$search_feature = Features::factory()->get_registered_feature( 'search' );
-
-		$post_types = $search_feature->get_searchable_post_types();
-
-		/** This filter is documented in the generate_search_query() method. */
-		$post_types = apply_filters( 'ep_term_suggest_post_type', array_values( $post_types ) );
-
-		$post_status = get_post_stati(
-			[
-				'public'              => true,
-				'exclude_from_search' => false,
-			]
-		);
-
-		/** This filter is documented in the generate_search_query() method. */
-		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
-
-		$weighting_config = $search_feature->weighting->get_weighting_configuration();
-
-		$fields = [
-			'post_title.suggest',
-			'terms.ep_custom_result.name',
-		];
-		foreach ( $weighting_config as $post_type_fields ) {
-			$fields = array_merge( $fields, array_keys( $post_type_fields ) );
+		if ( ! wp_verify_nonce( $_REQUEST['ep_epio_nonce'], 'ep-epio-set-autosuggest' ) ) {
+			return;
 		}
-
-		$fields = array_unique( $fields );
-
-		$post_author = array_search( 'author_name', $fields, true );
-		if ( false !== $post_author ) {
-			$fields[ $post_author ] = 'post_author.display_name';
+		if ( empty( $_GET['ep_epio_set_autosuggest'] ) ) {
+			return;
 		}
-
-		$allowed_params = [
-			'post_type'   => $post_types,
-			'post_status' => $post_status,
-			'fields'      => $fields,
-		];
 
 		/**
-		 * Filter allowed parameters before sending to ElasticPress.io.
+		 * Fires before the request is sent to EP.io to set Autosuggest allowed values.
 		 *
+		 * @hook ep_epio_pre_send_autosuggest_allowed
 		 * @since  3.5.x
-		 * @hook ep_autosuggest_allowed_parameters
-		 * @param  {array} $allowed_params Allowed parameters. Multidimensional array keyed by 'post_type', 'post_status', and 'fields'.
-		 * @return  {array} New allowed parameters
 		 */
-		$allowed_params = apply_filters( 'ep_autosuggest_allowed_parameters', $allowed_params );
+		do_action( 'ep_epio_pre_send_autosuggest_allowed' );
 
-		$path = Indexables::factory()->get( 'post' )->get_index_name() . '/set-autosuggest-allowed';
-		Elasticsearch::factory()->remote_request(
-			$path,
-			[
-				'method' => 'POST',
-				'body'   => wp_json_encode( $allowed_params ),
-			]
-		);
+		// The same ES query sent by autosuggest.
+		$es_search_query = json_decode( $this->generate_search_query()['body'] );
+
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+
+		add_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
+
+		Elasticsearch::factory()->query( $index, 'post', $es_search_query, [] );
+
+		remove_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
+
+		/**
+		 * Fires after the request is sent to EP.io to set Autosuggest allowed values.
+		 *
+		 * @hook ep_epio_sent_autosuggest_allowed
+		 * @since  3.5.x
+		 */
+		do_action( 'ep_epio_sent_autosuggest_allowed' );
+	}
+
+	/**
+	 * Set a header so EP.io servers know this request contains the values
+	 * that should be stored as allowed.
+	 *
+	 * @since 3.5.x
+	 * @param array $headers The Request Headers.
+	 * @return array
+	 */
+	public function add_ep_set_autosuggest_header( $headers ) {
+		$headers['EP-Set-Autosuggest'] = true;
+		return $headers;
 	}
 
 	/**
@@ -661,7 +689,7 @@ class Autosuggest extends Feature {
 		);
 
 		$body = wp_remote_retrieve_body( $response, true );
-		return json_decode( $body );
+		return json_decode( $body, true );
 	}
 
 	/**
@@ -694,7 +722,8 @@ class Autosuggest extends Feature {
 					$fields = [
 						wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
 						wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
-						wp_sprintf( esc_html__( 'Fields: %l', 'elasticpress' ), $allowed_params['postFields'] ),
+						wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
+						wp_sprintf( esc_html__( 'Returned Fields: %l', 'elasticpress' ), $allowed_params['returnFields'] ),
 					];
 					echo implode( '<br>', $fields ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
