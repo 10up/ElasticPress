@@ -464,6 +464,26 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * A WP-CLI wrapper to run Autosuggest::epio_send_autosuggest_public_request().
+	 *
+	 * @param array $args       Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 * @subcommand  epio-set-autosuggest
+	 * @since       3.5.x
+	 */
+	public function epio_set_autosuggest( $args, $assoc_args ) {
+		$autosuggest_feature = Features::factory()->get_registered_feature( 'autosuggest' );
+
+		if ( empty( $autosuggest_feature ) || ! $autosuggest_feature->is_active() ) {
+			WP_CLI::error( esc_html__( 'Autosuggest is not enabled.', 'elasticpress' ) );
+		}
+
+		add_action( 'ep_epio_wp_cli_set_autosuggest', [ $autosuggest_feature, 'epio_send_autosuggest_public_request' ] );
+
+		do_action( 'ep_epio_wp_cli_set_autosuggest', $args, $assoc_args );
+	}
+
+	/**
 	 * Helper method for creating the network alias for an indexable
 	 *
 	 * @param  Indexable $indexable Instance of indexable.
