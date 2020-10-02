@@ -1193,6 +1193,7 @@ class Post extends Indexable {
 
 		if ( false !== $sticky_posts
 			&& $enable_sticky_posts
+			&& empty( $args['s'] )
 			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
 			$new_sort = [
 				[
