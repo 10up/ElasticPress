@@ -650,7 +650,16 @@ class Autosuggest extends Feature {
 		do_action( 'ep_epio_pre_send_autosuggest_allowed' );
 
 		// The same ES query sent by autosuggest.
-		$es_search_query = json_decode( $this->generate_search_query()['body'] );
+		$es_search_query = json_decode( $this->generate_search_query()['body'], true );
+
+		/**
+		 * Filter autosuggest ES query
+		 *
+		 * @since  3.5.x
+		 * @hook ep_epio_autosuggest_es_query
+		 * @param  {array} The ES Query.
+		 */
+		$es_search_query = apply_filters( 'ep_epio_autosuggest_es_query', $es_search_query );
 
 		$index = Indexables::factory()->get( 'post' )->get_index_name();
 
@@ -727,7 +736,7 @@ class Autosuggest extends Feature {
 						wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
 						wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
 						wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
-						wp_sprintf( esc_html__( 'Returned Fields: %l', 'elasticpress' ), $allowed_params['returnFields'] ),
+						wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ),
 					];
 					echo implode( '<br>', $fields ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
