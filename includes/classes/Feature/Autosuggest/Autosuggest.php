@@ -596,6 +596,10 @@ class Autosuggest extends Feature {
 	 * are properly executed.
 	 */
 	public function epio_send_autosuggest_public_request() {
+		if ( ! Utils\is_epio() ) {
+			return;
+		}
+
 		$url = add_query_arg(
 			[
 				's'                       => 'search test',
