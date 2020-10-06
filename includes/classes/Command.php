@@ -806,7 +806,7 @@ class Command extends WP_CLI_Command {
 							$synced++;
 						}
 
-						$this->reset_transient();
+						$this->reset_transient( $no_bulk_count, (int) $query['total_objects'] );
 
 						/**
 						 * Fires after one by one indexing an object in CLI
@@ -841,7 +841,7 @@ class Command extends WP_CLI_Command {
 						if ( ! empty( $objects ) && ( count( $objects ) + $killed_object_count ) >= absint( count( $query['objects'] ) ) ) {
 							$index_objects = $objects;
 
-							$this->reset_transient();
+							$this->reset_transient( (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] );
 
 							for ( $attempts = 1; $attempts <= 3; $attempts++ ) {
 								$response = $indexable->bulk_index( array_keys( $index_objects ) );
@@ -1148,13 +1148,16 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Reset transient while indexing
 	 *
+	 * @param int $items_indexed Count of items already indexed.
+	 * @param int $total_items Total number of items to be indexed.
+	 *
 	 * @since 2.2
 	 */
-	private function reset_transient() {
+	private function reset_transient( $items_indexed, $total_items ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+			set_site_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items ), $this->transient_expiration );
 		} else {
-			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+			set_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items ), $this->transient_expiration );
 		}
 	}
 
@@ -1166,8 +1169,10 @@ class Command extends WP_CLI_Command {
 	private function delete_transient() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_wpcli_sync' );
+			delete_site_transient( 'ep_cli_sync_progress' );
 		} else {
 			delete_transient( 'ep_wpcli_sync' );
+			delete_transient( 'ep_cli_sync_progress' );
 		}
 	}
 
