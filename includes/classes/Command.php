@@ -1190,6 +1190,65 @@ class Command extends WP_CLI_Command {
 		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
 
+	/**
+	 * Returns the status of an ongoing index operation in JSON array.
+	 *
+	 * Returns the status of an ongoing index operation in JSON array with the following fields:
+	 * indexing | boolean | True if index operation is ongoing or false
+	 * method | string | 'cli', 'web' or 'none'
+	 * items_indexed | integer | Total number of items indexed
+	 * total_items | integer | Total number of items indexed or -1 if not yet determined
+	 *
+	 * @subcommand get-index-status
+	 */
+	public function get_index_status() {
+
+		$index_status = array(
+			'indexing'      => false,
+			'method'        => 'none',
+			'items_indexed' => 0,
+			'total_items'   => -1,
+		);
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			$dashboard_syncing = get_site_option( 'ep_index_meta' );
+			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
+
+		} else {
+
+			$dashboard_syncing = get_option( 'ep_index_meta' );
+			$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
+
+		}
+
+		if ( $dashboard_syncing || $wpcli_syncing ) {
+
+			$index_status['indexing'] = true;
+
+			if ( $dashboard_syncing ) {
+
+				$index_status['method']   = 'web';
+				$index_status['items_indexed'] = $dashboard_syncing['offset'];
+				$index_status['total_items']   = $dashboard_syncing['found_items'];
+
+			} else {
+
+				$index_status['method'] = 'cli';
+
+				if ( is_array( $wpcli_syncing ) ) {
+
+					$index_status['items_indexed'] = $wpcli_syncing[0];
+					$index_status['total_items']   = $wpcli_syncing[1];
+
+				}
+			}
+		}
+
+		WP_CLI::line( wp_json_encode( $index_status ) );
+
+	}
+
 
 	/**
 	 * maybe change Elastic host on the fly
