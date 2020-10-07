@@ -33,6 +33,10 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		if ( ! $this->can_index_site() ) {
+			return;
+		}
+
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );

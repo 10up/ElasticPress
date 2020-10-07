@@ -144,6 +144,22 @@ abstract class SyncManager {
 	}
 
 	/**
+	 * Check if we can index content in the current blog
+	 *
+	 * @since 3.5
+	 * @return boolean
+	 */
+	public function can_index_site() {
+		if ( defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			$is_indexable = get_blog_option( get_current_blog_id(), 'ep_indexable', 'yes' );
+
+			return 'yes' === $is_indexable;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Determine whether syncing an indexable should take place.
 	 *
 	 * Returns true or false depending on the value of the WP_IMPORTING global.
