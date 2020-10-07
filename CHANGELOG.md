@@ -15,6 +15,8 @@ Bug fixes:
 * Add default permission callback to REST routes. Props [dkotter](https://github.com/dkotter).
 * Hide links to weighting and synonym dashboard if network activated. Props [felipeelia](https://github.com/felipeelia).
 * Only sync post on allow listed post meta. Props [felipeelia](https://github.com/felipeelia).
+* Check if site is indexable before syncing in network activated mode.
+* Fix facet widget and 3-level deep hierarchical taxonomy. Props [dinhtungdu](https://github.com/dinhtungdu).
 
 
 Enhancements:
