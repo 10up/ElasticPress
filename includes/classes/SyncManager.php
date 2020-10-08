@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils;
+
 /**
  * Abstract sync manager class to be extended for each indexable
  */
@@ -151,9 +153,7 @@ abstract class SyncManager {
 	 */
 	public function can_index_site() {
 		if ( defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
-			$is_indexable = get_blog_option( get_current_blog_id(), 'ep_indexable', 'yes' );
-
-			return 'yes' === $is_indexable;
+			return Utils\is_site_indexable();
 		}
 
 		return true;
