@@ -708,7 +708,7 @@ class Command extends WP_CLI_Command {
 		$index_results = array(
 			'total'        => $total_indexable,
 			'synced'       => $total_indexed,
-			'end_time_gmt' => current_time( 'timestamp', true ),
+			'end_time_gmt' => time(),
 			'total_time'   => (float) $index_time,
 			'errors'       => $index_errors,
 		);
@@ -930,7 +930,7 @@ class Command extends WP_CLI_Command {
 			}
 
 			$query_args['offset'] += $per_page;
-			$total_indexable      = (int) $query['total_objects'];
+			$total_indexable       = (int) $query['total_objects'];
 
 			usleep( 500 );
 
@@ -946,9 +946,9 @@ class Command extends WP_CLI_Command {
 		wp_reset_postdata();
 
 		return [
-			'total'  		=> $total_indexable,
-			'synced' 		=> $synced,
-			'errors' 		=> count( $failed_objects ),
+			'total'         => $total_indexable,
+			'synced'        => $synced,
+			'errors'        => count( $failed_objects ),
 			'error_details' => $this->output_index_errors( $failed_objects, $indexable, false ),
 		];
 	}
@@ -958,7 +958,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @param  array     $errors Error array
 	 * @param  Indexable $indexable Index indexable
-	 * @param bool		 $output True to print output.
+	 * @param  bool      $output True to print output
 	 *
 	 * @return array Array of error messages for furthur logging.
 	 * @since 3.4
@@ -969,7 +969,7 @@ class Command extends WP_CLI_Command {
 
 		foreach ( $errors as $object_id => $error ) {
 
-			$error_array[$object_id] = array(
+			$error_array[ $object_id ] = array(
 				$indexable->labels['singular'],
 				$error['type'],
 				$error['reason'],
@@ -1273,7 +1273,7 @@ class Command extends WP_CLI_Command {
 
 			if ( $dashboard_syncing ) {
 
-				$index_status['method']   = 'web';
+				$index_status['method']        = 'web';
 				$index_status['items_indexed'] = $dashboard_syncing['offset'];
 				$index_status['total_items']   = $dashboard_syncing['found_items'];
 
