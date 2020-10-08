@@ -331,4 +331,24 @@ class WpCliTest extends TestBase {
 
 		$this->assertStringContainsString( '{"indexing":false,"method":"none","items_indexed":0,"total_items":-1}', $cli_result );
 	}
+
+	/**
+	 * @testdox If user runs wp elasticpress get-last-cli-sync command, it should return a string indicating with the appropriate fields.
+	*/
+	public function testGetLastCLISyncCommand() {
+
+		$cli_result = $this->runCommand( 'wp elasticpress get-last-cli-cync' )['stdout'];
+
+		$this->assertStringContainsString( '[]', $cli_result );
+
+		$this->runCommand( 'wp elasticpress index' );
+
+		$cli_result = $this->runCommand( 'wp elasticpress get-last-cli-cync --clear' )['stdout'];
+
+		$this->assertStringContainsString( '"total_time"', $cli_result );
+
+		$cli_result = $this->runCommand( 'wp elasticpress get-last-cli-cync --clear' )['stdout'];
+
+		$this->assertStringContainsString( '[]', $cli_result );
+	}
 }
