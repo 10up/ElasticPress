@@ -530,6 +530,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		$total_indexed = 0;
+		$total_indexable = 0;
 
 		// Hold original wp_actions.
 		$this->temporary_wp_actions = $wp_actions;
@@ -612,7 +613,8 @@ class Command extends WP_CLI_Command {
 
 					$result = $this->index_helper( $indexable, $assoc_args );
 
-					$total_indexed += $result['synced'];
+					$total_indexed  += $result['synced'];
+					$total_indexable = $result['total'];
 
 					WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
 
@@ -641,7 +643,8 @@ class Command extends WP_CLI_Command {
 
 				$result = $this->index_helper( $indexable, $assoc_args );
 
-				$total_indexed += $result['synced'];
+				$total_indexed  += $result['synced'];
+				$total_indexable = $result['total'];
 
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
@@ -683,6 +686,9 @@ class Command extends WP_CLI_Command {
 
 				$result = $this->index_helper( $indexable, $assoc_args );
 
+				$total_indexed  += $result['synced'];
+				$total_indexable = $result['total'];
+
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
@@ -693,7 +699,17 @@ class Command extends WP_CLI_Command {
 			}
 		}
 
-		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
+		$index_time = timer_stop();
+
+		$index_results = array(
+			'total'  => $total_indexable,
+			'synced' => $total_indexed,
+			'time'   => $index_time,
+		);
+
+		WP_CLI::log( sprintf( 'Test: %d', var_dump( $index_results ) ) );
+
+		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $index_time ) );
 
 		$this->delete_transient();
 
@@ -715,6 +731,7 @@ class Command extends WP_CLI_Command {
 		$index_queue         = [];
 		$killed_object_count = 0;
 		$failed_objects      = [];
+		$total_indexable     = 0;
 
 		$no_bulk = false;
 
@@ -903,6 +920,7 @@ class Command extends WP_CLI_Command {
 			}
 
 			$query_args['offset'] += $per_page;
+			$total_indexable      = (int) $query['total_objects'];
 
 			usleep( 500 );
 
@@ -918,6 +936,7 @@ class Command extends WP_CLI_Command {
 		wp_reset_postdata();
 
 		return [
+			'total'  => $total_indexable,
 			'synced' => $synced,
 			'errors' => count( $failed_objects ),
 		];
