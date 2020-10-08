@@ -1295,15 +1295,15 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last CLI sync (if present) of an empty array.
+	 * Returns a JSON array with the results of the last CLI index (if present) of an empty array.
 	 *
 	 * @synopsis [--clear]
-	 * @subcommand get-last-cli-sync
+	 * @subcommand get-last-cli-index
 	 *
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_last_cli_sync( $args, $assoc_args ) {
+	public function get_last_cli_index( $args, $assoc_args ) {
 
 		$last_sync = get_site_option( 'ep_last_cli_index', array() );
 
