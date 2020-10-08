@@ -529,8 +529,9 @@ class Command extends WP_CLI_Command {
 			$indexables = explode( ',', str_replace( ' ', '', $assoc_args['indexables'] ) );
 		}
 
-		$total_indexed = 0;
+		$total_indexed   = 0;
 		$total_indexable = 0;
+		$index_errors    = array();
 
 		// Hold original wp_actions.
 		$this->temporary_wp_actions = $wp_actions;
@@ -615,6 +616,7 @@ class Command extends WP_CLI_Command {
 
 					$total_indexed  += $result['synced'];
 					$total_indexable = $result['total'];
+					$index_errors    = array_merge( $index_errors, $result['error_details'] );
 
 					WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
 
@@ -645,6 +647,7 @@ class Command extends WP_CLI_Command {
 
 				$total_indexed  += $result['synced'];
 				$total_indexable = $result['total'];
+				$index_errors    = array_merge( $index_errors, $result['error_details'] );
 
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
@@ -688,6 +691,7 @@ class Command extends WP_CLI_Command {
 
 				$total_indexed  += $result['synced'];
 				$total_indexable = $result['total'];
+				$index_errors    = array_merge( $index_errors, $result['error_details'] );
 
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
@@ -702,12 +706,18 @@ class Command extends WP_CLI_Command {
 		$index_time = timer_stop();
 
 		$index_results = array(
-			'total'  => $total_indexable,
-			'synced' => $total_indexed,
-			'time'   => $index_time,
+			'total'        => $total_indexable,
+			'synced'       => $total_indexed,
+			'end_time_gmt' => current_time( 'timestamp', true ),
+			'total_time'   => (float) $index_time,
+			'errors'       => $index_errors,
 		);
 
-		WP_CLI::log( sprintf( 'Test: %d', var_dump( $index_results ) ) );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_last_cli_index', $index_results );
+		} else {
+			update_option( 'ep_last_cli_index', $index_results, false );
+		}
 
 		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $index_time ) );
 
@@ -936,9 +946,10 @@ class Command extends WP_CLI_Command {
 		wp_reset_postdata();
 
 		return [
-			'total'  => $total_indexable,
-			'synced' => $synced,
-			'errors' => count( $failed_objects ),
+			'total'  		=> $total_indexable,
+			'synced' 		=> $synced,
+			'errors' 		=> count( $failed_objects ),
+			'error_details' => $this->output_index_errors( $failed_objects, $indexable, false ),
 		];
 	}
 
@@ -947,18 +958,33 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @param  array     $errors Error array
 	 * @param  Indexable $indexable Index indexable
+	 * @param bool		 $output True to print output.
+	 *
+	 * @return array Array of error messages for furthur logging.
 	 * @since 3.4
 	 */
-	private function output_index_errors( $errors, Indexable $indexable ) {
-		$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
+	private function output_index_errors( $errors, Indexable $indexable, $output = true ) {
+		$error_text  = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
+		$error_array = array();
 
 		foreach ( $errors as $object_id => $error ) {
+
+			$error_array[$object_id] = array(
+				$indexable->labels['singular'],
+				$error['type'],
+				$error['reason'],
+			);
+
 			$error_text .= '- ' . $object_id . ' (' . $indexable->labels['singular'] . '): ' . "\r\n";
 
 			$error_text .= '[' . $error['type'] . '] ' . $error['reason'] . "\r\n";
 		}
 
-		WP_CLI::log( $error_text );
+		if ( $output ) {
+			WP_CLI::log( $error_text );
+		}
+
+		return $error_array;
 	}
 
 	/**
