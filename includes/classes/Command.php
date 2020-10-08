@@ -1294,6 +1294,27 @@ class Command extends WP_CLI_Command {
 
 	}
 
+	/**
+	 * Returns a JSON array with the results of the last CLI sync (if present) of an empty array.
+	 *
+	 * @synopsis [--clear]
+	 * @subcommand get-last-cli-sync
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_last_cli_sync( $args, $assoc_args ) {
+
+		$last_sync = get_site_option( 'ep_last_cli_index', array() );
+
+		if ( isset( $assoc_args['clear'] ) ) {
+			delete_site_option( 'ep_last_cli_index' );
+		}
+
+		WP_CLI::line( wp_json_encode( $last_sync ) );
+
+	}
+
 
 	/**
 	 * maybe change Elastic host on the fly
