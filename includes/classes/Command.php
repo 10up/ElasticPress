@@ -1244,9 +1244,9 @@ class Command extends WP_CLI_Command {
 	 * items_indexed | integer | Total number of items indexed
 	 * total_items | integer | Total number of items indexed or -1 if not yet determined
 	 *
-	 * @subcommand get-index-status
+	 * @subcommand get-indexing-status
 	 */
-	public function get_index_status() {
+	public function get_indexing_status() {
 
 		$index_status = array(
 			'indexing'      => false,

@@ -325,9 +325,9 @@ class WpCliTest extends TestBase {
 	/**
 	 * @testdox If user runs wp elasticpress get-index-status command, it should return a string indicating the index is not running.
 	*/
-	public function testGetIndexStatusCommand() {
+	public function testGetIndexingStatusCommand() {
 
-		$cli_result = $this->runCommand( 'wp elasticpress get-index-status' )['stdout'];
+		$cli_result = $this->runCommand( 'wp elasticpress get-indexing-status' )['stdout'];
 
 		$this->assertStringContainsString( '{"indexing":false,"method":"none","items_indexed":0,"total_items":-1}', $cli_result );
 	}
