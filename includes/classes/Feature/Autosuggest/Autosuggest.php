@@ -622,8 +622,13 @@ class Autosuggest extends Feature {
 		 */
 		do_action( 'ep_epio_pre_send_autosuggest_allowed' );
 
-		// The same ES query sent by autosuggest.
-		$es_search_query = json_decode( $this->generate_search_query()['body'], true );
+		/**
+		 * The same ES query sent by autosuggest.
+		 *
+		 * Sometimes it'll be a string, sometimes it'll be already an array.
+		 */
+		$es_search_query = $this->generate_search_query()['body'];
+		$es_search_query = ( is_array( $es_search_query ) ) ? $es_search_query : json_decode( $es_search_query, true );
 
 		/**
 		 * Filter autosuggest ES query
@@ -633,6 +638,14 @@ class Autosuggest extends Feature {
 		 * @param  {array} The ES Query.
 		 */
 		$es_search_query = apply_filters( 'ep_epio_autosuggest_es_query', $es_search_query );
+
+		/**
+		 * Here is a chance to short-circuit the execution. Also, during the sync
+		 * the query will be empty anyway.
+		 */
+		if ( empty( $es_search_query ) ) {
+			return;
+		}
 
 		$index = Indexables::factory()->get( 'post' )->get_index_name();
 
@@ -705,6 +718,15 @@ class Autosuggest extends Feature {
 					</p>
 					<?php
 				} else {
+					$allowed_params = wp_parse_args(
+						$allowed_params,
+						[
+							'postTypes'    => [],
+							'postStatus'   => [],
+							'searchFields' => [],
+							'returnFields' => '',
+						]
+					);
 					$fields = [
 						wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
 						wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
