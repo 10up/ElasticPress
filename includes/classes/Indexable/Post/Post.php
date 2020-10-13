@@ -365,7 +365,7 @@ class Post extends Indexable {
 	 * Get an array of taxonomies that are indexable for the given post
 	 *
 	 * @param WP_Post $post Post object
-	 * @return array Array of taxonomy slugs that should be indexed
+	 * @return array Array of WP_Taxonomy objects that should be indexed
 	 */
 	public function get_indexable_post_taxonomies( $post ) {
 		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
@@ -385,9 +385,25 @@ class Post extends Indexable {
 		 * @param  {WP_Post} Post object
 		 * @return  {array} New taxonomies
 		 */
-		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
+		$selected_taxonomies = (array) apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
 
-		return $selected_taxonomies;
+		// Important we validate here to ensure there are no invalid taxonomy values returned from the filter, as just one would cause wp_get_object_terms() to fail.
+		$validated_taxonomies = [];
+		foreach ( $selected_taxonomies as $selected_taxonomy ) {
+			// If we get a taxonomy name, we need to convert it to taxonomy object
+			if ( ! is_object( $selected_taxonomy ) && taxonomy_exists( (string) $selected_taxonomy ) ) {
+				$selected_taxonomy = get_taxonomy( $selected_taxonomy );
+			}
+
+			// We check if the $taxonomy object has a valid name property. Backward compatibility since WP_Taxonomy introduced in WP 4.7
+			if ( ! is_a( $selected_taxonomy, '\WP_Taxonomy' ) || ! property_exists( $selected_taxonomy, 'name' ) || ! taxonomy_exists( $selected_taxonomy->name ) ) {
+				continue;
+			}
+
+			$validated_taxonomies[] = $selected_taxonomy;
+		}
+
+		return $validated_taxonomies;
 	}
 
 	/**
@@ -404,118 +420,101 @@ class Post extends Indexable {
 			return [];
 		}
 
-		$terms = [];
+		$object_terms = wp_get_object_terms( $post->ID, wp_list_pluck( $selected_taxonomies, 'name' ), [ 'update_term_meta_cache' => false ] );
+		if ( empty( $object_terms ) || is_wp_error( $object_terms ) ) {
+			return [];
+		}
 
 		/**
-		 * Filter to allow child terms to be indexed
+		 * Filter to allow parent terms to be indexed.
 		 *
 		 * @hook ep_sync_terms_allow_hierarchy
-		 * @param  {bool} $allow True means allow
-		 * @return  {bool} New value
+		 * @param {bool} $allow True means allow
+		 * @return {bool} New value
 		 */
 		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', true );
 
-		foreach ( $selected_taxonomies as $taxonomy ) {
-			// If we get a taxonomy name, we need to convert it to taxonomy object
-			if ( ! is_object( $taxonomy ) && taxonomy_exists( (string) $taxonomy ) ) {
-				$taxonomy = get_taxonomy( $taxonomy );
+		$term_orders = $this->get_term_orders( $post->ID );
+
+		$terms_dictionary = [];
+		foreach ( $object_terms as $term ) {
+			if ( ! isset( $terms_dictionary[ $term->taxonomy ] ) ) {
+				$terms_dictionary[ $term->taxonomy ] = [];
 			}
 
-			// We check if the $taxonomy object as name property. Backward compatibility since WP_Taxonomy introduced in WP 4.7
-			if ( ! is_a( $taxonomy, '\WP_Taxonomy' ) || ! property_exists( $taxonomy, 'name' ) ) {
-				continue;
-			}
+			if ( ! in_array( $term->term_taxonomy_id, wp_list_pluck( $terms_dictionary[ $term->taxonomy ], 'term_taxonomy_id' ), true ) ) {
+				$terms_dictionary[ $term->taxonomy ][] = [
+					'term_id'          => $term->term_id,
+					'slug'             => $term->slug,
+					'name'             => $term->name,
+					'parent'           => $term->parent,
+					'term_taxonomy_id' => $term->term_taxonomy_id,
+					'term_order'       => isset( $term_orders[ $term->term_taxonomy_id ] ) ? (int) $term_orders[ $term->term_taxonomy_id ]['term_order'] : 0,
+				];
 
-			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
-
-			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
-				continue;
-			}
-
-			$terms_dic = [];
-
-			foreach ( $object_terms as $term ) {
-				if ( ! isset( $terms_dic[ $term->term_id ] ) ) {
-					$terms_dic[ $term->term_id ] = array(
-						'term_id'          => $term->term_id,
-						'slug'             => $term->slug,
-						'name'             => $term->name,
-						'parent'           => $term->parent,
-						'term_taxonomy_id' => $term->term_taxonomy_id,
-						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
-					);
-					if ( $allow_hierarchy ) {
-						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
-					}
+				if ( $allow_hierarchy ) {
+					$terms_dictionary = $this->get_parent_terms( $terms_dictionary, $term->parent, $term->taxonomy, $term_orders );
 				}
 			}
-			$terms[ $taxonomy->name ] = array_values( $terms_dic );
 		}
 
-		return $terms;
+		return $terms_dictionary;
 	}
 
 	/**
-	 * Recursively get all the ancestor terms of the given term
+	 * Recursively get all the ancestor terms of the given term.
 	 *
-	 * @param array   $terms     Terms array
-	 * @param WP_Term $term      Current term
-	 * @param string  $tax_name  Taxonomy
-	 * @param int     $object_id Post ID
+	 * @param array   $terms_dictionary Terms array
+	 * @param WP_Term $term_parent_id   Previous term's parent ID
+	 * @param string  $taxonomy         Taxonomy
+	 * @param array   $term_orders      An array that maps term_taxonomy_id to the term_order value
 	 *
 	 * @return array
 	 */
-	private function get_parent_terms( $terms, $term, $tax_name, $object_id ) {
-		$parent_term = get_term( $term->parent, $tax_name );
+	private function get_parent_terms( $terms_dictionary, $term_parent_id, $taxonomy, $term_orders ) {
+		$parent_term = get_term( $term_parent_id, $taxonomy );
+
 		if ( ! $parent_term || is_wp_error( $parent_term ) ) {
-			return $terms;
+			return $terms_dictionary;
 		}
-		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
-			$terms[ $parent_term->term_id ] = array(
-				'term_id'    => $parent_term->term_id,
-				'slug'       => $parent_term->slug,
-				'name'       => $parent_term->name,
-				'parent'     => $parent_term->parent,
-				'term_order' => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
-			);
+
+		if ( in_array( $parent_term->term_taxonomy_id, wp_list_pluck( $terms_dictionary[ $parent_term->taxonomy ], 'term_taxonomy_id' ), true ) ) {
+			// Found a term we already prepared, can stop the recursion.
+			return $terms_dictionary;
 		}
-		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
+
+		$terms_dictionary[ $parent_term->taxonomy ][] = [
+			'term_id'          => $parent_term->term_id,
+			'slug'             => $parent_term->slug,
+			'name'             => $parent_term->name,
+			'parent'           => $parent_term->parent,
+			'term_taxonomy_id' => $parent_term->term_taxonomy_id,
+			'term_order'       => isset( $term_orders[ $parent_term->term_taxonomy_id ] ) ? (int) $term_orders[ $parent_term->term_taxonomy_id ]['term_order'] : 0,
+		];
+
+		return $this->get_parent_terms( $terms_dictionary, $parent_term->parent, $parent_term->taxonomy, $term_orders );
 	}
 
 	/**
-	 * Retreives term order for the object/term_taxonomy_id combination
+	 * Get term_order from the relationships table for all terms attached to our object.
 	 *
-	 * @param int $term_taxonomy_id Term Taxonomy ID
-	 * @param int $object_id        Post ID
+	 * @param WP_Term $object_id Post ID
 	 *
-	 * @return int Term Order
+	 * @return array
 	 */
-	protected function get_term_order( $term_taxonomy_id, $object_id ) {
+	private function get_term_orders( $object_id ) {
 		global $wpdb;
 
-		$cache_key   = "{$object_id}_term_order";
-		$term_orders = wp_cache_get( $cache_key );
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT term_taxonomy_id, term_order FROM $wpdb->term_relationships WHERE object_id = %d AND term_order != 0;",
+				$object_id
+			),
+			ARRAY_A
+		);
 
-		if ( false === $term_orders ) {
-			$results = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT term_taxonomy_id, term_order from $wpdb->term_relationships where object_id=%d;",
-					$object_id
-				),
-				ARRAY_A
-			);
-
-			$term_orders = [];
-
-			foreach ( $results as $result ) {
-				$term_orders[ $result['term_taxonomy_id'] ] = $result['term_order'];
-			}
-
-			wp_cache_set( $cache_key, $term_orders );
-		}
-
-		return isset( $term_orders[ $term_taxonomy_id ] ) ? (int) $term_orders[ $term_taxonomy_id ] : 0;
-
+		// Re-index results with a more useful key.
+		return array_column( $results, null, 'term_taxonomy_id' );
 	}
 
 	/**
