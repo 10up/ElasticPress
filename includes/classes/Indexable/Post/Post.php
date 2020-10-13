@@ -339,25 +339,36 @@ class Post extends Indexable {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $post_date_gmt Post date
+	 * @param string $date_to_prepare The post date being prepared
 	 * @since 0.1.4
 	 * @return array
 	 */
-	private function prepare_date_terms( $post_date_gmt ) {
-		$timestamp  = strtotime( $post_date_gmt );
-		$date_terms = array(
-			'year'          => (int) date_i18n( 'Y', $timestamp ),
-			'month'         => (int) date_i18n( 'm', $timestamp ),
-			'week'          => (int) date_i18n( 'W', $timestamp ),
-			'dayofyear'     => (int) date_i18n( 'z', $timestamp ),
-			'day'           => (int) date_i18n( 'd', $timestamp ),
-			'dayofweek'     => (int) date_i18n( 'w', $timestamp ),
-			'dayofweek_iso' => (int) date_i18n( 'N', $timestamp ),
-			'hour'          => (int) date_i18n( 'H', $timestamp ),
-			'minute'        => (int) date_i18n( 'i', $timestamp ),
-			'second'        => (int) date_i18n( 's', $timestamp ),
-			'm'             => (int) ( date_i18n( 'Y', $timestamp ) . date_i18n( 'm', $timestamp ) ), // yearmonth
-		);
+	private function prepare_date_terms( $date_to_prepare ) {
+		$terms_to_prepare = [
+			'year'          => 'Y',
+			'month'         => 'm',
+			'week'          => 'W',
+			'dayofyear'     => 'z',
+			'day'           => 'd',
+			'dayofweek'     => 'w',
+			'dayofweek_iso' => 'N',
+			'hour'          => 'H',
+			'minute'        => 'i',
+			'second'        => 's',
+			'm'             => 'Ym', // yearmonth
+		];
+
+		// Combine all the date term formats and perform one single call to date_i18n() for performance.
+		$date_format    = implode( '||', array_values( $terms_to_prepare ) );
+		$combined_dates = explode( '||', date_i18n( $date_format, strtotime( $date_to_prepare ) ) );
+
+		// Then split up the results for individual indexing.
+		$date_terms = [];
+		foreach ( $terms_to_prepare as $term_name => $date_format ) {
+			$index_in_combined_format = array_search( $term_name, array_keys( $terms_to_prepare ) );
+			$date_terms[ $term_name ] = (int) $combined_dates[ $index_in_combined_format ];
+		}
+
 		return $date_terms;
 	}
 
