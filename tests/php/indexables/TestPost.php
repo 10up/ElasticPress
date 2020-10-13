@@ -170,8 +170,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testPaginationWithOffset() {
-		Functions\create_and_sync_post( array( 'post_title' => 'one' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'two' ) );
+		// Setting date to ensure it's not a coinflip on whether or not they share a timestamp.
+		Functions\create_and_sync_post( array( 'post_title' => 'one', 'post_date' => '2020-08-24 12:30:00' ) );
+		Functions\create_and_sync_post( array( 'post_title' => 'two', 'post_date' => '2020-08-25 12:30:00' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -181,6 +182,8 @@ class TestPost extends BaseTestCase {
 				'ep_integrate'   => true,
 				'posts_per_page' => 1,
 				'offset'         => 1,
+				'orderby'        => 'date',
+				'order'          => 'ASC',
 			)
 		);
 
