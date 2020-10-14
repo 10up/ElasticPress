@@ -500,7 +500,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--start-object-id] [--end-object-id] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -709,10 +709,10 @@ class Command extends WP_CLI_Command {
 	private function index_helper( Indexable $indexable, $args ) {
 		$synced              = 0;
 		$errors              = [];
-		$no_bulk_count       = 0;
 		$index_queue         = [];
 		$killed_object_count = 0;
 		$failed_objects      = [];
+		$time_elapsed        = 0;
 
 		$no_bulk = false;
 
@@ -747,9 +747,16 @@ class Command extends WP_CLI_Command {
 		$query_args = [];
 
 		$query_args['offset'] = 0;
-
 		if ( ! empty( $args['offset'] ) ) {
 			$query_args['offset'] = absint( $args['offset'] );
+		}
+
+		if ( ! empty( $args['start-object-id'] ) && is_numeric( $args['start-object-id'] ) ) {
+			$query_args['ep_indexing_start_object_id'] = $args['start-object-id'];
+		}
+
+		if ( ! empty( $args['end-object-id'] ) && is_numeric( $args['end-object-id'] ) ) {
+			$query_args['ep_indexing_end_object_id'] = $args['end-object-id'];
 		}
 
 		if ( ! empty( $args['post-ids'] ) ) {
@@ -774,6 +781,7 @@ class Command extends WP_CLI_Command {
 			$query_args['post_type'] = array_map( 'trim', $query_args['post_type'] );
 		}
 
+		$loop_counter = 0;
 		while ( true ) {
 			$query = $indexable->query_db( $query_args );
 
@@ -785,14 +793,11 @@ class Command extends WP_CLI_Command {
 			if ( ! empty( $query['objects'] ) ) {
 
 				foreach ( $query['objects'] as $object ) {
-
 					if ( $no_bulk ) {
 						/**
 						 * Index objects one by one
 						 */
 						$result = $indexable->index( $object->ID, true );
-
-						$no_bulk_count++;
 
 						if ( ! empty( $result->error ) ) {
 							if ( ! empty( $result->error->reason ) ) {
@@ -814,8 +819,6 @@ class Command extends WP_CLI_Command {
 						 * @param {Indexable} $indexable Current indexable
 						 */
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
-
-						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), $no_bulk_count, (int) $query['total_objects'] ) );
 					} else {
 						/**
 						 * Conditionally kill indexing for a post
@@ -897,17 +900,28 @@ class Command extends WP_CLI_Command {
 				break;
 			}
 
-			if ( ! $no_bulk ) {
-				WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] ) );
+			$last_object_array_key    = array_keys( $query['objects'] )[ count( $query['objects'] ) - 1 ];
+			$last_processed_object_id = $query['objects'][ $last_object_array_key ]->ID;
+			WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ), (int) ( $synced + count( $failed_objects ) ), (int) $query['total_objects'], (int) $last_processed_object_id ) );
+
+			$loop_counter++;
+			if ( ( $loop_counter % 10 ) === 0 ) {
+				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( timer_stop( 0, 2 ) - $time_elapsed ) . ')' : '';
+				$time_elapsed      = timer_stop( 0, 2 );
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
+
+				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
+				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
 			}
 
 			$query_args['offset'] += $per_page;
+			$query_args['ep_indexing_last_processed_object_id'] = $last_processed_object_id;
 
 			usleep( 500 );
 
 			// Avoid running out of memory.
 			$this->stop_the_insanity();
-
 		}
 
 		if ( $show_errors && ! empty( $failed_objects ) ) {

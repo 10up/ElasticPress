@@ -63,6 +63,8 @@ class Post extends Indexable {
 			'ignore_sticky_posts' => true,
 			'orderby'             => 'ID',
 			'order'               => 'desc',
+			'no_found_rows'       => true,
+			'ep_indexing_advanced_pagination' => true,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -73,34 +75,112 @@ class Post extends Indexable {
 			$args['post__in'] = $args['include'];
 		}
 
-		if ( isset( $args['exclude'] ) ) {
-			$args['post__not_in'] = $args['exclude'];
-		}
-
 		/**
 		 * Filter arguments used to query posts from database
 		 *
-		 * @hook ep_post_query_db_args
-		 * @param  {array} $args Database arguments
-		 * @return  {array} New arguments
-		 */
-		$args = apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) );
-
-		/**
-		 * Filter arguments used to query posts from database. Backwards compat with pre-3.0
+		 * The ep_index_posts_args filter is for backwards compat with pre-3.0.
 		 *
+		 * @hook ep_post_query_db_args
 		 * @hook ep_index_posts_args
-		 * @param  {array} $args Database arguments
-		 * @return  {array} New arguments
+		 * @param {array} $args Database arguments
+		 * @return {array} New arguments
 		 */
-		$args = apply_filters( 'ep_index_posts_args', $args );
+		$args = apply_filters( 'ep_index_posts_args', apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) ) );
 
-		$query = new WP_Query( $args );
+		if ( isset( $args['include'] ) || isset( $args['post__in'] ) ) {
+			// Disable advanced pagination. Not useful if only indexing specific IDs.
+			$args['ep_indexing_advanced_pagination'] = false;
+		}
+
+		// Enforce the following query args during advanced pagination to ensure things work correctly.
+		if ( $args['ep_indexing_advanced_pagination'] ) {
+			$args = array_merge( $args, [
+				'suppress_filters' => false,
+				'orderby'          => 'ID',
+				'order'            => 'DESC',
+				'paged'            => 1,
+				'offset'           => 0,
+				'no_found_rows'    => true,
+			] );
+		}
+
+		add_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+
+		$query         = new WP_Query( $args );
+		$total_objects = $this->get_total_objects_for_query( $args );
+
+		remove_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
 
 		return [
 			'objects'       => $query->posts,
-			'total_objects' => $query->found_posts,
+			'total_objects' => $total_objects,
 		];
+	}
+
+	/**
+	 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
+	 *
+	 * @param string   $where The current $where clause.
+	 * @param WP_Query $query WP_Query object.
+	 * @return string WHERE clause with our pagination added if needed.
+	 */
+	public function bulk_indexing_filter_posts_where( $where, $query ) {
+		$using_advanced_pagination = $query->get( 'ep_indexing_advanced_pagination', false );
+
+		if ( $using_advanced_pagination ) {
+			$requested_start_id = $query->get( 'ep_indexing_start_object_id', PHP_INT_MAX );
+			$requested_end_id   = $query->get( 'ep_indexing_end_object_id', 0 );
+			$last_processed_id  = $query->get( 'ep_indexing_last_processed_object_id', null );
+
+			// On the first loopthrough we begin with the requested start ID. Afterwards, use the last processed ID to paginate.
+			$start_range_post_id = $requested_start_id;
+			if ( is_numeric( $last_processed_id ) ) {
+				$start_range_post_id =  $last_processed_id - 1;
+			}
+
+			// Sanitize. Abort if unexpected data at this point.
+			if ( ! is_numeric( $start_range_post_id ) || ! is_numeric( $requested_end_id ) ) {
+				return $where;
+			}
+
+			$range = [
+				'start' => "{$GLOBALS['wpdb']->posts}.ID <= {$start_range_post_id}",
+				'end'   => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_end_id}",
+			];
+
+			// Skip the end range if it's unnecessary.
+			$skip_ending_range = 0 === $requested_end_id;
+			$where = $skip_ending_range ? "AND {$range['start']} {$where}" : "AND {$range['start']} AND {$range['end']} {$where}";
+		}
+
+		return $where;
+	}
+
+	/**
+	 * Get SQL_CALC_FOUND_ROWS for a specific query based on it's args.
+	 *
+	 * @param array $query_args The query args.
+	 * @return int The query result's found_posts.
+	 */
+	private function get_total_objects_for_query( $query_args ) {
+		static $object_counts = [];
+
+		// Reset the pagination-related args for optimal caching.
+		$normalized_query_args = array_merge( $query_args, [
+			'offset'         => 0,
+			'paged'          => 1,
+			'posts_per_page' => 1,
+			'no_found_rows'  => false,
+			'ep_indexing_last_processed_object_id' => null,
+		] );
+
+		$cache_key = md5( json_encode( $normalized_query_args ) );
+
+		if ( ! isset( $object_counts[ $cache_key ] ) ) {
+			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
+		}
+
+		return $object_counts[ $cache_key ];
 	}
 
 	/**

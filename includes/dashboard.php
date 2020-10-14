@@ -546,6 +546,9 @@ function action_wp_ajax_ep_index() {
 		]
 	);
 
+	// Disable during dashboard indexing for now. Support would be possible if desired in the future.
+	$args['ep_indexing_advanced_pagination'] = false;
+
 	$query = $indexable->query_db( $args );
 
 	$index_meta['found_items'] = (int) $query['total_objects'];

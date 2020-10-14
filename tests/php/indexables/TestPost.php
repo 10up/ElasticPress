@@ -142,12 +142,12 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPostSyncOnCommentCountUpdate() {
 		$post_id = Functions\create_and_sync_post();
-		
+
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$post_no_comments = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
-		wp_insert_comment( 
+		wp_insert_comment(
 			array(
 				'comment_post_ID' => $post_id,
 				'comment_author' => 'Testy Testman',
@@ -156,7 +156,7 @@ class TestPost extends BaseTestCase {
 		);
 
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
-		
+
 		$post_with_comments = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
 		$this->assertEquals( 0, intval( $post_no_comments['comment_count'] ), 'comment count for post should be 0 initially' );
@@ -5011,44 +5011,95 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests the constructor for the Indexable\Post class.
+	 * Tests the query_db method.
 	 *
 	 * @return void
 	 * @group post
 	 */
 	public function testQueryDb() {
+		$indexable_post_object = new \ElasticPress\Indexable\Post\Post();
 
-		$exclude_post_id = Functions\create_and_sync_post();
-		$post_id = Functions\create_and_sync_post();
+		$post_id_1 = Functions\create_and_sync_post();
+		$post_id_2 = Functions\create_and_sync_post();
+		$post_id_3 = Functions\create_and_sync_post();
 
-		$post = new \ElasticPress\Indexable\Post\Post();
-
-		$results = $post->query_db(
+		// Test the first loop of the indexing.
+		$results = $indexable_post_object->query_db(
 			[
 				'per_page' => 1,
-				'include'  => [ $post_id ],
 			]
 		);
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_3, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 
-		$this->assertCount( 1, $post_ids );
-		$this->assertContains( $post_id, $post_ids );
-		$this->assertSame( 1, absint( $results['total_objects'] ) );
-
-		$results = $post->query_db(
+		// Second loop.
+		$results = $indexable_post_object->query_db(
 			[
-				'exclude'  => [ $exclude_post_id ],
+				'per_page' => 1,
+				'ep_indexing_last_processed_object_id' => $post_id_3,
 			]
 		);
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_2, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 
-		$this->assertNotContains( $exclude_post_id, $post_ids );
+		// A custom start_object_id was passed in.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'ep_indexing_start_object_id' => $post_id_1,
+			]
+		);
 
-		// Set up a few posts for the filters.
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_1, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 1, $results['total_objects'] );
+
+		// Passing custom start and last post IDs. Second loop.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'ep_indexing_start_object_id' => $post_id_3,
+				'ep_indexing_end_object_id' => $post_id_2,
+				'ep_indexing_last_processed_object_id' => $post_id_3,
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_2, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 2, $results['total_objects'] );
+
+		// Specific post IDs
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'include'  => [ $post_id_1 ],
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_1, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 1, $results['total_objects'] );
+	}
+
+	/**
+	 * Test the filters in query_db.
+	 *
+	 * @return void
+	 * @group post
+	 */
+	function testQueryDbFilters() {
+		$indexable_post_object = new \ElasticPress\Indexable\Post\Post();
+
 		$args_post_ids = [];
-
 		$args_post_ids[] = Functions\create_and_sync_post();
 		$args_post_ids[] = Functions\create_and_sync_post();
 		$args_post_ids[] = Functions\create_and_sync_post();
@@ -5068,13 +5119,12 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_post_query_db_args', $defaults_filter );
 		add_filter( 'ep_index_posts_args', $index_filter );
 
-		$results = $post->query_db( [] );
+		$results = $indexable_post_object->query_db( [] );
 
 		remove_filter( 'ep_post_query_db_args', $defaults_filter );
 		remove_filter( 'ep_index_posts_args', $index_filter );
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
-
 		$this->assertCount( 3, $post_ids );
 		$this->assertContains( $args_post_ids[2], $post_ids );
 		$this->assertNotContains( $args_post_ids[3], $post_ids );
