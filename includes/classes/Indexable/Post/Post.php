@@ -913,10 +913,12 @@ class Post extends Indexable {
 		 * @since 2.3
 		 */
 		if ( ! empty( $args['post_mime_type'] ) ) {
+			// Default list of mime types to an empty array.
+			$mime_types = array();
 			if ( is_string( $args['post_mime_type'] ) ) {
 				$mime_types = array_map( 'trim', explode( ',', $args['post_mime_type'] ) );
-			} else {
-				$mime_types = (array) $args['post_mime_type'];
+			} elseif ( is_array( $args['post_mime_type'] ) ) {
+				$mime_types = $args['post_mime_type'];
 			}
 			
 			// Collect fully qualified mime types here e.g. image/jpeg.
