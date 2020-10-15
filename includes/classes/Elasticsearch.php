@@ -920,17 +920,6 @@ class Elasticsearch {
 
 		$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
 
-		/**
-		 * Try to tune the bulk setting if we have documents in queue.
-		 */
-		if ( substr_count( $body, '"attachments":[{"data":' ) > 5 ) {
-			Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 4 ) );
-			set_transient( 'ep_pre_tuning', true, HOUR_IN_SECONDS );
-			return action_wp_ajax_ep_index();
-		} else {
-			delete_transient( 'ep_pre_tuning' );
-		}
-
 		$start_time = microtime( true );
 
 		$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
@@ -941,7 +930,7 @@ class Elasticsearch {
 
 			if ( $current_setting > 1 && strpos( $request->get_error_message(), 'timed out' ) ) {
 				Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 2 ) );
-				return action_wp_ajax_ep_index();
+				return [ 'retry' => true ];
 			}
 
 			return $request;
@@ -964,10 +953,6 @@ class Elasticsearch {
 	 * @param float $exec_time Execution time of the request.
 	 */
 	private function try_tuning_bulk_setting( $exec_time ) {
-
-		if ( get_transient( 'ep_pre_tuning' ) ) {
-			return;
-		}
 
 		$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
 

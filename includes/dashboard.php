@@ -600,14 +600,25 @@ function action_wp_ajax_ep_index() {
 			if ( ! empty( $queued_items ) ) {
 				$return = $indexable->bulk_index( array_keys( $queued_items ) );
 
+				if ( is_array( $return ) && ! empty( $return['retry'] ) ) {
+					wp_send_json( $return );
+					exit;
+				}
+
 				if ( is_wp_error( $return ) ) {
 					header( 'HTTP/1.1 500 Internal Server Error' );
-					wp_send_json_error();
+					wp_send_json_error( $return );
 					exit;
 				}
 			}
 
-			$index_meta['offset'] = absint( $index_meta['offset'] + $per_page );
+			$current_queue_indexed_documents = get_transient( 'ep_current_queue_indexed_documents' );
+			if ( $current_queue_indexed_documents ) {
+				$index_meta['offset'] = absint( $index_meta['offset'] + $current_queue_indexed_documents );
+				delete_transient( 'ep_current_queue_indexed_documents' );
+			} else {
+				$index_meta['offset'] = absint( $index_meta['offset'] + $per_page );
+			}
 
 			if ( $index_meta['offset'] >= $index_meta['found_items'] ) {
 				$index_meta['offset'] = $index_meta['found_items'];

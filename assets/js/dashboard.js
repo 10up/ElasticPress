@@ -370,6 +370,10 @@ function sync() {
 				return;
 			}
 
+			if (response.hasOwnProperty('retry') && response.retry) {
+				return sync();
+			}
+
 			toProcess = response.data.found_items;
 			processed = response.data.offset;
 
