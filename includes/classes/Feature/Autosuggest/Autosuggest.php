@@ -248,12 +248,14 @@ class Autosuggest extends Feature {
 								isset( $current_bool_should['multi_match'] ) &&
 								isset( $current_bool_should['multi_match']['fields'] ) &&
 								(
-									isset( $current_bool_should['multi_match']['fuzziness'] ) &&
-									0 !== $current_bool_should['multi_match']['fuzziness']
-								) ||
-								(
-									isset( $current_bool_should['multi_match']['slop'] ) &&
-									0 !== $current_bool_should['multi_match']['slop']
+									(
+										isset( $current_bool_should['multi_match']['fuzziness'] ) &&
+										0 !== $current_bool_should['multi_match']['fuzziness']
+									) ||
+									(
+										isset( $current_bool_should['multi_match']['slop'] ) &&
+										0 !== $current_bool_should['multi_match']['slop']
+									)
 								)
 							) {
 								foreach ( $current_bool_should['multi_match']['fields'] as $key => $field ) {
