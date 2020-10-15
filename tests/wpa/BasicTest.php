@@ -84,6 +84,8 @@ class BasicTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
+		sleep( 2 );
+
 		$I->moveTo( '/?s=Test+ElasticPress+1' );
 
 		$I->seeText( 'Test ElasticPress 1', '.hentry' );
@@ -99,6 +101,15 @@ class BasicTest extends TestBase {
 		$I->moveTo( '/?s=Test+ElasticPress+1' );
 
 		$I->dontSeeText( 'Test ElasticPress 1', '.hentry' );
+
+		// Reset Changed Settings.
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+
+		$I->click( '#post-post_title-enabled' );
+
+		$I->click( '#submit' );
+
+		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
 	}
 
 	/**
@@ -150,6 +161,13 @@ class BasicTest extends TestBase {
 		$first_post = $posts[0];
 
 		$I->seeText( 'test weighting title findme', $first_post );
+
+		// Reset Changed Settings.
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+
+		$I->setElementProperty( 'input[name="weighting[post][post_title][weight]"]', 'value', 1 );
+
+		$I->click( '#submit' );
 	}
 
 	/**

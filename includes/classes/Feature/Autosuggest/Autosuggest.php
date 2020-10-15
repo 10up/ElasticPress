@@ -43,6 +43,7 @@ class Autosuggest extends Feature {
 		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
+
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',
@@ -105,7 +106,7 @@ class Autosuggest extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
-				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
+				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? '.ep-autosuggest' : esc_attr( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
 				<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
 			</div>
 		</div>
@@ -323,7 +324,7 @@ class Autosuggest extends Feature {
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
 			EP_URL . 'dist/js/autosuggest-script.min.js',
-			array( 'jquery' ),
+			[],
 			EP_VERSION,
 			true
 		);

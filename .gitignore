@@ -4,3 +4,7 @@ node_modules
 .history
 docs-built
 npm-log.log
+test-coverage-html/
+.phpunit.result.cache
+screenshots
+.DS_Store

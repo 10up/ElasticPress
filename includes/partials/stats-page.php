@@ -40,12 +40,16 @@ $totals       = Stats::factory()->get_totals();
 			<div class="stats-queries postbox">
 				<h2 class="hndle"><?php esc_html_e( 'Queries & Indexing total', 'elasticpress' ); ?></h2>
 				<div class="ep-qchart-container">
-					<canvas id="queriesTotalChart" width="400" height="400"></canvas>
+					<div class="inside">
+						<canvas id="queriesTotalChart" width="400" height="400"></canvas>
+					</div>
 				</div>
 			</div>
 			<div class="postbox doc-chart">
 				<h2 class="hndle"><?php esc_html_e( 'Documents', 'elasticpress' ); ?></h2>
-				<canvas id="documentChart" width="800" height="450"></canvas>
+				<div class="inside">
+					<canvas id="documentChart" width="800" height="450"></canvas>
+				</div>
 			</div>
 			<div class="postbox ep-totals">
 				<h2 class="hndle">Totals</h2>
@@ -67,7 +71,9 @@ $totals       = Stats::factory()->get_totals();
 			<div class="stats-queries postbox">
 				<h2 class="hndle"><?php esc_html_e( 'Queries & Indexing Time', 'elasticpress' ); ?></h2>
 				<div class="ep-qchart-container">
-					<canvas id="queriesTimeChart" width="400" height="400"></canvas>
+					<div class="inside">
+						<canvas id="queriesTimeChart" width="400" height="400"></canvas>
+					</div>
 				</div>
 			</div>
 		</div>

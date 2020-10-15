@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\Facets;
 
 use ElasticPress\Feature as Feature;
+use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
@@ -159,15 +160,15 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function front_scripts() {
-		wp_enqueue_script(
+		wp_register_script(
 			'elasticpress-facets',
 			EP_URL . 'dist/js/facets-script.min.js',
-			[ 'jquery', 'underscore' ],
+			[],
 			EP_VERSION,
 			true
 		);
 
-		wp_enqueue_style(
+		wp_register_style(
 			'elasticpress-facets',
 			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
@@ -198,6 +199,12 @@ class Facets extends Feature {
 		$ep_integrate = $query->get( 'ep_integrate', null );
 
 		if ( false === $ep_integrate ) {
+			return false;
+		}
+
+		$woocommerce = Features::factory()->get_registered_feature( 'woocommerce' );
+
+		if ( ! $woocommerce->is_active() && ( function_exists( 'is_product_category' ) && is_product_category() ) ) {
 			return false;
 		}
 
@@ -348,7 +355,7 @@ class Facets extends Feature {
 		);
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 0 === strpos( $key, 'filter' ) ) {
+			if ( 0 === strpos( $key, 'filter_' ) ) {
 				$taxonomy = str_replace( 'filter_', '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(

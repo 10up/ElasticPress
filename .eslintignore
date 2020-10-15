@@ -4,3 +4,4 @@ assets/js/frontend/vendor
 assets/js/shared/vendor
 webpack.config.babel.js
 tests
+node_modules

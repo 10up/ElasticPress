@@ -1,6 +1,6 @@
 In ElasticPress 3.0, we’ve introduced the concept of Indexables. In the past, ElasticPress integrated with WordPress’ WP_Query API, which enabled redirection of WP_Query queries through Elasticsearch instead of MySQL. Indexables takes this a step further, enabling indexing, search, and queries on any queryable object in WordPress.
 
-As of 3.0, ElasticPress ships with two built-in Indexables: Posts and Users. The Posts Indexable roughly corresponds to the previous WP_Query integration, and the Users Indexable adds support for WP_User_Query in ElasticPress. Future versions of ElasticPress will include additional WordPress APIs (such as WP_Comment_Query), and you can also create your own custom Indexables by extending the Indexable class.
+As of 3.0, ElasticPress ships with two built-in Indexables: Posts, Terms, and Users. The Posts Indexable roughly corresponds to the previous WP_Query integration, and the Users Indexable adds support for WP_User_Query in ElasticPress. The Terms Indexable adds support for [WP_Term_Query](https://developer.wordpress.org/reference/classes/wp_term_query/). Future versions of ElasticPress will include additional WordPress APIs (such as WP_Comment_Query), and you can also create your own custom Indexables by extending the Indexable class.
 
 ## Post Indexable
 
@@ -290,7 +290,7 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
 
 * ```author_name``` (*string*)
 
-    Show posts associated with certain author. Use ```user_nicename``` (NOT name).
+    Show posts associated with certain author. Uses ```post_author.display_name```.
 
 * ```orderby``` (*string*)
 

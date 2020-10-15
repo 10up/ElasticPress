@@ -2,7 +2,85 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
-## [3.3] - 2018-12-18
+## [3.5.0]
+
+Version 3.5 is a very exciting release as it contains two major new features: a synonym dashboard and search term result highlighting. The synonym dashboard empowerers users to create synonym lists for searches. For example. searching "New York City" would return contain with "NYC". Search term highlighting will underline and add a CSS class to keywords within content that matches the current search.
+
+Bug fixes:
+* Fix default autosuggest selector.
+* Fix facet feature $_GET parameter naming collision.
+* Autosuggest a11y fixes. Props [amesplant](https://github.com/amesplant).
+* Check $feature type before calling Feature methods. Props [pdewouters](https://github.com/pdewouters).
+* Ensure trashed post is removed from Elasticsearch. Props [edwinsiebel](https://github.com/edwinsiebel).
+* Add default permission callback to REST routes. Props [dkotter](https://github.com/dkotter).
+* Hide links to weighting and synonym dashboard if network activated. Props [felipeelia](https://github.com/felipeelia).
+* Only sync post on allow listed post meta. Props [felipeelia](https://github.com/felipeelia).
+* Check if site is indexable before syncing in network activated mode.
+* Fix facet widget and 3-level deep hierarchical taxonomy. Props [dinhtungdu](https://github.com/dinhtungdu).
+
+
+Enhancements:
+* Synonym dashboard. Props [christianc1](https://github.com/christianc1).
+* Search term highlighting. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Improved WP Acceptance tests. Props [asharirfan](https://github.com/asharirfan).
+* Rename ElasticPress submenu to "Features". Props [helen](https://github.com/helen).
+* Add functionality for skipping ElasticPress install.
+* Increase max supported Elasticsearch version to 7.9.
+* Add filter to prepared user meta data. Props [g-kanoufi](https://github.com/g-kanoufi).
+* Improve Terms Feature terminology to remove confusion.
+
+
+## [3.4.3] - 2020-07-21
+
+Enhancements:
+* Remove jQuery from front end JavaScript dependencies.
+
+Bug Fixes:
+* Fix accessibility bug on autosuggest.
+* Fix broken facet search.
+
+## [3.4.2] - 2020-06-17
+
+Bug fixes:
+* uninstall.php: Change the EP_FILE const to its value. Props [felipeelia](https://github.com/felipeelia).
+* Fix list features WP CLI command. Props [felipeelia](https://github.com/felipeelia).
+* Add `rel="nofollow"` to facet links. Props [mlaroy](https://github.com/mlaroy).
+* Facets widget: Move `<div>` outside `ob_start()`. Props [kallehauge](https://github.com/kallehauge).
+* Load facet scripts and styles only when they are really necessary. Props [goaround](https://github.com/goaround).
+* Index attachments with Protected Content and query for them in media search. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Fixed `Deprecated field [include] used, expected [includes] instead.`. Props [dinhtungdu](https://github.com/dinhtungdu).
+
+Enhancements:
+* Add filter for enabling sticky posts.  Props [shadyvb](https://github.com/shadyvb).
+* Add sync kill filter. Props [barryceelen](https://github.com/barryceelen).
+* Add timeout filters for bulk_index and index_document. Props [@oscarsanchez](https://github.com/oscarsanchez).
+
+## [3.4.1] - 2020-3-31
+
+* Make weighting dashboard flex containers to prevent the slider from changing size. Props [@mlaroy](https://github.com/mlaroy).
+* Fix issue where weightings wouldn't save properly for certain post types. Props [mustafauysal](https://github.com/mustafauysal).
+* Fix bug where terms wouldn't finish syncing in certain scenarios.
+* Properly order WooCommerce products using double to account for decimals. Props [@oscarsanchez](https://github.com/oscarsanchez).
+* Show current indices in index health dashboard. Props [moraleida](https://github.com/moraleida).
+
+## [3.4.0] - 2020-03-03
+
+* Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
+* Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
+* Support all taxonomies in root of `WP_Query`
+* Readd `ep_retrieve_aggregations` hook for backwards compatibility
+* Move indexable posts class registration into a function that runs in the `plugins_loaded` action. Props [petenelson](https://github.com/petenelson).
+* Fix author name in weighting and use post_author.display_name for weighted author field search. Props [petenelson](https://github.com/petenelson).
+* Add `ep_prepared_*_meta` filters
+* Refactor CLI indexing code for simplicity.
+* Limit indexed Protected Content post types removing `revision`, `oembed_cache`, `custom_css`, `user_request`, `customize_changeset`, and `wp_block`.
+* Cast taxonomy slug to array in case it's already an array in `WP_Query`.
+* Remove unnecessary usage of `--network-wide` CLI paramter.
+* Add name, nickname, and display name to fields used for user search.
+* Add `clear-transient` WP CLI command.
+* Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
+
+## [3.3.0] - 2018-12-18
 
 * Officially support Elasticsearch 7.5
 * Add optional Google Analytics Autosuggest tracking Event
@@ -48,7 +126,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 * Fix Gutenberg breaking issue with Related Posts and image blocks. Props [adamsilverstein](https://github.com/adamsilverstein)
 
-## [3.2] - 2019-10-08
+## [3.2.0] - 2019-10-08
 
 * Improve block asset enqueueing: hook on `enqueue_block_editor_assets`. Props [adamsilverstein](https://github.com/adamsilverstein).
 * Handle empty search weighting fields bug.
@@ -755,10 +833,23 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 ### Fixed
 - Escaping issues
 
-## [0.1.0]
+## 0.1.0 - Unknown
 - Initial plugin release
 
-[Unreleased]: https://github.com/10up/ElasticPress/compare/3.0.3...develop
+[Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.4.2]: https://github.com/10up/ElasticPress/compare/3.4.1...3.4.2
+[3.4.1]: https://github.com/10up/ElasticPress/compare/3.4...3.4.1
+[3.4.0]: https://github.com/10up/ElasticPress/compare/3.3...3.4
+[3.3.0]: https://github.com/10up/ElasticPress/compare/3.2.6...3.3
+[3.2.6]: https://github.com/10up/ElasticPress/compare/3.2.5...3.2.6
+[3.2.5]: https://github.com/10up/ElasticPress/compare/3.2.4...3.2.5
+[3.2.4]: https://github.com/10up/ElasticPress/compare/3.2.3...3.2.4
+[3.2.3]: https://github.com/10up/ElasticPress/compare/3.2.2...3.2.3
+[3.2.2]: https://github.com/10up/ElasticPress/compare/3.2.1...3.2.2
+[3.2.1]: https://github.com/10up/ElasticPress/compare/3.2...3.2.1
+[3.2.0]: https://github.com/10up/ElasticPress/compare/3.1.1...3.2
+[3.1.1]: https://github.com/10up/ElasticPress/compare/3.1...3.1.1
+[3.1.0]: https://github.com/10up/ElasticPress/compare/3.0.3...3.1
 [3.0.3]: https://github.com/10up/ElasticPress/compare/3.0.2...3.0.3
 [3.0.2]: https://github.com/10up/ElasticPress/compare/3.0.1...3.0.2
 [3.0.1]: https://github.com/10up/ElasticPress/compare/3.0...3.0.1
@@ -805,4 +896,3 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 [0.9.1]: https://github.com/10up/ElasticPress/compare/0.9...0.9.1
 [0.9]: https://github.com/10up/ElasticPress/compare/0.1.2...0.9
 [0.1.2]: https://github.com/10up/ElasticPress/releases/tag/0.1.2
-[0.1.0]: https://plugins.trac.wordpress.org/changeset/1010633/elasticpress/

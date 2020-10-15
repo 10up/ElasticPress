@@ -68,6 +68,33 @@ class ProtectedContent extends Feature {
 			unset( $pc_post_types['nav_menu_item'] );
 		}
 
+		if ( ! empty( $pc_post_types['revision'] ) ) {
+			unset( $pc_post_types['revision'] );
+		}
+
+		if ( ! empty( $pc_post_types['custom_css'] ) ) {
+			unset( $pc_post_types['custom_css'] );
+		}
+
+		if ( ! empty( $pc_post_types['customize_changeset'] ) ) {
+			unset( $pc_post_types['customize_changeset'] );
+		}
+
+		if ( ! empty( $pc_post_types['oembed_cache'] ) ) {
+			unset( $pc_post_types['oembed_cache'] );
+		}
+
+		if ( ! empty( $pc_post_types['wp_block'] ) ) {
+			unset( $pc_post_types['wp_block'] );
+		}
+
+		if ( ! empty( $pc_post_types['user_request'] ) ) {
+			unset( $pc_post_types['user_request'] );
+		}
+
+		// By default, attachments are not indexed, we have to make sure they are included (Could already be included by documents feature).
+		$post_types['attachment'] = 'attachment';
+
 		// Merge non public post types with any pre-filtered post_type
 		return array_merge( $post_types, $pc_post_types );
 	}
@@ -96,7 +123,8 @@ class ProtectedContent extends Feature {
 		 * @var array
 		 */
 		$post_types = array(
-			'post' => 'post',
+			'post'       => 'post',
+			'attachment' => 'attachment',
 		);
 
 		/**

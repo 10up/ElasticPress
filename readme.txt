@@ -2,9 +2,9 @@
 Contributors: tlovett1, vhauri, tott, oscarssanchez, cmmarslender, 10up
 Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
-Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts
+Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Requires at least: 3.7.1
-Tested up to: 5.3
+Tested up to: 5.5
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -42,6 +42,83 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 5. Enjoy!
 
 == Changelog ==
+
+= 3.5 =
+
+Version 3.5 is a very exciting release as it contains two major new features: a synonym dashboard and search term result highlighting. The synonym dashboard empowerers users to create synonym lists for searches. For example. searching "New York City" would return contain with "NYC". Search term highlighting will underline and add a CSS class to keywords within content that matches the current search.
+
+Bug fixes:
+* Fix default autosuggest selector.
+* Fix facet feature $_GET parameter naming collision.
+* Autosuggest a11y fixes. Props [amesplant](https://github.com/amesplant).
+* Check $feature type before calling Feature methods. Props [pdewouters](https://github.com/pdewouters).
+* Ensure trashed post is removed from Elasticsearch. Props [edwinsiebel](https://github.com/edwinsiebel).
+* Add default permission callback to REST routes. Props [dkotter](https://github.com/dkotter).
+* Hide links to weighting and synonym dashboard if network activated. Props [felipeelia](https://github.com/felipeelia).
+* Only sync post on allow listed post meta. Props [felipeelia](https://github.com/felipeelia).
+* Check if site is indexable before syncing in network activated mode.
+* Fix facet widget and 3-level deep hierarchical taxonomy. Props [dinhtungdu](https://github.com/dinhtungdu).
+
+
+Enhancements:
+* Synonym dashboard. Props [christianc1](https://github.com/christianc1).
+* Search term highlighting. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Improved WP Acceptance tests. Props [asharirfan](https://github.com/asharirfan).
+* Rename ElasticPress submenu to "Features". Props [helen](https://github.com/helen).
+* Add functionality for skipping ElasticPress install.
+* Increase max supported Elasticsearch version to 7.9.
+* Add filter to prepared user meta data. Props [g-kanoufi](https://github.com/g-kanoufi).
+* Improve Terms Feature terminology to remove confusion.
+
+= 3.4.3 =
+
+Enhancements:
+* Remove jQuery from front end JavaScript dependencies.
+
+Bug Fixes:
+* Fix accessibility bug on autosuggest.
+* Fix broken facet search.
+
+= 3.4.2 =
+
+Bug fixes:
+* uninstall.php: Change the EP_FILE const to its value. Props [felipeelia](https://github.com/felipeelia).
+* Fix list features WP CLI command. Props [felipeelia](https://github.com/felipeelia).
+* Add `rel="nofollow"` to facet links. Props [mlaroy](https://github.com/mlaroy).
+* Facets widget: Move <div> outside ob_start(). Props [kallehauge](https://github.com/kallehauge).
+* Load facet scripts and styles only when they are really necessary. Props [goaround](https://github.com/goaround).
+* Index attachments with Protected Content and query for them in media search. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Fixed `Deprecated field [include] used, expected [includes] instead.`. Props [dinhtungdu](https://github.com/dinhtungdu).
+
+Enhancements:
+* Add filter for enabling sticky posts.  Props [shadyvb](https://github.com/shadyvb).
+* Add sync kill filter. Props [barryceelen](https://github.com/barryceelen).
+* Add timeout filters for bulk_index and index_document. Props [@oscarsanchez](https://github.com/oscarsanchez).
+
+= 3.4.1 =
+
+* Make weighting dashboard flex containers to prevent the slider from changing size. Props [@mlaroy](https://github.com/mlaroy).
+* Fix issue where weightings wouldn't save properly for certain post types. Props [mustafauysal](https://github.com/mustafauysal).
+* Fix bug where terms wouldn't finish syncing in certain scenarios.
+* Properly order WooCommerce products using double to account for decimals. Props [@oscarsanchez](https://github.com/oscarsanchez).
+* Show current indices in index health dashboard. Props [moraleida](https://github.com/moraleida).
+
+= 3.4 =
+
+* Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
+* Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
+* Support all taxonomies in root of `WP_Query`
+* Readd `ep_retrieve_aggregations` hook for backwards compatibility
+* Move indexable posts class registration into a function that runs in the `plugins_loaded` action. Props [petenelson](https://github.com/petenelson).
+* Fix author name in weighting and use post_author.display_name for weighted author field search. Props [petenelson](https://github.com/petenelson).
+* Add `ep_prepared_*_meta` filters
+* Refactor CLI indexing code for simplicity.
+* Limit indexed Protected Content post types removing `revision`, `oembed_cache`, `custom_css`, `user_request`, `customize_changeset`, and `wp_block`.
+* Cast taxonomy slug to array in case it's already an array in `WP_Query`.
+* Remove unnecessary usage of `--network-wide` CLI paramter.
+* Add name, nickname, and display name to fields used for user search.
+* Add `clear-transient` WP CLI command.
+* Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
 
 = 3.3 =
 

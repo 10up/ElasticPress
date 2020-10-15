@@ -72,7 +72,18 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->fired_actions = array();
 
-		$sites   = ElasticPress\Utils\get_sites();
+		ElasticPress\Indexables::factory()->get( 'post' )->delete_network_alias();
+	}
+
+	/**
+	 * Cleans up all data for a list of sites.
+	 *
+	 * @param  array $sites List of sites.
+	 * @return void
+	 */
+	public function cleanUpSites( $sites ) {
+		global $wpdb;
+
 		$indexes = array();
 
 		foreach ( $sites as $site ) {
@@ -80,10 +91,35 @@ class TestPostMultisite extends BaseTestCase {
 
 			ElasticPress\Indexables::factory()->get( 'post' )->delete_index();
 
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			$sql = "select ID from {$wpdb->posts}";
+			$post_ids = $wpdb->get_col( $sql ); // phpcs:ignore
+
+			foreach ( $post_ids as $post_id ) {
+				wp_delete_post( $post_id, true );
+			}
+
 			restore_current_blog();
 		}
+	}
 
-		ElasticPress\Indexables::factory()->get( 'post' )->delete_network_alias();
+	/**
+	 * Test the get_sites() function.
+	 *
+	 * @since 0.9
+	 * @group post-multisite
+	 */
+	public function testGetSites() {
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+		} else {
+			$this->assertNotEmpty( $sites );
+		}
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -113,6 +149,8 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 		}
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -179,6 +217,8 @@ class TestPostMultisite extends BaseTestCase {
 		$this->assertEquals( 4, $other_site_post_count );
 
 		wp_reset_postdata();
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -211,6 +251,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 4 );
 		$this->assertEquals( $query->found_posts, 4 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -244,6 +286,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 4 );
 		$this->assertEquals( $query->found_posts, 4 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -276,6 +320,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -326,6 +372,8 @@ class TestPostMultisite extends BaseTestCase {
 		wp_reset_postdata();
 
 		$this->assertEquals( get_current_blog_id(), $old_blog_id );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -361,6 +409,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 3 );
 		$this->assertEquals( $query->found_posts, 3 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -403,6 +453,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -464,6 +516,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -508,6 +562,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -552,6 +608,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -595,6 +653,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 5 );
 		$this->assertEquals( $query->found_posts, 5 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -638,6 +698,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -689,6 +751,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -740,6 +804,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -784,6 +850,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -850,6 +918,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -899,6 +969,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -955,6 +1027,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -1021,13 +1095,6 @@ class TestPostMultisite extends BaseTestCase {
 			'sites'         => 'all',
 			'post_type'     => 'ep_test',
 			'author'        => $user_id,
-			'tax_query'     => array(
-				array(
-					'taxonomy' => 'post_tag',
-					'terms'    => array( 'term' ),
-					'field'    => 'slug',
-				),
-			),
 			'search_fields' => array(
 				'post_title',
 				'post_excerpt',
@@ -1040,6 +1107,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -1094,6 +1163,8 @@ class TestPostMultisite extends BaseTestCase {
 		$found_posts[] = $query->posts[1]->site_id . $query->posts[1]->ID;
 
 		$this->assertEquals( 4, count( array_unique( $found_posts ) ) );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -1147,6 +1218,8 @@ class TestPostMultisite extends BaseTestCase {
 		$new_blog_id = get_current_blog_id();
 
 		$this->assertEquals( $old_blog_id, $new_blog_id );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -1205,6 +1278,8 @@ class TestPostMultisite extends BaseTestCase {
 		$new_blog_id = get_current_blog_id();
 
 		$this->assertEquals( $old_blog_id, $new_blog_id );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -1277,6 +1352,8 @@ class TestPostMultisite extends BaseTestCase {
 		$new_blog_id = get_current_blog_id();
 
 		$this->assertEquals( $old_blog_id, $new_blog_id );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -1324,6 +1401,8 @@ class TestPostMultisite extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( empty( $query->posts ) );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -1387,6 +1466,8 @@ class TestPostMultisite extends BaseTestCase {
 			$this->assertEquals( $post->site_id, $post->menu_order );
 		}
 		wp_reset_postdata();
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**
@@ -1403,6 +1484,8 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->assertTrue( $index_should_exist );
 		$this->assertFalse( $index_should_not_exist );
+
+		$this->cleanUpSites( $sites );
 	}
 
 	/**

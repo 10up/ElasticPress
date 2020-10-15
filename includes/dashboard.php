@@ -39,6 +39,7 @@ function setup() {
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_admin_scripts' );
 	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
+	add_action( 'admin_init', __NAMESPACE__ . '\maybe_skip_install' );
 	add_action( 'wp_ajax_ep_index', __NAMESPACE__ . '\action_wp_ajax_ep_index' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
 	add_action( 'wp_ajax_ep_cancel_index', __NAMESPACE__ . '\action_wp_ajax_ep_cancel_index' );
@@ -47,7 +48,7 @@ function setup() {
 	add_filter( 'plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_filter( 'network_admin_plugin_action_links', __NAMESPACE__ . '\filter_plugin_action_links', 10, 2 );
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
-	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting' );
+	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
 	add_filter( 'wpmu_blogs_columns', __NAMESPACE__ . '\filter_blogs_columns', 10, 1 );
 	add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
@@ -165,6 +166,29 @@ function log_version_query_error( $query ) {
 			delete_transient( $logging_key );
 		}
 	}
+}
+
+/**
+ * Allow user to skip install process.
+ *
+ * @since  3.5
+ */
+function maybe_skip_install() {
+	if ( ! is_admin() && ! is_network_admin() ) {
+		return;
+	}
+
+	if ( empty( $_GET['ep-skip-install'] ) || empty( $_GET['nonce'] ) || ! wp_verify_nonce( $_GET['nonce'], 'ep-skip-install' ) || ! in_array( Screen::factory()->get_current_screen(), [ 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		return;
+	}
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		update_site_option( 'ep_skip_install', true );
+	} else {
+		update_option( 'ep_skip_install', true );
+	}
+
+	wp_safe_redirect( admin_url( 'admin.php?page=elasticpress' ) );
 }
 
 /**
@@ -701,12 +725,16 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'highlighting' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard-styles.min.css', [], EP_VERSION );
 	}
 
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'highlighting' ], true ) ) {
+		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
+	}
+
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
-		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard-script.min.js', [ 'jquery' ], EP_VERSION, true );
+		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard-script.min.js', [ 'jquery', 'wp-color-picker' ], EP_VERSION, true );
 
 		$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
@@ -750,6 +778,10 @@ function action_admin_enqueue_dashboard_scripts() {
 				'post' => [
 					'singular' => esc_html__( 'Post', 'elasticpress' ),
 					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
+				],
+				'term' => [
+					'singular' => esc_html__( 'Term', 'elasticpress' ),
+					'plural'   => esc_html__( 'Terms', 'elasticpress' ),
 				],
 				'user' => [
 					'singular' => esc_html__( 'User', 'elasticpress' ),
@@ -899,6 +931,15 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		'elasticpress',
+		'ElasticPress ' . esc_html__( 'Features', 'elasticpress' ),
+		esc_html__( 'Features', 'elasticpress' ),
+		$capability,
+		'elasticpress',
+		__NAMESPACE__ . '\resolve_screen'
+	);
+
+	add_submenu_page(
+		'elasticpress',
 		'ElasticPress ' . esc_html__( 'Settings', 'elasticpress' ),
 		esc_html__( 'Settings', 'elasticpress' ),
 		$capability,
@@ -920,9 +961,10 @@ function action_admin_menu() {
  * Uses the language from EP settings in mapping.
  *
  * @param string $language The current language.
+ * @param string $context  The context where the function is running.
  * @return string          The updated language.
  */
-function use_language_in_setting( $language = 'english' ) {
+function use_language_in_setting( $language = 'english', $context ) {
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
@@ -939,51 +981,99 @@ function use_language_in_setting( $language = 'english' ) {
 		return $language;
 	}
 
-	$english_name = strtolower( $translations[ $ep_language ]['english_name'] );
+	$wp_language = $translations[ $ep_language ]['language'];
 
 	/**
 	 * Languages supported in Elasticsearch mappings.
+	 * Array format: Elasticsearch analyzer name => WordPress language package name
 	 *
 	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
 	 */
-	$ep_languages = [
-		'arabic',
-		'armenian',
-		'basque',
-		'bengali',
-		'brazilian',
-		'bulgarian',
-		'catalan',
-		'cjk',
-		'czech',
-		'danish',
-		'dutch',
-		'english',
-		'finnish',
-		'french',
-		'galician',
-		'german',
-		'greek',
-		'hindi',
-		'hungarian',
-		'indonesian',
-		'irish',
-		'italian',
-		'latvian',
-		'lithuanian',
-		'norwegian',
-		'persian',
-		'portuguese',
-		'romanian',
-		'russian',
-		'sorani',
-		'spanish',
-		'swedish',
-		'turkish',
-		'thai',
+	$es_languages = [
+		'arabic'     => [ 'ar', 'ary' ],
+		'armenian'   => [ 'hy' ],
+		'basque'     => [ 'eu' ],
+		'bengali'    => [ 'bn', 'bn_BD' ],
+		'brazilian'  => [ 'pt_BR' ],
+		'bulgarian'  => [ 'bg' ],
+		'catalan'    => [ 'ca' ],
+		'cjk'        => [], // CJK characters (not a language)
+		'czech'      => [ 'cs' ],
+		'danish'     => [ 'da' ],
+		'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
+		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_ZA' ],
+		'estonian'   => [ 'et' ],
+		'finnish'    => [ 'fi' ],
+		'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
+		'galician'   => [ 'gl_ES' ],
+		'german'     => [ 'de', 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal', 'de_AT' ],
+		'greek'      => [ 'el' ],
+		'hindi'      => [ 'hi_IN' ],
+		'hungarian'  => [ 'hu_HU' ],
+		'indonesian' => [ 'id_ID' ],
+		'irish'      => [], // WordPress doesn't support Irish as an active locale currently
+		'italian'    => [ 'it_IT' ],
+		'latvian'    => [ 'lv' ],
+		'lithuanian' => [ 'lt_LT' ],
+		'norwegian'  => [ 'nb_NO' ],
+		'persian'    => [ 'fa_IR' ],
+		'portuguese' => [ 'pt', 'pt_AO', 'pt_PT', 'pt_PT_ao90' ],
+		'romanian'   => [ 'ro_RO' ],
+		'russian'    => [ 'ru_RU' ],
+		'sorani'     => [ 'ckb' ],
+		'spanish'    => [ 'es_CR', 'es_MX', 'es_VE', 'es_AR', 'es_CL', 'es_GT', 'es_PE', 'es_ES', 'es_UY', 'es_CO' ],
+		'swedish'    => [ 'sv_SE' ],
+		'turkish'    => [ 'tr_TR' ],
+		'thai'       => [ 'th' ],
 	];
 
-	return in_array( $english_name, $ep_languages, true ) ? $english_name : $language;
+	/**
+	 * Languages supported in Elasticsearch snowball token filters.
+	 *
+	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-snowball-tokenfilter.html
+	 */
+	$es_snowball_languages = [
+		'Armenian',
+		'Basque',
+		'Catalan',
+		'Danish',
+		'Dutch',
+		'English',
+		'Finnish',
+		'French',
+		'German',
+		'German2', // currently unused
+		'Hungarian',
+		'Italian',
+		'Kp', // currently unused
+		'Lithuanian',
+		'Lovins', // currently unused
+		'Norwegian',
+		'Porter', // currently unused
+		'Portuguese',
+		'Romanian',
+		'Russian',
+		'Spanish',
+		'Swedish',
+		'Turkish',
+	];
+
+	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
+		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
+			$language = $analyzer_name;
+			break;
+		}
+	}
+
+	if ( 'filter_ewp_snowball' === $context ) {
+		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
+			return ucfirst( $language );
+		}
+
+		return 'English';
+	}
+
+	return $language;
 }
 
 /**

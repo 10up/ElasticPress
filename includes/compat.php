@@ -74,6 +74,18 @@ function ep_index_post( $post_id ) {
 }
 
 /**
+ * Get index name for the posts index
+ *
+ * @param  int $blog_id Blog ID
+ * @since  3.4
+ * @return string
+ */
+function ep_get_index_name( $blog_id = null ) {
+	_deprecated_function( __FUNCTION__, '3.0', "ElasticPress\Indexables::factory()->get( 'post' )->get_index_name()" );
+
+	return \ElasticPress\Indexables::factory()->get( 'post' )->get_index_name( $blog_id );
+}
+/**
  * Registers a feature for use in ElasticPress
  *
  * @param  string $slug Unique slug for feature
