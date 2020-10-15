@@ -370,7 +370,7 @@ function action_wp_ajax_ep_notice_dismiss() {
  * @since  2.1
  */
 function action_wp_ajax_ep_index() {
-	if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
+	if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
 		wp_send_json_error();
 		exit;
 	}
@@ -670,7 +670,7 @@ function action_wp_ajax_ep_index() {
  * @since  2.1
  */
 function action_wp_ajax_ep_cancel_index() {
-	if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
+	if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
 		wp_send_json_error();
 		exit;
 	}
