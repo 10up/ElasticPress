@@ -148,9 +148,10 @@ abstract class Indexable {
 		 *
 		 * @hook ep_global_alias
 		 * @param  {string} $number Current alias
-		 * @return  {string} New alias
+		 * @param  {Indexable} $indexable Current indexable
+		 * @return {string} New alias
 		 */
-		return apply_filters( 'ep_global_alias', $alias );
+		return apply_filters( 'ep_global_alias', $alias, $this );
 	}
 
 	/**
