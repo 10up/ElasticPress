@@ -50,6 +50,31 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
+
+		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ), 10, 2 );
+		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ), 10, 2 );
+	}
+
+	/**
+	 * Filter to allow cron and WP CLI processes to index/delete documents
+	 *
+	 * @param  boolean $bypass The current filtered value
+	 * @param  int     $post_id The id of the post being checked
+	 * @return boolean Boolean indicating if permission checking should be bypased or not
+	 * @since  3.5
+	 */
+	public function filter_bypass_permission_checks_for_machines( $bypass, $post_id ) {
+		// Allow index/delete during cron
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			return true;
+		}
+
+		// Allow index/delete during WP CLI commands
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return true;
+		}
+
+		return $bypass;
 	}
 
 	/**
