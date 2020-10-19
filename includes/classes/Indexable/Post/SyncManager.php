@@ -50,6 +50,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
+		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
 	}
 
 	/**
@@ -104,6 +105,78 @@ class SyncManager extends SyncManagerAbstract {
 
 				$this->add_to_queue( $object_id );
 			}
+		}
+	}
+
+	/**
+	 * When a post's terms are changed, re-index
+	 *
+	 * This catches term deletions via wp_delete_term(), because that function internally loops over all attached objects
+	 * and updates their terms. It will also end up firing whenever set_object_terms is called, but the queue will de-duplicate
+	 * multiple instances per post
+	 *
+	 * @see set_object_terms
+	 * @param int    $object_id  Object ID.
+	 * @param array  $terms      An array of object terms.
+	 * @param array  $tt_ids     An array of term taxonomy IDs.
+	 * @param string $taxonomy   Taxonomy slug.
+	 * @param bool   $append     Whether to append new terms to the old terms.
+	 * @param array  $old_tt_ids Old array of term taxonomy IDs.
+	 * @since  3.5
+	 */
+	public function action_set_object_terms( $object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) {
+		$post_id = $object_id;
+
+		$indexable = Indexables::factory()->get( 'post' );
+		$post_type = get_post_type( $post_id );
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			return;
+		}
+
+		$post = get_post( $post_id );
+
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
+
+		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+			return;
+		}
+
+		// Only re-index if the taxonomy is indexed for this post
+		$indexable_taxonomies = $indexable->get_indexable_post_taxonomies( $post );
+
+		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
+
+		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
+			return;
+		}
+
+		$indexable_post_types = $indexable->get_indexable_post_types();
+
+		if ( in_array( $post_type, $indexable_post_types, true ) ) {
+			/**
+			 * Fire before post is queued for syncing
+			 *
+			 * @hook ep_sync_on_set_object_terms
+			 * @param  {int} $post_id ID of post
+			 */
+			do_action( 'ep_sync_on_set_object_terms', $post_id );
+
+			/**
+			 * Filter to kill post sync
+			 *
+			 * @hook ep_post_sync_kill
+			 * @param {bool} $skip True meanas kill sync for post
+			 * @param  {int} $object_id ID of post
+			 * @param  {int} $object_id ID of post
+			 * @return {boolean} New value
+			 */
+			if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
+				return;
+			}
+
+			$this->add_to_queue( $post_id );
 		}
 	}
 
