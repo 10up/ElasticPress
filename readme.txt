@@ -58,6 +58,7 @@ Bug fixes:
 * Only sync post on allow listed post meta. Props [felipeelia](https://github.com/felipeelia).
 * Check if site is indexable before syncing in network activated mode.
 * Fix facet widget and 3-level deep hierarchical taxonomy. Props [dinhtungdu](https://github.com/dinhtungdu).
+* Make sure AJAX sync is disabled if EP_DASHBOARD is set to false.. Props [turtlepod](https://github.com/turtlepod).
 
 
 Enhancements:
@@ -69,6 +70,7 @@ Enhancements:
 * Increase max supported Elasticsearch version to 7.9.
 * Add filter to prepared user meta data. Props [g-kanoufi](https://github.com/g-kanoufi).
 * Improve Terms Feature terminology to remove confusion.
+* Add filter to facet terms query arguments. Props [felipeelia](https://github.com/felipeelia).
 
 = 3.4.3 =
 

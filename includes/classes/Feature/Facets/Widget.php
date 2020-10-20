@@ -80,7 +80,7 @@ class Widget extends WP_Widget {
 			/**
 			 * Filter arguments passed to get_terms() while getting all possible terms for the facet widget.
 			 *
-			 * @since  3.5.x
+			 * @since  3.5.0
 			 * @hook ep_facet_search_get_terms_args
 			 * @param  {array} $query Weighting query
 			 * @param  {string} $post_type Post type
