@@ -152,7 +152,7 @@ abstract class SyncManager {
 	 * @return boolean
 	 */
 	public function can_index_site() {
-		if ( defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			return Utils\is_site_indexable();
 		}
 
