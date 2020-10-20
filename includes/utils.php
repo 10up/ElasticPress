@@ -424,7 +424,7 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 				$flat_tree[] = $term;
 
 				if ( ! empty( $term->children ) ) {
-					$to_process = $term->children + $to_process;
+					$to_process = array_merge( $term->children, $to_process );
 				}
 			}
 		}

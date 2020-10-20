@@ -365,6 +365,10 @@ class Elasticsearch {
 				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
+				if ( ! empty( $hit['highlight'] ) ) {
+					$document['highlight'] = $hit['highlight'];
+				}
+
 				/**
 				 * Filter Elasticsearch retrieved document
 				 *
@@ -704,6 +708,113 @@ class Elasticsearch {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get current index mapping from Elasticsearch.
+	 *
+	 * @param  string $index The index name.
+	 * @since  3.5
+	 * @return array
+	 */
+	public function get_mapping( $index ) {
+		$request_args = [
+			'method'  => 'GET',
+			'timeout' => 30,
+		];
+
+		$request = $this->remote_request( $index, $request_args, [], 'get_mapping' );
+
+		if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
+			return [];
+		}
+
+		$body = wp_remote_retrieve_body( $request );
+
+		if ( ! $body ) {
+			return [];
+		}
+
+		$mapping = json_decode( $body, true );
+
+		return is_array( $mapping ) ? $mapping : [];
+	}
+
+	/**
+	 * Close an open index.
+	 *
+	 * @param  string $index Index name.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function close_index( $index ) {
+		$request_args = [
+			'method'  => 'POST',
+			'timeout' => 30,
+		];
+
+		$close   = trailingslashit( $index ) . '_close';
+		$request = $this->remote_request( $close, $request_args, [], 'close_index' );
+
+		return ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+	}
+
+	/**
+	 * Open a closed index.
+	 *
+	 * @param  string $index Index name.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function open_index( $index ) {
+		$request_args = [
+			'method'  => 'POST',
+			'timeout' => 30,
+		];
+
+		$open    = trailingslashit( $index ) . '_open';
+		$request = $this->remote_request( $open, $request_args, [], 'open_index' );
+
+		return ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+	}
+
+	/**
+	 * Update index settings.
+	 *
+	 * @param  string  $index       Index name.
+	 * @param  array   $settings    Setting update array.
+	 * @param  boolean $close_first Optional. True if index must be closed prior to update.
+	 *                              Dynamic settings can be updated on open indices. Static
+	 *                              settings must be closed.  Default false.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function update_index_settings( $index, $settings, $close_first = false ) {
+		$request_args = [
+			'body'    => wp_json_encode( $settings ),
+			'method'  => 'PUT',
+			'timeout' => 30,
+		];
+
+		if ( $close_first ) {
+			$closed = $this->close_index( $index );
+		}
+
+		if ( ! $close_first || $closed ) {
+			$settings = trailingslashit( $index ) . '_settings';
+			$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
+		} else {
+			return false;
+		}
+
+		$updated = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+
+		if ( $closed ) {
+			$opened = $this->open_index( $index );
+			return ( $updated && $opened );
+		}
+
+		return $updated;
 	}
 
 	/**
@@ -1288,4 +1399,3 @@ class Elasticsearch {
 	}
 
 }
-

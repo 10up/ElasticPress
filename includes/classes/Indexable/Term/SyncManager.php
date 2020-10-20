@@ -31,6 +31,10 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		if ( ! $this->can_index_site() ) {
+			return;
+		}
+
 		add_action( 'created_term', [ $this, 'action_sync_on_update' ] );
 		add_action( 'edited_terms', [ $this, 'action_sync_on_update' ] );
 		add_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );

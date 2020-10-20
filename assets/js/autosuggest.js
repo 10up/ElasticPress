@@ -246,13 +246,13 @@ function updateAutosuggestBox(options, input) {
 			if (word.length > 1) {
 				resultsText = resultsText.replace(
 					regex,
-					`<span class="ep-autosuggest-highlight">$1</span>`,
+					'<span class="ep-autosuggest-highlight">$1</span>',
 				);
 			}
 		});
 
 		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
-				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}">
+				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}"  tabindex="-1">
 					${resultsText}
 				</a>
 			</li>`;
@@ -578,8 +578,7 @@ function init() {
 	 */
 	const handleKeyup = (event) => {
 		event.preventDefault();
-
-		if (event.keyCode === 27) {
+		if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
 			hideAutosuggestBox();
 			toggleInputAria(false, event.target);
 			setInputActiveDescendant('', event.target);
@@ -608,6 +607,6 @@ function init() {
 	 */
 	epInputs.forEach((input) => {
 		input.addEventListener('keyup', handleKeyup);
-		// input.addEventListener( 'blur', hideAutosuggestBox );
+		input.addEventListener('blur', hideAutosuggestBox);
 	});
 }

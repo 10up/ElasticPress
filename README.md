@@ -8,7 +8,7 @@
 
 **Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0, 3.1, and 3.3 require re-syncing.
 
-*Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
+* Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
 
 ## Overview
 
@@ -20,9 +20,13 @@ ElasticPress has an in depth documentation site. [Visit the docs ☞](http://10u
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.5**
+* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.9**
 * [WordPress](http://wordpress.org) 3.7.1+
 * [PHP](https://php.net/) 5.4+
+
+## React Components
+
+Interested in integrating ElasticPress in your headless WordPress website? Check out [ElasticPress React](https://github.com/10up/elasticpress-react).
 
 ## Issues
 

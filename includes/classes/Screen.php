@@ -70,6 +70,10 @@ class Screen {
 				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
 					$this->screen = 'health';
 				}
+			} elseif ( 'elasticpress-highlighting' === $_GET['page'] ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+					$this->screen = 'highlighting';
+				}
 			}
 		}
 	}

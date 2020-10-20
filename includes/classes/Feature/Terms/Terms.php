@@ -58,7 +58,7 @@ class Terms extends Feature {
 	 */
 	public function output_feature_box_summary() {
 		?>
-		<p><?php esc_html_e( 'Improve term search relevancy and query performance.', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'Improve WP_Term_Query relevancy and query performance. This feature is only needed if you are using WP_Term_Query directly.', 'elasticpress' ); ?></p>
 		<?php
 	}
 

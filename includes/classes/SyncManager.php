@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils;
+
 /**
  * Abstract sync manager class to be extended for each indexable
  */
@@ -141,6 +143,20 @@ abstract class SyncManager {
 		 * when a redirect has already been triggered.
 		 */
 		$this->sync_queue = [];
+	}
+
+	/**
+	 * Check if we can index content in the current blog
+	 *
+	 * @since 3.5
+	 * @return boolean
+	 */
+	public function can_index_site() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			return Utils\is_site_indexable();
+		}
+
+		return true;
 	}
 
 	/**
