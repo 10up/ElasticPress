@@ -134,9 +134,10 @@ class Highlighting {
 		if ( ! is_admin() && ! empty( $args['s'] ) ) {
 			foreach ( $fields_to_highlight as $field ) {
 				$formatted_args['highlight']['fields'][ $field ] = [
-					'pre_tags'  => [ $opening_tag ],
-					'post_tags' => [ $closing_tag ],
-					'type'      => 'plain',
+					'pre_tags'            => [ $opening_tag ],
+					'post_tags'           => [ $closing_tag ],
+					'type'                => 'plain',
+					'number_of_fragments' => 0,
 				];
 			}
 		}
