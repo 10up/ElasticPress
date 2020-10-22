@@ -627,7 +627,7 @@ class Command extends WP_CLI_Command {
 					if ( ! empty( $result['errors'] ) ) {
 						$this->delete_transient();
 
-						WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], $result['errors'] ) );
+						WP_CLI::warning( sprintf( esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $site['blog_id'], $result['errors'] ) );
 					}
 				}
 
@@ -658,7 +658,7 @@ class Command extends WP_CLI_Command {
 				if ( ! empty( $result['errors'] ) ) {
 					$this->delete_transient();
 
-					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $result['errors'] ) );
+					WP_CLI::warning( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $result['errors'] ) );
 				}
 			}
 
@@ -702,7 +702,7 @@ class Command extends WP_CLI_Command {
 				if ( ! empty( $result['errors'] ) ) {
 					$this->delete_transient();
 
-					WP_CLI::error( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $result['errors'] ) );
+					WP_CLI::warning( sprintf( esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), $result['errors'] ) );
 				}
 			}
 		}
@@ -895,7 +895,8 @@ class Command extends WP_CLI_Command {
 										}
 									}
 
-									WP_CLI::error( implode( "\n", $response->get_error_messages() ) );
+									WP_CLI::warning( implode( "\n", $response->get_error_messages() ) );
+									continue;
 								}
 
 								if ( isset( $response['errors'] ) && true === $response['errors'] ) {
