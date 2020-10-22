@@ -414,16 +414,28 @@ class Synonyms {
 		return array_reduce(
 			$this->get_affected_indices(),
 			function( $success, $index ) {
+				$filter  = $this->get_synonym_filter();
 				$mapping = Elasticsearch::factory()->get_mapping( $index );
 				$filters = $mapping[ $index ]['settings']['index']['analysis']['analyzer']['default']['filter'];
 
+				/*
+				 * Due to limitations in Elasticsearch, we can't remove the filter and analyzer
+				 * once set on the index settings and synonyms array can't be empty.  So we set a
+				 * fallback synonyms array here if the user supplied synonym array is empty.
+				 */
+				if ( empty( $filter['synonyms'] ) ) {
+					$filter['synonyms'] = [ 'odd,unusual' ];
+				}
+
 				// Construct the synonym filter.
-				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $this->get_synonym_filter();
+				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $filter;
 
 				// Add the analyzer.
-				$setting['index']['analysis']['analyzer']['default']['filter'] = array_merge(
-					[ $this->get_synonym_filter_name() ],
-					$filters
+				$setting['index']['analysis']['analyzer']['default']['filter'] = array_unique(
+					array_merge(
+						[ $this->get_synonym_filter_name() ],
+						$filters
+					)
 				);
 
 				// Put it to Elasticsearch.
