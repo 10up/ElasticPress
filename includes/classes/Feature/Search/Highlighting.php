@@ -35,7 +35,7 @@ class Highlighting {
 	 * @var array
 	 */
 	public static $default_settings = [
-		'highlight_enabled' => true,
+		'highlight_enabled' => false,
 		'highlight_excerpt' => false,
 		'highlight_tag'     => 'mark',
 	];
