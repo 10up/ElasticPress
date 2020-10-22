@@ -198,6 +198,17 @@ abstract class Indexable {
 	}
 
 	/**
+	 * Get objects within the indexable
+	 *
+	 * @param  int $object_ids Array of object ids to get.
+	 * @since  3.0
+	 * @return boolean|array
+	 */
+	public function multi_get( $object_ids ) {
+		return Elasticsearch::factory()->get_documents( $this->get_index_name(), $object_ids );
+	}
+
+	/**
 	 * Delete an index within the indexable
 	 *
 	 * @param  int $blog_id `null` means current blog.
