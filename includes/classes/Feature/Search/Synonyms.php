@@ -338,7 +338,7 @@ class Synonyms {
 		}
 
 		// Ensure we have synonyms to add.
-		if ( ! is_array( $synonyms ) ) {
+		if ( ! is_array( $synonyms ) || empty( $synonyms ) ) {
 			return $mapping;
 		}
 
