@@ -443,10 +443,12 @@ class Synonyms {
 				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $filter;
 
 				// Add the analyzer.
-				$setting['index']['analysis']['analyzer']['default']['filter'] = array_unique(
-					array_merge(
-						[ $this->get_synonym_filter_name() ],
-						$filters
+				$setting['index']['analysis']['analyzer']['default']['filter'] = array_values(
+					array_unique(
+						array_merge(
+							[ $this->get_synonym_filter_name() ],
+							$filters
+						)
 					)
 				);
 
