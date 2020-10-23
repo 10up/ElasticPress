@@ -338,7 +338,7 @@ class Synonyms {
 		}
 
 		// Ensure we have synonyms to add.
-		if ( ! is_array( $synonyms ) ) {
+		if ( ! is_array( $synonyms ) || empty( $synonyms ) ) {
 			return $mapping;
 		}
 
@@ -381,14 +381,26 @@ class Synonyms {
 		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
 			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_SANITIZE_STRING );
 			$mode     = filter_input( INPUT_POST, 'synonyms_editor_mode', FILTER_SANITIZE_STRING );
-			$post_id  = ! ! wp_insert_post(
+			$content  = trim( sanitize_textarea_field( $synonyms ) );
+
+			// Content can't be empty.
+			if ( empty( $content ) ) {
+				$lines   = $this->example_synonym_list( true );
+				$content = implode( PHP_EOL, [ $lines[0], $lines[2], $lines[3] ] );
+			}
+
+			// Save the content.
+			$post_id = ! ! wp_insert_post(
 				[
 					'ID'           => $this->get_synonym_post_id(),
-					'post_content' => trim( sanitize_textarea_field( $synonyms ) ),
+					'post_content' => $content,
 				]
 			);
 
+			// Update Elasticsearch
 			$update = $this->update_synonyms();
+
+			// Save editor mode.
 			if ( in_array( $mode, [ 'advanced', 'simple' ], true ) ) {
 				$this->save_editor_mode( $mode );
 			}
@@ -414,16 +426,28 @@ class Synonyms {
 		return array_reduce(
 			$this->get_affected_indices(),
 			function( $success, $index ) {
+				$filter  = $this->get_synonym_filter();
 				$mapping = Elasticsearch::factory()->get_mapping( $index );
 				$filters = $mapping[ $index ]['settings']['index']['analysis']['analyzer']['default']['filter'];
 
+				/*
+				 * Due to limitations in Elasticsearch, we can't remove the filter and analyzer
+				 * once set on the index settings and synonyms array can't be empty.  So we set a
+				 * fallback synonyms array here if the user supplied synonym array is empty.
+				 */
+				if ( empty( $filter['synonyms'] ) ) {
+					$filter['synonyms'] = [ 'odd,unusual' ];
+				}
+
 				// Construct the synonym filter.
-				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $this->get_synonym_filter();
+				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $filter;
 
 				// Add the analyzer.
-				$setting['index']['analysis']['analyzer']['default']['filter'] = array_merge(
-					[ $this->get_synonym_filter_name() ],
-					$filters
+				$setting['index']['analysis']['analyzer']['default']['filter'] = array_unique(
+					array_merge(
+						[ $this->get_synonym_filter_name() ],
+						$filters
+					)
 				);
 
 				// Put it to Elasticsearch.
@@ -570,19 +594,19 @@ class Synonyms {
 	/**
 	 * An example synonym that we initialize new synonyms lists with.
 	 *
+	 * @param  bool $as_array Optional. Return an array of synonym lines. Default false.
 	 * @return string
 	 */
-	public function example_synonym_list() {
-		return implode(
-			PHP_EOL,
-			[
-				__( '# Defined sets ( equivalent synonyms).', 'elasticpress' ),
-				'sneakers, tennis shoes, trainers, runners',
-				'',
-				__( '# Defined alternatives (explicit mappings).', 'elasticpress' ),
-				'shoes => sneaker, sandal, boots, high heels',
-			]
-		);
+	public function example_synonym_list( $as_array = false ) {
+		$lines = [
+			__( '# Defined sets ( equivalent synonyms).', 'elasticpress' ),
+			'sneakers, tennis shoes, trainers, runners',
+			'',
+			__( '# Defined alternatives (explicit mappings).', 'elasticpress' ),
+			'shoes => sneaker, sandal, boots, high heels',
+		];
+
+		return $as_array ? $lines : implode( PHP_EOL, $lines );
 	}
 
 	/**
