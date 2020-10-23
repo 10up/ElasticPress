@@ -137,6 +137,18 @@ class Search extends Feature {
 	 * Enqueue styles for highlighting.
 	 */
 	public function enqueue_scripts() {
+		$settings = $this->get_settings();
+
+		if ( ! $settings ) {
+			$settings = [];
+		}
+
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		if ( true !== $settings['highlight_enabled'] ) {
+			return;
+		}
+
 		wp_enqueue_style(
 			'searchterm-highlighting',
 			EP_URL . 'dist/css/highlighting-styles.min.css',
