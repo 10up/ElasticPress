@@ -839,12 +839,11 @@ class Autosuggest extends Feature {
 		$allowed_params = $this->epio_autosuggest_set_and_get();
 
 		if ( empty( $allowed_params ) ) {
-			$debug_info['epio_autosuggest']['fields']['error'] = sprintf(
-				/* translators: 1: <a> tag; 2. </a> */
-				esc_html__( 'It was not possible to retrieve your endpoint configuration. Please %1$scontact ElasticPress.io Support%2$s.', 'elasticpress' ),
-				'<a href="mailto:' . esc_url( antispambot( 'support@elasticpress.io' ) ) . '">',
-				'</a>'
-			);
+			$debug_info['epio_autosuggest']['fields']['error'] = [
+				'label'   => esc_html__( 'Error', 'elasticpress' ),
+				'private' => true,
+				'value'   => esc_html__( 'It was not possible to retrieve your endpoint configuration. Please contact the ElasticPress.io Support', 'elasticpress' ),
+			];
 			return $debug_info;
 		}
 
