@@ -4843,73 +4843,83 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests the constructor for the Indexable\Post class.
+	 * Tests the query_db method.
 	 *
 	 * @return void
 	 * @group post
 	 */
 	public function testQueryDb() {
+		$indexable_post_object = new \ElasticPress\Indexable\Post\Post();
 
-		$exclude_post_id = Functions\create_and_sync_post();
-		$post_id = Functions\create_and_sync_post();
+		$post_id_1 = Functions\create_and_sync_post();
+		$post_id_2 = Functions\create_and_sync_post();
+		$post_id_3 = Functions\create_and_sync_post();
 
-		$post = new \ElasticPress\Indexable\Post\Post();
-
-		$results = $post->query_db(
+		// Test the first loop of the indexing.
+		$results = $indexable_post_object->query_db(
 			[
 				'per_page' => 1,
-				'include'  => [ $post_id ],
 			]
 		);
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_3, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 
-		$this->assertCount( 1, $post_ids );
-		$this->assertContains( $post_id, $post_ids );
-		$this->assertSame( 1, absint( $results['total_objects'] ) );
-
-		$results = $post->query_db(
+		// Second loop.
+		$results = $indexable_post_object->query_db(
 			[
-				'exclude'  => [ $exclude_post_id ],
+				'per_page' => 1,
+				'ep_indexing_last_processed_object_id' => $post_id_3,
 			]
 		);
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_2, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 
-		$this->assertNotContains( $exclude_post_id, $post_ids );
-
-		// Set up a few posts for the filters.
-		$args_post_ids = [];
-
-		$args_post_ids[] = Functions\create_and_sync_post();
-		$args_post_ids[] = Functions\create_and_sync_post();
-		$args_post_ids[] = Functions\create_and_sync_post();
-		$args_post_ids[] = Functions\create_and_sync_post();
-
-		$defaults_filter = function( $args ) use ( $args_post_ids ) {
-			$args['post__in'] = $args_post_ids;
-			return $args;
-		};
-
-		$index_filter = function( $args ) {
-			$args['posts_per_page'] = 3;
-			$args['order'] = 'ASC';
-			return $args;
-		};
-
-		add_filter( 'ep_post_query_db_args', $defaults_filter );
-		add_filter( 'ep_index_posts_args', $index_filter );
-
-		$results = $post->query_db( [] );
-
-		remove_filter( 'ep_post_query_db_args', $defaults_filter );
-		remove_filter( 'ep_index_posts_args', $index_filter );
+		// A custom start_object_id was passed in.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'ep_indexing_start_object_id' => $post_id_1,
+			]
+		);
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_1, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 1, $results['total_objects'] );
 
-		$this->assertCount( 3, $post_ids );
-		$this->assertContains( $args_post_ids[2], $post_ids );
-		$this->assertNotContains( $args_post_ids[3], $post_ids );
+		// Passing custom start and last post IDs. Second loop.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'ep_indexing_start_object_id' => $post_id_3,
+				'ep_indexing_end_object_id' => $post_id_2,
+				'ep_indexing_last_processed_object_id' => $post_id_3,
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_2, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 2, $results['total_objects'] );
+
+		// Specific post IDs
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'include'  => [ $post_id_1 ],
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_1, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 1, $results['total_objects'] );
 	}
 
 	/**
