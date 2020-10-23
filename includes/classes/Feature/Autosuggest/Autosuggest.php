@@ -380,6 +380,20 @@ class Autosuggest extends Feature {
 			$epas_options['addSearchTermHeader'] = true;
 		}
 
+		$search_settings = $search->get_settings();
+
+		if ( ! $search_settings ) {
+			$search_settings = [];
+		}
+
+		$search_settings = wp_parse_args( $search_settings, $search->default_settings );
+
+		if ( ! empty( $search_settings ) && $search_settings['highlight_enabled'] ) {
+			$epas_options['highlightingEnabled'] = true;
+			$epas_options['highlightingTag']     = apply_filters( 'ep_highlighting_tag', $search_settings['highlight_tag'] );
+			$epas_options['highlightingClass']   = apply_filters( 'ep_highlighting_class', 'ep-highlight' );
+		}
+
 		/**
 		 * Output variables to use in Javascript
 		 * index: the Elasticsearch index name

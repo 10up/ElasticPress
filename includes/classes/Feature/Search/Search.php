@@ -213,12 +213,22 @@ class Search extends Feature {
 		}
 
 		// define the tag to use
-		$current_tag   = $settings['highlight_tag'];
+		$current_tag = $settings['highlight_tag'];
+
+		/**
+		 * Filter the tag that wraps the search highlighted term
+		 *
+		 * @since 3.5
+		 * @hook ep_highlighting_tag
+		 * @param  {string} $current_tag Highlighting tag
+		 * @return  {string} New highlighting tag
+		 */
 		$highlight_tag = apply_filters( 'ep_highlighting_tag', $current_tag );
 
 		/**
 		 * Filter class applied to search highlight tags
 		 *
+		 * @since 3.5
 		 * @hook ep_highlighting_class
 		 * @param  {string} $class Highlighting class
 		 * @return  {string} New highlighting class

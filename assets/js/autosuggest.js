@@ -241,12 +241,15 @@ function updateAutosuggestBox(options, input) {
 		const searchParts = value.trim().split(' ');
 		let resultsText = escapedText;
 
-		// uses some regex magic to match upper/lower/capital case
-		const regex = new RegExp(`\\b(${searchParts.join('|')})\\b`, 'gi');
-		resultsText = resultsText.replace(
-			regex,
-			(word) => `<span class="ep-autosuggest-highlight">${word}</span>`,
-		);
+		if (epas.highlightingEnabled) {
+			// uses some regex magic to match upper/lower/capital case
+			const regex = new RegExp(`\\b(${searchParts.join('|')})`, 'gi');
+			resultsText = resultsText.replace(
+				regex,
+				(word) =>
+					`<${epas.highlightingTag} class="${epas.highlightingClass} ep-autosuggest-highlight">${word}</${epas.highlightingTag}>`,
+			);
+		}
 
 		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
 				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}"  tabindex="-1">
