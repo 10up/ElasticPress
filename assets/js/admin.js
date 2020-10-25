@@ -1,39 +1,38 @@
-import jQuery from 'jquery';
-import { epAdmin, ajaxurl } from 'window';
+const { epAdmin, ajaxurl } = window;
 
-jQuery( '.notice' ).on( 'click', '.notice-dismiss', ( event ) => {
-	const notice = event.delegateTarget.getAttribute( 'data-ep-notice' );
+jQuery('.notice').on('click', '.notice-dismiss', (event) => {
+	const notice = event.delegateTarget.getAttribute('data-ep-notice');
 
-	if ( ! notice ) {
+	if (!notice) {
 		return;
 	}
 
-	jQuery.ajax( {
+	jQuery.ajax({
 		method: 'post',
 		data: {
 			nonce: epAdmin.nonce,
 			action: 'ep_notice_dismiss',
-			notice: notice
+			notice,
 		},
-		url: ajaxurl
-	} );
-} );
+		url: ajaxurl,
+	});
+});
 
-jQuery( '.weighting-settings input[type=range]' ).change( function() {
-	const el = jQuery( this );
+jQuery('.weighting-settings input[type=range]').change(function () {
+	const el = jQuery(this);
 
-	el.prev( 'label' ).find( '.weighting-value' ).text( el.val() );
-} );
+	el.prev('label').find('.weighting-value').text(el.val());
+});
 
-jQuery( '.weighting-settings .searchable input[type=checkbox]' ).change( function() {
-	const $checkbox = jQuery( this );
-	const $rangeInput = $checkbox.parent().next( '.weighting' ).find( 'input[type=range]' );
-	const $weightDisplay = $rangeInput.prev( 'label' ).find( '.weighting-value' );
+jQuery('.weighting-settings .searchable input[type=checkbox]').change(function () {
+	const $checkbox = jQuery(this);
+	const $rangeInput = $checkbox.parent().next('.weighting').find('input[type=range]');
+	const $weightDisplay = $rangeInput.prev('label').find('.weighting-value');
 
 	// toggle range input
-	$rangeInput.prop( 'disabled', ! this.checked );
+	$rangeInput.prop('disabled', !this.checked);
 
 	// get new weight display value, and set it
 	const newWeightDisplay = !this.checked ? '0' : $rangeInput.val();
-	$weightDisplay.text( newWeightDisplay );
-} );
+	$weightDisplay.text(newWeightDisplay);
+});

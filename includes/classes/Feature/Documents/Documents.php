@@ -308,6 +308,10 @@ class Documents extends Feature {
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 1 );
 
+		if ( empty( Elasticsearch::factory()->get_elasticsearch_version( false ) ) ) {
+			return $status;
+		}
+
 		$plugins = Elasticsearch::factory()->get_elasticsearch_plugins();
 
 		$status->message = [];

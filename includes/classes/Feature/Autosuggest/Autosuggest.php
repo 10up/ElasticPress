@@ -43,6 +43,7 @@ class Autosuggest extends Feature {
 		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
+
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',
@@ -105,7 +106,7 @@ class Autosuggest extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
 			<div class="input-wrap">
-				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
+				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? '.ep-autosuggest' : esc_attr( $settings['autosuggest_selector'] ); ?>" type="text" data-field-name="autosuggest_selector" class="setting-field" id="feature_autosuggest_selector">
 				<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
 			</div>
 		</div>
@@ -243,7 +244,20 @@ class Autosuggest extends Feature {
 				foreach ( $query['bool']['must'] as $q_index => $must_query ) {
 					if ( isset( $must_query['bool'] ) && isset( $must_query['bool']['should'] ) ) {
 						foreach ( $must_query['bool']['should'] as $index => $current_bool_should ) {
-							if ( isset( $current_bool_should['multi_match'] ) && isset( $current_bool_should['multi_match']['fuzziness'] ) && 0 !== $current_bool_should['multi_match']['fuzziness'] && isset( $current_bool_should['multi_match']['fields'] ) ) {
+							if (
+								isset( $current_bool_should['multi_match'] ) &&
+								isset( $current_bool_should['multi_match']['fields'] ) &&
+								(
+									(
+										isset( $current_bool_should['multi_match']['fuzziness'] ) &&
+										0 !== $current_bool_should['multi_match']['fuzziness']
+									) ||
+									(
+										isset( $current_bool_should['multi_match']['slop'] ) &&
+										0 !== $current_bool_should['multi_match']['slop']
+									)
+								)
+							) {
 								foreach ( $current_bool_should['multi_match']['fields'] as $key => $field ) {
 									foreach ( $ngram_fields as $plain_field => $ngram_field ) {
 										if ( preg_match( '/^(' . $plain_field . ')(\^(\d+))?$/', $field, $match ) ) {
@@ -323,7 +337,7 @@ class Autosuggest extends Feature {
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
 			EP_URL . 'dist/js/autosuggest-script.min.js',
-			array( 'jquery' ),
+			[],
 			EP_VERSION,
 			true
 		);
@@ -364,6 +378,20 @@ class Autosuggest extends Feature {
 
 		if ( Utils\is_epio() ) {
 			$epas_options['addSearchTermHeader'] = true;
+		}
+
+		$search_settings = $search->get_settings();
+
+		if ( ! $search_settings ) {
+			$search_settings = [];
+		}
+
+		$search_settings = wp_parse_args( $search_settings, $search->default_settings );
+
+		if ( ! empty( $search_settings ) && $search_settings['highlight_enabled'] ) {
+			$epas_options['highlightingEnabled'] = true;
+			$epas_options['highlightingTag']     = apply_filters( 'ep_highlighting_tag', $search_settings['highlight_tag'] );
+			$epas_options['highlightingClass']   = apply_filters( 'ep_highlighting_class', 'ep-highlight' );
 		}
 
 		/**

@@ -6,9 +6,9 @@
 
 **Please note:** master is the stable branch
 
-**Upgrade Notice:** Versions 1.6.1, 1.6.2, 1.7, 1.8, 2.1, 2.1.2, 2.2, 2.7, 3.0, 3.1, and 3.3 require re-syncing.
+**Search Algorithm Upgrade Notice:** Version 3.5 includes a revamp of the search algorithm. This is a backwards compatibility break. If you'd like to revert to the old search algorithm, you can use the following code: `add_filter( 'ep_search_algorithm_version', function() { return '3.4'; } );`. The new algorithm offers much more relevant search results and removes fuzziness which results in mostly unwanted results for most people. If you are hooking in and modifying the search query directly, it's possible this code might break and you might need to tweak it.
 
-*Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
+* Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
 
 ## Overview
 
@@ -20,9 +20,13 @@ ElasticPress has an in depth documentation site. [Visit the docs ☞](http://10u
 
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.5**
+* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.9**
 * [WordPress](http://wordpress.org) 3.7.1+
 * [PHP](https://php.net/) 5.4+
+
+## React Components
+
+Interested in integrating ElasticPress in your headless WordPress website? Check out [ElasticPress React](https://github.com/10up/elasticpress-react).
 
 ## Issues
 

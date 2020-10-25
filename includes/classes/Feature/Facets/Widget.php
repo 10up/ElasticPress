@@ -77,9 +77,24 @@ class Widget extends WP_Widget {
 		 * Get all the terms so we know if we should output the widget
 		 */
 		$terms = get_terms(
-			array(
-				'taxonomy'   => $taxonomy,
-				'hide_empty' => true,
+			/**
+			 * Filter arguments passed to get_terms() while getting all possible terms for the facet widget.
+			 *
+			 * @since  3.5.0
+			 * @hook ep_facet_search_get_terms_args
+			 * @param  {array} $query Weighting query
+			 * @param  {string} $post_type Post type
+			 * @param  {array} $args WP Query arguments
+			 * @return  {array} New query
+			 */
+			apply_filters(
+				'ep_facet_search_get_terms_args',
+				[
+					'taxonomy'   => $taxonomy,
+					'hide_empty' => true,
+				],
+				$args,
+				$instance
 			)
 		);
 
@@ -271,27 +286,29 @@ class Widget extends WP_Widget {
 				<?php endforeach; ?>
 			</div>
 			<?php $facet_html = ob_get_clean(); ?>
+
+			<?php
+			// phpcs:disable
+			/**
+			 * Filter facet search widget HTML
+			 *
+			 * @hook ep_facet_search_widget
+			 * @param  {string} $facet_html Widget HTML
+			 * @param  {array} $selected_filters Selected filters
+			 * @param  {array} $terms_by_slug Terms by slug
+			 * @param  {array} $outputted_terms Outputted $terms
+			 * @param  {string} $title Widget title
+			 * @return  {string} New HTML
+			 */
+			echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] );
+			// phpcs:enable
+			?>
 		</div>
 		<?php
 
 		// Enqueue Script & Styles
 		wp_enqueue_script( 'elasticpress-facets' );
 		wp_enqueue_style( 'elasticpress-facets' );
-
-		// phpcs:disable
-		/**
-		 * Filter facet search widget HTML
-		 *
-		 * @hook ep_facet_search_widget
-		 * @param  {string} $facet_html Widget HTML
-		 * @param  {array} $selected_filters Selected filters
-		 * @param  {array} $terms_by_slug Terms by slug
-		 * @param  {array} $outputted_terms Outputted $terms
-		 * @param  {string} $title Widget title
-		 * @return  {string} New HTML
-		 */
-		echo apply_filters( 'ep_facet_search_widget', $facet_html, $selected_filters, $terms_by_slug, $outputted_terms, $instance['title'] );
-		// phpcs:enable
 
 		echo wp_kses_post( $args['after_widget'] );
 	}

@@ -240,4 +240,127 @@ class TestSearch extends BaseTestCase {
 	public function catch_ep_formatted_args( $args ) {
 		$this->fired_actions['ep_formatted_args'] = $args;
 	}
+
+	/**
+	 * Test allowed tags for highlighting sub-feature.
+	 *
+	 * @group search
+	 */
+	public function testAllowedTags() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		// a tag that is in the array of allowed tags
+		$allowed_tag  = 'span';
+		$search_feature = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+
+		$this->assertTrue( 'span' === $search_feature->get_highlighting_tag( $allowed_tag ) );
+	}
+
+	/**
+	 * Test not-allowed tags for highlighting sub-feature.
+	 *
+	 * @group search
+	 */
+	public function testNotAllowedTags() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		// a tag that is not in the array of allowed tags
+		$not_allowed_tag = 'div';
+		$search_feature = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+
+		$this->assertTrue( 'mark' === $search_feature->get_highlighting_tag( $not_allowed_tag ) );
+	}
+
+	/**
+	 * Testing changing color and tag settings for highlighting sub-feature.
+	 *
+	 * @group search
+	 */
+	public function testHighlightSetting() {
+
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active' 			=> true,
+				'highlight_enabled' => true,
+				'highlight_tag' 	=> 'span',
+			)
+		);
+
+		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
+
+		$this->assertTrue( 'span' === $settings['highlight_tag'] );
+	}
+
+	/**
+	 * Testing setting a tag that's not allowed
+	 *
+	 * Leverages the ep_highlighting_tag filter used when updating settings.
+	 * Should return 'mark' as the tag.
+	 *
+	 * @group search
+	 */
+	public function testBadTagSetting() {
+
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+				'highlight_tag'     => 'div'
+			)
+		);
+
+		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
+		$tag      = apply_filters( 'ep_highlighting_tag', $settings['highlight_tag'] );
+
+		$this->assertTrue( 'mark' === $tag );
+	}
+
+	/**
+	 * Testing excerpt enabled on settings
+	 *
+	 * @group search
+	 */
+	public function testExcerptSetting() {
+
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+				'highlight_excerpt' => true
+			)
+		);
+
+		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
+
+		$this->assertTrue( $settings['highlight_excerpt'] );
+	}
 }

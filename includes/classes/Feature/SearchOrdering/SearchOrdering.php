@@ -87,6 +87,36 @@ class SearchOrdering extends Feature {
 		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
 		add_action( 'before_delete_post', [ $this, 'handle_post_trash' ] );
 		add_action( 'untrashed_post', [ $this, 'handle_post_untrash' ] );
+		add_filter( 'post_row_actions', [ $this, 'remove_quick_edit' ], 10, 2 );
+		add_filter( 'bulk_actions-edit-' . self::POST_TYPE_NAME, [ $this, 'remove_bulk_edit' ] );
+	}
+
+	/**
+	 * Remove bulk edit
+	 *
+	 * @param array $actions Bulk actions
+	 * @since 3.5
+	 * @return array
+	 */
+	public function remove_bulk_edit( $actions ) {
+		unset( $actions['edit'] );
+		return $actions;
+	}
+
+	/**
+	 * Remove quick edit for post type
+	 *
+	 * @param array $actions Current table row actions
+	 * @param WP_Post $post Current post
+	 * @since 3.5
+	 * @return array
+	 */
+	public function remove_quick_edit( $actions, $post ) {
+		if ( self::POST_TYPE_NAME === $post->post_type ) {
+			// Remove "Quick Edit"
+			unset( $actions['inline hide-if-no-js'] );
+		}
+		return $actions;
 	}
 
 	/**
@@ -638,9 +668,10 @@ class SearchOrdering extends Feature {
 			'elasticpress/v1',
 			'pointer_search',
 			[
-				'methods'  => 'GET',
-				'callback' => [ $this, 'handle_pointer_search' ],
-				'args'     => [
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'handle_pointer_search' ],
+				'permission_callback' => '__return_true',
+				'args'                => [
 					's' => [
 						'validate_callback' => function ( $param ) {
 							return ! empty( $param );
@@ -655,9 +686,10 @@ class SearchOrdering extends Feature {
 			'elasticpress/v1',
 			'pointer_preview',
 			[
-				'methods'  => 'GET',
-				'callback' => [ $this, 'handle_pointer_preview' ],
-				'args'     => [
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'handle_pointer_preview' ],
+				'permission_callback' => '__return_true',
+				'args'                => [
 					's' => [
 						'validate_callback' => function ( $param ) {
 							return ! empty( $param );

@@ -856,7 +856,7 @@ class User extends Indexable {
 		$prepared_roles = [];
 
 		foreach ( $sites as $site ) {
-			$roles = get_user_meta( $user_id, $wpdb->get_blog_prefix( $site['blog_id'] ) . 'capabilities', true );
+			$roles = (array) get_user_meta( $user_id, $wpdb->get_blog_prefix( $site['blog_id'] ) . 'capabilities', true );
 
 			if ( ! empty( $roles ) ) {
 				$prepared_roles[ (int) $site['blog_id'] ] = [
@@ -876,7 +876,15 @@ class User extends Indexable {
 	 * @return array
 	 */
 	public function prepare_meta( $user_id ) {
-		$meta = (array) get_user_meta( $user_id );
+		/**
+		 * Filter pre-prepare meta for a user
+		 *
+		 * @hook ep_prepare_user_meta_data
+		 * @param  {array} $meta Meta data
+		 * @param  {int} $user_id User ID
+		 * @return  {array} New meta
+		 */
+		$meta = apply_filters( 'ep_prepare_user_meta_data', (array)get_user_meta( $user_id ), $user_id );
 
 		if ( empty( $meta ) ) {
 			/**

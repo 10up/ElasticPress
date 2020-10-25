@@ -8,8 +8,8 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Indexables as Indexables;
 use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -30,6 +30,10 @@ class SyncManager extends SyncManagerAbstract {
 	 */
 	public function setup() {
 		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
+			return;
+		}
+
+		if ( ! $this->can_index_site() ) {
 			return;
 		}
 
@@ -75,6 +79,11 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		$post = get_post( $object_id );
+
+		$allowed_meta_to_be_indexed = $indexable->prepare_meta( $post );
+		if ( ! in_array( $meta_key, array_keys( $allowed_meta_to_be_indexed ), true ) ) {
+			return;
+		}
 
 		if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
 			$indexable_post_types = $indexable->get_indexable_post_types();
@@ -164,6 +173,12 @@ class SyncManager extends SyncManagerAbstract {
 		do_action( 'ep_delete_post', $post_id );
 
 		Indexables::factory()->get( 'post' )->delete( $post_id, false );
+
+        /**
+		 * Make sure to reset sync queue in case an shutdown happens before a redirect
+		 * when a redirect has already been triggered.
+		 */
+		$this->sync_queue = [];
 	}
 
 	/**

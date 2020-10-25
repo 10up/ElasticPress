@@ -475,6 +475,10 @@ class Command extends WP_CLI_Command {
 		$indexes = [];
 
 		foreach ( $sites as $site ) {
+			if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+				continue;
+			}
+
 			switch_to_blog( $site['blog_id'] );
 
 			$indexes[] = $indexable->get_index_name();
