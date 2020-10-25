@@ -158,7 +158,7 @@ class Widget extends WP_Widget {
 		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
 		?>
 
-		<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>" data-taxonomy="<?php echo $taxonomy; ?>">
+		<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>" data-taxonomy="<?php echo esc_html__($taxonomy); ?>">
 			<?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>
 				<?php // translators: Taxonomy Name ?>
 				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $taxonomy_object->labels->name ) ); ?>">
