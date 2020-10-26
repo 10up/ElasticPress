@@ -52,6 +52,9 @@ Bug fixes:
 * Fix empty synonym bug.
 * Only highlight post content, excerpt, and title.
 
+Enhancements:
+* Track CLI index in a headless fashion
+
 = 3.5 =
 
 Version 3.5 is a very exciting release as it contains two major new features: a synonym dashboard and search term result highlighting. The synonym dashboard empowerers users to create synonym lists for searches. For example. searching "New York City" would return contain with "NYC". Search term highlighting will underline and add a CSS class to keywords within content that matches the current search.
