@@ -190,38 +190,22 @@ class Search extends Feature {
 			return $formatted_args;
 		}
 
-		$fields_to_highlight = array();
-
-		// this should inherit the already-defined search fields.
-		// get the search fields as defined by weighting, etc.
-		if ( ! empty( $args['search_fields'] ) ) {
-			$fields_to_highlight = $args['search_fields'];
-			// Sanitize the list to have only strings.
-			foreach ( $fields_to_highlight as $key => $value ) {
-				if ( is_array( $value ) ) {
-					// Include meta fields in the highlight ES query section.
-					if ( 'meta' === $key ) {
-						foreach ( $value as $meta_key ) {
-							$fields_to_highlight[] = 'meta.' . $meta_key . '.value';
-						}
-					}
-					unset( $fields_to_highlight[ $key ] );
-				}
-			}
-		} else {
-			// fallback to the fields pre-defined in the query
-			$should_match = $formatted_args['query']['bool']['should'];
-
-			// next, check for the the weighted fields, in case any are excluded.
-			foreach ( $should_match as $item ) {
-				$fields = $item['multi_match']['fields'];
-				foreach ( $fields as $field ) {
-					array_push( $fields_to_highlight, $field );
-				}
-			}
-
-			$fields_to_highlight = array_unique( $fields_to_highlight );
-		}
+		/**
+		 * Filter the fields that should be highlighted.
+		 *
+		 * @since 3.5.1
+		 * @hook ep_highlighting_fields
+		 * @param  {array} $fields Highlighting fields
+		 * @param  {array} $formatted_args array
+		 * @param  {array} $args WP_Query args
+		 * @return  {string} New Highlighting fields
+		 */
+		$fields_to_highlight = apply_filters(
+			'ep_highlighting_fields',
+			[ 'post_title', 'post_content', 'post_excerpt' ],
+			$formatted_args,
+			$args
+		);
 
 		// define the tag to use
 		$current_tag = $settings['highlight_tag'];
