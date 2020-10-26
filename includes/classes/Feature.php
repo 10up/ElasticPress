@@ -237,6 +237,22 @@ abstract class Feature {
 	 */
 	public function output_settings_box() {
 		$requirements_status = $this->requirements_status();
+
+		/**
+		 * Users are able to save only if:
+		 * - All requirements are present AND
+		 *     - The feature doesn't require a reindex OR
+		 *     - If the feature requires a reindex, it is really possible to reindex via Dashboard.
+		 */
+		$can_save = (
+			2 !== $requirements_status->code &&
+			( ! $this->requires_install_reindex || ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) )
+		);
+
+		if ( ! $this->is_active() && $this->requires_install_reindex && $can_save ) {
+			$requirements_status->message   = (array) $requirements_status->message;
+			$requirements_status->message[] = __( 'A new reindex will start when you activate this feature.', 'elasticpress' );
+		}
 		?>
 
 		<?php
@@ -271,7 +287,7 @@ abstract class Feature {
 				<?php esc_html_e( 'Setting adjustments to this feature require a re-sync. Use WP-CLI.', 'elasticpress' ); ?>
 			</span>
 
-			<a data-feature="<?php echo esc_attr( $this->slug ); ?>" class="<?php if ( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ) : ?>disabled<?php endif; ?> button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
+			<a data-feature="<?php echo esc_attr( $this->slug ); ?>" class="<?php echo ( ! $can_save ) ? 'disabled' : ''; ?> button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
 		</div>
 		<?php
 	}
