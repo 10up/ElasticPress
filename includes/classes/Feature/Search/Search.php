@@ -196,7 +196,18 @@ class Search extends Feature {
 		// get the search fields as defined by weighting, etc.
 		if ( ! empty( $args['search_fields'] ) ) {
 			$fields_to_highlight = $args['search_fields'];
-
+			// Sanitize the list to have only strings.
+			foreach ( $fields_to_highlight as $key => $value ) {
+				if ( is_array( $value ) ) {
+					// Include meta fields in the highlight ES query section.
+					if ( 'meta' === $key ) {
+						foreach ( $value as $meta_key ) {
+							$fields_to_highlight[] = 'meta.' . $meta_key . '.value';
+						}
+					}
+					unset( $fields_to_highlight[ $key ] );
+				}
+			}
 		} else {
 			// fallback to the fields pre-defined in the query
 			$should_match = $formatted_args['query']['bool']['should'];
