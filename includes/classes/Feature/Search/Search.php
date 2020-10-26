@@ -129,7 +129,7 @@ class Search extends Feature {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
-		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
+		add_action( 'ep_highlighting_pre_add_highlight', [ $this, 'allow_excerpt_html' ] );
 	}
 
 
@@ -167,7 +167,15 @@ class Search extends Feature {
 	 */
 	public function add_search_highlight_tags( $formatted_args, $args ) {
 
-		apply_filters( 'ep_highlighting_excerpt', [] );
+		/**
+		 * Fires before the highlighting clause is added to the Elasticsearch query
+		 *
+		 * @since  3.5.1
+		 * @hook ep_highlighting_pre_add_highlight
+		 * @param  {array} $formatted_args ep_formatted_args array
+		 * @param  {string} $args WP_Query args
+		 */
+		do_action( 'ep_highlighting_pre_add_highlight', $formatted_args, $args );
 
 		// get current config
 		$settings = $this->get_settings();
@@ -190,27 +198,22 @@ class Search extends Feature {
 			return $formatted_args;
 		}
 
-		$fields_to_highlight = array();
-
-		// this should inherit the already-defined search fields.
-		// get the search fields as defined by weighting, etc.
-		if ( ! empty( $args['search_fields'] ) ) {
-			$fields_to_highlight = $args['search_fields'];
-
-		} else {
-			// fallback to the fields pre-defined in the query
-			$should_match = $formatted_args['query']['bool']['should'];
-
-			// next, check for the the weighted fields, in case any are excluded.
-			foreach ( $should_match as $item ) {
-				$fields = $item['multi_match']['fields'];
-				foreach ( $fields as $field ) {
-					array_push( $fields_to_highlight, $field );
-				}
-			}
-
-			$fields_to_highlight = array_unique( $fields_to_highlight );
-		}
+		/**
+		 * Filter the fields that should be highlighted.
+		 *
+		 * @since 3.5.1
+		 * @hook ep_highlighting_fields
+		 * @param  {array} $fields Highlighting fields
+		 * @param  {array} $formatted_args array
+		 * @param  {array} $args WP_Query args
+		 * @return  {string} New Highlighting fields
+		 */
+		$fields_to_highlight = apply_filters(
+			'ep_highlighting_fields',
+			[ 'post_title', 'post_content' ],
+			$formatted_args,
+			$args
+		);
 
 		// define the tag to use
 		$current_tag = $settings['highlight_tag'];
@@ -254,7 +257,7 @@ class Search extends Feature {
 	}
 
 	/**
-	 * called by ep_highlighting_excerpt filter.
+	 * Called by ep_highlighting_pre_add_highlight action.
 	 *
 	 * Replaces the default excerpt with the custom excerpt, allowing
 	 * for the selected tag to be displayed in it.
@@ -276,9 +279,10 @@ class Search extends Feature {
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
 
-		if ( ! empty( $_GET['s'] ) && ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
+			add_filter( 'ep_highlighting_fields', [ $this, 'ep_highlight_add_excerpt_field' ] );
 		}
 	}
 
@@ -323,6 +327,18 @@ class Search extends Feature {
 		}
 
 		return $text;
+	}
+
+	/**
+	 * Add `post_content` to the list of fields to highlight.
+	 *
+	 * @since 3.5.1
+	 * @param array $fields_to_highlight The list of fields to highlight.
+	 * @return array
+	 */
+	public function ep_highlight_add_excerpt_field( $fields_to_highlight ) {
+		$fields_to_highlight[] = 'post_excerpt';
+		return $fields_to_highlight;
 	}
 
 	/**
