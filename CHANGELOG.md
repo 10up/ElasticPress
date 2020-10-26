@@ -8,6 +8,8 @@ A bug fix release.
 
 Bug fixes:
 * Fixes highlighting so that full content is returned instead of only snippets.
+* Fix empty synonym bug.
+* Only highlight post content, excerpt, and title.
 
 ## [3.5.0]
 
