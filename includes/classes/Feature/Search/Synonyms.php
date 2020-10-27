@@ -360,9 +360,11 @@ class Synonyms {
 		$mapping['settings']['analysis']['filter'][ $filter_name ] = $this->get_synonym_filter();
 
 		// Tell the analyzer to use our newly created filter.
-		$mapping['settings']['analysis']['analyzer']['default']['filter'] = array_merge(
-			[ $filter_name ],
-			$mapping['settings']['analysis']['analyzer']['default']['filter']
+		$mapping['settings']['analysis']['analyzer']['default']['filter'] = array_values(
+			array_merge(
+				[ $filter_name ],
+				$mapping['settings']['analysis']['analyzer']['default']['filter']
+			)
 		);
 
 		return $mapping;
@@ -443,10 +445,12 @@ class Synonyms {
 				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $filter;
 
 				// Add the analyzer.
-				$setting['index']['analysis']['analyzer']['default']['filter'] = array_unique(
-					array_merge(
-						[ $this->get_synonym_filter_name() ],
-						$filters
+				$setting['index']['analysis']['analyzer']['default']['filter'] = array_values(
+					array_unique(
+						array_merge(
+							[ $this->get_synonym_filter_name() ],
+							$filters
+						)
 					)
 				);
 
