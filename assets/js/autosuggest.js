@@ -265,10 +265,10 @@ function updateAutosuggestBox(options, input) {
 
 	suggestList.addEventListener('click', (event) => {
 		event.preventDefault();
-		const { srcElement } = event;
+		const { target } = event;
 
-		if (autosuggestItems.includes(srcElement)) {
-			selectItem(input, srcElement);
+		if (autosuggestItems.includes(target)) {
+			selectItem(input, target);
 		}
 	});
 
@@ -578,14 +578,16 @@ function init() {
 	 */
 	const handleKeyup = (event) => {
 		event.preventDefault();
-		if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
+		const { target, key, keyCode } = event;
+
+		if (key === 'Escape' || key === 'Esc' || keyCode === 27) {
 			hideAutosuggestBox();
-			toggleInputAria(false, event.target);
-			setInputActiveDescendant('', event.target);
+			toggleInputAria(false, target);
+			setInputActiveDescendant('', target);
 			return;
 		}
 
-		if (keyCodes.includes(event.keyCode)) {
+		if (keyCodes.includes(keyCode) && target.value !== '') {
 			handleUpDown(event);
 			return;
 		}
@@ -607,6 +609,8 @@ function init() {
 	 */
 	epInputs.forEach((input) => {
 		input.addEventListener('keyup', handleKeyup);
-		input.addEventListener('blur', hideAutosuggestBox);
+		input.addEventListener('blur', function () {
+			window.setTimeout(hideAutosuggestBox, 200);
+		});
 	});
 }
