@@ -190,11 +190,25 @@ class Synonyms {
 
 		$update = filter_input( INPUT_GET, 'ep_synonym_update', FILTER_SANITIZE_STRING );
 
-		if ( ! in_array( $update, [ 'success', 'error' ], true ) ) {
+		if ( ! in_array( $update, [ 'success', 'error-update-post', 'error-update-index' ], true ) ) {
 			return;
 		}
 
 		$class   = ( 'success' === $update ? 'notice-success' : 'notice-error' ) . ' notice';
+		$message = '';
+
+		switch ( $update ) {
+			case 'success':
+				$message = __( 'Successfully updated synonym filter.', 'elasticpress' );
+				break;
+			case 'error-update-post':
+				$message = __( 'There was an error storing you synoyms.', 'elasticpress' );
+				break;
+			case 'error-update-index':
+				$message = __( 'There was a problem updating the index with your synonyms. If you have not indexed your data, please run an index.', 'elasticpress' );
+				break;
+		}
+
 		$message = ( 'success' === $update )
 			? __( 'Successfully updated synonym filter.', 'elasticpress' )
 			: __( 'There was an error updating the synonym list.', 'elasticpress' );
@@ -408,10 +422,20 @@ class Synonyms {
 			}
 		}
 
+		$result = 'success';
+
+		if ( ! $post_id ) {
+			$result = 'error-update-post';
+		}
+
+		if ( ! $update ) {
+			$result = 'error-update-index';
+		}
+
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'ep_synonym_update' => ( $post_id && $update ) ? 'success' : 'error',
+					'ep_synonym_update' => $result,
 				],
 				esc_url_raw( $referer )
 			)
