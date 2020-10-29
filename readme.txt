@@ -43,9 +43,23 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.5.1 =
+
+A bug fix release.
+
+Bug fixes:
+* Fixes highlighting so that full content is returned instead of only snippets.
+* Fix empty synonym bug.
+* Only highlight post content, excerpt, and title.
+
+Enhancements:
+* Track CLI index in a headless fashion
+
 = 3.5 =
 
 Version 3.5 is a very exciting release as it contains two major new features: a synonym dashboard and search term result highlighting. The synonym dashboard empowerers users to create synonym lists for searches. For example. searching "New York City" would return contain with "NYC". Search term highlighting will underline and add a CSS class to keywords within content that matches the current search.
+
+The new version also includes a revamp of the search algorithm. This is a backwards compatibility break. If you'd like to revert to the old search algorithm, you can use the following code: `add_filter( 'ep_search_algorithm_version', function() { return '3.4'; } );`. The new algorithm offers much more relevant search results and removes fuzziness which results in mostly unwanted results for most people. If you are hooking in and modifying the search query directly, it's possible this code might break and you might need to tweak it.
 
 Bug fixes:
 * Fix default autosuggest selector.
@@ -64,6 +78,7 @@ Bug fixes:
 Enhancements:
 * Synonym dashboard. Props [christianc1](https://github.com/christianc1).
 * Search term highlighting. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Search algorithm improvements.
 * Improved WP Acceptance tests. Props [asharirfan](https://github.com/asharirfan).
 * Rename ElasticPress submenu to "Features". Props [helen](https://github.com/helen).
 * Add functionality for skipping ElasticPress install.
