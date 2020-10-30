@@ -43,6 +43,7 @@ class Autosuggest extends Feature {
 		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
+
 		$this->default_settings         = [
 			'endpoint_url'         => '',
 			'autosuggest_selector' => '',
@@ -243,7 +244,20 @@ class Autosuggest extends Feature {
 				foreach ( $query['bool']['must'] as $q_index => $must_query ) {
 					if ( isset( $must_query['bool'] ) && isset( $must_query['bool']['should'] ) ) {
 						foreach ( $must_query['bool']['should'] as $index => $current_bool_should ) {
-							if ( isset( $current_bool_should['multi_match'] ) && isset( $current_bool_should['multi_match']['fuzziness'] ) && 0 !== $current_bool_should['multi_match']['fuzziness'] && isset( $current_bool_should['multi_match']['fields'] ) ) {
+							if (
+								isset( $current_bool_should['multi_match'] ) &&
+								isset( $current_bool_should['multi_match']['fields'] ) &&
+								(
+									(
+										isset( $current_bool_should['multi_match']['fuzziness'] ) &&
+										0 !== $current_bool_should['multi_match']['fuzziness']
+									) ||
+									(
+										isset( $current_bool_should['multi_match']['slop'] ) &&
+										0 !== $current_bool_should['multi_match']['slop']
+									)
+								)
+							) {
 								foreach ( $current_bool_should['multi_match']['fields'] as $key => $field ) {
 									foreach ( $ngram_fields as $plain_field => $ngram_field ) {
 										if ( preg_match( '/^(' . $plain_field . ')(\^(\d+))?$/', $field, $match ) ) {
@@ -364,6 +378,20 @@ class Autosuggest extends Feature {
 
 		if ( Utils\is_epio() ) {
 			$epas_options['addSearchTermHeader'] = true;
+		}
+
+		$search_settings = $search->get_settings();
+
+		if ( ! $search_settings ) {
+			$search_settings = [];
+		}
+
+		$search_settings = wp_parse_args( $search_settings, $search->default_settings );
+
+		if ( ! empty( $search_settings ) && $search_settings['highlight_enabled'] ) {
+			$epas_options['highlightingEnabled'] = true;
+			$epas_options['highlightingTag']     = apply_filters( 'ep_highlighting_tag', $search_settings['highlight_tag'] );
+			$epas_options['highlightingClass']   = apply_filters( 'ep_highlighting_class', 'ep-highlight' );
 		}
 
 		/**

@@ -1070,63 +1070,101 @@ class Post extends Indexable {
 		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
-		$query = array(
-			'bool' => array(
-				'should' => array(
-					array(
-						'multi_match' => array(
-							'query'  => '',
-							'type'   => 'phrase',
-							'fields' => $search_fields,
-							/**
-							 * Filter boost for post match phrase query
-							 *
-							 * @hook ep_match_phrase_boost
-							 * @param  {int} $boost Phrase boost
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New phrase boost
-							 */
-							'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', '3.5' );
+
+		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
+
+		if ( '3.5' === $search_algorithm_version ) {
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'type'   => 'phrase',
+								'fields' => $search_fields,
+								/**
+								 * Filter boost for post match phrase query
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New phrase boost
+								 */
+								'boost'  => apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $args ),
+							),
 						),
-					),
-					array(
-						'multi_match' => array(
-							'query'     => '',
-							'fields'    => $search_fields,
-							/**
-							 * Filter boost for post match query
-							 *
-							 * @hook ep_match_boost
-							 * @param  {int} $boost Boost
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New boost
-							 */
-							'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
-							'fuzziness' => 0,
-							'operator'  => 'and',
-						),
-					),
-					array(
-						'multi_match' => array(
-							'query'     => '',
-							'fields'    => $search_fields,
-							/**
-							 * Filter fuzziness for post query
-							 *
-							 * @hook ep_fuzziness_arg
-							 * @param  {int} $fuzziness Fuzziness
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New fuzziness
-							 */
-							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'fields' => $search_fields,
+								'type'   => 'phrase',
+								'slop'   => 5,
+							),
 						),
 					),
 				),
-			),
-		);
+			);
+		} else {
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'type'   => 'phrase',
+								'fields' => $search_fields,
+								/**
+								 * Filter boost for post match phrase query
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New phrase boost
+								 */
+								'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $search_text,
+								'fields'    => $search_fields,
+								/**
+								 * Filter boost for post match query
+								 *
+								 * @hook ep_match_boost
+								 * @param  {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New boost
+								 */
+								'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
+								'fuzziness' => 0,
+								'operator'  => 'and',
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $search_text,
+								'fields'    => $search_fields,
+								/**
+								 * Filter fuzziness for post query
+								 *
+								 * @hook ep_fuzziness_arg
+								 * @param  {int} $fuzziness Fuzziness
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New fuzziness
+								 */
+								'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
+							),
+						),
+					),
+				),
+			);
+		}
 
 		/**
 		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
@@ -1136,10 +1174,6 @@ class Post extends Indexable {
 		 */
 
 		if ( ! empty( $args['s'] ) ) {
-			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
-			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
-			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-
 			/**
 			 * Filter formatted Elasticsearch post query (only contains query part)
 			 *
@@ -1193,6 +1227,7 @@ class Post extends Indexable {
 
 		if ( false !== $sticky_posts
 			&& $enable_sticky_posts
+			&& empty( $args['s'] )
 			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
 			$new_sort = [
 				[

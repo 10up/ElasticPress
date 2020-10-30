@@ -475,6 +475,10 @@ class Command extends WP_CLI_Command {
 		$indexes = [];
 
 		foreach ( $sites as $site ) {
+			if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+				continue;
+			}
+
 			switch_to_blog( $site['blog_id'] );
 
 			$indexes[] = $indexable->get_index_name();
@@ -529,7 +533,9 @@ class Command extends WP_CLI_Command {
 			$indexables = explode( ',', str_replace( ' ', '', $assoc_args['indexables'] ) );
 		}
 
-		$total_indexed = 0;
+		$total_indexed   = 0;
+		$total_indexable = 0;
+		$index_errors    = array();
 
 		// Hold original wp_actions.
 		$this->temporary_wp_actions = $wp_actions;
@@ -612,7 +618,9 @@ class Command extends WP_CLI_Command {
 
 					$result = $this->index_helper( $indexable, $assoc_args );
 
-					$total_indexed += $result['synced'];
+					$total_indexed  += $result['synced'];
+					$total_indexable = $result['total'];
+					$index_errors    = array_merge( $index_errors, $result['error_details'] );
 
 					WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $site['blog_id'], $result['synced'] ) );
 
@@ -641,7 +649,9 @@ class Command extends WP_CLI_Command {
 
 				$result = $this->index_helper( $indexable, $assoc_args );
 
-				$total_indexed += $result['synced'];
+				$total_indexed  += $result['synced'];
+				$total_indexable = $result['total'];
+				$index_errors    = array_merge( $index_errors, $result['error_details'] );
 
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
@@ -683,6 +693,10 @@ class Command extends WP_CLI_Command {
 
 				$result = $this->index_helper( $indexable, $assoc_args );
 
+				$total_indexed  += $result['synced'];
+				$total_indexable = $result['total'];
+				$index_errors    = array_merge( $index_errors, $result['error_details'] );
+
 				WP_CLI::log( sprintf( esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ), $result['synced'] ) );
 
 				if ( ! empty( $result['errors'] ) ) {
@@ -693,7 +707,23 @@ class Command extends WP_CLI_Command {
 			}
 		}
 
-		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . timer_stop() ) );
+		$index_time = timer_stop();
+
+		$index_results = array(
+			'total'        => $total_indexable,
+			'synced'       => $total_indexed,
+			'end_time_gmt' => time(),
+			'total_time'   => (float) $index_time,
+			'errors'       => $index_errors,
+		);
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			update_site_option( 'ep_last_cli_index', $index_results );
+		} else {
+			update_option( 'ep_last_cli_index', $index_results, false );
+		}
+
+		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $index_time ) );
 
 		$this->delete_transient();
 
@@ -715,6 +745,7 @@ class Command extends WP_CLI_Command {
 		$index_queue         = [];
 		$killed_object_count = 0;
 		$failed_objects      = [];
+		$total_indexable     = 0;
 
 		$no_bulk = false;
 
@@ -806,7 +837,7 @@ class Command extends WP_CLI_Command {
 							$synced++;
 						}
 
-						$this->reset_transient();
+						$this->reset_transient( $no_bulk_count, (int) $query['total_objects'] );
 
 						/**
 						 * Fires after one by one indexing an object in CLI
@@ -841,7 +872,7 @@ class Command extends WP_CLI_Command {
 						if ( ! empty( $objects ) && ( count( $objects ) + $killed_object_count ) >= absint( count( $query['objects'] ) ) ) {
 							$index_objects = $objects;
 
-							$this->reset_transient();
+							$this->reset_transient( (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] );
 
 							for ( $attempts = 1; $attempts <= 3; $attempts++ ) {
 								$response = $indexable->bulk_index( array_keys( $index_objects ) );
@@ -903,6 +934,7 @@ class Command extends WP_CLI_Command {
 			}
 
 			$query_args['offset'] += $per_page;
+			$total_indexable       = (int) $query['total_objects'];
 
 			usleep( 500 );
 
@@ -918,8 +950,10 @@ class Command extends WP_CLI_Command {
 		wp_reset_postdata();
 
 		return [
-			'synced' => $synced,
-			'errors' => count( $failed_objects ),
+			'total'         => $total_indexable,
+			'synced'        => $synced,
+			'errors'        => count( $failed_objects ),
+			'error_details' => $this->output_index_errors( $failed_objects, $indexable, false ),
 		];
 	}
 
@@ -928,18 +962,33 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @param  array     $errors Error array
 	 * @param  Indexable $indexable Index indexable
+	 * @param  bool      $output True to print output
+	 *
+	 * @return array Array of error messages for furthur logging.
 	 * @since 3.4
 	 */
-	private function output_index_errors( $errors, Indexable $indexable ) {
-		$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
+	private function output_index_errors( $errors, Indexable $indexable, $output = true ) {
+		$error_text  = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
+		$error_array = array();
 
 		foreach ( $errors as $object_id => $error ) {
+
+			$error_array[ $object_id ] = array(
+				$indexable->labels['singular'],
+				$error['type'],
+				$error['reason'],
+			);
+
 			$error_text .= '- ' . $object_id . ' (' . $indexable->labels['singular'] . '): ' . "\r\n";
 
 			$error_text .= '[' . $error['type'] . '] ' . $error['reason'] . "\r\n";
 		}
 
-		WP_CLI::log( $error_text );
+		if ( $output ) {
+			WP_CLI::log( $error_text );
+		}
+
+		return $error_array;
 	}
 
 	/**
@@ -1148,13 +1197,16 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Reset transient while indexing
 	 *
+	 * @param int $items_indexed Count of items already indexed.
+	 * @param int $total_items Total number of items to be indexed.
+	 *
 	 * @since 2.2
 	 */
-	private function reset_transient() {
+	private function reset_transient( $items_indexed, $total_items ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+			set_site_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items ), $this->transient_expiration );
 		} else {
-			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+			set_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items ), $this->transient_expiration );
 		}
 	}
 
@@ -1166,8 +1218,10 @@ class Command extends WP_CLI_Command {
 	private function delete_transient() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_wpcli_sync' );
+			delete_site_transient( 'ep_cli_sync_progress' );
 		} else {
 			delete_transient( 'ep_wpcli_sync' );
+			delete_transient( 'ep_cli_sync_progress' );
 		}
 	}
 
@@ -1183,6 +1237,86 @@ class Command extends WP_CLI_Command {
 		$this->delete_transient();
 
 		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
+	}
+
+	/**
+	 * Returns the status of an ongoing index operation in JSON array.
+	 *
+	 * Returns the status of an ongoing index operation in JSON array with the following fields:
+	 * indexing | boolean | True if index operation is ongoing or false
+	 * method | string | 'cli', 'web' or 'none'
+	 * items_indexed | integer | Total number of items indexed
+	 * total_items | integer | Total number of items indexed or -1 if not yet determined
+	 *
+	 * @subcommand get-indexing-status
+	 */
+	public function get_indexing_status() {
+
+		$index_status = array(
+			'indexing'      => false,
+			'method'        => 'none',
+			'items_indexed' => 0,
+			'total_items'   => -1,
+		);
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			$dashboard_syncing = get_site_option( 'ep_index_meta' );
+			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
+
+		} else {
+
+			$dashboard_syncing = get_option( 'ep_index_meta' );
+			$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
+
+		}
+
+		if ( $dashboard_syncing || $wpcli_syncing ) {
+
+			$index_status['indexing'] = true;
+
+			if ( $dashboard_syncing ) {
+
+				$index_status['method']        = 'web';
+				$index_status['items_indexed'] = $dashboard_syncing['offset'];
+				$index_status['total_items']   = $dashboard_syncing['found_items'];
+
+			} else {
+
+				$index_status['method'] = 'cli';
+
+				if ( is_array( $wpcli_syncing ) ) {
+
+					$index_status['items_indexed'] = $wpcli_syncing[0];
+					$index_status['total_items']   = $wpcli_syncing[1];
+
+				}
+			}
+		}
+
+		WP_CLI::line( wp_json_encode( $index_status ) );
+
+	}
+
+	/**
+	 * Returns a JSON array with the results of the last CLI index (if present) of an empty array.
+	 *
+	 * @synopsis [--clear]
+	 * @subcommand get-last-cli-index
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_last_cli_index( $args, $assoc_args ) {
+
+		$last_sync = get_site_option( 'ep_last_cli_index', array() );
+
+		if ( isset( $assoc_args['clear'] ) ) {
+			delete_site_option( 'ep_last_cli_index' );
+		}
+
+		WP_CLI::line( wp_json_encode( $last_sync ) );
+
 	}
 
 

@@ -25,7 +25,7 @@ export default function AlterativesEditor({ alternatives }) {
 	 */
 	const handleClick = (e) => {
 		const [lastItem] = state.alternatives.slice(-1);
-		if (!alternatives || lastItem.synonyms.filter(({ value }) => value.length).length) {
+		if (!alternatives.length || lastItem.synonyms.filter(({ value }) => value.length).length) {
 			dispatch({ type: 'ADD_ALTERNATIVE' });
 		}
 		e.preventDefault();

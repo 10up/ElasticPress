@@ -13,6 +13,6 @@
     "snapshot_id": "4e38780a2545d8325df2008391666a2f",
     "before_scripts" : [
       "mv tests/wpa/test-plugins/* ../",
-      "mv tests/wpa/test-mu-plugins ../../mu-plugins"
+      "mkdir -p ../../mu-plugins/ && mv tests/wpa/test-mu-plugins/* ../../mu-plugins/"
     ]
 }

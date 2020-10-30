@@ -21,6 +21,7 @@ module.exports = {
 		'sites-admin-styles': './assets/css/sites-admin.css',
 		'ordering-styles': './assets/css/ordering.css',
 		'related-posts-block-styles': './assets/css/related-posts-block.css',
+		'highlighting-styles': './assets/css/highlighting.css',
 		'synonyms-styles': './assets/css/synonyms.css'
 	},
 	filename: {

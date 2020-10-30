@@ -38,7 +38,11 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			$this->updateFeatureSettings(
 				[
 					'search'            => [
-						'active' => 1,
+						'active'            => 1,
+						'highlight_enabled' => true,
+						'highlight_excerpt' => true,
+						'highlight_tag'     => 'mark',
+						'highlight_color'   => '#157d84',
 					],
 					'related_posts'     => [
 						'active' => 1,
@@ -275,5 +279,32 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		$host = $actor->getElementAttribute( '#ep_host', 'value' );
 
 		return strpos( $host, 'hosted-elasticpress.io' );
+	}
+
+	/**
+	 * Create a user in the admin
+	 *
+	 * @param  array                       $data  User data
+	 * @param  \WPAcceptance\PHPUnit\Actor $actor Current actor
+	 */
+	public function createUser( array $data, \WPAcceptance\PHPUnit\Actor $actor ) {
+		$defaults = [
+			'user_login' => 'testuser',
+			'user_email' => 'testuser@example.com',
+		];
+
+		$data = array_merge( $defaults, $data );
+
+		$actor->moveTo( 'wp-admin/user-new.php' );
+
+		$actor->typeInField( '#user_login', $data['user_login'] );
+
+		$actor->typeInField( '#email', $data['user_email'] );
+
+		$actor->checkOptions( '#noconfirmation' );
+
+		$actor->click( '#createusersub' );
+
+		$actor->waitUntilElementVisible( '#message' );
 	}
 }
