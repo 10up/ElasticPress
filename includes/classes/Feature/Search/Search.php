@@ -48,22 +48,6 @@ class Search extends Feature {
 		parent::__construct();
 	}
 
-	function register_meta() {
-		register_post_meta(
-			['page', 'post'],
-			'_exclude_from_search',
-			[
-				'show_in_rest'  => true,
-				'single'        => true,
-				'type'          => 'boolean',
-				'sanitize_callback' => 'sanitize_text_field',
-				'auth_callback' => function() { 
-					return current_user_can('edit_posts');
-				}
-			]
-		);
-	}
-
 	/**
 	 * We need to delay search setup up since it will fire after protected content and protected
 	 * content filters into the search setup
@@ -73,11 +57,29 @@ class Search extends Feature {
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
 		add_action( 'init', [ $this, 'register_meta' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
+		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
+		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ], 10, 2 );
+		add_action( 'pre_get_posts', [ $this, 'exclude_posts_from_search' ] );
 
-		wp_enqueue_script(
+		// Set up weighting sub-module
+		$this->weighting = new Weighting();
+		$this->weighting->setup();
+
+		$this->synonyms = new Synonyms();
+		$this->synonyms->setup();
+	}
+
+	/**
+	 * Output front end search scripts
+	 *
+	 * @since 2.5
+	 */
+	public function front_scripts() {
+		wp_register_script(
 			'ep-exclude-search',
 			EP_URL . 'dist/js/exclude-search-script.min.js',
-			[ 
+			[
 				'wp-i18n',
 				'wp-data',
 				'wp-plugins',
@@ -88,13 +90,6 @@ class Search extends Feature {
 			EP_VERSION,
 			true
 		);
-
-		// Set up weighting sub-module
-		$this->weighting = new Weighting();
-		$this->weighting->setup();
-
-		$this->synonyms = new Synonyms();
-		$this->synonyms->setup();
 	}
 
 	/**
@@ -370,5 +365,81 @@ class Search extends Feature {
 			<p><a href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) ); ?>"><?php esc_html_e( 'Add synonyms to your post searches', 'elasticpress' ); ?></a></p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Registers post meta for exclude from search feature.
+	 */
+	public function register_meta() {
+		register_post_meta(
+			'',
+			'ep_exclude_from_search',
+			[
+				'show_in_rest'  => true,
+				'single'        => true,
+				'type'          => 'boolean',
+				'auth_callback' => function() {
+					return current_user_can( 'edit_posts' );
+				},
+			]
+		);
+	}
+
+		/**
+		 * Outputs the checkbox to exclude a post from search.
+		 */
+	public function output_exclude_from_search_setting() {
+		?>
+		<div class="misc-pub-section">
+			<input id="ep_exclude_from_search" name="ep_exclude_from_search" type="checkbox" value="1" <?php checked( get_post_meta( get_the_ID(), 'ep_exclude_from_search', true ), true ); ?>>
+			<label for="ep_exclude_from_search">Exclude post from search</label>
+			<?php wp_nonce_field( 'save-exclude-from_search', 'ep-exclude-from-search-nonce' ); ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Saves exclude from search meta.
+	 *
+	 * @param post_id   $post_id The post ID
+	 * @param post_data $post_data The post data
+	 */
+	public function save_exclude_from_search_meta( $post_id, $post_data ) {
+		if ( wp_verify_nonce( sanitize_key( wp_unslash( $_POST['ep-exclude-from-search-nonce'] ) ), 'save-exclude-from_search' ) && current_user_can( 'edit_post', $post_id ) ) {
+			if ( isset( $_POST['ep_exclude_from_search'], $_POST['ep-exclude-from-search-nonce'] ) ) {
+				update_post_meta( $post_id, 'ep_exclude_from_search', (bool) $_POST['ep_exclude_from_search'] );
+			} elseif ( ! empty( get_post_meta( $post_id, 'ep_exclude_from_search', true ) ) ) {
+				update_post_meta( $post_id, 'ep_exclude_from_search', false );
+			}
+		}
+	}
+
+	/**
+	 * Exclude posts based on ep_exclude_from_search post meta.
+	 *
+	 * @param WP_Query $query WP Query
+	 */
+	public function exclude_posts_from_search( $query ) {
+		if ( ! is_admin() ) {
+			// Get any meta query that's being added before.
+			$meta_query = $query->get( 'meta_query' );
+
+			if ( ! empty( $meta_query ) ) {
+				$meta_query[] = array(
+					'key'     => 'ep_exclude_from_search',
+					'value'   => '1',
+					'compare' => '!=',
+				);
+			} else {
+				$meta_query = array(
+					array(
+						'key'     => 'ep_exclude_from_search',
+						'value'   => '1',
+						'compare' => '!=',
+					),
+				);
+			}
+			$query->set( 'meta_query', $meta_query );
+		}
 	}
 }

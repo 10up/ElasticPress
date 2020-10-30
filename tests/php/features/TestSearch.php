@@ -232,6 +232,37 @@ class TestSearch extends BaseTestCase {
 	}
 
 	/**
+	 * Test that excluded posts search feature work
+	 *
+	 * @since 2.1
+	 * @group search
+	 */
+	public function testExcludeFromSearchQuery() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		Functions\create_and_sync_post();
+		Functions\create_and_sync_post();
+		Functions\create_and_sync_post( array( 'post_content' => 'ep this should not be found!' ), array( 'ep_exclude_from_search' => true ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+		add_filter( 'template_include', 'get_search_template' );
+
+		$args = array(
+			's' => 'ep this should not be found!',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( 0 === $query->post_count );
+	}
+
+	/**
 	 * Catch ES query args.
 	 *
 	 * @group search

@@ -12,17 +12,17 @@ const {
 const ExcludeFromSearch = () => {
 	const {
 		meta,
-		meta: { _exclude_from_search = false },
+		meta: { ep_exclude_from_search = false },
 	} = useSelect((select) => ({
 		meta: select('core/editor').getEditedPostAttribute('meta') || {},
 	}));
 	const { editPost } = useDispatch('core/editor');
-	const [excludeFromSearch, setExcludeFromSearch] = useState(_exclude_from_search);
+	const [excludeFromSearch, setExcludeFromSearch] = useState(ep_exclude_from_search);
 	useEffect(() => {
 		editPost({
 			meta: {
 				...meta,
-				_exclude_from_search: excludeFromSearch,
+				ep_exclude_from_search: excludeFromSearch,
 			},
 		});
 	}, [excludeFromSearch]);
