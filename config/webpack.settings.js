@@ -11,6 +11,7 @@ module.exports = {
 		'stats-script': './assets/js/stats.js',
 		'related-posts-block-script': './assets/js/blocks/related-posts/block.js',
 		'synonyms-script': './assets/js/synonyms/index.js',
+		'exclude-search-script': './assets/js/exclude-search.js',
 
 		// CSS files.
 		'dashboard-styles': './assets/css/dashboard.css',
