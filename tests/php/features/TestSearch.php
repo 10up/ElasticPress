@@ -234,7 +234,6 @@ class TestSearch extends BaseTestCase {
 	/**
 	 * Test that excluded posts search feature work
 	 *
-	 * @since 2.1
 	 * @group search
 	 */
 	public function testExcludeFromSearchQuery() {
