@@ -171,14 +171,24 @@ async function esSearch(query, searchTerm) {
 			'Content-Type': 'application/json; charset=utf-8',
 		},
 	};
-
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
 		fetchConfig.headers['EP-Search-Term'] = searchTerm;
 	}
+	const credentials = epas.endpointUrl.match(/(http|https):\/\/(.*):(.*)@(.*-?)/);
 
+	console.log(credentials);
+
+	if (credentials) {
+		const username = credentials[2];
+		const password = credentials[3];
+		fetchConfig.headers.Authorization = `Basic ${btoa(`${username}:${password}`)}`;
+		epas.cleanEndpointUrl = `${credentials[1]}://${credentials[4]}`;
+	} else {
+		epas.cleanEndpointUrl = epas.endpointUrl;
+	}
 	try {
-		const response = await window.fetch(epas.endpointUrl, fetchConfig);
+		const response = await window.fetch(epas.cleanEndpointUrl, fetchConfig);
 		if (!response.ok) {
 			throw Error(response.statusText);
 		}
