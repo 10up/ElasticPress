@@ -879,6 +879,10 @@ function action_admin_init() {
 		if ( isset( $_POST['ep_bulk_setting'] ) ) {
 			update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
 		}
+
+		if ( isset( $_POST['ep_enable_dynamic_index'] ) ) {
+			update_site_option( 'ep_enable_dynamic_index', absint( $_POST['ep_enable_dynamic_index'] ) );
+		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
@@ -890,6 +894,14 @@ function action_admin_init() {
 			[
 				'type'              => 'integer',
 				'sanitize_callback' => __NAMESPACE__ . '\sanitize_bulk_settings',
+			]
+		);
+		register_setting(
+			'elasticpress',
+			'ep_enable_dynamic_index',
+			[
+				'type'              => 'boolean',
+				'sanitize_callback' => __NAMESPACE__ . '\sanitize_enable_dynamic_index',
 			]
 		);
 	}
@@ -905,6 +917,16 @@ function sanitize_bulk_settings( $bulk_settings = 350 ) {
 	$bulk_settings = absint( $bulk_settings );
 
 	return ( 0 === $bulk_settings ) ? 350 : $bulk_settings;
+}
+
+/**
+ * Sanitize dynamic index setting.
+ *
+ * @param int $bulk_settings Number of bulk content items
+ * @return int
+ */
+function sanitize_enable_dynamic_index( $enable_dynamic_index = 0 ) {
+	return absint( $enable_dynamic_index );
 }
 
 /**

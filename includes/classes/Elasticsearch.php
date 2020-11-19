@@ -918,25 +918,34 @@ class Elasticsearch {
 			'timeout' => apply_filters( 'ep_bulk_index_timeout', 30 ),
 		);
 
-		$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
+		if ( Utils\get_ep_option( 'ep_enable_dynamic_index' ) ) {
+			$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
 
-		$start_time = microtime( true );
+			$start_time = microtime( true );
 
-		$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
+			$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
 
-		$exec_time = microtime( true ) - $start_time;
+			$exec_time = microtime( true ) - $start_time;
 
-		if ( is_wp_error( $request ) ) {
+			if ( is_wp_error( $request ) ) {
 
-			if ( $current_setting > 1 && strpos( $request->get_error_message(), 'timed out' ) ) {
-				Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 2 ) );
-				return [ 'retry' => true ];
+				if ( $current_setting > 1 && strpos( $request->get_error_message(), 'timed out' ) ) {
+					Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 2 ) );
+					return [ 'retry' => true ];
+				}
+
+				return $request;
 			}
 
-			return $request;
+			$this->try_tuning_bulk_setting( $exec_time );
+		} else {
+			$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
+
+			if ( is_wp_error( $request ) ) {
+				return $request;
+			}
 		}
 
-		$this->try_tuning_bulk_setting( $exec_time );
 
 		$response = wp_remote_retrieve_response_code( $request );
 

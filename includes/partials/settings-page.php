@@ -28,12 +28,8 @@ $host        = Utils\get_host();
 $is_epio     = Utils\is_epio();
 $credentials = Utils\get_epio_credentials();
 $wpconfig    = defined( 'EP_HOST' ) && EP_HOST;
-
-if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$bulk_setting = get_site_option( 'ep_bulk_setting', 350 );
-} else {
-	$bulk_setting = get_option( 'ep_bulk_setting', 350 );
-}
+$bulk_setting = Utils\get_ep_option( 'ep_bulk_setting', 350 );
+$enable_dynamic_index = Utils\get_ep_option( 'ep_enable_dynamic_index', 0 );
 ?>
 
 <?php require_once __DIR__ . '/header.php'; ?>
@@ -224,6 +220,17 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					</th>
 					<td>
 						<input type="text" name="ep_bulk_setting" id="ep_bulk_setting" value="<?php echo absint( $bulk_setting ); ?>">
+					</td>
+				</tr>
+			<?php endif; ?>
+			<?php if ( ! empty( $host ) ) : ?>
+				<tr>
+					<th scope="row">
+						<label for="ep_enable_dynamic_index"><?php esc_html_e( 'Enable dynamic index?', 'elasticpress' ); ?></label>
+					</th>
+					<td>
+						<input type="checkbox" name="ep_enable_dynamic_index" id="ep_enable_dynamic_index" value="1" <?php checked( $enable_dynamic_index, 1 ); ?>>
+						<legend class="description">Enabling this setting let ElasticPress adjust the bulk index setting automatically for a more reliable and optimized index process.</legend>
 					</td>
 				</tr>
 			<?php endif; ?>
