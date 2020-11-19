@@ -902,6 +902,22 @@ class Post extends Indexable {
 			);
 
 			$use_filters = true;
+		} elseif ( ! empty( $args['author__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_author.id' => array_values( (array) $args['author__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		} elseif ( ! empty( $args['author__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'post_author.id' => array_values( (array) $args['author__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
 		}
 
 		/**
