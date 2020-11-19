@@ -280,12 +280,12 @@ abstract class Indexable {
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $object_ids ) {
-		$body = '';
+		$body  = '';
 		$count = 0;
 
 		/**
 		 * Filter the maximum HTTP request body can be sent to ES.
-		 * 
+		 *
 		 * @hook ep_max_content_length
 		 * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/modules-http.html
 		 */

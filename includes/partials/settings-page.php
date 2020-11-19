@@ -24,11 +24,11 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 $version = Elasticsearch::factory()->get_elasticsearch_version();
 
-$host        = Utils\get_host();
-$is_epio     = Utils\is_epio();
-$credentials = Utils\get_epio_credentials();
-$wpconfig    = defined( 'EP_HOST' ) && EP_HOST;
-$bulk_setting = Utils\get_ep_option( 'ep_bulk_setting', 350 );
+$host                 = Utils\get_host();
+$is_epio              = Utils\is_epio();
+$credentials          = Utils\get_epio_credentials();
+$wpconfig             = defined( 'EP_HOST' ) && EP_HOST;
+$bulk_setting         = Utils\get_ep_option( 'ep_bulk_setting', 350 );
 $enable_dynamic_index = Utils\get_ep_option( 'ep_enable_dynamic_index', 0 );
 ?>
 

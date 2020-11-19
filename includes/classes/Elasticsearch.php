@@ -946,7 +946,6 @@ class Elasticsearch {
 			}
 		}
 
-
 		$response = wp_remote_retrieve_response_code( $request );
 
 		if ( 200 !== $response ) {
@@ -967,7 +966,7 @@ class Elasticsearch {
 
 		if ( $exec_time > 20 ) {
 			$current_setting = ceil( $current_setting / 1.5 );
-		} else if ( $exec_time > 15 ) {
+		} elseif ( $exec_time > 15 ) {
 			$current_setting = ceil( $current_setting * 0.75 );
 		}
 
