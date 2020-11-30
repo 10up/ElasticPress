@@ -177,8 +177,6 @@ async function esSearch(query, searchTerm) {
 	}
 	const credentials = epas.endpointUrl.match(/(http|https):\/\/(.*):(.*)@(.*-?)/);
 
-	console.log(credentials);
-
 	if (credentials) {
 		const username = credentials[2];
 		const password = credentials[3];
