@@ -8,3 +8,4 @@ test-coverage-html/
 .phpunit.result.cache
 screenshots
 .DS_Store
+*.code_workspace
