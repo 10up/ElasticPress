@@ -101,7 +101,7 @@ class Widget extends WP_Widget {
 		/**
 		 * No terms!
 		 */
-		if ( 0 === $terms ) {
+		if ( 0 === $terms || is_wp_error( $terms ) ) {
 			return;
 		}
 
