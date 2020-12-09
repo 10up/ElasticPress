@@ -398,6 +398,11 @@ function action_wp_ajax_ep_index() {
 
 	$index_meta = \ElasticPress\Utils\get_indexing_status();
 
+	if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
+		wp_send_json_success( $index_meta );
+		exit;
+	}
+
 	$global_indexables     = Indexables::factory()->get_all( true, true );
 	$non_global_indexables = Indexables::factory()->get_all( false, true );
 

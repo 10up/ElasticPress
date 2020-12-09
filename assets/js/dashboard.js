@@ -412,6 +412,12 @@ function sync() {
 			},
 		})
 		.done((response) => {
+			if (response.data?.method === 'cli') {
+				syncStatus = 'wpcli';
+				cliSync();
+				return;
+			}
+
 			if (syncStatus !== 'sync') {
 				return;
 			}
