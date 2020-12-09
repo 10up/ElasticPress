@@ -491,7 +491,6 @@ function get_indexing_status() {
 
 	if ( $dashboard_syncing || $wpcli_syncing ) {
 
-
 		if ( $dashboard_syncing ) {
 
 			$index_status = $dashboard_syncing;
