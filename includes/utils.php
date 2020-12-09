@@ -459,3 +459,64 @@ function get_language() {
 	 */
 	return apply_filters( 'ep_default_language', $ep_language );
 }
+
+/**
+ * Returns the status of an ongoing index operation.
+ *
+ * Returns the status of an ongoing index operation in array with the following fields:
+ * indexing | boolean | True if index operation is ongoing or false
+ * method | string | 'cli', 'web' or 'none'
+ * items_indexed | integer | Total number of items indexed
+ * total_items | integer | Total number of items indexed or -1 if not yet determined
+ * slug | string | The slug of the indexable
+ *
+ * @since  3.6
+ * @return array|boolean
+ */
+function get_indexing_status() {
+
+	$index_status = false;
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+		$dashboard_syncing = get_site_option( 'ep_index_meta', false );
+		$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
+
+	} else {
+
+		$dashboard_syncing = get_option( 'ep_index_meta', false );
+		$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
+
+	}
+
+	if ( $dashboard_syncing || $wpcli_syncing ) {
+
+
+		if ( $dashboard_syncing ) {
+
+			$index_status = $dashboard_syncing;
+
+		} else {
+			$index_status = array(
+				'indexing'      => false,
+				'method'        => 'none',
+				'items_indexed' => 0,
+				'total_items'   => -1,
+			);
+
+			$index_status['indexing'] = true;
+
+			$index_status['method'] = 'cli';
+
+			if ( is_array( $wpcli_syncing ) ) {
+
+				$index_status['items_indexed'] = $wpcli_syncing[0];
+				$index_status['total_items']   = $wpcli_syncing[1];
+				$index_status['slug']          = $wpcli_syncing[2];
+			}
+		}
+	}
+
+	return $index_status;
+
+}
