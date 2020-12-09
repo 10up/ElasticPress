@@ -470,7 +470,7 @@ function get_language() {
  * total_items | integer | Total number of items indexed or -1 if not yet determined
  * slug | string | The slug of the indexable
  *
- * @since  3.6
+ * @since  3.5.2
  * @return array|boolean
  */
 function get_indexing_status() {
