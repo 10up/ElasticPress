@@ -837,7 +837,7 @@ class Command extends WP_CLI_Command {
 							$synced++;
 						}
 
-						$this->reset_transient( $no_bulk_count, (int) $query['total_objects'] );
+						$this->reset_transient( $no_bulk_count, (int) $query['total_objects'], $indexable->slug );
 
 						/**
 						 * Fires after one by one indexing an object in CLI
@@ -872,7 +872,7 @@ class Command extends WP_CLI_Command {
 						if ( ! empty( $objects ) && ( count( $objects ) + $killed_object_count ) >= absint( count( $query['objects'] ) ) ) {
 							$index_objects = $objects;
 
-							$this->reset_transient( (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] );
+							$this->reset_transient( (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'], $indexable->slug );
 
 							for ( $attempts = 1; $attempts <= 3; $attempts++ ) {
 								$response = $indexable->bulk_index( array_keys( $index_objects ) );
@@ -1197,16 +1197,17 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Reset transient while indexing
 	 *
-	 * @param int $items_indexed Count of items already indexed.
-	 * @param int $total_items Total number of items to be indexed.
+	 * @param int    $items_indexed Count of items already indexed.
+	 * @param int    $total_items Total number of items to be indexed.
+	 * @param string $slug The slug of the indexable.
 	 *
 	 * @since 2.2
 	 */
-	private function reset_transient( $items_indexed, $total_items ) {
+	private function reset_transient( $items_indexed, $total_items, $slug ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			set_site_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items ), $this->transient_expiration );
+			set_site_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items, $slug ), $this->transient_expiration );
 		} else {
-			set_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items ), $this->transient_expiration );
+			set_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items, $slug ), $this->transient_expiration );
 		}
 	}
 
