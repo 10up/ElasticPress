@@ -519,11 +519,16 @@ class Weighting {
 	public function do_weighting( $formatted_args, $args ) {
 
 		/**
-		 * If search fields is set on the query, we should use those instead of the weighting, since the query was
-		 * overridden by some custom code
+		 * Force the weightings to be utilized but bypassing the inner conditional (which might cause a return)
 		 */
-		if ( isset( $args['search_fields'] ) && ! empty( $args['search_fields'] ) ) {
-			return $formatted_args;
+		if ( apply_filters( 'ep_weighting_check_search_fields', true, $formatted_args, $args ) ) {
+			/**
+			 * If search fields is set on the query, we should use those instead of the weighting, since the query was
+			 * overridden by some custom code
+			 */
+			if ( isset( $args['search_fields'] ) && ! empty( $args['search_fields'] ) ) {
+				return $formatted_args;
+			}
 		}
 
 		$weight_config = $this->get_weighting_configuration();
