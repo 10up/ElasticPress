@@ -482,6 +482,11 @@ function get_indexing_status() {
 		$dashboard_syncing = get_site_option( 'ep_index_meta', false );
 		$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
 
+		if ( $wpcli_syncing ) {
+			$site = \get_site();
+			$url  = $site->domain . $site->path;
+		}
+
 	} else {
 
 		$dashboard_syncing = get_option( 'ep_index_meta', false );
@@ -501,6 +506,7 @@ function get_indexing_status() {
 				'method'        => 'none',
 				'items_indexed' => 0,
 				'total_items'   => -1,
+				'url'           => $url,
 			);
 
 			$index_status['indexing'] = true;

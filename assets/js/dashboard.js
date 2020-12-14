@@ -281,6 +281,10 @@ function updateSyncDash() {
 			)} ${epDash.sync_indexable_labels[currentSyncItem.indexable].plural.toLowerCase()}`;
 		}
 
+		if (currentSyncItem?.url) {
+			text += ` (${currentSyncItem.url})`;
+		}
+
 		$syncStatusText.text(text);
 
 		$syncStatusText.show();
@@ -377,8 +381,10 @@ function cliSync() {
 			if (syncStatus === 'wpcli') {
 				toProcess = response.data?.total_items;
 				processed = response.data?.items_indexed;
+
 				currentSyncItem = {
 					indexable: response.data?.slug,
+					url: response.data?.url,
 				};
 
 				if (response.data?.indexing) {
