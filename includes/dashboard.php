@@ -697,6 +697,14 @@ function action_wp_ajax_ep_cancel_index() {
 		exit;
 	}
 
+	$index_meta = \ElasticPress\Utils\get_indexing_status();
+
+	if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
+		set_transient( 'ep_wpcli_sync_interrupted', true, 5 );
+		wp_send_json_success();
+		exit;
+	}
+
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		delete_site_option( 'ep_index_meta' );
 	} else {
@@ -820,6 +828,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		$data['sync_initial']         = esc_html__( 'Starting sync', 'elasticpress' );
 		$data['sync_wpcli']           = esc_html__( 'WP CLI sync is occurring.', 'elasticpress' );
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
+		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
 
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 	}
