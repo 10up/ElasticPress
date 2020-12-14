@@ -292,7 +292,7 @@ function updateSyncDash() {
 		$pauseSyncButton.hide();
 		$errorOverlay.addClass('syncing');
 
-		$cancelSyncButton.hide();
+		$cancelSyncButton.show();
 		$resumeSyncButton.hide();
 		$startSyncButton.hide();
 	} else if (syncStatus === 'error') {
@@ -331,6 +331,26 @@ function updateSyncDash() {
 		featureSync = null;
 	} else if (syncStatus === 'finished') {
 		$syncStatusText.text(epDash.sync_complete);
+
+		$syncStatusText.show();
+		$progressBar.hide();
+		$pauseSyncButton.hide();
+		$cancelSyncButton.hide();
+		$resumeSyncButton.hide();
+		$startSyncButton.show();
+		$errorOverlay.removeClass('syncing');
+
+		if (featureSync) {
+			$features.find(`.ep-feature-${featureSync}`).removeClass('feature-syncing');
+		}
+
+		featureSync = null;
+
+		setTimeout(() => {
+			$syncStatusText.hide();
+		}, 7000);
+	} else if (syncStatus === 'interrupt') {
+		$syncStatusText.text(epDash.sync_interrupted);
 
 		$syncStatusText.show();
 		$progressBar.hide();
@@ -396,6 +416,8 @@ function cliSync() {
 
 				syncStatus = '';
 				updateSyncDash();
+			} else if (syncStatus === 'interrupt') {
+				return;
 			}
 
 			syncStatus = 'finished';
@@ -508,7 +530,7 @@ $resumeSyncButton.on('click', () => {
 });
 
 $cancelSyncButton.on('click', () => {
-	syncStatus = 'cancel';
+	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
 
 	updateSyncDash();
 
