@@ -819,6 +819,8 @@ class Command extends WP_CLI_Command {
 
 				foreach ( $query['objects'] as $object ) {
 
+					$this->should_interrupt_sync();
+
 					if ( $no_bulk ) {
 						/**
 						 * Index objects one by one
@@ -1220,9 +1222,11 @@ class Command extends WP_CLI_Command {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_wpcli_sync' );
 			delete_site_transient( 'ep_cli_sync_progress' );
+			delete_site_transient( 'ep_wpcli_sync_interrupted' );
 		} else {
 			delete_transient( 'ep_wpcli_sync' );
 			delete_transient( 'ep_cli_sync_progress' );
+			delete_transient( 'ep_wpcli_sync_interrupted' );
 		}
 	}
 
@@ -1355,6 +1359,31 @@ class Command extends WP_CLI_Command {
 					return $assoc_args['ep-prefix'];
 				}
 			);
+		}
+	}
+
+	/**
+	 * Check if sync should be interrupted
+	 *
+	 * @since 3.5.2
+	 */
+	private function should_interrupt_sync() {
+		global $wpdb;
+
+		$options = $wpdb->options;
+
+		$sql = "
+			SELECT option_value
+			FROM $options
+			WHERE option_name = '_transient_ep_wpcli_sync_interrupted'
+		";
+
+		$should_interrupt_sync = $wpdb->get_var( $sql ); // phpcs:ignore
+
+		if ( $should_interrupt_sync ) {
+			WP_CLI::line( esc_html__( 'Sync was interrupted from dashboard', 'elasticpress' ) );
+			$this->delete_transient_on_int( 2 );
+			WP_CLI::halt();
 		}
 	}
 
