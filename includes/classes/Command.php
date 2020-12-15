@@ -1381,7 +1381,7 @@ class Command extends WP_CLI_Command {
 		$should_interrupt_sync = $wpdb->get_var( $sql ); // phpcs:ignore
 
 		if ( $should_interrupt_sync ) {
-			WP_CLI::line( esc_html__( 'Sync was interrupted from dashboard', 'elasticpress' ) );
+			WP_CLI::line( esc_html__( 'Sync was interrupted', 'elasticpress' ) );
 			$this->delete_transient_on_int( 2 );
 			WP_CLI::halt();
 		}
@@ -1396,11 +1396,19 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function stop_indexing( $args, $assoc_args ) {
+		$indexing_status = \ElasticPress\Utils\get_indexing_status();
+
 		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
 			WP_CLI::warning( esc_html__( 'There is no indexing operation running.', 'elasticpress' ) );
 		} else {
 			WP_CLI::line( esc_html__( 'Stoping indexing...', 'elasticpress' ) );
-			set_transient( 'ep_sync_interrupted', true, 5 );
+
+			if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
+				set_transient( 'ep_wpcli_sync_interrupted', true, 5 );
+			} else {
+				set_transient( 'ep_sync_interrupted', true, 5 );
+			}
+
 			WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 		}
 	}
