@@ -486,7 +486,6 @@ function get_indexing_status() {
 			$site = \get_site();
 			$url  = $site->domain . $site->path;
 		}
-
 	} else {
 
 		$dashboard_syncing = get_option( 'ep_index_meta', false );
@@ -500,6 +499,12 @@ function get_indexing_status() {
 
 			$index_status = $dashboard_syncing;
 
+			$should_interrupt_sync = filter_var(
+				get_transient( 'ep_sync_interrupted' ),
+				FILTER_VALIDATE_BOOLEAN
+			);
+
+			$index_status['should_interrupt_sync'] = $should_interrupt_sync;
 		} else {
 			$index_status = array(
 				'indexing'      => false,
