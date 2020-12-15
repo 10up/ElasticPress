@@ -1,7 +1,5 @@
 import { debounce } from './utils/helpers';
 
-const facetTerms = document.querySelector('.widget_ep-facet .terms');
-
 /**
  * Filters the facets to match the input search term when
  * the number of terms exceeds the threshold determined
@@ -9,7 +7,7 @@ const facetTerms = document.querySelector('.widget_ep-facet .terms');
  *
  * @param {event} event - keyup
  */
-const handleFacetSearch = (event) => {
+const handleFacetSearch = (event, facetTerms) => {
 	const { target } = event;
 	const searchTerm = target.value.replace(/\s/g, '').toLowerCase();
 	const terms = facetTerms.querySelectorAll('.term');
@@ -29,17 +27,19 @@ const handleFacetSearch = (event) => {
 /**
  * Filter facet choices to match the search field term
  */
-const facetSearchInput = document.querySelector('.widget_ep-facet .facet-search');
+const facets = document.querySelectorAll('.widget_ep-facet');
 
-if (facetSearchInput) {
-	facetSearchInput.addEventListener(
+facets.forEach(facet => {
+	const facetSearchInput = facet.querySelector('.facet-search');
+	const facetTerms = facet.querySelector('.terms');
+	
+	facet.querySelector('.facet-search').addEventListener(
 		'keyup',
 		debounce((event) => {
 			if (event.keyCode === 13) {
 				return;
 			}
 
-			handleFacetSearch(event);
-		}, 200),
-	);
-}
+			handleFacetSearch(event, facetTerms);
+		}, 200)
+});
