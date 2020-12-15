@@ -55,6 +55,8 @@ function setup() {
 	add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 	add_action( 'manage_blogs_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 	add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
+	add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
+	add_action( 'rest_api_init', __NAMESPACE__ . '\setup_endpoint' );
 }
 
 /**
@@ -1168,4 +1170,49 @@ function action_wp_ajax_ep_site_admin() {
 	];
 
 	return wp_send_json_success( $data );
+}
+
+/**
+ * Registers the API endpoint
+ */
+function setup_endpoint() {
+	register_rest_route(
+		'elasticpress/v1',
+		'indexing_status',
+		[
+			'methods'             => 'GET',
+			'callback'            => __NAMESPACE__ . '\handle_indexing_status',
+			'permission_callback' => '__return_true',
+		]
+	);
+}
+
+/**
+ * Handle the fetch for indexing status
+ */
+function handle_indexing_status() {
+	$indexing_status = \ElasticPress\Utils\get_indexing_status();
+
+	$status = array(
+		'method'        => '',
+		'items_indexed' => 0,
+		'total_items'   => 0,
+		'indexable'     => '',
+	);
+
+	if ( ! empty( $indexing_status ) ) {
+		if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
+			$status['method']        = $indexing_status['method'];
+			$status['items_indexed'] = $indexing_status['items_indexed'];
+			$status['total_items']   = $indexing_status['total_items'];
+			$status['indexable']     = $indexing_status['slug'];
+		} else {
+			$status['method']        = 'dashboard';
+			$status['items_indexed'] = isset( $indexing_status['offset'] ) ? $indexing_status['offset'] : 0;
+			$status['total_items']   = isset( $indexing_status['found_items'] ) ? $indexing_status['found_items'] : 0;
+			$status['indexable']     = isset( $indexing_status['current_sync_item']['indexable'] ) ? $indexing_status['current_sync_item']['indexable'] : '';
+		}
+	}
+
+	return $status;
 }
