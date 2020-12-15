@@ -29,6 +29,7 @@ const handleFacetSearch = (event, facetTerms) => {
  * Filter facet choices to match the search field term
  */
 const facets = document.querySelectorAll('.widget_ep-facet');
+<<<<<<< HEAD
 
 facets.forEach((facet) => {
 	const facetSearchInput = facet.querySelector('.facet-search');
@@ -38,6 +39,13 @@ facets.forEach((facet) => {
 		return;
 	}
 
+=======
+
+facets.forEach(facet => {
+	const facetSearchInput = facet.querySelector('.facet-search');
+	const facetTerms = facet.querySelector('.terms');
+	
+>>>>>>> 36143e7b (Support multiple Facets)
 	facet.querySelector('.facet-search').addEventListener(
 		'keyup',
 		debounce((event) => {
@@ -46,6 +54,10 @@ facets.forEach((facet) => {
 			}
 
 			handleFacetSearch(event, facetTerms);
+<<<<<<< HEAD
 		}, 200),
 	);
+=======
+		}, 200)
+>>>>>>> 36143e7b (Support multiple Facets)
 });
