@@ -440,6 +440,12 @@ function sync() {
 			},
 		})
 		.done((response) => {
+			if (response.data?.should_interrupt_sync) {
+				syncStatus = 'interrupt';
+				updateSyncDash();
+				cancelSync();
+			}
+
 			if (response.data?.method === 'cli') {
 				syncStatus = 'wpcli';
 				cliSync();
