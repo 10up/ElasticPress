@@ -1387,4 +1387,22 @@ class Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Stop the indexing operation started from the dashboard.
+	 *
+	 * @subcommand stop-indexing
+	 * @since      3.5.2
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function stop_indexing( $args, $assoc_args ) {
+		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
+			WP_CLI::warning( esc_html__( 'There is no indexing operation running.', 'elasticpress' ) );
+		} else {
+			WP_CLI::line( esc_html__( 'Stoping indexing...', 'elasticpress' ) );
+			set_transient( 'ep_sync_interrupted', true, 5 );
+			WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+		}
+	}
+
 }
