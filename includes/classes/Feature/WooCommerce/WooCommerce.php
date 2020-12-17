@@ -728,7 +728,9 @@ class WooCommerce extends Feature {
 	 */
 	public function add_product_attributes_to_weighting( $fields, $post_type ) {
 		if ( 'product' === $post_type ) {
-			unset( $fields['attributes']['children']['author_name'] );
+			if ( ! empty( $fields['attributes']['children']['author_name'] ) ) {
+				unset( $fields['attributes']['children']['author_name'] );
+			}
 
 			$sku_key = 'meta._sku.value';
 
