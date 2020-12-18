@@ -12,7 +12,7 @@ __Note:__ This feature will NOT work if the plugin is network activated.
 
 ### Synonyms
 
-Create synomym groups for your searches e.g. New York City and NYC.
+Create synonym groups for your searches e.g. New York City and NYC.
 
 __Note:__ This feature will NOT work if the plugin is network activated.
 
