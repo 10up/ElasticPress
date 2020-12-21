@@ -18,7 +18,7 @@ jQuery('.notice').on('click', '.notice-dismiss', (event) => {
 	});
 });
 
-jQuery('.weighting-settings input[type=range]').change(function () {
+jQuery('.weighting-settings input[type=range]').on('input', function () {
 	const el = jQuery(this);
 
 	el.prev('label').find('.weighting-value').text(el.val());
