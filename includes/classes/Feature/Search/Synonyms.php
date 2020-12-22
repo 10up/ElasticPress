@@ -207,11 +207,9 @@ class Synonyms {
 			case 'error-update-index':
 				$message = __( 'There was a problem updating the index with your synonyms. If you have not indexed your data, please run an index.', 'elasticpress' );
 				break;
+			default:
+				$message = __( 'There was an error updating the synonym list.', 'elasticpress' );
 		}
-
-		$message = ( 'success' === $update )
-			? __( 'Successfully updated synonym filter.', 'elasticpress' )
-			: __( 'There was an error updating the synonym list.', 'elasticpress' );
 
 		printf(
 			'<div class="%1$s"><p>%2$s</p></div>',
