@@ -433,7 +433,7 @@ class WooCommerce extends Feature {
 					);
 
 					$query->set( 'search_fields', $search_fields );
-				} elseif ( 'product' === $post_type ) {
+				} elseif ( 'product' === $post_type && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 					// Remove author_name from this search.
@@ -718,6 +718,54 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Add WooCommerce Fields to the Weighting Dashboard.
+	 *
+	 * @since 3.x
+	 *
+	 * @param array  $fields    Current weighting fields.
+	 * @param string $post_type Current post type.
+	 * @return array            New fields.
+	 */
+	public function add_product_attributes_to_weighting( $fields, $post_type ) {
+		if ( 'product' === $post_type ) {
+			if ( ! empty( $fields['attributes']['children']['author_name'] ) ) {
+				unset( $fields['attributes']['children']['author_name'] );
+			}
+
+			$sku_key = 'meta._sku.value';
+
+			$fields['attributes']['children'][ $sku_key ] = array(
+				'key'   => $sku_key,
+				'label' => __( 'SKU', 'elasticpress' ),
+			);
+		}
+		return $fields;
+	}
+
+	/**
+	 * Add WooCommerce Fields to the default values of the Weighting Dashboard.
+	 *
+	 * @since 3.x
+	 *
+	 * @param array  $defaults  Default values for the post type.
+	 * @param string $post_type Current post type.
+	 * @return array
+	 */
+	public function add_product_default_post_type_weights( $defaults, $post_type ) {
+		if ( 'product' === $post_type ) {
+			if ( ! empty( $defaults['author_name'] ) ) {
+				unset( $defaults['author_name'] );
+			}
+
+			$defaults['meta._sku.value'] = array(
+				'enabled' => true,
+				'weight'  => 1,
+			);
+		}
+		return $defaults;
+	}
+
+	/**
 	 * Add WC post type to autosuggest
 	 *
 	 * @param array $post_types Array of post types (e.g. post, page).
@@ -753,6 +801,8 @@ class WooCommerce extends Feature {
 			add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
+			add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
+			add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		}
 	}
 
