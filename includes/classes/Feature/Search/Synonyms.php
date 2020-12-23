@@ -151,7 +151,7 @@ class Synonyms {
 	public function admin_menu() {
 		add_submenu_page(
 			'elasticpress',
-			esc_html__( 'Synonyms', 'elasticpress' ),
+			'ElasticPress ' . esc_html__( 'Synonyms', 'elasticpress' ),
 			esc_html__( 'Synonyms', 'elasticpress' ),
 			'manage_options',
 			'elasticpress-synonyms',

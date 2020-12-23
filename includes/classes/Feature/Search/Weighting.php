@@ -172,7 +172,14 @@ class Weighting {
 	 * Adds the submenu page for controlling weighting
 	 */
 	public function add_weighting_submenu_page() {
-		add_submenu_page( 'elasticpress', __( 'Search Fields & Weighting', 'elasticpress' ), __( 'Search Fields & Weighting', 'elasticpress' ), 'manage_options', 'elasticpress-weighting', [ $this, 'render_settings_page' ] );
+		add_submenu_page(
+			'elasticpress',
+			'ElasticPress ' . esc_html__( 'Search Fields & Weighting', 'elasticpress' ),
+			esc_html__( 'Search Fields & Weighting', 'elasticpress' ),
+			'manage_options',
+			'elasticpress-weighting',
+			[ $this, 'render_settings_page' ]
+		);
 	}
 
 	/**
