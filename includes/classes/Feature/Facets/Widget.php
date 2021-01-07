@@ -99,9 +99,9 @@ class Widget extends WP_Widget {
 		);
 
 		/**
-		 * No terms!
+		 * Terms validity check
 		 */
-		if ( 0 === $terms ) {
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
 			return;
 		}
 
