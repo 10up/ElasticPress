@@ -364,3 +364,4 @@ class TestSearch extends BaseTestCase {
 		$this->assertTrue( $settings['highlight_excerpt'] );
 	}
 }
+

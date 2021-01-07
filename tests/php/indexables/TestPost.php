@@ -3948,6 +3948,7 @@ class TestPost extends BaseTestCase {
 	 * If a post is sticky and we are on the home page, it should return at the top.
 	 *
 	 * @group post
+	 * @group post-sticky
 	 */
 	public function testStickyPostsIncludedOnHome() {
 		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
@@ -3968,6 +3969,7 @@ class TestPost extends BaseTestCase {
 	 * If a post is not sticky and we are not on the home page, it should not return at the top.
 	 *
 	 * @group post
+	 * @group post-sticky
 	 */
 	public function testStickyPostsExcludedOnNotHome() {
 		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
@@ -3977,13 +3979,13 @@ class TestPost extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
-			's' => '',
-		);
+		// This used to perform a new WP_Query with "s", but it needs to
+		// perform a search request via the URL.
+		$this->go_to( '/?s=' );
 
-		$query = new \WP_Query( $args );
+		$q = $GLOBALS['wp_query'];
 
-		$this->assertNotEquals( 'Sticky post', $query->posts[0]->post_title );
+		$this->assertNotEquals( 'Sticky post', $q->posts[0]->post_title );
 	}
 
 	/**
@@ -5545,6 +5547,17 @@ class TestPost extends BaseTestCase {
 	 * @group  post
 	 */
 	public function testMaybeSwitchToBlog() {
+
+		// Do an assert here for both single and multisite tests so we
+		// don't get a warning.
+		$multisite = defined( 'WP_TESTS_MULTISITE' ) && '1' === WP_TESTS_MULTISITE;
+
+		$this->assertSame( $multisite, is_multisite() );
+
+		// Only continue if this is in multisite.
+		if ( ! is_multisite() ) {
+			return;
+		}
 
 		$sites      = get_sites();
 		$blog_1_id  = get_current_blog_id();

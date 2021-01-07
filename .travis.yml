@@ -18,14 +18,16 @@ cache:
 
 env:
   global:
-  - WP_VERSION=latest WP_MULTISITE=1 ES_VERSION="7.5.0"
+  - WP_VERSION=latest ES_VERSION="7.5.0"
 
 jobs:
   fast_finish: true
   include:
     - stage: "ElasticPress Tests"
       name: "Unit Tests"
-      script: composer run-script test
+      script:
+        - composer run-script test
+        - composer run-script test-single-site
       before_install:
         - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ES_VERSION-amd64.deb
         - sudo dpkg -i --force-confnew elasticsearch-$ES_VERSION-amd64.deb
