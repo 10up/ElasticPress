@@ -30,6 +30,7 @@ jobs:
         - composer run-script test-single-site
       before_install:
         - composer self-update --1
+        - composer --version
         - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$ES_VERSION-amd64.deb
         - sudo dpkg -i --force-confnew elasticsearch-$ES_VERSION-amd64.deb
         - sudo sed -i.old 's/-Xms1g/-Xms128m/' /etc/elasticsearch/jvm.options
