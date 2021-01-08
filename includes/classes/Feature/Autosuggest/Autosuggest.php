@@ -728,68 +728,60 @@ class Autosuggest extends Feature {
 		global $wp_version;
 
 		$allowed_params = $this->epio_autosuggest_set_and_get();
+		if ( empty( $allowed_params ) ) {
+			return;
+		}
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Security', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
 				<?php
-				if ( empty( $allowed_params ) ) {
+				// If WordPress 5.2+, show debug in Health Check. Otherwise, show it if WP_DEBUG is enabled.
+				if ( version_compare( $wp_version, '5.2', '>=' ) || 0 === stripos( $wp_version, '5.2-' ) ) {
 					printf(
 						/* translators: 1: <a> tag; 2. </a> */
-						esc_html__( 'It was not possible to retrieve your endpoint configuration. Please %1$scontact ElasticPress.io Support%2$s.', 'elasticpress' ),
-						'<a href="mailto:' . esc_url( antispambot( 'support@elasticpress.io' ) ) . '">',
+						esc_html__( 'Your endpoint is secure! %1$sClick here to read more%2$s or %3$shere for debug information%4$s.', 'elasticpress' ),
+						'<a href="' . esc_url( 'https://elasticpress.io/kb/autosuggest' ) . '">',
+						'</a>',
+						'<a href="' . esc_url( admin_url( 'site-health.php?tab=debug' ) ) . '">',
 						'</a>'
 					);
 				} else {
-					// If WordPress 5.2+, show debug in Health Check. Otherwise, show it if WP_DEBUG is enabled.
-					if ( version_compare( $wp_version, '5.2', '>=' ) || 0 === stripos( $wp_version, '5.2-' ) ) {
-						printf(
-							/* translators: 1: <a> tag; 2. </a> */
-							esc_html__( 'Your endpoint is secure! %1$sClick here to read more%2$s or %3$shere for debug information%4$s.', 'elasticpress' ),
-							'<a href="' . esc_url( 'https://elasticpress.io/kb/autosuggest' ) . '">',
-							'</a>',
-							'<a href="' . esc_url( admin_url( 'site-health.php?tab=debug' ) ) . '">',
-							'</a>'
+					printf(
+						/* translators: 1: <a> tag; 2. </a> */
+						esc_html__( 'Your endpoint is secure! %1$sClick here to read more%2$s.', 'elasticpress' ),
+						'<a href="' . esc_url( 'https://elasticpress.io/kb/autosuggest' ) . '">',
+						'</a>'
+					);
+
+					if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
+						?>
+						<p><?php esc_html_e( 'These are the allowed parameters stored in ElasticPress.io', 'elasticpress' ); ?></p>
+						<?php
+						$allowed_params = wp_parse_args(
+							$allowed_params,
+							[
+								'postTypes'    => [],
+								'postStatus'   => [],
+								'searchFields' => [],
+								'returnFields' => '',
+							]
 						);
-					} else {
-						printf(
-							/* translators: 1: <a> tag; 2. </a> */
-							esc_html__( 'Your endpoint is secure! %1$sClick here to read more%2$s.', 'elasticpress' ),
-							'<a href="' . esc_url( 'https://elasticpress.io/kb/autosuggest' ) . '">',
-							'</a>'
-						);
 
-						if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
-							?>
-							<p><?php esc_html_e( 'These are the allowed parameters stored in ElasticPress.io', 'elasticpress' ); ?></p>
-							<?php
-							$allowed_params = wp_parse_args(
-								$allowed_params,
-								[
-									'postTypes'    => [],
-									'postStatus'   => [],
-									'searchFields' => [],
-									'returnFields' => '',
-								]
-							);
+						$fields = [
+							wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
+							wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
+							wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
+							wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ),
+						];
 
-							$fields = [
-								wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
-								wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
-								wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
-								wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ),
-							];
-
-							echo implode( '<br>', $fields ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-						}
+						echo implode( '<br>', $fields ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					}
-					?>
-					<p>
-						<img width="150" src="<?php echo esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ); ?>">
-					</p>
-					<?php
 				}
 				?>
+				<p>
+					<img width="150" src="<?php echo esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ); ?>">
+				</p>
 			</div>
 		</div>
 		<?php
@@ -808,6 +800,7 @@ class Autosuggest extends Feature {
 			$allowed_params = $this->epio_retrieve_autosuggest_allowed();
 
 			if ( is_wp_error( $allowed_params ) || ( isset( $allowed_params['status'] ) && 200 !== $allowed_params['status'] ) ) {
+				$allowed_params = [];
 				break;
 			}
 
@@ -839,11 +832,6 @@ class Autosuggest extends Feature {
 		$allowed_params = $this->epio_autosuggest_set_and_get();
 
 		if ( empty( $allowed_params ) ) {
-			$debug_info['epio_autosuggest']['fields']['error'] = [
-				'label'   => esc_html__( 'Error', 'elasticpress' ),
-				'private' => true,
-				'value'   => esc_html__( 'It was not possible to retrieve your endpoint configuration. Please contact the ElasticPress.io Support', 'elasticpress' ),
-			];
 			return $debug_info;
 		}
 
