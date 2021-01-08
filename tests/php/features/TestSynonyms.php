@@ -8,7 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
-use ElasticPress\Feature\Synonyms\Synonyms;
+use ElasticPress\Feature\Search\Synonyms;
 
 /**
  * Document test class
@@ -60,26 +60,9 @@ class TestSynonyms extends BaseTestCase {
 	public function testConstructor() {
 		$instance = $this->getFeature();
 
-		$this->assertEquals( $instance->slug, 'synonyms' );
-		$this->assertTrue( $instance->requires_install_reindex );
-	}
-
-	public function testOutputFeatureBoxSummary() {
-		$instance = $this->getFeature();
-
-		ob_start();
-		$instance->output_feature_box_summary();
-
-		$this->assertContains( 'Add synonyms to your searches.', ob_get_clean() );
-	}
-
-	public function testOutputFeatureBoxLong() {
-		$instance = $this->getFeature();
-
-		ob_start();
-		$instance->output_feature_box_long();
-
-		$this->assertContains( 'Create a custom synonym filter', ob_get_clean() );
+		$this->assertSame( 'ep_synonyms_filter', $instance->filter_name );
+		$this->assertIsArray( $instance->affected_indices );
+		$this->assertContains( 'post', $instance->affected_indices );
 	}
 
 	public function testGetSynonymPostId() {
