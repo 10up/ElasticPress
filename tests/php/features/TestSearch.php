@@ -147,7 +147,9 @@ class TestSearch extends BaseTestCase {
 		);
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ) );
+		$this->assertTrue( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ), 20 );
 		$query = new \WP_Query(
 			array(
 				's' => 'test',
