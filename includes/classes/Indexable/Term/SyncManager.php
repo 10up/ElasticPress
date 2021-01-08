@@ -166,7 +166,14 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( ! current_user_can( 'delete_term', $term_id ) ) {
+		/**
+		 * Filter whether to skip the permissions check on deleting a term
+		 *
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $term_id ID of term
+		 * @return {boolean} New value
+		 */
+		if ( ! current_user_can( 'delete_term', $term_id ) && ! apply_filters( 'ep_sync_delete_term_permissions_bypass', false, $term_id ) ) {
 			return;
 		}
 
