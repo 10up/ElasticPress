@@ -323,9 +323,9 @@ abstract class Indexable {
 		 * @hook ep_after_bulk_index
 		 * @param {array} $object_ids List of object ids attempted to be indexed
 		 * @param {string} $slug Current indexable slug
-		 * @param {array|bool} $return Result of the Elasticsearch query. False on error.
+		 * @param {array|bool} $result Result of the Elasticsearch query. False on error.
 		 */
-		do_action( 'ep_after_bulk_index', $object_ids, $this->slug, $return );
+		do_action( 'ep_after_bulk_index', $object_ids, $this->slug, $result );
 
 		return $result;
 	}
