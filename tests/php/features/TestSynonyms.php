@@ -89,7 +89,7 @@ class TestSynonyms extends BaseTestCase {
 
 		$this->assertNotEmpty( $synonyms );
 		$this->assertContains( 'sneakers, tennis shoes, trainers, runners', $synonyms );
-		$this->assertContains( 'shoes => sneaker, sandal, boots, high heels', $synonyms );
+		$this->assertContains( 'shoes =&gt; sneaker, sandal, boots, high heels', $synonyms );
 	}
 
 	public function testValidateSynonyms() {
