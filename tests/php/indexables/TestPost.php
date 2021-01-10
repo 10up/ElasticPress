@@ -2134,6 +2134,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchRelevanceOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertet' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertest' ) );
@@ -2151,6 +2154,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2190,6 +2195,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchDefaultOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'Ordertet' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertest' ) );
@@ -2206,6 +2214,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertet', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
