@@ -45,10 +45,12 @@ jobs:
     - script: if [ -n "$AWS_ACCESS_KEY" ]; then bash run-wpacceptance.sh; fi
       name: "WP Acceptance Test"
       before_script:
+        - composer self-update --1
         - composer install
         - npm install
         - if [ -n "$AWS_ACCESS_KEY" ]; then ./vendor/bin/wpsnapshots configure 10up --aws_key=$AWS_ACCESS_KEY --aws_secret=$SECRET_ACCESS_KEY --user_name=Travis --user_email=travis@10up.com; fi
     - script: composer run-script lint
       name: "Linting"
       before_script:
+        - composer self-update --1
         - composer install
