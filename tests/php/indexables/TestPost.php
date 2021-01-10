@@ -2075,6 +2075,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchRelevanceOrderbyQueryAdvanced() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		$posts = array();
 
 		$posts[5] = Functions\create_and_sync_post( array( 'post_title' => 'ordertet with even more lorem ipsum to make a longer field' ) );
@@ -2120,6 +2123,8 @@ class TestPost extends BaseTestCase {
 
 			$i++;
 		}
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
