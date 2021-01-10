@@ -111,4 +111,13 @@ class BaseTestCase extends WP_UnitTestCase {
 	public function is_network_activate() {
 		return defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 	}
+
+	/**
+	 * Filter hook to set the search algorithm to 3.4.
+	 *
+	 * @return string
+	 */
+	public function set_algorithm_34() {
+		return '3.4';
+	}
 }

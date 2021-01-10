@@ -1417,15 +1417,18 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test a query that fuzzy searches taxonomy terms
+	 * Test a query that fuzzy searches taxonomy terms for the 3.4 algorithm.
 	 *
 	 * @since 1.0
 	 * @group post
 	 */
 	public function testSearchTaxQuery() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post(
+		// TODO write a new test to match the 3.5 functionality.
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
+		$post_id_0 = Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
+		$post_id_1 = Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		$post_id_2 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'post content',
 				'tags_input'   => array( 'findme 2' ),
@@ -1433,6 +1436,7 @@ class TestPost extends BaseTestCase {
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
 		$args = array(
 			's'             => 'one findme two',
 			'search_fields' => array(
@@ -1447,6 +1451,14 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+
+		$post_ids = wp_list_pluck( $query->posts, 'ID' );
+
+		$this->assertContains( $post_id_1, $post_ids );
+		$this->assertContains( $post_id_1, $post_ids );
+		$this->assertNotContains( $post_id_0, $post_ids );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
