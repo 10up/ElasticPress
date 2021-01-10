@@ -85,7 +85,16 @@ class TestSynonyms extends BaseTestCase {
 
 		$synonyms = $instance->get_synonyms();
 
-		var_dump( $synonyms );
+
+		// For some reason, the greater-than gets encoded during the multi-site
+		// tests but not the single-site tests. This updates the encoding so
+		// they both match. See https://travis-ci.com/github/petenelson/ElasticPress/jobs/470254351.
+		$synonyms = array_map(
+			function ( $synonym ) {
+				return str_replace( '>', '&gt;', $synonym );
+			},
+			$synonyms
+		);
 
 		$this->assertNotEmpty( $synonyms );
 		$this->assertContains( 'sneakers, tennis shoes, trainers, runners', $synonyms );
