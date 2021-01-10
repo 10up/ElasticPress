@@ -85,6 +85,8 @@ class TestSynonyms extends BaseTestCase {
 
 		$synonyms = $instance->get_synonyms();
 
+		var_dump( $synonyms );
+
 		$this->assertNotEmpty( $synonyms );
 		$this->assertContains( 'sneakers, tennis shoes, trainers, runners', $synonyms );
 		$this->assertContains( 'shoes => sneaker, sandal, boots, high heels', $synonyms );
