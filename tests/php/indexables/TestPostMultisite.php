@@ -1044,6 +1044,9 @@ class TestPostMultisite extends BaseTestCase {
 	 * @group testMultipleTests
 	 */
 	public function testSearchTaxQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		$sites = ElasticPress\Utils\get_sites();
 
 		if ( ! is_multisite() ) {
@@ -1091,6 +1094,8 @@ class TestPostMultisite extends BaseTestCase {
 		$this->assertSame( 2, $query->found_posts );
 
 		$this->cleanUpSites( $sites );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
