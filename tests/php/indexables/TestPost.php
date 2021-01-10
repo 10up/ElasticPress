@@ -2007,6 +2007,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostDateOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertesr' ) );
 		sleep( 3 );
 
@@ -2030,6 +2033,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertesr', $query->posts[2]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
