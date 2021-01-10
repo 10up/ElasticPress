@@ -2227,6 +2227,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchDefaultOrderbyASCOrderQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
@@ -2244,6 +2247,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
