@@ -1468,6 +1468,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchAuthorQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		$user_id = $this->factory->user->create(
 			array(
 				'user_login' => 'john',
@@ -1500,6 +1503,8 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
