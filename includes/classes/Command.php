@@ -51,33 +51,7 @@ class Command extends WP_CLI_Command {
 	public function __construct() {
 		add_filter(
 			'pre_transient_ep_wpcli_sync_interrupted',
-			function( $pre_transient, $transient) {
-				global $wpdb;
-
-				if ( wp_using_ext_object_cache() ) {
-					$should_interrupt_sync = wp_cache_get( $transient, 'transient' );
-				} else {
-					$options = $wpdb->options;
-
-					/**
-					 * We are using the direct SQL query instead of
-					 * the regular function call to retrieve the updated
-					 * value to stop the sync. Otherwise, we always get
-					 * false after the command is running even when the value
-					 * is updated.
-					 *
-					 */
-					$sql = "
-						SELECT option_value
-						FROM $options
-						WHERE option_name = '_transient_{$transient}'
-					";
-
-					$should_interrupt_sync = $wpdb->get_var( $sql ); // phpcs:ignore
-				}
-
-				return $should_interrupt_sync;
-			},
+			[$this, 'custom_get_transient'],
 			10,
 			2
 		);
@@ -1441,6 +1415,39 @@ class Command extends WP_CLI_Command {
 
 			WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 		}
+	}
+
+	/**
+	 * Custom get_transient to WP-CLI env.
+	 *
+	 * We are using the direct SQL query instead of
+	 * the regular function call to retrieve the updated
+	 * value to stop the sync. Otherwise, we always get
+	 * false after the command is running even when the value
+	 * is updated.
+	 *
+	 * @since      3.5.2
+	 * @param mixed  $pre_transient The default value.
+	 * @param string $transient Transient name.
+	 */
+	public function custom_get_transient( $pre_transient, $transient) {
+		global $wpdb;
+
+		if ( wp_using_ext_object_cache() ) {
+			$should_interrupt_sync = wp_cache_get( $transient, 'transient' );
+		} else {
+			$options = $wpdb->options;
+
+			$sql = "
+				SELECT option_value
+				FROM $options
+				WHERE option_name = '_transient_{$transient}'
+			";
+
+			$should_interrupt_sync = $wpdb->get_var( $sql ); // phpcs:ignore
+		}
+
+		return $should_interrupt_sync;
 	}
 
 }
