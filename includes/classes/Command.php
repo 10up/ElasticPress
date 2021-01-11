@@ -44,6 +44,46 @@ class Command extends WP_CLI_Command {
 	private $temporary_wp_actions = [];
 
 	/**
+	 * Create Command
+	 *
+	 * @since  3.5.2
+	 */
+	public function __construct() {
+		add_filter(
+			'pre_transient_ep_wpcli_sync_interrupted',
+			function( $pre_transient, $transient) {
+				global $wpdb;
+
+				if ( wp_using_ext_object_cache() ) {
+					$should_interrupt_sync = wp_cache_get( $transient, 'transient' );
+				} else {
+					$options = $wpdb->options;
+
+					/**
+					 * We are using the direct SQL query instead of
+					 * the regular function call to retrieve the updated
+					 * value to stop the sync. Otherwise, we always get
+					 * false after the command is running even when the value
+					 * is updated.
+					 *
+					 */
+					$sql = "
+						SELECT option_value
+						FROM $options
+						WHERE option_name = '_transient_{$transient}'
+					";
+
+					$should_interrupt_sync = $wpdb->get_var( $sql ); // phpcs:ignore
+				}
+
+				return $should_interrupt_sync;
+			},
+			10,
+			2
+		);
+	}
+
+	/**
 	 * Activate a feature.
 	 *
 	 * @synopsis <feature>
@@ -1368,17 +1408,7 @@ class Command extends WP_CLI_Command {
 	 * @since 3.5.2
 	 */
 	private function should_interrupt_sync() {
-		global $wpdb;
-
-		$options = $wpdb->options;
-
-		$sql = "
-			SELECT option_value
-			FROM $options
-			WHERE option_name = '_transient_ep_wpcli_sync_interrupted'
-		";
-
-		$should_interrupt_sync = $wpdb->get_var( $sql ); // phpcs:ignore
+		$should_interrupt_sync = get_transient( 'ep_wpcli_sync_interrupted' );
 
 		if ( $should_interrupt_sync ) {
 			WP_CLI::line( esc_html__( 'Sync was interrupted', 'elasticpress' ) );
