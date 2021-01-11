@@ -49,12 +49,7 @@ class Command extends WP_CLI_Command {
 	 * @since  3.5.2
 	 */
 	public function __construct() {
-		add_filter(
-			'pre_transient_ep_wpcli_sync_interrupted',
-			[$this, 'custom_get_transient'],
-			10,
-			2
-		);
+		add_filter( 'pre_transient_ep_wpcli_sync_interrupted', [ $this, 'custom_get_transient' ], 10, 2 );
 	}
 
 	/**
@@ -1429,6 +1424,7 @@ class Command extends WP_CLI_Command {
 	 * @since      3.5.2
 	 * @param mixed  $pre_transient The default value.
 	 * @param string $transient Transient name.
+	 * @return bool
 	 */
 	public function custom_get_transient( $pre_transient, $transient) {
 		global $wpdb;
@@ -1447,7 +1443,7 @@ class Command extends WP_CLI_Command {
 			$should_interrupt_sync = $wpdb->get_var( $sql ); // phpcs:ignore
 		}
 
-		return $should_interrupt_sync;
+		return (bool) $should_interrupt_sync;
 	}
 
 }
