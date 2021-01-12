@@ -1434,13 +1434,17 @@ class Command extends WP_CLI_Command {
 		} else {
 			$options = $wpdb->options;
 
-			$sql = "
-				SELECT option_value
-				FROM $options
-				WHERE option_name = '_transient_{$transient}'
-			";
-
-			$should_interrupt_sync = $wpdb->get_var( $sql ); // phpcs:ignore
+			$should_interrupt_sync = $wpdb->get_var(
+				$wpdb->prepare(
+					"
+						SELECT option_value
+						FROM $options
+						WHERE option_name = %s
+						LIMIT 1
+					",
+					"_transient_{$transient}"
+				)
+			);
 		}
 
 		return (bool) $should_interrupt_sync;
