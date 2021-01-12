@@ -82,6 +82,7 @@ class SearchOrdering extends Feature {
 		add_filter( 'enter_title_here', [ $this, 'filter_enter_title_here' ] );
 		add_filter( 'manage_' . self::POST_TYPE_NAME . '_posts_columns', [ $this, 'filter_column_names' ] );
 		add_filter( 'post_updated_messages', [ $this, 'filter_updated_messages' ] );
+		add_filter( 'admin_title', [ $this, 'update_page_title' ], 10, 2 );
 
 		// Deals with trashing/untrashing/deleting
 		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
@@ -209,7 +210,13 @@ class SearchOrdering extends Feature {
 	 * Adds the search ordering to the admin menu
 	 */
 	public function admin_menu() {
-		add_submenu_page( 'elasticpress', esc_html__( 'Custom Results', 'elasticpress' ), esc_html__( 'Custom Results', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
+		add_submenu_page(
+			'elasticpress',
+			esc_html__( 'Custom Results', 'elasticpress' ),
+			esc_html__( 'Custom Results', 'elasticpress' ),
+			'manage_options',
+			'edit.php?post_type=' . self::POST_TYPE_NAME
+		);
 	}
 
 	/**
@@ -839,6 +846,22 @@ class SearchOrdering extends Feature {
 		wp_cache_delete( $post_id, self::TAXONOMY_NAME . '_relationships' );
 
 		return $result;
+	}
+
+	/**
+	 * Update the page title to keep the consistency through the plugin
+	 *
+	 * @param string $admin_title The page title, with extra context added
+	 * @param string $title The original page title
+	 *
+	 * @return string Updated the page title
+	 */
+	public function update_page_title( $admin_title, $title ) {
+		if ( $this->title === $title ) {
+			return __( 'ElasticPress Custom Search Results', 'elasticpress' );
+		}
+
+		return $admin_title;
 	}
 
 }

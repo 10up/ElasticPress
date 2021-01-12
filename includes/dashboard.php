@@ -725,7 +725,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'highlighting' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'highlighting', 'weighting', 'synonyms' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard-styles.min.css', [], EP_VERSION );
 	}
 
@@ -931,7 +931,7 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		'elasticpress',
-		'ElasticPress ' . esc_html__( 'Features', 'elasticpress' ),
+		esc_html__( 'ElasticPress Features', 'elasticpress' ),
 		esc_html__( 'Features', 'elasticpress' ),
 		$capability,
 		'elasticpress',
@@ -940,7 +940,7 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		'elasticpress',
-		'ElasticPress ' . esc_html__( 'Settings', 'elasticpress' ),
+		esc_html__( 'ElasticPress Settings', 'elasticpress' ),
 		esc_html__( 'Settings', 'elasticpress' ),
 		$capability,
 		'elasticpress-settings',
@@ -949,7 +949,7 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		'elasticpress',
-		'ElasticPress ' . esc_html__( 'Index Health', 'elasticpress' ),
+		esc_html__( 'ElasticPress Index Health', 'elasticpress' ),
 		esc_html__( 'Index Health', 'elasticpress' ),
 		$capability,
 		'elasticpress-health',
