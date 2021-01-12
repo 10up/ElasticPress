@@ -40,6 +40,7 @@ function setup() {
 	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_skip_install' );
+	add_action( 'wp_ajax_ep_cli_index', __NAMESPACE__ . '\action_wp_ajax_ep_cli_index' );
 	add_action( 'wp_ajax_ep_index', __NAMESPACE__ . '\action_wp_ajax_ep_index' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
 	add_action( 'wp_ajax_ep_cancel_index', __NAMESPACE__ . '\action_wp_ajax_ep_cancel_index' );
@@ -54,6 +55,8 @@ function setup() {
 	add_action( 'manage_sites_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 	add_action( 'manage_blogs_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 	add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
+	add_action( 'wp_ajax_ep_site_admin', __NAMESPACE__ . '\action_wp_ajax_ep_site_admin' );
+	add_action( 'rest_api_init', __NAMESPACE__ . '\setup_endpoint' );
 }
 
 /**
@@ -365,6 +368,26 @@ function action_wp_ajax_ep_notice_dismiss() {
 }
 
 /**
+ * Getting the status of ongoing index fired by WP CLI
+ *
+ * @since  2.1
+ */
+function action_wp_ajax_ep_cli_index() {
+	if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
+		wp_send_json_error();
+		exit;
+	}
+
+	$index_meta = \ElasticPress\Utils\get_indexing_status();
+
+	if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
+		wp_send_json_success( $index_meta );
+	}
+
+	wp_send_json_success( array( 'is_finished' => true ) );
+}
+
+/**
  * Continue index
  *
  * @since  2.1
@@ -375,10 +398,11 @@ function action_wp_ajax_ep_index() {
 		exit;
 	}
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$index_meta = get_site_option( 'ep_index_meta', false );
-	} else {
-		$index_meta = get_option( 'ep_index_meta', false );
+	$index_meta = \ElasticPress\Utils\get_indexing_status();
+
+	if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
+		wp_send_json_success( $index_meta );
+		exit;
 	}
 
 	$global_indexables     = Indexables::factory()->get_all( true, true );
@@ -675,6 +699,14 @@ function action_wp_ajax_ep_cancel_index() {
 		exit;
 	}
 
+	$index_meta = \ElasticPress\Utils\get_indexing_status();
+
+	if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
+		set_transient( 'ep_wpcli_sync_interrupted', true, 5 );
+		wp_send_json_success();
+		exit;
+	}
+
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		delete_site_option( 'ep_index_meta' );
 	} else {
@@ -738,13 +770,13 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
+		$index_meta = \ElasticPress\Utils\get_indexing_status();
+
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$index_meta           = get_site_option( 'ep_index_meta', [] );
 			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
 			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
-			$index_meta           = get_option( 'ep_index_meta', [] );
 			$wpcli_sync           = (bool) get_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
 			$last_sync            = get_option( 'ep_last_sync', false );
@@ -796,8 +828,9 @@ function action_admin_enqueue_dashboard_scripts() {
 		$data['sync_paused']          = esc_html__( 'Sync paused', 'elasticpress' );
 		$data['sync_syncing']         = esc_html__( 'Syncing', 'elasticpress' );
 		$data['sync_initial']         = esc_html__( 'Starting sync', 'elasticpress' );
-		$data['sync_wpcli']           = esc_html__( "WP CLI sync is occurring. Refresh the page to see if it's finished", 'elasticpress' );
+		$data['sync_wpcli']           = esc_html__( 'WP CLI sync is occurring.', 'elasticpress' );
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
+		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
 
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 	}
@@ -1137,4 +1170,49 @@ function action_wp_ajax_ep_site_admin() {
 	];
 
 	return wp_send_json_success( $data );
+}
+
+/**
+ * Registers the API endpoint
+ */
+function setup_endpoint() {
+	register_rest_route(
+		'elasticpress/v1',
+		'indexing_status',
+		[
+			'methods'             => 'GET',
+			'callback'            => __NAMESPACE__ . '\handle_indexing_status',
+			'permission_callback' => '__return_true',
+		]
+	);
+}
+
+/**
+ * Handle the fetch for indexing status
+ */
+function handle_indexing_status() {
+	$indexing_status = \ElasticPress\Utils\get_indexing_status();
+
+	$status = array(
+		'method'        => '',
+		'items_indexed' => 0,
+		'total_items'   => 0,
+		'indexable'     => '',
+	);
+
+	if ( ! empty( $indexing_status ) ) {
+		if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
+			$status['method']        = $indexing_status['method'];
+			$status['items_indexed'] = $indexing_status['items_indexed'];
+			$status['total_items']   = $indexing_status['total_items'];
+			$status['indexable']     = $indexing_status['slug'];
+		} else {
+			$status['method']        = 'dashboard';
+			$status['items_indexed'] = isset( $indexing_status['offset'] ) ? $indexing_status['offset'] : 0;
+			$status['total_items']   = isset( $indexing_status['found_items'] ) ? $indexing_status['found_items'] : 0;
+			$status['indexable']     = isset( $indexing_status['current_sync_item']['indexable'] ) ? $indexing_status['current_sync_item']['indexable'] : '';
+		}
+	}
+
+	return $status;
 }

@@ -44,6 +44,15 @@ class Command extends WP_CLI_Command {
 	private $temporary_wp_actions = [];
 
 	/**
+	 * Create Command
+	 *
+	 * @since  3.5.2
+	 */
+	public function __construct() {
+		add_filter( 'pre_transient_ep_wpcli_sync_interrupted', [ $this, 'custom_get_transient' ], 10, 2 );
+	}
+
+	/**
 	 * Activate a feature.
 	 *
 	 * @synopsis <feature>
@@ -819,6 +828,8 @@ class Command extends WP_CLI_Command {
 
 				foreach ( $query['objects'] as $object ) {
 
+					$this->should_interrupt_sync();
+
 					if ( $no_bulk ) {
 						/**
 						 * Index objects one by one
@@ -837,7 +848,7 @@ class Command extends WP_CLI_Command {
 							$synced++;
 						}
 
-						$this->reset_transient( $no_bulk_count, (int) $query['total_objects'] );
+						$this->reset_transient( $no_bulk_count, (int) $query['total_objects'], $indexable->slug );
 
 						/**
 						 * Fires after one by one indexing an object in CLI
@@ -872,7 +883,7 @@ class Command extends WP_CLI_Command {
 						if ( ! empty( $objects ) && ( count( $objects ) + $killed_object_count ) >= absint( count( $query['objects'] ) ) ) {
 							$index_objects = $objects;
 
-							$this->reset_transient( (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] );
+							$this->reset_transient( (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'], $indexable->slug );
 
 							for ( $attempts = 1; $attempts <= 3; $attempts++ ) {
 								$response = $indexable->bulk_index( array_keys( $index_objects ) );
@@ -1198,16 +1209,17 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Reset transient while indexing
 	 *
-	 * @param int $items_indexed Count of items already indexed.
-	 * @param int $total_items Total number of items to be indexed.
+	 * @param int    $items_indexed Count of items already indexed.
+	 * @param int    $total_items Total number of items to be indexed.
+	 * @param string $slug The slug of the indexable.
 	 *
 	 * @since 2.2
 	 */
-	private function reset_transient( $items_indexed, $total_items ) {
+	private function reset_transient( $items_indexed, $total_items, $slug ) {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			set_site_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items ), $this->transient_expiration );
+			set_site_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items, $slug ), $this->transient_expiration );
 		} else {
-			set_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items ), $this->transient_expiration );
+			set_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items, $slug ), $this->transient_expiration );
 		}
 	}
 
@@ -1220,9 +1232,11 @@ class Command extends WP_CLI_Command {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_wpcli_sync' );
 			delete_site_transient( 'ep_cli_sync_progress' );
+			delete_site_transient( 'ep_wpcli_sync_interrupted' );
 		} else {
 			delete_transient( 'ep_wpcli_sync' );
 			delete_transient( 'ep_cli_sync_progress' );
+			delete_transient( 'ep_wpcli_sync_interrupted' );
 		}
 	}
 
@@ -1356,6 +1370,85 @@ class Command extends WP_CLI_Command {
 				}
 			);
 		}
+	}
+
+	/**
+	 * Check if sync should be interrupted
+	 *
+	 * @since 3.5.2
+	 */
+	private function should_interrupt_sync() {
+		$should_interrupt_sync = get_transient( 'ep_wpcli_sync_interrupted' );
+
+		if ( $should_interrupt_sync ) {
+			WP_CLI::line( esc_html__( 'Sync was interrupted', 'elasticpress' ) );
+			$this->delete_transient_on_int( 2 );
+			WP_CLI::halt();
+		}
+	}
+
+	/**
+	 * Stop the indexing operation started from the dashboard.
+	 *
+	 * @subcommand stop-indexing
+	 * @since      3.5.2
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function stop_indexing( $args, $assoc_args ) {
+		$indexing_status = \ElasticPress\Utils\get_indexing_status();
+
+		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
+			WP_CLI::warning( esc_html__( 'There is no indexing operation running.', 'elasticpress' ) );
+		} else {
+			WP_CLI::line( esc_html__( 'Stoping indexing...', 'elasticpress' ) );
+
+			if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
+				set_transient( 'ep_wpcli_sync_interrupted', true, 5 );
+			} else {
+				set_transient( 'ep_sync_interrupted', true, 5 );
+			}
+
+			WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+		}
+	}
+
+	/**
+	 * Custom get_transient to WP-CLI env.
+	 *
+	 * We are using the direct SQL query instead of
+	 * the regular function call to retrieve the updated
+	 * value to stop the sync. Otherwise, we always get
+	 * false after the command is running even when the value
+	 * is updated.
+	 *
+	 * @since      3.5.2
+	 * @param mixed  $pre_transient The default value.
+	 * @param string $transient Transient name.
+	 * @return true|null
+	 */
+	public function custom_get_transient( $pre_transient, $transient) {
+		global $wpdb;
+
+		if ( wp_using_ext_object_cache() ) {
+			$should_interrupt_sync = wp_cache_get( $transient, 'transient' );
+		} else {
+			$options = $wpdb->options;
+
+			$should_interrupt_sync = $wpdb->get_var(
+				$wpdb->prepare(
+					"
+						SELECT option_value
+						FROM $options
+						WHERE option_name = %s
+						LIMIT 1
+					",
+					"_transient_{$transient}"
+				)
+			);
+		}
+
+		return $should_interrupt_sync ? (bool) $should_interrupt_sync : null;
 	}
 
 }
