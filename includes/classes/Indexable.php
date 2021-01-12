@@ -191,7 +191,7 @@ abstract class Indexable {
 		 * @param {string} $indexable_slug The slug of the indexable type that is being deleted
 		 */
 		do_action( 'ep_delete_' . $this->slug, $object_id, $this->slug );
-		
+
 		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
 	}
 

@@ -882,6 +882,7 @@ class WooCommerce extends Feature {
 			return $args;
 		}
 
+		// phpcs:disable WordPress.Security.NonceVerification
 		if ( empty( $_GET['min_price'] ) && empty( $_GET['max_price'] ) ) {
 			return $args;
 		}
@@ -918,6 +919,7 @@ class WooCommerce extends Feature {
 
 			$args['query']['range']['meta._price.long']['boost'] = 2.0;
 		}
+		// phpcs:enable WordPress.Security.NonceVerification
 
 		return $args;
 	}
