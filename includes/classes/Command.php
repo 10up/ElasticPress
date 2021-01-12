@@ -1424,7 +1424,7 @@ class Command extends WP_CLI_Command {
 	 * @since      3.5.2
 	 * @param mixed  $pre_transient The default value.
 	 * @param string $transient Transient name.
-	 * @return bool
+	 * @return true|null
 	 */
 	public function custom_get_transient( $pre_transient, $transient) {
 		global $wpdb;
@@ -1447,7 +1447,7 @@ class Command extends WP_CLI_Command {
 			);
 		}
 
-		return (bool) $should_interrupt_sync;
+		return $should_interrupt_sync ? (bool) $should_interrupt_sync : null;
 	}
 
 }
