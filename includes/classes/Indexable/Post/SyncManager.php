@@ -189,7 +189,7 @@ class SyncManager extends SyncManagerAbstract {
 
 		Indexables::factory()->get( 'post' )->delete( $post_id, false );
 
-        /**
+		/**
 		 * Make sure to reset sync queue in case an shutdown happens before a redirect
 		 * when a redirect has already been triggered.
 		 */
