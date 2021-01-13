@@ -733,24 +733,28 @@ class Autosuggest extends Feature {
 		}
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
-			<div class="field-name status"><?php esc_html_e( 'Security', 'elasticpress' ); ?></div>
+			<div class="field-name status"><?php esc_html_e( 'Connection', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
 				<?php
 				// If WordPress 5.2+, show debug in Health Check. Otherwise, show it if WP_DEBUG is enabled.
 				if ( version_compare( $wp_version, '5.2', '>=' ) || 0 === stripos( $wp_version, '5.2-' ) ) {
 					printf(
-						/* translators: 1: <a> tag; 2. </a> */
-						esc_html__( 'Your endpoint is secure! %1$sClick here to read more%2$s or %3$shere for debug information%4$s.', 'elasticpress' ),
-						'<a href="' . esc_url( 'https://elasticpress.io/kb/autosuggest' ) . '">',
+						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
+						esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
+						'<a href="' . esc_url( 'https://www.elasticpress.io/' ) . '">',
+						'</a>',
+						'<a href="' . esc_url( 'https://elasticpress.zendesk.com/hc/en-us' ) . '">',
 						'</a>',
 						'<a href="' . esc_url( admin_url( 'site-health.php?tab=debug' ) ) . '">',
 						'</a>'
 					);
 				} else {
 					printf(
-						/* translators: 1: <a> tag; 2. </a> */
-						esc_html__( 'Your endpoint is secure! %1$sClick here to read more%2$s.', 'elasticpress' ),
-						'<a href="' . esc_url( 'https://elasticpress.io/kb/autosuggest' ) . '">',
+						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+						esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %1$sLearn more about what this means%2$s.', 'elasticpress' ),
+						'<a href="' . esc_url( 'https://www.elasticpress.io/' ) . '">',
+						'</a>',
+						'<a href="' . esc_url( 'https://elasticpress.zendesk.com/hc/en-us' ) . '">',
 						'</a>'
 					);
 
