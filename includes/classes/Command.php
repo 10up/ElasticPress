@@ -1427,7 +1427,7 @@ class Command extends WP_CLI_Command {
 	 * @param string $transient Transient name.
 	 * @return true|null
 	 */
-	public function custom_get_transient( $pre_transient, $transient) {
+	public function custom_get_transient( $pre_transient, $transient ) {
 		global $wpdb;
 
 		if ( wp_using_ext_object_cache() ) {
@@ -1436,6 +1436,7 @@ class Command extends WP_CLI_Command {
 			$options = $wpdb->options;
 
 			$should_interrupt_sync = $wpdb->get_var(
+				// phpcs:disable
 				$wpdb->prepare(
 					"
 						SELECT option_value
@@ -1445,6 +1446,7 @@ class Command extends WP_CLI_Command {
 					",
 					"_transient_{$transient}"
 				)
+				// phpcs:enable
 			);
 		}
 
