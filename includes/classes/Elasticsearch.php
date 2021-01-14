@@ -298,10 +298,13 @@ class Elasticsearch {
 		/**
 		 * Filter whether to send the EP-Search-Term header or not.
 		 *
+		 * @todo Evaluate if we should remove tests for is_admin() and empty post types.
+		 *
 		 * @since  3.5.2
 		 * @hook ep_query_send_ep_search_term_header
-		 * @param  {bool} $send_header True means send the EP-Search-Term header
-		 * @return {bool} New $send_header value
+		 * @param  {bool}  $send_header True means send the EP-Search-Term header
+		 * @param  {array} $query_args  WP query args
+		 * @return {bool}  New $send_header value
 		 */
 		$send_ep_search_term_header = apply_filters(
 			'ep_query_send_ep_search_term_header',
@@ -310,12 +313,13 @@ class Elasticsearch {
 				! empty( $query_args['s'] ) &&
 				! is_admin() &&
 				! isset( $_GET['post_type'] ) // phpcs:ignore WordPress.Security.NonceVerification
-			)
+			),
+			$query_args
 		);
 
 		// If needed, send the search term as a header to ES so the backend understands what a normal query looks like
 		if ( $send_ep_search_term_header ) {
-			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
+			$request_args['headers']['EP-Search-Term'] = rawurlencode( $query_args['s'] );
 		}
 
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
