@@ -295,8 +295,26 @@ class Elasticsearch {
 			),
 		);
 
-		// If search, send the search term as a header to ES so the backend understands what a normal query looks like
-		if ( isset( $query_args['s'] ) && (bool) $query_args['s'] && ! is_admin() && ! isset( $_GET['post_type'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		/**
+		 * Filter whether to send the EP-Search-Term header or not.
+		 *
+		 * @since  3.5.2
+		 * @hook ep_query_send_ep_search_term_header
+		 * @param  {bool} $send_header True means send the EP-Search-Term header
+		 * @return {bool} New $send_header value
+		 */
+		$send_ep_search_term_header = apply_filters(
+			'ep_query_send_ep_search_term_header',
+			(
+				Utils\is_epio() &&
+				! empty( $query_args['s'] ) &&
+				! is_admin() &&
+				! isset( $_GET['post_type'] ) // phpcs:ignore WordPress.Security.NonceVerification
+			)
+		);
+
+		// If needed, send the search term as a header to ES so the backend understands what a normal query looks like
+		if ( $send_ep_search_term_header ) {
 			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
 		}
 
