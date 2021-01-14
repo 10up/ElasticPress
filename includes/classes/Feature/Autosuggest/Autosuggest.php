@@ -736,14 +736,17 @@ class Autosuggest extends Feature {
 			<div class="field-name status"><?php esc_html_e( 'Connection', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
 				<?php
+				$epio_link                = '';
+				$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
+
 				// If WordPress 5.2+, show debug in Health Check. Otherwise, show it if WP_DEBUG is enabled.
 				if ( version_compare( $wp_version, '5.2', '>=' ) || 0 === stripos( $wp_version, '5.2-' ) ) {
 					printf(
 						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
 						esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
-						'<a href="' . esc_url( 'https://www.elasticpress.io/' ) . '">',
+						'<a href="' . esc_url( $epio_link ) . '">',
 						'</a>',
-						'<a href="' . esc_url( 'https://elasticpress.zendesk.com/hc/en-us' ) . '">',
+						'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
 						'</a>',
 						'<a href="' . esc_url( admin_url( 'site-health.php?tab=debug' ) ) . '">',
 						'</a>'
@@ -752,9 +755,9 @@ class Autosuggest extends Feature {
 					printf(
 						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
 						esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %1$sLearn more about what this means%2$s.', 'elasticpress' ),
-						'<a href="' . esc_url( 'https://www.elasticpress.io/' ) . '">',
+						'<a href="' . esc_url( $epio_link ) . '">',
 						'</a>',
-						'<a href="' . esc_url( 'https://elasticpress.zendesk.com/hc/en-us' ) . '">',
+						'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
 						'</a>'
 					);
 
@@ -776,7 +779,7 @@ class Autosuggest extends Feature {
 							wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
 							wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
 							wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
-							wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ),
+							wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ), // phpcs:ignore
 						];
 
 						echo implode( '<br>', $fields ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
