@@ -325,15 +325,6 @@ class Weighting {
 		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
 		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
 
-		// Do a non-blocking search query to force the autosuggest hash to update
-		$url = add_query_arg( [ 's' => 'search test' ], home_url( '/' ) );
-		wp_remote_get(
-			$url,
-			[
-				'blocking' => false,
-			]
-		);
-
 		$this->redirect( $redirect_url );
 	}
 
@@ -402,6 +393,14 @@ class Weighting {
 		$final_config = array_replace_recursive( $previous_config_formatted, $new_config );
 
 		update_option( 'elasticpress_weighting', $final_config );
+
+		/**
+		 * Fires right after the weighting configuration is saved.
+		 *
+		 * @since  3.5.x
+		 * @hook ep_saved_weighting_configuration
+		 */
+		do_action( 'ep_saved_weighting_configuration' );
 
 		return $final_config;
 	}
