@@ -7,21 +7,23 @@ All notable changes to this project will be documented in this file, per [the Ke
 This is a bug fix release.
 
 Bug Fixes:
-* Fixed a typo in elasticpress.pot (props @alexwoollam)
-* Added actions that fire after bulk indexing (`ep_after_bulk_index`), in event of an invalid Elasticsearch response (`ep_invalid_response`), and before object deletion (`ep_delete_{indexable slug}`); added filters `ep_skip_post_meta_sync`, `pre_ep_index_sync_queue`, `ep_facet_taxonomies_size`, `epwr_decay_function`, `and epwr_score_mode` (props @brandon-m-skinner)
-* Don’t use timestamps that cause 5 digit years (props @brandon-m-skinner)
-* Added `ep_filesystem_args` filter (props @pjohanneson)
-* Fix admin notice on the Synonyms page (props @Rahmon)
-* Properly update slider numbers while sliding (props @Rahmon)
-* Add SKU field to Weighting Engine if WooCommerce is active and fix issue with overriding `search_fields` (props @felipeelia)
-* Support `author__in` and `author__not_in` queries (props @dinhtungdu)
-* Properly handle error from `get_terms()` (props @ciprianimike)
-* Fix incorrect titles page (props @Rahmon)
-* Update multiple unit tests (props @petenelson)
-* Show CLI indexing status in EP dashboard (props @Rahmon)
-* Fix linting tests (props @felipeelia)
-* Fix issue with price filter unsetting previous query (props @oscarssanchez)
-* Add `ep_query_send_ep_search_term_header` filter and don’t send `EP-Search-Term` header if not using ElasticPress.io (props @felipeelia)
+* Fixed a typo in elasticpress.pot. Props [@alexwoollam](https://github.com/alexwoollam)
+* Don’t use timestamps that cause 5 digit years. Props [@brandon-m-skinner](https://github.com/brandon-m-skinner)
+* Fix admin notice on the Synonyms page. Props [@Rahmon](https://github.com/Rahmon)
+* Properly update slider numbers while sliding. Props [@Rahmon](https://github.com/Rahmon)
+* Properly handle error from `get_terms()`. Props [@ciprianimike](https://github.com/ciprianimike)
+* Fix incorrect titles page. Props [@Rahmon](https://github.com/Rahmon)
+* Fix linting tests. Props [@felipeelia](https://github.com/felipeelia)
+* Fix issue with price filter unsetting previous query. Props [@oscarssanchez](https://github.com/oscarssanchez)
+
+Enhancements:
+* Added actions that fire after bulk indexing (`ep_after_bulk_index`), in event of an invalid Elasticsearch response (`ep_invalid_response`), and before object deletion (`ep_delete_{indexable slug}`); added filters `ep_skip_post_meta_sync`, `pre_ep_index_sync_queue`, `ep_facet_taxonomies_size`, `epwr_decay_function`, `and epwr_score_mode`. Props [@brandon-m-skinner](https://github.com/brandon-m-skinner)
+* Added `ep_filesystem_args` filter. Props [@pjohanneson](https://github.com/pjohanneson)
+* Add SKU field to Weighting Engine if WooCommerce is active and fix issue with overriding `search_fields`. Props [@felipeelia](https://github.com/felipeelia)
+* Support `author__in` and `author__not_in`. Props [@dinhtungdu](https://github.com/dinhtungdu) queries (props @dinhtungdu)
+* Update multiple unit tests. Props [@petenelson](https://github.com/petenelson)
+* Show CLI indexing status in EP dashboard. Props [@Rahmon](https://github.com/Rahmon)
+* Add `ep_query_send_ep_search_term_header` filter and don’t send `EP-Search-Term` header if not using ElasticPress.io. Props [@felipeelia](https://github.com/felipeelia)
 
 ## [3.5.1]
 
