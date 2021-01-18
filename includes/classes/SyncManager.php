@@ -154,7 +154,7 @@ abstract class SyncManager {
 		 *
 		 * @hook pre_ep_index_sync_queue
 		 * @param {boolean} $bail True to skip the rest of index_sync_queue(), false to continue normally
-		 * @param {\ElasticPress\SyncManager} $sync_manager SyncManager instance for the indexable
+		 * @param {SyncManager} $sync_manager SyncManager instance for the indexable
 		 * @param {string} $indexable_slug Slug of the indexable being synced
 		 * @since 3.5
 		 */
