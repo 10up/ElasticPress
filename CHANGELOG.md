@@ -875,6 +875,10 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.5.2]: https://github.com/10up/ElasticPress/compare/3.5.1...3.5.2
+[3.5.1]: https://github.com/10up/ElasticPress/compare/3.5...3.5.1
+[3.5.0]: https://github.com/10up/ElasticPress/compare/3.4.3...3.5
+[3.4.3]: https://github.com/10up/ElasticPress/compare/3.4.2...3.4.3
 [3.4.2]: https://github.com/10up/ElasticPress/compare/3.4.1...3.4.2
 [3.4.1]: https://github.com/10up/ElasticPress/compare/3.4...3.4.1
 [3.4.0]: https://github.com/10up/ElasticPress/compare/3.3...3.4
