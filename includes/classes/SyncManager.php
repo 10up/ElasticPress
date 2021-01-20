@@ -51,6 +51,10 @@ abstract class SyncManager {
 		add_action( 'shutdown', [ $this, 'index_sync_queue' ] );
 		add_filter( 'wp_redirect', [ $this, 'index_sync_queue_on_redirect' ], 10, 1 );
 
+		// Add machines permission check bypass
+		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ), 10, 3 );
+		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ), 10, 3 );
+
 		// Implemented by children.
 		$this->setup();
 	}
@@ -181,6 +185,29 @@ abstract class SyncManager {
 		 * when a redirect has already been triggered.
 		 */
 		$this->sync_queue = [];
+	}
+
+	/**
+	 * Filter to allow cron and WP CLI processes to index/delete documents
+	 *
+	 * @param  boolean $bypass The current filtered value
+	 * @param  int     $entity_id The id of the post being checked
+	 * @param  string  $slug The slug of the indexable
+	 * @return boolean Boolean indicating if permission checking should be bypased or not
+	 * @since  3.5
+	 */
+	public function filter_bypass_permission_checks_for_machines( $bypass, $entity_id, $slug ) {
+		// Allow index/delete during cron
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			return true;
+		}
+
+		// Allow index/delete during WP CLI commands
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return true;
+		}
+
+		return $bypass;
 	}
 
 	/**

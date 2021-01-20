@@ -51,7 +51,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function action_sync_on_update( $term_id ) {
-		if ( ! current_user_can( 'edit_term', $term_id ) ) {
+		if ( ! current_user_can( 'edit_term', $term_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $term_id, 'term' ) ) {
 			return;
 		}
 
@@ -150,7 +150,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function action_sync_on_delete( $term_id ) {
-		if ( ! current_user_can( 'delete_term', $term_id ) ) {
+		if ( ! current_user_can( 'delete_term', $term_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $term_id, 'term' ) ) {
 			return;
 		}
 

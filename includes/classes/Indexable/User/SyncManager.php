@@ -68,7 +68,8 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.0
 	 */
 	public function action_delete_user( $user_id ) {
-		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+
+		if ( ! current_user_can( 'edit_user', $user_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $user_id, 'user' ) ) {
 			return;
 		}
 
@@ -82,7 +83,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.0
 	 */
 	public function action_sync_on_update( $user_id ) {
-		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+		if ( ! current_user_can( 'edit_user', $user_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $user_id, 'user' ) ) {
 			return;
 		}
 

@@ -174,7 +174,10 @@ class Post extends Indexable {
 			'ep_indexing_last_processed_object_id' => null,
 		] );
 
-		$cache_key = md5( json_encode( $normalized_query_args ) );
+		// To prevent returning cached responses for the wrong subsite when query args
+		// are the same, we append the blog ID.
+		$blog_id = get_current_blog_id();
+		$cache_key = md5( json_encode( $normalized_query_args ) ) . $blog_id;
 
 		if ( ! isset( $object_counts[ $cache_key ] ) ) {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;

@@ -244,13 +244,13 @@ return array(
 			),
 		),
 		'properties'        => array(
-			'post_id'               => array(
+			'post_id'                 => array(
 				'type' => 'long',
 			),
-			'ID'                    => array(
+			'ID'                      => array(
 				'type' => 'long',
 			),
-			'post_author'           => array(
+			'post_author'             => array(
 				'type'       => 'object',
 				'properties' => array(
 					'display_name' => array(
@@ -285,15 +285,15 @@ return array(
 					),
 				),
 			),
-			'post_date'             => array(
+			'post_date'               => array(
 				'type'   => 'date',
 				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
-			'post_date_gmt'         => array(
+			'post_date_gmt'           => array(
 				'type'   => 'date',
 				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
-			'post_title'            => array(
+			'post_title'              => array(
 				'type'   => 'text',
 				'fields' => array(
 					'post_title' => array(
@@ -311,19 +311,19 @@ return array(
 					),
 				),
 			),
-			'post_excerpt'          => array(
+			'post_excerpt'            => array(
 				'type' => 'text',
 			),
-			'post_content'          => array(
+			'post_content'            => array(
 				'type' => 'text',
 			),
-			'post_content_filtered' => array(
+			'post_content_filtered'   => array(
 				'type' => 'text',
 			),
-			'post_status'           => array(
+			'post_status'             => array(
 				'type' => 'keyword',
 			),
-			'post_name'             => array(
+			'post_name'               => array(
 				'type'   => 'text',
 				'fields' => array(
 					'post_name' => array(
@@ -335,18 +335,18 @@ return array(
 					),
 				),
 			),
-			'post_modified'         => array(
+			'post_modified'           => array(
 				'type'   => 'date',
 				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
-			'post_modified_gmt'     => array(
+			'post_modified_gmt'       => array(
 				'type'   => 'date',
 				'format' => 'yyyy-MM-dd HH:mm:ss',
 			),
-			'post_parent'           => array(
+			'post_parent'             => array(
 				'type' => 'long',
 			),
-			'post_type'             => array(
+			'post_type'               => array(
 				'type'   => 'text',
 				'fields' => array(
 					'post_type' => array(
@@ -357,25 +357,25 @@ return array(
 					),
 				),
 			),
-			'post_mime_type'        => array(
+			'post_mime_type'          => array(
 				'type' => 'keyword',
 			),
-			'permalink'             => array(
+			'permalink'               => array(
 				'type' => 'keyword',
 			),
-			'guid'                  => array(
+			'guid'                    => array(
 				'type' => 'keyword',
 			),
-			'terms'                 => array(
+			'terms'                   => array(
 				'type' => 'object',
 			),
-			'post_meta'             => array(
+			'post_meta'               => array(
 				'type' => 'object',
 			),
-			'meta'                  => array(
+			'meta'                    => array(
 				'type' => 'object',
 			),
-			'date_terms'            => array(
+			'date_terms'              => array(
 				'type'       => 'object',
 				'properties' => array(
 					'year'          => array( // 4 digit year (e.g. 2011).
@@ -413,7 +413,7 @@ return array(
 					),
 				),
 			),
-			'date_gmt_terms' => array(
+			'date_gmt_terms'          => array(
 				'type'       => 'object',
 				'properties' => array(
 					'year'          => array( // 4 digit year (e.g. 2011).
@@ -451,7 +451,7 @@ return array(
 					),
 				),
 			),
-			'modified_date_terms'   => array(
+			'modified_date_terms'     => array(
 				'type'       => 'object',
 				'properties' => array(
 					'year'          => array( // 4 digit year (e.g. 2011).

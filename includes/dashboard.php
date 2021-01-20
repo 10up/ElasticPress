@@ -713,14 +713,13 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 
+		$wpcli_sync = Utils\is_indexing_wpcli();
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$index_meta           = get_site_option( 'ep_index_meta', [] );
-			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
 			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
 			$index_meta           = get_option( 'ep_index_meta', [] );
-			$wpcli_sync           = (bool) get_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
 			$last_sync            = get_option( 'ep_last_sync', false );
 		}

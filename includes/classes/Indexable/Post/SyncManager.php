@@ -51,32 +51,9 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
 		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
-
-		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ), 10, 2 );
-		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ), 10, 2 );
 	}
 
-	/**
-	 * Filter to allow cron and WP CLI processes to index/delete documents
-	 *
-	 * @param  boolean $bypass The current filtered value
-	 * @param  int     $post_id The id of the post being checked
-	 * @return boolean Boolean indicating if permission checking should be bypased or not
-	 * @since  3.5
-	 */
-	public function filter_bypass_permission_checks_for_machines( $bypass, $post_id ) {
-		// Allow index/delete during cron
-		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
-			return true;
-		}
 
-		// Allow index/delete during WP CLI commands
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
-			return true;
-		}
-
-		return $bypass;
-	}
 
 	/**
 	 * When whitelisted meta is updated, queue the post for reindex
@@ -338,7 +315,7 @@ class SyncManager extends SyncManagerAbstract {
 		 * @param  {int} $post_id ID of post
 		 * @return {boolean} New value
 		 */
-		if ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id, 'post' ) ) {
 			return;
 		}
 
@@ -381,7 +358,7 @@ class SyncManager extends SyncManagerAbstract {
 		 * @param  {int} $post_id ID of post
 		 * @return {boolean} New value
 		 */
-		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
+		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id, 'post' ) ) {
 			if ( ! current_user_can( 'edit_post', $post_id ) ) {
 				// Bypass saving if user does not have access to edit post
 				return;
