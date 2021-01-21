@@ -45,7 +45,14 @@ facets.forEach(facet => {
 	const facetSearchInput = facet.querySelector('.facet-search');
 	const facetTerms = facet.querySelector('.terms');
 	
+<<<<<<< HEAD
 >>>>>>> 36143e7b (Support multiple Facets)
+=======
+	if(!facetSearchInput) {
+		return;
+	}
+	
+>>>>>>> 61d3fb08 (Update facets.js)
 	facet.querySelector('.facet-search').addEventListener(
 		'keyup',
 		debounce((event) => {
