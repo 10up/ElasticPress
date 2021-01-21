@@ -301,7 +301,7 @@ class Post extends Indexable {
 		if ( $user instanceof WP_User ) {
 			$user_data = array(
 				'raw'          => $user->user_login,
-				'login'        => $user->user_login,
+				'login'        => sanitize_title( $user->user_login ),
 				'display_name' => $user->display_name,
 				'id'           => $user->ID,
 			);
