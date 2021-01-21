@@ -33,6 +33,10 @@ facets.forEach(facet => {
 	const facetSearchInput = facet.querySelector('.facet-search');
 	const facetTerms = facet.querySelector('.terms');
 	
+	if(!facetSearchInput) {
+		return;
+	}
+	
 	facet.querySelector('.facet-search').addEventListener(
 		'keyup',
 		debounce((event) => {
