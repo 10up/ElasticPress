@@ -56,14 +56,14 @@ class Post extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'posts_per_page'      => $this->get_bulk_items_per_page(),
-			'post_type'           => $this->get_indexable_post_types(),
-			'post_status'         => $this->get_indexable_post_status(),
-			'offset'              => 0,
-			'ignore_sticky_posts' => true,
-			'orderby'             => 'ID',
-			'order'               => 'desc',
-			'no_found_rows'       => true,
+			'posts_per_page'                  => $this->get_bulk_items_per_page(),
+			'post_type'                       => $this->get_indexable_post_types(),
+			'post_status'                     => $this->get_indexable_post_status(),
+			'offset'                          => 0,
+			'ignore_sticky_posts'             => true,
+			'orderby'                         => 'ID',
+			'order'                           => 'desc',
+			'no_found_rows'                   => true,
 			'ep_indexing_advanced_pagination' => true,
 		];
 
@@ -94,14 +94,17 @@ class Post extends Indexable {
 
 		// Enforce the following query args during advanced pagination to ensure things work correctly.
 		if ( $args['ep_indexing_advanced_pagination'] ) {
-			$args = array_merge( $args, [
-				'suppress_filters' => false,
-				'orderby'          => 'ID',
-				'order'            => 'DESC',
-				'paged'            => 1,
-				'offset'           => 0,
-				'no_found_rows'    => true,
-			] );
+			$args = array_merge(
+				$args,
+				[
+					'suppress_filters' => false,
+					'orderby'          => 'ID',
+					'order'            => 'DESC',
+					'paged'            => 1,
+					'offset'           => 0,
+					'no_found_rows'    => true,
+				]
+			);
 		}
 
 		add_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
@@ -135,7 +138,7 @@ class Post extends Indexable {
 			// On the first loopthrough we begin with the requested start ID. Afterwards, use the last processed ID to paginate.
 			$start_range_post_id = $requested_start_id;
 			if ( is_numeric( $last_processed_id ) ) {
-				$start_range_post_id =  $last_processed_id - 1;
+				$start_range_post_id = $last_processed_id - 1;
 			}
 
 			// Sanitize. Abort if unexpected data at this point.
@@ -150,7 +153,7 @@ class Post extends Indexable {
 
 			// Skip the end range if it's unnecessary.
 			$skip_ending_range = 0 === $requested_end_id;
-			$where = $skip_ending_range ? "AND {$range['start']} {$where}" : "AND {$range['start']} AND {$range['end']} {$where}";
+			$where             = $skip_ending_range ? "AND {$range['start']} {$where}" : "AND {$range['start']} AND {$range['end']} {$where}";
 		}
 
 		return $where;
@@ -166,18 +169,21 @@ class Post extends Indexable {
 		static $object_counts = [];
 
 		// Reset the pagination-related args for optimal caching.
-		$normalized_query_args = array_merge( $query_args, [
-			'offset'         => 0,
-			'paged'          => 1,
-			'posts_per_page' => 1,
-			'no_found_rows'  => false,
-			'ep_indexing_last_processed_object_id' => null,
-		] );
+		$normalized_query_args = array_merge(
+			$query_args,
+			[
+				'offset'                               => 0,
+				'paged'                                => 1,
+				'posts_per_page'                       => 1,
+				'no_found_rows'                        => false,
+				'ep_indexing_last_processed_object_id' => null,
+			]
+		);
 
 		// To prevent returning cached responses for the wrong subsite when query args
 		// are the same, we append the blog ID.
-		$blog_id = get_current_blog_id();
-		$cache_key = md5( json_encode( $normalized_query_args ) ) . $blog_id;
+		$blog_id   = get_current_blog_id();
+		$cache_key = md5( wp_json_encode( $normalized_query_args ) ) . $blog_id;
 
 		if ( ! isset( $object_counts[ $cache_key ] ) ) {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
@@ -363,34 +369,34 @@ class Post extends Indexable {
 		$post_content_filtered_allowed = apply_filters( 'ep_allow_post_content_filtered_index', true );
 
 		$post_args = array(
-			'post_id'               => $post_id,
-			'ID'                    => $post_id,
-			'post_author'           => $user_data,
-			'post_date'             => $post_date,
-			'post_date_gmt'         => $post_date_gmt,
-			'post_title'            => $post->post_title,
-			'post_excerpt'          => $post->post_excerpt,
-			'post_content_filtered' => $post_content_filtered_allowed ? apply_filters( 'the_content', $post->post_content ) : '',
-			'post_content'          => $post->post_content,
-			'post_status'           => $post->post_status,
-			'post_name'             => $post->post_name,
-			'post_modified'         => $post_modified,
-			'post_modified_gmt'     => $post_modified_gmt,
-			'post_parent'           => $post->post_parent,
-			'post_type'             => $post->post_type,
-			'post_mime_type'        => $post->post_mime_type,
-			'permalink'             => get_permalink( $post_id ),
-			'terms'                 => $this->prepare_terms( $post ),
-			'meta'                  => $this->prepare_meta_types( $this->prepare_meta( $post ) ), // post_meta removed in 2.4.
+			'post_id'                 => $post_id,
+			'ID'                      => $post_id,
+			'post_author'             => $user_data,
+			'post_date'               => $post_date,
+			'post_date_gmt'           => $post_date_gmt,
+			'post_title'              => $post->post_title,
+			'post_excerpt'            => $post->post_excerpt,
+			'post_content_filtered'   => $post_content_filtered_allowed ? apply_filters( 'the_content', $post->post_content ) : '',
+			'post_content'            => $post->post_content,
+			'post_status'             => $post->post_status,
+			'post_name'               => $post->post_name,
+			'post_modified'           => $post_modified,
+			'post_modified_gmt'       => $post_modified_gmt,
+			'post_parent'             => $post->post_parent,
+			'post_type'               => $post->post_type,
+			'post_mime_type'          => $post->post_mime_type,
+			'permalink'               => get_permalink( $post_id ),
+			'terms'                   => $this->prepare_terms( $post ),
+			'meta'                    => $this->prepare_meta_types( $this->prepare_meta( $post ) ), // post_meta removed in 2.4.
 			'date_terms'              => $this->prepare_date_terms( $post_date ),
 			'date_gmt_terms'          => $this->prepare_date_terms( $post_date_gmt ),
 			'modified_date_terms'     => $this->prepare_date_terms( $post_modified ),
 			'modified_date_gmt_terms' => $this->prepare_date_terms( $post_modified_gmt ),
-			'comment_count'         => $comment_count,
-			'comment_status'        => $comment_status,
-			'ping_status'           => $ping_status,
-			'menu_order'            => $menu_order,
-			'guid'                  => $post->guid,
+			'comment_count'           => $comment_count,
+			'comment_status'          => $comment_status,
+			'ping_status'             => $ping_status,
+			'menu_order'              => $menu_order,
+			'guid'                    => $post->guid,
 		);
 
 		/**
@@ -448,7 +454,7 @@ class Post extends Indexable {
 		// Then split up the results for individual indexing.
 		$date_terms = [];
 		foreach ( $terms_to_prepare as $term_name => $date_format ) {
-			$index_in_combined_format = array_search( $term_name, array_keys( $terms_to_prepare ) );
+			$index_in_combined_format = array_search( $term_name, array_keys( $terms_to_prepare ), true );
 			$date_terms[ $term_name ] = (int) $combined_dates[ $index_in_combined_format ];
 		}
 
@@ -1347,12 +1353,12 @@ class Post extends Indexable {
 			if ( 'any' !== $args['post_status'] ) {
 				$post_status = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
 				// Flatten out the array
-				$post_status = array_values( $post_status );
-				$post_status = array_map( 'trim', $post_status );
+				$post_status    = array_values( $post_status );
+				$post_status    = array_map( 'trim', $post_status );
 				$terms_map_name = 'terms';
 				if ( count( $post_status ) < 2 ) {
 					$terms_map_name = 'term';
-					$post_status = $post_status[0];
+					$post_status    = $post_status[0];
 				}
 
 				$filter['bool']['must'][] = array(
