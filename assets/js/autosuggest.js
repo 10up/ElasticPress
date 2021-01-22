@@ -265,7 +265,10 @@ function updateAutosuggestBox(options, input) {
 
 	suggestList.addEventListener('click', (event) => {
 		event.preventDefault();
-		const { target } = event;
+		const target =
+			event.target.tagName === epas.highlightingTag.toUpperCase()
+				? event.target.parentElement
+				: event.target;
 
 		if (autosuggestItems.includes(target)) {
 			selectItem(input, target);
