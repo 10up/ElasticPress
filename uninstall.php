@@ -56,6 +56,7 @@ class EP_Uninstaller {
 	 * @return void
 	 */
 	protected static function clean_options() {
+		global $wpdb;
 
 		// Delete options.
 		delete_site_option( 'ep_host' );
@@ -128,6 +129,33 @@ class EP_Uninstaller {
 		delete_transient( 'ep_autosuggest_query_request_cache' );
 		delete_site_transient( 'ep_related_posts_' );
 		delete_transient( 'ep_related_posts_' );
+
+		// Delete ep_related_posts_* transients
+		if ( is_plugin_active_for_network( 'elasticpress/elasticpress.php' ) ) {
+			$sites = get_sites();
+
+			foreach ( $sites as $site ) {
+				switch_to_blog( $site->blog_id );
+
+				$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
+
+				foreach ( $related_posts_transients as $related_posts_transient ) {
+					$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
+					delete_site_transient( $related_posts_transient );
+					delete_transient( $related_posts_transient );
+				}
+
+				restore_current_blog();
+			}
+		} else {
+			$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
+
+			foreach ( $related_posts_transients as $related_posts_transient ) {
+				$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
+				delete_site_transient( $related_posts_transient );
+				delete_transient( $related_posts_transient );
+			}
+		}
 	}
 
 	/**
