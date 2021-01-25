@@ -997,7 +997,7 @@ function action_admin_menu() {
  * @param string $context  The context where the function is running.
  * @return string          The updated language.
  */
-function use_language_in_setting( $language = 'english', $context ) {
+function use_language_in_setting( $language = 'english', $context = '' ) {
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
