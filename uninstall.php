@@ -133,8 +133,6 @@ class EP_Uninstaller {
 				delete_transient( 'ep_es_info' );
 				delete_site_transient( 'ep_autosuggest_query_request_cache' );
 				delete_transient( 'ep_autosuggest_query_request_cache' );
-				delete_site_transient( 'ep_related_posts_' );
-				delete_transient( 'ep_related_posts_' );
 
 				$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
 
@@ -184,7 +182,6 @@ class EP_Uninstaller {
 			delete_transient( 'ep_wpcli_sync' );
 			delete_transient( 'ep_es_info' );
 			delete_transient( 'ep_autosuggest_query_request_cache' );
-			delete_transient( 'ep_related_posts_' );
 
 			$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
 
