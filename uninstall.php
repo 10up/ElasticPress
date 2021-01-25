@@ -82,6 +82,52 @@ class EP_Uninstaller {
 		delete_site_option( 'ep_skip_install' );
 		delete_option( 'ep_last_cli_index' );
 		delete_site_option( 'ep_last_cli_index' );
+		delete_option( 'ep_credentials' );
+		delete_site_option( 'ep_credentials' );
+		delete_option( 'ep_prefix' );
+		delete_site_option( 'ep_prefix' );
+		delete_option( 'ep_language' );
+		delete_site_option( 'ep_language' );
+		delete_option( 'ep_bulk_setting' );
+		delete_site_option( 'ep_bulk_setting' );
+
+		// Delete admin notices options
+		delete_site_option( 'ep_hide_host_error_notice' );
+		delete_option( 'ep_hide_host_error_notice' );
+		delete_site_option( 'ep_hide_es_below_compat_notice' );
+		delete_option( 'ep_hide_es_below_compat_notice' );
+		delete_site_option( 'ep_hide_es_above_compat_notice' );
+		delete_option( 'ep_hide_es_above_compat_notice' );
+		delete_site_option( 'ep_hide_need_setup_notice' );
+		delete_option( 'ep_hide_need_setup_notice' );
+		delete_site_option( 'ep_hide_no_sync_notice' );
+		delete_option( 'ep_hide_no_sync_notice' );
+		delete_site_option( 'ep_hide_upgrade_sync_notice' );
+		delete_option( 'ep_hide_upgrade_sync_notice' );
+		delete_site_option( 'ep_hide_auto_activate_sync_notice' );
+		delete_option( 'ep_hide_auto_activate_sync_notice' );
+		delete_site_option( 'ep_hide_using_autosuggest_defaults_notice' );
+		delete_option( 'ep_hide_using_autosuggest_defaults_notice' );
+		delete_site_option( 'ep_hide_yellow_health_notice' );
+		delete_option( 'ep_hide_yellow_health_notice' );
+
+		// Delete transients
+		delete_site_transient('ep_es_info_response_code');
+		delete_transient('ep_es_info_response_code');
+		delete_site_transient('ep_es_info_response_error');
+		delete_transient('ep_es_info_response_error');
+		delete_site_transient('logging_ep_es_info');
+		delete_transient('logging_ep_es_info');
+		delete_site_transient('ep_wpcli_sync_interrupted');
+		delete_transient('ep_wpcli_sync_interrupted');
+		delete_site_transient('ep_wpcli_sync');
+		delete_transient('ep_wpcli_sync');
+		delete_site_transient('ep_es_info');
+		delete_transient('ep_es_info');
+		delete_site_transient('ep_autosuggest_query_request_cache');
+		delete_transient('ep_autosuggest_query_request_cache');
+		delete_site_transient('ep_related_posts_');
+		delete_transient('ep_related_posts_');
 	}
 
 	/**
