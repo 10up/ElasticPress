@@ -112,22 +112,22 @@ class EP_Uninstaller {
 		delete_option( 'ep_hide_yellow_health_notice' );
 
 		// Delete transients
-		delete_site_transient('ep_es_info_response_code');
-		delete_transient('ep_es_info_response_code');
-		delete_site_transient('ep_es_info_response_error');
-		delete_transient('ep_es_info_response_error');
-		delete_site_transient('logging_ep_es_info');
-		delete_transient('logging_ep_es_info');
-		delete_site_transient('ep_wpcli_sync_interrupted');
-		delete_transient('ep_wpcli_sync_interrupted');
-		delete_site_transient('ep_wpcli_sync');
-		delete_transient('ep_wpcli_sync');
-		delete_site_transient('ep_es_info');
-		delete_transient('ep_es_info');
-		delete_site_transient('ep_autosuggest_query_request_cache');
-		delete_transient('ep_autosuggest_query_request_cache');
-		delete_site_transient('ep_related_posts_');
-		delete_transient('ep_related_posts_');
+		delete_site_transient( 'ep_es_info_response_code' );
+		delete_transient( 'ep_es_info_response_code' );
+		delete_site_transient( 'ep_es_info_response_error' );
+		delete_transient( 'ep_es_info_response_error' );
+		delete_site_transient( 'logging_ep_es_info' );
+		delete_transient( 'logging_ep_es_info' );
+		delete_site_transient( 'ep_wpcli_sync_interrupted' );
+		delete_transient( 'ep_wpcli_sync_interrupted' );
+		delete_site_transient( 'ep_wpcli_sync' );
+		delete_transient( 'ep_wpcli_sync' );
+		delete_site_transient( 'ep_es_info' );
+		delete_transient( 'ep_es_info' );
+		delete_site_transient( 'ep_autosuggest_query_request_cache' );
+		delete_transient( 'ep_autosuggest_query_request_cache' );
+		delete_site_transient( 'ep_related_posts_' );
+		delete_transient( 'ep_related_posts_' );
 	}
 
 	/**
