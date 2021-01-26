@@ -45,6 +45,7 @@ class Upgrades {
 		 */
 		$routines = [
 			'3.5.2' => [ 'upgrade_3_5_2', 'init' ],
+			'3.5.3' => [ 'upgrade_3_5_3', 'init' ]
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -117,6 +118,36 @@ class Upgrades {
 		);
 
 		update_option( 'elasticpress_weighting', $weighting_options );
+	}
+
+	/**
+	 * Upgrade routine of v3.5.3.
+	 *
+	 * Check if synonyms post has the correct post type, otherwise,
+	 * change it to the correct one.
+	 */
+	public function upgrade_3_5_3() {
+		$synonyms_post_id = get_option( 'elasticpress_synonyms_post_id', '' );
+
+		if ( ! $synonyms_post_id ) {
+			delete_option( 'elasticpress_synonyms_post_id' );
+
+			return;
+		}
+
+		$synonyms_post = get_post( $synonyms_post_id );
+
+		if ( ! $synonyms_post ) {
+			delete_option( 'elasticpress_synonyms_post_id' );
+
+			return;
+		}
+
+		if ( 'ep-synonym' !== $synonyms_post->post_type ) {
+			$synonyms_post->post_type = 'ep-synonym';
+
+			wp_update_post( $synonyms_post );
+		}
 	}
 
 	/**
