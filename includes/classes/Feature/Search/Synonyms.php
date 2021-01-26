@@ -408,6 +408,7 @@ class Synonyms {
 				[
 					'ID'           => $this->get_synonym_post_id(),
 					'post_content' => $content,
+					'post_type'    => self::POST_TYPE_NAME,
 				]
 			);
 
