@@ -1,0 +1,41 @@
+name: Linting
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  eslint:
+    name: eslint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: install node v12
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12
+    - name: npm install
+      run: npm install
+    - name: eslint
+      run: npm run lint-js
+  phpcs:
+    name: phpcs
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.2'
+        coverage: none
+        tools: composer:v1
+    - name: composer install
+      run: composer install
+    - name: PHPCS check
+      run: composer run lint
