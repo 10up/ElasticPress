@@ -250,7 +250,7 @@ class Synonyms {
 		if ( ! $this->synonym_post_id ) {
 			$this->synonym_post_id = get_option( 'elasticpress_synonyms_post_id', false );
 
-			if ( false === $this->synonym_post_id ) {
+			if ( false === $this->synonym_post_id || ! $this->synonym_post_exists( $this->synonym_post_id ) ) {
 				$post_id = wp_insert_post(
 					[
 						'post_title'   => __( 'Elasticpress Synonyms', 'elasticpress' ),
@@ -408,6 +408,7 @@ class Synonyms {
 				[
 					'ID'           => $this->get_synonym_post_id(),
 					'post_content' => $content,
+					'post_type'    => self::POST_TYPE_NAME,
 				]
 			);
 
@@ -766,5 +767,15 @@ class Synonyms {
 			'value'   => trim( sanitize_text_field( $token ) ),
 			'primary' => $primary,
 		);
+	}
+
+	/**
+	 * Check if synonym post exists
+	 *
+	 * @param int $id The post id.
+	 * @return boolean
+	 */
+	private function synonym_post_exists( $id ) {
+		return is_string( get_post_status( $id ) );
 	}
 }
