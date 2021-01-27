@@ -45,7 +45,7 @@ class Upgrades {
 		 */
 		$routines = [
 			'3.5.2' => [ 'upgrade_3_5_2', 'init' ],
-			'3.5.3' => [ 'upgrade_3_5_3', 'init' ]
+			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
