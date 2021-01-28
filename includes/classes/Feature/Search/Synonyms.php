@@ -780,9 +780,15 @@ class Synonyms {
 	 * @return int|WP_Error
 	 */
 	private function update_synonym_post( $content ) {
+		$synonym_post_id = $this->get_synonym_post_id();
+
+		if ( ! $synonym_post_id ) {
+			return $synonym_post_id;
+		}
+
 		return wp_insert_post(
 			[
-				'ID'           => $this->get_synonym_post_id(),
+				'ID'           => $synonym_post_id,
 				'post_content' => $content,
 				'post_type'    => self::POST_TYPE_NAME,
 			]
