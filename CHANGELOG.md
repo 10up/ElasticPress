@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.5.3]
+
+This is a bug fix release.
+
+Bug Fixes:
+* Fixed a bug where the `ep-synonym` post type is updated to a regular post, which can cause it to be accidentally deleted. Props [@Rahmon](https://github.com/Rahmon)
+* Fixed CSS formatting issues in the Settings and Features menus. Props [@Rahmon](https://github.com/Rahmon) 
+
 ## [3.5.2]
 
 This is a bug fix release.
