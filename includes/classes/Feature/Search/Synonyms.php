@@ -201,7 +201,7 @@ class Synonyms {
 				$message = __( 'Successfully updated synonym filter.', 'elasticpress' );
 				break;
 			case 'error-update-post':
-				$message = __( 'There was an error storing you synoyms.', 'elasticpress' );
+				$message = __( 'There was an error storing your synonyms.', 'elasticpress' );
 				break;
 			case 'error-update-index':
 				$message = __( 'There was a problem updating the index with your synonyms. If you have not indexed your data, please run an index.', 'elasticpress' );
