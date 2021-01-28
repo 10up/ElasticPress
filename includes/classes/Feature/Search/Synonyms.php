@@ -166,8 +166,7 @@ class Synonyms {
 	 */
 	public function admin_page() {
 		include EP_PATH . '/includes/partials/header.php';
-		$synonym_post_id = $this->get_synonym_post_id();
-		$post            = get_post( $synonym_post_id );
+
 		?>
 		<div class="wrap">
 			<form action="<?php echo esc_url( $this->get_form_action() ); ?>" method="POST">
@@ -248,21 +247,19 @@ class Synonyms {
 	 */
 	public function get_synonym_post_id() {
 		if ( ! $this->synonym_post_id ) {
-			$this->synonym_post_id = get_option( 'elasticpress_synonyms_post_id', false );
+			$query_synonym_post = new \WP_Query(
+				array(
+					'fields'         => 'ids',
+					'post_type'      => self::POST_TYPE_NAME,
+					'posts_per_page' => 1,
+					'orderby'        => 'modified',
+				)
+			);
 
-			if ( false === $this->synonym_post_id || ! $this->synonym_post_exists( $this->synonym_post_id ) ) {
-				$post_id = wp_insert_post(
-					[
-						'post_title'   => __( 'Elasticpress Synonyms', 'elasticpress' ),
-						'post_content' => $this->example_synonym_list(),
-						'post_type'    => self::POST_TYPE_NAME,
-					]
-				);
+			$this->synonym_post_id = 1 === $query_synonym_post->post_count ? $query_synonym_post->posts[0] : false;
 
-				if ( $post_id ) {
-					update_option( 'elasticpress_synonyms_post_id', $post_id );
-					$this->synonym_post_id = $post_id;
-				}
+			if ( ! $this->synonym_post_id ) {
+				$this->synonym_post_id = $this->insert_default_synonym_post();
 			}
 		}
 
@@ -403,14 +400,7 @@ class Synonyms {
 				$content = implode( PHP_EOL, [ $lines[0], $lines[2], $lines[3] ] );
 			}
 
-			// Save the content.
-			$post_id = ! ! wp_insert_post(
-				[
-					'ID'           => $this->get_synonym_post_id(),
-					'post_content' => $content,
-					'post_type'    => self::POST_TYPE_NAME,
-				]
-			);
+			$post_id = $this->update_synonym_post( $content );
 
 			// Update Elasticsearch
 			$update = $this->update_synonyms();
@@ -423,7 +413,7 @@ class Synonyms {
 
 		$result = 'success';
 
-		if ( ! $post_id ) {
+		if ( ! $post_id || is_wp_error( $post_id ) ) {
 			$result = 'error-update-post';
 		}
 
@@ -770,12 +760,32 @@ class Synonyms {
 	}
 
 	/**
-	 * Check if synonym post exists
+	 * Insert default synonym post
 	 *
-	 * @param int $id The post id.
-	 * @return boolean
+	 * @return int|WP_Error
 	 */
-	private function synonym_post_exists( $id ) {
-		return is_string( get_post_status( $id ) );
+	private function insert_default_synonym_post() {
+		return wp_insert_post(
+			[
+				'post_content' => $this->example_synonym_list(),
+				'post_type'    => self::POST_TYPE_NAME,
+			]
+		);
+	}
+
+	/**
+	 * Update synonym post
+	 *
+	 * @param string $content The content post.
+	 * @return int|WP_Error
+	 */
+	private function update_synonym_post( $content ) {
+		return wp_insert_post(
+			[
+				'ID'           => $this->get_synonym_post_id(),
+				'post_content' => $content,
+				'post_type'    => self::POST_TYPE_NAME,
+			]
+		);
 	}
 }
