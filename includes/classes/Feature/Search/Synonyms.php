@@ -769,7 +769,8 @@ class Synonyms {
 			[
 				'post_content' => $this->example_synonym_list(),
 				'post_type'    => self::POST_TYPE_NAME,
-			]
+			],
+			true
 		);
 	}
 
@@ -791,7 +792,8 @@ class Synonyms {
 				'ID'           => $synonym_post_id,
 				'post_content' => $content,
 				'post_type'    => self::POST_TYPE_NAME,
-			]
+			],
+			true
 		);
 	}
 }
