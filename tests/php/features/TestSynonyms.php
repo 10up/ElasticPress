@@ -49,8 +49,6 @@ class TestSynonyms extends BaseTestCase {
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
-		delete_option( 'elasticpress_synonyms_post_id' );
-		delete_site_option( 'elasticpress_synonyms_post_id' );
 	}
 
 	public function getFeature() {

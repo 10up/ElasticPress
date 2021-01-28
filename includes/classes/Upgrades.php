@@ -45,6 +45,7 @@ class Upgrades {
 		 */
 		$routines = [
 			'3.5.2' => [ 'upgrade_3_5_2', 'init' ],
+			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -117,6 +118,17 @@ class Upgrades {
 		);
 
 		update_option( 'elasticpress_weighting', $weighting_options );
+	}
+
+	/**
+	 * Upgrade routine of v3.5.3.
+	 *
+	 * Check if synonyms post has the correct post type, otherwise,
+	 * change it to the correct one.
+	 */
+	public function upgrade_3_5_3() {
+		delete_option( 'elasticpress_synonyms_post_id' );
+		delete_site_option( 'elasticpress_synonyms_post_id' );
 	}
 
 	/**
