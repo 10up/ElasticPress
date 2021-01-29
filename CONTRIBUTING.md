@@ -28,7 +28,7 @@ The `develop` branch is the development branch which means it contains the next 
 
 ## Release instructions
 
-1. If the new version requires a reindex, add its number to the `$reindex_versions` array in the `ElasticPress\Upgrades::check_reindex_needed()` method. If it is the case, remember to add that information to the Changelog list.
+1. If the new version requires a reindex, add its number to the `$reindex_versions` array in the `ElasticPress\Upgrades::check_reindex_needed()` method. If it is the case, remember to add that information to the Changelog listings in readme.txt and CHANGELOG.md.
 1. Branch: Starting from `develop`, cut a release branch named `release/X.Y.Z` for your changes.
 1. Version bump: Bump the version number in `elasticpress.php`, `package.json`, `readme.txt`, and any other relevant files if it does not already reflect the version being released.   In `elasticpress.php` update both the plugin "Version:" property and the plugin `EP_VERSION` constant.
 1. Changelog: Add/update the changelog in `CHANGELOG.md` and `readme.txt`, ensuring to link the release in the footer of `CHANGELOG.md`.
