@@ -530,7 +530,7 @@ class Search extends Feature {
 						 * @param  {array} $args WP_Query arguments
 						 * @return  {string} New boost mode
 						 */
-						'boost_mode' => apply_filters( 'epwr_boost_mode', 'sum', $formatted_args, $args ),
+						'boost_mode' => apply_filters( 'epwr_boost_mode', 'multiply', $formatted_args, $args ),
 					),
 				);
 
