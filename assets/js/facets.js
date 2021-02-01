@@ -6,7 +6,11 @@ import { debounce } from './utils/helpers';
  * by the ep_facet_search_threshold filter
  *
  * @param {event} event - keyup
+<<<<<<< HEAD
  * @param {Node} facetTerms - terms node
+=======
+ * @param facetTerms
+>>>>>>> d7acb690 (Update facets.js)
  */
 const handleFacetSearch = (event, facetTerms) => {
 	const { target } = event;
@@ -41,9 +45,10 @@ facets.forEach((facet) => {
 
 =======
 
-facets.forEach(facet => {
+facets.forEach((facet) => {
 	const facetSearchInput = facet.querySelector('.facet-search');
 	const facetTerms = facet.querySelector('.terms');
+<<<<<<< HEAD
 	
 <<<<<<< HEAD
 >>>>>>> 36143e7b (Support multiple Facets)
@@ -53,6 +58,13 @@ facets.forEach(facet => {
 	}
 	
 >>>>>>> 61d3fb08 (Update facets.js)
+=======
+
+	if (!facetSearchInput) {
+		return;
+	}
+
+>>>>>>> d7acb690 (Update facets.js)
 	facet.querySelector('.facet-search').addEventListener(
 		'keyup',
 		debounce((event) => {
@@ -62,9 +74,14 @@ facets.forEach(facet => {
 
 			handleFacetSearch(event, facetTerms);
 <<<<<<< HEAD
+<<<<<<< HEAD
 		}, 200),
 	);
 =======
 		}, 200)
 >>>>>>> 36143e7b (Support multiple Facets)
+=======
+		}, 200),
+	);
+>>>>>>> d7acb690 (Update facets.js)
 });
