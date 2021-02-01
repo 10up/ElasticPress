@@ -7,10 +7,14 @@ import { debounce } from './utils/helpers';
  *
  * @param {event} event - keyup
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @param {Node} facetTerms - terms node
 =======
  * @param facetTerms
 >>>>>>> d7acb690 (Update facets.js)
+=======
+ * @param {Node} facetTerms - terms node
+>>>>>>> c12f3d42 (Add facetTerms type and description)
  */
 const handleFacetSearch = (event, facetTerms) => {
 	const { target } = event;
