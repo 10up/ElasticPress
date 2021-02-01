@@ -6,6 +6,7 @@ import { debounce } from './utils/helpers';
  * by the ep_facet_search_threshold filter
  *
  * @param {event} event - keyup
+ * @param facetTerms
  */
 const handleFacetSearch = (event, facetTerms) => {
 	const { target } = event;
@@ -29,14 +30,14 @@ const handleFacetSearch = (event, facetTerms) => {
  */
 const facets = document.querySelectorAll('.widget_ep-facet');
 
-facets.forEach(facet => {
+facets.forEach((facet) => {
 	const facetSearchInput = facet.querySelector('.facet-search');
 	const facetTerms = facet.querySelector('.terms');
-	
-	if(!facetSearchInput) {
+
+	if (!facetSearchInput) {
 		return;
 	}
-	
+
 	facet.querySelector('.facet-search').addEventListener(
 		'keyup',
 		debounce((event) => {
@@ -45,5 +46,6 @@ facets.forEach(facet => {
 			}
 
 			handleFacetSearch(event, facetTerms);
-		}, 200)
+		}, 200),
+	);
 });
