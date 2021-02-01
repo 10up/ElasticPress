@@ -6,7 +6,7 @@ import { debounce } from './utils/helpers';
  * by the ep_facet_search_threshold filter
  *
  * @param {event} event - keyup
- * @param facetTerms
+ * @param {Node} facetTerms - terms node
  */
 const handleFacetSearch = (event, facetTerms) => {
 	const { target } = event;
