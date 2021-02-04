@@ -1358,7 +1358,7 @@ class Post extends Indexable {
 		}
 
 		if ( isset( $args['offset'] ) ) {
-			$formatted_args['from'] = $args['offset'];
+			$formatted_args['from'] = (int) $args['offset'];
 		}
 
 		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
