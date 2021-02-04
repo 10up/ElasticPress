@@ -432,7 +432,7 @@ class Post extends Indexable {
 
 					$terms_dic[ $term->term_id ]['facet'] = json_encode( $terms_dic[ $term->term_id ] );
 
-					if ( ! $allow_hierarchy ) {
+					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
 					}
 				}
