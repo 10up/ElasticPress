@@ -227,7 +227,8 @@ return array(
 								'type' => 'keyword',
 							),
 							'facet'             => array(
-								'type' => 'keyword',
+								'type' => 'object',
+								'enabled' => false,
 							),
 							'term_order'       => array(
 								'type' => 'long',
