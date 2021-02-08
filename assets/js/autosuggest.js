@@ -172,6 +172,12 @@ async function esSearch(query, searchTerm) {
 		},
 	};
 
+	if (epas?.http_headers && typeof epas.http_headers === 'object') {
+		Object.keys(epas.http_headers).forEach((name) => {
+			fetchConfig.headers[name] = epas.http_headers[name];
+		});
+	}
+
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
 		fetchConfig.headers['EP-Search-Term'] = searchTerm;
@@ -234,7 +240,7 @@ function updateAutosuggestBox(options, input) {
 
 	// create markup for list items
 	// eslint-disable-next-line
-	for ( i = 0; resultsLimit > i; ++i ) {
+	for (i = 0; resultsLimit > i; ++i) {
 		const { text, url } = options[i];
 		const escapedText = escapeDoubleQuotes(text);
 
@@ -297,7 +303,7 @@ function hideAutosuggestBox() {
 	// hide all EP results containers
 	containers.forEach((container) => {
 		// eslint-disable-next-line
-		container.style = 'display: none;';
+		container.style = "display: none;";
 	});
 
 	return true;
