@@ -240,7 +240,7 @@ function updateAutosuggestBox(options, input) {
 
 	// create markup for list items
 	// eslint-disable-next-line
-	for (i = 0; resultsLimit > i; ++i) {
+	for ( i = 0; resultsLimit > i; ++i ) {
 		const { text, url } = options[i];
 		const escapedText = escapeDoubleQuotes(text);
 
@@ -303,7 +303,7 @@ function hideAutosuggestBox() {
 	// hide all EP results containers
 	containers.forEach((container) => {
 		// eslint-disable-next-line
-		container.style = "display: none;";
+		container.style = 'display: none;';
 	});
 
 	return true;
