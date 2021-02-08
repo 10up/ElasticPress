@@ -1,0 +1,48 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - tests/wpa-with-instructions
+      - develop
+      - master
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  wpa:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Start MySQL
+      run: sudo systemctl start mysql.service
+
+    - name: Configure sysctl limits
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+
+    - name: Setup Elasticsearch
+      uses: getong/elasticsearch-action@v1.2
+      with:
+        elasticsearch version: '7.5.0'
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.2'
+        coverage: none
+        tools: composer:v1
+
+
+    - name: Install dependencies
+      run: composer install
+
+    - name: Test
+      run: ./vendor/bin/wpacceptance run -vvv
