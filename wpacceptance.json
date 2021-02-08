@@ -13,15 +13,17 @@
     "environment_instructions": [
       [
         "install wordpress where url is http://ep.test",
-        "activate plugin where name is woocommerce"
+        "install plugin where name is woocommerce"
       ]
     ],
     "project_path": "%WP_ROOT%/wp-content/plugins/elasticpress",
     "before_scripts" : [
-      "wp --allow-root user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password",
-      "wp --allow-root config set EP_HOST 'http://localhost:9200/'",
-      "wp --allow-root plugin activate elasticpress",
       "mv tests/wpa/test-plugins/* ../",
-      "mkdir -p ../../mu-plugins/ && mv tests/wpa/test-mu-plugins/* ../../mu-plugins/"
+      "mkdir -p ../../mu-plugins/ && mv tests/wpa/test-mu-plugins/* ../../mu-plugins/",
+      "wp --allow-root user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password",
+      "wp --allow-root config set EP_HOST 'http://host.docker.internal:9200/'",
+      "wp --allow-root plugin activate elasticpress",
+      "wp --allow-root elasticpress index --setup --show-errors",
+      "wp --allow-root elasticpress stats"
     ]
 }
