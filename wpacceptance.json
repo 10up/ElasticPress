@@ -18,9 +18,9 @@
     ],
     "project_path": "%WP_ROOT%/wp-content/plugins/elasticpress",
     "before_scripts" : [
-      "wp user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password",
-      "wp config set EP_HOST 'http://localhost:9200/'",
-      "wp plugin activate elasticpress",
+      "wp --allow-root user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password",
+      "wp --allow-root config set EP_HOST 'http://localhost:9200/'",
+      "wp --allow-root plugin activate elasticpress",
       "mv tests/wpa/test-plugins/* ../",
       "mkdir -p ../../mu-plugins/ && mv tests/wpa/test-mu-plugins/* ../../mu-plugins/"
     ]
