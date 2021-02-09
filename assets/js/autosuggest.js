@@ -356,7 +356,6 @@ function checkForOrderedPosts(hits, searchTerm) {
  *
  * @param {boolean} isLoading - whether suggestions are loading
  * @param {Node} input - search input field
- * @returns {boolean} returns true
  */
 function setFormIsLoading(isLoading, input) {
 	const form = input.closest('form');
