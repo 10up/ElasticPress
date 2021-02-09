@@ -358,7 +358,7 @@ function checkForOrderedPosts(hits, searchTerm) {
  * @param {Node} input - search input field
  * @returns {boolean} returns true
  */
-function toggleFormIsLoading(isLoading, input) {
+function setFormIsLoading(isLoading, input) {
 	const form = input.closest('form');
 
 	if (isLoading) {
@@ -366,8 +366,6 @@ function toggleFormIsLoading(isLoading, input) {
 	} else {
 		form.classList.remove('is-loading');
 	}
-
-	return true;
 }
 
 /**
@@ -568,7 +566,7 @@ function init() {
 		}
 
 		if (searchText.length >= 2) {
-			toggleFormIsLoading(true, input);
+			setFormIsLoading(true, input);
 
 			const query = buildSearchQuery(searchText, placeholder, queryJSON);
 
@@ -588,7 +586,7 @@ function init() {
 				hideAutosuggestBox();
 			}
 
-			toggleFormIsLoading(false, input);
+			setFormIsLoading(false, input);
 		} else if (searchText.length === 0) {
 			hideAutosuggestBox();
 		}
