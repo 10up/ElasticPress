@@ -265,11 +265,28 @@ class Facets extends Feature {
 
 		$facets = [];
 
+		/**
+		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
+		 * Values available out-of-the-box are:
+		 *  - slug (default)
+		 *  - term_id
+		 *  - name
+		 *  - parent
+		 *  - term_taxonomy_id
+		 *  - term_order
+		 *  - facet (retrieves a JSON representation of the term object)
+		 *
+		 * @hook ep_facet_use_field
+		 * @param  {string} $field The term field to use
+		 * @return  {string} The chosen term field
+		 */
+		$facet_field = apply_filters( 'ep_facet_use_field', 'slug' );
+
 		foreach ( $taxonomies as $slug => $taxonomy ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
 					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
-					'field' => 'terms.' . $slug . '.slug',
+					'field' => 'terms.' . $slug . '.' . $facet_field,
 				),
 			);
 		}
