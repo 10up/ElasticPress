@@ -194,7 +194,30 @@ class Search extends Feature {
 			return $formatted_args;
 		}
 
-		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		/** This filter is documented in search_setup() method. */
+		$should_send_in_ajax = ( defined( 'DOING_AJAX' ) && DOING_AJAX ) && apply_filters( 'ep_ajax_wp_query_integration', false );
+
+		/**
+		 * Filter whether to add the `highlight` clause in the query or not.
+		 *
+		 * @since  3.6.0
+		 * @hook ep_highlight_should_add_clause
+		 * @param  {bool}  $add_highlight_clause True means the clause should be added.
+		 * @param  {array} $formatted_args  ep_formatted_args array
+		 * @param  {array} $args  WP query args
+		 * @return {bool}  New $add_highlight_clause value
+		 */
+		$add_highlight_clause = apply_filters(
+			'ep_highlight_should_add_clause',
+			(
+				( ! is_admin() || $should_send_in_ajax ) &&
+				( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST )
+			),
+			$formatted_args,
+			$args
+		);
+
+		if ( ! $add_highlight_clause ) {
 			return $formatted_args;
 		}
 
@@ -242,17 +265,15 @@ class Search extends Feature {
 		$opening_tag = '<' . $highlight_tag . ' class="' . $highlight_class . '">';
 		$closing_tag = '</' . $highlight_tag . '>';
 
-		// only for search query
-		if ( ! is_admin() && ! empty( $args['s'] ) ) {
-			foreach ( $fields_to_highlight as $field ) {
-				$formatted_args['highlight']['fields'][ $field ] = [
-					'pre_tags'            => [ $opening_tag ],
-					'post_tags'           => [ $closing_tag ],
-					'type'                => 'plain',
-					'number_of_fragments' => 0,
-				];
-			}
+		foreach ( $fields_to_highlight as $field ) {
+			$formatted_args['highlight']['fields'][ $field ] = [
+				'pre_tags'            => [ $opening_tag ],
+				'post_tags'           => [ $closing_tag ],
+				'type'                => 'plain',
+				'number_of_fragments' => 0,
+			];
 		}
+
 		return $formatted_args;
 	}
 
