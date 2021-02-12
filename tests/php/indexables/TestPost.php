@@ -75,7 +75,7 @@ class TestPost extends BaseTestCase {
 
 		// The mapping is currently expected to have both `mappings` and `settings` elements
 		$this->assertArrayHasKey( 'settings', $mapping_and_settings, 'Built mapping is missing settings array' );
-		$this->assertArrayHasKey( 'mapping', $mapping_and_settings, 'Built mapping is missing mapping array' );
+		$this->assertArrayHasKey( 'mappings', $mapping_and_settings, 'Built mapping is missing mapping array' );
 	}
 
 	/**
