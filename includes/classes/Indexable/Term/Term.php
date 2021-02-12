@@ -604,6 +604,18 @@ class Term extends Indexable {
 	}
 
 	/**
+	 * Build settings for an index
+	 *
+	 * @since  3.6
+	 * @return array
+	 */
+	public function build_settings() {
+		$mapping_and_settings = $this->build_mapping();
+
+		return $mapping_and_settings[ 'settings' ];
+	}
+
+	/**
 	 * Prepare a term document for indexing
 	 *
 	 * @param  int $term_id Term ID
