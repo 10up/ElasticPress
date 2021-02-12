@@ -114,6 +114,29 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Test the building of index settings
+	 * 
+	 * @since 3.6
+	 * @group post
+	 */
+	public function testTermBuildSettings() {
+		$settings = ElasticPress\Indexables::factory()->get( 'term' )->build_settings();
+
+		$expected_keys = array(
+			'index.mapping.total_fields.limit',
+			'index.max_result_window',
+			'index.max_shingle_diff',
+			'analysis',
+		);
+
+		$actual_keys = array_keys( $settings );
+
+		$diff = array_diff( $expected_keys, $actual_keys );
+
+		$this->assertEquals( $diff, array() );
+	}
+
+	/**
 	 * Test a simple term sync
 	 *
 	 * @since 3.3

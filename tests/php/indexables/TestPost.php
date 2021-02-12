@@ -79,6 +79,32 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test the building of index settings
+	 * 
+	 * @since 3.6
+	 * @group post
+	 */
+	public function testPostBuildSettings() {
+		$settings = ElasticPress\Indexables::factory()->get( 'post' )->build_settings();
+
+		$expected_keys = array(
+			'index.number_of_shards',
+			'index.number_of_replicas',
+			'index.mapping.total_fields.limit',
+			'index.max_shingle_diff',
+			'index.max_result_window',
+			'index.mapping.ignore_malformed',
+			'analysis',
+		);
+
+		$actual_keys = array_keys( $settings );
+
+		$diff = array_diff( $expected_keys, $actual_keys );
+
+		$this->assertEquals( $diff, array() );
+	}
+
+	/**
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
