@@ -812,6 +812,13 @@ abstract class Indexable {
 	abstract public function build_mapping();
 
 	/**
+	 * Must implement a method that handles building settings for ES
+	 *
+	 * @return array
+	 */
+	abstract public function build_settings();
+
+	/**
 	 * Must implement a method that handles sending mapping to ES
 	 *
 	 * @return boolean
