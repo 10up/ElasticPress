@@ -1420,7 +1420,7 @@ class Post extends Indexable {
 		/**
 		 * Filter formatted Elasticsearch [ost ]query (entire query)
 		 *
-		 * @hook ep_formatted_args_query
+		 * @hook ep_formatted_args
 		 * @param {array} $formatted_args Formatted Elasticsearch query
 		 * @param {array} $query_vars Query variables
 		 * @param {array} $query Query part
