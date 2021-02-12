@@ -751,7 +751,7 @@ class User extends Indexable {
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
-	
+
 	/**
 	 * Build mapping for users
 	 *
