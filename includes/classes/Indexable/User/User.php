@@ -811,7 +811,7 @@ class User extends Indexable {
 	public function build_settings() {
 		$mapping_and_settings = $this->build_mapping();
 
-		return $mapping_and_settings[ 'settings' ];
+		return $mapping_and_settings['settings'];
 	}
 
 	/**
