@@ -100,6 +100,20 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Test the building of index mappings
+	 * 
+	 * @since 3.6
+	 * @group term
+	 */
+	public function testTermBuildMapping() {
+		$mapping_and_settings = ElasticPress\Indexables::factory()->get( 'term' )->build_mapping();
+
+		// The mapping is currently expected to have both `mappings` and `settings` elements
+		$this->assertArrayHasKey( 'settings', $mapping_and_settings, 'Built mapping is missing settings array' );
+		$this->assertArrayHasKey( 'mappings', $mapping_and_settings, 'Built mapping is missing mapping array' );
+	}
+
+	/**
 	 * Test a simple term sync
 	 *
 	 * @since 3.3

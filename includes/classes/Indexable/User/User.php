@@ -747,6 +747,18 @@ class User extends Indexable {
 	 * @return boolean
 	 */
 	public function put_mapping() {
+		$mapping = $this->build_mapping();
+
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+	}
+
+	/**
+	 * Build mapping for users
+	 *
+	 * @since  3.6
+	 * @return array
+	 */
+	public function build_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 		if ( empty( $es_version ) ) {
 			/**
@@ -787,7 +799,7 @@ class User extends Indexable {
 		 */
 		$mapping = apply_filters( 'ep_user_mapping', $mapping );
 
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return $mapping;
 	}
 
 	/**
