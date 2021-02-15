@@ -4,7 +4,7 @@
  *
  * All health checkers extend this class.
  *
- * @since  2.1
+ * @since  3.6.0
  * @package elasticpress
  */
 

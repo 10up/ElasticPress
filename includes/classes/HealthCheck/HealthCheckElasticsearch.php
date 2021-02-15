@@ -2,6 +2,7 @@
 /**
  * Elasticsearch health check
  *
+ * @since  3.6.0
  * @package elasticpress
  */
 
