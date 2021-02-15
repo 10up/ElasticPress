@@ -75,6 +75,7 @@ define( 'EP_ES_VERSION_MIN', '5.0' );
 
 require_once __DIR__ . '/includes/compat.php';
 require_once __DIR__ . '/includes/utils.php';
+require_once __DIR__ . '/includes/health-check.php';
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
 $network_activated = Utils\is_network_activated( EP_FILE );
