@@ -1434,6 +1434,61 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Set the algorithm version.
+	 *
+	 * @synopsis [--version=<version>] [--default]
+	 * @subcommand set-algorithm-version
+	 *
+	 * @since       3.5.4
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function set_search_algorithm_version( $args, $assoc_args ) {
+		if ( empty( $assoc_args['version'] ) && ! isset( $assoc_args['default'] ) ) {
+			WP_CLI::error( esc_html__( 'This command expects a version number or the --default flag.', 'elasticpress' ) );
+		}
+
+		if ( ! empty( $assoc_args['default'] ) ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				delete_site_option( 'ep_search_algorithm_version' );
+			} else {
+				delete_option( 'ep_search_algorithm_version' );
+			}
+		} else {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				update_site_option( 'ep_search_algorithm_version', $assoc_args['version'] );
+			} else {
+				update_option( 'ep_search_algorithm_version', $assoc_args['version'], false );
+			}
+		}
+
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+	}
+
+	/**
+	 * Get the algorithm version.
+	 *
+	 * @subcommand get-algorithm-version
+	 *
+	 * @since       3.5.4
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_search_algorithm_version( $args, $assoc_args ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$value = get_site_option( 'ep_search_algorithm_version', '' );
+		} else {
+			$value = get_option( 'ep_search_algorithm_version', '' );
+		}
+
+		if ( empty( $value ) ) {
+			WP_CLI::line( 'default' );
+		} else {
+			WP_CLI::line( $value );
+		}
+	}
+
+	/**
 	 * Custom get_transient to WP-CLI env.
 	 *
 	 * We are using the direct SQL query instead of

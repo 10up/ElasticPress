@@ -1086,7 +1086,22 @@ class Post extends Indexable {
 		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
-		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', '3.5' );
+		$default_algorithm_version = '3.5';
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$search_algorithm_version_option = get_site_option( 'ep_search_algorithm_version', $default_algorithm_version );
+		} else {
+			$search_algorithm_version_option = get_option( 'ep_search_algorithm_version', $default_algorithm_version );
+		}
+
+		/**
+		 * Filter the algorithm version to be used.
+		 *
+		 * @since  3.5
+		 * @hook ep_search_algorithm_version
+		 * @param  {string} $search_algorithm_version Algorithm version.
+		 * @return  {string} New algorithm version
+		 */
+		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
 
 		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
 
