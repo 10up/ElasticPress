@@ -30,7 +30,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -55,6 +55,8 @@ class DashboardSyncTest extends TestBase {
 
 		$this->activatePlugin( $I, 'elasticpress', true );
 
+		$this->runCommand( 'wp elasticpress index --setup' );
+
 		$this->runCommand( 'wp elasticpress delete-index --network-wide' );
 
 		$I->moveTo( 'wp-admin/network/sites.php' );
@@ -67,7 +69,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -99,7 +101,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementVisible( '.pause-sync' );
 
@@ -136,7 +138,7 @@ class DashboardSyncTest extends TestBase {
 
 		$this->runCommand( 'wp elasticpress index --setup' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		sleep( 1 );
 
@@ -163,7 +165,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		sleep( 1 );
 

@@ -19,6 +19,10 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$this->activatePlugin( $I, 'woocommerce' );
 
+		$I->click( '.woocommerce-profile-wizard__footer .woocommerce-profile-wizard__footer-link' );
+
+		$I->click( '.woocommerce-usage-modal__actions button.is-secondary' );
+
 		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
 
 		$this->assertStringContainsString( 'feature-active', $I->getElementAttribute( '.ep-feature-woocommerce', 'class' ) );
@@ -34,7 +38,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.ep-feature-woocommerce .settings-button' );
+		$I->executeJavaScript( 'document.querySelector( ".ep-feature-woocommerce .settings-button" ).click();' );
 
 		$I->click( '#feature_active_woocommerce_disabled' );
 

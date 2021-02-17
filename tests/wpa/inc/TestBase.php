@@ -32,6 +32,17 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 			$this->indexes = json_decode( $this->runCommand( 'wp elasticpress get-indexes' )['stdout'], true );
 
+			$post_index = '';
+			foreach ( $this->indexes as $index ) {
+				if ( false !== strpos( $index, '-post' ) ) {
+					$post_index = $index;
+				}
+			}
+
+			$ep_host = $this->runCommand( "wp eval 'echo \ElasticPress\Utils\get_host();'" )['stdout'];
+			$ep_host = rtrim( $ep_host, '/\\' );
+			$ep_host = str_replace( 'host.docker.internal', 'localhost', $ep_host );
+
 			/**
 			 * Set default feature settings
 			 */
@@ -54,7 +65,8 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 						'active' => 1,
 					],
 					'autosuggest'       => [
-						'active' => 1,
+						'active'       => 1,
+						'endpoint_url' => "{$ep_host}/{$post_index}/_search",
 					],
 					'woocommerce'       => [
 						'active' => 0,
@@ -190,7 +202,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		$actor->typeInField( '#post-title-0', $data['title'] );
 
 		$actor->getPage()->type(
-			'.editor-default-block-appender__content',
+			'.block-editor-default-block-appender__content',
 			$data['content'],
 			[ 'delay' => 10 ]
 		);
@@ -212,14 +224,14 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 			$actor->click( '.editor-post-publish-panel__toggle' );
 
-			// Some time we can't click the publish button using this method $actor->click( '.editor-post-publish-button' );	
+			// Some time we can't click the publish button using this method $actor->click( '.editor-post-publish-button' );
 			$actor->executeJavaScript( 'document.querySelector( ".editor-post-publish-button" ).click();' );
 
-			$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
+			// $actor->waitUntilElementEnabled( '.editor-post-publish-button' );
 
-			$actor->click( '.editor-post-publish-button' );
+			// $actor->click( '.editor-post-publish-button' );
 
-			$actor->waitUntilElementVisible( '.components-notice' );
+			$actor->waitUntilElementVisible( '.components-snackbar' );
 		}
 	}
 

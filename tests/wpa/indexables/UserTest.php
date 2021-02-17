@@ -47,7 +47,7 @@ class UserTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -98,7 +98,7 @@ class UserTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
