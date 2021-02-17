@@ -17,7 +17,7 @@
         "install plugin where name is debug-bar and status is network active",
         "install plugin where name is debug-bar-elasticpress and status is network active",
         "install plugin where name is wordpress-importer and status is network active",
-        "install plugin where name is woocommerce and status is inactive"
+        "install plugin where name is woocommerce"
       ]
     ],
     "project_path": "%WP_ROOT%/wp-content/plugins/elasticpress",
@@ -33,6 +33,8 @@
 
       "wp --allow-root config set EP_HOST 'http://host.docker.internal:9200/'",
       "wp --allow-root plugin activate elasticpress",
-      "wp --allow-root elasticpress index --setup --show-errors"
+      "wp --allow-root elasticpress index --setup --show-errors",
+
+      "wp --allow-root plugin deactivate woocommerce"
     ]
 }
