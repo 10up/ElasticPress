@@ -41,7 +41,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 			$ep_host = $this->runCommand( "wp eval 'echo \ElasticPress\Utils\get_host();'" )['stdout'];
 			$ep_host = rtrim( $ep_host, '/\\' );
-			$ep_host = str_replace( 'host.docker.internal', 'localhost', $ep_host );
+			$ep_host = str_replace( 'host.docker.internal', '127.0.0.1', $ep_host );
 
 			/**
 			 * Set default feature settings
