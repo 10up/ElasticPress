@@ -11,6 +11,15 @@
 class UserTest extends TestBase {
 
 	/**
+	 * Setup functionality
+	 */
+	public function setUp() {
+		parent::setUp();
+
+		$this->runCommand( 'wp elasticpress index --setup' );
+	}
+
+	/**
 	 * Search user by username.
 	 *
 	 * @param string                      $username Username.
