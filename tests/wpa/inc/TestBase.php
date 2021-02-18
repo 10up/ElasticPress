@@ -32,54 +32,58 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 			$this->indexes = json_decode( $this->runCommand( 'wp elasticpress get-indexes' )['stdout'], true );
 
-			$post_index = '';
-			foreach ( $this->indexes as $index ) {
-				if ( false !== strpos( $index, '-post' ) ) {
-					$post_index = $index;
-				}
-			}
-
-			$ep_host = $this->runCommand( "wp eval 'echo \ElasticPress\Utils\get_host();'" )['stdout'];
-			$ep_host = rtrim( $ep_host, '/\\' );
-			$ep_host = str_replace( 'host.docker.internal', '127.0.0.1', $ep_host );
-
 			/**
 			 * Set default feature settings
 			 */
-			$this->updateFeatureSettings(
-				[
-					'search'            => [
-						'active'            => 1,
-						'highlight_enabled' => true,
-						'highlight_excerpt' => true,
-						'highlight_tag'     => 'mark',
-						'highlight_color'   => '#157d84',
-					],
-					'related_posts'     => [
-						'active' => 1,
-					],
-					'facets'            => [
-						'active' => 1,
-					],
-					'searchordering'    => [
-						'active' => 1,
-					],
-					'autosuggest'       => [
-						'active'       => 1,
-						'endpoint_url' => "{$ep_host}/{$post_index}/_search",
-					],
-					'woocommerce'       => [
-						'active' => 0,
-					],
-					'protected_content' => [
-						'active'         => 0,
-						'force_inactive' => 1,
-					],
-					'users'             => [
-						'active' => 1,
-					],
-				]
-			);
+			$feature_settings = [
+				'search'            => [
+					'active'            => 1,
+					'highlight_enabled' => true,
+					'highlight_excerpt' => true,
+					'highlight_tag'     => 'mark',
+					'highlight_color'   => '#157d84',
+				],
+				'related_posts'     => [
+					'active' => 1,
+				],
+				'facets'            => [
+					'active' => 1,
+				],
+				'searchordering'    => [
+					'active' => 1,
+				],
+				'autosuggest'       => [
+					'active' => 1,
+				],
+				'woocommerce'       => [
+					'active' => 0,
+				],
+				'protected_content' => [
+					'active'         => 0,
+					'force_inactive' => 1,
+				],
+				'users'             => [
+					'active' => 1,
+				],
+			];
+
+			// If not using EP.io, set the autosuggest endpoint.
+			$ep_host = $this->runCommand( "wp eval 'echo \ElasticPress\Utils\get_host();'" )['stdout'];
+			if ( ! preg_match( '#elasticpress\.io#i', $ep_host ) ) {
+				$ep_host = rtrim( $ep_host, '/\\' );
+				$ep_host = str_replace( 'host.docker.internal', '127.0.0.1', $ep_host );
+
+				$post_index = '';
+				foreach ( $this->indexes as $index ) {
+					if ( false !== strpos( $index, '-post' ) ) {
+						$post_index = $index;
+					}
+				}
+
+				$feature_settings['autosuggest']['endpoint_url'] = "{$ep_host}/{$post_index}/_search";
+			}
+
+			$this->updateFeatureSettings( $feature_settings );
 
 			/**
 			 * Set default weighting
