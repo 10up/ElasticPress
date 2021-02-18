@@ -29,11 +29,11 @@ jobs:
     - name: Install dependencies
       run: composer install
 
-    - name: Setup WP Snapshots
-      run: ./vendor/bin/wpsnapshots configure 10up --aws_key=${{ secrets.AWS_ACCESS_KEY_ID }} --aws_secret=${{ secrets.AWS_SECRET_ACCESS_KEY }} --user_name=wp-acceptance --user_email=travis@10up.com
+    - name: Test Local
+      run: ./run-wpacceptance.sh -l --attemps=2
 
-    - name: Test
-      run: ./vendor/bin/wpacceptance run
+    - name: Test EP.io
+      run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attemps=2
 
   phpunit:
     runs-on: ubuntu-latest
