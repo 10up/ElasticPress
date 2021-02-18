@@ -46,19 +46,32 @@ fi
 if [ $INSTALL_ES_DOCKER -eq 1 ]
 then
   echo "Creating Elasticsearch container"
+
+rm wpa-elasticsearch.yml
+cat <<EOT >> wpa-elasticsearch.yml
+http.host: 0.0.0.0
+
+http.cors.enabled : true
+http.cors.allow-origin : "*"
+http.cors.allow-methods : OPTIONS, HEAD, GET, POST, PUT, DELETE
+http.cors.allow-headers : X-Requested-With,X-Auth-Token,Content-Type, Content-Length
+EOT
+
   docker run \
     -d \
-    -v '/home/elia/wp-local-docker-sites/ep-wpa-tests-test/config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:cached' \
+    -v "$(pwd)/wpa-elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:cached" \
     -p 9200:9200 -p 9300:9300 \
     -e "xpack.security.enabled=false" \
     -e "discovery.type=single-node" \
     -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
     docker.elastic.co/elasticsearch/elasticsearch:5.6.16
 
-  ES_HOST="http://host.docker.internal:9200/"
+  EP_HOST="http://host.docker.internal:9200/"
 fi
 
 if [ ! -z $EP_HOST ] || [ ! -z $ES_SHIELD] || [ ! -z $EP_INDEX_PREFIX]; then
+  echo "Creating custom-ep-credentials.php MU Plugin"
+
   PLUGIN_PATH='./tests/wpa/test-mu-plugins/custom-ep-credentials.php'
   rm $PLUGIN_PATH
   touch $PLUGIN_PATH

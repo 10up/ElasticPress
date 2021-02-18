@@ -10,3 +10,4 @@ screenshots
 .DS_Store
 
 /tests/wpa/test-mu-plugins/custom-ep-credentials.php
+wpa-elasticsearch.yml
