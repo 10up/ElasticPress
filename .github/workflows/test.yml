@@ -33,6 +33,7 @@ jobs:
     needs: setup_tests
     runs-on: ubuntu-latest
 
+    steps:
     - name: Test Local
       run: ./run-wpacceptance.sh -l --attempts=2
 
@@ -40,6 +41,7 @@ jobs:
     needs: setup_tests
     runs-on: ubuntu-latest
 
+    steps:
     - name: Test EP.io
       run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=2
 
