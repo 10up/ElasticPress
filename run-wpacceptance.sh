@@ -20,8 +20,8 @@ for opt in "$@"; do
     -u=*|--ep-index-prefix=*)
       EP_INDEX_PREFIX="${opt#*=}"
       ;;
-    -t=*|--attemps=*)
-      ATTEMPS="${opt#*=}"
+    -t=*|--attempts=*)
+      ATTEMPTS="${opt#*=}"
       ;;
     -h|--help|*)
       DISPLAY_HELP=1
@@ -91,7 +91,7 @@ if [ ! -z $EP_HOST ] || [ ! -z $ES_SHIELD] || [ ! -z $EP_INDEX_PREFIX]; then
   fi
 fi
 
-for i in $(seq 1 $ATTEMPS); do
+for i in $(seq 1 $ATTEMPTS); do
 
   ./vendor/bin/wpacceptance run
 

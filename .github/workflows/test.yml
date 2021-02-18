@@ -12,7 +12,7 @@ on:
       - develop
 
 jobs:
-  wpa:
+  setup_tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,19 +29,25 @@ jobs:
     - name: Install dependencies
       run: composer install
 
+  wpa_local:
+    needs: setup_tests
+    runs-on: ubuntu-latest
+
     - name: Test Local
-      run: ./run-wpacceptance.sh -l --attemps=2
+      run: ./run-wpacceptance.sh -l --attempts=2
+
+  wpa_epio:
+    needs: setup_tests
+    runs-on: ubuntu-latest
 
     - name: Test EP.io
-      run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attemps=2
+      run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=2
 
   phpunit:
+    needs: setup_tests
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
     - name: Start MySQL
       run: sudo systemctl start mysql.service
 
@@ -56,16 +62,6 @@ jobs:
       uses: getong/elasticsearch-action@v1.2
       with:
         elasticsearch version: '7.5.0'
-
-    - name: Set PHP version
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '7.2'
-        coverage: none
-        tools: composer:v1
-
-    - name: Install dependencies
-      run: composer install
 
     - name: Setup WP Tests
       run: |
