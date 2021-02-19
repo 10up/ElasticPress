@@ -59,6 +59,18 @@ class Installer {
 	 * @since 3.0
 	 */
 	public function calculate_install_status() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$skip_install = get_site_option( 'ep_skip_install', false );
+		} else {
+			$skip_install = get_option( 'ep_skip_install', false );
+		}
+
+		if ( $skip_install ) {
+			$this->install_status = true;
+
+			return;
+		}
+
 		$host      = Utils\get_host();
 		$last_sync = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? get_site_option( 'ep_last_sync', false ) : get_option( 'ep_last_sync', false );
 

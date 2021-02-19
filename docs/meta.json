@@ -11,6 +11,9 @@
     "indexables": {
         "title": "Indexables"
     },
+    "react": {
+        "title": "React Components"
+    },
     "security": {
         "title": "Security"
     },
