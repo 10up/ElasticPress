@@ -6,6 +6,7 @@ module.exports = {
 		// JS files.
 		'admin-script': './assets/js/admin.js',
 		'autosuggest-script': './assets/js/autosuggest.js',
+		'geolocation-script': './assets/js/geolocation.js',
 		'dashboard-script': './assets/js/dashboard.js',
 		'facets-script': './assets/js/facets.js',
 		'sites-admin-script': './assets/js/sites-admin.js',
