@@ -6,10 +6,6 @@
  * @package elasticpress
  */
 
-// TODO: add styling to the button
-// TODO: test indexing across multiple ES versions
-// TODO: test the filters
-
 namespace ElasticPress\Feature\Geolocation;
 
 use ElasticPress\Feature as Feature;
