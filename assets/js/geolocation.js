@@ -1,4 +1,4 @@
-import { epgl } from 'window';
+const { epgl } = window;
 
 /**
  * Append the hidden inputs so we can submit lat long with the search form
