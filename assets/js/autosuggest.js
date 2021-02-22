@@ -352,6 +352,22 @@ function checkForOrderedPosts(hits, searchTerm) {
 }
 
 /**
+ * Add class to the form element while suggestions are being loaded
+ *
+ * @param {boolean} isLoading - whether suggestions are loading
+ * @param {Node} input - search input field
+ */
+function setFormIsLoading(isLoading, input) {
+	const form = input.closest('form');
+
+	if (isLoading) {
+		form.classList.add('is-loading');
+	} else {
+		form.classList.remove('is-loading');
+	}
+}
+
+/**
  * init method called if the epas endpoint is defined
  */
 function init() {
@@ -549,6 +565,8 @@ function init() {
 		}
 
 		if (searchText.length >= 2) {
+			setFormIsLoading(true, input);
+
 			const query = buildSearchQuery(searchText, placeholder, queryJSON);
 
 			// fetch the results
@@ -566,6 +584,8 @@ function init() {
 			} else {
 				hideAutosuggestBox();
 			}
+
+			setFormIsLoading(false, input);
 		} else if (searchText.length === 0) {
 			hideAutosuggestBox();
 		}
