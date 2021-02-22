@@ -163,15 +163,24 @@ class DashboardSyncTest extends TestBase {
 
 		$this->runCommand( 'wp elasticpress index --setup' );
 
+		// Slowing the index process a bit.
+		$old_value = $this->setPerIndexCycle( 10, $I );
+
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
-		sleep( 1 );
+		$I->waitUntilElementVisible( '.pause-sync' );
+
+		// Specially when requesting an external server, e.g. EP.io, we
+		// have to wait a bit for the AJAX requests.
+		sleep( 5 );
 
 		$I->executeJavaScript( 'document.querySelector( ".pause-sync" ).click();' );
 
-		sleep( 1 );
+		$I->waitUntilElementVisible( '.resume-sync' );
+
+		sleep( 5 );
 
 		$cli_result = $this->runCommand( 'wp elasticpress index' )['stdout'];
 
@@ -180,6 +189,8 @@ class DashboardSyncTest extends TestBase {
 		$I->executeJavaScript( 'document.querySelector( ".resume-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
+
+		$this->setPerIndexCycle( $old_value, $I );
 	}
 
 }

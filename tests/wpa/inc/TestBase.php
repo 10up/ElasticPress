@@ -338,4 +338,23 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			$actor->seeText( '"value": ' . $total, '.query-results' );
 		}
 	}
+
+	/**
+	 * Set the number of entries per cycle.
+	 *
+	 * @param integer $number
+	 * @param \WPAcceptance\PHPUnit\Actor $actor
+	 * @return string
+	 */
+	public function setPerIndexCycle( int $number, \WPAcceptance\PHPUnit\Actor $actor ) {
+		$actor->moveTo( 'wp-admin/admin.php?page=elasticpress-settings' );
+
+		$per_page = $actor->getElementAttribute( '#ep_bulk_setting', 'value' );
+
+		$actor->typeInField( '#ep_bulk_setting', (string) $number );
+
+		$actor->click( '#submit' );
+
+		return $per_page;
+	}
 }
