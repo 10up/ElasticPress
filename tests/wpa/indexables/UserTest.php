@@ -74,7 +74,7 @@ class UserTest extends TestBase {
 
 		$I->click( '.query-result-toggle' );
 
-		$I->seeText( '"total": 1', '.query-results' );
+		$this->checkTotal( 1, $I );
 
 		$I->seeText( '"user_email": "testuser@example.com"', '.query-results' );
 	}
@@ -125,7 +125,7 @@ class UserTest extends TestBase {
 
 		$I->click( '.query-result-toggle' );
 
-		$I->seeText( '"total": 1', '.query-results' );
+		$this->checkTotal( 1, $I );
 
 		$I->seeText( '"user_email": "testuser@example.com"', '.query-results' );
 

@@ -323,4 +323,19 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		$actor->waitUntilElementVisible( '#message' );
 	}
+
+	/**
+	 * Helper function to check for total entries found in Debug Bar.
+	 *
+	 * @param integer $total
+	 * @param \WPAcceptance\PHPUnit\Actor $actor
+	 */
+	public function checkTotal( int $total, \WPAcceptance\PHPUnit\Actor $actor ) {
+		// Different ES versions will return it in different ways.
+		try {
+			$actor->seeText( '"total": ' . $total, '.query-results' );
+		} catch ( \Exception $e ) {
+			$actor->seeText( '"value": ' . $total, '.query-results' );
+		}
+	}
 }
