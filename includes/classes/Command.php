@@ -1436,6 +1436,10 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Set the algorithm version.
 	 *
+	 * Set the algorithm version through the `ep_search_algorithm_version` option,
+	 * that will be used by the filter with same name.
+	 * Delete the option if `--default` is passed.
+	 *
 	 * @synopsis [--version=<version>] [--default]
 	 * @subcommand set-algorithm-version
 	 *
@@ -1467,6 +1471,9 @@ class Command extends WP_CLI_Command {
 
 	/**
 	 * Get the algorithm version.
+	 *
+	 * Get the value of the `ep_search_algorithm_version` option, or
+	 * `default` if empty.
 	 *
 	 * @subcommand get-algorithm-version
 	 *
