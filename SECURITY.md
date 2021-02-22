@@ -46,5 +46,5 @@ Past security advisories, if any, are listed below.
 
 | Advisory Number | Type               | Versions affected | Reported by           | Additional Information      |
 |-----------------|--------------------|:-----------------:|-----------------------|-----------------------------|
-| -               | -                  | -                 | -                     | -                           |
+| EP-2021-02-11 | CSRF Nonce Bypass | 3.5.2 - 3.5.3 | WordPress.org Plugin Review Team | [WPScan link](https://wpscan.com/vulnerability/ce655810-bd08-4042-ac3d-63def5c76994) |
 | -               | -                  | -                 | -                     | -                           |
