@@ -1209,11 +1209,21 @@ class Post extends Indexable {
 			 * Filter formatted Elasticsearch post query (only contains query part)
 			 *
 			 * @hook ep_formatted_args_query
-			 * @param {array} $query Current query
-			 * @param {array} $query_vars Query variables
-			 * @return  {array} New query
+			 * @param {array}  $query         Current query
+			 * @param {array}  $query_vars    Query variables
+			 * @param {string} $search_text   Search text
+			 * @param {array}  $search_fields Search fields
+			 * @return {array} New query
+			 *
+			 * @since 3.5.5 $search_text and $search_fields parameters added.
 			 */
-			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args );
+			$formatted_args['query'] = apply_filters(
+				'ep_formatted_args_query',
+				$query,
+				$args,
+				$search_text,
+				$search_fields
+			);
 		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
