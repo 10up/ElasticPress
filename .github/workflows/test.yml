@@ -30,10 +30,10 @@ jobs:
       run: composer install
 
     - name: Test Local
-      run: ./run-wpacceptance.sh -l --attempts=2
+      run: ./run-wpacceptance.sh -l --attempts=3
 
     - name: Test EP.io
-      run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=2
+      run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=3
 
   phpunit:
     runs-on: ubuntu-latest

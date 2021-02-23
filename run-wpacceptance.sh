@@ -97,11 +97,11 @@ for i in $(seq 1 $ATTEMPTS); do
 
   EXIT_CODE=$?
 
-  if [ $EXIT_CODE -gt 1 ]; then
+  if [ $EXIT_CODE -ge 1 ]; then
     echo "Retrying..."
     sleep 3
   else
-      break
+    break
   fi
 done
 
