@@ -433,7 +433,27 @@ class Weighting {
 							$field = 'post_author.display_name';
 						}
 
-						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
+						/**
+						 * Filter fields and their weitghting as used in the Elasticsearch query.
+						 *
+						 * @hook ep_query_weighting_fields
+						 * @param  {string} $weighted_field The field and its weight as used in the ES query.
+						 * @param  {string} $field          Field name
+						 * @param  {string} $weight         Weight value
+						 * @param  {array}  $fieldset       Current subset of formatted ES args
+						 * @param  {array}  $weights        Weight configuration
+						 * @return  {array} New weighted field string
+						 *
+						 * @since  3.5.5
+						 */
+						$fieldset['fields'][ $key ] = apply_filters(
+							'ep_query_weighting_fields',
+							"{$field}^{$weight}",
+							$field,
+							$weight,
+							$fieldset,
+							$weights
+						);
 					}
 				} else {
 					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
