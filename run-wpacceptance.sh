@@ -98,7 +98,15 @@ for i in $(seq 1 $ATTEMPTS); do
   EXIT_CODE=$?
 
   if [ $EXIT_CODE -ge 1 ]; then
-    echo "Retrying..."
+    echo
+    echo '-------------------------------'
+    echo
+    echo "         Retrying..."
+    echo "         Attempt #$(($i + 1))"
+    echo
+    echo '-------------------------------'
+    echo
+    echo
     sleep 3
   else
     break
