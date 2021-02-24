@@ -3,7 +3,7 @@
 INSTALL_ES_DOCKER=0
 ES_HOST=""
 ES_SHIELD=""
-ATTEMPS=1
+ATTEMPTS=1
 DISPLAY_HELP=0
 
 for opt in "$@"; do
@@ -38,7 +38,7 @@ if [ $DISPLAY_HELP -eq 1 ]; then
 	echo "-h=*, --ep-host=*             The remote Elasticsearch Host URL."
 	echo "-s=*, --es-shield=*           The Elasticsearch credentials, used in the ES_SHIELD constant."
 	echo "-u=*, --ep-index-prefix=*     The Elasticsearch credentials, used in the EP_INDEX_PREFIX constant."
-	echo "-t=*, --attemps=*             Number of times the tests should be executed if it fails."
+	echo "-t=*, --attempts=*             Number of times the tests should be executed if it fails."
 	echo "-h|--help                     Display this help screen"
 	exit
 fi
@@ -97,7 +97,7 @@ for i in $(seq 1 $ATTEMPTS); do
 
   EXIT_CODE=$?
 
-  if [ $EXIT_CODE -ge 1 ]; then
+  if [ $EXIT_CODE -ge 1 ] && [ $i -lt $ATTEMPTS ]; then
     echo
     echo '-------------------------------'
     echo
