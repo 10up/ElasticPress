@@ -1282,6 +1282,15 @@ class Command extends WP_CLI_Command {
 	public function clear_index() {
 		$this->delete_transient();
 
+		/**
+		 * Fires after the CLI `clear-index` command is executed.
+		 *
+		 * @hook ep_cli_clear_index
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_cli_clear_index' );
+
 		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
 

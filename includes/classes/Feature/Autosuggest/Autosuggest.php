@@ -96,6 +96,7 @@ class Autosuggest extends Feature {
 		add_action( 'ep_wp_cli_after_index', [ $this, 'delete_cached_query' ] );
 		add_action( 'ep_after_dashboard_index', [ $this, 'delete_cached_query' ] );
 		add_action( 'ep_after_update_feature', [ $this, 'delete_cached_query' ] );
+		add_action( 'ep_cli_clear_index', [ $this, 'delete_cached_query' ] );
 	}
 
 	/**
