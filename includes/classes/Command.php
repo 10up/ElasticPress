@@ -752,6 +752,17 @@ class Command extends WP_CLI_Command {
 			update_option( 'ep_last_cli_index', $index_results, false );
 		}
 
+		/**
+		 * Fires after executing a CLI index
+		 *
+		 * @hook ep_wp_cli_after_index
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_wp_cli_after_index', $args, $assoc_args );
+
 		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $index_time ) );
 
 		$this->delete_transient();
@@ -1269,7 +1280,25 @@ class Command extends WP_CLI_Command {
 	 * @since      3.4
 	 */
 	public function clear_index() {
+		/**
+		 * Fires before the CLI `clear-index` command is executed.
+		 *
+		 * @hook ep_cli_before_clear_index
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_cli_before_clear_index' );
+
 		$this->delete_transient();
+
+		/**
+		 * Fires after the CLI `clear-index` command is executed.
+		 *
+		 * @hook ep_cli_after_clear_index
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_cli_after_clear_index' );
 
 		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
@@ -1430,6 +1459,90 @@ class Command extends WP_CLI_Command {
 			}
 
 			WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+		}
+	}
+
+	/**
+	 * Set the algorithm version.
+	 *
+	 * Set the algorithm version through the `ep_search_algorithm_version` option,
+	 * that will be used by the filter with same name.
+	 * Delete the option if `--default` is passed.
+	 *
+	 * @synopsis [--version=<version>] [--default]
+	 * @subcommand set-algorithm-version
+	 *
+	 * @since       3.5.4
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function set_search_algorithm_version( $args, $assoc_args ) {
+		/**
+		 * Fires before the algorithm version is changed via WP-CLI.
+		 *
+		 * @hook ep_cli_before_set_search_algorithm_version
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_cli_before_set_search_algorithm_version', $args, $assoc_args );
+
+		if ( empty( $assoc_args['version'] ) && ! isset( $assoc_args['default'] ) ) {
+			WP_CLI::error( esc_html__( 'This command expects a version number or the --default flag.', 'elasticpress' ) );
+		}
+
+		if ( ! empty( $assoc_args['default'] ) ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				delete_site_option( 'ep_search_algorithm_version' );
+			} else {
+				delete_option( 'ep_search_algorithm_version' );
+			}
+		} else {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				update_site_option( 'ep_search_algorithm_version', $assoc_args['version'] );
+			} else {
+				update_option( 'ep_search_algorithm_version', $assoc_args['version'], false );
+			}
+		}
+
+		/**
+		 * Fires after the algorithm version is changed via WP-CLI.
+		 *
+		 * @hook ep_cli_after_set_search_algorithm_version
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_cli_after_set_search_algorithm_version', $args, $assoc_args );
+
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+	}
+
+	/**
+	 * Get the algorithm version.
+	 *
+	 * Get the value of the `ep_search_algorithm_version` option, or
+	 * `default` if empty.
+	 *
+	 * @subcommand get-algorithm-version
+	 *
+	 * @since       3.5.4
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_search_algorithm_version( $args, $assoc_args ) {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$value = get_site_option( 'ep_search_algorithm_version', '' );
+		} else {
+			$value = get_option( 'ep_search_algorithm_version', '' );
+		}
+
+		if ( empty( $value ) ) {
+			WP_CLI::line( 'default' );
+		} else {
+			WP_CLI::line( $value );
 		}
 	}
 

@@ -29,7 +29,7 @@ class BasicTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -51,6 +51,15 @@ class BasicTest extends TestBase {
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
+
+		/**
+		 * While using autosuggest and EP.io, there is a chance we cache a request while
+		 * the index didn't exist yet. Although it doesn't affect any plugin functionality
+		 * it will interfere with this test.
+		 */
+		if ( $this->isElasticPressIo( $I ) ) {
+			$this->runCommand( 'wp transient delete ep_autosuggest_query_request_cache' );
+		}
 
 		$I->moveTo( '/?s=test' );
 
