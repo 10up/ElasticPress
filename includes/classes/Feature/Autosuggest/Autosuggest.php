@@ -92,11 +92,11 @@ class Autosuggest extends Feature {
 		add_filter( 'ep_wp_cli_pre_index', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'debug_information', [ $this, 'epio_autosuggest_health_check_info' ] );
 
-		add_action( 'ep_cli_set_search_algorithm_version', [ $this, 'delete_cached_query' ] );
+		add_action( 'ep_cli_before_set_search_algorithm_version', [ $this, 'delete_cached_query' ] );
 		add_action( 'ep_wp_cli_after_index', [ $this, 'delete_cached_query' ] );
 		add_action( 'ep_after_dashboard_index', [ $this, 'delete_cached_query' ] );
 		add_action( 'ep_after_update_feature', [ $this, 'delete_cached_query' ] );
-		add_action( 'ep_cli_clear_index', [ $this, 'delete_cached_query' ] );
+		add_action( 'ep_cli_after_clear_index', [ $this, 'delete_cached_query' ] );
 	}
 
 	/**

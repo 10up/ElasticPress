@@ -1280,16 +1280,25 @@ class Command extends WP_CLI_Command {
 	 * @since      3.4
 	 */
 	public function clear_index() {
+		/**
+		 * Fires before the CLI `clear-index` command is executed.
+		 *
+		 * @hook ep_cli_before_clear_index
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_cli_before_clear_index' );
+
 		$this->delete_transient();
 
 		/**
 		 * Fires after the CLI `clear-index` command is executed.
 		 *
-		 * @hook ep_cli_clear_index
+		 * @hook ep_cli_after_clear_index
 		 *
 		 * @since 3.5.5
 		 */
-		do_action( 'ep_cli_clear_index' );
+		do_action( 'ep_cli_after_clear_index' );
 
 		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
@@ -1468,6 +1477,17 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function set_search_algorithm_version( $args, $assoc_args ) {
+		/**
+		 * Fires before the algorithm version is changed via WP-CLI.
+		 *
+		 * @hook ep_cli_before_set_search_algorithm_version
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_cli_before_set_search_algorithm_version', $args, $assoc_args );
+
 		if ( empty( $assoc_args['version'] ) && ! isset( $assoc_args['default'] ) ) {
 			WP_CLI::error( esc_html__( 'This command expects a version number or the --default flag.', 'elasticpress' ) );
 		}
@@ -1489,13 +1509,13 @@ class Command extends WP_CLI_Command {
 		/**
 		 * Fires after the algorithm version is changed via WP-CLI.
 		 *
-		 * @hook ep_cli_put_mapping
+		 * @hook ep_cli_after_set_search_algorithm_version
 		 * @param  {array} $args CLI command position args
 		 * @param {array} $assoc_args CLI command associative args
 		 *
 		 * @since 3.5.5
 		 */
-		do_action( 'ep_cli_set_search_algorithm_version', $args, $assoc_args );
+		do_action( 'ep_cli_after_set_search_algorithm_version', $args, $assoc_args );
 
 		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
