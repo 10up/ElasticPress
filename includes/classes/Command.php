@@ -752,6 +752,17 @@ class Command extends WP_CLI_Command {
 			update_option( 'ep_last_cli_index', $index_results, false );
 		}
 
+		/**
+		 * Fires after executing a CLI index
+		 *
+		 * @hook ep_wp_cli_after_index
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_wp_cli_after_index', $args, $assoc_args );
+
 		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $index_time ) );
 
 		$this->delete_transient();
@@ -1465,6 +1476,17 @@ class Command extends WP_CLI_Command {
 				update_option( 'ep_search_algorithm_version', $assoc_args['version'], false );
 			}
 		}
+
+		/**
+		 * Fires after the algorithm version is changed via WP-CLI.
+		 *
+		 * @hook ep_cli_put_mapping
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
+		 *
+		 * @since 3.5.5
+		 */
+		do_action( 'ep_cli_set_search_algorithm_version', $args, $assoc_args );
 
 		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
