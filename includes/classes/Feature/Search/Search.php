@@ -229,7 +229,7 @@ class Search extends Feature {
 		 * @param  {array} $fields Highlighting fields
 		 * @param  {array} $formatted_args array
 		 * @param  {array} $args WP_Query args
-		 * @return  {string} New Highlighting fields
+		 * @return  {array} New Highlighting fields
 		 */
 		$fields_to_highlight = apply_filters(
 			'ep_highlighting_fields',
