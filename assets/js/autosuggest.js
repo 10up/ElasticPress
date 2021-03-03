@@ -147,7 +147,8 @@ function getJsonQuery() {
  *
  * @param {string} searchText - user search string
  * @param {string} placeholder - placeholder text to replace
- * @param {object} query - desructured json query string
+ * @param {object} options - Autosuggest settings
+ * @param {string} options.query - JSON query string to pass to ElasticSearch
  * @returns {string} json representation of search query
  */
 function buildSearchQuery(searchText, placeholder, { query }) {
