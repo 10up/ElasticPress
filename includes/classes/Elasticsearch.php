@@ -763,6 +763,24 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Get index settings.
+	 *
+	 * @param  string  $index       Index name.
+	 * @param  array   $query_args  Query parameters to pass through to the ES HTTP request
+	 *
+	 * @since  3.6
+	 * @return array Raw ES response from the $index/_settings endpoint
+	 */
+	public function get_index_settings( $index, $query_args = [] ) {
+		$endpoint = trailingslashit( $index ) . '_settings';
+		$request  = $this->remote_request( $endpoint, [], $query_args, 'get_index_settings' );
+
+		$settings = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+
+		return $settings;
+	}
+
+	/**
 	 * Delete an Elasticsearch index
 	 *
 	 * @param  string $index Index name.
