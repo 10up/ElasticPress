@@ -848,11 +848,20 @@ abstract class Indexable {
 	}
 
 	/**
-	 * Must implement a method that handles updating index settings for ES
+	 * Update index settings
 	 *
+	 * @param  array   $settings    Setting update array.
+	 * @param  boolean $close_first Optional. True if index must be closed prior to update.
+	 *                              Dynamic settings can be updated on open indices. Static
+	 *                              settings must be closed.  Default false.
+	 * @since  3.6
 	 * @return boolean
 	 */
-	abstract public function update_index_settings();
+	public function update_index_settings( $settings, $close_first = false ) {
+		$index_name = $this->get_index_name();
+
+		return Elasticsearch::update_index_settings( $index_name, $settings, $close_first );
+	}
 
 	/**
 	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
