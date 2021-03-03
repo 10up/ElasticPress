@@ -826,11 +826,26 @@ abstract class Indexable {
 	abstract public function build_settings();
 
 	/**
-	 * Must implement a method that handles retrieving index settings from ES
+	 * Retrieve index settings from ES
+	 * 
+	 * @param array $query_args Optional array of query args to pass through to Elasticsearch's $index_name/_settings endpoint
 	 *
-	 * @return boolean
+	 * @since 3.6
+	 * @return array
 	 */
-	abstract public function get_index_settings();
+	public function get_index_settings( $query_args = [] ) {
+		$index_name = $this->get_index_name();
+
+		$result = Elasticsearch::factory()->get_index_settings( $index_name, $query_args );
+
+		// The ES response has the data nested under $index_name, so pull that out so we match the format of
+		// the settings from Indexable::build_settings() and the mapping file, for consistency
+		if ( ! isset( $result[ $index_name ] ) ) {
+			return new \WP_Error( 'index-settings-not-found', sprintf( 'Index settings for %s were not found in the Elasticsearch response', $index_name ) );
+		}
+
+		return $result[ $index_name ];
+	}
 
 	/**
 	 * Must implement a method that handles updating index settings for ES
