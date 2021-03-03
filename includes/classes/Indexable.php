@@ -819,11 +819,25 @@ abstract class Indexable {
 	abstract public function build_settings();
 
 	/**
+	 * Must implement a method that handles retrieving index settings from ES
+	 *
+	 * @return boolean
+	 */
+	abstract public function get_index_settings();
+
+	/**
 	 * Must implement a method that handles sending mapping to ES
 	 *
 	 * @return boolean
 	 */
 	abstract public function put_mapping();
+
+	/**
+	 * Must implement a method that handles updating index settings for ES
+	 *
+	 * @return boolean
+	 */
+	abstract public function update_index_settings();
 
 	/**
 	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
