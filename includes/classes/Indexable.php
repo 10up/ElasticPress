@@ -827,16 +827,14 @@ abstract class Indexable {
 
 	/**
 	 * Retrieve index settings from ES
-	 * 
-	 * @param array $query_args Optional array of query args to pass through to Elasticsearch's $index_name/_settings endpoint
 	 *
 	 * @since 3.6
 	 * @return array
 	 */
-	public function get_index_settings( $query_args = [] ) {
+	public function get_index_settings() {
 		$index_name = $this->get_index_name();
 
-		$result = Elasticsearch::factory()->get_index_settings( $index_name, $query_args );
+		$result = Elasticsearch::factory()->get_index_settings( $index_name );
 
 		// The ES response has the data nested under $index_name, so pull that out so we match the format of
 		// the settings from Indexable::build_settings() and the mapping file, for consistency
