@@ -12,19 +12,13 @@ on:
       - develop
 
 jobs:
-  wpa:
+  wpa_local:
+    name: WP Acceptance - Local
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-
-    - name: Set PHP version
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '7.2'
-        coverage: none
-        tools: composer:v1
 
     - name: Install dependencies
       run: composer install
@@ -32,10 +26,22 @@ jobs:
     - name: Test Local
       run: ./run-wpacceptance.sh -l --attempts=3
 
+  wpa_epio:
+    name: WP Acceptance - ElasticPress.io
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: composer install
+
     - name: Test EP.io
       run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=3
 
   phpunit:
+    name: PHP Unit
     runs-on: ubuntu-latest
 
     steps:
