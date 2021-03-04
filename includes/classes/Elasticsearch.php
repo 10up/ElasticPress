@@ -775,7 +775,13 @@ class Elasticsearch {
 
 		$request  = $this->remote_request( $endpoint, [], [], 'get_index_settings' );
 
-		$settings = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response_body = wp_remote_retrieve_body( $request );
+
+		$settings = json_decode( $response_body, true );
 
 		return $settings;
 	}
