@@ -836,6 +836,10 @@ abstract class Indexable {
 
 		$result = Elasticsearch::factory()->get_index_settings( $index_name );
 
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
 		// The ES response has the data nested under $index_name, so pull that out so we match the format of
 		// the settings from Indexable::build_settings() and the mapping file, for consistency
 		if ( ! isset( $result[ $index_name ][ 'settings' ] ) ) {
