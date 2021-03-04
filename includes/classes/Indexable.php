@@ -840,11 +840,11 @@ abstract class Indexable {
 
 		// The ES response has the data nested under $index_name, so pull that out so we match the format of
 		// the settings from Indexable::build_settings() and the mapping file, for consistency
-		if ( ! isset( $result[ $index_name ] ) ) {
+		if ( ! isset( $result[ $index_name ][ 'settings' ] ) ) {
 			return new \WP_Error( 'index-settings-not-found', sprintf( 'Index settings for %s were not found in the Elasticsearch response', $index_name ) );
 		}
 
-		return $result[ $index_name ];
+		return $result[ $index_name ][ 'settings' ];
 	}
 
 	/**
