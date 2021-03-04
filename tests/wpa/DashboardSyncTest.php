@@ -172,14 +172,14 @@ class DashboardSyncTest extends TestBase {
 
 		$I->waitUntilElementVisible( '.pause-sync' );
 
-		// Specially when requesting an external server, e.g. EP.io, we
-		// have to wait a bit for the AJAX requests.
-		sleep( 5 );
+		sleep( 1 );
 
 		$I->executeJavaScript( 'document.querySelector( ".pause-sync" ).click();' );
 
 		$I->waitUntilElementVisible( '.resume-sync' );
 
+		// Specially when requesting an external server, e.g. EP.io, we
+		// have to wait a bit for the AJAX requests.
 		sleep( 5 );
 
 		$cli_result = $this->runCommand( 'wp elasticpress index' )['stdout'];
