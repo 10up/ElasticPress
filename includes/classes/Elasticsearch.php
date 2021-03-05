@@ -101,7 +101,7 @@ class Elasticsearch {
 		$request_args = array(
 			'body'     => $encoded_document,
 			'method'   => 'POST',
-			'timeout'  => 15,
+			'timeout'  => apply_filters( 'ep_index_document_timeout', 15 ),
 			'blocking' => $blocking,
 		);
 
@@ -364,6 +364,10 @@ class Elasticsearch {
 			foreach ( $hits as $hit ) {
 				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
+
+				if ( ! empty( $hit['highlight'] ) ) {
+					$document['highlight'] = $hit['highlight'];
+				}
 
 				/**
 				 * Filter Elasticsearch retrieved document
@@ -786,6 +790,114 @@ class Elasticsearch {
 		return $settings;
 	}
 
+
+	/**
+	 * Get current index mapping from Elasticsearch.
+	 *
+	 * @param  string $index The index name.
+	 * @since  3.5
+	 * @return array
+	 */
+	public function get_mapping( $index ) {
+		$request_args = [
+			'method'  => 'GET',
+			'timeout' => 30,
+		];
+
+		$request = $this->remote_request( $index, $request_args, [], 'get_mapping' );
+
+		if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
+			return [];
+		}
+
+		$body = wp_remote_retrieve_body( $request );
+
+		if ( ! $body ) {
+			return [];
+		}
+
+		$mapping = json_decode( $body, true );
+
+		return is_array( $mapping ) ? $mapping : [];
+	}
+
+	/**
+	 * Close an open index.
+	 *
+	 * @param  string $index Index name.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function close_index( $index ) {
+		$request_args = [
+			'method'  => 'POST',
+			'timeout' => 30,
+		];
+
+		$close   = trailingslashit( $index ) . '_close';
+		$request = $this->remote_request( $close, $request_args, [], 'close_index' );
+
+		return ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+	}
+
+	/**
+	 * Open a closed index.
+	 *
+	 * @param  string $index Index name.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function open_index( $index ) {
+		$request_args = [
+			'method'  => 'POST',
+			'timeout' => 30,
+		];
+
+		$open    = trailingslashit( $index ) . '_open';
+		$request = $this->remote_request( $open, $request_args, [], 'open_index' );
+
+		return ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+	}
+
+	/**
+	 * Update index settings.
+	 *
+	 * @param  string  $index       Index name.
+	 * @param  array   $settings    Setting update array.
+	 * @param  boolean $close_first Optional. True if index must be closed prior to update.
+	 *                              Dynamic settings can be updated on open indices. Static
+	 *                              settings must be closed.  Default false.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function update_index_settings( $index, $settings, $close_first = false ) {
+		$request_args = [
+			'body'    => wp_json_encode( $settings ),
+			'method'  => 'PUT',
+			'timeout' => 30,
+		];
+
+		if ( $close_first ) {
+			$closed = $this->close_index( $index );
+		}
+
+		if ( ! $close_first || $closed ) {
+			$settings = trailingslashit( $index ) . '_settings';
+			$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
+		} else {
+			return false;
+		}
+
+		$updated = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+
+		if ( $closed ) {
+			$opened = $this->open_index( $index );
+			return ( $updated && $opened );
+		}
+
+		return $updated;
+	}
+
 	/**
 	 * Delete an Elasticsearch index
 	 *
@@ -882,7 +994,7 @@ class Elasticsearch {
 		$request_args = array(
 			'method'  => 'POST',
 			'body'    => $body,
-			'timeout' => 30,
+			'timeout' => apply_filters( 'ep_bulk_index_timeout', 30 ),
 		);
 
 		$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
@@ -1345,28 +1457,15 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Query logging.
-	 *
-	 * If EP_QUERY_LOG is defined, use its value to control if
-	 * query logging is enabled. If not, only enable it if WP_DEBUG
-	 * or WP_EP_DEBUG are enabled.
-	 *
-	 * Calls action 'ep_add_query_log' if you want to access the
-	 * query outside of the ElasticPress plugin. This runs regardless
-	 * of debug settings.
+	 * Query logging. Don't log anything to the queries property when
+	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
+	 * want to access the query outside of the ElasticPress plugin. This
+	 * runs regardless of debufg settings.
 	 *
 	 * @param array $query Query to log.
 	 */
 	protected function add_query_log( $query ) {
-		$log_enabled = false;
-
-		if ( defined( 'EP_QUERY_LOG' ) ) {
-			$log_enabled = EP_QUERY_LOG;
-		} elseif ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
-			$log_enabled = true;
-		}
-
-		if ( $log_enabled ) {
+		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
 			$this->queries[] = $query;
 		}
 
