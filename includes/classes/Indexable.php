@@ -812,6 +812,13 @@ abstract class Indexable {
 	abstract public function build_mapping();
 
 	/**
+	 * Must implement a method that handles sending mapping to ES
+	 *
+	 * @return boolean
+	 */
+	abstract public function put_mapping();
+
+	/**
 	 * Must implement a method that handles building settings for ES
 	 *
 	 * @return array
@@ -819,11 +826,44 @@ abstract class Indexable {
 	abstract public function build_settings();
 
 	/**
-	 * Must implement a method that handles sending mapping to ES
+	 * Retrieve index settings from ES
 	 *
+	 * @since 3.6
+	 * @return array
+	 */
+	public function get_index_settings() {
+		$index_name = $this->get_index_name();
+
+		$result = Elasticsearch::factory()->get_index_settings( $index_name );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		// The ES response has the data nested under $index_name, so pull that out so we match the format of
+		// the settings from Indexable::build_settings() and the mapping file, for consistency
+		if ( ! isset( $result[ $index_name ]['settings'] ) ) {
+			return new \WP_Error( 'index-settings-not-found', sprintf( 'Index settings for %s were not found in the Elasticsearch response', $index_name ) );
+		}
+
+		return $result[ $index_name ]['settings'];
+	}
+
+	/**
+	 * Update index settings
+	 *
+	 * @param  array   $settings    Setting update array.
+	 * @param  boolean $close_first Optional. True if index must be closed prior to update.
+	 *                              Dynamic settings can be updated on open indices. Static
+	 *                              settings must be closed.  Default false.
+	 * @since  3.6
 	 * @return boolean
 	 */
-	abstract public function put_mapping();
+	public function update_index_settings( $settings, $close_first = false ) {
+		$index_name = $this->get_index_name();
+
+		return Elasticsearch::factory()->update_index_settings( $index_name, $settings, $close_first );
+	}
 
 	/**
 	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
