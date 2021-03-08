@@ -49,6 +49,8 @@ class HealthCheckElasticsearch extends HealthCheck {
 
 		$host = Utils\get_host();
 
+		$elasticpress_settings_url = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? admin_url( 'network/admin.php?page=elasticpress-settings' ) : admin_url( 'admin.php?page=elasticpress-settings' );
+
 		if ( empty( $host ) ) {
 			$result['label']          = __( 'Your site could not connect to Elasticsearch', 'elasticpress' );
 			$result['status']         = 'critical';
@@ -56,18 +58,27 @@ class HealthCheckElasticsearch extends HealthCheck {
 			$result['description']    = __( 'The Elasticsearch host is not set.', 'elasticpress' );
 			$result['actions']        = sprintf(
 				'<p><a href="%s">%s</a></p>',
-				esc_url( admin_url( 'admin.php?page=elasticpress-settings' ) ),
+				esc_url( $elasticpress_settings_url ),
 				__( 'Add a host', 'elasticpress' )
 			);
 		} elseif ( ! Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
 			$result['label']          = __( 'Your site could not connect to Elasticsearch', 'elasticpress' );
 			$result['status']         = 'critical';
 			$result['badge']['color'] = 'red';
-			$result['actions']        = sprintf(
-				'<p><a href="%s">%s</a></p>',
-				esc_url( admin_url( 'admin.php?page=elasticpress-settings' ) ),
-				__( 'Update your settings', 'elasticpress' )
-			);
+
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$result['actions'] = sprintf(
+					'<p><a href="%s">%s</a></p>',
+					esc_url( $elasticpress_settings_url ),
+					__( 'Update your settings', 'elasticpress' )
+				);
+			} else {
+				$result['actions'] = sprintf(
+					'<p><a href="%s">%s</a></p>',
+					esc_url( $elasticpress_settings_url ),
+					__( 'Update your settings', 'elasticpress' )
+				);
+			}
 
 			if ( Utils\is_epio() ) {
 				$result['description'] = __( 'Check if your credentials to ElasticPress.io host are correct.', 'elasticpress' );
