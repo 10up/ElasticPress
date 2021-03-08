@@ -11,6 +11,15 @@
 class UserTest extends TestBase {
 
 	/**
+	 * Setup functionality
+	 */
+	public function setUp() {
+		parent::setUp();
+
+		$this->runCommand( 'wp elasticpress index --setup' );
+	}
+
+	/**
 	 * Search user by username.
 	 *
 	 * @param string                      $username Username.
@@ -47,7 +56,7 @@ class UserTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -65,7 +74,7 @@ class UserTest extends TestBase {
 
 		$I->click( '.query-result-toggle' );
 
-		$I->seeText( '"total": 1', '.query-results' );
+		$this->checkTotal( 1, $I );
 
 		$I->seeText( '"user_email": "testuser@example.com"', '.query-results' );
 	}
@@ -98,7 +107,7 @@ class UserTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -116,7 +125,7 @@ class UserTest extends TestBase {
 
 		$I->click( '.query-result-toggle' );
 
-		$I->seeText( '"total": 1', '.query-results' );
+		$this->checkTotal( 1, $I );
 
 		$I->seeText( '"user_email": "testuser@example.com"', '.query-results' );
 

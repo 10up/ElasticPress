@@ -662,6 +662,14 @@ function action_wp_ajax_ep_index() {
 
 						$indexable_object->create_network_alias( $indexes );
 					}
+
+						/**
+						 * Fires after executing a reindex via Dashboard
+						 *
+						 * @since  3.5.5
+						 * @hook ep_after_dashboard_index
+						 */
+						do_action( 'ep_after_dashboard_index' );
 				} else {
 					$index_meta['offset'] = (int) $query['total_objects'];
 				}
@@ -669,6 +677,9 @@ function action_wp_ajax_ep_index() {
 				$index_meta['offset'] = (int) $query['total_objects'];
 
 				delete_option( 'ep_index_meta' );
+
+				/* This action is documented in this file */
+				do_action( 'ep_after_dashboard_index' );
 			}
 		}
 	} else {
@@ -997,7 +1008,7 @@ function action_admin_menu() {
  * @param string $context  The context where the function is running.
  * @return string          The updated language.
  */
-function use_language_in_setting( $language = 'english', $context ) {
+function use_language_in_setting( $language = 'english', $context = '' ) {
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 

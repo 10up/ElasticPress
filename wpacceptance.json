@@ -10,9 +10,30 @@
       "./node_modules"
     ],
     "enforce_clean_db": false,
-    "snapshot_id": "4e38780a2545d8325df2008391666a2f",
+    "environment_instructions": [
+      [
+        "install wordpress where type is multisite and url is http://elasticpress.test",
+        "install theme where name is twentytwenty",
+        "install plugin where name is debug-bar and status is network active",
+        "install plugin where name is debug-bar-elasticpress and status is network active",
+        "install plugin where name is wordpress-importer and status is network active",
+        "install plugin where name is woocommerce"
+      ]
+    ],
+    "project_path": "%WP_ROOT%/wp-content/plugins/elasticpress",
     "before_scripts" : [
       "mv tests/wpa/test-plugins/* ../",
-      "mkdir -p ../../mu-plugins/ && mv tests/wpa/test-mu-plugins/* ../../mu-plugins/"
+      "mkdir -p ../../mu-plugins/ && mv tests/wpa/test-mu-plugins/* ../../mu-plugins/",
+
+      "wp --allow-root user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password",
+      "wp --allow-root super-admin add wpsnapshots",
+
+      "mv tests/wpa/test-docs/content-example.xml /var/www/html",
+      "wp --allow-root import /var/www/html/content-example.xml --authors=create",
+
+      "wp --allow-root plugin activate elasticpress",
+      "wp --allow-root elasticpress index --setup --show-errors",
+
+      "wp --allow-root plugin deactivate woocommerce"
     ]
 }
