@@ -862,7 +862,7 @@ abstract class Indexable {
 	public function update_index_settings( $settings, $close_first = false ) {
 		$index_name = $this->get_index_name();
 
-		return Elasticsearch::update_index_settings( $index_name, $settings, $close_first );
+		return Elasticsearch::factory()->update_index_settings( $index_name, $settings, $close_first );
 	}
 
 	/**
