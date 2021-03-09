@@ -87,6 +87,6 @@ class ProtectedContentTest extends TestBase {
 
 		$I->click( '.query-result-toggle' );
 
-		$I->seeText( '"total": 2', '.query-results' );
+		$this->checkTotal( 2, $I );
 	}
 }

@@ -107,4 +107,17 @@ class BaseTestCase extends WP_UnitTestCase {
 
 		register_post_type( 'ep_test_not_public', $args );
 	}
+
+	public function is_network_activate() {
+		return defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+	}
+
+	/**
+	 * Filter hook to set the search algorithm to 3.4.
+	 *
+	 * @return string
+	 */
+	public function set_algorithm_34() {
+		return '3.4';
+	}
 }

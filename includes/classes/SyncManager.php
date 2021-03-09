@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils;
+
 /**
  * Abstract sync manager class to be extended for each indexable
  */
@@ -82,6 +84,33 @@ abstract class SyncManager {
 	}
 
 	/**
+	 * Remove an object from the sync queue.
+	 *
+	 * @param  id $object_id object ID to remove from the queue
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function remove_from_queue( $object_id ) {
+		if ( ! is_numeric( $object_id ) ) {
+			return false;
+		}
+
+		unset( $this->sync_queue[ $object_id ] );
+
+		/**
+		 * Fires after item is removed from sync queue
+		 *
+		 * @hook ep_after_remove_from_queue
+		 * @param  {int} $object_id ID of object
+		 * @param  {array} $sync_queue Current sync queue
+		 * @since  3.5
+		 */
+		do_action( 'ep_after_remove_from_queue', $object_id, $this->sync_queue );
+
+		return true;
+	}
+
+	/**
 	 * Sync queued objects if the EP_SYNC_CHUNK_LIMIT is reached.
 	 *
 	 * @since 3.1.2
@@ -121,6 +150,19 @@ abstract class SyncManager {
 		}
 
 		/**
+		 * Allow other code to intercept the sync process
+		 *
+		 * @hook pre_ep_index_sync_queue
+		 * @param {boolean} $bail True to skip the rest of index_sync_queue(), false to continue normally
+		 * @param {SyncManager} $sync_manager SyncManager instance for the indexable
+		 * @param {string} $indexable_slug Slug of the indexable being synced
+		 * @since 3.5
+		 */
+		if ( apply_filters( 'pre_ep_index_sync_queue', false, $this, $this->indexable_slug ) ) {
+			return;
+		}
+
+		/**
 		 * Backwards compat for pre-3.0
 		 */
 		foreach ( $this->sync_queue as $object_id => $value ) {
@@ -141,6 +183,20 @@ abstract class SyncManager {
 		 * when a redirect has already been triggered.
 		 */
 		$this->sync_queue = [];
+	}
+
+	/**
+	 * Check if we can index content in the current blog
+	 *
+	 * @since 3.5
+	 * @return boolean
+	 */
+	public function can_index_site() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			return Utils\is_site_indexable();
+		}
+
+		return true;
 	}
 
 	/**

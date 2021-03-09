@@ -8,7 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
-use ElasticPress\Feature\Synonyms\Synonyms;
+use ElasticPress\Feature\Search\Synonyms;
 
 /**
  * Document test class
@@ -49,8 +49,6 @@ class TestSynonyms extends BaseTestCase {
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
-		delete_option( 'elasticpress_synonyms_post_id' );
-		delete_site_option( 'elasticpress_synonyms_post_id' );
 	}
 
 	public function getFeature() {
@@ -60,26 +58,9 @@ class TestSynonyms extends BaseTestCase {
 	public function testConstructor() {
 		$instance = $this->getFeature();
 
-		$this->assertEquals( $instance->slug, 'synonyms' );
-		$this->assertTrue( $instance->requires_install_reindex );
-	}
-
-	public function testOutputFeatureBoxSummary() {
-		$instance = $this->getFeature();
-
-		ob_start();
-		$instance->output_feature_box_summary();
-
-		$this->assertContains( 'Add synonyms to your searches.', ob_get_clean() );
-	}
-
-	public function testOutputFeatureBoxLong() {
-		$instance = $this->getFeature();
-
-		ob_start();
-		$instance->output_feature_box_long();
-
-		$this->assertContains( 'Create a custom synonym filter', ob_get_clean() );
+		$this->assertSame( 'ep_synonyms_filter', $instance->filter_name );
+		$this->assertIsArray( $instance->affected_indices );
+		$this->assertContains( 'post', $instance->affected_indices );
 	}
 
 	public function testGetSynonymPostId() {
@@ -101,6 +82,17 @@ class TestSynonyms extends BaseTestCase {
 		$instance = $this->getFeature();
 
 		$synonyms = $instance->get_synonyms();
+
+
+		// For some reason, the greater-than gets encoded during the multi-site
+		// tests but not the single-site tests. This updates the encoding so
+		// they both match. See https://travis-ci.com/github/petenelson/ElasticPress/jobs/470254351.
+		$synonyms = array_map(
+			function ( $synonym ) {
+				return str_replace( '>', '&gt;', $synonym );
+			},
+			$synonyms
+		);
 
 		$this->assertNotEmpty( $synonyms );
 		$this->assertContains( 'sneakers, tennis shoes, trainers, runners', $synonyms );

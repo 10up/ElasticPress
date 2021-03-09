@@ -884,7 +884,7 @@ class User extends Indexable {
 		 * @param  {int} $user_id User ID
 		 * @return  {array} New meta
 		 */
-		$meta = apply_filters( 'ep_prepare_user_meta_data', (array)get_user_meta( $user_id ), $user_id );
+		$meta = apply_filters( 'ep_prepare_user_meta_data', (array) get_user_meta( $user_id ), $user_id );
 
 		if ( empty( $meta ) ) {
 			/**

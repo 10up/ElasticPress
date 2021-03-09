@@ -240,16 +240,16 @@ function updateAutosuggestBox(options, input) {
 
 		const searchParts = value.trim().split(' ');
 		let resultsText = escapedText;
-		// uses some regex magic to match upper/lower/capital case
-		searchParts.forEach((word) => {
-			const regex = new RegExp(`(${word.trim()})`, 'gi');
-			if (word.length > 1) {
-				resultsText = resultsText.replace(
-					regex,
-					'<span class="ep-autosuggest-highlight">$1</span>',
-				);
-			}
-		});
+
+		if (epas.highlightingEnabled) {
+			// uses some regex magic to match upper/lower/capital case
+			const regex = new RegExp(`\\b(${searchParts.join('|')})`, 'gi');
+			resultsText = resultsText.replace(
+				regex,
+				(word) =>
+					`<${epas.highlightingTag} class="${epas.highlightingClass} ep-autosuggest-highlight">${word}</${epas.highlightingTag}>`,
+			);
+		}
 
 		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
 				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}"  tabindex="-1">
@@ -265,10 +265,13 @@ function updateAutosuggestBox(options, input) {
 
 	suggestList.addEventListener('click', (event) => {
 		event.preventDefault();
-		const { srcElement } = event;
+		const target =
+			event.target.tagName === epas.highlightingTag?.toUpperCase()
+				? event.target.parentElement
+				: event.target;
 
-		if (autosuggestItems.includes(srcElement)) {
-			selectItem(input, srcElement);
+		if (autosuggestItems.includes(target)) {
+			selectItem(input, target);
 		}
 	});
 
@@ -346,6 +349,22 @@ function checkForOrderedPosts(hits, searchTerm) {
 	}
 
 	return hits;
+}
+
+/**
+ * Add class to the form element while suggestions are being loaded
+ *
+ * @param {boolean} isLoading - whether suggestions are loading
+ * @param {Node} input - search input field
+ */
+function setFormIsLoading(isLoading, input) {
+	const form = input.closest('form');
+
+	if (isLoading) {
+		form.classList.add('is-loading');
+	} else {
+		form.classList.remove('is-loading');
+	}
 }
 
 /**
@@ -546,6 +565,8 @@ function init() {
 		}
 
 		if (searchText.length >= 2) {
+			setFormIsLoading(true, input);
+
 			const query = buildSearchQuery(searchText, placeholder, queryJSON);
 
 			// fetch the results
@@ -563,6 +584,8 @@ function init() {
 			} else {
 				hideAutosuggestBox();
 			}
+
+			setFormIsLoading(false, input);
 		} else if (searchText.length === 0) {
 			hideAutosuggestBox();
 		}
@@ -578,14 +601,16 @@ function init() {
 	 */
 	const handleKeyup = (event) => {
 		event.preventDefault();
-		if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
+		const { target, key, keyCode } = event;
+
+		if (key === 'Escape' || key === 'Esc' || keyCode === 27) {
 			hideAutosuggestBox();
-			toggleInputAria(false, event.target);
-			setInputActiveDescendant('', event.target);
+			toggleInputAria(false, target);
+			setInputActiveDescendant('', target);
 			return;
 		}
 
-		if (keyCodes.includes(event.keyCode)) {
+		if (keyCodes.includes(keyCode) && target.value !== '') {
 			handleUpDown(event);
 			return;
 		}
@@ -607,6 +632,8 @@ function init() {
 	 */
 	epInputs.forEach((input) => {
 		input.addEventListener('keyup', handleKeyup);
-		input.addEventListener('blur', hideAutosuggestBox);
+		input.addEventListener('blur', function () {
+			window.setTimeout(hideAutosuggestBox, 200);
+		});
 	});
 }

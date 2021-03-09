@@ -80,6 +80,8 @@ class EP_Uninstaller {
 		delete_site_option( 'ep_hide_intro_shown_notice' );
 		delete_option( 'ep_skip_install' );
 		delete_site_option( 'ep_skip_install' );
+		delete_option( 'ep_last_cli_index' );
+		delete_site_option( 'ep_last_cli_index' );
 	}
 
 	/**

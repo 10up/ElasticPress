@@ -251,7 +251,7 @@ msgid "Could not connect to Elasticsearch."
 msgstr ""
 
 #: includes/classes/Command.php:1142
-msgid "An index is already occuring. Try again later."
+msgid "An index is already occurring. Try again later."
 msgstr ""
 
 #: includes/classes/Command.php:1183
