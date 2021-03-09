@@ -2,18 +2,6 @@
 	margin-bottom: 1rem
 }
 
-.widget_ep-facet input[type="checkbox"] {
-	cursor: pointer;
-	position: absolute;
-	opacity: 0;
-	height: 0;
-	width: 0;
-}
-
-.widget_ep-facet input[type="submit"] {
-	margin-bottom: 1em;
-}
-
 .widget_ep-facet .searchable .inner {
 	max-height: 20em;
 	overflow: scroll;
@@ -62,7 +50,6 @@
 
 .widget_ep-facet input[disabled] {
 	cursor: pointer;
-	display: none;
 	opacity: 1;
 }
 
