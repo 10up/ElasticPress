@@ -66,49 +66,41 @@
 	opacity: 1;
 }
 
-
-.ep-term-label {
-	display: block;
+.widget_ep-facet .term a {
+	align-items: center;
+	display: flex;
 	position: relative;
-	padding-left: 25px;
-	margin-bottom: 12px;
-	cursor: pointer;
-	user-select: none;
-  }
-  
-.checkmark {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 20px;
-	width: 20px;
-	background-color: #eee;
 }
-  
-  .ep-term-label:hover input ~ .checkmark {
-	background-color: #ccc;
-  }
-  
-  .ep-term-label input:checked ~ .checkmark {
-	background-color: #5e5e5e;
-  }
-  
-  .checkmark:after {
+
+.ep-checkbox {
+	align-items: center;
+	background-color: #eee;
+	display: flex;
+	flex-shrink: 0;
+	height: 1em;
+	justify-content: center;
+	margin-right: 0.25em;
+	width: 1em;
+}
+
+.ep-checkbox::after {
 	content: "";
-	position: absolute;
-	display: none;
-  }
-  
-  .ep-term-label input:checked ~ .checkmark:after {
-	display: block;
-  }
-  
-  .ep-term-label .checkmark:after {
-	left: 7px;
-	top: 4px;
-	width: 5px;
-	height: 10px;
 	border: solid white;
-	border-width: 0 3px 3px 0;
+	border-width: 0 0.125em 0.125em 0;
+	display: none;
+	height: 0.5em;
 	transform: rotate(45deg);
-  }
+	width: 0.25em;
+}
+
+.ep-checkbox.checked {
+	background-color: #5e5e5e;
+}
+
+.ep-checkbox.checked::after {
+	display: block;
+}
+
+.widget_ep-facet .term a:hover .ep-checkbox {
+	background-color: #ccc;
+}
