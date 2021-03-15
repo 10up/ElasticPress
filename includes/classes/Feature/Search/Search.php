@@ -514,6 +514,7 @@ class Search extends Feature {
 								/**
 								 * Filter search date weight
 								 *
+								 * @since 3.5.6
 								 * @hook epwr_weight
 								 * @param  {string} $weight Current weight
 								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
