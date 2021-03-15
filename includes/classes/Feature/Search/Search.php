@@ -536,7 +536,6 @@ class Search extends Feature {
 						/**
 						 * Filter search date weighting boost mode
 						 *
-						 * @since  3.5.6
 						 * @hook epwr_boost_mode
 						 * @param  {string} $boost_mode Current boost mode
 						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
