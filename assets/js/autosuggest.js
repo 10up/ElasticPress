@@ -128,15 +128,22 @@ function selectItem(input, element) {
  * Build the search query from the search text - the query is generated in PHP
  * and passed into the front end as window.epas = { "query...
  *
+ * @param {object} input - originating input field
  * @returns {string} json string
  */
-function getJsonQuery() {
+function getJsonQuery(input) {
 	if (typeof window.epas === 'undefined') {
 		const error = 'No epas object defined';
 
 		// eslint-disable-next-line no-console
 		console.warn(error);
 		return { error };
+	}
+
+	// allow for customized query before sending it to
+	// the search fetch endpoint based on the input
+	if (typeof window.epCustomQuery !== 'undefined') {
+		return window.epCustomQuery(window.epas, input);
 	}
 
 	return window.epas;
@@ -565,7 +572,7 @@ function init() {
 		const placeholder = 'ep_autosuggest_placeholder';
 
 		// retrieves the PHP-genereated query to pass to ElasticSearch
-		const queryJSON = getJsonQuery();
+		const queryJSON = getJsonQuery(input);
 
 		if (queryJSON.error) {
 			return;
