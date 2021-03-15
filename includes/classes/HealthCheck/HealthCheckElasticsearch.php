@@ -65,20 +65,11 @@ class HealthCheckElasticsearch extends HealthCheck {
 			$result['label']          = esc_html__( 'Your site could not connect to Elasticsearch', 'elasticpress' );
 			$result['status']         = 'critical';
 			$result['badge']['color'] = 'red';
-
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$result['actions'] = sprintf(
-					'<p><a href="%s">%s</a></p>',
-					esc_url( $elasticpress_settings_url ),
-					esc_html__( 'Update your settings', 'elasticpress' )
-				);
-			} else {
-				$result['actions'] = sprintf(
-					'<p><a href="%s">%s</a></p>',
-					esc_url( $elasticpress_settings_url ),
-					esc_html__( 'Update your settings', 'elasticpress' )
-				);
-			}
+			$result['actions']        = sprintf(
+				'<p><a href="%s">%s</a></p>',
+				esc_url( $elasticpress_settings_url ),
+				esc_html__( 'Update your settings', 'elasticpress' )
+			);
 
 			if ( Utils\is_epio() ) {
 				$result['description'] = esc_html__( 'Check if your credentials to ElasticPress.io host are correct.', 'elasticpress' );
