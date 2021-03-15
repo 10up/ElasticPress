@@ -520,7 +520,7 @@ class Search extends Feature {
 								 * @param  {array} $args WP_Query arguments
 								 * @return  {string} New weight
 								 */
-								'weight' => apply_filters( 'epwr_weight', 1, $formatted_args, $args ),
+								'weight' => apply_filters( 'epwr_weight', 0.001, $formatted_args, $args ),
 							),
 						),
 						/**
@@ -532,7 +532,7 @@ class Search extends Feature {
 						 * @param  {array} $args WP_Query arguments
 						 * @return  {string} New score mode
 						 */
-						'score_mode' => apply_filters( 'epwr_score_mode', 'avg', $formatted_args, $args ),
+						'score_mode' => apply_filters( 'epwr_score_mode', 'sum', $formatted_args, $args ),
 						/**
 						 * Filter search date weighting boost mode
 						 *
