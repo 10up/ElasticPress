@@ -36,13 +36,13 @@ class HealthCheckElasticsearch extends HealthCheck {
 	 */
 	public function run() {
 		$result = [
-			'label'       => __( 'Your site can connect to Elasticsearch.', 'elasticpress' ),
+			'label'       => esc_html__( 'Your site can connect to Elasticsearch.', 'elasticpress' ),
 			'status'      => 'good',
 			'badge'       => [
-				'label' => __( 'ElasticPress', 'elasticpress' ),
+				'label' => esc_html__( 'ElasticPress', 'elasticpress' ),
 				'color' => 'green',
 			],
-			'description' => __( 'You can have a fast and flexible search and query engine for WordPress using ElasticPress.', 'elasticpress' ),
+			'description' => esc_html__( 'You can have a fast and flexible search and query engine for WordPress using ElasticPress.', 'elasticpress' ),
 			'actions'     => '',
 			'test'        => $this->test_name,
 		];
@@ -52,17 +52,17 @@ class HealthCheckElasticsearch extends HealthCheck {
 		$elasticpress_settings_url = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? admin_url( 'network/admin.php?page=elasticpress-settings' ) : admin_url( 'admin.php?page=elasticpress-settings' );
 
 		if ( empty( $host ) ) {
-			$result['label']          = __( 'Your site could not connect to Elasticsearch', 'elasticpress' );
+			$result['label']          = esc_html__( 'Your site could not connect to Elasticsearch', 'elasticpress' );
 			$result['status']         = 'critical';
 			$result['badge']['color'] = 'red';
-			$result['description']    = __( 'The Elasticsearch host is not set.', 'elasticpress' );
+			$result['description']    = esc_html__( 'The Elasticsearch host is not set.', 'elasticpress' );
 			$result['actions']        = sprintf(
 				'<p><a href="%s">%s</a></p>',
 				esc_url( $elasticpress_settings_url ),
-				__( 'Add a host', 'elasticpress' )
+				esc_html__( 'Add a host', 'elasticpress' )
 			);
 		} elseif ( ! Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
-			$result['label']          = __( 'Your site could not connect to Elasticsearch', 'elasticpress' );
+			$result['label']          = esc_html__( 'Your site could not connect to Elasticsearch', 'elasticpress' );
 			$result['status']         = 'critical';
 			$result['badge']['color'] = 'red';
 
@@ -70,20 +70,20 @@ class HealthCheckElasticsearch extends HealthCheck {
 				$result['actions'] = sprintf(
 					'<p><a href="%s">%s</a></p>',
 					esc_url( $elasticpress_settings_url ),
-					__( 'Update your settings', 'elasticpress' )
+					esc_html__( 'Update your settings', 'elasticpress' )
 				);
 			} else {
 				$result['actions'] = sprintf(
 					'<p><a href="%s">%s</a></p>',
 					esc_url( $elasticpress_settings_url ),
-					__( 'Update your settings', 'elasticpress' )
+					esc_html__( 'Update your settings', 'elasticpress' )
 				);
 			}
 
 			if ( Utils\is_epio() ) {
-				$result['description'] = __( 'Check if your credentials to ElasticPress.io host are correct.', 'elasticpress' );
+				$result['description'] = esc_html__( 'Check if your credentials to ElasticPress.io host are correct.', 'elasticpress' );
 			} else {
-				$result['description'] = __( 'Check if your Elasticsearch host URL is correct and you have the right access to the host.', 'elasticpress' );
+				$result['description'] = esc_html__( 'Check if your Elasticsearch host URL is correct and you have the right access to the host.', 'elasticpress' );
 			}
 		}
 
