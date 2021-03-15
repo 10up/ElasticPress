@@ -173,6 +173,12 @@ async function esSearch(query, searchTerm) {
 		},
 	};
 
+	if (epas?.http_headers && typeof epas.http_headers === 'object') {
+		Object.keys(epas.http_headers).forEach((name) => {
+			fetchConfig.headers[name] = epas.http_headers[name];
+		});
+	}
+
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
 		fetchConfig.headers['EP-Search-Term'] = searchTerm;
