@@ -510,6 +510,18 @@ class Search extends Feature {
 									),
 								),
 							),
+							array(
+								/**
+								 * Filter search date weight
+								 *
+								 * @hook epwr_weight
+								 * @param  {string} $weight Current weight
+								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+								 * @param  {array} $args WP_Query arguments
+								 * @return  {string} New weight
+								 */
+								'weight' => apply_filters( 'epwr_weight', 1, $formatted_args, $args ),
+							),
 						),
 						/**
 						 * Filter search date weighting score mode
