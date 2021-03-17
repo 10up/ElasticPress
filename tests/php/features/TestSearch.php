@@ -241,6 +241,7 @@ class TestSearch extends BaseTestCase {
 	 */
 	public function catch_ep_formatted_args( $args ) {
 		$this->fired_actions['ep_formatted_args'] = $args;
+		return $args;
 	}
 
 	/**
