@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Requires at least: 3.7.1
-Tested up to: 5.6
+Tested up to: 5.7
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -42,6 +42,27 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 5. Enjoy!
 
 == Changelog ==
+
+= 3.5.6 =
+
+This release fixes some bugs and also adds some new actions and filters.
+
+Security Fix:
+* Updated JS dependencies. Props [@felipeelia](https://github.com/felipeelia)
+
+Bug Fixes:
+* Fixed document indexing when running index command with nobulk option. Props [@Rahmon](https://github.com/Rahmon)
+* Added an extra check in the iteration over the aggregations. Props [@felipeelia](https://github.com/felipeelia)
+* Fixed no mapping found for [name.sortable] for Elasticsearch version 5. Props [@Rahmon](https://github.com/Rahmon)
+* Fixed uninstall process to remove all options and transients. Props [@Rahmon](https://github.com/Rahmon)
+
+Enhancements:
+* Added missing inline JS documentation. Props [@JakePT](https://github.com/JakePT)
+* Added the filter `ep_autosuggest_http_headers`. Props [@Rahmon](https://github.com/Rahmon)
+* Added terms indexes to the status and stats WP-CLI commands. Props [@felipeelia](https://github.com/felipeelia)
+* The Protected Content feature isn't auto-activated when using ElasticPress.io anymore. Props [@felipeelia](https://github.com/felipeelia)
+* Added the new filter `ep_highlight_should_add_clause` to let developers decide where the highlight clause should be added to the ES query. Props [@felipeelia](https://github.com/felipeelia)
+* Added the new filter `epwr_weight` and changed the default way scores are applied based on post date. Props [@Rahmon](https://github.com/Rahmon)
 
 = 3.5.5 =
 
