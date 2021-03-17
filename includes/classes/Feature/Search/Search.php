@@ -200,7 +200,7 @@ class Search extends Feature {
 		/**
 		 * Filter whether to add the `highlight` clause in the query or not.
 		 *
-		 * @since  3.6.0
+		 * @since  3.5.6
 		 * @hook ep_highlight_should_add_clause
 		 * @param  {bool}  $add_highlight_clause True means the clause should be added.
 		 * @param  {array} $formatted_args  ep_formatted_args array
