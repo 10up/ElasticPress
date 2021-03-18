@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 This release fixes some bugs and also adds some new actions and filters.
 
 Security Fix:
-* Updated JS dependencies. Props [@felipeelia](https://github.com/felipeelia)
+* Updated JS dependencies. Props [@hats00n](https://github.com/hats00n) and [@felipeelia](https://github.com/felipeelia)
 
 Bug Fixes:
 * Fixed document indexing when running index command with nobulk option. Props [@Rahmon](https://github.com/Rahmon)
