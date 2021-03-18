@@ -1079,6 +1079,9 @@ class Post extends Indexable {
 		/**
 		 * Filter default post search fields
 		 *
+		 * If you are using the weighting engine, this filter should not be used.
+		 * Instead, you should use the ep_weighting_configuration_for_search filter.
+		 *
 		 * @hook ep_search_fields
 		 * @param  {array} $search_fields Default search fields
 		 * @param  {array} $args WP Query arguments

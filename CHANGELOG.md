@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.5.6]
+
+This release fixes some bugs and also adds some new actions and filters.
+
+Security Fix:
+* Updated JS dependencies. Props [@felipeelia](https://github.com/felipeelia)
+
+Bug Fixes:
+* Fixed document indexing when running index command with nobulk option. Props [@Rahmon](https://github.com/Rahmon)
+* Added an extra check in the iteration over the aggregations. Props [@felipeelia](https://github.com/felipeelia)
+* Fixed no mapping found for [name.sortable] for Elasticsearch version 5. Props [@Rahmon](https://github.com/Rahmon)
+* Fixed uninstall process to remove all options and transients. Props [@Rahmon](https://github.com/Rahmon)
+
+Enhancements:
+* Added missing inline JS documentation. Props [@JakePT](https://github.com/JakePT)
+* Added the filter `ep_autosuggest_http_headers`. Props [@Rahmon](https://github.com/Rahmon)
+* Added terms indexes to the status and stats WP-CLI commands. Props [@felipeelia](https://github.com/felipeelia)
+* The Protected Content feature isn't auto-activated when using ElasticPress.io anymore. Props [@felipeelia](https://github.com/felipeelia)
+* Added the new filter `ep_highlight_should_add_clause` to let developers decide where the highlight clause should be added to the ES query. Props [@felipeelia](https://github.com/felipeelia)
+* Added the new filter `epwr_weight` and changed the default way scores are applied based on post date. Props [@Rahmon](https://github.com/Rahmon)
 ## [3.5.5]
 
 This release fixes some bugs and also adds some new actions and filters.
@@ -918,6 +938,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.5.6]: https://github.com/10up/ElasticPress/compare/3.5.5...3.5.6
 [3.5.5]: https://github.com/10up/ElasticPress/compare/3.5.4...3.5.5
 [3.5.4]: https://github.com/10up/ElasticPress/compare/3.5.3...3.5.4
 [3.5.3]: https://github.com/10up/ElasticPress/compare/3.5.2...3.5.3

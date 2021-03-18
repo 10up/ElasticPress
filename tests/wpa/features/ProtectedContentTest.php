@@ -77,6 +77,9 @@ class ProtectedContentTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
+		// Give some time to the async request that indexes the post.
+		sleep( 5 );
+
 		$I->moveTo( 'wp-admin/edit.php?post_status=draft&post_type=post' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );

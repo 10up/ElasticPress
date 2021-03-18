@@ -384,6 +384,14 @@ class Autosuggest extends Feature {
 			'selector'            => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
 			'action'              => 'navigate',
 			'mimeTypes'           => [],
+			/**
+			 * Filter autosuggest HTTP headers
+			 *
+			 * @hook ep_autosuggest_http_headers
+			 * @param  {array} $headers Autosuggest HTTP headers in name => value format
+			 * @return  {array} HTTP headers
+			 */
+			'http_headers'        => apply_filters( 'ep_autosuggest_http_headers', [] ),
 			'triggerAnalytics'    => ! empty( $settings['trigger_ga_event'] ),
 			'addSearchTermHeader' => false,
 		];

@@ -147,7 +147,8 @@ function getJsonQuery() {
  *
  * @param {string} searchText - user search string
  * @param {string} placeholder - placeholder text to replace
- * @param {object} query - desructured json query string
+ * @param {object} options - Autosuggest settings
+ * @param {string} options.query - JSON query string to pass to ElasticSearch
  * @returns {string} json representation of search query
  */
 function buildSearchQuery(searchText, placeholder, { query }) {
@@ -171,6 +172,12 @@ async function esSearch(query, searchTerm) {
 			'Content-Type': 'application/json; charset=utf-8',
 		},
 	};
+
+	if (epas?.http_headers && typeof epas.http_headers === 'object') {
+		Object.keys(epas.http_headers).forEach((name) => {
+			fetchConfig.headers[name] = epas.http_headers[name];
+		});
+	}
 
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
