@@ -147,7 +147,8 @@ function getJsonQuery() {
  *
  * @param {string} searchText - user search string
  * @param {string} placeholder - placeholder text to replace
- * @param {object} query - desructured json query string
+ * @param {object} options - Autosuggest settings
+ * @param {string} options.query - JSON query string to pass to ElasticSearch
  * @returns {string} json representation of search query
  */
 function buildSearchQuery(searchText, placeholder, { query }) {
@@ -171,6 +172,12 @@ async function esSearch(query, searchTerm) {
 			'Content-Type': 'application/json; charset=utf-8',
 		},
 	};
+
+	if (epas?.http_headers && typeof epas.http_headers === 'object') {
+		Object.keys(epas.http_headers).forEach((name) => {
+			fetchConfig.headers[name] = epas.http_headers[name];
+		});
+	}
 
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
@@ -266,7 +273,7 @@ function updateAutosuggestBox(options, input) {
 	suggestList.addEventListener('click', (event) => {
 		event.preventDefault();
 		const target =
-			event.target.tagName === epas.highlightingTag.toUpperCase()
+			event.target.tagName === epas.highlightingTag?.toUpperCase()
 				? event.target.parentElement
 				: event.target;
 
@@ -349,6 +356,22 @@ function checkForOrderedPosts(hits, searchTerm) {
 	}
 
 	return hits;
+}
+
+/**
+ * Add class to the form element while suggestions are being loaded
+ *
+ * @param {boolean} isLoading - whether suggestions are loading
+ * @param {Node} input - search input field
+ */
+function setFormIsLoading(isLoading, input) {
+	const form = input.closest('form');
+
+	if (isLoading) {
+		form.classList.add('is-loading');
+	} else {
+		form.classList.remove('is-loading');
+	}
 }
 
 /**
@@ -549,6 +572,8 @@ function init() {
 		}
 
 		if (searchText.length >= 2) {
+			setFormIsLoading(true, input);
+
 			const query = buildSearchQuery(searchText, placeholder, queryJSON);
 
 			// fetch the results
@@ -566,6 +591,8 @@ function init() {
 			} else {
 				hideAutosuggestBox();
 			}
+
+			setFormIsLoading(false, input);
 		} else if (searchText.length === 0) {
 			hideAutosuggestBox();
 		}

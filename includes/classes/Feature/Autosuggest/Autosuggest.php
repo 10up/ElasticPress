@@ -91,6 +91,12 @@ class Autosuggest extends Feature {
 		add_filter( 'ep_pre_dashboard_index', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'ep_wp_cli_pre_index', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'debug_information', [ $this, 'epio_autosuggest_health_check_info' ] );
+
+		add_action( 'ep_cli_after_set_search_algorithm_version', [ $this, 'delete_cached_query' ] );
+		add_action( 'ep_wp_cli_after_index', [ $this, 'delete_cached_query' ] );
+		add_action( 'ep_after_dashboard_index', [ $this, 'delete_cached_query' ] );
+		add_action( 'ep_after_update_feature', [ $this, 'delete_cached_query' ] );
+		add_action( 'ep_cli_after_clear_index', [ $this, 'delete_cached_query' ] );
 	}
 
 	/**
@@ -378,6 +384,14 @@ class Autosuggest extends Feature {
 			'selector'            => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
 			'action'              => 'navigate',
 			'mimeTypes'           => [],
+			/**
+			 * Filter autosuggest HTTP headers
+			 *
+			 * @hook ep_autosuggest_http_headers
+			 * @param  {array} $headers Autosuggest HTTP headers in name => value format
+			 * @return  {array} HTTP headers
+			 */
+			'http_headers'        => apply_filters( 'ep_autosuggest_http_headers', [] ),
 			'triggerAnalytics'    => ! empty( $settings['trigger_ga_event'] ),
 			'addSearchTermHeader' => false,
 		];
@@ -562,11 +576,26 @@ class Autosuggest extends Feature {
 				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
 					$request->http_response->body = '';
 				}
-				set_transient( $cache_key, $request, 300 );
+				set_transient( $cache_key, $request, 5 * MINUTE_IN_SECONDS );
 			}
 		}
 
 		return $request;
+	}
+
+	/**
+	 * Delete the cached query for autosuggest.
+	 *
+	 * @since 3.5.5
+	 */
+	public function delete_cached_query() {
+		global $wp_object_cache;
+		if ( wp_using_ext_object_cache() ) {
+			// Delete the entire group.
+			unset( $wp_object_cache->cache['ep_autosuggest'] );
+		} else {
+			delete_transient( 'ep_autosuggest_query_request_cache' );
+		}
 	}
 
 	/**
@@ -637,7 +666,7 @@ class Autosuggest extends Feature {
 	 * Send the allowed parameters for autosuggest to ElasticPress.io.
 	 */
 	public function epio_send_autosuggest_allowed() {
-		if ( ! empty( $_REQUEST['ep_epio_nonce'] ) && ! wp_verify_nonce( $_REQUEST['ep_epio_nonce'], 'ep-epio-set-autosuggest' ) ) {
+		if ( empty( $_REQUEST['ep_epio_nonce'] ) || ! wp_verify_nonce( $_REQUEST['ep_epio_nonce'], 'ep-epio-set-autosuggest' ) ) {
 			return;
 		}
 		if ( empty( $_GET['ep_epio_set_autosuggest'] ) ) {
