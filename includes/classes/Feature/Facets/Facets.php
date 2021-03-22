@@ -276,6 +276,7 @@ class Facets extends Feature {
 		 *  - term_order
 		 *  - facet (retrieves a JSON representation of the term object)
 		 *
+		 * @since 3.6.0
 		 * @hook ep_facet_use_field
 		 * @param  {string} $field The term field to use
 		 * @return  {string} The chosen term field
