@@ -610,7 +610,7 @@ class Elasticsearch {
 	 * @return boolean|array
 	 */
 	public function get_documents( $index, $document_ids ) {
-		$path = $index . '/_doc/_mget';
+		$path = $index . '/_mget';
 
 		$request_args = [
 			'method' => 'POST',
