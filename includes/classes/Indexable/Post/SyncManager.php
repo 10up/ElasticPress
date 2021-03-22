@@ -8,12 +8,14 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Indexables as Indexables;
 use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -27,11 +29,11 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.2
 	 */
 	public function setup() {
-		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
+		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
 			return;
 		}
 
-		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
+		if ( ! $this->can_index_site() ) {
 			return;
 		}
 
@@ -60,6 +62,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since  2.0
 	 */
 	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		$indexable = Indexables::factory()->get( 'post' );
 
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
@@ -67,10 +73,32 @@ class SyncManager extends SyncManagerAbstract {
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			// Bypass saving if doing autosave
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		$post = get_post( $object_id );
+
+		/**
+		 * Filter to allow skipping a sync triggered by meta changes
+		 *
+		 * @hook ep_skip_post_meta_sync
+		 * @param {bool} $skip True means kill sync for post
+		 * @param {WP_Post} $post The post that's attempting to be synced
+		 * @param {int} $meta_id ID of the meta that triggered the sync
+		 * @param {string} $meta_key The key of the meta that triggered the sync
+		 * @param {string} $meta_value The value of the meta that triggered the sync
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_post_meta_sync', false, $post, $meta_id, $meta_key, $meta_value ) ) {
+			return;
+		}
+
+		$allowed_meta_to_be_indexed = $indexable->prepare_meta( $post );
+		if ( ! in_array( $meta_key, array_keys( $allowed_meta_to_be_indexed ), true ) ) {
+			return;
+		}
 
 		if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
 			$indexable_post_types = $indexable->get_indexable_post_types();
@@ -100,6 +128,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @param int $blog_id WP Blog ID.
 	 */
 	public function action_delete_blog_from_index( $blog_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		$indexable = Indexables::factory()->get( 'post' );
 
 		/**
@@ -121,6 +153,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_delete_post( $post_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		/**
 		 * Filter whether to skip the permissions check on deleting a post
 		 *
@@ -152,6 +188,12 @@ class SyncManager extends SyncManagerAbstract {
 		do_action( 'ep_delete_post', $post_id );
 
 		Indexables::factory()->get( 'post' )->delete( $post_id, false );
+
+		/**
+		 * Make sure to reset sync queue in case an shutdown happens before a redirect
+		 * when a redirect has already been triggered.
+		 */
+		$this->sync_queue = [];
 	}
 
 	/**
@@ -161,12 +203,18 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 0.1.0
 	 */
 	public function action_sync_on_update( $post_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		$indexable = Indexables::factory()->get( 'post' );
 		$post_type = get_post_type( $post_id );
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			// Bypass saving if doing autosave
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		/**
@@ -228,6 +276,12 @@ class SyncManager extends SyncManagerAbstract {
 	 */
 	public function action_create_blog_index( $blog ) {
 		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
+		if ( $this->kill_sync() ) {
 			return;
 		}
 

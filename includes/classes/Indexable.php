@@ -183,6 +183,15 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	public function delete( $object_id, $blocking = true ) {
+		/**
+		 * Fires before object deletion
+		 *
+		 * @hook ep_delete_{indexable_slug}
+		 * @param {int} $object_id ID of object being deleted
+		 * @param {string} $indexable_slug The slug of the indexable type that is being deleted
+		 */
+		do_action( 'ep_delete_' . $this->slug, $object_id, $this->slug );
+
 		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
 	}
 
@@ -306,7 +315,19 @@ abstract class Indexable {
 			$body .= "\n\n";
 		}
 
-		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+		$result = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+
+		/**
+		 * Perform actions after a bulk indexing is completed
+		 *
+		 * @hook ep_after_bulk_index
+		 * @param {array} $object_ids List of object ids attempted to be indexed
+		 * @param {string} $slug Current indexable slug
+		 * @param {array|bool} $result Result of the Elasticsearch query. False on error.
+		 */
+		do_action( 'ep_after_bulk_index', $object_ids, $this->slug, $result );
+
+		return $result;
 	}
 
 	/**

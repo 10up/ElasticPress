@@ -160,15 +160,15 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function front_scripts() {
-		wp_enqueue_script(
+		wp_register_script(
 			'elasticpress-facets',
 			EP_URL . 'dist/js/facets-script.min.js',
-			[ 'jquery', 'underscore' ],
+			[],
 			EP_VERSION,
 			true
 		);
 
-		wp_enqueue_style(
+		wp_register_style(
 			'elasticpress-facets',
 			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
@@ -184,6 +184,19 @@ class Facets extends Feature {
 	 * @return bool
 	 */
 	public function is_facetable( $query ) {
+
+		/**
+		 * Bypass the standard checks and set a query to be facetable
+		 *
+		 * @hook ep_is_facetable
+		 * @param  {bool}     $bypass Defaults to false.
+		 * @param  {WP_Query} $query  The current WP_Query.
+		 * @return {bool}     true to bypass, false to ignore
+		 */
+		if ( \apply_filters( 'ep_is_facetable', false, $query ) ) {
+			return true;
+		}
+
 		if ( is_admin() ) {
 			return false;
 		}
@@ -255,7 +268,7 @@ class Facets extends Feature {
 		foreach ( $taxonomies as $slug => $taxonomy ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
-					'size'  => 10000,
+					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
 					'field' => 'terms.' . $slug . '.slug',
 				),
 			);
@@ -318,7 +331,7 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function get_aggs( $response, $query, $query_args, $query_object ) {
-		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $query_object->is_main_query() ) {
+		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $this->is_facetable( $query_object ) ) {
 			return;
 		}
 
@@ -330,6 +343,10 @@ class Facets extends Feature {
 			if ( isset( $response['aggregations']['terms'] ) && is_array( $response['aggregations']['terms'] ) ) {
 				foreach ( $response['aggregations']['terms'] as $key => $agg ) {
 					if ( 'doc_count' === $key ) {
+						continue;
+					}
+
+					if ( ! is_array( $agg ) || empty( $agg['buckets'] ) ) {
 						continue;
 					}
 
@@ -355,7 +372,7 @@ class Facets extends Feature {
 		);
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 0 === strpos( $key, 'filter' ) ) {
+			if ( 0 === strpos( $key, 'filter_' ) ) {
 				$taxonomy = str_replace( 'filter_', '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(

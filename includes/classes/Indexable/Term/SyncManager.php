@@ -27,11 +27,11 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function setup() {
-		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
+		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
 			return;
 		}
 
-		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
+		if ( ! $this->can_index_site() ) {
 			return;
 		}
 
@@ -51,6 +51,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function action_sync_on_update( $term_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		if ( ! current_user_can( 'edit_term', $term_id ) ) {
 			return;
 		}
@@ -92,6 +96,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function action_sync_on_object_update( $object_id, $terms ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		if ( empty( $terms ) ) {
 			return;
 		}
@@ -140,6 +148,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function action_queue_meta_sync( $meta_id, $term_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		$this->sync_queue[ $term_id ] = true;
 	}
 
@@ -150,6 +162,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.1
 	 */
 	public function action_sync_on_delete( $term_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		if ( ! current_user_can( 'delete_term', $term_id ) ) {
 			return;
 		}
