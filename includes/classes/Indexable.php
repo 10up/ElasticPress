@@ -477,8 +477,7 @@ abstract class Indexable {
 				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
 				$meta_types['time']     = $new_date->format( 'H:i:s' );
 			}
-
-		} catch (\Exception $e ) {
+		} catch ( \Exception $e ) {
 			// if $meta_value is not a recognizable date format, DateTime will throw an exception,
 			// just catch it and move on.
 		}
