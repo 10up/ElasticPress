@@ -439,8 +439,8 @@ abstract class Indexable {
 			return $meta_types;
 		}
 
-		$meta_types['date']     = '1971-01-01';
-		$meta_types['datetime'] = '1971-01-01 00:00:01';
+		$meta_types['date']     = '1970-01-01';
+		$meta_types['datetime'] = '1970-01-01 00:00:01';
 		$meta_types['time']     = '00:00:01';
 
 		try {
