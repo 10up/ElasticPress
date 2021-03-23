@@ -258,11 +258,17 @@ function updateAutosuggestBox(options, input) {
 			);
 		}
 
-		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
+		let itemHTML = `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
 				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}"  tabindex="-1">
 					${resultsText}
 				</a>
 			</li>`;
+
+		if (typeof window.epAutosuggestItemHTMLFilter !== 'undefined') {
+			itemHTML = window.epAutosuggestItemHTMLFilter(itemHTML, options[i]);
+		}
+
+		itemString += itemHTML;
 	}
 
 	// append list items to the list
