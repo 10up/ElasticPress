@@ -209,7 +209,7 @@ async function esSearch(query, searchTerm) {
 /**
  * Update the auto suggest box with new options or hide if none
  *
- * @param {Array} options - formatted results
+ * @param {Array} options - search results
  * @param {string} input - search string
  * @returns {boolean} return true
  */
