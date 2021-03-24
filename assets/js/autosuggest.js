@@ -266,7 +266,7 @@ function updateAutosuggestBox(options, input) {
 			</li>`;
 
 		if (typeof window.epAutosuggestItemHTMLFilter !== 'undefined') {
-			itemHTML = window.epAutosuggestItemHTMLFilter(itemHTML, options[i], i);
+			itemHTML = window.epAutosuggestItemHTMLFilter(itemHTML, options[i], i, value);
 		}
 
 		itemString += itemHTML;
