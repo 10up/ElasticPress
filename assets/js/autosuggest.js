@@ -242,7 +242,8 @@ function updateAutosuggestBox(options, input) {
 	// create markup for list items
 	// eslint-disable-next-line
 	for ( i = 0; resultsLimit > i; ++i ) {
-		const { text, url } = options[i];
+		const text = options[i]._source.post_title;
+		const url = options[i]._source.permalink;
 		const escapedText = escapeDoubleQuotes(text);
 
 		const searchParts = value.trim().split(' ');
@@ -437,22 +438,6 @@ function init() {
 		);
 	}
 
-	/**
-	 * Helper function to format search results for consumption
-	 * by the updateAutosuggestBox function
-	 *
-	 * @param {object} hits - results from ES
-	 * @returns {Array} formatted hits
-	 */
-	const formatSearchResults = (hits) => {
-		return hits.map((hit) => {
-			const text = hit._source.post_title;
-			const url = hit._source.permalink;
-
-			return { text, url };
-		});
-	};
-
 	// to be used by the handleUpDown function
 	// to keep track of the currently selected result
 	let currentIndex;
@@ -587,12 +572,11 @@ function init() {
 
 			if (response && response._shards && response._shards.successful > 0) {
 				const hits = checkForOrderedPosts(response.hits.hits, searchText);
-				const formattedResults = formatSearchResults(hits);
 
-				if (formattedResults.length === 0) {
+				if (hits.length === 0) {
 					hideAutosuggestBox();
 				} else {
-					updateAutosuggestBox(formattedResults, input);
+					updateAutosuggestBox(hits, input);
 				}
 			} else {
 				hideAutosuggestBox();
