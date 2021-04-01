@@ -877,6 +877,8 @@ class Elasticsearch {
 			'timeout' => 30,
 		];
 
+		$closed = false;
+
 		if ( $close_first ) {
 			$closed = $this->close_index( $index );
 		}
