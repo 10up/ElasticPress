@@ -878,6 +878,7 @@ class Elasticsearch {
 		];
 
 		$closed = false;
+
 		if ( $close_first ) {
 			$closed = $this->close_index( $index );
 		}
