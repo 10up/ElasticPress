@@ -1481,6 +1481,7 @@ class Elasticsearch {
 		}
 
 		if ( $log_enabled ) {
+			$query['backtrace'] = wp_debug_backtrace_summary( null, 1, false );
 			$this->queries[] = $query;
 		}
 
