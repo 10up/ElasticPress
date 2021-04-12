@@ -721,14 +721,14 @@ class Comment extends Indexable {
 		 * get_comment() queries the DB only one. While using the combination of
 		 * WP_Comment_Query( $args ) and WP_Comment_Query::get_comments() takes two DB queries.
 		 */
-		$total_objects = get_comments(
-			apply_filters(
-				'ep_comment_query_all_args',
-				[
-					'count' => true,
-				]
-			)
-		);
+		// $total_objects = get_comments(
+		// 	apply_filters(
+		// 		'ep_comment_query_all_args',
+		// 		[
+		// 			'count' => true,
+		// 		]
+		// 	)
+		// );
 
 		$defaults = [
 			'number'  => $this->get_bulk_items_per_page(),
@@ -746,6 +746,8 @@ class Comment extends Indexable {
 		$query = new WP_Comment_Query( $args );
 
 		array_walk( $query->comments, [ $this, 'remap_comments' ] );
+
+		$total_objects = count( $query->comments );
 
 		return [
 			'objects'       => $query->comments,
