@@ -737,9 +737,30 @@ class Comment extends Indexable {
 		 */
 		$args = apply_filters( 'ep_comment_query_db_args', wp_parse_args( $args, $defaults ) );
 
-		$query = new WP_Comment_Query( $args );
+		$all_query_args = $args;
 
-		$total_objects = count( $query->comments );
+		unset( $all_query_args['number'] );
+		unset( $all_query_args['offset'] );
+
+		/**
+		 * Filter database arguments for term count query
+		 *
+		 * @hook ep_comment_all_query_db_args
+		 * @param  {array} $args Query arguments based to WP_Comment_Query
+		 * @since  3.6
+		 * @return {array} New arguments
+		 */
+		$all_query = new WP_Comment_Query( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
+
+		$total_objects = count( $all_query->comments );
+
+		if ( ! empty( $args['offset'] ) ) {
+			if ( (int) $args['offset'] >= $total_objects ) {
+				$total_objects = 0;
+			}
+		}
+
+		$query = new WP_Comment_Query( $args );
 
 		if ( is_array( $query->comments ) ) {
 			array_walk( $query->comments, [ $this, 'remap_comments' ] );
