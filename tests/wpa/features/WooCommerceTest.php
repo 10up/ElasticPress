@@ -34,7 +34,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.ep-feature-woocommerce .settings-button' );
+		$I->executeJavaScript( 'document.querySelector( ".ep-feature-woocommerce .settings-button" ).click();' );
 
 		$I->click( '#feature_active_woocommerce_disabled' );
 

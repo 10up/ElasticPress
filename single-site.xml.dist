@@ -1,0 +1,26 @@
+<phpunit
+	bootstrap="tests/php/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	>
+	<php>
+		<ini name="error_reporting" value="24575" />
+	</php>
+	<testsuites>
+		<testsuite name="elasticpress">
+			<directory prefix="Test" suffix=".php">./tests/php/</directory>
+		</testsuite>
+	</testsuites>
+	<filter>
+		<whitelist>
+			<directory suffix=".php">./includes</directory>
+			<exclude>
+				<directory suffix=".php">./includes/partials</directory>
+				<directory suffix=".php">./includes/mappings</directory>
+			</exclude>
+		</whitelist>
+	</filter>
+</phpunit>

@@ -23,6 +23,12 @@ function create_and_sync_post( $post_args = array(), $post_meta = array(), $site
 		switch_to_blog( $site_id );
 	}
 
+	$current_site_id = null;
+
+	if ( is_multisite() ) {
+		$current_site_id = get_current_blog_id();
+	}
+
 	$post_types       = ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
 	$post_type_values = array_values( $post_types );
 
