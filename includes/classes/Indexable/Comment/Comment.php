@@ -715,20 +715,6 @@ class Comment extends Indexable {
 	 * @return array
 	 */
 	public function query_db( $args ) {
-		/**
-		 * We use get_comment() here instead of new WP_Comment_Query( $args ) to save DB query.
-		 *
-		 * get_comment() queries the DB only one. While using the combination of
-		 * WP_Comment_Query( $args ) and WP_Comment_Query::get_comments() takes two DB queries.
-		 */
-		// $total_objects = get_comments(
-		// 	apply_filters(
-		// 		'ep_comment_query_all_args',
-		// 		[
-		// 			'count' => true,
-		// 		]
-		// 	)
-		// );
 
 		$defaults = [
 			'number'  => $this->get_bulk_items_per_page(),
@@ -741,13 +727,23 @@ class Comment extends Indexable {
 			$args['number'] = $args['per_page'];
 		}
 
+		/**
+		 * Filter database arguments for comment query
+		 *
+		 * @hook ep_comment_query_db_args
+		 * @param  {array} $args Query arguments based to WP_Comment_Query
+		 * @since  3.6
+		 * @return {array} New arguments
+		 */
 		$args = apply_filters( 'ep_comment_query_db_args', wp_parse_args( $args, $defaults ) );
 
 		$query = new WP_Comment_Query( $args );
 
-		array_walk( $query->comments, [ $this, 'remap_comments' ] );
-
 		$total_objects = count( $query->comments );
+
+		if ( is_array( $query->comments ) ) {
+			array_walk( $query->comments, [ $this, 'remap_comments' ] );
+		}
 
 		return [
 			'objects'       => $query->comments,
