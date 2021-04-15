@@ -546,6 +546,26 @@ function init() {
 	};
 
 	/**
+	 * Get the searched post types from the search form.
+	 *
+	 * @param {HTMLFormElement} form - form containing the search input field
+	 * @returns {Array} - post types
+	 */
+	function getPostTypesFromForm(form) {
+		const data = new FormData(form);
+
+		if (data.has('post_type')) {
+			return data.getAll('post_type').slice(-1);
+		}
+
+		if (data.has('post_type[]')) {
+			return data.getAll('post_type[]');
+		}
+
+		return [];
+	}
+
+	/**
 	 * Calls the ajax request, and outputs the results.
 	 * Called by the handleKeyup callback, debounced.
 	 *
@@ -554,6 +574,7 @@ function init() {
 	const fetchResults = async (input) => {
 		const searchText = input.value;
 		const placeholder = 'ep_autosuggest_placeholder';
+		const postTypes = getPostTypesFromForm(input.form);
 
 		// retrieves the PHP-genereated query to pass to ElasticSearch
 		const queryJSON = getJsonQuery();
@@ -565,7 +586,21 @@ function init() {
 		if (searchText.length >= 2) {
 			setFormIsLoading(true, input);
 
-			const query = buildSearchQuery(searchText, placeholder, queryJSON);
+			let query = buildSearchQuery(searchText, placeholder, queryJSON);
+
+			if (postTypes.length > 0) {
+				query = JSON.parse(query);
+
+				if (typeof query.post_filter.bool.must !== 'undefined') {
+					query.post_filter.bool.must.push({
+						terms: {
+							'post_type.raw': postTypes,
+						},
+					});
+				}
+
+				query = JSON.stringify(query);
+			}
 
 			// fetch the results
 			const response = await esSearch(query, searchText);
