@@ -56,14 +56,14 @@ class Post extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'posts_per_page'      => $this->get_bulk_items_per_page(),
-			'post_type'           => $this->get_indexable_post_types(),
-			'post_status'         => $this->get_indexable_post_status(),
-			'offset'              => 0,
-			'ignore_sticky_posts' => true,
-			'orderby'             => 'ID',
-			'order'               => 'desc',
-			'no_found_rows'       => true,
+			'posts_per_page'                  => $this->get_bulk_items_per_page(),
+			'post_type'                       => $this->get_indexable_post_types(),
+			'post_status'                     => $this->get_indexable_post_status(),
+			'offset'                          => 0,
+			'ignore_sticky_posts'             => true,
+			'orderby'                         => 'ID',
+			'order'                           => 'desc',
+			'no_found_rows'                   => true,
 			'ep_indexing_advanced_pagination' => true,
 		];
 
@@ -95,14 +95,17 @@ class Post extends Indexable {
 
 		// Enforce the following query args during advanced pagination to ensure things work correctly.
 		if ( $args['ep_indexing_advanced_pagination'] ) {
-			$args = array_merge( $args, [
-				'suppress_filters' => false,
-				'orderby'          => 'ID',
-				'order'            => 'DESC',
-				'paged'            => 1,
-				'offset'           => 0,
-				'no_found_rows'    => true,
-			] );
+			$args = array_merge(
+				$args,
+				[
+					'suppress_filters' => false,
+					'orderby'          => 'ID',
+					'order'            => 'DESC',
+					'paged'            => 1,
+					'offset'           => 0,
+					'no_found_rows'    => true,
+				]
+			);
 		}
 
 		add_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
@@ -119,12 +122,12 @@ class Post extends Indexable {
 	}
 
 		/**
-	 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
-	 *
-	 * @param string   $where The current $where clause.
-	 * @param WP_Query $query WP_Query object.
-	 * @return string WHERE clause with our pagination added if needed.
-	 */
+		 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
+		 *
+		 * @param string   $where The current $where clause.
+		 * @param WP_Query $query WP_Query object.
+		 * @return string WHERE clause with our pagination added if needed.
+		 */
 	public function bulk_indexing_filter_posts_where( $where, $query ) {
 		$using_advanced_pagination = $query->get( 'ep_indexing_advanced_pagination', false );
 
@@ -136,7 +139,7 @@ class Post extends Indexable {
 			// On the first loopthrough we begin with the requested start ID. Afterwards, use the last processed ID to paginate.
 			$start_range_post_id = $requested_start_id;
 			if ( is_numeric( $last_processed_id ) ) {
-				$start_range_post_id =  $last_processed_id - 1;
+				$start_range_post_id = $last_processed_id - 1;
 			}
 
 			// Sanitize. Abort if unexpected data at this point.
@@ -151,7 +154,7 @@ class Post extends Indexable {
 
 			// Skip the end range if it's unnecessary.
 			$skip_ending_range = 0 === $requested_end_id;
-			$where = $skip_ending_range ? "AND {$range['start']} {$where}" : "AND {$range['start']} AND {$range['end']} {$where}";
+			$where             = $skip_ending_range ? "AND {$range['start']} {$where}" : "AND {$range['start']} AND {$range['end']} {$where}";
 		}
 
 		return $where;
@@ -167,13 +170,16 @@ class Post extends Indexable {
 		static $object_counts = [];
 
 		// Reset the pagination-related args for optimal caching.
-		$normalized_query_args = array_merge( $query_args, [
-			'offset'         => 0,
-			'paged'          => 1,
-			'posts_per_page' => 1,
-			'no_found_rows'  => false,
-			'ep_indexing_last_processed_object_id' => null,
-		] );
+		$normalized_query_args = array_merge(
+			$query_args,
+			[
+				'offset'                               => 0,
+				'paged'                                => 1,
+				'posts_per_page'                       => 1,
+				'no_found_rows'                        => false,
+				'ep_indexing_last_processed_object_id' => null,
+			]
+		);
 
 		$cache_key = md5( json_encode( $normalized_query_args ) );
 

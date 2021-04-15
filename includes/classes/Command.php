@@ -991,8 +991,8 @@ class Command extends WP_CLI_Command {
 				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
 			}
 
-			$query_args['offset'] += $per_page;
-			$total_indexable       = (int) $query['total_objects'];
+			$query_args['offset']                              += $per_page;
+			$total_indexable                                    = (int) $query['total_objects'];
 			$query_args['ep_indexing_last_processed_object_id'] = $last_processed_object_id;
 
 			usleep( 500 );
