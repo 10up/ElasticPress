@@ -185,7 +185,7 @@ class SyncManager extends SyncManagerAbstract {
 		/**
 		 * Filter whether to skip the permissions check on deleting a post
 		 *
-		 * @hook ep_post_sync_kill
+		 * @hook ep_sync_delete_permissions_bypass
 		 * @param  {bool} $bypass True to bypass
 		 * @param  {int} $post_id ID of post
 		 * @return {boolean} New value
@@ -243,18 +243,15 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		/**
-		 * Filter whether to skip the permissions check on deleting a post
+		 * Filter whether to skip the permissions check on updating a post
 		 *
-		 * @hook ep_post_sync_kill
+		 * @hook ep_sync_insert_permissions_bypass
 		 * @param  {bool} $bypass True to bypass
 		 * @param  {int} $post_id ID of post
 		 * @return {boolean} New value
 		 */
-		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
-			if ( ! current_user_can( 'edit_post', $post_id ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
-				// Bypass saving if user does not have access to edit post and we're not in a cron process.
-				return;
-			}
+		if ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
+			return;
 		}
 
 		$post = get_post( $post_id );
