@@ -717,10 +717,11 @@ class Comment extends Indexable {
 	public function query_db( $args ) {
 
 		$defaults = [
-			'number'  => $this->get_bulk_items_per_page(),
-			'offset'  => 0,
-			'orderby' => 'comment_ID',
-			'order'   => 'desc',
+			'post_type' => 'any',
+			'number'    => $this->get_bulk_items_per_page(),
+			'offset'    => 0,
+			'orderby'   => 'comment_ID',
+			'order'     => 'desc',
 		];
 
 		if ( isset( $args['per_page'] ) ) {
