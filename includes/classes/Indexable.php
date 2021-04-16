@@ -111,6 +111,8 @@ abstract class Indexable {
 			$index_name = $prefix . '-' . $index_name;
 		}
 
+		$index_name = strtolower( $index_name );
+
 		/**
 		 * Filter index name
 		 *
