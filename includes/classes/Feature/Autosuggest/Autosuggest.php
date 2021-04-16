@@ -322,6 +322,10 @@ class Autosuggest extends Feature {
 	 * @since  2.4
 	 */
 	public function enqueue_scripts() {
+		if ( Utils\is_indexing() ) {
+			return;
+		}
+
 		$host         = Utils\get_host();
 		$endpoint_url = false;
 		$settings     = $this->get_settings();
