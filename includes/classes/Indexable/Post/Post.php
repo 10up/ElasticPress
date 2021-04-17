@@ -879,6 +879,21 @@ class Post extends Indexable {
 		}
 
 		/**
+		 * 'category__not_in' arg support.
+		 *
+		 * @since x.x
+		 */
+		if ( ! empty( $args['category__not_in'] ) ) {
+		$filter['bool']['must'][]['bool']['must_not'] = array(
+			'terms' => array(
+				'terms.category.term_id' => (array) $args['category__not_in'],
+			),
+		);
+
+		$use_filters = true;
+		}
+
+		/**
 		 * Author query support
 		 *
 		 * @since 1.0
