@@ -884,13 +884,12 @@ class Post extends Indexable {
 		 * @since x.x
 		 */
 		if ( ! empty( $args['category__not_in'] ) ) {
-		$filter['bool']['must'][]['bool']['must_not'] = array(
-			'terms' => array(
-				'terms.category.term_id' => (array) $args['category__not_in'],
-			),
-		);
-
-		$use_filters = true;
+			$use_filters                                  = true;
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.category.term_id' => (array) $args['category__not_in'],
+				),
+			);
 		}
 
 		/**
