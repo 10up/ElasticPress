@@ -18,7 +18,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 *
-	 * @since 2.3
+	 * @since 3.6
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -44,7 +44,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Clean up after each test. Reset our mocks
 	 *
-	 * @since 2.3
+	 * @since 3.6
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -59,10 +59,22 @@ class TestComments extends BaseTestCase {
 		$this->fired_actions = array();
     }
 
+	/**
+	 * Get Comment feature
+	 *
+	 * @since  3.6
+	 * @return ElasticPress\Feature\Comments
+	 */
 	protected function get_feature() {
 		return ElasticPress\Features::factory()->get_registered_feature( 'comments' );
 	}
 
+	/**
+	 * Test Comment Feature slug and title
+	 *
+	 * @since  3.6
+	 * @group comments
+	 */
     public function testConstruct() {
         $instance = new ElasticPress\Feature\Comments\Comments();
 
@@ -70,6 +82,12 @@ class TestComments extends BaseTestCase {
         $this->assertEquals( 'Comments', $instance->title );
     }
 
+	/**
+	 * Test Comment Feature box summary
+	 *
+	 * @since  3.6
+	 * @group comments
+	 */
     public function testBoxSummary() {
 		ob_start();
 		$this->get_feature()->output_feature_box_summary();
@@ -78,6 +96,12 @@ class TestComments extends BaseTestCase {
 		$this->assertContains( 'Improve comment search relevancy and query performance.', $output );
     }
 
+	/**
+	 * Test Comment Feature box long text
+	 *
+	 * @since  3.6
+	 * @group comments
+	 */
     public function testBoxLong() {
 		ob_start();
 		$this->get_feature()->output_feature_box_long();
@@ -86,6 +110,12 @@ class TestComments extends BaseTestCase {
 		$this->assertContains( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale.', $output );
 	}
 
+	/**
+	 * Test enable integration
+	 *
+	 * @since  3.6
+	 * @group comments
+	 */
 	public function testIntegrateSearchQueries() {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
@@ -103,6 +133,12 @@ class TestComments extends BaseTestCase {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 	}
 
+	/**
+	 * Test Comment Feature status
+	 *
+	 * @since  3.6
+	 * @group comments
+	 */
     public function testRequirementsStatus() {
         $status = $this->get_feature()->requirements_status();
 

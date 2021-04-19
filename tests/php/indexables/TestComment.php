@@ -23,7 +23,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 *
-	 * @since 3.5
+	 * @since 3.6
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -49,7 +49,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Clean up after each test. Reset our mocks
 	 *
-	 * @since 3.5
+	 * @since 3.6
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -64,7 +64,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Deletes all comments from the database.
 	 *
-	 * @return void
+	 * @since 3.6
 	 */
 	public function deleteAllComments() {
 
@@ -75,6 +75,12 @@ class TestComment extends BaseTestCase {
 
 	/**
 	 * Create test comments.
+	 *
+	 * @param int $number The number of comments to be created.
+	 * @param bool $has_child Create child comment
+	 * @return array
+	 * @since 3.6
+	 * @group comments
 	 */
 	public function createComments( $number = 4, $has_child = false ) {
 		$parent_comment_id = $child_comment_id = 0;
@@ -114,10 +120,10 @@ class TestComment extends BaseTestCase {
 	}
 
 	/**
-	 * Test a simple comment sync
+	 * Test a comment sync
 	 *
-	 * @since 3.5
-	 * @group post
+	 * @since 3.6
+	 * @group comments
 	 */
 	public function testCommentSync() {
 		add_action(
@@ -150,9 +156,9 @@ class TestComment extends BaseTestCase {
 	}
 
 	/**
-	 * Test a simple comment sync with meta
+	 * Test a comment sync with meta
 	 *
-	 * @since 3.5
+	 * @since 3.6
 	 * @group comment
 	 */
 	public function testCommentSyncMeta() {
@@ -175,9 +181,9 @@ class TestComment extends BaseTestCase {
 	}
 
 	/**
-	 * Test a simple comment sync on meta update
+	 * Test a comment sync on meta update
 	 *
-	 * @since 3.5
+	 * @since 3.6
 	 * @group comment
 	 */
 	public function testCommentSyncOnMetaUpdate() {
@@ -197,7 +203,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment sync kill.
 	 *
-	 * @since 3.5
+	 * @since 3.6
 	 * @group comment
 	 */
 	public function testCommentSyncKill() {
@@ -236,7 +242,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a basic comment query with and without ElasticPress
 	 *
-	 * @since 3.3
+	 * @since 3.6
 	 * @group comment
 	 */
 	public function testBasicCommentQuery() {
@@ -280,6 +286,12 @@ class TestComment extends BaseTestCase {
 		remove_filter( 'ep_max_results_window', $return_2 );
 	}
 
+	/**
+	 * Test a comment query with number argument
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryNumber() {
 		$this->createComments();
 
@@ -295,6 +307,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test a comment query with offset argument
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryOffset() {
 		$this->createComments( 6 );
 
@@ -310,6 +328,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query ordering
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryOrderCommentContent() {
 		$this->createComments();
 
@@ -336,6 +360,12 @@ class TestComment extends BaseTestCase {
 		$this->assertAttributeEquals( 'Test comment 1', 'comment_content', $comments[3] );
 	}
 
+	/**
+	 * Test comment query ordering by comment id.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryOrderCommentID() {
 		$this->createComments();
 
@@ -365,6 +395,12 @@ class TestComment extends BaseTestCase {
 		$this->assertLessThan( $ids[3], $ids[2] );
 	}
 
+	/**
+	 * Test comment query ordering by comment post id.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryOrderCommentPostID() {
 		$post_id_1 = Functions\create_and_sync_post();
 		$post_id_2 = Functions\create_and_sync_post();
@@ -398,6 +434,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 'Test comment 1', $comments[0]->comment_content );
 	}
 
+	/**
+	 * Test comment query returning ids.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryIds() {
 
 		$created_comments = $this->createComments( 3 );
@@ -414,6 +456,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query returning ids.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryCount() {
 
 		$this->createComments( 3 );
@@ -426,6 +474,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, $comments );
 	}
 
+	/**
+	 * Test comment query with hierarchical argument.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryHierarchical() {
 		$created_comments = $this->createComments( 0, true );
 
@@ -453,6 +507,12 @@ class TestComment extends BaseTestCase {
 		}
 	}
 
+	/**
+	 * Test comment query after deleting a comment.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentDelete() {
 		add_action(
 			'ep_sync_comment_on_transition',
@@ -502,6 +562,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEmpty( $comment );
 	}
 
+	/**
+	 * Test comment query pagination.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryPaged() {
 
 		$this->createComments( 7 );
@@ -520,6 +586,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query by author email.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryAuthorEmail() {
 		$post_id = Functions\create_and_sync_post();
 
@@ -571,6 +643,12 @@ class TestComment extends BaseTestCase {
 		$this->assertAttributeEquals( 'doe@example.com', 'comment_author_email', $comments[0] );
 	}
 
+	/**
+	 * Test comment query by author URL.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryAuthorUrl() {
 		$post_id = Functions\create_and_sync_post();
 
@@ -624,6 +702,12 @@ class TestComment extends BaseTestCase {
 		$this->assertAttributeEquals( 'http://example.com', 'comment_author_url', $comments[0] );
 	}
 
+	/**
+	 * Test comment query by user id.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryUserId() {
 		$current_user_id = get_current_user_id();
 
@@ -668,6 +752,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query with author__in argument.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryAuthorIn() {
 		$current_user_id = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -713,6 +803,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query with author__not_in.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryAuthorNotIn() {
 		$current_user_id = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -753,6 +849,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query with comment__in argument.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryCommentIn() {
 		$created_comments = $this->createComments();
 
@@ -773,6 +875,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query with comment__not_in argument.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryCommentNotIn() {
 		$created_comments = $this->createComments( 5 );
 
@@ -792,6 +900,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query ordering by comment date.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryDateQuery() {
 
 		$post_id = Functions\create_and_sync_post();
@@ -885,6 +999,12 @@ class TestComment extends BaseTestCase {
 		$this->assertAttributeEquals( '2020-06-15 00:00:00', 'comment_date', $comments[0] );
 	}
 
+	/**
+	 * Test comment query with karm argument.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryKarma() {
 
 		$post_id = Functions\create_and_sync_post();
@@ -932,6 +1052,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query using comment meta.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryMeta() {
 
 		$post_id = Functions\create_and_sync_post();
@@ -976,6 +1102,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query using meta_query.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryMetaQuery() {
 
 		$post_id = Functions\create_and_sync_post();
@@ -1028,6 +1160,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query with parent__in argument.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryParentIn() {
 		$created_comments = $this->createComments( 3, true );
 
@@ -1045,6 +1183,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 1, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query with parent__not_in.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryParentNotIn() {
 		$created_comments = $this->createComments( 3, true );
 
@@ -1062,6 +1206,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 4, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query by post author.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryPostAuthor() {
 
 		$user_id_1 = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -1145,6 +1295,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query by post id.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryPostId() {
 		$this->createComments();
 		$created_comments = $this->createComments( 3 );
@@ -1189,6 +1345,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 4, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query by post status.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryPostStatus() {
 
 		$post_id_1 = Functions\create_and_sync_post( [ 'post_status' => 'publish' ] );
@@ -1242,6 +1404,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 4, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query by post type.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryPostType() {
 
 		$post_id_1 = Functions\create_and_sync_post( [ 'post_type' => 'post' ] );
@@ -1284,6 +1452,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query with post_parent argument.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryPostParent() {
 
 		$post_id_1 = Functions\create_and_sync_post( [ 'post_type' => 'page' ]);
@@ -1320,6 +1494,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query search.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQuerySearch() {
 		$post_id = Functions\create_and_sync_post();
 
@@ -1373,6 +1553,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 1, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query by status.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryStatus() {
 
 		$post_id = Functions\create_and_sync_post();
@@ -1468,6 +1654,12 @@ class TestComment extends BaseTestCase {
 		$this->assertAttributeEquals( '1', 'comment_approved', $comments[2] );
 	}
 
+	/**
+	 * Test comment query by comment type.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryType() {
 
 		$post_id = Functions\create_and_sync_post();
@@ -1540,6 +1732,12 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 1, count( $comments ) );
 	}
 
+	/**
+	 * Test comment query by post name.
+	 *
+	 * @since 3.6
+	 * @group comment
+	 */
 	public function testCommentQueryPostName() {
 
 		$post_id = Functions\create_and_sync_post( [
