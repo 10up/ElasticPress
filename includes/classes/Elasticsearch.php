@@ -90,6 +90,8 @@ class Elasticsearch {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/' . $document['ID'], $document, $type );
 		}
 
+		$path = apply_filters( 'ep_index_request_path', $path, $document, $type );
+
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );
 		} else {
@@ -295,9 +297,31 @@ class Elasticsearch {
 			),
 		);
 
-		// If search, send the search term as a header to ES so the backend understands what a normal query looks like
-		if ( isset( $query_args['s'] ) && (bool) $query_args['s'] && ! is_admin() && ! isset( $_GET['post_type'] ) ) {
-			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
+		/**
+		 * Filter whether to send the EP-Search-Term header or not.
+		 *
+		 * @todo Evaluate if we should remove tests for is_admin() and empty post types.
+		 *
+		 * @since  3.5.2
+		 * @hook ep_query_send_ep_search_term_header
+		 * @param  {bool}  $send_header True means send the EP-Search-Term header
+		 * @param  {array} $query_args  WP query args
+		 * @return {bool}  New $send_header value
+		 */
+		$send_ep_search_term_header = apply_filters(
+			'ep_query_send_ep_search_term_header',
+			(
+				Utils\is_epio() &&
+				! empty( $query_args['s'] ) &&
+				! is_admin() &&
+				! isset( $_GET['post_type'] ) // phpcs:ignore WordPress.Security.NonceVerification
+			),
+			$query_args
+		);
+
+		// If needed, send the search term as a header to ES so the backend understands what a normal query looks like
+		if ( $send_ep_search_term_header ) {
+			$request_args['headers']['EP-Search-Term'] = rawurlencode( $query_args['s'] );
 		}
 
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
@@ -365,6 +389,10 @@ class Elasticsearch {
 				$document            = $hit['_source'];
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
+				if ( ! empty( $hit['highlight'] ) ) {
+					$document['highlight'] = $hit['highlight'];
+				}
+
 				/**
 				 * Filter Elasticsearch retrieved document
 				 *
@@ -400,6 +428,17 @@ class Elasticsearch {
 				$query_object
 			);
 		}
+
+		/**
+		 * Fires after invalid Elasticsearch query
+		 *
+		 * @hook ep_invalid_response
+		 * @param  {array} $request Remote request response
+		 * @param  {array} $query Prepared Elasticsearch query
+		 * @param  {array} $query_args Current WP Query arguments
+		 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
+		 */
+		do_action( 'ep_invalid_response', $request, $query, $query_args, $query_object );
 
 		return false;
 	}
@@ -704,6 +743,113 @@ class Elasticsearch {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get current index mapping from Elasticsearch.
+	 *
+	 * @param  string $index The index name.
+	 * @since  3.5
+	 * @return array
+	 */
+	public function get_mapping( $index ) {
+		$request_args = [
+			'method'  => 'GET',
+			'timeout' => 30,
+		];
+
+		$request = $this->remote_request( $index, $request_args, [], 'get_mapping' );
+
+		if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
+			return [];
+		}
+
+		$body = wp_remote_retrieve_body( $request );
+
+		if ( ! $body ) {
+			return [];
+		}
+
+		$mapping = json_decode( $body, true );
+
+		return is_array( $mapping ) ? $mapping : [];
+	}
+
+	/**
+	 * Close an open index.
+	 *
+	 * @param  string $index Index name.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function close_index( $index ) {
+		$request_args = [
+			'method'  => 'POST',
+			'timeout' => 30,
+		];
+
+		$close   = trailingslashit( $index ) . '_close';
+		$request = $this->remote_request( $close, $request_args, [], 'close_index' );
+
+		return ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+	}
+
+	/**
+	 * Open a closed index.
+	 *
+	 * @param  string $index Index name.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function open_index( $index ) {
+		$request_args = [
+			'method'  => 'POST',
+			'timeout' => 30,
+		];
+
+		$open    = trailingslashit( $index ) . '_open';
+		$request = $this->remote_request( $open, $request_args, [], 'open_index' );
+
+		return ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+	}
+
+	/**
+	 * Update index settings.
+	 *
+	 * @param  string  $index       Index name.
+	 * @param  array   $settings    Setting update array.
+	 * @param  boolean $close_first Optional. True if index must be closed prior to update.
+	 *                              Dynamic settings can be updated on open indices. Static
+	 *                              settings must be closed.  Default false.
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function update_index_settings( $index, $settings, $close_first = false ) {
+		$request_args = [
+			'body'    => wp_json_encode( $settings ),
+			'method'  => 'PUT',
+			'timeout' => 30,
+		];
+
+		if ( $close_first ) {
+			$closed = $this->close_index( $index );
+		}
+
+		if ( ! $close_first || $closed ) {
+			$settings = trailingslashit( $index ) . '_settings';
+			$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
+		} else {
+			return false;
+		}
+
+		$updated = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+
+		if ( $closed ) {
+			$opened = $this->open_index( $index );
+			return ( $updated && $opened );
+		}
+
+		return $updated;
 	}
 
 	/**
@@ -1288,4 +1434,3 @@ class Elasticsearch {
 	}
 
 }
-

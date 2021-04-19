@@ -124,12 +124,23 @@ class TestSearchOrdering extends BaseTestCase {
 		set_current_screen( 'front' );
 
 		$this->assertSame( 'test_parent_file', $this->get_feature()->parent_file( 'test_parent_file' ) );
+
+
+		if ( ! $this->is_network_activate() ) {
+			set_current_screen( 'ep-pointer' );
+			$this->assertSame( 'elasticpress', $this->get_feature()->parent_file( 'test_parent_file' ) );
+		}
 	}
 
 	public function testSubmenuFile() {
 		set_current_screen( 'front' );
 
 		$this->assertSame( 'test_submenu_file', $this->get_feature()->submenu_file( 'test_submenu_file' ) );
+
+		if ( ! $this->is_network_activate() ) {
+			set_current_screen( 'ep-pointer' );
+			$this->assertSame( 'edit.php?post_type=ep-pointer', $this->get_feature()->submenu_file( 'test_submenu_file' ) );
+		}
 	}
 
 	public function testRegisterPostType() {
@@ -144,8 +155,13 @@ class TestSearchOrdering extends BaseTestCase {
 	public function testRegisterMetaBox() {
 		global $wp_meta_boxes;
 		$this->get_feature()->register_meta_box();
-		$this->assertArrayHasKey( 'ep-ordering', $wp_meta_boxes['ep-pointer-network']['normal']['default'] );
-		$this->assertEquals( 'Manage Results', $wp_meta_boxes['ep-pointer-network']['normal']['default']['ep-ordering']['title'] );
+		if ( $this->is_network_activate() ) {
+			$this->assertArrayHasKey( 'ep-ordering', $wp_meta_boxes['ep-pointer-network']['normal']['default'] );
+			$this->assertEquals( 'Manage Results', $wp_meta_boxes['ep-pointer-network']['normal']['default']['ep-ordering']['title'] );
+		} else {
+			$this->assertArrayHasKey( 'ep-ordering', $wp_meta_boxes['ep-pointer']['normal']['default'] );
+			$this->assertEquals( 'Manage Results', $wp_meta_boxes['ep-pointer']['normal']['default']['ep-ordering']['title'] );
+		}
 	}
 
 	public function testRenderMetaBox() {

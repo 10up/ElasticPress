@@ -19,6 +19,13 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$sync_url      = admin_url( 'admin.php?page=elasticpress&do_sync' );
 	$dashboard_url = admin_url( 'admin.php?page=elasticpress' );
 }
+
+$skip_install_url = add_query_arg(
+	[
+		'ep-skip-install' => 1,
+		'nonce'           => wp_create_nonce( 'ep-skip-install' ),
+	]
+);
 ?>
 
 <?php require_once __DIR__ . '/header.php'; ?>
@@ -68,8 +75,10 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		<div class="setup-message">
 			<?php if ( 3 === $install_status ) : ?>
 				<a class="setup-button" href="<?php echo esc_url( $sync_url ); ?>"><?php esc_html_e( 'Index Your Content', 'elasticpress' ); ?></a>
+				<p><a href="<?php echo esc_url( $skip_install_url ); ?>">Skip Install &#187;</a></p>
 			<?php else : ?>
 				<a class="setup-button" href="<?php echo esc_url( $setup_url ); ?>"><?php esc_html_e( 'Got hosting? Get Started', 'elasticpress' ); ?></a>
+				<p><a href="<?php echo esc_url( $skip_install_url ); ?>">Skip Install &#187;</a></p>
 			<?php endif ?>
 		</div>
 	<?php endif; ?>

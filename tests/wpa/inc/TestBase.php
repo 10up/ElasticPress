@@ -35,35 +35,55 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			/**
 			 * Set default feature settings
 			 */
-			$this->updateFeatureSettings(
-				[
-					'search'            => [
-						'active' => 1,
-					],
-					'related_posts'     => [
-						'active' => 1,
-					],
-					'facets'            => [
-						'active' => 1,
-					],
-					'searchordering'    => [
-						'active' => 1,
-					],
-					'autosuggest'       => [
-						'active' => 1,
-					],
-					'woocommerce'       => [
-						'active' => 0,
-					],
-					'protected_content' => [
-						'active'         => 0,
-						'force_inactive' => 1,
-					],
-					'users'             => [
-						'active' => 1,
-					],
-				]
-			);
+			$feature_settings = [
+				'search'            => [
+					'active'            => 1,
+					'highlight_enabled' => true,
+					'highlight_excerpt' => true,
+					'highlight_tag'     => 'mark',
+					'highlight_color'   => '#157d84',
+				],
+				'related_posts'     => [
+					'active' => 1,
+				],
+				'facets'            => [
+					'active' => 1,
+				],
+				'searchordering'    => [
+					'active' => 1,
+				],
+				'autosuggest'       => [
+					'active' => 1,
+				],
+				'woocommerce'       => [
+					'active' => 0,
+				],
+				'protected_content' => [
+					'active'         => 0,
+					'force_inactive' => 1,
+				],
+				'users'             => [
+					'active' => 1,
+				],
+			];
+
+			// If not using EP.io, set the autosuggest endpoint.
+			$ep_host = $this->runCommand( "wp eval 'echo \ElasticPress\Utils\get_host();'" )['stdout'];
+			if ( ! preg_match( '#elasticpress\.io#i', $ep_host ) ) {
+				$ep_host = rtrim( $ep_host, '/\\' );
+				$ep_host = str_replace( 'host.docker.internal', '127.0.0.1', $ep_host );
+
+				$post_index = '';
+				foreach ( $this->indexes as $index ) {
+					if ( false !== strpos( $index, '-post' ) ) {
+						$post_index = $index;
+					}
+				}
+
+				$feature_settings['autosuggest']['endpoint_url'] = "{$ep_host}/{$post_index}/_search";
+			}
+
+			$this->updateFeatureSettings( $feature_settings );
 
 			/**
 			 * Set default weighting
@@ -186,7 +206,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		$actor->typeInField( '#post-title-0', $data['title'] );
 
 		$actor->getPage()->type(
-			'.editor-default-block-appender__content',
+			'.block-editor-default-block-appender__content',
 			$data['content'],
 			[ 'delay' => 10 ]
 		);
@@ -208,14 +228,14 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 			$actor->click( '.editor-post-publish-panel__toggle' );
 
-			// Some time we can't click the publish button using this method $actor->click( '.editor-post-publish-button' );	
+			// Some time we can't click the publish button using this method $actor->click( '.editor-post-publish-button' );
 			$actor->executeJavaScript( 'document.querySelector( ".editor-post-publish-button" ).click();' );
 
-			$actor->waitUntilElementEnabled( '.editor-post-publish-button' );
+			// $actor->waitUntilElementEnabled( '.editor-post-publish-button' );
 
-			$actor->click( '.editor-post-publish-button' );
+			// $actor->click( '.editor-post-publish-button' );
 
-			$actor->waitUntilElementVisible( '.components-notice' );
+			$actor->waitUntilElementVisible( '.components-snackbar' );
 		}
 	}
 
@@ -275,5 +295,66 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		$host = $actor->getElementAttribute( '#ep_host', 'value' );
 
 		return strpos( $host, 'hosted-elasticpress.io' );
+	}
+
+	/**
+	 * Create a user in the admin
+	 *
+	 * @param  array                       $data  User data
+	 * @param  \WPAcceptance\PHPUnit\Actor $actor Current actor
+	 */
+	public function createUser( array $data, \WPAcceptance\PHPUnit\Actor $actor ) {
+		$defaults = [
+			'user_login' => 'testuser',
+			'user_email' => 'testuser@example.com',
+		];
+
+		$data = array_merge( $defaults, $data );
+
+		$actor->moveTo( 'wp-admin/user-new.php' );
+
+		$actor->typeInField( '#user_login', $data['user_login'] );
+
+		$actor->typeInField( '#email', $data['user_email'] );
+
+		$actor->checkOptions( '#noconfirmation' );
+
+		$actor->click( '#createusersub' );
+
+		$actor->waitUntilElementVisible( '#message' );
+	}
+
+	/**
+	 * Helper function to check for total entries found in Debug Bar.
+	 *
+	 * @param integer $total
+	 * @param \WPAcceptance\PHPUnit\Actor $actor
+	 */
+	public function checkTotal( int $total, \WPAcceptance\PHPUnit\Actor $actor ) {
+		// Different ES versions will return it in different ways.
+		try {
+			$actor->seeText( '"total": ' . $total, '.query-results' );
+		} catch ( \Exception $e ) {
+			$actor->seeText( '"value": ' . $total, '.query-results' );
+		}
+	}
+
+	/**
+	 * Set the number of entries per cycle.
+	 *
+	 * @param integer $number
+	 * @param \WPAcceptance\PHPUnit\Actor $actor
+	 * @return string
+	 */
+	public function setPerIndexCycle( int $number, \WPAcceptance\PHPUnit\Actor $actor ) {
+		$actor->moveTo( 'wp-admin/admin.php?page=elasticpress-settings' );
+
+		$per_page = $actor->getElementAttribute( '#ep_bulk_setting', 'value' );
+
+		$actor->typeInField( '#ep_bulk_setting', (string) $number );
+
+		$actor->click( '#submit' );
+
+		return $per_page;
 	}
 }

@@ -321,4 +321,34 @@ class WpCliTest extends TestBase {
 
 		$this->assertStringContainsString( 'Index Size', $cli_result );
 	}
+
+	/**
+	 * @testdox If user runs wp elasticpress get-index-status command, it should return a string indicating the index is not running.
+	*/
+	public function testGetIndexingStatusCommand() {
+
+		$cli_result = $this->runCommand( 'wp elasticpress get-indexing-status' )['stdout'];
+
+		$this->assertStringContainsString( '{"indexing":false,"method":"none","items_indexed":0,"total_items":-1}', $cli_result );
+	}
+
+	/**
+	 * @testdox If user runs wp elasticpress get-last-cli-index command, it should return a string indicating with the appropriate fields.
+	*/
+	public function testGetLastCLIIndexCommand() {
+
+		$cli_result = $this->runCommand( 'wp elasticpress get-last-cli-index' )['stdout'];
+
+		$this->assertStringContainsString( '[]', $cli_result );
+
+		$this->runCommand( 'wp elasticpress index' );
+
+		$cli_result = $this->runCommand( 'wp elasticpress get-last-cli-index --clear' )['stdout'];
+
+		$this->assertStringContainsString( '"total_time"', $cli_result );
+
+		$cli_result = $this->runCommand( 'wp elasticpress get-last-cli-index --clear' )['stdout'];
+
+		$this->assertStringContainsString( '[]', $cli_result );
+	}
 }

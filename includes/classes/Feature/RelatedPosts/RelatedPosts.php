@@ -159,9 +159,10 @@ class RelatedPosts extends Feature {
 			'wp/v2',
 			'/posts/(?P<id>[0-9]+)/related',
 			[
-				'methods'  => 'GET',
-				'callback' => [ $this, 'output_endpoint' ],
-				'args'     => [
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'output_endpoint' ],
+				'permission_callback' => '__return_true',
+				'args'                => [
 					'id'     => [
 						'description' => 'Post ID.',
 						'type'        => 'numeric',
