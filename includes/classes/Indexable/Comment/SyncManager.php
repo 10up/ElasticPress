@@ -2,7 +2,7 @@
 /**
  * Manage syncing of content between WP and Elasticsearch for Comments
  *
- * @since   3.1
+ * @since   3.6
  * @package elasticpress
  */
 
@@ -24,7 +24,7 @@ class SyncManager extends SyncManagerAbstract {
 	/**
 	 * Setup actions and filters
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function setup() {
 		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
@@ -51,7 +51,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * Sync ES index with changes to the comment being saved
 	 *
 	 * @param int $comment_id Comment ID.
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function action_sync_on_update( $comment_id ) {
 		if ( ! current_user_can( 'edit_comment', $comment_id ) ) {
@@ -71,7 +71,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * Delete comment from ES when deleted or trashed in WP
 	 *
 	 * @param int $comment_id Comment ID.
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function action_sync_on_delete( $comment_id ) {
 		if ( ! current_user_can( 'moderate_comments', $comment_id ) ) {
@@ -86,7 +86,7 @@ class SyncManager extends SyncManagerAbstract {
 	 *
 	 * @param int $meta_id    Meta ID.
 	 * @param int $comment_id Comment ID.
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function action_queue_meta_sync( $meta_id, $comment_id ) {
 		$this->sync_queue[ $comment_id ] = true;

@@ -2,7 +2,7 @@
 /**
  * Integrate with WP_Comment_Query
  *
- * @since   3.1
+ * @since   3.6
  * @package elasticpress
  */
 
@@ -38,7 +38,7 @@ class QueryIntegration {
 	/**
 	 * Sets up the appropriate actions and filters.
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function __construct() {
 		// Check if we are currently indexing
@@ -57,7 +57,7 @@ class QueryIntegration {
 	 * Add EP header
 	 *
 	 * @param  WP_Comment_Query $query Query object
-	 * @since  3.1
+	 * @since  3.6
 	 * @return void
 	 */
 	public function action_pre_get_comments( WP_Comment_Query $query ) {
@@ -79,7 +79,7 @@ class QueryIntegration {
 	 *
 	 * @param  array            $results Query results.
 	 * @param  WP_Comment_Query $query   Current query.
-	 * @since  3.1
+	 * @since  3.6
 	 * @return array
 	 */
 	public function maybe_filter_query( $results, WP_Comment_Query $query ) {
@@ -105,7 +105,7 @@ class QueryIntegration {
 		/**
 		 * Filter search scope
 		 *
-		 * @since 3.1
+		 * @since 3.6
 		 *
 		 * @param mixed $scope The search scope. Accepts `all` (string), a single
 		 *                     site id (int or string), or an array of site ids (array).
@@ -173,7 +173,7 @@ class QueryIntegration {
 	 * @param  array $comments The comments that should be formatted.
 	 * @param  array $new_comments Array of comments from cache.
 	 * @param  array $query_vars Query variables.
-	 * @since  3.1
+	 * @since  3.6
 	 * @return array
 	 */
 	protected function format_hits_as_comments( $comments, $new_comments, $query_vars ) {
@@ -206,7 +206,7 @@ class QueryIntegration {
 	 *
 	 * @param  array $comments The comments that should be formatted.
 	 * @param  array $new_comments Array of comments from cache.
-	 * @since  3.1
+	 * @since  3.6
 	 * @return array
 	 */
 	protected function format_hits_as_ids( $comments, $new_comments ) {
@@ -222,6 +222,7 @@ class QueryIntegration {
 	 *
 	 * @param array $comments Array of top-level comments whose descendants should be filled in.
 	 * @param array $query_vars Current query vars.
+	 * @since  3.6
 	 * @return array
 	 */
 	protected function fill_descendants( $comments, $query_vars ) {

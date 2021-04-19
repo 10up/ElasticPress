@@ -142,7 +142,7 @@ function create_and_sync_term( $slug, $name, $description, $taxonomy, $posts = [
  * @param  int    $post_id Post ID.
  * @param  int    $parent  Parent comment ID.
  *
- * @since  3.5
+ * @since  3.6
  *
  * @return int Comment ID.
  */

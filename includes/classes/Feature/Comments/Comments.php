@@ -2,7 +2,7 @@
 /**
  * Comments feature
  *
- * @since   3.1
+ * @since   3.6
  * @package elasticpress
  */
 
@@ -21,7 +21,7 @@ class Comments extends Feature {
 	/**
 	 * Initialize feature, setting it's config
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function __construct() {
 		$this->slug                     = 'comments';
@@ -34,7 +34,7 @@ class Comments extends Feature {
 	/**
 	 * Setup search functionality
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function setup() {
 		Indexables::factory()->register( new Indexable\Comment\Comment() );
@@ -45,7 +45,7 @@ class Comments extends Feature {
 	/**
 	 * Setup search integration
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function search_setup() {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
@@ -54,7 +54,7 @@ class Comments extends Feature {
 	/**
 	 * Output feature box summary
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function output_feature_box_summary() {
 		?>
@@ -65,7 +65,7 @@ class Comments extends Feature {
 	/**
 	 * Output feature box long text
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function output_feature_box_long() {
 		?>
@@ -78,7 +78,7 @@ class Comments extends Feature {
 	 *
 	 * @param  bool              $enabled Whether EP is enabled
 	 * @param  \WP_Comment_Query $query Current query object.
-	 * @since  3.1
+	 * @since  3.6
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
@@ -98,7 +98,7 @@ class Comments extends Feature {
 	/**
 	 * Determine feature reqs status
 	 *
-	 * @since  3.1
+	 * @since  3.6
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {

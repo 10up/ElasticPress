@@ -2,7 +2,7 @@
 /**
  * Comment indexable
  *
- * @since   3.1
+ * @since   3.6
  * @package elasticpress
  */
 
@@ -26,14 +26,14 @@ class Comment extends Indexable {
 	 * Indexable slug
 	 *
 	 * @var   string
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public $slug = 'comment';
 
 	/**
 	 * Create indexable and initialize dependencies
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 */
 	public function __construct() {
 		$this->labels = [
@@ -49,7 +49,7 @@ class Comment extends Indexable {
 	 * Format query vars into ES query
 	 *
 	 * @param  array $query_vars WP_Comment_Query args.
-	 * @since  3.1
+	 * @since  3.6
 	 * @return array
 	 */
 	public function format_args( $query_vars ) {
@@ -682,7 +682,7 @@ class Comment extends Indexable {
 	/**
 	 * Put mapping for comments
 	 *
-	 * @since  3.1
+	 * @since  3.6
 	 * @return boolean
 	 */
 	public function put_mapping() {
@@ -711,7 +711,7 @@ class Comment extends Indexable {
 	 * Query DB for comments
 	 *
 	 * @param  array $args Query arguments
-	 * @since  3.1
+	 * @since  3.6
 	 * @return array
 	 */
 	public function query_db( $args ) {
@@ -777,7 +777,7 @@ class Comment extends Indexable {
 	 * Prepare a comment document for indexing
 	 *
 	 * @param  int $comment_id Comment ID
-	 * @since  3.1
+	 * @since  3.6
 	 * @return bool|array
 	 */
 	public function prepare_document( $comment_id ) {
@@ -827,7 +827,7 @@ class Comment extends Indexable {
 	 * expects.
 	 *
 	 * @param  object $value Comment object
-	 * @since  3.1
+	 * @since  3.6
 	 * @return void Returns by reference
 	 */
 	public function remap_comments( &$value ) {
@@ -855,7 +855,7 @@ class Comment extends Indexable {
 	 * Prepare meta to send to ES
 	 *
 	 * @param  int $comment_id Comment ID
-	 * @since  3.1
+	 * @since  3.6
 	 * @return array
 	 */
 	public function prepare_meta( $comment_id ) {
@@ -872,7 +872,7 @@ class Comment extends Indexable {
 		 *
 		 * Allows for specifying private meta keys that may be indexed in the same manner as public meta keys.
 		 *
-		 * @since 3.1
+		 * @since 3.6
 		 *
 		 * @param array           Array of index-able private meta keys.
 		 * @param int $comment_id Comment ID.
@@ -888,7 +888,7 @@ class Comment extends Indexable {
 		 *
 		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
 		 *
-		 * @since 3.1
+		 * @since 3.6
 		 *
 		 * @param array           Array of public meta keys to exclude from index.
 		 * @param int $comment_id Comment ID.
@@ -929,7 +929,7 @@ class Comment extends Indexable {
 	 * @access protected
 	 *
 	 * @param  string $order The 'order' query variable.
-	 * @since  3.1
+	 * @since  3.6
 	 * @return string The sanitized 'order' query variable.
 	 */
 	protected function parse_order( $order ) {
@@ -952,7 +952,7 @@ class Comment extends Indexable {
 	 * @param  string $orderby Alias or path for the field to order by.
 	 * @param  string $order Order direction
 	 * @param  array  $args Query args
-	 * @since  3.1
+	 * @since  3.6
 	 * @return array
 	 */
 	protected function parse_orderby( $orderby, $order, $args ) {
