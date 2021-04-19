@@ -106,6 +106,6 @@ class TestComments extends BaseTestCase {
     public function testRequirementsStatus() {
         $status = $this->get_feature()->requirements_status();
 
-        $this->assertAttributeEquals( 1, 'code', $status );
+        $this->assertAttributeEquals( 0, 'code', $status );
     }
 }
