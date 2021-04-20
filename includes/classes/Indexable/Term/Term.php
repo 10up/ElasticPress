@@ -949,11 +949,21 @@ class Term extends Indexable {
 
 		if ( ! empty( $orderby ) ) {
 			if ( 'name' === $orderby ) {
-				$sort[] = array(
-					'name.sortable' => array(
-						'order' => $order,
-					),
-				);
+				$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+
+				if ( version_compare( $es_version, '7.0', '>=' ) ) {
+					$sort[] = array(
+						'name.sortable' => array(
+							'order' => $order,
+						),
+					);
+				} else {
+					$sort[] = array(
+						'name.raw' => array(
+							'order' => $order,
+						),
+					);
+				}
 			} elseif ( 'slug' === $orderby ) {
 				$sort[] = array(
 					'slug.raw' => array(
