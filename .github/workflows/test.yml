@@ -1,5 +1,9 @@
 name: Test
 
+env:
+  COMPOSER_VERSION: "1"
+  COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
+
 on:
   schedule:
     - cron:  '0 0 * * *'
@@ -19,6 +23,18 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+
+    - name: Set standard 10up cache directories
+      run: |
+        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+
+    - name: Prepare composer cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
 
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
@@ -40,6 +56,18 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+
+    - name: Set standard 10up cache directories
+      run: |
+        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+
+    - name: Prepare composer cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
 
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
@@ -76,6 +104,18 @@ jobs:
       uses: getong/elasticsearch-action@v1.2
       with:
         elasticsearch version: '7.5.0'
+
+    - name: Set standard 10up cache directories
+      run: |
+        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+
+    - name: Prepare composer cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
 
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
