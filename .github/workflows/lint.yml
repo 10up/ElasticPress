@@ -25,7 +25,7 @@ jobs:
 
     - name: Set standard 10up cache directories
       run: |
-        npm config set cache "${{ env.NODE_CACHE }}" --global
+        sudo npm config set cache "${{ env.NODE_CACHE }}" --global
 
     - name: Prepare npm cache
       uses: actions/cache@v2
