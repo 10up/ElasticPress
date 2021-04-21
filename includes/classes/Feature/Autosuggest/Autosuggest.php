@@ -386,6 +386,7 @@ class Autosuggest extends Feature {
 			'placeholder'         => $query['placeholder'],
 			'endpointUrl'         => esc_url( untrailingslashit( $endpoint_url ) ),
 			'selector'            => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			'defaultSelectors'    => '.ep-autosuggest, input[type="search"], .search-field',
 			'action'              => 'navigate',
 			'mimeTypes'           => [],
 			/**

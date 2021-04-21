@@ -385,9 +385,7 @@ function setFormIsLoading(isLoading, input) {
  * init method called if the epas endpoint is defined
  */
 function init() {
-	const epInputNodes = document.querySelectorAll(
-		`.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}`,
-	);
+	const epInputNodes = document.querySelectorAll(`${epas.defaultSelectors}, ${epas.selector}`);
 
 	// build the container into which we place the search results.
 	// These will be cloned later for each instance
