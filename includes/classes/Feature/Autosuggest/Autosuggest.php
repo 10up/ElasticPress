@@ -386,7 +386,14 @@ class Autosuggest extends Feature {
 			'placeholder'         => $query['placeholder'],
 			'endpointUrl'         => esc_url( untrailingslashit( $endpoint_url ) ),
 			'selector'            => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
-			'defaultSelectors'    => '.ep-autosuggest, input[type="search"], .search-field',
+			/**
+			 * Filter autosuggest default selectors.
+			 *
+			 * @hook ep_autosuggest_default_selectors
+			 * @param {string} $selectors Default selectors used to attach autosuggest.
+			 * @return {string} Selectors used to attach autosuggest.
+			 */
+			'defaultSelectors'    => apply_filters( 'ep_autosuggest_default_selectors', '.ep-autosuggest, input[type="search"], .search-field' ),
 			'action'              => 'navigate',
 			'mimeTypes'           => [],
 			/**

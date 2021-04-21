@@ -385,7 +385,13 @@ function setFormIsLoading(isLoading, input) {
  * init method called if the epas endpoint is defined
  */
 function init() {
-	const epInputNodes = document.querySelectorAll(`${epas.defaultSelectors}, ${epas.selector}`);
+	const selectors = [epas.selector, epas.defaultSelectors].filter(Boolean).join(',');
+
+	if (!selectors) {
+		return;
+	}
+
+	const epInputNodes = document.querySelectorAll(selectors);
 
 	// build the container into which we place the search results.
 	// These will be cloned later for each instance
