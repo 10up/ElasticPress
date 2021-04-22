@@ -771,7 +771,7 @@ class Post extends Indexable {
 
 				$args['tax_query'] = array_map(
 					function( $tax_query ) use ( $args ) {
-						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'] ) ) {
+						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'], true ) ) {
 							$tax_query['terms'][] = $args['tag_id'];
 						}
 
