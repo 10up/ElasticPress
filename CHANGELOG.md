@@ -2,13 +2,68 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
+## [3.5.6]
+
+This release fixes some bugs and also adds some new actions and filters.
+
+Security Fix:
+* Updated JS dependencies. Props [@hats00n](https://github.com/hats00n) and [@felipeelia](https://github.com/felipeelia)
+
+Bug Fixes:
+* Fixed document indexing when running index command with nobulk option. Props [@Rahmon](https://github.com/Rahmon)
+* Added an extra check in the iteration over the aggregations. Props [@felipeelia](https://github.com/felipeelia)
+* Fixed no mapping found for [name.sortable] for Elasticsearch version 5. Props [@Rahmon](https://github.com/Rahmon)
+* Fixed uninstall process to remove all options and transients. Props [@Rahmon](https://github.com/Rahmon)
+
+Enhancements:
+* Added missing inline JS documentation. Props [@JakePT](https://github.com/JakePT)
+* Added the filter `ep_autosuggest_http_headers`. Props [@Rahmon](https://github.com/Rahmon)
+* Added terms indexes to the status and stats WP-CLI commands. Props [@felipeelia](https://github.com/felipeelia)
+* The Protected Content feature isn't auto-activated when using ElasticPress.io anymore. Props [@felipeelia](https://github.com/felipeelia)
+* Added the new filter `ep_highlight_should_add_clause` to let developers decide where the highlight clause should be added to the ES query. Props [@felipeelia](https://github.com/felipeelia)
+* Added the new filter `epwr_weight` and changed the default way scores are applied based on post date. Props [@Rahmon](https://github.com/Rahmon)
+## [3.5.5]
+
+This release fixes some bugs and also adds some new actions and filters.
+
+Bug Fixes:
+* Fix a problem in autosuggest when highlighting is not active. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon)
+* Fix Facet Term Search for more than one Widget. Props [@goaround](https://github.com/goaround)
+* Fix a Warning that was triggered while using PHP 8. Props [@Rahmon](https://github.com/Rahmon)
+* Fix a wrong phrase in the Indexables documentation. Props [@jpowersdev](https://github.com/jpowersdev)
+
+Enhancements:
+* Add an `is-loading` class to the search form while autosuggestions are loading. Props [@JakePT](https://github.com/JakePT)
+* Add the new `set-algorithm-version` and `get-algorithm-version` WP-CLI commands. Props [@felipeelia](https://github.com/felipeelia)
+* Add a new `ep_query_weighting_fields` filter. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott)
+* Add two parameters to the `ep_formatted_args_query` filter. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott)
+* Add the new `set-algorithm-version` and `get-algorithm-version` WP-CLI commands. Props [@felipeelia](https://github.com/felipeelia)
+* Create a new section in documentation called `Theme Integration`. Props [@JakePT](https://github.com/JakePT)
+* Improvements to contributing documentation and tests. Props [@jeffpaul](https://github.com/jeffpaul) and [@felipeelia](https://github.com/felipeelia)
+* Add the following new actions: `ep_wp_cli_after_index`, `ep_after_dashboard_index`, `ep_cli_before_set_search_algorithm_version`, `ep_cli_after_set_search_algorithm_version`, `ep_cli_before_clear_index`, `ep_after_update_feature`, and `ep_cli_after_clear_index`. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon)
+
+## [3.5.4]
+
+This is primarily a security and bug fix release. PLEASE NOTE that versions 3.5.2 and 3.5.3 contain a vulnerability that allows a user to bypass the nonce check associated with re-sending the unaltered default search query to ElasticPress.io that is used for providing Autosuggest queries. If you are running version 3.5.2. or 3.5.3 please upgrade to 3.5.4 immediately.
+
+Security Fix:
+* Fixed a nonce check associated with updating the default Autosuggest search query in ElasticPress.io. Props [@felipeelia](https://github.com/felipeelia)
+
+Bug Fixes:
+* Fix broken click on highlighted element in Autosuggest results. Props [@felipeelia](https://github.com/felipeelia)
+* Properly cast `from` parameter in `$formatted_args` to an integer to prevent errors if empty. Props [@CyberCyclone](https://github.com/CyberCyclone)
+
+Enhancements:
+* Add an `ep_is_facetable` filter to enable custom control over where to show or hide Facets. Props [@moraleida]
+* Improvements to contributing documentation and tests. Props [@jeffpaul](https://github.com/jeffpaul) and [@felipeelia](https://github.com/felipeelia)
+
 ## [3.5.3]
 
 This is a bug fix release.
 
 Bug Fixes:
 * Fixed a bug where the `ep-synonym` post type is updated to a regular post, which can cause it to be accidentally deleted. Props [@Rahmon](https://github.com/Rahmon)
-* Fixed CSS formatting issues in the Settings and Features menus. Props [@Rahmon](https://github.com/Rahmon) 
+* Fixed CSS formatting issues in the Settings and Features menus. Props [@Rahmon](https://github.com/Rahmon)
 
 ## [3.5.2]
 
@@ -883,6 +938,10 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.5.6]: https://github.com/10up/ElasticPress/compare/3.5.5...3.5.6
+[3.5.5]: https://github.com/10up/ElasticPress/compare/3.5.4...3.5.5
+[3.5.4]: https://github.com/10up/ElasticPress/compare/3.5.3...3.5.4
+[3.5.3]: https://github.com/10up/ElasticPress/compare/3.5.2...3.5.3
 [3.5.2]: https://github.com/10up/ElasticPress/compare/3.5.1...3.5.2
 [3.5.1]: https://github.com/10up/ElasticPress/compare/3.5...3.5.1
 [3.5.0]: https://github.com/10up/ElasticPress/compare/3.4.3...3.5

@@ -90,6 +90,8 @@ class Elasticsearch {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/' . $document['ID'], $document, $type );
 		}
 
+		$path = apply_filters( 'ep_index_request_path', $path, $document, $type );
+
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );
 		} else {
@@ -829,6 +831,7 @@ class Elasticsearch {
 			'timeout' => 30,
 		];
 
+		$closed = false;
 		if ( $close_first ) {
 			$closed = $this->close_index( $index );
 		}

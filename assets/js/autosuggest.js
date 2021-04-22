@@ -147,7 +147,8 @@ function getJsonQuery() {
  *
  * @param {string} searchText - user search string
  * @param {string} placeholder - placeholder text to replace
- * @param {object} query - desructured json query string
+ * @param {object} options - Autosuggest settings
+ * @param {string} options.query - JSON query string to pass to ElasticSearch
  * @returns {string} json representation of search query
  */
 function buildSearchQuery(searchText, placeholder, { query }) {
@@ -171,6 +172,12 @@ async function esSearch(query, searchTerm) {
 			'Content-Type': 'application/json; charset=utf-8',
 		},
 	};
+
+	if (epas?.http_headers && typeof epas.http_headers === 'object') {
+		Object.keys(epas.http_headers).forEach((name) => {
+			fetchConfig.headers[name] = epas.http_headers[name];
+		});
+	}
 
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
@@ -202,7 +209,7 @@ async function esSearch(query, searchTerm) {
 /**
  * Update the auto suggest box with new options or hide if none
  *
- * @param {Array} options - formatted results
+ * @param {Array} options - search results
  * @param {string} input - search string
  * @returns {boolean} return true
  */
@@ -235,7 +242,8 @@ function updateAutosuggestBox(options, input) {
 	// create markup for list items
 	// eslint-disable-next-line
 	for ( i = 0; resultsLimit > i; ++i ) {
-		const { text, url } = options[i];
+		const text = options[i]._source.post_title;
+		const url = options[i]._source.permalink;
 		const escapedText = escapeDoubleQuotes(text);
 
 		const searchParts = value.trim().split(' ');
@@ -251,11 +259,17 @@ function updateAutosuggestBox(options, input) {
 			);
 		}
 
-		itemString += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
+		let itemHTML = `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
 				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}"  tabindex="-1">
 					${resultsText}
 				</a>
 			</li>`;
+
+		if (typeof window.epAutosuggestItemHTMLFilter !== 'undefined') {
+			itemHTML = window.epAutosuggestItemHTMLFilter(itemHTML, options[i], i, value);
+		}
+
+		itemString += itemHTML;
 	}
 
 	// append list items to the list
@@ -266,7 +280,7 @@ function updateAutosuggestBox(options, input) {
 	suggestList.addEventListener('click', (event) => {
 		event.preventDefault();
 		const target =
-			event.target.tagName === epas.highlightingTag.toUpperCase()
+			event.target.tagName === epas.highlightingTag?.toUpperCase()
 				? event.target.parentElement
 				: event.target;
 
@@ -352,6 +366,22 @@ function checkForOrderedPosts(hits, searchTerm) {
 }
 
 /**
+ * Add class to the form element while suggestions are being loaded
+ *
+ * @param {boolean} isLoading - whether suggestions are loading
+ * @param {Node} input - search input field
+ */
+function setFormIsLoading(isLoading, input) {
+	const form = input.closest('form');
+
+	if (isLoading) {
+		form.classList.add('is-loading');
+	} else {
+		form.classList.remove('is-loading');
+	}
+}
+
+/**
  * init method called if the epas endpoint is defined
  */
 function init() {
@@ -407,22 +437,6 @@ function init() {
 		`,
 		);
 	}
-
-	/**
-	 * Helper function to format search results for consumption
-	 * by the updateAutosuggestBox function
-	 *
-	 * @param {object} hits - results from ES
-	 * @returns {Array} formatted hits
-	 */
-	const formatSearchResults = (hits) => {
-		return hits.map((hit) => {
-			const text = hit._source.post_title;
-			const url = hit._source.permalink;
-
-			return { text, url };
-		});
-	};
 
 	// to be used by the handleUpDown function
 	// to keep track of the currently selected result
@@ -549,6 +563,8 @@ function init() {
 		}
 
 		if (searchText.length >= 2) {
+			setFormIsLoading(true, input);
+
 			const query = buildSearchQuery(searchText, placeholder, queryJSON);
 
 			// fetch the results
@@ -556,16 +572,17 @@ function init() {
 
 			if (response && response._shards && response._shards.successful > 0) {
 				const hits = checkForOrderedPosts(response.hits.hits, searchText);
-				const formattedResults = formatSearchResults(hits);
 
-				if (formattedResults.length === 0) {
+				if (hits.length === 0) {
 					hideAutosuggestBox();
 				} else {
-					updateAutosuggestBox(formattedResults, input);
+					updateAutosuggestBox(hits, input);
 				}
 			} else {
 				hideAutosuggestBox();
 			}
+
+			setFormIsLoading(false, input);
 		} else if (searchText.length === 0) {
 			hideAutosuggestBox();
 		}

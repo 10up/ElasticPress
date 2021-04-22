@@ -25,5 +25,8 @@
     },
     "development": {
         "title": "Development"
+    },
+    "theme-integration": {
+        "title": "Theme Integration"
     }
 }

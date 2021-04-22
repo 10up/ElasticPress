@@ -20,3 +20,5 @@ add_action( 'admin_footer', function() {
 function get_docker_cid() {
 	return exec( 'cat /etc/hostname' );
 }
+
+add_filter( 'ep_es_info_cache_expiration', '__return_zero' );

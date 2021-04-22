@@ -6,6 +6,10 @@ import { Dispatch } from '../../context';
  * Linked MultiInput
  *
  * @param {object} props Props.
+ * @param {string} props.id Set/Alternative id.
+ * @param {object[]} props.synonyms Array of synonyms.
+ * @param {string} props.removeAction Name of action to dispatch on remove.
+ * @param {string} props.updateAction Name of action to dispatch on update.
  * @returns {React.FC}
  */
 export default function LinkedMultiInput({ id, synonyms, removeAction, updateAction }) {
