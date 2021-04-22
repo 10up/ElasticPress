@@ -82,6 +82,7 @@ class SearchOrdering extends Feature {
 		add_filter( 'enter_title_here', [ $this, 'filter_enter_title_here' ] );
 		add_filter( 'manage_' . self::POST_TYPE_NAME . '_posts_columns', [ $this, 'filter_column_names' ] );
 		add_filter( 'post_updated_messages', [ $this, 'filter_updated_messages' ] );
+		add_filter( 'admin_title', [ $this, 'update_page_title' ], 10, 2 );
 
 		// Deals with trashing/untrashing/deleting
 		add_action( 'wp_trash_post', [ $this, 'handle_post_trash' ] );
@@ -106,7 +107,7 @@ class SearchOrdering extends Feature {
 	/**
 	 * Remove quick edit for post type
 	 *
-	 * @param array $actions Current table row actions
+	 * @param array   $actions Current table row actions
 	 * @param WP_Post $post Current post
 	 * @since 3.5
 	 * @return array
@@ -138,11 +139,12 @@ class SearchOrdering extends Feature {
 			3  => esc_html__( 'Custom field deleted.', 'elasticpress' ),
 			4  => esc_html__( 'Custom result updated.', 'elasticpress' ),
 			/* translators: %s: date and time of the revision */
-			5  => isset( $_GET['revision'] ) ? sprintf( __( 'Custom result restored to revision from %s', 'elasticpress' ), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
+			5  => isset( $_GET['revision'] ) ? sprintf( __( 'Custom result restored to revision from %s', 'elasticpress' ), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false, // phpcs:ignore WordPress.Security.NonceVerification
 			6  => esc_html__( 'Custom result published.', 'elasticpress' ),
 			7  => esc_html__( 'Custom result saved.', 'elasticpress' ),
 			8  => esc_html__( 'Custom result submitted.', 'elasticpress' ),
 			9  => sprintf(
+				// translators: Scheduled date.
 				esc_html__( 'Custom result scheduled for: %1$s.', 'elasticpress' ),
 				// translators: Publish box date format, see http://php.net/date
 				date_i18n( esc_html__( 'M j, Y @ G:i', 'elasticpress' ), strtotime( $post->post_date ) )
@@ -209,7 +211,13 @@ class SearchOrdering extends Feature {
 	 * Adds the search ordering to the admin menu
 	 */
 	public function admin_menu() {
-		add_submenu_page( 'elasticpress', esc_html__( 'Custom Results', 'elasticpress' ), esc_html__( 'Custom Results', 'elasticpress' ), 'manage_options', 'edit.php?post_type=' . self::POST_TYPE_NAME );
+		add_submenu_page(
+			'elasticpress',
+			esc_html__( 'Custom Results', 'elasticpress' ),
+			esc_html__( 'Custom Results', 'elasticpress' ),
+			'manage_options',
+			'edit.php?post_type=' . self::POST_TYPE_NAME
+		);
 	}
 
 	/**
@@ -839,6 +847,22 @@ class SearchOrdering extends Feature {
 		wp_cache_delete( $post_id, self::TAXONOMY_NAME . '_relationships' );
 
 		return $result;
+	}
+
+	/**
+	 * Update the page title to keep the consistency through the plugin
+	 *
+	 * @param string $admin_title The page title, with extra context added
+	 * @param string $title The original page title
+	 *
+	 * @return string Updated the page title
+	 */
+	public function update_page_title( $admin_title, $title ) {
+		if ( $this->title === $title ) {
+			return __( 'ElasticPress Custom Search Results', 'elasticpress' );
+		}
+
+		return $admin_title;
 	}
 
 }

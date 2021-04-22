@@ -90,6 +90,8 @@ class Elasticsearch {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/' . $document['ID'], $document, $type );
 		}
 
+		$path = apply_filters( 'ep_index_request_path', $path, $document, $type );
+
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );
 		} else {
@@ -295,9 +297,31 @@ class Elasticsearch {
 			),
 		);
 
-		// If search, send the search term as a header to ES so the backend understands what a normal query looks like
-		if ( isset( $query_args['s'] ) && (bool) $query_args['s'] && ! is_admin() && ! isset( $_GET['post_type'] ) ) {
-			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
+		/**
+		 * Filter whether to send the EP-Search-Term header or not.
+		 *
+		 * @todo Evaluate if we should remove tests for is_admin() and empty post types.
+		 *
+		 * @since  3.5.2
+		 * @hook ep_query_send_ep_search_term_header
+		 * @param  {bool}  $send_header True means send the EP-Search-Term header
+		 * @param  {array} $query_args  WP query args
+		 * @return {bool}  New $send_header value
+		 */
+		$send_ep_search_term_header = apply_filters(
+			'ep_query_send_ep_search_term_header',
+			(
+				Utils\is_epio() &&
+				! empty( $query_args['s'] ) &&
+				! is_admin() &&
+				! isset( $_GET['post_type'] ) // phpcs:ignore WordPress.Security.NonceVerification
+			),
+			$query_args
+		);
+
+		// If needed, send the search term as a header to ES so the backend understands what a normal query looks like
+		if ( $send_ep_search_term_header ) {
+			$request_args['headers']['EP-Search-Term'] = rawurlencode( $query_args['s'] );
 		}
 
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
@@ -404,6 +428,17 @@ class Elasticsearch {
 				$query_object
 			);
 		}
+
+		/**
+		 * Fires after invalid Elasticsearch query
+		 *
+		 * @hook ep_invalid_response
+		 * @param  {array} $request Remote request response
+		 * @param  {array} $query Prepared Elasticsearch query
+		 * @param  {array} $query_args Current WP Query arguments
+		 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
+		 */
+		do_action( 'ep_invalid_response', $request, $query, $query_args, $query_object );
 
 		return false;
 	}
@@ -796,6 +831,7 @@ class Elasticsearch {
 			'timeout' => 30,
 		];
 
+		$closed = false;
 		if ( $close_first ) {
 			$closed = $this->close_index( $index );
 		}

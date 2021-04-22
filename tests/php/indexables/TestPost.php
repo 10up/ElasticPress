@@ -1417,15 +1417,18 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test a query that fuzzy searches taxonomy terms
+	 * Test a query that fuzzy searches taxonomy terms for the 3.4 algorithm.
 	 *
 	 * @since 1.0
 	 * @group post
 	 */
 	public function testSearchTaxQuery() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post(
+		// TODO write a new test to match the 3.5 functionality.
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
+		$post_id_0 = Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
+		$post_id_1 = Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		$post_id_2 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'post content',
 				'tags_input'   => array( 'findme 2' ),
@@ -1433,6 +1436,7 @@ class TestPost extends BaseTestCase {
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
 		$args = array(
 			's'             => 'one findme two',
 			'search_fields' => array(
@@ -1447,6 +1451,14 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+
+		$post_ids = wp_list_pluck( $query->posts, 'ID' );
+
+		$this->assertContains( $post_id_1, $post_ids );
+		$this->assertContains( $post_id_1, $post_ids );
+		$this->assertNotContains( $post_id_0, $post_ids );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1456,6 +1468,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchAuthorQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		$user_id = $this->factory->user->create(
 			array(
 				'user_login' => 'john',
@@ -1488,6 +1503,8 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1990,6 +2007,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostDateOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertesr' ) );
 		sleep( 3 );
 
@@ -2013,6 +2033,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertesr', $query->posts[2]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2053,6 +2075,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchRelevanceOrderbyQueryAdvanced() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		$posts = array();
 
 		$posts[5] = Functions\create_and_sync_post( array( 'post_title' => 'ordertet with even more lorem ipsum to make a longer field' ) );
@@ -2098,6 +2123,8 @@ class TestPost extends BaseTestCase {
 
 			$i++;
 		}
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2107,6 +2134,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchRelevanceOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertet' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertest' ) );
@@ -2124,6 +2154,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2163,6 +2195,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchDefaultOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'Ordertet' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertest' ) );
@@ -2179,6 +2214,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertet', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2190,6 +2227,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchDefaultOrderbyASCOrderQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
@@ -2207,6 +2247,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2688,6 +2730,36 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Test a query that searches and filters by a meta value using NOT LIKE operator
+	 *
+	 * @since 3.6.0
+	 * @group post
+	 */
+	public function testMetaQueryNotLike() {
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'ALICE in wonderland' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'alice in melbourne' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'AlicE in america' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			's'          => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => 'melbourne',
+					'compare' => 'NOT LIKE',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -3948,6 +4020,7 @@ class TestPost extends BaseTestCase {
 	 * If a post is sticky and we are on the home page, it should return at the top.
 	 *
 	 * @group post
+	 * @group post-sticky
 	 */
 	public function testStickyPostsIncludedOnHome() {
 		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
@@ -3968,6 +4041,7 @@ class TestPost extends BaseTestCase {
 	 * If a post is not sticky and we are not on the home page, it should not return at the top.
 	 *
 	 * @group post
+	 * @group post-sticky
 	 */
 	public function testStickyPostsExcludedOnNotHome() {
 		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
@@ -3977,13 +4051,13 @@ class TestPost extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
-			's' => '',
-		);
+		// This used to perform a new WP_Query with "s", but it needs to
+		// perform a search request via the URL.
+		$this->go_to( '/?s=' );
 
-		$query = new \WP_Query( $args );
+		$q = $GLOBALS['wp_query'];
 
-		$this->assertNotEquals( 'Sticky post', $query->posts[0]->post_title );
+		$this->assertNotEquals( 'Sticky post', $q->posts[0]->post_title );
 	}
 
 	/**
@@ -5545,6 +5619,17 @@ class TestPost extends BaseTestCase {
 	 * @group  post
 	 */
 	public function testMaybeSwitchToBlog() {
+
+		// Do an assert here for both single and multisite tests so we
+		// don't get a warning.
+		$multisite = defined( 'WP_TESTS_MULTISITE' ) && '1' === WP_TESTS_MULTISITE;
+
+		$this->assertSame( $multisite, is_multisite() );
+
+		// Only continue if this is in multisite.
+		if ( ! is_multisite() ) {
+			return;
+		}
 
 		$sites      = get_sites();
 		$blog_1_id  = get_current_blog_id();

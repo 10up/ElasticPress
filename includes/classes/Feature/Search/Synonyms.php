@@ -151,7 +151,7 @@ class Synonyms {
 	public function admin_menu() {
 		add_submenu_page(
 			'elasticpress',
-			esc_html__( 'Synonyms', 'elasticpress' ),
+			esc_html__( 'ElasticPress Synonyms', 'elasticpress' ),
 			esc_html__( 'Synonyms', 'elasticpress' ),
 			'manage_options',
 			'elasticpress-synonyms',
@@ -166,8 +166,7 @@ class Synonyms {
 	 */
 	public function admin_page() {
 		include EP_PATH . '/includes/partials/header.php';
-		$synonym_post_id = $this->get_synonym_post_id();
-		$post            = get_post( $synonym_post_id );
+
 		?>
 		<div class="wrap">
 			<form action="<?php echo esc_url( $this->get_form_action() ); ?>" method="POST">
@@ -202,16 +201,14 @@ class Synonyms {
 				$message = __( 'Successfully updated synonym filter.', 'elasticpress' );
 				break;
 			case 'error-update-post':
-				$message = __( 'There was an error storing you synoyms.', 'elasticpress' );
+				$message = __( 'There was an error storing your synonyms.', 'elasticpress' );
 				break;
 			case 'error-update-index':
 				$message = __( 'There was a problem updating the index with your synonyms. If you have not indexed your data, please run an index.', 'elasticpress' );
 				break;
+			default:
+				$message = __( 'There was an error updating the synonym list.', 'elasticpress' );
 		}
-
-		$message = ( 'success' === $update )
-			? __( 'Successfully updated synonym filter.', 'elasticpress' )
-			: __( 'There was an error updating the synonym list.', 'elasticpress' );
 
 		printf(
 			'<div class="%1$s"><p>%2$s</p></div>',
@@ -250,21 +247,19 @@ class Synonyms {
 	 */
 	public function get_synonym_post_id() {
 		if ( ! $this->synonym_post_id ) {
-			$this->synonym_post_id = get_option( 'elasticpress_synonyms_post_id', false );
+			$query_synonym_post = new \WP_Query(
+				array(
+					'fields'         => 'ids',
+					'post_type'      => self::POST_TYPE_NAME,
+					'posts_per_page' => 1,
+					'orderby'        => 'modified',
+				)
+			);
 
-			if ( false === $this->synonym_post_id ) {
-				$post_id = wp_insert_post(
-					[
-						'post_title'   => __( 'Elasticpress Synonyms', 'elasticpress' ),
-						'post_content' => $this->example_synonym_list(),
-						'post_type'    => self::POST_TYPE_NAME,
-					]
-				);
+			$this->synonym_post_id = 1 === $query_synonym_post->post_count ? $query_synonym_post->posts[0] : false;
 
-				if ( $post_id ) {
-					update_option( 'elasticpress_synonyms_post_id', $post_id );
-					$this->synonym_post_id = $post_id;
-				}
+			if ( ! $this->synonym_post_id ) {
+				$this->synonym_post_id = $this->insert_default_synonym_post();
 			}
 		}
 
@@ -405,13 +400,7 @@ class Synonyms {
 				$content = implode( PHP_EOL, [ $lines[0], $lines[2], $lines[3] ] );
 			}
 
-			// Save the content.
-			$post_id = ! ! wp_insert_post(
-				[
-					'ID'           => $this->get_synonym_post_id(),
-					'post_content' => $content,
-				]
-			);
+			$post_id = $this->update_synonym_post( $content );
 
 			// Update Elasticsearch
 			$update = $this->update_synonyms();
@@ -424,7 +413,7 @@ class Synonyms {
 
 		$result = 'success';
 
-		if ( ! $post_id ) {
+		if ( ! $post_id || is_wp_error( $post_id ) ) {
 			$result = 'error-update-post';
 		}
 
@@ -767,6 +756,44 @@ class Synonyms {
 			'label'   => trim( sanitize_text_field( $token ) ),
 			'value'   => trim( sanitize_text_field( $token ) ),
 			'primary' => $primary,
+		);
+	}
+
+	/**
+	 * Insert default synonym post
+	 *
+	 * @return int|WP_Error
+	 */
+	private function insert_default_synonym_post() {
+		return wp_insert_post(
+			[
+				'post_content' => $this->example_synonym_list(),
+				'post_type'    => self::POST_TYPE_NAME,
+			],
+			true
+		);
+	}
+
+	/**
+	 * Update synonym post
+	 *
+	 * @param string $content The content post.
+	 * @return int|WP_Error
+	 */
+	private function update_synonym_post( $content ) {
+		$synonym_post_id = $this->get_synonym_post_id();
+
+		if ( ! $synonym_post_id ) {
+			return $synonym_post_id;
+		}
+
+		return wp_insert_post(
+			[
+				'ID'           => $synonym_post_id,
+				'post_content' => $content,
+				'post_type'    => self::POST_TYPE_NAME,
+			],
+			true
 		);
 	}
 }

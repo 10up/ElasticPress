@@ -83,7 +83,7 @@ class AdminNotices {
 		if ( ! $feature instanceof Feature ) {
 			return false;
 		}
-		
+
 		if ( ! $feature->is_active() ) {
 			return false;
 		}

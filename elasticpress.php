@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ElasticPress
  * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.5.1
+ * Version:     3.5.6
  * Author:      10up
  * Author URI:  http://10up.com
  * License:     GPLv2 or later
@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '3.5.1' );
+define( 'EP_VERSION', '3.5.6' );
 
 /**
  * PSR-4-ish autoloading
@@ -181,76 +181,19 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
+ * Setup upgrades
+ */
+Upgrades::factory();
+
+/**
  * Handle upgrades. Certain version require a re-sync on upgrade.
+ * Deprecated in favor of `\ElasticPress\Upgrades::factory()`.
  *
  * @since  2.2
  */
 function handle_upgrades() {
-	if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
-		return;
-	}
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$last_sync = get_site_option( 'ep_last_sync', 'never' );
-	} else {
-		$last_sync = get_option( 'ep_last_sync', 'never' );
-	}
-
-	// No need to upgrade since we've never synced.
-	if ( empty( $last_sync ) || 'never' === $last_sync ) {
-		return;
-	}
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$old_version = get_site_option( 'ep_version', false );
-	} else {
-		$old_version = get_option( 'ep_version', false );
-	}
-
-	/**
-	 * Reindex if we cross a reindex version in the upgrade
-	 */
-	$reindex_versions = apply_filters(
-		'ep_reindex_versions',
-		array(
-			'2.2',
-			'2.3.1',
-			'2.4',
-			'2.5.1',
-			'2.6',
-			'2.7',
-			'3.0',
-			'3.1',
-			'3.3',
-			'3.4',
-		)
-	);
-
-	$need_upgrade_sync = false;
-
-	if ( false !== $old_version ) {
-		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
-
-		if ( -1 === version_compare( $old_version, $last_reindex_version ) && 0 <= version_compare( EP_VERSION, $last_reindex_version ) ) {
-			$need_upgrade_sync = true;
-		}
-	}
-
-	if ( $need_upgrade_sync ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_need_upgrade_sync', true );
-		} else {
-			update_option( 'ep_need_upgrade_sync', true );
-		}
-	}
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-	} else {
-		update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-	}
+	_deprecated_function( __CLASS__, '3.5.2', '\ElasticPress\Upgrades::factory()' );
 }
-add_action( 'plugins_loaded', __NAMESPACE__ . '\handle_upgrades', 5 );
 
 /**
  * Load text domain and handle debugging

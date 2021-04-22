@@ -183,6 +183,15 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	public function delete( $object_id, $blocking = true ) {
+		/**
+		 * Fires before object deletion
+		 *
+		 * @hook ep_delete_{indexable_slug}
+		 * @param {int} $object_id ID of object being deleted
+		 * @param {string} $indexable_slug The slug of the indexable type that is being deleted
+		 */
+		do_action( 'ep_delete_' . $this->slug, $object_id, $this->slug );
+
 		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
 	}
 
@@ -306,7 +315,19 @@ abstract class Indexable {
 			$body .= "\n\n";
 		}
 
-		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+		$result = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+
+		/**
+		 * Perform actions after a bulk indexing is completed
+		 *
+		 * @hook ep_after_bulk_index
+		 * @param {array} $object_ids List of object ids attempted to be indexed
+		 * @param {string} $slug Current indexable slug
+		 * @param {array|bool} $result Result of the Elasticsearch query. False on error.
+		 */
+		do_action( 'ep_after_bulk_index', $object_ids, $this->slug, $result );
+
+		return $result;
 	}
 
 	/**
@@ -427,7 +448,14 @@ abstract class Indexable {
 			$datetime = '1971-01-01 00:00:01';
 			$time     = '00:00:01';
 
-			if ( false !== $timestamp ) {
+			/**
+			 * Workaround for `strtotime` potentially producing valid timestamps that would result in 5 digit years
+			 * which DateTime::__construct() can't handle,
+			 * resulting in an 'Uncaught Error: Call to a member function getTimestamp() on bool' in date_i18n.
+			 *
+			 * This better be fixed by 9999-12-31 23:59:59
+			 */
+			if ( false !== $timestamp && 253402300799 > $timestamp ) {
 				$date     = date_i18n( 'Y-m-d', $timestamp );
 				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
 				$time     = date_i18n( 'H:i:s', $timestamp );
@@ -513,7 +541,7 @@ abstract class Indexable {
 					$meta_key_path = 'meta.' . $single_meta_query['key'];
 				} elseif ( in_array( $compare, array( '=', '!=' ), true ) && ! $type ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
-				} elseif ( 'like' === $compare ) {
+				} elseif ( in_array( $compare, array( 'like', 'not like' ), true ) ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
 				} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 					// Map specific meta field types to different Elasticsearch core types
@@ -691,6 +719,21 @@ abstract class Indexable {
 							$terms_obj = array(
 								'match_phrase' => array(
 									$meta_key_path => $single_meta_query['value'],
+								),
+							);
+						}
+						break;
+					case 'not like':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'match_phrase' => array(
+												$meta_key_path => $single_meta_query['value'],
+											),
+										),
+									),
 								),
 							);
 						}

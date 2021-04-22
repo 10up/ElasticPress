@@ -172,7 +172,14 @@ class Weighting {
 	 * Adds the submenu page for controlling weighting
 	 */
 	public function add_weighting_submenu_page() {
-		add_submenu_page( 'elasticpress', __( 'Search Fields & Weighting', 'elasticpress' ), __( 'Search Fields & Weighting', 'elasticpress' ), 'manage_options', 'elasticpress-weighting', [ $this, 'render_settings_page' ] );
+		add_submenu_page(
+			'elasticpress',
+			esc_html__( 'ElasticPress Search Fields & Weighting', 'elasticpress' ),
+			esc_html__( 'Search Fields & Weighting', 'elasticpress' ),
+			'manage_options',
+			'elasticpress-weighting',
+			[ $this, 'render_settings_page' ]
+		);
 	}
 
 	/**
@@ -318,15 +325,6 @@ class Weighting {
 		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
 		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
 
-		// Do a non-blocking search query to force the autosuggest hash to update
-		$url = add_query_arg( [ 's' => 'search test' ], home_url( '/' ) );
-		wp_remote_get(
-			$url,
-			[
-				'blocking' => false,
-			]
-		);
-
 		$this->redirect( $redirect_url );
 	}
 
@@ -396,6 +394,14 @@ class Weighting {
 
 		update_option( 'elasticpress_weighting', $final_config );
 
+		/**
+		 * Fires right after the weighting configuration is saved.
+		 *
+		 * @since  3.5.x
+		 * @hook ep_saved_weighting_configuration
+		 */
+		do_action( 'ep_saved_weighting_configuration' );
+
 		return $final_config;
 	}
 
@@ -427,7 +433,27 @@ class Weighting {
 							$field = 'post_author.display_name';
 						}
 
-						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
+						/**
+						 * Filter fields and their weitghting as used in the Elasticsearch query.
+						 *
+						 * @hook ep_query_weighting_fields
+						 * @param  {string} $weighted_field The field and its weight as used in the ES query.
+						 * @param  {string} $field          Field name
+						 * @param  {string} $weight         Weight value
+						 * @param  {array}  $fieldset       Current subset of formatted ES args
+						 * @param  {array}  $weights        Weight configuration
+						 * @return  {array} New weighted field string
+						 *
+						 * @since  3.5.5
+						 */
+						$fieldset['fields'][ $key ] = apply_filters(
+							'ep_query_weighting_fields',
+							"{$field}^{$weight}",
+							$field,
+							$weight,
+							$fieldset,
+							$weights
+						);
 					}
 				} else {
 					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled

@@ -116,7 +116,11 @@ $features.on('click', '.save-settings', function (event) {
 if (epDash.index_meta) {
 	if (epDash.index_meta.wpcli_sync) {
 		syncStatus = 'wpcli';
+		processed = epDash.index_meta.items_indexed;
+		toProcess = epDash.index_meta.total_items;
+
 		updateSyncDash();
+		cliSync();
 	} else {
 		processed = epDash.index_meta.offset;
 		toProcess = epDash.index_meta.found_items;
@@ -270,14 +274,25 @@ function updateSyncDash() {
 	} else if (syncStatus === 'wpcli') {
 		text = epDash.sync_wpcli;
 
+		if (currentSyncItem?.indexable) {
+			text += ` ${parseInt(processed, 10)}/${parseInt(
+				toProcess,
+				10,
+			)} ${epDash.sync_indexable_labels[currentSyncItem.indexable].plural.toLowerCase()}`;
+		}
+
+		if (currentSyncItem?.url) {
+			text += ` (${currentSyncItem.url})`;
+		}
+
 		$syncStatusText.text(text);
 
 		$syncStatusText.show();
-		$progressBar.hide();
+		$progressBar.show();
 		$pauseSyncButton.hide();
 		$errorOverlay.addClass('syncing');
 
-		$cancelSyncButton.hide();
+		$cancelSyncButton.show();
 		$resumeSyncButton.hide();
 		$startSyncButton.hide();
 	} else if (syncStatus === 'error') {
@@ -334,6 +349,26 @@ function updateSyncDash() {
 		setTimeout(() => {
 			$syncStatusText.hide();
 		}, 7000);
+	} else if (syncStatus === 'interrupt') {
+		$syncStatusText.text(epDash.sync_interrupted);
+
+		$syncStatusText.show();
+		$progressBar.hide();
+		$pauseSyncButton.hide();
+		$cancelSyncButton.hide();
+		$resumeSyncButton.hide();
+		$startSyncButton.show();
+		$errorOverlay.removeClass('syncing');
+
+		if (featureSync) {
+			$features.find(`.ep-feature-${featureSync}`).removeClass('feature-syncing');
+		}
+
+		featureSync = null;
+
+		setTimeout(() => {
+			$syncStatusText.hide();
+		}, 7000);
 	}
 }
 
@@ -351,6 +386,45 @@ function cancelSync() {
 	});
 }
 
+function cliSync() {
+	jQuery
+		.ajax({
+			method: 'post',
+			url: ajaxurl,
+			data: {
+				action: 'ep_cli_index',
+				feature_sync: featureSync,
+				nonce: epDash.nonce,
+			},
+		})
+		.done((response) => {
+			if (syncStatus === 'wpcli') {
+				toProcess = response.data?.total_items;
+				processed = response.data?.items_indexed;
+
+				currentSyncItem = {
+					indexable: response.data?.slug,
+					url: response.data?.url,
+				};
+
+				if (response.data?.indexing) {
+					updateSyncDash();
+
+					cliSync();
+					return;
+				}
+
+				syncStatus = '';
+				updateSyncDash();
+			} else if (syncStatus === 'interrupt') {
+				return;
+			}
+
+			syncStatus = 'finished';
+			updateSyncDash();
+		});
+}
+
 /**
  * Perform an elasticpress sync
  */
@@ -366,6 +440,18 @@ function sync() {
 			},
 		})
 		.done((response) => {
+			if (response.data?.should_interrupt_sync) {
+				syncStatus = 'interrupt';
+				updateSyncDash();
+				cancelSync();
+			}
+
+			if (response.data?.method === 'cli') {
+				syncStatus = 'wpcli';
+				cliSync();
+				return;
+			}
+
 			if (syncStatus !== 'sync') {
 				return;
 			}
@@ -450,7 +536,7 @@ $resumeSyncButton.on('click', () => {
 });
 
 $cancelSyncButton.on('click', () => {
-	syncStatus = 'cancel';
+	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
 
 	updateSyncDash();
 

@@ -120,9 +120,9 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I->seeText( 'a Blog page', '.ep-autosuggest' );
 
-		$url = $I->getElementAttribute( '.autosuggest-list > li:first-child span', 'data-url' );
+		$url = $I->getElementAttribute( '.autosuggest-list > li:first-child a', 'data-url' );
 
-		$I->click( '.autosuggest-list > li:first-child span' );
+		$I->click( '.autosuggest-list > li:first-child a' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 
