@@ -2733,6 +2733,36 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a query that searches and filters by a meta value using NOT LIKE operator
+	 *
+	 * @since 3.6.0
+	 * @group post
+	 */
+	public function testMetaQueryNotLike() {
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'ALICE in wonderland' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'alice in melbourne' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'AlicE in america' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			's'          => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => 'melbourne',
+					'compare' => 'NOT LIKE',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test meta queries with multiple keys
 	 */
 	public function testMetaQueryMultipleArray() {

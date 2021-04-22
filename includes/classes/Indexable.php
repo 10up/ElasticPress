@@ -541,7 +541,7 @@ abstract class Indexable {
 					$meta_key_path = 'meta.' . $single_meta_query['key'];
 				} elseif ( in_array( $compare, array( '=', '!=' ), true ) && ! $type ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
-				} elseif ( 'like' === $compare ) {
+				} elseif ( in_array( $compare, array( 'like', 'not like' ), true ) ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
 				} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 					// Map specific meta field types to different Elasticsearch core types
@@ -719,6 +719,21 @@ abstract class Indexable {
 							$terms_obj = array(
 								'match_phrase' => array(
 									$meta_key_path => $single_meta_query['value'],
+								),
+							);
+						}
+						break;
+					case 'not like':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'match_phrase' => array(
+												$meta_key_path => $single_meta_query['value'],
+											),
+										),
+									),
 								),
 							);
 						}
