@@ -357,4 +357,26 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		return $per_page;
 	}
+
+	/**
+	 * Activate a feature.
+	 *
+	 * @param string $feature_slug
+	 * @param \WPAcceptance\PHPUnit\Actor $actor
+	 */
+	public function activateFeature( string $feature_slug, $actor ) {
+		$actor->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+
+		$class = $actor->getElementAttribute( ".ep-feature-{$feature_slug}", 'class' );
+
+		if ( strpos( $class, 'feature-active' ) === false ) {
+			$actor->click( ".ep-feature-{$feature_slug} .settings-button" );
+
+			$actor->click( "#feature_active_{$feature_slug}_enabled" );
+
+			$actor->click( "a.save-settings[data-feature='{$feature_slug}']" );
+
+			sleep( 2 );
+		}
+	}
 }

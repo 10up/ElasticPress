@@ -49,6 +49,8 @@ class ProtectedContentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
+		$this->activateFeature( 'protected_content', $I );
+
 		$I->moveTo( 'wp-admin/edit.php' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
@@ -69,6 +71,8 @@ class ProtectedContentTest extends TestBase {
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
+
+		$this->activateFeature( 'protected_content', $I );
 
 		$data = [
 			'title'  => 'Test ElasticPress Draft',
