@@ -44,8 +44,6 @@ class ProtectedContentTest extends TestBase {
 	 * @testdox I see 1 query running against ES on WordPress Dashboard -> Posts List Screen.
 	 */
 	public function testProtectedContentPostsList() {
-		$this->runCommand( 'wp elasticpress activate-feature protected_content' );
-
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -56,9 +54,7 @@ class ProtectedContentTest extends TestBase {
 
 		$I->click( '#debug-menu-link-EP_Debug_Bar_ElasticPress' );
 
-		$I->waitUntilElementVisible( '#debug-menu-target-EP_Debug_Bar_ElasticPress' );
-
-		$I->seeText( 'Time Taken', '#debug-menu-target-EP_Debug_Bar_ElasticPress' );
+		$I->seeText( '1', '#debug-menu-target-EP_Debug_Bar_ElasticPress' );
 	}
 
 	/**
@@ -67,8 +63,6 @@ class ProtectedContentTest extends TestBase {
 	 * @testdox I see 2 hits as in ES query results on WordPress Dashboard -> Draft Posts List Screen.
 	 */
 	public function testProtectedContentPostsDraftsList() {
-		$this->runCommand( 'wp elasticpress activate-feature protected_content' );
-
 		$this->runCommand( 'wp elasticpress index --setup' );
 
 		$I = $this->openBrowserPage();

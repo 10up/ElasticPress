@@ -93,7 +93,7 @@ fi
 
 for i in $(seq 1 $ATTEMPTS); do
 
-  ./vendor/bin/wpacceptance run --cache_environment
+  ./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure
 
   EXIT_CODE=$?
 

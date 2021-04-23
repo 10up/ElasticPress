@@ -49,6 +49,12 @@ jobs:
     - name: Test Local
       run: ./run-wpacceptance.sh -l --attempts=3
 
+    - name: Upload error screenshots
+      uses: actions/upload-artifact@v2
+      with:
+        name: wpa-screenshots
+        path: screenshots/*.jpg
+
   wpa_epio:
     name: WP Acceptance - ElasticPress.io
     runs-on: ubuntu-latest
