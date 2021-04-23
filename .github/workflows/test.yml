@@ -51,6 +51,7 @@ jobs:
 
     - name: Upload error screenshots
       uses: actions/upload-artifact@v2
+      if: failure()
       with:
         name: wpa-screenshots
         path: screenshots/*.jpg
