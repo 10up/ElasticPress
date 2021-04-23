@@ -934,21 +934,18 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testCategoryNotInQuery() {
-		$term_name = rand_str( 32 );
-		$term      = wp_insert_term( $term_name, 'category' );
+		$term = wp_insert_term( 'cattest', 'category' );
 
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
-
-		wp_set_object_terms( $post_ids[0], array( $term['term_id'] ), 'category', true );
+		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'post_category' => array( $term['term_id'] ) ) );
+		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 2',  ) );
+		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'                => 'findme',
+			's'                => 'findme cat not in test',
 			'category__not_in' => array( $term['term_id'] ),
 		);
 
