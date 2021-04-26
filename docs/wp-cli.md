@@ -29,17 +29,17 @@ The following WP-CLI commands are supported by ElasticPress:
 
   Recreates the alias index which points to every index in the network.
 
-* `wp elasticpress activate-feature <feature-slug> [--network-wide]`
+* `wp elasticpress activate-feature <feature-slug>`
 
-  Activate a feature. If a re-indexing is required, you will need to do it manually. `--network-wide` will affect network activated ElasticPress.
+  Activate a feature. If a re-indexing is required, you will need to do it manually.
 
-* `wp elasticpress deactivate-feature <feature-slug> [--network-wide]`
+* `wp elasticpress deactivate-feature <feature-slug>`
 
-  Deactivate a feature. `--network-wide` will affect network activated ElasticPress.
+  Deactivate a feature.
 
-* `wp elasticpress list-features [--all] [--network-wide]`
+* `wp elasticpress list-features [--all]`
 
-  Lists active features. `--all` will show all registered features. `--network-wide` will force checking network options as opposed to a single sites options.
+  Lists active features. `--all` will show all registered features.
 
 * `wp elasticpress stats`
 
