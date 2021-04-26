@@ -718,6 +718,7 @@ class Comment extends Indexable {
 
 		$defaults = [
 			'post_type' => 'any',
+			'status'    => 'approve',
 			'number'    => $this->get_bulk_items_per_page(),
 			'offset'    => 0,
 			'orderby'   => 'comment_ID',
