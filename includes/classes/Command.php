@@ -535,7 +535,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--start-object-id] [--end-object-id] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--upper-limit-object-id] [--lower-limit-object-id] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -825,12 +825,12 @@ class Command extends WP_CLI_Command {
 			$query_args['offset'] = absint( $args['offset'] );
 		}
 
-		if ( ! empty( $args['start-object-id'] ) && is_numeric( $args['start-object-id'] ) ) {
-			$query_args['ep_indexing_start_object_id'] = $args['start-object-id'];
+		if ( ! empty( $args['upper-limit-object-id'] ) && is_numeric( $args['upper-limit-object-id'] ) ) {
+			$query_args['ep_indexing_upper_limit_object_id'] = $args['upper-limit-object-id'];
 		}
 
-		if ( ! empty( $args['end-object-id'] ) && is_numeric( $args['end-object-id'] ) ) {
-			$query_args['ep_indexing_end_object_id'] = $args['end-object-id'];
+		if ( ! empty( $args['lower-limit-object-id'] ) && is_numeric( $args['lower-limit-object-id'] ) ) {
+			$query_args['ep_indexing_lower_limit_object_id'] = $args['lower-limit-object-id'];
 		}
 
 		if ( ! empty( $args['post-ids'] ) ) {

@@ -4880,11 +4880,11 @@ class TestPost extends BaseTestCase {
 		$this->assertCount( 1, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
 
-		// A custom start_object_id was passed in.
+		// A custom upper_limit_object_id was passed in.
 		$results = $indexable_post_object->query_db(
 			[
 				'per_page' => 1,
-				'ep_indexing_start_object_id' => $post_id_1,
+				'ep_indexing_upper_limit_object_id' => $post_id_1,
 			]
 		);
 
@@ -4897,8 +4897,8 @@ class TestPost extends BaseTestCase {
 		$results = $indexable_post_object->query_db(
 			[
 				'per_page' => 1,
-				'ep_indexing_start_object_id' => $post_id_3,
-				'ep_indexing_end_object_id' => $post_id_2,
+				'ep_indexing_upper_limit_object_id' => $post_id_3,
+				'ep_indexing_lower_limit_object_id' => $post_id_2,
 				'ep_indexing_last_processed_object_id' => $post_id_3,
 			]
 		);

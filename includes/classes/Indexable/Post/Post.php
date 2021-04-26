@@ -132,29 +132,29 @@ class Post extends Indexable {
 		$using_advanced_pagination = $query->get( 'ep_indexing_advanced_pagination', false );
 
 		if ( $using_advanced_pagination ) {
-			$requested_start_id = $query->get( 'ep_indexing_start_object_id', PHP_INT_MAX );
-			$requested_end_id   = $query->get( 'ep_indexing_end_object_id', 0 );
-			$last_processed_id  = $query->get( 'ep_indexing_last_processed_object_id', null );
+			$requested_upper_limit_id      = $query->get( 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
+			$requested_lower_limit_post_id = $query->get( 'ep_indexing_lower_limit_object_id', 0 );
+			$last_processed_id             = $query->get( 'ep_indexing_last_processed_object_id', null );
 
-			// On the first loopthrough we begin with the requested start ID. Afterwards, use the last processed ID to paginate.
-			$start_range_post_id = $requested_start_id;
+			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
+			$upper_limit_range_post_id = $requested_upper_limit_id;
 			if ( is_numeric( $last_processed_id ) ) {
-				$start_range_post_id = $last_processed_id - 1;
+				$upper_limit_range_post_id = $last_processed_id - 1;
 			}
 
 			// Sanitize. Abort if unexpected data at this point.
-			if ( ! is_numeric( $start_range_post_id ) || ! is_numeric( $requested_end_id ) ) {
+			if ( ! is_numeric( $upper_limit_range_post_id ) || ! is_numeric( $requested_lower_limit_post_id ) ) {
 				return $where;
 			}
 
 			$range = [
-				'start' => "{$GLOBALS['wpdb']->posts}.ID <= {$start_range_post_id}",
-				'end'   => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_end_id}",
+				'upper_limit' => "{$GLOBALS['wpdb']->posts}.ID <= {$upper_limit_range_post_id}",
+				'lower_limit' => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_lower_limit_post_id}",
 			];
 
 			// Skip the end range if it's unnecessary.
-			$skip_ending_range = 0 === $requested_end_id;
-			$where             = $skip_ending_range ? "AND {$range['start']} {$where}" : "AND {$range['start']} AND {$range['end']} {$where}";
+			$skip_ending_range = 0 === $requested_lower_limit_post_id;
+			$where             = $skip_ending_range ? "AND {$range['upper_limit']} {$where}" : "AND {$range['upper_limit']} AND {$range['lower_limit']} {$where}";
 		}
 
 		return $where;
