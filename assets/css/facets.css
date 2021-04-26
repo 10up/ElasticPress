@@ -54,17 +54,40 @@
 }
 
 .widget_ep-facet .term a {
+	align-items: center;
+	display: flex;
 	position: relative;
-	text-decoration: none;
+}
 
-	&:after {
-		content: ' ';
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		display: block;
-		position: absolute;
-		z-index: 1;
-	}
+.ep-checkbox {
+	align-items: center;
+	background-color: #eee;
+	display: flex;
+	flex-shrink: 0;
+	height: 1em;
+	justify-content: center;
+	margin-right: 0.25em;
+	width: 1em;
+}
+
+.ep-checkbox::after {
+	content: "";
+	border: solid white;
+	border-width: 0 0.125em 0.125em 0;
+	display: none;
+	height: 0.5em;
+	transform: rotate(45deg);
+	width: 0.25em;
+}
+
+.ep-checkbox.checked {
+	background-color: #5e5e5e;
+}
+
+.ep-checkbox.checked::after {
+	display: block;
+}
+
+.widget_ep-facet .term a:hover .ep-checkbox {
+	background-color: #ccc;
 }
