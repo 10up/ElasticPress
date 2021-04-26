@@ -9,6 +9,7 @@
 namespace ElasticPress\Indexable\Comment;
 
 use ElasticPress\Indexable as Indexable;
+use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexable\Post\DateQuery as DateQuery;
 use \WP_Comment_Query as WP_Comment_Query;
@@ -717,7 +718,7 @@ class Comment extends Indexable {
 	public function query_db( $args ) {
 
 		$defaults = [
-			'post_type' => 'any',
+			'post_type' => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
 			'status'    => 'approve',
 			'number'    => $this->get_bulk_items_per_page(),
 			'offset'    => 0,
@@ -963,115 +964,87 @@ class Comment extends Indexable {
 			return $sort;
 		}
 
-		if ( 'comment_agent' === $orderby ) {
+		switch ( $orderby ) {
+			case 'comment_agent':
+				$orderby_field = 'comment_agent.raw';
+				break;
+
+			case 'comment_approved':
+				$orderby_field = 'comment_approved.raw';
+				break;
+
+			case 'comment_author':
+				$orderby_field = 'comment_author.raw';
+				break;
+
+			case 'comment_author_email':
+				$orderby_field = 'comment_author_email.raw';
+				break;
+
+			case 'comment_author_IP':
+				$orderby_field = 'comment_author_IP.raw';
+				break;
+
+			case 'comment_author_url':
+				$orderby_field = 'comment_author_url.raw';
+				break;
+
+			case 'comment_content':
+				$orderby_field = 'comment_content.raw';
+				break;
+
+			case 'comment_date':
+				$orderby_field = 'comment_date';
+				break;
+
+			case 'comment_date_gmt':
+				$orderby_field = 'comment_date_gmt';
+				break;
+
+			case 'comment_ID':
+				$orderby_field = 'comment_ID';
+				break;
+
+			case 'comment_karma':
+				$orderby_field = 'comment_karma';
+				break;
+
+			case 'comment_parent':
+				$orderby_field = 'comment_parent';
+				break;
+
+			case 'comment_post_ID':
+				$orderby_field = 'comment_post_ID';
+				break;
+
+			case 'comment_type':
+				$orderby_field = 'comment_type';
+				break;
+
+			case 'user_id':
+				$orderby_field = 'user_id';
+				break;
+
+			case 'meta_value':
+				if ( ! empty( $args['meta_key'] ) ) {
+					$orderby_field = 'meta.' . $args['meta_key'] . '.value';
+				}
+				break;
+
+			case 'meta_value_num':
+				if ( ! empty( $args['meta_key'] ) ) {
+					$orderby_field = 'meta.' . $args['meta_key'] . '.long';
+				}
+				break;
+
+			default:
+				$orderby_field = $orderby;
+				break;
+		}
+
+		if ( ! empty( $orderby_field ) ) {
 			$sort[] = [
-				'comment_agent.raw' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_approved' === $orderby ) {
-			$sort[] = [
-				'comment_approved.raw' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_author' === $orderby ) {
-			$sort[] = [
-				'comment_author.raw' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_author_email' === $orderby ) {
-			$sort[] = [
-				'comment_author_email.raw' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_author_IP' === $orderby ) {
-			$sort[] = [
-				'comment_author_IP.raw' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_author_url' === $orderby ) {
-			$sort[] = [
-				'comment_author_url.raw' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_content' === $orderby ) {
-			$sort[] = [
-				'comment_content.raw' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_date' === $orderby ) {
-			$sort[] = [
-				'comment_date' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_date_gmt' === $orderby ) {
-			$sort[] = [
-				'comment_date_gmt' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_ID' === $orderby ) {
-			$sort[] = [
-				'comment_ID' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_karma' === $orderby ) {
-			$sort[] = [
-				'comment_karma' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_parent' === $orderby ) {
-			$sort[] = [
-				'comment_parent' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_post_ID' === $orderby ) {
-			$sort[] = [
-				'comment_post_ID' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'comment_type' === $orderby ) {
-			$sort[] = [
-				'comment_type.raw' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'user_id' === $orderby ) {
-			$sort[] = [
-				'user_id' => [
-					'order' => $order,
-				],
-			];
-		} elseif ( 'meta_value' === $orderby ) {
-			if ( ! empty( $args['meta_key'] ) ) {
-				$sort[] = [
-					'meta.' . $args['meta_key'] . '.value' => [
-						'order' => $order,
-					],
-				];
-			}
-		} elseif ( 'meta_value_num' === $orderby ) {
-			if ( ! empty( $args['meta_key'] ) ) {
-				$sort[] = [
-					'meta.' . $args['meta_key'] . '.long' => [
-						'order' => $order,
-					],
-				];
-			}
-		} else {
-			$sort[] = [
-				$orderby => [
+				$orderby_field => [
 					'order' => $order,
 				],
 			];
