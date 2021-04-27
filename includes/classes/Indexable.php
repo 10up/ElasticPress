@@ -441,29 +441,45 @@ abstract class Indexable {
 
 		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
 
-		if ( is_string( $meta_value ) ) {
-			$timestamp = strtotime( $meta_value );
+		$meta_types = $this->prepare_date_meta_values( $meta_types, $meta_value );
 
-			$date     = '1971-01-01';
-			$datetime = '1971-01-01 00:00:01';
-			$time     = '00:00:01';
+		return $meta_types;
+	}
 
-			/**
-			 * Workaround for `strtotime` potentially producing valid timestamps that would result in 5 digit years
-			 * which DateTime::__construct() can't handle,
-			 * resulting in an 'Uncaught Error: Call to a member function getTimestamp() on bool' in date_i18n.
-			 *
-			 * This better be fixed by 9999-12-31 23:59:59
-			 */
-			if ( false !== $timestamp && 253402300799 > $timestamp ) {
-				$date     = date_i18n( 'Y-m-d', $timestamp );
-				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
-				$time     = date_i18n( 'H:i:s', $timestamp );
+	/**
+	 * Checks if a meta_value is a valid date and prepare extra meta-data.
+	 *
+	 * @param array  $meta_types Array of currently prepared data
+	 * @param string $meta_value Meta value to prepare.
+	 *
+	 * @return array
+	 */
+	public function prepare_date_meta_values( $meta_types, $meta_value ) {
+
+		if ( empty( $meta_value ) || ! is_string( $meta_value ) ) {
+			return $meta_types;
+		}
+
+		$meta_types['date']     = '1970-01-01';
+		$meta_types['datetime'] = '1970-01-01 00:00:01';
+		$meta_types['time']     = '00:00:01';
+
+		try {
+			// is this is a recognizable date format?
+			$new_date = new \DateTime( $meta_value, \wp_timezone() );
+			$timestamp = $new_date->getTimestamp();
+
+			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
+			// issues when integrating into stricter systems. This is by design:
+			// https://bugs.php.net/bug.php?id=60288
+			if ( false !== $timestamp && '0000' !== $new_date->format( 'Y' ) ) {
+				$meta_types['date']     = $new_date->format( 'Y-m-d' );
+				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
+				$meta_types['time']     = $new_date->format( 'H:i:s' );
 			}
-
-			$meta_types['date']     = $date;
-			$meta_types['datetime'] = $datetime;
-			$meta_types['time']     = $time;
+		} catch ( \Exception $e ) {
+			// if $meta_value is not a recognizable date format, DateTime will throw an exception,
+			// just catch it and move on.
 		}
 
 		return $meta_types;
