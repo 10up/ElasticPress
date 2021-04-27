@@ -89,6 +89,13 @@ jobs:
     - name: Test EP.io
       run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=3
 
+    - name: Upload error screenshots
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: wpa-screenshots
+        path: screenshots/*.jpg
+
   phpunit:
     name: PHP Unit
     runs-on: ubuntu-latest

@@ -63,7 +63,9 @@ class ProtectedContentTest extends TestBase {
 	 * @testdox I see 2 hits as in ES query results on WordPress Dashboard -> Draft Posts List Screen.
 	 */
 	public function testProtectedContentPostsDraftsList() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$cli_result = $this->runCommand( 'wp elasticpress index --setup' )['stdout'];
+
+		$this->assertStringContainsString( 'Indexing posts', $cli_result );
 
 		$I = $this->openBrowserPage();
 
