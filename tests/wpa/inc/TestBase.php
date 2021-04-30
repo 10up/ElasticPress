@@ -245,7 +245,16 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @param string                      $slug    Plugin slug.
 	 * @param bool                        $network Multisite?
 	 */
-	protected function activatePlugin( $actor, $slug = 'elasticpress', $network = false ) {
+	protected function activatePlugin( $actor = null, $slug = 'elasticpress', $network = false ) {
+		if ( ! $actor ) {
+			$command = "wp plugin activate {$slug}";
+			if ( $network ) {
+				$command .= ' --network';
+			}
+			$this->runCommand( $command );
+			return;
+		}
+
 		if ( $network ) {
 			$actor->moveTo( '/wp-admin/network/plugins.php' );
 		} else {
@@ -268,7 +277,16 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @param string                      $slug  Plugin slug.
 	 * @param bool                        $network Multisite?
 	 */
-	protected function deactivatePlugin( $actor, $slug = 'elasticpress', $network = false ) {
+	protected function deactivatePlugin( $actor = null, $slug = 'elasticpress', $network = false ) {
+		if ( ! $actor ) {
+			$command = "wp plugin deactivate {$slug}";
+			if ( $network ) {
+				$command .= ' --network';
+			}
+			$this->runCommand( $command );
+			return;
+		}
+
 		if ( $network ) {
 			$actor->moveTo( '/wp-admin/network/plugins.php' );
 		} else {
@@ -289,11 +307,9 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 *
 	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
 	 */
-	protected function isElasticPressIo( $actor ) {
-		$actor->moveTo( '/wp-admin/admin.php?page=elasticpress-settings' );
-		$host = $actor->getElementAttribute( '#ep_host', 'value' );
-
-		return strpos( $host, 'hosted-elasticpress.io' );
+	protected function isElasticPressIo( $actor = null ) {
+		$ep_host = $this->runCommand( "wp eval 'echo \ElasticPress\Utils\get_host();'" )['stdout'];
+		return preg_match( '#elasticpress\.io#i', $ep_host );
 	}
 
 	/**

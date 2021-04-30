@@ -52,9 +52,7 @@ class ProtectedContentTest extends TestBase {
 	 * @testdox I see 1 query running against ES on WordPress Dashboard -> Posts List Screen.
 	 */
 	public function testProtectedContentPostsList() {
-		$cli_result = $this->runCommand( 'wp elasticpress list-features' )['stdout'];
-
-		$this->assertStringContainsString( 'protected_content', $cli_result );
+		$this->maybe_enable_protected_content();
 
 		$I = $this->openBrowserPage();
 
@@ -75,6 +73,8 @@ class ProtectedContentTest extends TestBase {
 	 * @testdox I see 2 hits as in ES query results on WordPress Dashboard -> Draft Posts List Screen.
 	 */
 	public function testProtectedContentPostsDraftsList() {
+		$this->maybe_enable_protected_content();
+
 		$cli_result = $this->runCommand( 'wp elasticpress index --setup' )['stdout'];
 
 		$this->assertStringContainsString( 'Indexing posts', $cli_result );
@@ -104,5 +104,16 @@ class ProtectedContentTest extends TestBase {
 		$I->click( '.query-result-toggle' );
 
 		$this->checkTotal( 2, $I );
+	}
+
+	/**
+	 * If Protected Content Feature is not enable due to a failure in the
+	 * initial test, we enable it here to avoid tests failing in cascade.
+	 */
+	protected function maybe_enable_protected_content() {
+		$cli_result = $this->runCommand( 'wp elasticpress list-features' )['stdout'];
+		if ( false === strpos( $cli_result, 'protected_content' ) ) {
+			$this->runCommand( 'wp elasticpress activate-feature protected_content' );
+		}
 	}
 }

@@ -40,9 +40,9 @@ class WpCliTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->deactivatePlugin( $I );
+		$this->deactivatePlugin();
 
-		$this->activatePlugin( $I, 'elasticpress', true );
+		$this->activatePlugin( null, 'elasticpress', true );
 
 		$I->moveTo( 'wp-admin/network/sites.php' );
 
@@ -60,9 +60,9 @@ class WpCliTest extends TestBase {
 
 		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$this->deactivatePlugin( $I, 'elasticpress', true );
+		$this->deactivatePlugin( null, 'elasticpress', true );
 
-		$this->activatePlugin( $I );
+		$this->activatePlugin();
 	}
 
 	/**
