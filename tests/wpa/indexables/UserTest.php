@@ -16,7 +16,7 @@ class UserTest extends TestBase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 	}
 
 	/**
