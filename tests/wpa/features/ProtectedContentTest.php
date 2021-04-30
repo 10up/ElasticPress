@@ -17,6 +17,8 @@ class ProtectedContentTest extends TestBase {
 	 */
 	public function testTurnProtectedContentFeatureOn() {
 
+		$this->runCommand( 'wp elasticpress index --setup' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -31,11 +33,17 @@ class ProtectedContentTest extends TestBase {
 
 		$I->click( 'a.button[data-feature="protected_content"]' );
 
+		$I->waitUntilElementVisible( '.pause-sync' );
+
 		$I->waitUntilElementVisible( '.start-sync' );
 
 		$I->seeText( 'Sync complete', '.sync-status' );
 
 		$I->seeText( 'Protected Content', '.ep-feature-protected_content h2' );
+
+		$cli_result = $this->runCommand( 'wp elasticpress list-features' )['stdout'];
+
+		$this->assertStringContainsString( 'protected_content', $cli_result );
 	}
 
 	/**
@@ -44,6 +52,10 @@ class ProtectedContentTest extends TestBase {
 	 * @testdox I see 1 query running against ES on WordPress Dashboard -> Posts List Screen.
 	 */
 	public function testProtectedContentPostsList() {
+		$cli_result = $this->runCommand( 'wp elasticpress list-features' )['stdout'];
+
+		$this->assertStringContainsString( 'protected_content', $cli_result );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );

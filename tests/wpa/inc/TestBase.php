@@ -59,8 +59,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 					'active' => 0,
 				],
 				'protected_content' => [
-					'active'         => 0,
-					'force_inactive' => 1,
+					'active' => 0,
 				],
 				'users'             => [
 					'active' => 1,
