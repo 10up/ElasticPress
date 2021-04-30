@@ -75,7 +75,7 @@ class ProtectedContentTest extends TestBase {
 	public function testProtectedContentPostsDraftsList() {
 		$this->maybe_enable_protected_content();
 
-		$cli_result = $this->runCommand( 'wp elasticpress index --setup' )['stdout'];
+		$cli_result = $this->runCommand( 'wp elasticpress index --setup --yes' )['stdout'];
 
 		$this->assertStringContainsString( 'Indexing posts', $cli_result );
 
