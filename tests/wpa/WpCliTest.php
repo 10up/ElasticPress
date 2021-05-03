@@ -173,9 +173,6 @@ class WpCliTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$cli_result = $this->runCommand( 'wp elasticpress delete-index' )['stdout'];
-		$this->assertStringContainsString( 'Are you sure you want to delete your Elasticsearch index?', $cli_result );
-
 		$cli_result = $this->runCommand( 'wp elasticpress delete-index --yes' )['stdout'];
 		$this->assertStringContainsString( 'Index deleted', $cli_result );
 
