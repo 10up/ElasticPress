@@ -69,9 +69,6 @@ class WpCliTest extends TestBase {
 	 * @testdox If user specifies --setup argument in index command, it should clear the index in Elasticsearch, and should put the mapping again and then index all the posts.
 	 */
 	public function testIndexCommandWithSetup() {
-		$cli_result = $this->runCommand( 'wp elasticpress index --setup' )['stdout'];
-		$this->assertStringContainsString( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?', $cli_result );
-
 		$cli_result = $this->runCommand( 'wp elasticpress index --setup --yes' )['stdout'];
 
 		$this->assertStringContainsString( 'Mapping sent', $cli_result );
