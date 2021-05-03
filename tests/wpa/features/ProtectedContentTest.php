@@ -17,7 +17,7 @@ class ProtectedContentTest extends TestBase {
 	 */
 	public function testTurnProtectedContentFeatureOn() {
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 

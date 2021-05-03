@@ -136,7 +136,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -161,7 +161,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		// Slowing the index process a bit.
 		$old_value = $this->setPerIndexCycle( 10, $I );
