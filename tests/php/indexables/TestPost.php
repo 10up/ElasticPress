@@ -966,7 +966,7 @@ class TestPost extends BaseTestCase {
 
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'post_tag' => array( $term['term_id'] ) ) );
+		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'tags_input' => array( $term['term_id'] ) ) );
 		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 2',  ) );
 		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 3' ) );
 
@@ -974,7 +974,7 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'                => 'findme cat not in test',
-			'tag__not_in' => array( $term['term_id'] ),
+			'tag__not_in'      => array( $term['term_id'] ),
 		);
 
 		$query = new \WP_Query( $args );
