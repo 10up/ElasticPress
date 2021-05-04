@@ -187,7 +187,7 @@ class Widget extends WP_Widget {
 							?>
 							<div class="term selected level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
 								<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow">
-									<input type="checkbox" checked>
+									<div class="ep-checkbox checked" role="presentation"></div>
 									<?php echo esc_html( $term->name ); ?>
 								</a>
 							</div>
@@ -250,7 +250,7 @@ class Widget extends WP_Widget {
 								?>
 								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
 									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow">
-										<input type="checkbox" <?php if ( $selected ) : ?>checked<?php endif; ?>>
+										<div class="ep-checkbox <?php if ( $selected ) : ?>checked<?php endif; ?>" role="presentation"></div>
 										<?php echo esc_html( $term->name ); ?>
 									</a>
 								</div>
@@ -278,8 +278,8 @@ class Widget extends WP_Widget {
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 					?>
 					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>"<?php endif; ?> rel="nofollow">
-							<input type="checkbox">
+						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow"<?php endif; ?>>
+							<div class="ep-checkbox" role="presentation"></div>
 							<?php echo esc_html( $term->name ); ?>
 						</a>
 					</div>

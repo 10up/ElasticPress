@@ -73,7 +73,7 @@ class FeatureDocumentTest extends TestBase {
 
 		$this->activateDocumentFeature( $I );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$this->uploadFile( $I, dirname( __DIR__ ) . '/test-docs/pdf-file.pdf' );
 
