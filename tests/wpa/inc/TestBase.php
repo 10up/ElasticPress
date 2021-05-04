@@ -372,4 +372,16 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		return $per_page;
 	}
+
+	/**
+	 * Make sure a feature is enable before running tests that rely on it.
+	 *
+	 * @param string $feature Feature slug.
+	 */
+	public function maybeEnableFeature( $feature ) {
+		$cli_result = $this->runCommand( "wp elasticpress {$feature}" )['stdout'];
+		if ( false === strpos( $cli_result, $feature ) ) {
+			$this->runCommand( "wp elasticpress activate-feature {$feature}" );
+		}
+	}
 }
