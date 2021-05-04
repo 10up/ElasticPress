@@ -379,7 +379,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @param string $feature Feature slug.
 	 */
 	public function maybeEnableFeature( $feature ) {
-		$cli_result = $this->runCommand( "wp elasticpress {$feature}" )['stdout'];
+		$cli_result = $this->runCommand( "wp elasticpress list-features {$feature}" )['stdout'];
 		if ( false === strpos( $cli_result, $feature ) ) {
 			$this->runCommand( "wp elasticpress activate-feature {$feature}" );
 		}
