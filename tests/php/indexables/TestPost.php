@@ -956,9 +956,9 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test a category__not_in query
+	 * Test a tag__not_in query
 	 *
-	 * @since x.x
+	 * @since 3.6.0
 	 * @group post
 	 */
 	public function testTagNotInQuery() {
