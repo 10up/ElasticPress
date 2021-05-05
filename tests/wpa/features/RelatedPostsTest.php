@@ -41,6 +41,11 @@ class FeatureRelatedPostsTest extends TestBase {
 
 			$I->dontSeeText( 'ElasticPress - Related Posts' );
 		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
 			$cli_result = $this->runCommand( "wp widget list {$this->sidebar_id}" )['stdout'];
 
 			$this->assertStringNotContainsString( 'ep-related-posts', $cli_result );
@@ -62,6 +67,11 @@ class FeatureRelatedPostsTest extends TestBase {
 
 			$I->seeText( 'ElasticPress - Related Posts' );
 		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
 			$this->runCommand( "wp widget add ep-related-posts {$this->sidebar_id}" );
 
 			$cli_result = $this->runCommand( "wp widget list {$this->sidebar_id}" )['stdout'];
