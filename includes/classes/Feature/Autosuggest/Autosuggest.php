@@ -390,6 +390,7 @@ class Autosuggest extends Feature {
 			 * Filter autosuggest default selectors.
 			 *
 			 * @hook ep_autosuggest_default_selectors
+			 * @since 3.6.0
 			 * @param {string} $selectors Default selectors used to attach autosuggest.
 			 * @return {string} Selectors used to attach autosuggest.
 			 */

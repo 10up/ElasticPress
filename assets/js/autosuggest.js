@@ -385,7 +385,7 @@ function setFormIsLoading(isLoading, input) {
  * init method called if the epas endpoint is defined
  */
 function init() {
-	const selectors = [epas.selector, epas.defaultSelectors].filter(Boolean).join(',');
+	const selectors = [epas.defaultSelectors, epas.selector].filter(Boolean).join(',');
 
 	if (!selectors) {
 		return;
