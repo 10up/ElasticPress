@@ -313,33 +313,6 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	}
 
 	/**
-	 * Create a user in the admin
-	 *
-	 * @param  array                       $data  User data
-	 * @param  \WPAcceptance\PHPUnit\Actor $actor Current actor
-	 */
-	public function createUser( array $data, \WPAcceptance\PHPUnit\Actor $actor ) {
-		$defaults = [
-			'user_login' => 'testuser',
-			'user_email' => 'testuser@example.com',
-		];
-
-		$data = array_merge( $defaults, $data );
-
-		$actor->moveTo( 'wp-admin/user-new.php' );
-
-		$actor->typeInField( '#user_login', $data['user_login'] );
-
-		$actor->typeInField( '#email', $data['user_email'] );
-
-		$actor->checkOptions( '#noconfirmation' );
-
-		$actor->click( '#createusersub' );
-
-		$actor->waitUntilElementVisible( '#message' );
-	}
-
-	/**
 	 * Helper function to check for total entries found in Debug Bar.
 	 *
 	 * @param integer $total
