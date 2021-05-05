@@ -299,6 +299,25 @@ class QueryIntegration {
 			 */
 			if ( false === $ep_query ) {
 				$query->elasticsearch_success = false;
+
+				/**
+				 * Filter whether to fallback to MySQL or not
+				 *
+				 * @hook ep_fallback_to_mysql
+				 * @param  {boolean} $show True to fallback
+				 * @return {boolean} New value
+				 */
+				if ( apply_filters( 'ep_fallback_to_mysql', true ) ) {
+					//perform SQL operation
+					return null;
+				}
+
+				//never fallback to MySQL for full table searches
+				if ( ! empty( $query_vars['s'] ) ) {
+					//return empty result (can be handled by checking for elasticsearch_success value)
+					return [];
+				}
+
 				return null;
 			}
 
