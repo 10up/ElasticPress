@@ -366,7 +366,7 @@ class WpCliTest extends TestBase {
 
 			$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
 
-			$wpCliMethod = ( 'seeText' === $method ) ? 'assertStringContainsString' : 'assertStringNotContainsString';
+			$wpCliMethod = ( 'seeText' === $method ) ? 'assertStringNotContainsString' : 'assertStringContainsString';
 
 			$this->$wpCliMethod( 'Stats for:', $cli_result );
 		}
