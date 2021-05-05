@@ -201,9 +201,9 @@ class WpCliTest extends TestBase {
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$this->deactivatePlugin( $I, 'elasticpress', true );
+		$this->deactivatePlugin( 'elasticpress', true );
 
-		$this->activatePlugin( $I );
+		$this->activatePlugin();
 	}
 
 	/**
