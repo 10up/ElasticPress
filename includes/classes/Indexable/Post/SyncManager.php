@@ -24,6 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SyncManager extends SyncManagerAbstract {
 
 	/**
+	 * Indexable slug
+	 *
+	 * @since  3.0
+	 * @var    string
+	 */
+	public $indexable_slug = 'post';
+
+	/**
 	 * Setup actions and filters
 	 *
 	 * @since 0.1.2
@@ -66,7 +74,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$indexable = Indexables::factory()->get( 'post' );
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
 
 		$indexable_post_statuses = $indexable->get_indexable_post_status();
 		$post_type               = get_post_type( $object_id );
@@ -132,7 +140,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$indexable = Indexables::factory()->get( 'post' );
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
 
 		/**
 		 * Filter to whether to keep index on site deletion
@@ -169,7 +177,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$indexable = Indexables::factory()->get( 'post' );
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
 		$post_type = get_post_type( $post_id );
 
 		$indexable_post_types = $indexable->get_indexable_post_types();
@@ -187,7 +195,7 @@ class SyncManager extends SyncManagerAbstract {
 		 */
 		do_action( 'ep_delete_post', $post_id );
 
-		Indexables::factory()->get( 'post' )->delete( $post_id, false );
+		Indexables::factory()->get( $this->indexable_slug )->delete( $post_id, false );
 
 		/**
 		 * Make sure to reset sync queue in case an shutdown happens before a redirect
@@ -207,7 +215,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$indexable = Indexables::factory()->get( 'post' );
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
 		$post_type = get_post_type( $post_id );
 
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
