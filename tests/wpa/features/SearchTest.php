@@ -13,7 +13,7 @@ class FeatureSearchTest extends TestBase {
 	 * @testdox If user searches from default WordPress search (front-end), it should fetch results from Elasticsearch
 	 */
 	public function testSearchResultsFetchFromElasticsearch() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -42,7 +42,7 @@ class FeatureSearchTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$this->publishPost( [
 			'title'   => 'Higher',
@@ -73,7 +73,7 @@ class FeatureSearchTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$this->publishPost( [
 			'title'   => 'Duplicated post',

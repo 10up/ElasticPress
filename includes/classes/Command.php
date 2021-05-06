@@ -366,7 +366,7 @@ class Command extends WP_CLI_Command {
 	 * Delete the index for each indexable. !!Warning!! This removes your elasticsearch index(s)
 	 * for the entire site.
 	 *
-	 * @synopsis [--index-name] [--network-wide]
+	 * @synopsis [--index-name] [--network-wide] [--yes]
 	 * @subcommand delete-index
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
@@ -375,6 +375,8 @@ class Command extends WP_CLI_Command {
 	public function delete_index( $args, $assoc_args ) {
 		$this->connect_check();
 		$this->index_occurring();
+
+		WP_CLI::confirm( esc_html__( 'Are you sure you want to delete your Elasticsearch index?', 'elasticpress' ), $assoc_args );
 
 		// If index name is specified, just delete it and end the command.
 		if ( ! empty( $assoc_args['index-name'] ) ) {
@@ -535,7 +537,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--upper-limit-object-id] [--lower-limit-object-id] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--upper-limit-object-id] [--lower-limit-object-id] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix] [--yes]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -544,8 +546,14 @@ class Command extends WP_CLI_Command {
 	public function index( $args, $assoc_args ) {
 		global $wp_actions;
 
+		$setup_option = isset( $assoc_args['setup'] ) ? $assoc_args['setup'] : false;
+
+		if ( true === $setup_option ) {
+			WP_CLI::confirm( esc_html__( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?', 'elasticpress' ), $assoc_args );
+		}
+
 		if ( ! function_exists( 'pcntl_signal' ) ) {
-			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp elasticpress clear-index` in case the process is killed.' ) );
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp elasticpress clear-index` in case the process is killed.', 'elasticpress' ) );
 		} else {
 			declare( ticks = 1 );
 			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );
@@ -605,7 +613,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		// Run setup if flag was passed.
-		if ( isset( $assoc_args['setup'] ) && true === $assoc_args['setup'] ) {
+		if ( true === $setup_option ) {
 
 			// Right now setup is just the put_mapping command, as this also deletes the index(s) first.
 			if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {

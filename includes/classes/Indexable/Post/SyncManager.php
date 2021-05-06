@@ -50,6 +50,30 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
+
+		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+	}
+
+	/**
+	 * Filter to allow cron and WP CLI processes to index/delete documents
+	 *
+	 * @param  boolean $bypass The current filtered value
+	 * @return boolean Boolean indicating if permission checking should be bypased or not
+	 * @since  3.6.0
+	 */
+	public function filter_bypass_permission_checks_for_machines( $bypass ) {
+		// Allow index/delete during cron
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			return true;
+		}
+
+		// Allow index/delete during WP CLI commands
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return true;
+		}
+
+		return $bypass;
 	}
 
 	/**
@@ -160,7 +184,7 @@ class SyncManager extends SyncManagerAbstract {
 		/**
 		 * Filter whether to skip the permissions check on deleting a post
 		 *
-		 * @hook ep_post_sync_kill
+		 * @hook ep_sync_delete_permissions_bypass
 		 * @param  {bool} $bypass True to bypass
 		 * @param  {int} $post_id ID of post
 		 * @return {boolean} New value
@@ -218,18 +242,15 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		/**
-		 * Filter whether to skip the permissions check on deleting a post
+		 * Filter whether to skip the permissions check on updating a post
 		 *
-		 * @hook ep_post_sync_kill
+		 * @hook ep_sync_insert_permissions_bypass
 		 * @param  {bool} $bypass True to bypass
 		 * @param  {int} $post_id ID of post
 		 * @return {boolean} New value
 		 */
-		if ( ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
-			if ( ! current_user_can( 'edit_post', $post_id ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
-				// Bypass saving if user does not have access to edit post and we're not in a cron process.
-				return;
-			}
+		if ( ! current_user_can( 'edit_post', $post_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
+			return;
 		}
 
 		$post = get_post( $post_id );

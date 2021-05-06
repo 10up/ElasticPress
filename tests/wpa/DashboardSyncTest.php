@@ -20,9 +20,9 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
-		$this->runCommand( 'wp elasticpress delete-index' );
+		$this->runCommand( 'wp elasticpress delete-index --yes' );
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
 
@@ -55,9 +55,9 @@ class DashboardSyncTest extends TestBase {
 
 		$this->activatePlugin( $I, 'elasticpress', true );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
-		$this->runCommand( 'wp elasticpress delete-index --network-wide' );
+		$this->runCommand( 'wp elasticpress delete-index --network-wide --yes' );
 
 		$I->moveTo( 'wp-admin/network/sites.php' );
 
@@ -91,9 +91,9 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
-		$this->runCommand( 'wp elasticpress delete-index' );
+		$this->runCommand( 'wp elasticpress delete-index --yes' );
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
 

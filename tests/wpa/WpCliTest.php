@@ -70,6 +70,9 @@ class WpCliTest extends TestBase {
 	 */
 	public function testIndexCommandWithSetup() {
 		$cli_result = $this->runCommand( 'wp elasticpress index --setup' )['stdout'];
+		$this->assertStringContainsString( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?', $cli_result );
+
+		$cli_result = $this->runCommand( 'wp elasticpress index --setup --yes' )['stdout'];
 
 		$this->assertStringContainsString( 'Mapping sent', $cli_result );
 
@@ -174,7 +177,9 @@ class WpCliTest extends TestBase {
 		$I->loginAs( 'wpsnapshots' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress delete-index' )['stdout'];
+		$this->assertStringContainsString( 'Are you sure you want to delete your Elasticsearch index?', $cli_result );
 
+		$cli_result = $this->runCommand( 'wp elasticpress delete-index --yes' )['stdout'];
 		$this->assertStringContainsString( 'Index deleted', $cli_result );
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
@@ -200,7 +205,7 @@ class WpCliTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
 
-		$cli_result = $this->runCommand( 'wp elasticpress delete-index --network-wide' )['stdout'];
+		$cli_result = $this->runCommand( 'wp elasticpress delete-index --network-wide --yes' )['stdout'];
 
 		$this->assertStringContainsString( 'Index deleted', $cli_result );
 
@@ -240,7 +245,7 @@ class WpCliTest extends TestBase {
 
 		$I->checkOptions( '.index-toggle' );
 
-		$this->runCommand( 'wp elasticpress delete-index --network-wide' );
+		$this->runCommand( 'wp elasticpress delete-index --network-wide --yes' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress put-mapping --network-wide' )['stdout'];
 
@@ -307,13 +312,13 @@ class WpCliTest extends TestBase {
 	 * @testdox If user runs wp elasticpress stats command, it should return the number of documents indexed and index size.
 	*/
 	public function testStatsCommand() {
-		$this->runCommand( 'wp elasticpress delete-index' );
+		$this->runCommand( 'wp elasticpress delete-index --yes' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
 
 		$this->assertStringContainsString( 'is not currently indexed', $cli_result );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
 
