@@ -36,10 +36,15 @@ jobs:
         restore-keys: |
           composer-${{ env.COMPOSER_VERSION }}-
 
-    - name: Install dependencies
-      uses: php-actions/composer@v5
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
       with:
-        version: ${{ env.COMPOSER_VERSION }}
+        php-version: '7.4'
+        coverage: none
+        tools: composer:v1
+
+    - name: Install dependencies
+      run: composer install
 
     - name: Test Local
       run: ./run-wpacceptance.sh -l --attempts=3
@@ -71,10 +76,15 @@ jobs:
         restore-keys: |
           composer-${{ env.COMPOSER_VERSION }}-
 
-    - name: Install dependencies
-      uses: php-actions/composer@v5
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
       with:
-        version: ${{ env.COMPOSER_VERSION }}
+        php-version: '7.4'
+        coverage: none
+        tools: composer:v1
+
+    - name: Install dependencies
+      run: composer install
 
     - name: Test EP.io
       run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=3
