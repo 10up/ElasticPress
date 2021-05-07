@@ -91,6 +91,10 @@ if [ ! -z $EP_HOST ] || [ ! -z $ES_SHIELD] || [ ! -z $EP_INDEX_PREFIX]; then
   fi
 fi
 
+export PATH=/opt/rh/rh-nodejs12/root/usr/bin:/opt/rh/rh-nodejs12/root/usr/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
+
+which npm
+
 for i in $(seq 1 $ATTEMPTS); do
 
   ./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure

@@ -49,8 +49,8 @@ jobs:
     - name: Install dependencies
       run: composer install
 
-    - name: Setup PATH
-      run: export PATH=/opt/rh/rh-nodejs12/root/usr/bin:/opt/rh/rh-nodejs12/root/usr/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
+#    - name: Setup PATH
+#      run: export PATH=/opt/rh/rh-nodejs12/root/usr/bin:/opt/rh/rh-nodejs12/root/usr/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
 
     - name: Test Local
       run: ./run-wpacceptance.sh -l --attempts=3
