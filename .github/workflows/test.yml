@@ -49,6 +49,9 @@ jobs:
     - name: Install dependencies
       run: composer install
 
+    - name: Setup NPM
+      run: source scl_source enable rh-nodejs12
+
     - name: Test Local
       run: ./run-wpacceptance.sh -l --attempts=3
 
@@ -89,6 +92,9 @@ jobs:
 
     - name: Install dependencies
       run: composer install
+
+    - name: Setup NPM
+      run: source scl_source enable rh-nodejs12
 
     - name: Test EP.io
       run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=3
