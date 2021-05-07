@@ -42,7 +42,7 @@ jobs:
         php-version: '7.4'
         coverage: none
         tools: prestissimo, composer:v1
-        ini-values: memory_limit=1G
+        ini-values: memory_limit=2G
 
     - name: Install dependencies
       run: composer install
@@ -83,7 +83,7 @@ jobs:
         php-version: '7.4'
         coverage: none
         tools: prestissimo, composer:v1
-        ini-values: memory_limit=1G
+        ini-values: memory_limit=2G
 
     - name: Install dependencies
       run: composer install
