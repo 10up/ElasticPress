@@ -100,21 +100,21 @@ jobs:
 
   phpunit:
     name: PHP Unit
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
-#    - name: Start MySQL
-#      run: sudo systemctl start mysql.service
+    - name: Start MySQL
+      run: sudo systemctl start mysql.service
 
-#    - name: Configure sysctl limits
-#      run: |
-#        sudo swapoff -a
-#        sudo sysctl -w vm.swappiness=1
-#        sudo sysctl -w fs.file-max=262144
-#        sudo sysctl -w vm.max_map_count=262144
+    - name: Configure sysctl limits
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
 
     - name: Setup Elasticsearch
       uses: getong/elasticsearch-action@v1.2
