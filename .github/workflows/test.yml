@@ -3,6 +3,7 @@ name: Test
 env:
   COMPOSER_VERSION: "1"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
+  HOME: "/root"
 
 on:
   schedule:
