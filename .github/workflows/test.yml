@@ -4,6 +4,7 @@ env:
   COMPOSER_VERSION: "1"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
   HOME: "/root"
+  COMPOSER_ALLOW_SUPERUSER: "1"
 
 on:
   schedule:
