@@ -24,17 +24,17 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Set standard 10up cache directories
-      run: |
-        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+#    - name: Set standard 10up cache directories
+#      run: |
+#        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
 
-    - name: Prepare composer cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.COMPOSER_CACHE }}
-        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          composer-${{ env.COMPOSER_VERSION }}-
+#    - name: Prepare composer cache
+#      uses: actions/cache@v2
+#      with:
+#        path: ${{ env.COMPOSER_CACHE }}
+#        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+#        restore-keys: |
+#          composer-${{ env.COMPOSER_VERSION }}-
 
 #    - name: Set PHP version
 #      uses: shivammathur/setup-php@v2
@@ -65,17 +65,17 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Set standard 10up cache directories
-      run: |
-        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+#    - name: Set standard 10up cache directories
+#      run: |
+#        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
 
-    - name: Prepare composer cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.COMPOSER_CACHE }}
-        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          composer-${{ env.COMPOSER_VERSION }}-
+#    - name: Prepare composer cache
+#      uses: actions/cache@v2
+#      with:
+#        path: ${{ env.COMPOSER_CACHE }}
+#        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+#        restore-keys: |
+#          composer-${{ env.COMPOSER_VERSION }}-
 
 #    - name: Set PHP version
 #      uses: shivammathur/setup-php@v2
@@ -106,15 +106,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Start MySQL
-      run: sudo systemctl start mysql.service
+#    - name: Start MySQL
+#      run: sudo systemctl start mysql.service
 
-    - name: Configure sysctl limits
-      run: |
-        sudo swapoff -a
-        sudo sysctl -w vm.swappiness=1
-        sudo sysctl -w fs.file-max=262144
-        sudo sysctl -w vm.max_map_count=262144
+#    - name: Configure sysctl limits
+#      run: |
+#        sudo swapoff -a
+#        sudo sysctl -w vm.swappiness=1
+#        sudo sysctl -w fs.file-max=262144
+#        sudo sysctl -w vm.max_map_count=262144
 
     - name: Setup Elasticsearch
       uses: getong/elasticsearch-action@v1.2
