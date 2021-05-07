@@ -4,8 +4,6 @@ env:
   COMPOSER_VERSION: "1"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
 
-runs-on: self-hosted
-
 on:
   schedule:
     - cron:  '0 0 * * *'
@@ -20,6 +18,7 @@ on:
 jobs:
   wpa_local:
     name: WP Acceptance - Local
+    runs-on: self-hosted
 
     steps:
     - name: Checkout
@@ -60,6 +59,7 @@ jobs:
 
   wpa_epio:
     name: WP Acceptance - ElasticPress.io
+    runs-on: self-hosted
 
     steps:
     - name: Checkout
@@ -100,6 +100,7 @@ jobs:
 
   phpunit:
     name: PHP Unit
+    runs-on: self-hosted
 
     steps:
     - name: Checkout
