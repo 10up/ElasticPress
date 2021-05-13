@@ -877,7 +877,7 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['post_name__in'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = array(
-				'term' => array(
+				'terms' => array(
 					'post_name.raw' => array_values( (array) $args['post_name__in'] ),
 				),
 			);
