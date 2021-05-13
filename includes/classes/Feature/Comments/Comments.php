@@ -40,6 +40,8 @@ class Comments extends Feature {
 		Indexables::factory()->register( new Indexable\Comment\Comment() );
 
 		add_action( 'init', [ $this, 'search_setup' ] );
+		add_action( 'widgets_init', [ $this, 'register_widget' ] );
+		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 	}
 
 	/**
@@ -107,4 +109,71 @@ class Comments extends Feature {
 		return $status;
 	}
 
+	/**
+	 * Register comments widget
+	 *
+	 * @since  3.6
+	 */
+	public function register_widget() {
+		register_widget( __NAMESPACE__ . '\Widget' );
+	}
+
+	/**
+	 * Registers the API endpoint to search for comments
+	 */
+	public function rest_api_init() {
+		register_rest_route(
+			'elasticpress/v1',
+			'comments',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'handle_comments_search' ],
+				'permission_callback' => '__return_true',
+				'args'                => [
+					's' => [
+						'validate_callback' => function ( $param ) {
+							return ! empty( $param );
+						},
+						'required'          => true,
+					],
+				],
+			]
+		);
+	}
+
+	/**
+	 * Handles the search for comments
+	 *
+	 * @param \WP_REST_Request $request Rest request
+	 *
+	 * @return array
+	 */
+	public function handle_comments_search( $request ) {
+		$search = $request->get_param( 's' );
+
+		if ( empty( $search ) ) {
+			return new \WP_Error( 400 );
+		}
+
+		$args = [
+			'status'      => 'approve',
+			'search'      => $search,
+			'post_type'   => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
+			'post_status' => 'publish',
+			'number'      => 5,
+		];
+
+		$comment_query = new \WP_Comment_Query( $args );
+
+		$return = [];
+		foreach ( $comment_query->comments as $comment ) {
+			$return[ $comment->comment_ID ] = [
+				'id'      => $comment->comment_ID,
+				'content' => $comment->comment_content,
+				'link'    => get_comment_link( $comment ),
+			];
+		}
+
+		return $return;
+	}
 }
