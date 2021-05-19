@@ -45,7 +45,7 @@ class Widget extends WP_Widget {
 		}
 		?>
 
-		<div id="ep-widget-search-comments"></div>
+		<div class="ep-widget-search-comments"></div>
 
 		<?php
 		$comments_search_form = ob_get_clean();
@@ -59,11 +59,27 @@ class Widget extends WP_Widget {
 			true
 		);
 
+		wp_enqueue_style(
+			'elasticpress-comments',
+			EP_URL . 'dist/css/comments-styles.min.css',
+			[],
+			EP_VERSION
+		);
+
 		wp_localize_script(
 			'elasticpress-comments',
 			'epc',
 			[
-				'restApiEndpoint' => get_rest_url( null, 'elasticpress/v1/comments' ),
+				'restApiEndpoint'    => get_rest_url( null, 'elasticpress/v1/comments' ),
+				/**
+				 * Filter text to be showed when no results were found
+				 *
+				 * @since  3.6
+				 * @hook ep_widget_search_comments_no_results_found_text
+				 * @param  {string} $text Default text when no results were found
+				 * @return  {string} New text to be showed when no results were found
+				 */
+				'noResultsFoundText' => esc_html( apply_filters( 'ep_widget_search_comments_no_results_found_text', __( 'We could not find any results', 'elasticpress' ) ) ),
 			]
 		);
 

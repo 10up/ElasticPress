@@ -1,0 +1,12 @@
+.ep-widget-search-comments-results {
+	list-style-type: none;
+	margin-left: 0;
+}
+
+.ep-widget-search-comments-result-item {
+	margin-left: 0;
+}
+
+.ep-widget-search-comments-result-item.selected a {
+	border: 2px dotted #171923;
+}
