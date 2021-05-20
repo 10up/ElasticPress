@@ -41,6 +41,8 @@ class RelatedPosts extends Feature {
 	 */
 	public function formatted_args( $formatted_args, $args ) {
 		if ( ! empty( $args['more_like'] ) ) {
+			// Purposely unset sorting to return best related post matches
+			unset( $formatted_args['sort'] );
 			// lets compare ES version to see if new MLT structure applies
 			$new_mlt = version_compare( Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
 
