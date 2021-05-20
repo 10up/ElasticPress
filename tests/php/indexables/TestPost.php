@@ -3702,13 +3702,20 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			's'             => 'findme name in',
-			'post_name__in' => 'findme-name-in',
 		);
+
+		$args['post_name__in'] = 'findme-name-in';
 
 		$query = new \WP_Query( $args );
 
+		$args['post_name__in'] = array( 'findme-name-in' );
+
+		$query2 = new \WP_Query( $args );
+
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( 1, $query2->post_count );
+		$this->assertEquals( 1, $query2->found_posts );
 	}
 
 	/**
