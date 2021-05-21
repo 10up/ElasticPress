@@ -654,12 +654,17 @@ class Elasticsearch {
 	 * Get multiple documents from Elasticsearch given an array of ids
 	 *
 	 * @param  string $index Index name.
+	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
 	 * @param  array  $document_ids Array of document ids to get.
-	 * @since  3.5
+	 * @since  3.6.0
 	 * @return boolean|array
 	 */
-	public function get_documents( $index, $document_ids ) {
-		$path = $index . '/_doc/_mget';
+	public function get_documents( $index, $type, $document_ids ) {
+		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/_mget', $document_ids, $type );
+		} else {
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/_mget', $document_ids, $type );
+		}
 
 		$request_args = [
 			'method' => 'POST',
