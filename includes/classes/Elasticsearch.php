@@ -695,6 +695,19 @@ class Elasticsearch {
 			}
 		}
 
+		/**
+		 * Filter documents found by Elasticsearch through the /_mget endpoint.
+		 *
+		 * @hook ep_get_documents
+		 * @since 3.6.0
+		 * @param {array} $docs Documents found indexed by ID
+		 * @param  {string} $index Index name
+		 * @param  {string} $type Index type
+		 * @param  {array} $document_ids Array of document ids
+		 * @return  {array} Documents to be returned
+		 */
+		$docs = apply_filters( 'ep_get_documents', $docs, $index, $type, $document_ids );
+
 		return $docs;
 	}
 
