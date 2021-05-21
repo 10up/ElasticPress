@@ -789,6 +789,7 @@ class Command extends WP_CLI_Command {
 	private function index_helper( Indexable $indexable, $args ) {
 		$synced              = 0;
 		$errors              = [];
+		$no_bulk_count       = 0;
 		$index_queue         = [];
 		$killed_object_count = 0;
 		$failed_objects      = [];
@@ -799,6 +800,7 @@ class Command extends WP_CLI_Command {
 
 		if ( isset( $args['nobulk'] ) ) {
 			$no_bulk = true;
+			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
 		if ( isset( $args['ep-host'] ) ) {
@@ -827,7 +829,8 @@ class Command extends WP_CLI_Command {
 
 		$query_args = [];
 
-		$query_args['offset'] = 0;
+		$query_args['offset']                          = 0;
+		$query_args['ep_indexing_advanced_pagination'] = ! $no_bulk;
 
 		if ( ! empty( $args['offset'] ) ) {
 			$query_args['offset'] = absint( $args['offset'] );
@@ -883,6 +886,8 @@ class Command extends WP_CLI_Command {
 						 */
 						$result = $indexable->index( $object->ID, true );
 
+						$no_bulk_count++;
+
 						if ( ! empty( $result->error ) ) {
 							if ( ! empty( $result->error->reason ) ) {
 								$failed_objects[ $object->ID ] = (array) $result->error;
@@ -903,6 +908,8 @@ class Command extends WP_CLI_Command {
 						 * @param {Indexable} $indexable Current indexable
 						 */
 						do_action( 'ep_cli_object_index', $object->ID, $indexable );
+
+						WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), $no_bulk_count, (int) $query['total_objects'] ) );
 					} else {
 						/**
 						 * Conditionally kill indexing for a post
@@ -984,19 +991,21 @@ class Command extends WP_CLI_Command {
 				break;
 			}
 
-			$last_object_array_key    = array_keys( $query['objects'] )[ count( $query['objects'] ) - 1 ];
-			$last_processed_object_id = $query['objects'][ $last_object_array_key ]->ID;
-			WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ), (int) ( $synced + count( $failed_objects ) ), (int) $query['total_objects'], (int) $last_processed_object_id ) );
+			if ( ! $no_bulk ) {
+				$last_object_array_key    = array_keys( $query['objects'] )[ count( $query['objects'] ) - 1 ];
+				$last_processed_object_id = $query['objects'][ $last_object_array_key ]->ID;
+				WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ), (int) ( $synced + count( $failed_objects ) ), (int) $query['total_objects'], (int) $last_processed_object_id ) );
 
-			$loop_counter++;
-			if ( ( $loop_counter % 10 ) === 0 ) {
-				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( timer_stop( 0, 2 ) - $time_elapsed ) . ')' : '';
-				$time_elapsed      = timer_stop( 0, 2 );
-				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
+				$loop_counter++;
+				if ( ( $loop_counter % 10 ) === 0 ) {
+					$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( timer_stop( 0, 2 ) - $time_elapsed ) . ')' : '';
+					$time_elapsed      = timer_stop( 0, 2 );
+					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
 
-				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
-				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
-				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
+					$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
+					$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
+					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
+				}
 			}
 
 			$query_args['offset']                              += $per_page;

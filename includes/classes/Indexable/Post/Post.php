@@ -63,7 +63,7 @@ class Post extends Indexable {
 			'ignore_sticky_posts'             => true,
 			'orderby'                         => 'ID',
 			'order'                           => 'desc',
-			'no_found_rows'                   => true,
+			'no_found_rows'                   => false,
 			'ep_indexing_advanced_pagination' => true,
 		];
 
@@ -106,14 +106,16 @@ class Post extends Indexable {
 					'no_found_rows'    => true,
 				]
 			);
+			add_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+
+			$query         = new WP_Query( $args );
+			$total_objects = $this->get_total_objects_for_query( $args );
+
+			remove_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+		} else {
+			$query         = new WP_Query( $args );
+			$total_objects = $query->found_posts;
 		}
-
-		add_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
-
-		$query         = new WP_Query( $args );
-		$total_objects = $this->get_total_objects_for_query( $args );
-
-		remove_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
 
 		return [
 			'objects'       => $query->posts,
