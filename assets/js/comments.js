@@ -79,13 +79,30 @@ const showNotFoundInResultsBox = (inputElement) => {
 };
 
 /**
+ * Add class to the widget element while results are being loaded
+ *
+ * @param {boolean} isLoading Whether results are loading
+ * @param {Node} inputElement Search input field
+ */
+function setIsLoading(isLoading, inputElement) {
+	const widget = findAncestorByClass(inputElement, 'ep-widget-search-comments');
+
+	if (isLoading) {
+		widget.classList.add('ep-widget-search-comments-is-loading');
+	} else {
+		widget.classList.remove('ep-widget-search-comments-is-loading');
+	}
+}
+
+/**
  *	Fetch comments
  *
  * @param {HTMLInputElement} inputElement The input element used in the widget
  * @returns {Promise}
  */
-const fetchResults = (inputElement) =>
-	fetch(`${window.epc.restApiEndpoint}?s=${inputElement.value.trim()}`)
+const fetchResults = (inputElement) => {
+	setIsLoading(true, inputElement);
+	return fetch(`${window.epc.restApiEndpoint}?s=${inputElement.value.trim()}`)
 		.then((response) => {
 			if (!response.ok) {
 				throw response;
@@ -106,7 +123,11 @@ const fetchResults = (inputElement) =>
 		})
 		.catch(() => {
 			hideResultsBox(inputElement);
+		})
+		.finally(() => {
+			setIsLoading(false, inputElement);
 		});
+};
 
 /**
  * Handle up, down and enter key
