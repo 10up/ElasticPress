@@ -93,12 +93,12 @@ fi
 
 # This variable will hold all tests failed with the "Page crashed" error.
 ERRORS=''
+TTY=$(tty)
 
 for i in $(seq 1 $ATTEMPTS); do
 
   # tee is here to output it in "real time", rather than waiting until it is 100% and echoing it.
-  # TEST_OUTPUT=$(./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure | tee /dev/tty)
-  TEST_OUTPUT=$(./vendor/bin/wpacceptance run -vvv --filter_tests testUserSync | tee /dev/tty)
+  TEST_OUTPUT=$(./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure | tee $TTY)
 
   EXIT_CODE=$?
 
