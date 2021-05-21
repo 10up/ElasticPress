@@ -690,9 +690,7 @@ class Elasticsearch {
 		if ( is_array( $response['docs'] ) ) {
 			foreach ( $response['docs'] as $doc ) {
 				if ( ! empty( $doc['exists'] ) || ! empty( $doc['found'] ) ) {
-					$docs[] = $doc['_source'];
-				} else {
-					$docs[] = null;
+					$docs[ $doc['_id'] ] = $doc['_source'];
 				}
 			}
 		}
