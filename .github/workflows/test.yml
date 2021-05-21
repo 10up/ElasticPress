@@ -3,8 +3,6 @@ name: Test
 env:
   COMPOSER_VERSION: "1"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  HOME: "/root"
-  COMPOSER_ALLOW_SUPERUSER: "1"
 
 on:
   schedule:
@@ -20,37 +18,34 @@ on:
 jobs:
   wpa_local:
     name: WP Acceptance - Local
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
-#    - name: Set standard 10up cache directories
-#      run: |
-#        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+    - name: Set standard 10up cache directories
+      run: |
+        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
 
-#    - name: Prepare composer cache
-#      uses: actions/cache@v2
-#      with:
-#        path: ${{ env.COMPOSER_CACHE }}
-#        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
-#        restore-keys: |
-#          composer-${{ env.COMPOSER_VERSION }}-
+    - name: Prepare composer cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
 
-#    - name: Set PHP version
-#      uses: shivammathur/setup-php@v2
-#      with:
-#        php-version: '7.4'
-#        coverage: none
-#        tools: prestissimo, composer:v1
-#        ini-values: memory_limit=3G
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        coverage: none
+        tools: prestissimo, composer:v1
+        ini-values: memory_limit=3G
 
     - name: Install dependencies
       run: composer install
-
-#    - name: Setup PATH
-#      run: export PATH=/opt/rh/rh-nodejs12/root/usr/bin:/opt/rh/rh-nodejs12/root/usr/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
 
     - name: Test Local
       run: ./run-wpacceptance.sh -l --attempts=3
@@ -64,37 +59,34 @@ jobs:
 
   wpa_epio:
     name: WP Acceptance - ElasticPress.io
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
-#    - name: Set standard 10up cache directories
-#      run: |
-#        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+    - name: Set standard 10up cache directories
+      run: |
+        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
 
-#    - name: Prepare composer cache
-#      uses: actions/cache@v2
-#      with:
-#        path: ${{ env.COMPOSER_CACHE }}
-#        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
-#        restore-keys: |
-#          composer-${{ env.COMPOSER_VERSION }}-
+    - name: Prepare composer cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
 
-#    - name: Set PHP version
-#      uses: shivammathur/setup-php@v2
-#      with:
-#        php-version: '7.4'
-#        coverage: none
-#        tools: prestissimo, composer:v1
-#        ini-values: memory_limit=3G
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        coverage: none
+        tools: prestissimo, composer:v1
+        ini-values: memory_limit=3G
 
     - name: Install dependencies
       run: composer install
-
-    - name: Setup PATH
-      run: export PATH=/opt/rh/rh-nodejs12/root/usr/bin:/opt/rh/rh-nodejs12/root/usr/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
 
     - name: Test EP.io
       run: ./run-wpacceptance.sh --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --attempts=3
