@@ -687,7 +687,7 @@ class Elasticsearch {
 
 		$docs = [];
 
-		if ( is_array( $response['docs'] ) ) {
+		if ( isset( $response['docs'] ) && is_array( $response['docs'] ) ) {
 			foreach ( $response['docs'] as $doc ) {
 				if ( ! empty( $doc['exists'] ) || ! empty( $doc['found'] ) ) {
 					$docs[ $doc['_id'] ] = $doc['_source'];
