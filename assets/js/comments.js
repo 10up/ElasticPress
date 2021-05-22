@@ -78,6 +78,11 @@ const showNotFoundInResultsBox = (inputElement) => {
 	resultList.innerHTML = `<li class="ep-widget-search-comments-result-item">${window.epc.noResultsFoundText}</li>`;
 };
 
+function hasMinimumLength(inputElement) {
+	const minimumLength = window.epc.minimumLengthToSearch || 2;
+	return inputElement?.value?.trim().length >= minimumLength;
+}
+
 /**
  * Add class to the widget element while results are being loaded
  *
@@ -98,36 +103,39 @@ function setIsLoading(isLoading, inputElement) {
  *	Fetch comments
  *
  * @param {HTMLInputElement} inputElement The input element used in the widget
- * @returns {Promise}
+ * @returns {(false|Promise)}
  */
-const fetchResults = (inputElement) => {
-	setIsLoading(true, inputElement);
-	return fetch(`${window.epc.restApiEndpoint}?s=${inputElement.value.trim()}`)
-		.then((response) => {
-			if (!response.ok) {
-				throw response;
-			}
-
-			return response.json();
-		})
-		.then((comments) => {
-			if (Object.keys(comments).length === 0) {
-				if (inputElement.value.trim()) {
-					showNotFoundInResultsBox(inputElement);
-				} else {
-					hideResultsBox(inputElement);
+function fetchResults(inputElement) {
+	if (hasMinimumLength(inputElement)) {
+		setIsLoading(true, inputElement);
+		return fetch(`${window.epc.restApiEndpoint}?s=${inputElement.value.trim()}`)
+			.then((response) => {
+				if (!response.ok) {
+					throw response;
 				}
-			} else {
-				updateResultsBox(comments, inputElement);
-			}
-		})
-		.catch(() => {
-			hideResultsBox(inputElement);
-		})
-		.finally(() => {
-			setIsLoading(false, inputElement);
-		});
-};
+
+				return response.json();
+			})
+			.then((comments) => {
+				if (Object.keys(comments).length === 0) {
+					if (inputElement.value.trim()) {
+						showNotFoundInResultsBox(inputElement);
+					} else {
+						hideResultsBox(inputElement);
+					}
+				} else {
+					updateResultsBox(comments, inputElement);
+				}
+			})
+			.catch(() => {
+				hideResultsBox(inputElement);
+			})
+			.finally(() => {
+				setIsLoading(false, inputElement);
+			});
+	}
+	return false;
+}
 
 /**
  * Handle up, down and enter key
@@ -216,7 +224,7 @@ const handleKeyup = (event) => {
 		return;
 	}
 
-	if (target?.value?.trim().length >= 2) {
+	if (hasMinimumLength(target)) {
 		const debounceFetchResults = debounce(fetchResults, 500);
 		debounceFetchResults(target);
 	} else {

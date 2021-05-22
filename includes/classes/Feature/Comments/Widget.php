@@ -66,21 +66,27 @@ class Widget extends WP_Widget {
 			EP_VERSION
 		);
 
+		$default_script_data = [
+			'noResultsFoundText'    => esc_html__( 'We could not find any results', 'elasticpress' ),
+			'minimumLengthToSearch' => 2,
+		];
+
+		/**
+		 * Filter the l10n data attached to the Widget Search Comments script
+		 *
+		 * @since  3.6
+		 * @hook ep_widget_search_comments_l10n_data_script
+		 * @param  {array} $default_script_data Default data attached to the script
+		 * @return  {array} New l10n data to be attached
+		 */
+		$script_data = apply_filters( 'ep_widget_search_comments_l10n_data_script', $default_script_data );
+
+		$script_data['restApiEndpoint'] = get_rest_url( null, 'elasticpress/v1/comments' );
+
 		wp_localize_script(
 			'elasticpress-comments',
 			'epc',
-			[
-				'restApiEndpoint'    => get_rest_url( null, 'elasticpress/v1/comments' ),
-				/**
-				 * Filter text to be showed when no results were found
-				 *
-				 * @since  3.6
-				 * @hook ep_widget_search_comments_no_results_found_text
-				 * @param  {string} $text Default text when no results were found
-				 * @return  {string} New text to be showed when no results were found
-				 */
-				'noResultsFoundText' => esc_html( apply_filters( 'ep_widget_search_comments_no_results_found_text', __( 'We could not find any results', 'elasticpress' ) ) ),
-			]
+			$script_data
 		);
 
 		echo wp_kses_post( $comments_search_form );
