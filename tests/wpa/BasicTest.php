@@ -29,7 +29,7 @@ class BasicTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -46,7 +46,7 @@ class BasicTest extends TestBase {
 	 * @testdox I can search on the front end and ES returns a proper response code.
 	 */
 	public function testSearch() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -72,7 +72,7 @@ class BasicTest extends TestBase {
 	 * @testdox I dont see a post in search that only matches by title when title is set as not searchable in the weighting dashboard.
 	 */
 	public function testWeightingOnOff() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -118,7 +118,7 @@ class BasicTest extends TestBase {
 	 * @testdox I can increase post_title weighting and influence search results.
 	 */
 	public function testTitleContentWeighting() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -176,7 +176,7 @@ class BasicTest extends TestBase {
 	 * @testdox When I type in a search field on the front end, I see the autosuggest dropdown.
 	 */
 	public function testAutosuggestDropdownShows() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 

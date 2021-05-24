@@ -1417,15 +1417,18 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test a query that fuzzy searches taxonomy terms
+	 * Test a query that fuzzy searches taxonomy terms for the 3.4 algorithm.
 	 *
 	 * @since 1.0
 	 * @group post
 	 */
 	public function testSearchTaxQuery() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post(
+		// TODO write a new test to match the 3.5 functionality.
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
+		$post_id_0 = Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
+		$post_id_1 = Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
+		$post_id_2 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'post content',
 				'tags_input'   => array( 'findme 2' ),
@@ -1433,6 +1436,7 @@ class TestPost extends BaseTestCase {
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
 		$args = array(
 			's'             => 'one findme two',
 			'search_fields' => array(
@@ -1447,6 +1451,14 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+
+		$post_ids = wp_list_pluck( $query->posts, 'ID' );
+
+		$this->assertContains( $post_id_1, $post_ids );
+		$this->assertContains( $post_id_1, $post_ids );
+		$this->assertNotContains( $post_id_0, $post_ids );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1456,6 +1468,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchAuthorQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		$user_id = $this->factory->user->create(
 			array(
 				'user_login' => 'john',
@@ -1488,6 +1503,8 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1990,6 +2007,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostDateOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertesr' ) );
 		sleep( 3 );
 
@@ -2013,6 +2033,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertesr', $query->posts[2]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2053,6 +2075,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchRelevanceOrderbyQueryAdvanced() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		$posts = array();
 
 		$posts[5] = Functions\create_and_sync_post( array( 'post_title' => 'ordertet with even more lorem ipsum to make a longer field' ) );
@@ -2098,6 +2123,8 @@ class TestPost extends BaseTestCase {
 
 			$i++;
 		}
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2107,6 +2134,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchRelevanceOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertet' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertest' ) );
@@ -2124,6 +2154,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2163,6 +2195,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchDefaultOrderbyQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'Ordertet' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertest' ) );
@@ -2179,6 +2214,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertet', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2190,6 +2227,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchDefaultOrderbyASCOrderQuery() {
+
+		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
+
 		Functions\create_and_sync_post();
 		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest' ) );
 		Functions\create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
@@ -2207,6 +2247,8 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
+
+		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2691,6 +2733,36 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a query that searches and filters by a meta value using NOT LIKE operator
+	 *
+	 * @since 3.6.0
+	 * @group post
+	 */
+	public function testMetaQueryNotLike() {
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'ALICE in wonderland' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'alice in melbourne' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'AlicE in america' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			's'          => 'findme',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => 'melbourne',
+					'compare' => 'NOT LIKE',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test meta queries with multiple keys
 	 */
 	public function testMetaQueryMultipleArray() {
@@ -3128,12 +3200,15 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaValueTypes() {
 
-		$intval         = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 13 );
-		$floatval       = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 13.43 );
-		$textval        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 'some text' );
-		$bool_false_val = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( false );
-		$bool_true_val  = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( true );
-		$dateval        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '2015-01-01' );
+		$intval            = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 13 );
+		$floatval          = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 13.43 );
+		$textval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 'some text' );
+		$float_string      = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '20.000000' );
+		$bool_false_val    = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( false );
+		$bool_true_val     = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( true );
+		$dateval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '2015-01-01' );
+		$recognizable_time = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( 'third monday of January 2020' );
+		$relative_format   = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta_value_types( '+1 year' );
 
 		$this->assertTrue( is_array( $intval ) && 5 === count( $intval ) );
 		$this->assertTrue( is_array( $intval ) && array_key_exists( 'long', $intval ) && 13 === $intval['long'] );
@@ -3141,13 +3216,55 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( is_array( $floatval ) && array_key_exists( 'double', $floatval ) && 13.43 === $floatval['double'] );
 		$this->assertTrue( is_array( $textval ) && 6 === count( $textval ) );
 		$this->assertTrue( is_array( $textval ) && array_key_exists( 'raw', $textval ) && 'some text' === $textval['raw'] );
+		$this->assertTrue( is_array( $float_string ) && 8 === count( $float_string ) );
+		$this->assertTrue( is_array( $float_string ) && array_key_exists( 'raw', $float_string ) && '20.000000' === $float_string['raw'] );
 		$this->assertTrue( is_array( $bool_false_val ) && 3 === count( $bool_false_val ) );
 		$this->assertTrue( is_array( $bool_false_val ) && array_key_exists( 'boolean', $bool_false_val ) && false === $bool_false_val['boolean'] );
 		$this->assertTrue( is_array( $bool_true_val ) && 3 === count( $bool_true_val ) );
 		$this->assertTrue( is_array( $bool_true_val ) && array_key_exists( 'boolean', $bool_true_val ) && true === $bool_true_val['boolean'] );
 		$this->assertTrue( is_array( $dateval ) && 6 === count( $dateval ) );
 		$this->assertTrue( is_array( $dateval ) && array_key_exists( 'datetime', $dateval ) && '2015-01-01 00:00:00' === $dateval['datetime'] );
+		$this->assertTrue( is_array( $recognizable_time ) && 6 === count( $recognizable_time ) );
+		$this->assertTrue( is_array( $recognizable_time ) && array_key_exists( 'datetime', $recognizable_time ) && '2020-01-20 00:00:00' === $recognizable_time['datetime'] );
+		$this->assertTrue( is_array( $relative_format ) && 6 === count( $relative_format ) );
+		$this->assertTrue( is_array( $relative_format ) && array_key_exists( 'datetime', $relative_format ) && date( 'Y-m-d H:i:s', strtotime( '+1 year' ) ) === $relative_format['datetime'] );
 
+	}
+
+	public function testMetaValueTypeDate() {
+		$meta_types = array();
+
+		$default_date_time = array(
+			'date'     => '1970-01-01',
+			'datetime' => '1970-01-01 00:00:01',
+			'time'     => '00:00:01'
+		);
+
+		// Invalid dates
+		$textval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, 'some text' );
+		$k20_string        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '20.000000' );
+		$bool_false_val    = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, false );
+		$bool_true_val     = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, true );
+
+		$this->assertEquals( $default_date_time, $textval );
+		$this->assertEquals( $default_date_time, $k20_string );
+		$this->assertEmpty( $bool_false_val );
+		$this->assertEmpty( $bool_true_val );
+
+		// Valid dates
+		$intval            = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, time() );
+		$floatval          = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, 13.43 );
+		$float_string      = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '20.000001' );
+		$dateval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '2015-01-01' );
+		$recognizable_time = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, 'third day of January 2020' );
+		$relative_format   = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '+1 year' );
+
+		$this->assertFalse( isset( $intval['date'] ) || isset( $intval['datetime'] ) || isset( $intval['time'] ) );
+		$this->assertFalse( isset( $floatval['date'] ) || isset( $floatval['datetime'] ) || isset( $floatval['time'] ) );
+		$this->assertTrue( isset( $float_string['date'] ) && isset( $float_string['datetime'] ) && isset( $float_string['time'] ) );
+		$this->assertTrue( isset( $dateval['date'] ) && isset( $dateval['datetime'] ) && isset( $dateval['time'] ) );
+		$this->assertTrue( isset( $recognizable_time['date'] ) && isset( $recognizable_time['datetime'] ) && isset( $recognizable_time['time'] ) );
+		$this->assertTrue( isset( $relative_format['date'] ) && isset( $relative_format['datetime'] ) && isset( $relative_format['time'] ) );
 	}
 
 	/**
@@ -3566,6 +3683,42 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a post_name__in query
+	 *
+	 * @group post
+	 * @since 3.6.0
+	 */
+	public function testPostNameInQuery() {
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme name in test 1',
+				'post_name'    => 'findme-name-in',
+			)
+		);
+		Functions\create_and_sync_post( array( 'post_content' => 'findme name in test 2' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'findme name in test 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'             => 'findme name in',
+		);
+
+		$args['post_name__in'] = 'findme-name-in';
+
+		$query = new \WP_Query( $args );
+
+		$args['post_name__in'] = array( 'findme-name-in' );
+
+		$query2 = new \WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( 1, $query2->post_count );
+		$this->assertEquals( 1, $query2->found_posts );
+	}
+
+	/**
 	 * Test Tax Query NOT IN operator
 	 *
 	 * @since 2.1
@@ -3948,6 +4101,7 @@ class TestPost extends BaseTestCase {
 	 * If a post is sticky and we are on the home page, it should return at the top.
 	 *
 	 * @group post
+	 * @group post-sticky
 	 */
 	public function testStickyPostsIncludedOnHome() {
 		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
@@ -3968,6 +4122,7 @@ class TestPost extends BaseTestCase {
 	 * If a post is not sticky and we are not on the home page, it should not return at the top.
 	 *
 	 * @group post
+	 * @group post-sticky
 	 */
 	public function testStickyPostsExcludedOnNotHome() {
 		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
@@ -3977,13 +4132,13 @@ class TestPost extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
-			's' => '',
-		);
+		// This used to perform a new WP_Query with "s", but it needs to
+		// perform a search request via the URL.
+		$this->go_to( '/?s=' );
 
-		$query = new \WP_Query( $args );
+		$q = $GLOBALS['wp_query'];
 
-		$this->assertNotEquals( 'Sticky post', $query->posts[0]->post_title );
+		$this->assertNotEquals( 'Sticky post', $q->posts[0]->post_title );
 	}
 
 	/**
@@ -5545,6 +5700,17 @@ class TestPost extends BaseTestCase {
 	 * @group  post
 	 */
 	public function testMaybeSwitchToBlog() {
+
+		// Do an assert here for both single and multisite tests so we
+		// don't get a warning.
+		$multisite = defined( 'WP_TESTS_MULTISITE' ) && '1' === WP_TESTS_MULTISITE;
+
+		$this->assertSame( $multisite, is_multisite() );
+
+		// Only continue if this is in multisite.
+		if ( ! is_multisite() ) {
+			return;
+		}
 
 		$sites      = get_sites();
 		$blog_1_id  = get_current_blog_id();

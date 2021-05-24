@@ -440,6 +440,9 @@ class Post extends Indexable {
 						'term_taxonomy_id' => $term->term_taxonomy_id,
 						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
 					);
+
+					$terms_dic[ $term->term_id ]['facet'] = json_encode( $terms_dic[ $term->term_id ] );
+
 					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
 					}
@@ -468,12 +471,16 @@ class Post extends Indexable {
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
 			$terms[ $parent_term->term_id ] = array(
-				'term_id'    => $parent_term->term_id,
-				'slug'       => $parent_term->slug,
-				'name'       => $parent_term->name,
-				'parent'     => $parent_term->parent,
-				'term_order' => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
+				'term_id'          => $parent_term->term_id,
+				'slug'             => $parent_term->slug,
+				'name'             => $parent_term->name,
+				'parent'           => $parent_term->parent,
+				'term_taxonomy_id' => $parent_term->term_taxonomy_id,
+				'term_order'       => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
 			);
+
+			$terms[ $parent_term->term_id ]['facet'] = json_encode( $terms[ $parent_term->term_id ] );
+
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
 	}
@@ -782,7 +789,7 @@ class Post extends Indexable {
 
 				$args['tax_query'] = array_map(
 					function( $tax_query ) use ( $args ) {
-						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'] ) ) {
+						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'], true ) ) {
 							$tax_query['terms'][] = $args['tag_id'];
 						}
 
@@ -875,6 +882,21 @@ class Post extends Indexable {
 		}
 
 		/**
+		 * 'post_name__in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['post_name__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_name.raw' => array_values( (array) $args['post_name__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * 'post__not_in' arg support.
 		 *
 		 * @since x.x
@@ -909,6 +931,22 @@ class Post extends Indexable {
 			$filter['bool']['must'][] = array(
 				'term' => array(
 					'post_author.display_name' => $args['author_name'],
+				),
+			);
+
+			$use_filters = true;
+		} elseif ( ! empty( $args['author__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_author.id' => array_values( (array) $args['author__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		} elseif ( ! empty( $args['author__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'post_author.id' => array_values( (array) $args['author__not_in'] ),
 				),
 			);
 
@@ -1074,6 +1112,9 @@ class Post extends Indexable {
 		/**
 		 * Filter default post search fields
 		 *
+		 * If you are using the weighting engine, this filter should not be used.
+		 * Instead, you should use the ep_weighting_configuration_for_search filter.
+		 *
 		 * @hook ep_search_fields
 		 * @param  {array} $search_fields Default search fields
 		 * @param  {array} $args WP Query arguments
@@ -1081,7 +1122,22 @@ class Post extends Indexable {
 		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
-		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', '3.5' );
+		$default_algorithm_version = '3.5';
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$search_algorithm_version_option = get_site_option( 'ep_search_algorithm_version', $default_algorithm_version );
+		} else {
+			$search_algorithm_version_option = get_option( 'ep_search_algorithm_version', $default_algorithm_version );
+		}
+
+		/**
+		 * Filter the algorithm version to be used.
+		 *
+		 * @since  3.5
+		 * @hook ep_search_algorithm_version
+		 * @param  {string} $search_algorithm_version Algorithm version.
+		 * @return  {string} New algorithm version
+		 */
+		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
 
 		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
 
@@ -1189,11 +1245,21 @@ class Post extends Indexable {
 			 * Filter formatted Elasticsearch post query (only contains query part)
 			 *
 			 * @hook ep_formatted_args_query
-			 * @param {array} $query Current query
-			 * @param {array} $query_vars Query variables
-			 * @return  {array} New query
+			 * @param {array}  $query         Current query
+			 * @param {array}  $query_vars    Query variables
+			 * @param {string} $search_text   Search text
+			 * @param {array}  $search_fields Search fields
+			 * @return {array} New query
+			 *
+			 * @since 3.5.5 $search_text and $search_fields parameters added.
 			 */
-			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args );
+			$formatted_args['query'] = apply_filters(
+				'ep_formatted_args_query',
+				$query,
+				$args,
+				$search_text,
+				$search_fields
+			);
 		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
@@ -1353,7 +1419,7 @@ class Post extends Indexable {
 		}
 
 		if ( isset( $args['offset'] ) ) {
-			$formatted_args['from'] = $args['offset'];
+			$formatted_args['from'] = (int) $args['offset'];
 		}
 
 		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
@@ -1415,7 +1481,7 @@ class Post extends Indexable {
 		/**
 		 * Filter formatted Elasticsearch [ost ]query (entire query)
 		 *
-		 * @hook ep_formatted_args_query
+		 * @hook ep_formatted_args
 		 * @param {array} $formatted_args Formatted Elasticsearch query
 		 * @param {array} $query_vars Query variables
 		 * @param {array} $query Query part

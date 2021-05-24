@@ -111,6 +111,8 @@ abstract class Indexable {
 			$index_name = $prefix . '-' . $index_name;
 		}
 
+		$index_name = strtolower( $index_name );
+
 		/**
 		 * Filter index name
 		 *
@@ -183,6 +185,15 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	public function delete( $object_id, $blocking = true ) {
+		/**
+		 * Fires before object deletion
+		 *
+		 * @hook ep_delete_{indexable_slug}
+		 * @param {int} $object_id ID of object being deleted
+		 * @param {string} $indexable_slug The slug of the indexable type that is being deleted
+		 */
+		do_action( 'ep_delete_' . $this->slug, $object_id, $this->slug );
+
 		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
 	}
 
@@ -306,7 +317,19 @@ abstract class Indexable {
 			$body .= "\n\n";
 		}
 
-		return Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+		$result = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+
+		/**
+		 * Perform actions after a bulk indexing is completed
+		 *
+		 * @hook ep_after_bulk_index
+		 * @param {array} $object_ids List of object ids attempted to be indexed
+		 * @param {string} $slug Current indexable slug
+		 * @param {array|bool} $result Result of the Elasticsearch query. False on error.
+		 */
+		do_action( 'ep_after_bulk_index', $object_ids, $this->slug, $result );
+
+		return $result;
 	}
 
 	/**
@@ -420,22 +443,45 @@ abstract class Indexable {
 
 		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
 
-		if ( is_string( $meta_value ) ) {
-			$timestamp = strtotime( $meta_value );
+		$meta_types = $this->prepare_date_meta_values( $meta_types, $meta_value );
 
-			$date     = '1971-01-01';
-			$datetime = '1971-01-01 00:00:01';
-			$time     = '00:00:01';
+		return $meta_types;
+	}
 
-			if ( false !== $timestamp ) {
-				$date     = date_i18n( 'Y-m-d', $timestamp );
-				$datetime = date_i18n( 'Y-m-d H:i:s', $timestamp );
-				$time     = date_i18n( 'H:i:s', $timestamp );
+	/**
+	 * Checks if a meta_value is a valid date and prepare extra meta-data.
+	 *
+	 * @param array  $meta_types Array of currently prepared data
+	 * @param string $meta_value Meta value to prepare.
+	 *
+	 * @return array
+	 */
+	public function prepare_date_meta_values( $meta_types, $meta_value ) {
+
+		if ( empty( $meta_value ) || ! is_string( $meta_value ) ) {
+			return $meta_types;
+		}
+
+		$meta_types['date']     = '1970-01-01';
+		$meta_types['datetime'] = '1970-01-01 00:00:01';
+		$meta_types['time']     = '00:00:01';
+
+		try {
+			// is this is a recognizable date format?
+			$new_date = new \DateTime( $meta_value, \wp_timezone() );
+			$timestamp = $new_date->getTimestamp();
+
+			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
+			// issues when integrating into stricter systems. This is by design:
+			// https://bugs.php.net/bug.php?id=60288
+			if ( false !== $timestamp && '0000' !== $new_date->format( 'Y' ) ) {
+				$meta_types['date']     = $new_date->format( 'Y-m-d' );
+				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
+				$meta_types['time']     = $new_date->format( 'H:i:s' );
 			}
-
-			$meta_types['date']     = $date;
-			$meta_types['datetime'] = $datetime;
-			$meta_types['time']     = $time;
+		} catch ( \Exception $e ) {
+			// if $meta_value is not a recognizable date format, DateTime will throw an exception,
+			// just catch it and move on.
 		}
 
 		return $meta_types;
@@ -513,7 +559,7 @@ abstract class Indexable {
 					$meta_key_path = 'meta.' . $single_meta_query['key'];
 				} elseif ( in_array( $compare, array( '=', '!=' ), true ) && ! $type ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
-				} elseif ( 'like' === $compare ) {
+				} elseif ( in_array( $compare, array( 'like', 'not like' ), true ) ) {
 					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
 				} elseif ( $type && isset( $meta_query_type_mapping[ $type ] ) ) {
 					// Map specific meta field types to different Elasticsearch core types
@@ -691,6 +737,21 @@ abstract class Indexable {
 							$terms_obj = array(
 								'match_phrase' => array(
 									$meta_key_path => $single_meta_query['value'],
+								),
+							);
+						}
+						break;
+					case 'not like':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'match_phrase' => array(
+												$meta_key_path => $single_meta_query['value'],
+											),
+										),
+									),
 								),
 							);
 						}

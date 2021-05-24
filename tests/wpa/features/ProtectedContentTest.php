@@ -64,7 +64,7 @@ class ProtectedContentTest extends TestBase {
 	 * @testdox I see 2 hits as in ES query results on WordPress Dashboard -> Draft Posts List Screen.
 	 */
 	public function testProtectedContentPostsDraftsList() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -77,6 +77,9 @@ class ProtectedContentTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
+		// Give some time to the async request that indexes the post.
+		sleep( 5 );
+
 		$I->moveTo( 'wp-admin/edit.php?post_status=draft&post_type=post' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
@@ -87,6 +90,6 @@ class ProtectedContentTest extends TestBase {
 
 		$I->click( '.query-result-toggle' );
 
-		$I->seeText( '"total": 2', '.query-results' );
+		$this->checkTotal( 2, $I );
 	}
 }
