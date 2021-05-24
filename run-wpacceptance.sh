@@ -91,8 +91,16 @@ if [ ! -z $EP_HOST ] || [ ! -z $ES_SHIELD] || [ ! -z $EP_INDEX_PREFIX]; then
   fi
 fi
 
+#
+# Start of tests execution
+#
+
 # This variable will hold all tests failed with the "Page crashed" error.
 ERRORS=''
+
+# "Real Failed" Attempts in this case will be any failed attempt with an error other than Page Crashed.
+# It'll be needed at least 1 failed attempt with only Page Crashed errors.
+REAL_FAILED_ATTEMPTS=0
 
 for i in $(seq 1 $ATTEMPTS); do
 
@@ -104,10 +112,25 @@ for i in $(seq 1 $ATTEMPTS); do
 
   if [ $EXIT_CODE -ge 1 ] && [ $i -lt $ATTEMPTS ]; then
 
-    # List for this specific attempt.
-    ERROR_LIST=$(sed -e '/Summary of non-successful tests:.*/,//!d' $TEST_OUTPUT | sed -e '/✘ .*/,/Page crashed/!d' | grep -P "✘ (.*)")
+    # List of errors for this specific attempt.
+    SUMMARY=$(echo "${TEST_OUTPUT}" | sed -e '/Summary of non-successful tests:/,//!d')
+
+    # Count all errors
+    TOTAL_ERRORS_COUNT=$(echo "${SUMMARY}" | grep '✘' | wc -l )
+    echo $TOTAL_ERRORS_COUNT
+
+    # Get the Page Crashed errors
+    PAGE_CRASHED_ERRORS=$(echo "${SUMMARY}" | grep -Pzo '✘(.|\n)*?Page crashed' | tr '\0' '\n' | grep '✘' )
+    PAGE_CRASHED_ERRORS_COUNT=$(echo "${PAGE_CRASHED_ERRORS}" | wc -l )
+    echo $PAGE_CRASHED_ERRORS_COUNT
+
+    if [ $TOTAL_ERRORS_COUNT -gt $PAGE_CRASHED_ERRORS_COUNT ]; then
+      ((REAL_FAILED_ATTEMPTS++))
+    fi
+
+    # Add the Page Crashed errors to a full list to count them later
     ERRORS+="
-${ERROR_LIST}"
+${PAGE_CRASHED_ERRORS}"
 
     echo
     echo '-------------------------------'
@@ -124,10 +147,9 @@ ${ERROR_LIST}"
   fi
 done
 
-# If the final attempt wasn't successful, check if any test failed in all attempts.
+# If the final attempt wasn't successful, check if we had at least one attempt with Page Crashed errors only.
 # If different tests failed, then consider it a success.
-# NOTE: this only consider tests failing due to the "Page crashed" error.
-if [ $EXIT_CODE -ge 1 ]; then
+if [ $EXIT_CODE -ge 1 ] && [ $REAL_FAILED_ATTEMPTS -lt $ATTEMPTS ]; then
   echo
   echo
   echo
