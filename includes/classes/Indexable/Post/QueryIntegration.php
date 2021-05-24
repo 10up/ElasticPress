@@ -276,7 +276,7 @@ class QueryIntegration {
 			}
 
 			// If result window is too big, we avoid doing a query that will fail
-			if ( array_key_exists('from', $formatted_args) && array_key_exists('size', $formatted_args)) {
+			if ( array_key_exists( 'from', $formatted_args ) && array_key_exists( 'size', $formatted_args ) ) {
 				$result_window     = $formatted_args['from'] + $formatted_args['size'];
 				$max_result_window = apply_filters( 'ep_max_result_window', 1000000 );
 				if ( $result_window > $max_result_window ) {
