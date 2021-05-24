@@ -362,7 +362,7 @@ class Post extends Indexable {
 		// Then split up the results for individual indexing.
 		$date_terms = [];
 		foreach ( $terms_to_prepare as $term_name => $date_format ) {
-			$index_in_combined_format = array_search( $term_name, array_keys( $terms_to_prepare ) );
+			$index_in_combined_format = array_search( $term_name, array_keys( $terms_to_prepare ), true );
 			$date_terms[ $term_name ] = (int) $combined_dates[ $index_in_combined_format ];
 		}
 
