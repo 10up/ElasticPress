@@ -105,7 +105,7 @@ for i in $(seq 1 $ATTEMPTS); do
   if [ $EXIT_CODE -ge 1 ] && [ $i -lt $ATTEMPTS ]; then
 
     # List for this specific attempt.
-    ERROR_LIST=$(sed -e '/Summary of non-successful tests:.*/,//!d' $TEST_OUTPUT_FILE | sed -e '/✘ .*/,/Page crashed/!d' | grep -P "✘ (.*)")
+    ERROR_LIST=$(sed -e '/Summary of non-successful tests:.*/,//!d' $TEST_OUTPUT | sed -e '/✘ .*/,/Page crashed/!d' | grep -P "✘ (.*)")
     ERRORS+="
 ${ERROR_LIST}"
 
