@@ -66,6 +66,21 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Get private function to be tested.
+	 *
+	 * @param string $functionName
+	 * @param string $className
+	 * @return ReflectionMethod.
+	 */
+	protected function get_private_function( $functionName, $className = '\ElasticPress\Indexable\Post\Post' ) {
+		$reflector = new \ReflectionClass( $className );
+		$function  = $reflector->getMethod( $functionName );
+		$function->setAccessible( true );
+
+		return $function;
+	}
+
+	/**
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
@@ -5915,5 +5930,64 @@ class TestPost extends BaseTestCase {
 		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
 		$this->assertEmpty( $document );
+	}
+
+	/**
+	 * Test prepare_date_terms function
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostPrepareDateTerms() {
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$function = $this->get_private_function( 'prepare_date_terms' );
+
+		$return_prepare_date_terms = $function->invokeArgs( $post, array( '2021-04-11 23:58:12' ) );
+
+		$this->assertIsArray( $return_prepare_date_terms );
+
+		$this->assertArrayHasKey( 'year', $return_prepare_date_terms );
+		$this->assertEquals( '2021', $return_prepare_date_terms['year'] );
+
+		$this->assertArrayHasKey( 'month', $return_prepare_date_terms );
+		$this->assertEquals( '04', $return_prepare_date_terms['month'] );
+
+		$this->assertArrayHasKey( 'week', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofyear', $return_prepare_date_terms );
+
+		$this->assertArrayHasKey( 'day', $return_prepare_date_terms );
+		$this->assertEquals( '11', $return_prepare_date_terms['day'] );
+
+		$this->assertArrayHasKey( 'dayofweek', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofweek_iso', $return_prepare_date_terms );
+
+		$this->assertArrayHasKey( 'hour', $return_prepare_date_terms );
+		$this->assertEquals( '23', $return_prepare_date_terms['hour'] );
+
+		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
+		$this->assertEquals( '58', $return_prepare_date_terms['minute'] );
+
+		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
+		$this->assertEquals( '12', $return_prepare_date_terms['second'] );
+
+		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
+		$this->assertEquals( '202104', $return_prepare_date_terms['m'] );
+
+		$return_prepare_date_terms = $function->invokeArgs( $post, array( '' ) );
+
+		$this->assertIsArray($return_prepare_date_terms );
+
+		$this->assertArrayHasKey( 'year', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'month', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'week', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofyear', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'day', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofweek', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofweek_iso', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'hour', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
 	}
 }
