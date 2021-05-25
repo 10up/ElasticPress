@@ -305,9 +305,9 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	/**
 	 * Check if we're using ElasticPress.io.
 	 *
-	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
+	 * @return boolean
 	 */
-	protected function isElasticPressIo( $actor = null ) {
+	protected function isElasticPressIo() {
 		$ep_host = $this->runCommand( "wp eval 'echo \ElasticPress\Utils\get_host();'" )['stdout'];
 		return preg_match( '#elasticpress\.io#i', $ep_host );
 	}
