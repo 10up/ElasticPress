@@ -165,7 +165,7 @@ if [ $EXIT_CODE -ge 1 ] && [ $REAL_FAILED_ATTEMPTS -lt $ATTEMPTS ]; then
 
   echo "${ERRORS_COUNT}"
 
-  if [[ -n $(echo "${ERRORS_COUNT}" | grep -P "^      $ATTEMPTS") ]]; then
+  if [[  -z $(echo "${ERRORS_COUNT}" | grep -P "^      $ATTEMPTS") ]]; then
     echo
     echo 'As any test failed in all attempts, consider it OK.'
     echo
