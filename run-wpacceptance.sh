@@ -110,19 +110,17 @@ for i in $(seq 1 $ATTEMPTS); do
 
   echo "${TEST_OUTPUT}"
 
-  if [ $EXIT_CODE -ge 1 ] && [ $i -lt $ATTEMPTS ]; then
+  if [ $EXIT_CODE -ge 1 ]; then
 
     # List of errors for this specific attempt.
     SUMMARY=$(echo "${TEST_OUTPUT}" | sed -e '/Summary of non-successful tests:/,//!d')
 
     # Count all errors
     TOTAL_ERRORS_COUNT=$(echo "${SUMMARY}" | grep '✘' | wc -l )
-    echo $TOTAL_ERRORS_COUNT
 
     # Get the Page Crashed errors
     PAGE_CRASHED_ERRORS=$(echo "${SUMMARY}" | grep -Pzo '✘(.|\n)*?Page crashed' | tr '\0' '\n' | grep '✘' )
     PAGE_CRASHED_ERRORS_COUNT=$(echo "${PAGE_CRASHED_ERRORS}" | wc -l )
-    echo $PAGE_CRASHED_ERRORS_COUNT
 
     if [ $TOTAL_ERRORS_COUNT -gt $PAGE_CRASHED_ERRORS_COUNT ]; then
       ((REAL_FAILED_ATTEMPTS++))
@@ -132,16 +130,18 @@ for i in $(seq 1 $ATTEMPTS); do
     ERRORS+="
 ${PAGE_CRASHED_ERRORS}"
 
-    echo
-    echo '-------------------------------'
-    echo
-    echo "         Retrying..."
-    echo "         Attempt #$(($i + 1))"
-    echo
-    echo '-------------------------------'
-    echo
-    echo
-    sleep 3
+    if [ $i -lt $ATTEMPTS ]; then
+      echo
+      echo '-------------------------------'
+      echo
+      echo "         Retrying..."
+      echo "         Attempt #$(($i + 1))"
+      echo
+      echo '-------------------------------'
+      echo
+      echo
+      sleep 3
+    fi
   else
     break
   fi
@@ -159,8 +159,11 @@ if [ $EXIT_CODE -ge 1 ] && [ $REAL_FAILED_ATTEMPTS -lt $ATTEMPTS ]; then
   echo
   echo '-------------------------------'
   echo
+  echo
 
   ERRORS_COUNT=$(echo "${ERRORS}" | sort | uniq -c)
+
+  echo "${ERRORS_COUNT}"
 
   if [[ -n $(echo "${ERRORS_COUNT}" | grep -P "^      $ATTEMPTS") ]]; then
     echo
