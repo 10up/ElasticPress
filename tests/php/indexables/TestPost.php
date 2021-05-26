@@ -66,21 +66,6 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Get private function to be tested.
-	 *
-	 * @param string $functionName
-	 * @param string $className
-	 * @return ReflectionMethod.
-	 */
-	protected function get_private_function( $functionName, $className = '\ElasticPress\Indexable\Post\Post' ) {
-		$reflector = new \ReflectionClass( $className );
-		$function  = $reflector->getMethod( $functionName );
-		$function->setAccessible( true );
-
-		return $function;
-	}
-
-	/**
 	 * Test a simple post sync
 	 *
 	 * @since 0.9
@@ -5939,11 +5924,7 @@ class TestPost extends BaseTestCase {
 	 * @group  post
 	 */
 	public function testPostPrepareDateTerms() {
-		$post = new \ElasticPress\Indexable\Post\Post();
-
-		$function = $this->get_private_function( 'prepare_date_terms' );
-
-		$return_prepare_date_terms = $function->invokeArgs( $post, array( '2021-04-11 23:58:12' ) );
+		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms('2021-04-11 23:58:12');
 
 		$this->assertIsArray( $return_prepare_date_terms );
 
@@ -5974,7 +5955,7 @@ class TestPost extends BaseTestCase {
 		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
 		$this->assertEquals( '202104', $return_prepare_date_terms['m'] );
 
-		$return_prepare_date_terms = $function->invokeArgs( $post, array( '' ) );
+		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms('');
 
 		$this->assertIsArray($return_prepare_date_terms );
 

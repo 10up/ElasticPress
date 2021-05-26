@@ -340,7 +340,7 @@ class Post extends Indexable {
 	 * @since 0.1.4
 	 * @return array
 	 */
-	private function prepare_date_terms( $date_to_prepare ) {
+	public function prepare_date_terms( $date_to_prepare ) {
 		$terms_to_prepare = [
 			'year'          => 'Y',
 			'month'         => 'm',
