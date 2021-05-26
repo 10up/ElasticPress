@@ -31,11 +31,14 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		uasort(
 			$features,
 			function( $feature_a, $feature_b ) {
-				if ( $feature_a->order === $feature_b->order ) {
+				$order_feature_a = (int) $feature_a->order;
+				$order_feature_b = (int) $feature_b->order;
+
+				if ( $order_feature_a === $order_feature_b ) {
 					return 0;
 				}
 
-				return (int) $feature_a->order < (int) $feature_b->order ? -1 : 1;
+				return $order_feature_a < $order_feature_b ? -1 : 1;
 			}
 		);
 		?>
