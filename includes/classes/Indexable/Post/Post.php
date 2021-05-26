@@ -441,7 +441,7 @@ class Post extends Indexable {
 						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
 					);
 
-					$terms_dic[ $term->term_id ]['facet'] = json_encode( $terms_dic[ $term->term_id ] );
+					$terms_dic[ $term->term_id ]['facet'] = wp_json_encode( $terms_dic[ $term->term_id ] );
 
 					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
@@ -479,7 +479,7 @@ class Post extends Indexable {
 				'term_order'       => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
 			);
 
-			$terms[ $parent_term->term_id ]['facet'] = json_encode( $terms[ $parent_term->term_id ] );
+			$terms[ $parent_term->term_id ]['facet'] = wp_json_encode( $terms[ $parent_term->term_id ] );
 
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
