@@ -31,7 +31,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		uasort(
 			$features,
 			function( $feature_a, $feature_b ) {
-				if ( $feature_a->order == $feature_b->order ) {
+				if ( $feature_a->order === $feature_b->order ) {
 					return 0;
 				}
 
