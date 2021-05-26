@@ -911,7 +911,8 @@ class Post extends Indexable {
 					'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
 				),
 			);
-			$use_filters                                  = true;
+
+			$use_filters = true;
 		}
 
 		/**
@@ -922,10 +923,11 @@ class Post extends Indexable {
 		if ( ! empty( $args['tag__not_in'] ) ) {
 			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(
-					'terms.post_tag.term_id' => (array) $args['tag__not_in'],
+					'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
 				),
 			);
-			$use_filters                                  = true;
+
+			$use_filters = true;
 		}
 
 		/**
