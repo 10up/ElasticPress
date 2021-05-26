@@ -84,7 +84,7 @@ class TestElasticsearch extends BaseTestCase {
 		$this->assertArrayHasKey( $post_ids[0], $documents );
 		$this->assertArrayHasKey( $post_ids[1], $documents );
 
-		// Trying get an document that doesn't exist
+		// Trying to get a document that doesn't exist
 		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', [ 99999999 ] );
 
 		$this->assertIsArray( $documents );
