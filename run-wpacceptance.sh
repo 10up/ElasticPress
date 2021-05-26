@@ -91,26 +91,86 @@ if [ ! -z $EP_HOST ] || [ ! -z $ES_SHIELD] || [ ! -z $EP_INDEX_PREFIX]; then
   fi
 fi
 
+#
+# Start of tests execution
+#
+
+# This variable will hold all tests failed with the "Page crashed" error.
+ERRORS=''
+
+# "Real Failed" Attempts in this case will be any failed attempt with an error other than Page Crashed.
+# It'll be needed at least 1 failed attempt with only Page Crashed errors.
+REAL_FAILED_ATTEMPTS=0
+
 for i in $(seq 1 $ATTEMPTS); do
 
-  ./vendor/bin/wpacceptance run
+  TEST_OUTPUT=$(./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure)
 
   EXIT_CODE=$?
 
-  if [ $EXIT_CODE -ge 1 ] && [ $i -lt $ATTEMPTS ]; then
-    echo
-    echo '-------------------------------'
-    echo
-    echo "         Retrying..."
-    echo "         Attempt #$(($i + 1))"
-    echo
-    echo '-------------------------------'
-    echo
-    echo
-    sleep 3
+  echo "${TEST_OUTPUT}"
+
+  if [ $EXIT_CODE -ge 1 ]; then
+
+    # List of errors for this specific attempt.
+    SUMMARY=$(echo "${TEST_OUTPUT}" | sed -e '/Summary of non-successful tests:/,//!d')
+
+    # Count all errors
+    TOTAL_ERRORS_COUNT=$(echo "${SUMMARY}" | grep '✘' | wc -l )
+
+    # Get the Page Crashed errors
+    PAGE_CRASHED_ERRORS=$(echo "${SUMMARY}" | grep -Pzo '✘(.|\n)*?Page crashed' | tr '\0' '\n' | grep '✘' )
+    PAGE_CRASHED_ERRORS_COUNT=$(echo "${PAGE_CRASHED_ERRORS}" | wc -l )
+
+    if [ $TOTAL_ERRORS_COUNT -gt $PAGE_CRASHED_ERRORS_COUNT ]; then
+      ((REAL_FAILED_ATTEMPTS++))
+    fi
+
+    # Add the Page Crashed errors to a full list to count them later
+    ERRORS+="
+${PAGE_CRASHED_ERRORS}"
+
+    if [ $i -lt $ATTEMPTS ]; then
+      echo
+      echo '-------------------------------'
+      echo
+      echo "         Retrying..."
+      echo "         Attempt #$(($i + 1))"
+      echo
+      echo '-------------------------------'
+      echo
+      echo
+      sleep 3
+    fi
   else
     break
   fi
 done
+
+# If the final attempt wasn't successful, check if we had at least one attempt with Page Crashed errors only.
+# If different tests failed, then consider it a success.
+if [ $EXIT_CODE -ge 1 ] && [ $REAL_FAILED_ATTEMPTS -lt $ATTEMPTS ]; then
+  echo
+  echo
+  echo
+  echo '-------------------------------'
+  echo
+  echo "         Final list of tests ended with 'Page crashed':"
+  echo
+  echo '-------------------------------'
+  echo
+  echo
+
+  ERRORS_COUNT=$(echo "${ERRORS}" | sort | uniq -c)
+
+  echo "${ERRORS_COUNT}"
+
+  if [[  -z $(echo "${ERRORS_COUNT}" | grep -P "^      $ATTEMPTS") ]]; then
+    echo
+    echo 'As any test failed in all attempts, consider it OK.'
+    echo
+    EXIT_CODE=0
+  fi
+fi
 
 exit $EXIT_CODE

@@ -13,7 +13,7 @@ class FeatureAutosuggestTest extends TestBase {
 	 * @testdox If the user types a post title in the search box, a drop-down appears with that post.
 	 */
 	public function testSeeAutosuggestDropdown() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -38,7 +38,7 @@ class FeatureAutosuggestTest extends TestBase {
 	 * @testdox If the user types a post title in the search box, a drop-down appears with that post.
 	 */
 	public function testSeeTypedPostTitleInDropdown() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -75,7 +75,7 @@ class FeatureAutosuggestTest extends TestBase {
 			],
 		] );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -100,7 +100,7 @@ class FeatureAutosuggestTest extends TestBase {
 	 * @testdox If a user clicks a post in the autosuggest drop down, they are taken directly to the post.
 	 */
 	public function testClickSuggestionGoToPost() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -122,7 +122,7 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$url = $I->getElementAttribute( '.autosuggest-list > li:first-child a', 'data-url' );
 
-		$I->click( '.autosuggest-list > li:first-child a' );
+		$I->executeJavaScript( 'document.querySelector( ".autosuggest-list > li:first-child a" ).click();' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 
