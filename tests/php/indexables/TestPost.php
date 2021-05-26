@@ -3739,6 +3739,42 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a post_name__in query
+	 *
+	 * @group post
+	 * @since 3.6.0
+	 */
+	public function testPostNameInQuery() {
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme name in test 1',
+				'post_name'    => 'findme-name-in',
+			)
+		);
+		Functions\create_and_sync_post( array( 'post_content' => 'findme name in test 2' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'findme name in test 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'             => 'findme name in',
+		);
+
+		$args['post_name__in'] = 'findme-name-in';
+
+		$query = new \WP_Query( $args );
+
+		$args['post_name__in'] = array( 'findme-name-in' );
+
+		$query2 = new \WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( 1, $query2->post_count );
+		$this->assertEquals( 1, $query2->found_posts );
+	}
+
+	/**
 	 * Test Tax Query NOT IN operator
 	 *
 	 * @since 2.1
