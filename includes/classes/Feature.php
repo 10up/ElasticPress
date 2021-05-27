@@ -56,7 +56,7 @@ abstract class Feature {
 	 * The order in the features screen
 	 *
 	 * @var int
-	 * @since  3.5.6
+	 * @since  3.6.0
 	 */
 	public $order;
 
@@ -64,7 +64,7 @@ abstract class Feature {
 	 * Set if a feature should be on the left or right side
 	 *
 	 * @var string
-	 * @since  3.5.6
+	 * @since  3.6.0
 	 */
 	public $group_order;
 
