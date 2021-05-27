@@ -101,11 +101,11 @@ return [
 								],
 								'date'     => [
 									'type'   => 'date',
-									'format' => 'yyyy-MM-dd',
+									'format' => 'YYYY-MM-dd',
 								],
 								'datetime' => [
 									'type'   => 'date',
-									'format' => 'yyyy-MM-dd HH:mm:ss',
+									'format' => 'YYYY-MM-dd HH:mm:ss',
 								],
 								'time'     => [
 									'type'   => 'date',

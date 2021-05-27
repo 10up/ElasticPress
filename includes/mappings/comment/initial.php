@@ -194,11 +194,11 @@ return [
 				],
 				'comment_date'           => [
 					'type'   => 'date',
-					'format' => 'YYYY-MM-dd HH:mm:ss',
+					'format' => 'yyyy-MM-dd HH:mm:ss',
 				],
 				'comment_date_gmt'       => [
 					'type'   => 'date',
-					'format' => 'YYYY-MM-dd HH:mm:ss',
+					'format' => 'yyyy-MM-dd HH:mm:ss',
 				],
 				'comment_content'        => [
 					'type'   => 'text',
