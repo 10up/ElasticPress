@@ -5916,4 +5916,67 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEmpty( $document );
 	}
+
+	/**
+	 * Test prepare_date_terms function
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostPrepareDateTerms() {
+		$date = new \DateTime('2021-04-11 23:58:12');
+
+		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms( $date->format( 'Y-m-d H:i:s' ) );
+
+		$this->assertIsArray( $return_prepare_date_terms );
+
+		$this->assertArrayHasKey( 'year', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('Y'), $return_prepare_date_terms['year'] );
+
+		$this->assertArrayHasKey( 'month', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('m'), $return_prepare_date_terms['month'] );
+
+		$this->assertArrayHasKey( 'week', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('W'), $return_prepare_date_terms['week'] );
+
+		$this->assertArrayHasKey( 'dayofyear', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('z'), $return_prepare_date_terms['dayofyear'] );
+
+		$this->assertArrayHasKey( 'day', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('d'), $return_prepare_date_terms['day'] );
+
+		$this->assertArrayHasKey( 'dayofweek', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('w'), $return_prepare_date_terms['dayofweek'] );
+
+		$this->assertArrayHasKey( 'dayofweek_iso', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('N'), $return_prepare_date_terms['dayofweek_iso'] );
+
+		$this->assertArrayHasKey( 'hour', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('H'), $return_prepare_date_terms['hour'] );
+
+		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('i'), $return_prepare_date_terms['minute'] );
+
+		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('s'), $return_prepare_date_terms['second'] );
+
+		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('Ym'), $return_prepare_date_terms['m'] );
+
+		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms('');
+
+		$this->assertIsArray($return_prepare_date_terms );
+
+		$this->assertArrayHasKey( 'year', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'month', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'week', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofyear', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'day', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofweek', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofweek_iso', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'hour', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
+	}
 }
