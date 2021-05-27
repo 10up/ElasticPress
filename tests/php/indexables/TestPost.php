@@ -928,6 +928,62 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a category__not_in query
+	 *
+	 * @since 3.6.0
+	 * @group post
+	 */
+	public function testCategoryNotInQuery() {
+		$term = wp_insert_term( 'cattest', 'category' );
+
+		$post_ids = array();
+
+		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'post_category' => array( $term['term_id'] ) ) );
+		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 2',  ) );
+		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'                => 'findme cat not in test',
+			'category__not_in' => array( $term['term_id'] ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a tag__not_in query
+	 *
+	 * @since 3.6.0
+	 * @group post
+	 */
+	public function testTagNotInQuery() {
+		$term = wp_insert_term( 'tagtest', 'post_tag' );
+
+		$post_ids = array();
+
+		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'tags_input' => array( $term['term_id'] ) ) );
+		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 2',  ) );
+		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'                => 'findme cat not in test',
+			'tag__not_in'      => array( $term['term_id'] ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test an author ID query
 	 *
 	 * @since 1.0

@@ -912,6 +912,36 @@ class Post extends Indexable {
 		}
 
 		/**
+		 * 'category__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['category__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'tag__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['tag__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * Author query support
 		 *
 		 * @since 1.0
