@@ -59,8 +59,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 					'active' => 0,
 				],
 				'protected_content' => [
-					'active'         => 0,
-					'force_inactive' => 1,
+					'active' => 0,
 				],
 				'users'             => [
 					'active' => 1,
@@ -246,7 +245,16 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @param string                      $slug    Plugin slug.
 	 * @param bool                        $network Multisite?
 	 */
-	protected function activatePlugin( $actor, $slug = 'elasticpress', $network = false ) {
+	protected function activatePlugin( $actor = null, $slug = 'elasticpress', $network = false ) {
+		if ( ! $actor ) {
+			$command = "wp plugin activate {$slug}";
+			if ( $network ) {
+				$command .= ' --network';
+			}
+			$this->runCommand( $command );
+			return;
+		}
+
 		if ( $network ) {
 			$actor->moveTo( '/wp-admin/network/plugins.php' );
 		} else {
@@ -269,7 +277,16 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @param string                      $slug  Plugin slug.
 	 * @param bool                        $network Multisite?
 	 */
-	protected function deactivatePlugin( $actor, $slug = 'elasticpress', $network = false ) {
+	protected function deactivatePlugin( $actor = null, $slug = 'elasticpress', $network = false ) {
+		if ( ! $actor ) {
+			$command = "wp plugin deactivate {$slug}";
+			if ( $network ) {
+				$command .= ' --network';
+			}
+			$this->runCommand( $command );
+			return;
+		}
+
 		if ( $network ) {
 			$actor->moveTo( '/wp-admin/network/plugins.php' );
 		} else {
@@ -288,40 +305,11 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	/**
 	 * Check if we're using ElasticPress.io.
 	 *
-	 * @param \WPAcceptance\PHPUnit\Actor $actor The actor.
+	 * @return boolean
 	 */
-	protected function isElasticPressIo( $actor ) {
-		$actor->moveTo( '/wp-admin/admin.php?page=elasticpress-settings' );
-		$host = $actor->getElementAttribute( '#ep_host', 'value' );
-
-		return strpos( $host, 'hosted-elasticpress.io' );
-	}
-
-	/**
-	 * Create a user in the admin
-	 *
-	 * @param  array                       $data  User data
-	 * @param  \WPAcceptance\PHPUnit\Actor $actor Current actor
-	 */
-	public function createUser( array $data, \WPAcceptance\PHPUnit\Actor $actor ) {
-		$defaults = [
-			'user_login' => 'testuser',
-			'user_email' => 'testuser@example.com',
-		];
-
-		$data = array_merge( $defaults, $data );
-
-		$actor->moveTo( 'wp-admin/user-new.php' );
-
-		$actor->typeInField( '#user_login', $data['user_login'] );
-
-		$actor->typeInField( '#email', $data['user_email'] );
-
-		$actor->checkOptions( '#noconfirmation' );
-
-		$actor->click( '#createusersub' );
-
-		$actor->waitUntilElementVisible( '#message' );
+	protected function isElasticPressIo() {
+		$ep_host = $this->runCommand( "wp eval 'echo \ElasticPress\Utils\get_host();'" )['stdout'];
+		return preg_match( '#elasticpress\.io#i', $ep_host );
 	}
 
 	/**
@@ -356,5 +344,17 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		$actor->click( '#submit' );
 
 		return $per_page;
+	}
+
+	/**
+	 * Make sure a feature is enable before running tests that rely on it.
+	 *
+	 * @param string $feature Feature slug.
+	 */
+	public function maybeEnableFeature( $feature ) {
+		$cli_result = $this->runCommand( "wp elasticpress list-features {$feature}" )['stdout'];
+		if ( false === strpos( $cli_result, $feature ) ) {
+			$this->runCommand( "wp elasticpress activate-feature {$feature}" );
+		}
 	}
 }

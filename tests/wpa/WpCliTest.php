@@ -23,9 +23,7 @@ class WpCliTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
-
-		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
+		$this->checkMissingIndexes( $I, 'dontSeeText' );
 
 		foreach ( $this->indexes as $index_name ) {
 			$I->seeText( $index_name );
@@ -40,9 +38,9 @@ class WpCliTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->deactivatePlugin( $I );
+		$this->deactivatePlugin();
 
-		$this->activatePlugin( $I, 'elasticpress', true );
+		$this->activatePlugin( null, 'elasticpress', true );
 
 		$I->moveTo( 'wp-admin/network/sites.php' );
 
@@ -60,16 +58,16 @@ class WpCliTest extends TestBase {
 
 		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$this->deactivatePlugin( $I, 'elasticpress', true );
+		$this->deactivatePlugin( null, 'elasticpress', true );
 
-		$this->activatePlugin( $I );
+		$this->activatePlugin();
 	}
 
 	/**
 	 * @testdox If user specifies --setup argument in index command, it should clear the index in Elasticsearch, and should put the mapping again and then index all the posts.
 	 */
 	public function testIndexCommandWithSetup() {
-		$cli_result = $this->runCommand( 'wp elasticpress index --setup' )['stdout'];
+		$cli_result = $this->runCommand( 'wp elasticpress index --setup --yes' )['stdout'];
 
 		$this->assertStringContainsString( 'Mapping sent', $cli_result );
 
@@ -81,9 +79,7 @@ class WpCliTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
-
-		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
+		$this->checkMissingIndexes( $I, 'dontSeeText' );
 
 		foreach ( $this->indexes as $index_name ) {
 			$I->seeText( $index_name );
@@ -173,13 +169,10 @@ class WpCliTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$cli_result = $this->runCommand( 'wp elasticpress delete-index' )['stdout'];
-
+		$cli_result = $this->runCommand( 'wp elasticpress delete-index --yes' )['stdout'];
 		$this->assertStringContainsString( 'Index deleted', $cli_result );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
-
-		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
+		$this->checkMissingIndexes( $I, 'seeText' );
 	}
 
 	/**
@@ -200,7 +193,7 @@ class WpCliTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
 
-		$cli_result = $this->runCommand( 'wp elasticpress delete-index --network-wide' )['stdout'];
+		$cli_result = $this->runCommand( 'wp elasticpress delete-index --network-wide --yes' )['stdout'];
 
 		$this->assertStringContainsString( 'Index deleted', $cli_result );
 
@@ -208,9 +201,9 @@ class WpCliTest extends TestBase {
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$this->deactivatePlugin( $I, 'elasticpress', true );
+		$this->deactivatePlugin( null, 'elasticpress', true );
 
-		$this->activatePlugin( $I );
+		$this->activatePlugin();
 	}
 
 	/**
@@ -240,7 +233,7 @@ class WpCliTest extends TestBase {
 
 		$I->checkOptions( '.index-toggle' );
 
-		$this->runCommand( 'wp elasticpress delete-index --network-wide' );
+		$this->runCommand( 'wp elasticpress delete-index --network-wide --yes' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress put-mapping --network-wide' )['stdout'];
 
@@ -307,13 +300,13 @@ class WpCliTest extends TestBase {
 	 * @testdox If user runs wp elasticpress stats command, it should return the number of documents indexed and index size.
 	*/
 	public function testStatsCommand() {
-		$this->runCommand( 'wp elasticpress delete-index' );
+		$this->runCommand( 'wp elasticpress delete-index --yes' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
 
 		$this->assertStringContainsString( 'is not currently indexed', $cli_result );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
 
@@ -350,5 +343,32 @@ class WpCliTest extends TestBase {
 		$cli_result = $this->runCommand( 'wp elasticpress get-last-cli-index --clear' )['stdout'];
 
 		$this->assertStringContainsString( '[]', $cli_result );
+	}
+
+	/**
+	 * Check if the missing indexes message is present or not in the Health Screen.
+	 * If the page crashes (lack of memory?) fallback to a test using WP-CLI.
+	 *
+	 * @param \WPAcceptance\PHPUnit\Actor $actor Current actor
+	 * @param string $method
+	 * @return void
+	 */
+	public function checkMissingIndexes( $actor, $method ) {
+		try {
+			$actor->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+
+			$actor->$method( 'We could not find any data for your Elasticsearch indices.' );
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
+
+			$wpCliMethod = ( 'seeText' === $method ) ? 'assertStringNotContainsString' : 'assertStringContainsString';
+
+			$this->$wpCliMethod( 'Stats for:', $cli_result );
+		}
 	}
 }
