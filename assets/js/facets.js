@@ -10,7 +10,7 @@ import { debounce } from './utils/helpers';
  */
 const handleFacetSearch = (event, facetTerms) => {
 	const { target } = event;
-	const searchTerm = target.value.replace(/\s/g, '').toLowerCase();
+	const searchTerm = target.value.toLowerCase();
 	const terms = facetTerms.querySelectorAll('.term');
 
 	terms.forEach((term) => {

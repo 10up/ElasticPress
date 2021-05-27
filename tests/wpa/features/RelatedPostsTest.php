@@ -9,6 +9,14 @@
  * Feature Related Posts test class
  */
 class FeatureRelatedPostsTest extends TestBase {
+
+	/**
+	 * Sidebar ID to be used on WP-CLI.
+	 *
+	 * @var string
+	 */
+	protected $sidebar_id = 'sidebar-1';
+
 	/**
 	 * @testdox If feature is activated, user should see “ElasticPress - Related Posts” widget in dashboard.
 	 */
@@ -27,9 +35,21 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		sleep( 2 );
 
-		$I->moveTo( '/wp-admin/widgets.php' );
+		// If we get "Page Crashed!" due to lack of memory, try WP-CLI.
+		try {
+			$I->moveTo( '/wp-admin/widgets.php' );
 
-		$I->dontSeeText( 'ElasticPress - Related Posts' );
+			$I->dontSeeText( 'ElasticPress - Related Posts' );
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$cli_result = $this->runCommand( "wp widget list {$this->sidebar_id}" )['stdout'];
+
+			$this->assertStringNotContainsString( 'ep-related-posts', $cli_result );
+		}
 
 		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
 
@@ -41,9 +61,23 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		sleep( 2 );
 
-		$I->moveTo( '/wp-admin/widgets.php' );
+		// If we get "Page Crashed!" due to lack of memory, try WP-CLI.
+		try {
+			$I->moveTo( '/wp-admin/widgets.php' );
 
-		$I->seeText( 'ElasticPress - Related Posts' );
+			$I->seeText( 'ElasticPress - Related Posts' );
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$this->runCommand( "wp widget add ep-related-posts {$this->sidebar_id}" );
+
+			$cli_result = $this->runCommand( "wp widget list {$this->sidebar_id}" )['stdout'];
+
+			$this->assertStringContainsString( 'ep-related-posts', $cli_result );
+		}
 	}
 
 	/**
