@@ -13,7 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-$base_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'network/admin.php?page=' ) : admin_url( 'admin.php?page=' );
+$base_url     = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'network/admin.php?page=' ) : admin_url( 'admin.php?page=' );
+$is_sync_page = 'sync' === Screen::factory()->get_current_screen();
 ?>
 
 <div class="ep-header-menu">
@@ -21,13 +22,16 @@ $base_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'networ
 
 	<div class="icons">
 		<span class="sync-status"></span>
-		<?php if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'health' ], true ) ) : ?>
+		<?php if ( $is_sync_page ) : ?>
 			<a class="dashicons pause-sync dashicons-controls-pause"></a>
 			<a class="dashicons resume-sync dashicons-controls-play"></a>
 			<a class="dashicons cancel-sync dashicons-no"></a>
-			<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC ) : ?>
-				<a class="dashicons start-sync dashicons-update" href="<?php echo esc_url( admin_url( 'admin.php?page=elasticpress-sync' ) ); ?>"></a>
-			<?php endif; ?>
+		<?php endif; ?>
+		<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC ) : ?>
+			<a
+				class="dashicons start-sync dashicons-update"
+				<?php echo ( $is_sync_page ) ? '' : 'href="' . esc_url( admin_url( 'admin.php?page=elasticpress-sync' ) ) . '"'; ?>
+			></a>
 		<?php endif; ?>
 		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic"></a>
 	</div>

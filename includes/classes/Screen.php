@@ -28,12 +28,23 @@ class Screen {
 	protected $screen = null;
 
 	/**
+	 * Sync screen instance
+	 *
+	 * @var Screen\Sync
+	 * @since  3.6.0
+	 */
+	public $sync_screen;
+
+	/**
 	 * Initialize class
 	 *
 	 * @since 3.0
 	 */
 	public function setup() {
 		add_action( 'admin_init', [ $this, 'determine_screen' ] );
+
+		$this->sync_screen = new Screen\Sync();
+		$this->sync_screen->setup();
 	}
 
 	/**

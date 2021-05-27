@@ -1,7 +1,17 @@
 <?php
+/**
+ * Template for ElasticPress sync page
+ *
+ * @since  3.6.0
+ * @package elasticpress
+ */
+
+use ElasticPress\Elasticsearch as Elasticsearch;
+
 require_once __DIR__ . '/header.php';
 ?>
 
+<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>
 <div class="wrap">
 	<h1><?php esc_html_e( 'Sync', 'elasticpress' ); ?></h1>
 
@@ -19,6 +29,6 @@ require_once __DIR__ . '/header.php';
 
 		<p><?php esc_html_e( 'If you are still having issues with your search results, you may need to do a completely fresh sync. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happening, searches will use the default WordPress results.', 'elasticpress' ); ?></p>
 
-		<?php submit_button( __('I understand, I want to do a fresh sync', 'elasticpress' ), 'secondary' ); ?>
+		<?php submit_button( esc_html__( 'I understand, I want to do a fresh sync', 'elasticpress' ), 'secondary' ); ?>
 	</div>
 </div>
