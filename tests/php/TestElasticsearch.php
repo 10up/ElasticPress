@@ -51,4 +51,48 @@ class TestElasticsearch extends BaseTestCase {
 
 		}
 	}
+
+	/**
+	 * Test get documents
+	 *
+	 * @since 3.6.0
+	 * @group elasticsearch
+	 */
+	public function testGetDocuments() {
+
+		$post_ids = array();
+		$post_ids[] = Functions\create_and_sync_post();
+		$post_ids[] = Functions\create_and_sync_post();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$index_name = ElasticPress\Indexables::factory()->get( 'post' )->get_index_name();
+
+		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', $post_ids );
+
+		$this->assertIsArray( $documents );
+		$this->assertEquals( 2, count( $documents ) );
+		$this->assertArrayHasKey( $post_ids[0], $documents );
+		$this->assertArrayHasKey( $post_ids[1], $documents );
+
+		$post_ids[] = 99999999; // Adding an id that doesn't exist
+
+		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', $post_ids );
+
+		$this->assertIsArray( $documents );
+		$this->assertEquals( 2, count( $documents ) );
+		$this->assertArrayHasKey( $post_ids[0], $documents );
+		$this->assertArrayHasKey( $post_ids[1], $documents );
+
+		// Trying to get a document that doesn't exist
+		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', [ 99999999 ] );
+
+		$this->assertIsArray( $documents );
+		$this->assertEmpty( $documents );
+
+		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', []  );
+
+		$this->assertIsArray( $documents );
+		$this->assertEmpty( $documents );
+	}
 }
