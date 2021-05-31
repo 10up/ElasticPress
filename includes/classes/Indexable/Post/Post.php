@@ -999,7 +999,7 @@ class Post extends Indexable {
 
 				foreach ( $args['post_mime_type'] as $mime_type ) {
 					// check if matches the MIME type pattern: type/subtype
-					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) ) {
+					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
 						$args_post_mime_type[] = $mime_type;
 					} else {
 						$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
