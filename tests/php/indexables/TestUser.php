@@ -664,6 +664,70 @@ class TestUser extends BaseTestCase {
 	}
 
 	/**
+	 * Test user query orderby paramter where we are ordering by display name
+	 *
+	 * @since 3.6.0
+	 * @group user
+	 */
+	public function testUserQueryOrderbyUserNicename() {
+		$users_id = $this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'user_nicename',
+			]
+		);
+
+		$users_id_fetched = wp_list_pluck( $user_query->results, 'ID' );
+
+		$this->assertCount( 5, $user_query->results );
+
+		foreach ( $users_id as $user_id ) {
+			$this->assertContains( $user_id, $users_id_fetched );
+		}
+
+		// Check if 'admin' is the first user
+		$this->assertEquals( 1, $users_id_fetched[0] );
+	}
+
+	/**
+	 * Test order by user_nicename in format_args().
+	 *
+	 * We should not use a text/string field to sort
+	 * in Elasticsearch.
+	 *
+	 * @return void
+	 * @since 3.6.0
+	 * @group user
+	 */
+	public function testFormatArgsOrderByUserNicename() {
+		$user = new \ElasticPress\Indexable\User\User();
+
+		$user_query = new \WP_User_Query();
+
+		$args = $user->format_args(
+			[
+				'orderby' => 'user_nicename',
+			],
+			$user_query
+		);
+
+		$this->assertArrayHasKey( 'user_nicename.raw', $args['sort'][0] );
+		$this->assertArrayNotHasKey( 'user_nicename', $args['sort'][0] );
+
+		$args = $user->format_args(
+			[
+				'orderby' => 'nicename',
+			],
+			$user_query
+		);
+
+		$this->assertArrayHasKey( 'user_nicename.raw', $args['sort'][0] );
+		$this->assertArrayNotHasKey( 'user_nicename', $args['sort'][0] );
+	}
+
+	/**
 	 * Test user query orderby paramter where we are ordering by ID
 	 *
 	 * @since 3.0
