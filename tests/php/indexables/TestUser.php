@@ -47,6 +47,7 @@ class TestUser extends BaseTestCase {
 				'display_name'  => 'mikey',
 				'user_email'    => 'mikey@gmail.com',
 				'user_nicename' => 'mike',
+				'user_url'      => 'http://abc.com'
 			]
 		);
 
@@ -76,6 +77,7 @@ class TestUser extends BaseTestCase {
 				'last_name'    => 'Smith',
 				'display_name' => 'dave',
 				'user_email'   => 'dave@gmail.com',
+				'user_url'      => 'http://bac.com'
 			],
 			[
 				'user_1_key' => 'value1',
@@ -107,6 +109,7 @@ class TestUser extends BaseTestCase {
 				'last_name'    => 'Doe',
 				'display_name' => 'joe',
 				'user_email'   => 'joe@gmail.com',
+				'user_url'      => 'http://cab.com'
 			],
 			[
 				'user_3_key' => 'value3',
@@ -756,7 +759,7 @@ class TestUser extends BaseTestCase {
 	}
 
 	/**
-	 * Test order by user_nicename in format_args().
+	 * Test order by user_email in format_args().
 	 *
 	 * We should not use a text/string field to sort
 	 * in Elasticsearch.
@@ -789,6 +792,71 @@ class TestUser extends BaseTestCase {
 
 		$this->assertArrayHasKey( 'user_email.raw', $args['sort'][0] );
 		$this->assertArrayNotHasKey( 'user_email', $args['sort'][0] );
+	}
+
+	/**
+	 * Test user query orderby parameter where we are ordering by user_url
+	 *
+	 * @since 3.6.0
+	 * @group user
+	 */
+	public function testUserQueryOrderbyUserUrl() {
+		$users_id = $this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'user_url',
+			]
+		);
+
+		$users_id_fetched = wp_list_pluck( $user_query->results, 'ID' );
+
+		$this->assertCount( 5, $user_query->results );
+
+		foreach ( $users_id as $user_id ) {
+			$this->assertContains( $user_id, $users_id_fetched );
+		}
+
+		$users_display_name_fetched = wp_list_pluck( $user_query->results, 'display_name' );
+
+		$this->assertEquals( 'mikey', $users_display_name_fetched[0] );
+	}
+
+	/**
+	 * Test order by user_url in format_args().
+	 *
+	 * We should not use a text/string field to sort
+	 * in Elasticsearch.
+	 *
+	 * @return void
+	 * @since 3.6.0
+	 * @group user
+	 */
+	public function testFormatArgsOrderByUserUrl() {
+		$user = new \ElasticPress\Indexable\User\User();
+
+		$user_query = new \WP_User_Query();
+
+		$args = $user->format_args(
+			[
+				'orderby' => 'user_url',
+			],
+			$user_query
+		);
+
+		$this->assertArrayHasKey( 'user_url.raw', $args['sort'][0] );
+		$this->assertArrayNotHasKey( 'user_url', $args['sort'][0] );
+
+		$args = $user->format_args(
+			[
+				'orderby' => 'user_url',
+			],
+			$user_query
+		);
+
+		$this->assertArrayHasKey( 'user_url.raw', $args['sort'][0] );
+		$this->assertArrayNotHasKey( 'user_url', $args['sort'][0] );
 	}
 
 	/**
