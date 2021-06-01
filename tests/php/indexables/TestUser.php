@@ -115,6 +115,8 @@ class TestUser extends BaseTestCase {
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		return [ $user_1, $user_2, $user_3 ];
 	}
 
 	/**
@@ -598,7 +600,7 @@ class TestUser extends BaseTestCase {
 	 * @group user
 	 */
 	public function testUserQueryOrderbyDisplayName() {
-		$this->createAndIndexUsers();
+		$users_id = $this->createAndIndexUsers();
 
 		$user_query = new \WP_User_Query(
 			[
@@ -607,11 +609,58 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $key => $user ) {
-			if ( ! empty( $user_query->results[ $key - 1 ] ) ) {
-				$this->assertTrue( strcasecmp( $user_query->results[ $key - 1 ]->display_name, $user->display_name ) < 0 );
-			}
+		$users_id_fetched = wp_list_pluck( $user_query->results, 'ID' );
+
+		$this->assertCount( 5, $user_query->results );
+
+		foreach ( $users_id as $user_id ) {
+			$this->assertContains( $user_id, $users_id_fetched );
 		}
+
+		/**
+		 * Check if Zoe is the first user because Elasticsearch sort
+		 * is case-sensitive
+		 *
+		 * Ref: https://www.elastic.co/guide/en/elasticsearch/guide/2.x/sorting-collations.html#case-insensitive-sorting
+		 *
+		 */
+		$this->assertEquals( $users_id[1], $users_id_fetched[0] );
+	}
+
+	/**
+	 * Test order by display_name in format_args().
+	 *
+	 * We should not use a text/string field to sort
+	 * in Elasticsearch.
+	 *
+	 * @return void
+	 * @since 3.6.0
+	 * @group user
+	 */
+	public function testFormatArgsOrderByDisplayName() {
+		$user = new \ElasticPress\Indexable\User\User();
+
+		$user_query = new \WP_User_Query();
+
+		$args = $user->format_args(
+			[
+				'orderby' => 'display_name',
+			],
+			$user_query
+		);
+
+		$this->assertArrayHasKey( 'display_name.raw', $args['sort'][0] );
+		$this->assertArrayNotHasKey( 'display_name', $args['sort'][0] );
+
+		$args = $user->format_args(
+			[
+				'orderby' => 'name',
+			],
+			$user_query
+		);
+
+		$this->assertArrayHasKey( 'display_name.raw', $args['sort'][0] );
+		$this->assertArrayNotHasKey( 'display_name', $args['sort'][0] );
 	}
 
 	/**
