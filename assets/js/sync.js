@@ -8,6 +8,7 @@ const $startSyncButton = jQuery(document.getElementsByClassName('start-sync'));
 const $resumeSyncButton = jQuery(document.getElementsByClassName('resume-sync'));
 const $pauseSyncButton = jQuery(document.getElementsByClassName('pause-sync'));
 const $cancelSyncButton = jQuery(document.getElementsByClassName('cancel-sync'));
+const epSyncOutput = document.getElementById('ep-sync-output');
 
 let syncStatus = 'sync';
 let currentSyncItem;
@@ -312,6 +313,14 @@ function sync() {
 			},
 		})
 		.done((response) => {
+			epSyncOutput.innerHTML += `\n${JSON.stringify(response.data)}`;
+
+			if (response.data !== 'Done.') {
+				sync();
+			}
+
+			return;
+
 			if (response.data?.should_interrupt_sync) {
 				syncStatus = 'interrupt';
 				updateSyncDash();

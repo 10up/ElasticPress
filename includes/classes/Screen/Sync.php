@@ -74,19 +74,26 @@ class Sync {
 			exit;
 		}
 
+		\ElasticPress\IndexHelper::factory()->full_index(
+			[
+				'output_method' => [ $this, 'index_output' ],
+			]
+		);
+
 		$global_indexables     = Indexables::factory()->get_all( true, true );
 		$non_global_indexables = Indexables::factory()->get_all( false, true );
 
-		$status = false;
-
 		// No current index going on. Let's start over.
 		if ( false === $index_meta ) {
-			$status     = 'start';
 			$index_meta = [
 				'offset'     => 0,
 				'start'      => true,
 				'sync_stack' => [],
 			];
+
+			Utils\update_option( 'ep_last_sync', time() );
+			Utils\delete_option( 'ep_need_upgrade_sync' );
+			Utils\delete_option( 'ep_feature_auto_activated_sync' );
 
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$sites = Utils\get_sites();
@@ -115,12 +122,6 @@ class Sync {
 
 					return;
 				}
-
-				$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
-
-				update_site_option( 'ep_last_sync', time() );
-				delete_site_option( 'ep_need_upgrade_sync' );
-				delete_site_option( 'ep_feature_auto_activated_sync' );
 			} else {
 				foreach ( $non_global_indexables as $indexable ) {
 					$index_meta['sync_stack'][] = [
@@ -129,13 +130,9 @@ class Sync {
 						'indexable' => $indexable,
 					];
 				}
-
-				$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
-
-				update_option( 'ep_last_sync', time() );
-				delete_option( 'ep_need_upgrade_sync' );
-				delete_option( 'ep_feature_auto_activated_sync' );
 			}
+
+			$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
 
 			if ( ! empty( $_POST['feature_sync'] ) ) {
 				$index_meta['feature_sync'] = esc_attr( $_POST['feature_sync'] );
@@ -171,8 +168,6 @@ class Sync {
 			 */
 			do_action( 'ep_dashboard_start_index', $index_meta );
 		} elseif ( ! empty( $index_meta['sync_stack'] ) && $index_meta['offset'] >= $index_meta['found_items'] ) {
-			$status = 'start';
-
 			$index_meta['start']             = true;
 			$index_meta['offset']            = 0;
 			$index_meta['current_sync_item'] = array_shift( $index_meta['sync_stack'] );
@@ -218,7 +213,7 @@ class Sync {
 				 * @param  {array} $index_meta Index meta information
 				 * @param  {string} $status Current indexing status
 				 */
-				do_action( 'ep_dashboard_put_mapping', $index_meta, $status );
+				do_action( 'ep_dashboard_put_mapping', $index_meta, 'start' );
 			}
 		}
 
@@ -245,7 +240,7 @@ class Sync {
 		 * @hook ep_pre_dashboard_index
 		 * @param  {array} $args Args to query content with
 		 */
-		do_action( 'ep_pre_dashboard_index', $index_meta, $status, $indexable );
+		do_action( 'ep_pre_dashboard_index', $index_meta, ( $index_meta['start'] ? 'start' : false ), $indexable );
 
 		/**
 		 * Filters arguments used to query for content for each indexable
@@ -267,7 +262,7 @@ class Sync {
 
 		$index_meta['found_items'] = (int) $query['total_objects'];
 
-		if ( 'start' !== $status ) {
+		if ( $index_meta['start'] ) {
 			if ( ! empty( $query['objects'] ) ) {
 				$queued_items = [];
 
@@ -352,12 +347,7 @@ class Sync {
 				}
 			}
 		} else {
-
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_index_meta', $index_meta );
-			} else {
-				update_option( 'ep_index_meta', $index_meta );
-			}
+			Utils\update_option( 'ep_index_meta', $index_meta );
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! empty( $index_meta['current_sync_item']['blog_id'] ) ) {
@@ -469,5 +459,27 @@ class Sync {
 		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
 
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
+	}
+
+	/**
+	 * Output information received from the index helper class.
+	 *
+	 * @param array $message Message to be outputted with its status and additional info, if needed.
+	 */
+	public static function index_output( $message ) {
+		switch ( $message['status'] ) {
+			case 'success':
+				wp_send_json_success( $message['message'] );
+				break;
+
+			case 'error':
+				wp_send_json_error( $message['message'] );
+				break;
+
+			default:
+				wp_send_json( $message['message'] );
+				break;
+		}
+		exit;
 	}
 }

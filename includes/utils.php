@@ -537,3 +537,32 @@ function get_indexing_status() {
 	return $index_status;
 
 }
+
+/**
+ * Use the correct update option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option Name of the option to update.
+ * @param mixed  $value  Option value.
+ * @return bool
+ */
+function update_option( $option, $value ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \update_site_option( $option, $value );
+	}
+	return \update_option( $option, $value );
+}
+
+/**
+ * Use the correct delete option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option Name of the option to update.
+ * @return bool
+ */
+function delete_option( $option ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \delete_site_option( $option );
+	}
+	return \delete_option( $option );
+}

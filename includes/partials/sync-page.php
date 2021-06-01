@@ -15,6 +15,8 @@ require_once __DIR__ . '/header.php';
 <div class="wrap">
 	<h1><?php esc_html_e( 'Sync', 'elasticpress' ); ?></h1>
 
+	<textarea id="ep-sync-output" cols="30" rows="10" class="widefat" readonly></textarea>
+
 	<div class="card">
 		<h2><?php esc_html_e( 'Sync New Data', 'elasticpress' ); ?></h2>
 
