@@ -620,14 +620,18 @@ class TestUser extends BaseTestCase {
 			$this->assertContains( $user_id, $users_id_fetched );
 		}
 
+		$users_display_name_fetched = wp_list_pluck( $user_query->results, 'display_name' );
+
 		/**
-		 * Check if Zoe is the first user because Elasticsearch sort
+		 * Check if Zoey is the first user because Elasticsearch sort
 		 * is case-sensitive
 		 *
 		 * Ref: https://www.elastic.co/guide/en/elasticsearch/guide/2.x/sorting-collations.html#case-insensitive-sorting
 		 *
 		 */
-		$this->assertEquals( $users_id[1], $users_id_fetched[0] );
+		$this->assertEquals( 'Zoey', $users_display_name_fetched[0] );
+
+
 	}
 
 	/**
@@ -690,8 +694,10 @@ class TestUser extends BaseTestCase {
 			$this->assertContains( $user_id, $users_id_fetched );
 		}
 
+		$users_display_name_fetched = wp_list_pluck( $user_query->results, 'display_name' );
+
 		// Check if 'admin' is the first user
-		$this->assertEquals( 1, $users_id_fetched[0] );
+		$this->assertEquals( 'admin', $users_display_name_fetched[0] );
 	}
 
 	/**
@@ -754,8 +760,10 @@ class TestUser extends BaseTestCase {
 			$this->assertContains( $user_id, $users_id_fetched );
 		}
 
+		$users_display_name_fetched = wp_list_pluck( $user_query->results, 'display_name' );
+
 		// Check if 'admin' is the first user
-		$this->assertEquals( 1, $users_id_fetched[0] );
+		$this->assertEquals( 'admin', $users_display_name_fetched[0] );
 	}
 
 	/**
