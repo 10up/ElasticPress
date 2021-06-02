@@ -376,11 +376,7 @@ class Sync {
 			exit;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_option( 'ep_index_meta' );
-		} else {
-			delete_option( 'ep_index_meta' );
-		}
+		Utils\delete_option( 'ep_index_meta' );
 
 		wp_send_json_success();
 	}
@@ -398,7 +394,7 @@ class Sync {
 		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/sync-script.min.js', [ 'jquery' ], EP_VERSION, true );
 
 		$data       = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
-		$index_meta = \ElasticPress\Utils\get_indexing_status();
+		$index_meta = Utils\get_indexing_status();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
