@@ -336,29 +336,28 @@ function sync(putMapping = false) {
 				return;
 			}
 
-			toProcess = response.data.found_items;
-			processed = response.data.offset;
+			if (!response.data.index_meta) {
+				syncStatus = 'finished';
+				updateSyncDash();
+
+				if (epDash.install_sync) {
+					document.location.replace(epDash.install_complete_url);
+				}
+			}
+
+			toProcess = response.data.index_meta.found_items;
+			processed = response.data.index_meta.offset;
 
 			if (response.data.sync_stack) {
-				syncStack = response.data.sync_stack;
+				syncStack = response.data.index_meta.sync_stack;
 			}
 
-			if (response.data.current_sync_item) {
-				currentSyncItem = response.data.current_sync_item;
+			if (response.data.index_meta.current_sync_item) {
+				currentSyncItem = response.data.index_meta.current_sync_item;
 			}
 
-			if (response.data.index_meta) {
-				updateSyncDash();
-				sync(putMapping);
-				return;
-			}
-
-			syncStatus = 'finished';
 			updateSyncDash();
-
-			if (epDash.install_sync) {
-				document.location.replace(epDash.install_complete_url);
-			}
+			sync(putMapping);
 		})
 		.error((response) => {
 			if (

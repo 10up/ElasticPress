@@ -338,10 +338,8 @@ class IndexHelper {
 		$queued_items = [];
 
 		foreach ( $this->current_query['objects'] as $object ) {
-			$killed_item_count = 0;
-
 			/**
-			 * Filter whether to not sync sepcific item in dashboard or not
+			 * Filter whether to not sync specific item in dashboard or not
 			 *
 			 * @since  2.1
 			 * @hook ep_item_sync_kill
@@ -349,9 +347,7 @@ class IndexHelper {
 			 * @param  {array} $object Object to sync
 			 * @return {Indexable} Indexable that object belongs to
 			 */
-			if ( apply_filters( 'ep_item_sync_kill', false, $object, $indexable ) ) {
-				$killed_item_count++;
-			} else {
+			if ( ! apply_filters( 'ep_item_sync_kill', false, $object, $indexable ) ) {
 				$queued_items[ $object->ID ] = true;
 			}
 		}
@@ -363,6 +359,14 @@ class IndexHelper {
 
 			if ( is_wp_error( $return ) ) {
 				$this->output_error( implode( "\n", $return->get_error_messages() ) );
+			} elseif ( isset( $return['errors'] ) && true === $return['errors'] ) {
+				$failed_objects = array_filter(
+					$return['items'],
+					function( $item ) {
+						return ! empty( $item['index']['error'] );
+					}
+				);
+				$this->output_index_errors( $failed_objects );
 			}
 		}
 
@@ -498,10 +502,30 @@ class IndexHelper {
 	protected function output_error( $message ) {
 		$this->output(
 			[
-				'message' => $message,
-				'status'  => 'error',
+				'message'    => $message,
+				'index_meta' => $this->index_meta,
+				'status'     => 'error',
 			]
 		);
+	}
+
+	/**
+	 * Output index errors of failed objects.
+	 *
+	 * @since 3.6.0
+	 * @param array $failed_objects Failed objects
+	 */
+	protected function output_index_errors( $failed_objects ) {
+		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
+
+		$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
+
+		foreach ( $failed_objects as $object ) {
+			$error_text .= '- ' . $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): ' . "\r\n";
+			$error_text .= '[' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] . "\r\n";
+		}
+
+		$this->output_error( $error_text );
 	}
 
 	/**
