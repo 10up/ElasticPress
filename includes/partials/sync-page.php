@@ -9,6 +9,20 @@
 use ElasticPress\Elasticsearch as Elasticsearch;
 
 require_once __DIR__ . '/header.php';
+
+$indexables = \ElasticPress\Indexables::factory()->get_all();
+foreach ( $indexables as $indexable ) {
+	if ( ! $indexable->compare_mappings() ) {
+		echo wpautop(
+			sprintf(
+				/* translators: indexable name */
+				esc_html__( 'Indexable %s seems to have a different mapping.', 'elasticpress' ),
+				$indexable->labels['singular']
+			)
+		);
+	}
+}
+
 ?>
 
 <div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>

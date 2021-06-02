@@ -147,12 +147,12 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Send mapping to Elasticsearch
+	 * Generate the mapping array
 	 *
-	 * @since  3.0
+	 * @since  3.6.0
 	 * @return array
 	 */
-	public function put_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -195,6 +195,18 @@ class Post extends Indexable {
 		 * @return  {array} New mapping
 		 */
 		$mapping = apply_filters( 'ep_post_mapping', $mapping );
+
+		return $mapping;
+	}
+
+	/**
+	 * Send mapping to Elasticsearch
+	 *
+	 * @since  3.0
+	 * @return array
+	 */
+	public function put_mapping() {
+		$mapping = $this->generate_mapping();
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}

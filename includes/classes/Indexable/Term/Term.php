@@ -558,12 +558,12 @@ class Term extends Indexable {
 	}
 
 	/**
-	 * Put mapping for terms
+	 * Generate the mapping array
 	 *
-	 * @since  3.1
-	 * @return boolean
+	 * @since  3.6.0
+	 * @return array
 	 */
-	public function put_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -597,6 +597,18 @@ class Term extends Indexable {
 		 * @return {array} New mapping
 		 */
 		$mapping = apply_filters( 'ep_term_mapping', $mapping );
+
+		return $mapping;
+	}
+
+	/**
+	 * Put mapping for terms
+	 *
+	 * @since  3.1
+	 * @return boolean
+	 */
+	public function put_mapping() {
+		$mapping = $this->generate_mapping();
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
