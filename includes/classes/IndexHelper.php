@@ -356,17 +356,15 @@ class IndexHelper {
 			}
 		}
 
+		$this->index_meta['offset'] = absint( $this->index_meta['offset'] + count( $this->current_query['objects'] ) );
+
 		if ( ! empty( $queued_items ) ) {
 			$return = $indexable->bulk_index( array_keys( $queued_items ) );
 
 			if ( is_wp_error( $return ) ) {
-				header( 'HTTP/1.1 500 Internal Server Error' );
-				wp_send_json_error();
-				exit;
+				$this->output_error( implode( "\n", $return->get_error_messages() ) );
 			}
 		}
-
-		$this->index_meta['offset'] = absint( $this->index_meta['offset'] + count( $this->current_query['objects'] ) );
 
 		$this->output_success(
 			sprintf(
