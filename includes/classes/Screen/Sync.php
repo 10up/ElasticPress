@@ -469,15 +469,15 @@ class Sync {
 	public static function index_output( $message ) {
 		switch ( $message['status'] ) {
 			case 'success':
-				wp_send_json_success( $message['message'] );
+				wp_send_json_success( $message );
 				break;
 
 			case 'error':
-				wp_send_json_error( $message['message'] );
+				wp_send_json_error( $message );
 				break;
 
 			default:
-				wp_send_json( $message['message'] );
+				wp_send_json( $message );
 				break;
 		}
 		exit;

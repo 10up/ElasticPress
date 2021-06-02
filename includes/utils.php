@@ -554,10 +554,25 @@ function update_option( $option, $value ) {
 }
 
 /**
+ * Use the correct get option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option        Name of the option to get.
+ * @param mixed  $default_value Default value.
+ * @return bool
+ */
+function get_option( $option, $default_value = false ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \get_site_option( $option, $default_value );
+	}
+	return \get_option( $option, $default_value );
+}
+
+/**
  * Use the correct delete option function depending on the context (multisite or not)
  *
  * @since 3.6.0
- * @param string $option Name of the option to update.
+ * @param string $option Name of the option to delete.
  * @return bool
  */
 function delete_option( $option ) {

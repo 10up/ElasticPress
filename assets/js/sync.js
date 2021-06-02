@@ -313,12 +313,14 @@ function sync() {
 			},
 		})
 		.done((response) => {
-			epSyncOutput.innerHTML += `\n${JSON.stringify(response.data)}`;
+			epSyncOutput.innerHTML += `${response.data.message}\n`;
 
-			if (response.data !== 'Done.') {
-				sync();
+			if (!response.data.index_meta) {
+				$errorOverlay.removeClass('syncing');
+				return;
 			}
 
+			sync();
 			return;
 
 			if (response.data?.should_interrupt_sync) {
