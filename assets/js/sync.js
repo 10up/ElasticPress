@@ -301,27 +301,24 @@ function cliSync() {
 
 /**
  * Perform an elasticpress sync
+ *
+ * @param {boolean} putMapping Whetever mapping should be sent or not.
  */
-function sync() {
+function sync(putMapping = false) {
 	jQuery
 		.ajax({
 			method: 'post',
 			url: ajaxurl,
 			data: {
 				action: 'ep_index',
+				put_mapping: putMapping ? 1 : 0,
 				nonce: epDash.nonce,
 			},
 		})
 		.done((response) => {
 			epSyncOutput.innerHTML += `${response.data.message}\n`;
-
-			if (!response.data.index_meta) {
-				$errorOverlay.removeClass('syncing');
-				return;
-			}
-
-			sync();
-			return;
+			epSyncOutput.scrollTop = epSyncOutput.scrollHeight;
+			epSyncOutput.style.display = 'block';
 
 			if (response.data?.should_interrupt_sync) {
 				syncStatus = 'interrupt';
@@ -350,29 +347,17 @@ function sync() {
 				currentSyncItem = response.data.current_sync_item;
 			}
 
-			if (syncStack && syncStack.length) {
-				// We are mid multisite sync
-				syncStatus = 'sync';
+			if (response.data.index_meta) {
 				updateSyncDash();
-
-				sync();
+				sync(putMapping);
 				return;
 			}
 
-			if (response.data.found_items === 0 && !response.data.start) {
-				// Sync finished
-				syncStatus = 'finished';
-				updateSyncDash();
+			syncStatus = 'finished';
+			updateSyncDash();
 
-				if (epDash.install_sync) {
-					document.location.replace(epDash.install_complete_url);
-				}
-			} else {
-				// We are starting a sync
-				syncStatus = 'sync';
-				updateSyncDash();
-
-				sync();
+			if (epDash.install_sync) {
+				document.location.replace(epDash.install_complete_url);
 			}
 		})
 		.error((response) => {
@@ -390,7 +375,7 @@ function sync() {
 		});
 }
 
-$startSyncButton.on('click', () => {
+$startSyncButton.on('click', (event) => {
 	syncStatus = 'initialsync';
 
 	updateSyncDash();
@@ -401,7 +386,9 @@ $startSyncButton.on('click', () => {
 	).remove();
 
 	syncStatus = 'sync';
-	sync();
+
+	const putMapping = event.target.classList.contains('start-sync-put-mapping');
+	sync(putMapping);
 });
 
 $pauseSyncButton.on('click', () => {

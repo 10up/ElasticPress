@@ -22,7 +22,8 @@ module.exports = {
 		'ordering-styles': './assets/css/ordering.css',
 		'related-posts-block-styles': './assets/css/related-posts-block.css',
 		'highlighting-styles': './assets/css/highlighting.css',
-		'synonyms-styles': './assets/css/synonyms.css'
+		'synonyms-styles': './assets/css/synonyms.css',
+		'sync-styles': './assets/css/sync.css',
 	},
 	filename: {
 		js: 'js/[name].min.js',

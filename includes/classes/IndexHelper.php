@@ -106,7 +106,7 @@ class IndexHelper {
 						'url'         => untrailingslashit( $site['domain'] . $site['path'] ),
 						'blog_id'     => (int) $site['blog_id'],
 						'indexable'   => $indexable,
-						'put_mapping' => true,
+						'put_mapping' => ! empty( $this->args['put_mapping'] ),
 					];
 
 					if ( ! in_array( $indexable, $this->index_meta['network_alias'], true ) ) {
@@ -120,7 +120,7 @@ class IndexHelper {
 					'url'         => untrailingslashit( home_url() ),
 					'blog_id'     => (int) get_current_blog_id(),
 					'indexable'   => $indexable,
-					'put_mapping' => true,
+					'put_mapping' => ! empty( $this->args['put_mapping'] ),
 				];
 			}
 		}
@@ -128,9 +128,28 @@ class IndexHelper {
 		foreach ( $global_indexables as $indexable ) {
 			$this->index_meta['sync_stack'][] = [
 				'indexable'   => $indexable,
-				'put_mapping' => true,
+				'put_mapping' => ! empty( $this->args['put_mapping'] ),
 			];
 		}
+
+		/**
+		 * Fires at start of new index
+		 *
+		 * @since 2.1
+		 * @hook ep_dashboard_start_index
+		 * @param  {array} $index_meta Index meta information
+		 */
+		do_action( 'ep_dashboard_start_index', $this->index_meta );
+
+		/**
+		 * Filter index meta during dashboard sync
+		 *
+		 * @since  3.0
+		 * @hook ep_index_meta
+		 * @param  {array} $index_meta Current index meta
+		 * @return  {array} New index meta
+		 */
+		$this->index_meta = apply_filters( 'ep_index_meta', $this->index_meta );
 	}
 
 	/**
@@ -195,18 +214,44 @@ class IndexHelper {
 	 * @since 3.6.0
 	 */
 	protected function put_mapping() {
+		$this->index_meta['current_sync_item']['put_mapping'] = false;
+
+		/**
+		 * Filter whether we should delete index and send new mapping at the start of the sync
+		 *
+		 * @since  2.1
+		 * @hook ep_skip_index_reset
+		 * @param  {bool} $skip True means skip
+		 * @param  {array} $index_meta Current index meta
+		 * @return  {bool} New skip value
+		 */
+		if ( apply_filters( 'ep_skip_index_reset', false, $this->index_meta ) ) {
+			return;
+		}
+
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		$indexable->delete_index();
 		$result = $indexable->put_mapping();
-
-		$this->index_meta['current_sync_item']['put_mapping'] = false;
 
 		if ( $result ) {
 			$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 		} else {
 			$this->output_error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 		}
+
+		/**
+		 * Fires after dashboard put mapping is completed
+		 *
+		 * @since 2.1
+		 * @since 3.6.0 Added $indexable
+		 *
+		 * @hook ep_dashboard_put_mapping
+		 * @param  {array} $index_meta Index meta information
+		 * @param  {string} $status Current indexing status
+		 * @param  {Indexable} $indexable Indexable object
+		 */
+		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start', $indexable );
 	}
 
 	/**
@@ -281,6 +326,15 @@ class IndexHelper {
 	protected function index_next_batch() {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
+		/**
+		 * Fires right before entries are about to be indexed in a dashboard sync
+		 *
+		 * @since  2.1
+		 * @hook ep_pre_dashboard_index
+		 * @param  {array} $args Args to query content with
+		 */
+		do_action( 'ep_pre_dashboard_index', $this->index_meta, ( 0 === $this->index_meta['offset'] ? 'start' : false ), $indexable );
+
 		$queued_items = [];
 
 		foreach ( $this->current_query['objects'] as $object ) {
@@ -342,6 +396,14 @@ class IndexHelper {
 	 */
 	protected function full_index_complete() {
 		$this->index_meta = null;
+
+		/**
+		 * Fires after executing a reindex via Dashboard
+		 *
+		 * @since  3.5.5
+		 * @hook ep_after_dashboard_index
+		 */
+		do_action( 'ep_after_dashboard_index' );
 
 		$this->output_success( esc_html__( 'Sync complete', 'elasticpress' ) );
 	}
