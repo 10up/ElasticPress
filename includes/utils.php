@@ -427,20 +427,23 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 /**
  * Flatten a tree based on children key.
  *
- * @param  array       arr tree array
+ * @param  array $arr tree array.
  * @return array.
  */
 function flatten_tree_array( $arr ) {
-    $result = [];
-    foreach( $arr as $item ) {
-        if ( isset($item->children ) ) {
-            $result = array_merge( $result, flatten_tree_array( $item->children ) );
+	$result = array();
+	foreach ( $arr as $item ) {
+		if ( isset( $item->children ) ) {
+			$result = array_merge( $result, flatten_tree_array( $item->children ) );
 		}
-        unset( $item->children );
-        $result[] = $item;  
-    }
-    return $result;
+		unset( $item->children );
+		$result[] = $item;
+	}
+
+	return $result;
 }
+
+
 
 /**
  * Returns the defaiult language for ES mapping.
