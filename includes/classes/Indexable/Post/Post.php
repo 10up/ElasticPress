@@ -998,7 +998,10 @@ class Post extends Indexable {
 				$args_post_mime_type = [];
 
 				foreach ( $args['post_mime_type'] as $mime_type ) {
-					// check if matches the MIME type pattern: type/subtype
+					/**
+					 * check if matches the MIME type pattern: type/subtype and
+					 * leave an empty string as posts, pages and CPTs don't have a MIME type
+					 */
 					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
 						$args_post_mime_type[] = $mime_type;
 					} else {
