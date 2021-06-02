@@ -4000,6 +4000,21 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			'ep_integrate'   => true,
+			'post_mime_type' => 'image/png',
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
+
+		$args = array(
+			'ep_integrate'   => true,
 			'post_mime_type' => array(
 				'image/jpeg',
 				'application/pdf',
