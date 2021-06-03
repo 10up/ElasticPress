@@ -448,7 +448,7 @@ function init() {
 		// Disable autocomplete
 		input.setAttribute('autocomplete', 'off');
 
-		input.closest('form').classList.add('ep-autosuggest-container');
+		input.form.classList.add('ep-autosuggest-container');
 
 		const clonedContainer = epAutosuggest.cloneNode(true);
 		input.parentElement.insertAdjacentElement('afterend', clonedContainer);
