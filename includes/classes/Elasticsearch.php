@@ -651,6 +651,67 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Get multiple documents from Elasticsearch given an array of ids
+	 *
+	 * @param  string $index Index name.
+	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
+	 * @param  array  $document_ids Array of document ids to get.
+	 * @since  3.6.0
+	 * @return boolean|array
+	 */
+	public function get_documents( $index, $type, $document_ids ) {
+		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/_mget', $document_ids, $type );
+		} else {
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/_mget', $document_ids, $type );
+		}
+
+		$request_args = [
+			'method' => 'POST',
+			'body'   => wp_json_encode(
+				array(
+					'ids' => $document_ids,
+				)
+			),
+		];
+
+		$request = $this->remote_request( $path, $request_args, [], 'post' );
+
+		if ( is_wp_error( $request ) ) {
+			return false;
+		}
+
+		$response_body = wp_remote_retrieve_body( $request );
+
+		$response = json_decode( $response_body, true );
+
+		$docs = [];
+
+		if ( isset( $response['docs'] ) && is_array( $response['docs'] ) ) {
+			foreach ( $response['docs'] as $doc ) {
+				if ( ! empty( $doc['exists'] ) || ! empty( $doc['found'] ) ) {
+					$docs[ $doc['_id'] ] = $doc['_source'];
+				}
+			}
+		}
+
+		/**
+		 * Filter documents found by Elasticsearch through the /_mget endpoint.
+		 *
+		 * @hook ep_get_documents
+		 * @since 3.6.0
+		 * @param {array} $docs Documents found indexed by ID
+		 * @param  {string} $index Index name
+		 * @param  {string} $type Index type
+		 * @param  {array} $document_ids Array of document ids
+		 * @return  {array} Documents to be returned
+		 */
+		$docs = apply_filters( 'ep_get_documents', $docs, $index, $type, $document_ids );
+
+		return $docs;
+	}
+
+	/**
 	 * Create the network alias.
 	 *
 	 * Network aliases are used to query documents across blogs in a network.
