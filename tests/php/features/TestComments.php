@@ -18,7 +18,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -44,7 +44,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Clean up after each test. Reset our mocks
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -62,7 +62,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Get Comment feature
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return ElasticPress\Feature\Comments
 	 */
 	protected function get_feature() {
@@ -72,7 +72,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Test Comment Feature slug and title
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @group comments
 	 */
     public function testConstruct() {
@@ -85,7 +85,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Test Comment Feature box summary
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @group comments
 	 */
     public function testBoxSummary() {
@@ -99,7 +99,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Test Comment Feature box long text
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @group comments
 	 */
     public function testBoxLong() {
@@ -113,7 +113,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Test enable integration
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @group comments
 	 */
 	public function testIntegrateSearchQueries() {
@@ -136,7 +136,7 @@ class TestComments extends BaseTestCase {
 	/**
 	 * Test Comment Feature status
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @group comments
 	 */
     public function testRequirementsStatus() {

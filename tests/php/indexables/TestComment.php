@@ -23,7 +23,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -49,7 +49,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Clean up after each test. Reset our mocks
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -64,7 +64,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Deletes all comments from the database.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function deleteAllComments() {
 
@@ -79,7 +79,7 @@ class TestComment extends BaseTestCase {
 	 * @param int $number The number of comments to be created.
 	 * @param bool $has_child Create child comment
 	 * @return array
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comments
 	 */
 	public function createComments( $number = 4, $has_child = false ) {
@@ -122,7 +122,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment sync
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comments
 	 */
 	public function testCommentSync() {
@@ -158,7 +158,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment sync with meta
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentSyncMeta() {
@@ -183,7 +183,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment sync on meta update
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentSyncOnMetaUpdate() {
@@ -203,7 +203,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment sync kill.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentSyncKill() {
@@ -242,7 +242,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a basic comment query with and without ElasticPress
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testBasicCommentQuery() {
@@ -289,7 +289,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment query with number argument
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryNumber() {
@@ -310,7 +310,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment query with offset argument
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryOffset() {
@@ -331,7 +331,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query ordering
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryOrderCommentContent() {
@@ -363,7 +363,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query ordering by comment id.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryOrderCommentID() {
@@ -398,7 +398,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query ordering by comment post id.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryOrderCommentPostID() {
@@ -437,7 +437,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query returning ids.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryIds() {
@@ -459,7 +459,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query returning ids.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryCount() {
@@ -477,7 +477,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with hierarchical argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryHierarchical() {
@@ -510,7 +510,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query after deleting a comment.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentDelete() {
@@ -565,7 +565,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query pagination.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPaged() {
@@ -589,7 +589,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by author email.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorEmail() {
@@ -646,7 +646,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by author URL.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorUrl() {
@@ -705,7 +705,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by user id.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryUserId() {
@@ -755,7 +755,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with author__in argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorIn() {
@@ -806,7 +806,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with author__not_in.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorNotIn() {
@@ -852,7 +852,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with comment__in argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryCommentIn() {
@@ -878,7 +878,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with comment__not_in argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryCommentNotIn() {
@@ -903,7 +903,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query ordering by comment date.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryDateQuery() {
@@ -1002,7 +1002,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with karm argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryKarma() {
@@ -1055,7 +1055,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query using comment meta.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryMeta() {
@@ -1105,7 +1105,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query using meta_query.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryMetaQuery() {
@@ -1163,7 +1163,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with parent__in argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryParentIn() {
@@ -1186,7 +1186,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with parent__not_in.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryParentNotIn() {
@@ -1209,7 +1209,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post author.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostAuthor() {
@@ -1298,7 +1298,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post id.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostId() {
@@ -1348,7 +1348,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post status.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostStatus() {
@@ -1407,7 +1407,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post type.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostType() {
@@ -1455,7 +1455,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with post_parent argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostParent() {
@@ -1497,7 +1497,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query search.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQuerySearch() {
@@ -1556,7 +1556,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by status.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryStatus() {
@@ -1657,7 +1657,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by comment type.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryType() {
@@ -1735,7 +1735,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post name.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostName() {
