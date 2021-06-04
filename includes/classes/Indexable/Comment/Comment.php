@@ -440,7 +440,7 @@ class Comment extends Indexable {
 		if ( ! empty( $query_vars['post_type'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
-					'comment_post_type' => $query_vars['post_type'],
+					'comment_post_type.raw' => $query_vars['post_type'],
 				],
 			];
 
@@ -453,7 +453,7 @@ class Comment extends Indexable {
 		if ( ! empty( $query_vars['post_name'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
-					'comment_post_name' => $query_vars['post_name'],
+					'comment_post_name.raw' => $query_vars['post_name'],
 				],
 			];
 
@@ -1018,7 +1018,7 @@ class Comment extends Indexable {
 				break;
 
 			case 'comment_type':
-				$orderby_field = 'comment_type';
+				$orderby_field = 'comment_type.raw';
 				break;
 
 			case 'user_id':
