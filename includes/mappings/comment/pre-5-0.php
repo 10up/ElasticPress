@@ -179,13 +179,33 @@ return [
 					'type' => 'long',
 				],
 				'comment_post_status'    => [
-					'type' => 'string',
+					'type'  => 'string',
+					'index' => 'not_analyzed',
 				],
 				'comment_post_type'      => [
-					'type' => 'string',
+					'type'   => 'string',
+					'fields' => [
+						'comment_post_type' => [
+							'type' => 'string',
+						],
+						'raw'               => [
+							'type'  => 'string',
+							'index' => 'not_analyzed',
+						],
+					],
 				],
 				'comment_post_name'      => [
-					'type' => 'string',
+					'type'   => 'string',
+					'fields' => [
+						'comment_post_name' => [
+							'type' => 'string',
+						],
+						'raw'               => [
+							'type'         => 'string',
+							'index'        => 'not_analyzed',
+							'ignore_above' => 10922,
+						],
+					],
 				],
 				'comment_post_parent'    => [
 					'type' => 'long',
@@ -193,11 +213,12 @@ return [
 				'comment_author'         => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_author' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'            => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -205,11 +226,12 @@ return [
 				'comment_author_email'   => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_author_email' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'                  => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -217,11 +239,12 @@ return [
 				'comment_author_url'     => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_author_url' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'                => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -229,11 +252,12 @@ return [
 				'comment_author_IP'      => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_author_IP' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'               => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -251,11 +275,12 @@ return [
 				'comment_content'        => [
 					'type'   => 'string',
 					'fields' => [
-						'description' => [
+						'comment_content' => [
 							'type' => 'string',
 						],
-						'raw'         => [
+						'raw'             => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -266,11 +291,12 @@ return [
 				'comment_approved'       => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_approved' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'              => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -278,11 +304,12 @@ return [
 				'comment_agent'          => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_agent' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'           => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -290,11 +317,12 @@ return [
 				'comment_type'           => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_type' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'          => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],

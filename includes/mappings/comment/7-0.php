@@ -194,10 +194,27 @@ return [
 				'type' => 'keyword',
 			],
 			'comment_post_type'      => [
-				'type' => 'keyword',
+				'type'   => 'text',
+				'fields' => [
+					'comment_post_type' => [
+						'type' => 'text',
+					],
+					'raw'               => [
+						'type' => 'keyword',
+					],
+				],
 			],
 			'comment_post_name'      => [
-				'type' => 'keyword',
+				'type'   => 'text',
+				'fields' => [
+					'comment_post_name' => [
+						'type' => 'text',
+					],
+					'raw'               => [
+						'type'         => 'keyword',
+						'ignore_above' => 10922,
+					],
+				],
 			],
 			'comment_post_parent'    => [
 				'type' => 'long',
@@ -205,10 +222,10 @@ return [
 			'comment_author'         => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'comment_author' => [
 						'type' => 'text',
 					],
-					'raw'  => [
+					'raw'            => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -217,10 +234,10 @@ return [
 			'comment_author_email'   => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'comment_author_email' => [
 						'type' => 'text',
 					],
-					'raw'  => [
+					'raw'                  => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -229,10 +246,10 @@ return [
 			'comment_author_url'     => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'comment_author_url' => [
 						'type' => 'text',
 					],
-					'raw'  => [
+					'raw'                => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -241,10 +258,10 @@ return [
 			'comment_author_IP'      => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'comment_author_IP' => [
 						'type' => 'text',
 					],
-					'raw'  => [
+					'raw'               => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -261,10 +278,10 @@ return [
 			'comment_content'        => [
 				'type'   => 'text',
 				'fields' => [
-					'description' => [
+					'comment_content' => [
 						'type' => 'text',
 					],
-					'raw'         => [
+					'raw'             => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -276,10 +293,10 @@ return [
 			'comment_approved'       => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'comment_approved' => [
 						'type' => 'text',
 					],
-					'raw'  => [
+					'raw'              => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -288,10 +305,10 @@ return [
 			'comment_agent'          => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'comment_agent' => [
 						'type' => 'text',
 					],
-					'raw'  => [
+					'raw'           => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -300,10 +317,10 @@ return [
 			'comment_type'           => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'comment_type' => [
 						'type' => 'text',
 					],
-					'raw'  => [
+					'raw'          => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
