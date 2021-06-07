@@ -28,6 +28,8 @@ class FeatureWooCommerceTest extends TestBase {
 	 * @testdox If user activates WooCommerce feature, it should sync posts.
 	 */
 	public function testSyncPostsAfterActivatesWooCommerceFeature() {
+		$this->maybeEnableFeature( 'woocommerce' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -59,6 +61,8 @@ class FeatureWooCommerceTest extends TestBase {
 	 * @testdox If user browses orders in the dashboard when admin feature is active, it should fetch results from Elasticsearch.
 	 */
 	public function testFetchOrdersFromElasticsearch() {
+		$this->maybeEnableFeature( 'woocommerce' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -86,6 +90,8 @@ class FeatureWooCommerceTest extends TestBase {
 	 * @testdox If user browses products in the dashboard when admin feature is active, it should fetch results from Elasticsearch.
 	 */
 	public function testFetchProductsFromElasticsearch() {
+		$this->maybeEnableFeature( 'woocommerce' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -103,6 +109,8 @@ class FeatureWooCommerceTest extends TestBase {
 	 * @testdox If user browses product category, all the products should be pulled from Elasticsearch.
 	 */
 	public function testProductCategoryServedByElasticsearch() {
+		$this->maybeEnableFeature( 'woocommerce' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -120,6 +128,8 @@ class FeatureWooCommerceTest extends TestBase {
 	 * @testdox If user browses any product river, all products should be pulled from Elasticsearch.
 	 */
 	public function testProductFilterServedByElasticsearch() {
+		$this->maybeEnableFeature( 'woocommerce' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
