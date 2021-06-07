@@ -43,7 +43,7 @@ class Term extends Indexable {
 		];
 
 		$this->sync_manager      = new SyncManager( $this->slug );
-		$this->query_integration = new QueryIntegration();
+		$this->query_integration = new QueryIntegration( $this->slug );
 	}
 
 	/**

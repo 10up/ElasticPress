@@ -850,6 +850,23 @@ abstract class Indexable {
 	}
 
 	/**
+	 * Utilitary function to check if the indexable is being fully reindexed, i.e.,
+	 * the index was deleted, a new mapping was sent and content is being reindexed.
+	 *
+	 * @param int|null $blog_id Blog ID
+	 * @return boolean
+	 */
+	public function is_full_reindexing( $blog_id = null ) {
+		if ( $this->global ) {
+			$blog_id = null;
+		} elseif ( ! $blog_id ) {
+			$blog_id = get_current_blog_id();
+		}
+
+		return \ElasticPress\IndexHelper::factory()->is_full_reindexing( $this->slug, $blog_id );
+	}
+
+	/**
 	 * Must implement a method that handles sending mapping to ES
 	 *
 	 * @return boolean

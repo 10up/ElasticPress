@@ -22,13 +22,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 class QueryIntegration {
 
 	/**
-	 * Sets up the appropriate actions and filters.
+	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
+	 *
+	 * @param string $indexable_slug Indexable slug. Optional.
 	 *
 	 * @since 3.1
+	 * @since 3.6.0 Added $indexable_slug
 	 */
-	public function __construct() {
-		// Check if we are currently indexing
-		if ( Utils\is_indexing() ) {
+	public function __construct( $indexable_slug = 'term' ) {
+		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
+		// Indexable->is_full_reindexing() is not available at this point yet, so using the IndexHelper version of it.
+		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) ) {
 			return;
 		}
 

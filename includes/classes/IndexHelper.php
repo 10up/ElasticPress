@@ -234,12 +234,6 @@ class IndexHelper {
 		$indexable->delete_index();
 		$result = $indexable->put_mapping();
 
-		if ( $result ) {
-			$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
-		} else {
-			$this->output_error( esc_html__( 'Mapping failed', 'elasticpress' ) );
-		}
-
 		/**
 		 * Fires after dashboard put mapping is completed
 		 *
@@ -252,6 +246,12 @@ class IndexHelper {
 		 * @param  {Indexable} $indexable Indexable object
 		 */
 		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start', $indexable );
+
+		if ( $result ) {
+			$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
+		} else {
+			$this->output_error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+		}
 	}
 
 	/**
@@ -526,6 +526,54 @@ class IndexHelper {
 		}
 
 		$this->output_error( $error_text );
+	}
+
+	/**
+	 * Utilitary function to check if the indexable is being fully reindexed, i.e.,
+	 * the index was deleted, a new mapping was sent and content is being reindexed.
+	 *
+	 * @param string   $indexable_slug Indexable slug.
+	 * @param int|null $blog_id        Blog ID
+	 * @return boolean
+	 */
+	public function is_full_reindexing( $indexable_slug, $blog_id = null ) {
+		if ( empty( $this->index_meta ) ) {
+			/**
+			 * Filter if a fully reindex is being done to an indexable
+			 *
+			 * @since  3.6.0
+			 * @hook ep_is_full_reindexing_{$indexable_slug}
+			 * @param  {bool} $is_full_reindexing If is fully reindexing
+			 * @return  {bool} New value
+			 */
+			return apply_filters( "ep_is_full_reindexing_{$indexable_slug}", false );
+		}
+
+		$sync_stack        = ( ! empty( $this->index_meta['sync_stack'] ) ) ? $this->index_meta['sync_stack'] : [];
+		$current_sync_item = ( ! empty( $this->index_meta['current_sync_item'] ) ) ? $this->index_meta['current_sync_item'] : [];
+
+		$is_full_reindexing = false;
+
+		$all_items = array_merge( $sync_stack, $current_sync_item );
+		foreach ( $all_items as $sync_item ) {
+			if ( $sync_item['indexable'] !== $indexable_slug ) {
+				continue;
+			}
+
+			if ( empty( $sync_item['put_mapping'] ) ) {
+				break;
+			}
+
+			if (
+				( empty( $sync_item['blog_id'] ) && ! $blog_id ) ||
+				(int) $sync_item['blog_id'] === $blog_id
+			) {
+				$is_full_reindexing = true;
+			}
+		}
+
+		/* this filter is documented above */
+		apply_filters( "ep_is_full_reindexing_{$indexable_slug}", $is_full_reindexing );
 	}
 
 	/**
