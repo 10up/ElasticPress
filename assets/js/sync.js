@@ -1,9 +1,15 @@
 /* eslint-disable camelcase, no-use-before-define */
 const { ajaxurl, epDash, history } = window;
 
-const $errorOverlay = jQuery(document.getElementsByClassName('error-overlay'));
-const $progressBar = jQuery(document.getElementsByClassName('progress-bar'));
-const $syncStatusText = jQuery(document.getElementsByClassName('sync-status'));
+const overlay = document.querySelectorAll('.error-overlay');
+const progressBar = document.querySelectorAll('.progress-bar');
+const allButtons = {
+	start: document.querySelectorAll('.start-sync'),
+	resume: document.querySelectorAll('.resume-sync'),
+	pause: document.querySelectorAll('.pause-sync'),
+	cancel: document.querySelectorAll('.cancel-sync'),
+};
+const syncStatusText = document.querySelectorAll('.sync-status');
 const $startSyncButton = jQuery(document.getElementsByClassName('start-sync'));
 const $resumeSyncButton = jQuery(document.getElementsByClassName('resume-sync'));
 const $pauseSyncButton = jQuery(document.getElementsByClassName('pause-sync'));
@@ -96,31 +102,86 @@ if (epDash.index_meta) {
 }
 
 /**
+ * Show and hide buttons.
+ *
+ * @param {Array} visibleButtons Buttons that should be visible.
+ */
+function makeButtonsVisible(visibleButtons) {
+	Object.keys(allButtons).forEach((key) => {
+		allButtons[key].forEach((button) => {
+			button.style.display = visibleButtons.includes(key) ? 'inline' : 'none';
+		});
+	});
+}
+
+/**
+ * Change the sync status text and show/hide the element if needed.
+ *
+ * @param {string} newText New sync status text.
+ */
+function updateSyncText(newText) {
+	syncStatusText.forEach((syncStatus) => {
+		syncStatus.innerText = newText;
+		syncStatus.style.display = newText ? 'inline' : 'none';
+	});
+}
+
+/**
+ * Show or hide the progress bar(s).
+ *
+ * @param {boolean} display Wheter the progress bar(s) should or should not be visible.
+ */
+function showProgressBar(display = true) {
+	progressBar.forEach((bar) => {
+		bar.style.display = display ? 'block' : 'none';
+	});
+}
+
+/**
+ * Show or hide the overlay(s).
+ *
+ * @param {boolean} display Wheter the overlay(s) should or should not be visible.
+ */
+function showOverlay(display = true) {
+	overlay.forEach((overlay) => {
+		if (display) {
+			overlay.classList.add('syncing');
+		} else {
+			overlay.classList.remove('syncing');
+		}
+	});
+}
+
+/**
  * Update dashboard with syncing information
  */
 function updateSyncDash() {
 	let text;
 
-	if (processed === 0) {
-		$progressBar.css({ width: '1%' });
+	const progressBarWidth =
+		processed === 0 ? 1 : (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
+	progressBar.forEach((bar) => {
+		bar.style.width = `${progressBarWidth}%`;
+	});
+
+	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
+	if (isSyncing) {
+		showProgressBar();
+		showOverlay();
 	} else {
-		const width = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
-		$progressBar.css({ width: `${width}%` });
+		showProgressBar(false);
+		showOverlay(false);
+
+		setTimeout(() => {
+			updateSyncText('');
+		}, 7000);
+
+		makeButtonsVisible(['start']);
 	}
 
 	if (syncStatus === 'initialsync') {
-		text = epDash.sync_initial;
-
-		$syncStatusText.text(text);
-
-		$syncStatusText.show();
-		$progressBar.show();
-		$pauseSyncButton.show();
-		$errorOverlay.addClass('syncing');
-
-		$cancelSyncButton.hide();
-		$resumeSyncButton.hide();
-		$startSyncButton.hide();
+		updateSyncText(epDash.sync_initial);
+		makeButtonsVisible(['pause']);
 	} else if (syncStatus === 'sync') {
 		text = epDash.sync_syncing;
 
@@ -135,17 +196,8 @@ function updateSyncDash() {
 				text += ` (${currentSyncItem.url})`;
 			}
 		}
-
-		$syncStatusText.text(text);
-
-		$syncStatusText.show();
-		$progressBar.show();
-		$pauseSyncButton.show();
-		$errorOverlay.addClass('syncing');
-
-		$cancelSyncButton.hide();
-		$resumeSyncButton.hide();
-		$startSyncButton.hide();
+		updateSyncText(text);
+		makeButtonsVisible(['pause']);
 	} else if (syncStatus === 'pause') {
 		text = epDash.sync_paused;
 
@@ -160,16 +212,8 @@ function updateSyncDash() {
 			text += ` (${currentSyncItem.url})`;
 		}
 
-		$syncStatusText.text(text);
-
-		$syncStatusText.show();
-		$progressBar.show();
-		$pauseSyncButton.hide();
-		$errorOverlay.addClass('syncing');
-
-		$cancelSyncButton.show();
-		$resumeSyncButton.show();
-		$startSyncButton.hide();
+		updateSyncText(text);
+		makeButtonsVisible(['cancel', 'resume']);
 	} else if (syncStatus === 'wpcli') {
 		text = epDash.sync_wpcli;
 
@@ -184,66 +228,16 @@ function updateSyncDash() {
 			text += ` (${currentSyncItem.url})`;
 		}
 
-		$syncStatusText.text(text);
-
-		$syncStatusText.show();
-		$progressBar.show();
-		$pauseSyncButton.hide();
-		$errorOverlay.addClass('syncing');
-
-		$cancelSyncButton.show();
-		$resumeSyncButton.hide();
-		$startSyncButton.hide();
+		updateSyncText(text);
+		makeButtonsVisible(['cancel']);
 	} else if (syncStatus === 'error') {
-		$syncStatusText.text(epDash.sync_error);
-		$syncStatusText.show();
-		$startSyncButton.show();
-		$cancelSyncButton.hide();
-		$resumeSyncButton.hide();
-		$pauseSyncButton.hide();
-		$errorOverlay.removeClass('syncing');
-		$progressBar.hide();
-
-		setTimeout(() => {
-			$syncStatusText.hide();
-		}, 7000);
+		updateSyncText(epDash.sync_error);
 	} else if (syncStatus === 'cancel') {
-		$syncStatusText.hide();
-		$progressBar.hide();
-		$pauseSyncButton.hide();
-		$errorOverlay.removeClass('syncing');
-
-		$cancelSyncButton.hide();
-		$resumeSyncButton.hide();
-		$startSyncButton.show();
+		updateSyncText('');
 	} else if (syncStatus === 'finished') {
-		$syncStatusText.text(epDash.sync_complete);
-
-		$syncStatusText.show();
-		$progressBar.hide();
-		$pauseSyncButton.hide();
-		$cancelSyncButton.hide();
-		$resumeSyncButton.hide();
-		$startSyncButton.show();
-		$errorOverlay.removeClass('syncing');
-
-		setTimeout(() => {
-			$syncStatusText.hide();
-		}, 7000);
+		updateSyncText(epDash.sync_complete);
 	} else if (syncStatus === 'interrupt') {
-		$syncStatusText.text(epDash.sync_interrupted);
-
-		$syncStatusText.show();
-		$progressBar.hide();
-		$pauseSyncButton.hide();
-		$cancelSyncButton.hide();
-		$resumeSyncButton.hide();
-		$startSyncButton.show();
-		$errorOverlay.removeClass('syncing');
-
-		setTimeout(() => {
-			$syncStatusText.hide();
-		}, 7000);
+		updateSyncText(epDash.sync_interrupted);
 	}
 }
 
@@ -272,6 +266,10 @@ function cliSync() {
 			},
 		})
 		.done((response) => {
+			if (syncStatus === 'interrupt') {
+				return;
+			}
+
 			if (syncStatus === 'wpcli') {
 				toProcess = response.data?.total_items;
 				processed = response.data?.items_indexed;
@@ -281,17 +279,13 @@ function cliSync() {
 					url: response.data?.url,
 				};
 
-				if (response.data?.indexing) {
-					updateSyncDash();
+				syncStatus = '';
+				updateSyncDash();
 
+				if (response.data?.indexing) {
 					cliSync();
 					return;
 				}
-
-				syncStatus = '';
-				updateSyncDash();
-			} else if (syncStatus === 'interrupt') {
-				return;
 			}
 
 			syncStatus = 'finished';
