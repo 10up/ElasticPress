@@ -994,9 +994,26 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['post_mime_type'] ) ) {
 			if ( is_array( $args['post_mime_type'] ) ) {
+
+				$args_post_mime_type = [];
+
+				foreach ( $args['post_mime_type'] as $mime_type ) {
+					/**
+					 * check if matches the MIME type pattern: type/subtype and
+					 * leave an empty string as posts, pages and CPTs don't have a MIME type
+					 */
+					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
+						$args_post_mime_type[] = $mime_type;
+					} else {
+						$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
+
+						$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+					}
+				}
+
 				$filter['bool']['must'][] = array(
 					'terms' => array(
-						'post_mime_type' => (array) $args['post_mime_type'],
+						'post_mime_type' => $args_post_mime_type,
 					),
 				);
 
