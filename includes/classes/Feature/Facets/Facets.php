@@ -444,8 +444,9 @@ class Facets extends Feature {
 		$pagination = strpos( $_SERVER['REQUEST_URI'], '/page' );
 
 		if ( false !== $pagination ) {
-			$url = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
-			return strtok( $url, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
+			$url 	 = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
+			$new_url = strtok( $url, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
+			return ! empty ( $new_url ) ? $new_url : home_url();
 		}
 
 		return strtok( $_SERVER['REQUEST_URI'], '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
