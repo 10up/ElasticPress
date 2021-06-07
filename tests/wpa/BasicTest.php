@@ -33,10 +33,23 @@ class BasicTest extends TestBase {
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+		try {
+			$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
 
-		foreach ( $this->indexes as $index_name ) {
-			$I->seeText( $index_name );
+			foreach ( $this->indexes as $index_name ) {
+				$I->seeText( $index_name );
+			}
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
+
+			foreach ( $this->indexes as $index_name ) {
+				$this->assertStringContainsString( $index_name, $cli_result );
+			}
 		}
 	}
 
