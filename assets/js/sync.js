@@ -340,6 +340,9 @@ function sync(putMapping = false) {
 				syncStatus = 'finished';
 				updateSyncDash();
 
+				epSyncOutput.innerHTML += `===============================\n`;
+				epSyncOutput.scrollTop = epSyncOutput.scrollHeight;
+
 				if (epDash.install_sync) {
 					document.location.replace(epDash.install_complete_url);
 				}
