@@ -30,15 +30,17 @@ class GeneralTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->deactivatePlugin( $I );
+		$this->deactivatePlugin();
 
-		$this->activatePlugin( $I, 'fake-new-activation' );
+		$this->activatePlugin( null, 'fake-new-activation' );
 
-		$this->activatePlugin( $I );
+		$this->activatePlugin();
+
+		$I->moveTo( '/wp-admin/plugins.php' );
 
 		$I->seeText( 'ElasticPress is almost ready to go.' );
 
-		$this->deactivatePlugin( $I, 'fake-new-activation' );
+		$this->deactivatePlugin( null, 'fake-new-activation' );
 	}
 
 	/**
@@ -49,17 +51,17 @@ class GeneralTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->deactivatePlugin( $I );
+		$this->deactivatePlugin();
 
-		$this->activatePlugin( $I, 'fake-new-activation' );
+		$this->activatePlugin( null, 'fake-new-activation' );
 
-		$this->activatePlugin( $I );
+		$this->activatePlugin();
 
 		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->seeText( 'Index Your Content', '.setup-button' );
 
-		$this->deactivatePlugin( $I, 'fake-new-activation' );
+		$this->deactivatePlugin( null, 'fake-new-activation' );
 	}
 
 	/**
@@ -89,20 +91,22 @@ class GeneralTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( $this->isElasticPressIo( $I ) ) {
-			return;
+		if ( $this->isElasticPressIo() ) {
+			$this->markTestSkipped( 'Skipped while using EP.io' );
 		}
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
-		$this->deactivatePlugin( $I );
+		$this->deactivatePlugin();
 
-		$this->activatePlugin( $I, 'unsupported-elasticsearch-version' );
+		$this->activatePlugin( null, 'unsupported-elasticsearch-version' );
 
-		$this->activatePlugin( $I );
+		$this->activatePlugin();
+
+		$I->moveTo( '/wp-admin/plugins.php' );
 
 		$I->seeText( 'ElasticPress may or may not work properly.' );
 
-		$this->deactivatePlugin( $I, 'unsupported-elasticsearch-version' );
+		$this->deactivatePlugin( null, 'unsupported-elasticsearch-version' );
 	}
 }

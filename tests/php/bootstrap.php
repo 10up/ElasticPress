@@ -44,8 +44,12 @@ function load_plugin() {
 	update_option( 'ep_host', $host );
 	update_site_option( 'ep_host', $host );
 
-	define( 'EP_IS_NETWORK', true );
-	define( 'WP_NETWORK_ADMIN', true );
+	define( 'EP_UNIT_TESTS', true );
+
+	if ( defined( 'WP_TESTS_MULTISITE' ) && '1' === WP_TESTS_MULTISITE ) {
+		define( 'EP_IS_NETWORK', true );
+		define( 'WP_NETWORK_ADMIN', true );
+	}
 
 	include_once __DIR__ . '/../../vendor/woocommerce/woocommerce.php';
 	require_once __DIR__ . '/../../elasticpress.php';

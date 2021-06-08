@@ -184,6 +184,19 @@ class Facets extends Feature {
 	 * @return bool
 	 */
 	public function is_facetable( $query ) {
+
+		/**
+		 * Bypass the standard checks and set a query to be facetable
+		 *
+		 * @hook ep_is_facetable
+		 * @param  {bool}     $bypass Defaults to false.
+		 * @param  {WP_Query} $query  The current WP_Query.
+		 * @return {bool}     true to bypass, false to ignore
+		 */
+		if ( \apply_filters( 'ep_is_facetable', false, $query ) ) {
+			return true;
+		}
+
 		if ( is_admin() ) {
 			return false;
 		}
@@ -252,11 +265,29 @@ class Facets extends Feature {
 
 		$facets = [];
 
+		/**
+		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
+		 * Values available out-of-the-box are:
+		 *  - slug (default)
+		 *  - term_id
+		 *  - name
+		 *  - parent
+		 *  - term_taxonomy_id
+		 *  - term_order
+		 *  - facet (retrieves a JSON representation of the term object)
+		 *
+		 * @since 3.6.0
+		 * @hook ep_facet_use_field
+		 * @param  {string} $field The term field to use
+		 * @return  {string} The chosen term field
+		 */
+		$facet_field = apply_filters( 'ep_facet_use_field', 'slug' );
+
 		foreach ( $taxonomies as $slug => $taxonomy ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
-					'size'  => 10000,
-					'field' => 'terms.' . $slug . '.slug',
+					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
+					'field' => 'terms.' . $slug . '.' . $facet_field,
 				),
 			);
 		}
@@ -318,7 +349,7 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function get_aggs( $response, $query, $query_args, $query_object ) {
-		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $query_object->is_main_query() ) {
+		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $this->is_facetable( $query_object ) ) {
 			return;
 		}
 
@@ -330,6 +361,10 @@ class Facets extends Feature {
 			if ( isset( $response['aggregations']['terms'] ) && is_array( $response['aggregations']['terms'] ) ) {
 				foreach ( $response['aggregations']['terms'] as $key => $agg ) {
 					if ( 'doc_count' === $key ) {
+						continue;
+					}
+
+					if ( ! is_array( $agg ) || empty( $agg['buckets'] ) ) {
 						continue;
 					}
 

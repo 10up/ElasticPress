@@ -28,6 +28,8 @@ const mapEntry = (synonyms = [], id = '') => {
  * Reduce state to Solr spec.
  *
  * @param {object} state Current state.
+ * @param {object[]} state.sets Array of synonym sets.
+ * @param {object[]} state.alternatives Array of alternative sets.
  * @returns {string}
  */
 const reduceStateToSolr = ({ sets, alternatives }) => {

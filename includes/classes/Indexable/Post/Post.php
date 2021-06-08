@@ -336,25 +336,36 @@ class Post extends Indexable {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $post_date_gmt Post date
+	 * @param string $date_to_prepare Post date
 	 * @since 0.1.4
 	 * @return array
 	 */
-	private function prepare_date_terms( $post_date_gmt ) {
-		$timestamp  = strtotime( $post_date_gmt );
-		$date_terms = array(
-			'year'          => (int) date_i18n( 'Y', $timestamp ),
-			'month'         => (int) date_i18n( 'm', $timestamp ),
-			'week'          => (int) date_i18n( 'W', $timestamp ),
-			'dayofyear'     => (int) date_i18n( 'z', $timestamp ),
-			'day'           => (int) date_i18n( 'd', $timestamp ),
-			'dayofweek'     => (int) date_i18n( 'w', $timestamp ),
-			'dayofweek_iso' => (int) date_i18n( 'N', $timestamp ),
-			'hour'          => (int) date_i18n( 'H', $timestamp ),
-			'minute'        => (int) date_i18n( 'i', $timestamp ),
-			'second'        => (int) date_i18n( 's', $timestamp ),
-			'm'             => (int) ( date_i18n( 'Y', $timestamp ) . date_i18n( 'm', $timestamp ) ), // yearmonth
-		);
+	public function prepare_date_terms( $date_to_prepare ) {
+		$terms_to_prepare = [
+			'year'          => 'Y',
+			'month'         => 'm',
+			'week'          => 'W',
+			'dayofyear'     => 'z',
+			'day'           => 'd',
+			'dayofweek'     => 'w',
+			'dayofweek_iso' => 'N',
+			'hour'          => 'H',
+			'minute'        => 'i',
+			'second'        => 's',
+			'm'             => 'Ym', // yearmonth
+		];
+
+		// Combine all the date term formats and perform one single call to date_i18n() for performance.
+		$date_format    = implode( '||', array_values( $terms_to_prepare ) );
+		$combined_dates = explode( '||', date_i18n( $date_format, strtotime( $date_to_prepare ) ) );
+
+		// Then split up the results for individual indexing.
+		$date_terms = [];
+		foreach ( $terms_to_prepare as $term_name => $date_format ) {
+			$index_in_combined_format = array_search( $term_name, array_keys( $terms_to_prepare ), true );
+			$date_terms[ $term_name ] = (int) $combined_dates[ $index_in_combined_format ];
+		}
+
 		return $date_terms;
 	}
 
@@ -429,6 +440,9 @@ class Post extends Indexable {
 						'term_taxonomy_id' => $term->term_taxonomy_id,
 						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
 					);
+
+					$terms_dic[ $term->term_id ]['facet'] = wp_json_encode( $terms_dic[ $term->term_id ] );
+
 					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
 					}
@@ -457,12 +471,16 @@ class Post extends Indexable {
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
 			$terms[ $parent_term->term_id ] = array(
-				'term_id'    => $parent_term->term_id,
-				'slug'       => $parent_term->slug,
-				'name'       => $parent_term->name,
-				'parent'     => $parent_term->parent,
-				'term_order' => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
+				'term_id'          => $parent_term->term_id,
+				'slug'             => $parent_term->slug,
+				'name'             => $parent_term->name,
+				'parent'           => $parent_term->parent,
+				'term_taxonomy_id' => $parent_term->term_taxonomy_id,
+				'term_order'       => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
 			);
+
+			$terms[ $parent_term->term_id ]['facet'] = wp_json_encode( $terms[ $parent_term->term_id ] );
+
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
 	}
@@ -771,7 +789,7 @@ class Post extends Indexable {
 
 				$args['tax_query'] = array_map(
 					function( $tax_query ) use ( $args ) {
-						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'] ) ) {
+						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'], true ) ) {
 							$tax_query['terms'][] = $args['tag_id'];
 						}
 
@@ -864,6 +882,21 @@ class Post extends Indexable {
 		}
 
 		/**
+		 * 'post_name__in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['post_name__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_name.raw' => array_values( (array) $args['post_name__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * 'post__not_in' arg support.
 		 *
 		 * @since x.x
@@ -872,6 +905,36 @@ class Post extends Indexable {
 			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(
 					'post_id' => (array) $args['post__not_in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'category__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['category__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'tag__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['tag__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
 				),
 			);
 
@@ -902,6 +965,22 @@ class Post extends Indexable {
 			);
 
 			$use_filters = true;
+		} elseif ( ! empty( $args['author__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_author.id' => array_values( (array) $args['author__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		} elseif ( ! empty( $args['author__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'post_author.id' => array_values( (array) $args['author__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
 		}
 
 		/**
@@ -915,9 +994,26 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['post_mime_type'] ) ) {
 			if ( is_array( $args['post_mime_type'] ) ) {
+
+				$args_post_mime_type = [];
+
+				foreach ( $args['post_mime_type'] as $mime_type ) {
+					/**
+					 * check if matches the MIME type pattern: type/subtype and
+					 * leave an empty string as posts, pages and CPTs don't have a MIME type
+					 */
+					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
+						$args_post_mime_type[] = $mime_type;
+					} else {
+						$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
+
+						$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+					}
+				}
+
 				$filter['bool']['must'][] = array(
 					'terms' => array(
-						'post_mime_type' => (array) $args['post_mime_type'],
+						'post_mime_type' => $args_post_mime_type,
 					),
 				);
 
@@ -1063,6 +1159,9 @@ class Post extends Indexable {
 		/**
 		 * Filter default post search fields
 		 *
+		 * If you are using the weighting engine, this filter should not be used.
+		 * Instead, you should use the ep_weighting_configuration_for_search filter.
+		 *
 		 * @hook ep_search_fields
 		 * @param  {array} $search_fields Default search fields
 		 * @param  {array} $args WP Query arguments
@@ -1070,63 +1169,116 @@ class Post extends Indexable {
 		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
-		$query = array(
-			'bool' => array(
-				'should' => array(
-					array(
-						'multi_match' => array(
-							'query'  => '',
-							'type'   => 'phrase',
-							'fields' => $search_fields,
-							/**
-							 * Filter boost for post match phrase query
-							 *
-							 * @hook ep_match_phrase_boost
-							 * @param  {int} $boost Phrase boost
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New phrase boost
-							 */
-							'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+		$default_algorithm_version = '3.5';
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$search_algorithm_version_option = get_site_option( 'ep_search_algorithm_version', $default_algorithm_version );
+		} else {
+			$search_algorithm_version_option = get_option( 'ep_search_algorithm_version', $default_algorithm_version );
+		}
+
+		/**
+		 * Filter the algorithm version to be used.
+		 *
+		 * @since  3.5
+		 * @hook ep_search_algorithm_version
+		 * @param  {string} $search_algorithm_version Algorithm version.
+		 * @return  {string} New algorithm version
+		 */
+		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
+
+		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
+
+		if ( '3.5' === $search_algorithm_version ) {
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'type'   => 'phrase',
+								'fields' => $search_fields,
+								/**
+								 * Filter boost for post match phrase query
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New phrase boost
+								 */
+								'boost'  => apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $args ),
+							),
 						),
-					),
-					array(
-						'multi_match' => array(
-							'query'     => '',
-							'fields'    => $search_fields,
-							/**
-							 * Filter boost for post match query
-							 *
-							 * @hook ep_match_boost
-							 * @param  {int} $boost Boost
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New boost
-							 */
-							'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
-							'fuzziness' => 0,
-							'operator'  => 'and',
-						),
-					),
-					array(
-						'multi_match' => array(
-							'query'     => '',
-							'fields'    => $search_fields,
-							/**
-							 * Filter fuzziness for post query
-							 *
-							 * @hook ep_fuzziness_arg
-							 * @param  {int} $fuzziness Fuzziness
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New fuzziness
-							 */
-							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'fields' => $search_fields,
+								'type'   => 'phrase',
+								'slop'   => 5,
+							),
 						),
 					),
 				),
-			),
-		);
+			);
+		} else {
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'type'   => 'phrase',
+								'fields' => $search_fields,
+								/**
+								 * Filter boost for post match phrase query
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New phrase boost
+								 */
+								'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $search_text,
+								'fields'    => $search_fields,
+								/**
+								 * Filter boost for post match query
+								 *
+								 * @hook ep_match_boost
+								 * @param  {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New boost
+								 */
+								'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
+								'fuzziness' => 0,
+								'operator'  => 'and',
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $search_text,
+								'fields'    => $search_fields,
+								/**
+								 * Filter fuzziness for post query
+								 *
+								 * @hook ep_fuzziness_arg
+								 * @param  {int} $fuzziness Fuzziness
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New fuzziness
+								 */
+								'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
+							),
+						),
+					),
+				),
+			);
+		}
 
 		/**
 		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
@@ -1136,19 +1288,25 @@ class Post extends Indexable {
 		 */
 
 		if ( ! empty( $args['s'] ) ) {
-			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
-			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
-			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-
 			/**
 			 * Filter formatted Elasticsearch post query (only contains query part)
 			 *
 			 * @hook ep_formatted_args_query
-			 * @param {array} $query Current query
-			 * @param {array} $query_vars Query variables
-			 * @return  {array} New query
+			 * @param {array}  $query         Current query
+			 * @param {array}  $query_vars    Query variables
+			 * @param {string} $search_text   Search text
+			 * @param {array}  $search_fields Search fields
+			 * @return {array} New query
+			 *
+			 * @since 3.5.5 $search_text and $search_fields parameters added.
 			 */
-			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args );
+			$formatted_args['query'] = apply_filters(
+				'ep_formatted_args_query',
+				$query,
+				$args,
+				$search_text,
+				$search_fields
+			);
 		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
@@ -1193,6 +1351,7 @@ class Post extends Indexable {
 
 		if ( false !== $sticky_posts
 			&& $enable_sticky_posts
+			&& empty( $args['s'] )
 			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
 			$new_sort = [
 				[
@@ -1307,7 +1466,7 @@ class Post extends Indexable {
 		}
 
 		if ( isset( $args['offset'] ) ) {
-			$formatted_args['from'] = $args['offset'];
+			$formatted_args['from'] = (int) $args['offset'];
 		}
 
 		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
@@ -1369,7 +1528,7 @@ class Post extends Indexable {
 		/**
 		 * Filter formatted Elasticsearch [ost ]query (entire query)
 		 *
-		 * @hook ep_formatted_args_query
+		 * @hook ep_formatted_args
 		 * @param {array} $formatted_args Formatted Elasticsearch query
 		 * @param {array} $query_vars Query variables
 		 * @param {array} $query Query part
