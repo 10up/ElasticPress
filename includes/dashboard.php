@@ -978,7 +978,7 @@ function sanitize_bulk_settings( $bulk_settings = 350 ) {
 /**
  * Sanitize dynamic index setting.
  *
- * @param int $bulk_settings Number of bulk content items
+ * @param int $enable_dynamic_index 1 tp enable dynamic inde
  * @return int
  */
 function sanitize_enable_dynamic_index( $enable_dynamic_index = 0 ) {
