@@ -456,8 +456,9 @@ function sync() {
 				return;
 			}
 
-			if (response.hasOwnProperty('retry') && response.retry) {
-				return sync();
+			if (response?.retry) {
+				sync();
+				return;
 			}
 
 			toProcess = response.data.found_items;
