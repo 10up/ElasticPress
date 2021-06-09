@@ -17,8 +17,8 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
+		if ( ! $this->isElasticPressIo() ) {
+			$this->markTestSkipped( 'Skipped while not using EP.io' );
 		}
 
 		$this->activateDocumentFeature( $I );
@@ -44,8 +44,8 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
+		if ( ! $this->isElasticPressIo() ) {
+			$this->markTestSkipped( 'Skipped while not using EP.io' );
 		}
 
 		$this->maybeSync( $I );
@@ -67,8 +67,8 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
+		if ( ! $this->isElasticPressIo() ) {
+			$this->markTestSkipped( 'Skipped while not using EP.io' );
 		}
 
 		$this->activateDocumentFeature( $I );
