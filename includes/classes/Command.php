@@ -570,20 +570,12 @@ class Command extends WP_CLI_Command {
 			$indexables = explode( ',', str_replace( ' ', '', $assoc_args['indexables'] ) );
 		}
 
-		$total_indexed   = 0;
-		$total_indexable = 0;
-		$index_errors    = array();
-
-		// Hold original wp_actions.
-		$this->temporary_wp_actions = $wp_actions;
-
 		/**
 		 * Prior to the index command invoking
 		 * Useful for deregistering filters/actions that occur during a query request
 		 *
 		 * @since 1.4.1
 		 */
-
 		/**
 		 * Fires before starting a CLI index
 		 *
@@ -593,35 +585,27 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
-		} else {
-			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
-		}
+		// if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		// 	set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+		// } else {
+		// 	set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+		// }
 
-		timer_start();
+		add_action( 'ep_cli_put_mapping', [ $this, 'stop_on_failed_mapping' ], 10, 4 );
+		\ElasticPress\IndexHelper::factory()->full_index(
+			[
+				'method'        => 'cli',
+				'indexables'    => $indexables,
+				'put_mapping'   => ! empty( $setup_option ),
+				'output_method' => [ $this, 'index_output' ],
+				'network-wide'  => ( ! empty( $assoc_args['network-wide'] ) ) ? $assoc_args['network-wide'] : null,
+			]
+		);
 
-		// This clears away dashboard notifications.
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_last_sync', time() );
-			delete_site_option( 'ep_need_upgrade_sync' );
-			delete_site_option( 'ep_feature_auto_activated_sync' );
-		} else {
-			update_option( 'ep_last_sync', time() );
-			delete_option( 'ep_need_upgrade_sync' );
-			delete_option( 'ep_feature_auto_activated_sync' );
-		}
+		die();
 
-		// Run setup if flag was passed.
-		if ( true === $setup_option ) {
-
-			// Right now setup is just the put_mapping command, as this also deletes the index(s) first.
-			if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
-				$this->delete_transient();
-
-				exit( 1 );
-			}
-		}
+		// Hold original wp_actions.
+		$this->temporary_wp_actions = $wp_actions;
 
 		$all_indexables               = Indexables::factory()->get_all();
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
@@ -1612,6 +1596,30 @@ class Command extends WP_CLI_Command {
 			WP_CLI::log( '====== End Stats ======' );
 		} else {
 			WP_CLI::warning( $current_index . ' is not currently indexed.' );
+		}
+	}
+
+	public function index_output( $message ) {
+		switch ( $message['status'] ) {
+			case 'success':
+				WP_CLI::success( $message['message'] );
+				break;
+
+			case 'error':
+				WP_CLI::error( $message['message'] );
+				break;
+
+			default:
+				WP_CLI::log( $message['message'] );
+				break;
+		}
+	}
+
+	public function stop_on_failed_mapping( $index_meta, $status, $indexable, $result ) {
+		if ( ! $result ) {
+			$this->delete_transient();
+
+			exit( 1 );
 		}
 	}
 }

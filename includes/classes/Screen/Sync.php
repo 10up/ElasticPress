@@ -76,6 +76,7 @@ class Sync {
 
 		\ElasticPress\IndexHelper::factory()->full_index(
 			[
+				'method'        => 'dashboard',
 				'put_mapping'   => ! empty( $_REQUEST['put_mapping'] ),
 				'output_method' => [ $this, 'index_output' ],
 			]

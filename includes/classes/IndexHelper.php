@@ -88,13 +88,26 @@ class IndexHelper {
 			'start'         => true,
 			'sync_stack'    => [],
 			'network_alias' => [],
+			'start_time'    => microtime( true ),
+			'totals'        => [
+				'total'      => 0,
+				'synced'     => 0,
+				'skipped'    => 0,
+				'failed'     => 0,
+				'total_time' => 0,
+				'errors'     => [],
+			],
 		];
 
-		$global_indexables     = Indexables::factory()->get_all( true, true );
-		$non_global_indexables = Indexables::factory()->get_all( false, true );
+		$global_indexables     = $this->filter_indexables( Indexables::factory()->get_all( true, true ) );
+		$non_global_indexables = $this->filter_indexables( Indexables::factory()->get_all( false, true ) );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sites = Utils\get_sites();
+			if ( empty( $this->args['network-wide'] ) || ! is_numeric( $this->args['network-wide'] ) ) {
+				$this->args['network-wide'] = 0;
+			}
+
+			$sites = Utils\get_sites( $this->args['network-wide'] );
 
 			foreach ( $sites as $site ) {
 				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
@@ -153,6 +166,22 @@ class IndexHelper {
 	}
 
 	/**
+	 * Given an array of indexables, check if they are part of the indexable args or not.
+	 *
+	 * @since 3.6.0
+	 * @param array $indexables Indexable slugs.
+	 * @return array
+	 */
+	protected function filter_indexables( $indexables ) {
+		return array_filter(
+			$indexables,
+			function( $indexable ) {
+				return empty( $this->args['indexables'] ) || in_array( $indexable, $this->args['indexables'], true );
+			}
+		);
+	}
+
+	/**
 	 * Check if there are still items to be processed in the stack.
 	 *
 	 * @since 3.6.0
@@ -169,7 +198,16 @@ class IndexHelper {
 	 */
 	protected function process_sync_item() {
 		if ( empty( $this->index_meta['current_sync_item'] ) ) {
-			$this->index_meta['current_sync_item'] = array_shift( $this->index_meta['sync_stack'] );
+			$this->index_meta['current_sync_item'] = array_merge(
+				array_shift( $this->index_meta['sync_stack'] ),
+				[
+					'total'   => 0,
+					'synced'  => 0,
+					'skipped' => 0,
+					'failed'  => 0,
+					'errors'  => [],
+				]
+			);
 
 			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
@@ -237,15 +275,16 @@ class IndexHelper {
 		/**
 		 * Fires after dashboard put mapping is completed
 		 *
-		 * @since 2.1
-		 * @since 3.6.0 Added $indexable
+		 * @since 2.1   Previously called only as 'ep_dashboard_put_mapping'
+		 * @since 3.6.0 Added $indexable and $result
 		 *
-		 * @hook ep_dashboard_put_mapping
+		 * @hook ep_{$index_method}_put_mapping
 		 * @param  {array} $index_meta Index meta information
 		 * @param  {string} $status Current indexing status
 		 * @param  {Indexable} $indexable Indexable object
+		 * @param  {bool} $result Whether the request was successful or not
 		 */
-		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start', $indexable );
+		do_action( "ep_{$this->args['method']}_put_mapping", $this->index_meta, 'start', $indexable, $result );
 
 		if ( $result ) {
 			$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
@@ -263,6 +302,8 @@ class IndexHelper {
 		$this->current_query = $this->get_objects_to_index();
 
 		$this->index_meta['found_items'] = (int) $this->current_query['total_objects'];
+
+		$this->index_meta['current_sync_item']['total'] = $this->index_meta['found_items'];
 
 		if ( $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
 			$this->index_next_batch();
@@ -347,7 +388,9 @@ class IndexHelper {
 			 * @param  {array} $object Object to sync
 			 * @return {Indexable} Indexable that object belongs to
 			 */
-			if ( ! apply_filters( 'ep_item_sync_kill', false, $object, $indexable ) ) {
+			if ( apply_filters( 'ep_item_sync_kill', false, $object, $indexable ) ) {
+				$this->index_meta['current_sync_item']['skipped']++;
+			} else {
 				$queued_items[ $object->ID ] = true;
 			}
 		}
@@ -358,6 +401,9 @@ class IndexHelper {
 			$return = $indexable->bulk_index( array_keys( $queued_items ) );
 
 			if ( is_wp_error( $return ) ) {
+				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
+				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $return->get_error_messages() );
+
 				$this->output_error( implode( "\n", $return->get_error_messages() ) );
 			} elseif ( isset( $return['errors'] ) && true === $return['errors'] ) {
 				$failed_objects = array_filter(
@@ -366,7 +412,16 @@ class IndexHelper {
 						return ! empty( $item['index']['error'] );
 					}
 				);
-				$this->output_index_errors( $failed_objects );
+
+				$errors_output = $this->output_index_errors( $failed_objects );
+
+				$this->index_meta['current_sync_item']['synced'] += count( $queued_items ) - count( $failed_objects );
+				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
+				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $errors_output );
+
+				$this->output_error( $errors_output );
+			} else {
+				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
 		}
 
@@ -387,8 +442,69 @@ class IndexHelper {
 	 * @return void
 	 */
 	protected function index_cleanup() {
+		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
+
+		$current_sync_item = $this->index_meta['current_sync_item'];
+
+		$this->index_meta['totals']['total']   += $current_sync_item['total'];
+		$this->index_meta['totals']['synced']  += $current_sync_item['synced'];
+		$this->index_meta['totals']['skipped'] += $current_sync_item['skipped'];
+		$this->index_meta['totals']['failed']  += $current_sync_item['failed'];
+		$this->index_meta['totals']['errors']   = array_merge(
+			$this->index_meta['totals']['errors'],
+			$current_sync_item['errors']
+		);
+
+		if ( $current_sync_item['failed'] ) {
+			$this->index_meta['current_sync_item']['failed'] = 0;
+
+			if ( ! empty( $current_sync_item['blog_id'] ) ) {
+				$message = sprintf(
+					/* translators: 1: indexable (plural), 2: Blog ID, 3: number of failed objects */
+					esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ),
+					esc_html( strtolower( $indexable->labels['plural'] ) ),
+					$current_sync_item['blog_id'],
+					$current_sync_item['failed']
+				);
+			} else {
+				$message = sprintf(
+					/* translators: 1: indexable (plural), 2: number of failed objects */
+					esc_html__( 'Number of %1$s index errors: %2$d', 'elasticpress' ),
+					esc_html( strtolower( $indexable->labels['plural'] ) ),
+					$current_sync_item['failed']
+				);
+			}
+
+			$this->output(
+				[
+					'message'    => $message,
+					'index_meta' => $this->index_meta,
+					'status'     => 'warning',
+				]
+			);
+		}
+
 		$this->index_meta['offset']            = 0;
 		$this->index_meta['current_sync_item'] = null;
+
+		if ( ! empty( $current_sync_item['blog_id'] ) ) {
+			$message = sprintf(
+				/* translators: 1: indexable (plural), 2: Blog ID, 3: number of synced objects */
+				esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ),
+				esc_html( strtolower( $indexable->labels['plural'] ) ),
+				$current_sync_item['blog_id'],
+				$current_sync_item['synced']
+			);
+		} else {
+			$message = sprintf(
+				/* translators: 1: indexable (plural), 2: number of synced objects */
+				esc_html__( 'Number of %1$s indexed: %2$d', 'elasticpress' ),
+				esc_html( strtolower( $indexable->labels['plural'] ) ),
+				$current_sync_item['synced']
+			);
+		}
+
+		$this->output_success( $message );
 	}
 
 	/**
@@ -397,7 +513,14 @@ class IndexHelper {
 	 * @since 3.6.0
 	 */
 	protected function full_index_complete() {
+		$totals = $this->index_meta['totals'];
+
 		$this->index_meta = null;
+
+		$totals['end_time_gmt'] = time();
+		$totals['total_time']   = microtime( true ) - $totals['start_time'];
+		Utils\update_option( 'ep_last_cli_index', $totals, false );
+		Utils\update_option( 'ep_last_index', $totals, false );
 
 		/**
 		 * Fires after executing a reindex via Dashboard
@@ -525,7 +648,7 @@ class IndexHelper {
 			$error_text .= '[' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] . "\r\n";
 		}
 
-		$this->output_error( $error_text );
+		return $error_text;
 	}
 
 	/**

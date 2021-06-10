@@ -546,11 +546,11 @@ function get_indexing_status() {
  * @param mixed  $value  Option value.
  * @return bool
  */
-function update_option( $option, $value ) {
+function update_option( $option, $value, $autoload = null ) {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		return \update_site_option( $option, $value );
 	}
-	return \update_option( $option, $value );
+	return \update_option( $option, $value, $autoload );
 }
 
 /**
