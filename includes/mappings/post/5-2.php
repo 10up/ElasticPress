@@ -211,7 +211,7 @@ return array(
 								'slug'             => array(
 									'type' => 'keyword',
 								),
-								'facet'             => array(
+								'facet'            => array(
 									'type' => 'keyword',
 								),
 								'term_order'       => array(

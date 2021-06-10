@@ -479,7 +479,7 @@ abstract class Indexable {
 
 		try {
 			// is this is a recognizable date format?
-			$new_date = new \DateTime( $meta_value, \wp_timezone() );
+			$new_date  = new \DateTime( $meta_value, \wp_timezone() );
 			$timestamp = $new_date->getTimestamp();
 
 			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
