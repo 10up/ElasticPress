@@ -11,8 +11,6 @@ namespace ElasticPress;
 use ElasticPress\Utils as Utils;
 use \WP_Error as WP_Error;
 
-use function ElasticPress\Dashboard\action_wp_ajax_ep_index;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -1054,6 +1052,8 @@ class Elasticsearch {
 
 	/**
 	 * Try to tune bulk setting after timing the request.
+	 *
+	 * @since 3.6
 	 *
 	 * @param float $exec_time Execution time of the request.
 	 */

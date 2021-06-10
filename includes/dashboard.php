@@ -978,6 +978,8 @@ function sanitize_bulk_settings( $bulk_settings = 350 ) {
 /**
  * Sanitize dynamic index setting.
  *
+ * @since 3.6
+ *
  * @param int $enable_dynamic_index 1 tp enable dynamic inde
  * @return int
  */
