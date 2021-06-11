@@ -1013,10 +1013,32 @@ class Elasticsearch {
 			'timeout' => apply_filters( 'ep_bulk_index_timeout', 30 ),
 		);
 
-		$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
+		if ( Utils\get_ep_option( 'ep_enable_dynamic_index' ) ) {
+			$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
 
-		if ( is_wp_error( $request ) ) {
-			return $request;
+			$start_time = microtime( true );
+
+			$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
+
+			$exec_time = microtime( true ) - $start_time;
+
+			if ( is_wp_error( $request ) ) {
+
+				if ( $current_setting > 1 && strpos( $request->get_error_message(), 'timed out' ) ) {
+					Utils\update_ep_option( 'ep_bulk_setting', ceil( $current_setting / 2 ) );
+					return [ 'retry' => true ];
+				}
+
+				return $request;
+			}
+
+			$this->try_tuning_bulk_setting( $exec_time );
+		} else {
+			$request = $this->remote_request( $path, $request_args, [], 'bulk_index' );
+
+			if ( is_wp_error( $request ) ) {
+				return $request;
+			}
 		}
 
 		$response = wp_remote_retrieve_response_code( $request );
@@ -1026,6 +1048,43 @@ class Elasticsearch {
 		}
 
 		return json_decode( wp_remote_retrieve_body( $request ), true );
+	}
+
+	/**
+	 * Try to tune bulk setting after timing the request.
+	 *
+	 * @since 3.6
+	 *
+	 * @param float $exec_time Execution time of the request.
+	 */
+	private function try_tuning_bulk_setting( $exec_time ) {
+
+		$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
+
+		if ( $exec_time > 20 ) {
+			$current_setting = ceil( $current_setting / 1.5 );
+		} elseif ( $exec_time > 15 ) {
+			$current_setting = ceil( $current_setting * 0.75 );
+		}
+
+		if ( $exec_time < 10 ) {
+			$current_setting = ceil( $current_setting * 1.25 );
+		}
+
+		/**
+		 * Filter the maximum bulk setting can be set.
+		 *
+		 * @hook ep_max_bulk_setting
+		 * @since 3.6.0
+		 * @return {int} Max bulk setting can be set.
+		 */
+		$max_bulk_setting = apply_filters( 'ep_max_bulk_setting', 500 );
+
+		if ( $current_setting > $max_bulk_setting ) {
+			$current_setting = $max_bulk_setting;
+		}
+
+		Utils\update_ep_option( 'ep_bulk_setting', $current_setting );
 	}
 
 	/**

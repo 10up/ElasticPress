@@ -302,7 +302,17 @@ abstract class Indexable {
 	 * @return WP_Error|array
 	 */
 	public function bulk_index( $object_ids ) {
-		$body = '';
+		$body  = '';
+		$count = 0;
+
+		/**
+		 * Filter the maximum HTTP request body can be sent to ES.
+		 *
+		 * @hook ep_max_content_length
+		 * @since 3.6.0
+		 * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/modules-http.html
+		 */
+		$max_content_length = apply_filters( 'ep_max_content_length', 99.9 * MB_IN_BYTES );
 
 		foreach ( $object_ids as $object_id ) {
 			$action_args = array(
@@ -311,7 +321,26 @@ abstract class Indexable {
 				),
 			);
 
-			$document = $this->prepare_document( $object_id );
+			$document     = $this->prepare_document( $object_id );
+			$document_str = wp_json_encode( $document );
+
+			/**
+			 * If the current document exceeds the max content length allowed, skip it.
+			 */
+			if ( strlen( $document_str ) > $max_content_length ) {
+				$count++;
+				continue;
+			}
+
+			/**
+			 * If the body exceeds the max content length allow, stop preparation.
+			 */
+			if ( ( strlen( $body ) + strlen( $document_str ) ) > $max_content_length ) {
+				set_transient( 'ep_current_queue_indexed_documents', $count );
+				break;
+			} else {
+				$count++;
+			}
 
 			/**
 			 * Conditionally kill indexing on a specific object
@@ -323,7 +352,7 @@ abstract class Indexable {
 			 * @return {array}  New action args
 			 */
 			$body .= wp_json_encode( apply_filters( 'ep_bulk_index_action_args', $action_args, $document ) ) . "\n";
-			$body .= addcslashes( wp_json_encode( $document ), "\n" );
+			$body .= addcslashes( $document_str, "\n" );
 
 			$body .= "\n\n";
 		}

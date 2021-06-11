@@ -636,14 +636,25 @@ function action_wp_ajax_ep_index() {
 			if ( ! empty( $queued_items ) ) {
 				$return = $indexable->bulk_index( array_keys( $queued_items ) );
 
+				if ( is_array( $return ) && ! empty( $return['retry'] ) ) {
+					wp_send_json( $return );
+					exit;
+				}
+
 				if ( is_wp_error( $return ) ) {
 					header( 'HTTP/1.1 500 Internal Server Error' );
-					wp_send_json_error();
+					wp_send_json_error( $return );
 					exit;
 				}
 			}
 
-			$index_meta['offset'] = absint( $index_meta['offset'] + $per_page );
+			$current_queue_indexed_documents = get_transient( 'ep_current_queue_indexed_documents' );
+			if ( $current_queue_indexed_documents ) {
+				$index_meta['offset'] = absint( $index_meta['offset'] + $current_queue_indexed_documents );
+				delete_transient( 'ep_current_queue_indexed_documents' );
+			} else {
+				$index_meta['offset'] = absint( $index_meta['offset'] + $per_page );
+			}
 
 			if ( $index_meta['offset'] >= $index_meta['found_items'] ) {
 				$index_meta['offset'] = $index_meta['found_items'];
@@ -924,6 +935,10 @@ function action_admin_init() {
 		if ( isset( $_POST['ep_bulk_setting'] ) ) {
 			update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
 		}
+
+		if ( isset( $_POST['ep_enable_dynamic_index'] ) ) {
+			update_site_option( 'ep_enable_dynamic_index', absint( $_POST['ep_enable_dynamic_index'] ) );
+		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
 		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
@@ -935,6 +950,14 @@ function action_admin_init() {
 			[
 				'type'              => 'integer',
 				'sanitize_callback' => __NAMESPACE__ . '\sanitize_bulk_settings',
+			]
+		);
+		register_setting(
+			'elasticpress',
+			'ep_enable_dynamic_index',
+			[
+				'type'              => 'boolean',
+				'sanitize_callback' => __NAMESPACE__ . '\sanitize_enable_dynamic_index',
 			]
 		);
 	}
@@ -950,6 +973,18 @@ function sanitize_bulk_settings( $bulk_settings = 350 ) {
 	$bulk_settings = absint( $bulk_settings );
 
 	return ( 0 === $bulk_settings ) ? 350 : $bulk_settings;
+}
+
+/**
+ * Sanitize dynamic index setting.
+ *
+ * @since 3.6
+ *
+ * @param int $enable_dynamic_index 1 tp enable dynamic inde
+ * @return int
+ */
+function sanitize_enable_dynamic_index( $enable_dynamic_index = 0 ) {
+	return absint( $enable_dynamic_index );
 }
 
 /**

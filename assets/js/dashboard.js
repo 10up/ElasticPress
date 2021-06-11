@@ -456,6 +456,11 @@ function sync() {
 				return;
 			}
 
+			if (response?.retry) {
+				sync();
+				return;
+			}
+
 			toProcess = response.data.found_items;
 			processed = response.data.offset;
 
