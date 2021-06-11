@@ -542,8 +542,9 @@ function get_indexing_status() {
  * Use the correct update option function depending on the context (multisite or not)
  *
  * @since 3.6.0
- * @param string $option Name of the option to update.
- * @param mixed  $value  Option value.
+ * @param string $option   Name of the option to update.
+ * @param mixed  $value    Option value.
+ * @param mixed  $autoload Whether to load the option when WordPress starts up.
  * @return bool
  */
 function update_option( $option, $value, $autoload = null ) {

@@ -587,12 +587,6 @@ class Command extends WP_CLI_Command {
 
 		timer_start();
 
-		// if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		// 	set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
-		// } else {
-		// 	set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
-		// }
-
 		add_action( 'ep_cli_put_mapping', [ $this, 'stop_on_failed_mapping' ], 10, 4 );
 		add_action( 'ep_index_batch_new_attempt', [ $this, 'should_interrupt_sync' ] );
 
@@ -1232,6 +1226,12 @@ class Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * Function used to ouput messages coming from IndexHelper
+	 *
+	 * @param array $message Message data
+	 * @param array $args    Args sent and processed by IndexHelper
+	 */
 	public function index_output( $message, $args ) {
 		switch ( $message['status'] ) {
 			case 'success':
@@ -1256,6 +1256,14 @@ class Command extends WP_CLI_Command {
 		}
 	}
 
+	/**
+	 * If put_mapping fails while indexing, stop the index process.
+	 *
+	 * @param array     $index_meta Index meta info
+	 * @param string    $status     Current indexing status
+	 * @param Indexable $indexable  Indexable object
+	 * @param bool      $result     Whether the request was successful or not
+	 */
 	public function stop_on_failed_mapping( $index_meta, $status, $indexable, $result ) {
 		if ( ! $result ) {
 			$this->delete_transient();
