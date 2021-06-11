@@ -7,6 +7,7 @@ let selectedResultIndex;
 widgetSearchComments.forEach((element) => {
 	const input = document.createElement('input');
 	input.setAttribute('autocomplete', 'off');
+	input.setAttribute('type', 'search');
 	input.setAttribute('class', 'ep-widget-search-comments-input');
 
 	const resultList = document.createElement('ul');
@@ -176,12 +177,16 @@ const handleUpDownEnter = (event) => {
 			break;
 
 		case 13: // Enter
-			if (results[selectedResultIndex]?.classList.contains('selected')) {
-				const linkToComment = results[selectedResultIndex]
-					?.querySelector('a')
-					?.getAttribute('href');
+			if (results[selectedResultIndex]?.classList.contains('selected') || sizeResult === 1) {
+				const indexItem = selectedResultIndex || 0;
 
-				window.location.href = linkToComment;
+				if (results[indexItem]) {
+					const linkToComment = results[indexItem]
+						.querySelector('a')
+						?.getAttribute('href');
+
+					window.location.href = linkToComment;
+				}
 			}
 
 			break;
@@ -195,8 +200,8 @@ const handleUpDownEnter = (event) => {
 		results[previousSelectedResultIndex].setAttribute('aria-selected', 'false');
 	}
 
-	results[selectedResultIndex].classList.add('selected');
-	results[selectedResultIndex].setAttribute('aria-selected', 'true');
+	results[selectedResultIndex]?.classList.add('selected');
+	results[selectedResultIndex]?.setAttribute('aria-selected', 'true');
 };
 
 /**

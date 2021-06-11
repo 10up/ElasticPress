@@ -26,7 +26,7 @@ class Widget extends WP_Widget {
 	 */
 	public function __construct() {
 		$options = array( 'description' => esc_html__( 'A search form for comments.', 'elasticpress' ) );
-		parent::__construct( 'ep-related-posts', esc_html__( 'ElasticPress - Comments', 'elasticpress' ), $options );
+		parent::__construct( 'ep-comments', esc_html__( 'ElasticPress - Comments', 'elasticpress' ), $options );
 	}
 
 	/**
@@ -37,6 +37,8 @@ class Widget extends WP_Widget {
 	 * @since  3.6
 	 */
 	public function widget( $args, $instance ) {
+
+		echo wp_kses_post( $args['before_widget'] );
 
 		ob_start();
 
@@ -90,6 +92,8 @@ class Widget extends WP_Widget {
 		);
 
 		echo wp_kses_post( $comments_search_form );
+
+		echo wp_kses_post( $args['after_widget'] );
 	}
 
 	/**
