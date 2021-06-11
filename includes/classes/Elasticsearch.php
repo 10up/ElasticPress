@@ -1075,6 +1075,7 @@ class Elasticsearch {
 		 * Filter the maximum bulk setting can be set.
 		 *
 		 * @hook ep_max_bulk_setting
+		 * @since 3.6.0
 		 * @return {int} Max bulk setting can be set.
 		 */
 		$max_bulk_setting = apply_filters( 'ep_max_bulk_setting', 500 );
