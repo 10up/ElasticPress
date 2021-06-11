@@ -79,6 +79,7 @@ class Sync {
 				'method'        => 'dashboard',
 				'put_mapping'   => ! empty( $_REQUEST['put_mapping'] ),
 				'output_method' => [ $this, 'index_output' ],
+				'show_errors'   => true,
 			]
 		);
 	}
@@ -200,7 +201,7 @@ class Sync {
 				break;
 
 			default:
-				wp_send_json( $message );
+				wp_send_json( [ 'data' => $message ] );
 				break;
 		}
 		exit;
