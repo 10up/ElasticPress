@@ -640,7 +640,7 @@ class User extends Indexable {
 					);
 				} elseif ( 'display_name' === $orderby_clause || 'name' === $orderby_clause ) {
 					$sort[] = array(
-						'display_name.raw' => array(
+						'display_name.sortable' => array(
 							'order' => $order,
 						),
 					);

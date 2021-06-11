@@ -622,15 +622,8 @@ class TestUser extends BaseTestCase {
 
 		$users_display_name_fetched = wp_list_pluck( $user_query->results, 'display_name' );
 
-		/**
-		 * Check if Zoey is the first user because Elasticsearch sort
-		 * is case-sensitive
-		 *
-		 * Ref: https://www.elastic.co/guide/en/elasticsearch/guide/2.x/sorting-collations.html#case-insensitive-sorting
-		 *
-		 */
-		$this->assertEquals( 'Zoey', $users_display_name_fetched[0] );
-
+		$this->assertEquals( 'admin', $users_display_name_fetched[0] );
+		$this->assertEquals( 'Zoey', $users_display_name_fetched[4] );
 
 	}
 
@@ -656,7 +649,7 @@ class TestUser extends BaseTestCase {
 			$user_query
 		);
 
-		$this->assertArrayHasKey( 'display_name.raw', $args['sort'][0] );
+		$this->assertArrayHasKey( 'display_name.sortable', $args['sort'][0] );
 		$this->assertArrayNotHasKey( 'display_name', $args['sort'][0] );
 
 		$args = $user->format_args(
@@ -666,7 +659,7 @@ class TestUser extends BaseTestCase {
 			$user_query
 		);
 
-		$this->assertArrayHasKey( 'display_name.raw', $args['sort'][0] );
+		$this->assertArrayHasKey( 'display_name.sortable', $args['sort'][0] );
 		$this->assertArrayNotHasKey( 'display_name', $args['sort'][0] );
 	}
 
