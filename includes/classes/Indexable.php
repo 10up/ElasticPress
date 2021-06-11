@@ -309,6 +309,7 @@ abstract class Indexable {
 		 * Filter the maximum HTTP request body can be sent to ES.
 		 *
 		 * @hook ep_max_content_length
+		 * @since 3.6.0
 		 * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/modules-http.html
 		 */
 		$max_content_length = apply_filters( 'ep_max_content_length', 99.9 * MB_IN_BYTES );
