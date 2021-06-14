@@ -122,7 +122,7 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$url = $I->getElementAttribute( '.autosuggest-list > li:first-child a', 'data-url' );
 
-		$I->click( '.autosuggest-list > li:first-child a' );
+		$I->executeJavaScript( 'document.querySelector( ".autosuggest-list > li:first-child a" ).click();' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 

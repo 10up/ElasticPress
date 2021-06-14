@@ -928,6 +928,62 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a category__not_in query
+	 *
+	 * @since 3.6.0
+	 * @group post
+	 */
+	public function testCategoryNotInQuery() {
+		$term = wp_insert_term( 'cattest', 'category' );
+
+		$post_ids = array();
+
+		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'post_category' => array( $term['term_id'] ) ) );
+		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 2',  ) );
+		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'                => 'findme cat not in test',
+			'category__not_in' => array( $term['term_id'] ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a tag__not_in query
+	 *
+	 * @since 3.6.0
+	 * @group post
+	 */
+	public function testTagNotInQuery() {
+		$term = wp_insert_term( 'tagtest', 'post_tag' );
+
+		$post_ids = array();
+
+		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'tags_input' => array( $term['term_id'] ) ) );
+		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 2',  ) );
+		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'                => 'findme cat not in test',
+			'tag__not_in'      => array( $term['term_id'] ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test an author ID query
 	 *
 	 * @since 1.0
@@ -3683,6 +3739,42 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a post_name__in query
+	 *
+	 * @group post
+	 * @since 3.6.0
+	 */
+	public function testPostNameInQuery() {
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme name in test 1',
+				'post_name'    => 'findme-name-in',
+			)
+		);
+		Functions\create_and_sync_post( array( 'post_content' => 'findme name in test 2' ) );
+		Functions\create_and_sync_post( array( 'post_content' => 'findme name in test 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'             => 'findme name in',
+		);
+
+		$args['post_name__in'] = 'findme-name-in';
+
+		$query = new \WP_Query( $args );
+
+		$args['post_name__in'] = array( 'findme-name-in' );
+
+		$query2 = new \WP_Query( $args );
+
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( 1, $query2->post_count );
+		$this->assertEquals( 1, $query2->found_posts );
+	}
+
+	/**
 	 * Test Tax Query NOT IN operator
 	 *
 	 * @since 2.1
@@ -3858,24 +3950,31 @@ class TestPost extends BaseTestCase {
 	 * @since 2.3
 	 */
 	public function testPostMimeTypeQuery() {
-		Functions\create_and_sync_post(
+		$attachment_id_1_jpeg = Functions\create_and_sync_post(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image/jpeg',
 				'post_status'    => 'inherit',
 			)
 		);
-		Functions\create_and_sync_post(
+		$attachment_id_2_jpeg = Functions\create_and_sync_post(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image/jpeg',
 				'post_status'    => 'inherit',
 			)
 		);
-		Functions\create_and_sync_post(
+		$attachment_id_3_pdf = Functions\create_and_sync_post(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'application/pdf',
+				'post_status'    => 'inherit',
+			)
+		);
+		$attachment_id_4_png = Functions\create_and_sync_post(
+			array(
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image/png',
 				'post_status'    => 'inherit',
 			)
 		);
@@ -3891,7 +3990,28 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( 2, $query->post_count );
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 3, $query->post_count );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_1_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_2_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
+
+		$args = array(
+			'ep_integrate'   => true,
+			'post_mime_type' => 'image/png',
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
 
 		$args = array(
 			'ep_integrate'   => true,
@@ -3905,7 +4025,51 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
 		$this->assertEquals( 3, $query->found_posts );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_1_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_2_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_3_pdf ), $attachment_names );
+
+		$args = array(
+			'ep_integrate'   => true,
+			'post_mime_type' => array(
+				'image',
+				'application/pdf',
+			),
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 4, $query->found_posts );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_1_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_2_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_3_pdf ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
+
+		$args = array(
+			'ep_integrate'   => true,
+			'post_mime_type' => array(
+				'image/png',
+			),
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 1, $query->found_posts );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
 	}
 
 	/**
@@ -5162,7 +5326,49 @@ class TestPost extends BaseTestCase {
 			$query
 		);
 
+		$this->assertCount( 1, $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
 		$this->assertSame( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'][0] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [ 'image/jpeg', 'application/pdf' ],
+			],
+			$query
+		);
+
+		$this->assertCount( 2, $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+		$this->assertContains( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+		$this->assertContains( 'application/pdf', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [ 'image' ],
+			],
+			$query
+		);
+
+		$this->assertGreaterThan( 1, count( $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] ) );
+		$this->assertContains( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [ 'image', 'application/pdf' ],
+			],
+			$query
+		);
+
+		$this->assertGreaterThan( 2, count( $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] ) );
+		$this->assertContains( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+		$this->assertContains( 'application/pdf', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [],
+			],
+			$query
+		);
+
+		$this->assertArrayNotHasKey( 'terms', $args['post_filter']['bool']['must'][0] );
 	}
 
 	/**
@@ -5879,5 +6085,68 @@ class TestPost extends BaseTestCase {
 		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
 		$this->assertEmpty( $document );
+	}
+
+	/**
+	 * Test prepare_date_terms function
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostPrepareDateTerms() {
+		$date = new \DateTime('2021-04-11 23:58:12');
+
+		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms( $date->format( 'Y-m-d H:i:s' ) );
+
+		$this->assertIsArray( $return_prepare_date_terms );
+
+		$this->assertArrayHasKey( 'year', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('Y'), $return_prepare_date_terms['year'] );
+
+		$this->assertArrayHasKey( 'month', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('m'), $return_prepare_date_terms['month'] );
+
+		$this->assertArrayHasKey( 'week', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('W'), $return_prepare_date_terms['week'] );
+
+		$this->assertArrayHasKey( 'dayofyear', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('z'), $return_prepare_date_terms['dayofyear'] );
+
+		$this->assertArrayHasKey( 'day', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('d'), $return_prepare_date_terms['day'] );
+
+		$this->assertArrayHasKey( 'dayofweek', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('w'), $return_prepare_date_terms['dayofweek'] );
+
+		$this->assertArrayHasKey( 'dayofweek_iso', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('N'), $return_prepare_date_terms['dayofweek_iso'] );
+
+		$this->assertArrayHasKey( 'hour', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('H'), $return_prepare_date_terms['hour'] );
+
+		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('i'), $return_prepare_date_terms['minute'] );
+
+		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('s'), $return_prepare_date_terms['second'] );
+
+		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
+		$this->assertEquals( $date->format('Ym'), $return_prepare_date_terms['m'] );
+
+		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms('');
+
+		$this->assertIsArray($return_prepare_date_terms );
+
+		$this->assertArrayHasKey( 'year', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'month', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'week', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofyear', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'day', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofweek', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'dayofweek_iso', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'hour', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
+		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
 	}
 }
