@@ -441,15 +441,13 @@ class Facets extends Feature {
 		 */
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
 
-		$pagination = strpos( $_SERVER['REQUEST_URI'], '/page' );
-
+		$url        = $_SERVER['REQUEST_URI'];
+		$pagination = strpos( $url, '/page' );
 		if ( false !== $pagination ) {
-			$url 	 = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
-			$new_url = strtok( $url, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
-			return ! empty ( $new_url ) ? $new_url : home_url();
+			$url = substr( $url, 0, $pagination );
 		}
 
-		return strtok( $_SERVER['REQUEST_URI'], '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
+		return strtok( trailingslashit( $url ), '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
 	}
 
 	/**
