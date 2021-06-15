@@ -13,6 +13,7 @@ use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexable\Post\DateQuery as DateQuery;
 use \WP_Comment_Query as WP_Comment_Query;
+use ElasticPress\Features as Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -709,6 +710,50 @@ class Comment extends Indexable {
 	}
 
 	/**
+	 * Returns indexable comment types
+	 *
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function get_indexable_comment_types() {
+		$comment_types = [ 'comment' ];
+
+		if ( Features::factory()->registered_features['woocommerce']->is_active() ) {
+			$comment_types[] = 'review';
+		}
+
+		/**
+		 * Filter indexable comment types
+		 *
+		 * @hook ep_indexable_comment_types
+		 * @since 3.6.0
+		 * @param  {array} $comment_types Indexable comment types
+		 * @return  {array} comment types
+		 */
+		return apply_filters( 'ep_indexable_comment_types', $comment_types );
+	}
+
+	/**
+	 * Returns indexable comment status
+	 *
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function get_indexable_comment_status() {
+		$comment_status = [ 'approve' ];
+
+		/**
+		 * Filter indexable comment status
+		 *
+		 * @hook ep_indexable_comment_status
+		 * @since 3.6.0
+		 * @param  {array} $comment_status Indexable comment status
+		 * @return  {array} comment status
+		 */
+		return apply_filters( 'ep_indexable_comment_status', $comment_status );
+	}
+
+	/**
 	 * Query DB for comments
 	 *
 	 * @param  array $args Query arguments
@@ -718,12 +763,14 @@ class Comment extends Indexable {
 	public function query_db( $args ) {
 
 		$defaults = [
-			'post_type' => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
-			'status'    => 'approve',
-			'number'    => $this->get_bulk_items_per_page(),
-			'offset'    => 0,
-			'orderby'   => 'comment_ID',
-			'order'     => 'desc',
+			'type'        => $this->get_indexable_comment_types(),
+			'status'      => $this->get_indexable_comment_status(),
+			'post_type'   => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
+			'post_status' => Indexables::factory()->get( 'post' )->get_indexable_post_status(),
+			'number'      => $this->get_bulk_items_per_page(),
+			'offset'      => 0,
+			'orderby'     => 'comment_ID',
+			'order'       => 'desc',
 		];
 
 		if ( isset( $args['per_page'] ) ) {
