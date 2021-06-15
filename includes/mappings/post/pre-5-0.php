@@ -200,8 +200,8 @@ return array(
 									'type'  => 'string',
 									'index' => 'not_analyzed',
 								),
-								'facet'             => array(
-									'type' => 'string',
+								'facet'            => array(
+									'type'  => 'string',
 									'index' => 'not_analyzed',
 								),
 								'term_order'       => array(
