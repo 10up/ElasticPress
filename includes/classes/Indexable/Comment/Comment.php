@@ -740,7 +740,7 @@ class Comment extends Indexable {
 	 * @return array
 	 */
 	public function get_indexable_comment_status() {
-		$comment_status = [ 'approve' ];
+		$comment_status = [ '1' ];
 
 		/**
 		 * Filter indexable comment status
