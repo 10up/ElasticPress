@@ -214,13 +214,6 @@ class TestComment extends BaseTestCase {
 			'comment_post_ID' => $post_id,
 		] );
 
-		add_action(
-			'ep_sync_comment_on_transition',
-			function() {
-				$this->fired_actions['ep_sync_comment_on_transition'] = true;
-			}
-		);
-
 		add_filter(
 			'ep_comment_sync_kill',
 			function( $kill, $comment_id ) use ( $created_comment_id ) {
@@ -1777,5 +1770,212 @@ class TestComment extends BaseTestCase {
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
+	}
+
+	/**
+	 * Test WooCommerce review indexing.
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testWooCommerceReviewIndexing() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_id = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'product 1',
+				'post_type'    => 'product',
+			)
+		);
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test review',
+			'comment_post_ID' => $product_id,
+			'comment_type'    => 'review'
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comments_query = new \WP_Comment_Query( [
+			'ep_integrate' => true,
+		] );
+		$comments = $comments_query->get_comments();
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertEquals( $product_id, $comment->comment_post_ID );
+			$this->assertEquals( 'Test review', $comment->comment_content );
+			$this->assertEquals( 'review', $comment->comment_type );
+		}
+	}
+
+	/**
+	 * Test Comment Indexable query_db.
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testCommentIndexableQueryDb() {
+		$post_id = wp_insert_post( [
+			'post_name' => 'start-here',
+			'post_status' => 'publish'
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$product_id = wp_insert_post( [
+			'post_content' => 'product 1',
+			'post_type'    => 'product',
+			'post_status' => 'publish'
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Test review',
+			'comment_post_ID' => $product_id,
+			'comment_type'    => 'review'
+		] );
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		$results = $comment_indexable->query_db([]);
+
+		$this->assertArrayHasKey( 'objects', $results);
+		$this->assertArrayHasKey( 'total_objects', $results);
+
+		$this->assertEquals( 1, $results['total_objects'] );
+	}
+
+	/**
+	 * Test Comment Indexable query_db with WooCommerce feature enabled.
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testCommentIndexableQueryDbWithWooCommerceFeatureEnabled() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_id = wp_insert_post( [
+			'post_content' => 'start-here',
+			'post_status'  => 'publish',
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$product_id = wp_insert_post( [
+			'post_content' => 'product 1',
+			'post_type'    => 'product',
+			'post_status'  => 'publish',
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Test review',
+			'comment_post_ID' => $product_id,
+			'comment_type'    => 'review',
+		] );
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		$results = $comment_indexable->query_db([]);
+
+		$this->assertEquals( 2, $results['total_objects'] );
+	}
+
+	/**
+	 * Test Comment Indexable query_db with Order Note.
+	 *
+	 * We need to make sure this type of comment is not indexed.
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testCommentIndexableQueryDbWithOrderNote() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_id = wp_insert_post( [
+			'post_content' => 'start-here',
+			'post_status'  => 'publish',
+		] );
+
+		$post_comment_id = wp_insert_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$product_id = wp_insert_post( [
+			'post_content' => 'product 1',
+			'post_type'    => 'product',
+			'post_status'  => 'publish',
+		] );
+
+		$product_comment_id = wp_insert_comment( [
+			'comment_content' => 'Test review',
+			'comment_post_ID' => $product_id,
+			'comment_type'    => 'review',
+		] );
+
+		$shop_order_id = wp_insert_post( [
+			'post_content'   => 'order 1',
+			'post_type'      => 'shop_order',
+			'post_status'    => 'wc-pending',
+			'comment_status' => 'closed',
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Added line items',
+			'comment_post_ID' => $shop_order_id,
+			'comment_type'    => 'order_note'
+
+		] );
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		$results = $comment_indexable->query_db([]);
+
+		$this->assertEquals( 2, $results['total_objects'] );
+
+		foreach ( $results['objects'] as $comment ) {
+			$this->assertContains( $comment->comment_ID, [ $post_comment_id, $product_comment_id ] );
+		}
+	}
+
+	/**
+	 * Test a comment sync on order_note
+	 *
+	 * Check if a not allowed comment type is not indexed
+	 *
+	 * @since 3.6.0
+	 * @group comments
+	 */
+	public function testCommentSyncOrderNote() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_id = Functions\create_and_sync_post([
+			'post_content'   => 'order 1',
+			'post_type'      => 'shop_order',
+			'post_status'    => 'wc-pending',
+			'comment_status' => 'closed',
+		]);
+
+		wp_insert_comment( [
+			'comment_content' => 'Added line items',
+			'comment_post_ID' => $shop_order_id,
+			'comment_type'    => 'order_note'
+		] );
+
+		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+
+		$shop_order_comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $shop_order_id );
+
+		$this->assertEmpty( $shop_order_comment );
 	}
 }
