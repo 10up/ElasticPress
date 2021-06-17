@@ -1057,12 +1057,12 @@ class Elasticsearch {
 	 *
 	 * @param float $exec_time Execution time of the request.
 	 */
-	private function try_tuning_bulk_setting( $exec_time ) {
+	protected function try_tuning_bulk_setting( $exec_time ) {
 
 		$current_setting = Utils\get_ep_option( 'ep_bulk_setting' );
 
 		if ( $exec_time > 20 ) {
-			$current_setting = ceil( $current_setting / 1.5 );
+			$current_setting = ceil( $current_setting * 0.67 );
 		} elseif ( $exec_time > 15 ) {
 			$current_setting = ceil( $current_setting * 0.75 );
 		}
@@ -1076,6 +1076,7 @@ class Elasticsearch {
 		 *
 		 * @hook ep_max_bulk_setting
 		 * @since 3.6.0
+		 * @param {int} $max_bulk_setting Current max bulk setting, default to 500.
 		 * @return {int} Max bulk setting can be set.
 		 */
 		$max_bulk_setting = apply_filters( 'ep_max_bulk_setting', 500 );

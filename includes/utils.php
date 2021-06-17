@@ -472,14 +472,15 @@ function get_language() {
  *
  * @since 3.6.0
  *
- * @param string $key Option key.
+ * @param string $option  Name of the option to retrieve. Expected to not be SQL-escaped.
+ * @param mixed  $default Optional. Default value to return if the option does not exist.
  */
-function get_ep_option( $key ) {
+function get_ep_option( $key, $default = false ) {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		return get_site_option( $key );
-	} else {
-		return get_option( $key );
+		return get_site_option( $key, $default );
 	}
+
+	return get_option( $key, $default );
 }
 
 /**
@@ -487,15 +488,18 @@ function get_ep_option( $key ) {
  *
  * @since 3.6.0
  *
- * @param string $key   Option key.
- * @param mixed  $value Option value to be set.
+ * @param string      $option   Name of the option to update. Expected to not be SQL-escaped.
+ * @param mixed       $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
+ * @param string|bool $autoload Optional. Whether to load the option when WordPress starts up.
+ *
+ * @return bool True if the value was updated, false otherwise.
  */
-function update_ep_option( $key, $value ) {
+function update_ep_option( $key, $value, $autoload = null ) {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		return update_site_option( $key, $value );
-	} else {
-		return update_option( $key, $value );
 	}
+
+	return update_option( $key, $value, $autoload );
 }
 
 /**

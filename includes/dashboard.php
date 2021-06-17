@@ -957,7 +957,7 @@ function action_admin_init() {
 			'ep_enable_dynamic_index',
 			[
 				'type'              => 'boolean',
-				'sanitize_callback' => __NAMESPACE__ . '\sanitize_enable_dynamic_index',
+				'sanitize_callback' => 'absint',
 			]
 		);
 	}
@@ -973,18 +973,6 @@ function sanitize_bulk_settings( $bulk_settings = 350 ) {
 	$bulk_settings = absint( $bulk_settings );
 
 	return ( 0 === $bulk_settings ) ? 350 : $bulk_settings;
-}
-
-/**
- * Sanitize dynamic index setting.
- *
- * @since 3.6.0
- *
- * @param int $enable_dynamic_index 1 tp enable dynamic inde
- * @return int
- */
-function sanitize_enable_dynamic_index( $enable_dynamic_index = 0 ) {
-	return absint( $enable_dynamic_index );
 }
 
 /**

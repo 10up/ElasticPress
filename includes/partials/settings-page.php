@@ -230,7 +230,7 @@ $enable_dynamic_index = Utils\get_ep_option( 'ep_enable_dynamic_index', 0 );
 					</th>
 					<td>
 						<input type="checkbox" name="ep_enable_dynamic_index" id="ep_enable_dynamic_index" value="1" <?php checked( $enable_dynamic_index, 1 ); ?>>
-						<legend class="description"><?php esc_html_e( 'Enabling this setting let ElasticPress adjust the bulk index setting automatically for a more reliable and optimized index process.', 'elasticpress' ); ?></legend>
+						<label for="ep_enable_dynamic_index"><?php esc_html_e( 'Enabling this setting let ElasticPress adjust the bulk index setting automatically for a more reliable and optimized index process.', 'elasticpress' ); ?></label>
 					</td>
 				</tr>
 			<?php endif; ?>
