@@ -311,10 +311,10 @@ abstract class Indexable {
 		 * @hook ep_max_content_length
 		 * @since 3.6.0
 		 * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/modules-http.html
-		 * @param {float} Current max content length in bytes. Default to 99.9 * MB_IN_BYTES.
-		 * @return {float} Max content length sent to ES server in bytes.
+		 * @param {int} Current max content length in bytes. Default to 99.9 * MB_IN_BYTES.
+		 * @return {int} Max content length sent to ES server in bytes.
 		 */
-		$max_content_length = apply_filters( 'ep_max_content_length', 99.9 * MB_IN_BYTES );
+		$max_content_length = apply_filters( 'ep_max_content_length', intval( 99.9 * MB_IN_BYTES ) );
 
 		foreach ( $object_ids as $object_id ) {
 			$action_args = array(
