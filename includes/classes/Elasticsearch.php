@@ -1053,7 +1053,7 @@ class Elasticsearch {
 	/**
 	 * Try to tune bulk setting after timing the request.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 *
 	 * @param float $exec_time Execution time of the request.
 	 */

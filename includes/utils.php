@@ -470,7 +470,7 @@ function get_language() {
 /**
  * Get EP option for both single and multisites.
  *
- * @since 3.6
+ * @since 3.6.0
  *
  * @param string $key Option key.
  */
@@ -485,7 +485,7 @@ function get_ep_option( $key ) {
 /**
  * Update EP option for both single and multisites.
  *
- * @since 3.6
+ * @since 3.6.0
  *
  * @param string $key   Option key.
  * @param mixed  $value Option value to be set.
