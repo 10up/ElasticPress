@@ -980,12 +980,21 @@ class Command extends WP_CLI_Command {
 				break;
 			}
 
-			if ( ! $no_bulk ) {
-				WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'] ) );
+			$current_queue_indexed_documents = get_transient( 'ep_current_queue_indexed_documents' );
+			if ( $current_queue_indexed_documents ) {
+				$processed = $current_queue_indexed_documents + $query_args['offset'];
+				delete_transient( 'ep_current_queue_indexed_documents' );
+			} else {
+				$processed = count( $query['objects'] ) + $query_args['offset'];
 			}
 
-			$query_args['offset'] += $per_page;
-			$total_indexable       = (int) $query['total_objects'];
+			if ( ! $no_bulk ) {
+				WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ), (int) $processed, (int) $query['total_objects'] ) );
+			}
+
+
+			$query_args['offset'] = $processed;
+			$total_indexable      = (int) $query['total_objects'];
 
 			usleep( 500 );
 
