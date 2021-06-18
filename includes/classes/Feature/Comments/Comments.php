@@ -48,6 +48,27 @@ class Comments extends Feature {
 	 * @since 3.6.0
 	 */
 	public function search_setup() {
+		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			/**
+			 * Filter to integrate with admin ajax queries
+			 *
+			 * @hook ep_ajax_wp_query_integration
+			 * @param  {bool} $integrate True to integrate
+			 * @return  {bool} New value
+			 */
+			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
+				return;
+			} else {
+				$admin_integration = true;
+			}
+		}
+
+		if ( is_admin() && ! $admin_integration ) {
+			return;
+		}
+
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 	}
 
