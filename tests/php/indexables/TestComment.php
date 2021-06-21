@@ -1978,4 +1978,44 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEmpty( $shop_order_comment );
 	}
+
+	/**
+	 * Test comment indexing with Protected Content Feature enabled
+	 *
+	 * When the Protected Content is enabled unapproved comments will be indexed.
+	 *
+	 * @since 3.6.0
+	 * @group comments
+	 */
+	public function testCommentIndexingWithProtectedContentEnabled() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_id = Functions\create_and_sync_post();
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+			'comment_approved' => 1,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 2',
+			'comment_post_ID' => $post_id,
+			'comment_approved' => 0,
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comments_query = new \WP_Comment_Query( [
+			'ep_integrate' => true,
+		] );
+		$comments = $comments_query->get_comments();
+
+		$this->assertCount( 2, $comments );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+	}
 }
