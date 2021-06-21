@@ -219,8 +219,9 @@ return array(
 							'ignore_above' => 10922,
 						),
 						'sortable' => array(
-							'type'     => 'string',
-							'analyzer' => 'ewp_lowercase',
+							'type'         => 'keyword',
+							'ignore_above' => 10922,
+							'normalizer'   => 'lowerasciinormalizer',
 						),
 					),
 				),
