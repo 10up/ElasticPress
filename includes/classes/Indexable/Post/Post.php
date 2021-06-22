@@ -856,20 +856,22 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['category_name'] ),
-				'field'    => 'slug',
-			);
-		}
+		if ( empty( $args['tax_query'] ) ) { // Remove duplicate queries from Core's backwards compat feature of setting 'category_name', 'cat' and 'tag_id': https://github.com/WordPress/WordPress/blob/5d99107bf3ab35aa3dda82c6b3903f5717771335/wp-includes/class-wp-query.php#L2193
+			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['category_name'] ),
+					'field'    => 'slug',
+				);
+			}
 
-		if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['cat'] ),
-				'field'    => 'term_id',
-			);
+			if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['cat'] ),
+					'field'    => 'term_id',
+				);
+			}
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
@@ -892,7 +894,7 @@ class Post extends Indexable {
 			$has_tag__and = true;
 		}
 
-		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) ) {
+		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) && empty( $args['tax_query'] ) ) {
 
 			// If you pass tag__in as a parameter, core adds the first
 			// term ID as tag_id, so we only need to append it if we have
