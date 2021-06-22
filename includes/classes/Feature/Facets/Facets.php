@@ -160,6 +160,10 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function front_scripts() {
+		if ( ! is_active_widget( false, false, 'ep-facet' ) ) {
+			return;
+		}
+
 		wp_enqueue_script(
 			'elasticpress-facets',
 			EP_URL . 'dist/js/facets-script.min.js',
