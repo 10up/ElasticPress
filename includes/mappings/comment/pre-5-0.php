@@ -2,7 +2,7 @@
 /**
  * Elasticsearch mapping for comments
  *
- * @since   3.1
+ * @since   3.6.0
  * @package elasticpress
  */
 
@@ -12,13 +12,51 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 return [
 	'settings' => [
+		/**
+		 * Filter number of Elasticsearch shards to use in indices
+		 *
+		 * @hook ep_default_index_number_of_shards
+		 * @param  {int} $shards Number of shards
+		 * @return {int} New number
+		 */
+		'index.number_of_shards'           => apply_filters( 'ep_default_index_number_of_shards', 5 ),
+		/**
+		 * Filter number of Elasticsearch replicas to use in indices
+		 *
+		 * @hook ep_default_index_number_of_replicas
+		 * @param  {int} $replicas Number of replicas
+		 * @return {int} New number
+		 */
+		'index.number_of_replicas'         => apply_filters( 'ep_default_index_number_of_replicas', 1 ),
+		/**
+		 * Filter Elasticsearch total field limit for users
+		 *
+		 * @hook ep_total_field_limit
+		 * @param  {int} $number Number of fields
+		 * @return {int} New number
+		 */
 		'index.mapping.total_fields.limit' => apply_filters( 'ep_comment_total_field_limit', 5000 ),
+		/**
+		 * Filter Elasticsearch max result window for users
+		 *
+		 * @hook ep_user_max_result_window
+		 * @param  {int} $number Size of result window
+		 * @return {int} New number
+		 */
 		'index.max_result_window'          => apply_filters( 'ep_comment_max_result_window', 1000000 ),
 		'analysis'                         => [
 			'analyzer'   => [
 				'default'          => [
 					'tokenizer' => 'standard',
 					'filter'    => [ 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ],
+					/**
+					 * Filter Elasticsearch default language in mapping
+					 *
+					 * @hook ep_analyzer_language
+					 * @param  {string} $lang Default language
+					 * @param {string} $lang_context Language context
+					 * @return {string} New language
+					 */
 					'language'  => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				],
 				'shingle_analyzer' => [
@@ -44,6 +82,14 @@ return [
 				],
 				'ewp_snowball'       => [
 					'type'     => 'snowball',
+					/**
+					 * Filter Elasticsearch default language in mapping
+					 *
+					 * @hook ep_analyzer_language
+					 * @param  {string} $lang Default language
+					 * @param {string} $lang_context Language context
+					 * @return {string} New language
+					 */
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				],
 				'edge_ngram'         => [
@@ -101,11 +147,11 @@ return [
 								],
 								'date'     => [
 									'type'   => 'date',
-									'format' => 'yyyy-MM-dd',
+									'format' => 'YYYY-MM-dd',
 								],
 								'datetime' => [
 									'type'   => 'date',
-									'format' => 'yyyy-MM-dd HH:mm:ss',
+									'format' => 'YYYY-MM-dd HH:mm:ss',
 								],
 								'time'     => [
 									'type'   => 'date',
@@ -133,13 +179,33 @@ return [
 					'type' => 'long',
 				],
 				'comment_post_status'    => [
-					'type' => 'string',
+					'type'  => 'string',
+					'index' => 'not_analyzed',
 				],
 				'comment_post_type'      => [
-					'type' => 'string',
+					'type'   => 'string',
+					'fields' => [
+						'comment_post_type' => [
+							'type' => 'string',
+						],
+						'raw'               => [
+							'type'  => 'string',
+							'index' => 'not_analyzed',
+						],
+					],
 				],
 				'comment_post_name'      => [
-					'type' => 'string',
+					'type'   => 'string',
+					'fields' => [
+						'comment_post_name' => [
+							'type' => 'string',
+						],
+						'raw'               => [
+							'type'         => 'string',
+							'index'        => 'not_analyzed',
+							'ignore_above' => 10922,
+						],
+					],
 				],
 				'comment_post_parent'    => [
 					'type' => 'long',
@@ -147,11 +213,12 @@ return [
 				'comment_author'         => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_author' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'            => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -159,11 +226,12 @@ return [
 				'comment_author_email'   => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_author_email' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'                  => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -171,11 +239,12 @@ return [
 				'comment_author_url'     => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_author_url' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'                => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -183,11 +252,12 @@ return [
 				'comment_author_IP'      => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_author_IP' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'               => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -205,11 +275,12 @@ return [
 				'comment_content'        => [
 					'type'   => 'string',
 					'fields' => [
-						'description' => [
+						'comment_content' => [
 							'type' => 'string',
 						],
-						'raw'         => [
+						'raw'             => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -220,11 +291,12 @@ return [
 				'comment_approved'       => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_approved' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'              => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -232,11 +304,12 @@ return [
 				'comment_agent'          => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_agent' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'           => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],
@@ -244,11 +317,12 @@ return [
 				'comment_type'           => [
 					'type'   => 'string',
 					'fields' => [
-						'name' => [
+						'comment_type' => [
 							'type' => 'string',
 						],
-						'raw'  => [
+						'raw'          => [
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
 						],
 					],

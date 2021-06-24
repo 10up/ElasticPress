@@ -376,7 +376,7 @@ class Command extends WP_CLI_Command {
 		$this->connect_check();
 		$this->index_occurring();
 
-		WP_CLI::confirm( esc_html__( 'Are you sure you want to delete your Elasticsearch index?' ), $assoc_args );
+		WP_CLI::confirm( esc_html__( 'Are you sure you want to delete your Elasticsearch index?', 'elasticpress' ), $assoc_args );
 
 		// If index name is specified, just delete it and end the command.
 		if ( ! empty( $assoc_args['index-name'] ) ) {
@@ -549,11 +549,11 @@ class Command extends WP_CLI_Command {
 		$setup_option = isset( $assoc_args['setup'] ) ? $assoc_args['setup'] : false;
 
 		if ( true === $setup_option ) {
-			WP_CLI::confirm( esc_html__( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?' ), $assoc_args );
+			WP_CLI::confirm( esc_html__( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?', 'elasticpress' ), $assoc_args );
 		}
 
 		if ( ! function_exists( 'pcntl_signal' ) ) {
-			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp elasticpress clear-index` in case the process is killed.' ) );
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp elasticpress clear-index` in case the process is killed.', 'elasticpress' ) );
 		} else {
 			declare( ticks = 1 );
 			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );

@@ -2,7 +2,7 @@
 /**
  * Comment indexable
  *
- * @since   3.6
+ * @since   3.6.0
  * @package elasticpress
  */
 
@@ -13,6 +13,7 @@ use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexable\Post\DateQuery as DateQuery;
 use \WP_Comment_Query as WP_Comment_Query;
+use ElasticPress\Features as Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -27,14 +28,14 @@ class Comment extends Indexable {
 	 * Indexable slug
 	 *
 	 * @var   string
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public $slug = 'comment';
 
 	/**
 	 * Create indexable and initialize dependencies
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function __construct() {
 		$this->labels = [
@@ -50,7 +51,7 @@ class Comment extends Indexable {
 	 * Format query vars into ES query
 	 *
 	 * @param  array $query_vars WP_Comment_Query args.
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return array
 	 */
 	public function format_args( $query_vars ) {
@@ -440,7 +441,7 @@ class Comment extends Indexable {
 		if ( ! empty( $query_vars['post_type'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
-					'comment_post_type' => $query_vars['post_type'],
+					'comment_post_type.raw' => $query_vars['post_type'],
 				],
 			];
 
@@ -453,7 +454,7 @@ class Comment extends Indexable {
 		if ( ! empty( $query_vars['post_name'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
-					'comment_post_name' => $query_vars['post_name'],
+					'comment_post_name.raw' => $query_vars['post_name'],
 				],
 			];
 
@@ -683,7 +684,7 @@ class Comment extends Indexable {
 	/**
 	 * Put mapping for comments
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return boolean
 	 */
 	public function put_mapping() {
@@ -709,21 +710,67 @@ class Comment extends Indexable {
 	}
 
 	/**
+	 * Returns indexable comment types
+	 *
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function get_indexable_comment_types() {
+		$comment_types = [ 'comment' ];
+
+		if ( Features::factory()->registered_features['woocommerce']->is_active() ) {
+			$comment_types[] = 'review';
+		}
+
+		/**
+		 * Filter indexable comment types
+		 *
+		 * @hook ep_indexable_comment_types
+		 * @since 3.6.0
+		 * @param  {array} $comment_types Indexable comment types
+		 * @return  {array} comment types
+		 */
+		return apply_filters( 'ep_indexable_comment_types', $comment_types );
+	}
+
+	/**
+	 * Returns indexable comment status
+	 *
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function get_indexable_comment_status() {
+		$comment_status = [ '1' ];
+
+		/**
+		 * Filter indexable comment status
+		 *
+		 * @hook ep_indexable_comment_status
+		 * @since 3.6.0
+		 * @param  {array} $comment_status Indexable comment status
+		 * @return  {array} comment status
+		 */
+		return apply_filters( 'ep_indexable_comment_status', $comment_status );
+	}
+
+	/**
 	 * Query DB for comments
 	 *
 	 * @param  array $args Query arguments
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return array
 	 */
 	public function query_db( $args ) {
 
 		$defaults = [
-			'post_type' => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
-			'status'    => 'approve',
-			'number'    => $this->get_bulk_items_per_page(),
-			'offset'    => 0,
-			'orderby'   => 'comment_ID',
-			'order'     => 'desc',
+			'type'        => $this->get_indexable_comment_types(),
+			'status'      => $this->get_indexable_comment_status(),
+			'post_type'   => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
+			'post_status' => Indexables::factory()->get( 'post' )->get_indexable_post_status(),
+			'number'      => $this->get_bulk_items_per_page(),
+			'offset'      => 0,
+			'orderby'     => 'comment_ID',
+			'order'       => 'desc',
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -735,7 +782,7 @@ class Comment extends Indexable {
 		 *
 		 * @hook ep_comment_query_db_args
 		 * @param  {array} $args Query arguments based to WP_Comment_Query
-		 * @since  3.6
+		 * @since  3.6.0
 		 * @return {array} New arguments
 		 */
 		$args = apply_filters( 'ep_comment_query_db_args', wp_parse_args( $args, $defaults ) );
@@ -750,7 +797,7 @@ class Comment extends Indexable {
 		 *
 		 * @hook ep_comment_all_query_db_args
 		 * @param  {array} $args Query arguments based to WP_Comment_Query
-		 * @since  3.6
+		 * @since  3.6.0
 		 * @return {array} New arguments
 		 */
 		$all_query = new WP_Comment_Query( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
@@ -779,7 +826,7 @@ class Comment extends Indexable {
 	 * Prepare a comment document for indexing
 	 *
 	 * @param  int $comment_id Comment ID
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return bool|array
 	 */
 	public function prepare_document( $comment_id ) {
@@ -829,7 +876,7 @@ class Comment extends Indexable {
 	 * expects.
 	 *
 	 * @param  object $value Comment object
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return void Returns by reference
 	 */
 	public function remap_comments( &$value ) {
@@ -857,7 +904,7 @@ class Comment extends Indexable {
 	 * Prepare meta to send to ES
 	 *
 	 * @param  int $comment_id Comment ID
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return array
 	 */
 	public function prepare_meta( $comment_id ) {
@@ -874,7 +921,7 @@ class Comment extends Indexable {
 		 *
 		 * Allows for specifying private meta keys that may be indexed in the same manner as public meta keys.
 		 *
-		 * @since 3.6
+		 * @since 3.6.0
 		 *
 		 * @param array           Array of index-able private meta keys.
 		 * @param int $comment_id Comment ID.
@@ -890,7 +937,7 @@ class Comment extends Indexable {
 		 *
 		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
 		 *
-		 * @since 3.6
+		 * @since 3.6.0
 		 *
 		 * @param array           Array of public meta keys to exclude from index.
 		 * @param int $comment_id Comment ID.
@@ -931,7 +978,7 @@ class Comment extends Indexable {
 	 * @access protected
 	 *
 	 * @param  string $order The 'order' query variable.
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return string The sanitized 'order' query variable.
 	 */
 	protected function parse_order( $order ) {
@@ -954,7 +1001,7 @@ class Comment extends Indexable {
 	 * @param  string $orderby Alias or path for the field to order by.
 	 * @param  string $order Order direction
 	 * @param  array  $args Query args
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return array
 	 */
 	protected function parse_orderby( $orderby, $order, $args ) {
@@ -1018,7 +1065,7 @@ class Comment extends Indexable {
 				break;
 
 			case 'comment_type':
-				$orderby_field = 'comment_type';
+				$orderby_field = 'comment_type.raw';
 				break;
 
 			case 'user_id':

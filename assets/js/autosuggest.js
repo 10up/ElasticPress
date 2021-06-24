@@ -385,9 +385,13 @@ function setFormIsLoading(isLoading, input) {
  * init method called if the epas endpoint is defined
  */
 function init() {
-	const epInputNodes = document.querySelectorAll(
-		`.ep-autosuggest, input[type="search"], .search-field, ${epas.selector}`,
-	);
+	const selectors = [epas.defaultSelectors, epas.selector].filter(Boolean).join(',');
+
+	if (!selectors) {
+		return;
+	}
+
+	const epInputNodes = document.querySelectorAll(selectors);
 
 	// build the container into which we place the search results.
 	// These will be cloned later for each instance
@@ -400,10 +404,18 @@ function init() {
 	epAutosuggest.appendChild(autosuggestList);
 
 	// Build the auto-suggest containers
-	// excluding the facet search field
+	// excluding the facet search field and search block field
 	const epInputs = Array.from(epInputNodes).filter(
-		(node) => !node.classList.contains('facet-search'),
+		(node) =>
+			!node.classList.contains('facet-search') &&
+			!node.classList.contains('wp-block-search__input'),
 	);
+
+	// Handle search blocks separately
+	const epBlockInputs = Array.from(epInputNodes).filter((node) =>
+		node.classList.contains('wp-block-search__input'),
+	);
+
 	epInputs.forEach((input) => {
 		const epContainer = document.createElement('div');
 		epContainer.classList.add('ep-autosuggest-container');
@@ -422,6 +434,24 @@ function init() {
 
 		const clonedContainer = epAutosuggest.cloneNode(true);
 		input.insertAdjacentElement('afterend', clonedContainer);
+
+		// announce that this is has been done
+		const event = new CustomEvent('elasticpress.input.moved');
+		input.dispatchEvent(event);
+	});
+
+	/**
+	 * For search blocks, because we know the output mark up, we reuse it
+	 * for autosuggest.
+	 */
+	epBlockInputs.forEach((input) => {
+		// Disable autocomplete
+		input.setAttribute('autocomplete', 'off');
+
+		input.form.classList.add('ep-autosuggest-container');
+
+		const clonedContainer = epAutosuggest.cloneNode(true);
+		input.parentElement.insertAdjacentElement('afterend', clonedContainer);
 
 		// announce that this is has been done
 		const event = new CustomEvent('elasticpress.input.moved');
@@ -627,7 +657,7 @@ function init() {
 	 * blur
 	 * hide the autosuggest box
 	 */
-	epInputs.forEach((input) => {
+	[...epInputs, ...epBlockInputs].forEach((input) => {
 		input.addEventListener('keyup', handleKeyup);
 		input.addEventListener('blur', function () {
 			window.setTimeout(hideAutosuggestBox, 200);

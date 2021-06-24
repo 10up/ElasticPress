@@ -23,7 +23,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function setUp() {
 		global $wpdb;
@@ -49,7 +49,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Clean up after each test. Reset our mocks
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function tearDown() {
 		parent::tearDown();
@@ -64,7 +64,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Deletes all comments from the database.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function deleteAllComments() {
 
@@ -79,7 +79,7 @@ class TestComment extends BaseTestCase {
 	 * @param int $number The number of comments to be created.
 	 * @param bool $has_child Create child comment
 	 * @return array
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comments
 	 */
 	public function createComments( $number = 4, $has_child = false ) {
@@ -122,7 +122,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment sync
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comments
 	 */
 	public function testCommentSync() {
@@ -158,7 +158,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment sync with meta
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentSyncMeta() {
@@ -183,7 +183,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment sync on meta update
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentSyncOnMetaUpdate() {
@@ -203,7 +203,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment sync kill.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentSyncKill() {
@@ -213,13 +213,6 @@ class TestComment extends BaseTestCase {
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 		] );
-
-		add_action(
-			'ep_sync_comment_on_transition',
-			function() {
-				$this->fired_actions['ep_sync_comment_on_transition'] = true;
-			}
-		);
 
 		add_filter(
 			'ep_comment_sync_kill',
@@ -242,7 +235,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a basic comment query with and without ElasticPress
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testBasicCommentQuery() {
@@ -289,7 +282,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment query with number argument
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryNumber() {
@@ -310,7 +303,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test a comment query with offset argument
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryOffset() {
@@ -331,7 +324,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query ordering
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryOrderCommentContent() {
@@ -363,7 +356,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query ordering by comment id.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryOrderCommentID() {
@@ -398,7 +391,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query ordering by comment post id.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryOrderCommentPostID() {
@@ -437,7 +430,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query returning ids.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryIds() {
@@ -459,7 +452,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query returning ids.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryCount() {
@@ -477,7 +470,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with hierarchical argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryHierarchical() {
@@ -510,7 +503,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query after deleting a comment.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentDelete() {
@@ -565,7 +558,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query pagination.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPaged() {
@@ -589,7 +582,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by author email.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorEmail() {
@@ -646,7 +639,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by author URL.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorUrl() {
@@ -705,7 +698,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by user id.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryUserId() {
@@ -755,7 +748,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with author__in argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorIn() {
@@ -806,7 +799,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with author__not_in.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorNotIn() {
@@ -852,7 +845,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with comment__in argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryCommentIn() {
@@ -878,7 +871,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with comment__not_in argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryCommentNotIn() {
@@ -903,7 +896,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query ordering by comment date.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryDateQuery() {
@@ -1002,7 +995,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with karm argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryKarma() {
@@ -1055,7 +1048,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query using comment meta.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryMeta() {
@@ -1105,7 +1098,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query using meta_query.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryMetaQuery() {
@@ -1163,7 +1156,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with parent__in argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryParentIn() {
@@ -1186,7 +1179,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with parent__not_in.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryParentNotIn() {
@@ -1209,7 +1202,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post author.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostAuthor() {
@@ -1298,7 +1291,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post id.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostId() {
@@ -1348,7 +1341,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post status.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostStatus() {
@@ -1407,7 +1400,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post type.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostType() {
@@ -1455,7 +1448,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query with post_parent argument.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostParent() {
@@ -1497,7 +1490,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query search.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQuerySearch() {
@@ -1556,7 +1549,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by status.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryStatus() {
@@ -1657,7 +1650,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by comment type.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryType() {
@@ -1735,7 +1728,7 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Test comment query by post name.
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 * @group comment
 	 */
 	public function testCommentQueryPostName() {
@@ -1777,5 +1770,252 @@ class TestComment extends BaseTestCase {
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
+	}
+
+	/**
+	 * Test WooCommerce review indexing.
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testWooCommerceReviewIndexing() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_id = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'product 1',
+				'post_type'    => 'product',
+			)
+		);
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test review',
+			'comment_post_ID' => $product_id,
+			'comment_type'    => 'review'
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comments_query = new \WP_Comment_Query( [
+			'ep_integrate' => true,
+		] );
+		$comments = $comments_query->get_comments();
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+			$this->assertEquals( $product_id, $comment->comment_post_ID );
+			$this->assertEquals( 'Test review', $comment->comment_content );
+			$this->assertEquals( 'review', $comment->comment_type );
+		}
+	}
+
+	/**
+	 * Test Comment Indexable query_db.
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testCommentIndexableQueryDb() {
+		$post_id = wp_insert_post( [
+			'post_name' => 'start-here',
+			'post_status' => 'publish'
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$product_id = wp_insert_post( [
+			'post_content' => 'product 1',
+			'post_type'    => 'product',
+			'post_status' => 'publish'
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Test review',
+			'comment_post_ID' => $product_id,
+			'comment_type'    => 'review'
+		] );
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		$results = $comment_indexable->query_db([]);
+
+		$this->assertArrayHasKey( 'objects', $results);
+		$this->assertArrayHasKey( 'total_objects', $results);
+
+		$this->assertEquals( 1, $results['total_objects'] );
+	}
+
+	/**
+	 * Test Comment Indexable query_db with WooCommerce feature enabled.
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testCommentIndexableQueryDbWithWooCommerceFeatureEnabled() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_id = wp_insert_post( [
+			'post_content' => 'start-here',
+			'post_status'  => 'publish',
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$product_id = wp_insert_post( [
+			'post_content' => 'product 1',
+			'post_type'    => 'product',
+			'post_status'  => 'publish',
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Test review',
+			'comment_post_ID' => $product_id,
+			'comment_type'    => 'review',
+		] );
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		$results = $comment_indexable->query_db([]);
+
+		$this->assertEquals( 2, $results['total_objects'] );
+	}
+
+	/**
+	 * Test Comment Indexable query_db with Order Note.
+	 *
+	 * We need to make sure this type of comment is not indexed.
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testCommentIndexableQueryDbWithOrderNote() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_id = wp_insert_post( [
+			'post_content' => 'start-here',
+			'post_status'  => 'publish',
+		] );
+
+		$post_comment_id = wp_insert_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+		] );
+
+		$product_id = wp_insert_post( [
+			'post_content' => 'product 1',
+			'post_type'    => 'product',
+			'post_status'  => 'publish',
+		] );
+
+		$product_comment_id = wp_insert_comment( [
+			'comment_content' => 'Test review',
+			'comment_post_ID' => $product_id,
+			'comment_type'    => 'review',
+		] );
+
+		$shop_order_id = wp_insert_post( [
+			'post_content'   => 'order 1',
+			'post_type'      => 'shop_order',
+			'post_status'    => 'wc-pending',
+			'comment_status' => 'closed',
+		] );
+
+		wp_insert_comment( [
+			'comment_content' => 'Added line items',
+			'comment_post_ID' => $shop_order_id,
+			'comment_type'    => 'order_note'
+
+		] );
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		$results = $comment_indexable->query_db([]);
+
+		$this->assertEquals( 2, $results['total_objects'] );
+
+		foreach ( $results['objects'] as $comment ) {
+			$this->assertContains( $comment->comment_ID, [ $post_comment_id, $product_comment_id ] );
+		}
+	}
+
+	/**
+	 * Test a comment sync on order_note
+	 *
+	 * Check if a not allowed comment type is not indexed
+	 *
+	 * @since 3.6.0
+	 * @group comments
+	 */
+	public function testCommentSyncOrderNote() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_id = Functions\create_and_sync_post([
+			'post_content'   => 'order 1',
+			'post_type'      => 'shop_order',
+			'post_status'    => 'wc-pending',
+			'comment_status' => 'closed',
+		]);
+
+		wp_insert_comment( [
+			'comment_content' => 'Added line items',
+			'comment_post_ID' => $shop_order_id,
+			'comment_type'    => 'order_note'
+		] );
+
+		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+
+		$shop_order_comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $shop_order_id );
+
+		$this->assertEmpty( $shop_order_comment );
+	}
+
+	/**
+	 * Test comment indexing with Protected Content Feature enabled
+	 *
+	 * When the Protected Content is enabled unapproved comments will be indexed.
+	 *
+	 * @since 3.6.0
+	 * @group comments
+	 */
+	public function testCommentIndexingWithProtectedContentEnabled() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_id = Functions\create_and_sync_post();
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 1',
+			'comment_post_ID' => $post_id,
+			'comment_approved' => 1,
+		] );
+
+		Functions\create_and_sync_comment( [
+			'comment_content' => 'Test comment 2',
+			'comment_post_ID' => $post_id,
+			'comment_approved' => 0,
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comments_query = new \WP_Comment_Query( [
+			'ep_integrate' => true,
+		] );
+		$comments = $comments_query->get_comments();
+
+		$this->assertCount( 2, $comments );
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
 	}
 }

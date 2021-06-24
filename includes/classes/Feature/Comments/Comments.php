@@ -2,7 +2,7 @@
 /**
  * Comments feature
  *
- * @since   3.6
+ * @since   3.6.0
  * @package elasticpress
  */
 
@@ -21,7 +21,7 @@ class Comments extends Feature {
 	/**
 	 * Initialize feature, setting it's config
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function __construct() {
 		$this->slug                     = 'comments';
@@ -34,7 +34,7 @@ class Comments extends Feature {
 	/**
 	 * Setup search functionality
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function setup() {
 		Indexables::factory()->register( new Indexable\Comment\Comment() );
@@ -47,16 +47,37 @@ class Comments extends Feature {
 	/**
 	 * Setup search integration
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function search_setup() {
+		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			/**
+			 * Filter to integrate with admin ajax queries
+			 *
+			 * @hook ep_ajax_wp_query_integration
+			 * @param  {bool} $integrate True to integrate
+			 * @return  {bool} New value
+			 */
+			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
+				return;
+			} else {
+				$admin_integration = true;
+			}
+		}
+
+		if ( is_admin() && ! $admin_integration ) {
+			return;
+		}
+
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 	}
 
 	/**
 	 * Output feature box summary
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function output_feature_box_summary() {
 		?>
@@ -67,7 +88,7 @@ class Comments extends Feature {
 	/**
 	 * Output feature box long text
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function output_feature_box_long() {
 		?>
@@ -80,7 +101,7 @@ class Comments extends Feature {
 	 *
 	 * @param  bool              $enabled Whether EP is enabled
 	 * @param  \WP_Comment_Query $query Current query object.
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
@@ -100,7 +121,7 @@ class Comments extends Feature {
 	/**
 	 * Determine feature reqs status
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
