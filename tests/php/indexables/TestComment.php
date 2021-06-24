@@ -1980,6 +1980,42 @@ class TestComment extends BaseTestCase {
 	}
 
 	/**
+	 * Test a comment sync on order_note with meta
+	 *
+	 * Check if a not allowed comment type is not indexed
+	 * when meta is updated.
+	 *
+	 * @since 3.6.0
+	 * @group comments
+	 */
+	public function testCommentSyncOrderNoteWithMeta() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_id = Functions\create_and_sync_post([
+			'post_content'   => 'order 1',
+			'post_type'      => 'shop_order',
+			'post_status'    => 'wc-pending',
+			'comment_status' => 'closed',
+		]);
+
+		wp_insert_comment( [
+			'comment_content' => 'Added line items',
+			'comment_post_ID' => $shop_order_id,
+			'comment_type'    => 'order_note',
+			'comment_meta'    => [
+				'is_customer_note' => 1
+			]
+		] );
+
+		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+
+		$shop_order_comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $shop_order_id );
+
+		$this->assertEmpty( $shop_order_comment );
+	}
+
+	/**
 	 * Test comment indexing with Protected Content Feature enabled
 	 *
 	 * When the Protected Content is enabled unapproved comments will be indexed.
