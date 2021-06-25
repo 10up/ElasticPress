@@ -336,25 +336,36 @@ class Post extends Indexable {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $post_date_gmt Post date
+	 * @param string $date_to_prepare Post date
 	 * @since 0.1.4
 	 * @return array
 	 */
-	private function prepare_date_terms( $post_date_gmt ) {
-		$timestamp  = strtotime( $post_date_gmt );
-		$date_terms = array(
-			'year'          => (int) date_i18n( 'Y', $timestamp ),
-			'month'         => (int) date_i18n( 'm', $timestamp ),
-			'week'          => (int) date_i18n( 'W', $timestamp ),
-			'dayofyear'     => (int) date_i18n( 'z', $timestamp ),
-			'day'           => (int) date_i18n( 'd', $timestamp ),
-			'dayofweek'     => (int) date_i18n( 'w', $timestamp ),
-			'dayofweek_iso' => (int) date_i18n( 'N', $timestamp ),
-			'hour'          => (int) date_i18n( 'H', $timestamp ),
-			'minute'        => (int) date_i18n( 'i', $timestamp ),
-			'second'        => (int) date_i18n( 's', $timestamp ),
-			'm'             => (int) ( date_i18n( 'Y', $timestamp ) . date_i18n( 'm', $timestamp ) ), // yearmonth
-		);
+	public function prepare_date_terms( $date_to_prepare ) {
+		$terms_to_prepare = [
+			'year'          => 'Y',
+			'month'         => 'm',
+			'week'          => 'W',
+			'dayofyear'     => 'z',
+			'day'           => 'd',
+			'dayofweek'     => 'w',
+			'dayofweek_iso' => 'N',
+			'hour'          => 'H',
+			'minute'        => 'i',
+			'second'        => 's',
+			'm'             => 'Ym', // yearmonth
+		];
+
+		// Combine all the date term formats and perform one single call to date_i18n() for performance.
+		$date_format    = implode( '||', array_values( $terms_to_prepare ) );
+		$combined_dates = explode( '||', date_i18n( $date_format, strtotime( $date_to_prepare ) ) );
+
+		// Then split up the results for individual indexing.
+		$date_terms = [];
+		foreach ( $terms_to_prepare as $term_name => $date_format ) {
+			$index_in_combined_format = array_search( $term_name, array_keys( $terms_to_prepare ), true );
+			$date_terms[ $term_name ] = (int) $combined_dates[ $index_in_combined_format ];
+		}
+
 		return $date_terms;
 	}
 
@@ -429,6 +440,9 @@ class Post extends Indexable {
 						'term_taxonomy_id' => $term->term_taxonomy_id,
 						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
 					);
+
+					$terms_dic[ $term->term_id ]['facet'] = wp_json_encode( $terms_dic[ $term->term_id ] );
+
 					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
 					}
@@ -457,12 +471,16 @@ class Post extends Indexable {
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
 			$terms[ $parent_term->term_id ] = array(
-				'term_id'    => $parent_term->term_id,
-				'slug'       => $parent_term->slug,
-				'name'       => $parent_term->name,
-				'parent'     => $parent_term->parent,
-				'term_order' => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
+				'term_id'          => $parent_term->term_id,
+				'slug'             => $parent_term->slug,
+				'name'             => $parent_term->name,
+				'parent'           => $parent_term->parent,
+				'term_taxonomy_id' => $parent_term->term_taxonomy_id,
+				'term_order'       => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
 			);
+
+			$terms[ $parent_term->term_id ]['facet'] = wp_json_encode( $terms[ $parent_term->term_id ] );
+
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
 	}
@@ -771,7 +789,7 @@ class Post extends Indexable {
 
 				$args['tax_query'] = array_map(
 					function( $tax_query ) use ( $args ) {
-						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'] ) ) {
+						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'], true ) ) {
 							$tax_query['terms'][] = $args['tag_id'];
 						}
 
@@ -864,6 +882,21 @@ class Post extends Indexable {
 		}
 
 		/**
+		 * 'post_name__in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['post_name__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_name.raw' => array_values( (array) $args['post_name__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * 'post__not_in' arg support.
 		 *
 		 * @since x.x
@@ -872,6 +905,36 @@ class Post extends Indexable {
 			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(
 					'post_id' => (array) $args['post__not_in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'category__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['category__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'tag__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['tag__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
 				),
 			);
 
@@ -931,9 +994,26 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['post_mime_type'] ) ) {
 			if ( is_array( $args['post_mime_type'] ) ) {
+
+				$args_post_mime_type = [];
+
+				foreach ( $args['post_mime_type'] as $mime_type ) {
+					/**
+					 * check if matches the MIME type pattern: type/subtype and
+					 * leave an empty string as posts, pages and CPTs don't have a MIME type
+					 */
+					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
+						$args_post_mime_type[] = $mime_type;
+					} else {
+						$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
+
+						$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+					}
+				}
+
 				$filter['bool']['must'][] = array(
 					'terms' => array(
-						'post_mime_type' => (array) $args['post_mime_type'],
+						'post_mime_type' => $args_post_mime_type,
 					),
 				);
 

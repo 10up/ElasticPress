@@ -20,9 +20,9 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
-		$this->runCommand( 'wp elasticpress delete-index' );
+		$this->runCommand( 'wp elasticpress delete-index --yes' );
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
 
@@ -51,13 +51,13 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->deactivatePlugin( $I );
+		$this->deactivatePlugin();
 
-		$this->activatePlugin( $I, 'elasticpress', true );
+		$this->activatePlugin( null, 'elasticpress', true );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
-		$this->runCommand( 'wp elasticpress delete-index --network-wide' );
+		$this->runCommand( 'wp elasticpress delete-index --network-wide --yes' );
 
 		$I->moveTo( 'wp-admin/network/sites.php' );
 
@@ -77,9 +77,9 @@ class DashboardSyncTest extends TestBase {
 
 		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$this->deactivatePlugin( $I, 'elasticpress', true );
+		$this->deactivatePlugin( null, 'elasticpress', true );
 
-		$this->activatePlugin( $I );
+		$this->activatePlugin();
 	}
 
 	/**
@@ -91,9 +91,9 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
-		$this->runCommand( 'wp elasticpress delete-index' );
+		$this->runCommand( 'wp elasticpress delete-index --yes' );
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
 
@@ -136,7 +136,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -161,7 +161,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		// Slowing the index process a bit.
 		$old_value = $this->setPerIndexCycle( 10, $I );

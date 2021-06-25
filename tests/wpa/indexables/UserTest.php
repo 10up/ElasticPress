@@ -16,7 +16,7 @@ class UserTest extends TestBase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 	}
 
 	/**
@@ -132,5 +132,41 @@ class UserTest extends TestBase {
 		$I->seeText( '"value": "John"', '.query-results' );
 
 		$I->seeText( '"value": "Doe"', '.query-results' );
+	}
+
+	/**
+	 * Create a user
+	 *
+	 * @param  array                       $data  User data
+	 * @param  \WPAcceptance\PHPUnit\Actor $actor Current actor
+	 */
+	public function createUser( array $data, \WPAcceptance\PHPUnit\Actor $actor ) {
+		$defaults = [
+			'user_login' => 'testuser',
+			'user_email' => 'testuser@example.com',
+		];
+
+		$data = array_merge( $defaults, $data );
+
+		try {
+			$actor->moveTo( 'wp-admin/user-new.php' );
+
+			$actor->typeInField( '#user_login', $data['user_login'] );
+
+			$actor->typeInField( '#email', $data['user_email'] );
+
+			$actor->checkOptions( '#noconfirmation' );
+
+			$actor->click( '#createusersub' );
+
+			$actor->waitUntilElementVisible( '#message' );
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$this->runCommand( "wp user create {$data['user_login']} {$data['user_email']}" );
+		}
 	}
 }

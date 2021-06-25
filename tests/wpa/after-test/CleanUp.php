@@ -24,7 +24,7 @@ class CleanUp extends TestBase {
 
 		foreach ( (array) $cluster_indexes as $index ) {
 			if ( $docker_cid && false !== strpos( $index['index'], $docker_cid) ) {
-				$this->runCommand( 'wp elasticpress delete-index --index-name=' . $index['index'] );
+				$this->runCommand( 'wp elasticpress delete-index --yes --index-name=' . $index['index'] );
 			}
 		}
 		$this->assertTrue(true);
