@@ -27,11 +27,11 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 3.6.0
 	 */
 	public function setup() {
-		if ( defined( 'WP_IMPORTING' ) && true === WP_IMPORTING ) {
+		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
 			return;
 		}
 
-		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
+		if ( ! $this->can_index_site() ) {
 			return;
 		}
 
@@ -62,7 +62,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$this->try_index_comment( $comment_id );
+		$this->maybe_index_comment( $comment_id );
 	}
 
 	/**
@@ -99,18 +99,18 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$this->try_index_comment( $comment_id );
+		$this->maybe_index_comment( $comment_id );
 	}
 
 	/**
-	 * Try index a comment
+	 * Maybe index a comment
 	 *
 	 * Check if comment could be indexed.
 	 *
 	 * @param int $comment_id Comment ID.
 	 * @since 3.6.0
 	 */
-	protected function try_index_comment( $comment_id ) {
+	protected function maybe_index_comment( $comment_id ) {
 		$comment = get_comment( $comment_id );
 
 		if ( ! empty( $comment ) ) {
