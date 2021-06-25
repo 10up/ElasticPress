@@ -105,7 +105,13 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		foreach ( $terms as $term ) {
-			$term = get_term( $term );
+			$term_info = term_exists( $term );
+
+			if ( ! $term_info ) {
+				continue;
+			}
+
+			$term = get_term( $term_info );
 
 			if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
 				return;
