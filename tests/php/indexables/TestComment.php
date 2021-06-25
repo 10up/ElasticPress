@@ -354,6 +354,30 @@ class TestComment extends BaseTestCase {
 	}
 
 	/**
+	 * Test comment query ordering by comment_post_type field
+	 *
+	 * Ensure we are using EP when order by comment_post_type
+	 *
+	 * @since 3.6.0
+	 * @group comment
+	 */
+	public function testCommentQueryOrderCommentPostType() {
+		$this->createComments();
+
+		$comments_query = new \WP_Comment_Query( [
+			'ep_integrate' => true,
+			'orderby' => 'comment_post_type',
+		] );
+		$comments = $comments_query->get_comments();
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( $comment->elasticsearch );
+		}
+
+		$this->assertNotEmpty( $comments );
+	}
+
+	/**
 	 * Test comment query ordering by comment id.
 	 *
 	 * @since 3.6.0

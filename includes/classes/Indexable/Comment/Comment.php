@@ -1175,6 +1175,10 @@ class Comment extends Indexable {
 				$orderby_field = 'comment_type.raw';
 				break;
 
+			case 'comment_post_type':
+				$orderby_field = 'comment_post_type.raw';
+				break;
+
 			case 'user_id':
 				$orderby_field = 'user_id';
 				break;
