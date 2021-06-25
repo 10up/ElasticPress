@@ -418,12 +418,6 @@ class Facets extends Feature {
 	public function build_query_url( $filters ) {
 		$query_param = array();
 
-		$s = get_search_query();
-
-		if ( ! empty( $s ) ) {
-			$query_param['s'] = $s;
-		}
-
 		if ( ! empty( $filters['taxonomies'] ) ) {
 			$tax_filters = $filters['taxonomies'];
 
