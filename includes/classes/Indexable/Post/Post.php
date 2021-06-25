@@ -825,20 +825,22 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['category_name'] ),
-				'field'    => 'slug',
-			);
-		}
+		if ( empty( $args['tax_query'] ) ) {
+			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['category_name'] ),
+					'field'    => 'slug',
+				);
+			}
 
-		if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['cat'] ),
-				'field'    => 'term_id',
-			);
+			if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['cat'] ),
+					'field'    => 'term_id',
+				);
+			}
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
@@ -869,7 +871,7 @@ class Post extends Indexable {
 			$has_tag__and = true;
 		}
 
-		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) ) {
+		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) && empty( $args['tax_query'] ) ) {
 
 			// If you pass tag__in as a parameter, core adds the first
 			// term ID as tag_id, so we only need to append it if we have
