@@ -107,7 +107,7 @@ class SyncManager extends SyncManagerAbstract {
 		foreach ( $terms as $term ) {
 			$term_info = term_exists( $term );
 
-			if( ! $term_info ) {
+			if ( ! $term_info ) {
 				continue;
 			}
 
