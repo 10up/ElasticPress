@@ -380,11 +380,12 @@ The following are special parameters that are only supported by ElasticPress.
         's'    => 'search phrase',
         'aggs' => array(
             'name'       => 'name-of-aggregation', // (can be whatever you'd like)
-            'use-filter' => true // (*bool*) used if you'd like to apply the other filters (i.e. post type, tax_query, author), to the aggregation
-            'aggs'       => array(
-                'name'  => 'name-of-sub-aggregation',
-                'terms' => array(
-                    'field' => 'terms.name-of-taxonomy.name-of-term',
+            'use-filter' => true, // (*bool*) used if you'd like to apply the other filters (i.e. post type, tax_query, author), to the aggregation
+            'aggs' => array(
+                'name-of-sub-aggregation' => array(
+                    'terms' => array(
+                        'field' => 'terms.name-of-taxonomy.name-of-term',
+                    ),
                 ),
             ),
         ),
