@@ -550,6 +550,7 @@ function init() {
 	 *
 	 * @param {HTMLFormElement} form - form containing the search input field
 	 * @returns {Array} - post types
+	 * @since 3.6.0
 	 */
 	function getPostTypesFromForm(form) {
 		const data = new FormData(form);

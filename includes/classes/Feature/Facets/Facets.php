@@ -484,7 +484,7 @@ class Facets extends Feature {
 	 * Returns allowed query args for facets
 	 *
 	 * @return mixed|void
-	 * @since 3.4.1
+	 * @since 3.6.0
 	 */
 	public function get_allowed_query_args() {
 		$args = array( 's', 'post_type' );
