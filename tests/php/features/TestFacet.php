@@ -69,12 +69,12 @@ class TestFacets extends BaseTestCase {
 			]
 		];
 
-		$this->assertEquals( '/?filter_category=augue,consectetur', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( '/?filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
 
 		$_SERVER['REQUEST_URI'] = 'test/page/1';
 
 		set_query_var( 's', 'dolor' );
-		$this->assertEquals( 'test/?s=dolor&filter_category=augue,consectetur', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( 'test/?s=dolor&filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
 
 	}
 
