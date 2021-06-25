@@ -131,9 +131,29 @@ class SyncManager extends SyncManagerAbstract {
 				$indexable_post_types    = Indexables::factory()->get( 'post' )->get_indexable_post_types();
 
 				if ( in_array( $comment_type, $indexable_comment_types, true ) && in_array( $post_type, $indexable_post_types, true ) ) {
+					/**
+					 * Fire before comment is queued for syncing
+					 *
+					 * @hook ep_sync_comment_on_transition
+					 * @since 3.6.0
+					 * @param  {int} $comment_id Comment ID
+					 */
 					do_action( 'ep_sync_comment_on_transition', $comment_id );
 
-					$this->sync_queue[ $comment_id ] = true;
+					/**
+					 * Filter to kill comment sync
+					 *
+					 * @hook ep_comment_sync_kill
+					 * @since 3.6.0
+					 * @param {bool} $skip True means kill sync for comment
+					 * @param  {int} $comment_id Comment ID
+					 * @return {boolean} New value
+					 */
+					if ( apply_filters( 'ep_comment_sync_kill', false, $comment_id ) ) {
+						return;
+					}
+
+					$this->add_to_queue( $comment_id );
 				}
 			}
 		}
