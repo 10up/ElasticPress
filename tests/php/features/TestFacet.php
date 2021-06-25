@@ -56,7 +56,7 @@ class TestFacets extends BaseTestCase {
 
 		$this->assertIsArray( $selected );
 		$this->assertIsArray( $selected['taxonomies'] );
-		$this->assertEquals( 2, count( $selected['taxonomies'] ) );
+		$this->assertCount( 2, $selected['taxonomies'] );
 		$this->assertArrayHasKey( 'taxonomy', $selected['taxonomies'] );
 		$this->assertArrayHasKey( 'othertax', $selected['taxonomies'] );
 		$this->assertSame( [ 'dolor' => true, 'sit' => true ], $selected['taxonomies']['taxonomy']['terms'] );
@@ -132,7 +132,7 @@ class TestFacets extends BaseTestCase {
 	private function assertSelectedTax( $terms, $taxonomy, $selected ) {
 		$this->assertIsArray( $selected );
 		$this->assertIsArray( $selected['taxonomies'] );
-		$this->assertEquals( 1, count( $selected['taxonomies'] ) );
+		$this->assertCount( 1, $selected['taxonomies'] );
 		$this->assertArrayHasKey( $taxonomy, $selected['taxonomies'] );
 		$this->assertSame( $terms, $selected['taxonomies'][ $taxonomy ]['terms'] );
 	}
