@@ -511,9 +511,8 @@ class Facets extends Feature {
 		 * Filter allowed query args
 		 *
 		 * @hook    ep_facet_allowed_query_args
-		 *
+		 * @since 3.6.0
 		 * @param   {array} $args Post types
-		 *
 		 * @return  {array} New post types
 		 */
 		return apply_filters( 'ep_facet_allowed_query_args', $args );
