@@ -114,7 +114,7 @@ class Widget extends WP_Widget {
 	 *
 	 * @param  array $new_instance New instance settings
 	 * @param  array $old_instance Old instance settings
-	 * @since  2.2
+	 * @since  3.6.0
 	 * @return array
 	 */
 	public function update( $new_instance, $old_instance ) {
