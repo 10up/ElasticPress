@@ -932,11 +932,12 @@ class Command extends WP_CLI_Command {
 						// If we have hit the trigger, initiate the bulk request.
 						if ( ! empty( $objects ) && ( count( $objects ) + $killed_object_count ) >= absint( count( $query['objects'] ) ) ) {
 							$index_objects = $objects;
-
 							$this->reset_transient( (int) ( count( $query['objects'] ) + $query_args['offset'] ), (int) $query['total_objects'], $indexable->slug );
 
 							for ( $attempts = 1; $attempts <= 3; $attempts++ ) {
 								$response = $indexable->bulk_index( array_keys( $index_objects ) );
+
+								$es_response_items = [];
 
 								/**
 								 * Fires after bulk indexing in CLI
@@ -956,6 +957,14 @@ class Command extends WP_CLI_Command {
 										}
 									}
 
+									// The entire batch failed for the same reason, so apply the same error message for all IDs.
+									foreach ( $index_objects as $object_id => $value ) {
+										$es_response_items[ $object_id ] = [
+											'type'   => esc_html__( 'Request Error', 'elasticpress' ),
+											'reason' => $response->get_error_message(),
+										];
+									}
+
 									WP_CLI::warning( implode( "\n", $response->get_error_messages() ) );
 									continue;
 								}
@@ -964,6 +973,8 @@ class Command extends WP_CLI_Command {
 									foreach ( $response['items'] as $item ) {
 										if ( empty( $item['index']['error'] ) ) {
 											unset( $index_objects[ $item['index']['_id'] ] );
+										} else {
+											$es_response_items[ $item['index']['_id'] ] = (array) $item['index']['error'];
 										}
 									}
 								} else {
@@ -976,7 +987,7 @@ class Command extends WP_CLI_Command {
 							$synced += count( $objects ) - count( $index_objects );
 
 							foreach ( $index_objects as $object_id => $value ) {
-								$failed_objects[ $object_id ] = (array) $item['index']['error'];
+								$failed_objects[ $object_id ] = ( ! empty( $es_response_items[ $object_id ] ) ) ? $es_response_items[ $object_id ] : [];
 							}
 
 							// reset killed count.
