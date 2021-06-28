@@ -176,13 +176,23 @@ class Comments extends Feature {
 			return new \WP_Error( 400 );
 		}
 
-		$args = [
+		$default_args = [
 			'status'      => 'approve',
 			'search'      => $search,
 			'post_type'   => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
 			'post_status' => 'publish',
 			'number'      => 5,
 		];
+
+		/**
+		 * Filter to args used in WP_Comment_Query in Widget Search Comment
+		 *
+		 * @hook ep_widget_search_comments_args
+		 * @since 3.6.0
+		 * @param  {array} $default_args Defaults args
+		 * @return {array} New value
+		 */
+		$args = apply_filters( 'ep_widget_search_comments_args', $default_args );
 
 		$comment_query = new \WP_Comment_Query( $args );
 
