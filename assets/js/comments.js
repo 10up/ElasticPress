@@ -93,7 +93,7 @@ const showNotFoundInResultsBox = (inputElement) => {
 	const widget = findAncestorByClass(inputElement, 'ep-widget-search-comments');
 	const resultList = widget.querySelector('.ep-widget-search-comments-results');
 
-	let itemHTML = `<li class="ep-widget-search-comments-result-item">${window.epc.noResultsFoundText}</li>`;
+	let itemHTML = `<li class="ep-widget-search-comments-result-item-not-found">${window.epc.noResultsFoundText}</li>`;
 
 	if (typeof window.epCommentWidgetItemNotFoundHTMLFilter !== 'undefined') {
 		itemHTML = window.epCommentWidgetItemNotFoundHTMLFilter(

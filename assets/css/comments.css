@@ -3,7 +3,8 @@
 	margin-left: 0;
 }
 
-.ep-widget-search-comments-result-item {
+.ep-widget-search-comments-result-item,
+.ep-widget-search-comments-result-item-not-found {
 	margin-left: 0;
 }
 
