@@ -50,7 +50,7 @@ class Widget extends WP_Widget {
 		<div class="ep-widget-search-comments"></div>
 
 		<?php
-		$comments_search_form = ob_get_clean();
+		$search_comments_html = ob_get_clean();
 
 		// Enqueue Script & Styles
 		wp_enqueue_script(
@@ -91,7 +91,18 @@ class Widget extends WP_Widget {
 			$script_data
 		);
 
-		echo wp_kses_post( $comments_search_form );
+		// phpcs:disable
+		/**
+		 * Filter comment search widget HTML
+		 *
+		 * @hook ep_widget_search_comments
+		 * @since 3.6.0
+		 * @param  {string} $search_comments_html Widget HTML
+		 * @param  {string} $title Widget title
+		 * @return  {string} New HTML
+		 */
+		echo apply_filters( 'ep_widget_search_comments', $search_comments_html, $instance['title'] );
+		// phpcs:enable
 
 		echo wp_kses_post( $args['after_widget'] );
 	}
