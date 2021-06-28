@@ -1059,8 +1059,8 @@ class Command extends WP_CLI_Command {
 
 			$error_text .= '- ' . $object_id . ' (' . $indexable->labels['singular'] . '): ' . "\r\n";
 
-			if ( ! empty( $error_reason ) || ! empty( $error_reason ) ) {
-				$error_text .= '[' . $error_reason . '] ' . $error_reason . "\r\n";
+			if ( ! empty( $error_type ) || ! empty( $error_reason ) ) {
+				$error_text .= '[' . $error_type . '] ' . $error_reason . "\r\n";
 			}
 		}
 
