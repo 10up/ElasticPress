@@ -133,7 +133,7 @@ class Comments extends Feature {
 	/**
 	 * Register comments widget
 	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 */
 	public function register_widget() {
 		register_widget( __NAMESPACE__ . '\Widget' );
