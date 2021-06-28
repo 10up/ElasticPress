@@ -71,6 +71,7 @@ class Widget extends WP_Widget {
 		$default_script_data = [
 			'noResultsFoundText'    => esc_html__( 'We could not find any results', 'elasticpress' ),
 			'minimumLengthToSearch' => 2,
+			'restApiEndpoint'       => get_rest_url( null, 'elasticpress/v1/comments' ),
 		];
 
 		/**
@@ -82,8 +83,6 @@ class Widget extends WP_Widget {
 		 * @return  {array} New l10n data to be attached
 		 */
 		$script_data = apply_filters( 'ep_widget_search_comments_l10n_data_script', $default_script_data );
-
-		$script_data['restApiEndpoint'] = get_rest_url( null, 'elasticpress/v1/comments' );
 
 		wp_localize_script(
 			'elasticpress-comments',
