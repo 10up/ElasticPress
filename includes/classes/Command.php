@@ -1048,15 +1048,20 @@ class Command extends WP_CLI_Command {
 
 		foreach ( $errors as $object_id => $error ) {
 
+			$error_type   = ( ! empty( $error['type'] ) ) ? $error['type'] : '';
+			$error_reason = ( ! empty( $error['reason'] ) ) ? $error['reason'] : '';
+
 			$error_array[ $object_id ] = array(
 				$indexable->labels['singular'],
-				$error['type'],
-				$error['reason'],
+				$error_type,
+				$error_reason,
 			);
 
 			$error_text .= '- ' . $object_id . ' (' . $indexable->labels['singular'] . '): ' . "\r\n";
 
-			$error_text .= '[' . $error['type'] . '] ' . $error['reason'] . "\r\n";
+			if ( ! empty( $error_reason ) || ! empty( $error_reason ) ) {
+				$error_text .= '[' . $error_reason . '] ' . $error_reason . "\r\n";
+			}
 		}
 
 		if ( $output ) {
