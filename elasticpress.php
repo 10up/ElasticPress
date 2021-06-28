@@ -130,6 +130,12 @@ function register_indexable_posts() {
 
 	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
 		Features::factory()->register_feature(
+			new Feature\Comments\Comments()
+		);
+	}
+
+	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+		Features::factory()->register_feature(
 			new Feature\Terms\Terms()
 		);
 	}
