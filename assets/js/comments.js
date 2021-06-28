@@ -77,6 +77,10 @@ const updateResultsBox = (comments, inputElement) => {
 	const widget = findAncestorByClass(inputElement, 'ep-widget-search-comments');
 	const resultList = widget.querySelector('.ep-widget-search-comments-results');
 
+	if (typeof window.epCommentWidgetItemsHTMLFilter !== 'undefined') {
+		items = window.epCommentWidgetItemsHTMLFilter(items, inputElement.value);
+	}
+
 	resultList.innerHTML = items;
 };
 
