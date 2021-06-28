@@ -508,7 +508,6 @@ class Comment extends Indexable {
 					'comment_author',
 					'comment_author_email',
 					'comment_author_url',
-					'comment_author_IP',
 					'comment_content',
 				];
 			}
