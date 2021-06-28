@@ -49,15 +49,28 @@ function hideResultsBox(inputElement) {
  */
 const updateResultsBox = (comments, inputElement) => {
 	let items = '';
-	Object.keys(comments).forEach((id) => {
+	let itemHTML = '';
+
+	Object.keys(comments).forEach((id, index) => {
 		if (comments[id]?.content && comments[id]?.link) {
-			items += `
+			itemHTML = `
 				<li class="ep-widget-search-comments-result-item">
 					<a href="${comments[id].link}">
 						${comments[id].content}
 					</a>
 				</li>
 			`;
+
+			if (typeof window.epCommentWidgetItemHTMLFilter !== 'undefined') {
+				itemHTML = window.epCommentWidgetItemHTMLFilter(
+					itemHTML,
+					comments[id],
+					index,
+					inputElement.value,
+				);
+			}
+
+			items += itemHTML;
 		}
 	});
 
@@ -76,7 +89,17 @@ const showNotFoundInResultsBox = (inputElement) => {
 	const widget = findAncestorByClass(inputElement, 'ep-widget-search-comments');
 	const resultList = widget.querySelector('.ep-widget-search-comments-results');
 
-	resultList.innerHTML = `<li class="ep-widget-search-comments-result-item">${window.epc.noResultsFoundText}</li>`;
+	let itemHTML = `<li class="ep-widget-search-comments-result-item">${window.epc.noResultsFoundText}</li>`;
+
+	if (typeof window.epCommentWidgetItemNotFoundHTMLFilter !== 'undefined') {
+		itemHTML = window.epCommentWidgetItemNotFoundHTMLFilter(
+			itemHTML,
+			window.epc.noResultsFoundText,
+			inputElement.value,
+		);
+	}
+
+	resultList.innerHTML = itemHTML;
 };
 
 function hasMinimumLength(inputElement) {
