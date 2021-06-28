@@ -273,7 +273,7 @@ class SyncManager extends SyncManagerAbstract {
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				/**
-				 * Fire before post is queued for synxing
+				 * Fire before post is queued for syncing
 				 *
 				 * @hook ep_sync_on_transition
 				 * @param  {int} $post_id ID of post
@@ -284,7 +284,7 @@ class SyncManager extends SyncManagerAbstract {
 				 * Filter to kill post sync
 				 *
 				 * @hook ep_post_sync_kill
-				 * @param {bool} $skip True meanas kill sync for post
+				 * @param {bool} $skip True means kill sync for post
 				 * @param  {int} $object_id ID of post
 				 * @param  {int} $object_id ID of post
 				 * @return {boolean} New value
