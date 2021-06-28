@@ -61,6 +61,15 @@ class QueryIntegration {
 	 * @return void
 	 */
 	public function action_pre_get_comments( WP_Comment_Query $query ) {
+		/**
+		 * Filter to skip WP_Comment_Query integration
+		 *
+		 * @hook ep_skip_comment_query_integration
+		 * @since 3.6.0
+		 * @param  {bool} $skip True to skip
+		 * @param  {WP_Comment_Query} $query WP_Comment_Query to evaluate
+		 * @return {bool} New skip value
+		 */
 		if ( ! Indexables::factory()->get( 'comment' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_comment_query_integration', false, $query ) ) {
 			return;
 		}
@@ -89,6 +98,15 @@ class QueryIntegration {
 			return $results;
 		}
 
+		/**
+		 * Filter cached comments pre-post query
+		 *
+		 * @hook ep_wp_query_cached_comments
+		 * @since 3.6.0
+		 * @param  {mixed} $comments Comments or null
+		 * @param  {WP_Comment_Query} $query WP_Comment_Query object
+		 * @return {array} New cached comments
+		 */
 		$new_comments = apply_filters( 'ep_wp_query_cached_comments', null, $query );
 
 		if ( null !== $new_comments ) {

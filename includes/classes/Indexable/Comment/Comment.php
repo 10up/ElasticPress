@@ -508,11 +508,22 @@ class Comment extends Indexable {
 					'comment_author',
 					'comment_author_email',
 					'comment_author_url',
-					'comment_author_IP',
 					'comment_content',
 				];
 			}
 
+			/**
+			 * Filter default comment search fields
+			 *
+			 * If you are using the weighting engine, this filter should not be used.
+			 * Instead, you should use the ep_weighting_configuration_for_search filter.
+			 *
+			 * @hook ep_comment_search_fields
+			 * @since 3.6.0
+			 * @param  {array} $search_fields Default search fields
+			 * @param  {array} $query_vars WP_Comment_Query args
+			 * @return {array} New defaults
+			 */
 			$prepared_search_fields = apply_filters( 'ep_comment_search_fields', $prepared_search_fields, $query_vars );
 
 			$query = [
@@ -523,6 +534,16 @@ class Comment extends Indexable {
 								'query'  => $search,
 								'type'   => 'phrase',
 								'fields' => $prepared_search_fields,
+								/**
+								 * Filter boost for comment match phrase query
+								 *
+								 * @hook ep_comment_match_phrase_boost
+								 * @since 3.6.0
+								 * @param {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return {int} New phrase boost
+								 */
 								'boost'  => apply_filters( 'ep_comment_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
 							],
 						],
@@ -530,6 +551,15 @@ class Comment extends Indexable {
 							'multi_match' => [
 								'query'     => $search,
 								'fields'    => $prepared_search_fields,
+								/**
+								 * Filter boost for comment match query
+								 *
+								 * @hook ep_comment_match_boost
+								 * @param {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return {int} New boost
+								 */
 								'boost'     => apply_filters( 'ep_comment_match_boost', 2, $prepared_search_fields, $query_vars ),
 								'fuzziness' => 0,
 								'operator'  => 'and',
@@ -539,6 +569,16 @@ class Comment extends Indexable {
 							'multi_match' => [
 								'fields'    => $prepared_search_fields,
 								'query'     => $search,
+								/**
+								 * Filter fuzziness for post query
+								 *
+								 * @hook ep_comment_fuzziness_arg
+								 * @since 3.6.0
+								 * @param {int} $fuzziness Fuzziness
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return {int} New fuzziness
+								 */
 								'fuzziness' => apply_filters( 'ep_comment_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
 							],
 						],
@@ -546,8 +586,24 @@ class Comment extends Indexable {
 				],
 			];
 
-			$formatted_args['query'] = apply_filters( 'ep_comment_formatted_args_query', $query, $query_vars );
-
+			/**
+			 * Filter formatted Elasticsearch post query (only contains query part)
+			 *
+			 * @hook ep_comment_formatted_args_query
+			 * @since 3.6.0
+			 * @param {array}  $query         Current query
+			 * @param {array}  $query_vars    Query variables
+			 * @param {string} $search_text   Search text
+			 * @param {array}  $search_fields Search fields
+			 * @return {array} New query
+			 */
+			$formatted_args['query'] = apply_filters(
+				'ep_comment_formatted_args_query',
+				$query,
+				$query_vars,
+				$search,
+				$prepared_search_fields
+			);
 		} else {
 			$formatted_args['query']['match_all'] = [
 				'boost' => 1,
@@ -678,6 +734,15 @@ class Comment extends Indexable {
 			$formatted_args['post_filter'] = $filter;
 		}
 
+		/**
+		 * Filter formatted Elasticsearch query (entire query)
+		 *
+		 * @hook ep_comment_formatted_args
+		 * @since 3.6.0
+		 * @param {array} $formatted_args Formatted Elasticsearch query
+		 * @param {array} $query_vars WP_Comment_Query args
+		 * @return  {array} New query
+		 */
 		return apply_filters( 'ep_comment_formatted_args', $formatted_args, $query_vars );
 	}
 
@@ -691,6 +756,13 @@ class Comment extends Indexable {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
+			/**
+			 * Filter fallback Elasticsearch version
+			 *
+			 * @hook ep_fallback_elasticsearch_version
+			 * @param {string} $version Fall back Elasticsearch version
+			 * @return  {string} New version
+			 */
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
 
@@ -702,8 +774,24 @@ class Comment extends Indexable {
 			$mapping_file = '7-0.php';
 		}
 
+		/**
+		 * Filter comment indexable mapping file
+		 *
+		 * @hook ep_comment_mapping_file
+		 * @since 3.6.0
+		 * @param {string} $file Path to file
+		 * @return  {string} New file path
+		 */
 		$mapping = require apply_filters( 'ep_comment_mapping_file', __DIR__ . '/../../../mappings/comment/' . $mapping_file );
 
+		/**
+		 * Filter comment indexable mapping
+		 *
+		 * @hook ep_comment_mapping
+		 * @since 3.6.0
+		 * @param {array} $mapping Mapping
+		 * @return  {array} New mapping
+		 */
 		$mapping = apply_filters( 'ep_comment_mapping', $mapping );
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
@@ -863,6 +951,14 @@ class Comment extends Indexable {
 			'meta'                   => $this->prepare_meta_types( $this->prepare_meta( $comment->comment_ID ) ),
 		];
 
+		/**
+		 * Filter sync arguments for a comment.
+		 *
+		 * @hook ep_comment_sync_args
+		 * @param  {array} $comment_args Comment arguments
+		 * @param  {int}   $comment_id   Comment ID
+		 * @return {array} New arguments
+		 */
 		$comment_args = apply_filters( 'ep_comment_sync_args', $comment_args, $comment_id );
 
 		return $comment_args;
@@ -964,7 +1060,17 @@ class Comment extends Indexable {
 				}
 			}
 
-			if ( true === $allow_index || apply_filters( 'ep_prepare_comment_meta_whitelist_key', false, $key, $comment_id ) ) {
+			/**
+			 * Filter force allow a meta key
+			 *
+			 * @hook ep_prepare_comment_meta_allowed_key
+			 * @since 3.6.0
+			 * @param  {bool}   $allowed    True to allow the key
+			 * @param  {string} $key        Meta key
+			 * @param  {int}    $comment_id Comment ID
+			 * @return {bool}   New allowed value
+			 */
+			if ( true === $allow_index || apply_filters( 'ep_prepare_comment_meta_allowed_key', false, $key, $comment_id ) ) {
 				$prepared_meta[ $key ] = maybe_unserialize( $value );
 			}
 		}
@@ -1066,6 +1172,10 @@ class Comment extends Indexable {
 
 			case 'comment_type':
 				$orderby_field = 'comment_type.raw';
+				break;
+
+			case 'comment_post_type':
+				$orderby_field = 'comment_post_type.raw';
 				break;
 
 			case 'user_id':
