@@ -40,6 +40,8 @@ class Widget extends WP_Widget {
 
 		echo wp_kses_post( $args['before_widget'] );
 
+		ob_start();
+
 		if ( ! empty( $instance['title'] ) ) {
 			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
 		}
@@ -48,6 +50,8 @@ class Widget extends WP_Widget {
 		<div class="ep-widget-search-comments"></div>
 
 		<?php
+		$comments_search_form = ob_get_clean();
+
 		// Enqueue Script & Styles
 		wp_enqueue_script(
 			'elasticpress-comments',
@@ -86,6 +90,8 @@ class Widget extends WP_Widget {
 			'epc',
 			$script_data
 		);
+
+		echo wp_kses_post( $comments_search_form );
 
 		echo wp_kses_post( $args['after_widget'] );
 	}
