@@ -888,7 +888,7 @@ class Post extends Indexable {
 					},
 					$args['tax_query']
 				);
-			} else {
+			} elseif ( empty( $args['tax_query'] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'post_tag',
 					'terms'    => $args['tag_id'],
