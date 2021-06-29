@@ -141,6 +141,8 @@ class Comments extends Feature {
 
 	/**
 	 * Registers the API endpoint to search for comments
+	 *
+	 * @since  3.6.0
 	 */
 	public function rest_api_init() {
 		register_rest_route(
@@ -165,8 +167,8 @@ class Comments extends Feature {
 	/**
 	 * Handles the search for comments
 	 *
+	 * @since  3.6.0
 	 * @param \WP_REST_Request $request Rest request
-	 *
 	 * @return array
 	 */
 	public function handle_comments_search( $request ) {

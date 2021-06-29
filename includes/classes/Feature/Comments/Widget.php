@@ -2,7 +2,7 @@
 /**
  * Search comments widget
  *
- * @since  3.6
+ * @since  3.6.0
  * @package  elasticpress
  */
 
@@ -22,7 +22,7 @@ class Widget extends WP_Widget {
 	/**
 	 * Initialize the widget
 	 *
-	 * @since 3.6
+	 * @since 3.6.0
 	 */
 	public function __construct() {
 		$options = array( 'description' => esc_html__( 'A search form for comments.', 'elasticpress' ) );
@@ -34,7 +34,7 @@ class Widget extends WP_Widget {
 	 *
 	 * @param array $args Widget arguments
 	 * @param array $instance Widget instance variables
-	 * @since  3.6
+	 * @since  3.6.0
 	 */
 	public function widget( $args, $instance ) {
 
@@ -77,7 +77,7 @@ class Widget extends WP_Widget {
 		/**
 		 * Filter the l10n data attached to the Widget Search Comments script
 		 *
-		 * @since  3.6
+		 * @since  3.6.0
 		 * @hook ep_comment_search_widget_l10n_data_script
 		 * @param  {array} $default_script_data Default data attached to the script
 		 * @return  {array} New l10n data to be attached
@@ -110,7 +110,7 @@ class Widget extends WP_Widget {
 	 * Display widget settings form
 	 *
 	 * @param array $instance Widget instance variables
-	 * @since  3.6
+	 * @since  3.6.0
 	 */
 	public function form( $instance ) {
 		$title = ( isset( $instance['title'] ) ) ? $instance['title'] : '';
