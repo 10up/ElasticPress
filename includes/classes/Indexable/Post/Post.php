@@ -871,7 +871,7 @@ class Post extends Indexable {
 			$has_tag__and = true;
 		}
 
-		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) && empty( $args['tax_query'] ) ) {
+		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) ) {
 
 			// If you pass tag__in as a parameter, core adds the first
 			// term ID as tag_id, so we only need to append it if we have
