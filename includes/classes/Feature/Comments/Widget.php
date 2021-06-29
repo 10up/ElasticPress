@@ -78,11 +78,11 @@ class Widget extends WP_Widget {
 		 * Filter the l10n data attached to the Widget Search Comments script
 		 *
 		 * @since  3.6
-		 * @hook ep_widget_search_comments_l10n_data_script
+		 * @hook ep_comment_search_widget_l10n_data_script
 		 * @param  {array} $default_script_data Default data attached to the script
 		 * @return  {array} New l10n data to be attached
 		 */
-		$script_data = apply_filters( 'ep_widget_search_comments_l10n_data_script', $default_script_data );
+		$script_data = apply_filters( 'ep_comment_search_widget_l10n_data_script', $default_script_data );
 
 		wp_localize_script(
 			'elasticpress-comments',
