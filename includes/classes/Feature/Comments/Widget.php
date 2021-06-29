@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\Comments;
 
 use \WP_Widget as WP_Widget;
+use ElasticPress\Features as Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -45,9 +46,17 @@ class Widget extends WP_Widget {
 		if ( ! empty( $instance['title'] ) ) {
 			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
 		}
-		?>
 
-		<div class="ep-widget-search-comments"></div>
+		?>
+		<div class="ep-widget-search-comments">
+			<?php
+			if ( ! empty( $instance['post_type'] ) ) {
+				?>
+				<input type="hidden" id="ep-widget-search-comments-post-type" value="<?php echo esc_attr( $instance['post_type'] ); ?>" />
+				<?php
+			}
+			?>
+		</div>
 
 		<?php
 		$search_comments_html = ob_get_clean();
@@ -113,7 +122,19 @@ class Widget extends WP_Widget {
 	 * @since  3.6.0
 	 */
 	public function form( $instance ) {
-		$title = ( isset( $instance['title'] ) ) ? $instance['title'] : '';
+		$title     = ( isset( $instance['title'] ) ) ? $instance['title'] : '';
+		$post_type = ( isset( $instance['post_type'] ) ) ? $instance['post_type'] : '';
+
+		$post_types_options = array_map(
+			'get_post_type_object',
+			array_filter(
+				Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types(),
+				function ( $post_type ) {
+					return post_type_supports( $post_type, 'comments' );
+				}
+			)
+		);
+
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>">
@@ -121,6 +142,20 @@ class Widget extends WP_Widget {
 			</label>
 
 			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'post_type' ) ); ?>">
+				<?php esc_html_e( 'Search for comments on:', 'elasticpress' ); ?>
+			</label>
+
+			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'post_type' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'post_type' ) ); ?>">
+				<option value="">
+					<?php esc_html_e( 'All post types', 'elasticpress' ); ?>
+				</option>
+				<?php foreach ( $post_types_options as $indexable_post_type ) : ?>
+					<option <?php selected( $post_type, $indexable_post_type->name ); ?> value="<?php echo esc_attr( $indexable_post_type->name ); ?>"><?php echo esc_html( $indexable_post_type->label ); ?></option>
+				<?php endforeach; ?>
+			</select>
 		</p>
 		<?php
 	}
@@ -135,8 +170,9 @@ class Widget extends WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 
-		$instance          = [];
-		$instance['title'] = sanitize_text_field( $new_instance['title'] );
+		$instance              = [];
+		$instance['title']     = sanitize_text_field( $new_instance['title'] );
+		$instance['post_type'] = sanitize_text_field( $new_instance['post_type'] );
 
 		return $instance;
 	}
