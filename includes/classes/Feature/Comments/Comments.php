@@ -181,6 +181,7 @@ class Comments extends Feature {
 		$default_args = [
 			'status'      => 'approve',
 			'search'      => $search,
+			'type'        => Indexables::factory()->get( 'comment' )->get_indexable_comment_types(),
 			'post_type'   => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
 			'post_status' => 'publish',
 			'number'      => 5,
@@ -196,7 +197,27 @@ class Comments extends Feature {
 		 */
 		$args = apply_filters( 'ep_comment_search_widget_args', $default_args );
 
+		/**
+		 * Fires before the comment query is executed.
+		 *
+		 * @hook ep_comment_pre_search_widget
+		 * @since 3.6.0
+		 * @param {array}           $args Args passed to `WP_Comment_Query`.
+		 * @param {WP_REST_Request} $request Rest request.
+		 */
+		do_action( 'ep_comment_pre_search_widget', $args, $request );
+
 		$comment_query = new \WP_Comment_Query( $args );
+
+		/**
+		 * Fires after the comment query is executed.
+		 *
+		 * @hook ep_comment_after_search_widget
+		 * @since 3.6.0
+		 * @param {WP_Comment_Query} $comment_query WP_Comment_Query object.
+		 * @param {WP_REST_Request}  $request Rest request.
+		 */
+		do_action( 'ep_comment_after_search_widget', $comment_query, $request );
 
 		$return = [];
 		foreach ( $comment_query->comments as $comment ) {
@@ -207,6 +228,14 @@ class Comments extends Feature {
 			];
 		}
 
-		return $return;
+		/**
+		 * Filters the comments response
+		 *
+		 * @hook ep_comment_search_widget_response
+		 * @since 3.6.0
+		 * @param  {array} $return The result of fetched comments.
+		 * @return {array} New value
+		 */
+		return apply_filters( 'ep_comment_search_widget_response', $return );
 	}
 }
