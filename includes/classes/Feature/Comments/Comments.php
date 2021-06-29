@@ -11,6 +11,7 @@ namespace ElasticPress\Feature\Comments;
 use ElasticPress\Feature as Feature;
 use ElasticPress\Indexables as Indexables;
 use ElasticPress\Indexable as Indexable;
+use ElasticPress\Features as Features;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 
 /**
@@ -149,7 +150,7 @@ class Comments extends Feature {
 			'elasticpress/v1',
 			'comments',
 			[
-				'methods'             => 'GET',
+				'methods'             => 'POST',
 				'callback'            => [ $this, 'handle_comments_search' ],
 				'permission_callback' => '__return_true',
 				'args'                => [
@@ -173,6 +174,17 @@ class Comments extends Feature {
 	 */
 	public function handle_comments_search( $request ) {
 		$search = $request->get_param( 's' );
+		$body   = json_decode( $request->get_body(), true );
+
+		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+
+		if ( ! empty( $body['postType'] ) ) {
+			$post_type_option = $body['postType'];
+
+			if ( is_array( $post_types ) && in_array( $post_type_option, $post_types, true ) ) {
+				$post_type = $post_type_option;
+			}
+		}
 
 		if ( empty( $search ) ) {
 			return new \WP_Error( 400 );
@@ -182,7 +194,7 @@ class Comments extends Feature {
 			'status'      => 'approve',
 			'search'      => $search,
 			'type'        => Indexables::factory()->get( 'comment' )->get_indexable_comment_types(),
-			'post_type'   => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
+			'post_type'   => $post_type,
 			'post_status' => 'publish',
 			'number'      => 5,
 		];
