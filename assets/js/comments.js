@@ -135,8 +135,14 @@ function setIsLoading(isLoading, inputElement) {
  */
 function fetchResults(inputElement) {
 	if (hasMinimumLength(inputElement)) {
+		const widget = findAncestorByClass(inputElement, 'ep-widget-search-comments');
+		const postTypeElement = widget.querySelector('#ep-widget-search-comments-post-type');
+
 		setIsLoading(true, inputElement);
-		return fetch(`${window.epc.restApiEndpoint}?s=${inputElement.value.trim()}`)
+		return fetch(`${window.epc.restApiEndpoint}?s=${inputElement.value.trim()}`, {
+			method: 'POST',
+			body: JSON.stringify({ postType: postTypeElement?.value }),
+		})
 			.then((response) => {
 				if (!response.ok) {
 					throw response;
