@@ -52,7 +52,11 @@ class Widget extends WP_Widget {
 			<?php
 			if ( ! empty( $instance['post_type'] ) ) {
 				?>
-				<input type="hidden" id="ep-widget-search-comments-post-type" value="<?php echo esc_attr( $instance['post_type'] ); ?>" />
+				<input
+					type="hidden"
+					id="ep-widget-search-comments-post-type"
+					value="<?php echo esc_attr( implode( ',', $instance['post_type'] ) ); ?>"
+				/>
 				<?php
 			}
 			?>
@@ -148,14 +152,21 @@ class Widget extends WP_Widget {
 				<?php esc_html_e( 'Search for comments on:', 'elasticpress' ); ?>
 			</label>
 
-			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'post_type' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'post_type' ) ); ?>">
-				<option value="">
-					<?php esc_html_e( 'All post types', 'elasticpress' ); ?>
-				</option>
-				<?php foreach ( $post_types_options as $indexable_post_type ) : ?>
-					<option <?php selected( $post_type, $indexable_post_type->name ); ?> value="<?php echo esc_attr( $indexable_post_type->name ); ?>"><?php echo esc_html( $indexable_post_type->label ); ?></option>
-				<?php endforeach; ?>
-			</select>
+			<?php foreach ( $post_types_options as $indexable_post_type ) : ?>
+				<p>
+					<input
+						class="checkbox"
+						type="checkbox"
+						id="<?php echo esc_attr( $this->get_field_id( 'post_type' ) . '-' . $indexable_post_type->name ); ?>"
+						name="<?php echo esc_attr( $this->get_field_name( 'post_type' ) ); ?>[]"
+						value="<?php echo esc_attr( $indexable_post_type->name ); ?>"
+						<?php checked( in_array( $indexable_post_type->name, $post_type, true ) ); ?>
+					/>
+					<label for="<?php echo esc_attr( $this->get_field_id( 'post_type' ) . '-' . $indexable_post_type->name ); ?>">
+						<?php echo esc_html( $indexable_post_type->label ); ?>
+					</label>
+				</p>
+			<?php endforeach; ?>
 		</p>
 		<?php
 	}
@@ -169,10 +180,12 @@ class Widget extends WP_Widget {
 	 * @return array
 	 */
 	public function update( $new_instance, $old_instance ) {
-
 		$instance              = [];
 		$instance['title']     = sanitize_text_field( $new_instance['title'] );
-		$instance['post_type'] = sanitize_text_field( $new_instance['post_type'] );
+		$instance['post_type'] = array_map(
+			'sanitize_text_field',
+			$new_instance['post_type']
+		);
 
 		return $instance;
 	}
