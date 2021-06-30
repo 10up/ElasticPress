@@ -160,6 +160,11 @@ class Comments extends Feature {
 						},
 						'required'          => true,
 					],
+					'post_type' => [
+						'validate_callback' => function ( $param ) {
+							return ! empty( $param );
+						},
+					],
 				],
 			]
 		);
