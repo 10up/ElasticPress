@@ -150,7 +150,7 @@ class Comments extends Feature {
 			'elasticpress/v1',
 			'comments',
 			[
-				'methods'             => 'POST',
+				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_comments_search' ],
 				'permission_callback' => '__return_true',
 				'args'                => [
@@ -174,27 +174,28 @@ class Comments extends Feature {
 	 */
 	public function handle_comments_search( $request ) {
 		$search = $request->get_param( 's' );
-		$body   = json_decode( $request->get_body(), true );
-
-		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
-
-		if ( ! empty( $body['postType'] ) ) {
-			$post_type_option = $body['postType'];
-
-			if ( is_array( $post_types ) && in_array( $post_type_option, $post_types, true ) ) {
-				$post_type = $post_type_option;
-			}
-		}
 
 		if ( empty( $search ) ) {
 			return new \WP_Error( 400 );
+		}
+
+		$post_type_filter      = explode( ',', $request->get_param( 'post_type' ) );
+		$searchable_post_types = array_filter(
+			Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types(),
+			function ( $post_type ) {
+				return post_type_supports( $post_type, 'comments' );
+			}
+		);
+
+		if ( ! empty( $post_type_filter ) && is_array( $searchable_post_types ) ) {
+			$post_type_filter = array_intersect( $post_type_filter, $searchable_post_types );
 		}
 
 		$default_args = [
 			'status'      => 'approve',
 			'search'      => $search,
 			'type'        => Indexables::factory()->get( 'comment' )->get_indexable_comment_types(),
-			'post_type'   => $post_type,
+			'post_type'   => empty( $post_type_filter ) ? $searchable_post_types : $post_type_filter,
 			'post_status' => 'publish',
 			'number'      => 5,
 		];
