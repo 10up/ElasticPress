@@ -127,7 +127,7 @@ class Widget extends WP_Widget {
 	 */
 	public function form( $instance ) {
 		$title     = ( isset( $instance['title'] ) ) ? $instance['title'] : '';
-		$post_type = ( isset( $instance['post_type'] ) ) ? $instance['post_type'] : '';
+		$post_type = ( isset( $instance['post_type'] ) ) ? $instance['post_type'] : [];
 
 		$post_types_options = array_map(
 			'get_post_type_object',
@@ -180,12 +180,15 @@ class Widget extends WP_Widget {
 	 * @return array
 	 */
 	public function update( $new_instance, $old_instance ) {
-		$instance              = [];
-		$instance['title']     = sanitize_text_field( $new_instance['title'] );
-		$instance['post_type'] = array_map(
-			'sanitize_text_field',
-			$new_instance['post_type']
-		);
+		$instance          = [];
+		$instance['title'] = sanitize_text_field( $new_instance['title'] );
+
+		if ( is_array( $new_instance['post_type'] ) ) {
+			$instance['post_type'] = array_map(
+				'sanitize_text_field',
+				$new_instance['post_type']
+			);
+		}
 
 		return $instance;
 	}
