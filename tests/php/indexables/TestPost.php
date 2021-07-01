@@ -5159,6 +5159,35 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( $post_id_1, $post_ids[0] );
 		$this->assertCount( 1, $results['objects'] );
 		$this->assertEquals( 1, $results['total_objects'] );
+
+		$results = $indexable_post_object->query_db(
+			[
+				'offset' => 1,
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_2, $post_ids[0] );
+		$this->assertCount( 2, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+
+		$results = $indexable_post_object->query_db(
+			[
+				'offset' => 3,
+			]
+		);
+
+		$this->assertCount( 0, $results['objects'] );
+		$this->assertEquals( 0, $results['total_objects'] );
+
+		$results = $indexable_post_object->query_db(
+			[
+				'offset' => -1,
+			]
+		);
+
+		$this->assertCount( 3, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 	}
 
 	/**
