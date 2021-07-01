@@ -2,8 +2,30 @@
 
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
-## [3.5.6]
+## [Unreleased]
 
+## [3.6.0] - TBD
+**Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+
+### Added
+* 
+
+### Changed
+* 
+
+### Deprecated
+* 
+
+### Removed
+* 
+
+### Fixed
+* 
+
+### Security
+* 
+
+## [3.5.6] - 2021-03-18
 This release fixes some bugs and also adds some new actions and filters.
 
 Security Fix:
@@ -22,8 +44,8 @@ Enhancements:
 * The Protected Content feature isn't auto-activated when using ElasticPress.io anymore. Props [@felipeelia](https://github.com/felipeelia)
 * Added the new filter `ep_highlight_should_add_clause` to let developers decide where the highlight clause should be added to the ES query. Props [@felipeelia](https://github.com/felipeelia)
 * Added the new filter `epwr_weight` and changed the default way scores are applied based on post date. Props [@Rahmon](https://github.com/Rahmon)
-## [3.5.5]
 
+## [3.5.5] - 2021-02-25
 This release fixes some bugs and also adds some new actions and filters.
 
 Bug Fixes:
@@ -42,8 +64,7 @@ Enhancements:
 * Improvements to contributing documentation and tests. Props [@jeffpaul](https://github.com/jeffpaul) and [@felipeelia](https://github.com/felipeelia)
 * Add the following new actions: `ep_wp_cli_after_index`, `ep_after_dashboard_index`, `ep_cli_before_set_search_algorithm_version`, `ep_cli_after_set_search_algorithm_version`, `ep_cli_before_clear_index`, `ep_after_update_feature`, and `ep_cli_after_clear_index`. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon)
 
-## [3.5.4]
-
+## [3.5.4] - 2021-02-11
 This is primarily a security and bug fix release. PLEASE NOTE that versions 3.5.2 and 3.5.3 contain a vulnerability that allows a user to bypass the nonce check associated with re-sending the unaltered default search query to ElasticPress.io that is used for providing Autosuggest queries. If you are running version 3.5.2. or 3.5.3 please upgrade to 3.5.4 immediately.
 
 Security Fix:
@@ -57,16 +78,14 @@ Enhancements:
 * Add an `ep_is_facetable` filter to enable custom control over where to show or hide Facets. Props [@moraleida]
 * Improvements to contributing documentation and tests. Props [@jeffpaul](https://github.com/jeffpaul) and [@felipeelia](https://github.com/felipeelia)
 
-## [3.5.3]
-
+## [3.5.3] - 2021-01-28
 This is a bug fix release.
 
 Bug Fixes:
 * Fixed a bug where the `ep-synonym` post type is updated to a regular post, which can cause it to be accidentally deleted. Props [@Rahmon](https://github.com/Rahmon)
 * Fixed CSS formatting issues in the Settings and Features menus. Props [@Rahmon](https://github.com/Rahmon)
 
-## [3.5.2]
-
+## [3.5.2] - 2021-01-18
 This is a bug fix release.
 
 Bug Fixes:
@@ -88,8 +107,7 @@ Enhancements:
 * Show CLI indexing status in EP dashboard. Props [@Rahmon](https://github.com/Rahmon)
 * Add `ep_query_send_ep_search_term_header` filter and don’t send `EP-Search-Term` header if not using ElasticPress.io. Props [@felipeelia](https://github.com/felipeelia)
 
-## [3.5.1]
-
+## [3.5.1] - 2020-10-29
 A bug fix release.
 
 Bug fixes:
@@ -100,8 +118,7 @@ Bug fixes:
 Enhancements:
 * Track CLI index in a headless fashion
 
-## [3.5.0]
-
+## [3.5.0] - 2020-10-20
 Version 3.5 is a very exciting release as it contains two major new features: a synonym dashboard and search term result highlighting. The synonym dashboard empowerers users to create synonym lists for searches. For example. searching "New York City" would return contain with "NYC". Search term highlighting will underline and add a CSS class to keywords within content that matches the current search.
 
 The new version also includes a revamp of the search algorithm. This is a backwards compatibility break. If you'd like to revert to the old search algorithm, you can use the following code: `add_filter( 'ep_search_algorithm_version', function() { return '3.4'; } );`. The new algorithm offers much more relevant search results and removes fuzziness which results in mostly unwanted results for most people. If you are hooking in and modifying the search query directly, it's possible this code might break and you might need to tweak it.
@@ -132,7 +149,6 @@ Enhancements:
 * Add filter to facet terms query arguments. Props [felipeelia](https://github.com/felipeelia).
 
 ## [3.4.3] - 2020-07-21
-
 Enhancements:
 * Remove jQuery from front end JavaScript dependencies.
 
@@ -141,7 +157,6 @@ Bug Fixes:
 * Fix broken facet search.
 
 ## [3.4.2] - 2020-06-17
-
 Bug fixes:
 * uninstall.php: Change the EP_FILE const to its value. Props [felipeelia](https://github.com/felipeelia).
 * Fix list features WP CLI command. Props [felipeelia](https://github.com/felipeelia).
@@ -157,7 +172,6 @@ Enhancements:
 * Add timeout filters for bulk_index and index_document. Props [@oscarsanchez](https://github.com/oscarsanchez).
 
 ## [3.4.1] - 2020-3-31
-
 * Make weighting dashboard flex containers to prevent the slider from changing size. Props [@mlaroy](https://github.com/mlaroy).
 * Fix issue where weightings wouldn't save properly for certain post types. Props [mustafauysal](https://github.com/mustafauysal).
 * Fix bug where terms wouldn't finish syncing in certain scenarios.
@@ -165,7 +179,6 @@ Enhancements:
 * Show current indices in index health dashboard. Props [moraleida](https://github.com/moraleida).
 
 ## [3.4.0] - 2020-03-03
-
 * Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
 * Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
 * Support all taxonomies in root of `WP_Query`
@@ -182,7 +195,6 @@ Enhancements:
 * Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
 
 ## [3.3.0] - 2018-12-18
-
 * Officially support Elasticsearch 7.5
 * Add optional Google Analytics Autosuggest tracking Event
 * Fix single node warning before sync has occurred.
@@ -195,25 +207,20 @@ Enhancements:
 * Clean up indexing transient on sigkill
 
 ## [3.2.6] - 2019-11-27
-
 * Fix Under some edge conditions content for autosuggest can be large - don't cache it
 
 ## [3.2.5] - 2019-11-20
-
 * Fix WP <5.0 fatal error on register_block_type.
 
 ## [3.2.4] - 2019-11-19
-
 * Fix Gutenberg block initialization
 * Fix Autosuggest: remove filter with proper priority in query generation. Props [Maxdw](https://github.com/Maxdw).
 * Fix Autosuggest: returning WP_Error for non object cache autosuggest queries causes issue. Fallback to transient
 
 ## [3.2.3] - 2019-11-13
-
 * Ensure query building for Autosuggest does not fallback to WPDB.
 
 ## [3.2.2] - 2019-11-05
-
 * Fix PHPCS errors. Props [mmcachran](https://github.com/mmcachran)
 * Fix ensuring stats are built prior to requesting information
 * Fix related post block enqueue block assets on the frontend
@@ -224,11 +231,9 @@ Enhancements:
 * Add new WP-CLI commands: get_indexes and get_cluster_indexes
 
 ## [3.2.1] - 2019-10-14
-
 * Fix Gutenberg breaking issue with Related Posts and image blocks. Props [adamsilverstein](https://github.com/adamsilverstein)
 
 ## [3.2.0] - 2019-10-08
-
 * Improve block asset enqueueing: hook on `enqueue_block_editor_assets`. Props [adamsilverstein](https://github.com/adamsilverstein).
 * Handle empty search weighting fields bug.
 * Integrate WooCommerce default filter by price widget with ES range query.
@@ -938,6 +943,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.6.0]: https://github.com/10up/ElasticPress/compare/3.5.6...3.6.0
 [3.5.6]: https://github.com/10up/ElasticPress/compare/3.5.5...3.5.6
 [3.5.5]: https://github.com/10up/ElasticPress/compare/3.5.4...3.5.5
 [3.5.4]: https://github.com/10up/ElasticPress/compare/3.5.3...3.5.4
