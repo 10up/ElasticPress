@@ -132,7 +132,7 @@ class TestUser extends BaseTestCase {
 
 	/**
 	 * Test the building of index mappings
-	 * 
+	 *
 	 * @since 3.6
 	 * @group user
 	 */
@@ -146,7 +146,7 @@ class TestUser extends BaseTestCase {
 
 	/**
 	 * Test the building of index settings
-	 * 
+	 *
 	 * @since 3.6
 	 * @group post
 	 */
@@ -347,8 +347,8 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( 19, count( $user_query->results ) );
-		$this->assertEquals( 19, $user_query->total_users );
+		$this->assertEquals( 18, count( $user_query->results ) );
+		$this->assertEquals( 18, $user_query->total_users );
 	}
 
 	/**
