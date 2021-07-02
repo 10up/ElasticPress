@@ -132,7 +132,7 @@ class TestUser extends BaseTestCase {
 
 	/**
 	 * Test the building of index mappings
-	 * 
+	 *
 	 * @since 3.6
 	 * @group user
 	 */
@@ -146,7 +146,7 @@ class TestUser extends BaseTestCase {
 
 	/**
 	 * Test the building of index settings
-	 * 
+	 *
 	 * @since 3.6
 	 * @group post
 	 */
