@@ -347,7 +347,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( 18, count( $user_query->results ) );
+		$this->assertEquals( 19, count( $user_query->results ) );
 		// $this->assertEquals( 19, $user_query->total_users );
 	}
 
