@@ -1210,4 +1210,23 @@ class Comment extends Indexable {
 		return $sort;
 	}
 
+	/**
+	 * Build mapping for users
+	 *
+	 * @since  3.6
+	 * @return array
+	 */
+	public function build_mapping() {
+		return new \WP_Error( 'Build mapping for comments not implemented' );
+	}
+
+	/**
+	 * Build settings for an index
+	 *
+	 * @since  3.6
+	 * @return array
+	 */
+	public function build_settings() {
+		return new \WP_Error( 'Build settings for comments not implemented' );
+	}
 }

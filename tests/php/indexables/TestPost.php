@@ -5431,7 +5431,7 @@ class TestPost extends BaseTestCase {
 		);
 
 		$this->assertCount( 0, $results['objects'] );
-		$this->assertEquals( 0, $results['total_objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 
 		$results = $indexable_post_object->query_db(
 			[
