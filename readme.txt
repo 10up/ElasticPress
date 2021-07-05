@@ -4,7 +4,7 @@ Author URI: http://10up.com
 Plugin URI: https://github.com/10up/ElasticPress
 Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Requires at least: 3.7.1
-Tested up to: 5.4
+Tested up to: 5.7
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -43,8 +43,156 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 3.4.1 =
+= 3.6.0 =
+**Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
 
+= 3.5.6 =
+This release fixes some bugs and also adds some new actions and filters.
+
+Security Fix:
+* Updated JS dependencies. Props [@hats00n](https://github.com/hats00n) and [@felipeelia](https://github.com/felipeelia)
+
+Bug Fixes:
+* Fixed document indexing when running index command with nobulk option. Props [@Rahmon](https://github.com/Rahmon)
+* Added an extra check in the iteration over the aggregations. Props [@felipeelia](https://github.com/felipeelia)
+* Fixed no mapping found for [name.sortable] for Elasticsearch version 5. Props [@Rahmon](https://github.com/Rahmon)
+* Fixed uninstall process to remove all options and transients. Props [@Rahmon](https://github.com/Rahmon)
+
+Enhancements:
+* Added missing inline JS documentation. Props [@JakePT](https://github.com/JakePT)
+* Added the filter `ep_autosuggest_http_headers`. Props [@Rahmon](https://github.com/Rahmon)
+* Added terms indexes to the status and stats WP-CLI commands. Props [@felipeelia](https://github.com/felipeelia)
+* The Protected Content feature isn't auto-activated when using ElasticPress.io anymore. Props [@felipeelia](https://github.com/felipeelia)
+* Added the new filter `ep_highlight_should_add_clause` to let developers decide where the highlight clause should be added to the ES query. Props [@felipeelia](https://github.com/felipeelia)
+* Added the new filter `epwr_weight` and changed the default way scores are applied based on post date. Props [@Rahmon](https://github.com/Rahmon)
+
+= 3.5.5 =
+This release fixes some bugs and also adds some new actions and filters.
+
+Bug Fixes:
+* Fix a problem in autosuggest when highlighting is not active. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon)
+* Fix a wrong phrase in the Indexables documentation. Props [@jpowersdev](https://github.com/jpowersdev)
+* Fix Facet Term Search for more than one Widget. Props [@goaround](https://github.com/goaround)
+* Fix a Warning that was triggered while using PHP 8. Props [@Rahmon](https://github.com/Rahmon)
+
+Enhancements:
+* Add an `is-loading` class to the search form while autosuggestions are loading. Props [@JakePT](https://github.com/JakePT)
+* Add the new `set-algorithm-version` and `get-algorithm-version` WP-CLI commands. Props [@felipeelia](https://github.com/felipeelia)
+* Add a new `ep_query_weighting_fields` filter. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott)
+* Add two parameters to the `ep_formatted_args_query` filter. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott)
+* Add the new `set-algorithm-version` and `get-algorithm-version` WP-CLI commands. Props [@felipeelia](https://github.com/felipeelia)
+* Create a new section in documentation called `Theme Integration`. Props [@JakePT](https://github.com/JakePT)
+* Improvements to contributing documentation and tests. Props [@jeffpaul](https://github.com/jeffpaul) and [@felipeelia](https://github.com/felipeelia)
+* Add the following new actions: `ep_wp_cli_after_index`, `ep_after_dashboard_index`, `ep_cli_before_set_search_algorithm_version`, `ep_cli_after_set_search_algorithm_version`, `ep_after_update_feature`, `ep_cli_before_clear_index`, and `ep_cli_after_clear_index`. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon)
+
+= 3.5.4 =
+This is primarily a security and bug fix release. PLEASE NOTE that versions 3.5.2 and 3.5.3 contain a vulnerability that allows a userto bypass the nonce check associated with re-sending the unaltered default search query to ElasticPress.io that is used for providing Autosuggest queries. If you are running version 3.5.2. or 3.5.3 please upgrade to 3.5.4 immediately.
+
+Security Fix:
+* Fixed a nonce check associated with updating the default Autosuggest search query in ElasticPress.io. Props [@felipeelia](https://github.com/felipeelia)
+
+Bug Fixes:
+* Fix broken click on highlighted element in Autosuggest results. Props [@felipeelia](https://github.com/felipeelia)
+* Properly cast `from` parameter in `$formatted_args` to an integer to prevent errors if empty. Props [@CyberCyclone](https://github.com/CyberCyclone)
+
+Enhancements:
+* Add an `ep_is_facetable` filter to enable custom control over where to show or hide Facets. Props [@moraleida]
+* Improvements to contributing documentation and tests. Props [@jeffpaul](https://github.com/jeffpaul) and [@felipeelia](https://github.com/felipeelia)
+
+= 3.5.3 =
+This is a bug fix release.
+
+Bug Fixes:
+* Fixed a bug where the `ep-synonym` post type is updated to a regular post, which can cause it to be accidentally deleted. Props [@Rahmon](https://github.com/Rahmon)
+* Fixed CSS formatting issues in the Settings and Features menus. Props [@Rahmon](https://github.com/Rahmon)
+
+= 3.5.2 =
+This is a bug fix release.
+
+Bug Fixes:
+* Fixed a typo in elasticpress.pot. Props [@alexwoollam](https://github.com/alexwoollam)
+* Don’t use timestamps that cause 5 digit years. Props [@brandon-m-skinner](https://github.com/brandon-m-skinner)
+* Fix admin notice on the Synonyms page. Props [@Rahmon](https://github.com/Rahmon)
+* Properly update slider numbers while sliding. Props [@Rahmon](https://github.com/Rahmon)
+* Properly handle error from `get_terms()`. Props [@ciprianimike](https://github.com/ciprianimike)
+* Fix incorrect titles page. Props [@Rahmon](https://github.com/Rahmon)
+* Fix linting tests. Props [@felipeelia](https://github.com/felipeelia)
+* Fix issue with price filter unsetting previous query. Props [@oscarssanchez](https://github.com/oscarssanchez)
+
+Enhancements:
+* Added actions that fire after bulk indexing (`ep_after_bulk_index`), in event of an invalid Elasticsearch response (`ep_invalid_response`), and before object deletion (`ep_delete_{indexable slug}`); added filters `ep_skip_post_meta_sync`, `pre_ep_index_sync_queue`, `ep_facet_taxonomies_size`, `epwr_decay_function`, `and epwr_score_mode`. Props [@brandon-m-skinner](https://github.com/brandon-m-skinner)
+* Added `ep_filesystem_args` filter. Props [@pjohanneson](https://github.com/pjohanneson)
+* Add SKU field to Weighting Engine if WooCommerce is active and fix issue with overriding `search_fields`. Props [@felipeelia](https://github.com/felipeelia)
+* Support `author__in` and `author__not_in` queries. Props [@dinhtungdu](https://github.com/dinhtungdu)
+* Update multiple unit tests. Props [@petenelson](https://github.com/petenelson)
+* Show CLI indexing status in EP dashboard. Props [@Rahmon](https://github.com/Rahmon)
+* Add `ep_query_send_ep_search_term_header` filter and don’t send `EP-Search-Term` header if not using ElasticPress.io. Props [@felipeelia](https://github.com/felipeelia)
+
+= 3.5.1 =
+A bug fix release.
+
+Bug fixes:
+* Fixes highlighting so that full content is returned instead of only snippets.
+* Fix empty synonym bug.
+* Only highlight post content, excerpt, and title.
+
+Enhancements:
+* Track CLI index in a headless fashion
+
+= 3.5 =
+Version 3.5 is a very exciting release as it contains two major new features: a synonym dashboard and search term result highlighting. The synonym dashboard empowerers users to create synonym lists for searches. For example. searching "New York City" would return contain with "NYC". Search term highlighting will underline and add a CSS class to keywords within content that matches the current search.
+
+The new version also includes a revamp of the search algorithm. This is a backwards compatibility break. If you'd like to revert to the old search algorithm, you can use the following code: `add_filter( 'ep_search_algorithm_version', function() { return '3.4'; } );`. The new algorithm offers much more relevant search results and removes fuzziness which results in mostly unwanted results for most people. If you are hooking in and modifying the search query directly, it's possible this code might break and you might need to tweak it.
+
+Bug fixes:
+* Fix default autosuggest selector.
+* Fix facet feature $_GET parameter naming collision.
+* Autosuggest a11y fixes. Props [amesplant](https://github.com/amesplant).
+* Check $feature type before calling Feature methods. Props [pdewouters](https://github.com/pdewouters).
+* Ensure trashed post is removed from Elasticsearch. Props [edwinsiebel](https://github.com/edwinsiebel).
+* Add default permission callback to REST routes. Props [dkotter](https://github.com/dkotter).
+* Hide links to weighting and synonym dashboard if network activated. Props [felipeelia](https://github.com/felipeelia).
+* Only sync post on allow listed post meta. Props [felipeelia](https://github.com/felipeelia).
+* Check if site is indexable before syncing in network activated mode.
+* Fix facet widget and 3-level deep hierarchical taxonomy. Props [dinhtungdu](https://github.com/dinhtungdu).
+* Make sure AJAX sync is disabled if EP_DASHBOARD is set to false.. Props [turtlepod](https://github.com/turtlepod).
+
+Enhancements:
+* Synonym dashboard. Props [christianc1](https://github.com/christianc1).
+* Search term highlighting. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Search algorithm improvements.
+* Improved WP Acceptance tests. Props [asharirfan](https://github.com/asharirfan).
+* Rename ElasticPress submenu to "Features". Props [helen](https://github.com/helen).
+* Add functionality for skipping ElasticPress install.
+* Increase max supported Elasticsearch version to 7.9.
+* Add filter to prepared user meta data. Props [g-kanoufi](https://github.com/g-kanoufi).
+* Improve Terms Feature terminology to remove confusion.
+* Add filter to facet terms query arguments. Props [felipeelia](https://github.com/felipeelia).
+
+= 3.4.3 =
+Enhancements:
+* Remove jQuery from front end JavaScript dependencies.
+
+Bug Fixes:
+* Fix accessibility bug on autosuggest.
+* Fix broken facet search.
+
+= 3.4.2 =
+Bug fixes:
+* uninstall.php: Change the EP_FILE const to its value. Props [felipeelia](https://github.com/felipeelia).
+* Fix list features WP CLI command. Props [felipeelia](https://github.com/felipeelia).
+* Add `rel="nofollow"` to facet links. Props [mlaroy](https://github.com/mlaroy).
+* Facets widget: Move <div> outside ob_start(). Props [kallehauge](https://github.com/kallehauge).
+* Load facet scripts and styles only when they are really necessary. Props [goaround](https://github.com/goaround).
+* Index attachments with Protected Content and query for them in media search. Props [oscarsanchez](https://github.com/oscarsanchez).
+* Fixed `Deprecated field [include] used, expected [includes] instead.`. Props [dinhtungdu](https://github.com/dinhtungdu).
+
+Enhancements:
+* Add filter for enabling sticky posts.  Props [shadyvb](https://github.com/shadyvb).
+* Add sync kill filter. Props [barryceelen](https://github.com/barryceelen).
+* Add timeout filters for bulk_index and index_document. Props [@oscarsanchez](https://github.com/oscarsanchez).
+
+= 3.4.1 =
 * Make weighting dashboard flex containers to prevent the slider from changing size. Props [@mlaroy](https://github.com/mlaroy).
 * Fix issue where weightings wouldn't save properly for certain post types. Props [mustafauysal](https://github.com/mustafauysal).
 * Fix bug where terms wouldn't finish syncing in certain scenarios.
@@ -52,7 +200,6 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Show current indices in index health dashboard. Props [moraleida](https://github.com/moraleida).
 
 = 3.4 =
-
 * Addition of Terms Indexable and Feature. ElasticPress can now integrate with `WP_Term_Query`. Props [dkotter](https://github.com/dkotter).
 * Fixes for `WP_User_Query` 'fields' parameter. Props [petenelson](https://github.com/petenelson).
 * Support all taxonomies in root of `WP_Query`
@@ -69,7 +216,6 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 * Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
 
 = 3.3 =
-
 * Officially support Elasticsearch 7.5
 * Add optional Google Analytics Autosuggest tracking Event
 * Fix single node warning before sync has occurred.
@@ -162,7 +308,6 @@ This is a bug fix release with some filter additions.
 - Ensure taxonomies that are shared among multiple post types show up on the weighting screen
 
 = 3.1.0 =
-
 - Support for nested tax queries. Props [@dkotter](https://github.com/dkotter)
 - `ep_bulk_index_action_args` filter. Props [@fabianmarz](https://github.com/fabianmarz)
 - Add filters to control MLT related posts params.
@@ -187,7 +332,6 @@ This is a bug fix release with some filter additions.
 - Fix WooCommerce order search when WooCommerce module activated but protected content turned off.
 
 = 3.0.3 =
-
 * Pass $post_id twice in ep_post_sync_kill for backwards compatibility. Props [aaemnnosttv](https://github.com/aaemnnosttv)
 * Add `ep_search_request_path` filter for backwards compant.
 * Add `ep_query_request_path` filter for modifying the query path.
@@ -195,7 +339,6 @@ This is a bug fix release with some filter additions.
 * Properly add date filter to WP_Query.
 
 = 3.0.2 =
-
 3.0.2 is a minor bug release version. Here is a list of fixes:
 
 * Fix date query errors
@@ -203,7 +346,6 @@ This is a bug fix release with some filter additions.
 * Fix empty autosuggest selector notice
 
 = 3.0.1 =
-
 3.0.1 is a minor bug release version. Here is a list of fixes:
 
 * `wp elasticpress stats` and `wp elasticpress status` commands fatal error fixed.
@@ -215,7 +357,6 @@ This is a bug fix release with some filter additions.
 * Don't force document search on REST requests.
 
 = 3.0 (Requires re-index) =
-
 3.0 is a refactor of ElasticPress for modern coding standards (PHP 5.4 required) as well as the introduction to indexables. Indexables abstracts out content types so data types other than post can be indexed and searched. 3.0 includes user indexing and search (integration with WP_User_Query). User features require at least WordPress version 5.1.
 
 The refactor changes a lot of ElasticPress internals. The biggest change is the feature registration API has completely changed. Now, new features should extend the `ElasticPress\Feature` class rather than calling `ep_register_feature`. Older features should be backwards compatible.
@@ -238,20 +379,17 @@ Here are a list of filters/actions removed or changed:
 * `posts-per-page` changed to `per-page` for WP-CLI index command.
 
 = 2.8.2 =
-
 * Enhancement: WooCommerce product attributes as facets.
 * Enhancement: Performance Boost for document indexing.
 * Bugfix for issue on WP REST API searches.
 * Bugfix for case-sensitivity issue with facet search.
 
 = 2.8.1 =
-
 * Bugfix for homepage out of chronological order.
 * Bugfix for missing meta key. (Props [turtlepod](https://github.com/turtlepod))
 * Bugfix for bulk indexing default value on settings page.
 
 = 2.8.0 =
-
 ElasticPress 2.8 provides some new enhancements and bug fixes.
 
 * Sticky posts support.
@@ -270,7 +408,6 @@ ElasticPress 2.8 provides some new enhancements and bug fixes.
 * Implemented --post-ids CLI option to index only specific posts. (Props [dotancohen](https://github.com/dotancohen))
 
 = 2.7.0 (Requires re-index) =
-
 ElasticPress 2.7 provides some new enhancements and bug fixes.
 
 * Prevent indexing when blog is deleted or not public.
@@ -282,11 +419,9 @@ ElasticPress 2.7 provides some new enhancements and bug fixes.
 * Better error notices. (Props [petenelson](https://github.com/petenelson))
 
 = 2.6.1 =
-
 * Resolves issue of missing file for wp-cli.
 
 = 2.6.0 =
-
 ElasticPress 2.6 provides some new enhancements and bug fixes.
 
 * Ability to set autosuggest endpoint by a constant (EP_AUTOSUGGEST_ENDPOINT).
@@ -296,14 +431,12 @@ ElasticPress 2.6 provides some new enhancements and bug fixes.
 * Do not search for author_name when searching products in WooCommerce.
 
 = 2.5.2 (Requires re-index) =
-
 This is a small bug fix release.
 
 * Removed unnecessary facet JavaScript
 * Fix facet aggregations warning
 
 = 2.5.1 (Requires re-index) =
-
 This if a bug fix release. This version requires a re-index as we change the way data is being sent to Elasticsearch.
 
 It's also worth noting for ElasticPress version 2.5+, the Facets feature, which is on by default, will run post type archive and search page main queries through Elasticsearch. If Elasticsearch is out of sync with your content (possible in rare edge cases), this could result in incorrect content being shown. Turning off Facets would fix the problem.
@@ -315,7 +448,6 @@ It's also worth noting for ElasticPress version 2.5+, the Facets feature, which 
 * Don't show faceting widget if post type doesn't support taxonomy.
 
 = 2.5 =
-
 ElasticPress 2.5 includes a new Facets feature that makes it easy to add high performance content filtering controls to a website.
 
 A new Facets widget enables site administrators to add taxonomy facets to a sidebar (or any widgetized area). When viewing a content list on the front end of the website, the widget will display the name of the taxonomy – e.g. “Categories” – and a checklist with all of its terms. Visitors can narrow down content by selecting terms they are interested in. The Facets feature can be globally configured to narrow results to content that is tagged with any or all of the selected terms. The widget’s front end output contains carefully named CSS classes, so that designers and developers can apply unique styling.
@@ -341,7 +473,6 @@ Version 2.4.2 is a bug fix version.
 * Fix related posts not showing up bug.
 
 = 2.4.1 =
-
 Version 2.4.1 is a bug fix and maintenance release. Here are a listed of issues that have been resolved:
 
 * Support Elasticsearch 6.1 and properly send Content-Type header with application/json. Props [eugene-manuilov](https://github.com/eugene-manuilov).
@@ -351,7 +482,6 @@ Version 2.4.1 is a bug fix and maintenance release. Here are a listed of issues 
 * Increase maximum Elasticsearch compatibility to 6.1
 
 = 2.4 =
-
 Version 2.4 introduces the Autosuggest feature. When enabled, input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.
 
 We also added hooks and filters to ElasticPress that make query logging possible. The [Debug Bar ElasticPress](https://github.com/10up/debug-bar-elasticpress) plugin now adds a Query Log screen to the ElasticPress admin menu. The Query Log is an extremely powerful tool for diagnosing search and indexing issues.
@@ -379,7 +509,6 @@ Here is a comphrensive list of changes:
 * Fix WooCommerce post type warnings.
 
 = 2.3.1, 2.3.2 =
-
 Version 2.3.1-2.3.2 is a bug fix release. Here are a listed of issues that have been resolved:
 
 * Cache ES plugins request. This is super important. Instead of checking the status of ES on every page load, do it every 5 minutes. If ES isn't available, show admin notification that allows you to retry the host.
@@ -387,7 +516,6 @@ Version 2.3.1-2.3.2 is a bug fix release. Here are a listed of issues that have 
 * Properly respect WC product visibility. Props [ivankristianto](https://github.com/ivankristianto). This requires a re-index if you are using the WooCommerce feature.
 
 = 2.3 =
-
 Version 2.3 introduces the Documents feature which indexes text inside of popular file types, and adds those files types to search results. We've also officially added support for Elasticsearch 5.3.
 
 ### Enhancements
@@ -404,7 +532,6 @@ Version 2.3 introduces the Documents feature which indexes text inside of popula
 * Incorrect `found_posts` set in query when ES is unavailable. Props [lukaspawlik](https://github.com/lukaspawlik)
 
 = 2.2.1 =
-
 Version 2.2.1 is a bug fix release. Here are a listed of issues that have been resolved:
 
 * Fix dashboard syncing delayed start issues.
@@ -419,13 +546,11 @@ Version 2.2.1 is a bug fix release. Here are a listed of issues that have been r
 * Increase max result window size to 1000000 and add filter.
 
 = 2.2 (Requires re-index) =
-
 Version 2.2 rethinks the module process to make ElasticPress a more complete query engine solution. Modules are now auto-on and really just features. Why would anyone want to not use amazing functionality that improves speed and relevancy on their website? Features (previously modules) can of course be overridden and disabled. Features that don't have their minimum requirements met, such as a missing plugin dependency, are auto-disabled.
 
 We've bumped the minimum Elasticsearch version to 1.7 (although we strongly recommend 2+). The maximum tested version of Elasticsearch is version 5.2. If you are running Elasticsearch outside this version range, you will see a warning in the dashboard.
 
 ### Enhancements
-
 * __(Breaking change)__ Module registration API changed. See `register_module` in `classes/class-ep-modules.php`.
 * __(Breaking change)__ Related posts are now in a widget instead of automatically being appending to content.
 * __(Breaking change)__ Admin module renamed to Protected Content.
@@ -436,7 +561,6 @@ We've bumped the minimum Elasticsearch version to 1.7 (although we strongly reco
 * Add support for post_mime_type. Props [Ritesh-patel](https://github.com/Ritesh-patel)
 
 ### Bug Fixes
-
 * Back compat with old `ep_search` function.
 * Respect indexable post types in WooCommerce feature
 * New product drafts not showing in WooCommerce admin list
@@ -452,17 +576,14 @@ We've bumped the minimum Elasticsearch version to 1.7 (although we strongly reco
 * Fix recursion fatal error due to oembed discovery during syncing. Props [ivankristianto](https://github.com/ivankristianto)
 
 = 2.1.2 (Requires re-index) =
-
 * Separate mapping for ES 5.0+
 * Fix some unit tests
 
 = 2.1.1 =
-
 * Fix PHP 5.3 errors
 * Properly show syncing button module placeholder during sync
 
 = 2.1 =
-
 * Redo UI
 * Make plugin modular
 * Remove unnecessary back up hosts code
@@ -474,7 +595,6 @@ We've bumped the minimum Elasticsearch version to 1.7 (although we strongly reco
 * Support WP_Query `post_status`. Props [sc0ttclark](https://github.com/sc0ttkclark)
 
 ### Backward compat breaks:
-
 * Move ep_admin_wp_query_integration to search integration only. EP integration by default is available everywhere.
 * Remove `keep alive` setting
 * Remove setting to integrate with search (just activate the module instead)
@@ -487,12 +607,10 @@ We've bumped the minimum Elasticsearch version to 1.7 (although we strongly reco
 * Fix integer and comma separated string `sites` WP_Query processing. Props [jaisgit](https://github.com/jaisgit).
 
 = 2.0.1 =
-
 ### Bug fixes
 * Don't load settings on front end. This fixes a critical bug causing ElasticPress to check the Elasticsearch connection on the front end.
 
 = 2.0 =
-
 10up ships ElasticPress 2.0 with __radical search algorithm improvements__ and a __more comprehensive integration of WP_Query__. ElasticPress is now even closer to supporting the complete WP_Query API. This version also improves upon post syncing ensuring that post meta updates are synced to Elasticsearch, adds a number of important hooks, and, of course, fixes some pesky bugs.
 
 ### Enhancements
@@ -518,13 +636,10 @@ We've bumped the minimum Elasticsearch version to 1.7 (although we strongly reco
 
 A special thanks goes out to [Tuan Minh Huynh](https://github.com/tuanmh) and everyone else for contributions to version 2.0.
 
-
 = 1.9.1 =
-
 Quick bug fix version to address the GUI not working properly when plugin is not network enabled within multisite. Props to [Ivan Lopez](https://github.com/ivanlopez)
 
 = 1.9 =
-
 ElasticPress 1.9 adds in an admin UI, where you can set your Elasticsearch Host and run your index command, without needing to us WP-CLI. Version 1.9 also adds in some performance improvements to reduce memory consumption during indexing. Full list of enhancements and bug fixes:
 
 ### Enhancements:
@@ -547,11 +662,9 @@ ElasticPress 1.9 adds in an admin UI, where you can set your Elasticsearch Host 
 * Fixed the WP-CLI status command. Props [dkotter](https://github.com/dkotter).
 
 = 1.8 (Mapping change, requires reindex) =
-
 ElasticPress 1.8 adds a bunch of mapping changes for accomplishing more complex WP_Query functions such as filtering by term id and sorting by any Elasticsearch property. Version 1.8 also speeds up post syncing dramatically through non-blocking queries. Full list of enhancements and bug fixes:
 
 ### Enhancements:
-
 * Add a filter around the search fuzziness argument. Props [dkotter](https://github.com/dkotter).
 * Make post indexing a non-blocking query. Props [cmmarslender](https://github.com/cmmarslender).
 * Log queries for debugging. Makes [ElasticPress Debug Bar](https://github.com/10up/debug-bar-elasticpress) plugin possible.
@@ -562,14 +675,12 @@ ElasticPress 1.8 adds a bunch of mapping changes for accomplishing more complex 
 * Add raw/sortable to author display name and login
 
 ### Bugs:
-
 * Fix post deletion. Props [lukaspawlik](https://github.com/lukaspawlik).
 * Properly flush cache with `wp_cache_flush`. Props [jstensved](https://github.com/jstensved)
 * When directly comparing meta values in a meta query, use the `raw` property instead of `value`.
 * Support arbitrary document paths in orderby. Props [sc0ttkclark](https://github.com/sc0ttkclark).
 
 = 1.7 (Mapping change, requires reindex) =
-
 ElasticPress 1.7 restructures meta mapping for posts for much more flexible meta queries. The `post_meta` Elasticsearch post property has been left for backwards compatibility. As of this version, post meta will be stored in the `meta` Elasticsearch property. `meta` is structured as follows:
 
 * `meta.value` (string)
@@ -592,25 +703,21 @@ The real implications of this is in `meta_query`. You can now effectively search
 * (Enhancement) Index posts according to post type. Props [sc0ttkclark](https://github.com/sc0ttkclark)
 
 = 1.6.2 (Mapping change, requires reindex) =
-
 ElasticPress 1.6.2 fixes ALL backwards compatibility issues with Elasticsearch 2.0:
 
 * Removes `fuzzy_like_this` query and uses `multi_match` instead.
 * Uses string instead of array for post type term when there is only one term.
 
 = 1.6.1 (Mapping change, requires reindex) =
-
 ElasticPress 1.6.1 fixes mapping backwards compatibility issues with Elasticsearch 2.0:
 
 * Removes the fields field type from object typed fields as they should be called properties.
 * Remove path from object field types.
 
 = 1.6 =
-
 ElasticPress 1.6 contains a number of important enhancements and bug fixes. Most notably, we now support Elasticsearch fallback hosts and the indexing of attachments.
 
 ### Bug Fixes:
-
 * Clean up PHP Code Sniffer errors. Props [chriswiegman](https://github.com/chriswiegman)
 * Properly document Elasticsearch version
 * Abide by `exclude_from_search` instead of `public` when indexing post types. Props [allan23](https://github.com/allan23) and [ghosttoast](https://github.com/ghosttoast).
@@ -618,7 +725,6 @@ ElasticPress 1.6 contains a number of important enhancements and bug fixes. Most
 * Support `ep_post_sync_kill` filter in bulk indexing. Props [Stayallive](https://github.com/Stayallive)
 
 ### Enhancements:
-
 * Add blog id to `ep_index_name` filter. Props [kovshenin](https://github.com/kovshenin)
 * Support post caching in search
 * Add recursive term indexing for heirarchal taxonomies. Props [tuanmh](https://github.com/tuanmh)
@@ -628,21 +734,16 @@ ElasticPress 1.6 contains a number of important enhancements and bug fixes. Most
 * Make search results filterable. Props [chriswiegman](https://github.com/chriswiegman)
 
 = 1.5.1 =
-
 ### Bug Fixes:
-
 * Prevent notices from being thrown when non-existent index properties are accessed. This was happening for people how upgraded to 1.5 without doing a re-index. Props [allan23](https://github.com/allan23)
 
 = 1.5 =
-
 ### Bug Fixes:
-
 * Prevent direct access to any PHP files. Props [joelgarciajr84](https://github.com/joelgarciajr84)
 * Fixed fields not being loaded from ES. Props [stayallive](https://github.com/stayallive)
 * Fixed inclusive check in date_query integration. Props [EduardMaghakyan](https://github.com/EduardMaghakyan)
 
 ### Enhancements:
-
 * Add support for category_name WP_Query parameter. Props [ocean90](https://github.com/ocean90)
 * Support limiting sites in network wide commands. Props [bordoni](https://github.com/bordoni)
 * Add support for method to un-integrate WP_Query. Props [kingkool68](https://github.com/kingkool68)
@@ -661,16 +762,13 @@ ElasticPress 1.6 contains a number of important enhancements and bug fixes. Most
 * MySQL DB completely removed from integrated ElasticPress WP Query. Props [EduardMaghakyan](https://github.com/EduardMaghakyan) and [crebacz](https://github.com/crebacz)
 
 = 1.4 =
-
 ### Bug Fixes:
-
 * Duplicate sync post hooks separated. Props [superdummy](https://github.com/superdummy)
 * Don't send empty index error emails. Props [cmmarslender](https://github.com/cmmarslender)
 * Remove default shard and indices configuration numbers but maintain backwards compatibility. Props [zamoose](https://github.com/zamoose)
 * Fix wrong author ID in post data. Props [eduardmaghakyan](https://github.com/eduardmaghakyan)
 
 ### Enhancements:
-
 * `date_query` and date parameters now supported in WP_Query. Props [joeyblake](https://github.com/joeyblake) and [eduardmaghakyan](https://github.com/eduardmaghakyan)
 * Make all request headers filterable
 * Add EP API key to all requests as a header if a constant is defined. Props [zamoose](https://github.com/zamoose)
@@ -736,3 +834,8 @@ ElasticPress 1.6 contains a number of important enhancements and bug fixes. Most
 
 = 0.1.0 =
 * Initial plugin
+
+== Upgrade Notice ==
+
+= 3.6.0 =
+**Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
