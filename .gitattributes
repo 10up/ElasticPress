@@ -1,6 +1,8 @@
 /.wordpress-org export-ignore
 /.github export-ignore
 /bin export-ignore
+/config export-ignore
+/docs export-ignore
 /gulp-tasks export-ignore
 /tests export-ignore
 
@@ -19,10 +21,16 @@
 /CONTRIBUTING.md export-ignore
 /CREDITS.md export-ignore
 /gulpfile.babel.js export-ignore
+/hookdoc-conf.json export-ignore
 /LICENSE.md export-ignore
 /package.json export-ignore
 /package-lock.json export-ignore
 /phpcs.xml export-ignore
 /phpunit.xml.dist export-ignore
+/postcss.config.js export-ignore
 /README.md export-ignore
+/SECURITY.md export-ignore
+/run-wpacceptance.sh export-ignore
+/single-site.xml.dist export-ignore
 /webpack.config.babel.js export-ignore
+/wpacceptance.json export-ignore
