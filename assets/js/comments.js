@@ -239,6 +239,8 @@ const handleUpDownEnter = (event) => {
 	results[selectedResultIndex]?.setAttribute('aria-selected', 'true');
 };
 
+const debounceFetchResults = debounce(fetchResults, 500);
+
 /**
  * Callback for keyup in Widget Search Comment container.
  *
@@ -265,7 +267,6 @@ const handleKeyup = (event) => {
 	}
 
 	if (hasMinimumLength(target)) {
-		const debounceFetchResults = debounce(fetchResults, 500);
 		debounceFetchResults(target);
 	} else {
 		hideResultsBox(target);

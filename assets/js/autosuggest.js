@@ -654,6 +654,8 @@ function init() {
 		}
 	};
 
+	const debounceFetchResults = debounce(fetchResults, 200);
+
 	/**
 	 * Callback for keyup in Autosuggest container.
 	 *
@@ -679,7 +681,6 @@ function init() {
 		}
 
 		const input = event.target;
-		const debounceFetchResults = debounce(fetchResults, 200);
 		debounceFetchResults(input);
 	};
 
