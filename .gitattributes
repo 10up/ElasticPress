@@ -4,6 +4,7 @@
 /config export-ignore
 /docs export-ignore
 /gulp-tasks export-ignore
+/lang export-ignore
 /tests export-ignore
 
 /.babelrc export-ignore
