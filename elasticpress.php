@@ -1,13 +1,17 @@
 <?php
 /**
- * Plugin Name: ElasticPress
- * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.6.0
- * Author:      10up
- * Author URI:  http://10up.com
- * License:     GPLv2 or later
- * Text Domain: elasticpress
- * Domain Path: /lang/
+ * Plugin Name:       ElasticPress
+ * Plugin URI:        https://github.com/10up/ElasticPress
+ * Description:       A fast and flexible search and query engine for WordPress.
+ * Version:           3.6.0
+ * Requires at least: 3.7.1
+ * Requires PHP:      5.4
+ * Author:            10up
+ * Author URI:        http://10up.com
+ * License:           GPL v2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       elasticpress
+ *
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:
  *
