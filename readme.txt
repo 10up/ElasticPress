@@ -38,6 +38,10 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 4. Sync your content by clicking the sync icon.
 5. Enjoy!
 
+== Screenshots ==
+1. Features Page
+2. Search Fields & Weighting Dashboard
+
 == Changelog ==
 
 = 3.6.0 =
