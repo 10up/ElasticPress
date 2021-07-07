@@ -1,13 +1,10 @@
 === ElasticPress ===
-Contributors: tlovett1, vhauri, tott, oscarssanchez, cmmarslender, 10up
-Author URI: http://10up.com
-Plugin URI: https://github.com/10up/ElasticPress
-Tags: performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
-Requires at least: 3.7.1
+Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
+Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Tested up to: 5.8
-Stable tag: 3.6.0
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Stable tag:   3.6.0
+License:      GPLv2 or later
+License URI:  http://www.gnu.org/licenses/gpl-2.0.html
 
 A fast and flexible search and query engine for WordPress.
 
