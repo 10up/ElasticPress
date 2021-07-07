@@ -322,6 +322,10 @@ class Autosuggest extends Feature {
 	 * @since  2.4
 	 */
 	public function enqueue_scripts() {
+		if ( Utils\is_indexing() ) {
+			return;
+		}
+
 		$host         = Utils\get_host();
 		$endpoint_url = false;
 		$settings     = $this->get_settings();
@@ -382,6 +386,15 @@ class Autosuggest extends Feature {
 			'placeholder'         => $query['placeholder'],
 			'endpointUrl'         => esc_url( untrailingslashit( $endpoint_url ) ),
 			'selector'            => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
+			/**
+			 * Filter autosuggest default selectors.
+			 *
+			 * @hook ep_autosuggest_default_selectors
+			 * @since 3.6.0
+			 * @param {string} $selectors Default selectors used to attach autosuggest.
+			 * @return {string} Selectors used to attach autosuggest.
+			 */
+			'defaultSelectors'    => apply_filters( 'ep_autosuggest_default_selectors', '.ep-autosuggest, input[type="search"], .search-field' ),
 			'action'              => 'navigate',
 			'mimeTypes'           => [],
 			/**
@@ -885,7 +898,7 @@ class Autosuggest extends Feature {
 			'Post Types'      => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['postTypes'] ),
 			'Post Status'     => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['postStatus'] ),
 			'Search Fields'   => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['searchFields'] ),
-			'Returned Fields' => wp_sprintf( esc_html( var_export( $allowed_params['returnFields'], true ) ) ),
+			'Returned Fields' => wp_sprintf( esc_html( var_export( $allowed_params['returnFields'], true ) ) ), // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
 		];
 
 		foreach ( $fields as $label => $value ) {
