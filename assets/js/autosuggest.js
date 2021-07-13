@@ -181,7 +181,7 @@ async function esSearch(query, searchTerm) {
 
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
-		fetchConfig.headers['EP-Search-Term'] = searchTerm;
+		fetchConfig.headers['EP-Search-Term'] = encodeURI(searchTerm);
 	}
 
 	try {
