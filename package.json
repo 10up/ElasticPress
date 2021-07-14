@@ -69,7 +69,8 @@
     "format-js": "10up-toolkit format-js assets/js",
     "lint": "npm run lint-css && npm run lint-js && npm run lint-php",
     "format": "npm run format-js",
-    "build:docs": "rm -rf hook_docs && jsdoc -c hookdoc-conf.json elasticpress.php includes"
+    "build:docs": "rm -rf hook_docs && jsdoc -c hookdoc-conf.json elasticpress.php includes",
+    "lint-style": "10up-toolkit lint-style"
   },
   "author": "10up",
   "repository": {
@@ -79,6 +80,9 @@
   "engineStrict": true,
   "engines": {
     "node": ">=8.11"
+  },
+  "10up-toolkit": {
+    "wpDependencyExternals": false
   },
   "dependencies": {
     "@wordpress/api-fetch": "^3.21.5",
