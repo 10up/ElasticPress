@@ -4,6 +4,7 @@
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
+    "10up-toolkit": "^1.0.9",
     "@10up/eslint-config": "^2.3.2",
     "@babel/core": "^7.13.8",
     "@babel/eslint-parser": "^7.13.8",
@@ -63,9 +64,9 @@
     "watch": "webpack --watch --config config/webpack.dev.js",
     "build-release": "npm install && composer install --no-dev -o && npm run build",
     "lint-release": "npm install && composer install && npm run lint",
-    "lint-js": "eslint assets/js",
+    "lint-js": "10up-toolkit lint-js assets/js",
     "lint-php": "composer run lint",
-    "format-js": "eslint --fix assets/js",
+    "format-js": "10up-toolkit format-js assets/js",
     "lint": "npm run lint-css && npm run lint-js && npm run lint-php",
     "format": "npm run format-js",
     "build:docs": "rm -rf hook_docs && jsdoc -c hookdoc-conf.json elasticpress.php includes"
