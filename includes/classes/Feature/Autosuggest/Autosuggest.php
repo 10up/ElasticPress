@@ -222,7 +222,7 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function set_fuzziness( $fuzziness, $search_fields, $args ) {
-		if ( ! is_admin() && ! empty( $args['s'] ) ) {
+		if ( Utils\is_integrated_request() && ! empty( $args['s'] ) ) {
 			return 'auto';
 		}
 		return $fuzziness;
@@ -237,7 +237,7 @@ class Autosuggest extends Feature {
 	 * @return array $query adjusted ES Query arguments
 	 */
 	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
-		if ( ! is_admin() && ! empty( $args['s'] ) ) {
+		if ( Utils\is_integrated_request() && ! empty( $args['s'] ) ) {
 			/**
 			 * Filter autosuggest ngram fields
 			 *
@@ -899,4 +899,3 @@ class Autosuggest extends Feature {
 		return $debug_info;
 	}
 }
-

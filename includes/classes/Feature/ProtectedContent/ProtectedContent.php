@@ -45,11 +45,8 @@ class ProtectedContent extends Feature {
 	public function setup() {
 		add_filter( 'ep_indexable_post_status', [ $this, 'get_statuses' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ], 10, 1 );
-
-		if ( is_admin() ) {
-			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
-		}
+		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
+		add_action( 'pre_get_posts', [ $this, 'integrate' ] );
 	}
 
 	/**
@@ -106,6 +103,9 @@ class ProtectedContent extends Feature {
 	 * @since  2.1
 	 */
 	public function integrate( $query ) {
+		if ( ! Utils\is_integrated_request( false ) ) {
+			return;
+		}
 
 		// Lets make sure this doesn't interfere with the CLI
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -228,4 +228,3 @@ class ProtectedContent extends Feature {
 		return $status;
 	}
 }
-

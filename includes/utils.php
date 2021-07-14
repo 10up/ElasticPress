@@ -537,3 +537,69 @@ function get_indexing_status() {
 	return $index_status;
 
 }
+
+/**
+ * Check if queries for the current request should not be integrated with
+ * ElasticPress.
+ *
+ * Requests should not be integrated in the admin unless admin integration
+ * is enabled via the `ep_admin_wp_query_integration` filter, or they are
+ * admin-ajax.php requests and integration with AJAX requests has been enabled
+ * with the `ep_ajax_wp_query_integration` filter.
+ *
+ * @param bool $supports_admin Whether the check supports optional admin
+ *                             integration.
+ * @return bool Whether the request supports ElasticPress integration.
+ *
+ * @since 3.6.0
+ */
+function is_integrated_request( $supports_admin = true ) {
+	$is_admin_request            = is_admin();
+	$is_ajax_request             = defined( 'DOING_AJAX' ) && DOING_AJAX;
+	$is_public_request           = ! is_admin();
+	$is_integrated_admin_request = false;
+	$is_integrated_ajax_request  = false;
+
+	if ( $is_admin_request && ! $is_ajax_request && $supports_admin ) {
+
+		/**
+		 * Filter whether to integrate with admin queries.
+		 *
+		 * @hook ep_admin_wp_query_integration
+		 * @param bool $integrate True to integrate.
+		 * @return bool New value.
+		 */
+		$is_integrated_admin_request = apply_filters( 'ep_admin_wp_query_integration', false );
+	}
+
+	if ( $is_ajax_request ) {
+
+		/**
+		 * Filter to integrate with admin ajax queries.
+		 *
+		 * @hook ep_ajax_wp_query_integration
+		 * @param bool $integrate True to integrate.
+		 * @return bool New value.
+		 */
+		$is_integrated_ajax_request = apply_filters( 'ep_ajax_wp_query_integration', false );
+	}
+
+	/**
+	 * Is the current request any of the supported requests.
+	 */
+	$is_integrated_request = $is_public_request || $is_integrated_admin_request || $is_integrated_ajax_request;
+
+	/**
+	 * Filter whether the queries for the current request should integrate.
+	 *
+	 * @hook ep_is_integrated_request
+	 * @param bool $is_integrated_request True for admin requests.
+	 * @param bool $support_admin_integration Whether the check supported admin integration.
+	 * @param bool $admin Whether the check supports admin integration.
+	 * @param bool $ajax  Whether the check supports AJAX integration.
+	 * @return bool New value
+	 *
+	 * @since 3.6.0
+	 */
+	return apply_filters( 'ep_is_integrated_request', $is_integrated_request, $supports_admin );
+}

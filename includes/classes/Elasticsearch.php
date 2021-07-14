@@ -313,7 +313,7 @@ class Elasticsearch {
 			(
 				Utils\is_epio() &&
 				! empty( $query_args['s'] ) &&
-				! is_admin() &&
+				Utils\is_integrated_request() &&
 				! isset( $_GET['post_type'] ) // phpcs:ignore WordPress.Security.NonceVerification
 			),
 			$query_args
