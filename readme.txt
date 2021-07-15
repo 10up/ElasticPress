@@ -29,6 +29,8 @@ __Facets__: Add controls to your website to filter content by one or more taxono
 
 __Users__: Improve user search relevancy and query performance.
 
+__Comments__: Indexes your comments and provides a widget with type-ahead search functionality. It works with WooCommerce product reviews out-of-the-box.
+
 Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
 
 == Installation ==
