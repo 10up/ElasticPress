@@ -41,5 +41,5 @@ docker run \
 	-v $(pwd):/app \
 	-v /tmp/wordpress-tests-lib-$WP_VERSION:/tmp/wordpress-tests-lib \
 	-v /tmp/wordpress-$WP_VERSION:/tmp/wordpress \
-	--rm phpunit/phpunit \
+	--rm ghcr.io/automattic/phpunit-docker/phpunit:latest \
 	--bootstrap /app/tests/php/bootstrap.php "$@"

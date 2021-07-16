@@ -87,7 +87,7 @@ class Post extends Indexable {
 		 */
 		$args = apply_filters( 'ep_index_posts_args', apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) ) );
 
-		if ( isset( $args['include'] ) || isset( $args['post__in'] ) ) {
+		if ( isset( $args['include'] ) || isset( $args['post__in'] ) || 0 < $args['offset'] ) {
 			// Disable advanced pagination. Not useful if only indexing specific IDs.
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
@@ -120,40 +120,40 @@ class Post extends Indexable {
 		];
 	}
 
-	/**
-	 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
-	 *
-	 * @param string   $where The current $where clause.
-	 * @param WP_Query $query WP_Query object.
-	 * @return string WHERE clause with our pagination added if needed.
-	 */
+		/**
+		 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
+		 *
+		 * @param string   $where The current $where clause.
+		 * @param WP_Query $query WP_Query object.
+		 * @return string WHERE clause with our pagination added if needed.
+		 */
 	public function bulk_indexing_filter_posts_where( $where, $query ) {
 		$using_advanced_pagination = $query->get( 'ep_indexing_advanced_pagination', false );
 
 		if ( $using_advanced_pagination ) {
-			$requested_start_id = $query->get( 'ep_indexing_start_object_id', PHP_INT_MAX );
-			$requested_end_id   = $query->get( 'ep_indexing_end_object_id', 0 );
-			$last_processed_id  = $query->get( 'ep_indexing_last_processed_object_id', null );
+			$requested_upper_limit_id      = $query->get( 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
+			$requested_lower_limit_post_id = $query->get( 'ep_indexing_lower_limit_object_id', 0 );
+			$last_processed_id             = $query->get( 'ep_indexing_last_processed_object_id', null );
 
-			// On the first loopthrough we begin with the requested start ID. Afterwards, use the last processed ID to paginate.
-			$start_range_post_id = $requested_start_id;
+			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
+			$upper_limit_range_post_id = $requested_upper_limit_id;
 			if ( is_numeric( $last_processed_id ) ) {
-				$start_range_post_id = $last_processed_id - 1;
+				$upper_limit_range_post_id = $last_processed_id - 1;
 			}
 
 			// Sanitize. Abort if unexpected data at this point.
-			if ( ! is_numeric( $start_range_post_id ) || ! is_numeric( $requested_end_id ) ) {
+			if ( ! is_numeric( $upper_limit_range_post_id ) || ! is_numeric( $requested_lower_limit_post_id ) ) {
 				return $where;
 			}
 
 			$range = [
-				'start' => "{$GLOBALS['wpdb']->posts}.ID <= {$start_range_post_id}",
-				'end'   => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_end_id}",
+				'upper_limit' => "{$GLOBALS['wpdb']->posts}.ID <= {$upper_limit_range_post_id}",
+				'lower_limit' => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_lower_limit_post_id}",
 			];
 
 			// Skip the end range if it's unnecessary.
-			$skip_ending_range = 0 === $requested_end_id;
-			$where             = $skip_ending_range ? "AND {$range['start']} {$where}" : "AND {$range['start']} AND {$range['end']} {$where}";
+			$skip_ending_range = 0 === $requested_lower_limit_post_id;
+			$where             = $skip_ending_range ? "AND {$range['upper_limit']} {$where}" : "AND {$range['upper_limit']} AND {$range['lower_limit']} {$where}";
 		}
 
 		return $where;
@@ -452,11 +452,11 @@ class Post extends Indexable {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $date_to_prepare The post date being prepared
+	 * @param string $date_to_prepare Post date
 	 * @since 0.1.4
 	 * @return array
 	 */
-	private function prepare_date_terms( $date_to_prepare ) {
+	public function prepare_date_terms( $date_to_prepare ) {
 		$terms_to_prepare = [
 			'year'          => 'Y',
 			'month'         => 'm',
@@ -856,28 +856,34 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		if ( empty( $args['tax_query'] ) ) { // Remove duplicate queries from Core's backwards compat feature of setting 'category_name', 'cat' and 'tag_id': https://github.com/WordPress/WordPress/blob/5d99107bf3ab35aa3dda82c6b3903f5717771335/wp-includes/class-wp-query.php#L2193
-			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['category_name'] ),
-					'field'    => 'slug',
-				);
-			}
+		if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'category',
+				'terms'    => array( $args['category_name'] ),
+				'field'    => 'slug',
+			);
+		}
 
-			if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['cat'] ),
-					'field'    => 'term_id',
-				);
-			}
+		if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'category',
+				'terms'    => array( $args['cat'] ),
+				'field'    => 'term_id',
+			);
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
 			$args['tax_query'][] = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => array( $args['tag'] ),
+				'field'    => 'slug',
+			);
+		}
+
+		if ( isset( $args['post_tag'] ) && ! empty( $args['post_tag'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy' => 'post_tag',
+				'terms'    => array( $args['post_tag'] ),
 				'field'    => 'slug',
 			);
 		}
@@ -894,7 +900,7 @@ class Post extends Indexable {
 			$has_tag__and = true;
 		}
 
-		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) && empty( $args['tax_query'] ) ) {
+		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) ) {
 
 			// If you pass tag__in as a parameter, core adds the first
 			// term ID as tag_id, so we only need to append it if we have
@@ -902,8 +908,8 @@ class Post extends Indexable {
 			if ( $has_tag__and ) {
 
 				$args['tax_query'] = array_map(
-					function( $tax_query ) {
-						if ( 'post_tag' === $tax_query ) {
+					function( $tax_query ) use ( $args ) {
+						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'], true ) ) {
 							$tax_query['terms'][] = $args['tag_id'];
 						}
 
@@ -911,7 +917,6 @@ class Post extends Indexable {
 					},
 					$args['tax_query']
 				);
-
 			} else {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'post_tag',
@@ -924,19 +929,20 @@ class Post extends Indexable {
 		/**
 		 * Try to find other taxonomies set in the root of WP_Query
 		 *
-		 * @since  3.4
+		 * @since 3.4
+		 * @since 3.4.2 Test taxonomies with their query_var value.
 		 */
-		$taxonomies = get_taxonomies();
+		$taxonomies = get_taxonomies( array(), 'objects' );
 
-		foreach ( $taxonomies as $tax_slug ) {
+		foreach ( $taxonomies as $tax_slug => $tax ) {
 			if ( 'ep_custom_result' === $tax_slug || $this->is_protected_parameter( $tax_slug ) ) {
 				continue;
 			}
 
-			if ( ! empty( $args[ $tax_slug ] ) ) {
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
-					'terms'    => (array) $args[ $tax_slug ],
+					'terms'    => (array) $args[ $tax->query_var ],
 					'field'    => 'slug',
 				);
 			}
@@ -1000,6 +1006,21 @@ class Post extends Indexable {
 		}
 
 		/**
+		 * 'post_name__in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['post_name__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_name.raw' => array_values( (array) $args['post_name__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * 'post__not_in' arg support.
 		 *
 		 * @since x.x
@@ -1008,6 +1029,36 @@ class Post extends Indexable {
 			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(
 					'post_id' => (array) $args['post__not_in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'category__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['category__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'tag__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['tag__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
 				),
 			);
 
@@ -1038,6 +1089,22 @@ class Post extends Indexable {
 			);
 
 			$use_filters = true;
+		} elseif ( ! empty( $args['author__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_author.id' => array_values( (array) $args['author__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		} elseif ( ! empty( $args['author__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'post_author.id' => array_values( (array) $args['author__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
 		}
 
 		/**
@@ -1051,9 +1118,26 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['post_mime_type'] ) ) {
 			if ( is_array( $args['post_mime_type'] ) ) {
+
+				$args_post_mime_type = [];
+
+				foreach ( $args['post_mime_type'] as $mime_type ) {
+					/**
+					 * check if matches the MIME type pattern: type/subtype and
+					 * leave an empty string as posts, pages and CPTs don't have a MIME type
+					 */
+					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
+						$args_post_mime_type[] = $mime_type;
+					} else {
+						$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
+
+						$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+					}
+				}
+
 				$filter['bool']['must'][] = array(
 					'terms' => array(
-						'post_mime_type' => (array) $args['post_mime_type'],
+						'post_mime_type' => $args_post_mime_type,
 					),
 				);
 
@@ -1199,6 +1283,9 @@ class Post extends Indexable {
 		/**
 		 * Filter default post search fields
 		 *
+		 * If you are using the weighting engine, this filter should not be used.
+		 * Instead, you should use the ep_weighting_configuration_for_search filter.
+		 *
 		 * @hook ep_search_fields
 		 * @param  {array} $search_fields Default search fields
 		 * @param  {array} $args WP Query arguments
@@ -1206,63 +1293,116 @@ class Post extends Indexable {
 		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
-		$query = array(
-			'bool' => array(
-				'should' => array(
-					array(
-						'multi_match' => array(
-							'query'  => '',
-							'type'   => 'phrase',
-							'fields' => $search_fields,
-							/**
-							 * Filter boost for post match phrase query
-							 *
-							 * @hook ep_match_phrase_boost
-							 * @param  {int} $boost Phrase boost
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New phrase boost
-							 */
-							'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+		$default_algorithm_version = '3.5';
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$search_algorithm_version_option = get_site_option( 'ep_search_algorithm_version', $default_algorithm_version );
+		} else {
+			$search_algorithm_version_option = get_option( 'ep_search_algorithm_version', $default_algorithm_version );
+		}
+
+		/**
+		 * Filter the algorithm version to be used.
+		 *
+		 * @since  3.5
+		 * @hook ep_search_algorithm_version
+		 * @param  {string} $search_algorithm_version Algorithm version.
+		 * @return  {string} New algorithm version
+		 */
+		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
+
+		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
+
+		if ( '3.5' === $search_algorithm_version ) {
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'type'   => 'phrase',
+								'fields' => $search_fields,
+								/**
+								 * Filter boost for post match phrase query
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New phrase boost
+								 */
+								'boost'  => apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $args ),
+							),
 						),
-					),
-					array(
-						'multi_match' => array(
-							'query'     => '',
-							'fields'    => $search_fields,
-							/**
-							 * Filter boost for post match query
-							 *
-							 * @hook ep_match_boost
-							 * @param  {int} $boost Boost
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New boost
-							 */
-							'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
-							'fuzziness' => 0,
-							'operator'  => 'and',
-						),
-					),
-					array(
-						'multi_match' => array(
-							'query'     => '',
-							'fields'    => $search_fields,
-							/**
-							 * Filter fuzziness for post query
-							 *
-							 * @hook ep_fuzziness_arg
-							 * @param  {int} $fuzziness Fuzziness
-							 * @param {array} $prepared_search_fields Search fields
-							 * @param {array} $query_vars Query variables
-							 * @return  {int} New fuzziness
-							 */
-							'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'fields' => $search_fields,
+								'type'   => 'phrase',
+								'slop'   => 5,
+							),
 						),
 					),
 				),
-			),
-		);
+			);
+		} else {
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'type'   => 'phrase',
+								'fields' => $search_fields,
+								/**
+								 * Filter boost for post match phrase query
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New phrase boost
+								 */
+								'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $search_text,
+								'fields'    => $search_fields,
+								/**
+								 * Filter boost for post match query
+								 *
+								 * @hook ep_match_boost
+								 * @param  {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New boost
+								 */
+								'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
+								'fuzziness' => 0,
+								'operator'  => 'and',
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $search_text,
+								'fields'    => $search_fields,
+								/**
+								 * Filter fuzziness for post query
+								 *
+								 * @hook ep_fuzziness_arg
+								 * @param  {int} $fuzziness Fuzziness
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New fuzziness
+								 */
+								'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
+							),
+						),
+					),
+				),
+			);
+		}
 
 		/**
 		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
@@ -1272,19 +1412,25 @@ class Post extends Indexable {
 		 */
 
 		if ( ! empty( $args['s'] ) ) {
-			$query['bool']['should'][2]['multi_match']['query'] = $args['s'];
-			$query['bool']['should'][1]['multi_match']['query'] = $args['s'];
-			$query['bool']['should'][0]['multi_match']['query'] = $args['s'];
-
 			/**
 			 * Filter formatted Elasticsearch post query (only contains query part)
 			 *
 			 * @hook ep_formatted_args_query
-			 * @param {array} $query Current query
-			 * @param {array} $query_vars Query variables
-			 * @return  {array} New query
+			 * @param {array}  $query         Current query
+			 * @param {array}  $query_vars    Query variables
+			 * @param {string} $search_text   Search text
+			 * @param {array}  $search_fields Search fields
+			 * @return {array} New query
+			 *
+			 * @since 3.5.5 $search_text and $search_fields parameters added.
 			 */
-			$formatted_args['query'] = apply_filters( 'ep_formatted_args_query', $query, $args );
+			$formatted_args['query'] = apply_filters(
+				'ep_formatted_args_query',
+				$query,
+				$args,
+				$search_text,
+				$search_fields
+			);
 		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
@@ -1314,9 +1460,23 @@ class Post extends Indexable {
 		$sticky_posts = get_option( 'sticky_posts' );
 		$sticky_posts = ( is_array( $sticky_posts ) && empty( $sticky_posts ) ) ? false : $sticky_posts;
 
+		/**
+		 * Filter whether to enable sticky posts for this request
+		 *
+		 * @hook ep_enable_sticky_posts
+		 *
+		 * @param {bool}  $allow          Allow sticky posts for this request
+		 * @param {array} $args           Query variables
+		 * @param {array} $formatted_args EP formatted args
+		 *
+		 * @return  {bool} $allow
+		 */
+		$enable_sticky_posts = apply_filters( 'ep_enable_sticky_posts', is_home(), $args, $formatted_args );
+
 		if ( false !== $sticky_posts
-			&& is_home()
-			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0 ), true ) ) {
+			&& $enable_sticky_posts
+			&& empty( $args['s'] )
+			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
 			$new_sort = [
 				[
 					'_score' => [
@@ -1432,7 +1592,7 @@ class Post extends Indexable {
 		}
 
 		if ( isset( $args['offset'] ) ) {
-			$formatted_args['from'] = $args['offset'];
+			$formatted_args['from'] = (int) $args['offset'];
 		}
 
 		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
@@ -1494,7 +1654,7 @@ class Post extends Indexable {
 		/**
 		 * Filter formatted Elasticsearch [ost ]query (entire query)
 		 *
-		 * @hook ep_formatted_args_query
+		 * @hook ep_formatted_args
 		 * @param {array} $formatted_args Formatted Elasticsearch query
 		 * @param {array} $query_vars Query variables
 		 * @param {array} $query Query part
@@ -1512,10 +1672,6 @@ class Post extends Indexable {
 		 * @return  {array} New query
 		 */
 		$formatted_args = apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
-
-		// TOOD remove these.
-		// echo PHP_EOL;
-		// echo wp_json_encode( $formatted_args );
 
 		return $formatted_args;
 	}
@@ -1670,9 +1826,13 @@ class Post extends Indexable {
 	 * @return string The sanitized 'order' query variable.
 	 */
 	protected function parse_order( $order ) {
+		// Core will always set sort order to DESC for any invalid value,
+		// so we can't do any automated testing of this function.
+		// @codeCoverageIgnoreStart
 		if ( ! is_string( $order ) || empty( $order ) ) {
 			return 'desc';
 		}
+		// @codeCoverageIgnoreEnd
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'asc';

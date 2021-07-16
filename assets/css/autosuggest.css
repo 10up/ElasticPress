@@ -15,7 +15,7 @@
 			list-style: none;
 			& > li {
 				font-family: sans-serif;
-				& > span {
+				& > a.autosuggest-link {
 					display: block;
 					color: #000;
 					padding: 2px 10px;

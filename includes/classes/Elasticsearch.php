@@ -90,6 +90,8 @@ class Elasticsearch {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/' . $document['ID'], $document, $type );
 		}
 
+		$path = apply_filters( 'ep_index_request_path', $path, $document, $type );
+
 		if ( function_exists( 'wp_json_encode' ) ) {
 			$encoded_document = wp_json_encode( $document );
 		} else {
@@ -295,9 +297,31 @@ class Elasticsearch {
 			),
 		);
 
-		// If search, send the search term as a header to ES so the backend understands what a normal query looks like
-		if ( isset( $query_args['s'] ) && (bool) $query_args['s'] && ! is_admin() && ! isset( $_GET['post_type'] ) ) {
-			$request_args['headers']['EP-Search-Term'] = $query_args['s'];
+		/**
+		 * Filter whether to send the EP-Search-Term header or not.
+		 *
+		 * @todo Evaluate if we should remove tests for is_admin() and empty post types.
+		 *
+		 * @since  3.5.2
+		 * @hook ep_query_send_ep_search_term_header
+		 * @param  {bool}  $send_header True means send the EP-Search-Term header
+		 * @param  {array} $query_args  WP query args
+		 * @return {bool}  New $send_header value
+		 */
+		$send_ep_search_term_header = apply_filters(
+			'ep_query_send_ep_search_term_header',
+			(
+				Utils\is_epio() &&
+				! empty( $query_args['s'] ) &&
+				! is_admin() &&
+				! isset( $_GET['post_type'] ) // phpcs:ignore WordPress.Security.NonceVerification
+			),
+			$query_args
+		);
+
+		// If needed, send the search term as a header to ES so the backend understands what a normal query looks like
+		if ( $send_ep_search_term_header ) {
+			$request_args['headers']['EP-Search-Term'] = rawurlencode( $query_args['s'] );
 		}
 
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
@@ -602,51 +626,6 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Get multiple documents from Elasticsearch given an array of ids
-	 *
-	 * @param  string $index Index name.
-	 * @param  array  $document_ids Array of document ids to get.
-	 * @since  3.5
-	 * @return boolean|array
-	 */
-	public function get_documents( $index, $document_ids ) {
-		$path = $index . '/_mget';
-
-		$request_args = [
-			'method' => 'POST',
-			'body'   => wp_json_encode(
-				array(
-					'ids' => $document_ids,
-				)
-			),
-		];
-
-		$request = $this->remote_request( $path, $request_args, [], 'post' );
-
-		if ( is_wp_error( $request ) ) {
-			return false;
-		}
-
-		$response_body = wp_remote_retrieve_body( $request );
-
-		$response = json_decode( $response_body, true );
-
-		$docs = [];
-
-		if ( is_array( $response['docs'] ) ) {
-			foreach ( $response['docs'] as $doc ) {
-				if ( ! empty( $doc['exists'] ) || ! empty( $doc['found'] ) ) {
-					$docs[] = $doc['_source'];
-				} else {
-					$docs[] = null;
-				}
-			}
-		}
-
-		return $docs;
-	}
-
-	/**
 	 * Delete the network alias.
 	 *
 	 * Network aliases are used to query documents across blogs in a network.
@@ -669,6 +648,67 @@ class Elasticsearch {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get multiple documents from Elasticsearch given an array of ids
+	 *
+	 * @param  string $index Index name.
+	 * @param  string $type Index type. Previously this was used for index type. Now it's just passed to hooks for legacy reasons.
+	 * @param  array  $document_ids Array of document ids to get.
+	 * @since  3.6.0
+	 * @return boolean|array
+	 */
+	public function get_documents( $index, $type, $document_ids ) {
+		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/_mget', $document_ids, $type );
+		} else {
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/_mget', $document_ids, $type );
+		}
+
+		$request_args = [
+			'method' => 'POST',
+			'body'   => wp_json_encode(
+				array(
+					'ids' => $document_ids,
+				)
+			),
+		];
+
+		$request = $this->remote_request( $path, $request_args, [], 'post' );
+
+		if ( is_wp_error( $request ) ) {
+			return false;
+		}
+
+		$response_body = wp_remote_retrieve_body( $request );
+
+		$response = json_decode( $response_body, true );
+
+		$docs = [];
+
+		if ( isset( $response['docs'] ) && is_array( $response['docs'] ) ) {
+			foreach ( $response['docs'] as $doc ) {
+				if ( ! empty( $doc['exists'] ) || ! empty( $doc['found'] ) ) {
+					$docs[ $doc['_id'] ] = $doc['_source'];
+				}
+			}
+		}
+
+		/**
+		 * Filter documents found by Elasticsearch through the /_mget endpoint.
+		 *
+		 * @hook ep_get_documents
+		 * @since 3.6.0
+		 * @param {array} $docs Documents found indexed by ID
+		 * @param  {string} $index Index name
+		 * @param  {string} $type Index type
+		 * @param  {array} $document_ids Array of document ids
+		 * @return  {array} Documents to be returned
+		 */
+		$docs = apply_filters( 'ep_get_documents', $docs, $index, $type, $document_ids );
+
+		return $docs;
 	}
 
 	/**
@@ -790,7 +830,6 @@ class Elasticsearch {
 		return $settings;
 	}
 
-
 	/**
 	 * Get current index mapping from Elasticsearch.
 	 *
@@ -878,7 +917,6 @@ class Elasticsearch {
 		];
 
 		$closed = false;
-
 		if ( $close_first ) {
 			$closed = $this->close_index( $index );
 		}
@@ -1118,9 +1156,10 @@ class Elasticsearch {
 
 			$request_response_code = (int) wp_remote_retrieve_response_code( $request );
 
-			$is_valid_res = ( $request_response_code >= 200 && $request_response_code <= 299 );
+			$is_valid_res            = ( $request_response_code >= 200 && $request_response_code <= 299 );
+			$is_non_blocking_request = ( 0 === $request_response_code );
 
-			if ( false === $request || is_wp_error( $request ) || ! $is_valid_res ) {
+			if ( false === $request || is_wp_error( $request ) || ( ! $is_valid_res && ! $is_non_blocking_request ) ) {
 				$failures++;
 
 				/**

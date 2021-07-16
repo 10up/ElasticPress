@@ -214,12 +214,15 @@ return array(
 				'display_name'    => array(
 					'type'   => 'string',
 					'fields' => array(
-						'display_name' => array(
-							'type' => 'string',
-						),
-						'raw'          => array(
+						'raw'      => array(
 							'type'         => 'string',
+							'index'        => 'not_analyzed',
 							'ignore_above' => 10922,
+						),
+						'sortable' => array(
+							'type'     => 'string',
+							'index'    => 'not_analyzed',
+							'analyzer' => 'ewp_lowercase',
 						),
 					),
 				),

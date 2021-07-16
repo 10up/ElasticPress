@@ -19,7 +19,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array
  */
 function get_epio_credentials() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
+	if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) {
+		$raw_credentials = explode( ':', EP_CREDENTIALS );
+		if ( is_array( $raw_credentials ) && 2 === count( $raw_credentials ) ) {
+			$credentials = array(
+				'username' => $raw_credentials[0],
+				'token'    => $raw_credentials[1],
+			);
+		}
+		$credentials = sanitize_credentials( $credentials );
+	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
 		$credentials = sanitize_credentials( get_site_option( 'ep_credentials', false ) );
 	} elseif ( is_epio() ) {
 		$credentials = sanitize_credentials( get_option( 'ep_credentials', false ) );
@@ -104,17 +113,19 @@ function is_epio() {
 /**
  * Determine if we should index a blog/site
  *
- * @param  int $blog_id Blog/site id
+ * @param  int $blog_id Blog/site id.
  * @since  3.2
  * @return boolean
  */
 function is_site_indexable( $blog_id = null ) {
-	$site = get_site( $blog_id );
+	if ( is_multisite() ) {
+		$site = get_site( $blog_id );
 
-	$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
+		$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
 
-	if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
-		return false;
+		if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
+			return false;
+		}
 	}
 
 	return true;
@@ -147,14 +158,14 @@ function sanitize_credentials( $credentials ) {
  * @since  3.0
  * @return boolean
  */
-function is_indexing(): bool {
+function is_indexing() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$index_meta = get_site_option( 'ep_index_meta', false );
+		$wpcli_sync = get_site_transient( 'ep_wpcli_sync' );
 	} else {
 		$index_meta = get_option( 'ep_index_meta', false );
+		$wpcli_sync = get_transient( 'ep_wpcli_sync' );
 	}
-	$dashboard_indexing = ! empty( $index_meta );
-	$ongoing_indexing   = $dashboard_indexing || is_indexing_wpcli();
 
 	/**
 	 * Filter whether an index is occurring in dashboard or CLI
@@ -164,7 +175,7 @@ function is_indexing(): bool {
 	 * @param  {bool} $indexing True for indexing
 	 * @return {bool} New indexing value
 	 */
-	return (bool) apply_filters( 'ep_is_indexing', $ongoing_indexing );
+	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) || ! empty( $wpcli_sync ) ) );
 }
 
 /**
@@ -258,6 +269,11 @@ function get_site( $site_id ) {
  * @return array
  */
 function get_sites( $limit = 0 ) {
+
+	if ( ! is_multisite() ) {
+		return [];
+	}
+
 	/**
 	 * Filter arguments to use to query for sites on network
 	 *
@@ -460,4 +476,75 @@ function get_language() {
 	 * @return  {string} New language
 	 */
 	return apply_filters( 'ep_default_language', $ep_language );
+}
+
+/**
+ * Returns the status of an ongoing index operation.
+ *
+ * Returns the status of an ongoing index operation in array with the following fields:
+ * indexing | boolean | True if index operation is ongoing or false
+ * method | string | 'cli', 'web' or 'none'
+ * items_indexed | integer | Total number of items indexed
+ * total_items | integer | Total number of items indexed or -1 if not yet determined
+ * slug | string | The slug of the indexable
+ *
+ * @since  3.5.2
+ * @return array|boolean
+ */
+function get_indexing_status() {
+
+	$index_status = false;
+
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+		$dashboard_syncing = get_site_option( 'ep_index_meta', false );
+		$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
+
+		if ( $wpcli_syncing ) {
+			$site = \get_site();
+			$url  = $site->domain . $site->path;
+		}
+	} else {
+
+		$dashboard_syncing = get_option( 'ep_index_meta', false );
+		$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
+
+	}
+
+	if ( $dashboard_syncing || $wpcli_syncing ) {
+
+		if ( $dashboard_syncing ) {
+
+			$index_status = $dashboard_syncing;
+
+			$should_interrupt_sync = filter_var(
+				get_transient( 'ep_sync_interrupted' ),
+				FILTER_VALIDATE_BOOLEAN
+			);
+
+			$index_status['should_interrupt_sync'] = $should_interrupt_sync;
+		} else {
+			$index_status = array(
+				'indexing'      => false,
+				'method'        => 'none',
+				'items_indexed' => 0,
+				'total_items'   => -1,
+				'url'           => $url,
+			);
+
+			$index_status['indexing'] = true;
+
+			$index_status['method'] = 'cli';
+
+			if ( is_array( $wpcli_syncing ) ) {
+
+				$index_status['items_indexed'] = $wpcli_syncing[0];
+				$index_status['total_items']   = $wpcli_syncing[1];
+				$index_status['slug']          = $wpcli_syncing[2];
+			}
+		}
+	}
+
+	return $index_status;
+
 }
