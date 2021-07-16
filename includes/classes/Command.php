@@ -593,7 +593,11 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		$this->reset_transient();
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+		} else {
+			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
+		}
 
 		timer_start();
 
