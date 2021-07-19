@@ -46,9 +46,17 @@ class ProtectedContent extends Feature {
 		add_filter( 'ep_indexable_post_status', [ $this, 'get_statuses' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ], 10, 1 );
 
+		if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
+			add_filter( 'ep_indexable_comment_status', [ $this, 'get_comment_statuses' ] );
+		}
+
 		if ( is_admin() ) {
 			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
 			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
+
+			if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
+				add_action( 'pre_get_comments', [ $this, 'integrate_comments_query' ] );
+			}
 		}
 	}
 
@@ -67,6 +75,33 @@ class ProtectedContent extends Feature {
 		if ( $pc_post_types['nav_menu_item'] ) {
 			unset( $pc_post_types['nav_menu_item'] );
 		}
+
+		if ( ! empty( $pc_post_types['revision'] ) ) {
+			unset( $pc_post_types['revision'] );
+		}
+
+		if ( ! empty( $pc_post_types['custom_css'] ) ) {
+			unset( $pc_post_types['custom_css'] );
+		}
+
+		if ( ! empty( $pc_post_types['customize_changeset'] ) ) {
+			unset( $pc_post_types['customize_changeset'] );
+		}
+
+		if ( ! empty( $pc_post_types['oembed_cache'] ) ) {
+			unset( $pc_post_types['oembed_cache'] );
+		}
+
+		if ( ! empty( $pc_post_types['wp_block'] ) ) {
+			unset( $pc_post_types['wp_block'] );
+		}
+
+		if ( ! empty( $pc_post_types['user_request'] ) ) {
+			unset( $pc_post_types['user_request'] );
+		}
+
+		// By default, attachments are not indexed, we have to make sure they are included (Could already be included by documents feature).
+		$post_types['attachment'] = 'attachment';
 
 		// Merge non public post types with any pre-filtered post_type
 		return array_merge( $post_types, $pc_post_types );
@@ -96,7 +131,8 @@ class ProtectedContent extends Feature {
 		 * @var array
 		 */
 		$post_types = array(
-			'post' => 'post',
+			'post'       => 'post',
+			'attachment' => 'attachment',
 		);
 
 		/**
@@ -148,6 +184,48 @@ class ProtectedContent extends Feature {
 	}
 
 	/**
+	 * Integrate EP into comment queries
+	 *
+	 * @param  WP_Comment_Query $comment_query WP Comment Query
+	 * @since  3.6.0
+	 */
+	public function integrate_comments_query( $comment_query ) {
+		// Lets make sure this doesn't interfere with the CLI
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return;
+		}
+
+		$comment_types = array( 'comment', 'review' );
+
+		/**
+		 * Filter protected content supported comment types.
+		 *
+		 * @hook ep_pc_supported_comment_types
+		 * @since 3.6.0
+		 * @param  {array} $comment_types Comment types
+		 * @return  {array} New comment types
+		 */
+		$supported_comment_types = apply_filters( 'ep_pc_supported_comment_types', $comment_types );
+
+		$comment_type = $comment_query->query_vars['type'];
+
+		if ( is_array( $comment_type ) ) {
+			foreach ( $comment_type as $comment_type_value ) {
+				if ( ! in_array( $comment_type_value, $supported_comment_types, true ) ) {
+					return;
+				}
+			}
+
+			$comment_query->query_vars['ep_integrate'] = true;
+		} else {
+			if ( in_array( $comment_type, $supported_comment_types, true ) ) {
+				$comment_query->query_vars['ep_integrate'] = true;
+			}
+		}
+
+	}
+
+	/**
 	 * Output feature box summary
 	 *
 	 * @since 2.1
@@ -185,16 +263,26 @@ class ProtectedContent extends Feature {
 	}
 
 	/**
+	 * Fetches all comment statuses we need to index
+	 *
+	 * @since  3.6.0
+	 * @param  array $comment_statuses Post statuses array
+	 * @return array
+	 */
+	public function get_comment_statuses( $comment_statuses ) {
+		return [ 'all' ];
+	}
+
+	/**
 	 * Determine feature reqs status
 	 *
 	 * @since  2.2
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
+		$status = new FeatureRequirementsStatus( 1 );
 
 		if ( ! Utils\is_epio() ) {
-			$status->code    = 1;
 			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
 		}
 

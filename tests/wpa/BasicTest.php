@@ -29,14 +29,27 @@ class BasicTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+		try {
+			$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
 
-		foreach ( $this->indexes as $index_name ) {
-			$I->seeText( $index_name );
+			foreach ( $this->indexes as $index_name ) {
+				$I->seeText( $index_name );
+			}
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
+
+			foreach ( $this->indexes as $index_name ) {
+				$this->assertStringContainsString( $index_name, $cli_result );
+			}
 		}
 	}
 
@@ -46,7 +59,7 @@ class BasicTest extends TestBase {
 	 * @testdox I can search on the front end and ES returns a proper response code.
 	 */
 	public function testSearch() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -72,7 +85,7 @@ class BasicTest extends TestBase {
 	 * @testdox I dont see a post in search that only matches by title when title is set as not searchable in the weighting dashboard.
 	 */
 	public function testWeightingOnOff() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -83,6 +96,8 @@ class BasicTest extends TestBase {
 		];
 
 		$this->publishPost( $data, $I );
+
+		sleep( 2 );
 
 		$I->moveTo( '/?s=Test+ElasticPress+1' );
 
@@ -99,6 +114,15 @@ class BasicTest extends TestBase {
 		$I->moveTo( '/?s=Test+ElasticPress+1' );
 
 		$I->dontSeeText( 'Test ElasticPress 1', '.hentry' );
+
+		// Reset Changed Settings.
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+
+		$I->click( '#post-post_title-enabled' );
+
+		$I->click( '#submit' );
+
+		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
 	}
 
 	/**
@@ -107,7 +131,7 @@ class BasicTest extends TestBase {
 	 * @testdox I can increase post_title weighting and influence search results.
 	 */
 	public function testTitleContentWeighting() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -150,6 +174,13 @@ class BasicTest extends TestBase {
 		$first_post = $posts[0];
 
 		$I->seeText( 'test weighting title findme', $first_post );
+
+		// Reset Changed Settings.
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+
+		$I->setElementProperty( 'input[name="weighting[post][post_title][weight]"]', 'value', 1 );
+
+		$I->click( '#submit' );
 	}
 
 	/**
@@ -158,7 +189,7 @@ class BasicTest extends TestBase {
 	 * @testdox When I type in a search field on the front end, I see the autosuggest dropdown.
 	 */
 	public function testAutosuggestDropdownShows() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 

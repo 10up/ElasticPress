@@ -153,6 +153,23 @@ class Features {
 			$feature->post_activation();
 		}
 
+		/**
+		 * Fires after activating, inactivating, or just updating a feature.
+		 *
+		 * @hook ep_after_update_feature
+		 * @param  {string} $feature Feature slug
+		 * @param  {array} $settings Feature settings
+		 * @param  {array} $data Feature activation data
+		 *
+		 * @since 3.5.5
+		 */
+		do_action(
+			'ep_after_update_feature',
+			$slug,
+			$settings,
+			$data
+		);
+
 		return $data;
 	}
 

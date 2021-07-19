@@ -82,6 +82,9 @@ class AdminNotices {
 	 */
 	protected function process_using_autosuggest_defaults_notice() {
 		$feature = Features::factory()->get_registered_feature( 'autosuggest' );
+		if ( ! $feature instanceof Feature ) {
+			return false;
+		}
 
 		if ( ! $feature->is_active() ) {
 			return false;
@@ -126,7 +129,7 @@ class AdminNotices {
 		}
 
 		return [
-			'html'    => sprintf( esc_html__( 'Autosuggest feature is enabled. If protected content or documents feature is enabled, your protected content will also become searchable. Please checkmark the "Use safe values" checkbox in Autosuggest settings to default to safe content search', 'elasticpress' ) ),
+			'html'    => sprintf( esc_html__( 'Autosuggest feature is enabled. If documents feature is enabled, your media will also become searchable in the frontend.', 'elasticpress' ) ),
 			'type'    => 'info',
 			'dismiss' => true,
 		];
@@ -290,9 +293,11 @@ class AdminNotices {
 			$html = sprintf( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ), esc_url( $url ) );
 		}
 
+		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the reindex has been performed.', 'elasticpress' );
+
 		return [
-			'html'    => $html,
-			'type'    => 'warning',
+			'html'    => '<span class="dashicons dashicons-warning"></span> ' . $html . ' ' . $notice,
+			'type'    => 'error',
 			'dismiss' => ! in_array( $screen, [ 'dashboard', 'settings' ], true ),
 		];
 	}
