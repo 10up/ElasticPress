@@ -114,7 +114,7 @@ class Documents extends Feature {
 	 * @since  2.3
 	 */
 	public function setup_document_search( $query ) {
-		if ( ! Utils\is_integrated_request( false ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		if ( ! Utils\is_integrated_request( [ 'public', 'ajax' ] ) ) {
 			return;
 		}
 

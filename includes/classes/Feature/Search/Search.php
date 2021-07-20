@@ -173,10 +173,7 @@ class Search extends Feature {
 		 */
 		$add_highlight_clause = apply_filters(
 			'ep_highlight_should_add_clause',
-			(
-				( Utils\is_integrated_request( false ) ) &&
-				( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST )
-			),
+			Utils\is_integrated_request( [ 'public' ] ),
 			$formatted_args,
 			$args
 		);
