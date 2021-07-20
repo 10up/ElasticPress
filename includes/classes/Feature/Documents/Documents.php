@@ -217,7 +217,16 @@ class Documents extends Feature {
 
 		$post_args['attachments'] = [];
 
-		if ( ! WP_Filesystem() ) {
+		/**
+		 * Filters the arguments passed to WP_Filesystem()
+		 *
+		 * @hook ep_filesystem_args
+		 * @param  {boolean} False (default value)
+		 * @return {array|false} Array of args, or false if none
+		 */
+		$filesystem_args = apply_filters( 'ep_filesystem_args', false );
+
+		if ( ! WP_Filesystem( $filesystem_args ) ) {
 			return $post_args;
 		}
 
@@ -307,6 +316,10 @@ class Documents extends Feature {
 	 */
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 1 );
+
+		if ( empty( Elasticsearch::factory()->get_elasticsearch_version( false ) ) ) {
+			return $status;
+		}
 
 		$plugins = Elasticsearch::factory()->get_elasticsearch_plugins();
 

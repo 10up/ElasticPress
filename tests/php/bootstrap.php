@@ -44,8 +44,12 @@ function load_plugin() {
 	update_option( 'ep_host', $host );
 	update_site_option( 'ep_host', $host );
 
-	define( 'EP_IS_NETWORK', true );
-	define( 'WP_NETWORK_ADMIN', true );
+	define( 'EP_UNIT_TESTS', true );
+
+	if ( defined( 'WP_TESTS_MULTISITE' ) && '1' === WP_TESTS_MULTISITE ) {
+		define( 'EP_IS_NETWORK', true );
+		define( 'WP_NETWORK_ADMIN', true );
+	}
 
 	include_once __DIR__ . '/../../vendor/woocommerce/woocommerce.php';
 	require_once __DIR__ . '/../../elasticpress.php';
@@ -73,6 +77,7 @@ function load_plugin() {
 	require_once __DIR__ . '/includes/functions.php';
 
 	echo 'WordPress version ' . $wp_version . "\n"; // phpcs:ignore
+	echo 'Elasticsearch version ' . \ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true ) . "\n"; // phpcs:ignore
 }
 
 tests_add_filter( 'muplugins_loaded', __NAMESPACE__ . '\load_plugin' );

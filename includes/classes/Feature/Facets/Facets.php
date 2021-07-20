@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\Facets;
 
 use ElasticPress\Feature as Feature;
+use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
@@ -159,15 +160,15 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function front_scripts() {
-		wp_enqueue_script(
+		wp_register_script(
 			'elasticpress-facets',
 			EP_URL . 'dist/js/facets-script.min.js',
-			[ 'jquery', 'underscore' ],
+			[],
 			EP_VERSION,
 			true
 		);
 
-		wp_enqueue_style(
+		wp_register_style(
 			'elasticpress-facets',
 			EP_URL . 'dist/css/facets-styles.min.css',
 			[],
@@ -183,6 +184,19 @@ class Facets extends Feature {
 	 * @return bool
 	 */
 	public function is_facetable( $query ) {
+
+		/**
+		 * Bypass the standard checks and set a query to be facetable
+		 *
+		 * @hook ep_is_facetable
+		 * @param  {bool}     $bypass Defaults to false.
+		 * @param  {WP_Query} $query  The current WP_Query.
+		 * @return {bool}     true to bypass, false to ignore
+		 */
+		if ( \apply_filters( 'ep_is_facetable', false, $query ) ) {
+			return true;
+		}
+
 		if ( is_admin() ) {
 			return false;
 		}
@@ -198,6 +212,12 @@ class Facets extends Feature {
 		$ep_integrate = $query->get( 'ep_integrate', null );
 
 		if ( false === $ep_integrate ) {
+			return false;
+		}
+
+		$woocommerce = Features::factory()->get_registered_feature( 'woocommerce' );
+
+		if ( ! $woocommerce->is_active() && ( function_exists( 'is_product_category' ) && is_product_category() ) ) {
 			return false;
 		}
 
@@ -245,11 +265,29 @@ class Facets extends Feature {
 
 		$facets = [];
 
+		/**
+		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
+		 * Values available out-of-the-box are:
+		 *  - slug (default)
+		 *  - term_id
+		 *  - name
+		 *  - parent
+		 *  - term_taxonomy_id
+		 *  - term_order
+		 *  - facet (retrieves a JSON representation of the term object)
+		 *
+		 * @since 3.6.0
+		 * @hook ep_facet_use_field
+		 * @param  {string} $field The term field to use
+		 * @return  {string} The chosen term field
+		 */
+		$facet_field = apply_filters( 'ep_facet_use_field', 'slug' );
+
 		foreach ( $taxonomies as $slug => $taxonomy ) {
 			$facets[ $slug ] = array(
 				'terms' => array(
-					'size'  => 10000,
-					'field' => 'terms.' . $slug . '.slug',
+					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
+					'field' => 'terms.' . $slug . '.' . $facet_field,
 				),
 			);
 		}
@@ -311,7 +349,7 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function get_aggs( $response, $query, $query_args, $query_object ) {
-		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $query_object->is_main_query() ) {
+		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $this->is_facetable( $query_object ) ) {
 			return;
 		}
 
@@ -323,6 +361,10 @@ class Facets extends Feature {
 			if ( isset( $response['aggregations']['terms'] ) && is_array( $response['aggregations']['terms'] ) ) {
 				foreach ( $response['aggregations']['terms'] as $key => $agg ) {
 					if ( 'doc_count' === $key ) {
+						continue;
+					}
+
+					if ( ! is_array( $agg ) || empty( $agg['buckets'] ) ) {
 						continue;
 					}
 
@@ -347,13 +389,19 @@ class Facets extends Feature {
 			'taxonomies' => [],
 		);
 
+		$allowed_args = $this->get_allowed_query_args();
+
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 0 === strpos( $key, 'filter' ) ) {
+			if ( 0 === strpos( $key, 'filter_' ) ) {
 				$taxonomy = str_replace( 'filter_', '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(
 					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
 				);
+			}
+
+			if ( in_array( $key, $allowed_args, true ) ) {
+				$filters[ $key ] = $value;
 			}
 		}
 
@@ -368,47 +416,47 @@ class Facets extends Feature {
 	 * @return string
 	 */
 	public function build_query_url( $filters ) {
-		$query_string = '';
-
-		$s = get_search_query();
-
-		if ( ! empty( $s ) ) {
-			$query_string .= 's=' . $s;
-		}
+		$query_param = array();
 
 		if ( ! empty( $filters['taxonomies'] ) ) {
 			$tax_filters = $filters['taxonomies'];
 
 			foreach ( $tax_filters as $taxonomy => $filter ) {
 				if ( ! empty( $filter['terms'] ) ) {
-					if ( ! empty( $query_string ) ) {
-						$query_string .= '&';
-					}
-
-					$query_string .= 'filter_' . $taxonomy . '=' . implode( ',', array_keys( $filter['terms'] ) );
+					$query_param[ 'filter_' . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
 				}
 			}
 		}
+
+		$allowed_args = $this->get_allowed_query_args();
+
+		if ( ! empty( $filters ) ) {
+			foreach ( $filters as $filter => $value ) {
+				if ( ! empty( $value ) && in_array( $filter, $allowed_args, true ) ) {
+					$query_param[ $filter ] = $value;
+				}
+			}
+		}
+
+		$query_string = http_build_query( $query_param );
 
 		/**
 		 * Filter facet query string
 		 *
 		 * @hook ep_facet_query_string
 		 * @param  {string} $query_string Current query string
+		 * @param  {array} $query_param Query parameters
 		 * @return  {string} New query string
 		 */
-		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
+		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_param );
 
-		if ( is_post_type_archive() ) {
-			$pagination = strpos( $_SERVER['REQUEST_URI'], '/page' );
-
-			if ( false !== $pagination ) {
-				$url = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
-				return strtok( $url, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
-			}
+		$url        = $_SERVER['REQUEST_URI'];
+		$pagination = strpos( $url, '/page' );
+		if ( false !== $pagination ) {
+			$url = substr( $url, 0, $pagination );
 		}
 
-		return strtok( $_SERVER['REQUEST_URI'], '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
+		return strtok( trailingslashit( $url ), '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
 	}
 
 	/**
@@ -445,5 +493,25 @@ class Facets extends Feature {
 			?>
 		</p>
 		<?php
+	}
+
+	/**
+	 * Returns allowed query args for facets
+	 *
+	 * @return mixed|void
+	 * @since 3.6.0
+	 */
+	public function get_allowed_query_args() {
+		$args = array( 's', 'post_type' );
+
+		/**
+		 * Filter allowed query args
+		 *
+		 * @hook    ep_facet_allowed_query_args
+		 * @since 3.6.0
+		 * @param   {array} $args Post types
+		 * @return  {array} New post types
+		 */
+		return apply_filters( 'ep_facet_allowed_query_args', $args );
 	}
 }

@@ -28,6 +28,18 @@ Now run the tests:
 EP_HOST="http://elasticsearch:9200" phpunit
 ```
 
+To run a specific test, pass the `--filter` parameter:
+
+```
+EP_HOST="http://elasticsearch:9200" phpunit --filter=testSanitizeCredentials
+```
+
+To verify all of the code paths are being tested, you can generate an HTML code coverage report for your tests. Pass `--coverage-html test-coverage-html` as a parameter and a report will be generated in that directory.
+
+```
+EP_HOST="http://elasticsearch:9200" phpunit --filter=testSanitizeCredentials --coverage-html test-coverage-html
+```
+
 To run WP Acceptance, navigate to the root of the plugin and run:
 
 ```
