@@ -537,10 +537,9 @@ class Weighting {
 	/**
 	 * Adjusts the query for configured weighting values
 	 *
-	 * @param array $formatted_args Formatted ES args
-	 * @param array $args           WP_Query args
-	 *
-	 * @return array Formatted ES args
+	 * @param array $formatted_args Formatted ES args The current formatted ES arguments.
+	 * @param array $args           WP_Query args     The query arguments.
+	 * @return array                                  Formatted ES args.
 	 */
 	public function do_weighting( $formatted_args, $args ) {
 
@@ -564,7 +563,7 @@ class Weighting {
 		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
-		if ( ! is_admin() && ! empty( $args['s'] ) ) {
+		if ( ( ! is_admin() || wp_doing_ajax() ) && ! empty( $args['s'] ) ) {
 			/*
 			 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
 			 * which then get combined into one result set. By having separate clauses for each post type, we can then
@@ -577,7 +576,7 @@ class Weighting {
 				],
 			];
 
-			// grab the query and keep track of whether or not it is nested in a function score
+			// Grab the query and keep track of whether or not it is nested in a function score.
 			$function_score = isset( $formatted_args['query']['function_score'] );
 			$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
 
@@ -585,18 +584,18 @@ class Weighting {
 				if ( false === $this->post_type_has_fields( $post_type, $args ) ) {
 					continue;
 				}
-				// Copy the query, so we can set specific weight values
+				// Copy the query, so we can set specific weight values.
 				$current_query = $query;
 
 				if ( isset( $weight_config[ $post_type ] ) ) {
-					// Find all "fields" values and inject weights for the current post type
+					// Find all "fields" values and inject weights for the current post type.
 					$this->recursively_inject_weights_to_fields( $current_query, $weight_config[ $post_type ] );
 				} else {
-					// Use the default values for the post type
+					// Use the default values for the post type.
 					$this->recursively_inject_weights_to_fields( $current_query, $this->get_post_type_default_settings( $post_type ) );
 				}
 
-				// Check for any segments with null fields from recursively_inject function and remove them
+				// Check for any segments with null fields from recursively_inject function and remove them.
 				if ( isset( $current_query['bool'] ) && isset( $current_query['bool']['should'] ) ) {
 					foreach ( $current_query['bool']['should'] as $index => $current_bool_should ) {
 						if ( isset( $current_bool_should['multi_match'] ) && null === $current_bool_should['multi_match'] ) {
@@ -606,7 +605,7 @@ class Weighting {
 				}
 
 				/**
-				 * Filter weighting query for a post type
+				 * Filter weighting query for a post type.
 				 *
 				 * @hook ep_weighted_query_for_post_type
 				 * @param  {array} $query Weighting query
