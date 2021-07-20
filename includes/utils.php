@@ -572,7 +572,7 @@ function is_integrated_request( $types = [] ) {
 	$is_integrated_public_request = false;
 	$is_integrated_rest_request   = false;
 
-	if ( $is_admin_request && ! $is_ajax_request && in_array( 'admin', $requests, true ) ) {
+	if ( $is_admin_request && ! $is_ajax_request && in_array( 'admin', $types, true ) ) {
 
 		/**
 		 * Filter whether to integrate with admin queries.
@@ -584,7 +584,7 @@ function is_integrated_request( $types = [] ) {
 		$is_integrated_admin_request = apply_filters( 'ep_admin_wp_query_integration', false );
 	}
 
-	if ( $is_ajax_request && in_array( 'ajax', $requests, true ) ) {
+	if ( $is_ajax_request && in_array( 'ajax', $types, true ) ) {
 
 		/**
 		 * Filter to integrate with admin ajax queries.
@@ -596,11 +596,11 @@ function is_integrated_request( $types = [] ) {
 		$is_integrated_ajax_request = apply_filters( 'ep_ajax_wp_query_integration', false );
 	}
 
-	if ( $is_rest_request && in_array( 'rest', $requests, true ) ) {
+	if ( $is_rest_request && in_array( 'rest', $types, true ) ) {
 		$is_integrated_rest_request = true;
 	}
 
-	if ( ! $is_admin_request && ! $is_ajax_request && ! $is_rest_request && in_array( 'public', $requests, true ) ) {
+	if ( ! $is_admin_request && ! $is_ajax_request && ! $is_rest_request && in_array( 'public', $types, true ) ) {
 		$is_integrated_public_request = true;
 	}
 
@@ -619,10 +619,10 @@ function is_integrated_request( $types = [] ) {
 	 *
 	 * @hook ep_is_integrated_request
 	 * @param bool $is_integrated_request Whether queries for the request will be integrated.
-	 * @param bool $supported Which requests are supported by the current check.
+	 * @param bool $types Which requests types are being checked.
 	 * @return bool Whether queries for the request will be integrated.
 	 *
 	 * @since 3.6.0
 	 */
-	return apply_filters( 'ep_is_integrated_request', $is_integrated_request, $supported );
+	return apply_filters( 'ep_is_integrated_request', $is_integrated_request, $types );
 }
