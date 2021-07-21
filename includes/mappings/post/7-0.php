@@ -125,6 +125,9 @@ return array(
 		),
 	),
 	'mappings' => array(
+		'_meta'             => array(
+			'mapping_version' => '7-0.php',
+		),
 		'date_detection'    => false,
 		'dynamic_templates' => array(
 			array(
