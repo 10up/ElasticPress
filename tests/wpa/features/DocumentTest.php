@@ -17,15 +17,15 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
+		if ( ! $this->isElasticPressIo() ) {
+			$this->markTestSkipped( 'Skipped while not using EP.io' );
 		}
 
 		$this->activateDocumentFeature( $I );
 
 		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -44,8 +44,8 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
+		if ( ! $this->isElasticPressIo() ) {
+			$this->markTestSkipped( 'Skipped while not using EP.io' );
 		}
 
 		$this->maybeSync( $I );
@@ -67,13 +67,13 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
+		if ( ! $this->isElasticPressIo() ) {
+			$this->markTestSkipped( 'Skipped while not using EP.io' );
 		}
 
 		$this->activateDocumentFeature( $I );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$this->uploadFile( $I, dirname( __DIR__ ) . '/test-docs/pdf-file.pdf' );
 

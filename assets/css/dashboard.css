@@ -79,12 +79,6 @@ h2.ep-list-features {
 	display: inline-block;
 }
 
-.ep-header-menu .icons .dashicons-update {
-	font-size: 29px;
-	margin-right: 10px;
-	top: -3px;
-}
-
 .ep-header-menu .icons a {
 	font-size: 27px;
 	vertical-align: middle;
@@ -97,7 +91,9 @@ h2.ep-list-features {
 
 .ep-header-menu .icons .dashicons-no,
 .ep-header-menu .icons .dashicons-controls-play,
-.ep-header-menu .icons .dashicons-controls-pause {
+.ep-header-menu .icons .dashicons-controls-pause,
+.ep-header-menu .icons .dashicons-update,
+.ep-header-menu .icons .dashicons-admin-generic {
 	top: 1px;
 	font-size: 30px;
 }
@@ -125,6 +121,11 @@ h2.ep-list-features {
 	bottom: 0;
 	left: 0;
 	background-color: #D84440;
+}
+
+.ep-header-menu .icons .dashicons-update,
+.ep-header-menu .icons .dashicons-admin-generic {
+	display: inline;
 }
 
 /**

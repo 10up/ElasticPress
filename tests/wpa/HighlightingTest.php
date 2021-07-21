@@ -27,6 +27,16 @@ class HighlightingTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
+		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+
+		$I->executeJavaScript( 'document.querySelector( ".ep-feature-search .settings-button" ).click();' );
+
+		$I->click( '#highlighting_enabled' );
+
+		$I->click( 'a.save-settings[data-feature="search"]' );
+
+		sleep( 2 );
+
 		$data = [
 			'title'   => 'test highlight color',
 			'content' => 'findme findme findme',

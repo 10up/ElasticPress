@@ -30,11 +30,17 @@ class Search extends Feature {
 	public $weighting;
 
 	/**
-	 * Highlighting Class (Sub Feature)
+	 * Highlighting tags
 	 *
-	 * @var Highlighting
+	 * @var array
 	 */
-	public $highlighting;
+	public static $default_highlight_tags = [
+		'mark',
+		'span',
+		'strong',
+		'em',
+		'i',
+	];
 
 	/**
 	 * Initialize feature setting it's config
@@ -50,6 +56,9 @@ class Search extends Feature {
 		$this->default_settings         = [
 			'decaying_enabled'     => true,
 			'synonyms_editor_mode' => 'simple',
+			'highlight_enabled'    => false,
+			'highlight_excerpt'    => false,
+			'highlight_tag'        => 'mark',
 		];
 
 		parent::__construct();
@@ -63,14 +72,11 @@ class Search extends Feature {
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'search_setup' ] );
+		add_filter( 'ep_sanitize_feature_settings', [ $this, 'sanitize_highlighting_settings' ] );
 
 		// Set up weighting sub-module
 		$this->weighting = new Weighting();
 		$this->weighting->setup();
-
-		// Set up highlighting sub-module
-		$this->highlighting = new Highlighting();
-		$this->highlighting->setup();
 
 		$this->synonyms = new Synonyms();
 		$this->synonyms->setup();
@@ -117,8 +123,275 @@ class Search extends Feature {
 		}
 
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
-		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 10, 2 );
+		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 11, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
+
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
+		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
+		add_action( 'ep_highlighting_pre_add_highlight', [ $this, 'allow_excerpt_html' ] );
+	}
+
+
+	/**
+	 * Enqueue styles for highlighting.
+	 */
+	public function enqueue_scripts() {
+		$settings = $this->get_settings();
+
+		if ( ! $settings ) {
+			$settings = [];
+		}
+
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		if ( true !== $settings['highlight_enabled'] ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'searchterm-highlighting',
+			EP_URL . 'dist/css/highlighting-styles.min.css',
+			[],
+			EP_VERSION
+		);
+	}
+
+	/**
+	 * Set default fields to highlight, and outputs
+	 * the tags on the front end.
+	 *
+	 * @param array $formatted_args ep_formatted_args array
+	 * @param array $args WP_Query args
+	 * @return array $formatted_args formatted args with search highlight tags
+	 */
+	public function add_search_highlight_tags( $formatted_args, $args ) {
+
+		/**
+		 * Fires before the highlighting clause is added to the Elasticsearch query
+		 *
+		 * @since  3.5.1
+		 * @hook ep_highlighting_pre_add_highlight
+		 * @param  {array} $formatted_args ep_formatted_args array
+		 * @param  {string} $args WP_Query args
+		 */
+		do_action( 'ep_highlighting_pre_add_highlight', $formatted_args, $args );
+
+		// get current config
+		$settings = $this->get_settings();
+
+		if ( ! $settings ) {
+			$settings = [];
+		}
+
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		if ( true !== $settings['highlight_enabled'] ) {
+			return $formatted_args;
+		}
+
+		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+
+		/** This filter is documented in search_setup() method. */
+		$should_send_in_ajax = ( defined( 'DOING_AJAX' ) && DOING_AJAX ) && apply_filters( 'ep_ajax_wp_query_integration', false );
+
+		/**
+		 * Filter whether to add the `highlight` clause in the query or not.
+		 *
+		 * @since  3.5.6
+		 * @hook ep_highlight_should_add_clause
+		 * @param  {bool}  $add_highlight_clause True means the clause should be added.
+		 * @param  {array} $formatted_args  ep_formatted_args array
+		 * @param  {array} $args  WP query args
+		 * @return {bool}  New $add_highlight_clause value
+		 */
+		$add_highlight_clause = apply_filters(
+			'ep_highlight_should_add_clause',
+			(
+				( ! is_admin() || $should_send_in_ajax ) &&
+				( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST )
+			),
+			$formatted_args,
+			$args
+		);
+
+		if ( ! $add_highlight_clause ) {
+			return $formatted_args;
+		}
+
+		/**
+		 * Filter the fields that should be highlighted.
+		 *
+		 * @since 3.5.1
+		 * @hook ep_highlighting_fields
+		 * @param  {array} $fields Highlighting fields
+		 * @param  {array} $formatted_args array
+		 * @param  {array} $args WP_Query args
+		 * @return  {array} New Highlighting fields
+		 */
+		$fields_to_highlight = apply_filters(
+			'ep_highlighting_fields',
+			[ 'post_title', 'post_content' ],
+			$formatted_args,
+			$args
+		);
+
+		// define the tag to use
+		$current_tag = $settings['highlight_tag'];
+
+		/**
+		 * Filter the tag that wraps the search highlighted term
+		 *
+		 * @since 3.5
+		 * @hook ep_highlighting_tag
+		 * @param  {string} $current_tag Highlighting tag
+		 * @return  {string} New highlighting tag
+		 */
+		$highlight_tag = apply_filters( 'ep_highlighting_tag', $current_tag );
+
+		/**
+		 * Filter class applied to search highlight tags
+		 *
+		 * @since 3.5
+		 * @hook ep_highlighting_class
+		 * @param  {string} $class Highlighting class
+		 * @return  {string} New highlighting class
+		 */
+		$highlight_class = apply_filters( 'ep_highlighting_class', 'ep-highlight' );
+
+		// tags
+		$opening_tag = '<' . $highlight_tag . ' class="' . $highlight_class . '">';
+		$closing_tag = '</' . $highlight_tag . '>';
+
+		foreach ( $fields_to_highlight as $field ) {
+			$formatted_args['highlight']['fields'][ $field ] = [
+				'pre_tags'            => [ $opening_tag ],
+				'post_tags'           => [ $closing_tag ],
+				'type'                => 'plain',
+				'number_of_fragments' => 0,
+			];
+		}
+
+		return $formatted_args;
+	}
+
+	/**
+	 * Called by ep_highlighting_pre_add_highlight action.
+	 *
+	 * Replaces the default excerpt with the custom excerpt, allowing
+	 * for the selected tag to be displayed in it.
+	 */
+	public function allow_excerpt_html() {
+		if ( is_admin() ) {
+			return;
+		}
+
+		if ( empty( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return;
+		}
+
+		$settings = $this->get_settings();
+
+		if ( ! $settings ) {
+			$settings = [];
+		}
+
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
+			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
+			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
+			add_filter( 'ep_highlighting_fields', [ $this, 'ep_highlight_add_excerpt_field' ] );
+		}
+	}
+
+	/**
+	 * Called by allow_excerpt_html
+	 * logic for the excerpt filter allowing the currently selected tag.
+	 *
+	 * @param string $text - excerpt string
+	 * @return string $text - the new excerpt
+	 */
+	public function ep_highlight_excerpt( $text ) {
+
+		$settings = $this->get_settings();
+
+		if ( ! $settings ) {
+			$settings = [];
+		}
+
+		$settings = wp_parse_args( $settings, $this->default_settings );
+
+		// reproduces wp_trim_excerpt filter, preserving the excerpt_more and excerpt_length filters
+		if ( '' === $text ) {
+			$text = get_the_content( '' );
+			$text = apply_filters( 'the_content', $text );
+			$text = str_replace( '\]\]\>', ']]&gt;', $text );
+			$text = strip_tags( $text, '<' . esc_html( $settings['highlight_tag'] ) . '>' );
+
+			// use the defined length, if already applied...
+			$excerpt_length = apply_filters( 'excerpt_length', 55 );
+
+			// use defined excerpt_more filter if it is used
+			$excerpt_more = apply_filters( 'excerpt_more', $text );
+
+			$excerpt_more = $excerpt_more !== $text ? $excerpt_more : '[&hellip;]';
+
+			$words = explode( ' ', $text, $excerpt_length + 1 );
+			if ( count( $words ) > $excerpt_length ) {
+				array_pop( $words );
+				array_push( $words, $excerpt_more );
+				$text = implode( ' ', $words );
+			}
+		}
+
+		return $text;
+	}
+
+	/**
+	 * Add `post_content` to the list of fields to highlight.
+	 *
+	 * @since 3.5.1
+	 * @param array $fields_to_highlight The list of fields to highlight.
+	 * @return array
+	 */
+	public function ep_highlight_add_excerpt_field( $fields_to_highlight ) {
+		$fields_to_highlight[] = 'post_excerpt';
+		return $fields_to_highlight;
+	}
+
+	/**
+	 * Helper filter to check if the tag is allowed.
+	 *
+	 * @param string $tag - html tag
+	 * @return string
+	 */
+	public function get_highlighting_tag( $tag ) {
+		if ( ! in_array( $tag, self::$default_highlight_tags, true ) ) {
+			$tag = 'mark';
+		}
+
+		return $tag;
+	}
+
+	/**
+	 * Sanitizes our highlighting settings.
+	 *
+	 * @param array $settings Array of current settings
+	 * @return mixed
+	 */
+	public function sanitize_highlighting_settings( $settings ) {
+		if ( ! empty( $settings['search']['highlight_excerpt'] ) ) {
+			$settings['search']['highlight_excerpt'] = (bool) $settings['search']['highlight_excerpt'];
+		}
+
+		if ( ! empty( $settings['search']['highlight_enabled'] ) ) {
+			$settings['search']['highlight_enabled'] = (bool) $settings['search']['highlight_enabled'];
+		}
+
+		return $settings;
 	}
 
 	/**
@@ -208,12 +481,22 @@ class Search extends Feature {
 	public function weight_recent( $formatted_args, $args ) {
 		if ( ! empty( $args['s'] ) ) {
 			if ( $this->is_decaying_enabled() ) {
-				$date_score = array(
+				/**
+				 * Filter search date weighting scale
+				 *
+				 * @hook epwr_decay_function
+				 * @param  {string} $decay_function Current decay function
+				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+				 * @param  {array} $args WP_Query arguments
+				 * @return  {string} New decay function
+				 */
+				$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
+				$date_score     = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],
 						'functions'  => array(
 							array(
-								'exp' => array(
+								$decay_function => array(
 									'post_date_gmt' => array(
 										/**
 										 * Filter search date weighting scale
@@ -248,8 +531,30 @@ class Search extends Feature {
 									),
 								),
 							),
+							array(
+								/**
+								 * Filter search date weight
+								 *
+								 * @since 3.5.6
+								 * @hook epwr_weight
+								 * @param  {string} $weight Current weight
+								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+								 * @param  {array} $args WP_Query arguments
+								 * @return  {string} New weight
+								 */
+								'weight' => apply_filters( 'epwr_weight', 0.001, $formatted_args, $args ),
+							),
 						),
-						'score_mode' => 'avg',
+						/**
+						 * Filter search date weighting score mode
+						 *
+						 * @hook epwr_score_mode
+						 * @param  {string} $score_mode Current score mode
+						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+						 * @param  {array} $args WP_Query arguments
+						 * @return  {string} New score mode
+						 */
+						'score_mode' => apply_filters( 'epwr_score_mode', 'sum', $formatted_args, $args ),
 						/**
 						 * Filter search date weighting boost mode
 						 *
@@ -259,7 +564,7 @@ class Search extends Feature {
 						 * @param  {array} $args WP_Query arguments
 						 * @return  {string} New boost mode
 						 */
-						'boost_mode' => apply_filters( 'epwr_boost_mode', 'sum', $formatted_args, $args ),
+						'boost_mode' => apply_filters( 'epwr_boost_mode', 'multiply', $formatted_args, $args ),
 					),
 				);
 
@@ -337,7 +642,6 @@ class Search extends Feature {
 		}
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
-		$settings = wp_parse_args( $settings, Highlighting::$default_settings );
 
 		?>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
@@ -360,7 +664,7 @@ class Search extends Feature {
 			<div class="input-wrap">
 				<select id="highlight-tag" name="highlight-tag" class="setting-field" data-field-name="highlight_tag">
 					<?php
-					foreach ( Highlighting::$default_tags as $option ) :
+					foreach ( self::$default_highlight_tags as $option ) :
 						echo '<option value="' . esc_attr( $option ) . '" ' . selected( $option, $settings['highlight_tag'] ) . '>' . esc_html( $option ) . '</option>';
 					endforeach;
 					?>

@@ -147,7 +147,9 @@ class TestSearch extends BaseTestCase {
 		);
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ) );
+		$this->assertTrue( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ), 20 );
 		$query = new \WP_Query(
 			array(
 				's' => 'test',
@@ -239,6 +241,7 @@ class TestSearch extends BaseTestCase {
 	 */
 	public function catch_ep_formatted_args( $args ) {
 		$this->fired_actions['ep_formatted_args'] = $args;
+		return $args;
 	}
 
 	/**
@@ -255,9 +258,9 @@ class TestSearch extends BaseTestCase {
 
 		// a tag that is in the array of allowed tags
 		$allowed_tag  = 'span';
-		$highlighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting;
+		$search_feature = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
-		$this->assertTrue( 'span' === $highlighting->get_highlighting_tag( $allowed_tag ) );
+		$this->assertTrue( 'span' === $search_feature->get_highlighting_tag( $allowed_tag ) );
 	}
 
 	/**
@@ -274,32 +277,9 @@ class TestSearch extends BaseTestCase {
 
 		// a tag that is not in the array of allowed tags
 		$not_allowed_tag = 'div';
-		$highlighting    = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting;
+		$search_feature = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
-		$this->assertTrue( 'mark' === $highlighting->get_highlighting_tag( $not_allowed_tag ) );
-	}
-
-	/**
-	 * Test default color for highlighting sub-feature.
-	 *
-	 * Default should be empty.
-	 *
-	 * @group search
-	 */
-	public function testDefaultColor() {
-		ElasticPress\Features::factory()->activate_feature( 'search' );
-		ElasticPress\Features::factory()->setup_features();
-
-		// Need to call this since it's hooked to init
-		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
-
-		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
-
-		$highlighting  = ElasticPress\Features::factory()->get_registered_feature( 'search' )->highlighting->default_settings;
-		$settings      = array_merge( $settings, $highlighting );
-		$default_color = $settings['highlight_color'];
-
-		$this->assertEmpty( $default_color, 'The default color is not empty' );
+		$this->assertTrue( 'mark' === $search_feature->get_highlighting_tag( $not_allowed_tag ) );
 	}
 
 	/**
@@ -320,14 +300,12 @@ class TestSearch extends BaseTestCase {
 			array(
 				'active' 			=> true,
 				'highlight_enabled' => true,
-				'highlight_color' 	=> '#ff0',
 				'highlight_tag' 	=> 'span',
 			)
 		);
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$this->assertTrue( '#ff0' === $settings['highlight_color'] );
 		$this->assertTrue( 'span' === $settings['highlight_tag'] );
 	}
 
@@ -389,3 +367,4 @@ class TestSearch extends BaseTestCase {
 		$this->assertTrue( $settings['highlight_excerpt'] );
 	}
 }
+
