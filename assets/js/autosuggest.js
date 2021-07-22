@@ -181,7 +181,7 @@ async function esSearch(query, searchTerm) {
 
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
-		fetchConfig.headers['EP-Search-Term'] = searchTerm;
+		fetchConfig.headers['EP-Search-Term'] = encodeURI(searchTerm);
 	}
 
 	try {
@@ -654,6 +654,8 @@ function init() {
 		}
 	};
 
+	const debounceFetchResults = debounce(fetchResults, 200);
+
 	/**
 	 * Callback for keyup in Autosuggest container.
 	 *
@@ -679,7 +681,6 @@ function init() {
 		}
 
 		const input = event.target;
-		const debounceFetchResults = debounce(fetchResults, 200);
 		debounceFetchResults(input);
 	};
 
