@@ -60,8 +60,8 @@
   },
   "scripts": {
     "start": "composer install --ignore-platform-reqs && npm install && npm run build",
-    "build": "webpack --config config/webpack.prod.js",
-    "watch": "webpack --watch --config config/webpack.dev.js",
+    "build": "10up-toolkit build",
+    "watch": "10up-toolkit start",
     "build-release": "npm install && composer install --no-dev -o && npm run build",
     "lint-release": "npm install && composer install && npm run lint",
     "lint-js": "10up-toolkit lint-js assets/js",
@@ -82,6 +82,29 @@
     "node": ">=8.11"
   },
   "10up-toolkit": {
+    "entry": {
+      "admin-script.min": "./assets/js/admin.js",
+      "autosuggest-script.min": "./assets/js/autosuggest.js",
+      "dashboard-script.min": "./assets/js/dashboard.js",
+      "facets-script.min": "./assets/js/facets.js",
+      "sites-admin-script.min": "./assets/js/sites-admin.js",
+      "ordering-script.min": "./assets/js/ordering/index.js",
+      "stats-script.min": "./assets/js/stats.js",
+      "related-posts-block-script.min": "./assets/js/blocks/related-posts/block.js",
+      "synonyms-script.min": "./assets/js/synonyms/index.js",
+      "comments-script.min": "./assets/js/comments.js",
+
+      "dashboard-styles.min": "./assets/css/dashboard.css",
+      "facets-admin-styles.min": "./assets/css/facets-admin.css",
+      "facets-styles.min": "./assets/css/facets.css",
+      "autosuggest-styles.min": "./assets/css/autosuggest.css",
+      "sites-admin-styles.min": "./assets/css/sites-admin.css",
+      "ordering-styles.min": "./assets/css/ordering.css",
+      "related-posts-block-styles.min": "./assets/css/related-posts-block.css",
+      "highlighting-styles.min": "./assets/css/highlighting.css",
+      "synonyms-styles.min": "./assets/css/synonyms.css",
+      "comments-styles.min": "./assets/css/comments.css"
+    },
     "wpDependencyExternals": false
   },
   "dependencies": {
