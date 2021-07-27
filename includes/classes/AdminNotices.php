@@ -645,10 +645,11 @@ class AdminNotices {
 		}
 
 		if ( ! $mapping_file_current || $mapping_file_wanted !== $mapping_file_current ) {
-			$html = sprintf( esc_html__( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the <em>--setup</em> flag.', 'elasticpress' ) );
+			$html =
+				sprintf( '%1$s <em>--setup</em> %2$s', esc_html__( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the', 'elasticpress' ), esc_html__( 'flag.', 'elasticpress') );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( esc_html__( 'Current mapping: %1$s , Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '</span>';
+				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( esc_html__( 'Current mapping: %1$s. Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '</span>';
 			}
 
 			return [
