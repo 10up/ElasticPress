@@ -64,7 +64,7 @@ return array(
 			'analyzer'   => array(
 				'default'          => array(
 					'tokenizer'   => 'standard',
-					'filter'      => array( 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
+					'filter'      => apply_filters( 'vip_search_default_analyzer_filters', array( 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ) ),
 					'char_filter' => array( 'html_strip' ),
 					/**
 					 * Filter Elasticsearch default language in mapping
