@@ -10,6 +10,7 @@
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^1.7.0",
+    "jsdoc": "^3.6.7",
     "react": "^16.14.0",
     "react-beautiful-dnd": "^11.0.5",
     "react-dom": "^16.14.0",
