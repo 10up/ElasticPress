@@ -17,9 +17,9 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo() ) {
-			$this->markTestSkipped( 'Skipped while not using EP.io' );
-		}
+		// if ( ! $this->isElasticPressIo() ) {
+		// 	$this->markTestSkipped( 'Skipped while not using EP.io' );
+		// }
 
 		$this->activateDocumentFeature( $I );
 

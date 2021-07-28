@@ -57,14 +57,19 @@ http.cors.allow-methods : OPTIONS, HEAD, GET, POST, PUT, DELETE
 http.cors.allow-headers : X-Requested-With,X-Auth-Token,Content-Type, Content-Length
 EOT
 
-  docker run \
+  docker container inspect -f '{{.State.Running}}' ep_wpa_es_server || docker run \
     -d \
     -v "$(pwd)/wpa-elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:cached" \
     -p 9200:9200 -p 9300:9300 \
     -e "xpack.security.enabled=false" \
     -e "discovery.type=single-node" \
     -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+    --name "ep_wpa_es_server" \
     docker.elastic.co/elasticsearch/elasticsearch:5.6.16
+
+  docker exec -u root -i ep_wpa_es_server chown -R elasticsearch: plugins
+  echo 'y' | docker exec -i ep_wpa_es_server bin/elasticsearch-plugin install ingest-attachment
+  docker restart ep_wpa_es_server
 
   EP_HOST="http://host.docker.internal:9200/"
 fi
