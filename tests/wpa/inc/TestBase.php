@@ -357,4 +357,19 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			$this->runCommand( "wp elasticpress activate-feature {$feature}" );
 		}
 	}
+
+	/**
+	 * Open the Widgets Page and try to open the modal introduced in WP 5.8.
+	 *
+	 * @param \WPAcceptance\PHPUnit\Actor $actor
+	 */
+	public function openWidgetsPage( $actor ) {
+		$actor->moveTo( '/wp-admin/widgets.php' );
+
+		try {
+			$actor->click( '.edit-widgets-welcome-guide .components-modal__header button' );
+		} catch ( \Exception $e ) {
+			// Do nothing
+		}
+	}
 }
