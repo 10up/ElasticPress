@@ -197,7 +197,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		$actor->moveTo( 'wp-admin/post-new.php' );
 
 		try {
-			$actor->click( '.nux-dot-tip__disable' );
+			$actor->click( '.edit-post-welcome-guide .components-modal__header button' );
 		} catch ( \Exception $e ) {
 			// Do nothing
 		}
