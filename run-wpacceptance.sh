@@ -68,7 +68,7 @@ EOT
     docker.elastic.co/elasticsearch/elasticsearch:5.6.16
 
   docker exec -u root -i ep_wpa_es_server chown -R elasticsearch: plugins
-  echo 'y' | docker exec -i ep_wpa_es_server bin/elasticsearch-plugin install ingest-attachment
+  docker exec -i ep_wpa_es_server bin/elasticsearch-plugin install ingest-attachment -b
   docker restart ep_wpa_es_server
 
   EP_HOST="http://host.docker.internal:9200/"
