@@ -197,7 +197,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		$actor->moveTo( 'wp-admin/post-new.php' );
 
 		try {
-			$actor->click( '.nux-dot-tip__disable' );
+			$actor->click( '.edit-post-welcome-guide .components-modal__header button' );
 		} catch ( \Exception $e ) {
 			// Do nothing
 		}
@@ -352,7 +352,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @param string $feature Feature slug.
 	 */
 	public function maybeEnableFeature( $feature ) {
-		$cli_result = $this->runCommand( "wp elasticpress list-features {$feature}" )['stdout'];
+		$cli_result = $this->runCommand( 'wp elasticpress list-features' )['stdout'];
 		if ( false === strpos( $cli_result, $feature ) ) {
 			$this->runCommand( "wp elasticpress activate-feature {$feature}" );
 		}

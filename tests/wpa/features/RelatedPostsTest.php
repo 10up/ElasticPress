@@ -102,6 +102,8 @@ class FeatureRelatedPostsTest extends TestBase {
 	 * @testdox I can see the related posts widget.
 	 */
 	public function testRelatedPostsWidget() {
+		$this->maybeEnableFeature( 'related_posts' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
@@ -118,9 +120,11 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		$I->typeInField( 'input[name^="widget-ep-related-posts"]', 'Related Posts' );
 
+		sleep( 2 );
+
 		$I->click( ".edit-widgets-header__actions .components-button.is-primary" );
 
-		usleep( 1000000 );
+		$I->waitUntilPageSourceContains( 'Widgets saved.' );
 
 		$posts_data = [
 			[
