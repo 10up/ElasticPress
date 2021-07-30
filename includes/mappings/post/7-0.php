@@ -67,6 +67,7 @@ return array(
 					/**
 					 * Filter Elasticsearch default analyzer's filters
 					 *
+					 * @since 3.6.2
 					 * @hook ep_default_analyzer_filters
 					 * @param  {array<string>} $filters Default filters
 					 * @return {array<string>} New filters
