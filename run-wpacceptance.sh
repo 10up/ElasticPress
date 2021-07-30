@@ -109,16 +109,18 @@ REAL_FAILED_ATTEMPTS=0
 
 for i in $(seq 1 $ATTEMPTS); do
 
-  TEST_OUTPUT=$(./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure)
+  TEST_OUTPUT=$(mktemp)
+
+  set -o pipefail
+  ./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure | tee ${TEST_OUTPUT}
 
   EXIT_CODE=$?
 
-  echo "${TEST_OUTPUT}"
 
   if [ $EXIT_CODE -ge 1 ]; then
 
     # List of errors for this specific attempt.
-    SUMMARY=$(echo "${TEST_OUTPUT}" | sed -e '/Summary of non-successful tests:/,//!d')
+    SUMMARY=$(sed -e '/Summary of non-successful tests:/,//!d' ${TEST_OUTPUT})
 
     # Count all errors
     TOTAL_ERRORS_COUNT=$(echo "${SUMMARY}" | grep '✘' | wc -l )
