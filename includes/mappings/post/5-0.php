@@ -48,7 +48,15 @@ return array(
 			'analyzer' => array(
 				'default'          => array(
 					'tokenizer' => 'standard',
-					'filter'    => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
+					/**
+					 * Filter Elasticsearch default analyzer's filters
+					 *
+					 * @since 3.6.2
+					 * @hook ep_default_analyzer_filters
+					 * @param  {array<string>} $filters Default filters
+					 * @return {array<string>} New filters
+					 */
+					'filter' => apply_filters( 'ep_default_analyzer_filters', array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ) ),
 					/**
 					 * Filter Elasticsearch default language in mapping
 					 *
