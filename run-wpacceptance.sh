@@ -57,14 +57,19 @@ http.cors.allow-methods : OPTIONS, HEAD, GET, POST, PUT, DELETE
 http.cors.allow-headers : X-Requested-With,X-Auth-Token,Content-Type, Content-Length
 EOT
 
-  docker run \
+  docker container inspect -f '{{.State.Running}}' ep_wpa_es_server || docker run \
     -d \
     -v "$(pwd)/wpa-elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:cached" \
     -p 9200:9200 -p 9300:9300 \
     -e "xpack.security.enabled=false" \
     -e "discovery.type=single-node" \
     -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+    --name "ep_wpa_es_server" \
     docker.elastic.co/elasticsearch/elasticsearch:5.6.16
+
+  docker exec -u root -i ep_wpa_es_server chown -R elasticsearch: plugins
+  docker exec -i ep_wpa_es_server bin/elasticsearch-plugin install ingest-attachment -b
+  docker restart ep_wpa_es_server
 
   EP_HOST="http://host.docker.internal:9200/"
 fi
@@ -104,16 +109,18 @@ REAL_FAILED_ATTEMPTS=0
 
 for i in $(seq 1 $ATTEMPTS); do
 
-  TEST_OUTPUT=$(./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure)
+  TEST_OUTPUT=$(mktemp)
+
+  set -o pipefail
+  ./vendor/bin/wpacceptance run --cache_environment --screenshot_on_failure | tee ${TEST_OUTPUT}
 
   EXIT_CODE=$?
 
-  echo "${TEST_OUTPUT}"
 
   if [ $EXIT_CODE -ge 1 ]; then
 
     # List of errors for this specific attempt.
-    SUMMARY=$(echo "${TEST_OUTPUT}" | sed -e '/Summary of non-successful tests:/,//!d')
+    SUMMARY=$(sed -e '/Summary of non-successful tests:/,//!d' ${TEST_OUTPUT})
 
     # Count all errors
     TOTAL_ERRORS_COUNT=$(echo "${SUMMARY}" | grep '✘' | wc -l )
