@@ -646,6 +646,9 @@ class AdminNotices {
 
 		$mapping_file_wanted  = $post_indexable->get_mapping_name();
 		$mapping_file_current = $post_indexable->determine_mapping_version();
+		if ( is_wp_error( $mapping_file_current ) ) {
+			return false;
+		}
 
 		if ( ! $mapping_file_current || $mapping_file_wanted !== $mapping_file_current ) {
 			$html = sprintf(

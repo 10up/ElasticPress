@@ -274,13 +274,17 @@ class Post extends Indexable {
 	 * Determine version of mapping currently on the post index.
 	 *
 	 * @since 3.6.2
-	 * @return string|false $version
+	 * @return string|WP_Error|false $version
 	 */
 	public function determine_mapping_version() {
 		$index   = $this->get_index_name();
 		$mapping = Elasticsearch::factory()->get_mapping( $index );
 
-		if ( empty( $mapping ) || ! isset( $mapping[ $index ] ) ) {
+		if ( empty( $mapping ) ) {
+			return new \WP_Error( 'ep_failed_mapping_version', esc_html__( 'Error while fetching the mapping version.', 'elasticpress' ) );
+		}
+
+		if ( ! isset( $mapping[ $index ] ) ) {
 			return false;
 		}
 
