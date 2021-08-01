@@ -605,6 +605,12 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_maybe_wrong_mapping_notice() {
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
 		// we might have this dismissed
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$dismiss = get_site_option( 'ep_hide_maybe_wrong_mapping_notice', false );
@@ -638,10 +644,8 @@ class AdminNotices {
 
 		$post_indexable = Indexables::factory()->get( 'post' );
 
-		$mapping_file_wanted = $post_indexable->get_mapping_name();
-
-		$post_index           = $post_indexable->get_index_name();
-		$mapping_file_current = $post_indexable->determine_mapping_version( $post_index );
+		$mapping_file_wanted  = $post_indexable->get_mapping_name();
+		$mapping_file_current = $post_indexable->determine_mapping_version();
 
 		if ( ! $mapping_file_current || $mapping_file_wanted !== $mapping_file_current ) {
 			$html = sprintf(

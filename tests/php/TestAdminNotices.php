@@ -47,12 +47,9 @@ class TestAdminNotices extends BaseTestCase {
 
 		$this->current_host = get_option( 'ep_host' );
 
-		// always ensure mappings line up to avoid false positive notices
-		$mapping_file = ElasticPress\Indexables::factory()->get( 'post' )->get_mapping_name();
-		$mapping      = function() use ( $mapping_file ) {
-			return $mapping_file;
-		};
-		add_filter( 'ep_post_mapping_version_determined', $mapping );
+		// always ensure mappings line up to avoid false positive notices,
+		// even if the ES version changes.
+		add_filter( 'ep_post_mapping_version_determined', [ $this, 'ep_post_mapping_version_determined' ] );
 
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
@@ -446,12 +443,6 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
 
-		$mapping_file = ElasticPress\Indexables::factory()->get( 'post' )->get_mapping_name();
-		$mapping      = function() use ( $mapping_file ) {
-			return $mapping_file;
-		};
-		add_filter( 'ep_post_mapping_version_determined', $mapping );
-
 		ElasticPress\Screen::factory()->set_current_screen( null );
 
 		ElasticPress\AdminNotices::factory()->process_notices();
@@ -499,7 +490,7 @@ class TestAdminNotices extends BaseTestCase {
 		$mapping = function() {
 			return 'idonotmatch';
 		};
-		add_filter( 'ep_post_mapping_version', $mapping );
+		add_filter( 'ep_post_mapping_version_determined', $mapping );
 
 		ElasticPress\Screen::factory()->set_current_screen( null );
 
@@ -508,5 +499,15 @@ class TestAdminNotices extends BaseTestCase {
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertCount( 1, $notices );
 		$this->assertTrue( ! empty( $notices['maybe_wrong_mapping'] ) );
+	}
+
+	/**
+	 * Utilitary function to set `ep_post_mapping_version_determined`
+	 * as the wanted Mapping version.
+	 *
+	 * @return string
+	 */
+	public function ep_post_mapping_version_determined() {
+		return ElasticPress\Indexables::factory()->get( 'post' )->get_mapping_name();
 	}
 }
