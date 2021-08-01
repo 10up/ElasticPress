@@ -131,13 +131,21 @@ class QueryIntegration {
 	}
 
 	/**
-	 * Switch to the correct site if the post site id is different than the actual one
+	 * Switch to the correct site if the post site id is different than the actual one.
+	 *
+	 * Note: This function can bring a performance penalty in multisites with a high number of sites.
 	 *
 	 * @param WP_Post  $post Post object
-	 * @param WP_Query $query WP_Query instance
+	 * @param WP_Query $query WP_Query instance. If null, the global query will be used.
 	 * @since 0.9
+	 * @since 3.6.2 `$query` parameter added.
 	 */
-	public function maybe_switch_to_blog( $post, $query ) {
+	public function maybe_switch_to_blog( $post, $query = null ) {
+		global $wp_query;
+		if ( ! $query ) {
+			$query = $wp_query;
+		}
+
 		if ( ! is_multisite() ) {
 			// @codeCoverageIgnoreStart
 			return;
