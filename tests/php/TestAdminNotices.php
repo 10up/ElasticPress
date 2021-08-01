@@ -425,7 +425,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * Do: Show no notice
 	 *
 	 * @group admin-notices
-	 * @since 3.1.5
+	 * @since 3.6.2
 	 */
 	public function testValidMappingNoticeInAdmin() {
 		update_site_option( 'ep_last_sync', time() );
@@ -457,7 +457,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
-		$this->assertEquals( 0, count( $notices ) );
+		$this->assertCount( 0, $notices );
 	}
 
 	/**
@@ -475,7 +475,7 @@ class TestAdminNotices extends BaseTestCase {
 	 * Do: Show mapping notice
 	 *
 	 * @group admin-notices
-	 * @since 3.1.5
+	 * @since 3.6.2
 	 */
 	public function testInvalidMappingNoticeInAdmin() {
 		update_site_option( 'ep_last_sync', time() );
@@ -506,7 +506,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
-		$this->assertEquals( 1, count( $notices ) );
+		$this->assertCount( 1, $notices );
 		$this->assertTrue( ! empty( $notices['maybe_wrong_mapping'] ) );
 	}
 }

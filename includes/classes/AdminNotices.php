@@ -601,7 +601,7 @@ class AdminNotices {
 	 * Dismiss: Always dismissable per es_version as custom mapping could exist
 	 * Show: All screens
 	 *
-	 * @since   3.1.5
+	 * @since   3.6.2
 	 * @return array|bool
 	 */
 	protected function process_maybe_wrong_mapping_notice() {
@@ -636,16 +636,20 @@ class AdminNotices {
 			return false;
 		}
 
-		$mapping_file_wanted = Indexables::factory()->get( 'post' )->get_mapping_name();
+		$post_indexable = Indexables::factory()->get( 'post' );
 
-		$post_index           = Indexables::factory()->get( 'post' )->get_index_name();
-		$mapping_file_current = Elasticsearch::factory()->determine_mapping_version( $post_index );
-		if ( is_wp_error( $mapping_file_current ) ) {
-			return false;
-		}
+		$mapping_file_wanted = $post_indexable->get_mapping_name();
+
+		$post_index           = $post_indexable->get_index_name();
+		$mapping_file_current = $post_indexable->determine_mapping_version( $post_index );
 
 		if ( ! $mapping_file_current || $mapping_file_wanted !== $mapping_file_current ) {
-			$html = sprintf( '%1$s <em>--setup</em> %2$s', esc_html__( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the', 'elasticpress' ), esc_html__( 'flag.', 'elasticpress' ) );
+			$html = sprintf(
+				/* translators: 1. <em>; 2. </em> */
+				esc_html__( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the %1$s--setup%2$s flag', 'elasticpress' ),
+				'<em>',
+				'</em>'
+			);
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( esc_html__( 'Current mapping: %1$s. Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '</span>';

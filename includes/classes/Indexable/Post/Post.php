@@ -238,7 +238,7 @@ class Post extends Indexable {
 	/**
 	 * Determine required mapping file
 	 *
-	 * @since 3.1.5
+	 * @since 3.6.2
 	 * @return string
 	 */
 	public function get_mapping_name() {
@@ -268,6 +268,84 @@ class Post extends Indexable {
 		}
 
 		return apply_filters( 'ep_post_mapping_version', $mapping_file );
+	}
+
+	/**
+	 * Determine version of mapping currently on the post index.
+	 *
+	 * @since 3.6.2
+	 * @return string|false $version
+	 */
+	public function determine_mapping_version() {
+		$index   = $this->get_index_name();
+		$mapping = Elasticsearch::factory()->get_mapping( $index );
+
+		if ( empty( $mapping ) || ! isset( $mapping[ $index ] ) ) {
+			return false;
+		}
+
+		$version = 'unknown';
+
+		if ( isset( $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'] ) ) {
+			$version = $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'];
+		} elseif ( isset( $mapping[ $index ]['mappings']['_meta']['mapping_version'] ) ) {
+			$version = $mapping[ $index ]['mappings']['_meta']['mapping_version'];
+		}
+
+		// mapping does not have meta value set - use legacy detection
+		if ( 'unknown' === $version ) {
+
+			// check for pre-5-0 mapping
+			if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'] ) ) {
+				$val = $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'];
+				if ( ! $val || 10922 !== $val ) {
+					$version = 'pre-5-0.php';
+				} elseif ( $val && 10922 === $val ) {
+					$version = 'not-pre-5-0';
+				}
+			}
+
+			// check for 5-0 mapping
+			if ( 'not-pre-5-0' === $version ) {
+				if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_content_filtered']['fields'] ) ) {
+					$version = '5-0.php';
+				} else {
+					$version = 'not-5-0';
+				}
+			}
+
+			// check for 5-2 mapping
+			if ( 'not-5-0' === $version ) {
+				if ( isset( $mapping[ $index ]['mappings']['post']['_all'] ) ) {
+					$version = '5-2.php';
+				} else {
+					$version = 'not-5-2';
+				}
+			}
+
+			// check for 7-0 mapping
+			if ( 'not-5-2' === $version ) {
+				if ( isset( $mapping[ $index ]['settings']['index.max_shingle_diff'] ) ) {
+					$version = '7-0.php';
+				} else {
+					$version = 'not-7-0';
+				}
+			}
+
+			if ( preg_match( '/^not-.*/', $version ) ) {
+				$version = 'unknown';
+			}
+		}
+
+		/**
+		 * Filter the mapping version for posts.
+		 *
+		 * @hook ep_post_mapping_version_determined
+		 * @since 3.6.2
+		 * @param {string} $version Determined version string
+		 * @return  {string} New version string
+		 */
+		return apply_filters( 'ep_post_mapping_version_determined', $version );
 	}
 
 	/**
