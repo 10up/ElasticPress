@@ -251,8 +251,6 @@ class QueryIntegration {
 		 * No post types so bail
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
-			$this->posts_by_query[ spl_object_hash( $query ) ] = [];
-
 			return [];
 		}
 
@@ -352,8 +350,6 @@ class QueryIntegration {
 			 */
 			do_action( 'ep_wp_query_non_cached_search', $new_posts, $ep_query, $query );
 		}
-
-		$this->posts_by_query[ spl_object_hash( $query ) ] = $new_posts;
 
 		/**
 		 * Fires before returning posts from query
