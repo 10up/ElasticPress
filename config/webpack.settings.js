@@ -12,6 +12,7 @@ module.exports = {
 		'related-posts-block-script': './assets/js/blocks/related-posts/block.js',
 		'synonyms-script': './assets/js/synonyms/index.js',
 		'sync-script': './assets/js/sync.js',
+		'comments-script': './assets/js/comments.js',
 
 		// CSS files.
 		'dashboard-styles': './assets/css/dashboard.css',
@@ -24,6 +25,7 @@ module.exports = {
 		'highlighting-styles': './assets/css/highlighting.css',
 		'synonyms-styles': './assets/css/synonyms.css',
 		'sync-styles': './assets/css/sync.css',
+		'comments-styles': './assets/css/comments.css',
 	},
 	filename: {
 		js: 'js/[name].min.js',

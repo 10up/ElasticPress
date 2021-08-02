@@ -3950,24 +3950,31 @@ class TestPost extends BaseTestCase {
 	 * @since 2.3
 	 */
 	public function testPostMimeTypeQuery() {
-		Functions\create_and_sync_post(
+		$attachment_id_1_jpeg = Functions\create_and_sync_post(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image/jpeg',
 				'post_status'    => 'inherit',
 			)
 		);
-		Functions\create_and_sync_post(
+		$attachment_id_2_jpeg = Functions\create_and_sync_post(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image/jpeg',
 				'post_status'    => 'inherit',
 			)
 		);
-		Functions\create_and_sync_post(
+		$attachment_id_3_pdf = Functions\create_and_sync_post(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'application/pdf',
+				'post_status'    => 'inherit',
+			)
+		);
+		$attachment_id_4_png = Functions\create_and_sync_post(
+			array(
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image/png',
 				'post_status'    => 'inherit',
 			)
 		);
@@ -3983,7 +3990,28 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertEquals( 2, $query->post_count );
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 3, $query->post_count );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_1_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_2_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
+
+		$args = array(
+			'ep_integrate'   => true,
+			'post_mime_type' => 'image/png',
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 1, $query->post_count );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
 
 		$args = array(
 			'ep_integrate'   => true,
@@ -3997,7 +4025,51 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
 		$this->assertEquals( 3, $query->found_posts );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_1_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_2_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_3_pdf ), $attachment_names );
+
+		$args = array(
+			'ep_integrate'   => true,
+			'post_mime_type' => array(
+				'image',
+				'application/pdf',
+			),
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 4, $query->found_posts );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_1_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_2_jpeg ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_3_pdf ), $attachment_names );
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
+
+		$args = array(
+			'ep_integrate'   => true,
+			'post_mime_type' => array(
+				'image/png',
+			),
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
+
+		$this->assertEquals( 1, $query->found_posts );
+
+		$this->assertContains( get_post_field( 'post_name', $attachment_id_4_png ), $attachment_names );
 	}
 
 	/**
@@ -5010,73 +5082,112 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests the constructor for the Indexable\Post class.
+	 * Tests the query_db method.
 	 *
 	 * @return void
 	 * @group post
 	 */
 	public function testQueryDb() {
+		$indexable_post_object = new \ElasticPress\Indexable\Post\Post();
 
-		$exclude_post_id = Functions\create_and_sync_post();
-		$post_id = Functions\create_and_sync_post();
+		$post_id_1 = Functions\create_and_sync_post();
+		$post_id_2 = Functions\create_and_sync_post();
+		$post_id_3 = Functions\create_and_sync_post();
 
-		$post = new \ElasticPress\Indexable\Post\Post();
-
-		$results = $post->query_db(
+		// Test the first loop of the indexing.
+		$results = $indexable_post_object->query_db(
 			[
 				'per_page' => 1,
-				'include'  => [ $post_id ],
 			]
 		);
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_3, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 
-		$this->assertCount( 1, $post_ids );
-		$this->assertContains( $post_id, $post_ids );
-		$this->assertSame( 1, absint( $results['total_objects'] ) );
-
-		$results = $post->query_db(
+		// Second loop.
+		$results = $indexable_post_object->query_db(
 			[
-				'exclude'  => [ $exclude_post_id ],
+				'per_page' => 1,
+				'ep_indexing_last_processed_object_id' => $post_id_3,
 			]
 		);
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_2, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 
-		$this->assertNotContains( $exclude_post_id, $post_ids );
-
-		// Set up a few posts for the filters.
-		$args_post_ids = [];
-
-		$args_post_ids[] = Functions\create_and_sync_post();
-		$args_post_ids[] = Functions\create_and_sync_post();
-		$args_post_ids[] = Functions\create_and_sync_post();
-		$args_post_ids[] = Functions\create_and_sync_post();
-
-		$defaults_filter = function( $args ) use ( $args_post_ids ) {
-			$args['post__in'] = $args_post_ids;
-			return $args;
-		};
-
-		$index_filter = function( $args ) {
-			$args['posts_per_page'] = 3;
-			$args['order'] = 'ASC';
-			return $args;
-		};
-
-		add_filter( 'ep_post_query_db_args', $defaults_filter );
-		add_filter( 'ep_index_posts_args', $index_filter );
-
-		$results = $post->query_db( [] );
-
-		remove_filter( 'ep_post_query_db_args', $defaults_filter );
-		remove_filter( 'ep_index_posts_args', $index_filter );
+		// A custom upper_limit_object_id was passed in.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'ep_indexing_upper_limit_object_id' => $post_id_1,
+			]
+		);
 
 		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_1, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 1, $results['total_objects'] );
 
-		$this->assertCount( 3, $post_ids );
-		$this->assertContains( $args_post_ids[2], $post_ids );
-		$this->assertNotContains( $args_post_ids[3], $post_ids );
+		// Passing custom start and last post IDs. Second loop.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'ep_indexing_upper_limit_object_id' => $post_id_3,
+				'ep_indexing_lower_limit_object_id' => $post_id_2,
+				'ep_indexing_last_processed_object_id' => $post_id_3,
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_2, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 2, $results['total_objects'] );
+
+		// Specific post IDs
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+				'include'  => [ $post_id_1 ],
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_1, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 1, $results['total_objects'] );
+
+		$results = $indexable_post_object->query_db(
+			[
+				'offset' => 1,
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_2, $post_ids[0] );
+		$this->assertCount( 2, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+
+		$results = $indexable_post_object->query_db(
+			[
+				'offset' => 3,
+			]
+		);
+
+		$this->assertCount( 0, $results['objects'] );
+		$this->assertEquals( 0, $results['total_objects'] );
+
+		$results = $indexable_post_object->query_db(
+			[
+				'offset' => -1,
+			]
+		);
+
+		$this->assertCount( 3, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 	}
 
 	/**
@@ -5254,7 +5365,49 @@ class TestPost extends BaseTestCase {
 			$query
 		);
 
+		$this->assertCount( 1, $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
 		$this->assertSame( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'][0] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [ 'image/jpeg', 'application/pdf' ],
+			],
+			$query
+		);
+
+		$this->assertCount( 2, $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+		$this->assertContains( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+		$this->assertContains( 'application/pdf', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [ 'image' ],
+			],
+			$query
+		);
+
+		$this->assertGreaterThan( 1, count( $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] ) );
+		$this->assertContains( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [ 'image', 'application/pdf' ],
+			],
+			$query
+		);
+
+		$this->assertGreaterThan( 2, count( $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] ) );
+		$this->assertContains( 'image/jpeg', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+		$this->assertContains( 'application/pdf', $args['post_filter']['bool']['must'][0]['terms']['post_mime_type'] );
+
+		$args = $post->format_args(
+			[
+				'post_mime_type' => [],
+			],
+			$query
+		);
+
+		$this->assertArrayNotHasKey( 'terms', $args['post_filter']['bool']['must'][0] );
 	}
 
 	/**

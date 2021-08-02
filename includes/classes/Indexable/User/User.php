@@ -640,25 +640,25 @@ class User extends Indexable {
 					);
 				} elseif ( 'display_name' === $orderby_clause || 'name' === $orderby_clause ) {
 					$sort[] = array(
-						'display_name' => array(
+						'display_name.sortable' => array(
 							'order' => $order,
 						),
 					);
 				} elseif ( 'user_nicename' === $orderby_clause || 'nicename' === $orderby_clause ) {
 					$sort[] = array(
-						'user_nicename' => array(
+						'user_nicename.raw' => array(
 							'order' => $order,
 						),
 					);
 				} elseif ( 'user_email' === $orderby_clause || 'email' === $orderby_clause ) {
 					$sort[] = array(
-						'user_email' => array(
+						'user_email.raw' => array(
 							'order' => $order,
 						),
 					);
 				} elseif ( 'user_url' === $orderby_clause || 'url' === $orderby_clause ) {
 					$sort[] = array(
-						'user_url' => array(
+						'user_url.raw' => array(
 							'order' => $order,
 						),
 					);

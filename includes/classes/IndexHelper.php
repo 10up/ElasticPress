@@ -385,6 +385,25 @@ class IndexHelper {
 			$args['post_type'] = array_map( 'trim', $args['post_type'] );
 		}
 
+		// Start of advanced pagination arguments.
+		if ( ! empty( $this->args['upper_limit_object_id'] ) && is_numeric( $this->args['upper_limit_object_id'] ) ) {
+			$args['ep_indexing_upper_limit_object_id'] = $this->args['upper_limit_object_id'];
+			$args['ep_indexing_advanced_pagination']   = ( $per_page > 1 );
+		}
+
+		if ( ! empty( $this->args['lower_limit_object_id'] ) && is_numeric( $this->args['lower_limit_object_id'] ) ) {
+			$args['ep_indexing_lower_limit_object_id'] = $this->args['lower_limit_object_id'];
+			$args['ep_indexing_advanced_pagination']   = ( $per_page > 1 );
+		}
+
+		if ( $args['ep_indexing_advanced_pagination'] &&
+			! empty( $this->index_meta['current_sync_item']['last_processed_object_id'] ) &&
+			is_numeric( $this->index_meta['current_sync_item']['last_processed_object_id'] )
+		) {
+			$args['ep_indexing_last_processed_object_id'] = $this->index_meta['current_sync_item']['last_processed_object_id'];
+		}
+		// End of advanced pagination arguments.
+
 		/**
 		 * Filters arguments used to query for content for each indexable
 		 *
@@ -502,6 +521,8 @@ class IndexHelper {
 				}
 			}
 
+			$this->index_meta['current_sync_item']['last_processed_object_id'] = end( array_keys( $queued_items ) );
+
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
 				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $return->get_error_messages() );
@@ -522,11 +543,14 @@ class IndexHelper {
 
 		$this->output(
 			sprintf(
-				/* translators: 1. Number of objects indexed, 2. Total number of objects */
-				esc_html__( 'Processed %1$d/%2$d...', 'elasticpress' ),
+				/* translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID */
+				esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ),
 				$this->index_meta['offset'],
-				$this->index_meta['found_items']
-			)
+				$this->index_meta['found_items'],
+				$this->index_meta['current_sync_item']['last_processed_object_id']
+			),
+			'info',
+			'index_next_batch'
 		);
 	}
 
@@ -677,10 +701,11 @@ class IndexHelper {
 	 *
 	 * @since 3.6.0
 	 * @param string $message_text Message to be outputted
-	 * @param string $type Type of message
+	 * @param string $type         Type of message
+	 * @param string $context      Context of the output
 	 * @return void
 	 */
-	protected function output( $message_text, $type = 'info' ) {
+	protected function output( $message_text, $type = 'info', $context = '' ) {
 		if ( $this->index_meta ) {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
@@ -694,7 +719,7 @@ class IndexHelper {
 		];
 
 		if ( is_callable( $this->args['output_method'] ) ) {
-			call_user_func( $this->args['output_method'], $message, $this->args, $this->index_meta );
+			call_user_func( $this->args['output_method'], $message, $this->args, $this->index_meta, $context );
 		}
 	}
 
@@ -703,9 +728,10 @@ class IndexHelper {
 	 *
 	 * @since 3.6.0
 	 * @param string $message Message string.
+	 * @param string $context Context of the output.
 	 */
-	protected function output_success( $message ) {
-		$this->output( $message, 'success' );
+	protected function output_success( $message, $context = '' ) {
+		$this->output( $message, 'success', $context );
 	}
 
 	/**
@@ -713,9 +739,10 @@ class IndexHelper {
 	 *
 	 * @since 3.6.0
 	 * @param string $message Message string.
+	 * @param string $context Context of the output.
 	 */
-	protected function output_error( $message ) {
-		$this->output( $message, 'error' );
+	protected function output_error( $message, $context = '' ) {
+		$this->output( $message, 'error', $context );
 	}
 
 	/**

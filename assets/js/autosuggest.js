@@ -181,7 +181,7 @@ async function esSearch(query, searchTerm) {
 
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
-		fetchConfig.headers['EP-Search-Term'] = searchTerm;
+		fetchConfig.headers['EP-Search-Term'] = encodeURI(searchTerm);
 	}
 
 	try {
@@ -404,10 +404,18 @@ function init() {
 	epAutosuggest.appendChild(autosuggestList);
 
 	// Build the auto-suggest containers
-	// excluding the facet search field
+	// excluding the facet search field and search block field
 	const epInputs = Array.from(epInputNodes).filter(
-		(node) => !node.classList.contains('facet-search'),
+		(node) =>
+			!node.classList.contains('facet-search') &&
+			!node.classList.contains('wp-block-search__input'),
 	);
+
+	// Handle search blocks separately
+	const epBlockInputs = Array.from(epInputNodes).filter((node) =>
+		node.classList.contains('wp-block-search__input'),
+	);
+
 	epInputs.forEach((input) => {
 		const epContainer = document.createElement('div');
 		epContainer.classList.add('ep-autosuggest-container');
@@ -426,6 +434,24 @@ function init() {
 
 		const clonedContainer = epAutosuggest.cloneNode(true);
 		input.insertAdjacentElement('afterend', clonedContainer);
+
+		// announce that this is has been done
+		const event = new CustomEvent('elasticpress.input.moved');
+		input.dispatchEvent(event);
+	});
+
+	/**
+	 * For search blocks, because we know the output mark up, we reuse it
+	 * for autosuggest.
+	 */
+	epBlockInputs.forEach((input) => {
+		// Disable autocomplete
+		input.setAttribute('autocomplete', 'off');
+
+		input.form.classList.add('ep-autosuggest-container');
+
+		const clonedContainer = epAutosuggest.cloneNode(true);
+		input.parentElement.insertAdjacentElement('afterend', clonedContainer);
 
 		// announce that this is has been done
 		const event = new CustomEvent('elasticpress.input.moved');
@@ -550,6 +576,27 @@ function init() {
 	};
 
 	/**
+	 * Get the searched post types from the search form.
+	 *
+	 * @param {HTMLFormElement} form - form containing the search input field
+	 * @returns {Array} - post types
+	 * @since 3.6.0
+	 */
+	function getPostTypesFromForm(form) {
+		const data = new FormData(form);
+
+		if (data.has('post_type')) {
+			return data.getAll('post_type').slice(-1);
+		}
+
+		if (data.has('post_type[]')) {
+			return data.getAll('post_type[]');
+		}
+
+		return [];
+	}
+
+	/**
 	 * Calls the ajax request, and outputs the results.
 	 * Called by the handleKeyup callback, debounced.
 	 *
@@ -558,6 +605,7 @@ function init() {
 	const fetchResults = async (input) => {
 		const searchText = input.value;
 		const placeholder = 'ep_autosuggest_placeholder';
+		const postTypes = getPostTypesFromForm(input.form);
 
 		// retrieves the PHP-genereated query to pass to ElasticSearch
 		const queryJSON = getJsonQuery();
@@ -569,7 +617,21 @@ function init() {
 		if (searchText.length >= 2) {
 			setFormIsLoading(true, input);
 
-			const query = buildSearchQuery(searchText, placeholder, queryJSON);
+			let query = buildSearchQuery(searchText, placeholder, queryJSON);
+
+			if (postTypes.length > 0) {
+				query = JSON.parse(query);
+
+				if (typeof query.post_filter.bool.must !== 'undefined') {
+					query.post_filter.bool.must.push({
+						terms: {
+							'post_type.raw': postTypes,
+						},
+					});
+				}
+
+				query = JSON.stringify(query);
+			}
 
 			// fetch the results
 			const response = await esSearch(query, searchText);
@@ -591,6 +653,8 @@ function init() {
 			hideAutosuggestBox();
 		}
 	};
+
+	const debounceFetchResults = debounce(fetchResults, 200);
 
 	/**
 	 * Callback for keyup in Autosuggest container.
@@ -617,7 +681,6 @@ function init() {
 		}
 
 		const input = event.target;
-		const debounceFetchResults = debounce(fetchResults, 200);
 		debounceFetchResults(input);
 	};
 
@@ -631,7 +694,7 @@ function init() {
 	 * blur
 	 * hide the autosuggest box
 	 */
-	epInputs.forEach((input) => {
+	[...epInputs, ...epBlockInputs].forEach((input) => {
 		input.addEventListener('keyup', handleKeyup);
 		input.addEventListener('blur', function () {
 			window.setTimeout(hideAutosuggestBox, 200);

@@ -125,9 +125,9 @@ class WpCliTest extends TestBase {
 
 		$this->assertStringContainsString( 'Indexing posts', $cli_result );
 
-		preg_match( '/Processed (\d+)\/(\d+).../m', $cli_result, $matches );
+		preg_match( '/Processed (\d+)\/(\d+)./m', $cli_result, $matches );
 
-		$total_posts = $matches[1];
+		$total_posts = $matches[2];
 
 		preg_match( '/Number of posts indexed: (\d+)/m', $cli_result, $matches );
 

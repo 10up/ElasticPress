@@ -537,7 +537,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Index all posts for a site or network wide
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix] [--yes]
+	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--upper-limit-object-id] [--lower-limit-object-id] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix] [--yes]
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -624,6 +624,14 @@ class Command extends WP_CLI_Command {
 		if ( ! empty( $assoc_args['post-type'] ) ) {
 			$index_args['post_type'] = explode( ',', $assoc_args['post-type'] );
 			$index_args['post_type'] = array_map( 'trim', $index_args['post_type'] );
+		}
+
+		if ( ! empty( $assoc_args['upper-limit-object-id'] ) && is_numeric( $assoc_args['upper-limit-object-id'] ) ) {
+			$index_args['upper_limit_object_id'] = absint( $assoc_args['upper-limit-object-id'] );
+		}
+
+		if ( ! empty( $assoc_args['lower-limit-object-id'] ) && is_numeric( $assoc_args['lower-limit-object-id'] ) ) {
+			$index_args['lower_limit_object_id'] = absint( $assoc_args['lower-limit-object-id'] );
 		}
 
 		\ElasticPress\IndexHelper::factory()->full_index( $index_args );
@@ -1229,10 +1237,14 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Function used to ouput messages coming from IndexHelper
 	 *
-	 * @param array $message Message data
-	 * @param array $args    Args sent and processed by IndexHelper
+	 * @param array  $message    Message data
+	 * @param array  $args       Args sent and processed by IndexHelper
+	 * @param array  $index_meta Current index state
+	 * @param string $context    Context of the message being outputted
 	 */
-	public function index_output( $message, $args ) {
+	public function index_output( $message, $args, $index_meta, $context ) {
+		static $time_elapsed = 0, $counter = 0;
+
 		switch ( $message['status'] ) {
 			case 'success':
 				WP_CLI::success( $message['message'] );
@@ -1253,6 +1265,19 @@ class Command extends WP_CLI_Command {
 			default:
 				WP_CLI::log( $message['message'] );
 				break;
+		}
+
+		if ( 'index_next_batch' === $context ) {
+			$counter++;
+			if ( ( $counter % 10 ) === 0 ) {
+				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( timer_stop( 0, 2 ) - $time_elapsed ) . ')' : '';
+				$time_elapsed      = timer_stop( 0, 2 );
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
+
+				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
+				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
+			}
 		}
 	}
 

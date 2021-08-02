@@ -209,6 +209,17 @@ abstract class Indexable {
 	}
 
 	/**
+	 * Get objects within the indexable
+	 *
+	 * @param  int $object_ids Array of object ids to get.
+	 * @since  3.6.0
+	 * @return boolean|array
+	 */
+	public function multi_get( $object_ids ) {
+		return Elasticsearch::factory()->get_documents( $this->get_index_name(), $this->slug, $object_ids );
+	}
+
+	/**
 	 * Delete an index within the indexable
 	 *
 	 * @param  int $blog_id `null` means current blog.
@@ -468,7 +479,7 @@ abstract class Indexable {
 
 		try {
 			// is this is a recognizable date format?
-			$new_date = new \DateTime( $meta_value, \wp_timezone() );
+			$new_date  = new \DateTime( $meta_value, \wp_timezone() );
 			$timestamp = $new_date->getTimestamp();
 
 			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
