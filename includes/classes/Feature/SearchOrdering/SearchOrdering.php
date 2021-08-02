@@ -444,7 +444,7 @@ class SearchOrdering extends Feature {
 			return;
 		}
 
-		if ( ! current_user_can( 'edit_post', $post ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 

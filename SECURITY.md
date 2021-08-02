@@ -6,9 +6,9 @@ The following versions of this project are currently being supported with securi
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 3.5.1   | :white_check_mark: |
-| 3.4.3   | :white_check_mark: |
-| <3.4.3  | :x:                |
+| 3.6.0   | :white_check_mark: |
+| 3.5.6   | :white_check_mark: |
+| <3.5.5  | :x:                |
 
 ## Reporting a Vulnerability
 
