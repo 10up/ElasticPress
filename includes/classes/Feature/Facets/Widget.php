@@ -351,14 +351,14 @@ class Widget extends WP_Widget {
 				uasort(
 					$ordered_terms,
 					function( $a, $b ) {
-						return $a > $b;
+						return $a->count > $b->count;
 					}
 				);
 			} else {
 				uasort(
 					$ordered_terms,
 					function( $a, $b ) {
-						return $a < $b;
+						return $a->count < $b->count;
 					}
 				);
 			}
