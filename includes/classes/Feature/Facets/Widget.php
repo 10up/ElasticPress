@@ -316,8 +316,8 @@ class Widget extends WP_Widget {
 	/**
 	 * Order terms putting selected at the top
 	 *
-	 * @param  array $terms Array of terms
-	 * @param  array $selected_terms Selected terms
+	 * @param  array  $terms Array of terms
+	 * @param  array  $selected_terms Selected terms
 	 * @param  string $order The order to sort from. Desc or Asc.
 	 * @param  string $orderby The orderby to sort items from.
 	 * @since  2.5
@@ -348,13 +348,19 @@ class Widget extends WP_Widget {
 
 		if ( 'count' === $orderby ) {
 			if ( 'asc' === $order ) {
-				uasort( $ordered_terms, function( $a, $b ) {
-					return $a > $b;
-				} );
+				uasort(
+					$ordered_terms,
+					function( $a, $b ) {
+						return $a > $b;
+					}
+				);
 			} else {
-				uasort( $ordered_terms, function( $a, $b ) {
-					return $a < $b;
-				} );
+				uasort(
+					$ordered_terms,
+					function( $a, $b ) {
+						return $a < $b;
+					}
+				);
 			}
 		}
 
