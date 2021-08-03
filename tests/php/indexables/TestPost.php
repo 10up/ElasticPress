@@ -5983,14 +5983,22 @@ class TestPost extends BaseTestCase {
 		// test the function. Try accessing the 2nd post from the 1st blog.
 		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
 
+		// This should not switch to the 2nd site because the query is not in the loop.
+		$query_integration->maybe_switch_to_blog( $blog_2_post, $query );
+
+		$this->assertFalse( $query_integration->get_switched() );
+
+		// To switch sites the query must be in the loop.
+		$query->in_the_loop = true;
+
 		// This should switch to the 2nd site.
-		$query_integration->maybe_switch_to_blog( $blog_2_post );
+		$query_integration->maybe_switch_to_blog( $blog_2_post, $query );
 
 		$this->assertSame( $blog_2_post->site_id, $query_integration->get_switched() );
 
 		// Now we're in "switched" mode, try getting the post from the
 		// 1st site, should switch back.
-		$query_integration->maybe_switch_to_blog( $blog_1_post );
+		$query_integration->maybe_switch_to_blog( $blog_1_post, $query );
 
 		$this->assertSame( $blog_1_post->site_id, $query_integration->get_switched() );
 
