@@ -358,9 +358,22 @@ class Synonyms {
 			return $mapping;
 		}
 
+		// Pass by reference so we don't need to deal with giant variable names.
+		$analyzers = &$mapping['settings']['analysis']['analyzer'];
+
 		// Ensure we have analyzers and that it is an array.
-		if ( ! isset( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
-			|| ! is_array( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
+		if ( ! isset( $analyzers['default']['filter'] )
+			|| ! is_array( $analyzers['default']['filter'] )
+		) {
+			return $mapping;
+		}
+
+		if ( ! isset( $analyzers['default_search'] ) ) {
+			$analyzers['default_search'] = $analyzers['default'];
+		}
+
+		if ( ! isset( $analyzers['default_search']['filter'] )
+			|| ! is_array( $analyzers['default_search']['filter'] )
 		) {
 			return $mapping;
 		}
@@ -369,10 +382,10 @@ class Synonyms {
 		$mapping['settings']['analysis']['filter'][ $filter_name ] = $this->get_synonym_filter();
 
 		// Tell the analyzer to use our newly created filter.
-		$mapping['settings']['analysis']['analyzer']['default']['filter'] = array_values(
+		$analyzers['default_search']['filter'] = array_values(
 			array_merge(
 				[ $filter_name ],
-				$mapping['settings']['analysis']['analyzer']['default']['filter']
+				$analyzers['default_search']['filter']
 			)
 		);
 
