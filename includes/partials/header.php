@@ -30,7 +30,7 @@ $is_sync_page = 'sync' === Screen::factory()->get_current_screen();
 		<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC ) : ?>
 			<a
 				class="dashicons start-sync dashicons-update"
-				<?php echo ( $is_sync_page ) ? '' : 'href="' . esc_url( admin_url( 'admin.php?page=elasticpress-sync' ) ) . '"'; ?>
+				<?php echo ( $is_sync_page ) ? '' : 'href="' . esc_url( $base_url . 'elasticpress-sync' ) . '"'; ?>
 			></a>
 		<?php endif; ?>
 		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic"></a>
