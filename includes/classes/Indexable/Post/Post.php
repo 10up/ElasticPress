@@ -856,20 +856,22 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['category_name'] ),
-				'field'    => 'slug',
-			);
-		}
+		if ( empty( $args['tax_query'] ) ) {
+			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['category_name'] ),
+					'field'    => 'slug',
+				);
+			}
 
-		if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['cat'] ),
-				'field'    => 'term_id',
-			);
+			if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['cat'] ),
+					'field'    => 'term_id',
+				);
+			}
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
@@ -917,7 +919,7 @@ class Post extends Indexable {
 					},
 					$args['tax_query']
 				);
-			} else {
+			} elseif ( empty( $args['tax_query'] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'post_tag',
 					'terms'    => $args['tag_id'],
