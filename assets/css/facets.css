@@ -1,5 +1,5 @@
 .widget_ep-facet input[type="search"] {
-	margin-bottom: 1rem
+	margin-bottom: 1rem;
 }
 
 .widget_ep-facet .searchable .inner {
@@ -12,20 +12,20 @@
 }
 
 .widget_ep-facet .empty-term {
+	opacity: 0.5;
 	position: relative;
-	opacity: .5;
 }
 
-.widget_ep-facet .empty-term:after {
-	z-index: 2;
-	content: ' ';
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
+.widget_ep-facet .empty-term::after {
 	bottom: 0;
-	width: 100%
+	content: " ";
+	display: block;
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 100%;
+	z-index: 2;
 }
 
 .widget_ep-facet .level-1 {
@@ -71,9 +71,9 @@
 }
 
 .ep-checkbox::after {
-	content: "";
-	border: solid white;
+	border: solid #fff;
 	border-width: 0 0.125em 0.125em 0;
+	content: "";
 	display: none;
 	height: 0.5em;
 	transform: rotate(45deg);
