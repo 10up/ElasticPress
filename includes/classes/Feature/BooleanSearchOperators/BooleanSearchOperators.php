@@ -32,7 +32,7 @@ class BooleanSearchOperators extends Feature {
 
 		$this->requires_install_reindex = false;
 		$this->default_settings         = [
-				'active' => false,
+			'active' => false,
 		];
 
 		parent::__construct();
@@ -72,13 +72,15 @@ class BooleanSearchOperators extends Feature {
 	public function format_boolean_query_args( $query, $args, $search_text, $search_fields ) {
 		$boolean_query = array(
 			'simple_query_string' => array(
-				'query'            => $search_text,
-				'fields'           => \apply_filters( 'ep_boolean_operators_fields', $search_fields ),
-				'default_operator' => \apply_filters( 'ep_boolean_operators_default', 'OR' ),
+				'query'                               => $search_text,
+				'fields'                              => \apply_filters( 'ep_boolean_operators_fields', $search_fields ),
+				'default_operator'                    => \apply_filters( 'ep_boolean_operators_default', 'OR' ),
+				'flags'                               => \apply_filters( 'ep_boolean_operators_flags', 'ALL' ),
+				'auto_generate_synonyms_phrase_query' => \apply_filters( 'ep_boolean_operators_generate_synonyms', true ),
 			),
 		);
 
-		return $boolean_query;
+		return \apply_filters( 'ep_boolean_operators_query_args', $boolean_query, $args, $search_text, $search_fields, $query );
 	}
 
 	/**
