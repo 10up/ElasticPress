@@ -8,10 +8,8 @@
 namespace ElasticPress\Feature\BooleanSearchOperators;
 
 use ElasticPress\Feature;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\FeatureRequirementsStatus;
 use ElasticPress\Features;
-use ElasticPress\Indexable\Post\Post;
-use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -28,7 +26,7 @@ class BooleanSearchOperators extends Feature {
 	 * Initialize feature setting it's config
 	 */
 	public function __construct() {
-		$this->slug = 'booleansearchoperators';
+		$this->slug = 'boolean_search_operators';
 
 		$this->title = esc_html__( 'Boolean Search Operators', 'elasticpress' );
 
@@ -75,7 +73,7 @@ class BooleanSearchOperators extends Feature {
 		$boolean_query = array(
 			'simple_query_string' => array(
 				'query'            => $search_text,
-				'fields'           => $search_fields,
+				'fields'           => \apply_filters( 'ep_boolean_operators_fields', $search_fields ),
 				'default_operator' => \apply_filters( 'ep_boolean_operators_default', 'OR' ),
 			),
 		);
