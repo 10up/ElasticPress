@@ -1119,17 +1119,7 @@ class Command extends WP_CLI_Command {
 		$indexes_from_cat_indices_api = json_decode( wp_remote_retrieve_body( $response_cat_indices ), true );
 
 		if ( is_array( $indexes_from_cat_indices_api ) ) {
-			$indexes_from_cat_indices_api = array_reduce(
-				$indexes_from_cat_indices_api,
-				function( $carry, $item ) {
-					if ( ! empty( $item['index'] ) ) {
-						$carry[] = $item['index'];
-					}
-
-					return $carry;
-				},
-				[]
-			);
+			$indexes_from_cat_indices_api = wp_list_pluck( $indexes_from_cat_indices_api, 'index' );
 
 			$index_names = array_intersect( $index_names, $indexes_from_cat_indices_api );
 		} else {
@@ -1191,17 +1181,7 @@ class Command extends WP_CLI_Command {
 		$indexes_from_cat_indices_api = json_decode( wp_remote_retrieve_body( $response_cat_indices ), true );
 
 		if ( is_array( $indexes_from_cat_indices_api ) ) {
-			$indexes_from_cat_indices_api = array_reduce(
-				$indexes_from_cat_indices_api,
-				function( $carry, $item ) {
-					if ( ! empty( $item['index'] ) ) {
-						$carry[] = $item['index'];
-					}
-
-					return $carry;
-				},
-				[]
-			);
+			$indexes_from_cat_indices_api = wp_list_pluck( $indexes_from_cat_indices_api, 'index' );
 
 			$index_names = array_intersect( $index_names, $indexes_from_cat_indices_api );
 		} else {
