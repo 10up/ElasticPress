@@ -153,6 +153,19 @@ function showOverlay(display = true) {
 }
 
 /**
+ * Get the indexable label from the global object. If not set, default to the indexable slug.
+ *
+ * @param {string} indexableSlug The indexable slug
+ * @param {string} type          Plural or singular. Defaults to plural.
+ * @returns {string} The indexable label
+ */
+function getIndexableLabel(indexableSlug, type = 'plural') {
+	const labels = epDash.sync_indexable_labels[indexableSlug];
+
+	return labels?.[type].toLowerCase() || `${indexableSlug}s`;
+}
+
+/**
  * Update dashboard with syncing information
  */
 function updateSyncDash() {
@@ -187,9 +200,10 @@ function updateSyncDash() {
 
 		if (currentSyncItem) {
 			if (currentSyncItem.indexable) {
-				text += ` ${epDash.sync_indexable_labels[
-					currentSyncItem.indexable
-				].plural.toLowerCase()} ${parseInt(processed, 10)}/${parseInt(toProcess, 10)}`;
+				text += ` ${getIndexableLabel(currentSyncItem.indexable)} ${parseInt(
+					processed,
+					10,
+				)}/${parseInt(toProcess, 10)}`;
 			}
 
 			if (currentSyncItem.url) {
@@ -202,10 +216,9 @@ function updateSyncDash() {
 		text = epDash.sync_paused;
 
 		if (toProcess && toProcess !== 0) {
-			text += `, ${parseInt(processed, 10)}/${parseInt(
-				toProcess,
-				10,
-			)} ${epDash.sync_indexable_labels[currentSyncItem.indexable].plural.toLowerCase()}`;
+			text += `, ${parseInt(processed, 10)}/${parseInt(toProcess, 10)} ${getIndexableLabel(
+				currentSyncItem.indexable,
+			)}`;
 		}
 
 		if (currentSyncItem && currentSyncItem.url) {
@@ -218,10 +231,9 @@ function updateSyncDash() {
 		text = epDash.sync_wpcli;
 
 		if (currentSyncItem?.indexable) {
-			text += ` ${parseInt(processed, 10)}/${parseInt(
-				toProcess,
-				10,
-			)} ${epDash.sync_indexable_labels[currentSyncItem.indexable].plural.toLowerCase()}`;
+			text += ` ${parseInt(processed, 10)}/${parseInt(toProcess, 10)} ${getIndexableLabel(
+				currentSyncItem.indexable,
+			)}`;
 		}
 
 		if (currentSyncItem?.url) {
@@ -340,6 +352,8 @@ function sync(putMapping = false) {
 				if (epDash.install_sync) {
 					document.location.replace(epDash.install_complete_url);
 				}
+
+				return;
 			}
 
 			toProcess = response.data.index_meta.found_items;

@@ -790,7 +790,7 @@ class IndexHelper {
 
 		$is_full_reindexing = false;
 
-		$all_items = array_merge( $sync_stack, $current_sync_item );
+		$all_items = array_merge( $sync_stack, [ $current_sync_item ] );
 		foreach ( $all_items as $sync_item ) {
 			if ( $sync_item['indexable'] !== $indexable_slug ) {
 				continue;

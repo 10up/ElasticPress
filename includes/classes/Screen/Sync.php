@@ -157,17 +157,21 @@ class Sync {
 		$data['sync_indexable_labels'] = apply_filters(
 			'ep_dashboard_indexable_labels',
 			[
-				'post' => [
+				'post'    => [
 					'singular' => esc_html__( 'Post', 'elasticpress' ),
 					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
 				],
-				'term' => [
+				'term'    => [
 					'singular' => esc_html__( 'Term', 'elasticpress' ),
 					'plural'   => esc_html__( 'Terms', 'elasticpress' ),
 				],
-				'user' => [
+				'user'    => [
 					'singular' => esc_html__( 'User', 'elasticpress' ),
 					'plural'   => esc_html__( 'Users', 'elasticpress' ),
+				],
+				'comment' => [
+					'singular' => esc_html__( 'Comment', 'elasticpress' ),
+					'plural'   => esc_html__( 'Comments', 'elasticpress' ),
 				],
 			]
 		);
