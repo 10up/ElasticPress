@@ -687,6 +687,22 @@ class Command extends WP_CLI_Command {
 			$index_names[] = $user_indexable->get_index_name();
 		}
 
+		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
+
+		if ( is_wp_error( $response_cat_indices ) ) {
+			WP_CLI::error( implode( "\n", $response_cat_indices->get_error_messages() ) );
+		}
+
+		$indexes_from_cat_indices_api = json_decode( wp_remote_retrieve_body( $response_cat_indices ), true );
+
+		if ( is_array( $indexes_from_cat_indices_api ) ) {
+			$indexes_from_cat_indices_api = wp_list_pluck( $indexes_from_cat_indices_api, 'index' );
+
+			$index_names = array_intersect( $index_names, $indexes_from_cat_indices_api );
+		} else {
+			WP_CLI::error( esc_html__( 'Failed to return status.', 'elasticpress' ) );
+		}
+
 		$index_names_imploded = implode( ',', $index_names );
 
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_recovery/?pretty', $request_args );
@@ -731,6 +747,22 @@ class Command extends WP_CLI_Command {
 
 		if ( ! empty( $user_indexable ) ) {
 			$index_names[] = $user_indexable->get_index_name();
+		}
+
+		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
+
+		if ( is_wp_error( $response_cat_indices ) ) {
+			WP_CLI::error( implode( "\n", $response_cat_indices->get_error_messages() ) );
+		}
+
+		$indexes_from_cat_indices_api = json_decode( wp_remote_retrieve_body( $response_cat_indices ), true );
+
+		if ( is_array( $indexes_from_cat_indices_api ) ) {
+			$indexes_from_cat_indices_api = wp_list_pluck( $indexes_from_cat_indices_api, 'index' );
+
+			$index_names = array_intersect( $index_names, $indexes_from_cat_indices_api );
+		} else {
+			WP_CLI::error( esc_html__( 'Failed to return stats.', 'elasticpress' ) );
 		}
 
 		$index_names_imploded = implode( ',', $index_names );
