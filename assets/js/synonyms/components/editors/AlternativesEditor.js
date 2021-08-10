@@ -5,9 +5,9 @@ import { Dispatch, State } from '../../context';
 /**
  * Synonyms editor component.
  *
- * @param {object} props Props.
- * @param {object[]} props.alternatives Defined alternatives (explicit mappings).
- * @returns {React.FC}
+ * @param {Object} props Props.
+ * @param {Object[]} props.alternatives Defined alternatives (explicit mappings).
+ * @return {React.FC} AlternativesEditor component
  */
 export default function AlterativesEditor({ alternatives }) {
 	const dispatch = useContext(Dispatch);
