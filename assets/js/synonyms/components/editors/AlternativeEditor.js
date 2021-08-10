@@ -5,8 +5,8 @@ import { Dispatch } from '../../context';
 /**
  * Alternative Editor
  *
- * @param {object} props Props.
- * @returns {React.FC}
+ * @param {Object} props Props.
+ * @return {React.FC} AlternativeEditor component
  */
 export default function AlternativeEditor(props) {
 	const primary = props.synonyms.find((item) => item.primary);
@@ -18,7 +18,7 @@ export default function AlternativeEditor(props) {
 	 * Create primary token
 	 *
 	 * @param {string} label Label.
-	 * @returns {object}
+	 * @return {Object} Primary token
 	 */
 	const createPrimaryToken = (label) => {
 		return {
