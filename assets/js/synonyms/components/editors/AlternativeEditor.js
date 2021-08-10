@@ -8,7 +8,7 @@ import { Dispatch } from '../../context';
  * @param {Object} props Props.
  * @return {React.FC} AlternativeEditor component
  */
-export default function AlternativeEditor(props) {
+const AlternativeEditor = (props) => {
 	const primary = props.synonyms.find((item) => item.primary);
 	const [primaryTerm, setPrimaryTerm] = useState(primary ? primary.value : '');
 	const dispatch = useContext(Dispatch);
@@ -69,4 +69,6 @@ export default function AlternativeEditor(props) {
 			/>
 		</>
 	);
-}
+};
+
+export default AlternativeEditor;
