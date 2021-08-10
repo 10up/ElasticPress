@@ -13,7 +13,7 @@ export class Pointers extends Component {
 	/**
 	 * Initializes the component with initial state set by WP
 	 *
-	 * @param {object} props Component props
+	 * @param {Object} props Component props
 	 */
 	constructor(props) {
 		super(props);
@@ -116,7 +116,7 @@ export class Pointers extends Component {
 	/**
 	 * Gets the next available position for a pointer
 	 *
-	 * @returns {number}
+	 * @return {number|false} The available position
 	 */
 	getNextAvailablePosition = () => {
 		const { pointers } = this.state;
@@ -142,7 +142,7 @@ export class Pointers extends Component {
 	/**
 	 * Adds a new pointer. We place the new pointer at the highest available position
 	 *
-	 * @param {object} post Post object
+	 * @param {Object} post Post object
 	 */
 	addPointer = (post) => {
 		const id = post.ID;
@@ -178,7 +178,7 @@ export class Pointers extends Component {
 	 * Only the pointers are able to be dragged around, so all we need to do is increase any pointer by one that is
 	 * either at the current position or greater
 	 *
-	 * @param {object} result Dragged object
+	 * @param {Object} result Dragged object
 	 */
 	onDragComplete = (result) => {
 		// dropped outside the list
@@ -225,7 +225,7 @@ export class Pointers extends Component {
 	/**
 	 * Renders the component
 	 *
-	 * @returns {*}
+	 * @return {*} The component
 	 */
 	render() {
 		const { posts, defaultResults } = this.state;
