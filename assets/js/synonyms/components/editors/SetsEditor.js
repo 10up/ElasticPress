@@ -9,7 +9,7 @@ import { Dispatch, State } from '../../context';
  * @param {Object[]} props.sets Defined sets (equivalent synonyms).
  * @return {React.FC} SetsEditor component
  */
-export default function SetsEditor({ sets }) {
+const SetsEditor = ({ sets }) => {
 	const dispatch = useContext(Dispatch);
 	const state = useContext(State);
 	const { setsInputHeading, setsAddButtonText, setsErrorMessage } = window.epSynonyms.i18n;
@@ -55,4 +55,6 @@ export default function SetsEditor({ sets }) {
 			</div>
 		</div>
 	);
-}
+};
+
+export default SetsEditor;
