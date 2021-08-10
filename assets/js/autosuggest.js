@@ -603,16 +603,16 @@ function init() {
 	 * @param {Node} input - search input field
 	 */
 	const fetchResults = async (input) => {
-		const searchText = input.value;
-		const placeholder = 'ep_autosuggest_placeholder';
-		const postTypes = getPostTypesFromForm(input.form);
-
 		// retrieves the PHP-genereated query to pass to ElasticSearch
 		const queryJSON = getJsonQuery();
 
 		if (queryJSON.error) {
 			return;
 		}
+
+		const searchText = input.value;
+		const placeholder = 'ep_autosuggest_placeholder';
+		const postTypes = getPostTypesFromForm(input.form);
 
 		if (searchText.length >= 2) {
 			setFormIsLoading(true, input);
