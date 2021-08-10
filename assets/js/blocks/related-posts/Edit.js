@@ -82,10 +82,10 @@ class Edit extends Component {
 						</Placeholder>
 					) : (
 						<ul style={{ textAlign: alignment }}>
-							{displayPosts.map((post, i) => {
+							{displayPosts.map((post) => {
 								const titleTrimmed = post.title.rendered.trim();
 								return (
-									<li key={i}>
+									<li key={post.id}>
 										<a href={post.link}>
 											{titleTrimmed ? (
 												<RawHTML>{titleTrimmed}</RawHTML>
