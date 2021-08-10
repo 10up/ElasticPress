@@ -20,13 +20,8 @@ class Edit extends Component {
 	constructor(props) {
 		super(props);
 
-		const {
-			attributes: { number },
-		} = props;
-
 		this.state = {
 			posts: false,
-			number,
 		};
 	}
 
