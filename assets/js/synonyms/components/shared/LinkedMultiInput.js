@@ -12,7 +12,7 @@ import { Dispatch } from '../../context';
  * @param {string} props.updateAction Name of action to dispatch on update.
  * @return {React.FC} LinkedMultiInput component
  */
-export default function LinkedMultiInput({ id, synonyms, removeAction, updateAction }) {
+const LinkedMultiInput = ({ id, synonyms, removeAction, updateAction }) => {
 	const dispatch = useContext(Dispatch);
 	const [tokens, setTokens] = useState(synonyms || []);
 	const { removeItemText } = window.epSynonyms.i18n;
@@ -39,9 +39,11 @@ export default function LinkedMultiInput({ id, synonyms, removeAction, updateAct
 				setTokens={setTokens}
 			/>
 			<button className="synonym__remove" type="button" onClick={handleClear}>
-				<span className="dashicons dashicons-dismiss"></span>
+				<span className="dashicons dashicons-dismiss" />
 				<span>{removeItemText}</span>
 			</button>
 		</>
 	);
-}
+};
+
+export default LinkedMultiInput;
