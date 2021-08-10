@@ -5,7 +5,7 @@ import { reduceStateToSolr } from '../../utils';
 /**
  * Synonym Inspector
  *
- * @returns {React.FC}
+ * @return {React.FC} SolrEditor Component
  */
 export default function SolrEditor() {
 	const state = useContext(State);
