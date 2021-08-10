@@ -9,7 +9,7 @@ import SolrEditor from './editors/SolrEditor';
  *
  * @return {React.FC} Synonyms component
  */
-export default function SynonymsEditor() {
+const SynonymsEditor = () => {
 	const state = useContext(State);
 	const dispatch = useContext(Dispatch);
 	const { alternatives, sets, isSolrEditable, isSolrVisible, dirty, submit } = state;
@@ -104,4 +104,6 @@ export default function SynonymsEditor() {
 			</div>
 		</>
 	);
-}
+};
+
+export default SynonymsEditor;
