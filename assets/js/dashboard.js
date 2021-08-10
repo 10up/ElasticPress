@@ -175,23 +175,21 @@ if (epDash.index_meta) {
 			updateSyncDash();
 		}
 	}
-} else {
+} else if (epDash.auto_start_index) {
 	// Start a new sync automatically
-	if (epDash.auto_start_index) {
-		syncStatus = 'initialsync';
+	syncStatus = 'initialsync';
 
-		updateSyncDash();
+	updateSyncDash();
 
-		syncStatus = 'sync';
+	syncStatus = 'sync';
 
-		history.pushState(
-			{},
-			document.title,
-			document.location.pathname + document.location.search.replace(/&do_sync/, ''),
-		);
+	history.pushState(
+		{},
+		document.title,
+		document.location.pathname + document.location.search.replace(/&do_sync/, ''),
+	);
 
-		sync();
-	}
+	sync();
 }
 
 /**
