@@ -58,7 +58,7 @@ const AlternativesEditor = ({ alternatives }) => {
 							)}
 						</Fragment>
 					))}
-					<button className="button button-secondary" onClick={handleClick}>
+					<button type="button" className="button button-secondary" onClick={handleClick}>
 						{alternativesAddButtonText}
 					</button>
 				</div>
