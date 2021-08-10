@@ -15,7 +15,7 @@ class Edit extends Component {
 	/**
 	 * Setup class
 	 *
-	 * @param {object} props Component properties
+	 * @param {Object} props Component properties
 	 */
 	constructor(props) {
 		super(props);
