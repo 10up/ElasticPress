@@ -9,7 +9,8 @@ import { Dispatch } from '../../context';
  * @return {React.FC} AlternativeEditor component
  */
 const AlternativeEditor = (props) => {
-	const primary = props.synonyms.find((item) => item.primary);
+	const { synonyms, id } = props;
+	const primary = synonyms.find((item) => item.primary);
 	const [primaryTerm, setPrimaryTerm] = useState(primary ? primary.value : '');
 	const dispatch = useContext(Dispatch);
 	const primaryRef = useRef(null);
@@ -45,7 +46,7 @@ const AlternativeEditor = (props) => {
 	useEffect(() => {
 		dispatch({
 			type: 'UPDATE_ALTERNATIVE_PRIMARY',
-			data: { id: props.id, token: createPrimaryToken(primaryTerm) },
+			data: { id, token: createPrimaryToken(primaryTerm) },
 		});
 	}, [primaryTerm]);
 
@@ -63,10 +64,7 @@ const AlternativeEditor = (props) => {
 				onKeyDown={handleKeyDown}
 				ref={primaryRef}
 			/>
-			<LinkedMultiInput
-				{...props}
-				synonyms={props.synonyms.filter((item) => !item.primary)}
-			/>
+			<LinkedMultiInput {...props} synonyms={synonyms.filter((item) => !item.primary)} />
 		</>
 	);
 };
