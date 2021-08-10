@@ -70,8 +70,9 @@ export class Pointers extends Component {
 	};
 
 	getMergedPosts = () => {
-		let merged = this.state.defaultResults[this.state.title].slice();
 		let { pointers } = this.state;
+		const { title } = this.state;
+		let merged = this.state.defaultResults[title].slice();
 
 		const setIds = {};
 		merged.forEach((item) => {
