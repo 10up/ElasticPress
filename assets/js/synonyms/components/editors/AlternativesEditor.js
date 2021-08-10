@@ -9,7 +9,7 @@ import { Dispatch, State } from '../../context';
  * @param {Object[]} props.alternatives Defined alternatives (explicit mappings).
  * @return {React.FC} AlternativesEditor component
  */
-export default function AlterativesEditor({ alternatives }) {
+const AlternativesEditor = ({ alternatives }) => {
 	const dispatch = useContext(Dispatch);
 	const state = useContext(State);
 	const {
@@ -65,4 +65,6 @@ export default function AlterativesEditor({ alternatives }) {
 			</div>
 		</div>
 	);
-}
+};
+
+export default AlternativesEditor;
