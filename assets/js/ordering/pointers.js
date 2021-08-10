@@ -71,8 +71,8 @@ export class Pointers extends Component {
 
 	getMergedPosts = () => {
 		let { pointers } = this.state;
-		const { title } = this.state;
-		let merged = this.state.defaultResults[title].slice();
+		const { title, defaultResults } = this.state;
+		let merged = defaultResults[title].slice();
 
 		const setIds = {};
 		merged.forEach((item) => {
@@ -98,10 +98,10 @@ export class Pointers extends Component {
 	};
 
 	doSearch = debounce(() => {
-		const searchTerm = this.state.searchText;
+		const { searchText, searchResults } = this.state;
+		const searchTerm = searchText;
 
 		// Set loading state
-		const { searchResults } = this.state;
 		searchResults[searchTerm] = false;
 		this.setState({ searchResults });
 
@@ -229,9 +229,16 @@ export class Pointers extends Component {
 	 * @return {*} The component
 	 */
 	render() {
-		const { posts, defaultResults } = this.state;
+		const {
+			posts,
+			defaultResults,
+			title,
+			pointers,
+			searchText,
+			searchResults: searchResultsFromState
+		} = this.state;
 
-		if (this.state.title.length === 0) {
+		if (title.length === 0) {
 			return (
 				<div className="new-post">
 					<p>
@@ -244,7 +251,7 @@ export class Pointers extends Component {
 			);
 		}
 
-		if (!defaultResults[this.state.title]) {
+		if (!defaultResults[title]) {
 			return (
 				<div className="loading">
 					<div className="spinner is-active"></div>
@@ -255,15 +262,15 @@ export class Pointers extends Component {
 
 		// We need to reference these by ID later
 		const defaultResultsById = {};
-		defaultResults[this.state.title].forEach((item) => {
+		defaultResults[title].forEach((item) => {
 			defaultResultsById[item.ID] = item;
 		});
 
 		const mergedPosts = this.getMergedPosts();
-		const renderedIds = pluck(this.state.pointers, 'ID');
+		const renderedIds = pluck(pointers, 'ID');
 
-		const searchResults = this.state.searchResults[this.state.searchText]
-			? this.state.searchResults[this.state.searchText].filter(
+		const searchResults = searchResultsFromState[searchText]
+			? searchResultsFromState[searchText].filter(
 					(item) => renderedIds.indexOf(item.ID) === -1,
 			  )
 			: false;
@@ -274,7 +281,7 @@ export class Pointers extends Component {
 				<input
 					type="hidden"
 					name="ordered_posts"
-					value={JSON.stringify(this.state.pointers)}
+					value={JSON.stringify(pointers)}
 				/>
 				<DragDropContext onDragEnd={this.onDragComplete}>
 					<Droppable droppableId="droppable">
@@ -421,7 +428,7 @@ export class Pointers extends Component {
 								type="text"
 								className="widefat search-pointers"
 								placeholder="Search for Post"
-								value={this.state.searchText}
+								value={searchText}
 								onChange={(e) => {
 									this.setState({ searchText: e.target.value });
 									this.doSearch();
@@ -437,7 +444,9 @@ export class Pointers extends Component {
 	}
 
 	searchResults = (searchResults) => {
-		if (this.state.searchText === '') {
+		const { searchText } = this.state;
+
+		if (searchText === '') {
 			return null;
 		}
 
