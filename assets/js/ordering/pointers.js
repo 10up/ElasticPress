@@ -47,7 +47,7 @@ export class Pointers extends Component {
 	}, 200);
 
 	getDefaultResults = () => {
-		const searchTerm = this.state.title;
+		const { title: searchTerm } = this.state;
 
 		apiFetch({
 			path: `/elasticpress/v1/pointer_preview?s=${searchTerm}`,
