@@ -322,11 +322,7 @@ export class Pointers extends Component {
 		return (
 			<div>
 				<input type="hidden" name="search-ordering-nonce" value={window.epOrdering.nonce} />
-				<input
-					type="hidden"
-					name="ordered_posts"
-					value={JSON.stringify(pointers)}
-				/>
+				<input type="hidden" name="ordered_posts" value={JSON.stringify(pointers)} />
 				<DragDropContext onDragEnd={this.onDragComplete}>
 					<Droppable droppableId="droppable">
 						{(provided) => (
@@ -361,7 +357,7 @@ export class Pointers extends Component {
 											  );
 
 									return (
-										<React.Fragment key={index}>
+										<React.Fragment key={item.ID}>
 											{parseInt(window.epOrdering.postsPerPage, 10) ===
 												index && (
 												<Draggable
