@@ -299,7 +299,7 @@ export class Pointers extends Component {
 			return (
 				<div className="loading">
 					<div className="spinner is-active" />
-					<span>{__('Loading Result Preview...', 'elasticpress')}</span>
+					<span>{__('Loading Result Preview…', 'elasticpress')}</span>
 				</div>
 			);
 		}
