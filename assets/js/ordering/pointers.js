@@ -248,9 +248,15 @@ export class Pointers extends Component {
 				<div className="pointer-result" key={result.ID}>
 					<span className="title">{result.post_title}</span>
 					<span
+						role="button"
+						tabIndex="0"
 						className="dashicons dashicons-plus add-pointer"
-						onClick={(e) => {
-							e.preventDefault();
+						onClick={(event) => {
+							event.preventDefault();
+							this.addPointer(result);
+						}}
+						onKeyDown={(event) => {
+							event.preventDefault();
 							this.addPointer(result);
 						}}
 					>
