@@ -7,7 +7,7 @@ import { reduceStateToSolr } from '../../utils';
  *
  * @return {React.FC} SolrEditor Component
  */
-export default function SolrEditor() {
+const SolrEditor = () => {
 	const state = useContext(State);
 	const dispatch = useContext(Dispatch);
 	const reducedState = reduceStateToSolr(state);
@@ -46,4 +46,6 @@ export default function SolrEditor() {
 			</div>
 		</div>
 	);
-}
+};
+
+export default SolrEditor;
