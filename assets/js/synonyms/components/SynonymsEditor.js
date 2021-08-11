@@ -58,7 +58,7 @@ const SynonymsEditor = () => {
 		if (submit && !dirty && isValid(state)) {
 			document.querySelector('.wrap form').submit();
 		}
-	}, [submit, dirty]);
+	}, [submit, dirty, state]);
 
 	return (
 		<>
