@@ -235,7 +235,7 @@ export class Pointers extends Component {
 			title,
 			pointers,
 			searchText,
-			searchResults: searchResultsFromState
+			searchResults: searchResultsFromState,
 		} = this.state;
 
 		if (title.length === 0) {
@@ -254,7 +254,7 @@ export class Pointers extends Component {
 		if (!defaultResults[title]) {
 			return (
 				<div className="loading">
-					<div className="spinner is-active"></div>
+					<div className="spinner is-active" />
 					<span>{__('Loading Result Preview...', 'elasticpress')}</span>
 				</div>
 			);
@@ -373,7 +373,7 @@ export class Pointers extends Component {
 																	'Drag post up or down to reposition',
 																	'elasticpress',
 																)}
-															></span>
+															/>
 															{item.order && (
 																<span
 																	title={tooltipText}
@@ -453,7 +453,7 @@ export class Pointers extends Component {
 		if (searchResults === false) {
 			return (
 				<div className="loading">
-					<div className="spinner is-active"></div>
+					<div className="spinner is-active" />
 					Loading...
 				</div>
 			);
