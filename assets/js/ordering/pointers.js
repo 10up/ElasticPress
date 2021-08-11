@@ -223,6 +223,44 @@ export class Pointers extends Component {
 		this.setState({ pointers });
 	};
 
+	searchResults = (searchResults) => {
+		const { searchText } = this.state;
+
+		if (searchText === '') {
+			return null;
+		}
+
+		if (searchResults === false) {
+			return (
+				<div className="loading">
+					<div className="spinner is-active" />
+					Loading...
+				</div>
+			);
+		}
+
+		if (searchResults.length === 0) {
+			return <div className="no-results">{__('No results found.', 'elasticpress')}</div>;
+		}
+
+		return searchResults.map((result) => {
+			return (
+				<div className="pointer-result" key={result.ID}>
+					<span className="title">{result.post_title}</span>
+					<span
+						className="dashicons dashicons-plus add-pointer"
+						onClick={(e) => {
+							e.preventDefault();
+							this.addPointer(result);
+						}}
+					>
+						<span className="screen-reader-text">{__('Add Post', 'elasticpress')}</span>
+					</span>
+				</div>
+			);
+		});
+	};
+
 	/**
 	 * Renders the component
 	 *
@@ -442,42 +480,4 @@ export class Pointers extends Component {
 			</div>
 		);
 	}
-
-	searchResults = (searchResults) => {
-		const { searchText } = this.state;
-
-		if (searchText === '') {
-			return null;
-		}
-
-		if (searchResults === false) {
-			return (
-				<div className="loading">
-					<div className="spinner is-active" />
-					Loading...
-				</div>
-			);
-		}
-
-		if (searchResults.length === 0) {
-			return <div className="no-results">{__('No results found.', 'elasticpress')}</div>;
-		}
-
-		return searchResults.map((result) => {
-			return (
-				<div className="pointer-result" key={result.ID}>
-					<span className="title">{result.post_title}</span>
-					<span
-						className="dashicons dashicons-plus add-pointer"
-						onClick={(e) => {
-							e.preventDefault();
-							this.addPointer(result);
-						}}
-					>
-						<span className="screen-reader-text">{__('Add Post', 'elasticpress')}</span>
-					</span>
-				</div>
-			);
-		});
-	};
 }
