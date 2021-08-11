@@ -416,10 +416,16 @@ export class Pointers extends Component {
 															/>
 															{item.order && (
 																<span
+																	role="button"
+																	tabIndex="0"
 																	title={tooltipText}
 																	className="dashicons dashicons-undo delete-pointer"
-																	onClick={(e) => {
-																		e.preventDefault();
+																	onClick={(event) => {
+																		event.preventDefault();
+																		this.removePointer(item);
+																	}}
+																	onKeyDown={(event) => {
+																		event.preventDefault();
 																		this.removePointer(item);
 																	}}
 																>
