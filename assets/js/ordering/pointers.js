@@ -10,6 +10,31 @@ apiFetch.use(apiFetch.createRootURLMiddleware(window.epOrdering.restApiRoot));
 export class Pointers extends Component {
 	titleInput = null;
 
+	debouncedDefaultResults = debounce(() => {
+		this.getDefaultResults();
+	}, 200);
+
+	doSearch = debounce(() => {
+		const { searchText, searchResults } = this.state;
+		const searchTerm = searchText;
+
+		// Set loading state
+		searchResults[searchTerm] = false;
+		this.setState({ searchResults });
+
+		apiFetch({
+			path: `/elasticpress/v1/pointer_search?s=${searchTerm}`,
+		}).then((result) => {
+			searchResults[searchTerm] = result;
+
+			this.setState({ searchResults });
+		});
+	}, 200);
+
+	debouncedHandleTitleChange = debounce(() => {
+		this.handleTitleChange();
+	}, 200);
+
 	/**
 	 * Initializes the component with initial state set by WP
 	 *
@@ -29,22 +54,26 @@ export class Pointers extends Component {
 			searchText: '',
 			searchResults: {},
 		};
+	}
 
-		this.titleInput.addEventListener('keyup', debounce(this.handleTitleChange, 200));
+	componentDidMount() {
+		this.titleInput.addEventListener('keyup', this.debouncedHandleTitleChange);
 
-		if (this.state.title.length > 0) {
+		const { title } = this.state;
+
+		if (title?.length > 0) {
 			this.getDefaultResults();
 		}
+	}
+
+	componentWillUnmount() {
+		this.titleInput.removeEventListener('keyup', this.debouncedHandleTitleChange);
 	}
 
 	handleTitleChange = () => {
 		this.setState({ title: this.titleInput.value });
 		this.debouncedDefaultResults();
 	};
-
-	debouncedDefaultResults = debounce(() => {
-		this.getDefaultResults();
-	}, 200);
 
 	getDefaultResults = () => {
 		const { title: searchTerm } = this.state;
@@ -96,23 +125,6 @@ export class Pointers extends Component {
 
 		return merged;
 	};
-
-	doSearch = debounce(() => {
-		const { searchText, searchResults } = this.state;
-		const searchTerm = searchText;
-
-		// Set loading state
-		searchResults[searchTerm] = false;
-		this.setState({ searchResults });
-
-		apiFetch({
-			path: `/elasticpress/v1/pointer_search?s=${searchTerm}`,
-		}).then((result) => {
-			searchResults[searchTerm] = result;
-
-			this.setState({ searchResults });
-		});
-	}, 200);
 
 	/**
 	 * Gets the next available position for a pointer
