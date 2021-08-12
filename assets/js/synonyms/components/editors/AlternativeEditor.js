@@ -48,14 +48,14 @@ const AlternativeEditor = (props) => {
 			type: 'UPDATE_ALTERNATIVE_PRIMARY',
 			data: { id, token: createPrimaryToken(primaryTerm) },
 		});
-	}, [primaryTerm]);
+	}, [primaryTerm, id, dispatch]);
 
 	useEffect(() => {
 		primaryRef.current.focus();
 	}, [primaryRef]);
 
 	const memoizedSynonyms = React.useMemo(() => {
-		return synonyms.filter((item) => !item.primary)
+		return synonyms.filter((item) => !item.primary);
 	}, [synonyms]);
 
 	return (
