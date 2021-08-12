@@ -73,7 +73,7 @@ class BooleanSearchOperators extends Feature {
 		}
 
 		if ( true === $query->query_vars['ep_integrate'] &&
-			 ( $this->is_active() || true === $query->query_vars['ep_boolean_operators'] ) ) {
+			( $this->is_active() || true === $query->query_vars['ep_boolean_operators'] ) ) {
 
 			\add_filter( 'ep_formatted_args_query', [ $this, 'replace_query_if_boolean' ], 999, 4 );
 		}
@@ -171,9 +171,9 @@ class BooleanSearchOperators extends Feature {
 				$search_text = \str_replace( array( ' AND ', ' OR ', ' NOT ' ), array( ' +', ' | ', ' -' ), $search_text );
 			} else {
 				$flags = explode( '|', $simple_query['simple_query_string']['flags'] );
-				$ops = array( 'AND', 'OR', 'NOT' );
+				$ops   = array( 'AND', 'OR', 'NOT' );
 
-				foreach( $ops as $flag ) {
+				foreach ( $ops as $flag ) {
 					if ( \in_array( $flag, $flags, true ) ) {
 						switch ( $flag ) {
 							case 'AND':
