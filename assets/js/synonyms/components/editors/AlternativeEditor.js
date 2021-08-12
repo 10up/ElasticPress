@@ -9,7 +9,7 @@ import { Dispatch } from '../../context';
  * @return {React.FC} AlternativeEditor component
  */
 const AlternativeEditor = (props) => {
-	const { synonyms, id } = props;
+	const { id, synonyms, removeAction, updateAction } = props;
 	const primary = synonyms.find((item) => item.primary);
 	const [primaryTerm, setPrimaryTerm] = useState(primary ? primary.value : '');
 	const dispatch = useContext(Dispatch);
@@ -54,6 +54,10 @@ const AlternativeEditor = (props) => {
 		primaryRef.current.focus();
 	}, [primaryRef]);
 
+	const memoizedSynonyms = React.useMemo(() => {
+		return synonyms.filter((item) => !item.primary)
+	}, [synonyms]);
+
 	return (
 		<>
 			<input
@@ -64,7 +68,12 @@ const AlternativeEditor = (props) => {
 				onKeyDown={handleKeyDown}
 				ref={primaryRef}
 			/>
-			<LinkedMultiInput {...props} synonyms={synonyms.filter((item) => !item.primary)} />
+			<LinkedMultiInput
+				id={id}
+				updateAction={updateAction}
+				removeAction={removeAction}
+				synonyms={memoizedSynonyms}
+			/>
 		</>
 	);
 };

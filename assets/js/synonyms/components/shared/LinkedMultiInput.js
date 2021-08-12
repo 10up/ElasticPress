@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext } from 'react';
 import MultiInput from './MultiInput';
 import { Dispatch } from '../../context';
 
@@ -14,14 +14,7 @@ import { Dispatch } from '../../context';
  */
 const LinkedMultiInput = ({ id, synonyms, removeAction, updateAction }) => {
 	const dispatch = useContext(Dispatch);
-	const [tokens, setTokens] = useState(synonyms || []);
 	const { removeItemText } = window.epSynonyms.i18n;
-
-	useEffect(() => {
-		if (tokens !== synonyms) {
-			dispatch({ type: updateAction, data: { id, tokens } });
-		}
-	}, [tokens]);
 
 	/**
 	 * Handle clearing the synonym.
@@ -35,8 +28,8 @@ const LinkedMultiInput = ({ id, synonyms, removeAction, updateAction }) => {
 			<MultiInput
 				key={id}
 				className="ep-synonyms__linked-multi-input"
-				tokens={tokens}
-				setTokens={setTokens}
+				tokens={synonyms}
+				setTokens={(tokens) => dispatch({ type: updateAction, data: { id, tokens } })}
 			/>
 			<button className="synonym__remove" type="button" onClick={handleClear}>
 				<span className="dashicons dashicons-dismiss" />
