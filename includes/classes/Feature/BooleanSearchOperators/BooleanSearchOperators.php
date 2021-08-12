@@ -57,30 +57,102 @@ class BooleanSearchOperators extends Feature {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_boolean_search_operators' ], 10, 2 );
 	}
 
+	/**
+	 * Hook up the boolean operators query if it is enabled
+	 *
+	 * @hook   ep_elasticpress_enabled
+	 *
+	 * @param  {bool} $enabled Whether to integrate with Elasticsearch or not
+	 * @param  {WP_Query} $query WP_Query to evaluate
+	 *
+	 * @return bool
+	 */
 	public function integrate_boolean_search_operators( $enabled, $query ) {
 		if ( ! $enabled ) {
-			return;
+			return false;
 		}
 
 		if ( true === $query->query_vars['ep_integrate'] &&
-			 ( $this->is_active() || true === $query->query_vars['ep_boolean_search'] ) ) {
+			 ( $this->is_active() || true === $query->query_vars['ep_boolean_operators'] ) ) {
 
-			\add_filter( 'ep_formatted_args_query', [ $this, 'format_boolean_query_args' ], 999, 4 );
+			\add_filter( 'ep_formatted_args_query', [ $this, 'replace_query_if_boolean' ], 999, 4 );
 		}
+
+		return true;
 	}
 
-	public function format_boolean_query_args( $query, $args, $search_text, $search_fields ) {
-		$boolean_query = array(
-			'simple_query_string' => array(
-				'query'                               => $search_text,
-				'fields'                              => \apply_filters( 'ep_boolean_operators_fields', $search_fields ),
-				'default_operator'                    => \apply_filters( 'ep_boolean_operators_default', 'OR' ),
-				'flags'                               => \apply_filters( 'ep_boolean_operators_flags', 'ALL' ),
-				'auto_generate_synonyms_phrase_query' => \apply_filters( 'ep_boolean_operators_generate_synonyms', true ),
-			),
-		);
+	/**
+	 * Check if a search query uses boolean operators and switch queries accordingly
+	 *
+	 * @hook  ep_formatted_args_query
+	 *
+	 * @param {array}  $query         Current query
+	 * @param {array}  $query_vars    Query variables
+	 * @param {string} $search_text   Search text
+	 * @param {array}  $search_fields Search fields
+	 *
+	 * @return array
+	 */
+	public function replace_query_if_boolean( $query, $args, $search_text, $search_fields ) {
 
-		return \apply_filters( 'ep_boolean_operators_query_args', $boolean_query, $args, $search_text, $search_fields, $query );
+		if ( $this->query_uses_boolean_operators( $search_text ) ) {
+			$search_text = \str_replace( array( ' AND ', ' OR ', ' NOT ' ), array( ' +', ' | ', ' -' ), $search_text );
+
+			$simple_query_string = array(
+				'simple_query_string' => array(
+					'query'                               => $search_text,
+					'fields'                              => \apply_filters( 'ep_boolean_operators_fields', $search_fields ),
+					'default_operator'                    => \apply_filters( 'ep_boolean_operators_default', 'OR' ),
+					'flags'                               => \apply_filters( 'ep_boolean_operators_flags', 'ALL' ),
+					'auto_generate_synonyms_phrase_query' => \apply_filters( 'ep_boolean_operators_generate_synonyms', true ),
+				),
+			);
+
+			return \apply_filters( 'ep_boolean_operators_query_args', $simple_query_string, $args, $search_text, $search_fields, $query );
+		}
+
+		return $query;
+	}
+
+	/**
+	 * Test if a search text uses boolean operators
+	 * reference for this RegEx: https://regex101.com/r/JizB0Z/1
+	 * reference for acceptable operators:
+	 * https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html#simple-query-string-syntax
+	 *
+	 * # matches
+	 * (museum (art))    # no extra requirements for surrounding parentheses
+	 * "american museum" # no extra requirements for surrounding double quotes
+	 * museum art*       # requires zero space before the operator
+	 * museum art~35     # requires zero space before and at least one digit after the operator
+	 * museum | art      # requires surrounding spaces
+	 * museum +art       # requires space before
+	 * museum -art       # requires space before
+	 * museum OR art     # requires surrounding spaces and uppercase operator
+	 * museum AND art    # requires surrounding spaces and uppercase operator
+	 * museum NOT art    # requires surrounding spaces and uppercase operator
+	 *
+	 * # non matches
+	 * museum art
+	 * art ()
+	 * museum art 1985
+	 * 35 artists~
+	 * museum or art
+	 * museum and art
+	 * museum not art
+	 * "museum
+	 * (museum
+	 * museum)
+	 * museum *art
+	 *
+	 * @param string $search_text the search query
+	 *
+	 * @return bool
+	 */
+	public function query_uses_boolean_operators( $search_text ) {
+		$boolean_regex = '/(\".+\")|(\+)|(\-)|(\S\*)|(\S\~\d)|(.+\|.+)|(\(\S+\))|(\sOR\s)|(\sAND\s)|(\sNOT\s)/';
+
+		return preg_match( $boolean_regex, $search_text ) !== false;
 	}
 
 	/**
@@ -109,7 +181,7 @@ class BooleanSearchOperators extends Feature {
 	 */
 	public function output_feature_box_summary() {
 		?>
-		<p><?php esc_html_e( 'Use boolean operators for search queries', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'Allow boolean operators in search queries', 'elasticpress' ); ?></p>
 		<?php
 	}
 
@@ -118,7 +190,30 @@ class BooleanSearchOperators extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php esc_html_e( 'Allows users to search using boolean operators: +, |, -, "", *, (), ~#', 'elasticpress' ); ?></p>
+		<p><?php esc_html_e( 'Allows users to search using the following boolean operators:', 'elasticpress' ); ?></p>
+		<ul>
+			<li>
+				<code>+</code> or <code>AND</code> <?php esc_html_e( 'signifies AND operation. eg.: modern +art, modern AND art', 'elasticpress' ); ?>
+			</li>
+			<li>
+				<code>|</code> or <code>OR</code> <?php esc_html_e( 'signifies OR operation. eg.: modern | art, modern OR art', 'elasticpress' ); ?>
+			</li>
+			<li>
+				<code>-</code> or <code>NOT</code> <?php esc_html_e( 'signifies NOT operation. eg.: modern -art, modern NOT art', 'elasticpress' ); ?>
+			</li>
+			<li>
+				<code>"</code> <?php esc_html_e( 'wraps characters to signify a phrase. eg.: "modern art"', 'elasticpress' ); ?>
+			</li>
+			<li>
+				<code>*</code> <?php esc_html_e( 'signifies a prefix wildcard. eg.: art*', 'elasticpress' ); ?>
+			</li>
+			<li>
+				<code>()</code> <?php esc_html_e( 'signifies precedence. eg.: (MoMA OR (modern AND art))', 'elasticpress' ); ?>
+			</li>
+			<li>
+				<code>~#</code> <?php esc_html_e( 'signifies slop if used on a phrase. eg.: "modern art"~2. Signifies fuzziness if used on a word: eg: modern~1', 'elasticpress' ); ?>
+			</li>
+		</ul>
 		<?php
 	}
 }
