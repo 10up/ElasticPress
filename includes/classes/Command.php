@@ -600,7 +600,7 @@ class Command extends WP_CLI_Command {
 			'output_method'  => [ $this, 'index_output' ],
 			'network_wide'   => ( ! empty( $assoc_args['network-wide'] ) ) ? $assoc_args['network-wide'] : null,
 			'nobulk'         => $no_bulk,
-			'offset'         => ( ! empty( $args['offset'] ) ) ? absint( $args['offset'] ) : 0,
+			'offset'         => ( ! empty( $assoc_args['offset'] ) ) ? absint( $assoc_args['offset'] ) : 0,
 		];
 
 		if ( isset( $assoc_args['show-errors'] ) || ( isset( $assoc_args['show-bulk-errors'] ) && ! $no_bulk ) || ( isset( $assoc_args['show-nobulk-errors'] ) && $no_bulk ) ) {
