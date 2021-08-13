@@ -386,8 +386,8 @@ class IndexHelper {
 			$args['per_page'] = count( $args['include'] );
 		}
 
-		if ( ! empty( $this->args['post-type'] ) ) {
-			$args['post_type'] = explode( ',', $this->args['post-type'] );
+		if ( ! empty( $this->args['post_type'] ) ) {
+			$args['post_type'] = explode( ',', $this->args['post_type'] );
 			$args['post_type'] = array_map( 'trim', $args['post_type'] );
 		}
 
