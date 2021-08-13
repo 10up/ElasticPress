@@ -195,7 +195,7 @@ class QueryIntegration {
 	 * @return array
 	 */
 	protected function format_hits_as_comments( $comments, $new_comments, $query_vars ) {
-		$hierarchical = $query_vars['hierarchical'] ?? false;
+		$hierarchical = isset( $query_vars['hierarchical'] ) ? $query_vars['hierarchical'] : false;
 
 		foreach ( $comments as $comment_array ) {
 			$comment = new \WP_Comment( (object) $comment_array );
