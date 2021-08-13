@@ -529,7 +529,7 @@ class Synonyms {
 		return apply_filters(
 			'ep_synonyms_filter',
 			[
-				'type'     => 'synonym',
+				'type'     => 'synonym_graph',
 				'lenient'  => true,
 				'synonyms' => $this->get_synonyms(),
 			]
