@@ -28,7 +28,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-sync' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -67,7 +67,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-sync' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -99,7 +99,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-sync' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -109,7 +109,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->moveTo( 'wp-admin/index.php' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-sync' );
 
 		$I->seeText( 'Sync paused', '.sync-status' );
 
@@ -134,7 +134,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-sync' );
 
 		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
@@ -166,7 +166,7 @@ class DashboardSyncTest extends TestBase {
 		// Slowing the index process a bit.
 		$old_value = $this->setPerIndexCycle( 10, $I );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-sync' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 

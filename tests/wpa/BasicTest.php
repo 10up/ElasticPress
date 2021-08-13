@@ -27,7 +27,7 @@ class BasicTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-sync' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
