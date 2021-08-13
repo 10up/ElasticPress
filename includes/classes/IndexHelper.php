@@ -219,7 +219,7 @@ class IndexHelper {
 
 			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
-			if ( ! empty( $this->index_meta['current_sync_item']['blog_id'] ) ) {
+			if ( ! empty( $this->index_meta['current_sync_item']['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$this->output_success(
 					sprintf(
 						/* translators: 1: Indexable name, 2: Site ID */
@@ -229,10 +229,16 @@ class IndexHelper {
 					)
 				);
 			} else {
+				$message_string = ( $indexable->global ) ?
+					/* translators: 1: Indexable name */
+					esc_html__( 'Indexing %1$s (globally)...', 'elasticpress' ) :
+					/* translators: 1: Indexable name */
+					esc_html__( 'Indexing %1$s...', 'elasticpress' );
+
 				$this->output_success(
 					sprintf(
 						/* translators: 1: Indexable name */
-						esc_html__( 'Indexing %1$s (globally)...', 'elasticpress' ),
+						$message_string,
 						esc_html( strtolower( $indexable->labels['plural'] ) )
 					)
 				);
@@ -577,7 +583,7 @@ class IndexHelper {
 		if ( $current_sync_item['failed'] ) {
 			$this->index_meta['current_sync_item']['failed'] = 0;
 
-			if ( ! empty( $current_sync_item['blog_id'] ) ) {
+			if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$message = sprintf(
 					/* translators: 1: indexable (plural), 2: Blog ID, 3: number of failed objects */
 					esc_html__( 'Number of %1$s index errors on site %2$d: %3$d', 'elasticpress' ),
@@ -600,7 +606,7 @@ class IndexHelper {
 		$this->index_meta['offset']            = 0;
 		$this->index_meta['current_sync_item'] = null;
 
-		if ( ! empty( $current_sync_item['blog_id'] ) ) {
+		if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$message = sprintf(
 				/* translators: 1: indexable (plural), 2: Blog ID, 3: number of synced objects */
 				esc_html__( 'Number of %1$s indexed on site %2$d: %3$d', 'elasticpress' ),
