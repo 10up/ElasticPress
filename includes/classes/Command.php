@@ -624,6 +624,8 @@ class Command extends WP_CLI_Command {
 		if ( ! empty( $assoc_args['post-type'] ) ) {
 			$index_args['post_type'] = explode( ',', $assoc_args['post-type'] );
 			$index_args['post_type'] = array_map( 'trim', $index_args['post_type'] );
+			// If post-type was passed, only index the Post indexable.
+			$index_args['indexables'] = [ 'post' ];
 		}
 
 		if ( ! empty( $assoc_args['upper-limit-object-id'] ) && is_numeric( $assoc_args['upper-limit-object-id'] ) ) {
