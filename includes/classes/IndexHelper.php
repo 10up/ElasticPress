@@ -388,12 +388,10 @@ class IndexHelper {
 		// Start of advanced pagination arguments.
 		if ( ! empty( $this->args['upper_limit_object_id'] ) && is_numeric( $this->args['upper_limit_object_id'] ) ) {
 			$args['ep_indexing_upper_limit_object_id'] = $this->args['upper_limit_object_id'];
-			$args['ep_indexing_advanced_pagination']   = ( $per_page > 1 );
 		}
 
 		if ( ! empty( $this->args['lower_limit_object_id'] ) && is_numeric( $this->args['lower_limit_object_id'] ) ) {
 			$args['ep_indexing_lower_limit_object_id'] = $this->args['lower_limit_object_id'];
-			$args['ep_indexing_advanced_pagination']   = ( $per_page > 1 );
 		}
 
 		if ( $args['ep_indexing_advanced_pagination'] &&

@@ -64,7 +64,7 @@ class Post extends Indexable {
 			'orderby'                         => 'ID',
 			'order'                           => 'desc',
 			'no_found_rows'                   => false,
-			'ep_indexing_advanced_pagination' => false,
+			'ep_indexing_advanced_pagination' => true,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -87,6 +87,11 @@ class Post extends Indexable {
 		 * @return  {array} New arguments
 		 */
 		$args = apply_filters( 'ep_index_posts_args', apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) ) );
+
+		if ( isset( $args['post__in'] ) || 0 < $args['offset'] ) {
+			// Disable advanced pagination. Not useful if only indexing specific IDs.
+			$args['ep_indexing_advanced_pagination'] = false;
+		}
 
 		// Enforce the following query args during advanced pagination to ensure things work correctly.
 		if ( $args['ep_indexing_advanced_pagination'] ) {
