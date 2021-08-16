@@ -930,6 +930,16 @@ class IndexHelper {
 	}
 
 	/**
+	 * Utilitary function to get the index meta option.
+	 *
+	 * @return array
+	 * @since 3.6.0
+	 */
+	public function get_index_meta() {
+		return Utils\get_option( 'ep_index_meta', [] );
+	}
+
+	/**
 	 * Return singleton instance of class.
 	 *
 	 * @return self
