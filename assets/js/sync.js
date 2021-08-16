@@ -23,7 +23,7 @@ let processed = 0;
 let toProcess = 0;
 
 if (epDash.index_meta) {
-	if (epDash.index_meta.wpcli_sync) {
+	if (epDash.index_meta.method === 'cli') {
 		syncStatus = 'wpcli';
 		processed = epDash.index_meta.items_indexed;
 		toProcess = epDash.index_meta.total_items;
@@ -259,7 +259,6 @@ function cliSync() {
 					url: response.data?.url,
 				};
 
-				syncStatus = '';
 				updateSyncDash();
 
 				if (response.data?.indexing) {
