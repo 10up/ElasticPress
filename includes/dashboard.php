@@ -455,77 +455,14 @@ function action_admin_enqueue_dashboard_scripts() {
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
 		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard-script.min.js', [ 'jquery', 'wp-color-picker' ], EP_VERSION, true );
 
-		$data = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
+		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+				admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' ) :
+				admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 
-		$index_meta = \ElasticPress\Utils\get_indexing_status();
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
-			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
-			$last_sync            = get_site_option( 'ep_last_sync', false );
-		} else {
-			$wpcli_sync           = (bool) get_transient( 'ep_wpcli_sync' );
-			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
-			$last_sync            = get_option( 'ep_last_sync', false );
-		}
-
-		if ( ! empty( $wpcli_sync ) ) {
-			$index_meta['wpcli_sync'] = true;
-		}
-
-		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			$data['auto_start_index'] = true;
-		}
-
-		if ( ! empty( $index_meta ) ) {
-			$data['index_meta'] = $index_meta;
-		}
-
-		$indexables = Indexables::factory()->get_all();
-
-		/**
-		 * Filter indexable labels used in dashboard sync UI
-		 *
-		 * @since  3.0
-		 * @hook ep_dashboard_indexable_labels
-		 * @param  {array} $labels Current indexable lables
-		 * @return {array} New labels
-		 */
-		$data['sync_indexable_labels'] = apply_filters(
-			'ep_dashboard_indexable_labels',
-			[
-				'comment' => [
-					'singular' => esc_html__( 'Comment', 'elasticpress' ),
-					'plural'   => esc_html__( 'Comments', 'elasticpress' ),
-				],
-				'post'    => [
-					'singular' => esc_html__( 'Post', 'elasticpress' ),
-					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
-				],
-				'term'    => [
-					'singular' => esc_html__( 'Term', 'elasticpress' ),
-					'plural'   => esc_html__( 'Terms', 'elasticpress' ),
-				],
-				'user'    => [
-					'singular' => esc_html__( 'User', 'elasticpress' ),
-					'plural'   => esc_html__( 'Users', 'elasticpress' ),
-				],
-			]
+		$data = array(
+			'nonce'    => wp_create_nonce( 'ep_dashboard_nonce' ),
+			'sync_url' => $sync_url,
 		);
-
-		$data['install_sync']         = empty( $last_sync );
-		$data['install_complete_url'] = esc_url( $install_complete_url );
-		$data['sync_complete']        = esc_html__( 'Sync complete', 'elasticpress' );
-		$data['sync_paused']          = esc_html__( 'Sync paused', 'elasticpress' );
-		$data['sync_syncing']         = esc_html__( 'Syncing', 'elasticpress' );
-		$data['sync_initial']         = esc_html__( 'Starting sync', 'elasticpress' );
-		$data['sync_wpcli']           = esc_html__( 'WP CLI sync is occurring.', 'elasticpress' );
-		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
-		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
-		$data['sync_url']             = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
-			admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' ) :
-			admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
-
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 	}
 
