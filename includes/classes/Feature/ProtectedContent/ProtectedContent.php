@@ -103,7 +103,7 @@ class ProtectedContent extends Feature {
 	 * @since  2.1
 	 */
 	public function integrate( $query ) {
-		if ( ! Utils\is_integrated_request( [ 'admin' ] ) ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'admin' ] ) ) {
 			return;
 		}
 

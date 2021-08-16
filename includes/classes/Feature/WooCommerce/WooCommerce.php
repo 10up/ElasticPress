@@ -951,7 +951,7 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
-		if ( ! Utils\is_integrated_request() ) {
+		if ( ! Utils\is_integrated_request( $this->slug ) ) {
 			return false;
 		}
 

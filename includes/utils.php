@@ -539,27 +539,31 @@ function get_indexing_status() {
 }
 
 /**
- * Check if queries for the current request should be integrated with
+ * Check if queries for the current request are going to be integrated with
  * ElasticPress.
  *
- * Requests should not be integrated in the admin unless admin integration
- * is enabled via the `ep_admin_wp_query_integration` filter, and admin-ajax.php
- * requests should only be integrated when the `ep_ajax_wp_query_integration`
- * filter is enabled.
+ * Public requests and REST API requests are integrated by default, but admin
+ * requests will only be integrated in if the `ep_admin_wp_query_integration`
+ * filter returns `true`, and and admin-ajax.php requests will only be
+ * integrated if the `ep_ajax_wp_query_integration` filter returns `true`.
  *
- * If specific types of requests are passed as the $types argument, true will
- * only be returned if the current request type is passed. This allows only
- * certain types of requests to be checked for features that should not be
- * enabled for all request types.
+ * If specific types of requests are passed, true will only be returned if the
+ * current request also matches one of the passed types.
  *
- * @param string[] $types Which types of request to check. Any of 'admin',
- *                        'ajax', 'public', and 'rest'. Defaults to all types.
+ * This function is used by features to determine whether they should hook into
+ * the current request.
+ *
+ * @param string   $context Slug of the feature that is performing the check.
+ *                          Passed to the `ep_is_integrated_request` filter.
+ * @param string[] $types   Which types of request to check. Any of 'admin',
+ *                          'ajax', 'public', and 'rest'. Defaults to all
+ *                          types.
  * @return bool Whether the current request supports ElasticPress integration
  *              and is of a given type.
  *
  * @since 3.6.0
  */
-function is_integrated_request( $types = [] ) {
+function is_integrated_request( $context, $types = [] ) {
 	if ( empty( $types ) ) {
 		$types = [ 'admin', 'ajax', 'public', 'rest' ];
 	}
@@ -618,11 +622,14 @@ function is_integrated_request( $types = [] ) {
 	 * Filter whether the queries for the current request should be integrated.
 	 *
 	 * @hook ep_is_integrated_request
-	 * @param bool $is_integrated_request Whether queries for the request will be integrated.
-	 * @param bool $types Which requests types are being checked.
+	 * @param bool   $is_integrated Whether queries for the request will be
+	 *                              integrated.
+	 * @param string $context       Context for the original check. Usually the
+	 *                              slug of the feature doing the check.
+	 * @param array  $types         Which requests types are being checked.
 	 * @return bool Whether queries for the request will be integrated.
 	 *
-	 * @since 3.6.0
+	 * @since 3.6.2
 	 */
-	return apply_filters( 'ep_is_integrated_request', $is_integrated_request, $types );
+	return apply_filters( 'ep_is_integrated_request', $is_integrated, $context, $types );
 }

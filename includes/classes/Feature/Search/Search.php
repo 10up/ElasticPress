@@ -173,7 +173,7 @@ class Search extends Feature {
 		 */
 		$add_highlight_clause = apply_filters(
 			'ep_highlight_should_add_clause',
-			Utils\is_integrated_request( [ 'public' ] ),
+			Utils\is_integrated_request( 'highlighting', [ 'public' ] ),
 			$formatted_args,
 			$args
 		);
@@ -568,7 +568,7 @@ class Search extends Feature {
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
-		if ( ! Utils\is_integrated_request() ) {
+		if ( ! Utils\is_integrated_request( $this->slug ) ) {
 			return;
 		}
 
