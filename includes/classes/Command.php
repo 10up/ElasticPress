@@ -949,7 +949,18 @@ class Command extends WP_CLI_Command {
 	 * @subcommand get-indexing-status
 	 */
 	public function get_indexing_status() {
-		WP_CLI::line( wp_json_encode( Utils\get_indexing_status() ) );
+		$indexing_status = Utils\get_indexing_status();
+
+		if ( empty( $indexing_status ) ) {
+			$indexing_status = [
+				'indexing'      => false,
+				'method'        => 'none',
+				'items_indexed' => 0,
+				'total_items'   => -1,
+			];
+		}
+
+		WP_CLI::line( wp_json_encode( $indexing_status ) );
 	}
 
 	/**
