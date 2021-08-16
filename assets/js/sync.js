@@ -42,45 +42,13 @@ if (epDash.index_meta) {
 			syncStack = epDash.index_meta.sync_stack;
 		}
 
-		if (syncStack && syncStack.length) {
-			// We are mid sync
-			if (epDash.auto_start_index) {
-				syncStatus = 'sync';
-
-				history.pushState(
-					{},
-					document.title,
-					document.location.pathname + document.location.search.replace(/&do_sync/, ''),
-				);
-
-				updateSyncDash();
-				sync();
-			} else {
-				syncStatus = 'pause';
-				updateSyncDash();
-			}
-		} else if (toProcess === 0 && !epDash.index_meta.start) {
+		if ((!syncStack || !syncStack.length) && toProcess === 0 && !epDash.index_meta.start) {
 			// Sync finished
 			syncStatus = 'finished';
-			updateSyncDash();
 		} else {
-			// We are mid sync
-			if (epDash.auto_start_index) {
-				syncStatus = 'sync';
-
-				history.pushState(
-					{},
-					document.title,
-					document.location.pathname + document.location.search.replace(/&do_sync/, ''),
-				);
-
-				updateSyncDash();
-				sync();
-			} else {
-				syncStatus = 'pause';
-				updateSyncDash();
-			}
+			syncStatus = 'pause';
 		}
+		updateSyncDash();
 	}
 } else {
 	// Start a new sync automatically
@@ -97,7 +65,7 @@ if (epDash.index_meta) {
 			document.location.pathname + document.location.search.replace(/&do_sync/, ''),
 		);
 
-		sync();
+		sync(true);
 	}
 }
 
