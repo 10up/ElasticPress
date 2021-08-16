@@ -474,53 +474,18 @@ function get_indexing_status() {
 
 	$index_status = false;
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	$index_meta = IndexHelper::factory()->get_index_meta();
 
-		$dashboard_syncing = get_site_option( 'ep_index_meta', false );
-		$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
+	if ( ! empty( $index_meta ) ) {
+		$index_status = $index_meta;
 
-		if ( $wpcli_syncing ) {
-			$site = \get_site();
-			$url  = $site->domain . $site->path;
-		}
-	} else {
+		$index_status['indexing'] = true;
 
-		$dashboard_syncing = get_option( 'ep_index_meta', false );
-		$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
-
-	}
-
-	if ( $dashboard_syncing || $wpcli_syncing ) {
-
-		if ( $dashboard_syncing ) {
-
-			$index_status = $dashboard_syncing;
-
-			$should_interrupt_sync = filter_var(
-				get_transient( 'ep_sync_interrupted' ),
-				FILTER_VALIDATE_BOOLEAN
-			);
-
-			$index_status['should_interrupt_sync'] = $should_interrupt_sync;
-		} else {
-			$index_status = array(
-				'indexing'      => false,
-				'method'        => 'none',
-				'items_indexed' => 0,
-				'total_items'   => -1,
-				'url'           => $url,
-			);
-
-			$index_status['indexing'] = true;
-
-			$index_status['method'] = 'cli';
-
-			if ( is_array( $wpcli_syncing ) ) {
-
-				$index_status['items_indexed'] = $wpcli_syncing[0];
-				$index_status['total_items']   = $wpcli_syncing[1];
-				$index_status['slug']          = $wpcli_syncing[2];
-			}
+		if ( ! empty( $index_meta['current_sync_item'] ) ) {
+			$index_status['items_indexed'] = $index_meta['current_sync_item']['synced'];
+			$index_status['url']           = $index_meta['current_sync_item']['url'];
+			$index_status['total_items']   = $index_meta['current_sync_item']['total'];
+			$index_status['slug']          = $index_meta['current_sync_item']['indexable'];
 		}
 	}
 

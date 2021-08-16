@@ -883,34 +883,8 @@ class Command extends WP_CLI_Command {
 	 * @since 3.0
 	 */
 	private function index_occurring() {
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dashboard_syncing = get_site_option( 'ep_index_meta' );
-			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
-		} else {
-			$dashboard_syncing = get_option( 'ep_index_meta' );
-			$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
-		}
-
-		if ( $dashboard_syncing || $wpcli_syncing ) {
+		if ( Utils\is_indexing() ) {
 			WP_CLI::error( esc_html__( 'An index is already occuring. Try again later.', 'elasticpress' ) );
-		}
-	}
-
-	/**
-	 * Reset transient while indexing
-	 *
-	 * @param int    $items_indexed Count of items already indexed.
-	 * @param int    $total_items Total number of items to be indexed.
-	 * @param string $slug The slug of the indexable.
-	 *
-	 * @since 2.2
-	 */
-	private function reset_transient( $items_indexed, $total_items, $slug ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			set_site_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items, $slug ), $this->transient_expiration );
-		} else {
-			set_transient( 'ep_wpcli_sync', array( $items_indexed, $total_items, $slug ), $this->transient_expiration );
 		}
 	}
 
@@ -920,12 +894,12 @@ class Command extends WP_CLI_Command {
 	 * @since 3.1
 	 */
 	private function delete_transient() {
+		\ElasticPress\IndexHelper::factory()->clear_index_meta();
+
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_transient( 'ep_wpcli_sync' );
 			delete_site_transient( 'ep_cli_sync_progress' );
 			delete_site_transient( 'ep_wpcli_sync_interrupted' );
 		} else {
-			delete_transient( 'ep_wpcli_sync' );
 			delete_transient( 'ep_cli_sync_progress' );
 			delete_transient( 'ep_wpcli_sync_interrupted' );
 		}
@@ -948,8 +922,6 @@ class Command extends WP_CLI_Command {
 		 * @since 3.5.5
 		 */
 		do_action( 'ep_cli_before_clear_index' );
-
-		\ElasticPress\IndexHelper::factory()->clear_index_meta();
 
 		$this->delete_transient();
 
@@ -977,51 +949,7 @@ class Command extends WP_CLI_Command {
 	 * @subcommand get-indexing-status
 	 */
 	public function get_indexing_status() {
-
-		$index_status = array(
-			'indexing'      => false,
-			'method'        => 'none',
-			'items_indexed' => 0,
-			'total_items'   => -1,
-		);
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			$dashboard_syncing = get_site_option( 'ep_index_meta' );
-			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
-
-		} else {
-
-			$dashboard_syncing = get_option( 'ep_index_meta' );
-			$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
-
-		}
-
-		if ( $dashboard_syncing || $wpcli_syncing ) {
-
-			$index_status['indexing'] = true;
-
-			if ( $dashboard_syncing ) {
-
-				$index_status['method']        = 'web';
-				$index_status['items_indexed'] = $dashboard_syncing['offset'];
-				$index_status['total_items']   = $dashboard_syncing['found_items'];
-
-			} else {
-
-				$index_status['method'] = 'cli';
-
-				if ( is_array( $wpcli_syncing ) ) {
-
-					$index_status['items_indexed'] = $wpcli_syncing[0];
-					$index_status['total_items']   = $wpcli_syncing[1];
-
-				}
-			}
-		}
-
-		WP_CLI::line( wp_json_encode( $index_status ) );
-
+		WP_CLI::line( wp_json_encode( Utils\get_indexing_status() ) );
 	}
 
 	/**

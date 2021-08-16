@@ -92,6 +92,7 @@ class IndexHelper {
 		Utils\delete_option( 'ep_feature_auto_activated_sync' );
 
 		$this->index_meta = [
+			'method'        => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
 			'offset'        => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
 			'start'         => true,
 			'sync_stack'    => [],

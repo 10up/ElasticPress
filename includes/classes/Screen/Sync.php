@@ -76,7 +76,7 @@ class Sync {
 
 		\ElasticPress\IndexHelper::factory()->full_index(
 			[
-				'method'        => 'dashboard',
+				'method'        => 'web',
 				'put_mapping'   => ! empty( $_REQUEST['put_mapping'] ),
 				'output_method' => [ $this, 'index_output' ],
 				'show_errors'   => true,
@@ -125,17 +125,11 @@ class Sync {
 		$index_meta = Utils\get_indexing_status();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$wpcli_sync           = (bool) get_site_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
 			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
-			$wpcli_sync           = (bool) get_transient( 'ep_wpcli_sync' );
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
 			$last_sync            = get_option( 'ep_last_sync', false );
-		}
-
-		if ( ! empty( $wpcli_sync ) ) {
-			$index_meta['wpcli_sync'] = true;
 		}
 
 		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // phpcs:ignore WordPress.Security.NonceVerification
