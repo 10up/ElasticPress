@@ -71,8 +71,7 @@ $features.on('click', '.save-settings', function (event) {
 				}
 
 				if (response.data.reindex) {
-					// TODO: redirect the user to the sync page.
-					window.location = '';
+					window.location = epDash.sync_url;
 
 					/*
 					syncStatus = 'initialsync';

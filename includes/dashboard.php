@@ -522,6 +522,9 @@ function action_admin_enqueue_dashboard_scripts() {
 		$data['sync_wpcli']           = esc_html__( 'WP CLI sync is occurring.', 'elasticpress' );
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
+		$data['sync_url']             = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+			admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' ) :
+			admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
 	}
