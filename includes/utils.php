@@ -487,6 +487,12 @@ function get_indexing_status() {
 			$index_status['total_items']   = $index_meta['current_sync_item']['total'];
 			$index_status['slug']          = $index_meta['current_sync_item']['indexable'];
 		}
+
+		// Change method name for retrocompatibility.
+		// `dashboard` is used mainly because hooks names depend on that.
+		if ( ! empty( $index_status['method'] ) && 'dashboard' === $index_status['method'] ) {
+			$index_status['method'] = 'web';
+		}
 	}
 
 	return $index_status;
