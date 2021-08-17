@@ -331,9 +331,6 @@ class Widget extends WP_Widget {
 			$terms_by_slug[ $term->slug ] = $term;
 		}
 
-		ksort( $selected_terms );
-		ksort( $terms_by_slug );
-
 		foreach ( $selected_terms as $term_slug ) {
 			if ( ! empty( $terms_by_slug[ $term_slug ] ) ) {
 				$ordered_terms[ $term_slug ] = $terms_by_slug[ $term_slug ];
@@ -361,6 +358,12 @@ class Widget extends WP_Widget {
 						return $a->count < $b->count;
 					}
 				);
+			}
+		} else {
+			if ( 'asc' === $order ) {
+				krsort( $ordered_terms );
+			} else {
+				ksort( $ordered_terms );
 			}
 		}
 
