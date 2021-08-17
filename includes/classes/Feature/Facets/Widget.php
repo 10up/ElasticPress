@@ -217,7 +217,7 @@ class Widget extends WP_Widget {
 
 							$flat_ordered_terms[] = $top_of_tree;
 
-							$to_process = $this->order_by_selected( $top_of_tree->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] );
+							$to_process = $this->order_by_selected( $top_of_tree->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'], $order, $orderby );
 
 							while ( ! empty( $to_process ) ) {
 								$term = array_shift( $to_process );
@@ -225,7 +225,7 @@ class Widget extends WP_Widget {
 								$flat_ordered_terms[] = $term;
 
 								if ( ! empty( $term->children ) ) {
-									$to_process = array_merge( $this->order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] ), $to_process );
+									$to_process = array_merge( $this->order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] ), $to_process, $order, $orderby );
 								}
 							}
 
@@ -316,12 +316,14 @@ class Widget extends WP_Widget {
 	/**
 	 * Order terms putting selected at the top
 	 *
-	 * @param  array $terms Array of terms
-	 * @param  array $selected_terms Selected terms
+	 * @param  array  $terms Array of terms
+	 * @param  array  $selected_terms Selected terms
+	 * @param  string $order The order to sort from. Desc or Asc.
+	 * @param  string $orderby The orderby to sort items from.
 	 * @since  2.5
 	 * @return array
 	 */
-	private function order_by_selected( $terms, $selected_terms ) {
+	private function order_by_selected( $terms, $selected_terms, $order = false, $orderby = false ) {
 		$ordered_terms = [];
 		$terms_by_slug = [];
 
@@ -329,10 +331,7 @@ class Widget extends WP_Widget {
 			$terms_by_slug[ $term->slug ] = $term;
 		}
 
-		ksort( $selected_terms );
-		ksort( $terms_by_slug );
-
-		foreach ( $selected_terms as $term_slug => $nothing ) {
+		foreach ( $selected_terms as $term_slug ) {
 			if ( ! empty( $terms_by_slug[ $term_slug ] ) ) {
 				$ordered_terms[ $term_slug ] = $terms_by_slug[ $term_slug ];
 			}
@@ -341,6 +340,30 @@ class Widget extends WP_Widget {
 		foreach ( $terms_by_slug as $term_slug => $term ) {
 			if ( empty( $ordered_terms[ $term_slug ] ) ) {
 				$ordered_terms[ $term_slug ] = $terms_by_slug[ $term_slug ];
+			}
+		}
+
+		if ( 'count' === $orderby ) {
+			if ( 'asc' === $order ) {
+				uasort(
+					$ordered_terms,
+					function( $a, $b ) {
+						return $a->count > $b->count;
+					}
+				);
+			} else {
+				uasort(
+					$ordered_terms,
+					function( $a, $b ) {
+						return $a->count < $b->count;
+					}
+				);
+			}
+		} else {
+			if ( 'asc' === $order ) {
+				krsort( $ordered_terms );
+			} else {
+				ksort( $ordered_terms );
 			}
 		}
 
