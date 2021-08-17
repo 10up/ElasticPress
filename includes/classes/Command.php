@@ -28,14 +28,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Command extends WP_CLI_Command {
 
 	/**
-	 * Holds time until transient expires
-	 *
-	 * @since 2.1.1
-	 * @var  array
-	 */
-	private $transient_expiration = 900; // 15 min
-
-	/**
 	 * Holds temporary wp_actions when indexing with pagination
 	 *
 	 * @since 2.2
@@ -812,75 +804,6 @@ class Command extends WP_CLI_Command {
 			$user_index = $user_indexable->get_index_name();
 
 			$this->render_stats( $user_index, $body );
-		}
-	}
-
-	/**
-	 * Resets some values to reduce memory footprint.
-	 */
-	private function stop_the_insanity() {
-		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
-
-		$wpdb->queries = [];
-
-		if ( is_object( $wp_object_cache ) ) {
-			$wp_object_cache->group_ops      = [];
-			$wp_object_cache->stats          = [];
-			$wp_object_cache->memcache_debug = [];
-
-			// Make sure this is a public property, before trying to clear it.
-			try {
-				$cache_property = new \ReflectionProperty( $wp_object_cache, 'cache' );
-				if ( $cache_property->isPublic() ) {
-					$wp_object_cache->cache = [];
-				}
-				unset( $cache_property );
-			} catch ( \ReflectionException $e ) {
-				// No need to catch.
-			}
-
-			/*
-			 * In the case where we're not using an external object cache, we need to call flush on the default
-			 * WordPress object cache class to clear the values from the cache property
-			 */
-			if ( ! wp_using_ext_object_cache() ) {
-				wp_cache_flush();
-			}
-
-			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
-				call_user_func( [ $wp_object_cache, '__remoteset' ] );
-			}
-		}
-
-		// Prevent wp_actions from growing out of control.
-		// phpcs:disable
-		$wp_actions = $this->temporary_wp_actions;
-		// phpcs:enable
-
-		// WP_Query class adds filter get_term_metadata using its own instance
-		// what prevents WP_Query class from being destructed by PHP gc.
-		// if ( $q['update_post_term_cache'] ) {
-		// add_filter( 'get_term_metadata', array( $this, 'lazyload_term_meta' ), 10, 2 );
-		// }
-		// It's high memory consuming as WP_Query instance holds all query results inside itself
-		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
-		if ( isset( $wp_filter['get_term_metadata'] ) ) {
-			/*
-			 * WordPress 4.7 has a new Hook infrastructure, so we need to make sure
-			 * we're accessing the global array properly
-			 */
-			if ( class_exists( 'WP_Hook' ) && $wp_filter['get_term_metadata'] instanceof WP_Hook ) {
-				$filter_callbacks = &$wp_filter['get_term_metadata']->callbacks;
-			} else {
-				$filter_callbacks = &$wp_filter['get_term_metadata'];
-			}
-			if ( isset( $filter_callbacks[10] ) ) {
-				foreach ( $filter_callbacks[10] as $hook => $content ) {
-					if ( preg_match( '#^[0-9a-f]{32}lazyload_term_meta$#', $hook ) ) {
-						unset( $filter_callbacks[10][ $hook ] );
-					}
-				}
-			}
 		}
 	}
 
