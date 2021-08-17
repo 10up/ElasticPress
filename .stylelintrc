@@ -1,0 +1,11 @@
+{
+  "extends": [
+    "@10up/stylelint-config"
+  ],
+  "rules": {
+    "sh-waqar/declaration-use-variable": null,
+    "font-family-no-missing-generic-family-keyword": null,
+    "declaration-property-unit-allowed-list": null
+  }
+
+}
