@@ -44,6 +44,26 @@ class Command extends WP_CLI_Command {
 	private $temporary_wp_actions = [];
 
 	/**
+	 * Holds CLI command position args.
+	 *
+	 * Useful to share arguments to methods called by hooks.
+	 *
+	 * @since 3.7.0
+	 * @var array
+	 */
+	protected $args = [];
+
+	/**
+	 * Holds CLI command associative args
+	 *
+	 * Useful to share arguments to methods called by hooks.
+	 *
+	 * @since 3.7.0
+	 * @var array
+	 */
+	protected $assoc_args = [];
+
+	/**
 	 * Create Command
 	 *
 	 * @since  3.5.2
@@ -587,7 +607,8 @@ class Command extends WP_CLI_Command {
 
 		timer_start();
 
-		add_action( 'ep_cli_put_mapping', [ $this, 'stop_on_failed_mapping' ], 10, 4 );
+		add_action( 'ep_sync_put_mapping', [ $this, 'stop_on_failed_mapping' ], 10, 4 );
+		add_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
 		add_action( 'ep_index_batch_new_attempt', [ $this, 'should_interrupt_sync' ] );
 
 		$no_bulk = ! empty( $assoc_args['nobulk'] );
@@ -638,7 +659,8 @@ class Command extends WP_CLI_Command {
 
 		\ElasticPress\IndexHelper::factory()->full_index( $index_args );
 
-		remove_action( 'ep_cli_put_mapping', [ $this, 'stop_on_failed_mapping' ] );
+		remove_action( 'ep_sync_put_mapping', [ $this, 'stop_on_failed_mapping' ] );
+		remove_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
 		remove_action( 'ep_index_batch_new_attempt', [ $this, 'should_interrupt_sync' ] );
 
 		$index_time = timer_stop();
@@ -1268,5 +1290,26 @@ class Command extends WP_CLI_Command {
 
 			exit( 1 );
 		}
+	}
+
+	/**
+	 * Ties the `ep_cli_put_mapping` action to `ep_sync_put_mapping`.
+	 *
+	 * @since 3.7.0
+	 *
+	 * @param array     $index_meta Index meta information
+	 * @param Indexable $indexable  Indexable object
+	 * @return void
+	 */
+	public function call_ep_cli_put_mapping( $index_meta, $indexable ) {
+		/**
+		 * Fires after CLI put mapping
+		 *
+		 * @hook ep_cli_put_mapping
+		 * @param  {Indexable} $indexable Indexable involved in mapping
+		 * @param  {array} $args CLI command position args
+		 * @param {array} $assoc_args CLI command associative args
+		 */
+		do_action( 'ep_cli_put_mapping', $indexable, $this->args, $this->assoc_args );
 	}
 }

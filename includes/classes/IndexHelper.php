@@ -2,7 +2,7 @@
 /**
  * Index Helper
  *
- * @since  3.6.0
+ * @since  3.7.0
  * @package elasticpress
  */
 
@@ -13,13 +13,13 @@ use ElasticPress\Utils as Utils;
 /**
  * Index Helper Class.
  *
- * @since 3.6.0
+ * @since 3.7.0
  */
 class IndexHelper {
 	/**
 	 * Array to hold all the index sync information.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @var array|bool
 	 */
 	protected $index_meta = false;
@@ -34,7 +34,7 @@ class IndexHelper {
 	/**
 	 * Queried objects of the current sync item in the stack.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @var array
 	 */
 	protected $current_query = [];
@@ -42,7 +42,7 @@ class IndexHelper {
 	/**
 	 * Holds temporary wp_actions when indexing with pagination
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @var  array
 	 */
 	private $temporary_wp_actions = [];
@@ -50,7 +50,7 @@ class IndexHelper {
 	/**
 	 * Initialize class.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	public function setup() {
 		$this->index_meta = Utils\get_indexing_status();
@@ -59,7 +59,7 @@ class IndexHelper {
 	/**
 	 * Method to index everything.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @param array $args Arguments.
 	 */
 	public function full_index( $args ) {
@@ -84,7 +84,7 @@ class IndexHelper {
 	/**
 	 * Method to stack everything that needs to be indexed.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	protected function build_index_meta() {
 		Utils\update_option( 'ep_last_sync', time() );
@@ -157,11 +157,23 @@ class IndexHelper {
 		/**
 		 * Fires at start of new index
 		 *
-		 * @since 2.1
-		 * @hook ep_dashboard_start_index
+		 * @since 3.7.0
+		 *
+		 * @hook ep_sync_start_index
 		 * @param  {array} $index_meta Index meta information
 		 */
-		do_action( 'ep_dashboard_start_index', $this->index_meta );
+		do_action( 'ep_sync_start_index', $this->index_meta );
+
+		/**
+		 * Fires at start of new index
+		 *
+		 * @since 2.1 Previously called only as 'ep_dashboard_start_index'
+		 * @since 3.7.0 Made available for all methods
+		 *
+		 * @hook ep_{$index_method}_start_index
+		 * @param  {array} $index_meta Index meta information
+		 */
+		do_action( "ep_{$this->args['method']}_start_index", $this->index_meta );
 
 		/**
 		 * Filter index meta during dashboard sync
@@ -177,7 +189,7 @@ class IndexHelper {
 	/**
 	 * Given an array of indexables, check if they are part of the indexable args or not.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @param array $indexables Indexable slugs.
 	 * @return array
 	 */
@@ -193,7 +205,7 @@ class IndexHelper {
 	/**
 	 * Check if there are still items to be processed in the stack.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @return boolean
 	 */
 	protected function has_items_to_be_processed() {
@@ -203,7 +215,7 @@ class IndexHelper {
 	/**
 	 * Method to process the next item in the stack.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	protected function process_sync_item() {
 		if ( empty( $this->index_meta['current_sync_item'] ) ) {
@@ -264,7 +276,7 @@ class IndexHelper {
 	/**
 	 * Delete an index and recreate it sending the mapping.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	protected function put_mapping() {
 		$this->index_meta['current_sync_item']['put_mapping'] = false;
@@ -288,18 +300,32 @@ class IndexHelper {
 		$result = $indexable->put_mapping();
 
 		/**
-		 * Fires after dashboard put mapping is completed
+		 * Fires after sync put mapping is completed
 		 *
-		 * @since 2.1   Previously called only as 'ep_dashboard_put_mapping'
-		 * @since 3.6.0 Added $indexable and $result
+		 * @since 3.7.0
 		 *
-		 * @hook ep_{$index_method}_put_mapping
+		 * @hook ep_sync_put_mapping
 		 * @param  {array} $index_meta Index meta information
-		 * @param  {string} $status Current indexing status
 		 * @param  {Indexable} $indexable Indexable object
 		 * @param  {bool} $result Whether the request was successful or not
 		 */
-		do_action( "ep_{$this->args['method']}_put_mapping", $this->index_meta, 'start', $indexable, $result );
+		do_action( 'ep_sync_put_mapping', $this->index_meta, $indexable, $result );
+
+		/**
+		 * Fires after dashboard put mapping is completed
+		 *
+		 * In this particular case, developer aiming a specific method should rely on
+		 * `$index_meta['method']`, as historically `ep_dashboard_put_mapping` and
+		 * `ep_cli_put_mapping` receive different parameters.
+		 *
+		 * @see Command::call_ep_cli_put_mapping()
+		 *
+		 * @since  2.1
+		 * @hook ep_dashboard_put_mapping
+		 * @param  {array} $index_meta Index meta information
+		 * @param  {string} $status Current indexing status
+		 */
+		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start' );
 
 		if ( $result ) {
 			$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
@@ -311,7 +337,7 @@ class IndexHelper {
 	/**
 	 * Index documents of an index.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	protected function index_objects() {
 		global $wp_actions;
@@ -339,20 +365,32 @@ class IndexHelper {
 	/**
 	 * Query the next objects to be indexed.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @return array
 	 */
 	protected function get_objects_to_index() {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		/**
-		 * Fires right before entries are about to be indexed in a dashboard sync
+		 * Fires right before entries are about to be indexed.
 		 *
-		 * @since  2.1
-		 * @hook ep_pre_dashboard_index
+		 * @since 3.7.0
+		 *
+		 * @hook ep_pre_sync_index
 		 * @param  {array} $args Args to query content with
 		 */
-		do_action( 'ep_pre_dashboard_index', $this->index_meta, ( $this->index_meta['start'] ? 'start' : false ), $indexable );
+		do_action( 'ep_pre_sync_index', $this->index_meta, ( $this->index_meta['start'] ? 'start' : false ), $indexable );
+
+		/**
+		 * Fires right before entries are about to be indexed.
+		 *
+		 * @since 2.1 Previously called only as 'ep_pre_dashboard_index'
+		 * @since 3.7.0 Made available for all methods
+		 *
+		 * @hook ep_pre_{$index_method}_index
+		 * @param  {array} $args Args to query content with
+		 */
+		do_action( "ep_pre_{$this->args['method']}_index", $this->index_meta, ( $this->index_meta['start'] ? 'start' : false ), $indexable );
 
 		/**
 		 * Filter number of items to index per cycle in the dashboard
@@ -412,12 +450,24 @@ class IndexHelper {
 		/**
 		 * Filters arguments used to query for content for each indexable
 		 *
-		 * @since  3.0
-		 * @hook ep_dashboard_index_args
+		 * @since 3.7.0
+		 *
+		 * @hook ep_sync_index_args
 		 * @param  {array} $args Args to query content with
 		 * @return  {array} New query args
 		 */
-		$args = apply_filters( 'ep_dashboard_index_args', $args );
+		$args = apply_filters( 'ep_sync_index_args', $args );
+
+		/**
+		 * Filters arguments used to query for content for each indexable
+		 *
+		 * @since  3.0 Previously called only as 'ep_dashboard_index_args'
+		 *
+		 * @hook ep_{$index_method}_index_args
+		 * @param  {array} $args Args to query content with
+		 * @return  {array} New query args
+		 */
+		$args = apply_filters( "ep_{$this->args['method']}_index_args", $args );
 
 		return $indexable->query_db( $args );
 	}
@@ -425,7 +475,7 @@ class IndexHelper {
 	/**
 	 * Index the next batch of documents.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	protected function index_next_batch() {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
@@ -433,7 +483,7 @@ class IndexHelper {
 		/**
 		 * Fires right before entries are about to be indexed in a dashboard sync
 		 *
-		 * @since  3.6.0
+		 * @since  3.7.0
 		 * @hook ep_pre_index_batch
 		 * @param  {array} $index_meta Index meta
 		 */
@@ -484,12 +534,27 @@ class IndexHelper {
 					/**
 					 * Fires after one by one indexing an object
 					 *
-					 * @hook ep_cli_object_index
+					 * @since 3.7.0
+					 *
+					 * @hook ep_sync_object_index
 					 * @param  {int} $object_id Object to index
 					 * @param {Indexable} $indexable Current indexable
 					 * @param {mixed} $return Return of the index() call
 					 */
-					do_action( 'ep_cli_object_index', $object_id, $indexable, $return );
+					do_action( 'ep_sync_object_index', $object_id, $indexable, $return );
+
+					/**
+					 * Fires after one by one indexing an object
+					 *
+					 * @since 3.0 Previously called only as 'ep_cli_object_index'
+					 * @since 3.7.0 Made available for all methods
+					 *
+					 * @hook ep_{$index_method}_object_index
+					 * @param  {int} $object_id Object to index
+					 * @param {Indexable} $indexable Current indexable
+					 * @param {mixed} $return Return of the index() call
+					 */
+					do_action( "ep_{$this->args['method']}_object_index", $object_id, $indexable, $return );
 
 					if ( is_object( $return ) && ! empty( $return->error ) ) {
 						if ( ! empty( $return->error->reason ) ) {
@@ -562,7 +627,7 @@ class IndexHelper {
 	/**
 	 * Make the necessary clean up after a sync item of the stack was completely done.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @return void
 	 */
 	protected function index_cleanup() {
@@ -630,7 +695,7 @@ class IndexHelper {
 	/**
 	 * Make the necessary clean up after everything was sync'd.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	protected function full_index_complete() {
 		$totals = $this->index_meta['totals'];
@@ -643,12 +708,21 @@ class IndexHelper {
 		Utils\update_option( 'ep_last_index', $totals, false );
 
 		/**
-		 * Fires after executing a reindex via Dashboard
+		 * Fires after executing a reindex
 		 *
-		 * @since  3.5.5
-		 * @hook ep_after_dashboard_index
+		 * @since 3.7.0
+		 * @hook ep_after_sync_index
 		 */
-		do_action( 'ep_after_dashboard_index' );
+		do_action( 'ep_after_sync_index' );
+
+		/**
+		 * Fires after executing a reindex
+		 *
+		 * @since 3.5.5 Previously called only as 'ep_after_dashboard_index'
+		 * @since 3.7.0 Made available for all methods
+		 * @hook ep_after_{$index_method}_index
+		 */
+		do_action( "ep_after_{$this->args['method']}_index" );
 
 		$this->output_success( esc_html__( 'Sync complete', 'elasticpress' ) );
 	}
@@ -656,7 +730,7 @@ class IndexHelper {
 	/**
 	 * Check if network aliases need to be created.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @return boolean
 	 */
 	protected function has_network_alias_to_be_created() {
@@ -666,7 +740,7 @@ class IndexHelper {
 	/**
 	 * Create the next network alias.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	protected function create_network_alias() {
 		$indexes   = [];
@@ -704,7 +778,7 @@ class IndexHelper {
 	/**
 	 * Output a message.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @param string $message_text Message to be outputted
 	 * @param string $type         Type of message
 	 * @param string $context      Context of the output
@@ -731,7 +805,7 @@ class IndexHelper {
 	/**
 	 * Wrapper to the `output` method with a success message.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @param string $message Message string.
 	 * @param string $context Context of the output.
 	 */
@@ -742,7 +816,7 @@ class IndexHelper {
 	/**
 	 * Wrapper to the `output` method with an error message.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @param string $message Message string.
 	 * @param string $context Context of the output.
 	 */
@@ -753,7 +827,7 @@ class IndexHelper {
 	/**
 	 * Output index errors of failed objects.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 * @param array $failed_objects Failed objects
 	 */
 	protected function output_index_errors( $failed_objects ) {
@@ -782,7 +856,7 @@ class IndexHelper {
 			/**
 			 * Filter if a fully reindex is being done to an indexable
 			 *
-			 * @since  3.6.0
+			 * @since  3.7.0
 			 * @hook ep_is_full_reindexing_{$indexable_slug}
 			 * @param  {bool} $is_full_reindexing If is fully reindexing
 			 * @return  {bool} New value
@@ -924,7 +998,7 @@ class IndexHelper {
 	/**
 	 * Utilitary function to delete the index meta option.
 	 *
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	public function clear_index_meta() {
 		Utils\delete_option( 'ep_index_meta', false );
@@ -934,7 +1008,7 @@ class IndexHelper {
 	 * Utilitary function to get the index meta option.
 	 *
 	 * @return array
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	public function get_index_meta() {
 		return Utils\get_option( 'ep_index_meta', [] );
@@ -944,7 +1018,7 @@ class IndexHelper {
 	 * Return singleton instance of class.
 	 *
 	 * @return self
-	 * @since 3.6.0
+	 * @since 3.7.0
 	 */
 	public static function factory() {
 		static $instance = false;
