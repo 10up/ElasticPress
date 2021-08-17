@@ -126,7 +126,7 @@ for i in $(seq 1 $ATTEMPTS); do
     TOTAL_ERRORS_COUNT=$(echo "${SUMMARY}" | grep '✘' | wc -l )
 
     # Get the Page Crashed errors
-    PAGE_CRASHED_ERRORS=$(echo "${SUMMARY}" | grep -Pzo '✘(.|\n)*?Page crashed' | tr '\0' '\n' | grep '✘' )
+    PAGE_CRASHED_ERRORS=$(echo "${SUMMARY}" | grep -Pzo '✘([^✘☢])*?Page crashed' | tr '\0' '\n' | grep '✘' )
     PAGE_CRASHED_ERRORS_COUNT=$(echo "${PAGE_CRASHED_ERRORS}" | wc -l )
 
     if [ $TOTAL_ERRORS_COUNT -gt $PAGE_CRASHED_ERRORS_COUNT ]; then
