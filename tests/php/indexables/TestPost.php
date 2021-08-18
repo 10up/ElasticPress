@@ -9,6 +9,7 @@ namespace ElasticPressTest;
 
 use ElasticPress;
 use ElasticPress\Indexables as Indexables;
+use function ElasticPressTest\Functions\create_and_sync_term;
 
 /**
  * Test post indexable class
@@ -6195,5 +6196,43 @@ class TestPost extends BaseTestCase {
 		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
 		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
 		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
+	}
+
+	/**
+	 * Test when we perform a Tax Query with Id's for category taxonomy they are used instead of a cat slug.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testCatIdTaxQuery() {
+		$term = Functions\create_and_sync_term( 'test', 'Test category', 'The testing category', 'category' );
+
+		$args = [
+			'post_type'    => 'post',
+			'post_status'  => 'publish',
+			'ep_integrate' => true,
+			'tax_query'    => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( $term ),
+					'field'    => 'term_id',
+					'operator' => 'in',
+				)
+			)
+		];
+
+		$query = new \WP_Query( $args );
+
+		$post  = new \ElasticPress\Indexable\Post\Post();
+
+		$args  = $post->format_args(
+			[
+				'cat_name'       => 'test',
+			],
+			$query
+		);
+
+		$this->assertContains( $term, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['terms.category.term_id'] );
+		$this->assertNotContains( 'test', $args['post_filter']['bool']['must'][0]['bool']['must'][1]['terms']['terms.category.slug'] );
 	}
 }
