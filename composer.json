@@ -33,7 +33,8 @@
     "10up/phpcs-composer": "dev-master",
     "wpackagist-plugin/woocommerce":"*",
     "phpunit/phpunit": "^7",
-    "10up/wpacceptance": "dev-master"
+    "10up/wpacceptance": "dev-master",
+    "phpcompatibility/phpcompatibility-wp": "*"
   },
   "scripts": {
     "lint": "phpcs elasticpress.php includes",
