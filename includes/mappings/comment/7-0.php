@@ -112,7 +112,7 @@ return [
 					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
-					'type'     => 'edgeNGram',
+					'type'     => 'edge_ngram',
 				],
 			],
 			'normalizer' => [
@@ -131,7 +131,6 @@ return [
 					'path_match' => 'meta.*',
 					'mapping'    => [
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => [
 							'value'    => [
 								'type'   => 'text',
