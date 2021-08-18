@@ -361,9 +361,9 @@ class Widget extends WP_Widget {
 			}
 		} else {
 			if ( 'asc' === $order ) {
-				krsort( $ordered_terms );
-			} else {
 				ksort( $ordered_terms );
+			} else {
+				krsort( $ordered_terms );
 			}
 		}
 
