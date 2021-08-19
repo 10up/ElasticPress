@@ -6199,40 +6199,36 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test when we perform a Tax Query with Id's for category taxonomy they are used instead of a cat slug.
+	 * Test when we perform a Tax Query with Id's for the category taxonomy cat id is used and cat slug is not.
 	 *
 	 * @return void
 	 * @group  post
 	 */
-	public function testCatIdTaxQuery() {
-		$term = Functions\create_and_sync_term( 'test', 'Test category', 'The testing category', 'category' );
+	public function testTaxQueryWithCategoryId() {
+		$cat = wp_create_category( 'test category' );
 
-		$args = [
-			'post_type'    => 'post',
-			'post_status'  => 'publish',
-			'ep_integrate' => true,
-			'tax_query'    => array(
-				array(
-					'taxonomy' => 'category',
-					'terms'    => array( $term ),
-					'field'    => 'term_id',
-					'operator' => 'in',
-				)
-			)
-		];
-
-		$query = new \WP_Query( $args );
+		$query = new \WP_Query();
 
 		$post  = new \ElasticPress\Indexable\Post\Post();
 
 		$args  = $post->format_args(
 			[
-				'cat_name'       => 'test',
+				'post_type'    => 'test',
+				'post_status'  => 'draft',
+				'ep_integrate' => true,
+				'tax_query'    => array(
+					array(
+						'taxonomy' => 'category',
+						'terms'    => array( 16 ),
+						'field'    => 'term_id',
+						'operator' => 'in',
+					)
+				)
 			],
 			$query
 		);
 
-		$this->assertContains( $term, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['terms.category.term_id'] );
-		$this->assertNotContains( 'test', $args['post_filter']['bool']['must'][0]['bool']['must'][1]['terms']['terms.category.slug'] );
+		$this->assertContains( $cat, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['terms.category.term_id'] );
+		$this->assertArrayNotHasKey( '1', $args['post_filter']['bool']['must'][0]['bool']['must'] );
 	}
 }
