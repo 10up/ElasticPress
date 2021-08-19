@@ -22,8 +22,8 @@ registerBlockType('elasticpress/related-posts', {
 	/**
 	 * Handle edit
 	 *
-	 * @param {object} props Component properties
-	 * @returns {*}
+	 * @param {Object} props Component properties
+	 * @return {Object} <Edit {...props} />
 	 */
 	edit(props) {
 		return <Edit {...props} />;
@@ -32,7 +32,7 @@ registerBlockType('elasticpress/related-posts', {
 	/**
 	 * Handle save
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	save() {
 		return null;
