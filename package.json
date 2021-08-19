@@ -4,19 +4,9 @@
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
-    "10up-toolkit": "^1.0.10",
-    "@10up/babel-preset-default": "^1.2.0",
-    "@10up/eslint-config": "^2.3.6",
-    "@babel/plugin-proposal-class-properties": "^7.13.0",
-    "eslint-plugin-react": "^7.22.0",
-    "eslint-plugin-react-hooks": "^1.7.0",
+    "10up-toolkit": "^1.0.11",
     "jsdoc": "^3.6.7",
-    "react": "^16.14.0",
-    "react-beautiful-dnd": "^11.0.5",
-    "react-dom": "^16.14.0",
-    "react-select": "^3.2.0",
     "terser-webpack-plugin": "^5.1.4",
-    "uuid": "^8.3.2",
     "wp-hookdoc": "^0.2.0"
   },
   "scripts": {
@@ -72,7 +62,11 @@
     "chart.js": "^2.9.4",
     "element-closest": "^3.0.2",
     "promise-polyfill": "^8.2.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "react-select": "^3.2.0",
     "react-beautiful-dnd": "^11.0.5",
-    "whatwg-fetch": "^3.6.2"
+    "whatwg-fetch": "^3.6.2",
+    "uuid": "^8.3.2"
   }
 }
