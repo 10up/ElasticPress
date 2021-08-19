@@ -1,8 +1,5 @@
 {
   "presets": [
     "@10up/babel-preset-default"
-  ],
-  "plugins": [
-    "@babel/plugin-proposal-class-properties"
   ]
 }
