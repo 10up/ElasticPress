@@ -6229,7 +6229,7 @@ class TestPost extends BaseTestCase {
 		);
 
 		$this->assertCount( 1, $args['post_filter']['bool']['must'][0]['bool']['must'] );
-		$this->assertArrayHasKey( 'terms.category.term_id', $args['post_filter']['bool']['must'][0]['bool']['must'][0][terms] );
+		$this->assertArrayHasKey( 'terms.category.term_id', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms'] );
 		$this->assertContains( $cat, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['terms.category.term_id'] );
 	}
 }
