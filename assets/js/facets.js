@@ -32,11 +32,12 @@ const facets = document.querySelectorAll('.widget_ep-facet');
 
 facets.forEach((facet) => {
 	const facetSearchInput = facet.querySelector('.facet-search');
-	const facetTerms = facet.querySelector('.terms');
 
 	if (!facetSearchInput) {
 		return;
 	}
+
+	const facetTerms = facet.querySelector('.terms');
 
 	facet.querySelector('.facet-search').addEventListener(
 		'keyup',

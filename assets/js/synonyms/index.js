@@ -7,7 +7,7 @@ const SELECTOR = '#synonym-root';
 /**
  * Get Root.
  *
- * @returns {string}
+ * @return {Element|false} Root element
  */
 const getRoot = () => document.querySelector(SELECTOR) || false;
 
