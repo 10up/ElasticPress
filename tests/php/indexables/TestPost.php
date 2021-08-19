@@ -6209,17 +6209,17 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query();
 
-		$post  = new \ElasticPress\Indexable\Post\Post();
+		$post = new \ElasticPress\Indexable\Post\Post();
 
-		$args  = $post->format_args(
+		$args = $post->format_args(
 			[
-				'post_type'    => 'test',
-				'post_status'  => 'draft',
+				'post_type'    => 'post',
+				'post_status'  => 'public',
 				'ep_integrate' => true,
 				'tax_query'    => array(
 					array(
 						'taxonomy' => 'category',
-						'terms'    => array( 16 ),
+						'terms'    => array( $cat ),
 						'field'    => 'term_id',
 						'operator' => 'in',
 					)
