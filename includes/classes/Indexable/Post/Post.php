@@ -1000,7 +1000,8 @@ class Post extends Indexable {
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
 		foreach ( $taxonomies as $tax_slug => $tax ) {
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) ) {
+			// Exclude the category taxonomy from this check if we are performing a Tax Query as category_name will be set by core
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && 'category' !== $tax->name ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
 					'terms'    => (array) $args[ $tax->query_var ],
