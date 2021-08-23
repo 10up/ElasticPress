@@ -45,18 +45,12 @@ class ProtectedContent extends Feature {
 	public function setup() {
 		add_filter( 'ep_indexable_post_status', [ $this, 'get_statuses' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ], 10, 1 );
+		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
+		add_action( 'pre_get_posts', [ $this, 'integrate' ] );
 
 		if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
 			add_filter( 'ep_indexable_comment_status', [ $this, 'get_comment_statuses' ] );
-		}
-
-		if ( is_admin() ) {
-			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
-
-			if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
-				add_action( 'pre_get_comments', [ $this, 'integrate_comments_query' ] );
-			}
+			add_action( 'pre_get_comments', [ $this, 'integrate_comments_query' ] );
 		}
 	}
 
@@ -114,6 +108,9 @@ class ProtectedContent extends Feature {
 	 * @since  2.1
 	 */
 	public function integrate( $query ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'admin' ] ) ) {
+			return;
+		}
 
 		// Lets make sure this doesn't interfere with the CLI
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -190,6 +187,10 @@ class ProtectedContent extends Feature {
 	 * @since  3.6.0
 	 */
 	public function integrate_comments_query( $comment_query ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'admin' ] ) ) {
+			return;
+		}
+
 		// Lets make sure this doesn't interfere with the CLI
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			return;
@@ -289,4 +290,3 @@ class ProtectedContent extends Feature {
 		return $status;
 	}
 }
-

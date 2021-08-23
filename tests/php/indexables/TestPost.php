@@ -60,6 +60,11 @@ class TestPost extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
+		// Unset current_screen so is_admin() is reset.
+		if ( isset( $GLOBALS['current_screen'] ) ) {
+			unset( $GLOBALS['current_screen'] );
+		}
+
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
