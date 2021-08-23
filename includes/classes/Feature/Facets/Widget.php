@@ -224,7 +224,7 @@ class Widget extends WP_Widget {
 								$flat_ordered_terms[] = $term;
 
 								if ( ! empty( $term->children ) ) {
-									$to_process = array_merge( $this->order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] ), $to_process, $order, $orderby );
+									$to_process = array_merge( $this->order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'], $order, $orderby ), $to_process );
 								}
 							}
 
