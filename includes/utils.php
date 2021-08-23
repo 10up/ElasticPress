@@ -611,7 +611,7 @@ function is_integrated_request( $context, $types = [] ) {
 	/**
 	 * Is the current request any of the supported requests.
 	 */
-	$is_integrated_request = (
+	$is_integrated = (
 		$is_integrated_admin_request ||
 		$is_integrated_ajax_request ||
 		$is_integrated_public_request ||
