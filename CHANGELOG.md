@@ -34,6 +34,7 @@ This version bumps official support to PHP 5.6+. Minimum PHP version for Elastic
 * Prevents a post from being attempted to delete twice. Props [@pauarge](https://github.com/pauarge) via [#2314](https://github.com/10up/ElasticPress/pull/2314)
 * Indexing button on Health screen. Props [@Rahmon](https://github.com/Rahmon) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2312](https://github.com/10up/ElasticPress/pull/2312)
 * WP Acceptance Tests. Props [@felipeelia](https://github.com/felipeelia) via [#2281](https://github.com/10up/ElasticPress/pull/2281) and [#2313](https://github.com/10up/ElasticPress/pull/2313)
+* Facets: Children of selected terms ordered by count. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@Rahmon](https://github.com/Rahmon) via [#2288](https://github.com/10up/ElasticPress/pull/2288)
 
 ### Security
 * Bumps path-parse from 1.0.6 to 1.0.7. Props [@dependabot](https://github.com/dependabot) via [#2302](https://github.com/10up/ElasticPress/pull/2302)
