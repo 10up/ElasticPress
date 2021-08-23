@@ -1,6 +1,6 @@
 {
   "name": "elasticpress",
-  "version": "3.6.1",
+  "version": "3.6.2",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
