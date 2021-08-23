@@ -56,6 +56,7 @@ Added:
 * Validate mapping currently in index against expected version. Props [@tott](https://github.com/tott) and [@oscarssanchez](https://github.com/oscarssanchez) via [#1472](https://github.com/10up/ElasticPress/pull/1472)
 * `ep_default_analyzer_filters` filter to adjust default analyzer filters. Props [@pschoffer](https://github.com/pschoffer) via [#2282](https://github.com/10up/ElasticPress/pull/2282)
 * `title` and `aria-labels` attributes to each icon hyperlink in the header toolbar. Props [@claytoncollie](https://github.com/claytoncollie) via [#2304](https://github.com/10up/ElasticPress/pull/2304)
+* `Utils\is_integrated_request()` function to centralize checks for admin, AJAX, and REST API requests. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#2267](https://github.com/10up/ElasticPress/pull/2267)
 
 Changed:
 * Use 10up Toolkit to build assets. Props [@Rahmon](https://github.com/Rahmon) via [#2279](https://github.com/10up/ElasticPress/pull/2279)
