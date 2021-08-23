@@ -24,7 +24,7 @@ ElasticPress has an in depth documentation site. [Visit the docs ☞](http://10u
 
 * [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.9**
 * [WordPress](http://wordpress.org) 3.7.1+
-* [PHP](https://php.net/) 5.4+
+* [PHP](https://php.net/) 5.6+
 
 ## React Components
 
