@@ -14,6 +14,8 @@ The following WP-CLI commands are supported by ElasticPress:
     * `--post-type` let's you specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma.
     * `--include` Choose which object IDs to include in the index.
     * `--post-ids` Choose which post_ids to include when indexing the Posts Indexable (deprecated).
+    * `--upper-limit-object-id` Upper limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 45.
+    * `--lower-limit-object-id` Lower limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 30.
 
 * `wp elasticpress delete-index [--network-wide]`
 

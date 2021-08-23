@@ -111,6 +111,8 @@ abstract class Indexable {
 			$index_name = $prefix . '-' . $index_name;
 		}
 
+		$index_name = strtolower( $index_name );
+
 		/**
 		 * Filter index name
 		 *
@@ -204,6 +206,17 @@ abstract class Indexable {
 	 */
 	public function get( $object_id ) {
 		return Elasticsearch::factory()->get_document( $this->get_index_name(), $this->slug, $object_id );
+	}
+
+	/**
+	 * Get objects within the indexable
+	 *
+	 * @param  int $object_ids Array of object ids to get.
+	 * @since  3.6.0
+	 * @return boolean|array
+	 */
+	public function multi_get( $object_ids ) {
+		return Elasticsearch::factory()->get_documents( $this->get_index_name(), $this->slug, $object_ids );
 	}
 
 	/**
@@ -466,7 +479,7 @@ abstract class Indexable {
 
 		try {
 			// is this is a recognizable date format?
-			$new_date = new \DateTime( $meta_value, \wp_timezone() );
+			$new_date  = new \DateTime( $meta_value, \wp_timezone() );
 			$timestamp = $new_date->getTimestamp();
 
 			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes

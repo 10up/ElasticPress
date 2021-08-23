@@ -17,10 +17,6 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
-		}
-
 		$this->activateDocumentFeature( $I );
 
 		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
@@ -44,10 +40,6 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
-		}
-
 		$this->maybeSync( $I );
 
 		$this->activateDocumentFeature( $I );
@@ -67,13 +59,9 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
-		}
-
 		$this->activateDocumentFeature( $I );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$this->uploadFile( $I, dirname( __DIR__ ) . '/test-docs/pdf-file.pdf' );
 

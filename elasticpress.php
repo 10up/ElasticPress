@@ -1,13 +1,17 @@
 <?php
 /**
- * Plugin Name: ElasticPress
- * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.5.6
- * Author:      10up
- * Author URI:  http://10up.com
- * License:     GPLv2 or later
- * Text Domain: elasticpress
- * Domain Path: /lang/
+ * Plugin Name:       ElasticPress
+ * Plugin URI:        https://github.com/10up/ElasticPress
+ * Description:       A fast and flexible search and query engine for WordPress.
+ * Version:           3.6.1
+ * Requires at least: 3.7.1
+ * Requires PHP:      5.6
+ * Author:            10up
+ * Author URI:        http://10up.com
+ * License:           GPL v2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       elasticpress
+ *
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:
  *
@@ -28,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '3.5.6' );
+define( 'EP_VERSION', '3.6.1' );
 
 /**
  * PSR-4-ish autoloading
@@ -75,6 +79,7 @@ define( 'EP_ES_VERSION_MIN', '5.0' );
 
 require_once __DIR__ . '/includes/compat.php';
 require_once __DIR__ . '/includes/utils.php';
+require_once __DIR__ . '/includes/health-check.php';
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
 $network_activated = Utils\is_network_activated( EP_FILE );
@@ -126,6 +131,12 @@ function register_indexable_posts() {
 	Features::factory()->register_feature(
 		new Feature\Documents\Documents()
 	);
+
+	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Comments\Comments()
+		);
+	}
 
 	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
 		Features::factory()->register_feature(

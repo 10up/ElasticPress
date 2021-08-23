@@ -9,6 +9,14 @@
  * Feature Related Posts test class
  */
 class FeatureRelatedPostsTest extends TestBase {
+
+	/**
+	 * Sidebar ID to be used on WP-CLI.
+	 *
+	 * @var string
+	 */
+	protected $sidebar_id = 'sidebar-1';
+
 	/**
 	 * @testdox If feature is activated, user should see “ElasticPress - Related Posts” widget in dashboard.
 	 */
@@ -27,9 +35,29 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		sleep( 2 );
 
-		$I->moveTo( '/wp-admin/widgets.php' );
+		// If we get "Page Crashed!" due to lack of memory, try WP-CLI.
+		try {
+			$this->openWidgetsPage( $I );
 
-		$I->dontSeeText( 'ElasticPress - Related Posts' );
+			$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
+
+			$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
+
+			$I->typeInField( '.block-editor-inserter__search-input', 'ElasticPress Related Posts' );
+
+			$I->dontSeeText( 'ElasticPress - Related Posts', '.block-editor-block-types-list' ); // Legacy Widget
+
+			$I->dontSeeText( 'Related Posts (ElasticPress)', '.block-editor-block-types-list' );
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$cli_result = $this->runCommand( "wp widget list {$this->sidebar_id}" )['stdout'];
+
+			$this->assertStringNotContainsString( 'ep-related-posts', $cli_result );
+		}
 
 		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
 
@@ -41,9 +69,31 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		sleep( 2 );
 
-		$I->moveTo( '/wp-admin/widgets.php' );
+		// If we get "Page Crashed!" due to lack of memory, try WP-CLI.
+		try {
+			$this->openWidgetsPage( $I );
 
-		$I->seeText( 'ElasticPress - Related Posts' );
+			$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
+
+			$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
+
+			$I->typeInField( '.block-editor-inserter__search-input', 'ElasticPress Related Posts' );
+
+			$I->seeText( 'ElasticPress - Related Posts', '.block-editor-block-types-list' ); // Legacy Widget
+
+			$I->seeText( 'Related Posts (ElasticPress)', '.block-editor-block-types-list' );
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$this->runCommand( "wp widget add ep-related-posts {$this->sidebar_id}" );
+
+			$cli_result = $this->runCommand( "wp widget list {$this->sidebar_id}" )['stdout'];
+
+			$this->assertStringContainsString( 'ep-related-posts', $cli_result );
+		}
 	}
 
 	/**
@@ -52,37 +102,29 @@ class FeatureRelatedPostsTest extends TestBase {
 	 * @testdox I can see the related posts widget.
 	 */
 	public function testRelatedPostsWidget() {
+		$this->maybeEnableFeature( 'related_posts' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/widgets.php' );
+		$this->openWidgetsPage( $I );
 
-		$related_posts_widget = $I->getElement( '#widget-7_ep-related-posts-__i__ button' );
+		$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
 
-		$I->click( $related_posts_widget );
+		$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
 
-		$I->waitUntilElementVisible( '.widgets-chooser' );
+		$I->click( '.block-editor-inserter__panel-content [class*="ep-related-posts"]' );
 
-		$I->click( '.widgets-chooser-add' );
+		$I->waitUntilElementVisible( 'input[name^="widget-ep-related-posts"]' );
 
-		$widgets = $I->getElements( '#sidebar-1 .widget' );
+		$I->typeInField( 'input[name^="widget-ep-related-posts"]', 'Related Posts' );
 
-		$related_posts_widget = end( $widgets );
+		sleep( 2 );
 
-		$widget_id = $I->getElementAttribute( $related_posts_widget, 'id' );
+		$I->click( ".edit-widgets-header__actions .components-button.is-primary" );
 
-		$widget_id = substr( $widget_id, strpos( $widget_id, '_ep-related-posts-' ) );
-
-		$widget_id = str_replace( '_ep-related-posts-', '', $widget_id );
-
-		echo $widget_id;
-
-		$I->typeInField( "#widget-ep-related-posts-$widget_id-title", 'Related Posts' );
-
-		$I->click( "#widget-ep-related-posts-$widget_id-savewidget" );
-
-		usleep( 1000000 );
+		$I->waitUntilPageSourceContains( 'Widgets saved.' );
 
 		$posts_data = [
 			[

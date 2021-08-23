@@ -56,13 +56,15 @@ class Post extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'posts_per_page'      => $this->get_bulk_items_per_page(),
-			'post_type'           => $this->get_indexable_post_types(),
-			'post_status'         => $this->get_indexable_post_status(),
-			'offset'              => 0,
-			'ignore_sticky_posts' => true,
-			'orderby'             => 'ID',
-			'order'               => 'desc',
+			'posts_per_page'                  => $this->get_bulk_items_per_page(),
+			'post_type'                       => $this->get_indexable_post_types(),
+			'post_status'                     => $this->get_indexable_post_status(),
+			'offset'                          => 0,
+			'ignore_sticky_posts'             => true,
+			'orderby'                         => 'ID',
+			'order'                           => 'desc',
+			'no_found_rows'                   => false,
+			'ep_indexing_advanced_pagination' => true,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -84,23 +86,110 @@ class Post extends Indexable {
 		 * @param  {array} $args Database arguments
 		 * @return  {array} New arguments
 		 */
-		$args = apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) );
+		$args = apply_filters( 'ep_index_posts_args', apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) ) );
 
-		/**
-		 * Filter arguments used to query posts from database. Backwards compat with pre-3.0
-		 *
-		 * @hook ep_index_posts_args
-		 * @param  {array} $args Database arguments
-		 * @return  {array} New arguments
-		 */
-		$args = apply_filters( 'ep_index_posts_args', $args );
+		if ( isset( $args['include'] ) || isset( $args['post__in'] ) || 0 < $args['offset'] ) {
+			// Disable advanced pagination. Not useful if only indexing specific IDs.
+			$args['ep_indexing_advanced_pagination'] = false;
+		}
 
-		$query = new WP_Query( $args );
+		// Enforce the following query args during advanced pagination to ensure things work correctly.
+		if ( $args['ep_indexing_advanced_pagination'] ) {
+			$args = array_merge(
+				$args,
+				[
+					'suppress_filters' => false,
+					'orderby'          => 'ID',
+					'order'            => 'DESC',
+					'paged'            => 1,
+					'offset'           => 0,
+					'no_found_rows'    => true,
+				]
+			);
+			add_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+
+			$query         = new WP_Query( $args );
+			$total_objects = $this->get_total_objects_for_query( $args );
+
+			remove_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+		} else {
+			$query         = new WP_Query( $args );
+			$total_objects = $query->found_posts;
+		}
 
 		return [
 			'objects'       => $query->posts,
-			'total_objects' => $query->found_posts,
+			'total_objects' => $total_objects,
 		];
+	}
+
+		/**
+		 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
+		 *
+		 * @param string   $where The current $where clause.
+		 * @param WP_Query $query WP_Query object.
+		 * @return string WHERE clause with our pagination added if needed.
+		 */
+	public function bulk_indexing_filter_posts_where( $where, $query ) {
+		$using_advanced_pagination = $query->get( 'ep_indexing_advanced_pagination', false );
+
+		if ( $using_advanced_pagination ) {
+			$requested_upper_limit_id      = $query->get( 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
+			$requested_lower_limit_post_id = $query->get( 'ep_indexing_lower_limit_object_id', 0 );
+			$last_processed_id             = $query->get( 'ep_indexing_last_processed_object_id', null );
+
+			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
+			$upper_limit_range_post_id = $requested_upper_limit_id;
+			if ( is_numeric( $last_processed_id ) ) {
+				$upper_limit_range_post_id = $last_processed_id - 1;
+			}
+
+			// Sanitize. Abort if unexpected data at this point.
+			if ( ! is_numeric( $upper_limit_range_post_id ) || ! is_numeric( $requested_lower_limit_post_id ) ) {
+				return $where;
+			}
+
+			$range = [
+				'upper_limit' => "{$GLOBALS['wpdb']->posts}.ID <= {$upper_limit_range_post_id}",
+				'lower_limit' => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_lower_limit_post_id}",
+			];
+
+			// Skip the end range if it's unnecessary.
+			$skip_ending_range = 0 === $requested_lower_limit_post_id;
+			$where             = $skip_ending_range ? "AND {$range['upper_limit']} {$where}" : "AND {$range['upper_limit']} AND {$range['lower_limit']} {$where}";
+		}
+
+		return $where;
+	}
+
+	/**
+	 * Get SQL_CALC_FOUND_ROWS for a specific query based on it's args.
+	 *
+	 * @param array $query_args The query args.
+	 * @return int The query result's found_posts.
+	 */
+	private function get_total_objects_for_query( $query_args ) {
+		static $object_counts = [];
+
+		// Reset the pagination-related args for optimal caching.
+		$normalized_query_args = array_merge(
+			$query_args,
+			[
+				'offset'                               => 0,
+				'paged'                                => 1,
+				'posts_per_page'                       => 1,
+				'no_found_rows'                        => false,
+				'ep_indexing_last_processed_object_id' => null,
+			]
+		);
+
+		$cache_key = md5( json_encode( $normalized_query_args ) );
+
+		if ( ! isset( $object_counts[ $cache_key ] ) ) {
+			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
+		}
+
+		return $object_counts[ $cache_key ];
 	}
 
 	/**
@@ -147,12 +236,12 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Send mapping to Elasticsearch
+	 * Determine required mapping file
 	 *
-	 * @since  3.0
-	 * @return array
+	 * @since 3.6.2
+	 * @return string
 	 */
-	public function put_mapping() {
+	public function get_mapping_name() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -177,6 +266,100 @@ class Post extends Indexable {
 		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
 			$mapping_file = '7-0.php';
 		}
+
+		return apply_filters( 'ep_post_mapping_version', $mapping_file );
+	}
+
+	/**
+	 * Determine version of mapping currently on the post index.
+	 *
+	 * @since 3.6.2
+	 * @return string|WP_Error|false $version
+	 */
+	public function determine_mapping_version() {
+		$index   = $this->get_index_name();
+		$mapping = Elasticsearch::factory()->get_mapping( $index );
+
+		if ( empty( $mapping ) ) {
+			return new \WP_Error( 'ep_failed_mapping_version', esc_html__( 'Error while fetching the mapping version.', 'elasticpress' ) );
+		}
+
+		if ( ! isset( $mapping[ $index ] ) ) {
+			return false;
+		}
+
+		$version = 'unknown';
+
+		if ( isset( $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'] ) ) {
+			$version = $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'];
+		} elseif ( isset( $mapping[ $index ]['mappings']['_meta']['mapping_version'] ) ) {
+			$version = $mapping[ $index ]['mappings']['_meta']['mapping_version'];
+		}
+
+		// mapping does not have meta value set - use legacy detection
+		if ( 'unknown' === $version ) {
+
+			// check for pre-5-0 mapping
+			if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'] ) ) {
+				$val = $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'];
+				if ( ! $val || 10922 !== $val ) {
+					$version = 'pre-5-0.php';
+				} elseif ( $val && 10922 === $val ) {
+					$version = 'not-pre-5-0';
+				}
+			}
+
+			// check for 5-0 mapping
+			if ( 'not-pre-5-0' === $version ) {
+				if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_content_filtered']['fields'] ) ) {
+					$version = '5-0.php';
+				} else {
+					$version = 'not-5-0';
+				}
+			}
+
+			// check for 5-2 mapping
+			if ( 'not-5-0' === $version ) {
+				if ( isset( $mapping[ $index ]['mappings']['post']['_all'] ) ) {
+					$version = '5-2.php';
+				} else {
+					$version = 'not-5-2';
+				}
+			}
+
+			// check for 7-0 mapping
+			if ( 'not-5-2' === $version ) {
+				if ( isset( $mapping[ $index ]['settings']['index.max_shingle_diff'] ) ) {
+					$version = '7-0.php';
+				} else {
+					$version = 'not-7-0';
+				}
+			}
+
+			if ( preg_match( '/^not-.*/', $version ) ) {
+				$version = 'unknown';
+			}
+		}
+
+		/**
+		 * Filter the mapping version for posts.
+		 *
+		 * @hook ep_post_mapping_version_determined
+		 * @since 3.6.2
+		 * @param {string} $version Determined version string
+		 * @return  {string} New version string
+		 */
+		return apply_filters( 'ep_post_mapping_version_determined', $version );
+	}
+
+	/**
+	 * Send mapping to Elasticsearch
+	 *
+	 * @since  3.0
+	 * @return array
+	 */
+	public function put_mapping() {
+		$mapping_file = $this->get_mapping_name();
 
 		/**
 		 * Filter post indexable mapping file
@@ -336,25 +519,36 @@ class Post extends Indexable {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $post_date_gmt Post date
+	 * @param string $date_to_prepare Post date
 	 * @since 0.1.4
 	 * @return array
 	 */
-	private function prepare_date_terms( $post_date_gmt ) {
-		$timestamp  = strtotime( $post_date_gmt );
-		$date_terms = array(
-			'year'          => (int) date_i18n( 'Y', $timestamp ),
-			'month'         => (int) date_i18n( 'm', $timestamp ),
-			'week'          => (int) date_i18n( 'W', $timestamp ),
-			'dayofyear'     => (int) date_i18n( 'z', $timestamp ),
-			'day'           => (int) date_i18n( 'd', $timestamp ),
-			'dayofweek'     => (int) date_i18n( 'w', $timestamp ),
-			'dayofweek_iso' => (int) date_i18n( 'N', $timestamp ),
-			'hour'          => (int) date_i18n( 'H', $timestamp ),
-			'minute'        => (int) date_i18n( 'i', $timestamp ),
-			'second'        => (int) date_i18n( 's', $timestamp ),
-			'm'             => (int) ( date_i18n( 'Y', $timestamp ) . date_i18n( 'm', $timestamp ) ), // yearmonth
-		);
+	public function prepare_date_terms( $date_to_prepare ) {
+		$terms_to_prepare = [
+			'year'          => 'Y',
+			'month'         => 'm',
+			'week'          => 'W',
+			'dayofyear'     => 'z',
+			'day'           => 'd',
+			'dayofweek'     => 'w',
+			'dayofweek_iso' => 'N',
+			'hour'          => 'H',
+			'minute'        => 'i',
+			'second'        => 's',
+			'm'             => 'Ym', // yearmonth
+		];
+
+		// Combine all the date term formats and perform one single call to date_i18n() for performance.
+		$date_format    = implode( '||', array_values( $terms_to_prepare ) );
+		$combined_dates = explode( '||', date_i18n( $date_format, strtotime( $date_to_prepare ) ) );
+
+		// Then split up the results for individual indexing.
+		$date_terms = [];
+		foreach ( $terms_to_prepare as $term_name => $date_format ) {
+			$index_in_combined_format = array_search( $term_name, array_keys( $terms_to_prepare ), true );
+			$date_terms[ $term_name ] = (int) $combined_dates[ $index_in_combined_format ];
+		}
+
 		return $date_terms;
 	}
 
@@ -429,6 +623,9 @@ class Post extends Indexable {
 						'term_taxonomy_id' => $term->term_taxonomy_id,
 						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
 					);
+
+					$terms_dic[ $term->term_id ]['facet'] = wp_json_encode( $terms_dic[ $term->term_id ] );
+
 					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
 					}
@@ -457,12 +654,16 @@ class Post extends Indexable {
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
 			$terms[ $parent_term->term_id ] = array(
-				'term_id'    => $parent_term->term_id,
-				'slug'       => $parent_term->slug,
-				'name'       => $parent_term->name,
-				'parent'     => $parent_term->parent,
-				'term_order' => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
+				'term_id'          => $parent_term->term_id,
+				'slug'             => $parent_term->slug,
+				'name'             => $parent_term->name,
+				'parent'           => $parent_term->parent,
+				'term_taxonomy_id' => $parent_term->term_taxonomy_id,
+				'term_order'       => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
 			);
+
+			$terms[ $parent_term->term_id ]['facet'] = wp_json_encode( $terms[ $parent_term->term_id ] );
+
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
 	}
@@ -718,20 +919,22 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['category_name'] ),
-				'field'    => 'slug',
-			);
-		}
+		if ( empty( $args['tax_query'] ) ) {
+			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['category_name'] ),
+					'field'    => 'slug',
+				);
+			}
 
-		if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['cat'] ),
-				'field'    => 'term_id',
-			);
+			if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['cat'] ),
+					'field'    => 'term_id',
+				);
+			}
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
@@ -779,7 +982,7 @@ class Post extends Indexable {
 					},
 					$args['tax_query']
 				);
-			} else {
+			} elseif ( empty( $args['tax_query'] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'post_tag',
 					'terms'    => $args['tag_id'],
@@ -797,7 +1000,8 @@ class Post extends Indexable {
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
 		foreach ( $taxonomies as $tax_slug => $tax ) {
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) ) {
+			// Exclude the category taxonomy from this check if we are performing a Tax Query as category_name will be set by core
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && 'category' !== $tax->name ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
 					'terms'    => (array) $args[ $tax->query_var ],
@@ -864,6 +1068,21 @@ class Post extends Indexable {
 		}
 
 		/**
+		 * 'post_name__in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['post_name__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'post_name.raw' => array_values( (array) $args['post_name__in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
 		 * 'post__not_in' arg support.
 		 *
 		 * @since x.x
@@ -872,6 +1091,36 @@ class Post extends Indexable {
 			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(
 					'post_id' => (array) $args['post__not_in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'category__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['category__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'tag__not_in' arg support.
+		 *
+		 * @since 3.6.0
+		 */
+		if ( ! empty( $args['tag__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = array(
+				'terms' => array(
+					'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
 				),
 			);
 
@@ -931,9 +1180,26 @@ class Post extends Indexable {
 		 */
 		if ( ! empty( $args['post_mime_type'] ) ) {
 			if ( is_array( $args['post_mime_type'] ) ) {
+
+				$args_post_mime_type = [];
+
+				foreach ( $args['post_mime_type'] as $mime_type ) {
+					/**
+					 * check if matches the MIME type pattern: type/subtype and
+					 * leave an empty string as posts, pages and CPTs don't have a MIME type
+					 */
+					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
+						$args_post_mime_type[] = $mime_type;
+					} else {
+						$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
+
+						$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+					}
+				}
+
 				$filter['bool']['must'][] = array(
 					'terms' => array(
-						'post_mime_type' => (array) $args['post_mime_type'],
+						'post_mime_type' => $args_post_mime_type,
 					),
 				);
 
