@@ -135,7 +135,6 @@ class Widget extends WP_Widget {
 		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
 
 		$terms     = Utils\get_term_tree( $terms, $orderby, $order, true );
-		$term_tree = Utils\get_term_tree( $terms, 'count', 'desc', false );
 
 		$outputted_terms = array();
 
