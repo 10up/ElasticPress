@@ -121,7 +121,7 @@ return array(
 					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
-					'type'     => 'edgeNGram',
+					'type'     => 'edge_ngram',
 				),
 			),
 			'normalizer' => array(
@@ -140,7 +140,6 @@ return array(
 					'path_match' => 'post_meta.*',
 					'mapping'    => array(
 						'type'   => 'text',
-						'path'   => 'full',
 						'fields' => array(
 							'{name}' => array(
 								'type' => 'text',
@@ -158,7 +157,6 @@ return array(
 					'path_match' => 'meta.*',
 					'mapping'    => array(
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => array(
 							'value'    => array(
 								'type'   => 'text',
@@ -208,7 +206,6 @@ return array(
 					'path_match' => 'terms.*',
 					'mapping'    => array(
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => array(
 							'name'             => array(
 								'type'   => 'text',
