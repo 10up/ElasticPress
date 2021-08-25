@@ -565,7 +565,6 @@ class Weighting {
 		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
-
 		if ( Utils\is_integrated_request( 'weighting', [ 'public', 'rest' ] ) && ! empty( $args['s'] ) ) {
 			/*
 			 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
