@@ -1061,12 +1061,12 @@ h2 .nav-tab.ep-credentials-tab {
 	margin-right: 0;
 	width: 100%;
 
-	@media ( --tablet-min ) {
+	@media (--tablet-min) {
 		margin-right: 24px;
 		width: 48%;
 	}
 
-	@media ( --wide-min ) {
+	@media (--wide-min) {
 		margin-right: 28px;
 		width: 50%;
 	}
@@ -1076,11 +1076,11 @@ h2 .nav-tab.ep-credentials-tab {
 	margin: 0 auto;
 	width: 90%;
 
-	@media ( --tablet-min ) {
+	@media (--tablet-min) {
 		width: 48%;
 	}
 
-	@media ( --wide-min ) {
+	@media (--wide-min) {
 		margin: 0 auto;
 		width: 50%;
 	}
@@ -1094,11 +1094,11 @@ h2 .nav-tab.ep-credentials-tab {
 .ep-totals {
 	width: 100%;
 
-	@media ( --tablet-min ) {
+	@media (--tablet-min) {
 		width: 48%;
 	}
 
-	@media ( --wide-min ) {
+	@media (--wide-min) {
 		width: 47%;
 	}
 }
@@ -1106,11 +1106,11 @@ h2 .nav-tab.ep-credentials-tab {
 .ep-totals-1st-row {
 	width: 100%;
 
-	@media ( --tablet-min ) {
+	@media (--tablet-min) {
 		width: 48%;
 	}
 
-	@media ( --wide-min ) {
+	@media (--wide-min) {
 		text-align: center;
 		width: 45%;
 	}
