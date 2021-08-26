@@ -86,7 +86,7 @@ class InstantSearch extends Feature {
 			return;
 		}
 
-		$endpoint = Indexables::factory()->get( 'post' )->get_index_name() . '/search-template';
+		$endpoint = 'api/v1/instant-search-template/' . Indexables::factory()->get( 'post' )->get_index_name();
 		$response = Elasticsearch::factory()->remote_request(
 			$endpoint,
 			[
