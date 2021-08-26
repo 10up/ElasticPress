@@ -53,6 +53,15 @@ abstract class SyncManager {
 		add_action( 'shutdown', [ $this, 'index_sync_queue' ] );
 		add_filter( 'wp_redirect', [ $this, 'index_sync_queue_on_redirect' ], 10, 1 );
 
+		/**
+		 * Actions for multisite
+		 */
+		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
+
 		// Implemented by children.
 		$this->setup();
 	}
@@ -221,6 +230,35 @@ abstract class SyncManager {
 		 * @param {array} $indexable_slug Indexable slug.
 		 */
 		return apply_filters( 'ep_sync_indexable_kill', $is_importing, $this->indexable_slug );
+	}
+
+	/**
+	 * Remove blog from index when a site is deleted, archived, or deactivated
+	 *
+	 * @param int $blog_id WP Blog ID.
+	 */
+	public function action_delete_blog_from_index( $blog_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Don't delete global indexes
+		if ( $indexable->global ) {
+			return;
+		}
+
+		/**
+		 * Filter to whether to keep index on site deletion
+		 *
+		 * @hook ep_keep_index
+		 * @param {bool} $keep True means don't delete index
+		 * @return {boolean} New value
+		 */
+		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false ) ) {
+			$indexable->delete_index( $blog_id );
+		}
 	}
 
 	/**
