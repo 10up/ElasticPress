@@ -184,7 +184,7 @@ function is_indexing() {
  * @since  3.0
  * @return boolean
  */
-function is_indexing_wpcli(): bool {
+function is_indexing_wpcli() {
 	$is_indexing = get_transient( 'ep_wpcli_sync', false );
 
 	/**
