@@ -235,17 +235,6 @@ class Post extends Indexable {
 		return apply_filters( 'ep_indexable_post_status', array( 'publish' ) );
 	}
 
-	/**
-	 * Send mapping to Elasticsearch
-	 *
-	 * @since  3.0
-	 * @return array
-	 */
-	public function put_mapping() {
-		$mapping = $this->build_mapping();
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
-	}
 
 	/**
 	 * Build mapping
@@ -399,27 +388,9 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function put_mapping() {
-		$mapping_file = $this->get_mapping_name();
+		$mapping = $this->build_mapping();
 
-		/**
-		 * Filter post indexable mapping file
-		 *
-		 * @hook ep_post_mapping_file
-		 * @param {string} $file Path to file
-		 * @return  {string} New file path
-		 */
-		$mapping = require apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file );
-
-		/**
-		 * Filter post indexable mapping
-		 *
-		 * @hook ep_post_mapping
-		 * @param {array} $mapping Mapping
-		 * @return  {array} New mapping
-		 */
-		$mapping = apply_filters( 'ep_post_mapping', $mapping );
-
-		return $mapping;
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
 
 	/**
