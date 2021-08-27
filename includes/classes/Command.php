@@ -593,11 +593,9 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			set_site_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
-		} else {
-			set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
-		}
+		// We are using a per-site block (instead of the network site block on trunk) to
+		// be able to index multiple sites on a network
+		set_transient( 'ep_wpcli_sync', true, $this->transient_expiration );
 
 		timer_start();
 
@@ -1394,17 +1392,10 @@ class Command extends WP_CLI_Command {
 			'total_items'   => -1,
 		);
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-			$dashboard_syncing = get_site_option( 'ep_index_meta' );
-			$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
-
-		} else {
-
-			$dashboard_syncing = get_option( 'ep_index_meta' );
-			$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
-
-		}
+		// We are using a per-site block (instead of the network site block on trunk) to
+		// be able to index multiple sites on a network
+		$dashboard_syncing = get_option( 'ep_index_meta' );
+		$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
 
 		if ( $dashboard_syncing || $wpcli_syncing ) {
 
