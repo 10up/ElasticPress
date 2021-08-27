@@ -15,11 +15,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/header.php';
 
+if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	$index_meta = get_site_option( 'ep_index_meta', false );
+} else {
+	$index_meta = get_option( 'ep_index_meta', false );
+}
+
 Stats::factory()->build_stats();
 
 $index_health = Stats::factory()->get_health();
 $totals       = Stats::factory()->get_totals();
 ?>
+
+<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?>"></div>
 <div class="wrap metabox-holder">
 	<h1><?php esc_html_e( 'Index Health', 'elasticpress' ); ?></h1>
 
