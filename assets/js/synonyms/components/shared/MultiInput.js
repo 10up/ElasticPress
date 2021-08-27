@@ -4,10 +4,10 @@ import CreatableSelect from 'react-select/creatable';
 /**
  * Synonyms editor component.
  *
- * @param {object} props Props.
- * @returns {React.FC}
+ * @param {Object} props Props.
+ * @return {React.FC} MultiInput component
  */
-export default function MultiInput(props) {
+const MultiInput = (props) => {
 	const { tokens, setTokens } = props;
 	const [inputValue, setInputValue] = useState('');
 
@@ -15,7 +15,7 @@ export default function MultiInput(props) {
 	 * Create option.
 	 *
 	 * @param {string} label Option label.
-	 * @returns {object}
+	 * @return {Object} Option object
 	 */
 	const createOption = (label) => ({
 		label,
@@ -49,7 +49,7 @@ export default function MultiInput(props) {
 	 * Handle change.
 	 *
 	 * @param {string} _value The value.
-	 * @param {object} data   Data with the action.
+	 * @param {Object} data   Data with the action.
 	 */
 	const handleChange = (_value, data) => {
 		switch (data.action) {
@@ -95,7 +95,7 @@ export default function MultiInput(props) {
 			inputValue={inputValue}
 			isClearable={false}
 			menuIsOpen={false}
-			autoFocus={true}
+			autoFocus
 			onChange={handleChange}
 			onInputChange={(val) => setInputValue(val)}
 			onKeyDown={handleKeyDown}
@@ -104,4 +104,6 @@ export default function MultiInput(props) {
 			styles={customStyles}
 		/>
 	);
-}
+};
+
+export default MultiInput;

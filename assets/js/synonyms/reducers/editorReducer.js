@@ -18,9 +18,9 @@ const initialState = {
 /**
  * editorReducer
  *
- * @param {object} state  Current state.
- * @param {object} action The action.
- * @returns {object} New state.
+ * @param {Object} state  Current state.
+ * @param {Object} action The action.
+ * @return {Object} New state.
  */
 const editorReducer = (state, action) => {
 	switch (action.type) {

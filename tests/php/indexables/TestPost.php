@@ -60,6 +60,11 @@ class TestPost extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
+		// Unset current_screen so is_admin() is reset.
+		if ( isset( $GLOBALS['current_screen'] ) ) {
+			unset( $GLOBALS['current_screen'] );
+		}
+
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
@@ -6236,14 +6241,22 @@ class TestPost extends BaseTestCase {
 		// test the function. Try accessing the 2nd post from the 1st blog.
 		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
 
+		// This should not switch to the 2nd site because the query is not in the loop.
+		$query_integration->maybe_switch_to_blog( $blog_2_post, $query );
+
+		$this->assertFalse( $query_integration->get_switched() );
+
+		// To switch sites the query must be in the loop.
+		$query->in_the_loop = true;
+
 		// This should switch to the 2nd site.
-		$query_integration->maybe_switch_to_blog( $blog_2_post );
+		$query_integration->maybe_switch_to_blog( $blog_2_post, $query );
 
 		$this->assertSame( $blog_2_post->site_id, $query_integration->get_switched() );
 
 		// Now we're in "switched" mode, try getting the post from the
 		// 1st site, should switch back.
-		$query_integration->maybe_switch_to_blog( $blog_1_post );
+		$query_integration->maybe_switch_to_blog( $blog_1_post, $query );
 
 		$this->assertSame( $blog_1_post->site_id, $query_integration->get_switched() );
 
@@ -6440,5 +6453,40 @@ class TestPost extends BaseTestCase {
 		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
 		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
 		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
+	}
+
+	/**
+	 * Test when we perform a Tax Query with Id's for the category taxonomy cat id is used and cat slug is not.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testTaxQueryWithCategoryId() {
+		$cat = wp_create_category( 'test category' );
+
+		$query = new \WP_Query();
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$args = $post->format_args(
+			[
+				'post_type'    => 'post',
+				'post_status'  => 'public',
+				'ep_integrate' => true,
+				'tax_query'    => array(
+					array(
+						'taxonomy' => 'category',
+						'terms'    => array( $cat ),
+						'field'    => 'term_id',
+						'operator' => 'in',
+					)
+				)
+			],
+			$query
+		);
+
+		$this->assertCount( 1, $args['post_filter']['bool']['must'][0]['bool']['must'] );
+		$this->assertArrayHasKey( 'terms.category.term_id', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms'] );
+		$this->assertContains( $cat, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['terms.category.term_id'] );
 	}
 }
