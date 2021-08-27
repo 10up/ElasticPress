@@ -41,7 +41,10 @@ class AdminNotices {
 		'upgrade_sync',
 		'auto_activate_sync',
 		'using_autosuggest_defaults',
-		'maybe_wrong_mapping',
+		/**
+		 * We don't want to notify for 'maybe_wrong_mapping', as that would
+		 * notify any site indexed bofore introduction of the mapping version meta
+		 */
 		'yellow_health',
 	];
 
