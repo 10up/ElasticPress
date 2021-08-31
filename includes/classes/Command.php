@@ -1266,7 +1266,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( $dashboard_syncing || $wpcli_syncing ) {
-			WP_CLI::error( esc_html__( 'An index is already occuring. Try again later.', 'elasticpress' ) );
+			WP_CLI::error( esc_html__( 'An index is already occurring. Try again later.', 'elasticpress' ) );
 		}
 	}
 
@@ -1288,7 +1288,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Delete transient that indicates indexing is occuring
+	 * Delete transient that indicates indexing is occurring
 	 *
 	 * @since 3.1
 	 */
@@ -1483,7 +1483,7 @@ class Command extends WP_CLI_Command {
 		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
 			WP_CLI::warning( esc_html__( 'There is no indexing operation running.', 'elasticpress' ) );
 		} else {
-			WP_CLI::line( esc_html__( 'Stoping indexing...', 'elasticpress' ) );
+			WP_CLI::line( esc_html__( 'Stopping indexing...', 'elasticpress' ) );
 
 			if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
 				set_transient( 'ep_wpcli_sync_interrupted', true, 5 );
