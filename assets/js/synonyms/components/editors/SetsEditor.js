@@ -5,11 +5,11 @@ import { Dispatch, State } from '../../context';
 /**
  * Synonyms editor component.
  *
- * @param {object} props Props
- * @param {object[]} props.sets Defined sets (equivalent synonyms).
- * @returns {React.FC}
+ * @param {Object} props Props
+ * @param {Object[]} props.sets Defined sets (equivalent synonyms).
+ * @return {React.FC} SetsEditor component
  */
-export default function SetsEditor({ sets }) {
+const SetsEditor = ({ sets }) => {
 	const dispatch = useContext(Dispatch);
 	const state = useContext(State);
 	const { setsInputHeading, setsAddButtonText, setsErrorMessage } = window.epSynonyms.i18n;
@@ -48,11 +48,13 @@ export default function SetsEditor({ sets }) {
 							)}
 						</Fragment>
 					))}
-					<button className="button button-secondary" onClick={handleClick}>
+					<button type="button" className="button button-secondary" onClick={handleClick}>
 						{setsAddButtonText}
 					</button>
 				</div>
 			</div>
 		</div>
 	);
-}
+};
+
+export default SetsEditor;

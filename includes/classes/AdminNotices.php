@@ -14,6 +14,7 @@ use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Screen;
 use ElasticPress\Features;
+use ElasticPress\Indexables;
 use ElasticPress\Stats;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -40,6 +41,7 @@ class AdminNotices {
 		'upgrade_sync',
 		'auto_activate_sync',
 		'using_autosuggest_defaults',
+		'maybe_wrong_mapping',
 		'yellow_health',
 	];
 
@@ -291,9 +293,11 @@ class AdminNotices {
 			$html = sprintf( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ), esc_url( $url ) );
 		}
 
+		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the reindex has been performed.', 'elasticpress' );
+
 		return [
-			'html'    => $html,
-			'type'    => 'warning',
+			'html'    => '<span class="dashicons dashicons-warning"></span> ' . $html . ' ' . $notice,
+			'type'    => 'error',
 			'dismiss' => ! in_array( $screen, [ 'dashboard', 'settings' ], true ),
 		];
 	}
@@ -591,6 +595,84 @@ class AdminNotices {
 	}
 
 	/**
+	 * Determine if the wrong mapping might be installed
+	 *
+	 * Type: error
+	 * Dismiss: Always dismissable per es_version as custom mapping could exist
+	 * Show: All screens
+	 *
+	 * @since   3.6.2
+	 * @return array|bool
+	 */
+	protected function process_maybe_wrong_mapping_notice() {
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
+		// we might have this dismissed
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_maybe_wrong_mapping_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_maybe_wrong_mapping_notice', false );
+		}
+
+		// we need a host
+		$host = Utils\get_host();
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		// we also need a version
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
+
+		if ( false === $es_version || $dismiss === $es_version ) {
+			return false;
+		}
+
+		// we also likely need a sync to have a mapping
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
+			return false;
+		}
+
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$mapping_file_wanted  = $post_indexable->get_mapping_name();
+		$mapping_file_current = $post_indexable->determine_mapping_version();
+		if ( is_wp_error( $mapping_file_current ) ) {
+			return false;
+		}
+
+		if ( ! $mapping_file_current || $mapping_file_wanted !== $mapping_file_current ) {
+			$html = sprintf(
+				/* translators: 1. <em>; 2. </em> */
+				esc_html__( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the %1$s--setup%2$s flag', 'elasticpress' ),
+				'<em>',
+				'</em>'
+			);
+
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( esc_html__( 'Current mapping: %1$s. Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '</span>';
+			}
+
+			return [
+				'html'    => $html,
+				'type'    => 'error',
+				'dismiss' => true,
+			];
+
+		}
+
+	}
+
+	/**
 	 * Single node notification. Shows when index health is yellow.
 	 *
 	 * Type: warning
@@ -670,10 +752,15 @@ class AdminNotices {
 	 * @since  3.0
 	 */
 	public function dismiss_notice( $notice ) {
+		$value = true;
+		// allow version dependent dismissal
+		if ( in_array( $notice, [ 'maybe_wrong_mapping' ], true ) ) {
+			$value = Elasticsearch::factory()->get_elasticsearch_version( false );
+		}
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_hide_' . $notice . '_notice', true );
+			update_site_option( 'ep_hide_' . $notice . '_notice', $value );
 		} else {
-			update_option( 'ep_hide_' . $notice . '_notice', true );
+			update_option( 'ep_hide_' . $notice . '_notice', $value );
 		}
 	}
 
@@ -693,4 +780,3 @@ class AdminNotices {
 		return $instance;
 	}
 }
-

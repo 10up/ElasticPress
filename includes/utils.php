@@ -537,3 +537,99 @@ function get_indexing_status() {
 	return $index_status;
 
 }
+
+/**
+ * Check if queries for the current request are going to be integrated with
+ * ElasticPress.
+ *
+ * Public requests and REST API requests are integrated by default, but admin
+ * requests will only be integrated in if the `ep_admin_wp_query_integration`
+ * filter returns `true`, and and admin-ajax.php requests will only be
+ * integrated if the `ep_ajax_wp_query_integration` filter returns `true`.
+ *
+ * If specific types of requests are passed, true will only be returned if the
+ * current request also matches one of the passed types.
+ *
+ * This function is used by features to determine whether they should hook into
+ * the current request.
+ *
+ * @param string   $context Slug of the feature that is performing the check.
+ *                          Passed to the `ep_is_integrated_request` filter.
+ * @param string[] $types   Which types of request to check. Any of 'admin',
+ *                          'ajax', 'public', and 'rest'. Defaults to all
+ *                          types.
+ * @return bool Whether the current request supports ElasticPress integration
+ *              and is of a given type.
+ *
+ * @since 3.6.0
+ */
+function is_integrated_request( $context, $types = [] ) {
+	if ( empty( $types ) ) {
+		$types = [ 'admin', 'ajax', 'public', 'rest' ];
+	}
+
+	$is_admin_request             = is_admin();
+	$is_ajax_request              = defined( 'DOING_AJAX' ) && DOING_AJAX;
+	$is_rest_request              = defined( 'REST_REQUEST' ) && REST_REQUEST;
+	$is_integrated_admin_request  = false;
+	$is_integrated_ajax_request   = false;
+	$is_integrated_public_request = false;
+	$is_integrated_rest_request   = false;
+
+	if ( $is_admin_request && ! $is_ajax_request && in_array( 'admin', $types, true ) ) {
+
+		/**
+		 * Filter whether to integrate with admin queries.
+		 *
+		 * @hook ep_admin_wp_query_integration
+		 * @param bool $integrate True to integrate.
+		 * @return bool New value.
+		 */
+		$is_integrated_admin_request = apply_filters( 'ep_admin_wp_query_integration', false );
+	}
+
+	if ( $is_ajax_request && in_array( 'ajax', $types, true ) ) {
+
+		/**
+		 * Filter to integrate with admin ajax queries.
+		 *
+		 * @hook ep_ajax_wp_query_integration
+		 * @param bool $integrate True to integrate.
+		 * @return bool New value.
+		 */
+		$is_integrated_ajax_request = apply_filters( 'ep_ajax_wp_query_integration', false );
+	}
+
+	if ( $is_rest_request && in_array( 'rest', $types, true ) ) {
+		$is_integrated_rest_request = true;
+	}
+
+	if ( ! $is_admin_request && ! $is_ajax_request && ! $is_rest_request && in_array( 'public', $types, true ) ) {
+		$is_integrated_public_request = true;
+	}
+
+	/**
+	 * Is the current request any of the supported requests.
+	 */
+	$is_integrated = (
+		$is_integrated_admin_request ||
+		$is_integrated_ajax_request ||
+		$is_integrated_public_request ||
+		$is_integrated_rest_request
+	);
+
+	/**
+	 * Filter whether the queries for the current request should be integrated.
+	 *
+	 * @hook ep_is_integrated_request
+	 * @param bool   $is_integrated Whether queries for the request will be
+	 *                              integrated.
+	 * @param string $context       Context for the original check. Usually the
+	 *                              slug of the feature doing the check.
+	 * @param array  $types         Which requests types are being checked.
+	 * @return bool Whether queries for the request will be integrated.
+	 *
+	 * @since 3.6.2
+	 */
+	return apply_filters( 'ep_is_integrated_request', $is_integrated, $context, $types );
+}

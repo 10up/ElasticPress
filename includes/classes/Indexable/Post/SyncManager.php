@@ -49,11 +49,6 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
-		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
-		add_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
-		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index' ) );
-		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
-		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
@@ -154,29 +149,6 @@ class SyncManager extends SyncManagerAbstract {
 		}
 	}
 
-	/**
-	 * Remove blog from index when a site is deleted, archived, or deactivated
-	 *
-	 * @param int $blog_id WP Blog ID.
-	 */
-	public function action_delete_blog_from_index( $blog_id ) {
-		if ( $this->kill_sync() ) {
-			return;
-		}
-
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
-
-		/**
-		 * Filter to whether to keep index on site deletion
-		 *
-		 * @hook ep_keep_index
-		 * @param {bool} $keep True means don't delete index
-		 * @return {boolean} New value
-		 */
-		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false ) ) {
-			$indexable->delete_index( $blog_id );
-		}
-	}
 
 	/**
 	 * Delete ES post when WP post is deleted
@@ -210,14 +182,6 @@ class SyncManager extends SyncManagerAbstract {
 			// If not an indexable post type, skip delete.
 			return;
 		}
-
-		/**
-		 * Fires before post deletion
-		 *
-		 * @hook ep_delete_post
-		 * @param  {int} $post_id ID of post
-		 */
-		do_action( 'ep_delete_post', $post_id );
 
 		Indexables::factory()->get( $this->indexable_slug )->delete( $post_id, false );
 
@@ -273,7 +237,7 @@ class SyncManager extends SyncManagerAbstract {
 
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				/**
-				 * Fire before post is queued for synxing
+				 * Fire before post is queued for syncing
 				 *
 				 * @hook ep_sync_on_transition
 				 * @param  {int} $post_id ID of post
@@ -284,7 +248,7 @@ class SyncManager extends SyncManagerAbstract {
 				 * Filter to kill post sync
 				 *
 				 * @hook ep_post_sync_kill
-				 * @param {bool} $skip True meanas kill sync for post
+				 * @param {bool} $skip True means kill sync for post
 				 * @param  {int} $object_id ID of post
 				 * @param  {int} $object_id ID of post
 				 * @return {boolean} New value

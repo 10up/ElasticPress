@@ -88,7 +88,7 @@ class Post extends Indexable {
 		 */
 		$args = apply_filters( 'ep_index_posts_args', apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) ) );
 
-		if ( isset( $args['include'] ) || isset( $args['post__in'] ) ) {
+		if ( isset( $args['include'] ) || isset( $args['post__in'] ) || 0 < $args['offset'] ) {
 			// Disable advanced pagination. Not useful if only indexing specific IDs.
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
@@ -236,12 +236,12 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Send mapping to Elasticsearch
+	 * Determine required mapping file
 	 *
-	 * @since  3.0
-	 * @return array
+	 * @since 3.6.2
+	 * @return string
 	 */
-	public function put_mapping() {
+	public function get_mapping_name() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -266,6 +266,100 @@ class Post extends Indexable {
 		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
 			$mapping_file = '7-0.php';
 		}
+
+		return apply_filters( 'ep_post_mapping_version', $mapping_file );
+	}
+
+	/**
+	 * Determine version of mapping currently on the post index.
+	 *
+	 * @since 3.6.2
+	 * @return string|WP_Error|false $version
+	 */
+	public function determine_mapping_version() {
+		$index   = $this->get_index_name();
+		$mapping = Elasticsearch::factory()->get_mapping( $index );
+
+		if ( empty( $mapping ) ) {
+			return new \WP_Error( 'ep_failed_mapping_version', esc_html__( 'Error while fetching the mapping version.', 'elasticpress' ) );
+		}
+
+		if ( ! isset( $mapping[ $index ] ) ) {
+			return false;
+		}
+
+		$version = 'unknown';
+
+		if ( isset( $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'] ) ) {
+			$version = $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'];
+		} elseif ( isset( $mapping[ $index ]['mappings']['_meta']['mapping_version'] ) ) {
+			$version = $mapping[ $index ]['mappings']['_meta']['mapping_version'];
+		}
+
+		// mapping does not have meta value set - use legacy detection
+		if ( 'unknown' === $version ) {
+
+			// check for pre-5-0 mapping
+			if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'] ) ) {
+				$val = $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'];
+				if ( ! $val || 10922 !== $val ) {
+					$version = 'pre-5-0.php';
+				} elseif ( $val && 10922 === $val ) {
+					$version = 'not-pre-5-0';
+				}
+			}
+
+			// check for 5-0 mapping
+			if ( 'not-pre-5-0' === $version ) {
+				if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_content_filtered']['fields'] ) ) {
+					$version = '5-0.php';
+				} else {
+					$version = 'not-5-0';
+				}
+			}
+
+			// check for 5-2 mapping
+			if ( 'not-5-0' === $version ) {
+				if ( isset( $mapping[ $index ]['mappings']['post']['_all'] ) ) {
+					$version = '5-2.php';
+				} else {
+					$version = 'not-5-2';
+				}
+			}
+
+			// check for 7-0 mapping
+			if ( 'not-5-2' === $version ) {
+				if ( isset( $mapping[ $index ]['settings']['index.max_shingle_diff'] ) ) {
+					$version = '7-0.php';
+				} else {
+					$version = 'not-7-0';
+				}
+			}
+
+			if ( preg_match( '/^not-.*/', $version ) ) {
+				$version = 'unknown';
+			}
+		}
+
+		/**
+		 * Filter the mapping version for posts.
+		 *
+		 * @hook ep_post_mapping_version_determined
+		 * @since 3.6.2
+		 * @param {string} $version Determined version string
+		 * @return  {string} New version string
+		 */
+		return apply_filters( 'ep_post_mapping_version_determined', $version );
+	}
+
+	/**
+	 * Send mapping to Elasticsearch
+	 *
+	 * @since  3.0
+	 * @return array
+	 */
+	public function put_mapping() {
+		$mapping_file = $this->get_mapping_name();
 
 		/**
 		 * Filter post indexable mapping file
@@ -825,20 +919,22 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['category_name'] ),
-				'field'    => 'slug',
-			);
-		}
+		if ( empty( $args['tax_query'] ) ) {
+			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['category_name'] ),
+					'field'    => 'slug',
+				);
+			}
 
-		if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'category',
-				'terms'    => array( $args['cat'] ),
-				'field'    => 'term_id',
-			);
+			if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
+				$args['tax_query'][] = array(
+					'taxonomy' => 'category',
+					'terms'    => array( $args['cat'] ),
+					'field'    => 'term_id',
+				);
+			}
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
@@ -886,7 +982,7 @@ class Post extends Indexable {
 					},
 					$args['tax_query']
 				);
-			} else {
+			} elseif ( empty( $args['tax_query'] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'post_tag',
 					'terms'    => $args['tag_id'],
@@ -904,7 +1000,8 @@ class Post extends Indexable {
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
 		foreach ( $taxonomies as $tax_slug => $tax ) {
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) ) {
+			// Exclude the category taxonomy from this check if we are performing a Tax Query as category_name will be set by core
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && 'category' !== $tax->name ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
 					'terms'    => (array) $args[ $tax->query_var ],

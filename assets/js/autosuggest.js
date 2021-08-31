@@ -68,7 +68,7 @@ function selectAutosuggestItem(input, text) {
  * Fires events when autosuggest results are clicked,
  * and if GA tracking is activated
  *
- * @param {object} detail - value to pass on to the Custom Event
+ * @param {Object} detail - value to pass on to the Custom Event
  */
 function triggerAutosuggestEvent(detail) {
 	const event = new CustomEvent('ep-autosuggest-click', { detail });
@@ -113,7 +113,7 @@ function goToAutosuggestItem(searchTerm, url) {
  *
  * @param {Node} input - search input
  * @param {Node} element - search term result item
- * @returns {Function} calls the submitSearchForm function
+ * @return {Function} calls the submitSearchForm function
  */
 function selectItem(input, element) {
 	if (epas.action === 'navigate') {
@@ -128,7 +128,7 @@ function selectItem(input, element) {
  * Build the search query from the search text - the query is generated in PHP
  * and passed into the front end as window.epas = { "query...
  *
- * @returns {string} json string
+ * @return {string} json string
  */
 function getJsonQuery() {
 	if (typeof window.epas === 'undefined') {
@@ -147,9 +147,9 @@ function getJsonQuery() {
  *
  * @param {string} searchText - user search string
  * @param {string} placeholder - placeholder text to replace
- * @param {object} options - Autosuggest settings
+ * @param {Object} options - Autosuggest settings
  * @param {string} options.query - JSON query string to pass to ElasticSearch
- * @returns {string} json representation of search query
+ * @return {string} json representation of search query
  */
 function buildSearchQuery(searchText, placeholder, { query }) {
 	const newQuery = replaceGlobally(query, placeholder, searchText);
@@ -161,7 +161,7 @@ function buildSearchQuery(searchText, placeholder, { query }) {
  *
  * @param {string} query - json string
  * @param {string} searchTerm - user search term
- * @returns {object} AJAX object request
+ * @return {Object} AJAX object request
  */
 async function esSearch(query, searchTerm) {
 	const fetchConfig = {
@@ -181,7 +181,7 @@ async function esSearch(query, searchTerm) {
 
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
-		fetchConfig.headers['EP-Search-Term'] = searchTerm;
+		fetchConfig.headers['EP-Search-Term'] = encodeURI(searchTerm);
 	}
 
 	try {
@@ -211,7 +211,7 @@ async function esSearch(query, searchTerm) {
  *
  * @param {Array} options - search results
  * @param {string} input - search string
- * @returns {boolean} return true
+ * @return {boolean} return true
  */
 function updateAutosuggestBox(options, input) {
 	let i;
@@ -295,7 +295,7 @@ function updateAutosuggestBox(options, input) {
 /**
  * Hide the auto suggest box
  *
- * @returns {boolean} returns true
+ * @return {boolean} returns true
  */
 function hideAutosuggestBox() {
 	const lists = document.querySelectorAll('.autosuggest-list');
@@ -322,7 +322,7 @@ function hideAutosuggestBox() {
  *
  * @param {Array} hits - ES results
  * @param {string} searchTerm - user search term
- * @returns {object} formatted hits
+ * @return {Object} formatted hits
  */
 function checkForOrderedPosts(hits, searchTerm) {
 	const toInsert = {};
@@ -498,7 +498,7 @@ function init() {
 		/**
 		 * helper function to get the currently selected result
 		 *
-		 * @returns {number} index of the selected search result
+		 * @return {number} index of the selected search result
 		 */
 		const getSelectedResultIndex = () => {
 			const resultsArr = Array.from(results);
@@ -576,15 +576,33 @@ function init() {
 	};
 
 	/**
+	 * Get the searched post types from the search form.
+	 *
+	 * @param {HTMLFormElement} form - form containing the search input field
+	 * @return {Array} - post types
+	 * @since 3.6.0
+	 */
+	function getPostTypesFromForm(form) {
+		const data = new FormData(form);
+
+		if (data.has('post_type')) {
+			return data.getAll('post_type').slice(-1);
+		}
+
+		if (data.has('post_type[]')) {
+			return data.getAll('post_type[]');
+		}
+
+		return [];
+	}
+
+	/**
 	 * Calls the ajax request, and outputs the results.
 	 * Called by the handleKeyup callback, debounced.
 	 *
 	 * @param {Node} input - search input field
 	 */
 	const fetchResults = async (input) => {
-		const searchText = input.value;
-		const placeholder = 'ep_autosuggest_placeholder';
-
 		// retrieves the PHP-genereated query to pass to ElasticSearch
 		const queryJSON = getJsonQuery();
 
@@ -592,10 +610,28 @@ function init() {
 			return;
 		}
 
+		const searchText = input.value;
+		const placeholder = 'ep_autosuggest_placeholder';
+		const postTypes = getPostTypesFromForm(input.form);
+
 		if (searchText.length >= 2) {
 			setFormIsLoading(true, input);
 
-			const query = buildSearchQuery(searchText, placeholder, queryJSON);
+			let query = buildSearchQuery(searchText, placeholder, queryJSON);
+
+			if (postTypes.length > 0) {
+				query = JSON.parse(query);
+
+				if (typeof query.post_filter.bool.must !== 'undefined') {
+					query.post_filter.bool.must.push({
+						terms: {
+							'post_type.raw': postTypes,
+						},
+					});
+				}
+
+				query = JSON.stringify(query);
+			}
 
 			// fetch the results
 			const response = await esSearch(query, searchText);
@@ -617,6 +653,8 @@ function init() {
 			hideAutosuggestBox();
 		}
 	};
+
+	const debounceFetchResults = debounce(fetchResults, 200);
 
 	/**
 	 * Callback for keyup in Autosuggest container.
@@ -643,7 +681,6 @@ function init() {
 		}
 
 		const input = event.target;
-		const debounceFetchResults = debounce(fetchResults, 200);
 		debounceFetchResults(input);
 	};
 
