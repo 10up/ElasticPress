@@ -847,9 +847,10 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $args['include'] ) ) {
-			$include               = explode( ',', str_replace( ' ', '', $args['include'] ) );
-			$query_args['include'] = array_map( 'absint', $include );
-			$args['per-page']      = count( $query_args['include'] );
+			$include                                       = explode( ',', str_replace( ' ', '', $args['include'] ) );
+			$query_args['include']                         = array_map( 'absint', $include );
+			$args['per-page']                              = count( $query_args['include'] );
+			$query_args['ep_indexing_advanced_pagination'] = false;
 		}
 
 		$per_page = $indexable->get_bulk_items_per_page();
