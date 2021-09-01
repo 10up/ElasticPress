@@ -830,7 +830,7 @@ class Command extends WP_CLI_Command {
 		$query_args = [];
 
 		$query_args['offset']                          = 0;
-		$query_args['ep_indexing_advanced_pagination'] = ! $no_bulk;
+		$query_args['ep_indexing_advanced_pagination'] = 'post' === $indexable->slug && ! $no_bulk;
 
 		if ( ! empty( $args['offset'] ) ) {
 			$query_args['offset'] = absint( $args['offset'] );
@@ -1019,7 +1019,9 @@ class Command extends WP_CLI_Command {
 					$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
 					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
 				}
-			} else {
+			}
+
+			if ( ! $query_args['ep_indexing_advanced_pagination'] ) {
 				// Only increment the offset if not using advanced pagination.
 				// For the advanced pagination should always be 0.
 				// @see Indexable\Post\Post.php::query_db.
