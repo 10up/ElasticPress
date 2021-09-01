@@ -847,9 +847,10 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $args['include'] ) ) {
-			$include               = explode( ',', str_replace( ' ', '', $args['include'] ) );
-			$query_args['include'] = array_map( 'absint', $include );
-			$args['per-page']      = count( $query_args['include'] );
+			$include                                       = explode( ',', str_replace( ' ', '', $args['include'] ) );
+			$query_args['include']                         = array_map( 'absint', $include );
+			$args['per-page']                              = count( $query_args['include'] );
+			$query_args['ep_indexing_advanced_pagination'] = false;
 		}
 
 		$per_page = $indexable->get_bulk_items_per_page();
@@ -1017,7 +1018,9 @@ class Command extends WP_CLI_Command {
 					$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
 					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
 				}
-			} else {
+			}
+
+			if ( ! $query_args['ep_indexing_advanced_pagination'] ) {
 				// Only increment the offset if not using advanced pagination.
 				// For the advanced pagination should always be 0.
 				// @see Indexable\Post\Post.php::query_db.
