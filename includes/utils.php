@@ -159,13 +159,10 @@ function sanitize_credentials( $credentials ) {
  * @return boolean
  */
 function is_indexing() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$index_meta = get_site_option( 'ep_index_meta', false );
-		$wpcli_sync = get_site_transient( 'ep_wpcli_sync' );
-	} else {
-		$index_meta = get_option( 'ep_index_meta', false );
-		$wpcli_sync = get_transient( 'ep_wpcli_sync' );
-	}
+	// We are using a per-site block (instead of the network site block on trunk) to
+	// be able to index multiple sites on a network
+	$index_meta = get_option( 'ep_index_meta', false );
+	$wpcli_sync = get_transient( 'ep_wpcli_sync' );
 
 	/**
 	 * Filter whether an index is occurring in dashboard or CLI
@@ -495,21 +492,8 @@ function get_indexing_status() {
 
 	$index_status = false;
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-		$dashboard_syncing = get_site_option( 'ep_index_meta', false );
-		$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
-
-		if ( $wpcli_syncing ) {
-			$site = \get_site();
-			$url  = $site->domain . $site->path;
-		}
-	} else {
-
-		$dashboard_syncing = get_option( 'ep_index_meta', false );
-		$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
-
-	}
+	$dashboard_syncing = get_option( 'ep_index_meta', false );
+	$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
 
 	if ( $dashboard_syncing || $wpcli_syncing ) {
 
