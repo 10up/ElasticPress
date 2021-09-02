@@ -5421,6 +5421,7 @@ class TestPost extends BaseTestCase {
 		$results = $indexable_post_object->query_db(
 			[
 				'offset' => 1,
+				'ep_indexing_advanced_pagination' => false,
 			]
 		);
 
@@ -5432,19 +5433,11 @@ class TestPost extends BaseTestCase {
 		$results = $indexable_post_object->query_db(
 			[
 				'offset' => 3,
+				'ep_indexing_advanced_pagination' => false,
 			]
 		);
 
 		$this->assertCount( 0, $results['objects'] );
-		$this->assertEquals( 3, $results['total_objects'] );
-
-		$results = $indexable_post_object->query_db(
-			[
-				'offset' => -1,
-			]
-		);
-
-		$this->assertCount( 3, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
 	}
 

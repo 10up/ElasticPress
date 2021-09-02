@@ -794,12 +794,7 @@ class Command extends WP_CLI_Command {
 		$total_indexable     = 0;
 		$time_elapsed        = 0;
 
-		$no_bulk = false;
-
-		if ( isset( $args['nobulk'] ) ) {
-			$no_bulk = true;
-			$args['ep_indexing_advanced_pagination'] = false;
-		}
+		$no_bulk = isset( $args['nobulk'] );
 
 		if ( isset( $args['ep-host'] ) ) {
 			add_filter(
@@ -820,18 +815,16 @@ class Command extends WP_CLI_Command {
 		}
 
 		$show_errors = false;
-
 		if ( isset( $args['show-errors'] ) || ( isset( $args['show-bulk-errors'] ) && ! $no_bulk ) || ( isset( $args['show-nobulk-errors'] ) && $no_bulk ) ) {
 			$show_errors = true;
 		}
 
 		$query_args = [];
 
-		$query_args['offset']                          = 0;
-		$query_args['ep_indexing_advanced_pagination'] = ! $no_bulk;
-
-		if ( ! empty( $args['offset'] ) ) {
-			$query_args['offset'] = absint( $args['offset'] );
+		$query_args['offset'] = empty( $args['offset'] ) ? 0 : absint( $args['offset'] );
+		if ( 0 !== $query_args['offset'] ) {
+			// User specifically requested to use offsets.
+			$query_args['ep_indexing_advanced_pagination'] = false;
 		}
 
 		if ( ! empty( $args['upper-limit-object-id'] ) && is_numeric( $args['upper-limit-object-id'] ) ) {
@@ -1003,9 +996,10 @@ class Command extends WP_CLI_Command {
 				break;
 			}
 
+			$last_object_array_key    = array_keys( $query['objects'] )[ count( $query['objects'] ) - 1 ];
+			$last_processed_object_id = $query['objects'][ $last_object_array_key ]->ID;
+
 			if ( ! $no_bulk ) {
-				$last_object_array_key    = array_keys( $query['objects'] )[ count( $query['objects'] ) - 1 ];
-				$last_processed_object_id = $query['objects'][ $last_object_array_key ]->ID;
 				WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ), (int) ( $synced + count( $failed_objects ) ), (int) $query['total_objects'], (int) $last_processed_object_id ) );
 
 				$loop_counter++;
@@ -1020,13 +1014,7 @@ class Command extends WP_CLI_Command {
 				}
 			}
 
-			if ( ! $query_args['ep_indexing_advanced_pagination'] ) {
-				// Only increment the offset if not using advanced pagination.
-				// For the advanced pagination should always be 0.
-				// @see Indexable\Post\Post.php::query_db.
-				$query_args['offset'] += $per_page;
-			}
-
+			$query_args['offset']                              += $per_page;
 			$total_indexable                                    = (int) $query['total_objects'];
 			$query_args['ep_indexing_last_processed_object_id'] = $last_processed_object_id;
 
