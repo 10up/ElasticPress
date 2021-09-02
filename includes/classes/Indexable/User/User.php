@@ -737,8 +737,17 @@ class User extends Indexable {
 		/**
 		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
 		 * way to do that.
+		 *
+		 * The $wpdb->prepare will quate placeholders.
+		 *
+		 * SELECT * FROM table 'ORDER BY col asc'; - mariadb (vipd and local dev-env) doesn't like that
+		 * SELECT * FROM table ORDER BY 'col' 'asc'; - (this is the upstream variant) Vitess (k8s) doesn't like that
+		 *
+		 * We are sanitizing orderby in advance and putting it as a varible to avoid quates.
 		 */
+		// @codingStandardsIgnoreStart
 		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} {$orderby} LIMIT %d, %d", (int) $args['offset'], (int) $args['number'] ) );
+		// @codingStandardsIgnoreStop
 
 		return [
 			'objects'       => $objects,
