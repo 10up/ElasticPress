@@ -828,7 +828,7 @@ class Command extends WP_CLI_Command {
 		$query_args = [];
 
 		$query_args['offset']                          = 0;
-		$query_args['ep_indexing_advanced_pagination'] = 'post' === $indexable->slug && ! $no_bulk;
+		$query_args['ep_indexing_advanced_pagination'] = ! $no_bulk;
 
 		if ( ! empty( $args['offset'] ) ) {
 			$query_args['offset'] = absint( $args['offset'] );
