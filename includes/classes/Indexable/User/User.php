@@ -737,8 +737,13 @@ class User extends Indexable {
 		/**
 		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
 		 * way to do that.
+		 *
+		 * The $wpdb->prepare will quote placeholders.
+		 * We are sanitizing orderby in advance and putting it as a variable to avoid quotes.
 		 */
-		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} %s LIMIT %d, %d", $orderby, (int) $args['offset'], (int) $args['number'] ) );
+		// @codingStandardsIgnoreStart
+		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} {$orderby} LIMIT %d, %d", (int) $args['offset'], (int) $args['number'] ) );
+		// @codingStandardsIgnoreStop
 
 		return [
 			'objects'       => $objects,
