@@ -5421,6 +5421,7 @@ class TestPost extends BaseTestCase {
 		$results = $indexable_post_object->query_db(
 			[
 				'offset' => 1,
+				'ep_indexing_advanced_pagination' => false,
 			]
 		);
 
@@ -5432,6 +5433,7 @@ class TestPost extends BaseTestCase {
 		$results = $indexable_post_object->query_db(
 			[
 				'offset' => 3,
+				'ep_indexing_advanced_pagination' => false,
 			]
 		);
 
@@ -5441,6 +5443,7 @@ class TestPost extends BaseTestCase {
 		$results = $indexable_post_object->query_db(
 			[
 				'offset' => -1,
+				'ep_indexing_advanced_pagination' => false,
 			]
 		);
 
