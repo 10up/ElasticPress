@@ -1000,8 +1000,14 @@ class Post extends Indexable {
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
 		foreach ( $taxonomies as $tax_slug => $tax ) {
-			// Exclude the category taxonomy from this check if we are performing a Tax Query as category_name will be set by core
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && 'category' !== $tax->name ) {
+			// Prevents duplication of core's default taxonomies post_tag and category in ES query.
+			apply_filters( 'ep_post_tax_excluded_wp_query_root_check',
+				$excluded_tax_from_root_check = [
+				'category',
+				'post_tag'
+			] );
+
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && ! in_array( $tax->name, $excluded_tax_from_root_check ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
 					'terms'    => (array) $args[ $tax->query_var ],
