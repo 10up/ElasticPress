@@ -40,7 +40,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'deleted_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'updated_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
-		add_action( 'delete_term', [ $this, 'action_sync_on_delete' ] );
+		add_action( 'delete_term_taxonomy', [ $this, 'action_sync_on_delete' ] );
 		add_action( 'set_object_terms', [ $this, 'action_sync_on_object_update' ], 10, 2 );
 	}
 
