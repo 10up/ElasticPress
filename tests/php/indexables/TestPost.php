@@ -4994,6 +4994,8 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
 		$query1_args = [
 			's'   => 'findme',
 			'tag' => 'slug1,slug2',
@@ -5007,10 +5009,10 @@ class TestPost extends BaseTestCase {
 		$query1 = new \WP_Query( $query1_args );
 		$query2 = new \WP_Query( $query2_args );
 
-		$this->assertEquals( 1, $query1->post_count );
-		$this->assertEquals( 1, $query1->found_posts );
-		$this->assertEquals( 1, $query2->post_count );
-		$this->assertEquals( 1, $query2->found_posts );
+		$this->assertEquals( 2, $query1->post_count );
+		$this->assertEquals( 2, $query1->found_posts );
+		$this->assertEquals( 2, $query2->post_count );
+		$this->assertEquals( 2, $query2->found_posts );
 	}
 
 	/**
