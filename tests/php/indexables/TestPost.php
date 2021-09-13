@@ -5003,7 +5003,7 @@ class TestPost extends BaseTestCase {
 
 		$query2_args = [
 			's'   => 'findme',
-			'tag' => ['slug1 , slug2'],
+			'tag' => ['slug1', 'slug2'],
 		];
 
 		$query1 = new \WP_Query( $query1_args );
