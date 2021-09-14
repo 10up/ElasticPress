@@ -40,7 +40,8 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'deleted_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'updated_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
-		add_action( 'pre_delete_term', [ $this, 'action_sync_on_delete' ] );
+		add_action( 'pre_delete_term', [ $this, 'action_queue_children_sync' ] );
+		add_action( 'delete_term', [ $this, 'action_sync_on_delete' ] );
 		add_action( 'set_object_terms', [ $this, 'action_sync_on_object_update' ], 10, 2 );
 	}
 
@@ -177,6 +178,23 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		Indexables::factory()->get( 'term' )->delete( $term_id, false );
+	}
+
+	/**
+	 * Enqueue sync of children terms in hierchy when deleting parent. Children terms will be reasigned to
+	 * a different parent and we want to reflect that change in ElasticSearch
+	 *
+	 * @param int $term_id Term ID.
+	 * @since 3.6.3
+	 */
+	public function action_queue_children_sync( $term_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'delete_term', $term_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $term_id, 'term' ) ) {
+			return;
+		}
 
 		// Find all terms in the hierarchy so we resync those as well
 		$term      = get_term( $term_id );
