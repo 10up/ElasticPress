@@ -255,8 +255,8 @@ class Autosuggest extends Feature {
 		$ngram_fields = apply_filters(
 			'ep_autosuggest_ngram_fields',
 			[
-				'post_title'       => 'post_title.suggest',
-				'terms.(.*?).name' => 'term_suggest',
+				'post_title'      => 'post_title.suggest',
+				'terms.(.+).name' => 'term_suggest',
 			]
 		);
 
