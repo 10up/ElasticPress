@@ -192,10 +192,6 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( ! current_user_can( 'delete_term', $term_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $term_id, 'term' ) ) {
-			return;
-		}
-
 		// Find all terms in the hierarchy so we resync those as well
 		$term      = get_term( $term_id );
 		$children  = get_term_children( $term->term_id, $term->taxonomy );
@@ -205,6 +201,10 @@ class SyncManager extends SyncManagerAbstract {
 		foreach ( $hierarchy as $hierarchy_term_id ) {
 			if ( apply_filters( 'ep_term_sync_kill', false, $hierarchy_term_id ) ) {
 				return;
+			}
+
+			if ( ! current_user_can( 'edit_term', $term_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $term_id, 'term' )  ) {
+				continue;
 			}
 
 			do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
