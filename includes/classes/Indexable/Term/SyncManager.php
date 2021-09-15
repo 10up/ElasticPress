@@ -203,7 +203,7 @@ class SyncManager extends SyncManagerAbstract {
 				return;
 			}
 
-			if ( ! current_user_can( 'edit_term', $term_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $term_id, 'term' )  ) {
+			if ( ! current_user_can( 'edit_term', $term_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $term_id, 'term' ) ) {
 				continue;
 			}
 
