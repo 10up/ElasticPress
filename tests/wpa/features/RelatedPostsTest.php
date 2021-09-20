@@ -25,7 +25,7 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->click( '.ep-feature-related_posts .settings-button' );
 
@@ -35,31 +35,19 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		sleep( 2 );
 
-		// If we get "Page Crashed!" due to lack of memory, try WP-CLI.
-		try {
-			$this->openWidgetsPage( $I );
+		$this->openWidgetsPage( $I );
 
-			$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
+		$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
 
-			$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
+		$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
 
-			$I->typeInField( '.block-editor-inserter__search-input', 'ElasticPress Related Posts' );
+		$I->typeInField( '.block-editor-inserter__search-input', 'ElasticPress Related Posts' );
 
-			$I->dontSeeText( 'ElasticPress - Related Posts', '.block-editor-block-types-list' ); // Legacy Widget
+		$I->dontSeeText( 'ElasticPress - Related Posts', '.block-editor-block-types-list' ); // Legacy Widget
 
-			$I->dontSeeText( 'Related Posts (ElasticPress)', '.block-editor-block-types-list' );
-		} catch (\Throwable $th) {
-			// If failed for some other reason, it is a real failure.
-			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
-				throw $th;
-			}
+		$I->dontSeeText( 'Related Posts (ElasticPress)', '.block-editor-block-types-list' );
 
-			$cli_result = $this->runCommand( "wp widget list {$this->sidebar_id}" )['stdout'];
-
-			$this->assertStringNotContainsString( 'ep-related-posts', $cli_result );
-		}
-
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->click( '.ep-feature-related_posts .settings-button' );
 
@@ -69,31 +57,17 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		sleep( 2 );
 
-		// If we get "Page Crashed!" due to lack of memory, try WP-CLI.
-		try {
-			$this->openWidgetsPage( $I );
+		$this->openWidgetsPage( $I );
 
-			$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
+		$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
 
-			$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
+		$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
 
-			$I->typeInField( '.block-editor-inserter__search-input', 'ElasticPress Related Posts' );
+		$I->typeInField( '.block-editor-inserter__search-input', 'ElasticPress Related Posts' );
 
-			$I->seeText( 'ElasticPress - Related Posts', '.block-editor-block-types-list' ); // Legacy Widget
+		$I->seeText( 'ElasticPress - Related Posts', '.block-editor-block-types-list' ); // Legacy Widget
 
-			$I->seeText( 'Related Posts (ElasticPress)', '.block-editor-block-types-list' );
-		} catch (\Throwable $th) {
-			// If failed for some other reason, it is a real failure.
-			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
-				throw $th;
-			}
-
-			$this->runCommand( "wp widget add ep-related-posts {$this->sidebar_id}" );
-
-			$cli_result = $this->runCommand( "wp widget list {$this->sidebar_id}" )['stdout'];
-
-			$this->assertStringContainsString( 'ep-related-posts', $cli_result );
-		}
+		$I->seeText( 'Related Posts (ElasticPress)', '.block-editor-block-types-list' );
 	}
 
 	/**
