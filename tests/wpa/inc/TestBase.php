@@ -392,9 +392,9 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 			} catch ( \Throwable $th ) {
 				// If failed due to Page crashed, let's try again. Otherwise, stop.
 				if ( false !== strpos( $th->getMessage(), 'Page crashed' ) ) {
-					\WPAcceptance\Log::instance()->write( 'Page crashed error. Retrying.', 0 );
+					\WPAcceptance\Log::instance()->write( 'Page crashed error. Retrying (' . $attempts . ')', 0 );
 					$continue_trying = true;
-					sleep( 2 );
+					sleep( 5 );
 				}
 			}
 		} while ( $continue_trying && $attempts < 10 );
