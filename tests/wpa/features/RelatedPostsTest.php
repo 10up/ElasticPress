@@ -120,11 +120,27 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		$I->typeInField( 'input[name^="widget-ep-related-posts"]', 'Related Posts' );
 
-		sleep( 2 );
+		$update_button = $I->getElement( ".edit-widgets-header__actions .components-button.is-primary" );
 
-		$I->click( ".edit-widgets-header__actions .components-button.is-primary" );
+		$I->click( $update_button );
 
 		$I->waitUntilPageSourceContains( 'Widgets saved.' );
+
+		sleep ( 1 );
+
+		/**
+		 * It seems sometimes WP keeps a dirty state even after a successful save.
+		 * When that happens, we get stuck with a "Are you sure you want to leave...?" message.
+		 *
+		 * Saving it again seems to fix the issue.
+		 *
+		 * @todo Investigate why WordPress gets stuck in that dirty state.
+		 */
+		if ( $I->elementIsEnabled( $update_button ) ) {
+			$I->click( $update_button );
+
+			sleep( 2 );
+		}
 
 		$posts_data = [
 			[
