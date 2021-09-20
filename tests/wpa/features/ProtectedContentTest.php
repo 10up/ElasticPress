@@ -23,7 +23,7 @@ class ProtectedContentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->click( '.ep-feature-protected_content .settings-button' );
 
@@ -58,7 +58,7 @@ class ProtectedContentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/edit.php' );
+		$this->moveTo( $I, 'wp-admin/edit.php' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 
@@ -93,7 +93,7 @@ class ProtectedContentTest extends TestBase {
 		// Give some time to the async request that indexes the post.
 		sleep( 5 );
 
-		$I->moveTo( 'wp-admin/edit.php?post_status=draft&post_type=post' );
+		$this->moveTo( $I, 'wp-admin/edit.php?post_status=draft&post_type=post' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 
