@@ -26,7 +26,7 @@ class UserTest extends TestBase {
 	 * @param \WPAcceptance\PHPUnit\Actor $actor    Current actor.
 	 */
 	public function searchUser( $username = '', \WPAcceptance\PHPUnit\Actor $actor ) {
-		$actor->moveTo( 'wp-admin/users.php' );
+		$this->moveTo( $actor, 'wp-admin/users.php' );
 
 		$actor->waitUntilElementVisible( '#user-search-input' );
 
@@ -54,7 +54,7 @@ class UserTest extends TestBase {
 
 		$this->createUser( $data, $I );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -105,7 +105,7 @@ class UserTest extends TestBase {
 
 		$I->click( '#submit' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
