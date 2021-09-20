@@ -383,16 +383,16 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @param array ...$args  Arguments to be passed to Actor::moveTo()
 	 */
 	public function moveTo( $actor, ...$args ) {
-		$continue_trying = false;
-		$attempts        = 0;
+		$attempts = 0;
 		do {
 			try {
 				$attempts++;
-				$actor->moveTo( ...$args );
 				$continue_trying = false;
+				$actor->moveTo( ...$args );
 			} catch ( \Throwable $th ) {
 				// If failed due to Page crashed, let's try again. Otherwise, stop.
 				if ( false !== strpos( $th->getMessage(), 'Page crashed' ) ) {
+					\WPAcceptance\Log::instance()->write( 'Page crashed error. Retrying.', 0 );
 					$continue_trying = true;
 					sleep( 2 );
 				}
