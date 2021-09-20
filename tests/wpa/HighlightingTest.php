@@ -27,7 +27,7 @@ class HighlightingTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".ep-feature-search .settings-button" ).click();' );
 
@@ -44,7 +44,7 @@ class HighlightingTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
-		$I->moveTo( '/?s=findme' );
+		$this->moveTo( $I, '/?s=findme' );
 
 		$I->seeElement( '.ep-highlight' );
 	}
