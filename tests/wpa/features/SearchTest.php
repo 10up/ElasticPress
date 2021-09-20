@@ -19,7 +19,7 @@ class FeatureSearchTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/?s=test' );
+		$this->moveTo( $I, '/?s=test' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 
@@ -54,7 +54,7 @@ class FeatureSearchTest extends TestBase {
 			'content' => 'elasticpress',
 		], $I );
 
-		$I->moveTo( '/?s=10up+loves+elasticpress' );
+		$this->moveTo( $I, '/?s=10up+loves+elasticpress' );
 
 		$I->seeText( 'Higher', '#site-content article:nth-of-type(1)' );
 
@@ -85,7 +85,7 @@ class FeatureSearchTest extends TestBase {
 			'content' => '10up loves elasticpress',
 		], $I );
 
-		$I->moveTo( '/?s=10up+loves+elasticpress' );
+		$this->moveTo( $I, '/?s=10up+loves+elasticpress' );
 
 		$I->seeText( '10up loves elasticpress', '#site-content article:nth-of-type(1)' );
 		$I->seeText( '10up loves elasticpress', '#site-content article:nth-of-type(2)' );
