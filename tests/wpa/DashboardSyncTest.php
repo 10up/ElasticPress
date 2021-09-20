@@ -184,7 +184,7 @@ class DashboardSyncTest extends TestBase {
 
 		$cli_result = $this->runCommand( 'wp elasticpress index' )['stdout'];
 
-		$this->assertStringContainsString( 'An index is already occuring', $cli_result );
+		$this->assertStringContainsString( 'An index is already occurring', $cli_result );
 
 		$I->executeJavaScript( 'document.querySelector( ".resume-sync" ).click();' );
 
