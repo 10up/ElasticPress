@@ -237,57 +237,117 @@ class Autosuggest extends Feature {
 	 * @return array $query adjusted ES Query arguments
 	 */
 	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
-		if ( Utils\is_integrated_request( $this->slug, [ 'public' ] ) && ! empty( $args['s'] ) ) {
-			/**
-			 * Filter autosuggest ngram fields
-			 *
-			 * @hook ep_autosuggest_ngram_fields
-			 * @param  {array} $fields Fields available to ngram
-			 * @return  {array} New fields array
-			 */
-			$ngram_fields = apply_filters(
-				'ep_autosuggest_ngram_fields',
-				[
-					'post_title' => 'post_title.suggest',
-				]
-			);
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'public' ] ) || empty( $args['s'] ) ) {
+			return $query;
+		}
 
-			if ( isset( $query['bool'] ) && isset( $query['bool']['must'] ) ) {
-				foreach ( $query['bool']['must'] as $q_index => $must_query ) {
-					if ( isset( $must_query['bool'] ) && isset( $must_query['bool']['should'] ) ) {
-						foreach ( $must_query['bool']['should'] as $index => $current_bool_should ) {
-							if (
-								isset( $current_bool_should['multi_match'] ) &&
-								isset( $current_bool_should['multi_match']['fields'] ) &&
-								(
-									(
-										isset( $current_bool_should['multi_match']['fuzziness'] ) &&
-										0 !== $current_bool_should['multi_match']['fuzziness']
-									) ||
-									(
-										isset( $current_bool_should['multi_match']['slop'] ) &&
-										0 !== $current_bool_should['multi_match']['slop']
-									)
-								)
-							) {
-								foreach ( $current_bool_should['multi_match']['fields'] as $key => $field ) {
-									foreach ( $ngram_fields as $plain_field => $ngram_field ) {
-										if ( preg_match( '/^(' . $plain_field . ')(\^(\d+))?$/', $field, $match ) ) {
-											if ( isset( $match[3] ) && $match[3] > 1 ) {
-												$weight = $match[3] - 1;
-											} else {
-												$weight = 1;
-											}
-											$query['bool']['must'][ $q_index ]['bool']['should'][ $index ]['multi_match']['fields'][] = $ngram_field . '^' . $weight;
-										}
-									}
-								}
+		if ( ! isset( $query['bool'] ) || ! isset( $query['bool']['must'] ) ) {
+			return $query;
+		}
+
+		/**
+		 * Filter autosuggest ngram fields
+		 *
+		 * @hook ep_autosuggest_ngram_fields
+		 * @param  {array} $fields Fields available to ngram
+		 * @return  {array} New fields array
+		 */
+		$ngram_fields = apply_filters(
+			'ep_autosuggest_ngram_fields',
+			[
+				'post_title'        => 'post_title.suggest',
+				'terms\.(.+)\.name' => 'term_suggest',
+			]
+		);
+
+		/**
+		 * At this point, `$query` might look like this (using the 3.5 search algorithm):
+		 *
+		 * [
+		 *     [bool] => [
+		 *         [must] => [
+		 *             [0] => [
+		 *                 [bool] => [
+		 *                     [should] => [
+		 *                         [0] => [
+		 *                             [multi_match] => [
+		 *                                 [query] => ep_autosuggest_placeholder
+		 *                                 [type] => phrase
+		 *                                 [fields] => [
+		 *                                     [0] => post_title^1
+		 *                                     ...
+		 *                                     [n] => terms.category.name^27
+		 *                                 ]
+		 *                                 [boost] => 3
+		 *                             ]
+		 *                         ]
+		 *                         [1] => [
+		 *                             [multi_match] => [
+		 *                                 [query] => ep_autosuggest_placeholder
+		 *                                 [fields] => [ ... ]
+		 *                                 [type] => phrase
+		 *                                 [slop] => 5
+		 *                             ]
+		 *                         ]
+		 *                     ]
+		 *                 ]
+		 *             ]
+		 *         ]
+		 *     ]
+		 *     ...
+		 * ]
+		 *
+		 * Also, note the usage of `&$must_query`. This means that by changing `$must_query`
+		 * you will be actually changing `$query`.
+		 */
+		foreach ( $query['bool']['must'] as &$must_query ) {
+			if ( ! isset( $must_query['bool'] ) || ! isset( $must_query['bool']['should'] ) ) {
+				continue;
+			}
+			foreach ( $must_query['bool']['should'] as &$current_bool_should ) {
+				if ( ! isset( $current_bool_should['multi_match'] ) || ! isset( $current_bool_should['multi_match']['fields'] ) ) {
+					continue;
+				}
+
+				/**
+				 * `fuzziness` is used in the original algorithm.
+				 * `slop` is used in `3.5`.
+				 *
+				 * @see \ElasticPress\Indexable\Post\Post::format_args()
+				 */
+				if ( empty( $current_bool_should['multi_match']['fuzziness'] ) && empty( $current_bool_should['multi_match']['slop'] ) ) {
+					continue;
+				}
+
+				$fields_to_add = [];
+
+				/**
+				 * If the regex used in `$ngram_fields` matches more than one field,
+				 * like taxonomies, for example, we use the min value - 1.
+				 */
+				foreach ( $current_bool_should['multi_match']['fields'] as $field ) {
+					foreach ( $ngram_fields as $regex => $ngram_field ) {
+						if ( preg_match( '/^(' . $regex . ')(\^(\d+))?$/', $field, $match ) ) {
+							$weight = 1;
+							if ( isset( $match[4] ) && $match[4] > 1 ) {
+								$weight = $match[4] - 1;
+							}
+
+							if ( isset( $fields_to_add[ $ngram_field ] ) ) {
+								$fields_to_add[ $ngram_field ] = min( $fields_to_add[ $ngram_field ], $weight );
+							} else {
+								$fields_to_add[ $ngram_field ] = $weight;
 							}
 						}
 					}
 				}
+
+				foreach ( $fields_to_add as $field => $weight ) {
+					$current_bool_should['multi_match']['fields'][] = "{$field}^{$weight}";
+				}
 			}
 		}
+
 		return $query;
 	}
 
