@@ -657,6 +657,43 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Test a term query parent
+	 *
+	 * @since 3.6.3
+	 * @group term
+	 */
+	public function testTermQueryParent() {
+		$parent_term_id = Functions\create_and_sync_term( 'parent-term-no-post', 'Parent Category', 'Parent/Child Terms', 'category' );
+		$child_term_id  = Functions\create_and_sync_term( 'child-term-post', 'Child Category', 'Parent/Child Terms', 'category', [], $parent_term_id );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'hide_empty'   => false,
+				'taxonomy'     => 'category',
+				'parent'       => $parent_term_id,
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $term_query->elasticsearch_success );
+		$this->assertCount( 1, $term_query->terms );
+		$this->assertSame( $term_query->terms[0]->term_id, $child_term_id );
+
+		$term_query = new \WP_Term_Query(
+			[
+				'hide_empty'   => false,
+				'taxonomy'     => 'category',
+				'parent'       => 0,
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $term_query->elasticsearch_success );
+		$this->assertCount( 2, $term_query->terms ); // "Uncategorized" is also returned in this case.
+		$this->assertContains( $parent_term_id, wp_list_pluck( $term_query->terms, 'term_id' ) );
+	}
+
+	/**
 	 * Test a term query hide_empty
 	 *
 	 * @since 3.3
