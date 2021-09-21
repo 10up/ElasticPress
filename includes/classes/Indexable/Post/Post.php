@@ -938,7 +938,7 @@ class Post extends Indexable {
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
-			if ( ! is_array( $args['tag'] ) && strpos( $args['tag'], ',' ) ) {
+			if ( ! is_array( $args['tag'] ) && false !== strpos( $args['tag'], ',' ) ) {
 				$args['tag'] = explode( ',', $args['tag'] );
 			}
 			$args['tax_query'][] = array(
