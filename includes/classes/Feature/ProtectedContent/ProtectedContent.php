@@ -248,7 +248,7 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function return_post_password( $properties ) {
-		return $properties + ['post_password'];
+		return $properties + [ 'post_password' ];
 	}
 
 
