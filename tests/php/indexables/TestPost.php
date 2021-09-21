@@ -5003,11 +5003,14 @@ class TestPost extends BaseTestCase {
 
 		$query2_args = [
 			's'   => 'findme',
-			'tag' => ['slug1', 'slug2'],
+			'tag' => [ 'slug1', 'slug2' ],
 		];
 
 		$query1 = new \WP_Query( $query1_args );
 		$query2 = new \WP_Query( $query2_args );
+
+		$this->assertTrue( isset( $query1->posts[0]->elasticsearch ) );
+		$this->assertTrue( isset( $query2->posts[0]->elasticsearch ) );
 
 		$this->assertEquals( 2, $query1->post_count );
 		$this->assertEquals( 2, $query1->found_posts );
