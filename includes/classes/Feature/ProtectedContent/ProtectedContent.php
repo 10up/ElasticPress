@@ -53,8 +53,6 @@ class ProtectedContent extends Feature {
 			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
 			add_filter( 'ep_post_query_db_args', [ $this, 'query_password_protected_posts' ] );
 			add_filter( 'ep_post_sync_args', [ $this, 'include_post_password' ], 10, 2 );
-			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
 		}
 
 		if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
