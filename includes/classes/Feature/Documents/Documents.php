@@ -11,6 +11,7 @@ use ElasticPress\Feature as Feature;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\Utils as Utils;
 
 /**
  * Documents feature class.
@@ -114,7 +115,7 @@ class Documents extends Feature {
 	 * @since  2.3
 	 */
 	public function setup_document_search( $query ) {
-		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'public', 'ajax' ] ) ) {
 			return;
 		}
 
@@ -217,7 +218,16 @@ class Documents extends Feature {
 
 		$post_args['attachments'] = [];
 
-		if ( ! WP_Filesystem() ) {
+		/**
+		 * Filters the arguments passed to WP_Filesystem()
+		 *
+		 * @hook ep_filesystem_args
+		 * @param  {boolean} False (default value)
+		 * @return {array|false} Array of args, or false if none
+		 */
+		$filesystem_args = apply_filters( 'ep_filesystem_args', false );
+
+		if ( ! WP_Filesystem( $filesystem_args ) ) {
 			return $post_args;
 		}
 
@@ -508,5 +518,3 @@ class Documents extends Feature {
 		return $weights;
 	}
 }
-
-

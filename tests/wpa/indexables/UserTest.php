@@ -11,13 +11,22 @@
 class UserTest extends TestBase {
 
 	/**
+	 * Setup functionality
+	 */
+	public function setUp() {
+		parent::setUp();
+
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
+	}
+
+	/**
 	 * Search user by username.
 	 *
 	 * @param string                      $username Username.
 	 * @param \WPAcceptance\PHPUnit\Actor $actor    Current actor.
 	 */
 	public function searchUser( $username = '', \WPAcceptance\PHPUnit\Actor $actor ) {
-		$actor->moveTo( 'wp-admin/users.php' );
+		$this->moveTo( $actor, 'wp-admin/users.php' );
 
 		$actor->waitUntilElementVisible( '#user-search-input' );
 
@@ -45,9 +54,9 @@ class UserTest extends TestBase {
 
 		$this->createUser( $data, $I );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -65,7 +74,7 @@ class UserTest extends TestBase {
 
 		$I->click( '.query-result-toggle' );
 
-		$I->seeText( '"total": 1', '.query-results' );
+		$this->checkTotal( 1, $I );
 
 		$I->seeText( '"user_email": "testuser@example.com"', '.query-results' );
 	}
@@ -96,9 +105,9 @@ class UserTest extends TestBase {
 
 		$I->click( '#submit' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
@@ -116,12 +125,48 @@ class UserTest extends TestBase {
 
 		$I->click( '.query-result-toggle' );
 
-		$I->seeText( '"total": 1', '.query-results' );
+		$this->checkTotal( 1, $I );
 
 		$I->seeText( '"user_email": "testuser@example.com"', '.query-results' );
 
 		$I->seeText( '"value": "John"', '.query-results' );
 
 		$I->seeText( '"value": "Doe"', '.query-results' );
+	}
+
+	/**
+	 * Create a user
+	 *
+	 * @param  array                       $data  User data
+	 * @param  \WPAcceptance\PHPUnit\Actor $actor Current actor
+	 */
+	public function createUser( array $data, \WPAcceptance\PHPUnit\Actor $actor ) {
+		$defaults = [
+			'user_login' => 'testuser',
+			'user_email' => 'testuser@example.com',
+		];
+
+		$data = array_merge( $defaults, $data );
+
+		try {
+			$actor->moveTo( 'wp-admin/user-new.php' );
+
+			$actor->typeInField( '#user_login', $data['user_login'] );
+
+			$actor->typeInField( '#email', $data['user_email'] );
+
+			$actor->checkOptions( '#noconfirmation' );
+
+			$actor->click( '#createusersub' );
+
+			$actor->waitUntilElementVisible( '#message' );
+		} catch (\Throwable $th) {
+			// If failed for some other reason, it is a real failure.
+			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
+				throw $th;
+			}
+
+			$this->runCommand( "wp user create {$data['user_login']} {$data['user_email']}" );
+		}
 	}
 }

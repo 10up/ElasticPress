@@ -9,6 +9,14 @@
  * Feature Related Posts test class
  */
 class FeatureRelatedPostsTest extends TestBase {
+
+	/**
+	 * Sidebar ID to be used on WP-CLI.
+	 *
+	 * @var string
+	 */
+	protected $sidebar_id = 'sidebar-1';
+
 	/**
 	 * @testdox If feature is activated, user should see “ElasticPress - Related Posts” widget in dashboard.
 	 */
@@ -17,7 +25,7 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->click( '.ep-feature-related_posts .settings-button' );
 
@@ -27,11 +35,19 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		sleep( 2 );
 
-		$I->moveTo( '/wp-admin/widgets.php' );
+		$this->openWidgetsPage( $I );
 
-		$I->dontSeeText( 'ElasticPress - Related Posts' );
+		$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
+
+		$I->typeInField( '.block-editor-inserter__search-input', 'ElasticPress Related Posts' );
+
+		$I->dontSeeText( 'ElasticPress - Related Posts', '.block-editor-block-types-list' ); // Legacy Widget
+
+		$I->dontSeeText( 'Related Posts (ElasticPress)', '.block-editor-block-types-list' );
+
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->click( '.ep-feature-related_posts .settings-button' );
 
@@ -41,9 +57,17 @@ class FeatureRelatedPostsTest extends TestBase {
 
 		sleep( 2 );
 
-		$I->moveTo( '/wp-admin/widgets.php' );
+		$this->openWidgetsPage( $I );
 
-		$I->seeText( 'ElasticPress - Related Posts' );
+		$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
+
+		$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
+
+		$I->typeInField( '.block-editor-inserter__search-input', 'ElasticPress Related Posts' );
+
+		$I->seeText( 'ElasticPress - Related Posts', '.block-editor-block-types-list' ); // Legacy Widget
+
+		$I->seeText( 'Related Posts (ElasticPress)', '.block-editor-block-types-list' );
 	}
 
 	/**
@@ -52,37 +76,45 @@ class FeatureRelatedPostsTest extends TestBase {
 	 * @testdox I can see the related posts widget.
 	 */
 	public function testRelatedPostsWidget() {
+		$this->maybeEnableFeature( 'related_posts' );
+
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/widgets.php' );
+		$this->openWidgetsPage( $I );
 
-		$related_posts_widget = $I->getElement( '#widget-7_ep-related-posts-__i__ button' );
+		$I->click( '.edit-widgets-header-toolbar__inserter-toggle' );
 
-		$I->click( $related_posts_widget );
+		$I->waitUntilElementVisible( '.block-editor-inserter__search-input' );
 
-		$I->waitUntilElementVisible( '.widgets-chooser' );
+		$I->click( '.block-editor-inserter__panel-content [class*="ep-related-posts"]' );
 
-		$I->click( '.widgets-chooser-add' );
+		$I->waitUntilElementVisible( 'input[name^="widget-ep-related-posts"]' );
 
-		$widgets = $I->getElements( '#sidebar-1 .widget' );
+		$I->typeInField( 'input[name^="widget-ep-related-posts"]', 'Related Posts' );
 
-		$related_posts_widget = end( $widgets );
+		$update_button = $I->getElement( ".edit-widgets-header__actions .components-button.is-primary" );
 
-		$widget_id = $I->getElementAttribute( $related_posts_widget, 'id' );
+		$I->click( $update_button );
 
-		$widget_id = substr( $widget_id, strpos( $widget_id, '_ep-related-posts-' ) );
+		$I->waitUntilPageSourceContains( 'Widgets saved.' );
 
-		$widget_id = str_replace( '_ep-related-posts-', '', $widget_id );
+		sleep ( 1 );
 
-		echo $widget_id;
+		/**
+		 * It seems sometimes WP keeps a dirty state even after a successful save.
+		 * When that happens, we get stuck with a "Are you sure you want to leave...?" message.
+		 *
+		 * Saving it again seems to fix the issue.
+		 *
+		 * @todo Investigate why WordPress gets stuck in that dirty state.
+		 */
+		if ( $I->elementIsEnabled( $update_button ) ) {
+			$I->click( $update_button );
 
-		$I->typeInField( "#widget-ep-related-posts-$widget_id-title", 'Related Posts' );
-
-		$I->click( "#widget-ep-related-posts-$widget_id-savewidget" );
-
-		usleep( 1000000 );
+			sleep( 2 );
+		}
 
 		$posts_data = [
 			[

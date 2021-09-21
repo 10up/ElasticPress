@@ -424,7 +424,7 @@ class Term extends Indexable {
 		/**
 		 * Support `parent` query var.
 		 */
-		if ( ! empty( $query_vars['parent'] ) ) {
+		if ( isset( $query_vars['parent'] ) && '' !== $query_vars['parent'] ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
 					'parent' => (int) $query_vars['parent'],
@@ -949,11 +949,21 @@ class Term extends Indexable {
 
 		if ( ! empty( $orderby ) ) {
 			if ( 'name' === $orderby ) {
-				$sort[] = array(
-					'name.sortable' => array(
-						'order' => $order,
-					),
-				);
+				$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+
+				if ( version_compare( $es_version, '7.0', '>=' ) ) {
+					$sort[] = array(
+						'name.sortable' => array(
+							'order' => $order,
+						),
+					);
+				} else {
+					$sort[] = array(
+						'name.raw' => array(
+							'order' => $order,
+						),
+					);
+				}
 			} elseif ( 'slug' === $orderby ) {
 				$sort[] = array(
 					'slug.raw' => array(

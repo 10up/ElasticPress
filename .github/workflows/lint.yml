@@ -1,0 +1,80 @@
+name: Linting
+
+env:
+  COMPOSER_VERSION: "2"
+  COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
+  NODE_VERSION: "12"
+  NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  eslint:
+    name: eslint
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set standard 10up cache directories
+      run: |
+        sudo npm config set cache "${{ env.NODE_CACHE }}" --global
+
+    - name: Prepare npm cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.NODE_CACHE }}
+        key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          npm-${{ env.NODE_VERSION }}-
+
+    - name: "install node v${{ env.NODE_VERSION }}"
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: npm install
+      run: npm install
+
+    - name: eslint
+      run: npm run lint-js
+
+  phpcs:
+    name: phpcs
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set standard 10up cache directories
+      run: |
+        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+
+    - name: Prepare composer cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.2'
+        coverage: none
+        tools: composer:v1
+
+    - name: composer install
+      run: composer install
+
+    - name: PHPCS check
+      run: composer run lint

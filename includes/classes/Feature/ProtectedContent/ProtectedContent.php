@@ -53,6 +53,13 @@ class ProtectedContent extends Feature {
 			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
 			add_filter( 'ep_post_query_db_args', [ $this, 'query_password_protected_posts' ] );
 			add_filter( 'ep_post_sync_args', [ $this, 'include_post_password' ], 10, 2 );
+			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
+			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
+		}
+
+		if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
+			add_filter( 'ep_indexable_comment_status', [ $this, 'get_comment_statuses' ] );
+			add_action( 'pre_get_comments', [ $this, 'integrate_comments_query' ] );
 		}
 	}
 
@@ -110,6 +117,9 @@ class ProtectedContent extends Feature {
 	 * @since  2.1
 	 */
 	public function integrate( $query ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'admin' ] ) ) {
+			return;
+		}
 
 		// Lets make sure this doesn't interfere with the CLI
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
@@ -243,6 +253,52 @@ class ProtectedContent extends Feature {
 
 
 	/**
+	 * Integrate EP into comment queries
+	 *
+	 * @param  WP_Comment_Query $comment_query WP Comment Query
+	 * @since  3.6.0
+	 */
+	public function integrate_comments_query( $comment_query ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'admin' ] ) ) {
+			return;
+		}
+
+		// Lets make sure this doesn't interfere with the CLI
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return;
+		}
+
+		$comment_types = array( 'comment', 'review' );
+
+		/**
+		 * Filter protected content supported comment types.
+		 *
+		 * @hook ep_pc_supported_comment_types
+		 * @since 3.6.0
+		 * @param  {array} $comment_types Comment types
+		 * @return  {array} New comment types
+		 */
+		$supported_comment_types = apply_filters( 'ep_pc_supported_comment_types', $comment_types );
+
+		$comment_type = $comment_query->query_vars['type'];
+
+		if ( is_array( $comment_type ) ) {
+			foreach ( $comment_type as $comment_type_value ) {
+				if ( ! in_array( $comment_type_value, $supported_comment_types, true ) ) {
+					return;
+				}
+			}
+
+			$comment_query->query_vars['ep_integrate'] = true;
+		} else {
+			if ( in_array( $comment_type, $supported_comment_types, true ) ) {
+				$comment_query->query_vars['ep_integrate'] = true;
+			}
+		}
+
+	}
+
+	/**
 	 * Output feature box summary
 	 *
 	 * @since 2.1
@@ -280,20 +336,29 @@ class ProtectedContent extends Feature {
 	}
 
 	/**
+	 * Fetches all comment statuses we need to index
+	 *
+	 * @since  3.6.0
+	 * @param  array $comment_statuses Post statuses array
+	 * @return array
+	 */
+	public function get_comment_statuses( $comment_statuses ) {
+		return [ 'all' ];
+	}
+
+	/**
 	 * Determine feature reqs status
 	 *
 	 * @since  2.2
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
+		$status = new FeatureRequirementsStatus( 1 );
 
 		if ( ! Utils\is_epio() ) {
-			$status->code    = 1;
 			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
 		}
 
 		return $status;
 	}
 }
-

@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils;
+
 /**
  * Abstract sync manager class to be extended for each indexable
  */
@@ -51,6 +53,15 @@ abstract class SyncManager {
 		add_action( 'shutdown', [ $this, 'index_sync_queue' ] );
 		add_filter( 'wp_redirect', [ $this, 'index_sync_queue_on_redirect' ], 10, 1 );
 
+		/**
+		 * Actions for multisite
+		 */
+		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
+
 		// Implemented by children.
 		$this->setup();
 	}
@@ -77,6 +88,33 @@ abstract class SyncManager {
 		 * @since  3.1.2
 		 */
 		do_action( 'ep_after_add_to_queue', $object_id, $this->sync_queue );
+
+		return true;
+	}
+
+	/**
+	 * Remove an object from the sync queue.
+	 *
+	 * @param  id $object_id object ID to remove from the queue
+	 * @since  3.5
+	 * @return boolean
+	 */
+	public function remove_from_queue( $object_id ) {
+		if ( ! is_numeric( $object_id ) ) {
+			return false;
+		}
+
+		unset( $this->sync_queue[ $object_id ] );
+
+		/**
+		 * Fires after item is removed from sync queue
+		 *
+		 * @hook ep_after_remove_from_queue
+		 * @param  {int} $object_id ID of object
+		 * @param  {array} $sync_queue Current sync queue
+		 * @since  3.5
+		 */
+		do_action( 'ep_after_remove_from_queue', $object_id, $this->sync_queue );
 
 		return true;
 	}
@@ -121,6 +159,19 @@ abstract class SyncManager {
 		}
 
 		/**
+		 * Allow other code to intercept the sync process
+		 *
+		 * @hook pre_ep_index_sync_queue
+		 * @param {boolean} $bail True to skip the rest of index_sync_queue(), false to continue normally
+		 * @param {SyncManager} $sync_manager SyncManager instance for the indexable
+		 * @param {string} $indexable_slug Slug of the indexable being synced
+		 * @since 3.5
+		 */
+		if ( apply_filters( 'pre_ep_index_sync_queue', false, $this, $this->indexable_slug ) ) {
+			return;
+		}
+
+		/**
 		 * Backwards compat for pre-3.0
 		 */
 		foreach ( $this->sync_queue as $object_id => $value ) {
@@ -150,10 +201,8 @@ abstract class SyncManager {
 	 * @return boolean
 	 */
 	public function can_index_site() {
-		if ( defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
-			$is_indexable = get_blog_option( get_current_blog_id(), 'ep_indexable', 'yes' );
-
-			return 'yes' === $is_indexable;
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			return Utils\is_site_indexable();
 		}
 
 		return true;
@@ -181,6 +230,35 @@ abstract class SyncManager {
 		 * @param {array} $indexable_slug Indexable slug.
 		 */
 		return apply_filters( 'ep_sync_indexable_kill', $is_importing, $this->indexable_slug );
+	}
+
+	/**
+	 * Remove blog from index when a site is deleted, archived, or deactivated
+	 *
+	 * @param int $blog_id WP Blog ID.
+	 */
+	public function action_delete_blog_from_index( $blog_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Don't delete global indexes
+		if ( $indexable->global ) {
+			return;
+		}
+
+		/**
+		 * Filter to whether to keep index on site deletion
+		 *
+		 * @hook ep_keep_index
+		 * @param {bool} $keep True means don't delete index
+		 * @return {boolean} New value
+		 */
+		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false ) ) {
+			$indexable->delete_index( $blog_id );
+		}
 	}
 
 	/**

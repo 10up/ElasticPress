@@ -17,21 +17,17 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
-		}
-
 		$this->activateDocumentFeature( $I );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
 		$this->uploadFile( $I, dirname( __DIR__ ) . '/test-docs/pdf-file.pdf' );
 
-		$I->moveTo( '/?s=dummy+pdf' );
+		$this->moveTo( $I, '/?s=dummy+pdf' );
 
 		$I->seeText( 'pdf-file' );
 	}
@@ -44,17 +40,13 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
-		}
-
 		$this->maybeSync( $I );
 
 		$this->activateDocumentFeature( $I );
 
 		$this->uploadFile( $I, dirname( __DIR__ ) . '/test-docs/pptx-file.pptx' );
 
-		$I->moveTo( '/?s=dummy+slide' );
+		$this->moveTo( $I, '/?s=dummy+slide' );
 
 		$I->seeText( 'pptx-file' );
 	}
@@ -67,23 +59,19 @@ class FeatureDocumentTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		if ( ! $this->isElasticPressIo( $I ) ) {
-			return;
-		}
-
 		$this->activateDocumentFeature( $I );
 
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$this->uploadFile( $I, dirname( __DIR__ ) . '/test-docs/pdf-file.pdf' );
 
-		$I->moveTo( '/?s=dummy+pdf' );
+		$this->moveTo( $I, '/?s=dummy+pdf' );
 
 		$I->seeText( 'pdf-file' );
 	}
 
 	private function uploadFile( $actor, $file ) {
-		$actor->moveTo( '/wp-admin/media-new.php?browser-uploader' );
+		$this->moveTo( $actor, '/wp-admin/media-new.php?browser-uploader' );
 
 		$actor->attachFile( '#async-upload', $file );
 
@@ -93,7 +81,7 @@ class FeatureDocumentTest extends TestBase {
 	}
 
 	private function activateDocumentFeature( $actor ) {
-		$actor->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $actor, '/wp-admin/admin.php?page=elasticpress' );
 
 		$class = $actor->getElementAttribute( '.ep-feature-documents', 'class' );
 

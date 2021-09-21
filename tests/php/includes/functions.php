@@ -23,6 +23,12 @@ function create_and_sync_post( $post_args = array(), $post_meta = array(), $site
 		switch_to_blog( $site_id );
 	}
 
+	$current_site_id = null;
+
+	if ( is_multisite() ) {
+		$current_site_id = get_current_blog_id();
+	}
+
 	$post_types       = ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
 	$post_type_values = array_values( $post_types );
 
@@ -127,6 +133,33 @@ function create_and_sync_term( $slug, $name, $description, $taxonomy, $posts = [
 	ElasticPress\Indexables::factory()->get( 'term' )->index( $term['term_id'], true );
 
 	return $term['term_id'];
+}
+
+/**
+ * Create and sync a comment
+ *
+ * @param  string $comment Comment content.
+ * @param  int    $post_id Post ID.
+ * @param  int    $parent  Parent comment ID.
+ *
+ * @since  3.6
+ *
+ * @return int Comment ID.
+ */
+function create_and_sync_comment( $args = [] ) {
+
+	$args = array_merge(
+		[
+			'comment_content' => 'Test comment'
+		],
+		$args
+	);
+
+	$comment_id = wp_insert_comment( $args );
+
+	ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id, true );
+
+	return (int) $comment_id;
 }
 
 /**

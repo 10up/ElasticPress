@@ -61,7 +61,7 @@ class TestAutosuggest extends BaseTestCase {
 	protected function get_feature() {
 		return ElasticPress\Features::factory()->get_registered_feature( 'autosuggest' );
 	}
-    
+
     public function testConstruct() {
         $instance = new ElasticPress\Feature\Autosuggest\Autosuggest();
 
@@ -177,12 +177,14 @@ class TestAutosuggest extends BaseTestCase {
             ];
         };
 
-        add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
 
         $this->get_feature()->enqueue_scripts();
         $this->assertTrue( wp_script_is( 'elasticpress-autosuggest' ) );
-        
+
         remove_filter( 'pre_site_option_ep_feature_settings', $filter );
+        remove_filter( 'pre_option_ep_feature_settings', $filter );
     }
 
     public function testGenerateSearchQuery() {
