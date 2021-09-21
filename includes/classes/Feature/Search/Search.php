@@ -569,7 +569,7 @@ class Search extends Feature {
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
 		if ( ! Utils\is_integrated_request( $this->slug ) ) {
-			return;
+			return false;
 		}
 
 		if ( ! is_a( $query, 'WP_Query' ) ) {
