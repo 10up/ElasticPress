@@ -349,6 +349,10 @@ class Widget extends WP_Widget {
 		/**
 		 * Filter the HTML for an individual facet term.
 		 *
+		 * For term search to work correctly the outermost wrapper of the term
+		 * HTML must have data-term-name and data-term-slug attributes set to
+		 * lowercase versions of the term name and slug respectively.
+		 *
 		 * @since 3.6.3
 		 * @hook ep_facet_widget_term_html
 		 * @param {string} $html Facet term HTML.
