@@ -344,7 +344,7 @@ class Widget extends WP_Widget {
 			'<a %1$s rel="nofollow"><div class="ep-checkbox %2$s" role="presentation"></div>%3$s</a>',
 			$term->count ? $href : '',
 			$selected ? 'checked' : '',
-			esc_html( $label )
+			wp_kses_post( $label )
 		);
 
 		$html = sprintf(
