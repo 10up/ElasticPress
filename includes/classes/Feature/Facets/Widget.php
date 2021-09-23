@@ -328,11 +328,23 @@ class Widget extends WP_Widget {
 			esc_url( $url )
 		);
 
+		/**
+		 * Filter the label for an individual facet term.
+		 *
+		 * @since 3.6.3
+		 * @hook ep_facet_widget_term_label
+		 * @param {string} $html Facet term label.
+		 * @param {WP_Term} $term Term object.
+		 * @param {boolean} $selected Whether the term is selected.
+		 * @return {string} Individual facet term label.
+		 */
+		$label = apply_filters( 'ep_facet_widget_term_label', $term->name, $term, $selected );
+
 		$link = sprintf(
 			'<a %1$s rel="nofollow"><div class="ep-checkbox %2$s" role="presentation"></div>%3$s</a>',
 			$term->count ? $href : '',
 			$selected ? 'checked' : '',
-			esc_html( $term->name )
+			esc_html( $label )
 		);
 
 		$html = sprintf(
