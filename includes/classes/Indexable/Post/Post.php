@@ -955,6 +955,7 @@ class Post extends Indexable {
 		 * Filter taxonomies to exclude from tax root check.
 		 * Default values prevent duplication of core's default taxonomies post_tag and category in ES query.
 		 *
+		 * @since 3.6.3
 		 * @hook ep_post_tax_excluded_wp_query_root_check
 		 * @param  {array} $taxonomies Taxonomies
 		 */
