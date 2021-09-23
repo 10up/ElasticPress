@@ -337,7 +337,7 @@ class Widget extends WP_Widget {
 		);
 
 		$html = sprintf(
-			'<div class="term level-%1$d %2$s %3$s" data-term-name="%4$s" data-term_slug="%5$s">%6$s</div>',
+			'<div class="term level-%1$d %2$s %3$s" data-term-name="%4$s" data-term-slug="%5$s">%6$s</div>',
 			absint( $term->level ),
 			$selected ? 'selected' : '',
 			! $term->count ? 'empty-term' : '',
