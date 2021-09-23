@@ -951,7 +951,13 @@ class Post extends Indexable {
 		 */
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
-		// Prevents duplication of core's default taxonomies post_tag and category in ES query.
+		/**
+		 * Filter taxonomies to exclude from tax root check.
+		 * Default values prevent duplication of core's default taxonomies post_tag and category in ES query.
+		 *
+		 * @hook ep_post_tax_excluded_wp_query_root_check
+		 * @param  {array} $taxonomies Taxonomies
+		 */
 		$excluded_tax_from_root_check = apply_filters(
 			'ep_post_tax_excluded_wp_query_root_check',
 			[
