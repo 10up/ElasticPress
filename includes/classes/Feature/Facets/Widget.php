@@ -279,8 +279,7 @@ class Widget extends WP_Widget {
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 					echo $this->get_facet_term_html(
 						$term,
-						$feature->build_query_url( $new_filters ),
-						false
+						$feature->build_query_url( $new_filters )
 					);
 					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				endforeach;
@@ -323,7 +322,7 @@ class Widget extends WP_Widget {
 	 * @since 3.6.3
 	 * @return string HTML for an individual facet term.
 	 */
-	protected function get_facet_term_html( $term, $url, $selected ) {
+	protected function get_facet_term_html( $term, $url, $selected = false ) {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
