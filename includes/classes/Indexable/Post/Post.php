@@ -1002,15 +1002,16 @@ class Post extends Indexable {
 		 */
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
+		// Prevents duplication of core's default taxonomies post_tag and category in ES query.
+		$excluded_tax_from_root_check = apply_filters(
+			'ep_post_tax_excluded_wp_query_root_check',
+			[
+				'category',
+				'post_tag',
+			]
+		);
+
 		foreach ( $taxonomies as $tax_slug => $tax ) {
-			// Prevents duplication of core's default taxonomies post_tag and category in ES query.
-			apply_filters(
-				'ep_post_tax_excluded_wp_query_root_check',
-				$excluded_tax_from_root_check = [
-					'category',
-					'post_tag',
-				]
-			);
 
 			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && ! in_array( $tax->name, $excluded_tax_from_root_check, true ) ) {
 				$args['tax_query'][] = array(
