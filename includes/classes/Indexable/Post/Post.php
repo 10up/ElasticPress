@@ -899,9 +899,12 @@ class Post extends Indexable {
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
+			if ( ! is_array( $args['tag'] ) && false !== strpos( $args['tag'], ',' ) ) {
+				$args['tag'] = explode( ',', $args['tag'] );
+			}
 			$args['tax_query'][] = array(
 				'taxonomy' => 'post_tag',
-				'terms'    => array( $args['tag'] ),
+				'terms'    => (array) $args['tag'],
 				'field'    => 'slug',
 			);
 		}
@@ -960,9 +963,25 @@ class Post extends Indexable {
 		 */
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
+		/**
+		 * Filter taxonomies to exclude from tax root check.
+		 * Default values prevent duplication of core's default taxonomies post_tag and category in ES query.
+		 *
+		 * @since 3.6.3
+		 * @hook ep_post_tax_excluded_wp_query_root_check
+		 * @param  {array} $taxonomies Taxonomies
+		 */
+		$excluded_tax_from_root_check = apply_filters(
+			'ep_post_tax_excluded_wp_query_root_check',
+			[
+				'category',
+				'post_tag',
+			]
+		);
+
 		foreach ( $taxonomies as $tax_slug => $tax ) {
-			// Exclude the category taxonomy from this check if we are performing a Tax Query as category_name will be set by core
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && 'category' !== $tax->name ) {
+
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && ! in_array( $tax->name, $excluded_tax_from_root_check, true ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
 					'terms'    => (array) $args[ $tax->query_var ],
