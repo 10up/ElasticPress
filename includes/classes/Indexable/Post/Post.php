@@ -837,12 +837,24 @@ class Post extends Indexable {
 			);
 
 			/**
-			 * Filter default post query order by
+			 * Filter the ES query order (`sort` clause)
+			 *
+			 * This filter is used in searches if `orderby` is not set in the WP_Query args.
+			 * The default value is:
+			 *
+			 *    $default_sort = array(
+			 *        array(
+			 *            '_score' => array(
+			 *                'order' => $order,
+			 *            ),
+			 *        ),
+			 *    );
 			 *
 			 * @hook ep_set_sort
-			 * @param  {array} $sort Default sort
+			 * @since 3.6.3
+			 * @param  {array}  $sort  Default sort.
 			 * @param  {string} $order Order direction
-			 * @return  {array} New default
+			 * @return {array}  New default
 			 */
 			$default_sort = apply_filters( 'ep_set_sort', $default_sort, $order );
 
