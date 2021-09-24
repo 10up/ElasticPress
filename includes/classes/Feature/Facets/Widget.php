@@ -333,7 +333,7 @@ class Widget extends WP_Widget {
 		 *
 		 * @since 3.6.3
 		 * @hook ep_facet_widget_term_label
-		 * @param {string} $html Facet term label.
+		 * @param {string} $label Facet term label.
 		 * @param {WP_Term} $term Term object.
 		 * @param {boolean} $selected Whether the term is selected.
 		 * @return {string} Individual facet term label.
