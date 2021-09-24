@@ -920,12 +920,12 @@ class Post extends Indexable {
 			/**
 			 * Filter default post query order by
 			 *
-			 * @hook ep_set_default_sort
+			 * @hook ep_set_sort
 			 * @param  {array} $sort Default sort
 			 * @param  {string} $order Order direction
 			 * @return  {array} New default
 			 */
-			$default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
+			$default_sort = apply_filters( 'ep_set_sort', $default_sort, $order );
 
 			$formatted_args['sort'] = $default_sort;
 		}
