@@ -4976,6 +4976,49 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a tag query by slug using array and comma separated string as arguments.
+	 *
+	 * @group post
+	 */
+	public function testTagSlugQuery() {
+		$post_id_1 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array( 'slug1', 'slug2' ),
+			)
+		);
+		$post_id_2 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 2',
+				'tags_input'   => array( 'slug1', 'slug2', 'slug3', 'slug4' ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query1_args = [
+			's'   => 'findme',
+			'tag' => 'slug1,slug2',
+		];
+
+		$query2_args = [
+			's'   => 'findme',
+			'tag' => [ 'slug1', 'slug2' ],
+		];
+
+		$query1 = new \WP_Query( $query1_args );
+		$query2 = new \WP_Query( $query2_args );
+
+		$this->assertTrue( isset( $query1->posts[0]->elasticsearch ) );
+		$this->assertTrue( isset( $query2->posts[0]->elasticsearch ) );
+
+		$this->assertEquals( 2, $query1->post_count );
+		$this->assertEquals( 2, $query1->found_posts );
+		$this->assertEquals( 2, $query2->post_count );
+		$this->assertEquals( 2, $query2->found_posts );
+	}
+
+	/**
 	 * Test a query with tag__and and tag_id params
 	 *
 	 * @since 2.0
