@@ -94,7 +94,6 @@ class SyncManager extends SyncManagerAbstract {
 			$this->maybe_index_comment( $comment_id );
 		} else {
 			return;
-
 		}
 	}
 
