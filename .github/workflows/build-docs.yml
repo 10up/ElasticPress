@@ -12,13 +12,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Backup wordspace path
+      run: |
+        $GITHUB_WORKSPACE_ORIG = $GITHUB_WORKSPACE
+
     - uses: actions/checkout@v1
       with:
         path: 'wp-content/plugins/elasticpress'
 
-    - name: Go back to the workspace directory
+    - name: Reset wordspace path
       run: |
-        cd ../../..
+        $GITHUB_WORKSPACE = $GITHUB_WORKSPACE_ORIG
 
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
@@ -44,6 +48,7 @@ jobs:
 
     - name: Install WordPress
       run: |
+        pwd
         wp core download
         wp config create --dbname=wpclidocs --dbuser=root --dbpass=root --dbhost=127.0.0.1
         wp db create
