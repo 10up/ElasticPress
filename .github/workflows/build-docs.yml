@@ -12,29 +12,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Print github workspace
-      run: |
-        echo "GITHUB_WORKSPACE = $GITHUB_WORKSPACE"
-        echo "github.workspace = ${{ github.workspace }}"
-        echo "pr.ref = ${{github.event.pull_request.head.ref}}"
-        echo "github.ref = ${{ github.ref }}"
-        echo "$GITHUB_CONTEXT"
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-
     - uses: actions/checkout@v1
       with:
         path: 'wp-content/plugins/elasticpress'
 
-    - name: Print github workspace (again)
+    - name: Go back to the workspace directory
       run: |
-        echo "GITHUB_WORKSPACE = $GITHUB_WORKSPACE"
-        echo "github.workspace = ${{ github.workspace }}"
-        echo "pr.ref = ${{github.event.pull_request.head.ref}}"
-        echo "github.ref = ${{ github.ref }}"
-        echo "$GITHUB_CONTEXT"
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
+        cd ../../..
 
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
