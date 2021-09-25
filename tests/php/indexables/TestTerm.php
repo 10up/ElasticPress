@@ -665,6 +665,7 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryParent() {
 		$parent_term_id = Functions\create_and_sync_term( 'parent-term-no-post', 'Parent Category', 'Parent/Child Terms', 'category' );
 		$child_term_id  = Functions\create_and_sync_term( 'child-term-post', 'Child Category', 'Parent/Child Terms', 'category', [], $parent_term_id );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -689,7 +690,7 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertTrue( $term_query->elasticsearch_success );
-		$this->assertCount( 2, $term_query->terms ); // "Uncategorized" is also returned in this case.
+		$this->assertCount( 1, $term_query->terms );
 		$this->assertContains( $parent_term_id, wp_list_pluck( $term_query->terms, 'term_id' ) );
 	}
 
@@ -711,9 +712,12 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$term = wp_insert_term( 'term name', 'post_tag' );
+		$term_id = Functions\create_and_sync_term( 'term-name', 'term name', '', 'post_tag' );
 
-		wp_set_object_terms( $post, $term['term_id'], 'post_tag', true );
+		wp_set_object_terms( $post, $term_id, 'post_tag', true );
+
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$term_query = new \WP_Term_Query(
 			[
@@ -1441,5 +1445,44 @@ class TestTerm extends BaseTestCase {
 		}
 
 		remove_filter( 'ep_elasticsearch_version', '__return_false' );
+	}
+
+	/**
+	 * Test term deletion.
+	 *
+	 * @since 3.6.3
+	 * @group term
+	 */
+	public function testDeleteTerm() {
+		$term_id = Functions\create_and_sync_term( 'test-delete-term', 'Test Delete Term', 'Test', 'category' );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'hide_empty'   => false,
+				'taxonomy'     => 'category',
+				'include'      => [ $term_id ],
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $term_query->elasticsearch_success );
+		$this->assertEquals( 1, $term_query->found_terms );
+		$this->assertEquals( $term_id, $term_query->terms[0]->term_id );
+
+		wp_delete_term( $term_id, 'category' );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'hide_empty'   => false,
+				'taxonomy'     => 'category',
+				'include'      => [ $term_id ],
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $term_query->elasticsearch_success );
+		$this->assertEquals( 0, $term_query->found_terms );
 	}
 }
