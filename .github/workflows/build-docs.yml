@@ -40,6 +40,7 @@ jobs:
 
     - name: Install WordPress
       run: |
+        pwd
         wp core download
         wp config create --dbname=wpclidocs --dbuser=root --dbpass=root --dbhost=127.0.0.1
         wp db create
