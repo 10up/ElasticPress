@@ -13,16 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Backup wordspace path
-      run: |
-        $GITHUB_WORKSPACE_ORIG = $GITHUB_WORKSPACE
+      run: echo "::set-env name=GITHUB_WORKSPACE_ORIG::$GITHUB_WORKSPACE"
 
     - uses: actions/checkout@v1
       with:
         path: 'wp-content/plugins/elasticpress'
 
     - name: Reset wordspace path
-      run: |
-        $GITHUB_WORKSPACE = $GITHUB_WORKSPACE_ORIG
+      run: echo "::set-env name=GITHUB_WORKSPACE::$GITHUB_WORKSPACE_ORIG"
 
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
