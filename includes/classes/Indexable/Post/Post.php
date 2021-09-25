@@ -837,14 +837,26 @@ class Post extends Indexable {
 			);
 
 			/**
-			 * Filter default post query order by
+			 * Filter the ES query order (`sort` clause)
 			 *
-			 * @hook ep_set_default_sort
-			 * @param  {string} $sort Default sort
+			 * This filter is used in searches if `orderby` is not set in the WP_Query args.
+			 * The default value is:
+			 *
+			 *    $default_sort = array(
+			 *        array(
+			 *            '_score' => array(
+			 *                'order' => $order,
+			 *            ),
+			 *        ),
+			 *    );
+			 *
+			 * @hook ep_set_sort
+			 * @since 3.6.3
+			 * @param  {array}  $sort  Default sort.
 			 * @param  {string} $order Order direction
-			 * @return  {string} New default
+			 * @return {array}  New default
 			 */
-			$default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
+			$default_sort = apply_filters( 'ep_set_sort', $default_sort, $order );
 
 			$formatted_args['sort'] = $default_sort;
 		}
@@ -887,9 +899,12 @@ class Post extends Indexable {
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
+			if ( ! is_array( $args['tag'] ) && false !== strpos( $args['tag'], ',' ) ) {
+				$args['tag'] = explode( ',', $args['tag'] );
+			}
 			$args['tax_query'][] = array(
 				'taxonomy' => 'post_tag',
-				'terms'    => array( $args['tag'] ),
+				'terms'    => (array) $args['tag'],
 				'field'    => 'slug',
 			);
 		}
@@ -948,9 +963,25 @@ class Post extends Indexable {
 		 */
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
+		/**
+		 * Filter taxonomies to exclude from tax root check.
+		 * Default values prevent duplication of core's default taxonomies post_tag and category in ES query.
+		 *
+		 * @since 3.6.3
+		 * @hook ep_post_tax_excluded_wp_query_root_check
+		 * @param  {array} $taxonomies Taxonomies
+		 */
+		$excluded_tax_from_root_check = apply_filters(
+			'ep_post_tax_excluded_wp_query_root_check',
+			[
+				'category',
+				'post_tag',
+			]
+		);
+
 		foreach ( $taxonomies as $tax_slug => $tax ) {
-			// Exclude the category taxonomy from this check if we are performing a Tax Query as category_name will be set by core
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && 'category' !== $tax->name ) {
+
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && ! in_array( $tax->name, $excluded_tax_from_root_check, true ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
 					'terms'    => (array) $args[ $tax->query_var ],
