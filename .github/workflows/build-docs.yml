@@ -12,15 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Backup wordspace path
-      run: echo "::set-env name=GITHUB_WORKSPACE_ORIG::$GITHUB_WORKSPACE"
 
     - uses: actions/checkout@v1
       with:
         path: 'wp-content/plugins/elasticpress'
-
-    - name: Reset wordspace path
-      run: echo "::set-env name=GITHUB_WORKSPACE::$GITHUB_WORKSPACE_ORIG"
 
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
@@ -46,7 +41,7 @@ jobs:
 
     - name: Install WordPress
       run: |
-        pwd
+        cd ../../..
         wp core download
         wp config create --dbname=wpclidocs --dbuser=root --dbpass=root --dbhost=127.0.0.1
         wp db create
@@ -55,6 +50,7 @@ jobs:
 
     - name: Generate WP-CLI Docs
       run: |
+        cd ../../..
         wp package install felipeelia/cli-command-docs
         wp cli-command-docs elasticpress --custom-order=index,activate-feature,deactivate-feature,list-features,get-algorithm-version,set-algorithm-version --remove=delete_transient_on_int,custom_get_transient --custom-intro='The following WP-CLI commands are supported by ElasticPress:' > wp-content/plugins/elasticpress/docs/wp-cli.md
 
@@ -65,11 +61,9 @@ jobs:
 
     - name: npm install, and build docs
       run: |
-        pushd wp-content/plugins/elasticpress
-          npm install
-          npm -g install gulp-cli
-          npm run build:docs
-        popd
+        npm install
+        npm -g install gulp-cli
+        npm run build:docs
       env:
         CI: true
 
@@ -83,4 +77,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: docs-built
-        path: wp-content/plugins/elasticpress/docs-built/
+        path: docs-built/
