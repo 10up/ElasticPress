@@ -83,7 +83,7 @@ class SyncManager extends SyncManagerAbstract {
 	 * Sync ES index with changes to the comment status
 	 *
 	 * @param int $comment_id Comment ID.
-	 * @since 3.6.0
+	 * @since 3.6.3
 	 */
 	public function action_sync_on_transition_comment_status( $comment_id ) {
 		if ( $this->kill_sync() ) {
