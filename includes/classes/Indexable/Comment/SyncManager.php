@@ -35,9 +35,9 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		add_action( 'wp_insert_comment', [ $this, 'action_sync_on_update' ] );
+		add_action( 'wp_insert_comment', [ $this, 'action_sync_on_insert' ] );
 		add_action( 'edit_comment', [ $this, 'action_sync_on_update' ] );
-		add_action( 'transition_comment_status', [ $this, 'action_sync_on_update' ] );
+		add_action( 'transition_comment_status', [ $this, 'action_sync_on_transition_comment_status' ] );
 
 		add_action( 'trashed_comment', [ $this, 'action_sync_on_delete' ] );
 		add_action( 'deleted_comment', [ $this, 'action_sync_on_delete' ] );
@@ -45,6 +45,20 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_comment_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'deleted_comment_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'updated_comment_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
+	}
+
+	/**
+	 * Sync ES index when new comments are saved
+	 *
+	 * @param int $comment_id Comment ID.
+	 * @since 3.6.3
+	 */
+	public function action_sync_on_insert( $comment_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		$this->maybe_index_comment( $comment_id );
 	}
 
 	/**
@@ -63,6 +77,24 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		$this->maybe_index_comment( $comment_id );
+	}
+
+	/**
+	 * Sync ES index with changes to the comment status
+	 *
+	 * @param int $comment_id Comment ID.
+	 * @since 3.6.3
+	 */
+	public function action_sync_on_transition_comment_status( $comment_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		if ( current_user_can( 'edit_comment', $comment_id ) || current_user_can( 'moderate_comments', $comment_id ) ) {
+			$this->maybe_index_comment( $comment_id );
+		} else {
+			return;
+		}
 	}
 
 	/**
