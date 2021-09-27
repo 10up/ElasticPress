@@ -46,6 +46,36 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.6.3 =
+
+**Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+
+Official PHP support is currently 5.6+. Minimum PHP version for ElasticPress 3.7.0 will be 7.0+.
+
+Added:
+* New `ep_facet_widget_term_html` and `ep_facet_widget_term_label` filters to the Facet widget for filtering the HTML and label of individual facet terms. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), and [@Rahmon](https://github.com/Rahmon).
+* New `ep_set_sort` filter for changing the `sort` clause of the ES query if `orderby` is not set in WP_Query. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
+* WP-CLI documentation for some commands and parameters. Props [@felipeelia](https://github.com/felipeelia).
+
+Changed:
+* In addition to post titles, now autosuggest also partially matches taxonomy terms. Props [@felipeelia](https://github.com/felipeelia).
+* Date parsing change to avoid `E_WARNING`s. Props [@pschoffer](https://github.com/pschoffer).
+
+Fixed:
+* Comments created by anonymous users (but approved by default) are now indexed. Props [@tomjn](https://github.com/tomjn) and [@Rahmon](https://github.com/Rahmon).
+* Deleted terms are now properly removed from the Elasticsearch index. Props [@felipeelia](https://github.com/felipeelia).
+* Children of deleted terms are now properly removed from the Elasticsearch index. Props [@pschoffer](https://github.com/pschoffer).
+* Post tag duplicated in the Elasticsearch query. Props [@oscarssanchez](https://github.com/oscarssanchez), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia).
+* Infinite loading state of ElasticPress Related Posts block in the Widgets Edit Screen. Props [@felipeelia](https://github.com/felipeelia).
+* Return of `Search::integrate_search_queries()` when `is_integrated_request`. Props [@adiloztaser](https://github.com/adiloztaser).
+* Mapping determination based on existing info. Props [@pschoffer](https://github.com/pschoffer) and [@felipeelia](https://github.com/felipeelia).
+* `WP_Term_Query` and `parent = 0`. Props [@juansanchezfernandes](https://github.com/juansanchezfernandes) and [@felipeelia](https://github.com/felipeelia).
+* WP Acceptance Tests. Props [@felipeelia](https://github.com/felipeelia).
+* Typos in the output of some WP-CLI Commands. Props [@rebeccahum](https://github.com/rebeccahum).
+
+Security:
+* Several node packages were updated. Props [@felipeelia](https://github.com/felipeelia).
+
 = 3.6.2 =
 **Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
 
