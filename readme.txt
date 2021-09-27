@@ -53,12 +53,12 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 Official PHP support is currently 5.6+. Minimum PHP version for ElasticPress 3.7.0 will be 7.0+.
 
 Added:
-* New `ep_facet_widget_term_html` and `ep_facet_widget_term_label` filters to the Facet widget for filtering the HTML and label of individual facet terms. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), and [@Rahmon](https://github.com/Rahmon).
+* New `ep_facet_widget_term_html` and `ep_facet_widget_term_label` filters to the Facet widget for filtering the HTML and label of individual facet terms. Props [@JakePT](https://github.com/JakePT), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia).
 * New `ep_set_sort` filter for changing the `sort` clause of the ES query if `orderby` is not set in WP_Query. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
 * WP-CLI documentation for some commands and parameters. Props [@felipeelia](https://github.com/felipeelia).
 
 Changed:
-* In addition to post titles, now autosuggest also partially matches taxonomy terms. Props [@felipeelia](https://github.com/felipeelia).
+* In addition to post titles, now autosuggest also partially matches taxonomy terms. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon).
 * Date parsing change to avoid `E_WARNING`s. Props [@pschoffer](https://github.com/pschoffer).
 
 Fixed:
@@ -68,13 +68,13 @@ Fixed:
 * Post tag duplicated in the Elasticsearch query. Props [@oscarssanchez](https://github.com/oscarssanchez), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia).
 * Infinite loading state of ElasticPress Related Posts block in the Widgets Edit Screen. Props [@felipeelia](https://github.com/felipeelia).
 * Return of `Search::integrate_search_queries()` when `is_integrated_request`. Props [@adiloztaser](https://github.com/adiloztaser).
-* Mapping determination based on existing info. Props [@pschoffer](https://github.com/pschoffer) and [@felipeelia](https://github.com/felipeelia).
-* `WP_Term_Query` and `parent = 0`. Props [@juansanchezfernandes](https://github.com/juansanchezfernandes) and [@felipeelia](https://github.com/felipeelia).
+* Mapping determination based on existing info. Props [@felipeelia](https://github.com/felipeelia).
+* `WP_Term_Query` and `parent = 0`. Props [@felipeelia](https://github.com/felipeelia) and [@juansanchezfernandes](https://github.com/juansanchezfernandes).
 * WP Acceptance Tests. Props [@felipeelia](https://github.com/felipeelia).
 * Typos in the output of some WP-CLI Commands. Props [@rebeccahum](https://github.com/rebeccahum).
 
 Security:
-* Several node packages were updated. Props [@felipeelia](https://github.com/felipeelia).
+* Bumped `10up-toolkit` from 1.0.11 to 1.0.12, `terser-webpack-plugin` from 5.1.4 to 5.2.4, `@wordpress/api-fetch` from 3.21.5 to 3.23.1, and `@wordpress/i18n` from 3.18.0 to 3.20.0. Props [@felipeelia](https://github.com/felipeelia).
 
 = 3.6.2 =
 **Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
