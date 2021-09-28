@@ -271,7 +271,25 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function get_comment_statuses( $comment_statuses ) {
-		return [ 'all' ];
+		$status = array_map(
+			function( $value ) {
+				switch ( $value ) {
+					case 'approve':
+						return '1';
+
+					case 'hold':
+						return '0';
+
+					default:
+						return $value;
+				}
+			},
+			array_keys(
+				get_comment_statuses()
+			)
+		);
+
+		return $status;
 	}
 
 	/**
