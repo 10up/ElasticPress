@@ -348,6 +348,32 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Return the mapping as a JSON object. If an index is specified, return its mapping only.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--index-name]
+	 * : The name of the index for which to return the mapping. If not passed, all mappings will be returned
+	 *
+	 * @subcommand get-mapping
+	 * @since      3.7
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_mapping( $args, $assoc_args ) {
+		$path = '_mapping';
+		if ( ! empty( $assoc_args['index-name'] ) ) {
+			$path = $assoc_args['index-name'] . '/' . $path;
+		}
+
+		$response = Elasticsearch::factory()->remote_request( $path );
+
+		$body = wp_remote_retrieve_body( $response );
+
+		WP_CLI::line( $body );
+	}
+
+	/**
 	 * Return all indexes from the cluster as a JSON object.
 	 *
 	 * @subcommand get-cluster-indexes
