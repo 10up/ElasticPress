@@ -42,11 +42,11 @@ class WpCliTest extends TestBase {
 
 		$this->activatePlugin( null, 'elasticpress', true );
 
-		$I->moveTo( 'wp-admin/network/sites.php' );
+		$this->moveTo( $I, 'wp-admin/network/sites.php' );
 
 		$I->checkOptions( '.index-toggle' );
 
-		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/network/admin.php?page=elasticpress-health' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress index --network-wide' )['stdout'];
 
@@ -54,7 +54,7 @@ class WpCliTest extends TestBase {
 
 		$this->assertStringContainsString( 'Number of posts indexed on site', $cli_result );
 
-		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/network/admin.php?page=elasticpress-health' );
 
 		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
 
@@ -187,17 +187,17 @@ class WpCliTest extends TestBase {
 
 		$this->activatePlugin( $I, 'elasticpress', true );
 
-		$I->moveTo( 'wp-admin/network/sites.php' );
+		$this->moveTo( $I, 'wp-admin/network/sites.php' );
 
 		$I->checkOptions( '.index-toggle' );
 
-		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/network/admin.php?page=elasticpress-health' );
 
 		$cli_result = $this->runCommand( 'wp elasticpress delete-index --network-wide --yes' )['stdout'];
 
 		$this->assertStringContainsString( 'Index deleted', $cli_result );
 
-		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/network/admin.php?page=elasticpress-health' );
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
@@ -229,7 +229,7 @@ class WpCliTest extends TestBase {
 
 		$this->activatePlugin( $I, 'elasticpress', true );
 
-		$I->moveTo( 'wp-admin/network/sites.php' );
+		$this->moveTo( $I, 'wp-admin/network/sites.php' );
 
 		$I->checkOptions( '.index-toggle' );
 

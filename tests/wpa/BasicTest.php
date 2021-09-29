@@ -27,29 +27,16 @@ class BasicTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
-		try {
-			$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-health' );
 
-			foreach ( $this->indexes as $index_name ) {
-				$I->seeText( $index_name );
-			}
-		} catch (\Throwable $th) {
-			// If failed for some other reason, it is a real failure.
-			if ( false === strpos( $th->getMessage(), 'Page crashed' ) ) {
-				throw $th;
-			}
-
-			$cli_result = $this->runCommand( 'wp elasticpress stats' )['stdout'];
-
-			foreach ( $this->indexes as $index_name ) {
-				$this->assertStringContainsString( $index_name, $cli_result );
-			}
+		foreach ( $this->indexes as $index_name ) {
+			$I->seeText( $index_name );
 		}
 	}
 
@@ -65,7 +52,7 @@ class BasicTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/?s=test' );
+		$this->moveTo( $I, '/?s=test' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 
@@ -99,11 +86,11 @@ class BasicTest extends TestBase {
 
 		sleep( 2 );
 
-		$I->moveTo( '/?s=Test+ElasticPress+1' );
+		$this->moveTo( $I, '/?s=Test+ElasticPress+1' );
 
 		$I->seeText( 'Test ElasticPress 1', '.hentry' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-weighting' );
 
 		$I->click( '#post-post_title-enabled' );
 
@@ -111,12 +98,12 @@ class BasicTest extends TestBase {
 
 		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
 
-		$I->moveTo( '/?s=Test+ElasticPress+1' );
+		$this->moveTo( $I, '/?s=Test+ElasticPress+1' );
 
 		$I->dontSeeText( 'Test ElasticPress 1', '.hentry' );
 
 		// Reset Changed Settings.
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-weighting' );
 
 		$I->click( '#post-post_title-enabled' );
 
@@ -151,7 +138,7 @@ class BasicTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
-		$I->moveTo( '/?s=findme' );
+		$this->moveTo( $I, '/?s=findme' );
 
 		$posts = $I->getElements( '.post' );
 
@@ -159,7 +146,7 @@ class BasicTest extends TestBase {
 
 		$I->seeText( 'test weighting content', $first_post );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-weighting' );
 
 		$I->setElementProperty( 'input[name="weighting[post][post_title][weight]"]', 'value', 20 );
 
@@ -167,7 +154,7 @@ class BasicTest extends TestBase {
 
 		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
 
-		$I->moveTo( '/?s=findme' );
+		$this->moveTo( $I, '/?s=findme' );
 
 		$posts = $I->getElements( '.post' );
 
@@ -176,7 +163,7 @@ class BasicTest extends TestBase {
 		$I->seeText( 'test weighting title findme', $first_post );
 
 		// Reset Changed Settings.
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-weighting' );
 
 		$I->setElementProperty( 'input[name="weighting[post][post_title][weight]"]', 'value', 1 );
 
@@ -193,7 +180,7 @@ class BasicTest extends TestBase {
 
 		$I = $this->openBrowserPage();
 
-		$I->moveTo( '/' );
+		$this->moveTo( $I, '/' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 

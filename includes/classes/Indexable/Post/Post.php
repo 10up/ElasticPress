@@ -288,58 +288,7 @@ class Post extends Indexable {
 			return false;
 		}
 
-		$version = 'unknown';
-
-		if ( isset( $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'] ) ) {
-			$version = $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'];
-		} elseif ( isset( $mapping[ $index ]['mappings']['_meta']['mapping_version'] ) ) {
-			$version = $mapping[ $index ]['mappings']['_meta']['mapping_version'];
-		}
-
-		// mapping does not have meta value set - use legacy detection
-		if ( 'unknown' === $version ) {
-
-			// check for pre-5-0 mapping
-			if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'] ) ) {
-				$val = $mapping[ $index ]['mappings']['post']['properties']['post_name']['fields']['raw']['ignore_above'];
-				if ( ! $val || 10922 !== $val ) {
-					$version = 'pre-5-0.php';
-				} elseif ( $val && 10922 === $val ) {
-					$version = 'not-pre-5-0';
-				}
-			}
-
-			// check for 5-0 mapping
-			if ( 'not-pre-5-0' === $version ) {
-				if ( isset( $mapping[ $index ]['mappings']['post']['properties']['post_content_filtered']['fields'] ) ) {
-					$version = '5-0.php';
-				} else {
-					$version = 'not-5-0';
-				}
-			}
-
-			// check for 5-2 mapping
-			if ( 'not-5-0' === $version ) {
-				if ( isset( $mapping[ $index ]['mappings']['post']['_all'] ) ) {
-					$version = '5-2.php';
-				} else {
-					$version = 'not-5-2';
-				}
-			}
-
-			// check for 7-0 mapping
-			if ( 'not-5-2' === $version ) {
-				if ( isset( $mapping[ $index ]['settings']['index.max_shingle_diff'] ) ) {
-					$version = '7-0.php';
-				} else {
-					$version = 'not-7-0';
-				}
-			}
-
-			if ( preg_match( '/^not-.*/', $version ) ) {
-				$version = 'unknown';
-			}
-		}
+		$version = $this->determine_mapping_version_based_on_existing( $mapping, $index );
 
 		/**
 		 * Filter the mapping version for posts.
@@ -888,14 +837,26 @@ class Post extends Indexable {
 			);
 
 			/**
-			 * Filter default post query order by
+			 * Filter the ES query order (`sort` clause)
 			 *
-			 * @hook ep_set_default_sort
-			 * @param  {string} $sort Default sort
+			 * This filter is used in searches if `orderby` is not set in the WP_Query args.
+			 * The default value is:
+			 *
+			 *    $default_sort = array(
+			 *        array(
+			 *            '_score' => array(
+			 *                'order' => $order,
+			 *            ),
+			 *        ),
+			 *    );
+			 *
+			 * @hook ep_set_sort
+			 * @since 3.6.3
+			 * @param  {array}  $sort  Default sort.
 			 * @param  {string} $order Order direction
-			 * @return  {string} New default
+			 * @return {array}  New default
 			 */
-			$default_sort = apply_filters( 'ep_set_default_sort', $default_sort, $order );
+			$default_sort = apply_filters( 'ep_set_sort', $default_sort, $order );
 
 			$formatted_args['sort'] = $default_sort;
 		}
@@ -938,9 +899,12 @@ class Post extends Indexable {
 		}
 
 		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
+			if ( ! is_array( $args['tag'] ) && false !== strpos( $args['tag'], ',' ) ) {
+				$args['tag'] = explode( ',', $args['tag'] );
+			}
 			$args['tax_query'][] = array(
 				'taxonomy' => 'post_tag',
-				'terms'    => array( $args['tag'] ),
+				'terms'    => (array) $args['tag'],
 				'field'    => 'slug',
 			);
 		}
@@ -999,9 +963,25 @@ class Post extends Indexable {
 		 */
 		$taxonomies = get_taxonomies( array(), 'objects' );
 
+		/**
+		 * Filter taxonomies to exclude from tax root check.
+		 * Default values prevent duplication of core's default taxonomies post_tag and category in ES query.
+		 *
+		 * @since 3.6.3
+		 * @hook ep_post_tax_excluded_wp_query_root_check
+		 * @param  {array} $taxonomies Taxonomies
+		 */
+		$excluded_tax_from_root_check = apply_filters(
+			'ep_post_tax_excluded_wp_query_root_check',
+			[
+				'category',
+				'post_tag',
+			]
+		);
+
 		foreach ( $taxonomies as $tax_slug => $tax ) {
-			// Exclude the category taxonomy from this check if we are performing a Tax Query as category_name will be set by core
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && 'category' !== $tax->name ) {
+
+			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && ! in_array( $tax->name, $excluded_tax_from_root_check, true ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => $tax_slug,
 					'terms'    => (array) $args[ $tax->query_var ],
@@ -2005,5 +1985,80 @@ class Post extends Indexable {
 		}
 
 		return $orderbys;
+	}
+
+	/**
+	 * Given a mapping content, try to determine the version used.
+	 *
+	 * @since 3.6.3
+	 *
+	 * @param array  $mapping Mapping content.
+	 * @param string $index   Index name
+	 * @return string         Version of the mapping being used.
+	 */
+	protected function determine_mapping_version_based_on_existing( $mapping, $index ) {
+		if ( isset( $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'] ) ) {
+			return $mapping[ $index ]['mappings']['post']['_meta']['mapping_version'];
+		}
+		if ( isset( $mapping[ $index ]['mappings']['_meta']['mapping_version'] ) ) {
+			return $mapping[ $index ]['mappings']['_meta']['mapping_version'];
+		}
+
+		/**
+		 * Check for 7-0 mapping.
+		 * If mapping has a `post` type, it can't be ES 7, as mapping types were removed in that release.
+		 *
+		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/removal-of-types.html
+		 */
+		if ( ! isset( $mapping[ $index ]['mappings']['post'] ) ) {
+			return '7-0.php';
+		}
+
+		$post_mapping = $mapping[ $index ]['mappings']['post'];
+
+		/**
+		 * Starting at this point, our tests rely on the post_title.fields.sortable field.
+		 * As this field is present in all our mappings, if this field is not present in
+		 * the mapping, this is a custom mapping.
+		 *
+		 * To have this code working with custom mappings, use the `ep_post_mapping_version_determined` filter.
+		 */
+		if ( ! isset( $post_mapping['properties']['post_title']['fields']['sortable'] ) ) {
+			return 'unknown';
+		}
+
+		$post_title_sortable = $post_mapping['properties']['post_title']['fields']['sortable'];
+
+		/**
+		 * Check for 5-2 mapping.
+		 * Normalizers on keyword fields were only made available in ES 5.2
+		 *
+		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/5.2/release-notes-5.2.0.html
+		 */
+		if ( isset( $post_title_sortable['normalizer'] ) ) {
+			return '5-2.php';
+		}
+
+		/**
+		 * Check for 5-0 mapping.
+		 * `keyword` fields were only made available in ES 5.0
+		 *
+		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/5.0/release-notes-5.0.0.html
+		 */
+		if ( 'keyword' === $post_title_sortable['type'] ) {
+			return '5-0.php';
+		}
+
+		/**
+		 * Check for pre-5-0 mapping.
+		 * `string` fields were deprecated in ES 5.0 in favor of text/keyword
+		 *
+		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/5.0/release-notes-5.0.0.html
+		 */
+		if ( 'string' === $post_title_sortable['type'] ) {
+			return 'pre-5-0.php';
+		}
+
+		return 'unknown';
 	}
 }
