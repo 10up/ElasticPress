@@ -361,10 +361,9 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_mapping( $args, $assoc_args ) {
-		$path = '_mapping';
-		if ( ! empty( $assoc_args['index-name'] ) ) {
-			$path = $assoc_args['index-name'] . '/' . $path;
-		}
+		$index_names = (array) ( $assoc_args['index-name'] ?? $this->get_index_names() );
+
+		$path = join( ',', $index_names ) . '/_mapping';
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
@@ -400,10 +399,23 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indexes( $args, $assoc_args ) {
+		$index_names = $this->get_index_names();
+
+		WP_CLI::line( wp_json_encode( $index_names ) );
+	}
+
+	/**
+	 * Get all index names.
+	 *
+	 * @since 3.7
+	 * @return array
+	 */
+	private function get_index_names() {
 		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
 
 		foreach ( $sites as $site ) {
 			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
+			$index_names[] = Indexables::factory()->get( 'term' )->get_index_name( $site['blog_id'] );
 		}
 
 		$user_indexable = Indexables::factory()->get( 'user' );
@@ -412,7 +424,7 @@ class Command extends WP_CLI_Command {
 			$index_names[] = $user_indexable->get_index_name();
 		}
 
-		WP_CLI::line( wp_json_encode( $index_names ) );
+		return $index_names;
 	}
 
 	/**
