@@ -84,7 +84,7 @@ class SyncManager extends SyncManagerAbstract {
 	 *
 	 * @param int|string $new_status The new comment status.
 	 * @param int|string $old_status  The old comment status.
-	 * @param WP_Comment $comment_id Comment ID.
+	 * @param WP_Comment $comment Comment object.
 	 * @since 3.6.3
 	 */
 	public function action_sync_on_transition_comment_status( $new_status, $old_status, $comment ) {
