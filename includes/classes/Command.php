@@ -1098,7 +1098,12 @@ class Command extends WP_CLI_Command {
 
 				$loop_counter++;
 				if ( ( $loop_counter % 10 ) === 0 ) {
-					$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( timer_stop( 0, 2 ) - $time_elapsed ) . ')' : '';
+					// Get a non-formatted version of the timer (1000.00 instead of 1,000.00)
+					add_filter( 'number_format_i18n', [ __CLASS__, 'skip_number_format_i18n' ], 10, 3 );
+					$time_elapsed_calc = timer_stop( 0, 2 ) * 1000;
+					remove_filter( 'number_format_i18n', [ __CLASS__, 'skip_number_format_i18n' ] );
+
+					$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( $time_elapsed_calc - $time_elapsed ) . ')' : '';
 					$time_elapsed      = timer_stop( 0, 2 );
 					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
 
@@ -1786,5 +1791,19 @@ class Command extends WP_CLI_Command {
 		} else {
 			WP_CLI::warning( $current_index . ' is not currently indexed.' );
 		}
+	}
+
+	/**
+	 * Utilitary function to skip i18n number formatting, so we can use it in calculations.
+	 *
+	 * This function is public because it is used by a WP filter and static so it is not considered a WP-CLI subcommand.
+	 *
+	 * @param string $formatted Formatted version of the number.
+	 * @param float  $number    The number to return.
+	 * @param int    $decimals  Precision of the number of decimal places.
+	 * @return float
+	 */
+	public static function skip_number_format_i18n( $formatted, $number, $decimals ) {
+		return number_format( $number, absint( $decimals ), '.', '' );
 	}
 }
