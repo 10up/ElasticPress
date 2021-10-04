@@ -4,9 +4,6 @@ on:
   push:
     branches:
      - master
-  pull_request:
-    branches:
-      - develop
 
 jobs:
   build:
@@ -67,14 +64,8 @@ jobs:
       env:
         CI: true
 
-#     - name: Deploy to GH Pages
-#       uses: maxheld83/ghpages@v0.2.1
-#       env:
-#         BUILD_DIR: 'docs-built/'
-#         GH_PAT: ${{ secrets.GH_PAT }}
-
-    - name: Upload generated docs
-      uses: actions/upload-artifact@v2
-      with:
-        name: docs-built
-        path: docs-built/
+    - name: Deploy to GH Pages
+      uses: maxheld83/ghpages@v0.2.1
+      env:
+        BUILD_DIR: 'docs-built/'
+        GH_PAT: ${{ secrets.GH_PAT }}
