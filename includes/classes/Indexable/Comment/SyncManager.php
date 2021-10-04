@@ -37,7 +37,7 @@ class SyncManager extends SyncManagerAbstract {
 
 		add_action( 'wp_insert_comment', [ $this, 'action_sync_on_insert' ] );
 		add_action( 'edit_comment', [ $this, 'action_sync_on_update' ] );
-		add_action( 'transition_comment_status', [ $this, 'action_sync_on_transition_comment_status' ] );
+		add_action( 'transition_comment_status', [ $this, 'action_sync_on_transition_comment_status' ], 10, 3 );
 
 		add_action( 'trashed_comment', [ $this, 'action_sync_on_delete' ] );
 		add_action( 'deleted_comment', [ $this, 'action_sync_on_delete' ] );
@@ -82,16 +82,18 @@ class SyncManager extends SyncManagerAbstract {
 	/**
 	 * Sync ES index with changes to the comment status
 	 *
-	 * @param int $comment_id Comment ID.
+	 * @param int|string $new_status The new comment status.
+	 * @param int|string $old_status  The old comment status.
+	 * @param WP_Comment $comment Comment object.
 	 * @since 3.6.3
 	 */
-	public function action_sync_on_transition_comment_status( $comment_id ) {
+	public function action_sync_on_transition_comment_status( $new_status, $old_status, $comment ) {
 		if ( $this->kill_sync() ) {
 			return;
 		}
 
-		if ( current_user_can( 'edit_comment', $comment_id ) || current_user_can( 'moderate_comments', $comment_id ) ) {
-			$this->maybe_index_comment( $comment_id );
+		if ( current_user_can( 'edit_comment', $comment->comment_ID ) || current_user_can( 'moderate_comments', $comment->comment_ID ) ) {
+			$this->maybe_index_comment( $comment->comment_ID );
 		} else {
 			return;
 		}
@@ -153,7 +155,10 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_comment_statuses = Indexables::factory()->get( 'comment' )->get_indexable_comment_status();
 			$indexable_post_statuses    = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 
-			if ( ! in_array( $comment_status, $indexable_comment_statuses, true ) || ! in_array( $post_status, $indexable_post_statuses, true ) ) {
+			$has_allowed_comment_status = [ 'all' ] == $indexable_comment_statuses ? true : in_array( $comment_status, $indexable_comment_statuses, true );
+			$has_allowed_post_status    = in_array( $post_status, $indexable_post_statuses, true );
+
+			if ( ! $has_allowed_comment_status || ! $has_allowed_post_status ) {
 				$this->action_sync_on_delete( $comment_id );
 			} else {
 				$comment_type = $comment->comment_type;
