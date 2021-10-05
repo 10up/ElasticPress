@@ -393,9 +393,7 @@ class TestComment extends BaseTestCase {
 			'orderby'      => 'comment_ID',
 		] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments->elasticsearch_success );
 
 		$ids = wp_list_pluck( $comments, 'comment_ID' );
 		$this->assertGreaterThan( $ids[1], $ids[0] );
@@ -407,6 +405,8 @@ class TestComment extends BaseTestCase {
 			'orderby'      => 'comment_ID',
 			'order'        => 'ASC',
 		] );
+
+		$this->assertTrue( $comments->elasticsearch_success );
 
 		$ids = wp_list_pluck( $comments, 'comment_ID' );
 		$this->assertLessThan( $ids[1], $ids[0] );
