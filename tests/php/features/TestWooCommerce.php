@@ -115,7 +115,7 @@ class TestWooCommerce extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 	}
 
 	/**
