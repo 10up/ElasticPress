@@ -515,6 +515,8 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 		] );
 
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
@@ -525,6 +527,8 @@ class TestComment extends BaseTestCase {
 			'hierarchical' => 'flat',
 			'ep_integrate' => true,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
