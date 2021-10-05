@@ -335,11 +335,10 @@ class TestComment extends BaseTestCase {
 			'orderby' => 'comment_content',
 			'order' => 'ASC',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertAttributeEquals( 'Test comment 4', 'comment_content', $comments[3] );
 
@@ -348,6 +347,9 @@ class TestComment extends BaseTestCase {
 			'orderby' => 'comment_content',
 			'order' => 'DESC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		$this->assertAttributeEquals( 'Test comment 1', 'comment_content', $comments[3] );
