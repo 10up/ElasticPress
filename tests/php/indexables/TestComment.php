@@ -440,6 +440,8 @@ class TestComment extends BaseTestCase {
 			'orderby'      => 'comment_post_ID',
 		] );
 
+		$this->assertTrue( $comments->elasticsearch_success );
+
 		$this->assertEquals( 'Test comment 2', $comments[0]->comment_content );
 		$this->assertEquals( 'Test comment 1', $comments[1]->comment_content );
 
@@ -448,6 +450,8 @@ class TestComment extends BaseTestCase {
 			'orderby'      => 'comment_post_ID',
 			'order'        => 'ASC',
 		] );
+
+		$this->assertTrue( $comments->elasticsearch_success );
 
 		$this->assertEquals( 'Test comment 2', $comments[1]->comment_content );
 		$this->assertEquals( 'Test comment 1', $comments[0]->comment_content );
