@@ -138,6 +138,7 @@ class TestDocuments extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 0, count( $query->posts ) );
 	}
 
