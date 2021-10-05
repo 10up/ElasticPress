@@ -472,6 +472,8 @@ class TestComment extends BaseTestCase {
 			'fields' => 'ids',
 		] );
 
+		$this->assertTrue( $comments->elasticsearch_success );
+
 		foreach ( $comments as $comment ) {
 			$this->assertContains( $comment, $created_comments['comment_ids'] );
 		}
