@@ -993,10 +993,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'date_query' => $date_query,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $in_range ) );
 			$this->assertFalse( in_array( $comment->comment_ID, $out_range ) );
 		}
@@ -1008,11 +1010,10 @@ class TestComment extends BaseTestCase {
 			'orderby' => 'comment_date',
 			'order' => 'ASC',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertAttributeEquals( '2020-05-19 00:00:00', 'comment_date', $comments[0] );
 		$this->assertAttributeEquals( '2020-05-21 00:00:00', 'comment_date', $comments[1] );
@@ -1023,6 +1024,9 @@ class TestComment extends BaseTestCase {
 			'orderby' => 'comment_date',
 			'order' => 'DESC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		$this->assertAttributeEquals( '2020-05-19 00:00:00', 'comment_date', $comments[4] );
