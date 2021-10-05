@@ -496,6 +496,8 @@ class TestComment extends BaseTestCase {
 			'fields' => 'count',
 		] );
 
+		$this->assertTrue( $comments->elasticsearch_success );
+
 		$this->assertEquals( 3, $comments );
 	}
 
