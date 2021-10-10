@@ -1456,10 +1456,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_status' => 'publish',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $comment->comment_post_ID, $post_id_1  );
 		}
 
@@ -1469,11 +1471,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_status' => [ 'draft', 'publish' ],
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 4, count( $comments ) );
 	}
