@@ -1231,10 +1231,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'parent__in' => [ $created_comments['parent_comment_id'] ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $created_comments['child_comment_id'], $comment->comment_ID );
 		}
 
