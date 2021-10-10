@@ -243,22 +243,22 @@ class TestComment extends BaseTestCase {
 		$this->createComments( 3 );
 
 		// First try without ES and make sure everything is right.
-		$comments = (new \WP_Comment_Query())->query( [] );
+		$comments_query = new \WP_Comment_Query( [] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( empty( $comment->elasticsearch ) );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
 		// Now try with Elasticsearch.
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 		] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
@@ -270,9 +270,13 @@ class TestComment extends BaseTestCase {
 		add_filter( 'ep_max_results_window', $return_2 );
 
 		// Now try with Elasticsearch.
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 
