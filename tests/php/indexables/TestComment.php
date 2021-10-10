@@ -1145,10 +1145,12 @@ class TestComment extends BaseTestCase {
 			'meta_key' => 'test_meta',
 			'meta_value' => 'test_value',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
 			$this->assertNotEquals( $comment->comment_ID, $not_match );
 		}
