@@ -80,6 +80,8 @@ class TestWooCommerce extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
