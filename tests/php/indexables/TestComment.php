@@ -661,10 +661,11 @@ class TestComment extends BaseTestCase {
 			'author_email' => 'joe@example.com',
 		] );
 
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertAttributeEquals( 'joe@example.com', 'comment_author_email', $comment );
 		}
 
@@ -678,9 +679,7 @@ class TestComment extends BaseTestCase {
 
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertAttributeEquals( 'doe@example.com', 'comment_author_email', $comments[0] );
 	}
 
