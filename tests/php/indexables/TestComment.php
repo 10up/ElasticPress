@@ -909,10 +909,12 @@ class TestComment extends BaseTestCase {
 			'comment__in' => $test_comments,
 			'number' => 2,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $test_comments ) );
 		}
 
