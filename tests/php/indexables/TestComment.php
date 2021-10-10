@@ -936,10 +936,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'comment__not_in' => $test_comments,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertFalse( in_array( $comment->comment_ID, $test_comments ) );
 		}
 
