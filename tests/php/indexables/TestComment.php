@@ -1321,10 +1321,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_author' => $user_id_1,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2 ] ) );
 		}
 
@@ -1334,10 +1336,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_author__in' => [ $user_id_1, $user_id_2 ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] ) );
 		}
 
@@ -1347,10 +1351,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_author__not_in' => [ $user_id_1 ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_3, $post_id_4 ] ) );
 		}
 
