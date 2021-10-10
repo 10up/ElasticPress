@@ -1762,11 +1762,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'type' => 'comment',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
 
@@ -1774,11 +1773,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'type' => 'trackback,pingback',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 
@@ -1786,11 +1784,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'type__in' => [ 'trackback', 'pingback', 'comment' ],
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
@@ -1798,11 +1795,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'type__not_in' => [ 'trackback', 'pingback' ],
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
 	}
