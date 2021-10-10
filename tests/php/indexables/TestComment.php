@@ -833,10 +833,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'author__in' => [ $current_user_id, $another_author_id ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->user_id, [ $current_user_id, $another_author_id ] ) );
 		}
 
