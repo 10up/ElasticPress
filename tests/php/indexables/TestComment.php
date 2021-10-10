@@ -245,7 +245,7 @@ class TestComment extends BaseTestCase {
 		// First try without ES and make sure everything is right.
 		$comments_query = new \WP_Comment_Query( [] );
 
-		$this->assertTrue( $comments_query->elasticsearch_success );
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $comments_query );
 
 		$comments = $comments_query->get_comments();
 
