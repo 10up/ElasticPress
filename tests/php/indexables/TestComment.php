@@ -1561,10 +1561,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_parent' => $post_id_1,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $post_id_2, $comment->comment_post_ID );
 		}
 
