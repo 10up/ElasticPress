@@ -376,10 +376,7 @@ class TestComment extends BaseTestCase {
 		] );
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
+		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertNotEmpty( $comments );
 	}
 
