@@ -1606,11 +1606,10 @@ class TestComment extends BaseTestCase {
 		$comments_query = new \WP_Comment_Query( [
 			'search' => 'test comment',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
@@ -1622,10 +1621,12 @@ class TestComment extends BaseTestCase {
 				]
 			],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $comment_id, $comment->comment_ID );
 		}
 
