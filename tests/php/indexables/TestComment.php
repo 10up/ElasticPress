@@ -1880,10 +1880,12 @@ class TestComment extends BaseTestCase {
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $product_id, $comment->comment_post_ID );
 			$this->assertEquals( 'Test review', $comment->comment_content );
 			$this->assertEquals( 'review', $comment->comment_type );
