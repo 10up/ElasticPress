@@ -292,14 +292,14 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryNumber() {
 		$this->createComments();
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'number' => 2,
 		] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 	}
