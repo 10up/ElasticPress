@@ -1517,10 +1517,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_type' => 'post',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_3 ] ) );
 		}
 
