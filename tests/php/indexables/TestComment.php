@@ -721,8 +721,9 @@ class TestComment extends BaseTestCase {
 		] );
 		$comments = $comments_query->get_comments();
 
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertAttributeEquals( 'http://example.com', 'comment_author_url', $comment );
 		}
 
@@ -735,10 +736,7 @@ class TestComment extends BaseTestCase {
 		] );
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
+		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertAttributeEquals( 'http://example.com', 'comment_author_url', $comments[0] );
 	}
 
