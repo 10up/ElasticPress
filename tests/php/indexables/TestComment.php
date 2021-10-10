@@ -1670,11 +1670,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'status' => 'approve',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
 
@@ -1682,11 +1681,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'status' => 'hold',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 
@@ -1698,11 +1696,10 @@ class TestComment extends BaseTestCase {
 				$user_id,
 			],
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
@@ -1711,11 +1708,10 @@ class TestComment extends BaseTestCase {
 			'status' => 'all',
 			'orderby' => 'comment_approved',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertAttributeEquals( '1', 'comment_approved', $comments[0] );
 
@@ -1725,11 +1721,10 @@ class TestComment extends BaseTestCase {
 			'orderby' => 'comment_approved',
 			'order' => 'ASC',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertAttributeEquals( '1', 'comment_approved', $comments[2] );
 	}
