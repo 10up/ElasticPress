@@ -1,0 +1,26 @@
+name: E2E Test
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  cypress:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: npm i
+
+    - name: Build asset
+      run: npm run build
+
+    - name: Set up WP environment
+      run: npm run env start
+
+    - name: Test
+      run: npm run cypress:run
