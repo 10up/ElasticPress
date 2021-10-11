@@ -21,7 +21,8 @@
     "format-js": "10up-toolkit format-js assets/js",
     "lint": "npm run lint-style && npm run lint-js && npm run lint-php",
     "build:docs": "rm -rf hook_docs && jsdoc -c hookdoc-conf.json elasticpress.php includes",
-    "lint-style": "10up-toolkit lint-style"
+    "lint-style": "10up-toolkit lint-style",
+    "env": "wp-env"
   },
   "author": "10up",
   "repository": {
