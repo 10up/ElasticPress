@@ -6,6 +6,7 @@
   "devDependencies": {
     "10up-toolkit": "^1.0.12",
     "@wordpress/env": "^4.1.1",
+    "cypress": "^8.5.0",
     "jsdoc": "^3.6.7",
     "terser-webpack-plugin": "^5.2.4",
     "wp-hookdoc": "^0.2.0"
