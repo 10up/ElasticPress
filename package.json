@@ -23,7 +23,9 @@
     "lint": "npm run lint-style && npm run lint-js && npm run lint-php",
     "build:docs": "rm -rf hook_docs && jsdoc -c hookdoc-conf.json elasticpress.php includes",
     "lint-style": "10up-toolkit lint-style",
-    "env": "wp-env"
+    "env": "wp-env",
+    "cypress:open": "cypress open --config-file tests/cypress/config.json",
+    "cypress:run": "cypress run --config-file tests/cypress/config.json"
   },
   "author": "10up",
   "repository": {
