@@ -1589,7 +1589,7 @@ class TestPostMultisite extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNull( $query->elasticsearch_success );
 		$this->assertTrue( empty( $query->posts ) );
 
 		$this->cleanUpSites( $sites );
