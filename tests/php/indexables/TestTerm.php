@@ -277,6 +277,7 @@ class TestTerm extends BaseTestCase {
 				'number'     => 2,
 				'hide_empty' => false,
 				'taxonomy'   => 'post_tag',
+				'ep_integrate' => true,
 			]
 		);
 
