@@ -188,7 +188,7 @@ class ProtectedContent extends Feature {
 		remove_filter( 'ep_formatted_args', [ $search_feature, 'weight_recent' ], 10 );
 	}
 
-		/**
+	/**
 	 * Query all posts with and without password for indexing.
 	 *
 	 * @param array $args Database arguments
@@ -207,7 +207,7 @@ class ProtectedContent extends Feature {
 	 * @param  int   $post_id   Post ID
 	 */
 	public function include_post_password( $post_args, $post_id ) {
-		$post = get_post( $post_id );
+		$post                       = get_post( $post_id );
 		$post_args['post_password'] = ! empty( $post->post_password ) ? $post->post_password : null; // Assign null value so we can use the EXISTS filter.
 		return $post_args;
 	}
