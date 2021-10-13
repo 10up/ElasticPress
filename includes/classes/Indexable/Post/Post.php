@@ -880,7 +880,7 @@ class Post extends Indexable {
 		 */
 
 		// Find root level taxonomies.
-		if ( empty( $args['tax_query'] ) ) {
+		if ( empty( $args['tax_query'] ) && empty( $args['category__in'] ) ) {
 			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
 				$args['tax_query'][] = array(
 					'taxonomy' => 'category',
@@ -1071,6 +1071,21 @@ class Post extends Indexable {
 			$filter['bool']['must'][]['bool']['must_not'] = array(
 				'terms' => array(
 					'post_id' => (array) $args['post__not_in'],
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * 'category__in' arg support.
+		 *
+		 * @since x.x
+		 */
+		if ( ! empty( $args['category__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = array(
+				'terms' => array(
+					'terms.category.term_id' => array_values( (array) $args['category__in'] ),
 				),
 			);
 
