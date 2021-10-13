@@ -325,6 +325,9 @@ return array(
 			'post_excerpt'          => array(
 				'type' => 'text',
 			),
+			'post_password'            => array(
+				'type' => 'text',
+			),
 			'post_content'          => array(
 				'type' => 'text',
 			),
