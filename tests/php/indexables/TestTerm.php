@@ -280,6 +280,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertEquals( 2, count( $term_query->terms ) );
 	}
 
@@ -325,6 +326,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
+
 		$slugs = wp_list_pluck( $term_query->terms, 'slug' );
 
 		$this->assertEquals( 5, count( $term_query->terms ) );
@@ -363,6 +366,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertEquals( 1, count( $term_query->terms ) );
 	}
 
@@ -390,6 +394,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertSame( 5, count( $term_query->terms ) );
 
 		$this->assertEquals( $term_id, $term_query->terms[0]->term_id );
@@ -404,6 +409,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertEquals( $term_id, $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
@@ -432,6 +438,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertSame( 5, count( $term_query->terms ) );
 
 		$this->assertEquals( $term_id, $term_query->terms[0]->term_id );
@@ -447,6 +454,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertEquals( $term_id, $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
@@ -476,6 +484,8 @@ class TestTerm extends BaseTestCase {
 				'ep_integrate' => true,
 			]
 		);
+
+		$this->assertTrue( $term_query->elasticsearch_success );
 
 		// Remove empty descriptions.
 		foreach ( $term_query->terms as $key => $term_value ) {
@@ -534,6 +544,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertTrue( $term_query->terms[0]->term_id < $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 
 		$term_query = new \WP_Term_Query(
@@ -547,6 +558,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertTrue( $term_query->terms[0]->term_id > $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
@@ -569,6 +581,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertTrue( $term_query->terms[0]->term_id < $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 
 		$term_query = new \WP_Term_Query(
@@ -582,6 +595,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertTrue( $term_query->terms[0]->term_id > $term_query->terms[ count( $term_query->terms ) - 1 ]->term_id );
 	}
 
@@ -618,6 +632,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
+
 		// Remove empty parents.
 		foreach ( $term_query->terms as $key => $term_value ) {
 			if ( empty( $term_value->parent ) ) {
@@ -641,6 +657,8 @@ class TestTerm extends BaseTestCase {
 				'ep_integrate' => true,
 			]
 		);
+
+		$this->assertTrue( $term_query->elasticsearch_success );
 
 		// Remove empty parents.
 		foreach ( $term_query->terms as $key => $term_value ) {
@@ -728,6 +746,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertEquals( 1, count( $term_query->terms ) );
 	}
 
