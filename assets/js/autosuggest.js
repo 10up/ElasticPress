@@ -726,7 +726,7 @@ function init() {
 	 * @return {void}
 	 */
 	const observeDocumentForInputs = () => {
-		const target = document;
+		const target = document.body;
 		const config = {
 			subtree: true,
 			childList: true,
@@ -746,7 +746,18 @@ function init() {
 					 */
 					observer.disconnect();
 
-					findAndPrepareInputsForAutosuggest(node);
+					/**
+					 * If the node is an input, prepare it for Autosuggest if
+					 * it matches the selectors, otherwise search the node for
+					 * inputs.
+					 */
+					if (node.tagName === 'INPUT') {
+						if (node.matches(selectors)) {
+							prepareInputForAutosuggest(node);
+						}
+					} else {
+						findAndPrepareInputsForAutosuggest(node);
+					}
 
 					/**
 					 * Resume observing.
@@ -762,7 +773,7 @@ function init() {
 	/**
 	 * Add autosuggest to any inputs in the document.
 	 */
-	findAndPrepareInputsForAutosuggest(document);
+	findAndPrepareInputsForAutosuggest(document.body);
 
 	/**
 	 * When the DOM is ready start observing for new inputs.
