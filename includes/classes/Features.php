@@ -31,12 +31,9 @@ class Features {
 	 * @since 2.1
 	 */
 	public function setup() {
-
-		if ( ! wp_doing_ajax() ) {
-			// hooks order matters, make sure feature activation goes before features setup
-			add_action( 'admin_init', array( $this, 'handle_feature_activation' ), 0 );
-			add_action( 'admin_init', array( $this, 'setup_features' ), 0 );
-		}
+		// hooks order matters, make sure feature activation goes before features setup
+		add_action( 'admin_init', array( $this, 'handle_feature_activation' ), 0 );
+		add_action( 'admin_init', array( $this, 'setup_features' ), 0 );
 	}
 
 	/**
