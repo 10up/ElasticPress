@@ -32,8 +32,8 @@ class Features {
 	 */
 	public function setup() {
 		// hooks order matters, make sure feature activation goes before features setup
-		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
-		add_action( 'init', array( $this, 'setup_features' ), 0 );
+		add_action( 'admin_init', array( $this, 'handle_feature_activation' ), 0 );
+		add_action( 'admin_init', array( $this, 'setup_features' ), 0 );
 	}
 
 	/**
