@@ -195,10 +195,12 @@ class Features {
 			$new_requirement_statuses[ $slug ] = (int) $status->code;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
-		} else {
-			update_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
+		if ( is_admin() ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				update_site_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
+			} else {
+				update_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
+			}
 		}
 
 		/**
@@ -230,7 +232,7 @@ class Features {
 		 * If a requirement status changes, we need to handle that by activating/deactivating/showing notification
 		 */
 
-		if ( ! empty( $old_requirement_statuses ) ) {
+		if ( is_admin() && ! empty( $old_requirement_statuses ) ) {
 			foreach ( $new_requirement_statuses as $slug => $code ) {
 				$feature = $this->get_registered_feature( $slug );
 
