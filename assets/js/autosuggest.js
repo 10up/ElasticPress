@@ -734,7 +734,7 @@ function init() {
 
 		const observer = new MutationObserver((mutations, observer) => {
 			mutations.forEach((mutation) => {
-				mutation.addedNodes.forEach((node) => {
+				Array.from(mutation.addedNodes).forEach((node) => {
 					if (node.nodeType !== Node.ELEMENT_NODE) {
 						return;
 					}
