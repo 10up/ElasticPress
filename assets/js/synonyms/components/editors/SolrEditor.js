@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import { State, Dispatch } from '../../context';
-import { reduceStateToSolr } from '../../utils';
 
 /**
  * Synonym Inspector
@@ -10,8 +9,7 @@ import { reduceStateToSolr } from '../../utils';
 const SolrEditor = () => {
 	const state = useContext(State);
 	const dispatch = useContext(Dispatch);
-	const reducedState = reduceStateToSolr(state);
-	const { isSolrEditable, isSolrVisible } = state;
+	const { isSolrEditable, isSolrVisible, solr } = state;
 	const { synonymsTextareaInputName, solrInputHeading } = window.epSynonyms.i18n;
 
 	return (
@@ -26,10 +24,10 @@ const SolrEditor = () => {
 						id="ep-synonym-input"
 						name={synonymsTextareaInputName}
 						rows="20"
-						value={reducedState}
+						value={solr}
 						readOnly={!isSolrEditable}
 						onChange={(event) =>
-							dispatch({ type: 'REDUCE_STATE_FROM_SOLR', data: event.target.value })
+							dispatch({ type: 'UPDATE_SOLR', data: event.target.value })
 						}
 					/>
 				</div>
