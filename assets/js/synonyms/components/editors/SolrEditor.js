@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext } from 'react';
 import { State, Dispatch } from '../../context';
 
 /**
@@ -40,7 +40,9 @@ const SolrEditor = () => {
 						aria-live="assertive"
 						className="synonym-solr-editor__validation"
 					>
-						{alternatives.some((alternative) => !alternative.valid) && <p>{solrAlternativesErrorMessage}</p>}
+						{alternatives.some((alternative) => !alternative.valid) && (
+							<p>{solrAlternativesErrorMessage}</p>
+						)}
 						{sets.some((set) => !set.valid) && <p>{solrSetsErrorMessage}</p>}
 					</div>
 				</div>
