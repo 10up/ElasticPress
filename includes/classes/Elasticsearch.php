@@ -663,7 +663,7 @@ class Elasticsearch {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/_mget', $document_ids, $type );
 		} else {
-			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/_mget', $document_ids, $type );
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_mget', $document_ids, $type );
 		}
 
 		$request_args = [
