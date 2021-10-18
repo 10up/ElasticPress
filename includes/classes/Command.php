@@ -356,12 +356,12 @@ class Command extends WP_CLI_Command {
 	 * : The name of the index for which to return the mapping. If not passed, all mappings will be returned
 	 *
 	 * @subcommand get-mapping
-	 * @since      3.7
+	 * @since      3.6.4
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_mapping( $args, $assoc_args ) {
-		$index_names = (array) ( $assoc_args['index-name'] ?? $this->get_index_names() );
+		$index_names = (array) isset( $assoc_args['index-name'] ) ? $assoc_args['index-name'] : $this->get_index_names();
 
 		$path = join( ',', $index_names ) . '/_mapping';
 
@@ -407,24 +407,28 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Get all index names.
 	 *
-	 * @since 3.7
+	 * @since 3.6.4
 	 * @return array
 	 */
-	private function get_index_names() {
+	protected function get_index_names() {
 		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
 
-		foreach ( $sites as $site ) {
-			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-			$index_names[] = Indexables::factory()->get( 'term' )->get_index_name( $site['blog_id'] );
+		$all_indexables = Indexables::factory()->get_all();
+
+		$global_indexes     = [];
+		$non_global_indexes = [];
+		foreach ( $all_indexables as $indexable ) {
+			if ( $indexable->global ) {
+				$global_indexes[] = $indexable->get_index_name();
+				continue;
+			}
+
+			foreach ( $sites as $site ) {
+				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
+			}
 		}
 
-		$user_indexable = Indexables::factory()->get( 'user' );
-
-		if ( ! empty( $user_indexable ) ) {
-			$index_names[] = $user_indexable->get_index_name();
-		}
-
-		return $index_names;
+		return array_merge( $non_global_indexes, $global_indexes );
 	}
 
 	/**
