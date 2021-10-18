@@ -119,7 +119,6 @@ class Terms extends Feature {
 		if ( is_admin() ) {
 			$fuzziness = 0;
 		}
-		
 		return $fuzziness;
 	}
 
