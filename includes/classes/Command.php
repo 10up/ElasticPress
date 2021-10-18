@@ -361,7 +361,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_mapping( $args, $assoc_args ) {
-		$index_names = (array) isset( $assoc_args['index-name'] ) ? $assoc_args['index-name'] : $this->get_index_names();
+		$index_names = (array) ( isset( $assoc_args['index-name'] ) ? $assoc_args['index-name'] : $this->get_index_names() );
 
 		$path = join( ',', $index_names ) . '/_mapping';
 
