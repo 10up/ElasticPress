@@ -31,6 +31,7 @@ class Features {
 	 * @since 2.1
 	 */
 	public function setup() {
+		// hooks order matters, make sure feature activation goes before features setup
 		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
 		add_action( 'init', array( $this, 'setup_features' ), 0 );
 	}
