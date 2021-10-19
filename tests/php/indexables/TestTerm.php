@@ -39,8 +39,7 @@ class TestTerm extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'term' )->put_mapping();
-
-		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
 		// Need to call this since it's hooked to init.
 		ElasticPress\Features::factory()->get_registered_feature( 'terms' )->search_setup();
@@ -339,30 +338,21 @@ class TestTerm extends BaseTestCase {
 	 * @group term
 	 */
 	public function testTermQueryObjectIds() {
-		$this->createAndIndexTerms();
-
-		$post = wp_insert_post(
-			[
-				'post_title'  => 'Test',
-				'post_status' => 'publish',
-				'post_type'   => 'post',
-			]
-		);
-
-		$term = wp_insert_term( 'term name', 'post_tag' );
-
-		wp_set_object_terms( $post, $term['term_id'], 'post_tag', true );
+		$post_id = Functions\create_and_sync_post();
+		Functions\create_and_sync_term( 'test-term', 'test', 'The term.', 'post_tag', [ $post_id ] );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$term_query = new \WP_Term_Query(
 			[
 				'number'       => 10,
 				'hide_empty'   => false,
+				'object_ids'   => $post_id,
 				'taxonomy'     => 'post_tag',
-				'object_ids'   => [ $post ],
 				'ep_integrate' => true,
 			]
 		);
 
+		$this->assertEquals( true, $term_query->elasticsearch_success );
 		$this->assertEquals( 1, count( $term_query->terms ) );
 	}
 
@@ -701,34 +691,22 @@ class TestTerm extends BaseTestCase {
 	 * @group term
 	 */
 	public function testTermQueryHideEmpty() {
-		$this->createAndIndexTerms();
-
-		$post = wp_insert_post(
-			[
-				'post_title'   => 'Test',
-				'post_status'  => 'publish',
-				'post_type'    => 'post',
-				'ep_integrate' => true,
-			]
-		);
-
-		$term_id = Functions\create_and_sync_term( 'term-name', 'term name', '', 'post_tag' );
-
-		wp_set_object_terms( $post, $term_id, 'post_tag', true );
-
-		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
+		$post_id = Functions\create_and_sync_post();
+		Functions\create_and_sync_term( 'test-term-3', 'test term', 'term test', 'post_tag', [ $post_id ] );
+		Functions\create_and_sync_term( 'test-term-2', 'test term 2', 'term test 2', 'post_tag' );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$term_query = new \WP_Term_Query(
-			[
-				'number'       => 10,
-				'taxonomy'     => 'post_tag',
-				'hide_empty'   => true,
-				'ep_integrate' => true,
-			]
+		$args = array (
+			'number'       => 10,
+			'hide_empty'   => false,
+			'taxonomy'     => 'post_tag',
+			'ep_integrate' => true,
 		);
 
-		$this->assertEquals( 1, count( $term_query->terms ) );
+		$term_query = new \WP_Term_Query( $args );
+
+		$this->assertEquals( true, $term_query->elasticsearch_success );
+		$this->assertEquals( 2, count( $term_query->terms ) );
 	}
 
 	/**
@@ -896,7 +874,7 @@ class TestTerm extends BaseTestCase {
 					'taxonomy'     => 'category',
 					'ep_integrate' => false,
 					'hierarchical' => 'true' === $query_params[1],
-					'hide_empty'   => 'true' === $query_params[3],
+					'hide_empty'   => false,
 					'fields'       => 'id=>slug',
 				]
 			);
@@ -958,7 +936,7 @@ class TestTerm extends BaseTestCase {
 					'taxonomy'     => 'category',
 					'ep_integrate' => true,
 					'hierarchical' => 'true' === $query_params[1],
-					'hide_empty'   => 'true' === $query_params[3],
+					'hide_empty'   => false,
 					'fields'       => 'id=>slug',
 				]
 			);
