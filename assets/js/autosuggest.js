@@ -4,13 +4,13 @@ import {
 	escapeDoubleQuotes,
 	replaceGlobally,
 	debounce,
+	domReady,
 } from './utils/helpers';
 import 'element-closest';
 import 'promise-polyfill/src/polyfill';
 import 'whatwg-fetch';
 
 const { epas } = window;
-const { domReady } = wp;
 
 // Ensure we have an endpoint URL, or
 // else this shouldn't happen
