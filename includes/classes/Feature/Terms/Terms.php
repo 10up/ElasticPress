@@ -112,7 +112,7 @@ class Terms extends Feature {
 	 * Change fuzziness level for terms search in admin
 	 *
 	 * @param  {int} $fuzziness Amount of fuzziness to factor into search
-	 * @since  3.7
+	 * @since  3.6.4
 	 * @return int
 	 */
 	public function set_admin_terms_search_fuzziness( $fuzziness ) {
