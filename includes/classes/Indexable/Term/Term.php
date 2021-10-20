@@ -978,7 +978,7 @@ class Term extends Indexable {
 				);
 			} elseif ( 'term_id' === $orderby || 'id' === $orderby ) {
 				$sort[] = array(
-					'term_id.long' => array(
+					'term_id' => array(
 						'order' => $order,
 					),
 				);
@@ -990,7 +990,7 @@ class Term extends Indexable {
 				);
 			} elseif ( 'parent' === $orderby ) {
 				$sort[] = array(
-					'parent.long' => array(
+					'parent' => array(
 						'order' => $order,
 					),
 				);
