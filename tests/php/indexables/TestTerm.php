@@ -221,7 +221,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertNull( $term_query->elasticsearch_success );
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
 
 		$this->assertEquals( 4, count( $term_query->terms ) );
 
