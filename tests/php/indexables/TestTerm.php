@@ -869,7 +869,18 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertSame( 1, $args['post_filter']['bool']['must'][0]['range']['count']['gte'] );
-		$this->assertSame( 1, $args['post_filter']['bool']['must'][1]['range']['hierarchy.children.count']['gte'] );
+
+		$args = $term->format_args(
+			[
+				'hierarchical' => true,
+				'hide_empty'   => true,
+			]
+		);
+
+		$should = $args['post_filter']['bool']['must'][0]['bool']['should'];
+
+		$this->assertSame( 1, $should[0]['range']['count']['gte'] );
+		$this->assertSame( 1, $should[1]['range']['hierarchy.children.count']['gte'] );
 	}
 
 	/**
@@ -927,7 +938,7 @@ class TestTerm extends BaseTestCase {
 
 			$query_params = explode( '_', $query_type );
 
-			$terms = get_terms(
+			$term_query = new \WP_Term_Query(
 				[
 					'taxonomy'     => 'category',
 					'ep_integrate' => false,
@@ -937,7 +948,9 @@ class TestTerm extends BaseTestCase {
 				]
 			);
 
-			$wp_slugs[ $query_type ] = array_values( $terms );
+			$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+
+			$wp_slugs[ $query_type ] = array_values( $term_query->terms );
 
 			// Remove uncategorized, not synced to ES.
 			$wp_slugs[ $query_type ] = array_filter(
@@ -989,7 +1002,7 @@ class TestTerm extends BaseTestCase {
 
 			$query_params = explode( '_', $query_type );
 
-			$terms = get_terms(
+			$term_query = new \WP_Term_Query(
 				[
 					'taxonomy'     => 'category',
 					'ep_integrate' => true,
@@ -999,7 +1012,9 @@ class TestTerm extends BaseTestCase {
 				]
 			);
 
-			$es_slugs[ $query_type ] = array_values( $terms );
+			$this->assertTrue( $term_query->elasticsearch_success );
+
+			$es_slugs[ $query_type ] = array_values( $term_query->terms );
 		}
 
 		foreach ( array_keys( $es_slugs ) as $key ) {

@@ -160,21 +160,6 @@ class Term extends Indexable {
 		}
 
 		/**
-		 * Support `hide_empty` query var
-		 */
-		if ( ! empty( $query_vars['hide_empty'] ) ) {
-			$filter['bool']['must'][] = [
-				'range' => [
-					'count' => [
-						'gte' => 1,
-					],
-				],
-			];
-
-			$use_filters = true;
-		}
-
-		/**
 		 * Support `include` query var
 		 */
 		if ( ! empty( $query_vars['include'] ) ) {
@@ -259,17 +244,53 @@ class Term extends Indexable {
 		}
 
 		/**
-		 * Support `hierarchical` query var
+		 * Support `hierarchical` and `hide_empty` query var
+		 *
+		 * `hierarchical` needs to work in conjunction with `hide_empty`, as per WP docs:
+		 * > `hierarchical`: Whether to include terms that have non-empty descendants (even if $hide_empty is set to true).
+		 *
+		 * In summary:
+		 * - hide_empty AND hierarchical: count > 1 OR hierarchy.children > 1
+		 * - hide_empty AND NOT hierarchical: count > 1 (ignore hierarchy.children)
+		 * - NOT hide_empty (AND hierarchical): there is no need to limit the query
+		 *
+		 * @see https://developer.wordpress.org/reference/classes/WP_Term_Query/__construct/
 		 */
 		$hide_empty = isset( $query_vars['hide_empty'] ) ? $query_vars['hide_empty'] : '';
-		if ( true === $hide_empty ) {
-			$filter['bool']['must'][] = [
-				'range' => [
-					'hierarchy.children.count' => [
-						'gte' => 1,
+		if ( $hide_empty ) {
+			$hierarchical = isset( $query_vars['hierarchical'] ) ? $query_vars['hierarchical'] : '';
+
+			if ( $hierarchical ) {
+				$filter_clause = [ 'bool' => [ 'should' => [] ] ];
+
+				$filter_clause['bool']['should'][] = [
+					'range' => [
+						'count' => [
+							'gte' => 1,
+						],
 					],
-				],
-			];
+				];
+
+				$filter_clause['bool']['should'][] = [
+					'range' => [
+						'hierarchy.children.count' => [
+							'gte' => 1,
+						],
+					],
+				];
+
+				$filter['bool']['must'][] = $filter_clause;
+
+				$use_filters = true;
+			} else {
+				$filter['bool']['must'][] = [
+					'range' => [
+						'count' => [
+							'gte' => 1,
+						],
+					],
+				];
+			}
 
 			$use_filters = true;
 		}
