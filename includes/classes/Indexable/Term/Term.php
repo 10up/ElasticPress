@@ -140,8 +140,8 @@ class Term extends Indexable {
 		 */
 		if ( ! empty( $query_vars['object_ids'] ) ) {
 			$filter['bool']['must'][]['bool']['must'][] = [
-				'match_phrase' => [
-					'object_ids.value' => $query_vars['object_ids'],
+				'terms' => [
+					'object_ids.value' => (array) $query_vars['object_ids'],
 				],
 			];
 
