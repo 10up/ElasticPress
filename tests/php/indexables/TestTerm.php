@@ -356,6 +356,9 @@ class TestTerm extends BaseTestCase {
 
 		wp_set_object_terms( $post, $term['term_id'], 'post_tag', true );
 
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
 		$term_query = new \WP_Term_Query(
 			[
 				'number'       => 10,
@@ -629,6 +632,9 @@ class TestTerm extends BaseTestCase {
 
 		$term = wp_insert_term( 'ff', 'post_tag', [ 'parent' => $apple->term_id ] );
 		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'parent' => $orange->term_id ] );
+
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$this->assertTrue( is_array( $term ) );
 		$this->assertTrue( is_array( $term_2 ) );
