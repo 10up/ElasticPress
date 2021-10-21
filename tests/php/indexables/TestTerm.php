@@ -1288,7 +1288,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'desc', $args['sort'][0]['term_group.long']['order'] );
+		$this->assertSame( 'desc', $args['sort'][0]['term_group']['order'] );
 
 		$args = $term->format_args(
 			[
@@ -1296,7 +1296,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'desc', $args['sort'][0]['term_group.long']['order'] );
+		$this->assertSame( 'desc', $args['sort'][0]['term_group']['order'] );
 
 		$args = $term->format_args(
 			[
@@ -1304,7 +1304,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 'desc', $args['sort'][0]['count.long']['order'] );
+		$this->assertSame( 'desc', $args['sort'][0]['count']['order'] );
 
 		$args = $term->format_args(
 			[
