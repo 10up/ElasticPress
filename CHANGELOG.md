@@ -3,6 +3,36 @@
 All notable changes to this project will be documented in this file, per [the Keep a Changelog standard](http://keepachangelog.com/).
 
 ## [Unreleased]
+## [3.6.4] - 2021-10-XX
+
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+
+Official PHP support is currently 5.6+. Minimum PHP version for ElasticPress 4.0.0 will be 7.0+.
+
+### Added
+- WP-CLI: New `get-mapping` command. Props [@tfrommen](https://github.com/tfrommen) and [@felipeelia](https://github.com/felipeelia) via [#2414](https://github.com/10up/ElasticPress/pull/2414).
+- New filters: `ep_query_request_args` and `ep_pre_request_args`. Props to [@felipeelia](https://github.com/felipeelia) via [#2416](https://github.com/10up/ElasticPress/pull/2416).
+- Support for Autosuggest to dynamically inserted search inputs. Props to [@brandwaffle](https://github.com/brandwaffle) and [@JakePT](https://github.com/JakePT) via [#2404](https://github.com/10up/ElasticPress/pull/2404).
+
+### Changed
+- Automatically generated WP-CLI docs. Props [@felipeelia](https://github.com/felipeelia) via [#2370](https://github.com/10up/ElasticPress/pull/2370).
+- Verification of active features requirement. Props [@WPprodigy](https://github.com/WPprodigy), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia) via [#2410](https://github.com/10up/ElasticPress/pull/2410).
+- `ewp_word_delimiter` base filter: changed from `word_delimiter` to `word_delimiter_graph`. Props [@pschoffer](https://github.com/pschoffer), [@Rahmon](https://github.com/Rahmon) and [@yolih](https://github.com/yolih) via [#2409](https://github.com/10up/ElasticPress/pull/2409).
+- Terms search query in admin will not be fuzzy. Props [@rebeccahum](https://github.com/rebeccahum) via [#2417](https://github.com/10up/ElasticPress/pull/2417).
+
+### Fixed
+- Elapsed time beyond 1000 seconds in WP-CLI index command. Props [@dustinrue](https://github.com/dustinrue) and [@felipeelia](https://github.com/felipeelia) via [#2380](https://github.com/10up/ElasticPress/pull/2380).
+- Layout of Index Health totals on small displays. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@JakePT](https://github.com/JakePT) via [#2403](https://github.com/10up/ElasticPress/pull/2403).
+- Deprecated URL for multiple documents get from ElasticSearch. Props [@pschoffer](https://github.com/pschoffer) via [#2397](https://github.com/10up/ElasticPress/pull/2397).
+- Add new lines and edit terms in the Advanced Synonym Editor. Props [@johnwatkins0](https://github.com/johnwatkins0) and [@JakePT](https://github.com/JakePT) via [#2411](https://github.com/10up/ElasticPress/pull/2411).
+- Terms: Avoid falling back to MySQL when results are empty. Props [@felipeelia](https://github.com/felipeelia) via [#2420](https://github.com/10up/ElasticPress/pull/2420).
+- Terms: Usage of several parameters for searching and ordering. Props [@felipeelia](https://github.com/felipeelia) via [#2420](https://github.com/10up/ElasticPress/pull/2420) and [#2421](https://github.com/10up/ElasticPress/pull/2421).
+- Tests: Ensure that Documents related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) via [#2388](https://github.com/10up/ElasticPress/pull/2388).
+- Tests: Ensure that WooCommerce related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia) via [#2389](https://github.com/10up/ElasticPress/pull/2389).
+- Tests: Ensure that Comments related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia) via [#2390](https://github.com/10up/ElasticPress/pull/2390).
+- Tests: Ensure that Multisite related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia) via [#2400](https://github.com/10up/ElasticPress/pull/2400).
+- Tests: Ensure that Terms related queries use ElasticPress. Props [@felipeelia](https://github.com/felipeelia) via [#2420](https://github.com/10up/ElasticPress/pull/2420).
+
 
 ## [3.6.3] - 2021-09-29
 
@@ -1066,6 +1096,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.6.4]: https://github.com/10up/ElasticPress/compare/3.6.3...3.6.4
 [3.6.3]: https://github.com/10up/ElasticPress/compare/3.6.2...3.6.3
 [3.6.2]: https://github.com/10up/ElasticPress/compare/3.6.1...3.6.2
 [3.6.1]: https://github.com/10up/ElasticPress/compare/3.6.0...3.6.1

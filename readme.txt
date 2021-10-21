@@ -46,6 +46,36 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.6.4 =
+
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+
+Official PHP support is currently 5.6+. Minimum PHP version for ElasticPress 4.0.0 will be 7.0+.
+
+Added:
+* WP-CLI: New `get-mapping` command. Props [@tfrommen](https://github.com/tfrommen) and [@felipeelia](https://github.com/felipeelia).
+* New filters: `ep_query_request_args` and `ep_pre_request_args`. Props to [@felipeelia](https://github.com/felipeelia).
+* Support for Autosuggest to dynamically inserted search inputs. Props to [@brandwaffle](https://github.com/brandwaffle) and [@JakePT](https://github.com/JakePT).
+
+Changed:
+* Automatically generated WP-CLI docs. Props [@felipeelia](https://github.com/felipeelia).
+* Verification of active features requirement. Props [@WPprodigy](https://github.com/WPprodigy), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia).
+* `ewp_word_delimiter` base filter: changed from `word_delimiter` to `word_delimiter_graph`. Props [@pschoffer](https://github.com/pschoffer), [@Rahmon](https://github.com/Rahmon) and [@yolih](https://github.com/yolih).
+* Terms search query in admin will not be fuzzy. Props [@rebeccahum](https://github.com/rebeccahum).
+
+Fixed:
+* Elapsed time beyond 1000 seconds in WP-CLI index command. Props [@dustinrue](https://github.com/dustinrue) and [@felipeelia](https://github.com/felipeelia).
+* Layout of Index Health totals on small displays. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@JakePT](https://github.com/JakePT).
+* Deprecated URL for multiple documents get from ElasticSearch. Props [@pschoffer](https://github.com/pschoffer).
+* Add new lines and edit terms in the Advanced Synonym Editor. Props [@johnwatkins0](https://github.com/johnwatkins0) and [@JakePT](https://github.com/JakePT).
+* Terms: Avoid falling back to MySQL when results are empty. Props [@felipeelia](https://github.com/felipeelia).
+* Terms: Usage of several parameters for searching and ordering. Props [@felipeelia](https://github.com/felipeelia).
+* Tests: Ensure that Documents related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon).
+* Tests: Ensure that WooCommerce related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia).
+* Tests: Ensure that Comments related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia).
+* Tests: Ensure that Multisite related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia).
+* Tests: Ensure that Terms related queries use ElasticPress. Props [@felipeelia](https://github.com/felipeelia).
+
 = 3.6.3 =
 
 **Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
