@@ -968,83 +968,66 @@ class Term extends Indexable {
 	protected function parse_orderby( $orderby, $order, $args ) {
 		$sort = [];
 
-		if ( ! empty( $orderby ) ) {
-			if ( 'name' === $orderby ) {
-				$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+		if ( empty( $orderby ) ) {
+			return $sort;
+		}
+
+		switch ( $orderby ) {
+			case 'name':
+				$es_version    = Elasticsearch::factory()->get_elasticsearch_version();
+				$es_field_name = 'name.sortable';
 
 				if ( version_compare( $es_version, '7.0', '>=' ) ) {
-					$sort[] = array(
-						'name.sortable' => array(
-							'order' => $order,
-						),
-					);
+					$es_field_name = 'name.sortable';
 				} else {
-					$sort[] = array(
-						'name.raw' => array(
-							'order' => $order,
-						),
-					);
+					$es_field_name = 'name.raw';
 				}
-			} elseif ( 'slug' === $orderby ) {
-				$sort[] = array(
-					'slug.raw' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'term_group' === $orderby ) {
-				$sort[] = array(
-					'term_group.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'term_id' === $orderby || 'id' === $orderby ) {
-				$sort[] = array(
-					'term_id' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'description' === $orderby ) {
-				$sort[] = array(
-					'description.sortable' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'parent' === $orderby ) {
-				$sort[] = array(
-					'parent' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'count' === $orderby ) {
-				$sort[] = array(
-					'count.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'meta_value' === $orderby ) {
+
+				break;
+
+			case 'slug':
+				$es_field_name = 'slug.raw';
+				break;
+
+			case 'term_id':
+			case 'id':
+				$es_field_name = 'term_id';
+				break;
+
+			case 'description':
+				$es_field_name = 'description.sortable';
+				break;
+
+			case 'meta_value':
 				if ( ! empty( $args['meta_key'] ) ) {
-					$sort[] = array(
-						'meta.' . $args['meta_key'] . '.value' => array(
-							'order' => $order,
-						),
-					);
+					$es_field_name = 'meta.' . $args['meta_key'] . '.value';
 				}
-			} elseif ( 'meta_value_num' === $orderby ) {
+
+				break;
+
+			case 'meta_value_num':
 				if ( ! empty( $args['meta_key'] ) ) {
-					$sort[] = array(
-						'meta.' . $args['meta_key'] . '.long' => array(
-							'order' => $order,
-						),
-					);
+					$es_field_name = 'meta.' . $args['meta_key'] . '.long';
 				}
-			} else {
-				$sort[] = array(
-					$orderby => array(
-						'order' => $order,
-					),
-				);
-			}
+
+				break;
+
+			case 'description':
+				$es_field_name = 'description.sortable';
+				break;
+
+			case 'parent':
+			case 'count':
+			default:
+				$es_field_name = $orderby;
+				break;
 		}
+
+		$sort[] = array(
+			$es_field_name => array(
+				'order' => $order,
+			),
+		);
 
 		return $sort;
 	}
