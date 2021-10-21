@@ -26,7 +26,7 @@ class UserTest extends TestBase {
 	 * @param \WPAcceptance\PHPUnit\Actor $actor    Current actor.
 	 */
 	public function searchUser( $username = '', \WPAcceptance\PHPUnit\Actor $actor ) {
-		$actor->moveTo( 'wp-admin/users.php' );
+		$this->moveTo( $actor, 'wp-admin/users.php' );
 
 		$actor->waitUntilElementVisible( '#user-search-input' );
 

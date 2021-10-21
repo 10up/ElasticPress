@@ -633,32 +633,34 @@ class Synonyms {
 	 */
 	public function get_localized_strings() {
 		return array(
-			'pageHeading'                => __( 'Manage Synonyms', 'elasticpress' ),
-			'pageDescription'            => __( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ),
-			'pageToggleAdvanceText'      => __( 'Switch to Advanced Text Editor', 'elasticpress' ),
-			'pageToggleSimpleText'       => __( 'Switch to Visual Editor', 'elasticpress' ),
+			'pageHeading'                  => __( 'Manage Synonyms', 'elasticpress' ),
+			'pageDescription'              => __( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ),
+			'pageToggleAdvanceText'        => __( 'Switch to Advanced Text Editor', 'elasticpress' ),
+			'pageToggleSimpleText'         => __( 'Switch to Visual Editor', 'elasticpress' ),
 
-			'setsTitle'                  => __( 'Sets', 'elasticpress' ),
-			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
-			'setsInputHeading'           => __( 'Comma separated list of terms', 'elasticpress' ),
-			'setsAddButtonText'          => __( 'Add Set', 'elasticpress' ),
-			'setsErrorMessage'           => __( 'This set must contain at least 2 terms.', 'elasticpress' ),
+			'setsTitle'                    => __( 'Sets', 'elasticpress' ),
+			'setsDescription'              => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
+			'setsInputHeading'             => __( 'Comma separated list of terms', 'elasticpress' ),
+			'setsAddButtonText'            => __( 'Add Set', 'elasticpress' ),
+			'setsErrorMessage'             => __( 'This set must contain at least 2 terms.', 'elasticpress' ),
 
-			'alternativesTitle'          => __( 'Alternatives', 'elasticpress' ),
-			'alternativesDescription'    => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
-			'alternativesPrimaryHeading' => __( 'Primary term', 'elasticpress' ),
-			'alternativesInputHeading'   => __( 'Comma separated list of alternatives', 'elasticpress' ),
-			'alternativesAddButtonText'  => __( 'Add Alternative', 'elasticpress' ),
-			'alternativesErrorMessage'   => __( 'You must enter both a primary term and at least one alternative term.', 'elasticpress' ),
+			'alternativesTitle'            => __( 'Alternatives', 'elasticpress' ),
+			'alternativesDescription'      => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
+			'alternativesPrimaryHeading'   => __( 'Primary term', 'elasticpress' ),
+			'alternativesInputHeading'     => __( 'Comma separated list of alternatives', 'elasticpress' ),
+			'alternativesAddButtonText'    => __( 'Add Alternative', 'elasticpress' ),
+			'alternativesErrorMessage'     => __( 'You must enter both a primary term and at least one alternative term.', 'elasticpress' ),
 
-			'solrTitle'                  => __( 'Advanced Synonym Editor', 'elasticpress' ),
-			'solrDescription'            => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
-			'solrInputHeading'           => __( 'SolrSynonym Text', 'elasticpress' ),
+			'solrTitle'                    => __( 'Advanced Synonym Editor', 'elasticpress' ),
+			'solrDescription'              => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
+			'solrInputHeading'             => __( 'SolrSynonym Text', 'elasticpress' ),
+			'solrAlternativesErrorMessage' => __( 'Alternatives must have both a primary term and at least one alternative term.', 'elasticpress' ),
+			'solrSetsErrorMessage'         => __( 'Sets must contain at least 2 terms.', 'elasticpress' ),
 
-			'removeItemText'             => __( 'Remove', 'elasticpress' ),
-			'submitText'                 => __( 'Update Synonyms', 'elasticpress' ),
+			'removeItemText'               => __( 'Remove', 'elasticpress' ),
+			'submitText'                   => __( 'Update Synonyms', 'elasticpress' ),
 
-			'synonymsTextareaInputName'  => $this->get_synonym_field(),
+			'synonymsTextareaInputName'    => $this->get_synonym_field(),
 		);
 	}
 

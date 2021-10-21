@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Feature as Feature;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\Utils as Utils;
 
 /**
  * Search feature class
@@ -88,40 +89,6 @@ class Search extends Feature {
 	 * @since  3.0
 	 */
 	public function search_setup() {
-		/**
-		 * By default EP will not integrate on admin or ajax requests. Since admin-ajax.php is
-		 * technically an admin request, there is some weird logic here. If we are doing ajax
-		 * and ep_ajax_wp_query_integration is filtered true, then we skip the next admin check.
-		 */
-
-		/**
-		 * Filter to integrate with admin queries
-		 *
-		 * @hook ep_admin_wp_query_integration
-		 * @param  {bool} $integrate True to integrate
-		 * @return  {bool} New value
-		 */
-		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
-
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			/**
-			 * Filter to integrate with admin ajax queries
-			 *
-			 * @hook ep_ajax_wp_query_integration
-			 * @param  {bool} $integrate True to integrate
-			 * @return  {bool} New value
-			 */
-			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
-				return;
-			} else {
-				$admin_integration = true;
-			}
-		}
-
-		if ( is_admin() && ! $admin_integration ) {
-			return;
-		}
-
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 11, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
@@ -194,9 +161,6 @@ class Search extends Feature {
 			return $formatted_args;
 		}
 
-		/** This filter is documented in search_setup() method. */
-		$should_send_in_ajax = ( defined( 'DOING_AJAX' ) && DOING_AJAX ) && apply_filters( 'ep_ajax_wp_query_integration', false );
-
 		/**
 		 * Filter whether to add the `highlight` clause in the query or not.
 		 *
@@ -209,10 +173,7 @@ class Search extends Feature {
 		 */
 		$add_highlight_clause = apply_filters(
 			'ep_highlight_should_add_clause',
-			(
-				( ! is_admin() || $should_send_in_ajax ) &&
-				( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST )
-			),
+			Utils\is_integrated_request( 'highlighting', [ 'public' ] ),
 			$formatted_args,
 			$args
 		);
@@ -607,6 +568,10 @@ class Search extends Feature {
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
+		if ( ! Utils\is_integrated_request( $this->slug ) ) {
+			return false;
+		}
+
 		if ( ! is_a( $query, 'WP_Query' ) ) {
 			return $enabled;
 		}

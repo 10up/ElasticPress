@@ -4,7 +4,75 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [3.6.3] - 2021-09-29
+
+**Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+
+Official PHP support is currently 5.6+. Minimum PHP version for ElasticPress 3.7.0 will be 7.0+.
+
+### Added
+- New `ep_facet_widget_term_html` and `ep_facet_widget_term_label` filters to the Facet widget for filtering the HTML and label of individual facet terms. Props [@JakePT](https://github.com/JakePT), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia) via [#2363](https://github.com/10up/ElasticPress/pull/2363).
+- New `ep_set_sort` filter for changing the `sort` clause of the ES query if `orderby` is not set in WP_Query. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia) via [#2343](https://github.com/10up/ElasticPress/pull/2343) and [#2364](https://github.com/10up/ElasticPress/pull/2364).
+- WP-CLI documentation for some commands and parameters. Props [@felipeelia](https://github.com/felipeelia) via [#2369](https://github.com/10up/ElasticPress/pull/2369).
+
+### Changed
+- In addition to post titles, now autosuggest also partially matches taxonomy terms. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon) via [#2347](https://github.com/10up/ElasticPress/pull/2347).
+- Date parsing change to avoid `E_WARNING`s. Props [@pschoffer](https://github.com/pschoffer) via [#2340](https://github.com/10up/ElasticPress/pull/2340).
+
+### Fixed
+- Comments created by anonymous users (but approved by default) are now indexed. Props [@tomjn](https://github.com/tomjn) and [@Rahmon](https://github.com/Rahmon) via [#2357](https://github.com/10up/ElasticPress/pull/2357).
+- Deleted terms are now properly removed from the Elasticsearch index. Props [@felipeelia](https://github.com/felipeelia) via [#2366](https://github.com/10up/ElasticPress/pull/2366).
+- Children of deleted terms are now properly removed from the Elasticsearch index. Props [@pschoffer](https://github.com/pschoffer) via [#2349](https://github.com/10up/ElasticPress/pull/2349).
+- Post tag duplicated in the Elasticsearch query. Props [@oscarssanchez](https://github.com/oscarssanchez), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia) via [#2341](https://github.com/10up/ElasticPress/pull/2341).
+- Infinite loading state of ElasticPress Related Posts block in the Widgets Edit Screen. Props [@felipeelia](https://github.com/felipeelia) via [#2353](https://github.com/10up/ElasticPress/pull/2353).
+- Return of `Search::integrate_search_queries()` when `is_integrated_request`. Props [@adiloztaser](https://github.com/adiloztaser) via [#2355](https://github.com/10up/ElasticPress/pull/2355).
+- Mapping determination based on existing info. Props [@felipeelia](https://github.com/felipeelia) via [#2345](https://github.com/10up/ElasticPress/pull/2345).
+- `WP_Term_Query` and `parent = 0`. Props [@felipeelia](https://github.com/felipeelia) and [@juansanchezfernandes](https://github.com/juansanchezfernandes) via [#2344](https://github.com/10up/ElasticPress/pull/2344).
+- WP Acceptance Tests. Props [@felipeelia](https://github.com/felipeelia) via [#2352](https://github.com/10up/ElasticPress/pull/2352).
+- Typos in the output of some WP-CLI Commands. Props [@rebeccahum](https://github.com/rebeccahum) via [#2336](https://github.com/10up/ElasticPress/pull/2336).
+
+### Security
+- Bumped `10up-toolkit` from 1.0.11 to 1.0.12, `terser-webpack-plugin` from 5.1.4 to 5.2.4, `@wordpress/api-fetch` from 3.21.5 to 3.23.1, and `@wordpress/i18n` from 3.18.0 to 3.20.0. Props [@felipeelia](https://github.com/felipeelia) via [#2372](https://github.com/10up/ElasticPress/pull/2372).
+
+## [3.6.2] - 2021-08-26
+
+**Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+
+This version bumps official PHP support from 5.3+ to 5.6+. Minimum PHP version for ElasticPress 3.7.0 will be 7.0+.
+
+### Added
+- GitHub Action to test compatibility with different PHP versions. Props [@felipeelia](https://github.com/felipeelia) via [#2303](https://github.com/10up/ElasticPress/pull/2303).
+- Validate mapping currently in index against expected version. Props [@tott](https://github.com/tott), [@tlovett1](https://github.com/tlovett1), [@asharirfan](https://github.com/asharirfan), [@oscarssanchez](https://github.com/oscarssanchez), and [@felipeelia](https://github.com/felipeelia) via [#1472](https://github.com/10up/ElasticPress/pull/1472).
+- `ep_default_analyzer_filters` filter to adjust default analyzer filters. Props [@pschoffer](https://github.com/pschoffer) and [@felipeelia](https://github.com/felipeelia) via [#2282](https://github.com/10up/ElasticPress/pull/2282).
+- `title` and `aria-labels` attributes to each icon hyperlink in the header toolbar. Props [@claytoncollie](https://github.com/claytoncollie) and [@felipeelia](https://github.com/felipeelia) via [#2304](https://github.com/10up/ElasticPress/pull/2304).
+- `Utils\is_integrated_request()` function to centralize checks for admin, AJAX, and REST API requests. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@brandwaffle](https://github.com/brandwaffle), [@moritzlang](https://github.com/moritzlang), and [@lkraav](https://github.com/lkraav) via [#2267](https://github.com/10up/ElasticPress/pull/2267).
+
+### Changed
+- Use `10up-toolkit` to build assets. Props [@Rahmon](https://github.com/Rahmon), [@felipeelia](https://github.com/felipeelia), and [@nicholasio](https://github.com/nicholasio) via [#2279](https://github.com/10up/ElasticPress/pull/2279).
+- Official PHP supported version bumped to 5.6. Props [@felipeelia](https://github.com/felipeelia) via [#2320](https://github.com/10up/ElasticPress/pull/2320).
+- Lint React rules using `10up/eslint-config/react`. Props [@Rahmon](https://github.com/Rahmon) via [#2306](https://github.com/10up/ElasticPress/pull/2306).
+- For ES 7.0+ mappings, change `edgeNGram` to `edge_ngram`. Props [@pschoffer](https://github.com/pschoffer) and [@rinatkhaziev](https://github.com/rinatkhaziev) via [#2315](https://github.com/10up/ElasticPress/pull/2315).
+
+### Removed
+- Remove duplicate category_name, cat and tag_id from ES query when tax_query set. Props [@rebeccahum](https://github.com/rebeccahum) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2241](https://github.com/10up/ElasticPress/pull/2241).
+- Remove unused `path` from `dynamic_templates`. Props [@pschoffer](https://github.com/pschoffer) via [#2315](https://github.com/10up/ElasticPress/pull/2315).
+
+### Fixed
+- Remove data from Elasticsearch on a multisite network when a site is archived, deleted or marked as spam. Props [@dustinrue](https://github.com/dustinrue) and [@felipeelia](https://github.com/felipeelia) via [#2284](https://github.com/10up/ElasticPress/pull/2284).
+- `stats` and `status` commands in a multisite scenario. Props [@Rahmon](https://github.com/Rahmon), [@felipeelia](https://github.com/felipeelia), and [@dustinrue](https://github.com/dustinrue) via [#2290](https://github.com/10up/ElasticPress/pull/2290).
+- Multiple words synonyms. Props [@scooterlord](https://github.com/scooterlord), [@jonasstrandqvist](https://github.com/jonasstrandqvist), and [@felipeelia](https://github.com/felipeelia) via [#2287](https://github.com/10up/ElasticPress/pull/2287).
+- Category slug used when doing cat Tax Query with ID. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@karols0](https://github.com/karols0) via [#2322](https://github.com/10up/ElasticPress/pull/2322).
+- Restore current blog when the_post triggers outside the loop in multisite environment and the whole network is searched if the first result is from another blog. Props [@gonzomir](https://github.com/gonzomir) and [@felipeelia](https://github.com/felipeelia) via [#2283](https://github.com/10up/ElasticPress/pull/2283).
+- Prevents a post from being attempted to delete twice. Props [@pauarge](https://github.com/pauarge) via [#2314](https://github.com/10up/ElasticPress/pull/2314).
+- Indexing button on Health screen. Props [@Rahmon](https://github.com/Rahmon) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2312](https://github.com/10up/ElasticPress/pull/2312).
+- WP Acceptance tests and Page Crashed errors. Props [@felipeelia](https://github.com/felipeelia) and [@jeffpaul](https://github.com/jeffpaul) via [#2281](https://github.com/10up/ElasticPress/pull/2281) and [#2313](https://github.com/10up/ElasticPress/pull/2313).
+- Facets: Children of selected terms ordered by count. Props [@oscarssanchez](https://github.com/oscarssanchez), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia) via [#2288](https://github.com/10up/ElasticPress/pull/2288).
+
+### Security
+- Bumps `path-parse` from 1.0.6 to 1.0.7. Props [@dependabot](https://github.com/dependabot) via [#2302](https://github.com/10up/ElasticPress/pull/2302).
+
 ## [3.6.1] - 2021-07-15
+
 **Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
 
 This version requires a full reindex. The new `facet` field introduced in `3.6.0` requires a change in the mapping, otherwise, all content sync related to posts will silently fail. If you've upgraded to 3.6.0 and didn't resync your content yet (via Dashboard or with WP-CLI `wp elasticpress index --setup`) make sure to do so.
@@ -998,6 +1066,8 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[3.6.3]: https://github.com/10up/ElasticPress/compare/3.6.2...3.6.3
+[3.6.2]: https://github.com/10up/ElasticPress/compare/3.6.1...3.6.2
 [3.6.1]: https://github.com/10up/ElasticPress/compare/3.6.0...3.6.1
 [3.6.0]: https://github.com/10up/ElasticPress/compare/3.5.6...3.6.0
 [3.5.6]: https://github.com/10up/ElasticPress/compare/3.5.5...3.5.6

@@ -93,7 +93,7 @@ return [
 					'max_shingle_size' => 5,
 				],
 				'ewp_word_delimiter' => [
-					'type'              => 'word_delimiter',
+					'type'              => 'word_delimiter_graph',
 					'preserve_original' => true,
 				],
 				'ewp_snowball'       => [
@@ -112,7 +112,7 @@ return [
 					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
-					'type'     => 'edgeNGram',
+					'type'     => 'edge_ngram',
 				],
 			],
 			'normalizer' => [
@@ -131,7 +131,6 @@ return [
 					'path_match' => 'meta.*',
 					'mapping'    => [
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => [
 							'value'    => [
 								'type'   => 'text',

@@ -135,7 +135,6 @@ class Widget extends WP_Widget {
 		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
 
 		$terms     = Utils\get_term_tree( $terms, $orderby, $order, true );
-		$term_tree = Utils\get_term_tree( $terms, 'count', 'desc', false );
 
 		$outputted_terms = array();
 
@@ -184,14 +183,14 @@ class Widget extends WP_Widget {
 							if ( ! empty( $new_filters['taxonomies'][ $taxonomy ] ) && ! empty( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] ) ) {
 								unset( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] );
 							}
-							?>
-							<div class="term selected level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
-								<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow">
-									<div class="ep-checkbox checked" role="presentation"></div>
-									<?php echo esc_html( $term->name ); ?>
-								</a>
-							</div>
-							<?php
+
+							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+							echo $this->get_facet_term_html(
+								$term,
+								$feature->build_query_url( $new_filters ),
+								true
+							);
+							// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 						} else {
 							/**
 							 * This code is so that when we encounter a selected child/parent term, we push it's whole branch
@@ -217,7 +216,7 @@ class Widget extends WP_Widget {
 
 							$flat_ordered_terms[] = $top_of_tree;
 
-							$to_process = $this->order_by_selected( $top_of_tree->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] );
+							$to_process = $this->order_by_selected( $top_of_tree->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'], $order, $orderby );
 
 							while ( ! empty( $to_process ) ) {
 								$term = array_shift( $to_process );
@@ -225,7 +224,7 @@ class Widget extends WP_Widget {
 								$flat_ordered_terms[] = $term;
 
 								if ( ! empty( $term->children ) ) {
-									$to_process = array_merge( $this->order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'] ), $to_process );
+									$to_process = array_merge( $this->order_by_selected( $term->children, $selected_filters['taxonomies'][ $taxonomy ]['terms'], $order, $orderby ), $to_process );
 								}
 							}
 
@@ -247,14 +246,14 @@ class Widget extends WP_Widget {
 
 									$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 								}
-								?>
-								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow">
-										<div class="ep-checkbox <?php if ( $selected ) : ?>checked<?php endif; ?>" role="presentation"></div>
-										<?php echo esc_html( $term->name ); ?>
-									</a>
-								</div>
-								<?php
+
+								// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo $this->get_facet_term_html(
+									$term,
+									$feature->build_query_url( $new_filters ),
+									$selected
+								);
+								// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 							}
 						}
 					endforeach;
@@ -276,14 +275,15 @@ class Widget extends WP_Widget {
 					}
 
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
-					?>
-					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow"<?php endif; ?>>
-							<div class="ep-checkbox" role="presentation"></div>
-							<?php echo esc_html( $term->name ); ?>
-						</a>
-					</div>
-				<?php endforeach; ?>
+
+					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo $this->get_facet_term_html(
+						$term,
+						$feature->build_query_url( $new_filters )
+					);
+					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+				endforeach;
+				?>
 			</div>
 			<?php $facet_html = ob_get_clean(); ?>
 
@@ -314,14 +314,78 @@ class Widget extends WP_Widget {
 	}
 
 	/**
+	 * Get the markup for an individual facet item.
+	 *
+	 * @param WP_Term $term     Term object.
+	 * @param string  $url      Filter URL.
+	 * @param boolean $selected Whether the term is currently selected.
+	 * @since 3.6.3
+	 * @return string HTML for an individual facet term.
+	 */
+	protected function get_facet_term_html( $term, $url, $selected = false ) {
+		$href = sprintf(
+			'href="%s"',
+			esc_url( $url )
+		);
+
+		/**
+		 * Filter the label for an individual facet term.
+		 *
+		 * @since 3.6.3
+		 * @hook ep_facet_widget_term_label
+		 * @param {string} $label Facet term label.
+		 * @param {WP_Term} $term Term object.
+		 * @param {boolean} $selected Whether the term is selected.
+		 * @return {string} Individual facet term label.
+		 */
+		$label = apply_filters( 'ep_facet_widget_term_label', $term->name, $term, $selected );
+
+		$link = sprintf(
+			'<a %1$s rel="nofollow"><div class="ep-checkbox %2$s" role="presentation"></div>%3$s</a>',
+			$term->count ? $href : '',
+			$selected ? 'checked' : '',
+			wp_kses_post( $label )
+		);
+
+		$html = sprintf(
+			'<div class="term level-%1$d %2$s %3$s" data-term-name="%4$s" data-term-slug="%5$s">%6$s</div>',
+			absint( $term->level ),
+			$selected ? 'selected' : '',
+			! $term->count ? 'empty-term' : '',
+			esc_attr( strtolower( $term->name ) ),
+			esc_attr( strtolower( $term->slug ) ),
+			$link
+		);
+
+		/**
+		 * Filter the HTML for an individual facet term.
+		 *
+		 * For term search to work correctly the outermost wrapper of the term
+		 * HTML must have data-term-name and data-term-slug attributes set to
+		 * lowercase versions of the term name and slug respectively.
+		 *
+		 * @since 3.6.3
+		 * @hook ep_facet_widget_term_html
+		 * @param {string} $html Facet term HTML.
+		 * @param {WP_Term} $term Term object.
+		 * @param {string} $url Filter URL.
+		 * @param {boolean} $selected Whether the term is selected.
+		 * @return {string} Individual facet term HTML.
+		 */
+		return apply_filters( 'ep_facet_widget_term_html', $html, $term, $url, $selected );
+	}
+
+	/**
 	 * Order terms putting selected at the top
 	 *
-	 * @param  array $terms Array of terms
-	 * @param  array $selected_terms Selected terms
+	 * @param  array  $terms Array of terms
+	 * @param  array  $selected_terms Selected terms
+	 * @param  string $order The order to sort from. Desc or Asc.
+	 * @param  string $orderby The orderby to sort items from.
 	 * @since  2.5
 	 * @return array
 	 */
-	private function order_by_selected( $terms, $selected_terms ) {
+	private function order_by_selected( $terms, $selected_terms, $order = false, $orderby = false ) {
 		$ordered_terms = [];
 		$terms_by_slug = [];
 
@@ -329,10 +393,7 @@ class Widget extends WP_Widget {
 			$terms_by_slug[ $term->slug ] = $term;
 		}
 
-		ksort( $selected_terms );
-		ksort( $terms_by_slug );
-
-		foreach ( $selected_terms as $term_slug => $nothing ) {
+		foreach ( $selected_terms as $term_slug ) {
 			if ( ! empty( $terms_by_slug[ $term_slug ] ) ) {
 				$ordered_terms[ $term_slug ] = $terms_by_slug[ $term_slug ];
 			}
@@ -341,6 +402,30 @@ class Widget extends WP_Widget {
 		foreach ( $terms_by_slug as $term_slug => $term ) {
 			if ( empty( $ordered_terms[ $term_slug ] ) ) {
 				$ordered_terms[ $term_slug ] = $terms_by_slug[ $term_slug ];
+			}
+		}
+
+		if ( 'count' === $orderby ) {
+			if ( 'asc' === $order ) {
+				uasort(
+					$ordered_terms,
+					function( $a, $b ) {
+						return $a->count > $b->count;
+					}
+				);
+			} else {
+				uasort(
+					$ordered_terms,
+					function( $a, $b ) {
+						return $a->count < $b->count;
+					}
+				);
+			}
+		} else {
+			if ( 'asc' === $order ) {
+				ksort( $ordered_terms );
+			} else {
+				krsort( $ordered_terms );
 			}
 		}
 

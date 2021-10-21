@@ -65,9 +65,13 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Activate a feature.
+	 * Activate a feature. If a re-indexing is required, you will need to do it manually.
 	 *
-	 * @synopsis <feature>
+	 * ## OPTIONS
+	 *
+	 * <feature-slug>
+	 * : The feature slug
+	 *
 	 * @subcommand activate-feature
 	 * @since      2.1
 	 * @param array $args Positional CLI args.
@@ -106,7 +110,11 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Dectivate a feature.
 	 *
-	 * @synopsis <feature>
+	 * ## OPTIONS
+	 *
+	 * <feature-slug>
+	 * : The feature slug
+	 *
 	 * @subcommand deactivate-feature
 	 * @since      2.1
 	 * @param array $args Positional CLI args.
@@ -139,9 +147,13 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * List features (either active or all)
+	 * List features (either active or all).
 	 *
-	 * @synopsis [--all]
+	 * ## OPTIONS
+	 *
+	 * [--all]
+	 * : Show all registered features
+	 *
 	 * @subcommand list-features
 	 * @since      2.1
 	 * @param array $args Positional CLI args.
@@ -175,9 +187,24 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Add document mappings for every indexable
+	 * Add document mappings for every indexable.
 	 *
-	 * @synopsis [--network-wide] [--indexables] [--ep-host] [--ep-prefix]
+	 * Sends plugin put mapping to the current Indexables indices (this will delete the indices.)
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--network-wide]
+	 * : Force mappings to be sent for every index in the network.
+	 *
+	 * [--indexables]
+	 * : List of indexables
+	 *
+	 * [--ep-host]
+	 * : Custom Elasticsearch host
+	 *
+	 * [--ep-prefix]
+	 * : Custom ElasticPress prefix
+	 *
 	 * @subcommand put-mapping
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
@@ -333,7 +360,32 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Return all indexes from the cluster as json
+	 * Return the mapping as a JSON object. If an index is specified, return its mapping only.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--index-name]
+	 * : The name of the index for which to return the mapping. If not passed, all mappings will be returned
+	 *
+	 * @subcommand get-mapping
+	 * @since      3.6.4
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_mapping( $args, $assoc_args ) {
+		$index_names = (array) ( isset( $assoc_args['index-name'] ) ? $assoc_args['index-name'] : $this->get_index_names() );
+
+		$path = join( ',', $index_names ) . '/_mapping';
+
+		$response = Elasticsearch::factory()->remote_request( $path );
+
+		$body = wp_remote_retrieve_body( $response );
+
+		WP_CLI::line( $body );
+	}
+
+	/**
+	 * Return all indexes from the cluster as a JSON object.
 	 *
 	 * @subcommand get-cluster-indexes
 	 * @since      3.2
@@ -351,7 +403,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Get all index names as json
+	 * Return all index names as a JSON object.
 	 *
 	 * @subcommand get-indexes
 	 * @since      3.2
@@ -359,26 +411,52 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indexes( $args, $assoc_args ) {
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
-
-		foreach ( $sites as $site ) {
-			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-		}
-
-		$user_indexable = Indexables::factory()->get( 'user' );
-
-		if ( ! empty( $user_indexable ) ) {
-			$index_names[] = $user_indexable->get_index_name();
-		}
+		$index_names = $this->get_index_names();
 
 		WP_CLI::line( wp_json_encode( $index_names ) );
 	}
 
 	/**
-	 * Delete the index for each indexable. !!Warning!! This removes your elasticsearch index(s)
-	 * for the entire site.
+	 * Get all index names.
 	 *
-	 * @synopsis [--index-name] [--network-wide] [--yes]
+	 * @since 3.6.4
+	 * @return array
+	 */
+	protected function get_index_names() {
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+
+		$all_indexables = Indexables::factory()->get_all();
+
+		$global_indexes     = [];
+		$non_global_indexes = [];
+		foreach ( $all_indexables as $indexable ) {
+			if ( $indexable->global ) {
+				$global_indexes[] = $indexable->get_index_name();
+				continue;
+			}
+
+			foreach ( $sites as $site ) {
+				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
+			}
+		}
+
+		return array_merge( $non_global_indexes, $global_indexes );
+	}
+
+	/**
+	 * Delete the index for each indexable. !!Warning!! This removes your elasticsearch index(s) for the entire site.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--index-name]
+	 * : The name of the index to be deleted. If not passed, all indexes will be deleted
+	 *
+	 * [--network-wide]
+	 * : Force every index on the network to be deleted.
+	 *
+	 * [--yes]
+	 * : Skip confirmation
+	 *
 	 * @subcommand delete-index
 	 * @since      0.9
 	 * @param array $args Positional CLI args.
@@ -458,6 +536,8 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Recreates the alias index which points to every index in the network.
+	 *
 	 * Map network alias to every index in the network for every non-global indexable
 	 *
 	 * @param array $args Positional CLI args.
@@ -487,7 +567,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * A WP-CLI wrapper to run Autosuggest::epio_send_autosuggest_public_request().
+	 * A WP-CLI wrapper to run `Autosuggest::epio_send_autosuggest_public_request()`.
 	 *
 	 * @param array $args       Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
@@ -547,9 +627,60 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Index all posts for a site or network wide
+	 * Index all posts for a site or network wide.
 	 *
-	 * @synopsis [--setup] [--network-wide] [--per-page] [--nobulk] [--show-errors] [--offset] [--upper-limit-object-id] [--lower-limit-object-id] [--indexables] [--show-bulk-errors] [--show-nobulk-errors] [--post-type] [--include] [--post-ids] [--ep-host] [--ep-prefix] [--yes]
+	 * ## OPTIONS
+	 *
+	 * [--network-wide]
+	 * : Force indexing on all the blogs in the network. `--network-wide` takes an optional argument to limit the number of blogs to be indexed across where 0 is no limit. For example, `--network-wide=5` would limit indexing to only 5 blogs on the network
+	 *
+	 * [--setup]
+	 * : Clear the index first and re-send the put mapping. Use `--yes` to skip the confirmation
+	 *
+	 * [--per-page]
+	 * : Determine the amount of posts to be indexed per bulk index (or cycle)
+	 *
+	 * [--nobulk]
+	 * : Disable bulk indexing
+	 *
+	 * [--show-errors]
+	 * : Show all errors
+	 *
+	 * [--show-bulk-errors]
+	 * : Display the error message returned from Elasticsearch when a post fails to index using the /_bulk endpoint
+	 *
+	 * [--show-nobulk-errors]
+	 * : Display the error message returned from Elasticsearch when a post fails to index while not using the /_bulk endpoint
+	 *
+	 * [--offset]
+	 * : Skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
+	 *
+	 * [--indexables]
+	 * : Specify the Indexable(s) which will be indexed
+	 *
+	 * [--post-type]
+	 * : Specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma
+	 *
+	 * [--include]
+	 * : Choose which object IDs to include in the index
+	 *
+	 * [--post-ids]
+	 * : Choose which post_ids to include when indexing the Posts Indexable (deprecated)
+	 *
+	 * [--upper-limit-object-id]
+	 * : Upper limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 45
+	 *
+	 * [--lower-limit-object-id]
+	 * : Lower limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 30
+	 *
+	 * [--ep-host]
+	 * : Custom Elasticsearch host
+	 *
+	 * [--ep-prefix]
+	 * : Custom ElasticPress prefix
+	 *
+	 * [--yes]
+	 * : Skip confirmation needed by `--setup`
 	 *
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
@@ -851,8 +982,9 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * If an index was stopped prematurely and won't start again, this will clear this
-	 * cached data such that a new index can start.
+	 * Clear a sync/index process.
+	 *
+	 * If an index was stopped prematurely and won't start again, this will clear this cached data such that a new index can start.
 	 *
 	 * @subcommand clear-index
 	 * @alias delete-transient
@@ -911,7 +1043,11 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Returns a JSON array with the results of the last CLI index (if present) of an empty array.
 	 *
-	 * @synopsis [--clear]
+	 * ## OPTIONS
+	 *
+	 * [--clear]
+	 * : Clear the `ep_last_cli_index` option.
+	 *
 	 * @subcommand get-last-cli-index
 	 *
 	 * @param array $args Positional CLI args.
@@ -996,7 +1132,7 @@ class Command extends WP_CLI_Command {
 		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
 			WP_CLI::warning( esc_html__( 'There is no indexing operation running.', 'elasticpress' ) );
 		} else {
-			WP_CLI::line( esc_html__( 'Stoping indexing...', 'elasticpress' ) );
+			WP_CLI::line( esc_html__( 'Stopping indexing...', 'elasticpress' ) );
 
 			if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
 				set_transient( 'ep_wpcli_sync_interrupted', true, 5 );
@@ -1015,7 +1151,14 @@ class Command extends WP_CLI_Command {
 	 * that will be used by the filter with same name.
 	 * Delete the option if `--default` is passed.
 	 *
-	 * @synopsis [--version=<version>] [--default]
+	 * ## OPTIONS
+	 *
+	 * [--version=<version>]
+	 * : Version name
+	 *
+	 * [--default]
+	 * : Use to set the default version
+	 *
 	 * @subcommand set-algorithm-version
 	 *
 	 * @since       3.5.4

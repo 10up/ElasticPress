@@ -60,6 +60,11 @@ class TestPost extends BaseTestCase {
 	public function tearDown() {
 		parent::tearDown();
 
+		// Unset current_screen so is_admin() is reset.
+		if ( isset( $GLOBALS['current_screen'] ) ) {
+			unset( $GLOBALS['current_screen'] );
+		}
+
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
@@ -4971,6 +4976,49 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a tag query by slug using array and comma separated string as arguments.
+	 *
+	 * @group post
+	 */
+	public function testTagSlugQuery() {
+		$post_id_1 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array( 'slug1', 'slug2' ),
+			)
+		);
+		$post_id_2 = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 2',
+				'tags_input'   => array( 'slug1', 'slug2', 'slug3', 'slug4' ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query1_args = [
+			's'   => 'findme',
+			'tag' => 'slug1,slug2',
+		];
+
+		$query2_args = [
+			's'   => 'findme',
+			'tag' => [ 'slug1', 'slug2' ],
+		];
+
+		$query1 = new \WP_Query( $query1_args );
+		$query2 = new \WP_Query( $query2_args );
+
+		$this->assertTrue( isset( $query1->posts[0]->elasticsearch ) );
+		$this->assertTrue( isset( $query2->posts[0]->elasticsearch ) );
+
+		$this->assertEquals( 2, $query1->post_count );
+		$this->assertEquals( 2, $query1->found_posts );
+		$this->assertEquals( 2, $query2->post_count );
+		$this->assertEquals( 2, $query2->found_posts );
+	}
+
+	/**
 	 * Test a query with tag__and and tag_id params
 	 *
 	 * @since 2.0
@@ -6195,5 +6243,40 @@ class TestPost extends BaseTestCase {
 		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
 		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
 		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
+	}
+
+	/**
+	 * Test when we perform a Tax Query with Id's for the category taxonomy cat id is used and cat slug is not.
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testTaxQueryWithCategoryId() {
+		$cat = wp_create_category( 'test category' );
+
+		$query = new \WP_Query();
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$args = $post->format_args(
+			[
+				'post_type'    => 'post',
+				'post_status'  => 'public',
+				'ep_integrate' => true,
+				'tax_query'    => array(
+					array(
+						'taxonomy' => 'category',
+						'terms'    => array( $cat ),
+						'field'    => 'term_id',
+						'operator' => 'in',
+					)
+				)
+			],
+			$query
+		);
+
+		$this->assertCount( 1, $args['post_filter']['bool']['must'][0]['bool']['must'] );
+		$this->assertArrayHasKey( 'terms.category.term_id', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms'] );
+		$this->assertContains( $cat, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['terms.category.term_id'] );
 	}
 }

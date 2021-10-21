@@ -424,7 +424,7 @@ class Term extends Indexable {
 		/**
 		 * Support `parent` query var.
 		 */
-		if ( ! empty( $query_vars['parent'] ) ) {
+		if ( isset( $query_vars['parent'] ) && '' !== $query_vars['parent'] ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
 					'parent' => (int) $query_vars['parent'],

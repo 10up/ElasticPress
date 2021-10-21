@@ -4,7 +4,7 @@
  *
  * @param {Function} fn - function to be debounced
  * @param {number} delay - integer
- * @returns {Function} - new function, with the provided function wrapped in a timeout
+ * @return {Function} - new function, with the provided function wrapped in a timeout
  */
 export const debounce = (fn, delay) => {
 	let timer = null;
@@ -24,7 +24,7 @@ export const debounce = (fn, delay) => {
  * Helper function to escape input to be treated as a literal string with a RegEx
  *
  * @param {string} string - string to be escaped
- * @returns {string} escaped string
+ * @return {string} escaped string
  */
 export const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -34,7 +34,7 @@ export const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\
  * @param {string} string - string to replace
  * @param {string} term - tearm to search for
  * @param {string} replacement  replace value to use
- * @returns {string} replaced string
+ * @return {string} replaced string
  */
 export const replaceGlobally = (string, term, replacement) => {
 	return string.replace(new RegExp(escapeRegExp(term), 'g'), replacement);
@@ -44,7 +44,7 @@ export const replaceGlobally = (string, term, replacement) => {
  * Escapes double quotes for specific data-attr
  *
  * @param {string} str The provided string containing double quotes
- * @returns {string} The escaped string
+ * @return {string} The escaped string
  */
 export const escapeDoubleQuotes = (str) => str.replace(/\\([\s\S])|(")/g, '&quot;');
 
@@ -53,7 +53,7 @@ export const escapeDoubleQuotes = (str) => str.replace(/\\([\s\S])|(")/g, '&quot
  *
  * @param {*} el - node to search for its ancestor
  * @param {*} className - class attribute to search for
- * @returns {Element} - ancestor element of provided el
+ * @return {Element} - ancestor element of provided el
  */
 export const findAncestorByClass = (el, className) => {
 	// eslint-disable-next-line
@@ -66,7 +66,7 @@ export const findAncestorByClass = (el, className) => {
  *
  * @param {Array} array - array to search
  * @param {string} key - array to search
- * @returns {Array} - new array
+ * @return {Array} - new array
  */
 export const pluck = (array, key) => {
 	return array.map((o) => o[key]);
@@ -77,8 +77,8 @@ export const pluck = (array, key) => {
  * in PHP expect to receive the data, e.g. action_wp_ajax_ep_save_feature
  * from dashboard.php
  *
- * @param {object} obj - js object
- * @returns {string} urlencoded string for POST ajax request
+ * @param {Object} obj - js object
+ * @return {string} urlencoded string for POST ajax request
  */
 export const formatPostBody = (obj) => {
 	return Object.keys(obj)
@@ -121,7 +121,7 @@ const showOrHideNodes = (els, display) => {
  * Decorated helper function to show node/NodeList/array of nodes
  *
  * @param {Array} els - Nodelist/array of Nodes to show
- * @returns {Function} - showOrHideNodes
+ * @return {Function} - showOrHideNodes
  */
 export const showElements = (els) => showOrHideNodes(els, 'inline-block');
 
@@ -129,6 +129,30 @@ export const showElements = (els) => showOrHideNodes(els, 'inline-block');
  * Decorated helper function to hide node/NodeList/array of nodes
  *
  * @param {Array} els - Nodelist/array of Nodes to show
- * @returns {Function} - showOrHideNodes
+ * @return {Function} - showOrHideNodes
  */
 export const hideElements = (els) => showOrHideNodes(els, 'none');
+
+/**
+ * Specify a function to execute when the DOM is fully loaded.
+ *
+ * @param {Function} callback A function to execute after the DOM is ready.
+ * @return {void}
+ */
+export const domReady = (callback) => {
+	if (typeof document === 'undefined') {
+		return;
+	}
+
+	if (
+		document.readyState === 'complete' || // DOMContentLoaded + Images/Styles/etc loaded, so we call directly.
+		document.readyState === 'interactive' // DOMContentLoaded fires at this point, so we call directly.
+	) {
+		callback();
+		return;
+	}
+
+	// DOMContentLoaded has not fired yet, delay callback until then.
+	// eslint-disable-next-line @wordpress/no-global-event-listener
+	document.addEventListener('DOMContentLoaded', callback);
+};

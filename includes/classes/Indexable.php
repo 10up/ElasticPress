@@ -477,9 +477,9 @@ abstract class Indexable {
 		$meta_types['datetime'] = '1970-01-01 00:00:01';
 		$meta_types['time']     = '00:00:01';
 
-		try {
-			// is this is a recognizable date format?
-			$new_date  = new \DateTime( $meta_value, \wp_timezone() );
+		// is this is a recognizable date format?
+		$new_date  = date_create( $meta_value, \wp_timezone() );
+		if ( $new_date ) {
 			$timestamp = $new_date->getTimestamp();
 
 			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
@@ -490,9 +490,6 @@ abstract class Indexable {
 				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
 				$meta_types['time']     = $new_date->format( 'H:i:s' );
 			}
-		} catch ( \Exception $e ) {
-			// if $meta_value is not a recognizable date format, DateTime will throw an exception,
-			// just catch it and move on.
 		}
 
 		return $meta_types;

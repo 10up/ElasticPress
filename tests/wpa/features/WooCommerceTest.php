@@ -19,7 +19,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$this->activatePlugin( $I, 'woocommerce' );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$this->assertStringContainsString( 'feature-active', $I->getElementAttribute( '.ep-feature-woocommerce', 'class' ) );
 	}
@@ -34,7 +34,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".ep-feature-woocommerce .settings-button" ).click();' );
 
@@ -44,7 +44,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		sleep( 2 );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->click( '.ep-feature-woocommerce .settings-button' );
 
@@ -69,7 +69,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->click( '.ep-feature-protected_content .settings-button' );
 
@@ -81,7 +81,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
-		$I->moveTo( '/wp-admin/edit.php?post_type=shop_order' );
+		$this->moveTo( $I, '/wp-admin/edit.php?post_type=shop_order' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 
@@ -100,7 +100,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/wp-admin/edit.php?post_type=product' );
+		$this->moveTo( $I, '/wp-admin/edit.php?post_type=product' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 
@@ -119,7 +119,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/product-category/uncategorized' );
+		$this->moveTo( $I, '/product-category/uncategorized' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 
@@ -138,7 +138,7 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/shop/?filter_size=small' );
+		$this->moveTo( $I, '/shop/?filter_size=small' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 

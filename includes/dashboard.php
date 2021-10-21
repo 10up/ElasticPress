@@ -452,7 +452,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'health' ], true ) ) {
 		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard-script.min.js', [ 'jquery', 'wp-color-picker' ], EP_VERSION, true );
 
 		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
