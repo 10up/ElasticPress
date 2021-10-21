@@ -13,7 +13,7 @@ Official PHP support is currently 5.6+. Minimum PHP version for ElasticPress 4.0
 ### Added
 - WP-CLI: New `get-mapping` command. Props [@tfrommen](https://github.com/tfrommen), [@felipeelia](https://github.com/felipeelia), and [@Rahmon](https://github.com/Rahmon) via [#2414](https://github.com/10up/ElasticPress/pull/2414).
 - New filters: `ep_query_request_args` and `ep_pre_request_args`. Props [@felipeelia](https://github.com/felipeelia) via [#2416](https://github.com/10up/ElasticPress/pull/2416).
-- Support for Autosuggest to dynamically inserted search inputs. Props [@brandwaffle](https://github.com/brandwaffle) and [@JakePT](https://github.com/JakePT), [@rdimascio](https://github.com/rdimascio), and [@felipeelia](https://github.com/felipeelia) via [#2404](https://github.com/10up/ElasticPress/pull/2404).
+- Support for Autosuggest to dynamically inserted search inputs. Props [@JakePT](https://github.com/JakePT), [@rdimascio](https://github.com/rdimascio), [@brandwaffle](https://github.com/brandwaffle), and [@felipeelia](https://github.com/felipeelia) via [#2404](https://github.com/10up/ElasticPress/pull/2404).
 
 ### Changed
 - Automatically generated WP-CLI docs. Props [@felipeelia](https://github.com/felipeelia) via [#2370](https://github.com/10up/ElasticPress/pull/2370).
