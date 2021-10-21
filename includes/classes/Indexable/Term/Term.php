@@ -977,9 +977,7 @@ class Term extends Indexable {
 				$es_version    = Elasticsearch::factory()->get_elasticsearch_version();
 				$es_field_name = 'name.sortable';
 
-				if ( version_compare( $es_version, '7.0', '>=' ) ) {
-					$es_field_name = 'name.sortable';
-				} else {
+				if ( version_compare( $es_version, '7.0', '<' ) ) {
 					$es_field_name = 'name.raw';
 				}
 
@@ -1023,11 +1021,14 @@ class Term extends Indexable {
 				break;
 		}
 
-		$sort[] = array(
-			$es_field_name => array(
-				'order' => $order,
-			),
-		);
+		// For `meta_value` and `meta_value_num`, for example, there is a chance this wasn't set.
+		if ( ! empty( $es_field_name ) ) {
+			$sort[] = array(
+				$es_field_name => array(
+					'order' => $order,
+				),
+			);
+		}
 
 		return $sort;
 	}
