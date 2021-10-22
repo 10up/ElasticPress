@@ -69,7 +69,8 @@ Fixed:
 * Deprecated URL for multiple documents get from ElasticSearch. Props [@pschoffer](https://github.com/pschoffer).
 * Add new lines and edit terms in the Advanced Synonym Editor. Props [@JakePT](https://github.com/JakePT) and [@johnwatkins0](https://github.com/johnwatkins0).
 * Terms: Avoid falling back to MySQL when results are empty. Props [@felipeelia](https://github.com/felipeelia).
-* Terms: Usage of several parameters for searching and ordering. Props [@felipeelia](https://github.com/felipeelia) and and [@Rahmon](https://github.com/Rahmon).
+* Terms: Usage of several parameters for searching and ordering. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon).
+- Attachment indexing on Elasticsearch 7. Props [@Rahmon](https://github.com/Rahmon).
 * Tests: Ensure that Documents related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon).
 * Tests: Ensure that WooCommerce related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia).
 * Tests: Ensure that Comments related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia).
