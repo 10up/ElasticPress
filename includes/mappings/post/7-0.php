@@ -102,7 +102,7 @@ return array(
 					'max_shingle_size' => 5,
 				),
 				'ewp_word_delimiter' => array(
-					'type'              => 'word_delimiter',
+					'type'              => 'word_delimiter_graph',
 					'preserve_original' => true,
 				),
 				'ewp_snowball'       => array(

@@ -348,6 +348,31 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Return the mapping as a JSON object. If an index is specified, return its mapping only.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--index-name]
+	 * : The name of the index for which to return the mapping. If not passed, all mappings will be returned
+	 *
+	 * @subcommand get-mapping
+	 * @since      3.6.4
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_mapping( $args, $assoc_args ) {
+		$index_names = (array) ( isset( $assoc_args['index-name'] ) ? $assoc_args['index-name'] : $this->get_index_names() );
+
+		$path = join( ',', $index_names ) . '/_mapping';
+
+		$response = Elasticsearch::factory()->remote_request( $path );
+
+		$body = wp_remote_retrieve_body( $response );
+
+		WP_CLI::line( $body );
+	}
+
+	/**
 	 * Return all indexes from the cluster as a JSON object.
 	 *
 	 * @subcommand get-cluster-indexes
@@ -374,19 +399,36 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indexes( $args, $assoc_args ) {
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
-
-		foreach ( $sites as $site ) {
-			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-		}
-
-		$user_indexable = Indexables::factory()->get( 'user' );
-
-		if ( ! empty( $user_indexable ) ) {
-			$index_names[] = $user_indexable->get_index_name();
-		}
+		$index_names = $this->get_index_names();
 
 		WP_CLI::line( wp_json_encode( $index_names ) );
+	}
+
+	/**
+	 * Get all index names.
+	 *
+	 * @since 3.6.4
+	 * @return array
+	 */
+	protected function get_index_names() {
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+
+		$all_indexables = Indexables::factory()->get_all();
+
+		$global_indexes     = [];
+		$non_global_indexes = [];
+		foreach ( $all_indexables as $indexable ) {
+			if ( $indexable->global ) {
+				$global_indexes[] = $indexable->get_index_name();
+				continue;
+			}
+
+			foreach ( $sites as $site ) {
+				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
+			}
+		}
+
+		return array_merge( $non_global_indexes, $global_indexes );
 	}
 
 	/**
@@ -1098,7 +1140,12 @@ class Command extends WP_CLI_Command {
 
 				$loop_counter++;
 				if ( ( $loop_counter % 10 ) === 0 ) {
-					$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( timer_stop( 0, 2 ) - $time_elapsed ) . ')' : '';
+					// Get a non-formatted version of the timer (1000.00 instead of 1,000.00)
+					add_filter( 'number_format_i18n', [ __CLASS__, 'skip_number_format_i18n' ], 10, 3 );
+					$time_elapsed_calc = timer_stop( 0, 2 ) * 1000;
+					remove_filter( 'number_format_i18n', [ __CLASS__, 'skip_number_format_i18n' ] );
+
+					$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( $time_elapsed_calc - $time_elapsed ) . ')' : '';
 					$time_elapsed      = timer_stop( 0, 2 );
 					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
 
@@ -1786,5 +1833,19 @@ class Command extends WP_CLI_Command {
 		} else {
 			WP_CLI::warning( $current_index . ' is not currently indexed.' );
 		}
+	}
+
+	/**
+	 * Utilitary function to skip i18n number formatting, so we can use it in calculations.
+	 *
+	 * This function is public because it is used by a WP filter and static so it is not considered a WP-CLI subcommand.
+	 *
+	 * @param string $formatted Formatted version of the number.
+	 * @param float  $number    The number to return.
+	 * @param int    $decimals  Precision of the number of decimal places.
+	 * @return float
+	 */
+	public static function skip_number_format_i18n( $formatted, $number, $decimals ) {
+		return number_format( $number, absint( $decimals ), '.', '' );
 	}
 }
