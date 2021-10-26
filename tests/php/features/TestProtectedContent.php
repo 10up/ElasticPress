@@ -229,4 +229,194 @@ class TestProtectedContent extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
+
+	/**
+	 * Check if passwords on posts are synced when feature not active
+	 *
+	 * @since 3.7
+	 * @group protected-content
+	 */
+	public function testNoSyncPasswordedPost() {
+		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
+
+		$post_id = Functions\create_and_sync_post( array( 'post_password' => 'test' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Check if ES post sync filter has been triggered
+		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
+
+		// Check if password was synced
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$this->assertTrue( ! isset( $post['post_password'] ) );
+	}
+
+	/**
+	 * Check if passwords on posts are synced when feature active
+	 *
+	 * @since 3.7
+	 * @group protected-content
+	 */
+	public function testSyncPasswordedPost() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
+
+		$post_id = Functions\create_and_sync_post( array( 'post_password' => 'test' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Check if ES post sync filter has been triggered
+		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
+
+		// Check if password was synced
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$this->assertEquals( 'test', $post['post_password'] );
+
+		// Remove password from post
+		wp_update_post(
+			array(
+				'ID'            => $post_id,
+				'post_password' => '',
+		) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		// Check if password was removed on sync
+		$this->assertEmpty( $post['post_password'] );
+
+		// Add back password on post
+		wp_update_post(
+			array(
+				'ID'            => $post_id,
+				'post_password' => 'test',
+		) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+
+		// Check if password was added back on sync
+		$this->assertEquals( 'test', $post['post_password'] );
+	}
+
+	/**
+	 * Check if password protected post shows up in admin
+	 *
+	 * @since 3.7
+	 * @group protected-content
+	 */
+	public function testAdminPasswordedPost() {
+		set_current_screen( 'edit.php' );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_id = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme 123',
+				'post_password' => 'test'
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
+
+		$query = new \WP_Query();
+
+		global $wp_the_query;
+
+		$wp_the_query = $query;
+
+		$args = array(
+			's' => 'findme',
+		);
+
+		$query->query( $args );
+
+		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Check password protected post in front-end
+	 *
+	 * @since 3.7
+	 * @group protected-content
+	 */
+	public function testFrontEndSearchPasswordedPost() {
+		set_current_screen( 'front' );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		$post_id = Functions\create_and_sync_post(
+			array(
+				'post_content'  => 'findme 123',
+				'post_password' => 'test',
+			)
+		);
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter( 'ep_post_formatted_args', array( $this, 'catch_ep_post_formatted_args' ), 20 );
+
+		$query = new \WP_Query(
+			array(
+				's' => 'findme',
+			)
+		);
+
+		// Check to ensure query is being modified
+		$this->assertEquals(
+			'post_password',
+			$this->fired_actions['ep_post_formatted_args']['post_filter']['bool']['must_not'][0]['exists']['field']
+		);
+
+		// Check for no results
+		$this->assertEquals( 0, $query->post_count );
+		$this->assertEquals( 0, $query->found_posts );
+
+		// Remove password from post
+		wp_update_post(
+			array(
+				'ID' => $post_id,
+				'post_password' => '',
+		) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			array(
+				's' => 'findme',
+			)
+		);
+
+		// Check for a result now that password was removed
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Catch ES query args.
+	 *
+	 * @since 3.7
+	 * @group protected-content
+	 * @param array $args ES query args.
+	 */
+	public function catch_ep_post_formatted_args( $args ) {
+		$this->fired_actions['ep_post_formatted_args'] = $args;
+		return $args;
+	}
 }
