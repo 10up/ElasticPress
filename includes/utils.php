@@ -493,6 +493,15 @@ function get_indexing_status() {
 		if ( ! empty( $index_status['method'] ) && 'dashboard' === $index_status['method'] ) {
 			$index_status['method'] = 'web';
 		}
+
+		if ( ! empty( $index_status['method'] ) && 'web' === $index_status['method'] ) {
+			$should_interrupt_sync = filter_var(
+				get_transient( 'ep_sync_interrupted' ),
+				FILTER_VALIDATE_BOOLEAN
+			);
+
+			$index_status['should_interrupt_sync'] = $should_interrupt_sync;
+		}
 	}
 
 	return $index_status;

@@ -268,7 +268,7 @@ function sync(putMapping = false) {
 			epSyncOutput.scrollTop = epSyncOutput.scrollHeight;
 			epSyncOutput.style.display = 'block';
 
-			if (response.data?.should_interrupt_sync) {
+			if (response.data?.index_meta?.should_interrupt_sync) {
 				syncStatus = 'interrupt';
 				updateSyncDash();
 				cancelSync();
