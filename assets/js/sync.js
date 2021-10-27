@@ -164,34 +164,9 @@ function updateSyncDash() {
 		updateSyncText(epDash.sync_initial);
 		makeButtonsVisible(['pause']);
 	} else if (syncStatus === 'sync') {
-		text = epDash.sync_syncing;
-
-		if (currentSyncItem) {
-			if (currentSyncItem.indexable) {
-				text += ` ${getIndexableLabel(currentSyncItem.indexable)} ${parseInt(
-					processed,
-					10,
-				)}/${parseInt(toProcess, 10)}`;
-			}
-
-			if (currentSyncItem.url) {
-				text += ` (${currentSyncItem.url})`;
-			}
-		}
-		updateSyncText(text);
 		makeButtonsVisible(['pause']);
 	} else if (syncStatus === 'pause') {
 		text = epDash.sync_paused;
-
-		if (toProcess && toProcess !== 0) {
-			text += `, ${parseInt(processed, 10)}/${parseInt(toProcess, 10)} ${getIndexableLabel(
-				currentSyncItem.indexable,
-			)}`;
-		}
-
-		if (currentSyncItem && currentSyncItem.url) {
-			text += ` (${currentSyncItem.url})`;
-		}
 
 		updateSyncText(text);
 		makeButtonsVisible(['cancel', 'resume']);
@@ -335,6 +310,9 @@ function sync(putMapping = false) {
 			}
 
 			updateSyncDash();
+			if (syncStatus === 'sync') {
+				updateSyncText(response.data.message)
+			}
 			sync(putMapping);
 		})
 		.error((response) => {
