@@ -40,7 +40,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * Useful to share arguments to methods called by hooks.
 	 *
-	 * @since 3.7.0
+	 * @since 4.0.0
 	 * @var array
 	 */
 	protected $args = [];
@@ -50,7 +50,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * Useful to share arguments to methods called by hooks.
 	 *
-	 * @since 3.7.0
+	 * @since 4.0.0
 	 * @var array
 	 */
 	protected $assoc_args = [];
@@ -1361,7 +1361,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Ties the `ep_cli_put_mapping` action to `ep_sync_put_mapping`.
 	 *
-	 * @since 3.7.0
+	 * @since 4.0.0
 	 *
 	 * @param array     $index_meta Index meta information
 	 * @param Indexable $indexable  Indexable object
