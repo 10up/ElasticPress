@@ -794,7 +794,9 @@ class Command extends WP_CLI_Command {
 		$total_indexable     = 0;
 		$time_elapsed        = 0;
 
-		$no_bulk = isset( $args['nobulk'] );
+		$no_bulk = isset( $args['nobulk'] ); // VIP: Set nobulk to option value
+
+		// VIP: Remove block where advanced pagination cannot not be used with nobulk
 
 		if ( isset( $args['ep-host'] ) ) {
 			add_filter(
@@ -821,9 +823,9 @@ class Command extends WP_CLI_Command {
 
 		$query_args = [];
 
+		// VIP: Do not use advanced pagination with offset
 		$query_args['offset'] = empty( $args['offset'] ) ? 0 : absint( $args['offset'] );
 		if ( 0 !== $query_args['offset'] ) {
-			// User specifically requested to use offsets.
 			$query_args['ep_indexing_advanced_pagination'] = false;
 		}
 
@@ -996,6 +998,7 @@ class Command extends WP_CLI_Command {
 				break;
 			}
 
+			// VIP: Pass in $last_processed_object_id independent of nobulk
 			$last_object_array_key    = array_keys( $query['objects'] )[ count( $query['objects'] ) - 1 ];
 			$last_processed_object_id = $query['objects'][ $last_object_array_key ]->ID;
 
