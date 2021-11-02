@@ -20,6 +20,8 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 
 ElasticPress has an in depth documentation site. [Visit the docs ☞](http://10up.github.io/ElasticPress/)
 
+ElasticPress FAQs and tutorials can be found on our support site. [Visit the support site ☞](https://elasticpress.zendesk.com/hc/en-us)
+
 ## Requirements
 
 * [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.9**
