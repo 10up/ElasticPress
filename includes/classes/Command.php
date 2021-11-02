@@ -1793,7 +1793,11 @@ class Command extends WP_CLI_Command {
 		global $wpdb;
 
 		if ( wp_using_ext_object_cache() ) {
-			$should_interrupt_sync = wp_cache_get( $transient, 'transient' );
+			/**
+			* When external object cache is used we need to make sure to force a remote fetch,
+			* so that the value from the local memory is discarded.
+			*/
+			$should_interrupt_sync = wp_cache_get( $transient, 'transient', true );
 		} else {
 			$options = $wpdb->options;
 
