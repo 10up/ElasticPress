@@ -172,7 +172,7 @@ class TestUtils extends BaseTestCase {
 	 */
 	public function testIsIndexing() {
 
-		// We are using a per-site block (instead of the network site block on trunk) to
+		// VIP: We are using a per-site block (instead of the network site block on trunk) to
 		// be able to index multiple sites on a network
 		update_option( 'ep_index_meta', [] );
 		set_transient( 'ep_wpcli_sync', true, 900 );
