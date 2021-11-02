@@ -182,6 +182,8 @@ function is_indexing() {
  * @return boolean
  */
 function is_indexing_wpcli() {
+	// VIP: We are using a per-site block (instead of the network site block on trunk) to
+	// be able to index multiple sites on a network
 	$is_indexing = get_transient( 'ep_wpcli_sync', false );
 
 	/**
