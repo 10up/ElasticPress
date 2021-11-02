@@ -849,7 +849,7 @@ class Command extends WP_CLI_Command {
 		$per_page = $indexable->get_bulk_items_per_page();
 
 		if ( ! empty( $args['per-page'] ) ) {
-			$query_args['per_page'] = min( absint( $args['per-page'] ), 5000 );
+			$query_args['per_page'] = min( absint( $args['per-page'] ), 5000 ); // VIP: Add maximum per-page so command doesn't get killed.
 			$per_page               = $query_args['per_page'];
 		} else {
 			$query_args['per_page'] = $per_page;
