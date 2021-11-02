@@ -23,7 +23,7 @@ class Widget extends WP_Widget {
 	 * Create widget
 	 */
 	public function __construct() {
-		// Forking name and description of the widget to better fit within VIP
+		// VIP: Forking name and description of the widget to better fit within VIP
 		$options = array( 'description' => esc_html__( 'Add a facet (filter) to an archive or search results page.', 'elasticpress' ) );
 		parent::__construct( 'ep-facet', esc_html__( 'Enterprise Search - Filters', 'elasticpress' ), $options );
 	}
