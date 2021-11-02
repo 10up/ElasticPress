@@ -159,7 +159,7 @@ function sanitize_credentials( $credentials ) {
  * @return boolean
  */
 function is_indexing() {
-	// VIP: We are using a per-site block (instead of the network site block on trunk) to
+	// VIP: Removed network site block and use per-site block instead to
 	// be able to index multiple sites on a network
 	$index_meta = get_option( 'ep_index_meta', false );
 	$wpcli_sync = get_transient( 'ep_wpcli_sync' );
@@ -182,7 +182,7 @@ function is_indexing() {
  * @return boolean
  */
 function is_indexing_wpcli() {
-	// VIP: We are using a per-site block (instead of the network site block on trunk) to
+	// VIP: Removed network site block and use per-site block instead to
 	// be able to index multiple sites on a network
 	$is_indexing = get_transient( 'ep_wpcli_sync', false );
 

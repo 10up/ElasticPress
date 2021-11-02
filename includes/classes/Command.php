@@ -796,7 +796,7 @@ class Command extends WP_CLI_Command {
 
 		$no_bulk = isset( $args['nobulk'] ); // VIP: Set nobulk to option value
 
-		// VIP: Remove block where advanced pagination cannot not be used with nobulk
+		// VIP: Removed block where advanced pagination cannot not be used with nobulk
 
 		if ( isset( $args['ep-host'] ) ) {
 			add_filter(

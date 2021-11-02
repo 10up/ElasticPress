@@ -88,7 +88,7 @@ class Post extends Indexable {
 		 */
 		$args = apply_filters( 'ep_index_posts_args', apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) ) );
 
-		if ( isset( $args['include'] ) || isset( $args['post__in'] ) ) { // VIP: Advanced pagination is already disabled with offset
+		if ( isset( $args['include'] ) || isset( $args['post__in'] ) ) { // VIP: Removed offset check b/c advanced pagination is already disabled with offset
 			// Disable advanced pagination. Not useful if only indexing specific IDs.
 			$args['ep_indexing_advanced_pagination'] = false;
 		}

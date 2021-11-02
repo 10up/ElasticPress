@@ -5440,7 +5440,7 @@ class TestPost extends BaseTestCase {
 		$this->assertCount( 0, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
 
-		// VIP: Remove -1 offset in tests
+		// VIP: Removed -1 offset in tests
 	}
 
 	/**
