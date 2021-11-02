@@ -1241,7 +1241,7 @@ class Command extends WP_CLI_Command {
 				wp_cache_flush();
 			}
 
-			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
+			if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
 				call_user_func( [ $wp_object_cache, '__remoteset' ] );
 			}
 		}
