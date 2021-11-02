@@ -307,6 +307,8 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			}
 
+			// VIP: Remove window size check since it lives in query_es() now
+
 			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index, $query );
 
 			/**

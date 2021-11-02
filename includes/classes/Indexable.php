@@ -355,7 +355,7 @@ abstract class Indexable {
 	 * @return array
 	 */
 	public function query_es( $formatted_args, $query_args, $index = null, $query_object = null ) {
-		// If result window is too big, we avoid doing a query that will fail
+		// VIP: If result window is too big, we avoid doing a query that will fail
 		if ( array_key_exists( 'from', $formatted_args ) && array_key_exists( 'size', $formatted_args ) ) {
 			$result_window     = $formatted_args['from'] + $formatted_args['size'];
 			$max_result_window = apply_filters( 'ep_max_result_window', 10000 );
