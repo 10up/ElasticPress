@@ -324,6 +324,22 @@ class Elasticsearch {
 			$request_args['headers']['EP-Search-Term'] = rawurlencode( $query_args['s'] );
 		}
 
+		/**
+		 * Filter Elasticsearch query request arguments
+		 *
+		 * @hook ep_query_request_args
+		 * @since 3.6.4
+		 * @param {array}  $request_args Request arguments
+		 * @param {string} $path         Request path
+		 * @param {string} $index        Index name
+		 * @param {string} $type         Index type
+		 * @param {array}  $query        Prepared Elasticsearch query
+		 * @param {array}  $query_args   Query arguments
+		 * @param {mixed}  $query_object Could be WP_Query, WP_User_Query, etc.
+		 * @return {array} New request arguments
+		 */
+		$request_args = apply_filters( 'ep_query_request_args', $request_args, $path, $index, $type, $query, $query_args, $query_object );
+
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
 
 		$remote_req_res_code = absint( wp_remote_retrieve_response_code( $request ) );
@@ -1090,6 +1106,19 @@ class Elasticsearch {
 		$new_headers = $this->format_request_headers();
 
 		$args['headers'] = array_merge( $existing_headers, $new_headers );
+
+		/**
+		 * Filter Elasticsearch args prior to remote request
+		 *
+		 * @hook ep_pre_request_args
+		 * @since 3.6.4
+		 * @param {array}       $args       Request args
+		 * @param {string}      $path       Site URL to retrieve
+		 * @param {array}       $query_args The query args originally passed to WP_Query.
+		 * @param {string|null} $type       Type of request, used for debugging.
+		 * @return {array} New request args
+		 */
+		$args = apply_filters( 'ep_pre_request_args', $args, $path, $query_args, $type );
 
 		$query = array(
 			'time_start'   => microtime( true ),

@@ -36,7 +36,7 @@ class GeneralTest extends TestBase {
 
 		$this->activatePlugin();
 
-		$I->moveTo( '/wp-admin/plugins.php' );
+		$this->moveTo( $I, '/wp-admin/plugins.php' );
 
 		$I->seeText( 'ElasticPress is almost ready to go.' );
 
@@ -57,7 +57,7 @@ class GeneralTest extends TestBase {
 
 		$this->activatePlugin();
 
-		$I->moveTo( '/wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, '/wp-admin/admin.php?page=elasticpress' );
 
 		$I->seeText( 'Index Your Content', '.setup-button' );
 
@@ -78,7 +78,7 @@ class GeneralTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
-		$I->moveTo( '/?s=Test+ElasticPress+1' );
+		$this->moveTo( $I, '/?s=Test+ElasticPress+1' );
 
 		$I->seeText( 'Test ElasticPress 1', '.hentry' );
 	}
@@ -103,7 +103,7 @@ class GeneralTest extends TestBase {
 
 		$this->activatePlugin();
 
-		$I->moveTo( '/wp-admin/plugins.php' );
+		$this->moveTo( $I, '/wp-admin/plugins.php' );
 
 		$I->seeText( 'ElasticPress may or may not work properly.' );
 

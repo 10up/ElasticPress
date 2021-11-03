@@ -194,7 +194,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 
 		$data = array_merge( $defaults, $data );
 
-		$actor->moveTo( 'wp-admin/post-new.php' );
+		$this->moveTo( $actor, 'wp-admin/post-new.php' );
 
 		try {
 			$actor->click( '.edit-post-welcome-guide .components-modal__header button' );
@@ -256,9 +256,9 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		}
 
 		if ( $network ) {
-			$actor->moveTo( '/wp-admin/network/plugins.php' );
+			$this->moveTo( $actor, '/wp-admin/network/plugins.php' );
 		} else {
-			$actor->moveTo( '/wp-admin/plugins.php' );
+			$this->moveTo( $actor, '/wp-admin/plugins.php' );
 		}
 
 		try {
@@ -288,9 +288,9 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 		}
 
 		if ( $network ) {
-			$actor->moveTo( '/wp-admin/network/plugins.php' );
+			$this->moveTo( $actor, '/wp-admin/network/plugins.php' );
 		} else {
-			$actor->moveTo( '/wp-admin/plugins.php' );
+			$this->moveTo( $actor, '/wp-admin/plugins.php' );
 		}
 
 		try {
@@ -335,7 +335,7 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @return string
 	 */
 	public function setPerIndexCycle( int $number, \WPAcceptance\PHPUnit\Actor $actor ) {
-		$actor->moveTo( 'wp-admin/admin.php?page=elasticpress-settings' );
+		$this->moveTo( $actor, 'wp-admin/admin.php?page=elasticpress-settings' );
 
 		$per_page = $actor->getElementAttribute( '#ep_bulk_setting', 'value' );
 
@@ -364,12 +364,39 @@ class TestBase extends \WPAcceptance\PHPUnit\TestCase {
 	 * @param \WPAcceptance\PHPUnit\Actor $actor
 	 */
 	public function openWidgetsPage( $actor ) {
-		$actor->moveTo( '/wp-admin/widgets.php' );
+		$this->moveTo( $actor, '/wp-admin/widgets.php' );
 
 		try {
 			$actor->click( '.edit-widgets-welcome-guide .components-modal__header button' );
 		} catch ( \Exception $e ) {
 			// Do nothing
 		}
+	}
+
+	/**
+	 * Open a page in the browser.
+	 *
+	 * This method will keep trying to move to the new page until a success
+	 * or any error other than "Page crashed"
+	 *
+	 * @param Actor $actor The actor
+	 * @param array ...$args  Arguments to be passed to Actor::moveTo()
+	 */
+	public function moveTo( $actor, ...$args ) {
+		$attempts = 0;
+		do {
+			try {
+				$attempts++;
+				$continue_trying = false;
+				$actor->moveTo( ...$args );
+			} catch ( \Throwable $th ) {
+				// If failed due to Page crashed, let's try again. Otherwise, stop.
+				if ( false !== strpos( $th->getMessage(), 'Page crashed' ) ) {
+					\WPAcceptance\Log::instance()->write( 'Page crashed error. Retrying (' . $attempts . ')', 0 );
+					$continue_trying = true;
+					sleep( 5 );
+				}
+			}
+		} while ( $continue_trying && $attempts < 10 );
 	}
 }

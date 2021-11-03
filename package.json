@@ -1,12 +1,12 @@
 {
   "name": "elasticpress",
-  "version": "3.6.2",
+  "version": "3.6.4",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
-    "10up-toolkit": "^1.0.11",
+    "10up-toolkit": "^1.0.12",
     "jsdoc": "^3.6.7",
-    "terser-webpack-plugin": "^5.1.4",
+    "terser-webpack-plugin": "^5.2.4",
     "wp-hookdoc": "^0.2.0"
   },
   "scripts": {
@@ -57,16 +57,16 @@
     "wpDependencyExternals": false
   },
   "dependencies": {
-    "@wordpress/api-fetch": "^3.21.5",
-    "@wordpress/i18n": "^3.18.0",
+    "@wordpress/api-fetch": "^3.23.1",
+    "@wordpress/i18n": "^3.20.0",
     "chart.js": "^2.9.4",
     "element-closest": "^3.0.2",
     "promise-polyfill": "^8.2.0",
     "react": "^16.14.0",
+    "react-beautiful-dnd": "^11.0.5",
     "react-dom": "^16.14.0",
     "react-select": "^3.2.0",
-    "react-beautiful-dnd": "^11.0.5",
-    "whatwg-fetch": "^3.6.2",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "whatwg-fetch": "^3.6.2"
   }
 }

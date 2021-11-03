@@ -50,6 +50,7 @@ class Terms extends Feature {
 	 */
 	public function search_setup() {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
+		add_filter( 'ep_term_fuzziness_arg', [ $this, 'set_admin_terms_search_fuzziness' ] );
 	}
 
 	/**
