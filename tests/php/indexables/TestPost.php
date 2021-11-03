@@ -5421,7 +5421,7 @@ class TestPost extends BaseTestCase {
 		$results = $indexable_post_object->query_db(
 			[
 				'offset' => 1,
-				'ep_indexing_advanced_pagination' => false,
+				'ep_indexing_advanced_pagination' => false, // VIP: Disable advanced pagination with offset
 			]
 		);
 
@@ -5433,12 +5433,14 @@ class TestPost extends BaseTestCase {
 		$results = $indexable_post_object->query_db(
 			[
 				'offset' => 3,
-				'ep_indexing_advanced_pagination' => false,
+				'ep_indexing_advanced_pagination' => false, // VIP: Disable advanced pagination with offset
 			]
 		);
 
 		$this->assertCount( 0, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
+
+		// VIP: Removed -1 offset in tests
 	}
 
 	/**
