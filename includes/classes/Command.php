@@ -1336,4 +1336,45 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_put_mapping', $indexable, $this->args, $this->assoc_args );
 	}
+
+	/**
+	 * Send a HTTP request to Elasticsearch
+	 *
+	 * @subcommand request
+	 * @synopsis <path> [--method=<method>] [--body=<json-body>] [--debug-http-request]
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function request( $args, $assoc_args ) {
+		$path = $args[0];
+		$method = isset( $assoc_args['method'] ) ? $assoc_args['method'] : 'GET';
+		$body = isset( $assoc_args['body'] ) ? $assoc_args['body'] : '';
+		$request_args = [
+			'method' => $method,
+			'body' => $body,
+		];
+
+		if ( ! empty( $assoc_args['debug-http-request'] ) ) {
+			add_filter( 'http_api_debug', function ( $response, $context, $transport, $request_args, $url ) {
+				WP_CLI::line( sprintf( 'URL: %s', $url ) );
+				WP_CLI::line( sprintf( 'Request Args: %s', print_r( $request_args, true ) ) );
+				WP_CLI::line( sprintf( 'Transport: %s', $transport ) );
+				WP_CLI::line( sprintf( 'Context: %s', $context ) );
+				WP_CLI::line( sprintf( 'Response: %s', print_r( $response, true ) ) );
+
+			}, 10, 5 );
+		}
+		$response = Elasticsearch::factory()->remote_request( $path, $request_args, [], 'wp_cli_request' );
+
+		if ( is_wp_error( $response ) ) {
+			WP_CLI::error( $response->get_error_message() );
+		}
+
+		$response_body = wp_remote_retrieve_body( $response );
+		// Re-encode the JSON to add space formatting
+		$response_body = json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
+
+		echo $response_body;
+	}
 }
