@@ -50,23 +50,21 @@ if (epDash.index_meta) {
 		}
 		updateSyncDash();
 	}
-} else {
+} else if (epDash.auto_start_index) {
 	// Start a new sync automatically
-	if (epDash.auto_start_index) {
-		syncStatus = 'initialsync';
+	syncStatus = 'initialsync';
 
-		updateSyncDash();
+	updateSyncDash();
 
-		syncStatus = 'sync';
+	syncStatus = 'sync';
 
-		history.pushState(
-			{},
-			document.title,
-			document.location.pathname + document.location.search.replace(/&do_sync/, ''),
-		);
+	history.pushState(
+		{},
+		document.title,
+		document.location.pathname + document.location.search.replace(/&do_sync/, ''),
+	);
 
-		sync(true);
-	}
+	sync(true);
 }
 
 /**
@@ -125,7 +123,7 @@ function showOverlay(display = true) {
  *
  * @param {string} indexableSlug The indexable slug
  * @param {string} type          Plural or singular. Defaults to plural.
- * @returns {string} The indexable label
+ * @return {string} The indexable label
  */
 function getIndexableLabel(indexableSlug, type = 'plural') {
 	const labels = epDash.sync_indexable_labels[indexableSlug];
@@ -311,7 +309,7 @@ function sync(putMapping = false) {
 
 			updateSyncDash();
 			if (syncStatus === 'sync') {
-				updateSyncText(response.data.message)
+				updateSyncText(response.data.message);
 			}
 			sync(putMapping);
 		})
