@@ -4,13 +4,21 @@
 
 [![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Tests Status](https://github.com/10up/ElasticPress/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/10up/ElasticPress) [![Release Version](https://img.shields.io/github/release/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/releases/latest) ![WordPress tested up to version](https://img.shields.io/badge/WordPress-v5.8%20tested-success.svg) [![MIT License](https://img.shields.io/github/license/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/blob/develop/LICENSE.md)
 
+* Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
+
 **Please note:** master is the stable branch.
 
-**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+## Planned changes for 4.0.0
 
-**Search Algorithm Upgrade Notice:** Version 3.5 includes a revamp of the search algorithm. This is a backwards compatibility break. If you'd like to revert to the old search algorithm, you can use the following code: `add_filter( 'ep_search_algorithm_version', function() { return '3.4'; } );`. The new algorithm offers much more relevant search results and removes fuzziness which results in mostly unwanted results for most people. If you are hooking in and modifying the search query directly, it's possible this code might break and you might need to tweak it.
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, ~~will build a stable release version including built assets into a `stable` branch,~~ will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to ~~either `stable` or~~ `trunk` or to GitHub releases depending on whether you require built assets or not.
 
-* Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
+Minimum supported versions:
+
+||Current (3.6.4)|4.0.0|
+|---|:---:|:---:|
+|Elasticsearch|5.0+|5.2+|
+|WordPress|3.7.1+|5.6+|
+|PHP|5.6+|7.0+|
 
 ## Overview
 
@@ -43,6 +51,12 @@ If you identify any errors or have an idea for improving the plugin, please [ope
 ## Changelog
 
 A complete listing of all notable changes to ElasticPress are documented in [CHANGELOG.md](https://github.com/10up/elasticpress/blob/develop/CHANGELOG.md).
+
+## Upgrade notices
+
+### 3.5
+
+**Search Algorithm Upgrade Notice:** Version 3.5 includes a revamp of the search algorithm. This is a backwards compatibility break. If you'd like to revert to the old search algorithm, you can use the following code: `add_filter( 'ep_search_algorithm_version', function() { return '3.4'; } );`. The new algorithm offers much more relevant search results and removes fuzziness which results in mostly unwanted results for most people. If you are hooking in and modifying the search query directly, it's possible this code might break and you might need to tweak it.
 
 ## Contributing
 
