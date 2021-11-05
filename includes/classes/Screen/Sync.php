@@ -98,7 +98,7 @@ class Sync {
 		$index_meta = Utils\get_indexing_status();
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
-			set_transient( 'ep_wpcli_sync_interrupted', true, 5 );
+			set_transient( 'ep_wpcli_sync_interrupted', true, MINUTE_IN_SECONDS );
 			wp_send_json_success();
 			exit;
 		}

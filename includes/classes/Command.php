@@ -1135,9 +1135,9 @@ class Command extends WP_CLI_Command {
 			WP_CLI::line( esc_html__( 'Stopping indexing...', 'elasticpress' ) );
 
 			if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
-				set_transient( 'ep_wpcli_sync_interrupted', true, 5 );
+				set_transient( 'ep_wpcli_sync_interrupted', true, MINUTE_IN_SECONDS );
 			} else {
-				set_transient( 'ep_sync_interrupted', true, 5 );
+				set_transient( 'ep_sync_interrupted', true, MINUTE_IN_SECONDS );
 			}
 
 			WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
