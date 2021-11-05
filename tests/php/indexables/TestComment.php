@@ -316,12 +316,6 @@ class TestComment extends BaseTestCase {
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'offset' => 3,
-			/**
-			 * VIP: to avoid triggering ep_max_result_window early exit we should limit number
-			 * otherwise number will be initialized with ep_max_result_window and that + non 0 offset
-			 * will be more than ep_max_result_window
-			 */
-			'number' => 100,
 		] );
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
