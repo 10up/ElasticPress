@@ -42,16 +42,7 @@ class Screen {
 	 * @since 3.0
 	 */
 	public function determine_screen() {
-		// If in network mode, don't output notice in admin and vice-versa.
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			if ( ! is_network_admin() ) {
-				return false;
-			}
-		} else {
-			if ( is_network_admin() ) {
-				return false;
-			}
-		}
+		// VIP: We removed the block about returning false depending on network admin or in network mode && not network admin
 
 		// phpcs:disable WordPress.Security.NonceVerification
 		if ( ! empty( $_GET['page'] ) && false !== strpos( $_GET['page'], 'elasticpress' ) ) {
