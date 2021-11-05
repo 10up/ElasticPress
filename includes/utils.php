@@ -483,7 +483,7 @@ function get_indexing_status() {
 
 		if ( ! empty( $index_meta['current_sync_item'] ) ) {
 			$index_status['items_indexed'] = $index_meta['current_sync_item']['synced'];
-			$index_status['url']           = $index_meta['current_sync_item']['url'];
+			$index_status['url']           = $index_meta['current_sync_item']['url'] ?? ''; // Global indexables won't have a url.
 			$index_status['total_items']   = $index_meta['current_sync_item']['total'];
 			$index_status['slug']          = $index_meta['current_sync_item']['indexable'];
 		}

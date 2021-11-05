@@ -441,7 +441,7 @@ class IndexHelper {
 			$args['ep_indexing_lower_limit_object_id'] = $this->args['lower_limit_object_id'];
 		}
 
-		if ( $args['ep_indexing_advanced_pagination'] &&
+		if ( ! empty( $args['ep_indexing_advanced_pagination'] ) &&
 			! empty( $this->index_meta['current_sync_item']['last_processed_object_id'] ) &&
 			is_numeric( $this->index_meta['current_sync_item']['last_processed_object_id'] )
 		) {
@@ -504,7 +504,8 @@ class IndexHelper {
 		$this->index_meta['offset'] = absint( $this->index_meta['offset'] + count( $this->current_query['objects'] ) );
 
 		if ( ! empty( $queued_items ) ) {
-			$total_attempts = ( ! empty( $this->args['total_attempts'] ) ) ? absint( $this->args['total_attempts'] ) : 1;
+			$total_attempts   = ( ! empty( $this->args['total_attempts'] ) ) ? absint( $this->args['total_attempts'] ) : 1;
+			$queued_items_ids = array_keys( $queued_items );
 
 			/**
 			 * Filters the number of times the index will try before failing.
@@ -530,7 +531,7 @@ class IndexHelper {
 				do_action( 'ep_index_batch_new_attempt', $attempts, $total_attempts );
 
 				if ( $nobulk ) {
-					$object_id = key( $queued_items );
+					$object_id = reset( $queued_items_ids );
 					$return    = $indexable->index( $object_id, true );
 
 					/**
@@ -566,7 +567,7 @@ class IndexHelper {
 						}
 					}
 				} else {
-					$return = $indexable->bulk_index( array_keys( $queued_items ) );
+					$return = $indexable->bulk_index( $queued_items_ids );
 
 					/**
 					 * Fires after bulk indexing
@@ -593,7 +594,7 @@ class IndexHelper {
 				}
 			}
 
-			$this->index_meta['current_sync_item']['last_processed_object_id'] = end( array_keys( $queued_items ) );
+			$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $queued_items_ids );
 
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
@@ -700,12 +701,13 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	protected function full_index_complete() {
-		$totals = $this->index_meta['totals'];
+		$start_time = $this->index_meta['start_time'];
+		$totals     = $this->index_meta['totals'];
 
 		$this->index_meta = null;
 
 		$totals['end_time_gmt'] = time();
-		$totals['total_time']   = microtime( true ) - $totals['start_time'];
+		$totals['total_time']   = microtime( true ) - $start_time;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
 
@@ -871,7 +873,11 @@ class IndexHelper {
 
 		$is_full_reindexing = false;
 
-		$all_items = array_merge( $sync_stack, [ $current_sync_item ] );
+		$all_items = $sync_stack;
+		if ( ! empty( $current_sync_item ) ) {
+			$all_items += [ $current_sync_item ];
+		}
+
 		foreach ( $all_items as $sync_item ) {
 			if ( $sync_item['indexable'] !== $indexable_slug ) {
 				continue;
@@ -970,31 +976,9 @@ class IndexHelper {
 		$wp_actions = $this->temporary_wp_actions;
 		// phpcs:enable
 
-		// WP_Query class adds filter get_term_metadata using its own instance
-		// what prevents WP_Query class from being destructed by PHP gc.
-		// if ( $q['update_post_term_cache'] ) {
-		// add_filter( 'get_term_metadata', array( $this, 'lazyload_term_meta' ), 10, 2 );
-		// }
 		// It's high memory consuming as WP_Query instance holds all query results inside itself
 		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
-		if ( isset( $wp_filter['get_term_metadata'] ) ) {
-			/*
-			 * WordPress 4.7 has a new Hook infrastructure, so we need to make sure
-			 * we're accessing the global array properly
-			 */
-			if ( class_exists( 'WP_Hook' ) && $wp_filter['get_term_metadata'] instanceof WP_Hook ) {
-				$filter_callbacks = &$wp_filter['get_term_metadata']->callbacks;
-			} else {
-				$filter_callbacks = &$wp_filter['get_term_metadata'];
-			}
-			if ( isset( $filter_callbacks[10] ) ) {
-				foreach ( $filter_callbacks[10] as $hook => $content ) {
-					if ( preg_match( '#^[0-9a-f]{32}lazyload_term_meta$#', $hook ) ) {
-						unset( $filter_callbacks[10][ $hook ] );
-					}
-				}
-			}
-		}
+		remove_filter( 'get_term_metadata', [ wp_metadata_lazyloader(), 'lazyload_term_meta' ] );
 	}
 
 	/**

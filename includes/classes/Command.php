@@ -730,7 +730,7 @@ class Command extends WP_CLI_Command {
 
 		timer_start();
 
-		add_action( 'ep_sync_put_mapping', [ $this, 'stop_on_failed_mapping' ], 10, 4 );
+		add_action( 'ep_sync_put_mapping', [ $this, 'stop_on_failed_mapping' ], 10, 3 );
 		add_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
 		add_action( 'ep_index_batch_new_attempt', [ $this, 'should_interrupt_sync' ] );
 
@@ -1346,11 +1346,10 @@ class Command extends WP_CLI_Command {
 	 * If put_mapping fails while indexing, stop the index process.
 	 *
 	 * @param array     $index_meta Index meta info
-	 * @param string    $status     Current indexing status
 	 * @param Indexable $indexable  Indexable object
 	 * @param bool      $result     Whether the request was successful or not
 	 */
-	public function stop_on_failed_mapping( $index_meta, $status, $indexable, $result ) {
+	public function stop_on_failed_mapping( $index_meta, $indexable, $result ) {
 		if ( ! $result ) {
 			$this->delete_transient();
 
