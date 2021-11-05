@@ -54,7 +54,7 @@ class UserTest extends TestBase {
 
 		$this->createUser( $data, $I );
 
-		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-sync' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -105,7 +105,7 @@ class UserTest extends TestBase {
 
 		$I->click( '#submit' );
 
-		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
+		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-sync' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 

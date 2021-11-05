@@ -39,8 +39,6 @@ class ProtectedContentTest extends TestBase {
 
 		$I->seeText( 'Sync complete', '.sync-status' );
 
-		$I->seeText( 'Protected Content', '.ep-feature-protected_content h2' );
-
 		$cli_result = $this->runCommand( 'wp elasticpress list-features' )['stdout'];
 
 		$this->assertStringContainsString( 'protected_content', $cli_result );

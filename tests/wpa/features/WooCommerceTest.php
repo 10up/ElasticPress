@@ -52,6 +52,8 @@ class FeatureWooCommerceTest extends TestBase {
 
 		$I->click( 'a.save-settings[data-feature="woocommerce"]' );
 
+		sleep( 2 );
+
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
 		$I->seeText( 'Sync complete', '.sync-status' );
@@ -74,6 +76,8 @@ class FeatureWooCommerceTest extends TestBase {
 		$I->click( '#feature_active_protected_content_enabled' );
 
 		$I->click( 'a.save-settings[data-feature="protected_content"]' );
+
+		sleep( 2 );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 

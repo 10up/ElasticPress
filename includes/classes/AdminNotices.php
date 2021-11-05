@@ -204,9 +204,9 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' );
 		} else {
-			$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+			$url = admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 		}
 
 		$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
@@ -282,9 +282,9 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' );
 		} else {
-			$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+			$url = admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 		}
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
@@ -350,9 +350,9 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress' );
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync' );
 		} else {
-			$url = admin_url( 'admin.php?page=elasticpress' );
+			$url = admin_url( 'admin.php?page=elasticpress-sync' );
 		}
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
