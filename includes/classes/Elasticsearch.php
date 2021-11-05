@@ -1155,9 +1155,10 @@ class Elasticsearch {
 				 * @param  {array} $query Remote request arguments
 				 * @param  {args} $args Request arguments
 				 * @param  {int} $failures Number of failures
+				 * @param  {string} $type Type of request
 				 * @return {array} New request
 				 */
-				$request = apply_filters( 'ep_do_intercept_request', new WP_Error( 400, 'No Request defined' ), $query, $args, $failures );
+				$request = apply_filters( 'ep_do_intercept_request', new WP_Error( 400, 'No Request defined' ), $query, $args, $failures, $type );
 			} else {
 				$request = wp_remote_request( $query['url'], $args ); // try the existing host to avoid unnecessary calls.
 			}
