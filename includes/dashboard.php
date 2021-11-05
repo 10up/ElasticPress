@@ -613,19 +613,19 @@ function action_admin_menu() {
 
 	add_submenu_page(
 		'elasticpress',
-		esc_html__( 'ElasticPress Index Health', 'elasticpress' ),
-		esc_html__( 'Index Health', 'elasticpress' ),
+		'ElasticPress ' . esc_html__( 'Sync', 'elasticpress' ),
+		esc_html__( 'Sync', 'elasticpress' ),
 		$capability,
-		'elasticpress-health',
+		'elasticpress-sync',
 		__NAMESPACE__ . '\resolve_screen'
 	);
 
 	add_submenu_page(
 		'elasticpress',
-		'ElasticPress ' . esc_html__( 'Sync', 'elasticpress' ),
-		esc_html__( 'Sync', 'elasticpress' ),
+		esc_html__( 'ElasticPress Index Health', 'elasticpress' ),
+		esc_html__( 'Index Health', 'elasticpress' ),
 		$capability,
-		'elasticpress-sync',
+		'elasticpress-health',
 		__NAMESPACE__ . '\resolve_screen'
 	);
 }
