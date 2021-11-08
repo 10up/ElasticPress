@@ -1,19 +1,61 @@
-name: Build Hook Docs
+name: Build Docs
 
 on:
- push:
-   branches:
-    - master
+  push:
+    branches:
+     - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+
     - uses: actions/checkout@v1
+      with:
+        path: 'wp-content/plugins/elasticpress'
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        coverage: none
+        tools: prestissimo, composer:v1
+        ini-values: memory_limit=3G
+
+    - name: Start MySQL
+      run: |
+        sudo systemctl start mysql.service
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+
+    - name: Install WP-CLI
+      run: |
+        curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+        chmod +x wp-cli.phar
+        sudo mv wp-cli.phar /usr/local/bin/wp
+
+    - name: Install WordPress
+      run: |
+        cd ../../..
+        wp core download
+        wp config create --dbname=wpclidocs --dbuser=root --dbpass=root --dbhost=127.0.0.1
+        wp db create
+        wp core install --url=example.com --title=Example --admin_user=supervisor --admin_password=strongpassword --admin_email=info@example.com
+        wp plugin activate elasticpress
+
+    - name: Generate WP-CLI Docs
+      run: |
+        cd ../../..
+        wp package install felipeelia/cli-command-docs:dev-trunk
+        wp cli-command-docs elasticpress --custom-order=index,activate-feature,deactivate-feature,list-features,get-algorithm-version,set-algorithm-version --remove=delete_transient_on_int,custom_get_transient --custom-intro='The following WP-CLI commands are supported by ElasticPress:' > wp-content/plugins/elasticpress/docs/wp-cli.md
+
     - name: Use Node.js 10
       uses: actions/setup-node@v1
       with:
         node-version: '10.x'
+
     - name: npm install, and build docs
       run: |
         npm install
@@ -21,6 +63,7 @@ jobs:
         npm run build:docs
       env:
         CI: true
+
     - name: Deploy to GH Pages
       uses: maxheld83/ghpages@v0.2.1
       env:
