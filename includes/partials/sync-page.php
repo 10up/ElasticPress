@@ -6,15 +6,12 @@
  * @package elasticpress
  */
 
-use ElasticPress\Elasticsearch as Elasticsearch;
 
 require_once __DIR__ . '/header.php';
 ?>
 
 <div class="wrap">
 	<h1><?php esc_html_e( 'Sync Settings', 'elasticpress' ); ?></h1>
-
-	<textarea id="ep-sync-output" cols="30" rows="10" class="widefat" readonly></textarea>
 
 	<div class="card sync-box">
 		<div class="sync-box__description">
@@ -38,6 +35,7 @@ require_once __DIR__ . '/header.php';
 				</a>
 			</p>
 
+			<textarea id="ep-sync-output" cols="30" rows="10" class="widefat" readonly></textarea>
 		</div>
 		<div class="sync-box__action">
 			<button type="button" class="button button-primary sync-box__button start-sync">
@@ -46,6 +44,17 @@ require_once __DIR__ . '/header.php';
 			<a class="sync-box__learn-more-link" href="#">
 				<?php echo esc_html__( 'Learn more', 'elasticpress' ); ?>
 			</a>
+
+			<div class="sync-box__buttons">
+				<button type="button" class="button button-primary sync-box__button-pause pause-sync">
+					<span class="dashicons dashicons-controls-pause"></span>
+					<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
+				</button>
+
+				<button type="button" class="button button-primary sync-box__button-stop">
+					<?php echo esc_html__( 'Stop', 'elasticpress' ); ?>
+				</button>
+			</div>
 		</div>
 	</div>
 
