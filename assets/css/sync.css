@@ -21,7 +21,7 @@
 		align-items: center;
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
+		margin-top: 40px;
 		width: 30%;
 
 		& .sync-box__button {
@@ -61,6 +61,27 @@
 	& .last-sync__date {
 		background-color: #f1f1f1;
 		padding: 6px;
+	}
+
+	& .sync-box__buttons {
+		display: flex;
+
+	}
+
+	& .sync-box__button-pause,
+	& .sync-box__button-stop {
+		align-items: center;
+		display: none;
+		flex-direction: column;
+		height: 68px;
+		justify-content: center;
+		width: 100px;
+	}
+
+	& .sync-box__button-stop {
+		background-color: #00a0d2;
+		border-color: #00a0d2;
+		margin-left: 24px;
 	}
 }
 
