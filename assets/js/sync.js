@@ -7,12 +7,15 @@ const allButtons = {
 	resume: document.querySelectorAll('.resume-sync'),
 	pause: document.querySelectorAll('.pause-sync'),
 	cancel: document.querySelectorAll('.cancel-sync'),
+	stop: document.querySelectorAll('.sync-box__button-stop'),
+	learnMore: document.querySelectorAll('.sync-box__learn-more-link'),
 };
 const syncStatusText = document.querySelectorAll('.sync-status');
 const $startSyncButton = jQuery(document.getElementsByClassName('start-sync'));
 const $resumeSyncButton = jQuery(document.getElementsByClassName('resume-sync'));
 const $pauseSyncButton = jQuery(document.getElementsByClassName('pause-sync'));
 const $cancelSyncButton = jQuery(document.getElementsByClassName('cancel-sync'));
+const $stopSyncButton = jQuery(document.getElementsByClassName('sync-box__button-stop'));
 const epSyncOutput = document.getElementById('ep-sync-output');
 
 let syncStatus = 'sync';
@@ -74,7 +77,7 @@ if (epDash.index_meta) {
 function makeButtonsVisible(visibleButtons) {
 	Object.keys(allButtons).forEach((key) => {
 		allButtons[key].forEach((button) => {
-			button.style.display = visibleButtons.includes(key) ? 'inline' : 'none';
+			button.style.display = visibleButtons.includes(key) ? 'flex' : 'none';
 		});
 	});
 }
@@ -137,14 +140,14 @@ function updateSyncDash() {
 			updateSyncText('');
 		}, 7000);
 
-		makeButtonsVisible(['start']);
+		makeButtonsVisible(['start', 'learnMore']);
 	}
 
 	if (syncStatus === 'initialsync') {
 		updateSyncText(epDash.sync_initial);
-		makeButtonsVisible(['pause']);
+		makeButtonsVisible(['pause', 'stop']);
 	} else if (syncStatus === 'sync') {
-		makeButtonsVisible(['pause']);
+		makeButtonsVisible(['pause', 'stop']);
 	} else if (syncStatus === 'pause') {
 		text = epDash.sync_paused;
 
