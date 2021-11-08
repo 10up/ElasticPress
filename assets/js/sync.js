@@ -1,7 +1,6 @@
 /* eslint-disable camelcase, no-use-before-define */
 const { ajaxurl, epDash, history } = window;
 
-const overlay = document.querySelectorAll('.error-overlay');
 const progressBar = document.querySelectorAll('.progress-bar');
 const allButtons = {
 	start: document.querySelectorAll('.start-sync'),
@@ -104,21 +103,6 @@ function showProgressBar(display = true) {
 }
 
 /**
- * Show or hide the overlay(s).
- *
- * @param {boolean} display Wheter the overlay(s) should or should not be visible.
- */
-function showOverlay(display = true) {
-	overlay.forEach((overlay) => {
-		if (display) {
-			overlay.classList.add('syncing');
-		} else {
-			overlay.classList.remove('syncing');
-		}
-	});
-}
-
-/**
  * Get the indexable label from the global object. If not set, default to the indexable slug.
  *
  * @param {string} indexableSlug The indexable slug
@@ -146,10 +130,8 @@ function updateSyncDash() {
 	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
 	if (isSyncing) {
 		showProgressBar();
-		showOverlay();
 	} else {
 		showProgressBar(false);
-		showOverlay(false);
 
 		setTimeout(() => {
 			updateSyncText('');

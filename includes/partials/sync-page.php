@@ -11,7 +11,6 @@ use ElasticPress\Elasticsearch as Elasticsearch;
 require_once __DIR__ . '/header.php';
 ?>
 
-<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?> <?php if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) : ?>cant-connect<?php endif; ?>"></div>
 <div class="wrap">
 	<h1><?php esc_html_e( 'Sync Settings', 'elasticpress' ); ?></h1>
 
@@ -41,7 +40,7 @@ require_once __DIR__ . '/header.php';
 
 		</div>
 		<div class="sync-box__action">
-			<button type="button" class="button button-primary button-large sync-box__button">
+			<button type="button" class="button button-primary sync-box__button start-sync">
 				<span class="dashicons dashicons-update-alt sync-box__icon-button"></span> <?php echo esc_html__( 'Sync Now', 'elasticpress' ); ?>
 			</button>
 			<a class="sync-box__learn-more-link" href="#">
