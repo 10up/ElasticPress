@@ -14,48 +14,57 @@ require_once __DIR__ . '/header.php';
 	<h1><?php esc_html_e( 'Sync Settings', 'elasticpress' ); ?></h1>
 
 	<div class="card sync-box">
-		<div class="sync-box__description">
-			<p class="sync-box__description_text">
-				<?php esc_html_e( 'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.', 'elasticpress' ); ?>
-			</p>
-
-			<!-- <p class="submit"><button class="button button-primary button-large start-sync"><?php esc_html_e( 'Let&rsquo;s go!', 'elasticpress' ); ?></button></p> -->
-			<div class="last-sync">
-				<p class="last-sync__title">
-					<?php echo esc_html__( 'Last sync:', 'elasticpress' ); ?>
+		<div class="sync-box__description-actions">
+			<div class="sync-box__description">
+				<p class="sync-box__description_text">
+					<?php esc_html_e( 'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.', 'elasticpress' ); ?>
 				</p>
-				<img width="16" src="<?php echo esc_url( plugins_url( '/images/thumbsup.svg', dirname( __DIR__ ) ) ); ?>" />
-				<?php
-					echo sprintf( __( '<span class="last-sync__status">Sync success on</span><span class="last-sync__date">%s</span>' ), 'Wed, September 29, 2021 14:13' );
-				?>
+
+				<!-- <p class="submit"><button class="button button-primary button-large start-sync"><?php esc_html_e( 'Let&rsquo;s go!', 'elasticpress' ); ?></button></p> -->
+				<div class="last-sync">
+					<p class="last-sync__title">
+						<?php echo esc_html__( 'Last sync:', 'elasticpress' ); ?>
+					</p>
+					<img width="16" src="<?php echo esc_url( plugins_url( '/images/thumbsup.svg', dirname( __DIR__ ) ) ); ?>" />
+					<?php
+						echo sprintf( __( '<span class="last-sync__status">Sync success on</span><span class="last-sync__date">%s</span>' ), 'Wed, September 29, 2021 14:13' );
+					?>
+				</div>
+				<p>
+					<a href="#">
+						<?php echo esc_html__( 'Show log', 'elasticpress' ); ?>
+					</a>
+				</p>
 			</div>
-			<p>
-				<a href="#">
-					<?php echo esc_html__( 'Show log', 'elasticpress' ); ?>
+			<div class="sync-box__action">
+				<button type="button" class="button button-primary sync-box__button start-sync">
+					<span class="dashicons dashicons-update-alt sync-box__icon-button"></span> <?php echo esc_html__( 'Sync Now', 'elasticpress' ); ?>
+				</button>
+				<a class="sync-box__learn-more-link" href="#">
+					<?php echo esc_html__( 'Learn more', 'elasticpress' ); ?>
 				</a>
-			</p>
 
-			<textarea id="ep-sync-output" cols="30" rows="10" class="widefat" readonly></textarea>
-		</div>
-		<div class="sync-box__action">
-			<button type="button" class="button button-primary sync-box__button start-sync">
-				<span class="dashicons dashicons-update-alt sync-box__icon-button"></span> <?php echo esc_html__( 'Sync Now', 'elasticpress' ); ?>
-			</button>
-			<a class="sync-box__learn-more-link" href="#">
-				<?php echo esc_html__( 'Learn more', 'elasticpress' ); ?>
-			</a>
+				<div class="sync-box__buttons">
+					<button type="button" class="button button-primary sync-box__button-pause pause-sync">
+						<span class="dashicons dashicons-controls-pause"></span>
+						<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
+					</button>
 
-			<div class="sync-box__buttons">
-				<button type="button" class="button button-primary sync-box__button-pause pause-sync">
-					<span class="dashicons dashicons-controls-pause"></span>
-					<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
-				</button>
-
-				<button type="button" class="button button-primary sync-box__button-stop">
-					<?php echo esc_html__( 'Stop', 'elasticpress' ); ?>
-				</button>
+					<button type="button" class="button button-primary sync-box__button-stop">
+						<img width="16" src="<?php echo esc_url( plugins_url( '/images/stop.svg', dirname( __DIR__ ) ) ); ?>" />
+						<?php echo esc_html__( 'Stop', 'elasticpress' ); ?>
+					</button>
+				</div>
 			</div>
 		</div>
+		<div class="sync-box__progress">
+			<div class="sync-box__progress-info">Sync in progress</div>
+			<span class="sync-box__progressbar">
+				<span class="sync-box__progressbar sync-box__progressbar_animated">
+				</span>
+			</span>
+		</div>
+		<textarea id="ep-sync-output" cols="30" rows="10" class="widefat" readonly></textarea>
 	</div>
 
 	<div class="delete-data-and-sync">
