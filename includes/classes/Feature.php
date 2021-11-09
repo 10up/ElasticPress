@@ -53,6 +53,23 @@ abstract class Feature {
 	public $requires_install_reindex;
 
 	/**
+	 * The order in the features screen
+	 *
+	 * @var int
+	 * @since  3.6.0
+	 */
+	public $order;
+
+	/**
+	 * Set if a feature should be on the left or right side
+	 *
+	 * @var string
+	 * @since  3.6.0
+	 */
+	public $group_order;
+
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1

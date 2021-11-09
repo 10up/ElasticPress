@@ -1,30 +1,21 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { State, Dispatch } from '../../context';
-import { reduceStateToSolr } from '../../utils';
 
 /**
  * Synonym Inspector
  *
- * @returns {React.FC}
+ * @return {React.FC} SolrEditor Component
  */
-export default function SolrEditor() {
+const SolrEditor = () => {
 	const state = useContext(State);
 	const dispatch = useContext(Dispatch);
-	const reducedState = reduceStateToSolr(state);
-	const { isSolrEditable, isSolrVisible } = state;
-	const [solr, setSolr] = useState(reducedState);
-	const { synonymsTextareaInputName, solrInputHeading } = window.epSynonyms.i18n;
-
-	useEffect(() => {
-		setSolr(reducedState);
-	}, [reducedState]);
-
-	useEffect(() => {
-		if (!isSolrEditable && solr !== reducedState) {
-			dispatch({ type: 'REDUCE_STATE_FROM_SOLR', data: solr });
-		}
-		dispatch({ type: 'SET_SOLR_EDITABLE', data: isSolrEditable });
-	}, [isSolrEditable]);
+	const { alternatives, isSolrEditable, isSolrVisible, sets, solr } = state;
+	const {
+		synonymsTextareaInputName,
+		solrInputHeading,
+		solrAlternativesErrorMessage,
+		solrSetsErrorMessage,
+	} = window.epSynonyms.i18n;
 
 	return (
 		<div className={`synonym-solr-editor metabox-holder ${!isSolrVisible ? 'hidden' : ''}`}>
@@ -40,10 +31,24 @@ export default function SolrEditor() {
 						rows="20"
 						value={solr}
 						readOnly={!isSolrEditable}
-						onChange={(e) => setSolr(e.target.value)}
+						onChange={(event) =>
+							dispatch({ type: 'UPDATE_SOLR', data: event.target.value })
+						}
 					/>
+					<div
+						role="region"
+						aria-live="assertive"
+						className="synonym-solr-editor__validation"
+					>
+						{alternatives.some((alternative) => !alternative.valid) && (
+							<p>{solrAlternativesErrorMessage}</p>
+						)}
+						{sets.some((set) => !set.valid) && <p>{solrSetsErrorMessage}</p>}
+					</div>
 				</div>
 			</div>
 		</div>
 	);
-}
+};
+
+export default SolrEditor;

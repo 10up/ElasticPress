@@ -49,6 +49,7 @@ class Terms extends Feature {
 	 */
 	public function search_setup() {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
+		add_filter( 'ep_term_fuzziness_arg', [ $this, 'set_admin_terms_search_fuzziness' ] );
 	}
 
 	/**
@@ -105,6 +106,20 @@ class Terms extends Feature {
 		$status = new FeatureRequirementsStatus( 1 );
 
 		return $status;
+	}
+
+	/**
+	 * Change fuzziness level for terms search in admin
+	 *
+	 * @param  {int} $fuzziness Amount of fuzziness to factor into search
+	 * @since  3.6.4
+	 * @return int
+	 */
+	public function set_admin_terms_search_fuzziness( $fuzziness ) {
+		if ( is_admin() ) {
+			$fuzziness = 0;
+		}
+		return $fuzziness;
 	}
 
 }

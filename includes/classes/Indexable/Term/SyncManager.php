@@ -40,7 +40,8 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'deleted_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'updated_term_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
-		add_action( 'delete_term', [ $this, 'action_sync_on_delete' ] );
+		add_action( 'pre_delete_term', [ $this, 'action_queue_children_sync' ] );
+		add_action( 'pre_delete_term', [ $this, 'action_sync_on_delete' ] );
 		add_action( 'set_object_terms', [ $this, 'action_sync_on_object_update' ], 10, 2 );
 	}
 
@@ -105,7 +106,13 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		foreach ( $terms as $term ) {
-			$term = get_term( $term );
+			$term_info = term_exists( $term );
+
+			if ( ! $term_info ) {
+				continue;
+			}
+
+			$term = get_term( $term_info );
 
 			if ( ! current_user_can( 'edit_term', $term->term_id ) ) {
 				return;
@@ -171,6 +178,19 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		Indexables::factory()->get( 'term' )->delete( $term_id, false );
+	}
+
+	/**
+	 * Enqueue sync of children terms in hierchy when deleting parent. Children terms will be reasigned to
+	 * a different parent and we want to reflect that change in ElasticSearch
+	 *
+	 * @param int $term_id Term ID.
+	 * @since 3.6.3
+	 */
+	public function action_queue_children_sync( $term_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
 
 		// Find all terms in the hierarchy so we resync those as well
 		$term      = get_term( $term_id );
@@ -179,12 +199,12 @@ class SyncManager extends SyncManagerAbstract {
 		$hierarchy = array_merge( $ancestors, $children );
 
 		foreach ( $hierarchy as $hierarchy_term_id ) {
-			if ( ! current_user_can( 'edit_term', $hierarchy_term_id ) ) {
+			if ( apply_filters( 'ep_term_sync_kill', false, $hierarchy_term_id ) ) {
 				return;
 			}
 
-			if ( apply_filters( 'ep_term_sync_kill', false, $hierarchy_term_id ) ) {
-				return;
+			if ( ! current_user_can( 'edit_term', $term_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $term_id, 'term' ) ) {
+				continue;
 			}
 
 			do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );

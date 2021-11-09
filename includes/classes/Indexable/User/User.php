@@ -640,25 +640,25 @@ class User extends Indexable {
 					);
 				} elseif ( 'display_name' === $orderby_clause || 'name' === $orderby_clause ) {
 					$sort[] = array(
-						'display_name' => array(
+						'display_name.sortable' => array(
 							'order' => $order,
 						),
 					);
 				} elseif ( 'user_nicename' === $orderby_clause || 'nicename' === $orderby_clause ) {
 					$sort[] = array(
-						'user_nicename' => array(
+						'user_nicename.raw' => array(
 							'order' => $order,
 						),
 					);
 				} elseif ( 'user_email' === $orderby_clause || 'email' === $orderby_clause ) {
 					$sort[] = array(
-						'user_email' => array(
+						'user_email.raw' => array(
 							'order' => $order,
 						),
 					);
 				} elseif ( 'user_url' === $orderby_clause || 'url' === $orderby_clause ) {
 					$sort[] = array(
-						'user_url' => array(
+						'user_url.raw' => array(
 							'order' => $order,
 						),
 					);
@@ -728,11 +728,15 @@ class User extends Indexable {
 			$args['order'] = 'desc';
 		}
 
+		$orderby_args = sanitize_sql_orderby( "{$args['orderby']} {$args['order']}" );
+		$orderby      = $orderby_args ? sprintf( 'ORDER BY %s', $orderby_args ) : '';
+
 		/**
 		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
 		 * way to do that.
 		 */
-		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} ORDER BY %s %s LIMIT %d, %d", $args['orderby'], $args['orderby'], (int) $args['offset'], (int) $args['number'] ) );
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared  
+		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} {$orderby} LIMIT %d, %d", (int) $args['offset'], (int) $args['number'] ) );
 
 		return [
 			'objects'       => $objects,
@@ -884,7 +888,7 @@ class User extends Indexable {
 		 * @param  {int} $user_id User ID
 		 * @return  {array} New meta
 		 */
-		$meta = apply_filters( 'ep_prepare_user_meta_data', (array)get_user_meta( $user_id ), $user_id );
+		$meta = apply_filters( 'ep_prepare_user_meta_data', (array) get_user_meta( $user_id ), $user_id );
 
 		if ( empty( $meta ) ) {
 			/**

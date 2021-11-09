@@ -122,11 +122,27 @@ class QueryIntegration {
 				return $results;
 			}
 
-			$query->found_terms           = $ep_query['found_documents'];
+			/**
+			 * Elasticsearch 5 will return found_documents as a number,
+			 * ES 7+ will return it as an object with `value`. If any of that is found,
+			 * fallback to a simple count of returned documents.
+			 *
+			 * @since 3.6.3
+			 */
+			if ( is_integer( $ep_query['found_documents'] ) ) {
+				$query->found_terms = $ep_query['found_documents'];
+			} elseif ( is_array( $ep_query['found_documents'] ) && isset( $ep_query['found_documents']['value'] ) ) {
+				$query->found_terms = $ep_query['found_documents']['value'];
+			} else {
+				$query->found_terms = count( $ep_query['documents'] );
+			}
+
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.
 			$fields = $query->query_vars['fields'];
+
+			$new_terms = [];
 
 			switch ( $fields ) {
 				case 'all_with_object_id':

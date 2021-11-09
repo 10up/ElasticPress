@@ -1,16 +1,18 @@
-import { reduceSolrToState, mapEntry } from '../utils';
+import { reduceSolrToState, reduceStateToSolr, mapEntry } from '../utils';
 
 /**
  * The synonym editor reducer.
  */
 
 const { alternatives, sets, initialMode } = window.epSynonyms.data;
-
+const mappedSets = sets ? sets.map(mapEntry) : [mapEntry()];
+const mappedAlternatives = alternatives ? alternatives.map(mapEntry) : [mapEntry()];
 const initialState = {
 	isSolrEditable: initialMode === 'advanced',
 	isSolrVisible: initialMode === 'advanced',
-	alternatives: alternatives ? alternatives.map(mapEntry) : [mapEntry()],
-	sets: sets ? sets.map(mapEntry) : [mapEntry()],
+	alternatives: mappedAlternatives,
+	sets: mappedSets,
+	solr: reduceStateToSolr({ sets: mappedSets, alternatives: mappedAlternatives }),
 	dirty: false,
 	submit: false,
 };
@@ -18,9 +20,9 @@ const initialState = {
 /**
  * editorReducer
  *
- * @param {object} state  Current state.
- * @param {object} action The action.
- * @returns {object} New state.
+ * @param {Object} state  Current state.
+ * @param {Object} action The action.
+ * @return {Object} New state.
  */
 const editorReducer = (state, action) => {
 	switch (action.type) {
@@ -97,10 +99,21 @@ const editorReducer = (state, action) => {
 				isSolrEditable: !!action.data,
 				isSolrVisible: !!action.data,
 			};
-		case 'REDUCE_STATE_FROM_SOLR':
+		case 'UPDATE_SOLR':
 			return {
-				...reduceSolrToState(action.data, state),
+				...state,
+				solr: action.data,
 				dirty: true,
+			};
+		case 'REDUCE_SOLR_TO_STATE':
+			return {
+				...reduceSolrToState(state.solr, state),
+				dirty: true,
+			};
+		case 'REDUCE_STATE_TO_SOLR':
+			return {
+				...state,
+				solr: reduceStateToSolr(state),
 			};
 		case 'VALIDATE_ALL':
 			return {

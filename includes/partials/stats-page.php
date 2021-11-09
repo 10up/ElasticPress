@@ -15,11 +15,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/header.php';
 
+if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	$index_meta = get_site_option( 'ep_index_meta', false );
+} else {
+	$index_meta = get_option( 'ep_index_meta', false );
+}
+
 Stats::factory()->build_stats();
 
 $index_health = Stats::factory()->get_health();
 $totals       = Stats::factory()->get_totals();
 ?>
+
+<div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?>"></div>
 <div class="wrap metabox-holder">
 	<h1><?php esc_html_e( 'Index Health', 'elasticpress' ); ?></h1>
 
@@ -54,15 +62,15 @@ $totals       = Stats::factory()->get_totals();
 			<div class="postbox ep-totals">
 				<h2 class="hndle">Totals</h2>
 				<div class="ep-flex-container">
-					<div class="ep-totals-1st-row inside">
+					<div class="ep-totals-column inside">
 						<p class="ep-totals-title"><?php esc_html_e( 'Total Documents', 'elasticpress' ); ?></p>
 						<p class="ep-totals-data"><?php echo esc_html( $totals['docs'] ); ?></p>
 					</div>
-					<div class="ep-totals-1st-row inside">
+					<div class="ep-totals-column inside">
 						<p class="ep-totals-title"><?php esc_html_e( 'Total Size', 'elasticpress' ); ?></p>
 						<p class="ep-totals-data"><?php echo esc_html( Stats::factory()->convert_to_readable_size( $totals['size'] ) ); ?></p>
 					</div>
-					<div class="ep-totals-2nd-row inside">
+					<div class="ep-totals-column inside">
 						<p class="ep-totals-title"><?php esc_html_e( 'Total Memory', 'elasticpress' ); ?></p>
 						<p class="ep-totals-data"><?php echo esc_html( Stats::factory()->convert_to_readable_size( $totals['memory'] ) ); ?></p>
 					</div>

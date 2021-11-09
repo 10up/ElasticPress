@@ -1,5 +1,5 @@
 .widget_ep-facet input[type="search"] {
-	margin-bottom: 1rem
+	margin-bottom: 1rem;
 }
 
 .widget_ep-facet .searchable .inner {
@@ -12,20 +12,20 @@
 }
 
 .widget_ep-facet .empty-term {
+	opacity: 0.5;
 	position: relative;
-	opacity: .5;
 }
 
-.widget_ep-facet .empty-term:after {
-	z-index: 2;
-	content: ' ';
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
+.widget_ep-facet .empty-term::after {
 	bottom: 0;
-	width: 100%
+	content: " ";
+	display: block;
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 100%;
+	z-index: 2;
 }
 
 .widget_ep-facet .level-1 {
@@ -54,17 +54,40 @@
 }
 
 .widget_ep-facet .term a {
+	align-items: center;
+	display: flex;
 	position: relative;
-	text-decoration: none;
+}
 
-	&:after {
-		content: ' ';
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		display: block;
-		position: absolute;
-		z-index: 1;
-	}
+.ep-checkbox {
+	align-items: center;
+	background-color: #eee;
+	display: flex;
+	flex-shrink: 0;
+	height: 1em;
+	justify-content: center;
+	margin-right: 0.25em;
+	width: 1em;
+}
+
+.ep-checkbox::after {
+	border: solid #fff;
+	border-width: 0 0.125em 0.125em 0;
+	content: "";
+	display: none;
+	height: 0.5em;
+	transform: rotate(45deg);
+	width: 0.25em;
+}
+
+.ep-checkbox.checked {
+	background-color: #5e5e5e;
+}
+
+.ep-checkbox.checked::after {
+	display: block;
+}
+
+.widget_ep-facet .term a:hover .ep-checkbox {
+	background-color: #ccc;
 }

@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Feature as Feature;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\Utils as Utils;
 
 /**
  * Search feature class
@@ -88,40 +89,6 @@ class Search extends Feature {
 	 * @since  3.0
 	 */
 	public function search_setup() {
-		/**
-		 * By default EP will not integrate on admin or ajax requests. Since admin-ajax.php is
-		 * technically an admin request, there is some weird logic here. If we are doing ajax
-		 * and ep_ajax_wp_query_integration is filtered true, then we skip the next admin check.
-		 */
-
-		/**
-		 * Filter to integrate with admin queries
-		 *
-		 * @hook ep_admin_wp_query_integration
-		 * @param  {bool} $integrate True to integrate
-		 * @return  {bool} New value
-		 */
-		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
-
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			/**
-			 * Filter to integrate with admin ajax queries
-			 *
-			 * @hook ep_ajax_wp_query_integration
-			 * @param  {bool} $integrate True to integrate
-			 * @return  {bool} New value
-			 */
-			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
-				return;
-			} else {
-				$admin_integration = true;
-			}
-		}
-
-		if ( is_admin() && ! $admin_integration ) {
-			return;
-		}
-
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 		add_filter( 'ep_formatted_args', [ $this, 'weight_recent' ], 11, 2 );
 		add_filter( 'ep_query_post_type', [ $this, 'filter_query_post_type_for_search' ], 10, 2 );
@@ -129,7 +96,7 @@ class Search extends Feature {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
-		add_filter( 'ep_highlighting_excerpt', [ $this, 'allow_excerpt_html' ], 10, 2 );
+		add_action( 'ep_highlighting_pre_add_highlight', [ $this, 'allow_excerpt_html' ] );
 	}
 
 
@@ -167,7 +134,15 @@ class Search extends Feature {
 	 */
 	public function add_search_highlight_tags( $formatted_args, $args ) {
 
-		apply_filters( 'ep_highlighting_excerpt', [] );
+		/**
+		 * Fires before the highlighting clause is added to the Elasticsearch query
+		 *
+		 * @since  3.5.1
+		 * @hook ep_highlighting_pre_add_highlight
+		 * @param  {array} $formatted_args ep_formatted_args array
+		 * @param  {string} $args WP_Query args
+		 */
+		do_action( 'ep_highlighting_pre_add_highlight', $formatted_args, $args );
 
 		// get current config
 		$settings = $this->get_settings();
@@ -186,31 +161,43 @@ class Search extends Feature {
 			return $formatted_args;
 		}
 
-		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		/**
+		 * Filter whether to add the `highlight` clause in the query or not.
+		 *
+		 * @since  3.5.6
+		 * @hook ep_highlight_should_add_clause
+		 * @param  {bool}  $add_highlight_clause True means the clause should be added.
+		 * @param  {array} $formatted_args  ep_formatted_args array
+		 * @param  {array} $args  WP query args
+		 * @return {bool}  New $add_highlight_clause value
+		 */
+		$add_highlight_clause = apply_filters(
+			'ep_highlight_should_add_clause',
+			Utils\is_integrated_request( 'highlighting', [ 'public' ] ),
+			$formatted_args,
+			$args
+		);
+
+		if ( ! $add_highlight_clause ) {
 			return $formatted_args;
 		}
 
-		$fields_to_highlight = array();
-
-		// this should inherit the already-defined search fields.
-		// get the search fields as defined by weighting, etc.
-		if ( ! empty( $args['search_fields'] ) ) {
-			$fields_to_highlight = $args['search_fields'];
-
-		} else {
-			// fallback to the fields pre-defined in the query
-			$should_match = $formatted_args['query']['bool']['should'];
-
-			// next, check for the the weighted fields, in case any are excluded.
-			foreach ( $should_match as $item ) {
-				$fields = $item['multi_match']['fields'];
-				foreach ( $fields as $field ) {
-					array_push( $fields_to_highlight, $field );
-				}
-			}
-
-			$fields_to_highlight = array_unique( $fields_to_highlight );
-		}
+		/**
+		 * Filter the fields that should be highlighted.
+		 *
+		 * @since 3.5.1
+		 * @hook ep_highlighting_fields
+		 * @param  {array} $fields Highlighting fields
+		 * @param  {array} $formatted_args array
+		 * @param  {array} $args WP_Query args
+		 * @return  {array} New Highlighting fields
+		 */
+		$fields_to_highlight = apply_filters(
+			'ep_highlighting_fields',
+			[ 'post_title', 'post_content' ],
+			$formatted_args,
+			$args
+		);
 
 		// define the tag to use
 		$current_tag = $settings['highlight_tag'];
@@ -239,22 +226,20 @@ class Search extends Feature {
 		$opening_tag = '<' . $highlight_tag . ' class="' . $highlight_class . '">';
 		$closing_tag = '</' . $highlight_tag . '>';
 
-		// only for search query
-		if ( ! is_admin() && ! empty( $args['s'] ) ) {
-			foreach ( $fields_to_highlight as $field ) {
-				$formatted_args['highlight']['fields'][ $field ] = [
-					'pre_tags'            => [ $opening_tag ],
-					'post_tags'           => [ $closing_tag ],
-					'type'                => 'plain',
-					'number_of_fragments' => 0,
-				];
-			}
+		foreach ( $fields_to_highlight as $field ) {
+			$formatted_args['highlight']['fields'][ $field ] = [
+				'pre_tags'            => [ $opening_tag ],
+				'post_tags'           => [ $closing_tag ],
+				'type'                => 'plain',
+				'number_of_fragments' => 0,
+			];
 		}
+
 		return $formatted_args;
 	}
 
 	/**
-	 * called by ep_highlighting_excerpt filter.
+	 * Called by ep_highlighting_pre_add_highlight action.
 	 *
 	 * Replaces the default excerpt with the custom excerpt, allowing
 	 * for the selected tag to be displayed in it.
@@ -276,9 +261,10 @@ class Search extends Feature {
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
 
-		if ( ! empty( $_GET['s'] ) && ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
+			add_filter( 'ep_highlighting_fields', [ $this, 'ep_highlight_add_excerpt_field' ] );
 		}
 	}
 
@@ -323,6 +309,18 @@ class Search extends Feature {
 		}
 
 		return $text;
+	}
+
+	/**
+	 * Add `post_content` to the list of fields to highlight.
+	 *
+	 * @since 3.5.1
+	 * @param array $fields_to_highlight The list of fields to highlight.
+	 * @return array
+	 */
+	public function ep_highlight_add_excerpt_field( $fields_to_highlight ) {
+		$fields_to_highlight[] = 'post_excerpt';
+		return $fields_to_highlight;
 	}
 
 	/**
@@ -444,12 +442,22 @@ class Search extends Feature {
 	public function weight_recent( $formatted_args, $args ) {
 		if ( ! empty( $args['s'] ) ) {
 			if ( $this->is_decaying_enabled() ) {
-				$date_score = array(
+				/**
+				 * Filter search date weighting scale
+				 *
+				 * @hook epwr_decay_function
+				 * @param  {string} $decay_function Current decay function
+				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+				 * @param  {array} $args WP_Query arguments
+				 * @return  {string} New decay function
+				 */
+				$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
+				$date_score     = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],
 						'functions'  => array(
 							array(
-								'exp' => array(
+								$decay_function => array(
 									'post_date_gmt' => array(
 										/**
 										 * Filter search date weighting scale
@@ -484,8 +492,30 @@ class Search extends Feature {
 									),
 								),
 							),
+							array(
+								/**
+								 * Filter search date weight
+								 *
+								 * @since 3.5.6
+								 * @hook epwr_weight
+								 * @param  {string} $weight Current weight
+								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+								 * @param  {array} $args WP_Query arguments
+								 * @return  {string} New weight
+								 */
+								'weight' => apply_filters( 'epwr_weight', 0.001, $formatted_args, $args ),
+							),
 						),
-						'score_mode' => 'avg',
+						/**
+						 * Filter search date weighting score mode
+						 *
+						 * @hook epwr_score_mode
+						 * @param  {string} $score_mode Current score mode
+						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+						 * @param  {array} $args WP_Query arguments
+						 * @return  {string} New score mode
+						 */
+						'score_mode' => apply_filters( 'epwr_score_mode', 'sum', $formatted_args, $args ),
 						/**
 						 * Filter search date weighting boost mode
 						 *
@@ -495,7 +525,7 @@ class Search extends Feature {
 						 * @param  {array} $args WP_Query arguments
 						 * @return  {string} New boost mode
 						 */
-						'boost_mode' => apply_filters( 'epwr_boost_mode', 'sum', $formatted_args, $args ),
+						'boost_mode' => apply_filters( 'epwr_boost_mode', 'multiply', $formatted_args, $args ),
 					),
 				);
 
@@ -538,6 +568,10 @@ class Search extends Feature {
 	 * @return bool
 	 */
 	public function integrate_search_queries( $enabled, $query ) {
+		if ( ! Utils\is_integrated_request( $this->slug ) ) {
+			return false;
+		}
+
 		if ( ! is_a( $query, 'WP_Query' ) ) {
 			return $enabled;
 		}

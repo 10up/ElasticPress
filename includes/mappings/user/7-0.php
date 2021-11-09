@@ -93,7 +93,7 @@ return array(
 					'max_shingle_size' => 5,
 				),
 				'ewp_word_delimiter' => array(
-					'type'              => 'word_delimiter',
+					'type'              => 'word_delimiter_graph',
 					'preserve_original' => true,
 				),
 				'ewp_snowball'       => array(
@@ -112,7 +112,7 @@ return array(
 					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
-					'type'     => 'edgeNGram',
+					'type'     => 'edge_ngram',
 				),
 			),
 			'normalizer' => array(
@@ -131,7 +131,6 @@ return array(
 					'path_match' => 'meta.*',
 					'mapping'    => array(
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => array(
 							'value'    => array(
 								'type'   => 'text',
@@ -181,7 +180,6 @@ return array(
 					'path_match' => 'capabilities.*',
 					'mapping'    => array(
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => array(
 							'roles' => array(
 								'type' => 'keyword',
@@ -226,12 +224,13 @@ return array(
 			'display_name'    => array(
 				'type'   => 'text',
 				'fields' => array(
-					'display_name' => array(
-						'type' => 'text',
-					),
-					'raw'          => array(
+					'raw'      => array(
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
+					),
+					'sortable' => array(
+						'type'       => 'keyword',
+						'normalizer' => 'lowerasciinormalizer',
 					),
 				),
 			),

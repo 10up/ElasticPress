@@ -15,18 +15,13 @@ class Edit extends Component {
 	/**
 	 * Setup class
 	 *
-	 * @param {object} props Component properties
+	 * @param {Object} props Component properties
 	 */
 	constructor(props) {
 		super(props);
 
-		const {
-			attributes: { number },
-		} = props;
-
 		this.state = {
 			posts: false,
-			number,
 		};
 	}
 
@@ -38,12 +33,12 @@ class Edit extends Component {
 			number: 100,
 		};
 
+		// Use 0 if in the Widgets Screen
+		const postId = wp.data.select('core/editor').getCurrentPostId() ?? 0;
+
 		this.fetchRequest = wp
 			.apiFetch({
-				path: addQueryArgs(
-					`/wp/v2/posts/${wp.data.select('core/editor').getCurrentPostId()}/related`,
-					urlArgs,
-				),
+				path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),
 			})
 			.then((posts) => {
 				this.setState({ posts });
@@ -87,10 +82,10 @@ class Edit extends Component {
 						</Placeholder>
 					) : (
 						<ul style={{ textAlign: alignment }}>
-							{displayPosts.map((post, i) => {
+							{displayPosts.map((post) => {
 								const titleTrimmed = post.title.rendered.trim();
 								return (
-									<li key={i}>
+									<li key={post.id}>
 										<a href={post.link}>
 											{titleTrimmed ? (
 												<RawHTML>{titleTrimmed}</RawHTML>

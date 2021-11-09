@@ -1,13 +1,17 @@
 <?php
 /**
- * Plugin Name: ElasticPress
- * Description: A fast and flexible search and query engine for WordPress.
- * Version:     3.5.1
- * Author:      10up
- * Author URI:  http://10up.com
- * License:     GPLv2 or later
- * Text Domain: elasticpress
- * Domain Path: /lang/
+ * Plugin Name:       ElasticPress
+ * Plugin URI:        https://github.com/10up/ElasticPress
+ * Description:       A fast and flexible search and query engine for WordPress.
+ * Version:           3.6.4
+ * Requires at least: 3.7.1
+ * Requires PHP:      5.6
+ * Author:            10up
+ * Author URI:        http://10up.com
+ * License:           GPL v2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       elasticpress
+ *
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:
  *
@@ -28,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '3.5.1' );
+define( 'EP_VERSION', '3.6.4' );
 
 /**
  * PSR-4-ish autoloading
@@ -75,6 +79,7 @@ define( 'EP_ES_VERSION_MIN', '5.0' );
 
 require_once __DIR__ . '/includes/compat.php';
 require_once __DIR__ . '/includes/utils.php';
+require_once __DIR__ . '/includes/health-check.php';
 
 // Define a constant if we're network activated to allow plugin to respond accordingly.
 $network_activated = Utils\is_network_activated( EP_FILE );
@@ -126,6 +131,12 @@ function register_indexable_posts() {
 	Features::factory()->register_feature(
 		new Feature\Documents\Documents()
 	);
+
+	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Comments\Comments()
+		);
+	}
 
 	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
 		Features::factory()->register_feature(
@@ -181,77 +192,19 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 /**
+ * Setup upgrades
+ */
+Upgrades::factory();
+
+/**
  * Handle upgrades. Certain version require a re-sync on upgrade.
+ * Deprecated in favor of `\ElasticPress\Upgrades::factory()`.
  *
  * @since  2.2
  */
 function handle_upgrades() {
-	if ( ! is_admin() || defined( 'DOING_AJAX' ) ) {
-		return;
-	}
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$last_sync = get_site_option( 'ep_last_sync', 'never' );
-	} else {
-		$last_sync = get_option( 'ep_last_sync', 'never' );
-	}
-
-	// No need to upgrade since we've never synced.
-	if ( empty( $last_sync ) || 'never' === $last_sync ) {
-		return;
-	}
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$old_version = get_site_option( 'ep_version', false );
-	} else {
-		$old_version = get_option( 'ep_version', false );
-	}
-
-	/**
-	 * Reindex if we cross a reindex version in the upgrade
-	 */
-	$reindex_versions = apply_filters(
-		'ep_reindex_versions',
-		array(
-			'2.2',
-			'2.3.1',
-			'2.4',
-			'2.5.1',
-			'2.6',
-			'2.7',
-			'3.0',
-			'3.1',
-			'3.3',
-			'3.4',
-			'3.5',
-		)
-	);
-
-	$need_upgrade_sync = false;
-
-	if ( false !== $old_version ) {
-		$last_reindex_version = $reindex_versions[ count( $reindex_versions ) - 1 ];
-
-		if ( -1 === version_compare( $old_version, $last_reindex_version ) && 0 <= version_compare( EP_VERSION, $last_reindex_version ) ) {
-			$need_upgrade_sync = true;
-		}
-	}
-
-	if ( $need_upgrade_sync ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_need_upgrade_sync', true );
-		} else {
-			update_option( 'ep_need_upgrade_sync', true );
-		}
-	}
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-	} else {
-		update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-	}
+	_deprecated_function( __CLASS__, '3.5.2', '\ElasticPress\Upgrades::factory()' );
 }
-add_action( 'plugins_loaded', __NAMESPACE__ . '\handle_upgrades', 5 );
 
 /**
  * Load text domain and handle debugging
