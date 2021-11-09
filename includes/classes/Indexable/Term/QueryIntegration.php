@@ -142,6 +142,8 @@ class QueryIntegration {
 			// Determine how we should format the results from ES based on the fields parameter.
 			$fields = $query->query_vars['fields'];
 
+			$new_terms = [];
+
 			switch ( $fields ) {
 				case 'all_with_object_id':
 					$new_terms = $this->format_hits_as_terms( $ep_query['documents'], $new_terms, $query->query_vars );

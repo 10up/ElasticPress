@@ -100,7 +100,10 @@ const reduceSolrToState = (solr, currentState) => {
 							...newState.alternatives,
 							mapEntry([
 								formatToken(parts[0].trim(), true),
-								...parts[1].split(',').map((token) => formatToken(token.trim())),
+								...parts[1]
+									.split(',')
+									.filter((v) => v.trim())
+									.map((token) => formatToken(token.trim())),
 							]),
 						],
 					};
@@ -110,7 +113,12 @@ const reduceSolrToState = (solr, currentState) => {
 					...newState,
 					sets: [
 						...newState.sets,
-						mapEntry([...line.split(',').map((token) => formatToken(token.trim()))]),
+						mapEntry([
+							...line
+								.split(',')
+								.filter((v) => v.trim())
+								.map((token) => formatToken(token.trim())),
+						]),
 					],
 				};
 			},

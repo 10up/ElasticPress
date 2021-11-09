@@ -189,6 +189,7 @@ class Documents extends Feature {
 		if ( 'attachment' === $post['post_type'] ) {
 			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types(), true ) ) {
 				$index = Indexables::factory()->get( 'post' )->get_index_name();
+
 				/**
 				 * Filter documents pipeline ID
 				 *
@@ -196,7 +197,13 @@ class Documents extends Feature {
 				 * @param  {string} $id Pipeline ID
 				 * @return  {string} new ID
 				 */
-				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+				$pipeline_id = apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+
+				if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+					$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . $pipeline_id;
+				} else {
+					$path = trailingslashit( $index ) . '_doc/' . $post['ID'] . '?pipeline=' . $pipeline_id;
+				}
 			}
 		}
 
