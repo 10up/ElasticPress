@@ -1,7 +1,7 @@
 /* eslint-disable camelcase, no-use-before-define */
 const { ajaxurl, epDash, history } = window;
 
-const progressBar = document.querySelectorAll('.progress-bar');
+const progressBar = document.querySelectorAll('.sync-box__progressbar_animated');
 const allButtons = {
 	start: document.querySelectorAll('.start-sync'),
 	resume: document.querySelectorAll('.resume-sync'),
@@ -128,6 +128,7 @@ function updateSyncDash() {
 		processed === 0 ? 1 : (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
 	progressBar.forEach((bar) => {
 		bar.style.width = `${progressBarWidth}%`;
+		bar.innerText = `${Math.trunc(progressBarWidth)}%`;
 	});
 
 	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
