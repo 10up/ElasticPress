@@ -6,7 +6,7 @@
 
 * Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
 
-**Please note:** master is the stable branch.
+**Please note:** master is the stable branch, but that will be changing with the 4.0.0 release (read more on that below).
 
 ## Planned changes for 4.0.0
 
