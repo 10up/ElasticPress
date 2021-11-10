@@ -12,11 +12,11 @@
 
 **Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, ~~will build a stable release version including built assets into a `stable` branch,~~ will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to ~~either `stable` or~~ `trunk` or to GitHub releases depending on whether you require built assets or not.
 
-Minimum supported versions:
+Supported versions:
 
 ||Current (3.6.4)|4.0.0|
 |---|:---:|:---:|
-|Elasticsearch|5.0+|5.2+|
+|Elasticsearch|5.0 - 7.9|5.2 - 7.10|
 |WordPress|3.7.1+|5.6+|
 |PHP|5.6+|7.0+|
 
