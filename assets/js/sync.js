@@ -151,7 +151,7 @@ function updateSyncDash() {
 		text = epDash.sync_paused;
 
 		updateSyncText(text);
-		makeButtonsVisible([ 'resume', 'stop']);
+		makeButtonsVisible(['resume', 'stop']);
 	} else if (syncStatus === 'wpcli') {
 		text = epDash.sync_wpcli;
 
@@ -229,6 +229,31 @@ function cliSync() {
 		});
 }
 
+function addLineToOutput(text) {
+	const lastLineNumberElement = document.querySelector(
+		'.sync-box__output-line:last-child .sync-box__output-line-number',
+	);
+	const lastLineNumber = Number(lastLineNumberElement?.innerText);
+
+	const lineNumber = document.createElement('div');
+	lineNumber.className = 'sync-box__output-line-number';
+	lineNumber.innerText =
+		typeof lastLineNumber === 'number' && !Number.isNaN(lastLineNumber)
+			? lastLineNumber + 1
+			: 1;
+
+	const lineText = document.createElement('div');
+	lineText.className = 'sync-box__output-line-text';
+	lineText.innerText = text;
+
+	const line = document.createElement('div');
+	line.className = 'sync-box__output-line';
+	line.append(lineNumber);
+	line.append(lineText);
+
+	epSyncOutput.append(line);
+}
+
 /**
  * Perform an elasticpress sync
  *
@@ -246,9 +271,7 @@ function sync(putMapping = false) {
 			},
 		})
 		.done((response) => {
-			epSyncOutput.innerHTML += `${response.data.message}\n`;
-			epSyncOutput.scrollTop = epSyncOutput.scrollHeight;
-			epSyncOutput.style.display = 'block';
+			addLineToOutput(response.data.message);
 
 			if (response.data?.index_meta?.should_interrupt_sync) {
 				syncStatus = 'interrupt';
@@ -270,7 +293,8 @@ function sync(putMapping = false) {
 				syncStatus = 'finished';
 				updateSyncDash();
 
-				epSyncOutput.innerHTML += `===============================\n`;
+				addLineToOutput('===============================');
+
 				epSyncOutput.scrollTop = epSyncOutput.scrollHeight;
 
 				if (epDash.install_sync) {
