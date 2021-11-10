@@ -68,6 +68,7 @@
 
 	}
 
+	& .sync-box__button-resume,
 	& .sync-box__button-pause,
 	& .sync-box__button-stop {
 		align-items: center;
