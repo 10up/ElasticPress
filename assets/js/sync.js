@@ -4,17 +4,15 @@ const { ajaxurl, epDash, history } = window;
 const progressBar = document.querySelectorAll('.sync-box__progressbar_animated');
 const allButtons = {
 	start: document.querySelectorAll('.start-sync'),
-	resume: document.querySelectorAll('.resume-sync'),
-	pause: document.querySelectorAll('.pause-sync'),
-	cancel: document.querySelectorAll('.cancel-sync'),
+	resume: document.querySelectorAll('.sync-box__button-resume'),
+	pause: document.querySelectorAll('.sync-box__button-pause'),
 	stop: document.querySelectorAll('.sync-box__button-stop'),
 	learnMore: document.querySelectorAll('.sync-box__learn-more-link'),
 };
 const syncStatusText = document.querySelectorAll('.sync-status');
 const $startSyncButton = jQuery(document.getElementsByClassName('start-sync'));
-const $resumeSyncButton = jQuery(document.getElementsByClassName('resume-sync'));
-const $pauseSyncButton = jQuery(document.getElementsByClassName('pause-sync'));
-const $cancelSyncButton = jQuery(document.getElementsByClassName('cancel-sync'));
+const $resumeSyncButton = jQuery(document.getElementsByClassName('sync-box__button-resume'));
+const $pauseSyncButton = jQuery(document.getElementsByClassName('sync-box__button-pause'));
 const $stopSyncButton = jQuery(document.getElementsByClassName('sync-box__button-stop'));
 const epSyncOutput = document.getElementById('ep-sync-output');
 
@@ -153,7 +151,7 @@ function updateSyncDash() {
 		text = epDash.sync_paused;
 
 		updateSyncText(text);
-		makeButtonsVisible(['cancel', 'resume']);
+		makeButtonsVisible([ 'resume', 'stop']);
 	} else if (syncStatus === 'wpcli') {
 		text = epDash.sync_wpcli;
 
@@ -168,7 +166,7 @@ function updateSyncDash() {
 		}
 
 		updateSyncText(text);
-		makeButtonsVisible(['cancel']);
+		makeButtonsVisible(['stop']);
 	} else if (syncStatus === 'error') {
 		updateSyncText(epDash.sync_error);
 	} else if (syncStatus === 'cancel') {
@@ -344,7 +342,7 @@ $resumeSyncButton.on('click', () => {
 	sync();
 });
 
-$cancelSyncButton.on('click', () => {
+$stopSyncButton.on('click', () => {
 	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
 
 	updateSyncDash();
