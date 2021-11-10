@@ -46,8 +46,13 @@ require_once __DIR__ . '/header.php';
 
 				<div class="sync-box__buttons">
 					<button type="button" class="button button-primary sync-box__button-pause pause-sync">
-						<span class="dashicons dashicons-controls-pause"></span>
+						<img width="16" src="<?php echo esc_url( plugins_url( '/images/pause.svg', dirname( __DIR__ ) ) ); ?>" />
 						<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
+					</button>
+
+					<button type="button" class="button button-primary sync-box__button-resume resume-sync">
+						<img width="16" src="<?php echo esc_url( plugins_url( '/images/resume.svg', dirname( __DIR__ ) ) ); ?>" />
+						<?php echo esc_html__( 'Resume', 'elasticpress' ); ?>
 					</button>
 
 					<button type="button" class="button button-primary sync-box__button-stop">
