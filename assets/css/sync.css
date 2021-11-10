@@ -1,7 +1,50 @@
-#ep-sync-output {
-	display: none;
+.sync-box__output {
+	background-color: #1a1e24;
+	margin-bottom: 20px;
+	max-height: 200px;
+	overflow-y: scroll;
 	position: relative;
-	z-index: 2;
+}
+
+.sync-box__output-wrapper {
+	color: #fff;
+	margin-left: 30px;
+	min-height: 374px;
+}
+
+.sync-box__output-line {
+	position: relative;
+}
+
+.sync-box__output-line-number {
+	background-color: #303030;
+	color: #999;
+	left: -30px;
+	min-width: 20px;
+	padding: 0 3px 0 5px;
+	position: absolute;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.sync-box__output-line-text {
+	font-size: 12px;
+	padding-left: 14px;
+}
+
+.sync-box__output-tabs {
+	align-items: center;
+	display: flex;
+}
+
+.sync-box__output-tab {
+	color: #1e1e1e;
+	padding: 16px;
+}
+
+.sync-box__output-tab_active {
+	border-bottom: 4px solid #00a0d2;
+	padding-bottom: 12px;
 }
 
 .elasticpress_page_elasticpress-sync .card {
@@ -86,12 +129,15 @@
 	}
 
 	& .sync-box__progress {
+		align-items: center;
 		display: flex;
 		flex-direction: row;
-		margin-bottom: 22px;
+		margin-bottom: 5px;
 	}
 
-	& .sync-box__progress-info {
+	& .sync-box__sync-in-progress {
+		display: flex;
+		flex-direction: row;
 		width: 30%;
 	}
 
@@ -100,7 +146,7 @@
 		border-radius: 24px;
 		height: 20px;
 		position: relative;
-		width: 70%;
+		width: 65%;
 	}
 
 	& .sync-box__progressbar_animated {
@@ -111,6 +157,27 @@
 		text-align: center;
 		transition: width 0.5s ease-in-out;
 		width: 0;
+	}
+
+	& .sync-box__sync-in-progress-info {
+		display: flex;
+		flex-direction: column;
+		margin-left: 12px;
+	}
+
+	& .sync-box__progress-info {
+		font-size: 14px;
+		font-weight: 500;
+		margin-bottom: 5px;
+	}
+
+	& .sync-box__start-time {
+		color: #00a0d2;
+		font-size: 14px;
+	}
+
+	& .sync-box__start-time-date {
+		color: #333;
 	}
 }
 
