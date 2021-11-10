@@ -63,13 +63,29 @@ require_once __DIR__ . '/header.php';
 			</div>
 		</div>
 		<div class="sync-box__progress">
-			<div class="sync-box__progress-info">Sync in progress</div>
+			<div class="sync-box__sync-in-progress">
+				<img width="36" height="36" src="<?php echo esc_url( plugins_url( '/images/sync-in-progress.png', dirname( __DIR__ ) ) ); ?>" />
+				<div class="sync-box__sync-in-progress-info">
+					<div class="sync-box__progress-info">Sync in progress</div>
+					<div class="sync-box__start-time">Start time: <span class="sync-box__start-time-date">Fri, September 30, 2021 16:20</span></div>
+				</div>
+			</div>
 			<span class="sync-box__progressbar">
 				<span class="sync-box__progressbar sync-box__progressbar_animated">
 				</span>
 			</span>
 		</div>
-		<textarea id="ep-sync-output" cols="30" rows="10" class="widefat" readonly></textarea>
+		<div class="sync-box__output-tabs">
+			<div class="sync-box__output-tab sync-box__output-tab_active">
+				Full log
+			</div>
+			<div class="sync-box__output-tab">
+				Errors (0)
+			</div>
+		</div>
+		<div class="sync-box__output">
+			<div id="ep-sync-output" class="sync-box__output-wrapper"></div>
+		</div>
 	</div>
 
 	<div class="delete-data-and-sync">
