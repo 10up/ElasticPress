@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "075efe059b27e67fbd4d34a65c4ecc52",
+    "content-hash": "f15c1465bfc3c0fce5ccfb38b496515b",
     "packages": [],
     "packages-dev": [
         {
@@ -5124,13 +5124,71 @@
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/woocommerce/",
             "time": "2021-04-27T16:26:57+00:00"
+        },
+        {
+            "name": "yoast/phpunit-polyfills",
+            "version": "dev-develop",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Yoast/PHPUnit-Polyfills.git",
+                "reference": "8a5d6e4a692aa04d1ccccc537dcfd7ebe0877e3c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Yoast/PHPUnit-Polyfills/zipball/8a5d6e4a692aa04d1ccccc537dcfd7ebe0877e3c",
+                "reference": "8a5d6e4a692aa04d1ccccc537dcfd7ebe0877e3c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4",
+                "phpunit/phpunit": "^4.8.36 || ^5.7.21 || ^6.0 || ^7.0 || ^8.0 || ^9.0"
+            },
+            "require-dev": {
+                "yoast/yoastcs": "^2.2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.x-dev",
+                    "dev-develop": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "phpunitpolyfills-autoload.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Team Yoast",
+                    "email": "support@yoast.com",
+                    "homepage": "https://yoast.com"
+                },
+                {
+                    "name": "Contributors",
+                    "homepage": "https://github.com/Yoast/PHPUnit-Polyfills/graphs/contributors"
+                }
+            ],
+            "description": "Set of polyfills for changed PHPUnit functionality to allow for creating PHPUnit cross-version compatible tests",
+            "homepage": "https://github.com/Yoast/PHPUnit-Polyfills",
+            "keywords": [
+                "phpunit",
+                "polyfill",
+                "testing"
+            ],
+            "time": "2021-11-11T23:58:02+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
         "10up/phpcs-composer": 20,
-        "10up/wpacceptance": 20
+        "10up/wpacceptance": 20,
+        "yoast/phpunit-polyfills": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
