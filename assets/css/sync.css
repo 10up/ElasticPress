@@ -1,3 +1,7 @@
+.sync-box__progress-wrapper {
+	display: none;
+}
+
 .sync-box__output {
 	background-color: #1a1e24;
 	margin-bottom: 20px;
@@ -9,7 +13,7 @@
 .sync-box__output-wrapper {
 	color: #fff;
 	margin-left: 30px;
-	min-height: 374px;
+	min-height: 200px;
 }
 
 .sync-box__output-line {
@@ -157,6 +161,11 @@
 		text-align: center;
 		transition: width 0.5s ease-in-out;
 		width: 0;
+	}
+
+	& .sync-box__progressbar_complete {
+		background-color: #46b450;
+		color: #fff;
 	}
 
 	& .sync-box__sync-in-progress-info {
