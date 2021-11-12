@@ -122,18 +122,28 @@ function getIndexableLabel(indexableSlug, type = 'plural') {
 function updateSyncDash() {
 	let text;
 
-	const progressBarWidth =
-		processed === 0 ? 1 : (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
+	const progressBarWidth = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
 	progressBar.forEach((bar) => {
-		bar.style.width = `${progressBarWidth}%`;
-		bar.innerText = `${Math.trunc(progressBarWidth)}%`;
+		if (typeof progressBarWidth === 'number' && !Number.isNaN(progressBarWidth)) {
+			bar.style.width = `${progressBarWidth}%`;
+			bar.innerText = `${Math.trunc(progressBarWidth)}%`;
+		}
 	});
 
 	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
 	if (isSyncing) {
 		showProgressBar();
+		progressBar.forEach((bar) => {
+			bar.classList.remove('sync-box__progressbar_complete');
+		});
 	} else {
-		showProgressBar(false);
+		const progressInfoElement = document.querySelector('.sync-box__progress-info');
+
+		progressInfoElement.innerText = 'Sync completed';
+
+		progressBar.forEach((bar) => {
+			bar.classList.add('sync-box__progressbar_complete');
+		});
 
 		setTimeout(() => {
 			updateSyncText('');
@@ -252,6 +262,9 @@ function addLineToOutput(text) {
 	line.append(lineText);
 
 	epSyncOutput.append(line);
+
+	const epSyncWrapper = document.querySelector('.sync-box__output');
+	epSyncWrapper.scrollTo(0, epSyncOutput.scrollHeight);
 }
 
 /**
@@ -339,6 +352,19 @@ function sync(putMapping = false) {
 $startSyncButton.on('click', (event) => {
 	syncStatus = 'initialsync';
 
+	const progressWrapperElement = document.querySelector('.sync-box__progress-wrapper');
+
+	progressWrapperElement.style.display = 'block';
+
+	const progressInfoElement = document.querySelector('.sync-box__progress-info');
+
+	progressInfoElement.innerText = 'Sync in progress';
+
+	progressBar.forEach((bar) => {
+		bar.style.width = `0`;
+		bar.innerText = ``;
+	});
+
 	updateSyncDash();
 
 	// On initial sync, remove dashboard warnings that dont make sense
@@ -355,11 +381,19 @@ $startSyncButton.on('click', (event) => {
 $pauseSyncButton.on('click', () => {
 	syncStatus = 'pause';
 
+	const progressInfoElement = document.querySelector('.sync-box__progress-info');
+
+	progressInfoElement.innerText = 'Sync paused';
+
 	updateSyncDash();
 });
 
 $resumeSyncButton.on('click', () => {
 	syncStatus = 'sync';
+
+	const progressInfoElement = document.querySelector('.sync-box__progress-info');
+
+	progressInfoElement.innerText = 'Sync in progress';
 
 	updateSyncDash();
 
@@ -369,7 +403,18 @@ $resumeSyncButton.on('click', () => {
 $stopSyncButton.on('click', () => {
 	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
 
+	const progressInfoElement = document.querySelector('.sync-box__progress-info');
+
 	updateSyncDash();
 
 	cancelSync();
+
+	progressInfoElement.innerText = 'Sync stopped';
+
+	progressBar.forEach((bar) => {
+		bar.style.width = `0`;
+		bar.innerText = ``;
+	});
+
+	addLineToOutput('Sync stopped');
 });
