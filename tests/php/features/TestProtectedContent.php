@@ -220,7 +220,12 @@ class TestProtectedContent extends BaseTestCase {
 		$wp_the_query = $query;
 
 		$args = array(
-			'category_name' => 'category one',
+			/**
+			 * Despite its name, per WP docs `category_name` actually uses the cat slug.
+			 *
+			 * @see https://developer.wordpress.org/reference/classes/wp_query/#category-parameters
+			 */
+			'category_name' => 'category-one',
 		);
 
 		$query->query( $args );
