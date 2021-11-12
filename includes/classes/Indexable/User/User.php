@@ -745,12 +745,12 @@ class User extends Indexable {
 	}
 
 	/**
-	 * Put mapping for users
+	 * Generate the mapping array
 	 *
-	 * @since  3.0
-	 * @return boolean
+	 * @since  3.6.0
+	 * @return array
 	 */
-	public function put_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 		if ( empty( $es_version ) ) {
 			/**
@@ -790,6 +790,18 @@ class User extends Indexable {
 		 * @return  {array} New mapping
 		 */
 		$mapping = apply_filters( 'ep_user_mapping', $mapping );
+
+		return $mapping;
+	}
+
+	/**
+	 * Put mapping for users
+	 *
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function put_mapping() {
+		$mapping = $this->generate_mapping();
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}

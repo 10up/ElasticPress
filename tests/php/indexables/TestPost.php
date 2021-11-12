@@ -5812,7 +5812,7 @@ class TestPost extends BaseTestCase {
 	public function testQueryIntegrationConstructor() {
 
 		// Pretend we're indexing.
-		add_filter( 'ep_is_indexing', '__return_true' );
+		add_filter( 'ep_is_full_reindexing_post', '__return_true' );
 
 		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
 
@@ -5829,7 +5829,7 @@ class TestPost extends BaseTestCase {
 			$this->assertFalse( has_filter( $action, [ $query_integration, $function[0] ] ) );
 		}
 
-		remove_filter( 'ep_is_indexing', '__return_true' );
+		remove_filter( 'ep_is_full_reindexing_post', '__return_true' );
 
 		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
 
