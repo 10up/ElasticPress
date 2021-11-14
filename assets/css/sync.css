@@ -1,8 +1,8 @@
-.sync-box__progress-wrapper {
+.ep-sync-box__progress-wrapper {
 	display: none;
 }
 
-.sync-box__output {
+.ep-sync-box__output {
 	background-color: #1a1e24;
 	margin-bottom: 20px;
 	max-height: 200px;
@@ -10,17 +10,17 @@
 	position: relative;
 }
 
-.sync-box__output-wrapper {
+.ep-sync-box__output-wrapper {
 	color: #fff;
 	margin-left: 30px;
 	min-height: 200px;
 }
 
-.sync-box__output-line {
+.ep-sync-box__output-line {
 	position: relative;
 }
 
-.sync-box__output-line-number {
+.ep-sync-box__output-line-number {
 	background-color: #303030;
 	color: #999;
 	left: -30px;
@@ -31,22 +31,22 @@
 	white-space: nowrap;
 }
 
-.sync-box__output-line-text {
+.ep-sync-box__output-line-text {
 	font-size: 12px;
 	padding-left: 14px;
 }
 
-.sync-box__output-tabs {
+.ep-sync-box__output-tabs {
 	align-items: center;
 	display: flex;
 }
 
-.sync-box__output-tab {
+.ep-sync-box__output-tab {
 	color: #1e1e1e;
 	padding: 16px;
 }
 
-.sync-box__output-tab_active {
+.ep-sync-box__output-tab_active {
 	border-bottom: 4px solid #00a0d2;
 	padding-bottom: 12px;
 }
@@ -54,24 +54,24 @@
 .elasticpress_page_elasticpress-sync .card {
 	max-width: 1200px;
 
-	& .sync-box__description-actions {
+	& .ep-sync-box__description-actions {
 		display: flex;
 		justify-content: space-between;
 	}
 
-	& .sync-box__description {
+	& .ep-sync-box__description {
 		width: 69%;
 
 	}
 
-	& .sync-box__action {
+	& .ep-sync-box__action {
 		align-items: center;
 		display: flex;
 		flex-direction: column;
 		margin-top: 40px;
 		width: 30%;
 
-		& .sync-box__button {
+		& .ep-sync-box__button {
 			align-items: center;
 			display: flex;
 			font-size: 24px;
@@ -82,42 +82,42 @@
 			width: 228px;
 		}
 
-		& .sync-box__icon-button {
+		& .ep-sync-box__icon-button {
 			font-size: 28px;
 			height: 28px;
 			width: 28px;
 
 		}
 
-		& .sync-box__learn-more-link {
+		& .ep-sync-box__learn-more-link {
 			margin-top: 19px;
 		}
 
 	}
 
-	& .sync-box__description_text {
+	& .ep-sync-box__description_text {
 		font-size: 18px;
 	}
 
-	& .last-sync__title {
+	& .ep-last-sync__title {
 		font-size: 20px;
 		font-weight: 700;
 		margin-bottom: 0.5em;
 	}
 
-	& .last-sync__date {
+	& .ep-last-sync__date {
 		background-color: #f1f1f1;
 		padding: 6px;
 	}
 
-	& .sync-box__buttons {
+	& .ep-sync-box__buttons {
 		display: flex;
 
 	}
 
-	& .sync-box__button-resume,
-	& .sync-box__button-pause,
-	& .sync-box__button-stop {
+	& .ep-sync-box__button-resume,
+	& .ep-sync-box__button-pause,
+	& .ep-sync-box__button-stop {
 		align-items: center;
 		display: none;
 		flex-direction: column;
@@ -126,26 +126,26 @@
 		width: 100px;
 	}
 
-	& .sync-box__button-stop {
+	& .ep-sync-box__button-stop {
 		background-color: #00a0d2;
 		border-color: #00a0d2;
 		margin-left: 24px;
 	}
 
-	& .sync-box__progress {
+	& .ep-sync-box__progress {
 		align-items: center;
 		display: flex;
 		flex-direction: row;
 		margin-bottom: 5px;
 	}
 
-	& .sync-box__sync-in-progress {
+	& .ep-sync-box__sync-in-progress {
 		display: flex;
 		flex-direction: row;
 		width: 30%;
 	}
 
-	& .sync-box__progressbar {
+	& .ep-sync-box__progressbar {
 		background-color: #f1f1f1;
 		border-radius: 24px;
 		height: 20px;
@@ -153,7 +153,7 @@
 		width: 65%;
 	}
 
-	& .sync-box__progressbar_animated {
+	& .ep-sync-box__progressbar_animated {
 		background-color: rgba(0, 160, 210, 0.3);
 		color: #333;
 		display: block;
@@ -163,60 +163,65 @@
 		width: 0;
 	}
 
-	& .sync-box__progressbar_complete {
+	& .ep-sync-box__progressbar_complete {
 		background-color: #46b450;
 		color: #fff;
 	}
 
-	& .sync-box__sync-in-progress-info {
+	& .ep-sync-box__sync-in-progress-info {
 		display: flex;
 		flex-direction: column;
 		margin-left: 12px;
 	}
 
-	& .sync-box__progress-info {
+	& .ep-sync-box__progress-info {
 		font-size: 14px;
 		font-weight: 500;
 		margin-bottom: 5px;
 	}
 
-	& .sync-box__start-time {
+	& .ep-sync-box__start-time {
 		color: #00a0d2;
 		font-size: 14px;
 	}
 
-	& .sync-box__start-time-date {
+	& .ep-sync-box__start-time-date {
 		color: #333;
 	}
 }
 
-.elasticpress_page_elasticpress-sync .delete-data-and-sync {
+.elasticpress_page_elasticpress-sync .ep-delete-data-and-sync {
 	margin-top: 40px;
 
 	& .card {
 		margin-top: 17px;
 	}
 
-	& .delete-data-and-sync__title {
+	& .ep-delete-data-and-sync__title {
 		color: #1d2327;
 		font-size: 18px;
 		font-weight: 400;
 	}
 
-	& .delete-data-and-sync__warning {
+	& .ep-delete-data-and-sync__warning {
 		align-items: flex-start;
 		display: flex;
+		width: 69%;
 	}
 
-	& .delete-data-and-sync__warning-icon {
+	& .ep-delete-data-and-sync__warning-icon {
 		margin-right: 9px;
 		margin-top: 17px;
 	}
 
-	& .delete-data-and-sync__button {
+	& .ep-delete-data-and-sync__button {
 		background-color: rgba(181, 39, 39, 0.03);
 		border: 1px solid #b52727;
 		color: #b52727;
 		margin: 5px 0 12px;
+	}
+
+	& .ep-delete-data-and-sync__button-cancel {
+		display: none;
 	}
 }

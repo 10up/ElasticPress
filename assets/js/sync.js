@@ -1,20 +1,22 @@
 /* eslint-disable camelcase, no-use-before-define */
 const { ajaxurl, epDash, history } = window;
 
-const progressBar = document.querySelectorAll('.sync-box__progressbar_animated');
+const progressBar = document.querySelectorAll('.ep-sync-data .ep-sync-box__progressbar_animated');
 const allButtons = {
-	start: document.querySelectorAll('.start-sync'),
-	resume: document.querySelectorAll('.sync-box__button-resume'),
-	pause: document.querySelectorAll('.sync-box__button-pause'),
-	stop: document.querySelectorAll('.sync-box__button-stop'),
-	learnMore: document.querySelectorAll('.sync-box__learn-more-link'),
+	start: document.querySelectorAll('.ep-start-sync'),
+	resume: document.querySelectorAll('.ep-sync-box__button-resume'),
+	pause: document.querySelectorAll('.ep-sync-box__button-pause'),
+	stop: document.querySelectorAll('.ep-sync-box__button-stop'),
+	learnMore: document.querySelectorAll('.ep-sync-box__learn-more-link'),
 };
+const deleteButon = document.querySelector('.ep-delete-data-and-sync__button');
 const syncStatusText = document.querySelectorAll('.sync-status');
-const $startSyncButton = jQuery(document.getElementsByClassName('start-sync'));
-const $resumeSyncButton = jQuery(document.getElementsByClassName('sync-box__button-resume'));
-const $pauseSyncButton = jQuery(document.getElementsByClassName('sync-box__button-pause'));
-const $stopSyncButton = jQuery(document.getElementsByClassName('sync-box__button-stop'));
+const $startSyncButton = jQuery(document.getElementsByClassName('ep-start-sync'));
+const $resumeSyncButton = jQuery(document.getElementsByClassName('ep-sync-box__button-resume'));
+const $pauseSyncButton = jQuery(document.getElementsByClassName('ep-sync-box__button-pause'));
+const $stopSyncButton = jQuery(document.getElementsByClassName('ep-sync-box__button-stop'));
 const epSyncOutput = document.getElementById('ep-sync-output');
+const epDeleteOutput = document.getElementById('ep-delete-output');
 
 let syncStatus = 'sync';
 let currentSyncItem;
@@ -134,15 +136,15 @@ function updateSyncDash() {
 	if (isSyncing) {
 		showProgressBar();
 		progressBar.forEach((bar) => {
-			bar.classList.remove('sync-box__progressbar_complete');
+			bar.classList.remove('ep-sync-box__progressbar_complete');
 		});
 	} else {
-		const progressInfoElement = document.querySelector('.sync-box__progress-info');
+		const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
 
 		progressInfoElement.innerText = 'Sync completed';
 
 		progressBar.forEach((bar) => {
-			bar.classList.add('sync-box__progressbar_complete');
+			bar.classList.add('ep-sync-box__progressbar_complete');
 		});
 
 		setTimeout(() => {
@@ -239,32 +241,32 @@ function cliSync() {
 		});
 }
 
-function addLineToOutput(text) {
+function addLineToOutput(text, outputElement) {
 	const lastLineNumberElement = document.querySelector(
-		'.sync-box__output-line:last-child .sync-box__output-line-number',
+		'.ep-sync-box__output-line:last-child .ep-sync-box__output-line-number',
 	);
 	const lastLineNumber = Number(lastLineNumberElement?.innerText);
 
 	const lineNumber = document.createElement('div');
-	lineNumber.className = 'sync-box__output-line-number';
+	lineNumber.className = 'ep-sync-box__output-line-number';
 	lineNumber.innerText =
 		typeof lastLineNumber === 'number' && !Number.isNaN(lastLineNumber)
 			? lastLineNumber + 1
 			: 1;
 
 	const lineText = document.createElement('div');
-	lineText.className = 'sync-box__output-line-text';
+	lineText.className = 'ep-sync-box__output-line-text';
 	lineText.innerText = text;
 
 	const line = document.createElement('div');
-	line.className = 'sync-box__output-line';
+	line.className = 'ep-sync-box__output-line';
 	line.append(lineNumber);
 	line.append(lineText);
 
-	epSyncOutput.append(line);
+	outputElement.append(line);
 
-	const epSyncWrapper = document.querySelector('.sync-box__output');
-	epSyncWrapper.scrollTo(0, epSyncOutput.scrollHeight);
+	const epSyncWrapper = document.querySelector('.ep-sync-box__output');
+	epSyncWrapper.scrollTo(0, outputElement.scrollHeight);
 }
 
 /**
@@ -284,7 +286,7 @@ function sync(putMapping = false) {
 			},
 		})
 		.done((response) => {
-			addLineToOutput(response.data.message);
+			addLineToOutput(response.data.message, epSyncOutput);
 
 			if (response.data?.index_meta?.should_interrupt_sync) {
 				syncStatus = 'interrupt';
@@ -306,7 +308,7 @@ function sync(putMapping = false) {
 				syncStatus = 'finished';
 				updateSyncDash();
 
-				addLineToOutput('===============================');
+				addLineToOutput('===============================', epSyncOutput);
 
 				epSyncOutput.scrollTop = epSyncOutput.scrollHeight;
 
@@ -349,14 +351,14 @@ function sync(putMapping = false) {
 		});
 }
 
-$startSyncButton.on('click', (event) => {
+function startSyncProcess(putMapping) {
 	syncStatus = 'initialsync';
 
-	const progressWrapperElement = document.querySelector('.sync-box__progress-wrapper');
+	const progressWrapperElement = document.querySelector('.ep-sync-data .ep-sync-box__progress-wrapper');
 
 	progressWrapperElement.style.display = 'block';
 
-	const progressInfoElement = document.querySelector('.sync-box__progress-info');
+	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
 
 	progressInfoElement.innerText = 'Sync in progress';
 
@@ -374,14 +376,15 @@ $startSyncButton.on('click', (event) => {
 
 	syncStatus = 'sync';
 
-	const putMapping = event.target.classList.contains('start-sync-put-mapping');
 	sync(putMapping);
-});
+}
+
+$startSyncButton.on('click', () => { startSyncProcess() });
 
 $pauseSyncButton.on('click', () => {
 	syncStatus = 'pause';
 
-	const progressInfoElement = document.querySelector('.sync-box__progress-info');
+	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
 
 	progressInfoElement.innerText = 'Sync paused';
 
@@ -391,7 +394,11 @@ $pauseSyncButton.on('click', () => {
 $resumeSyncButton.on('click', () => {
 	syncStatus = 'sync';
 
-	const progressInfoElement = document.querySelector('.sync-box__progress-info');
+	const progressWrapperElement = document.querySelector('.ep-sync-data .ep-sync-box__progress-wrapper');
+
+	progressWrapperElement.style.display = 'block';
+
+	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
 
 	progressInfoElement.innerText = 'Sync in progress';
 
@@ -403,7 +410,7 @@ $resumeSyncButton.on('click', () => {
 $stopSyncButton.on('click', () => {
 	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
 
-	const progressInfoElement = document.querySelector('.sync-box__progress-info');
+	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
 
 	updateSyncDash();
 
@@ -416,5 +423,48 @@ $stopSyncButton.on('click', () => {
 		bar.innerText = ``;
 	});
 
-	addLineToOutput('Sync stopped');
+	addLineToOutput('Sync stopped', epSyncOutput);
+});
+
+deleteButon.addEventListener('click', function() {
+	addLineToOutput('Deleting all data...', epDeleteOutput);
+
+	deleteButon.style.display = 'none';
+
+	const cancelButton = document.querySelector('.ep-delete-data-and-sync__button-cancel');
+	cancelButton.style.display = 'block';
+
+	const progressWrapperElement = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__progress-wrapper');
+
+	progressWrapperElement.style.display = 'block';
+
+	const progressInfoElement = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__progress-info');
+
+	progressInfoElement.innerText = 'Deleting indexed data...';
+
+	const progressBar = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__progressbar_animated');
+
+	progressBar.style.width = `25%`;
+	progressBar.innerText = `25%`;
+
+	setTimeout(() => {
+		progressBar.style.width = `100%`;
+		progressBar.innerText = `100%`;
+		progressBar.classList.add('ep-sync-box__progressbar_complete');
+
+		addLineToOutput('Deletion complete', epDeleteOutput);
+
+		cancelButton.style.display = 'none';
+		deleteButon.style.display = 'block';
+	}, 5000);
+
+	setTimeout(() => {
+		startSyncProcess(true);
+		progressWrapperElement.style.display = 'none';
+		console.log(progressBar);
+		progressBar.classList.remove('ep-sync-box__progressbar_complete');
+		progressBar.style.width = `0`;
+		progressBar.innerText = ``;
+	}, 7000)
+
 });
