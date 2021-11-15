@@ -1,3 +1,5 @@
+import apiFetch from '@wordpress/api-fetch';
+
 /* eslint-disable camelcase, no-use-before-define */
 const { ajaxurl, epDash, history } = window;
 
@@ -11,10 +13,10 @@ const allButtons = {
 };
 const deleteButon = document.querySelector('.ep-delete-data-and-sync__button');
 const syncStatusText = document.querySelectorAll('.sync-status');
-const $startSyncButton = jQuery(document.getElementsByClassName('ep-start-sync'));
-const $resumeSyncButton = jQuery(document.getElementsByClassName('ep-sync-box__button-resume'));
-const $pauseSyncButton = jQuery(document.getElementsByClassName('ep-sync-box__button-pause'));
-const $stopSyncButton = jQuery(document.getElementsByClassName('ep-sync-box__button-stop'));
+const $startSyncButton = document.querySelector('.ep-start-sync');
+const $resumeSyncButton = document.querySelector('.ep-sync-box__button-resume');
+const $pauseSyncButton = document.querySelector('.ep-sync-box__button-pause');
+const $stopSyncButton = document.querySelector('.ep-sync-box__button-stop');
 const epSyncOutput = document.getElementById('ep-sync-output');
 const epDeleteOutput = document.getElementById('ep-delete-output');
 
@@ -194,51 +196,51 @@ function updateSyncDash() {
  * Cancel a sync
  */
 function cancelSync() {
-	jQuery.ajax({
-		method: 'post',
-		url: ajaxurl,
-		data: {
+	apiFetch({
+		path: ajaxurl,
+		method: 'POST',
+		body: new URLSearchParams({
 			action: 'ep_cancel_index',
 			nonce: epDash.nonce,
-		},
+		}),
 	});
 }
 
 function cliSync() {
-	jQuery
-		.ajax({
-			method: 'post',
-			url: ajaxurl,
-			data: {
-				action: 'ep_cli_index',
-				nonce: epDash.nonce,
-			},
-		})
-		.done((response) => {
-			if (syncStatus === 'interrupt') {
+	const requestSettings = {
+		path: ajaxurl,
+		method: 'POST',
+		body: new URLSearchParams({
+			action: 'ep_cli_index',
+			nonce: epDash.nonce,
+		}),
+	};
+
+	apiFetch(requestSettings).then((response) => {
+		if (syncStatus === 'interrupt') {
+			return;
+		}
+
+		if (syncStatus === 'wpcli') {
+			toProcess = response.data?.total_items;
+			processed = response.data?.items_indexed;
+
+			currentSyncItem = {
+				indexable: response.data?.slug,
+				url: response.data?.url,
+			};
+
+			updateSyncDash();
+
+			if (response.data?.indexing) {
+				cliSync();
 				return;
 			}
+		}
 
-			if (syncStatus === 'wpcli') {
-				toProcess = response.data?.total_items;
-				processed = response.data?.items_indexed;
-
-				currentSyncItem = {
-					indexable: response.data?.slug,
-					url: response.data?.url,
-				};
-
-				updateSyncDash();
-
-				if (response.data?.indexing) {
-					cliSync();
-					return;
-				}
-			}
-
-			syncStatus = 'finished';
-			updateSyncDash();
-		});
+		syncStatus = 'finished';
+		updateSyncDash();
+	});
 }
 
 function addLineToOutput(text, outputElement) {
@@ -275,17 +277,18 @@ function addLineToOutput(text, outputElement) {
  * @param {boolean} putMapping Whetever mapping should be sent or not.
  */
 function sync(putMapping = false) {
-	jQuery
-		.ajax({
-			method: 'post',
-			url: ajaxurl,
-			data: {
-				action: 'ep_index',
-				put_mapping: putMapping ? 1 : 0,
-				nonce: epDash.nonce,
-			},
-		})
-		.done((response) => {
+	const requestSettings = {
+		path: ajaxurl,
+		method: 'POST',
+		body: new URLSearchParams({
+			action: 'ep_index',
+			put_mapping: putMapping ? 1 : 0,
+			nonce: epDash.nonce,
+		}),
+	};
+
+	apiFetch(requestSettings)
+		.then((response) => {
 			addLineToOutput(response.data.message, epSyncOutput);
 
 			if (response.data?.index_meta?.should_interrupt_sync) {
@@ -336,7 +339,7 @@ function sync(putMapping = false) {
 			}
 			sync(putMapping);
 		})
-		.error((response) => {
+		.catch((response) => {
 			if (
 				response &&
 				response.status &&
@@ -371,21 +374,16 @@ function startSyncProcess(putMapping) {
 
 	updateSyncDash();
 
-	// On initial sync, remove dashboard warnings that dont make sense
-	jQuery(
-		'[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]',
-	).remove();
-
 	syncStatus = 'sync';
 
 	sync(putMapping);
 }
 
-$startSyncButton.on('click', () => {
+$startSyncButton.addEventListener('click', () => {
 	startSyncProcess();
 });
 
-$pauseSyncButton.on('click', () => {
+$pauseSyncButton.addEventListener('click', () => {
 	syncStatus = 'pause';
 
 	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
@@ -395,7 +393,7 @@ $pauseSyncButton.on('click', () => {
 	updateSyncDash();
 });
 
-$resumeSyncButton.on('click', () => {
+$resumeSyncButton.addEventListener('click', () => {
 	syncStatus = 'sync';
 
 	const progressWrapperElement = document.querySelector(
@@ -413,7 +411,7 @@ $resumeSyncButton.on('click', () => {
 	sync();
 });
 
-$stopSyncButton.on('click', () => {
+$stopSyncButton.addEventListener('click', () => {
 	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
 
 	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
