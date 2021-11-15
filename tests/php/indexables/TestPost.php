@@ -2449,7 +2449,7 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's' => '',
+			'ep_integrate' => true
 		);
 
 		$query = new \WP_Query( $args );
