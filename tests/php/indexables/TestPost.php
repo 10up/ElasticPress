@@ -449,7 +449,7 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			$tax_name => $term_1_name,
-			's'       => '',
+			'ep_integrate' => true
 		);
 
 		$query = new \WP_Query( $args );
@@ -480,7 +480,7 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			'category_name' => $term_1_name,
-			's'             => '',
+			'ep_integrate'  => true
 		);
 
 		$query = new \WP_Query( $args );
@@ -509,8 +509,8 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			'tag' => $term_1_name,
-			's'   => '',
+			'tag'          => $term_1_name,
+			'ep_integrate' => true,
 		);
 
 		$query = new \WP_Query( $args );
