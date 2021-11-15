@@ -59,7 +59,7 @@
     "wpDependencyExternals": false
   },
   "dependencies": {
-    "@wordpress/api-fetch": "^3.23.1",
+    "@wordpress/api-fetch": "^5.2.6",
     "@wordpress/i18n": "^3.20.0",
     "chart.js": "^2.9.4",
     "element-closest": "^3.0.2",
