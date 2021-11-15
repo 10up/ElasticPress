@@ -354,7 +354,9 @@ function sync(putMapping = false) {
 function startSyncProcess(putMapping) {
 	syncStatus = 'initialsync';
 
-	const progressWrapperElement = document.querySelector('.ep-sync-data .ep-sync-box__progress-wrapper');
+	const progressWrapperElement = document.querySelector(
+		'.ep-sync-data .ep-sync-box__progress-wrapper',
+	);
 
 	progressWrapperElement.style.display = 'block';
 
@@ -379,7 +381,9 @@ function startSyncProcess(putMapping) {
 	sync(putMapping);
 }
 
-$startSyncButton.on('click', () => { startSyncProcess() });
+$startSyncButton.on('click', () => {
+	startSyncProcess();
+});
 
 $pauseSyncButton.on('click', () => {
 	syncStatus = 'pause';
@@ -394,7 +398,9 @@ $pauseSyncButton.on('click', () => {
 $resumeSyncButton.on('click', () => {
 	syncStatus = 'sync';
 
-	const progressWrapperElement = document.querySelector('.ep-sync-data .ep-sync-box__progress-wrapper');
+	const progressWrapperElement = document.querySelector(
+		'.ep-sync-data .ep-sync-box__progress-wrapper',
+	);
 
 	progressWrapperElement.style.display = 'block';
 
@@ -426,7 +432,7 @@ $stopSyncButton.on('click', () => {
 	addLineToOutput('Sync stopped', epSyncOutput);
 });
 
-deleteButon.addEventListener('click', function() {
+deleteButon.addEventListener('click', function () {
 	addLineToOutput('Deleting all data...', epDeleteOutput);
 
 	deleteButon.style.display = 'none';
@@ -434,15 +440,21 @@ deleteButon.addEventListener('click', function() {
 	const cancelButton = document.querySelector('.ep-delete-data-and-sync__button-cancel');
 	cancelButton.style.display = 'block';
 
-	const progressWrapperElement = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__progress-wrapper');
+	const progressWrapperElement = document.querySelector(
+		'.ep-delete-data-and-sync .ep-sync-box__progress-wrapper',
+	);
 
 	progressWrapperElement.style.display = 'block';
 
-	const progressInfoElement = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__progress-info');
+	const progressInfoElement = document.querySelector(
+		'.ep-delete-data-and-sync .ep-sync-box__progress-info',
+	);
 
 	progressInfoElement.innerText = 'Deleting indexed data...';
 
-	const progressBar = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__progressbar_animated');
+	const progressBar = document.querySelector(
+		'.ep-delete-data-and-sync .ep-sync-box__progressbar_animated',
+	);
 
 	progressBar.style.width = `25%`;
 	progressBar.innerText = `25%`;
@@ -461,10 +473,8 @@ deleteButon.addEventListener('click', function() {
 	setTimeout(() => {
 		startSyncProcess(true);
 		progressWrapperElement.style.display = 'none';
-		console.log(progressBar);
 		progressBar.classList.remove('ep-sync-box__progressbar_complete');
 		progressBar.style.width = `0`;
 		progressBar.innerText = ``;
-	}, 7000)
-
+	}, 7000);
 });
