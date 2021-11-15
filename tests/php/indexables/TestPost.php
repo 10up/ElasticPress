@@ -3054,9 +3054,11 @@ class TestPost extends BaseTestCase {
 			's' => 'findme',
 		);
 
+		$num_queries = $GLOBALS['wpdb']->num_queries;
+
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $num_queries, $GLOBALS['wpdb']->num_queries );
 		$this->assertEquals( 0, $query->post_count );
 		$this->assertEquals( 0, $query->found_posts );
 
