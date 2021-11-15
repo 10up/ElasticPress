@@ -1092,6 +1092,8 @@ h2 .nav-tab.ep-credentials-tab {
 }
 
 .ep-totals {
+	display: flex;
+	flex-direction: column;
 	width: 100%;
 
 	@media (--tablet-min) {
@@ -1101,18 +1103,26 @@ h2 .nav-tab.ep-credentials-tab {
 	@media (--wide-min) {
 		width: 47%;
 	}
+
+	& .ep-flex-container {
+		flex-direction: column;
+		justify-content: center;
+		margin-bottom: auto;
+		margin-top: auto;
+
+		@media (--wide-min) {
+			flex-direction: row;
+		}
+	}
 }
 
-.ep-totals-1st-row {
+.ep-totals-column {
+	box-sizing: border-box;
+	text-align: center;
 	width: 100%;
 
-	@media (--tablet-min) {
-		width: 48%;
-	}
-
 	@media (--wide-min) {
-		text-align: center;
-		width: 45%;
+		width: 50%;
 	}
 }
 
@@ -1125,9 +1135,3 @@ p.ep-totals-data {
 	font-size: 3em;
 	margin-top: 22px;
 }
-
-.ep-totals-2nd-row {
-	text-align: center;
-	width: 100%;
-}
-
