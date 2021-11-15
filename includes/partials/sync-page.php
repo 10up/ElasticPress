@@ -2,13 +2,12 @@
 /**
  * Template for ElasticPress sync page
  *
- * @since  3.6.0
+ * @since  4.0.0
  * @package elasticpress
  */
 
-
-require_once __DIR__ . '/header.php';
 ?>
+<?php require_once __DIR__ . '/header.php'; ?>
 
 <div class="wrap">
 	<h1><?php esc_html_e( 'Sync Settings', 'elasticpress' ); ?></h1>
@@ -27,7 +26,8 @@ require_once __DIR__ . '/header.php';
 						</p>
 						<img width="16" src="<?php echo esc_url( plugins_url( '/images/thumbsup.svg', dirname( __DIR__ ) ) ); ?>" />
 						<?php
-							echo sprintf( __( '<span class="ep-last-sync__status">Sync success on</span><span class="ep-last-sync__date">%s</span>' ), 'Wed, September 29, 2021 14:13' );
+							// translators: sync date
+							echo wp_kses_post( sprintf( __( '<span class="ep-last-sync__status">Sync success on</span><span class="ep-last-sync__date">%s</span>' ), 'Wed, September 29, 2021 14:13' ) );
 						?>
 					</div>
 					<p>
