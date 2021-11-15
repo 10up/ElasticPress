@@ -1363,9 +1363,9 @@ class TestPost extends BaseTestCase {
 
 		// post_type defaults to "any"
 		$args = array(
-			'post_type'              => 'attachment',
-			'post_status'            => 'any',
-			'elasticpress_integrate' => true,
+			'post_type'    => 'attachment',
+			'post_status'  => 'any',
+			'ep_integrate' => true,
 		);
 
 		$query = new \WP_Query( $args );
