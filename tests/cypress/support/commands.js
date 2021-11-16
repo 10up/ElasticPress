@@ -79,3 +79,8 @@ Cypress.Commands.add( 'openDocumentSettingsPanel', ( name ) => {
 			}
 		} );
 } );
+
+Cypress.Commands.add( 'clearThenType', { prevSubject: true }, (subject, text) => {
+    cy.wrap( subject ).clear().type( text );
+  }
+);
