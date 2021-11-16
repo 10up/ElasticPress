@@ -73,6 +73,38 @@ function makeButtonsVisible(visibleButtons) {
 }
 
 /**
+ * Change the disabled attribute of an element
+ *
+ * @param {HTMLElement} element Element to be updated
+ * @param {boolean} value The value used in disabled attribute
+ */
+function updateDisabledAttribute(element, value) {
+	element.disabled = value;
+}
+
+/**
+ * Enable buttons
+ *
+ * @param {Array} buttonsKey Array of key buttons
+ */
+function enableButtons(buttonsKey) {
+	buttonsKey.forEach((key) => {
+		updateDisabledAttribute(buttons[key], false);
+	});
+}
+
+/**
+ * Disable buttons
+ *
+ * @param {Array} buttonsKey Array of key buttons
+ */
+function disableButtons(buttonsKey) {
+	buttonsKey.forEach((key) => {
+		updateDisabledAttribute(buttons[key], true);
+	});
+}
+
+/**
  * Show or hide the progress bar(s).
  *
  * @param {boolean} display Wheter the progress bar(s) should or should not be visible.
@@ -86,29 +118,25 @@ function showProgressBar(display = true) {
  */
 function updateSyncDash() {
 	const progressBarWidth = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
-	progressBar.forEach((bar) => {
-		if (typeof progressBarWidth === 'number' && !Number.isNaN(progressBarWidth)) {
-			bar.style.width = `${progressBarWidth}%`;
-			bar.innerText = `${Math.trunc(progressBarWidth)}%`;
-		}
-	});
+
+	if (typeof progressBarWidth === 'number' && !Number.isNaN(progressBarWidth)) {
+		progressBar.style.width = `${progressBarWidth}%`;
+		progressBar.innerText = `${Math.trunc(progressBarWidth)}%`;
+	}
 
 	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
 	if (isSyncing) {
 		showProgressBar();
-		progressBar.forEach((bar) => {
-			bar.classList.remove('ep-sync-box__progressbar_complete');
-		});
+		progressBar.classList.remove('ep-sync-box__progressbar_complete');
 	} else {
 		const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
 
 		progressInfoElement.innerText = 'Sync completed';
 
-		progressBar.forEach((bar) => {
-			bar.classList.add('ep-sync-box__progressbar_complete');
-		});
+		progressBar.classList.add('ep-sync-box__progressbar_complete');
 
 		makeButtonsVisible(['start', 'learnMore', 'delete']);
+		enableButtons(['delete']);
 	}
 
 	if (syncStatus === 'initialsync') {
@@ -117,8 +145,10 @@ function updateSyncDash() {
 		makeButtonsVisible(['pause', 'stop', 'delete']);
 	} else if (syncStatus === 'pause') {
 		makeButtonsVisible(['resume', 'stop', 'delete']);
+		disableButtons(['delete']);
 	} else if (syncStatus === 'wpcli') {
 		makeButtonsVisible(['stop', 'delete']);
+		disableButtons(['delete']);
 	}
 }
 
@@ -202,6 +232,8 @@ function addLineToOutput(text, outputElement) {
  * @param {boolean} putMapping Whetever mapping should be sent or not.
  */
 function sync(putMapping = false) {
+	disableButtons(['delete']);
+
 	const requestSettings = {
 		path: ajaxurl,
 		method: 'POST',
@@ -269,11 +301,15 @@ function sync(putMapping = false) {
 
 				cancelSync();
 			}
+
+			enableButtons(['delete']);
 		});
 }
 
 function startSyncProcess(putMapping) {
 	syncStatus = 'initialsync';
+
+	enableButtons(['start', 'pause', 'resume', 'stop']);
 
 	const progressWrapperElement = document.querySelector(
 		'.ep-sync-data .ep-sync-box__progress-wrapper',
@@ -285,10 +321,8 @@ function startSyncProcess(putMapping) {
 
 	progressInfoElement.innerText = 'Sync in progress';
 
-	progressBar.forEach((bar) => {
-		bar.style.width = `0`;
-		bar.innerText = ``;
-	});
+	progressBar.style.width = `0`;
+	progressBar.innerText = ``;
 
 	updateSyncDash();
 
@@ -340,16 +374,18 @@ buttons.stop.addEventListener('click', () => {
 
 	progressInfoElement.innerText = 'Sync stopped';
 
-	progressBar.forEach((bar) => {
-		bar.style.width = `0`;
-		bar.innerText = ``;
-	});
+	progressBar.style.width = `0`;
+	progressBar.innerText = ``;
 
 	addLineToOutput('Sync stopped', epSyncOutput);
+
+	enableButtons(['delete']);
 });
 
 buttons.delete.addEventListener('click', function () {
 	addLineToOutput('Deleting all data...', epDeleteOutput);
+
+	disableButtons(['start', 'resume', 'pause', 'stop']);
 
 	buttons.delete.style.display = 'none';
 

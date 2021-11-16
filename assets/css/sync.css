@@ -1,3 +1,7 @@
+.elasticpress_page_elasticpress-sync .button:disabled {
+	cursor: not-allowed;
+}
+
 .ep-sync-box__progress-wrapper {
 	display: none;
 }
