@@ -6,6 +6,10 @@
  * @package elasticpress
  */
 
+use ElasticPress\Utils as Utils;
+
+$ep_last_index     = Utils\get_option( 'ep_last_index' );
+$ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
 ?>
 <?php require_once __DIR__ . '/header.php'; ?>
 
@@ -24,11 +28,13 @@
 						<p class="ep-last-sync__title">
 							<?php echo esc_html__( 'Last sync:', 'elasticpress' ); ?>
 						</p>
-						<img width="16" src="<?php echo esc_url( plugins_url( '/images/thumbsup.svg', dirname( __DIR__ ) ) ); ?>" />
-						<?php
-							// translators: sync date
-							echo wp_kses_post( sprintf( __( '<span class="ep-last-sync__status">Sync success on</span><span class="ep-last-sync__date">%s</span>' ), 'Wed, September 29, 2021 14:13' ) );
-						?>
+						<?php if ( $ep_last_sync_date ) : ?>
+							<img width="16" src="<?php echo esc_url( plugins_url( '/images/thumbsup.svg', dirname( __DIR__ ) ) ); ?>" />
+							<?php
+								// translators: sync date
+								echo wp_kses_post( sprintf( __( '<span class="ep-last-sync__status">Sync success on</span><span class="ep-last-sync__date">%s</span>' ), $ep_last_sync_date ) );
+							?>
+						<?php endif; ?>
 					</div>
 					<p>
 						<a href="#">
@@ -68,7 +74,7 @@
 						<img width="36" height="36" src="<?php echo esc_url( plugins_url( '/images/sync-in-progress.png', dirname( __DIR__ ) ) ); ?>" />
 						<div class="ep-sync-box__sync-in-progress-info">
 							<div class="ep-sync-box__progress-info">Sync in progress</div>
-							<div class="ep-sync-box__start-time">Start time: <span class="ep-sync-box__start-time-date">Fri, September 30, 2021 16:20</span></div>
+							<div class="ep-sync-box__start-time"><?php esc_html_e( 'Start time:', 'elasticpress' ); ?> <span class="ep-sync-box__start-time-date"></span></div>
 						</div>
 					</div>
 					<span class="ep-sync-box__progressbar">
@@ -77,15 +83,18 @@
 					</span>
 				</div>
 				<div class="ep-sync-box__output-tabs">
-					<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active">
-						Full log
+					<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
+						<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
 					</div>
-					<div class="ep-sync-box__output-tab">
-						Errors (0)
+					<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
+						<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
 					</div>
 				</div>
-				<div class="ep-sync-box__output">
+				<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
 					<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
+				</div>
+				<div class="ep-sync-box__output ep-sync-box__output-error">
+					<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
 				</div>
 			</div>
 		</div>
