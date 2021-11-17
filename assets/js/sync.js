@@ -14,6 +14,11 @@ const buttons = {
 };
 const epSyncOutput = document.getElementById('ep-sync-output');
 const epDeleteOutput = document.getElementById('ep-delete-output');
+const startDateTimeSync = document.querySelector('.ep-sync-data .ep-sync-box__start-time-date');
+const syncBoxFulllogTab = document.querySelector('.ep-sync-box__output-tab-fulllog');
+const syncBoxOutputFulllog = document.querySelector('.ep-sync-box__output-fulllog');
+const syncBoxErrorTab = document.querySelector('.ep-sync-box__output-tab-error');
+const syncBoxOutputError = document.querySelector('.ep-sync-box__output-error');
 
 let syncStatus = 'sync';
 let syncStack;
@@ -248,6 +253,10 @@ function sync(putMapping = false) {
 		.then((response) => {
 			addLineToOutput(response.data.message, epSyncOutput);
 
+			if (!startDateTimeSync.innerText && response.data?.index_meta?.start_date_time) {
+				startDateTimeSync.innerText = response.data?.index_meta?.start_date_time;
+			}
+
 			if (response.data?.index_meta?.should_interrupt_sync) {
 				syncStatus = 'interrupt';
 				updateSyncDash();
@@ -266,6 +275,11 @@ function sync(putMapping = false) {
 
 			if (!response.data.index_meta) {
 				syncStatus = 'finished';
+
+				const lastSyncDate = document.querySelector('.ep-last-sync__date');
+				lastSyncDate.innerText =
+					response.data.totals.end_date_time || lastSyncDate.innerText;
+
 				updateSyncDash();
 
 				addLineToOutput('===============================', epSyncOutput);
@@ -324,6 +338,8 @@ function startSyncProcess(putMapping) {
 	progressBar.style.width = `0`;
 	progressBar.innerText = ``;
 
+	startDateTimeSync.innerText = '';
+
 	updateSyncDash();
 
 	syncStatus = 'sync';
@@ -377,6 +393,8 @@ buttons.stop.addEventListener('click', () => {
 	progressBar.style.width = `0`;
 	progressBar.innerText = ``;
 
+	startDateTimeSync.innerText = '';
+
 	addLineToOutput('Sync stopped', epSyncOutput);
 
 	enableButtons(['delete']);
@@ -429,4 +447,20 @@ buttons.delete.addEventListener('click', function () {
 		progressBar.style.width = `0`;
 		progressBar.innerText = ``;
 	}, 7000);
+});
+
+syncBoxFulllogTab.addEventListener('click', function () {
+	syncBoxFulllogTab.classList.add('ep-sync-box__output-tab_active');
+	syncBoxOutputFulllog.classList.add('ep-sync-box__output_active');
+
+	syncBoxErrorTab.classList.remove('ep-sync-box__output-tab_active');
+	syncBoxOutputError.classList.remove('ep-sync-box__output_active');
+});
+
+syncBoxErrorTab.addEventListener('click', function () {
+	syncBoxErrorTab.classList.add('ep-sync-box__output-tab_active');
+	syncBoxOutputError.classList.add('ep-sync-box__output_active');
+
+	syncBoxFulllogTab.classList.remove('ep-sync-box__output-tab_active');
+	syncBoxOutputFulllog.classList.remove('ep-sync-box__output_active');
 });

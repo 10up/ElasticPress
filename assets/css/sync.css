@@ -8,10 +8,15 @@
 
 .ep-sync-box__output {
 	background-color: #1a1e24;
+	display: none;
 	margin-bottom: 20px;
 	max-height: 200px;
 	overflow-y: scroll;
 	position: relative;
+}
+
+.ep-sync-box__output_active {
+	display: block;
 }
 
 .ep-sync-box__output-wrapper {
@@ -50,9 +55,17 @@
 	padding: 16px;
 }
 
+.ep-sync-box__output-tab:hover {
+	cursor: pointer;
+}
+
 .ep-sync-box__output-tab_active {
 	border-bottom: 4px solid #00a0d2;
 	padding-bottom: 12px;
+}
+
+.ep-sync-box__output-tab_active:hover {
+	cursor: default;
 }
 
 .elasticpress_page_elasticpress-sync .card {
