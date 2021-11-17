@@ -93,14 +93,17 @@ class IndexHelper {
 		Utils\delete_option( 'ep_need_upgrade_sync' );
 		Utils\delete_option( 'ep_feature_auto_activated_sync' );
 
+		$start_date_time = date_create( 'now', wp_timezone() );
+
 		$this->index_meta = [
-			'method'        => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
-			'offset'        => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
-			'start'         => true,
-			'sync_stack'    => [],
-			'network_alias' => [],
-			'start_time'    => microtime( true ),
-			'totals'        => [
+			'method'          => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
+			'offset'          => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
+			'start'           => true,
+			'sync_stack'      => [],
+			'network_alias'   => [],
+			'start_time'      => microtime( true ),
+			'start_date_time' => $start_date_time ? $start_date_time->format( 'D, F d, Y H:i' ) : false,
+			'totals'          => [
 				'total'      => 0,
 				'synced'     => 0,
 				'skipped'    => 0,
@@ -706,8 +709,11 @@ class IndexHelper {
 
 		$this->index_meta = null;
 
-		$totals['end_time_gmt'] = time();
-		$totals['total_time']   = microtime( true ) - $start_time;
+		$end_date_time = date_create( 'now', wp_timezone() );
+
+		$totals['end_date_time'] = $end_date_time ? $end_date_time->format( 'D, F d, Y H:i' ) : false;
+		$totals['end_time_gmt']  = time();
+		$totals['total_time']    = microtime( true ) - $start_time;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
 
@@ -793,11 +799,13 @@ class IndexHelper {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
 			Utils\delete_option( 'ep_index_meta' );
+			$totals = Utils\get_option( 'ep_last_index' );
 		}
 
 		$message = [
 			'message'    => $message_text,
 			'index_meta' => $this->index_meta,
+			'totals'     => $totals,
 			'status'     => $type,
 		];
 
