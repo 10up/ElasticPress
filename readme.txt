@@ -11,6 +11,10 @@ A fast and flexible search and query engine for WordPress.
 == Description ==
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
+## ElasticPress 4.0.0 Beta is coming!
+
+Planned to be released in early December, the first Beta for ElasticPress 4.0 will bring changes and new features. Make sure to read the [changes planned](https://github.com/10up/ElasticPress#planned-changes-for-400) before updating. Even after the release of Beta 1, the software will be still in development, so it will not be recommended to run it on a production site.
+
 Here is a list of the amazing ElasticPress features included in the plugin:
 
 __Search__: Instantly find the content you’re looking for. The first time.
@@ -31,7 +35,7 @@ __Users__: Improve user search relevancy and query performance.
 
 __Comments__: Indexes your comments and provides a widget with type-ahead search functionality. It works with WooCommerce product reviews out-of-the-box.
 
-Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
+Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation. FAQs and tutorials can be also found on our [support site](https://elasticpress.zendesk.com/hc/en-us).
 
 == Installation ==
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
