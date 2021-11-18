@@ -15,10 +15,16 @@ const buttons = {
 const epSyncOutput = document.getElementById('ep-sync-output');
 const epDeleteOutput = document.getElementById('ep-delete-output');
 const startDateTimeSync = document.querySelector('.ep-sync-data .ep-sync-box__start-time-date');
-const syncBoxFulllogTab = document.querySelector('.ep-sync-box__output-tab-fulllog');
-const syncBoxOutputFulllog = document.querySelector('.ep-sync-box__output-fulllog');
-const syncBoxErrorTab = document.querySelector('.ep-sync-box__output-tab-error');
-const syncBoxOutputError = document.querySelector('.ep-sync-box__output-error');
+
+const syncBoxFulllogTab = document.querySelector('.ep-sync-data .ep-sync-box__output-tab-fulllog');
+const syncBoxOutputFulllog = document.querySelector('.ep-sync-data .ep-sync-box__output-fulllog');
+const syncBoxErrorTab = document.querySelector('.ep-sync-data .ep-sync-box__output-tab-error');
+const syncBoxOutputError = document.querySelector('.ep-sync-data .ep-sync-box__output-error');
+
+const deleteBoxFulllogTab = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__output-tab-fulllog');
+const deleteBoxOutputFulllog = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__output-fulllog');
+const deleteBoxErrorTab = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__output-tab-error');
+const deleteBoxOutputError = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__output-error');
 
 let syncStatus = 'sync';
 let syncStack;
@@ -463,4 +469,20 @@ syncBoxErrorTab.addEventListener('click', function () {
 
 	syncBoxFulllogTab.classList.remove('ep-sync-box__output-tab_active');
 	syncBoxOutputFulllog.classList.remove('ep-sync-box__output_active');
+});
+
+deleteBoxFulllogTab.addEventListener('click', function () {
+	deleteBoxFulllogTab.classList.add('ep-sync-box__output-tab_active');
+	deleteBoxOutputFulllog.classList.add('ep-sync-box__output_active');
+
+	deleteBoxErrorTab.classList.remove('ep-sync-box__output-tab_active');
+	deleteBoxOutputError.classList.remove('ep-sync-box__output_active');
+});
+
+deleteBoxErrorTab.addEventListener('click', function () {
+	deleteBoxErrorTab.classList.add('ep-sync-box__output-tab_active');
+	deleteBoxOutputError.classList.add('ep-sync-box__output_active');
+
+	deleteBoxFulllogTab.classList.remove('ep-sync-box__output-tab_active');
+	deleteBoxOutputFulllog.classList.remove('ep-sync-box__output_active');
 });

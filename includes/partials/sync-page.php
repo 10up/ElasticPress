@@ -133,15 +133,18 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 						</span>
 					</div>
 					<div class="ep-sync-box__output-tabs">
-						<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active">
-							Full log
+						<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
+							<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
 						</div>
-						<div class="ep-sync-box__output-tab">
-							Errors (0)
+						<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
+							<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
 						</div>
 					</div>
-					<div class="ep-sync-box__output">
-						<div id="ep-delete-output" class="ep-sync-box__output-wrapper"></div>
+					<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
+						<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
+					</div>
+					<div class="ep-sync-box__output ep-sync-box__output-error">
+						<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
 					</div>
 				</div>
 
