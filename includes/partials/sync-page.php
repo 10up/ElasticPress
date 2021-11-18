@@ -109,14 +109,32 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 				<p class="ep-sync-box__description_text">
 					<?php esc_html_e( 'If you are still having issues with your search results, you may need to do a completely fresh sync.', 'elasticpress' ); ?>
 				</p>
-
-				<button type="button" class="button button-large ep-delete-data-and-sync__button delete-data-and-sync__button-delete">
+			</div>
+			<div class="ep-sync-box__action">
+				<button type="button" class="button button-large ep-delete-data-and-sync__button ep-delete-data-and-sync__button-delete">
 					<?php echo esc_html__( 'Delete all Data and Start a Fresh Sync ', 'elasticpress' ); ?>
 				</button>
 
 				<button type="button" class="button button-large ep-delete-data-and-sync__button ep-delete-data-and-sync__button-cancel">
 					<?php echo esc_html__( 'Cancel Deleting Process ', 'elasticpress' ); ?>
 				</button>
+
+				<div class="ep-sync-box__buttons">
+					<button type="button" class="button button-primary ep-sync-box__button-pause pause-sync">
+						<img width="16" src="<?php echo esc_url( plugins_url( '/images/pause.svg', dirname( __DIR__ ) ) ); ?>" />
+						<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
+					</button>
+
+					<button type="button" class="button button-primary ep-sync-box__button-resume resume-sync">
+						<img width="16" src="<?php echo esc_url( plugins_url( '/images/resume.svg', dirname( __DIR__ ) ) ); ?>" />
+						<?php echo esc_html__( 'Resume', 'elasticpress' ); ?>
+					</button>
+
+					<button type="button" class="button button-primary ep-sync-box__button-stop">
+						<img width="16" src="<?php echo esc_url( plugins_url( '/images/stop.svg', dirname( __DIR__ ) ) ); ?>" />
+						<?php echo esc_html__( 'Stop', 'elasticpress' ); ?>
+					</button>
+				</div>
 			</div>
 			<div class="ep-sync-box__progress-wrapper">
 					<div class="ep-sync-box__progress">

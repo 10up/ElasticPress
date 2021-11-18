@@ -241,4 +241,16 @@
 	& .ep-delete-data-and-sync__button-cancel {
 		display: none;
 	}
+
+	& .ep-sync-box__action {
+		flex-direction: row;
+		height: 68px;
+		justify-content: space-between;
+		margin-top: 0;
+		width: 100%;
+	}
+
+	& .ep-sync-box__buttons {
+		margin-right: 5%;
+	}
 }

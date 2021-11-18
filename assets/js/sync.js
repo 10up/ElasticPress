@@ -21,10 +21,62 @@ const syncBoxOutputFulllog = document.querySelector('.ep-sync-data .ep-sync-box_
 const syncBoxErrorTab = document.querySelector('.ep-sync-data .ep-sync-box__output-tab-error');
 const syncBoxOutputError = document.querySelector('.ep-sync-data .ep-sync-box__output-error');
 
-const deleteBoxFulllogTab = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__output-tab-fulllog');
-const deleteBoxOutputFulllog = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__output-fulllog');
-const deleteBoxErrorTab = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__output-tab-error');
-const deleteBoxOutputError = document.querySelector('.ep-delete-data-and-sync .ep-sync-box__output-error');
+const deleteBoxFulllogTab = document.querySelector(
+	'.ep-delete-data-and-sync .ep-sync-box__output-tab-fulllog',
+);
+const deleteBoxErrorTab = document.querySelector(
+	'.ep-delete-data-and-sync .ep-sync-box__output-tab-error',
+);
+const deleteBoxOutputFulllog = document.querySelector(
+	'.ep-delete-data-and-sync .ep-sync-box__output-fulllog',
+);
+const deleteBoxOutputError = document.querySelector(
+	'.ep-delete-data-and-sync .ep-sync-box__output-error',
+);
+
+const syncBox = document.querySelector('.ep-sync-data');
+const deleteAndSyncBox = document.querySelector('.ep-delete-data-and-sync');
+
+let activeBox;
+
+const deleteAndSyncButton = deleteAndSyncBox.querySelector(
+	'.ep-delete-data-and-sync__button-delete',
+);
+
+deleteAndSyncButton.addEventListener('click', function () {
+	activeBox = deleteAndSyncBox;
+
+	disableButtonsInSyncBox();
+
+	const pauseButton = deleteAndSyncBox.querySelector('.ep-sync-box__button-pause');
+	const stopButton = deleteAndSyncBox.querySelector('.ep-sync-box__button-stop');
+
+	pauseButton.style.display = 'flex';
+	stopButton.style.display = 'flex';
+
+	showProgress();
+
+	addLineToOutput('Deleting all data...');
+
+	const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
+	const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
+
+	progressInfoElement.innerText = 'Deleting in progress';
+
+	progressBar.style.width = `0`;
+	progressBar.innerText = ``;
+
+	startDateTime.innerText = '';
+});
+
+function showProgress() {
+	const progressWrapper = activeBox?.querySelector('.ep-sync-box__progress-wrapper');
+
+	if (progressWrapper?.style) {
+		progressWrapper.style.display = 'block';
+	}
+}
 
 let syncStatus = 'sync';
 let syncStack;
@@ -209,32 +261,36 @@ function cliSync() {
 	});
 }
 
-function addLineToOutput(text, outputElement) {
-	const lastLineNumberElement = document.querySelector(
-		'.ep-sync-box__output-line:last-child .ep-sync-box__output-line-number',
-	);
-	const lastLineNumber = Number(lastLineNumberElement?.innerText);
+function addLineToOutput(text) {
+	if (activeBox) {
+		const wrapperElement = activeBox.querySelector('.ep-sync-box__output-wrapper');
 
-	const lineNumber = document.createElement('div');
-	lineNumber.className = 'ep-sync-box__output-line-number';
-	lineNumber.innerText =
-		typeof lastLineNumber === 'number' && !Number.isNaN(lastLineNumber)
-			? lastLineNumber + 1
-			: 1;
+		const lastLineNumberElement = activeBox.querySelector(
+			'.ep-sync-box__output-line:last-child .ep-sync-box__output-line-number',
+		);
+		const lastLineNumber = Number(lastLineNumberElement?.innerText);
 
-	const lineText = document.createElement('div');
-	lineText.className = 'ep-sync-box__output-line-text';
-	lineText.innerText = text;
+		const lineNumber = document.createElement('div');
+		lineNumber.className = 'ep-sync-box__output-line-number';
+		lineNumber.innerText =
+			typeof lastLineNumber === 'number' && !Number.isNaN(lastLineNumber)
+				? lastLineNumber + 1
+				: 1;
 
-	const line = document.createElement('div');
-	line.className = 'ep-sync-box__output-line';
-	line.append(lineNumber);
-	line.append(lineText);
+		const lineText = document.createElement('div');
+		lineText.className = 'ep-sync-box__output-line-text';
+		lineText.innerText = text;
 
-	outputElement.append(line);
+		const line = document.createElement('div');
+		line.className = 'ep-sync-box__output-line';
+		line.append(lineNumber);
+		line.append(lineText);
 
-	const epSyncWrapper = document.querySelector('.ep-sync-box__output');
-	epSyncWrapper.scrollTo(0, outputElement.scrollHeight);
+		wrapperElement.append(line);
+
+		const outputElement = activeBox.querySelector('.ep-sync-box__output_active');
+		wrapperElement.scrollTo(0, outputElement.scrollHeight);
+	}
 }
 
 /**
@@ -242,7 +298,7 @@ function addLineToOutput(text, outputElement) {
  *
  * @param {boolean} putMapping Whetever mapping should be sent or not.
  */
-function sync(putMapping = false) {
+function sync(putMapping = false, outputElement) {
 	disableButtons(['delete']);
 
 	const requestSettings = {
@@ -254,10 +310,12 @@ function sync(putMapping = false) {
 			nonce: epDash.nonce,
 		}),
 	};
+	console.log('sync func');
 
 	apiFetch(requestSettings)
 		.then((response) => {
-			addLineToOutput(response.data.message, epSyncOutput);
+			addLineToOutput(response.data.message, outputElement);
+			console.log({ syncStatus }, 1);
 
 			if (!startDateTimeSync.innerText && response.data?.index_meta?.start_date_time) {
 				startDateTimeSync.innerText = response.data?.index_meta?.start_date_time;
@@ -275,6 +333,7 @@ function sync(putMapping = false) {
 				return;
 			}
 
+			console.log({ syncStatus });
 			if (syncStatus !== 'sync') {
 				return;
 			}
@@ -288,9 +347,9 @@ function sync(putMapping = false) {
 
 				updateSyncDash();
 
-				addLineToOutput('===============================', epSyncOutput);
+				addLineToOutput('===============================', outputElement);
 
-				epSyncOutput.scrollTop = epSyncOutput.scrollHeight;
+				outputElement.scrollTop = outputElement.scrollHeight;
 
 				if (epDash.install_sync) {
 					document.location.replace(epDash.install_complete_url);
@@ -307,7 +366,7 @@ function sync(putMapping = false) {
 			}
 
 			updateSyncDash();
-			sync(putMapping);
+			sync(putMapping, outputElement);
 		})
 		.catch((response) => {
 			if (
@@ -353,6 +412,55 @@ function startSyncProcess(putMapping) {
 	sync(putMapping);
 }
 
+function disableButtonsInSyncBox() {
+	const buttons = syncBox.querySelectorAll('.ep-sync-data button');
+
+	buttons.forEach((button) => updateDisabledAttribute(button, true));
+}
+
+function disableButtonsInDeleteBox() {
+	const buttons = document.querySelectorAll('.ep-delete-data-and-sync button');
+
+	buttons.forEach((button) => updateDisabledAttribute(button, true));
+}
+
+function startDeletingProcess() {
+	addLineToOutput('Deleting all data...', deleteBoxOutputFulllog);
+
+	disableButtonsInSyncBox();
+
+	buttons.delete.style.display = 'none';
+
+	// const cancelButton = document.querySelector('.ep-delete-data-and-sync__button-cancel');
+	// cancelButton.style.display = 'block';
+
+	const progressWrapperElement = document.querySelector(
+		'.ep-delete-data-and-sync .ep-sync-box__progress-wrapper',
+	);
+
+	progressWrapperElement.style.display = 'block';
+
+	const progressInfoElement = document.querySelector(
+		'.ep-delete-data-and-sync .ep-sync-box__progress-info',
+	);
+
+	progressInfoElement.innerText = 'Deleting indexed data...';
+
+	// const progressBar = document.querySelector(
+	// 	'.ep-delete-data-and-sync .ep-sync-box__progressbar_animated',
+	// );
+
+	// progressBar.style.width = `25%`;
+	// progressBar.innerText = `25%`;
+
+	document.querySelector('.ep-delete-data-and-sync .ep-sync-box__button-pause').style.display =
+		'flex';
+	document.querySelector('.ep-delete-data-and-sync .ep-sync-box__button-stop').style.display =
+		'flex';
+
+	startSyncProcess(true, deleteBoxOutputFulllog);
+}
+
 buttons.start.addEventListener('click', () => {
 	startSyncProcess();
 });
@@ -360,9 +468,11 @@ buttons.start.addEventListener('click', () => {
 buttons.pause.addEventListener('click', () => {
 	syncStatus = 'pause';
 
-	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
+	const progressInfoElement = activeBox?.querySelector('.ep-sync-box__progress-info');
 
-	progressInfoElement.innerText = 'Sync paused';
+	if (progressInfoElement?.innerText) {
+		progressInfoElement.innerText = 'Sync paused';
+	}
 
 	updateSyncDash();
 });
@@ -406,54 +516,55 @@ buttons.stop.addEventListener('click', () => {
 	enableButtons(['delete']);
 });
 
-buttons.delete.addEventListener('click', function () {
-	addLineToOutput('Deleting all data...', epDeleteOutput);
+// buttons.delete.addEventListener('click', function () {
+// startDeletingProcess();
+// addLineToOutput('Deleting all data...', epDeleteOutput);
 
-	disableButtons(['start', 'resume', 'pause', 'stop']);
+// disableButtons(['start', 'resume', 'pause', 'stop']);
 
-	buttons.delete.style.display = 'none';
+// buttons.delete.style.display = 'none';
 
-	const cancelButton = document.querySelector('.ep-delete-data-and-sync__button-cancel');
-	cancelButton.style.display = 'block';
+// const cancelButton = document.querySelector('.ep-delete-data-and-sync__button-cancel');
+// cancelButton.style.display = 'block';
 
-	const progressWrapperElement = document.querySelector(
-		'.ep-delete-data-and-sync .ep-sync-box__progress-wrapper',
-	);
+// const progressWrapperElement = document.querySelector(
+// 	'.ep-delete-data-and-sync .ep-sync-box__progress-wrapper',
+// );
 
-	progressWrapperElement.style.display = 'block';
+// progressWrapperElement.style.display = 'block';
 
-	const progressInfoElement = document.querySelector(
-		'.ep-delete-data-and-sync .ep-sync-box__progress-info',
-	);
+// const progressInfoElement = document.querySelector(
+// 	'.ep-delete-data-and-sync .ep-sync-box__progress-info',
+// );
 
-	progressInfoElement.innerText = 'Deleting indexed data...';
+// progressInfoElement.innerText = 'Deleting indexed data...';
 
-	const progressBar = document.querySelector(
-		'.ep-delete-data-and-sync .ep-sync-box__progressbar_animated',
-	);
+// const progressBar = document.querySelector(
+// 	'.ep-delete-data-and-sync .ep-sync-box__progressbar_animated',
+// );
 
-	progressBar.style.width = `25%`;
-	progressBar.innerText = `25%`;
+// progressBar.style.width = `25%`;
+// progressBar.innerText = `25%`;
 
-	setTimeout(() => {
-		progressBar.style.width = `100%`;
-		progressBar.innerText = `100%`;
-		progressBar.classList.add('ep-sync-box__progressbar_complete');
+// setTimeout(() => {
+// 	progressBar.style.width = `100%`;
+// 	progressBar.innerText = `100%`;
+// 	progressBar.classList.add('ep-sync-box__progressbar_complete');
 
-		addLineToOutput('Deletion complete', epDeleteOutput);
+// 	addLineToOutput('Deletion complete', epDeleteOutput);
 
-		cancelButton.style.display = 'none';
-		buttons.delete.style.display = 'block';
-	}, 5000);
+// 	cancelButton.style.display = 'none';
+// 	buttons.delete.style.display = 'block';
+// }, 5000);
 
-	setTimeout(() => {
-		startSyncProcess(true);
-		progressWrapperElement.style.display = 'none';
-		progressBar.classList.remove('ep-sync-box__progressbar_complete');
-		progressBar.style.width = `0`;
-		progressBar.innerText = ``;
-	}, 7000);
-});
+// setTimeout(() => {
+// 	startSyncProcess(true);
+// 	progressWrapperElement.style.display = 'none';
+// 	progressBar.classList.remove('ep-sync-box__progressbar_complete');
+// 	progressBar.style.width = `0`;
+// 	progressBar.innerText = ``;
+// }, 7000);
+// });
 
 syncBoxFulllogTab.addEventListener('click', function () {
 	syncBoxFulllogTab.classList.add('ep-sync-box__output-tab_active');
