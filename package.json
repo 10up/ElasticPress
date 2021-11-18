@@ -4,7 +4,7 @@
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
-    "10up-toolkit": "^1.0.12",
+    "10up-toolkit": "^1.0.13",
     "jsdoc": "^3.6.7",
     "terser-webpack-plugin": "^5.2.4",
     "wp-hookdoc": "^0.2.0"
