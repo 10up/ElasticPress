@@ -46,6 +46,35 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.6.5 =
+
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
+
+Supported versions changes planned for ElasticPress 4.0.0:
+* Elasticsearch: from 5.0 - 7.9 to 5.2 - 7.10.
+* WordPress: from 3.7.1+ to 5.6+.
+* PHP: from 5.6+ to 7.0+.
+
+Added:
+* Docs: Link to the support page in README.md. Props [@brandwaffle](https://github.com/brandwaffle).
+
+Changed:
+* Add `$type` parameter to `ep_do_intercept_request` filter. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
+* Cache the detected Posts mapping version, avoiding `get_mapping` calls in all admin requests. Props [@felipeelia](https://github.com/felipeelia).
+* Docs: Required ES and WP versions planned for ElasticPress 4.0.0. Props [@felipeelia](https://github.com/felipeelia).
+
+Fixed:
+* Force fetching `ep_wpcli_sync_interrupted` transient from remote to allow for more reliable remote interruption. Props [@rinatkhaziev](https://github.com/rinatkhaziev) and [@rebeccahum](https://github.com/rebeccahum).
+* Duplicate orderby statement in Users query. Props [@brettshumaker](https://github.com/brettshumaker), [@pschoffer](https://github.com/pschoffer), and [@rebeccahum](https://github.com/rebeccahum).
+* When using offset and default maximum result window value for size, subtract offset from size. Props [@rebeccahum](https://github.com/rebeccahum).
+* Order for Custom Search Results in autosuggest. Props [@felipeelia](https://github.com/felipeelia) and [@johnwatkins0](https://github.com/johnwatkins0).
+* Tests: Ensure that Posts related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon).
+* Tests: PHPUnit and yoast/phpunit-polyfills. Props [@felipeelia](https://github.com/felipeelia).
+
+Security:
+* Bumped `path-parse` from 1.0.6 to 1.0.7. Props [@dependabot](https://github.com/dependabot).
+* Bumped `10up-toolkit` from 1.0.12 to 1.0.13. Props [@felipeelia](https://github.com/felipeelia).
+
 = 3.6.4 =
 
 **Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, ~~will build a stable release version including built assets into a `stable` branch,~~ will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to ~~either `stable` or~~ `trunk` or to GitHub releases depending on whether you require built assets or not.
