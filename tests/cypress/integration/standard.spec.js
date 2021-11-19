@@ -1,5 +1,9 @@
 describe( 'WordPress can perform standard actions', () => {
 
+	before( () => {
+		cy.wpCli( 'elasticpress index --setup --yes' );
+	} );
+
 	it( 'Has <title> tag', () => {
 		cy.visit( '/' );
 		cy.get( 'title' ).should( 'exist' );
