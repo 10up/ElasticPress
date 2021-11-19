@@ -13,6 +13,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
+    - name: Set up Elasticsearch
+      run: cd bin/es-docker/ && docker-compose up -d
+
     - name: Install dependencies
       run: npm i
 
@@ -20,7 +23,11 @@ jobs:
       run: npm run build
 
     - name: Set up WP environment
-      run: npm run env start
+      run: npm run env start && ./bin/es-docker/setup-cypress-env.sh
 
     - name: Test
       run: npm run cypress:run
+
+    - name: Stop Elasticsearch
+      if: always()
+      run: cd bin/es-docker/ && docker-compose down
