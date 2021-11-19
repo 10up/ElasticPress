@@ -23,7 +23,7 @@ jobs:
       run: npm run build
 
     - name: Set up WP environment
-      run: npm run env start && ./bin/es-docker/setup-cypress-env.sh
+      run: npm run env start && ./bin/setup-cypress-env.sh
 
     - name: Test
       run: npm run cypress:run
