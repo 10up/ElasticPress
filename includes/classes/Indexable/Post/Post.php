@@ -887,7 +887,7 @@ class Post extends Indexable {
 			),
 		);
 		$use_filters = false;
-		
+
 		// Sanitize array query args. Elasticsearch will error if a terms query contains empty items like an
 		// empty string.
 		$keys_to_sanitize = [
@@ -1098,7 +1098,7 @@ class Post extends Indexable {
 		 *
 		 * @since 3.6.0
 		 */
-		if ( ! empty( array_filter( (array) $args['post_name__in'] ) ) ) {
+		if ( ! empty( $args['post_name__in'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = array(
 				'terms' => array(
 					'post_name.raw' => array_values( (array) $args['post_name__in'] ),
