@@ -84,3 +84,8 @@ Cypress.Commands.add( 'clearThenType', { prevSubject: true }, (subject, text) =>
     cy.wrap( subject ).clear().type( text );
   }
 );
+
+Cypress.Commands.add( 'wpCli', ( command ) => {
+	const escapedCommand = command.replace(/"/g, '\\"').replace( /^wp /, '');
+	cy.exec( `npm run env run tests-cli ${escapedCommand}` )
+} );
