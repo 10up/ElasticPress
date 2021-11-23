@@ -3,19 +3,20 @@ import apiFetch from '@wordpress/api-fetch';
 /* eslint-disable camelcase, no-use-before-define */
 const { ajaxurl, epDash, history } = window;
 
-const progressBar = document.querySelector('.ep-sync-data .ep-sync-box__progressbar_animated');
-const buttons = {
-	start: document.querySelector('.ep-start-sync'),
-	resume: document.querySelector('.ep-sync-box__button-resume'),
-	pause: document.querySelector('.ep-sync-box__button-pause'),
-	stop: document.querySelector('.ep-sync-box__button-stop'),
-	learnMore: document.querySelector('.ep-sync-box__learn-more-link'),
-	delete: document.querySelector('.ep-delete-data-and-sync__button'),
-};
-const epSyncOutput = document.getElementById('ep-sync-output');
-const epDeleteOutput = document.getElementById('ep-delete-output');
-const startDateTimeSync = document.querySelector('.ep-sync-data .ep-sync-box__start-time-date');
+// Main elements of sync page
+const syncBox = document.querySelector('.ep-sync-data');
+const deleteAndSyncBox = document.querySelector('.ep-delete-data-and-sync');
 
+// It could be the syncBox or deleteAndSyncBox
+let activeBox;
+
+// Buttons to start a sync or delete data
+const syncButton = syncBox.querySelector('.ep-sync-box__button-sync');
+const deleteAndSyncButton = deleteAndSyncBox.querySelector(
+	'.ep-delete-data-and-sync__button-delete',
+);
+
+// Log elements
 const syncBoxFulllogTab = document.querySelector('.ep-sync-data .ep-sync-box__output-tab-fulllog');
 const syncBoxOutputFulllog = document.querySelector('.ep-sync-data .ep-sync-box__output-fulllog');
 const syncBoxErrorTab = document.querySelector('.ep-sync-data .ep-sync-box__output-tab-error');
@@ -34,26 +35,41 @@ const deleteBoxOutputError = document.querySelector(
 	'.ep-delete-data-and-sync .ep-sync-box__output-error',
 );
 
-const syncBox = document.querySelector('.ep-sync-data');
-const deleteAndSyncBox = document.querySelector('.ep-delete-data-and-sync');
+syncButton.addEventListener('click', function () {
+	activeBox = syncBox;
 
-let activeBox;
+	disableButtonsInDeleteBox();
 
-const deleteAndSyncButton = deleteAndSyncBox.querySelector(
-	'.ep-delete-data-and-sync__button-delete',
-);
+	syncButton.style.display = 'none';
+	updateDisabledAttribute(syncButton, true);
+
+	const learnMoreLink = activeBox.querySelector('.ep-sync-box__learn-more-link');
+	learnMoreLink.style.display = 'none';
+
+	showPauseStopButtons();
+	showProgress();
+	addLineToOutput('Indexing data...');
+
+	const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
+	const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
+
+	progressInfoElement.innerText = 'Sync in progress';
+
+	progressBar.style.width = `0`;
+	progressBar.innerText = ``;
+
+	startDateTime.innerText = '';
+
+	startSyncProcess();
+});
 
 deleteAndSyncButton.addEventListener('click', function () {
 	activeBox = deleteAndSyncBox;
 
 	disableButtonsInSyncBox();
-
-	const pauseButton = deleteAndSyncBox.querySelector('.ep-sync-box__button-pause');
-	const stopButton = deleteAndSyncBox.querySelector('.ep-sync-box__button-stop');
-
-	pauseButton.style.display = 'flex';
-	stopButton.style.display = 'flex';
-
+	updateDisabledAttribute(deleteAndSyncButton, true);
+	showPauseStopButtons();
 	showProgress();
 
 	addLineToOutput('Deleting all data...');
@@ -68,7 +84,82 @@ deleteAndSyncButton.addEventListener('click', function () {
 	progressBar.innerText = ``;
 
 	startDateTime.innerText = '';
+
+	startSyncProcess(true);
 });
+
+/**
+ * Show Pause and Stop buttons on the active box
+ */
+function showPauseStopButtons() {
+	if (activeBox) {
+		const stopButton = activeBox.querySelector('.ep-sync-box__button-stop');
+
+		updateDisabledAttribute(stopButton, false);
+		stopButton.style.display = 'flex';
+
+		showPauseButton();
+	}
+}
+
+/**
+ * Hide Pause and Stop buttons on the active box
+ */
+function hidePauseStopButtons() {
+	const stopButton = activeBox.querySelector('.ep-sync-box__button-stop');
+
+	stopButton.style.display = 'none';
+
+	hidePauseButton();
+}
+
+/**
+ * Show Pause button on the active box
+ */
+function showPauseButton() {
+	if (activeBox) {
+		const pauseButton = activeBox.querySelector('.ep-sync-box__button-pause');
+
+		updateDisabledAttribute(pauseButton, false);
+
+		pauseButton.style.display = 'flex';
+	}
+}
+
+/**
+ * Hide Pause button on the active box
+ */
+function hidePauseButton() {
+	if (activeBox) {
+		const pauseButton = activeBox.querySelector('.ep-sync-box__button-pause');
+
+		pauseButton.style.display = 'none';
+	}
+}
+
+/**
+ * Show Resume button on the active box
+ */
+function showResumeButton() {
+	if (activeBox) {
+		const resumeButton = activeBox.querySelector('.ep-sync-box__button-resume');
+
+		updateDisabledAttribute(resumeButton, false);
+
+		resumeButton.style.display = 'flex';
+	}
+}
+
+/**
+ * Hide Pause button on the active box
+ */
+function hideResumeButton() {
+	if (activeBox) {
+		const resumeButton = activeBox.querySelector('.ep-sync-box__button-resume');
+
+		resumeButton.style.display = 'none';
+	}
+}
 
 function showProgress() {
 	const progressWrapper = activeBox?.querySelector('.ep-sync-box__progress-wrapper');
@@ -105,7 +196,7 @@ if (epDash.index_meta) {
 		} else {
 			syncStatus = 'pause';
 		}
-		updateSyncDash();
+		// updateSyncDash();
 	}
 } else if (epDash.auto_start_index) {
 	// Start a new sync automatically
@@ -125,17 +216,6 @@ if (epDash.index_meta) {
 }
 
 /**
- * Show and hide buttons.
- *
- * @param {Array} visibleButtons Buttons that should be visible.
- */
-function makeButtonsVisible(visibleButtons) {
-	Object.keys(buttons).forEach((key) => {
-		buttons[key].style.display = visibleButtons.includes(key) ? 'flex' : 'none';
-	});
-}
-
-/**
  * Change the disabled attribute of an element
  *
  * @param {HTMLElement} element Element to be updated
@@ -146,40 +226,11 @@ function updateDisabledAttribute(element, value) {
 }
 
 /**
- * Enable buttons
- *
- * @param {Array} buttonsKey Array of key buttons
- */
-function enableButtons(buttonsKey) {
-	buttonsKey.forEach((key) => {
-		updateDisabledAttribute(buttons[key], false);
-	});
-}
-
-/**
- * Disable buttons
- *
- * @param {Array} buttonsKey Array of key buttons
- */
-function disableButtons(buttonsKey) {
-	buttonsKey.forEach((key) => {
-		updateDisabledAttribute(buttons[key], true);
-	});
-}
-
-/**
- * Show or hide the progress bar(s).
- *
- * @param {boolean} display Wheter the progress bar(s) should or should not be visible.
- */
-function showProgressBar(display = true) {
-	progressBar.style.display = display ? 'block' : 'none';
-}
-
-/**
  * Update dashboard with syncing information
  */
 function updateSyncDash() {
+	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
+
 	const progressBarWidth = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
 
 	if (typeof progressBarWidth === 'number' && !Number.isNaN(progressBarWidth)) {
@@ -189,29 +240,26 @@ function updateSyncDash() {
 
 	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
 	if (isSyncing) {
-		showProgressBar();
 		progressBar.classList.remove('ep-sync-box__progressbar_complete');
 	} else {
-		const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
 		progressInfoElement.innerText = 'Sync completed';
 
 		progressBar.classList.add('ep-sync-box__progressbar_complete');
 
-		makeButtonsVisible(['start', 'learnMore', 'delete']);
-		enableButtons(['delete']);
-	}
+		updateDisabledAttribute(deleteAndSyncButton, false);
+		updateDisabledAttribute(syncButton, false);
 
-	if (syncStatus === 'initialsync') {
-		makeButtonsVisible(['pause', 'stop', 'delete']);
-	} else if (syncStatus === 'sync') {
-		makeButtonsVisible(['pause', 'stop', 'delete']);
-	} else if (syncStatus === 'pause') {
-		makeButtonsVisible(['resume', 'stop', 'delete']);
-		disableButtons(['delete']);
-	} else if (syncStatus === 'wpcli') {
-		makeButtonsVisible(['stop', 'delete']);
-		disableButtons(['delete']);
+		hidePauseStopButtons();
+
+		syncButton.style.display = 'flex';
+
+		const learnMoreLink = activeBox.querySelector('.ep-sync-box__learn-more-link');
+
+		if (learnMoreLink?.style) {
+			learnMoreLink.style.display = 'block';
+		}
 	}
 }
 
@@ -226,6 +274,9 @@ function cancelSync() {
 			action: 'ep_cancel_index',
 			nonce: epDash.nonce,
 		}),
+	}).then(() => {
+		toProcess = 0;
+		processed = 0;
 	});
 }
 
@@ -261,6 +312,11 @@ function cliSync() {
 	});
 }
 
+/**
+ * Add a line to the active output
+ *
+ * @param {string} text Message to show on output
+ */
 function addLineToOutput(text) {
 	if (activeBox) {
 		const wrapperElement = activeBox.querySelector('.ep-sync-box__output-wrapper');
@@ -289,7 +345,35 @@ function addLineToOutput(text) {
 		wrapperElement.append(line);
 
 		const outputElement = activeBox.querySelector('.ep-sync-box__output_active');
-		wrapperElement.scrollTo(0, outputElement.scrollHeight);
+		outputElement.scrollTo(0, wrapperElement.scrollHeight);
+	}
+}
+
+/**
+ * Update the start date time on active box
+ *
+ * @param {string} value The date time value
+ */
+function updateStartDateTime(value) {
+	if (value) {
+		const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
+
+		if (startDateTime) {
+			startDateTime.innerText = value;
+		}
+	}
+}
+
+/**
+ * Interrupt the sync process
+ *
+ * @param {boolean} value True to interrupt the sync process
+ */
+function shouldInterruptSync(value) {
+	if (value) {
+		syncStatus = 'interrupt';
+		updateSyncDash();
+		cancelSync();
 	}
 }
 
@@ -298,9 +382,7 @@ function addLineToOutput(text) {
  *
  * @param {boolean} putMapping Whetever mapping should be sent or not.
  */
-function sync(putMapping = false, outputElement) {
-	disableButtons(['delete']);
-
+function sync(putMapping = false) {
 	const requestSettings = {
 		path: ajaxurl,
 		method: 'POST',
@@ -310,22 +392,12 @@ function sync(putMapping = false, outputElement) {
 			nonce: epDash.nonce,
 		}),
 	};
-	console.log('sync func');
 
 	apiFetch(requestSettings)
 		.then((response) => {
-			addLineToOutput(response.data.message, outputElement);
-			console.log({ syncStatus }, 1);
-
-			if (!startDateTimeSync.innerText && response.data?.index_meta?.start_date_time) {
-				startDateTimeSync.innerText = response.data?.index_meta?.start_date_time;
-			}
-
-			if (response.data?.index_meta?.should_interrupt_sync) {
-				syncStatus = 'interrupt';
-				updateSyncDash();
-				cancelSync();
-			}
+			addLineToOutput(response.data.message);
+			updateStartDateTime(response.data?.index_meta?.start_date_time);
+			shouldInterruptSync(response.data?.index_meta?.should_interrupt_sync);
 
 			if (response.data?.method === 'cli') {
 				syncStatus = 'wpcli';
@@ -333,7 +405,6 @@ function sync(putMapping = false, outputElement) {
 				return;
 			}
 
-			console.log({ syncStatus });
 			if (syncStatus !== 'sync') {
 				return;
 			}
@@ -347,13 +418,13 @@ function sync(putMapping = false, outputElement) {
 
 				updateSyncDash();
 
-				addLineToOutput('===============================', outputElement);
-
-				outputElement.scrollTop = outputElement.scrollHeight;
+				addLineToOutput('===============================');
 
 				if (epDash.install_sync) {
 					document.location.replace(epDash.install_complete_url);
 				}
+
+				activeBox = undefined;
 
 				return;
 			}
@@ -366,7 +437,7 @@ function sync(putMapping = false, outputElement) {
 			}
 
 			updateSyncDash();
-			sync(putMapping, outputElement);
+			sync(putMapping);
 		})
 		.catch((response) => {
 			if (
@@ -381,29 +452,31 @@ function sync(putMapping = false, outputElement) {
 				cancelSync();
 			}
 
-			enableButtons(['delete']);
+			updateDisabledAttribute(syncButton, false);
+			updateDisabledAttribute(deleteAndSyncButton, false);
 		});
 }
 
+/**
+ * Start sync process
+ *
+ * @param {boolean} putMapping Determines whether to send the mapping and delete all data before sync.
+ */
 function startSyncProcess(putMapping) {
 	syncStatus = 'initialsync';
 
-	enableButtons(['start', 'pause', 'resume', 'stop']);
-
-	const progressWrapperElement = document.querySelector(
-		'.ep-sync-data .ep-sync-box__progress-wrapper',
-	);
+	const progressWrapperElement = activeBox.querySelector('.ep-sync-box__progress-wrapper');
+	const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
+	const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
 
 	progressWrapperElement.style.display = 'block';
-
-	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
-
 	progressInfoElement.innerText = 'Sync in progress';
 
 	progressBar.style.width = `0`;
 	progressBar.innerText = ``;
 
-	startDateTimeSync.innerText = '';
+	startDateTime.innerText = '';
 
 	updateSyncDash();
 
@@ -412,159 +485,79 @@ function startSyncProcess(putMapping) {
 	sync(putMapping);
 }
 
+/**
+ * Disable buttons in the Sync box
+ */
 function disableButtonsInSyncBox() {
 	const buttons = syncBox.querySelectorAll('.ep-sync-data button');
 
 	buttons.forEach((button) => updateDisabledAttribute(button, true));
 }
 
+/**
+ * Disable buttons in the Delete box
+ */
 function disableButtonsInDeleteBox() {
-	const buttons = document.querySelectorAll('.ep-delete-data-and-sync button');
+	const buttons = deleteAndSyncBox.querySelectorAll('.ep-delete-data-and-sync button');
 
 	buttons.forEach((button) => updateDisabledAttribute(button, true));
 }
 
-function startDeletingProcess() {
-	addLineToOutput('Deleting all data...', deleteBoxOutputFulllog);
+document.querySelectorAll('.ep-sync-box__button-pause')?.forEach((button) => {
+	button?.addEventListener('click', function () {
+		syncStatus = 'pause';
 
-	disableButtonsInSyncBox();
+		const progressInfoElement = activeBox?.querySelector('.ep-sync-box__progress-info');
 
-	buttons.delete.style.display = 'none';
+		if (progressInfoElement?.innerText) {
+			progressInfoElement.innerText = 'Sync paused';
+		}
 
-	// const cancelButton = document.querySelector('.ep-delete-data-and-sync__button-cancel');
-	// cancelButton.style.display = 'block';
+		updateSyncDash();
 
-	const progressWrapperElement = document.querySelector(
-		'.ep-delete-data-and-sync .ep-sync-box__progress-wrapper',
-	);
+		hidePauseButton();
+		showResumeButton();
 
-	progressWrapperElement.style.display = 'block';
-
-	const progressInfoElement = document.querySelector(
-		'.ep-delete-data-and-sync .ep-sync-box__progress-info',
-	);
-
-	progressInfoElement.innerText = 'Deleting indexed data...';
-
-	// const progressBar = document.querySelector(
-	// 	'.ep-delete-data-and-sync .ep-sync-box__progressbar_animated',
-	// );
-
-	// progressBar.style.width = `25%`;
-	// progressBar.innerText = `25%`;
-
-	document.querySelector('.ep-delete-data-and-sync .ep-sync-box__button-pause').style.display =
-		'flex';
-	document.querySelector('.ep-delete-data-and-sync .ep-sync-box__button-stop').style.display =
-		'flex';
-
-	startSyncProcess(true, deleteBoxOutputFulllog);
-}
-
-buttons.start.addEventListener('click', () => {
-	startSyncProcess();
+		addLineToOutput('Sync paused');
+	});
 });
 
-buttons.pause.addEventListener('click', () => {
-	syncStatus = 'pause';
+document.querySelectorAll('.ep-sync-box__button-resume')?.forEach((button) => {
+	button?.addEventListener('click', function () {
+		syncStatus = 'sync';
 
-	const progressInfoElement = activeBox?.querySelector('.ep-sync-box__progress-info');
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
-	if (progressInfoElement?.innerText) {
-		progressInfoElement.innerText = 'Sync paused';
-	}
+		progressInfoElement.innerText = 'Sync in progress';
 
-	updateSyncDash();
+		updateSyncDash();
+
+		hideResumeButton();
+		showPauseButton();
+
+		sync();
+	});
 });
 
-buttons.resume.addEventListener('click', () => {
-	syncStatus = 'sync';
+document.querySelectorAll('.ep-sync-box__button-stop')?.forEach((button) => {
+	button?.addEventListener('click', function () {
+		syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
 
-	const progressWrapperElement = document.querySelector(
-		'.ep-sync-data .ep-sync-box__progress-wrapper',
-	);
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+		const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
 
-	progressWrapperElement.style.display = 'block';
+		updateSyncDash();
 
-	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
+		cancelSync();
 
-	progressInfoElement.innerText = 'Sync in progress';
+		progressInfoElement.innerText = 'Sync stopped';
 
-	updateSyncDash();
+		progressBar.style.width = `0`;
+		progressBar.innerText = ``;
 
-	sync();
+		addLineToOutput('Sync stopped');
+	});
 });
-
-buttons.stop.addEventListener('click', () => {
-	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
-
-	const progressInfoElement = document.querySelector('.ep-sync-box__progress-info');
-
-	updateSyncDash();
-
-	cancelSync();
-
-	progressInfoElement.innerText = 'Sync stopped';
-
-	progressBar.style.width = `0`;
-	progressBar.innerText = ``;
-
-	startDateTimeSync.innerText = '';
-
-	addLineToOutput('Sync stopped', epSyncOutput);
-
-	enableButtons(['delete']);
-});
-
-// buttons.delete.addEventListener('click', function () {
-// startDeletingProcess();
-// addLineToOutput('Deleting all data...', epDeleteOutput);
-
-// disableButtons(['start', 'resume', 'pause', 'stop']);
-
-// buttons.delete.style.display = 'none';
-
-// const cancelButton = document.querySelector('.ep-delete-data-and-sync__button-cancel');
-// cancelButton.style.display = 'block';
-
-// const progressWrapperElement = document.querySelector(
-// 	'.ep-delete-data-and-sync .ep-sync-box__progress-wrapper',
-// );
-
-// progressWrapperElement.style.display = 'block';
-
-// const progressInfoElement = document.querySelector(
-// 	'.ep-delete-data-and-sync .ep-sync-box__progress-info',
-// );
-
-// progressInfoElement.innerText = 'Deleting indexed data...';
-
-// const progressBar = document.querySelector(
-// 	'.ep-delete-data-and-sync .ep-sync-box__progressbar_animated',
-// );
-
-// progressBar.style.width = `25%`;
-// progressBar.innerText = `25%`;
-
-// setTimeout(() => {
-// 	progressBar.style.width = `100%`;
-// 	progressBar.innerText = `100%`;
-// 	progressBar.classList.add('ep-sync-box__progressbar_complete');
-
-// 	addLineToOutput('Deletion complete', epDeleteOutput);
-
-// 	cancelButton.style.display = 'none';
-// 	buttons.delete.style.display = 'block';
-// }, 5000);
-
-// setTimeout(() => {
-// 	startSyncProcess(true);
-// 	progressWrapperElement.style.display = 'none';
-// 	progressBar.classList.remove('ep-sync-box__progressbar_complete');
-// 	progressBar.style.width = `0`;
-// 	progressBar.innerText = ``;
-// }, 7000);
-// });
 
 syncBoxFulllogTab.addEventListener('click', function () {
 	syncBoxFulllogTab.classList.add('ep-sync-box__output-tab_active');

@@ -43,7 +43,7 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 					</p>
 				</div>
 				<div class="ep-sync-box__action">
-					<button type="button" class="button button-primary ep-sync-box__button ep-start-sync">
+					<button type="button" class="button button-primary ep-sync-box__button ep-sync-box__button-sync">
 						<span class="dashicons dashicons-update-alt ep-sync-box__icon-button"></span> <?php echo esc_html__( 'Sync Now', 'elasticpress' ); ?>
 					</button>
 					<a class="ep-sync-box__learn-more-link" href="#">
