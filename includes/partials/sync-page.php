@@ -78,22 +78,24 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 					</span>
 				</div>
 				<div>
-					<a href="#">
+					<a href="#" role="button" class="ep-sync-box__show-hide-log">
 						<?php echo esc_html__( 'Show log', 'elasticpress' ); ?>
 					</a>
-				</div>
-				<div class="ep-sync-box__output-tabs ep-sync-box__output-tabs_hide">
-					<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
-						<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
-					</div>
-					<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
-						<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
-					</div>
-					<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
-						<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
-					</div>
-					<div class="ep-sync-box__output ep-sync-box__output-error">
-						<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
+					<div class="ep-sync-box__output-tabs_hide">
+						<div class="ep-sync-box__output-tabs">
+							<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
+								<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
+							</div>
+							<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
+								<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
+							</div>
+						</div>
+						<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
+							<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
+						</div>
+						<div class="ep-sync-box__output ep-sync-box__output-error">
+							<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -151,22 +153,24 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 					</span>
 				</div>
 				<div>
-					<a href="#">
+					<a href="#" role="button" class="ep-sync-box__show-hide-log">
 						<?php echo esc_html__( 'Show log', 'elasticpress' ); ?>
 					</a>
-				</div>
-				<div class="ep-sync-box__output-tabs ep-sync-box__output-tabs_hide">
-					<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
-						<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
-					</div>
-					<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
-						<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
-					</div>
-					<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
-						<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
-					</div>
-					<div class="ep-sync-box__output ep-sync-box__output-error">
-						<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
+					<div class="ep-sync-box__output-tabs_hide">
+						<div class="ep-sync-box__output-tabs">
+							<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
+								<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
+							</div>
+							<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
+								<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
+							</div>
+						</div>
+						<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
+							<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
+						</div>
+						<div class="ep-sync-box__output ep-sync-box__output-error">
+							<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
+						</div>
 					</div>
 				</div>
 			</div>

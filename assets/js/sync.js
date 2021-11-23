@@ -559,6 +559,16 @@ document.querySelectorAll('.ep-sync-box__button-stop')?.forEach((button) => {
 	});
 });
 
+document.querySelectorAll('.ep-sync-box__show-hide-log')?.forEach((element) => {
+	element.addEventListener('click', function () {
+		if (element.nextElementSibling?.classList?.toggle('ep-sync-box__output-tabs_hide')) {
+			element.innerText = 'Show log';
+		} else {
+			element.innerText = 'Hide log';
+		}
+	});
+});
+
 syncBoxFulllogTab.addEventListener('click', function () {
 	syncBoxFulllogTab.classList.add('ep-sync-box__output-tab_active');
 	syncBoxOutputFulllog.classList.add('ep-sync-box__output_active');
