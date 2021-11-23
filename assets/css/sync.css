@@ -50,6 +50,10 @@
 	display: flex;
 }
 
+.ep-sync-box__output-tabs_hide {
+	display: none;
+}
+
 .ep-sync-box__output-tab {
 	color: #1e1e1e;
 	padding: 16px;
@@ -116,6 +120,10 @@
 		font-size: 18px;
 	}
 
+	& .ep-last-sync {
+		margin-bottom: 12px;
+	}
+
 	& .ep-last-sync__title {
 		font-size: 20px;
 		font-weight: 700;
@@ -154,6 +162,7 @@
 		display: flex;
 		flex-direction: row;
 		margin-bottom: 5px;
+		margin-top: 19px;
 	}
 
 	& .ep-sync-box__sync-in-progress {

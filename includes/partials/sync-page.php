@@ -36,11 +36,6 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 							?>
 						<?php endif; ?>
 					</div>
-					<p>
-						<a href="#">
-							<?php echo esc_html__( 'Show log', 'elasticpress' ); ?>
-						</a>
-					</p>
 				</div>
 				<div class="ep-sync-box__action">
 					<button type="button" class="button button-primary ep-sync-box__button ep-sync-box__button-sync">
@@ -82,19 +77,24 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 						</span>
 					</span>
 				</div>
-				<div class="ep-sync-box__output-tabs">
+				<div>
+					<a href="#">
+						<?php echo esc_html__( 'Show log', 'elasticpress' ); ?>
+					</a>
+				</div>
+				<div class="ep-sync-box__output-tabs ep-sync-box__output-tabs_hide">
 					<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
 						<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
 					</div>
 					<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
 						<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
 					</div>
-				</div>
-				<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
-					<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
-				</div>
-				<div class="ep-sync-box__output ep-sync-box__output-error">
-					<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
+					<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
+						<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
+					</div>
+					<div class="ep-sync-box__output ep-sync-box__output-error">
+						<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -137,26 +137,30 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 				</div>
 			</div>
 			<div class="ep-sync-box__progress-wrapper">
-					<div class="ep-sync-box__progress">
-						<div class="ep-sync-box__sync-in-progress">
-							<img width="36" height="36" src="<?php echo esc_url( plugins_url( '/images/sync-in-progress.png', dirname( __DIR__ ) ) ); ?>" />
-							<div class="ep-sync-box__sync-in-progress-info">
-								<div class="ep-sync-box__progress-info">Sync in progress</div>
-								<div class="ep-sync-box__start-time">Start time: <span class="ep-sync-box__start-time-date">Fri, September 30, 2021 16:20</span></div>
-							</div>
+				<div class="ep-sync-box__progress">
+					<div class="ep-sync-box__sync-in-progress">
+						<img width="36" height="36" src="<?php echo esc_url( plugins_url( '/images/sync-in-progress.png', dirname( __DIR__ ) ) ); ?>" />
+						<div class="ep-sync-box__sync-in-progress-info">
+							<div class="ep-sync-box__progress-info">Sync in progress</div>
+							<div class="ep-sync-box__start-time">Start time: <span class="ep-sync-box__start-time-date">Fri, September 30, 2021 16:20</span></div>
 						</div>
-						<span class="ep-sync-box__progressbar">
-							<span class="ep-sync-box__progressbar ep-sync-box__progressbar_animated">
-							</span>
-						</span>
 					</div>
-					<div class="ep-sync-box__output-tabs">
-						<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
-							<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
-						</div>
-						<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
-							<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
-						</div>
+					<span class="ep-sync-box__progressbar">
+						<span class="ep-sync-box__progressbar ep-sync-box__progressbar_animated">
+						</span>
+					</span>
+				</div>
+				<div>
+					<a href="#">
+						<?php echo esc_html__( 'Show log', 'elasticpress' ); ?>
+					</a>
+				</div>
+				<div class="ep-sync-box__output-tabs ep-sync-box__output-tabs_hide">
+					<div class="ep-sync-box__output-tab ep-sync-box__output-tab_active ep-sync-box__output-tab-fulllog">
+						<?php esc_html_e( 'Full log', 'elasticpress' ); ?>
+					</div>
+					<div class="ep-sync-box__output-tab ep-sync-box__output-tab-error">
+						<?php esc_html_e( 'Errors (0)', 'elasticpress' ); ?>
 					</div>
 					<div class="ep-sync-box__output ep-sync-box__output-fulllog ep-sync-box__output_active">
 						<div id="ep-sync-output" class="ep-sync-box__output-wrapper"></div>
@@ -165,6 +169,7 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 						<div id="ep-sync-output-error" class="ep-sync-box__output-wrapper"></div>
 					</div>
 				</div>
+			</div>
 
 				<div class="ep-delete-data-and-sync__warning">
 					<img
