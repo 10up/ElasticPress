@@ -81,12 +81,19 @@
 
 	& .ep-sync-box__description-actions {
 		display: flex;
-		justify-content: space-between;
+		flex-direction: column;
+
+		@media (min-width: 768px) {
+			flex-direction: row;
+			justify-content: space-between;
+		}
 	}
 
 	& .ep-sync-box__description {
-		width: 69%;
 
+		@media (min-width: 768px) {
+			width: 69%;
+		}
 	}
 
 	& .ep-sync-box__action {
@@ -94,7 +101,10 @@
 		display: flex;
 		flex-direction: column;
 		margin-top: 40px;
-		width: 30%;
+
+		@media (min-width: 768px) {
+			width: 30%;
+		}
 
 		& .ep-sync-box__button {
 			align-items: center;
@@ -162,25 +172,39 @@
 	}
 
 	& .ep-sync-box__progress {
-		align-items: center;
+		align-items: normal;
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 		margin-bottom: 5px;
 		margin-top: 19px;
+
+		@media (min-width: 768px) {
+			align-items: center;
+			flex-direction: row;
+		}
 	}
 
 	& .ep-sync-box__sync-in-progress {
 		display: flex;
 		flex-direction: row;
-		width: 30%;
+
+		@media (min-width: 768px) {
+			width: 30%;
+		}
 	}
 
 	& .ep-sync-box__progressbar {
 		background-color: #f1f1f1;
 		border-radius: 24px;
 		height: 20px;
+		margin: 15px 0;
 		position: relative;
-		width: 65%;
+		width: 100%;
+
+		@media (min-width: 768px) {
+			margin: 0;
+			width: 65%;
+		}
 	}
 
 	& .ep-sync-box__progressbar_animated {
@@ -188,6 +212,7 @@
 		color: #333;
 		display: block;
 		height: 100%;
+		margin: 0;
 		text-align: center;
 		transition: width 0.5s ease-in-out;
 		width: 0;
@@ -236,7 +261,10 @@
 	& .ep-delete-data-and-sync__warning {
 		align-items: flex-start;
 		display: flex;
-		width: 69%;
+
+		@media (min-width: 768px) {
+			width: 69%;
+		}
 	}
 
 	& .ep-delete-data-and-sync__warning-icon {
@@ -256,14 +284,23 @@
 	}
 
 	& .ep-sync-box__action {
-		flex-direction: row;
-		height: 68px;
-		justify-content: space-between;
+		flex-direction: column;
+		height: auto;
+		justify-content: center;
 		margin-top: 0;
 		width: 100%;
+
+		@media (min-width: 768px) {
+			flex-direction: row;
+			height: 68px;
+			justify-content: space-between;
+		}
 	}
 
 	& .ep-sync-box__buttons {
-		margin-right: 5%;
+
+		@media (min-width: 768px) {
+			margin-right: 5%;
+		}
 	}
 }

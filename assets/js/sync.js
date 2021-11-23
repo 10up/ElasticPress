@@ -561,7 +561,9 @@ document.querySelectorAll('.ep-sync-box__button-stop')?.forEach((button) => {
 });
 
 document.querySelectorAll('.ep-sync-box__show-hide-log')?.forEach((element) => {
-	element.addEventListener('click', function () {
+	element.addEventListener('click', function (event) {
+		event.preventDefault();
+
 		if (element.nextElementSibling?.classList?.toggle('ep-sync-box__output-tabs_hide')) {
 			element.innerText = 'Show log';
 		} else {
