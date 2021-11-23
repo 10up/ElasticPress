@@ -124,6 +124,44 @@ class TestWeighting extends BaseTestCase {
 
 	}
 
+	/**
+	 * Test the `ep_weighting_default_enabled_taxonomies` filter.
+	 *
+	 * This filter should affect the weighting dashboard only if it was not saved yet.
+	 *
+	 * @since 3.6.5
+	 * @group weighting
+	 */
+	public function testWeightingDefaultEnabledTaxonomies() {
+		// By default, `post_format` should not be enabled, only `category` and `post_tag`.
+		$post_default_config = $this->get_weighting_feature()->get_post_type_default_settings( 'post' );
+		$this->assertArrayNotHasKey( 'terms.post_format.name', $post_default_config );
+		$this->assertTrue( $post_default_config['terms.category.name']['enabled'] );
+		$this->assertTrue( $post_default_config['terms.post_tag.name']['enabled'] );
+
+
+		add_filter(
+			'ep_weighting_default_enabled_taxonomies',
+			function ( $taxs, $post_type ) {
+				if ( 'post' === $post_type ) {
+					$taxs[] = 'post_format';
+				}
+				return $taxs;
+			},
+			10,
+			2
+		);
+
+		$post_default_config = $this->get_weighting_feature()->get_post_type_default_settings( 'post' );
+		$this->assertTrue( $post_default_config['terms.post_format.name']['enabled'] );
+
+		// `$this->weighting_settings` does not have post_format. So, once saved, the configuration should not have it enabled too.
+		$this->get_weighting_feature()->save_weighting_configuration( $this->weighting_settings );
+		$weighting_configuration = $this->get_weighting_feature()->get_weighting_configuration();
+		$this->assertArrayNotHasKey( 'post_format', $weighting_configuration['post'] );
+		$this->assertArrayNotHasKey( 'terms.post_format.name', $weighting_configuration['post'] );
+	}
+
 	public function testGetWeightableFieldsForPostType() {
 		$fields = $this->get_weighting_feature()->get_weightable_fields_for_post_type( 'ep_test' );
 
