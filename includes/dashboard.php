@@ -788,7 +788,6 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard-styles.min.css', [], EP_VERSION );
 	}
 
-
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
 		wp_enqueue_script( 'ep_weighting_script', EP_URL . 'dist/js/weighting-script.min.js', [ 'jquery' ], EP_VERSION, true );
 	}
