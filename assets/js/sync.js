@@ -252,6 +252,7 @@ function updateSyncDash() {
 		updateDisabledAttribute(syncButton, false);
 
 		hidePauseStopButtons();
+		hideResumeButton();
 
 		syncButton.style.display = 'flex';
 

@@ -48,17 +48,23 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 					<div class="ep-sync-box__buttons">
 						<button type="button" class="button button-primary ep-sync-box__button-pause pause-sync">
 							<img width="16" src="<?php echo esc_url( plugins_url( '/images/pause.svg', dirname( __DIR__ ) ) ); ?>" />
-							<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
+							<span class="ep-sync-box__button-text">
+								<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
+							</span>
 						</button>
 
 						<button type="button" class="button button-primary ep-sync-box__button-resume resume-sync">
 							<img width="16" src="<?php echo esc_url( plugins_url( '/images/resume.svg', dirname( __DIR__ ) ) ); ?>" />
-							<?php echo esc_html__( 'Resume', 'elasticpress' ); ?>
+							<span class="ep-sync-box__button-text">
+								<?php echo esc_html__( 'Resume', 'elasticpress' ); ?>
+							</span>
 						</button>
 
 						<button type="button" class="button button-primary ep-sync-box__button-stop">
 							<img width="16" src="<?php echo esc_url( plugins_url( '/images/stop.svg', dirname( __DIR__ ) ) ); ?>" />
-							<?php echo esc_html__( 'Stop', 'elasticpress' ); ?>
+							<span class="ep-sync-box__button-text">
+								<?php echo esc_html__( 'Stop', 'elasticpress' ); ?>
+							</span>
 						</button>
 					</div>
 				</div>
@@ -124,17 +130,23 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 				<div class="ep-sync-box__buttons">
 					<button type="button" class="button button-primary ep-sync-box__button-pause pause-sync">
 						<img width="16" src="<?php echo esc_url( plugins_url( '/images/pause.svg', dirname( __DIR__ ) ) ); ?>" />
-						<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
+						<span class="ep-sync-box__button-text">
+							<?php echo esc_html__( 'Pause', 'elasticpress' ); ?>
+						</span>
 					</button>
 
 					<button type="button" class="button button-primary ep-sync-box__button-resume resume-sync">
 						<img width="16" src="<?php echo esc_url( plugins_url( '/images/resume.svg', dirname( __DIR__ ) ) ); ?>" />
-						<?php echo esc_html__( 'Resume', 'elasticpress' ); ?>
+						<span class="ep-sync-box__button-text">
+							<?php echo esc_html__( 'Resume', 'elasticpress' ); ?>
+						</span>
 					</button>
 
 					<button type="button" class="button button-primary ep-sync-box__button-stop">
 						<img width="16" src="<?php echo esc_url( plugins_url( '/images/stop.svg', dirname( __DIR__ ) ) ); ?>" />
-						<?php echo esc_html__( 'Stop', 'elasticpress' ); ?>
+						<span class="ep-sync-box__button-text">
+							<?php echo esc_html__( 'Stop', 'elasticpress' ); ?>
+						</span>
 					</button>
 				</div>
 			</div>

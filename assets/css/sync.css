@@ -72,6 +72,10 @@
 	cursor: default;
 }
 
+.ep-sync-box__button-text {
+	height: 21px;
+}
+
 .elasticpress_page_elasticpress-sync .card {
 	max-width: 1200px;
 
