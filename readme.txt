@@ -61,11 +61,14 @@ Supported versions changes planned for ElasticPress 4.0.0:
 
 Added:
 * Docs: Link to the support page in README.md. Props [@brandwaffle](https://github.com/brandwaffle).
+* New `ep_weighting_default_enabled_taxonomies` filter. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott).
+* `$blog_id` and `$indexable_slug` parameters to the `ep_keep_index` filter. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle).
 
 Changed:
 * Add `$type` parameter to `ep_do_intercept_request` filter. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
 * Cache the detected Posts mapping version, avoiding `get_mapping` calls in all admin requests. Props [@felipeelia](https://github.com/felipeelia).
 * Docs: Required ES and WP versions planned for ElasticPress 4.0.0. Props [@felipeelia](https://github.com/felipeelia).
+* The `admin.min.js` file was split in `notice.min.js` and `weighting.min.js`, being loaded accordingly. Props [@felipeelia](https://github.com/felipeelia) and [@barryceelen](https://github.com/barryceelen).
 
 Fixed:
 * Force fetching `ep_wpcli_sync_interrupted` transient from remote to allow for more reliable remote interruption. Props [@rinatkhaziev](https://github.com/rinatkhaziev) and [@rebeccahum](https://github.com/rebeccahum).
