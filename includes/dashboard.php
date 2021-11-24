@@ -36,7 +36,6 @@ function setup() {
 
 	add_action( 'wp_ajax_ep_save_feature', __NAMESPACE__ . '\action_wp_ajax_ep_save_feature' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_dashboard_scripts' );
-	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_admin_scripts' );
 	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_skip_install' );
@@ -354,6 +353,8 @@ function maybe_notice( $force = false ) {
 		</div>
 		<?php
 	}
+
+	wp_enqueue_script( 'ep_notice_script' );
 
 	return $notices;
 }
@@ -783,12 +784,12 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'highlighting', 'weighting', 'synonyms' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms' ], true ) ) {
 		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard-styles.min.css', [], EP_VERSION );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'highlighting' ], true ) ) {
-		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
+		wp_enqueue_script( 'ep_weighting_script', EP_URL . 'dist/js/weighting-script.min.js', [ 'jquery' ], EP_VERSION, true );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'health' ], true ) ) {
@@ -873,18 +874,11 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_enqueue_script( 'ep_stats', EP_URL . 'dist/js/stats-script.min.js', [], EP_VERSION, true );
 		wp_localize_script( 'ep_stats', 'epChartData', $data );
 	}
-}
 
-/**
- * Enqueue scripts to be used across all of WP admin
- *
- * @since 2.2
- */
-function action_admin_enqueue_admin_scripts() {
-	wp_enqueue_script( 'ep_admin_scripts', EP_URL . 'dist/js/admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
+	wp_register_script( 'ep_notice_script', EP_URL . 'dist/js/notice-script.min.js', [ 'jquery' ], EP_VERSION, true );
 
 	wp_localize_script(
-		'ep_admin_scripts',
+		'ep_notice_script',
 		'epAdmin',
 		array(
 			'nonce' => wp_create_nonce( 'ep_admin_nonce' ),
