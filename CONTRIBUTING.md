@@ -30,7 +30,7 @@ The `develop` branch is the development branch which means it contains the next 
 
 1. If the new version requires a reindex, add its number to the `$reindex_versions` array in the `ElasticPress\Upgrades::check_reindex_needed()` method.  If it is the case, remember to add that information to the Changelog listings in `readme.txt` and `CHANGELOG.md`.
 1. Branch: Starting from `develop`, cut a release branch named `release/X.Y.Z` for your changes.
-1. Version bump: Bump the version number in `elasticpress.php`, `package.json`, `readme.txt`, and any other relevant files if it does not already reflect the version being released.  In `elasticpress.php` update both the plugin "Version:" property and the plugin `EP_VERSION` constant.
+1. Version bump: Bump the version number in `elasticpress.php`, `package.json`, `package-lock.json`, `readme.txt`, and any other relevant files if it does not already reflect the version being released.  In `elasticpress.php` update both the plugin "Version:" property and the plugin `EP_VERSION` constant.
 1. Changelog: Add/update the changelog in `CHANGELOG.md` and `readme.txt`, ensuring to link the [X.Y.Z] release reference in the footer of `CHANGELOG.md` (e.g., https://github.com/10up/ElasticPress/compare/X.Y.Z-1...X.Y.Z).
 1. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
 1. Readme updates: Make any other readme changes as necessary.  `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content.  The two are slightly different.
