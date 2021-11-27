@@ -7,6 +7,7 @@
     "10up-toolkit": "^1.0.13",
     "@wordpress/env": "^4.1.1",
     "cypress": "^8.5.0",
+    "eslint-plugin-cypress": "^2.12.1",
     "jsdoc": "^3.6.7",
     "terser-webpack-plugin": "^5.2.4",
     "wp-hookdoc": "^0.2.0"
