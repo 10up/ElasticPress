@@ -32,6 +32,7 @@ Supported versions:
 - Duplicate orderby statement in Users query. Props [@brettshumaker](https://github.com/brettshumaker), [@pschoffer](https://github.com/pschoffer), and [@rebeccahum](https://github.com/rebeccahum) via [#2435](https://github.com/10up/ElasticPress/pull/2435).
 - When using offset and default maximum result window value for size, subtract offset from size. Props [@rebeccahum](https://github.com/rebeccahum) via [#2441](https://github.com/10up/ElasticPress/pull/2441).
 - Order for Custom Search Results in autosuggest. Props [@felipeelia](https://github.com/felipeelia) and [@johnwatkins0](https://github.com/johnwatkins0) via [#2447](https://github.com/10up/ElasticPress/pull/2447).
+- WP-CLI stats and status to output all indices related to ElasticPress. Props [@felipeelia](https://github.com/felipeelia) via [#2479](https://github.com/10up/ElasticPress/pull/2479).
 - Tests: Ensure that Posts related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) via [#2401](https://github.com/10up/ElasticPress/pull/2401).
 - Tests: PHPUnit and yoast/phpunit-polyfills. Props [@felipeelia](https://github.com/felipeelia) via [#2457](https://github.com/10up/ElasticPress/pull/2457).
 
