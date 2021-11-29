@@ -233,7 +233,7 @@ function updateSyncDash() {
 
 	const progressBarWidth = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
 
-	if (typeof progressBarWidth === 'number' && !Number.isNaN(progressBarWidth)) {
+	if (typeof progressBarWidth === 'number' && !Number.isNaN(progressBarWidth) && Number.isFinite(progressBarWidth)) {
 		progressBar.style.width = `${progressBarWidth}%`;
 		progressBar.innerText = `${Math.trunc(progressBarWidth)}%`;
 	}
@@ -350,6 +350,38 @@ function addLineToOutput(text) {
 	}
 }
 
+function addErrorToOutput(text) {
+	if (activeBox) {
+		const wrapperElement = activeBox.querySelector('.ep-sync-box__output-error .ep-sync-box__output-wrapper');
+
+		const lastLineNumberElement = activeBox.querySelector(
+			'.ep-sync-box__output-error .ep-sync-box__output-line:last-child .ep-sync-box__output-line-number',
+		);
+		const lastLineNumber = Number(lastLineNumberElement?.innerText);
+
+		const lineNumber = document.createElement('div');
+		lineNumber.className = 'ep-sync-box__output-line-number';
+		lineNumber.innerText =
+			typeof lastLineNumber === 'number' && !Number.isNaN(lastLineNumber)
+				? lastLineNumber + 1
+				: 1;
+
+		const lineText = document.createElement('div');
+		lineText.className = 'ep-sync-box__output-line-text';
+		lineText.innerText = text;
+
+		const line = document.createElement('div');
+		line.className = 'ep-sync-box__output-line';
+		line.append(lineNumber);
+		line.append(lineText);
+
+		wrapperElement.append(line);
+
+		const outputElement = activeBox.querySelector('.ep-sync-box__output-error');
+		outputElement.scrollTo(0, wrapperElement.scrollHeight);
+	}
+}
+
 /**
  * Update the start date time on active box
  *
@@ -396,7 +428,19 @@ function sync(putMapping = false) {
 
 	apiFetch(requestSettings)
 		.then((response) => {
-			addLineToOutput(response.data.message);
+			if (response.data.index_meta?.current_sync_item?.failed) {
+				const message = response.data?.message;
+				if (Array.isArray(message)) {
+					message.forEach(item => addErrorToOutput(item));
+					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
+
+					errorTab.innerText = `Errors (${response.data.index_meta.current_sync_item.failed})`
+				} else if (typeof message === 'string') {
+					addErrorToOutput(response.data.message);
+				}
+			} else {
+				addLineToOutput(response.data.message);
+			}
 			updateStartDateTime(response.data?.index_meta?.start_date_time);
 			shouldInterruptSync(response.data?.index_meta?.should_interrupt_sync);
 
