@@ -845,11 +845,10 @@ class IndexHelper {
 	protected function output_index_errors( $failed_objects ) {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
-		$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
+		$error_text = [];
 
 		foreach ( $failed_objects as $object ) {
-			$error_text .= '- ' . $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): ' . "\r\n";
-			$error_text .= '[' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] . "\r\n";
+			$error_text[] = $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'];
 		}
 
 		return $error_text;
