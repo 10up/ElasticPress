@@ -24,17 +24,17 @@ class DashboardSyncTest extends TestBase {
 
 		$this->runCommand( 'wp elasticpress delete-index --yes' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-health' );
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-health' );
 
 		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
 
@@ -59,21 +59,21 @@ class DashboardSyncTest extends TestBase {
 
 		$this->runCommand( 'wp elasticpress delete-index --network-wide --yes' );
 
-		$I->moveTo( 'wp-admin/network/sites.php' );
+		$this->moveTo( $I, 'wp-admin/network/sites.php' );
 
 		$I->checkOptions( '.index-toggle' );
 
-		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/network/admin.php?page=elasticpress-health' );
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/network/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
-		$I->moveTo( 'wp-admin/network/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/network/admin.php?page=elasticpress-health' );
 
 		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
 
@@ -95,11 +95,11 @@ class DashboardSyncTest extends TestBase {
 
 		$this->runCommand( 'wp elasticpress delete-index --yes' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-health' );
 
 		$I->seeText( 'We could not find any data for your Elasticsearch indices.' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -107,9 +107,9 @@ class DashboardSyncTest extends TestBase {
 
 		sleep( 1 );
 
-		$I->moveTo( 'wp-admin/index.php' );
+		$this->moveTo( $I, 'wp-admin/index.php' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->seeText( 'Sync paused', '.sync-status' );
 
@@ -117,7 +117,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-health' );
 
 		$I->dontSeeText( 'We could not find any data for your Elasticsearch indices.' );
 
@@ -134,7 +134,7 @@ class DashboardSyncTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
@@ -166,7 +166,7 @@ class DashboardSyncTest extends TestBase {
 		// Slowing the index process a bit.
 		$old_value = $this->setPerIndexCycle( 10, $I );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
 		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
@@ -184,7 +184,7 @@ class DashboardSyncTest extends TestBase {
 
 		$cli_result = $this->runCommand( 'wp elasticpress index' )['stdout'];
 
-		$this->assertStringContainsString( 'An index is already occuring', $cli_result );
+		$this->assertStringContainsString( 'An index is already occurring', $cli_result );
 
 		$I->executeJavaScript( 'document.querySelector( ".resume-sync" ).click();' );
 

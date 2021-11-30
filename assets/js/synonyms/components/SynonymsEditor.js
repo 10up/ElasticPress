@@ -43,7 +43,12 @@ const SynonymsEditor = () => {
 	 * Handles submitting the form.
 	 */
 	const handleSubmit = () => {
+		if (isSolrEditable) {
+			dispatch({ type: 'REDUCE_SOLR_TO_STATE' });
+		}
+
 		dispatch({ type: 'VALIDATE_ALL' });
+		dispatch({ type: 'REDUCE_STATE_TO_SOLR' });
 		dispatch({ type: 'SUBMIT' });
 	};
 
@@ -51,6 +56,12 @@ const SynonymsEditor = () => {
 	 * Handle toggling the editor type.
 	 */
 	const handleToggleAdvance = () => {
+		if (isSolrEditable) {
+			dispatch({ type: 'REDUCE_SOLR_TO_STATE' });
+		} else {
+			dispatch({ type: 'REDUCE_STATE_TO_SOLR' });
+		}
+
 		dispatch({ type: 'SET_SOLR_EDITABLE', data: !isSolrEditable });
 	};
 
