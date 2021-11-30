@@ -2,6 +2,7 @@ import apiFetch from '@wordpress/api-fetch';
 
 /* eslint-disable camelcase, no-use-before-define */
 const { ajaxurl, epDash, history } = window;
+const { __, sprintf } = wp.i18n;
 
 // Main elements of sync page
 const syncBox = document.querySelector('.ep-sync-data');
@@ -48,13 +49,13 @@ syncButton.addEventListener('click', function () {
 
 	showPauseStopButtons();
 	showProgress();
-	addLineToOutput('Indexing data...');
+	addLineToOutput(__('Indexing data…', 'elasticpress'));
 
 	const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
 	const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
 
-	progressInfoElement.innerText = 'Sync in progress';
+	progressInfoElement.innerText = __('Sync in progress', 'elasticpress');
 
 	progressBar.style.width = `0`;
 	progressBar.innerText = ``;
@@ -74,13 +75,13 @@ function deleteAndSync() {
 	showPauseStopButtons();
 	showProgress();
 
-	addLineToOutput('Deleting all data...');
+	addLineToOutput(__('Deleting all data…', 'elasticpress'));
 
 	const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
 	const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
 
-	progressInfoElement.innerText = 'Deleting in progress';
+	progressInfoElement.innerText = __('Deleting in progress', 'elasticpress');
 
 	progressBar.style.width = `0`;
 	progressBar.innerText = ``;
@@ -435,7 +436,11 @@ function sync(putMapping = false) {
 					message.forEach((item) => addErrorToOutput(item));
 					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
 
-					errorTab.innerText = `Errors (${response.data.index_meta.current_sync_item.failed})`;
+					errorTab.innerText = sprintf(
+						// translators: Number of errors
+						__('Errors (%d)', 'elasticpress'),
+						response.data.index_meta.current_sync_item.failed,
+					);
 				} else if (typeof message === 'string') {
 					addErrorToOutput(response.data.message);
 				}
@@ -466,8 +471,8 @@ function sync(putMapping = false) {
 					? lastSyncStatusIcon.src?.replace(/thumbsup/, 'thumbsdown')
 					: lastSyncStatusIcon.src?.replace(/thumbsdown/, 'thumbsup');
 				lastSyncStatus.innerText = response.data.totals.failed
-					? 'Sync unsuccessful on '
-					: 'Sync success on ';
+					? __('Sync unsuccessful on ', 'elasticpress')
+					: __('Sync success on ', 'elasticpress');
 				lastSyncDate.innerText =
 					response.data.totals.end_date_time || lastSyncDate.innerText;
 
@@ -526,7 +531,7 @@ function startSyncProcess(putMapping) {
 	const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
 
 	progressWrapperElement.style.display = 'block';
-	progressInfoElement.innerText = 'Sync in progress';
+	progressInfoElement.innerText = __('Sync in progress', 'elasticpress');
 
 	progressBar.style.width = `0`;
 	progressBar.innerText = ``;
@@ -565,7 +570,7 @@ document.querySelectorAll('.ep-sync-box__button-pause')?.forEach((button) => {
 		const progressInfoElement = activeBox?.querySelector('.ep-sync-box__progress-info');
 
 		if (progressInfoElement?.innerText) {
-			progressInfoElement.innerText = 'Sync paused';
+			progressInfoElement.innerText = __('Sync paused', 'elasticpress');
 		}
 
 		updateSyncDash();
@@ -573,7 +578,7 @@ document.querySelectorAll('.ep-sync-box__button-pause')?.forEach((button) => {
 		hidePauseButton();
 		showResumeButton();
 
-		addLineToOutput('Sync paused');
+		addLineToOutput(__('Sync paused', 'elasticpress'));
 	});
 });
 
@@ -583,7 +588,7 @@ document.querySelectorAll('.ep-sync-box__button-resume')?.forEach((button) => {
 
 		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
-		progressInfoElement.innerText = 'Sync in progress';
+		progressInfoElement.innerText = __('Sync in progress', 'elasticpress');
 
 		updateSyncDash();
 
@@ -605,12 +610,12 @@ document.querySelectorAll('.ep-sync-box__button-stop')?.forEach((button) => {
 
 		cancelSync();
 
-		progressInfoElement.innerText = 'Sync stopped';
+		progressInfoElement.innerText = __('Sync stopped', 'elasticpress');
 
 		progressBar.style.width = `0`;
 		progressBar.innerText = ``;
 
-		addLineToOutput('Sync stopped');
+		addLineToOutput(__('Sync stopped', 'elasticpress'));
 	});
 });
 
@@ -619,9 +624,9 @@ document.querySelectorAll('.ep-sync-box__show-hide-log')?.forEach((element) => {
 		event.preventDefault();
 
 		if (element.nextElementSibling?.classList?.toggle('ep-sync-box__output-tabs_hide')) {
-			element.innerText = 'Show log';
+			element.innerText = __('Show log', 'elasticpress');
 		} else {
-			element.innerText = 'Hide log';
+			element.innerText = __('Hide log', 'elasticpress');
 		}
 	});
 });
