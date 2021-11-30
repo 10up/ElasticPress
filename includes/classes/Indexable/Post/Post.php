@@ -12,6 +12,7 @@ use ElasticPress\Indexable as Indexable;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use \WP_Query as WP_Query;
 use \WP_User as WP_User;
+use function ElasticPress\Utils\get_search_algorithm;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -1355,26 +1356,9 @@ class Post extends Indexable {
 		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
-		$default_algorithm_version = '3.5';
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$search_algorithm_version_option = get_site_option( 'ep_search_algorithm_version', $default_algorithm_version );
-		} else {
-			$search_algorithm_version_option = get_option( 'ep_search_algorithm_version', $default_algorithm_version );
-		}
-
-		/**
-		 * Filter the algorithm version to be used.
-		 *
-		 * @since  3.5
-		 * @hook ep_search_algorithm_version
-		 * @param  {string} $search_algorithm_version Algorithm version.
-		 * @return  {string} New algorithm version
-		 */
-		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
-
 		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
 
-		if ( '3.5' === $search_algorithm_version ) {
+		if ( '3.5' === get_search_algorithm() ) {
 			$query = array(
 				'bool' => array(
 					'should' => array(

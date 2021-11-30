@@ -633,3 +633,27 @@ function is_integrated_request( $context, $types = [] ) {
 	 */
 	return apply_filters( 'ep_is_integrated_request', $is_integrated, $context, $types );
 }
+
+/**
+ * Utility function to get the current search algorithm.
+ *
+ * @return string The search algorithm version.
+ */
+function get_search_algorithm() {
+	$default_algorithm_version = '3.5';
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$search_algorithm_version_option = get_site_option( 'ep_search_algorithm_version', $default_algorithm_version );
+	} else {
+		$search_algorithm_version_option = get_option( 'ep_search_algorithm_version', $default_algorithm_version );
+	}
+
+	/**
+	 * Filter the algorithm version to be used.
+	 *
+	 * @since  3.5
+	 * @hook ep_search_algorithm_version
+	 * @param  {string} $search_algorithm_version Algorithm version.
+	 * @return  {string} New algorithm version
+	 */
+	return apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
+}

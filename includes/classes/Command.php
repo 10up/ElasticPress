@@ -1707,27 +1707,12 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Get the algorithm version.
 	 *
-	 * Get the value of the `ep_search_algorithm_version` option, or
-	 * `default` if empty.
+	 * Get the value of the `ep_search_algorithm_version` (the default is 3.5 if empty)
 	 *
 	 * @subcommand get-algorithm-version
-	 *
-	 * @since       3.5.4
-	 * @param array $args Positional CLI args.
-	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_search_algorithm_version( $args, $assoc_args ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$value = get_site_option( 'ep_search_algorithm_version', '' );
-		} else {
-			$value = get_option( 'ep_search_algorithm_version', '' );
-		}
-
-		if ( empty( $value ) ) {
-			WP_CLI::line( 'default' );
-		} else {
-			WP_CLI::line( $value );
-		}
+	public function get_search_algorithm_version() {
+		WP_CLI::line( Utils\get_search_algorithm() );
 	}
 
 	/**
