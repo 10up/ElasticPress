@@ -363,7 +363,7 @@ function checkForOrderedPosts(hits, searchTerm) {
 		});
 	}
 
-	return hits;
+	return filteredHits;
 }
 
 /**
