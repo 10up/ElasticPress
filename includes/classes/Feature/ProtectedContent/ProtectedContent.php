@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ProtectedContent extends Feature {
 
 	/**
-	 * Initialize feature setting it's config
+	 * Initialize feature setting its config
 	 *
 	 * @since  3.0
 	 */
