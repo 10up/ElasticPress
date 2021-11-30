@@ -233,7 +233,11 @@ function updateSyncDash() {
 
 	const progressBarWidth = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
 
-	if (typeof progressBarWidth === 'number' && !Number.isNaN(progressBarWidth) && Number.isFinite(progressBarWidth)) {
+	if (
+		typeof progressBarWidth === 'number' &&
+		!Number.isNaN(progressBarWidth) &&
+		Number.isFinite(progressBarWidth)
+	) {
 		progressBar.style.width = `${progressBarWidth}%`;
 		progressBar.innerText = `${Math.trunc(progressBarWidth)}%`;
 	}
@@ -352,7 +356,9 @@ function addLineToOutput(text) {
 
 function addErrorToOutput(text) {
 	if (activeBox) {
-		const wrapperElement = activeBox.querySelector('.ep-sync-box__output-error .ep-sync-box__output-wrapper');
+		const wrapperElement = activeBox.querySelector(
+			'.ep-sync-box__output-error .ep-sync-box__output-wrapper',
+		);
 
 		const lastLineNumberElement = activeBox.querySelector(
 			'.ep-sync-box__output-error .ep-sync-box__output-line:last-child .ep-sync-box__output-line-number',
@@ -431,10 +437,10 @@ function sync(putMapping = false) {
 			if (response.data.index_meta?.current_sync_item?.failed) {
 				const message = response.data?.message;
 				if (Array.isArray(message)) {
-					message.forEach(item => addErrorToOutput(item));
+					message.forEach((item) => addErrorToOutput(item));
 					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
 
-					errorTab.innerText = `Errors (${response.data.index_meta.current_sync_item.failed})`
+					errorTab.innerText = `Errors (${response.data.index_meta.current_sync_item.failed})`;
 				} else if (typeof message === 'string') {
 					addErrorToOutput(response.data.message);
 				}
@@ -457,7 +463,16 @@ function sync(putMapping = false) {
 			if (!response.data.index_meta) {
 				syncStatus = 'finished';
 
+				const lastSyncStatusIcon = document.querySelector('.ep-last-sync__icon-status');
+				const lastSyncStatus = document.querySelector('.ep-last-sync__status');
 				const lastSyncDate = document.querySelector('.ep-last-sync__date');
+
+				lastSyncStatusIcon.src = response.data.totals.failed
+					? lastSyncStatusIcon.src?.replace(/thumbsup/, 'thumbsdown')
+					: lastSyncStatusIcon.src?.replace(/thumbsdown/, 'thumbsup');
+				lastSyncStatus.innerText = response.data.totals.failed
+					? 'Sync unsuccessful on '
+					: 'Sync success on ';
 				lastSyncDate.innerText =
 					response.data.totals.end_date_time || lastSyncDate.innerText;
 

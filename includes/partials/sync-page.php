@@ -29,7 +29,7 @@ $ep_last_sync_date = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index
 							<?php echo esc_html__( 'Last sync:', 'elasticpress' ); ?>
 						</p>
 						<?php if ( $ep_last_sync_date ) : ?>
-							<img width="16" src="<?php echo esc_url( plugins_url( '/images/thumbsup.svg', dirname( __DIR__ ) ) ); ?>" />
+							<img class="ep-last-sync__icon-status" width="16" src="<?php echo esc_url( plugins_url( '/images/thumbsup.svg', dirname( __DIR__ ) ) ); ?>" />
 							<?php
 								// translators: sync date
 								echo wp_kses_post( sprintf( __( '<span class="ep-last-sync__status">Sync success on</span><span class="ep-last-sync__date">%s</span>' ), $ep_last_sync_date ) );
