@@ -64,7 +64,9 @@ syncButton.addEventListener('click', function () {
 	startSyncProcess();
 });
 
-deleteAndSyncButton.addEventListener('click', function () {
+deleteAndSyncButton.addEventListener('click', deleteAndSync);
+
+function deleteAndSync() {
 	activeBox = deleteAndSyncBox;
 
 	disableButtonsInSyncBox();
@@ -86,7 +88,7 @@ deleteAndSyncButton.addEventListener('click', function () {
 	startDateTime.innerText = '';
 
 	startSyncProcess(true);
-});
+}
 
 /**
  * Show Pause and Stop buttons on the active box
@@ -199,20 +201,13 @@ if (epDash.index_meta) {
 		// updateSyncDash();
 	}
 } else if (epDash.auto_start_index) {
-	// Start a new sync automatically
-	syncStatus = 'initialsync';
-
-	updateSyncDash();
-
-	syncStatus = 'sync';
+	deleteAndSync();
 
 	history.pushState(
 		{},
 		document.title,
 		document.location.pathname + document.location.search.replace(/&do_sync/, ''),
 	);
-
-	sync(true);
 }
 
 /**
