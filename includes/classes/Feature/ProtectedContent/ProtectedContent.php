@@ -220,19 +220,22 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function exclude_protected_posts( $formatted_args, $args ) {
-		/**
-		 * Filter to exclude protected posts from search.
-		 *
-		 * @hook ep_exclude_password_protected_from_search
-		 * @param  {bool} $exclude Exclude post from search.
-		 * @return {bool}
-		 */
-		if ( ! is_admin() && apply_filters( 'ep_exclude_password_protected_from_search', true ) ) {
-			$formatted_args['post_filter']['bool']['must_not'][] = array(
-				'exists' => array(
-					'field' => 'post_password',
-				),
-			);
+		if ( true !== $args['has_password'] ) {
+			$maybe_logged_in_exclude = ! is_user_logged_in() || ( is_user_logged_in() && ! is_search() );
+			/**
+			 * Filter to exclude protected posts from search.
+			 *
+			 * @hook ep_exclude_password_protected_from_search
+			 * @param  {bool} $exclude Exclude post from search.
+			 * @return {bool}
+			 */
+			if ( $maybe_logged_in_exclude && apply_filters( 'ep_exclude_password_protected_from_search', true ) ) {
+				$formatted_args['post_filter']['bool']['must_not'][] = array(
+					'exists' => array(
+						'field' => 'post_password',
+					),
+				);
+			}
 		}
 
 		return $formatted_args;
