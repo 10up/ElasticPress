@@ -253,10 +253,15 @@ abstract class SyncManager {
 		 * Filter to whether to keep index on site deletion
 		 *
 		 * @hook ep_keep_index
-		 * @param {bool} $keep True means don't delete index
-		 * @return {boolean} New value
+		 * @since 3.0
+		 * @since 3.6.2 Moved from Post\SyncManager to the main SyncManager class
+		 * @since 3.6.5 Added `$blog_id` and `$indexable_slug`
+		 * @param {bool}   $keep           True means don't delete index
+		 * @param {int}    $blog_id        WP Blog ID
+		 * @param {string} $indexable_slug Indexable slug
+		 * @return {bool} New value
 		 */
-		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false ) ) {
+		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false, $blog_id, $this->indexable_slug ) ) {
 			$indexable->delete_index( $blog_id );
 		}
 	}

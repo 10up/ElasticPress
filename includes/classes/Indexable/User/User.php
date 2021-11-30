@@ -728,11 +728,15 @@ class User extends Indexable {
 			$args['order'] = 'desc';
 		}
 
+		$orderby_args = sanitize_sql_orderby( "{$args['orderby']} {$args['order']}" );
+		$orderby      = $orderby_args ? sprintf( 'ORDER BY %s', $orderby_args ) : '';
+
 		/**
 		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
 		 * way to do that.
 		 */
-		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} ORDER BY %s %s LIMIT %d, %d", $args['orderby'], $args['orderby'], (int) $args['offset'], (int) $args['number'] ) );
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared  
+		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} {$orderby} LIMIT %d, %d", (int) $args['offset'], (int) $args['number'] ) );
 
 		return [
 			'objects'       => $objects,

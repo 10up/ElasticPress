@@ -17,7 +17,7 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I = $this->openBrowserPage();
 
-		$I->moveTo( '/' );
+		$this->moveTo( $I, '/' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 
@@ -42,7 +42,7 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I = $this->openBrowserPage();
 
-		$I->moveTo( '/' );
+		$this->moveTo( $I, '/' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 
@@ -79,7 +79,7 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I = $this->openBrowserPage();
 
-		$I->moveTo( '/' );
+		$this->moveTo( $I, '/' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 
@@ -104,7 +104,7 @@ class FeatureAutosuggestTest extends TestBase {
 
 		$I = $this->openBrowserPage();
 
-		$I->moveTo( '/' );
+		$this->moveTo( $I, '/' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 

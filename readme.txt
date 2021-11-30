@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Tested up to: 5.8
-Stable tag:   3.6.2
+Stable tag:   3.6.5
 License:      GPLv2 or later
 License URI:  http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -10,6 +10,10 @@ A fast and flexible search and query engine for WordPress.
 
 == Description ==
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
+
+## ElasticPress 4.0.0 Beta is coming!
+
+Planned to be released in early December, the first Beta for ElasticPress 4.0 will bring changes and new features. Make sure to read the [changes planned](https://github.com/10up/ElasticPress#planned-changes-for-400) before updating. Even after the release of Beta 1, the software will be still in development, so it will not be recommended to run it on a production site.
 
 Here is a list of the amazing ElasticPress features included in the plugin:
 
@@ -31,7 +35,7 @@ __Users__: Improve user search relevancy and query performance.
 
 __Comments__: Indexes your comments and provides a widget with type-ahead search functionality. It works with WooCommerce product reviews out-of-the-box.
 
-Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation.
+Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation. FAQs and tutorials can be also found on our [support site](https://elasticpress.zendesk.com/hc/en-us).
 
 == Installation ==
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
@@ -45,6 +49,103 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 2. Search Fields & Weighting Dashboard
 
 == Changelog ==
+
+= 3.6.5 =
+
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
+
+Supported versions changes planned for ElasticPress 4.0.0:
+* Elasticsearch: from 5.0 - 7.9 to 5.2 - 7.10.
+* WordPress: from 3.7.1+ to 5.6+.
+* PHP: from 5.6+ to 7.0+.
+
+Added:
+* Docs: Link to the support page in README.md. Props [@brandwaffle](https://github.com/brandwaffle).
+* New `ep_weighting_default_enabled_taxonomies` filter. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott).
+* `$blog_id` and `$indexable_slug` parameters to the `ep_keep_index` filter. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle).
+
+Changed:
+* Add `$type` parameter to `ep_do_intercept_request` filter. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
+* Cache the detected Posts mapping version, avoiding `get_mapping` calls in all admin requests. Props [@felipeelia](https://github.com/felipeelia).
+* Docs: Required ES and WP versions planned for ElasticPress 4.0.0. Props [@felipeelia](https://github.com/felipeelia).
+* The `admin.min.js` file was split in `notice.min.js` and `weighting.min.js`, being loaded accordingly. Props [@felipeelia](https://github.com/felipeelia) and [@barryceelen](https://github.com/barryceelen).
+
+Fixed:
+* Force fetching `ep_wpcli_sync_interrupted` transient from remote to allow for more reliable remote interruption. Props [@rinatkhaziev](https://github.com/rinatkhaziev) and [@rebeccahum](https://github.com/rebeccahum).
+* Duplicate orderby statement in Users query. Props [@brettshumaker](https://github.com/brettshumaker), [@pschoffer](https://github.com/pschoffer), and [@rebeccahum](https://github.com/rebeccahum).
+* When using offset and default maximum result window value for size, subtract offset from size. Props [@rebeccahum](https://github.com/rebeccahum).
+* Order for Custom Search Results in autosuggest. Props [@felipeelia](https://github.com/felipeelia) and [@johnwatkins0](https://github.com/johnwatkins0).
+* WP-CLI stats and status to output all indices related to ElasticPress. Props [@felipeelia](https://github.com/felipeelia).
+* Tests: Ensure that Posts related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon).
+* Tests: PHPUnit and yoast/phpunit-polyfills. Props [@felipeelia](https://github.com/felipeelia).
+
+Security:
+* Bumped `path-parse` from 1.0.6 to 1.0.7. Props [@dependabot](https://github.com/dependabot).
+* Bumped `10up-toolkit` from 1.0.12 to 1.0.13. Props [@felipeelia](https://github.com/felipeelia).
+
+= 3.6.4 =
+
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, ~~will build a stable release version including built assets into a `stable` branch,~~ will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to ~~either `stable` or~~ `trunk` or to GitHub releases depending on whether you require built assets or not.
+
+Supported versions changes planned for ElasticPress 4.0.0:
+* Elasticsearch: from 5.0 - 7.9 to 5.2 - 7.10.
+* WordPress: from 3.7.1+ to 5.6+.
+* PHP: from 5.6+ to 7.0+.
+
+Added:
+* WP-CLI: New `get-mapping` command. Props [@tfrommen](https://github.com/tfrommen), [@felipeelia](https://github.com/felipeelia), and [@Rahmon](https://github.com/Rahmon).
+* New filters: `ep_query_request_args` and `ep_pre_request_args`. Props [@felipeelia](https://github.com/felipeelia).
+* Support for Autosuggest to dynamically inserted search inputs. Props [@JakePT](https://github.com/JakePT), [@rdimascio](https://github.com/rdimascio), [@brandwaffle](https://github.com/brandwaffle), and [@felipeelia](https://github.com/felipeelia).
+
+Changed:
+* Automatically generated WP-CLI docs. Props [@felipeelia](https://github.com/felipeelia).
+* Verification of active features requirement. Props [@Rahmon](https://github.com/Rahmon), [@felipeelia](https://github.com/felipeelia), and [@WPprodigy](https://github.com/WPprodigy).
+* `ewp_word_delimiter` base filter: changed from `word_delimiter` to `word_delimiter_graph`. Props [@pschoffer](https://github.com/pschoffer), [@Rahmon](https://github.com/Rahmon) and [@yolih](https://github.com/yolih).
+* Terms search query in admin will not be fuzzy. Props [@rebeccahum](https://github.com/rebeccahum).
+
+Fixed:
+* Elapsed time beyond 1000 seconds in WP-CLI index command. Props [@felipeelia](https://github.com/felipeelia) and [@dustinrue](https://github.com/dustinrue).
+* Layout of Index Health totals on small displays. Props [@JakePT](https://github.com/JakePT) and [@oscarssanchez](https://github.com/oscarssanchez).
+* Deprecated URL for multiple documents get from ElasticSearch. Props [@pschoffer](https://github.com/pschoffer).
+* Add new lines and edit terms in the Advanced Synonym Editor. Props [@JakePT](https://github.com/JakePT) and [@johnwatkins0](https://github.com/johnwatkins0).
+* Terms: Avoid falling back to MySQL when results are empty. Props [@felipeelia](https://github.com/felipeelia).
+* Terms: Usage of several parameters for searching and ordering. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon).
+- Attachment indexing on Elasticsearch 7. Props [@Rahmon](https://github.com/Rahmon).
+* Tests: Ensure that Documents related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon).
+* Tests: Ensure that WooCommerce related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia).
+* Tests: Ensure that Comments related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia).
+* Tests: Ensure that Multisite related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) and [@felipeelia](https://github.com/felipeelia).
+* Tests: Ensure that Terms related queries use ElasticPress. Props [@felipeelia](https://github.com/felipeelia).
+
+= 3.6.3 =
+
+**Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+
+Official PHP support is currently 5.6+. Minimum PHP version for ElasticPress 3.7.0 will be 7.0+.
+
+Added:
+* New `ep_facet_widget_term_html` and `ep_facet_widget_term_label` filters to the Facet widget for filtering the HTML and label of individual facet terms. Props [@JakePT](https://github.com/JakePT), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia).
+* New `ep_set_sort` filter for changing the `sort` clause of the ES query if `orderby` is not set in WP_Query. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
+* WP-CLI documentation for some commands and parameters. Props [@felipeelia](https://github.com/felipeelia).
+
+Changed:
+* In addition to post titles, now autosuggest also partially matches taxonomy terms. Props [@felipeelia](https://github.com/felipeelia) and [@Rahmon](https://github.com/Rahmon).
+* Date parsing change to avoid `E_WARNING`s. Props [@pschoffer](https://github.com/pschoffer).
+
+Fixed:
+* Comments created by anonymous users (but approved by default) are now indexed. Props [@tomjn](https://github.com/tomjn) and [@Rahmon](https://github.com/Rahmon).
+* Deleted terms are now properly removed from the Elasticsearch index. Props [@felipeelia](https://github.com/felipeelia).
+* Children of deleted terms are now properly removed from the Elasticsearch index. Props [@pschoffer](https://github.com/pschoffer).
+* Post tag duplicated in the Elasticsearch query. Props [@oscarssanchez](https://github.com/oscarssanchez), [@Rahmon](https://github.com/Rahmon), and [@felipeelia](https://github.com/felipeelia).
+* Infinite loading state of ElasticPress Related Posts block in the Widgets Edit Screen. Props [@felipeelia](https://github.com/felipeelia).
+* Return of `Search::integrate_search_queries()` when `is_integrated_request`. Props [@adiloztaser](https://github.com/adiloztaser).
+* Mapping determination based on existing info. Props [@felipeelia](https://github.com/felipeelia).
+* `WP_Term_Query` and `parent = 0`. Props [@felipeelia](https://github.com/felipeelia) and [@juansanchezfernandes](https://github.com/juansanchezfernandes).
+* WP Acceptance Tests. Props [@felipeelia](https://github.com/felipeelia).
+* Typos in the output of some WP-CLI Commands. Props [@rebeccahum](https://github.com/rebeccahum).
+
+Security:
+* Bumped `10up-toolkit` from 1.0.11 to 1.0.12, `terser-webpack-plugin` from 5.1.4 to 5.2.4, `@wordpress/api-fetch` from 3.21.5 to 3.23.1, and `@wordpress/i18n` from 3.18.0 to 3.20.0. Props [@felipeelia](https://github.com/felipeelia).
 
 = 3.6.2 =
 **Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.

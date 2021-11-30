@@ -183,14 +183,14 @@ class Widget extends WP_Widget {
 							if ( ! empty( $new_filters['taxonomies'][ $taxonomy ] ) && ! empty( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] ) ) {
 								unset( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] );
 							}
-							?>
-							<div class="term selected level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term_slug ) ); ?>">
-								<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow">
-									<div class="ep-checkbox checked" role="presentation"></div>
-									<?php echo esc_html( $term->name ); ?>
-								</a>
-							</div>
-							<?php
+
+							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+							echo $this->get_facet_term_html(
+								$term,
+								$feature->build_query_url( $new_filters ),
+								true
+							);
+							// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 						} else {
 							/**
 							 * This code is so that when we encounter a selected child/parent term, we push it's whole branch
@@ -246,14 +246,14 @@ class Widget extends WP_Widget {
 
 									$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 								}
-								?>
-								<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> <?php if ( $selected ) : ?>selected<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-									<a href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow">
-										<div class="ep-checkbox <?php if ( $selected ) : ?>checked<?php endif; ?>" role="presentation"></div>
-										<?php echo esc_html( $term->name ); ?>
-									</a>
-								</div>
-								<?php
+
+								// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo $this->get_facet_term_html(
+									$term,
+									$feature->build_query_url( $new_filters ),
+									$selected
+								);
+								// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 							}
 						}
 					endforeach;
@@ -275,14 +275,15 @@ class Widget extends WP_Widget {
 					}
 
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
-					?>
-					<div class="term <?php if ( empty( $term->count ) ) : ?>empty-term<?php endif; ?> level-<?php echo (int) $term->level; ?>" data-term-name="<?php echo esc_attr( strtolower( $term->name ) ); ?>" data-term-slug="<?php echo esc_attr( strtolower( $term->slug ) ); ?>">
-						<a <?php if ( ! empty( $term->count ) ) : ?>href="<?php echo esc_attr( $feature->build_query_url( $new_filters ) ); ?>" rel="nofollow"<?php endif; ?>>
-							<div class="ep-checkbox" role="presentation"></div>
-							<?php echo esc_html( $term->name ); ?>
-						</a>
-					</div>
-				<?php endforeach; ?>
+
+					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo $this->get_facet_term_html(
+						$term,
+						$feature->build_query_url( $new_filters )
+					);
+					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+				endforeach;
+				?>
 			</div>
 			<?php $facet_html = ob_get_clean(); ?>
 
@@ -310,6 +311,68 @@ class Widget extends WP_Widget {
 		wp_enqueue_style( 'elasticpress-facets' );
 
 		echo wp_kses_post( $args['after_widget'] );
+	}
+
+	/**
+	 * Get the markup for an individual facet item.
+	 *
+	 * @param WP_Term $term     Term object.
+	 * @param string  $url      Filter URL.
+	 * @param boolean $selected Whether the term is currently selected.
+	 * @since 3.6.3
+	 * @return string HTML for an individual facet term.
+	 */
+	protected function get_facet_term_html( $term, $url, $selected = false ) {
+		$href = sprintf(
+			'href="%s"',
+			esc_url( $url )
+		);
+
+		/**
+		 * Filter the label for an individual facet term.
+		 *
+		 * @since 3.6.3
+		 * @hook ep_facet_widget_term_label
+		 * @param {string} $label Facet term label.
+		 * @param {WP_Term} $term Term object.
+		 * @param {boolean} $selected Whether the term is selected.
+		 * @return {string} Individual facet term label.
+		 */
+		$label = apply_filters( 'ep_facet_widget_term_label', $term->name, $term, $selected );
+
+		$link = sprintf(
+			'<a %1$s rel="nofollow"><div class="ep-checkbox %2$s" role="presentation"></div>%3$s</a>',
+			$term->count ? $href : '',
+			$selected ? 'checked' : '',
+			wp_kses_post( $label )
+		);
+
+		$html = sprintf(
+			'<div class="term level-%1$d %2$s %3$s" data-term-name="%4$s" data-term-slug="%5$s">%6$s</div>',
+			absint( $term->level ),
+			$selected ? 'selected' : '',
+			! $term->count ? 'empty-term' : '',
+			esc_attr( strtolower( $term->name ) ),
+			esc_attr( strtolower( $term->slug ) ),
+			$link
+		);
+
+		/**
+		 * Filter the HTML for an individual facet term.
+		 *
+		 * For term search to work correctly the outermost wrapper of the term
+		 * HTML must have data-term-name and data-term-slug attributes set to
+		 * lowercase versions of the term name and slug respectively.
+		 *
+		 * @since 3.6.3
+		 * @hook ep_facet_widget_term_html
+		 * @param {string} $html Facet term HTML.
+		 * @param {WP_Term} $term Term object.
+		 * @param {string} $url Filter URL.
+		 * @param {boolean} $selected Whether the term is selected.
+		 * @return {string} Individual facet term HTML.
+		 */
+		return apply_filters( 'ep_facet_widget_term_html', $html, $term, $url, $selected );
 	}
 
 	/**

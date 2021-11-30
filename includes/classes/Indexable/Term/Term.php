@@ -140,8 +140,8 @@ class Term extends Indexable {
 		 */
 		if ( ! empty( $query_vars['object_ids'] ) ) {
 			$filter['bool']['must'][]['bool']['must'][] = [
-				'match_phrase' => [
-					'object_ids.value' => $query_vars['object_ids'],
+				'terms' => [
+					'object_ids.value' => (array) $query_vars['object_ids'],
 				],
 			];
 
@@ -157,21 +157,6 @@ class Term extends Indexable {
 			$query_vars['hide_empty']   = false;
 			$query_vars['hierarchical'] = false;
 			$query_vars['pad_counts']   = false;
-		}
-
-		/**
-		 * Support `hide_empty` query var
-		 */
-		if ( ! empty( $query_vars['hide_empty'] ) ) {
-			$filter['bool']['must'][] = [
-				'range' => [
-					'count' => [
-						'gte' => 1,
-					],
-				],
-			];
-
-			$use_filters = true;
 		}
 
 		/**
@@ -259,17 +244,53 @@ class Term extends Indexable {
 		}
 
 		/**
-		 * Support `hierarchical` query var
+		 * Support `hierarchical` and `hide_empty` query var
+		 *
+		 * `hierarchical` needs to work in conjunction with `hide_empty`, as per WP docs:
+		 * > `hierarchical`: Whether to include terms that have non-empty descendants (even if $hide_empty is set to true).
+		 *
+		 * In summary:
+		 * - hide_empty AND hierarchical: count > 1 OR hierarchy.children > 1
+		 * - hide_empty AND NOT hierarchical: count > 1 (ignore hierarchy.children)
+		 * - NOT hide_empty (AND hierarchical): there is no need to limit the query
+		 *
+		 * @see https://developer.wordpress.org/reference/classes/WP_Term_Query/__construct/
 		 */
 		$hide_empty = isset( $query_vars['hide_empty'] ) ? $query_vars['hide_empty'] : '';
-		if ( true === $hide_empty ) {
-			$filter['bool']['must'][] = [
-				'range' => [
-					'hierarchy.children.count' => [
-						'gte' => 1,
+		if ( $hide_empty ) {
+			$hierarchical = isset( $query_vars['hierarchical'] ) ? $query_vars['hierarchical'] : '';
+
+			if ( $hierarchical ) {
+				$filter_clause = [ 'bool' => [ 'should' => [] ] ];
+
+				$filter_clause['bool']['should'][] = [
+					'range' => [
+						'count' => [
+							'gte' => 1,
+						],
 					],
-				],
-			];
+				];
+
+				$filter_clause['bool']['should'][] = [
+					'range' => [
+						'hierarchy.children.count' => [
+							'gte' => 1,
+						],
+					],
+				];
+
+				$filter['bool']['must'][] = $filter_clause;
+
+				$use_filters = true;
+			} else {
+				$filter['bool']['must'][] = [
+					'range' => [
+						'count' => [
+							'gte' => 1,
+						],
+					],
+				];
+			}
 
 			$use_filters = true;
 		}
@@ -424,7 +445,7 @@ class Term extends Indexable {
 		/**
 		 * Support `parent` query var.
 		 */
-		if ( ! empty( $query_vars['parent'] ) ) {
+		if ( isset( $query_vars['parent'] ) && '' !== $query_vars['parent'] ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
 					'parent' => (int) $query_vars['parent'],
@@ -947,82 +968,66 @@ class Term extends Indexable {
 	protected function parse_orderby( $orderby, $order, $args ) {
 		$sort = [];
 
-		if ( ! empty( $orderby ) ) {
-			if ( 'name' === $orderby ) {
-				$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+		if ( empty( $orderby ) ) {
+			return $sort;
+		}
 
-				if ( version_compare( $es_version, '7.0', '>=' ) ) {
-					$sort[] = array(
-						'name.sortable' => array(
-							'order' => $order,
-						),
-					);
-				} else {
-					$sort[] = array(
-						'name.raw' => array(
-							'order' => $order,
-						),
-					);
+		switch ( $orderby ) {
+			case 'name':
+				$es_version    = Elasticsearch::factory()->get_elasticsearch_version();
+				$es_field_name = 'name.sortable';
+
+				if ( version_compare( $es_version, '7.0', '<' ) ) {
+					$es_field_name = 'name.raw';
 				}
-			} elseif ( 'slug' === $orderby ) {
-				$sort[] = array(
-					'slug.raw' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'term_group' === $orderby ) {
-				$sort[] = array(
-					'term_group.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'term_id' === $orderby || 'id' === $orderby ) {
-				$sort[] = array(
-					'term_id.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'description' === $orderby ) {
-				$sort[] = array(
-					'description.sortable' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'parent' === $orderby ) {
-				$sort[] = array(
-					'parent.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'count' === $orderby ) {
-				$sort[] = array(
-					'count.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'meta_value' === $orderby ) {
+
+				break;
+
+			case 'slug':
+				$es_field_name = 'slug.raw';
+				break;
+
+			case 'term_id':
+			case 'id':
+				$es_field_name = 'term_id';
+				break;
+
+			case 'description':
+				$es_field_name = 'description.sortable';
+				break;
+
+			case 'meta_value':
 				if ( ! empty( $args['meta_key'] ) ) {
-					$sort[] = array(
-						'meta.' . $args['meta_key'] . '.value' => array(
-							'order' => $order,
-						),
-					);
+					$es_field_name = 'meta.' . $args['meta_key'] . '.value';
 				}
-			} elseif ( 'meta_value_num' === $orderby ) {
+
+				break;
+
+			case 'meta_value_num':
 				if ( ! empty( $args['meta_key'] ) ) {
-					$sort[] = array(
-						'meta.' . $args['meta_key'] . '.long' => array(
-							'order' => $order,
-						),
-					);
+					$es_field_name = 'meta.' . $args['meta_key'] . '.long';
 				}
-			} else {
-				$sort[] = array(
-					$orderby => array(
-						'order' => $order,
-					),
-				);
-			}
+
+				break;
+
+			case 'description':
+				$es_field_name = 'description.sortable';
+				break;
+
+			case 'parent':
+			case 'count':
+			default:
+				$es_field_name = $orderby;
+				break;
+		}
+
+		// For `meta_value` and `meta_value_num`, for example, there is a chance this wasn't set.
+		if ( ! empty( $es_field_name ) ) {
+			$sort[] = array(
+				$es_field_name => array(
+					'order' => $order,
+				),
+			);
 		}
 
 		return $sort;
