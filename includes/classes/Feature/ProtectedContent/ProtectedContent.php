@@ -46,9 +46,9 @@ class ProtectedContent extends Feature {
 		add_filter( 'ep_indexable_post_status', [ $this, 'get_statuses' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ], 10, 1 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'exclude_protected_posts' ], 10, 2 );
-		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
 		add_filter( 'ep_index_posts_args', [ $this, 'query_password_protected_posts' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'include_post_password' ], 10, 2 );
+		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
 
 		if ( is_admin() ) {
 			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
@@ -221,7 +221,6 @@ class ProtectedContent extends Feature {
 	 */
 	public function exclude_protected_posts( $formatted_args, $args ) {
 		if ( true !== $args['has_password'] ) {
-			$maybe_logged_in_exclude = ! is_user_logged_in() || ( is_user_logged_in() && ! is_search() );
 			/**
 			 * Filter to exclude protected posts from search.
 			 *
@@ -229,7 +228,7 @@ class ProtectedContent extends Feature {
 			 * @param  {bool} $exclude Exclude post from search.
 			 * @return {bool}
 			 */
-			if ( $maybe_logged_in_exclude && apply_filters( 'ep_exclude_password_protected_from_search', true ) ) {
+			if ( ! is_user_logged_in() && apply_filters( 'ep_exclude_password_protected_from_search', true ) ) {
 				$formatted_args['post_filter']['bool']['must_not'][] = array(
 					'exists' => array(
 						'field' => 'post_password',
@@ -248,7 +247,8 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function return_post_password( $properties ) {
-		return $properties + [ 'post_password' ];
+		$properties[] = 'post_password';
+		return $properties;
 	}
 
 	/**
