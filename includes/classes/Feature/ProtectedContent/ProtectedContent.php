@@ -220,7 +220,7 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function exclude_protected_posts( $formatted_args, $args ) {
-		if ( true !== $args['has_password'] ) {
+		if ( empty( $args['has_password'] ) ) {
 			/**
 			 * Filter to exclude protected posts from search.
 			 *
