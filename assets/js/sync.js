@@ -96,11 +96,7 @@ function deleteAndSync() {
  */
 function showPauseStopButtons() {
 	if (activeBox) {
-		const stopButton = activeBox.querySelector('.ep-sync-box__button-stop');
-
-		updateDisabledAttribute(stopButton, false);
-		stopButton.style.display = 'flex';
-
+		showStopButton();
 		showPauseButton();
 	}
 }
@@ -109,10 +105,7 @@ function showPauseStopButtons() {
  * Hide Pause and Stop buttons on the active box
  */
 function hidePauseStopButtons() {
-	const stopButton = activeBox.querySelector('.ep-sync-box__button-stop');
-
-	stopButton.style.display = 'none';
-
+	hideStopButton();
 	hidePauseButton();
 }
 
@@ -164,6 +157,30 @@ function hideResumeButton() {
 	}
 }
 
+/**
+ * Show Stop button on the active box
+ */
+function showStopButton() {
+	if (activeBox) {
+		const stopButton = activeBox.querySelector('.ep-sync-box__button-stop');
+
+		updateDisabledAttribute(stopButton, false);
+
+		stopButton.style.display = 'flex';
+	}
+}
+
+/**
+ * Hide Stop button on the active box
+ */
+function hideStopButton() {
+	if (activeBox) {
+		const stopButton = activeBox.querySelector('.ep-sync-box__button-stop');
+
+		stopButton.style.display = 'none';
+	}
+}
+
 function showProgress() {
 	const progressWrapper = activeBox?.querySelector('.ep-sync-box__progress-wrapper');
 
@@ -199,7 +216,25 @@ if (epDash.index_meta) {
 		} else {
 			syncStatus = 'pause';
 		}
-		// updateSyncDash();
+		activeBox = epDash.index_meta?.put_mapping ? deleteAndSyncBox : syncBox;
+
+		disableButtonsInSyncBox();
+		disableButtonsInDeleteBox();
+
+		if (activeBox === syncBox) {
+			syncButton.style.display = 'none';
+
+			const learnMoreLink = activeBox.querySelector('.ep-sync-box__learn-more-link');
+
+			learnMoreLink.style.display = 'none';
+		}
+
+		showResumeButton();
+		showStopButton();
+
+		showProgress();
+
+		updateSyncDash();
 	}
 } else if (epDash.auto_start_index) {
 	deleteAndSync();
