@@ -27,6 +27,14 @@ $is_sync_page = 'sync' === Screen::factory()->get_current_screen();
 			<a class="dashicons resume-sync dashicons-controls-play" title ="<?php esc_attr_e( 'Resume Sync', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Resume Sync', 'elasticpress' ); ?>"></a>
 			<a class="dashicons cancel-sync dashicons-no" title="<?php esc_attr_e( 'Cancel Sync', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Cancel Sync', 'elasticpress' ); ?>"></a>
 		<?php endif; ?>
+		<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC && ! $is_sync_page ) : ?>
+			<a
+				class="dashicons start-sync dashicons-update"
+				title="<?php esc_attr_e( 'Start Sync', 'elasticpress' ); ?>"
+				aria-label="<?php esc_attr_e( 'Start Sync', 'elasticpress' ); ?>"
+				<?php echo ( $is_sync_page ) ? '' : 'href="' . esc_url( $base_url . 'elasticpress-sync' ) . '"'; ?>
+			></a>
+		<?php endif; ?>
 		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic" title="<?php esc_attr_e( 'Settings', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Settings', 'elasticpress' ); ?>"></a>
 	</div>
 
