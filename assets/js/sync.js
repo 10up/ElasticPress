@@ -468,7 +468,10 @@ function sync(putMapping = false) {
 			if (response.data.index_meta?.current_sync_item?.failed) {
 				const message = response.data?.message;
 				if (Array.isArray(message)) {
-					message.forEach((item) => addErrorToOutput(item));
+					message.forEach((item) => {
+						addErrorToOutput(item);
+						addLineToOutput(item);
+					});
 					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
 
 					errorTab.innerText = sprintf(
@@ -477,7 +480,8 @@ function sync(putMapping = false) {
 						response.data.index_meta.current_sync_item.failed,
 					);
 				} else if (typeof message === 'string') {
-					addErrorToOutput(response.data.message);
+					addErrorToOutput(message);
+					addLineToOutput(message);
 				}
 			} else {
 				addLineToOutput(response.data.message);
