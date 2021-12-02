@@ -488,7 +488,7 @@ class InstantResults extends Feature {
 		} else {
 			$mapping['mappings']['properties'] = array_merge(
 				$mapping['mappings']['properties'],
-				$propertoes
+				$properties
 			);
 		}
 
