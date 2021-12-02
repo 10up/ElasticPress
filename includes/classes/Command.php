@@ -816,23 +816,7 @@ class Command extends WP_CLI_Command {
 
 		$request_args = [ 'headers' => Elasticsearch::factory()->format_request_headers() ];
 
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
-
-		$term_indexable = Indexables::factory()->get( 'term' );
-
-		foreach ( $sites as $site ) {
-			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-
-			if ( ! empty( $term_indexable ) ) {
-				$index_names[] = $term_indexable->get_index_name( $site['blog_id'] );
-			}
-		}
-
-		$user_indexable = Indexables::factory()->get( 'user' );
-
-		if ( ! empty( $user_indexable ) ) {
-			$index_names[] = $user_indexable->get_index_name();
-		}
+		$registered_index_names = $this->get_index_names();
 
 		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
 
@@ -845,7 +829,7 @@ class Command extends WP_CLI_Command {
 		if ( is_array( $indexes_from_cat_indices_api ) ) {
 			$indexes_from_cat_indices_api = wp_list_pluck( $indexes_from_cat_indices_api, 'index' );
 
-			$index_names = array_intersect( $index_names, $indexes_from_cat_indices_api );
+			$index_names = array_intersect( $registered_index_names, $indexes_from_cat_indices_api );
 		} else {
 			WP_CLI::error( esc_html__( 'Failed to return status.', 'elasticpress' ) );
 		}
@@ -877,24 +861,7 @@ class Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
 
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
-
-		$post_indexable = Indexables::factory()->get( 'post' );
-		$term_indexable = Indexables::factory()->get( 'term' );
-
-		foreach ( $sites as $site ) {
-			$index_names[] = $post_indexable->get_index_name( $site['blog_id'] );
-
-			if ( ! empty( $term_indexable ) ) {
-				$index_names[] = $term_indexable->get_index_name( $site['blog_id'] );
-			}
-		}
-
-		$user_indexable = Indexables::factory()->get( 'user' );
-
-		if ( ! empty( $user_indexable ) ) {
-			$index_names[] = $user_indexable->get_index_name();
-		}
+		$registered_index_names = $this->get_index_names();
 
 		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
 
@@ -907,7 +874,7 @@ class Command extends WP_CLI_Command {
 		if ( is_array( $indexes_from_cat_indices_api ) ) {
 			$indexes_from_cat_indices_api = wp_list_pluck( $indexes_from_cat_indices_api, 'index' );
 
-			$index_names = array_intersect( $index_names, $indexes_from_cat_indices_api );
+			$index_names = array_intersect( $registered_index_names, $indexes_from_cat_indices_api );
 		} else {
 			WP_CLI::error( esc_html__( 'Failed to return stats.', 'elasticpress' ) );
 		}
@@ -921,20 +888,8 @@ class Command extends WP_CLI_Command {
 		}
 		$body = json_decode( wp_remote_retrieve_body( $request ), true );
 
-		foreach ( $sites as $site ) {
-			$current_index = $post_indexable->get_index_name( $site['blog_id'] );
-
-			$this->render_stats( $current_index, $body );
-
-			if ( $term_indexable ) {
-				$this->render_stats( $term_indexable->get_index_name( $site['blog_id'] ), $body );
-			}
-		}
-
-		if ( ! empty( $user_indexable ) ) {
-			$user_index = $user_indexable->get_index_name();
-
-			$this->render_stats( $user_index, $body );
+		foreach ( $registered_index_names as $index_name ) {
+			$this->render_stats( $index_name, $body );
 		}
 	}
 
