@@ -82,7 +82,7 @@ $ep_last_sync_has_error = ! empty( $ep_last_index['failed'] );
 					<div class="ep-sync-box__sync-in-progress">
 						<img width="36" height="36" src="<?php echo esc_url( plugins_url( '/images/sync-in-progress.png', dirname( __DIR__ ) ) ); ?>" />
 						<div class="ep-sync-box__sync-in-progress-info">
-							<div class="ep-sync-box__progress-info">Sync in progress</div>
+							<div class="ep-sync-box__progress-info"><?php esc_html_e( 'Sync in progress', 'elasticpress' ); ?></div>
 							<div class="ep-sync-box__start-time"><?php esc_html_e( 'Start time:', 'elasticpress' ); ?> <span class="ep-sync-box__start-time-date"></span></div>
 						</div>
 					</div>
@@ -163,8 +163,8 @@ $ep_last_sync_has_error = ! empty( $ep_last_index['failed'] );
 					<div class="ep-sync-box__sync-in-progress">
 						<img width="36" height="36" src="<?php echo esc_url( plugins_url( '/images/sync-in-progress.png', dirname( __DIR__ ) ) ); ?>" />
 						<div class="ep-sync-box__sync-in-progress-info">
-							<div class="ep-sync-box__progress-info">Sync in progress</div>
-							<div class="ep-sync-box__start-time">Start time: <span class="ep-sync-box__start-time-date">Fri, September 30, 2021 16:20</span></div>
+							<div class="ep-sync-box__progress-info"><?php esc_html_e( 'Sync in progress', 'elasticpress' ); ?></div>
+							<div class="ep-sync-box__start-time"><?php esc_html_e( 'Start time: ', 'elasticpress' ); ?><span class="ep-sync-box__start-time-date"></span></div>
 						</div>
 					</div>
 					<span class="ep-sync-box__progressbar">
