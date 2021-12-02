@@ -6,6 +6,7 @@
   "devDependencies": {
     "10up-toolkit": "^1.0.13",
     "jsdoc": "^3.6.7",
+    "postcss-preset-env": "^7.0.1",
     "terser-webpack-plugin": "^5.2.4",
     "wp-hookdoc": "^0.2.0"
   },
@@ -56,13 +57,14 @@
       "sites-admin-styles.min": "./assets/css/sites-admin.css",
       "synonyms-styles.min": "./assets/css/synonyms.css"
     },
-    "wpDependencyExternals": false
+    "wpDependencyExternals": true
   },
   "dependencies": {
     "@wordpress/api-fetch": "^3.23.1",
     "@wordpress/i18n": "^3.20.0",
     "chart.js": "^2.9.4",
     "element-closest": "^3.0.2",
+    "jquery": "^3.6.0",
     "promise-polyfill": "^8.2.0",
     "react": "^16.14.0",
     "react-beautiful-dnd": "^11.0.5",
