@@ -377,13 +377,7 @@ class TestProtectedContent extends BaseTestCase {
 			)
 		);
 
-		// As we are "logged in", it is expected we should see a password post.
-		$this->assertNotEquals(
-			'post_password',
-			$this->fired_actions['ep_post_formatted_args']['post_filter']['bool']['must_not'][0]['exists']['field']
-		);
-
-		// Check for no results
+		// Password post is expected to return as we are logged in.
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
