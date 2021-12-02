@@ -377,33 +377,13 @@ class TestProtectedContent extends BaseTestCase {
 			)
 		);
 
-		// Check to ensure query is being modified
-		$this->assertEquals(
+		// As we are "logged in", it is expected we should see a password post.
+		$this->assertNotEquals(
 			'post_password',
 			$this->fired_actions['ep_post_formatted_args']['post_filter']['bool']['must_not'][0]['exists']['field']
 		);
 
 		// Check for no results
-		$this->assertEquals( 0, $query->post_count );
-		$this->assertEquals( 0, $query->found_posts );
-
-		// Remove password from post
-		wp_update_post(
-			array(
-				'ID' => $post_id,
-				'post_password' => '',
-		) );
-
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		$query = new \WP_Query(
-			array(
-				's' => 'findme',
-			)
-		);
-
-		// Check for a result now that password was removed
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
