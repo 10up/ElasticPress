@@ -1838,8 +1838,10 @@ class Command extends WP_CLI_Command {
 		$body         = isset( $assoc_args['body'] ) ? $assoc_args['body'] : '';
 		$request_args = [
 			'method' => $method,
-			'body'   => $body,
 		];
+		if ( 'GET' !== $method && ! empty( $body ) ) {
+			$request_args['body'] = $body;
+		}
 
 		if ( ! empty( $assoc_args['debug-http-request'] ) ) {
 			add_filter(
