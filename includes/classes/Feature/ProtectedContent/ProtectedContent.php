@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ProtectedContent extends Feature {
 
 	/**
-	 * Initialize feature setting it's config
+	 * Initialize feature setting its config
 	 *
 	 * @since  3.0
 	 */
@@ -45,8 +45,16 @@ class ProtectedContent extends Feature {
 	public function setup() {
 		add_filter( 'ep_indexable_post_status', [ $this, 'get_statuses' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ], 10, 1 );
-		add_filter( 'ep_admin_wp_query_integration', '__return_true' );
-		add_action( 'pre_get_posts', [ $this, 'integrate' ] );
+		add_filter( 'ep_post_formatted_args', [ $this, 'exclude_protected_posts' ], 10, 2 );
+		add_filter( 'ep_index_posts_args', [ $this, 'query_password_protected_posts' ] );
+		add_filter( 'ep_post_sync_args', [ $this, 'include_post_password' ], 10, 2 );
+		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
+
+		if ( is_admin() ) {
+			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
+			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
+			add_filter( 'ep_post_query_db_args', [ $this, 'query_password_protected_posts' ] );
+		}
 
 		if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
 			add_filter( 'ep_indexable_comment_status', [ $this, 'get_comment_statuses' ] );
@@ -178,6 +186,81 @@ class ProtectedContent extends Feature {
 		$search_feature = Features::factory()->get_registered_feature( 'search' );
 
 		remove_filter( 'ep_formatted_args', [ $search_feature, 'weight_recent' ], 10 );
+	}
+
+	/**
+	 * Query all posts with and without password for indexing.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param array $args Database arguments
+	 * @return array
+	 */
+	public function query_password_protected_posts( $args ) {
+		$args['has_password'] = null;
+
+		return $args;
+	}
+
+	/**
+	 * Include post password when indexing.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param array $post_args Post arguments
+	 * @param int   $post_id   Post ID
+	 * @return array
+	 */
+	public function include_post_password( $post_args, $post_id ) {
+		$post = get_post( $post_id );
+
+		// Assign null value so we can use the EXISTS filter.
+		$post_args['post_password'] = ! empty( $post->post_password ) ? $post->post_password : null;
+
+		return $post_args;
+	}
+
+	/**
+	 * Exclude proctected post from the frontend queries.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param  array $formatted_args Formatted Elasticsearch query
+	 * @param  array $args           Query variables
+	 * @return array
+	 */
+	public function exclude_protected_posts( $formatted_args, $args ) {
+		if ( empty( $args['has_password'] ) ) {
+			/**
+			 * Filter to exclude protected posts from search.
+			 *
+			 * @hook ep_exclude_password_protected_from_search
+			 * @param  {bool} $exclude Exclude post from search.
+			 * @return {bool}
+			 */
+			if ( ! is_user_logged_in() && apply_filters( 'ep_exclude_password_protected_from_search', true ) ) {
+				$formatted_args['post_filter']['bool']['must_not'][] = array(
+					'exists' => array(
+						'field' => 'post_password',
+					),
+				);
+			}
+		}
+
+		return $formatted_args;
+	}
+
+	/**
+	 * Add post_password to post object properties set after query
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param  array $properties Post properties
+	 * @return array
+	 */
+	public function return_post_password( $properties ) {
+		$properties[] = 'post_password';
+		return $properties;
 	}
 
 	/**
