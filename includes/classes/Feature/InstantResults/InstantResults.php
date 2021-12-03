@@ -9,6 +9,7 @@ namespace ElasticPress\Feature\InstantResults;
 
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Feature as Feature;
+use ElasticPress\FeatureRequirementsStatus;
 use ElasticPress\Features as Features;
 use ElasticPress\Indexables as Indexables;
 use ElasticPress\Utils as Utils;
@@ -64,26 +65,6 @@ class InstantResults extends Feature {
 	 * @return void
 	 */
 	public function __construct() {
-		$is_epio = Utils\is_epio();
-
-		/**
-		 * Whether the feature is available.
-		 *
-		 * Normally true only for installs using ElasticPress.io. Installations
-		 * using self-hosted Elasticsearch will need to implement an API for
-		 * handling search requests before making the feature available.
-		 *
-		 * @hook ep_instant_results_available
-		 * @param string $available Whether the feature is available.
-		 *
-		 * @since 4.0.0
-		 */
-		$available = apply_filters( 'ep_instant_results_available', $is_epio );
-
-		if ( ! $available ) {
-			return;
-		}
-
 		$this->slug = 'instant-results';
 
 		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
@@ -141,6 +122,40 @@ class InstantResults extends Feature {
 		</div>
 
 		<?php
+	}
+
+	/**
+	 * Tell user whether requirements for feature are met or not.
+	 *
+	 * @return array $status Status array
+	 */
+	public function requirements_status() {
+		$status = new FeatureRequirementsStatus( 2 );
+
+		$status->message = [];
+
+		if ( Utils\is_epio() ) {
+			$status->code = 0;
+
+			/**
+			 * Whether the feature is available for non ElasticPress.io customers.
+			 *
+			 * Installations using self-hosted Elasticsearch will need to implement an API for
+			 * handling search requests before making the feature available.
+			 *
+			 * @hook ep_instant_results_available
+			 * @param string $available Whether the feature is available.
+			 *
+			 * @since 4.0.0
+			 */
+		} elseif ( apply_filters( 'ep_instant_results_available', false ) ) {
+			$status->code      = 1;
+			$status->message[] = esc_html__( 'You are using a custom proxy. Make sure you implement all security measures needed.', 'elasticpress' );
+		} else {
+			$status->message[] = wp_kses_post( __( "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a custom proxy.", 'elasticpress' ) );
+		}
+
+		return $status;
 	}
 
 	/**
@@ -208,7 +223,7 @@ class InstantResults extends Feature {
 			'epInstantResults',
 			array(
 				'apiEndpoint'    => $api_endpoint,
-				'apiHost'        => esc_url_raw( $this->host ),
+				'apiHost'        => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
 				'currencyCode'   => $this->is_woocommerce ? get_woocommerce_currency() : false,
 				'facets'         => $this->get_facets_for_frontend(),
 				'highlightTag'   => 'mark',
@@ -265,14 +280,27 @@ class InstantResults extends Feature {
 		 */
 		$endpoint = apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
 
-		$response = Elasticsearch::factory()->remote_request(
+		$search_template = $this->get_search_template();
+
+		Elasticsearch::factory()->remote_request(
 			$endpoint,
 			[
 				'blocking' => false,
-				'body'     => $this->get_search_template(),
+				'body'     => $search_template,
 				'method'   => 'PUT',
 			]
 		);
+
+		/**
+		 * Fires after the request is sent the search template API endpoint.
+		 *
+		 * @hook ep_instant_results_template_saved
+		 * @param string $search_template The search template (JSON).
+		 * @param string $index           Index name.
+		 *
+		 * @since 4.0.0
+		 */
+		do_action( 'ep_instant_results_template_saved', $search_template, $this->index );
 	}
 
 	/**
@@ -468,7 +496,7 @@ class InstantResults extends Feature {
 		} else {
 			$mapping['mappings']['properties'] = array_merge(
 				$mapping['mappings']['properties'],
-				$propertoes
+				$properties
 			);
 		}
 

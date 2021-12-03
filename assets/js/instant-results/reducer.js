@@ -106,13 +106,18 @@ export const reducer = (state, { type, payload }) => {
 				} = {},
 			} = payload;
 
+			/**
+			 * Total number of items.
+			 */
+			const totalNumber = typeof total === 'number' ? total : total.value;
+
 			newState.poppingState = false;
 			newState.postTypesAggregation = postTypesAggregation;
 			newState.priceRangeAggregations = priceRangeAggregation;
 			newState.searchResults = hits;
 			newState.searchedTerm = newState.args.search;
 			newState.taxonomyTermsAggregations = taxonomyTermsAggregations;
-			newState.totalResults = total;
+			newState.totalResults = totalNumber;
 
 			break;
 		}
