@@ -233,7 +233,7 @@ class TestProtectedContent extends BaseTestCase {
 	/**
 	 * Check if passwords on posts are synced when feature not active
 	 *
-	 * @since 3.7
+	 * @since 4.0.0
 	 * @group protected-content
 	 */
 	public function testNoSyncPasswordedPost() {
@@ -244,17 +244,18 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// Check if ES post sync filter has been triggered
-		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
+		$this->assertNotEmpty( $this->applied_filters['ep_post_sync_args'] );
 
 		// Check if password was synced
 		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
-		$this->assertTrue( ! isset( $post['post_password'] ) );
+
+		$this->assertArrayNotHasKey( 'post_password', $post );
 	}
 
 	/**
 	 * Check if passwords on posts are synced when feature active
 	 *
-	 * @since 3.7
+	 * @since 4.0.0
 	 * @group protected-content
 	 */
 	public function testSyncPasswordedPost() {
@@ -268,7 +269,7 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// Check if ES post sync filter has been triggered
-		$this->assertTrue( ! empty( $this->applied_filters['ep_post_sync_args'] ) );
+		$this->assertNotEmpty( $this->applied_filters['ep_post_sync_args'] );
 
 		// Check if password was synced
 		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
@@ -308,7 +309,7 @@ class TestProtectedContent extends BaseTestCase {
 	/**
 	 * Check if password protected post shows up in admin
 	 *
-	 * @since 3.7
+	 * @since 4.0.0
 	 * @group protected-content
 	 */
 	public function testAdminPasswordedPost() {
@@ -317,7 +318,7 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$post_id = Functions\create_and_sync_post(
+		Functions\create_and_sync_post(
 			array(
 				'post_content' => 'findme 123',
 				'post_password' => 'test'
@@ -325,8 +326,6 @@ class TestProtectedContent extends BaseTestCase {
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query();
 
@@ -340,7 +339,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		$query->query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -348,7 +347,7 @@ class TestProtectedContent extends BaseTestCase {
 	/**
 	 * Check password protected post in front-end
 	 *
-	 * @since 3.7
+	 * @since 4.0.0
 	 * @group protected-content
 	 */
 	public function testFrontEndSearchPasswordedPost() {
@@ -360,8 +359,8 @@ class TestProtectedContent extends BaseTestCase {
 
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
-		
-		$post_id = Functions\create_and_sync_post(
+
+		Functions\create_and_sync_post(
 			array(
 				'post_content'  => 'findme 123',
 				'post_password' => 'test',
@@ -369,28 +368,16 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_filter( 'ep_post_formatted_args', array( $this, 'catch_ep_post_formatted_args' ), 20 );
-
 		$query = new \WP_Query(
 			array(
 				's' => 'findme',
 			)
 		);
 
+		$this->assertTrue( $query->elasticsearch_success );
+
 		// Password post is expected to return as we are logged in.
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-	}
-
-	/**
-	 * Catch ES query args.
-	 *
-	 * @since 3.7
-	 * @group protected-content
-	 * @param array $args ES query args.
-	 */
-	public function catch_ep_post_formatted_args( $args ) {
-		$this->fired_actions['ep_post_formatted_args'] = $args;
-		return $args;
 	}
 }

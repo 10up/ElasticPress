@@ -191,6 +191,8 @@ class ProtectedContent extends Feature {
 	/**
 	 * Query all posts with and without password for indexing.
 	 *
+	 * @since 4.0.0
+	 *
 	 * @param array $args Database arguments
 	 * @return array
 	 */
@@ -203,17 +205,25 @@ class ProtectedContent extends Feature {
 	/**
 	 * Include post password when indexing.
 	 *
-	 * @param  array $post_args Post arguments
-	 * @param  int   $post_id   Post ID
+	 * @since 4.0.0
+	 *
+	 * @param array $post_args Post arguments
+	 * @param int   $post_id   Post ID
+	 * @return array
 	 */
 	public function include_post_password( $post_args, $post_id ) {
 		$post = get_post( $post_id );
-		$post_args['post_password'] = ! empty( $post->post_password ) ? $post->post_password : null; // Assign null value so we can use the EXISTS filter.
+
+		// Assign null value so we can use the EXISTS filter.
+		$post_args['post_password'] = ! empty( $post->post_password ) ? $post->post_password : null;
+
 		return $post_args;
 	}
 
 	/**
 	 * Exclude proctected post from the frontend queries.
+	 *
+	 * @since 4.0.0
 	 *
 	 * @param  array $formatted_args Formatted Elasticsearch query
 	 * @param  array $args           Query variables
@@ -242,6 +252,8 @@ class ProtectedContent extends Feature {
 
 	/**
 	 * Add post_password to post object properties set after query
+	 *
+	 * @since 4.0.0
 	 *
 	 * @param  array $properties Post properties
 	 * @return array
