@@ -135,7 +135,7 @@ class InstantResults extends Feature {
 		$status->message = [];
 
 		if ( Utils\is_epio() ) {
-			$status->code = 0;
+			$status->code = 1;
 
 			/**
 			 * Whether the feature is available for non ElasticPress.io customers.
