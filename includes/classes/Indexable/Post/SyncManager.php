@@ -145,6 +145,8 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		if ( empty( $object_id ) && $this->delete_all_meta ) {
+			add_filter( 'ep_is_integrated_request', '__return_true' );
+
 			$query = new \WP_Query(
 				[
 					'ep_integrate' => true,
@@ -154,9 +156,17 @@ class SyncManager extends SyncManagerAbstract {
 				]
 			);
 
+			remove_filter( 'ep_is_integrated_request', '__return_true' );
+
 			if ( $query->have_posts() && $query->elasticsearch_success ) {
-				foreach ( $query->posts as $post_id ) {
-					$this->add_to_queue( $post_id );
+				$posts_to_be_synced = array_filter(
+					$query->posts,
+					function( $object_id ) {
+						return ! apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id );
+					}
+				);
+				if ( ! empty( $posts_to_be_synced ) ) {
+					$indexable->bulk_index( $posts_to_be_synced );
 				}
 			}
 		} else {
