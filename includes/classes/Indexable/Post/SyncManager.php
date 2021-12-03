@@ -58,8 +58,8 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-		// delete_post_metadata is actually a filter, but we need to know somehow if $delete_all is set before action_queue_meta_sync() runs.
-		add_action( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ), 10, 5 );
+		// Called just because we need to know somehow if $delete_all is set before action_queue_meta_sync() runs.
+		add_filter( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ), 10, 5 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 
@@ -72,13 +72,15 @@ class SyncManager extends SyncManagerAbstract {
 	 *
 	 * @param bool   $check       Whether to allow metadata deletion of the given type.
 	 * @param int    $object_id    ID of the object metadata is for.
-	 * @param string $meta_key  Metadata key.
-	 * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+	 * @param string $meta_key    Metadata key.
+	 * @param mixed  $meta_value  Metadata value. Must be serializable if non-scalar.
 	 * @param bool   $delete_all  Whether to delete the matching metadata entries
-	 *                            for all objects, ignoring the specified $object_id
+	 *                             for all objects, ignoring the specified $object_id
+	 * @return bool
 	 */
 	public function maybe_delete_meta_for_all( $check, $object_id, $meta_key, $meta_value, $delete_all ) {
 		$this->delete_all_meta = $delete_all;
+		return $check;
 	}
 
 	/**
@@ -153,7 +155,9 @@ class SyncManager extends SyncManagerAbstract {
 			);
 
 			if ( $query->have_posts() && $query->elasticsearch_success ) {
-				$indexable->bulk_index( $query->posts );
+				foreach ( $query->posts as $post_id ) {
+					$this->add_to_queue( $post_id );
+				}
 			}
 		} else {
 			$indexable_post_statuses = $indexable->get_indexable_post_status();
