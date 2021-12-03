@@ -89,7 +89,7 @@ class Post extends Indexable {
 		 */
 		$args = apply_filters( 'ep_index_posts_args', apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) ) );
 
-		if ( isset( $args['include'] ) || isset( $args['post__in'] ) || 0 < $args['offset'] ) {
+		if ( isset( $args['post__in'] ) || 0 < $args['offset'] ) {
 			// Disable advanced pagination. Not useful if only indexing specific IDs.
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
@@ -184,7 +184,7 @@ class Post extends Indexable {
 			]
 		);
 
-		$cache_key = md5( json_encode( $normalized_query_args ) );
+		$cache_key = md5( get_current_blog_id() . json_encode( $normalized_query_args ) );
 
 		if ( ! isset( $object_counts[ $cache_key ] ) ) {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
@@ -278,18 +278,36 @@ class Post extends Indexable {
 	 * @return string|WP_Error|false $version
 	 */
 	public function determine_mapping_version() {
-		$index   = $this->get_index_name();
-		$mapping = Elasticsearch::factory()->get_mapping( $index );
+		$version = get_transient( 'ep_post_mapping_version' );
 
-		if ( empty( $mapping ) ) {
-			return new \WP_Error( 'ep_failed_mapping_version', esc_html__( 'Error while fetching the mapping version.', 'elasticpress' ) );
+		if ( empty( $version ) ) {
+			$index   = $this->get_index_name();
+			$mapping = Elasticsearch::factory()->get_mapping( $index );
+
+			if ( empty( $mapping ) ) {
+				return new \WP_Error( 'ep_failed_mapping_version', esc_html__( 'Error while fetching the mapping version.', 'elasticpress' ) );
+			}
+
+			if ( ! isset( $mapping[ $index ] ) ) {
+				return false;
+			}
+
+			$version = $this->determine_mapping_version_based_on_existing( $mapping, $index );
+
+			set_transient(
+				'ep_post_mapping_version',
+				$version,
+				/**
+				 * Filter the post mapping version cache expiration.
+				 *
+				 * @hook ep_post_mapping_version_cache_expiration
+				 * @since 3.6.5
+				 * @param  {int} $version Time in seconds for the transient expiration
+				 * @return {int} New time
+				 */
+				apply_filters( 'ep_post_mapping_version_cache_expiration', DAY_IN_SECONDS )
+			);
 		}
-
-		if ( ! isset( $mapping[ $index ] ) ) {
-			return false;
-		}
-
-		$version = $this->determine_mapping_version_based_on_existing( $mapping, $index );
 
 		/**
 		 * Filter the mapping version for posts.
@@ -328,6 +346,8 @@ class Post extends Indexable {
 		 * @return  {array} New mapping
 		 */
 		$mapping = apply_filters( 'ep_post_mapping', $mapping );
+
+		delete_transient( 'ep_post_mapping_version' );
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
