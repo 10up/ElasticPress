@@ -457,6 +457,7 @@ class Post extends Indexable {
 			'ping_status'           => $ping_status,
 			'menu_order'            => $menu_order,
 			'guid'                  => $post->guid,
+			'thumbnail'             => $this->prepare_thumbnail( $post ),
 		);
 
 		/**
@@ -483,6 +484,56 @@ class Post extends Indexable {
 		add_action( 'updated_postmeta', [ $this->sync_manager, 'action_queue_meta_sync' ], 10, 4 );
 
 		return $post_args;
+	}
+
+	/**
+	 * Prepare thumbnail to send to ES.
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return array|null Thumbnail data.
+	 */
+	public function prepare_thumbnail( $post ) {
+		$attachment_id = get_post_thumbnail_id( $post );
+
+		if ( ! $attachment_id ) {
+			return null;
+		}
+
+		/**
+		 * Filters the image size to use when indexing the post thumbnail.
+		 *
+		 * Defaults to the `woocommerce_thumbnail` size if WooCommerce is in
+		 * use. Otherwise the `thumbnail` size is used.
+		 *
+		 * @hook ep_thumbnail_image_size
+		 * @param string|int[] $image_size Image size. Can be any registered
+		 *                                 image size name, or an array of
+		 *                                 width and height values in pixels
+		 *                                 (in that order).
+		 * @param WP_Post $post Post being indexed.
+		 * @since 4.0.0
+		 * @return array Image size to pass to wp_get_attachment_image_src().
+		 */
+		$image_size = apply_filters(
+			'ep_post_thumbnail_image_size',
+			function_exists( 'WC' ) ? 'woocommerce_thumbnail' : 'thumbnail',
+			$post
+		);
+
+		$image_src = wp_get_attachment_image_src( $attachment_id, $image_size );
+		$image_alt = trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) );
+
+		if ( ! $image_src ) {
+			return null;
+		}
+
+		return [
+			'ID'     => $attachment_id,
+			'src'    => $image_src[0],
+			'width'  => $image_src[1],
+			'height' => $image_src[2],
+			'alt'    => $image_alt,
+		];
 	}
 
 	/**

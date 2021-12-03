@@ -458,26 +458,6 @@ class InstantResults extends Feature {
 		$properties = array(
 			'post_content_plain' => array( 'type' => 'text' ),
 			'price_html'         => array( 'type' => 'text' ),
-			'thumbnail'          => array(
-				'type'       => 'object',
-				'properties' => array(
-					'ID'     => array(
-						'type' => 'long',
-					),
-					'src'    => array(
-						'type' => 'text',
-					),
-					'width'  => array(
-						'type' => 'integer',
-					),
-					'height' => array(
-						'type' => 'integer',
-					),
-					'alt'    => array(
-						'type' => 'text',
-					),
-				),
-			),
 		);
 
 		if ( version_compare( $elasticsearch_version, '7.0', '<' ) ) {
@@ -507,7 +487,6 @@ class InstantResults extends Feature {
 
 		$post_args['post_content_plain'] = $this->prepare_plain_content_arg( $post );
 		$post_args['price_html']         = $this->prepare_price_html_arg( $post );
-		$post_args['thumbnail']          = $this->prepare_thumbnail_arg( $post );
 
 		return $post_args;
 	}
@@ -543,36 +522,6 @@ class InstantResults extends Feature {
 		$product = wc_get_product( $post );
 
 		return $product->get_price_html();
-	}
-
-	/**
-	 * Get data for the thumbnail arg.
-	 *
-	 * @param WP_Post $post Post object.
-	 * @return array|null Thumbnail data.
-	 */
-	public function prepare_thumbnail_arg( $post ) {
-		$attachment_id = get_post_thumbnail_id( $post );
-
-		if ( ! $attachment_id ) {
-			return null;
-		}
-
-		$image_sizes    = wp_get_additional_image_sizes();
-		$image_size     = $this->is_woocommerce ? 'woocommerce_thumbnail' : 'thumbnail';
-		$attachment_src = wp_get_attachment_image_src( $attachment_id, $image_size );
-
-		if ( ! $attachment_src ) {
-			return null;
-		}
-
-		return [
-			'ID'     => $attachment_id,
-			'src'    => $attachment_src[0],
-			'width'  => $attachment_src[1],
-			'height' => $attachment_src[2],
-			'alt'    => trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
-		];
 	}
 
 	/**

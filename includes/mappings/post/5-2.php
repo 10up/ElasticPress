@@ -415,6 +415,26 @@ return array(
 						),
 					),
 				),
+				'thumbnail'             => array(
+					'type'       => 'object',
+					'properties' => array(
+						'ID'     => array(
+							'type' => 'long',
+						),
+						'src'    => array(
+							'type' => 'text',
+						),
+						'width'  => array(
+							'type' => 'integer',
+						),
+						'height' => array(
+							'type' => 'integer',
+						),
+						'alt'    => array(
+							'type' => 'text',
+						),
+					),
+				),
 			),
 		),
 	),
