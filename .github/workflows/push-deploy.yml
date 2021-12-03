@@ -1,4 +1,8 @@
 name: Deploy to WordPress.org
+
+env:
+  SLUG: "elasticpress"
+
 on:
   release:
     types: [published]
@@ -28,11 +32,12 @@ jobs:
       env:
         SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
         SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        SLUG: ${{ env.SLUG }}
 
     - name: Create ZIP
       run: |
-        TMP_DIR="${HOME}/archive-${SLUG}"
-        rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" "$TMP_DIR/" && cd $TMP_DIR && zip -r "${GITHUB_WORKSPACE}/elasticpress.zip" .
+        TMP_DIR="${HOME}/archive/${{ env.SLUG }}"
+        rsync -rc --exclude-from="${{ github.workspace }}/.distignore" "${{ github.workspace }}/" "$TMP_DIR/" && cd $TMP_DIR/.. && zip -r "${{ github.workspace }}/${{ env.SLUG }}.zip" .
 
     - name: Upload release asset
       uses: actions/upload-release-asset@v1
@@ -40,6 +45,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ${{ github.workspace }}/elasticpress.zip
+        asset_path: ${{ github.workspace }}/${{ env.SLUG }}.zip
         asset_name: elasticpress-${{ github.ref_name }}.zip
         asset_content_type: application/zip
