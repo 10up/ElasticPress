@@ -37,6 +37,7 @@ jobs:
     - name: Create ZIP
       run: |
         TMP_DIR="${HOME}/archive/${{ env.SLUG }}"
+        mkdir -p $TMP_DIR
         rsync -rc --exclude-from="${{ github.workspace }}/.distignore" "${{ github.workspace }}/" "$TMP_DIR/" && cd $TMP_DIR/.. && zip -r "${{ github.workspace }}/${{ env.SLUG }}.zip" .
 
     - name: Upload release asset
