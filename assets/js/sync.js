@@ -193,6 +193,7 @@ let syncStatus = 'sync';
 let syncStack;
 let processed = 0;
 let toProcess = 0;
+let totalProcessed = 0;
 
 if (epDash.index_meta) {
 	if (epDash.index_meta.method === 'cli') {
@@ -206,7 +207,7 @@ if (epDash.index_meta) {
 		processed = epDash.index_meta.offset;
 		toProcess = epDash.index_meta.found_items;
 
-		if (epDash.index_meta.site_stack) {
+		if (epDash.index_meta.sync_stack) {
 			syncStack = epDash.index_meta.sync_stack;
 		}
 
@@ -269,8 +270,9 @@ function updateSyncDash() {
 		!Number.isNaN(progressBarWidth) &&
 		Number.isFinite(progressBarWidth)
 	) {
-		progressBar.style.width = `${progressBarWidth}%`;
-		progressBar.innerText = `${Math.trunc(progressBarWidth)}%`;
+		const width = Math.min(100, progressBarWidth);
+		progressBar.style.width = `${width}%`;
+		progressBar.innerText = `${Math.trunc(width)}%`;
 	}
 
 	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
@@ -313,6 +315,7 @@ function cancelSync() {
 	}).then(() => {
 		toProcess = 0;
 		processed = 0;
+		totalProcessed = 0;
 	});
 }
 
@@ -525,15 +528,30 @@ function sync(putMapping = false) {
 
 				activeBox = undefined;
 
+				processed = 0;
+				toProcess = 0;
+				totalProcessed = 0;
+
 				return;
 			}
 
-			toProcess = response.data.index_meta.found_items;
-			processed = response.data.index_meta.offset;
+			if (!toProcess) {
+				toProcess = response.data?.index_meta?.current_sync_item?.found_items;
 
-			if (response.data.sync_stack) {
-				syncStack = response.data.index_meta.sync_stack;
+				if (response.data?.index_meta?.sync_stack) {
+					syncStack = response.data.index_meta.sync_stack;
+
+					toProcess = syncStack?.reduce((previousValue, currentSync) => {
+						return previousValue + currentSync.found_items;
+					}, toProcess);
+				}
 			}
+
+			if (response.data.index_meta.offset === 0 && processed > 0) {
+				totalProcessed = processed;
+			}
+
+			processed = totalProcessed + response.data.index_meta.offset;
 
 			updateSyncDash();
 			sync(putMapping);
