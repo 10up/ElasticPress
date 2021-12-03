@@ -130,12 +130,20 @@ class IndexHelper {
 				}
 
 				foreach ( $non_global_indexables as $indexable ) {
-					$this->index_meta['sync_stack'][] = [
+					$sync_stack_item = [
 						'url'         => untrailingslashit( $site['domain'] . $site['path'] ),
 						'blog_id'     => (int) $site['blog_id'],
 						'indexable'   => $indexable,
 						'put_mapping' => ! empty( $this->args['put_mapping'] ),
 					];
+
+					$this->index_meta['current_sync_item'] = $sync_stack_item;
+
+					$objects_to_index = $this->get_objects_to_index();
+
+					$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
+
+					$this->index_meta['sync_stack'][] = $sync_stack_item;
 
 					if ( ! in_array( $indexable, $this->index_meta['network_alias'], true ) ) {
 						$this->index_meta['network_alias'][] = $indexable;
@@ -144,22 +152,39 @@ class IndexHelper {
 			}
 		} else {
 			foreach ( $non_global_indexables as $indexable ) {
-				$this->index_meta['sync_stack'][] = [
+				$sync_stack_item = [
 					'url'         => untrailingslashit( home_url() ),
 					'blog_id'     => (int) get_current_blog_id(),
 					'indexable'   => $indexable,
 					'put_mapping' => ! empty( $this->args['put_mapping'] ),
 				];
+
+				$this->index_meta['current_sync_item'] = $sync_stack_item;
+
+				$objects_to_index = $this->get_objects_to_index();
+
+				$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
+
+				$this->index_meta['sync_stack'][] = $sync_stack_item;
 			}
 		}
 
 		foreach ( $global_indexables as $indexable ) {
-			$this->index_meta['sync_stack'][] = [
+			$sync_stack_item = [
 				'indexable'   => $indexable,
 				'put_mapping' => ! empty( $this->args['put_mapping'] ),
 			];
+
+			$this->index_meta['current_sync_item'] = $sync_stack_item;
+
+			$objects_to_index = $this->get_objects_to_index();
+
+			$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
+
+			$this->index_meta['sync_stack'][] = $sync_stack_item;
 		}
 
+		$this->index_meta['current_sync_item'] = false;
 		/**
 		 * Fires at start of new index
 		 *
