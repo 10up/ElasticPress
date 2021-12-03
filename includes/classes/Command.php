@@ -1811,30 +1811,79 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Send a HTTP request to Elasticsearch
 	 *
+	 * ## OPTIONS
+	 *
+	 * <path>
+	 * : Path of the request. Example: `_cat/indices`
+	 *
+	 * [--method=<method>]
+	 * : HTTP Method (GET, POST, etc.)
+	 *
+	 * [--body=<json-body>]
+	 * : Request body
+	 *
+	 * [--debug-http-request]
+	 * : Enable debugging
+	 *
 	 * @subcommand request
-	 * @synopsis <path> [--method=<method>] [--body=<json-body>] [--debug-http-request]
+	 *
+	 * @since 4.0.0
 	 *
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function request( $args, $assoc_args ) {
-		$path = $args[0];
-		$method = isset( $assoc_args['method'] ) ? $assoc_args['method'] : 'GET';
-		$body = isset( $assoc_args['body'] ) ? $assoc_args['body'] : '';
+		$path         = $args[0];
+		$method       = isset( $assoc_args['method'] ) ? $assoc_args['method'] : 'GET';
+		$body         = isset( $assoc_args['body'] ) ? $assoc_args['body'] : '';
 		$request_args = [
 			'method' => $method,
-			'body' => $body,
+			'body'   => $body,
 		];
 
 		if ( ! empty( $assoc_args['debug-http-request'] ) ) {
-			add_filter( 'http_api_debug', function ( $response, $context, $transport, $request_args, $url ) {
-				WP_CLI::line( sprintf( 'URL: %s', $url ) );
-				WP_CLI::line( sprintf( 'Request Args: %s', print_r( $request_args, true ) ) );
-				WP_CLI::line( sprintf( 'Transport: %s', $transport ) );
-				WP_CLI::line( sprintf( 'Context: %s', $context ) );
-				WP_CLI::line( sprintf( 'Response: %s', print_r( $response, true ) ) );
-
-			}, 10, 5 );
+			add_filter(
+				'http_api_debug',
+				function ( $response, $context, $transport, $request_args, $url ) {
+					WP_CLI::line(
+						sprintf(
+							/* translators: URL of the request */
+							esc_html__( 'URL: %s', 'elasticpress' ),
+							$url
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: Request arguments (outputted with print_r()) */
+							esc_html__( 'Request Args: %s', 'elasticpress' ),
+							print_r( $request_args, true )
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: HTTP transport used */
+							esc_html__( 'Transport: %s', 'elasticpress' ),
+							$transport
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: Context under which the http_api_debug hook is fired */
+							esc_html__( 'Context: %s', 'elasticpress' ),
+							$context
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: HTTP response (outputted with print_r()) */
+							esc_html__( 'Response: %s', 'elasticpress' ),
+							print_r( $response, true )
+						)
+					);
+				},
+				10,
+				5
+			);
 		}
 		$response = Elasticsearch::factory()->remote_request( $path, $request_args, [], 'wp_cli_request' );
 
@@ -1843,9 +1892,12 @@ class Command extends WP_CLI_Command {
 		}
 
 		$response_body = wp_remote_retrieve_body( $response );
-		// Re-encode the JSON to add space formatting
-		$response_body = json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
+		$content_type  = wp_remote_retrieve_header( $response, 'Content-Type' );
+		if ( preg_match( '/json/', $content_type ) ) {
+			// Re-encode the JSON to add space formatting
+			$response_body = wp_json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
+		}
 
-		echo $response_body;
+		WP_CLI::log( $response_body );
 	}
 }
