@@ -21,20 +21,18 @@ jobs:
         npm install
         npm run build
 
-    - name: Create ZIP
-      if: "contains(github.ref_name, 'beta')"
-      run: |
-        git archive --prefix=distributor/ HEAD -o ${{ github.event.repository.name }}.zip
-
     - name: WordPress Plugin Deploy
       if: "!contains(github.ref_name, 'beta')"
       id: deploy
       uses: 10up/action-wordpress-plugin-deploy@stable
-      with:
-        generate-zip: true
       env:
         SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
         SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+
+    - name: Create ZIP
+      run: |
+        TMP_DIR="${HOME}/archive-${SLUG}"
+        rsync -rc --exclude-from="$GITHUB_WORKSPACE/.distignore" "$GITHUB_WORKSPACE/" "$TMP_DIR/" && cd $TMP_DIR && zip -r "${GITHUB_WORKSPACE}/elasticpress.zip" .
 
     - name: Upload release asset
       uses: actions/upload-release-asset@v1
@@ -42,6 +40,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ${{ github.workspace }}/${{ github.event.repository.name }}.zip
-        asset_name: ${{ github.event.repository.name }}.zip
+        asset_path: ${{ github.workspace }}/elasticpress.zip
+        asset_name: elasticpress-${{ github.ref_name }}.zip
         asset_content_type: application/zip
