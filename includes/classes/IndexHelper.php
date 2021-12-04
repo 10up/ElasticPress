@@ -129,6 +129,8 @@ class IndexHelper {
 					continue;
 				}
 
+				switch_to_blog( $site['blog_id'] );
+
 				foreach ( $non_global_indexables as $indexable ) {
 					$sync_stack_item = [
 						'url'         => untrailingslashit( $site['domain'] . $site['path'] ),
@@ -150,6 +152,8 @@ class IndexHelper {
 					}
 				}
 			}
+
+			restore_current_blog();
 		} else {
 			foreach ( $non_global_indexables as $indexable ) {
 				$sync_stack_item = [
