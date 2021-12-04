@@ -75,7 +75,7 @@ function deleteAndSync() {
 	showPauseStopButtons();
 	showProgress();
 
-	addLineToOutput(__('Deleting all data…', 'elasticpress'));
+	addLineToOutput(__('Deleting data…', 'elasticpress'));
 
 	const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
@@ -194,6 +194,7 @@ let syncStack;
 let processed = 0;
 let toProcess = 0;
 let totalProcessed = 0;
+let totalErrors = 0;
 
 if (epDash.index_meta) {
 	if (epDash.index_meta.method === 'cli') {
@@ -477,10 +478,12 @@ function sync(putMapping = false) {
 					});
 					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
 
+					totalErrors = totalErrors + response.data.index_meta.current_sync_item.failed;
+
 					errorTab.innerText = sprintf(
 						// translators: Number of errors
 						__('Errors (%d)', 'elasticpress'),
-						response.data.index_meta.current_sync_item.failed,
+						totalErrors,
 					);
 				} else if (typeof message === 'string') {
 					addErrorToOutput(message);
@@ -531,6 +534,7 @@ function sync(putMapping = false) {
 				processed = 0;
 				toProcess = 0;
 				totalProcessed = 0;
+				totalErrors = 0;
 
 				return;
 			}
