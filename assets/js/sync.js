@@ -478,7 +478,7 @@ function sync(putMapping = false) {
 					});
 					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
 
-					totalErrors = totalErrors + response.data.index_meta.current_sync_item.failed;
+					totalErrors += response.data.index_meta.current_sync_item.failed;
 
 					errorTab.innerText = sprintf(
 						// translators: Number of errors
