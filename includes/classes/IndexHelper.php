@@ -835,7 +835,7 @@ class IndexHelper {
 		$message = [
 			'message'    => $message_text,
 			'index_meta' => $this->index_meta,
-			'totals'     => $totals,
+			'totals'     => $totals ?? [],
 			'status'     => $type,
 		];
 
