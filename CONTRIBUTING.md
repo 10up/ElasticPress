@@ -39,8 +39,27 @@ The `develop` branch is the development branch which means it contains the next 
 1. Test: While still on the `master` branch, test for functionality locally.
 1. Push: Push your `master` branch to GitHub (e.g. `git push origin master`).
 1. Release: Create a [new release](https://github.com/10up/elasticpress/releases/new), naming the tag and the release with the new version number, and targeting the `master` branch.  Paste the release changelog from `CHANGELOG.md` into the body of the release and include a link to the closed issues on the [milestone](https://github.com/10up/elasticpress/milestone/#?closed=1).
+1. Check the assets build action: After the release, GitHub should trigger an action to generate a zip with the plugin and attach it to the GitHub Release page.
 1. SVN: Wait for the [GitHub Action](https://github.com/10up/ElasticPress/actions?query=workflow%3A%22Deploy+to+WordPress.org%22) to finish deploying to the WordPress.org repository.  If all goes well, users with SVN commit access for that plugin will receive an emailed diff of changes.
 1. Check WordPress.org: Ensure that the changes are live on https://wordpress.org/plugins/elasticpress/.  This may take a few minutes.
+1. Close milestone: Edit the [milestone](https://github.com/10up/elasticpress/milestone/#) with release date (in the `Due date (optional)` field) and link to GitHub release (in the `Description` field), then close the milestone.
+1. Punt incomplete items: If any open issues or PRs which were milestoned for `X.Y.Z` do not make it into the release, update their milestone to `X.Y.Z+1`, `X.Y+1.0`, `X+1.0.0` or `Future Release`.
+
+## Beta releases instructions
+
+Beta releases are different from normal versions because (1) they are not published on WordPress.org and (2) they are usually created from a branch different from `develop`.
+
+1. If the new version requires a reindex, add its number to the `$reindex_versions` array in the `ElasticPress\Upgrades::check_reindex_needed()` method.  If it is the case, remember to add that information to the Changelog listings in `readme.txt` and `CHANGELOG.md`.
+1. Branch: Starting from the next version branch, for example, `4.x.x`, cut a release branch named `release/X.Y.Z` for your changes.
+1. Version bump: Bump the version number in `elasticpress.php`, `package.json`, `package-lock.json`, `readme.txt`, and any other relevant files if it does not already reflect the version being released.  In `elasticpress.php` update both the plugin "Version:" property and the plugin `EP_VERSION` constant. The version should follow the `X.Y.Z-beta.A` pattern.
+1. Changelog: Add/update the changelog in `CHANGELOG.md` and `readme.txt`, ensuring to link the [X.Y.Z] release reference in the footer of `CHANGELOG.md` (e.g., https://github.com/10up/ElasticPress/compare/X.Y.Z-1...X.Y.Z).
+1. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
+1. Readme updates: Make any other readme changes as necessary. `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content.  The two are slightly different.
+1. New files: Check to be sure any new files/paths that are unnecessary in the production version are included in `.gitattributes`.
+1. Merge: Merge the release branch/PR into the next version branch (`4.x.x`, for example).
+1. Test: Checkout the next version branch locally and build assets like the GitHub Action will do (see `.github/workflows/push-deploy.yml`)
+1. Release: Create a [new release](https://github.com/10up/elasticpress/releases/new), naming the tag and the release with the new version number, and targeting the next version branch branch.  Paste the release changelog from `CHANGELOG.md` into the body of the release and include a link to the closed issues on the [milestone](https://github.com/10up/elasticpress/milestone/#?closed=1). **ATTENTION**: The tag **needs** to contain the `beta` string, so the version is not released in WordPress.org.
+1. Check the assets build action: After the release, GitHub should trigger an action to generate a zip with the plugin and attach it to the GitHub Release page.
 1. Close milestone: Edit the [milestone](https://github.com/10up/elasticpress/milestone/#) with release date (in the `Due date (optional)` field) and link to GitHub release (in the `Description` field), then close the milestone.
 1. Punt incomplete items: If any open issues or PRs which were milestoned for `X.Y.Z` do not make it into the release, update their milestone to `X.Y.Z+1`, `X.Y+1.0`, `X+1.0.0` or `Future Release`.
 
