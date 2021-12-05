@@ -65,6 +65,7 @@ class Post extends Indexable {
 			'order'                           => 'desc',
 			'no_found_rows'                   => false,
 			'ep_indexing_advanced_pagination' => true,
+			'has_password'                    => false,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -300,7 +301,7 @@ class Post extends Indexable {
 				 * Filter the post mapping version cache expiration.
 				 *
 				 * @hook ep_post_mapping_version_cache_expiration
-				 * @since 4.0.0
+				 * @since 3.6.5
 				 * @param  {int} $version Time in seconds for the transient expiration
 				 * @return {int} New time
 				 */
