@@ -648,3 +648,26 @@ function is_integrated_request( $context, $types = [] ) {
 	 */
 	return apply_filters( 'ep_is_integrated_request', $is_integrated, $context, $types );
 }
+
+/**
+ * Get asset info from extracted asset files
+ *
+ * @param string $slug Asset slug as defined in build/webpack configuration
+ * @param string $attribute Optional attribute to get. Can be version or dependencies
+ * @return string|array
+ */
+function get_asset_info( $slug, $attribute = null ) {
+	if ( file_exists( EP_PATH . 'dist/js/' . $slug . '.min.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/js/' . $slug . '.min.asset.php';
+	} elseif ( file_exists( EP_PATH . 'dist/css/' . $slug . '.min.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/css/' . $slug . '.min.asset.php';
+	} else {
+		return null;
+	}
+
+	if ( ! empty( $attribute ) && isset( $asset[ $attribute ] ) ) {
+		return $asset[ $attribute ];
+	}
+
+	return $asset;
+}

@@ -118,8 +118,20 @@ class Sync {
 		if ( 'sync' !== Screen::factory()->get_current_screen() ) {
 			return;
 		}
-		wp_enqueue_script( 'ep_sync_scripts', EP_URL . 'dist/js/sync-script.min.js', [ 'jquery' ], EP_VERSION, true );
-		wp_enqueue_style( 'ep_sync_style', EP_URL . 'dist/css/sync-styles.min.css', [], EP_VERSION );
+		wp_enqueue_script(
+			'ep_sync_scripts',
+			EP_URL . 'dist/js/sync-script.min.js',
+			Utils\get_asset_info( 'sync-script', 'dependencies' ),
+			Utils\get_asset_info( 'sync-script', 'version' ),
+			true
+		);
+
+		wp_enqueue_style(
+			'ep_sync_style',
+			EP_URL . 'dist/css/sync-styles.min.css',
+			Utils\get_asset_info( 'sync-styles', 'dependencies' ),
+			Utils\get_asset_info( 'sync-styles', 'version' )
+		);
 
 		$data       = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 		$index_meta = Utils\get_indexing_status();

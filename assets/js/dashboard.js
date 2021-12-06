@@ -1,5 +1,6 @@
 /* eslint-disable camelcase, no-use-before-define */
 import { __ } from '@wordpress/i18n';
+import jQuery from 'jquery';
 
 const { ajaxurl, epDash } = window;
 
