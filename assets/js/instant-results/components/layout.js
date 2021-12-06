@@ -25,11 +25,11 @@ import Sort from './tools/sort';
  */
 export default () => {
 	const {
-		state: { isSidebarOpen },
+		state: { isLoading, isSidebarOpen },
 	} = useContext(Context);
 
 	return (
-		<div className="ep-search-page">
+		<div className={`ep-search-page ${isLoading ? 'is-loading' : ''}`}>
 			<div className="ep-search-page__header">
 				<SearchTermFacet />
 

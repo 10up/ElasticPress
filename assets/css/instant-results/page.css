@@ -4,6 +4,7 @@
 	flex-grow: 2;
 	margin: 0;
 	overflow-y: auto;
+	transition: opacity 300ms ease-out;
 	width: 100%;
 
 	@media ( min-width: 768px ) {
@@ -14,6 +15,10 @@
 	& *::before,
 	& *::after {
 		box-sizing: border-box;
+	}
+
+	&.is-loading {
+		opacity: 0.5;
 	}
 }
 
