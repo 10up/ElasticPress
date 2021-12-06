@@ -25,6 +25,7 @@ New minimum versions are:
 ### Changed
 - Sync Page and code responsible for indexing. Props [@Rahmon](https://github.com/Rahmon), [@felipeelia](https://github.com/felipeelia), [@helen](https://github.com/helen), [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/), [@mckdemps](https://github.com/mckdemps), and [@tott](https://github.com/tott) via [#1835](https://github.com/10up/ElasticPress/pull/1835) and [#2448](https://github.com/10up/ElasticPress/pull/2448).
 - When Protected Content is enabled, WordPress behavior for password protected content is correctly reproduced with ElasticPress enabled. Props [@rebeccahum](https://github.com/rebeccahum), [@dinhtungdu](https://github.com/dinhtungdu), [@oscarssanchez](https://github.com/oscarssanchez), and [@felipeelia](https://github.com/felipeelia) via [#2408](https://github.com/10up/ElasticPress/pull/2408).
+- Enabling features that require a reindex will now ask for confirmation. Props [@JakePT](https://github.com/JakePT) via [#2491](https://github.com/10up/ElasticPress/pull/2491).
 - Minimum Elasticsearch and WordPress. Props [@felipeelia](https://github.com/felipeelia) via [#2475](https://github.com/10up/ElasticPress/pull/2475).
 - Minimum PHP version. Props [@ActuallyConnor](https://github.com/ActuallyConnor), [@felipeelia](https://github.com/felipeelia), and [@brandwaffle](https://github.com/brandwaffle) via [#2485](https://github.com/10up/ElasticPress/pull/2485).
 
