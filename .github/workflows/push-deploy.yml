@@ -12,12 +12,6 @@ jobs:
     name: New release
     runs-on: ubuntu-latest
     steps:
-    - name: Debug
-      run: |
-        echo "${{ github.event_name }}"
-        echo "${{ github.event.action }}"
-        exit 1
-
     - name: Checkout code
       uses: actions/checkout@v2
 
