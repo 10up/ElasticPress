@@ -312,6 +312,11 @@ h2.ep-list-features {
 	border-left: 4px solid var(--statusOk);
 	margin-bottom: 10px;
 	padding: 8px 12px;
+
+	&.requirements-status-notice--reindex {
+		border-color: var(--statusWarning);
+		display: none; /* Controlled by JavaScript. */
+	}
 }
 
 .ep-feature .settings .action-wrap {
