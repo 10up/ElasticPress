@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.0.0 Beta 1] - 2021-12-XX
+
+This version requires a full reindex.
+
+### Added
+- WP-CLI request command. Props [@joehoyle](https://github.com/joehoyle) and [@felipeelia](https://github.com/felipeelia) via [#2484](https://github.com/10up/ElasticPress/pull/2484).
+
+### Changed
+- Sync Page and code responsible for indexing. Props [@Rahmon](https://github.com/Rahmon), [@felipeelia](https://github.com/felipeelia), [@helen](https://github.com/helen), [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/), [@mckdemps](https://github.com/mckdemps), and [@tott](https://github.com/tott) via [#1835](https://github.com/10up/ElasticPress/pull/1835) and [#2448](https://github.com/10up/ElasticPress/pull/2448).
+- When Protected Content is enabled, WordPress behavior for password protected content is correctly reproduced with ElasticPress enabled. Props [@rebeccahum](https://github.com/rebeccahum), [@dinhtungdu](https://github.com/dinhtungdu), [@oscarssanchez](https://github.com/oscarssanchez), and [@felipeelia](https://github.com/felipeelia) via [#2408](https://github.com/10up/ElasticPress/pull/2408).
+- Minimum Elasticsearch and WordPress. Props [@felipeelia](https://github.com/felipeelia) via [#2475](https://github.com/10up/ElasticPress/pull/2475).
+- Minimum PHP version. Props [@ActuallyConnor](https://github.com/ActuallyConnor), [@felipeelia](https://github.com/felipeelia), and [@brandwaffle](https://github.com/brandwaffle) via [#2485](https://github.com/10up/ElasticPress/pull/2485).
+
+### Fixed
+- Deleting a metadata without passing an object id now updates all associated posts. Props [@oscarssanchez](https://github.com/oscarssanchez), [@Shrimpstronaut](https://github.com/Shrimpstronaut), and [@felipeelia](https://github.com/felipeelia) via [#2483](https://github.com/10up/ElasticPress/pull/2483).
+
 ## [3.6.5] - 2021-11-30
 
 **Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
@@ -1139,6 +1155,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[4.0.0 Beta 1]: https://github.com/10up/ElasticPress/compare/3.6.5...4.0.0-beta.1
 [3.6.5]: https://github.com/10up/ElasticPress/compare/3.6.4...3.6.5
 [3.6.4]: https://github.com/10up/ElasticPress/compare/3.6.3...3.6.4
 [3.6.3]: https://github.com/10up/ElasticPress/compare/3.6.2...3.6.3
