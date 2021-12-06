@@ -51,7 +51,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	 */
 	const reduceOptionsByParent = (items, { parent, ...option }) => {
 		// eslint-disable-next-line eqeqeq
-		if (parent == true) {
+		if (parent != false) {
 			items[parent] = items[parent] || [];
 			items[parent].push(option);
 		}
