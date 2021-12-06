@@ -32,7 +32,7 @@ jobs:
         npm run build
 
     - name: WordPress Plugin Deploy
-      if: "github.event_name == 'release' && github.event.action == 'released'"
+      if: "! github.event.release.prerelease"
       id: deploy
       uses: 10up/action-wordpress-plugin-deploy@stable
       env:
