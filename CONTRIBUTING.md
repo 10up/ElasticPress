@@ -45,7 +45,7 @@ The `develop` branch is the development branch which means it contains the next 
 1. Close milestone: Edit the [milestone](https://github.com/10up/elasticpress/milestone/#) with release date (in the `Due date (optional)` field) and link to GitHub release (in the `Description` field), then close the milestone.
 1. Punt incomplete items: If any open issues or PRs which were milestoned for `X.Y.Z` do not make it into the release, update their milestone to `X.Y.Z+1`, `X.Y+1.0`, `X+1.0.0` or `Future Release`.
 
-## Pre-release instructions
+## Pre-release instructions (betas, release candidates, etc)
 
 Pre-releases are different from normal versions because (1) they are not published on WordPress.org and (2) they are usually created from a branch different from `develop`.
 
