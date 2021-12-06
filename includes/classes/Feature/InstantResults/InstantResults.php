@@ -125,7 +125,7 @@ class InstantResults extends Feature {
 					<?php
 					foreach ( $highlight_tags as $highlight_tag ) {
 						printf(
-							'<option value="%1%s" %2$s>%3$s</option>',
+							'<option value="%1$s" %2$s>%3$s</option>',
 							esc_attr( $highlight_tag ),
 							selected( $this->settings['highlight_tag'], $highlight_tag, false ),
 							esc_html( $highlight_tag )
