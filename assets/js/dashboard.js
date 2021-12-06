@@ -49,13 +49,13 @@ $features.on('click', '.save-settings', function (event) {
 		}
 	});
 
-	const requiresConfirmation = requiresReindex && wasActive !== settings.active;
+	const requiresConfirmation = requiresReindex && wasActive === '0' && settings.active === '1';
 
 	if (requiresConfirmation) {
 		// eslint-disable-next-line no-alert
 		const isConfirmed = window.confirm(
 			__(
-				'Toggling this feature will begin re-indexing your content. Do you wish to proceed?',
+				'Enabling this feature will begin re-indexing your content. Do you wish to proceed?',
 				'elasticpress',
 			),
 		);
@@ -89,6 +89,9 @@ $features.on('click', '.save-settings', function (event) {
 				}
 
 				event.target.dataset.wasActive = settings.active;
+				event.target
+					.closest('.settings')
+					.querySelector('.js-toggle-feature').dataset.wasActive = settings.active;
 
 				if (response.data.reindex) {
 					window.location = epDash.sync_url;
@@ -166,11 +169,9 @@ $features.on('change', '.js-toggle-feature', function (event) {
 	const { value } = event.target;
 	const { requiresReindex, wasActive } = event.currentTarget.dataset;
 
-	if (requiresReindex && wasActive !== value) {
+	if (requiresReindex && wasActive === '0' && value === '1') {
 		container.style.display = 'block';
 	} else {
 		container.style.display = null;
 	}
-
-	event.currentTarget.dataset.requiresReindex = value;
 });
