@@ -74,7 +74,8 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	 * @return {Object} Options without a parent.
 	 */
 	const reduceTopLevelOptions = (items, { parent, ...option }) => {
-		if (!parent || parent === '0') {
+		// eslint-disable-next-line eqeqeq
+		if (parent == false || parent === '0') {
 			items.push(option);
 		}
 
