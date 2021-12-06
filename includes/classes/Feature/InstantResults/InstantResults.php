@@ -130,6 +130,10 @@ class InstantResults extends Feature {
 	 * @return void
 	 */
 	public function output_feature_box_settings() {
+		if ( ! $this->is_active() ) {
+			return;
+		}
+
 		$highlight_tags = array( 'mark', 'span', 'strong', 'em', 'i' );
 		?>
 
