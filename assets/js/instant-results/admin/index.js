@@ -1,0 +1,31 @@
+/**
+ * WordPress dependencies.
+ */
+import { render } from '@wordpress/element';
+
+/**
+ * Internal dependences.
+ */
+import FacetSelector from './components/facet-selector';
+
+// eslint-disable-next-line @wordpress/no-global-event-listener
+document.addEventListener('DOMContentLoaded', () => {
+	const input = document.getElementById('feature_instant_results_facets');
+
+	const {
+		className,
+		dataset: { fieldName },
+		id,
+		value,
+	} = input;
+
+	render(
+		<FacetSelector
+			className={className}
+			data-field-name={fieldName}
+			defaultValue={value}
+			id={id}
+		/>,
+		input.parentElement,
+	);
+});
