@@ -76,7 +76,9 @@ class InstantResults extends Feature {
 		$this->is_woocommerce = function_exists( 'WC' );
 
 		$this->default_settings = [
-			'facets' => 'post_type,category,post_tag',
+			'highlight_tag' => 'mark',
+			'facets'        => 'post_type,category,post_tag',
+			'match_type'    => 'all',
 		];
 
 		$settings = $this->get_settings() ? $this->get_settings() : array();
@@ -112,12 +114,46 @@ class InstantResults extends Feature {
 	 * @return void
 	 */
 	public function output_feature_box_settings() {
+		$highlight_tags = array( 'mark', 'span', 'strong', 'em', 'i' );
 		?>
 
+		<div class="field" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<label for="instant-results-highlight-tag" class="field-name status"><?php echo esc_html_e( 'Highlight tag ', 'elasticpress' ); ?></label>
+			<div class="input-wrap">
+				<select id="instant-results-highlight-tag" name="instant-results-highlight-tag" class="setting-field" data-field-name="highlight_tag">
+					<option value=""><?php esc_html_e( 'None', 'elasticpress' ); ?></option>
+					<?php
+					foreach ( $highlight_tags as $highlight_tag ) {
+						printf(
+							'<option value="%1%s" %2$s>%3$s</option>',
+							esc_attr( $highlight_tag ),
+							selected( $this->settings['highlight_tag'], $highlight_tag, false ),
+							esc_html( $highlight_tag )
+						);
+					}
+					?>
+				</select>
+				<p class="field-description"><?php esc_html_e( 'Highlight search terms in results with the selected HTML tag.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Facets', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
 				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" data-field-name="facets" class="setting-field" id="feature_instant_results_facets">
+			</div>
+		</div>
+		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label for="instant-results_match_type_all">
+					<input name="instant-results-match_type" id="instant-results-match_type_all" data-field-name="match_type" class="setting-field" type="radio" <?php checked( $this->settings['match_type'], 'all' ); ?> value="all">
+					<?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?>
+				</label><br>
+				<label for="instant-results-match_type_any">
+					<input name="instant-results-match_type" id="instant-results_match_type_any" data-field-name="match_type" class="setting-field" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
+					<?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?>
+				</label>
+				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 
@@ -226,9 +262,9 @@ class InstantResults extends Feature {
 				'apiHost'        => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
 				'currencyCode'   => $this->is_woocommerce ? get_woocommerce_currency() : false,
 				'facets'         => $this->get_facets_for_frontend(),
-				'highlightTag'   => 'mark',
+				'highlightTag'   => $this->settings['highlight_tag'],
 				'isWooCommerce'  => $this->is_woocommerce,
-				'matchType'      => 'all',
+				'matchType'      => $this->settings['match_type'],
 				'postTypeLabels' => $this->get_post_type_labels(),
 			)
 		);
