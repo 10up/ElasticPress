@@ -96,7 +96,9 @@ class InstantResults extends Feature {
 	 * @return void
 	 */
 	public function output_feature_box_summary() {
-		// TODO Short feature description.
+		?>
+		<p><?php esc_html_e( 'Instantly display results after a WordPress search form is submitted.', 'elasticpress' ); ?></p>
+		<?php
 	}
 
 	/**
@@ -105,7 +107,21 @@ class InstantResults extends Feature {
 	 * @return void
 	 */
 	public function output_feature_box_long() {
-		// TODO Detailed feature description.
+		?>
+		<p>
+			<?php
+			printf(
+				/* translators: %s: ElasticPress.io link. */
+				esc_html__( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed. Requires an %s to function.', 'elasticpress' ),
+				sprintf(
+					'<a href=”%1$s” target="_blank">%2$s</a>',
+					'https://www.elasticpress.io/',
+					esc_html__( 'ElasticPress.io plan', 'elasticpress' )
+				)
+			);
+			?>
+		</p>
+		<?php
 	}
 
 	/**
