@@ -1,4 +1,6 @@
 /* eslint-disable camelcase, no-use-before-define */
+import { __ } from '@wordpress/i18n';
+
 const { ajaxurl, epDash, history } = window;
 
 const $features = jQuery(document.getElementsByClassName('ep-features'));
@@ -41,7 +43,7 @@ $features.on('click', '.save-settings', function (event) {
 		return;
 	}
 
-	const feature = event.target.getAttribute('data-feature');
+	const { feature, requiresReindex, wasActive } = event.target.dataset;
 	const $feature = $features.find(`.ep-feature-${feature}`);
 	const settings = {};
 	const $settings = $feature.find('.setting-field');
@@ -60,6 +62,22 @@ $features.on('click', '.save-settings', function (event) {
 			settings[name] = value;
 		}
 	});
+
+	const requiresConfirmation = requiresReindex && wasActive !== settings.active;
+
+	if (requiresConfirmation) {
+		// eslint-disable-next-line no-alert
+		const isConfirmed = window.confirm(
+			__(
+				'Toggling this feature will begin re-indexing your content. Do you wish to proceed?',
+				'elasticpress',
+			),
+		);
+
+		if (!isConfirmed) {
+			return;
+		}
+	}
 
 	$feature.addClass('saving');
 
@@ -83,6 +101,8 @@ $features.on('click', '.save-settings', function (event) {
 				} else {
 					$feature.removeClass('feature-active');
 				}
+
+				event.target.dataset.wasActive = settings.active;
 
 				if (response.data.reindex) {
 					syncStatus = 'initialsync';
@@ -572,4 +592,21 @@ $epCredentialsTab.on('click', (e) => {
 		$epCredentialsAdditionalFields.hide();
 		$epCredentialsAdditionalFields.attr('aria-hidden', 'true');
 	}
+});
+
+$features.on('change', '.js-toggle-feature', function (event) {
+	const container = event.currentTarget
+		.closest('.settings')
+		.querySelector('.requirements-status-notice--reindex');
+
+	const { value } = event.target;
+	const { requiresReindex, wasActive } = event.currentTarget.dataset;
+
+	if (requiresReindex && wasActive !== value) {
+		container.style.display = 'block';
+	} else {
+		container.style.display = null;
+	}
+
+	event.currentTarget.dataset.requiresReindex = value;
 });
