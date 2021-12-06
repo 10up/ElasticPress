@@ -269,7 +269,7 @@ abstract class Feature {
 
 		<?php if ( $this->requires_install_reindex ) : ?>
 			<div class="requirements-status-notice requirements-status-notice--reindex" role="status">
-				<?php esc_html_e( 'Toggling this feature will require re-indexing your content.', 'elasticpress'); ?>
+				<?php esc_html_e( 'Enabling this feature will require re-indexing your content.', 'elasticpress'); ?>
 			</div>
 		<?php endif; ?>
 
