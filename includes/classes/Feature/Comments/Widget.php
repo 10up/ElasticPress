@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\Comments;
 
 use \WP_Widget as WP_Widget;
 use ElasticPress\Features as Features;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -69,16 +70,16 @@ class Widget extends WP_Widget {
 		wp_enqueue_script(
 			'elasticpress-comments',
 			EP_URL . 'dist/js/comments-script.min.js',
-			[],
-			EP_VERSION,
+			Utils\get_asset_info( 'comments-script', 'dependencies' ),
+			Utils\get_asset_info( 'comments-script', 'version' ),
 			true
 		);
 
 		wp_enqueue_style(
 			'elasticpress-comments',
 			EP_URL . 'dist/css/comments-styles.min.css',
-			[],
-			EP_VERSION
+			Utils\get_asset_info( 'comments-styles', 'dependencies' ),
+			Utils\get_asset_info( 'comments-styles', 'version' )
 		);
 
 		$default_script_data = [

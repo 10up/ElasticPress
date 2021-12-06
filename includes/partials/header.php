@@ -23,11 +23,11 @@ $is_sync_page = 'sync' === Screen::factory()->get_current_screen();
 	<div class="icons">
 		<span class="sync-status"></span>
 		<?php if ( $is_sync_page ) : ?>
-			<a class="dashicons pause-sync dashicons-controls-pause" title="<?php esc_attr_e( 'Pause Sync', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Pause Sync', 'elasticpress' ); ?>"></a>
+
 			<a class="dashicons resume-sync dashicons-controls-play" title ="<?php esc_attr_e( 'Resume Sync', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Resume Sync', 'elasticpress' ); ?>"></a>
 			<a class="dashicons cancel-sync dashicons-no" title="<?php esc_attr_e( 'Cancel Sync', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Cancel Sync', 'elasticpress' ); ?>"></a>
 		<?php endif; ?>
-		<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC ) : ?>
+		<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC && ! $is_sync_page ) : ?>
 			<a
 				class="dashicons start-sync dashicons-update"
 				title="<?php esc_attr_e( 'Start Sync', 'elasticpress' ); ?>"

@@ -1,0 +1,15 @@
+.ep-search-sidebar {
+	display: none;
+	margin-bottom: 2em;
+
+	&.is-open {
+		display: block;
+	}
+
+	@media ( min-width: 768px ) {
+		display: block;
+		max-height: calc(100% - 1em);
+		min-width: 25%;
+		overflow-y: auto;
+	}
+}

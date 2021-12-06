@@ -5,7 +5,7 @@
  * Description:       A fast and flexible search and query engine for WordPress.
  * Version:           4.0.0-beta.1
  * Requires at least: 5.6
- * Requires PHP:      5.6
+ * Requires PHP:      7.0
  * Author:            10up
  * Author URI:        http://10up.com
  * License:           GPL v2 or later
@@ -152,6 +152,10 @@ function register_indexable_posts() {
 
 	Features::factory()->register_feature(
 		new Feature\SearchOrdering\SearchOrdering()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\InstantResults\InstantResults()
 	);
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
