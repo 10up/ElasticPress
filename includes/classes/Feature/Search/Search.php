@@ -119,8 +119,8 @@ class Search extends Feature {
 		wp_enqueue_style(
 			'searchterm-highlighting',
 			EP_URL . 'dist/css/highlighting-styles.min.css',
-			[],
-			EP_VERSION
+			Utils\get_asset_info( 'highlighting-styles', 'dependencies' ),
+			Utils\get_asset_info( 'highlighting-styles', 'version' )
 		);
 	}
 

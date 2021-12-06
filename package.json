@@ -6,6 +6,7 @@
   "devDependencies": {
     "10up-toolkit": "^1.0.13",
     "jsdoc": "^3.6.7",
+    "postcss-preset-env": "^7.0.1",
     "terser-webpack-plugin": "^5.2.4",
     "wp-hookdoc": "^0.2.0"
   },
@@ -37,6 +38,8 @@
       "comments-script.min": "./assets/js/comments.js",
       "dashboard-script.min": "./assets/js/dashboard.js",
       "facets-script.min": "./assets/js/facets.js",
+      "instant-results-script.min": "./assets/js/instant-results/index.js",
+      "instant-results-admin-script.min": "./assets/js/instant-results/admin/index.js",
       "notice-script.min": "./assets/js/notice.js",
       "ordering-script.min": "./assets/js/ordering/index.js",
       "related-posts-block-script.min": "./assets/js/blocks/related-posts/block.js",
@@ -51,24 +54,31 @@
       "facets-admin-styles.min": "./assets/css/facets-admin.css",
       "facets-styles.min": "./assets/css/facets.css",
       "highlighting-styles.min": "./assets/css/highlighting.css",
+      "instant-results-styles.min": "./assets/css/instant-results.css",
       "ordering-styles.min": "./assets/css/ordering.css",
       "related-posts-block-styles.min": "./assets/css/related-posts-block.css",
       "sync-styles.min": "./assets/css/sync.css",
       "sites-admin-styles.min": "./assets/css/sites-admin.css",
       "synonyms-styles.min": "./assets/css/synonyms.css"
     },
-    "wpDependencyExternals": false
+    "wpDependencyExternals": true
   },
   "dependencies": {
     "@wordpress/api-fetch": "^5.2.6",
+    "@wordpress/components": "^19.1.1",
+    "@wordpress/element": "^4.0.4",
     "@wordpress/i18n": "^3.20.0",
+    "@wordpress/icons": "^6.1.1",
     "chart.js": "^2.9.4",
     "element-closest": "^3.0.2",
+    "focus-trap-react": "^8.8.2",
+    "jquery": "^3.6.0",
     "promise-polyfill": "^8.2.0",
     "react": "^16.14.0",
     "react-beautiful-dnd": "^11.0.5",
     "react-dom": "^16.14.0",
     "react-select": "^3.2.0",
+    "react-slider": "^1.3.1",
     "uuid": "^8.3.2",
     "whatwg-fetch": "^3.6.2"
   }

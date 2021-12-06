@@ -153,6 +153,10 @@ function register_indexable_posts() {
 	Features::factory()->register_feature(
 		new Feature\SearchOrdering\SearchOrdering()
 	);
+
+	Features::factory()->register_feature(
+		new Feature\InstantResults\InstantResults()
+	);
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 

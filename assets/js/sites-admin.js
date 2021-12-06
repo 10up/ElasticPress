@@ -1,3 +1,5 @@
+import jQuery from 'jquery';
+
 const { epsa } = window;
 
 // eslint-disable-next-line @wordpress/no-global-event-listener

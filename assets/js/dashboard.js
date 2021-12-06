@@ -1,4 +1,6 @@
 /* eslint-disable camelcase, no-use-before-define */
+import jQuery from 'jquery';
+
 const { ajaxurl, epDash } = window;
 
 const $features = jQuery(document.getElementsByClassName('ep-features'));

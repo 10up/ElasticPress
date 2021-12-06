@@ -436,25 +436,57 @@ function action_wp_ajax_ep_save_feature() {
  */
 function action_admin_enqueue_dashboard_scripts() {
 	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'sites-network' ) !== false ) {
-		wp_enqueue_style( 'ep_admin_sites_styles', EP_URL . 'dist/css/sites-admin-styles.min.css', [], EP_VERSION );
-		wp_enqueue_script( 'ep_admin_sites_scripts', EP_URL . 'dist/js/sites-admin-script.min.js', [ 'jquery' ], EP_VERSION, true );
+		wp_enqueue_style(
+			'ep_admin_sites_styles',
+			EP_URL . 'dist/css/sites-admin-styles.min.css',
+			Utils\get_asset_info( 'sites-admin-styles', 'dependencies' ),
+			Utils\get_asset_info( 'sites-admin-styles', 'version' )
+		);
+
+		wp_enqueue_script(
+			'ep_admin_sites_scripts',
+			EP_URL . 'dist/js/sites-admin-script.min.js',
+			Utils\get_asset_info( 'sites-admin-script', 'dependencies' ),
+			Utils\get_asset_info( 'sites-admin-script', 'version' ),
+			true
+		);
+
 		$data = [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'epsa' ),
 		];
+
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync' ], true ) ) {
-		wp_enqueue_style( 'ep_admin_styles', EP_URL . 'dist/css/dashboard-styles.min.css', [], EP_VERSION );
+		wp_enqueue_style(
+			'ep_admin_styles',
+			EP_URL . 'dist/css/dashboard-styles.min.css',
+			Utils\get_asset_info( 'dashboard-styles', 'dependencies' ),
+			Utils\get_asset_info( 'dashboard-styles', 'version' )
+		);
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
-		wp_enqueue_script( 'ep_weighting_script', EP_URL . 'dist/js/weighting-script.min.js', [ 'jquery' ], EP_VERSION, true );
+		wp_enqueue_script(
+			'ep_weighting_script',
+			EP_URL . 'dist/js/weighting-script.min.js',
+			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
+			Utils\get_asset_info( 'weighting-script', 'version' ),
+			true
+		);
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'health' ], true ) ) {
-		wp_enqueue_script( 'ep_dashboard_scripts', EP_URL . 'dist/js/dashboard-script.min.js', [ 'jquery', 'wp-color-picker' ], EP_VERSION, true );
+		wp_enqueue_script( 'wp-color-picker' );
+		wp_enqueue_script(
+			'ep_dashboard_scripts',
+			EP_URL . 'dist/js/dashboard-script.min.js',
+			Utils\get_asset_info( 'dashboard-script', 'dependencies' ),
+			Utils\get_asset_info( 'dashboard-script', 'version' ),
+			true
+		);
 
 		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 				admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' ) :
@@ -472,11 +504,24 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		$data = Stats::factory()->get_localized();
 
-		wp_enqueue_script( 'ep_stats', EP_URL . 'dist/js/stats-script.min.js', [], EP_VERSION, true );
+		wp_enqueue_script(
+			'ep_stats',
+			EP_URL . 'dist/js/stats-script.min.js',
+			Utils\get_asset_info( 'stats-script', 'dependencies' ),
+			Utils\get_asset_info( 'stats-script', 'version' ),
+			true
+		);
+
 		wp_localize_script( 'ep_stats', 'epChartData', $data );
 	}
 
-	wp_register_script( 'ep_notice_script', EP_URL . 'dist/js/notice-script.min.js', [ 'jquery' ], EP_VERSION, true );
+	wp_register_script(
+		'ep_notice_script',
+		EP_URL . 'dist/js/notice-script.min.js',
+		Utils\get_asset_info( 'notice-script', 'dependencies' ),
+		Utils\get_asset_info( 'notice-script', 'version' ),
+		true
+	);
 
 	wp_localize_script(
 		'ep_notice_script',
