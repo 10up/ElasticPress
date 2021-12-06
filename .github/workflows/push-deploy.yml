@@ -1,4 +1,4 @@
-name: Deploy to WordPress.org
+name: Publish New Release
 
 env:
   SLUG: "elasticpress"
@@ -26,7 +26,7 @@ jobs:
         npm run build
 
     - name: WordPress Plugin Deploy
-      if: "!contains(github.ref_name, 'beta')"
+      if: "github.event_name == 'release' && github.event.action == 'released'"
       id: deploy
       uses: 10up/action-wordpress-plugin-deploy@stable
       env:
