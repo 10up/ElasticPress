@@ -8,6 +8,16 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 This version requires a full reindex.
 
+New minimum versions are:
+
+||Min|Max|
+|---|:---:|:---:|
+|Elasticsearch|5.2|7.10|
+|WordPress|5.6+|latest|
+|PHP|7.0+|latest|
+
+**Note that the official ElasticPress 4.0.0 release will replace `master` with `trunk`. Built assets were already removed from the branch and added to the zip file attached to the GitHub release page.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
+
 ### Added
 - WP-CLI request command. Props [@joehoyle](https://github.com/joehoyle) and [@felipeelia](https://github.com/felipeelia) via [#2484](https://github.com/10up/ElasticPress/pull/2484).
 
