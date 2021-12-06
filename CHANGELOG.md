@@ -29,6 +29,9 @@ New minimum versions are:
 - Minimum Elasticsearch and WordPress. Props [@felipeelia](https://github.com/felipeelia) via [#2475](https://github.com/10up/ElasticPress/pull/2475).
 - Minimum PHP version. Props [@ActuallyConnor](https://github.com/ActuallyConnor), [@felipeelia](https://github.com/felipeelia), and [@brandwaffle](https://github.com/brandwaffle) via [#2485](https://github.com/10up/ElasticPress/pull/2485).
 
+### Removed
+- Built assets (minified JavaScript and CSS files) from the repository. Props [@felipeelia](https://github.com/felipeelia) and [@jeffpaul](https://github.com/jeffpaul) via [#2486](https://github.com/10up/ElasticPress/pull/2486).
+
 ### Fixed
 - Deleting a metadata without passing an object id now updates all associated posts. Props [@oscarssanchez](https://github.com/oscarssanchez), [@Shrimpstronaut](https://github.com/Shrimpstronaut), and [@felipeelia](https://github.com/felipeelia) via [#2483](https://github.com/10up/ElasticPress/pull/2483).
 
