@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 This version requires a full reindex.
 
+Please note that 4.0 introduces a new search algorithm that may change the order of results displayed on your site. Additionally, this algorithm may be changed again during the beta process before a final 4.0 release algorithm is determined. Your feedback on this new algorithm is welcome via the Github [issues list](https://github.com/10up/ElasticPress/issues).
+
 New minimum versions are:
 
 ||Min|Max|
@@ -20,6 +22,7 @@ New minimum versions are:
 
 ### Added
 - Instant Results. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), and [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/) via [#2481](https://github.com/10up/ElasticPress/pull/2481).
+- New search algorithm. Props [@brandwaffle](https://github.com/brandwaffle) and [@felipeelia](https://github.com/felipeelia) via [#2498](https://github.com/10up/ElasticPress/pull/2498).
 - WP-CLI `request` subcommand. Props [@joehoyle](https://github.com/joehoyle) and [@felipeelia](https://github.com/felipeelia) via [#2484](https://github.com/10up/ElasticPress/pull/2484).
 
 ### Changed
