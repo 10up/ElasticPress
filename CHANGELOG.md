@@ -21,8 +21,8 @@ New minimum versions are:
 **Note that the official ElasticPress 4.0.0 release will replace `master` with `trunk`. Built assets were already removed from the branch and added to the zip file attached to the GitHub release page.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
 
 ### Added
-- Instant Results. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), and [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/) via [#2481](https://github.com/10up/ElasticPress/pull/2481).
-- New search algorithm. Props [@brandwaffle](https://github.com/brandwaffle) and [@felipeelia](https://github.com/felipeelia) via [#2498](https://github.com/10up/ElasticPress/pull/2498).
+- Instant Results. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), and [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/) via [#2481](https://github.com/10up/ElasticPress/pull/2481) and [#2500](https://github.com/10up/ElasticPress/pull/2500).
+- New default search algorithm prioritizing exact matches, matches in the same field, then matches across different fields. Props [@brandwaffle](https://github.com/brandwaffle) and [@felipeelia](https://github.com/felipeelia) via [#2498](https://github.com/10up/ElasticPress/pull/2498).
 - WP-CLI `request` subcommand. Props [@joehoyle](https://github.com/joehoyle) and [@felipeelia](https://github.com/felipeelia) via [#2484](https://github.com/10up/ElasticPress/pull/2484).
 
 ### Changed
