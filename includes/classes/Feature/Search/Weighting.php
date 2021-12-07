@@ -678,7 +678,7 @@ class Weighting {
 	 * @return array New weighted field string
 	 */
 	public function adjust_weight_for_cross_fields( $weighted_field, $field, $weight, $fieldset ) {
-		if ( 'cross_fields' === $fieldset['type'] ) {
+		if ( ! empty( $fieldset['type'] ) && 'cross_fields' === $fieldset['type'] ) {
 			$weighted_field = "{$field}^1";
 		}
 		return $weighted_field;
