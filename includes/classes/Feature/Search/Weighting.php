@@ -25,6 +25,7 @@ class Weighting {
 		add_action( 'admin_menu', [ $this, 'add_weighting_submenu_page' ], 15 );
 		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
+		add_filter( 'ep_query_weighting_fields', [ $this, 'adjust_weight_for_cross_fields' ], 10, 5 );
 	}
 
 	/**
@@ -663,5 +664,23 @@ class Weighting {
 		}
 
 		return $formatted_args;
+	}
+
+	/**
+	 * Adjust weighting when the type is cross_fields, as it just works with weight = 1.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param string $weighted_field The field and its weight as used in the ES query.
+	 * @param string $field          Field name
+	 * @param string $weight         Weight value
+	 * @param array  $fieldset       Current subset of formatted ES args
+	 * @return array New weighted field string
+	 */
+	public function adjust_weight_for_cross_fields( $weighted_field, $field, $weight, $fieldset ) {
+		if ( 'cross_fields' === $fieldset['type'] ) {
+			$weighted_field = "{$field}^1";
+		}
+		return $weighted_field;
 	}
 }
