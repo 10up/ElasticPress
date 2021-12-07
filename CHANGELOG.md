@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-## [4.0.0 Beta 1] - 2021-12-XX
+## [4.0.0-beta.1] - 2021-12-XX
 
 This version requires a full reindex.
 
@@ -1171,7 +1171,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
-[4.0.0 Beta 1]: https://github.com/10up/ElasticPress/compare/3.6.5...4.0.0-beta.1
+[4.0.0-beta.1]: https://github.com/10up/ElasticPress/compare/3.6.5...4.0.0-beta.1
 [3.6.5]: https://github.com/10up/ElasticPress/compare/3.6.4...3.6.5
 [3.6.4]: https://github.com/10up/ElasticPress/compare/3.6.3...3.6.4
 [3.6.3]: https://github.com/10up/ElasticPress/compare/3.6.2...3.6.3
