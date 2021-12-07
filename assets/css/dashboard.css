@@ -4,6 +4,10 @@
 	--statusError: #f00;
 }
 
+html.wp-toolbar {
+	background: transparent;
+}
+
 @custom-media --tablet-min (min-width: 880px);
 @custom-media --wide-min (min-width: 1270px);
 @custom-media --tablet-max (max-width: 880px);
@@ -400,6 +404,18 @@ h2.ep-list-features {
 		& input {
 			cursor: default;
 		}
+	}
+
+	& .components-form-token-field {
+		padding-top: 0;
+	}
+
+	& .components-form-token-field__label {
+		margin-top: 0;
+	}
+
+	& .components-form-token-field__input-container {
+		padding: 2px 4px;
 	}
 }
 
