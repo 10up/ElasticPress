@@ -137,10 +137,10 @@ class InstantResults extends Feature {
 		$highlight_tags = array( 'mark', 'span', 'strong', 'em', 'i' );
 		?>
 
-		<div class="field" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<label for="instant-results-highlight-tag" class="field-name status"><?php echo esc_html_e( 'Highlight tag ', 'elasticpress' ); ?></label>
 			<div class="input-wrap">
-				<select id="instant-results-highlight-tag" name="instant-results-highlight-tag" class="setting-field" data-field-name="highlight_tag">
+				<select id="instant-results-highlight-tag" name="settings[highlight_tag]">
 					<option value=""><?php esc_html_e( 'None', 'elasticpress' ); ?></option>
 					<?php
 					foreach ( $highlight_tags as $highlight_tag ) {
@@ -156,21 +156,21 @@ class InstantResults extends Feature {
 				<p class="field-description"><?php esc_html_e( 'Highlight search terms in results with the selected HTML tag.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
-			<div class="field-name status"><?php esc_html_e( 'Facets', 'elasticpress' ); ?></div>
+		<div class="field">
+			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Facets', 'elasticpress' ); ?></label>
 			<div class="input-wrap">
-				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" data-field-name="facets" class="setting-field" id="feature_instant_results_facets">
+				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" name="settings[facets]" id="feature_instant_results_facets">
 			</div>
 		</div>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="instant-results_match_type_all">
-					<input name="instant-results-match_type" id="instant-results-match_type_all" data-field-name="match_type" class="setting-field" type="radio" <?php checked( $this->settings['match_type'], 'all' ); ?> value="all">
+				<label>
+					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'all' ); ?> value="all">
 					<?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?>
 				</label><br>
-				<label for="instant-results-match_type_any">
-					<input name="instant-results-match_type" id="instant-results_match_type_any" data-field-name="match_type" class="setting-field" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
+				<label>
+					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
 					<?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?>
 				</label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>

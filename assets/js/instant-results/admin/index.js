@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		className,
 		dataset: { fieldName },
 		id,
+		name,
 		value,
 	} = input;
 
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			data-field-name={fieldName}
 			defaultValue={value}
 			id={id}
+			name={name}
 		/>,
 		input.parentElement,
 	);
