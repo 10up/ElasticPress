@@ -9,7 +9,7 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import Context from './context';
-import { getURLParamsFromState } from './functions';
+import { getPostTypesFromForm, getURLParamsFromState } from './functions';
 import { useDebounce, useGetResults } from './hooks';
 import { reducer, initialArg } from './reducer';
 import Layout from './components/layout';
@@ -41,6 +41,7 @@ const App = () => {
 	 */
 	const closeModal = useCallback(() => {
 		dispatch({ type: 'CLOSE_MODAL' });
+		dispatch({ type: 'CLEAR_FILTERS' });
 		inputRef.current.focus();
 	}, []);
 
@@ -114,7 +115,11 @@ const App = () => {
 
 			inputRef.current = event.target.s;
 
-			dispatch({ type: 'SET_SEARCH_TERM', payload: event.target.s.value });
+			const searchTerm = inputRef.current.value;
+			const postTypes = getPostTypesFromForm(inputRef.current.form);
+
+			dispatch({ type: 'SET_SEARCH_TERM', payload: searchTerm });
+			dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
 
 			openModal();
 		},

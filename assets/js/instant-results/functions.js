@@ -22,6 +22,26 @@ export const formatPrice = (number, options) => {
 };
 
 /**
+ * Get the post types from a search form.
+ *
+ * @param {HTMLFormElement} form Form element.
+ * @return {Array} Post types.
+ */
+export const getPostTypesFromForm = (form) => {
+	const data = new FormData(form);
+
+	if (data.has('post_type')) {
+		return data.getAll('post_type').slice(-1);
+	}
+
+	if (data.has('post_type[]')) {
+		return data.getAll('post_type[]');
+	}
+
+	return [];
+};
+
+/**
  * Get query parameters for an API request from the state.
  *
  * @param {Object} state State.
