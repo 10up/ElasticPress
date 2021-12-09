@@ -25,7 +25,7 @@ export default ({ defaultIsOpen, label, taxonomy }) => {
 	const {
 		state: {
 			isLoading,
-			taxonomyTerms: { [taxonomy]: selectedTerms = [] },
+			filters: { [taxonomy]: selectedTerms = [] },
 			taxonomyTermsAggregations: {
 				[taxonomy]: { taxonomy_terms: { buckets = [] } = {} } = {},
 			} = {},
@@ -89,7 +89,7 @@ export default ({ defaultIsOpen, label, taxonomy }) => {
 	 * @param {string[]} terms Selected terms.
 	 */
 	const onChange = (terms) => {
-		dispatch({ type: 'SET_TAXONOMY_TERMS', payload: { taxonomy, terms } });
+		dispatch({ type: 'APPLY_FILTERS', payload: { [taxonomy]: terms } });
 	};
 
 	/**
@@ -102,7 +102,7 @@ export default ({ defaultIsOpen, label, taxonomy }) => {
 
 		terms.splice(terms.indexOf(term), 1);
 
-		dispatch({ type: 'SET_TAXONOMY_TERMS', payload: { taxonomy, terms } });
+		dispatch({ type: 'APPLY_FILTERS', payload: { [taxonomy]: terms } });
 	};
 
 	return (

@@ -179,9 +179,7 @@ const App = () => {
 		state.args.offset,
 		state.args.search,
 		state.isOpen,
-		state.postTypes,
-		state.priceRange,
-		state.taxonomyTerms,
+		state.filters,
 	]);
 
 	return (
