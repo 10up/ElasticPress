@@ -574,7 +574,8 @@ class Weighting {
 		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
-		if ( ! empty( $weight_config ) && Utils\is_integrated_request( 'weighting', [ 'public', 'rest' ] ) && ! empty( $args['s'] ) ) {
+		if ( ! empty( $weight_config ) && ! has_filter( 'ep_weighted_query_for_post_type' ) && ! has_filter( 'ep_weighting_default_post_type_weights' ) && ! has_filter( 'ep_weighting_default_enabled_taxonomies' )
+		&& Utils\is_integrated_request( 'weighting', [ 'public', 'rest' ] ) && ! empty( $args['s'] ) ) {
 			/*
 			 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
 			 * which then get combined into one result set. By having separate clauses for each post type, we can then
