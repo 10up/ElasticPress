@@ -147,7 +147,7 @@ class Upgrades {
 
 		$synonyms_example_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_content = %s LIMIT 500",
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_content = %s LIMIT 100",
 				$synonyms::POST_TYPE_NAME,
 				$synonyms->example_synonym_list()
 			)
