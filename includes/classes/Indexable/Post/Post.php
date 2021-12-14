@@ -1659,6 +1659,15 @@ class Post extends Indexable {
 			$formatted_args['from'] = $args['posts_per_page'] * ( $args['paged'] - 1 );
 		}
 
+		/**
+		 * Fix negative offset. This happens, for example, on hierarchical post types.
+		 *
+		 * Ref: https://github.com/10up/ElasticPress/issues/2480
+		 */
+		if ( $formatted_args['from'] < 0 ) {
+			$formatted_args['from'] = 0;
+		}
+
 		if ( $use_filters ) {
 			$formatted_args['post_filter'] = $filter;
 		}
