@@ -462,9 +462,8 @@ class TestAdminNotices extends BaseTestCase {
 	 * - Elasticsearch version within bounds
 	 * - Autosuggest not active
 	 * - ES Mapping Version <> Determined mapping
-	 * - is VIP
 	 *
-	 * Do NOT: Show mapping notice
+	 * Do: Show mapping notice
 	 *
 	 * @group admin-notices
 	 * @since 3.6.2
@@ -498,9 +497,8 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
-		// Don't show this notice in VIP
-		$this->assertCount( 0, $notices );
-		$this->assertTrue( empty( $notices['maybe_wrong_mapping'] ) );
+		$this->assertCount( 1, $notices );
+		$this->assertTrue( ! empty( $notices['maybe_wrong_mapping'] ) );
 	}
 
 	/**

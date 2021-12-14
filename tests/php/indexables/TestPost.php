@@ -233,6 +233,7 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, count( $query->posts ) );
 		$this->assertEquals( 'two', $query->posts[0]->post_title );
 	}
@@ -262,7 +263,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
@@ -314,7 +315,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$this->assertEquals( $query->post_count, 3 );
 		$this->assertEquals( $query->found_posts, 3 );
@@ -615,6 +616,8 @@ class TestPost extends BaseTestCase {
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 		$query = new \WP_Query( array( 's' => '#findme' ) );
 
+		$this->assertTrue( $query->elasticsearch_success );
+
 		$this->assertNotNull( $query->posts[0] );
 		$this->assertNotNull( $query->posts[0]->terms );
 		$post = $query->posts[0];
@@ -656,11 +659,12 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			$tax_name => $term_1_name,
-			's'       => '',
+			'ep_integrate' => true
 		);
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 	}
@@ -686,11 +690,12 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			'category_name' => $term_1_name,
-			's'             => '',
+			'ep_integrate'  => true
 		);
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 	}
@@ -714,12 +719,13 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			'tag' => $term_1_name,
-			's'   => '',
+			'tag'          => $term_1_name,
+			'ep_integrate' => true,
 		);
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 	}
@@ -749,7 +755,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
@@ -781,6 +787,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
@@ -795,6 +802,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
@@ -809,6 +817,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
@@ -823,6 +832,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 0, $query->post_count );
 		$this->assertEquals( 0, count( $query->posts ) );
 		$this->assertEquals( 3, $query->found_posts );
@@ -872,6 +882,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -923,6 +934,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -978,6 +990,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -993,6 +1006,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1043,6 +1057,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1086,6 +1101,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1112,6 +1128,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1138,6 +1155,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1166,6 +1184,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1194,6 +1213,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1230,6 +1250,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1273,6 +1294,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 
@@ -1282,6 +1304,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1316,6 +1339,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1351,6 +1375,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -1380,6 +1405,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 	}
@@ -1414,6 +1440,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -1450,6 +1477,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -1491,6 +1519,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 
@@ -1544,13 +1573,14 @@ class TestPost extends BaseTestCase {
 
 		// post_type defaults to "any"
 		$args = array(
-			'post_type'              => 'attachment',
-			'post_status'            => 'any',
-			'elasticpress_integrate' => true,
+			'post_type'    => 'attachment',
+			'post_status'  => 'any',
+			'ep_integrate' => true,
 		);
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
@@ -1583,6 +1613,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -1617,6 +1648,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 	}
@@ -1640,6 +1672,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
 		$this->assertEquals( 1, count( $query->posts[0]->meta['test_key'] ) );
@@ -1669,6 +1702,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -1683,6 +1717,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -1720,6 +1755,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -1772,6 +1808,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
@@ -1842,6 +1879,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -1867,6 +1905,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
@@ -1895,6 +1934,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
@@ -1923,6 +1963,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
@@ -1969,6 +2010,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'ordertest 333', $query->posts[0]->post_title );
@@ -2030,6 +2072,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
@@ -2094,6 +2138,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
+
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 
@@ -2124,6 +2170,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
@@ -2179,6 +2226,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
@@ -2209,6 +2257,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[3]->post_title );
@@ -2263,6 +2312,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 		$this->assertEquals( 'ordertest 111', $query->posts[0]->post_title );
@@ -2299,6 +2349,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
@@ -2332,6 +2383,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
@@ -2385,6 +2437,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 6, $query->post_count );
 		$this->assertEquals( 6, $query->found_posts );
 
@@ -2421,6 +2474,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
@@ -2450,6 +2504,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
 		$this->assertEquals( 'postname-ordertest-111', $query->posts[0]->post_name );
@@ -2481,6 +2536,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
@@ -2514,6 +2570,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
@@ -2541,6 +2598,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 
 		/**
 		 * Since it's test for random order, can't check against exact post ID or content
@@ -2643,11 +2702,12 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's' => '',
+			'ep_integrate' => true
 		);
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -2676,6 +2736,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -2705,6 +2766,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -2733,6 +2795,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -2761,6 +2824,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -2791,6 +2855,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -2822,6 +2887,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -2852,6 +2918,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -2882,6 +2949,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -2912,6 +2980,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -2959,6 +3028,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -3010,6 +3080,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -3041,6 +3112,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
@@ -3071,6 +3143,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
@@ -3119,6 +3192,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -3147,6 +3221,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -3192,7 +3267,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
@@ -3232,8 +3307,11 @@ class TestPost extends BaseTestCase {
 			's' => 'findme',
 		);
 
+		$num_queries = $GLOBALS['wpdb']->num_queries;
+
 		$query = new \WP_Query( $args );
 
+		$this->assertSame( $num_queries, $GLOBALS['wpdb']->num_queries );
 		$this->assertEquals( 0, $query->post_count );
 		$this->assertEquals( 0, $query->found_posts );
 
@@ -3260,6 +3338,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertFalse( $query->query_vars['cache_results'] );
 	}
 
@@ -3281,6 +3360,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertTrue( $query->query_vars['cache_results'] );
 	}
 
@@ -3303,6 +3383,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
 
@@ -3327,6 +3409,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$cache = wp_cache_get( $query->posts[0]->ID, 'posts' );
 
@@ -3602,6 +3686,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
@@ -3627,6 +3712,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
@@ -3664,6 +3750,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
@@ -3697,6 +3784,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
@@ -3714,6 +3802,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
@@ -3731,6 +3820,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -3764,6 +3854,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 
@@ -3781,6 +3872,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -3813,6 +3905,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -3843,6 +3936,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
 		$args = array(
@@ -3859,6 +3953,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
 	}
@@ -3888,6 +3983,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
 		$args = array(
@@ -3904,6 +4000,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 	}
 
@@ -3932,6 +4029,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
 		$args = array(
@@ -3948,6 +4046,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
 		$args = array(
@@ -3964,6 +4063,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 	}
 
@@ -3992,6 +4092,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -4022,9 +4123,13 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
+
 		$args['post_name__in'] = array( 'findme-name-in' );
 
 		$query2 = new \WP_Query( $args );
+
+		$this->assertTrue( $query2->elasticsearch_success );
 
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
@@ -4070,6 +4175,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -4092,6 +4198,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -4134,6 +4241,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -4156,6 +4264,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -4198,6 +4307,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -4248,6 +4358,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
+
 		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
 
 		$this->assertEquals( 3, $query->post_count );
@@ -4264,6 +4376,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
 
@@ -4282,6 +4396,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
 
@@ -4303,6 +4419,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
+
 		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
 
 		$this->assertEquals( 4, $query->found_posts );
@@ -4322,6 +4440,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$attachment_names = wp_list_pluck( $query->posts, 'post_name' );
 
@@ -4368,6 +4488,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -4385,6 +4506,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -4429,6 +4551,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -4478,6 +4601,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 		$this->assertTrue( isset( $query->posts[0]->elasticsearch ) );
@@ -4542,6 +4666,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 5, $query->post_count );
 		$this->assertEquals( 5, $query->found_posts );
 
@@ -4552,6 +4678,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 	}
@@ -4571,6 +4699,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 	}
@@ -4603,6 +4733,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
 	}
@@ -4632,6 +4764,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 4 );
 		$this->assertEquals( $query->found_posts, 4 );
 	}
@@ -4661,6 +4794,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 	}
@@ -4695,6 +4830,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 5 );
 		$this->assertEquals( $query->found_posts, 5 );
 	}
@@ -4724,6 +4860,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 0 );
 		$this->assertEquals( $query->found_posts, 0 );
 	}
@@ -4749,6 +4887,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 1 );
 		$this->assertEquals( $query->found_posts, 1 );
 	}
@@ -4884,6 +5024,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 5 );
 		$this->assertEquals( $query->found_posts, 5 );
 	}
@@ -4908,6 +5050,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 8 );
 		$this->assertEquals( $query->found_posts, 8 );
 	}
@@ -4933,6 +5077,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -4979,6 +5124,8 @@ class TestPost extends BaseTestCase {
 		$this->assertSame( 10, $filter['and']['bool']['must'][0]['term']['date_terms.week'] );
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 4 );
 		$this->assertEquals( $query->found_posts, 4 );
 
@@ -5050,6 +5197,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 2 );
 		$this->assertEquals( $query->found_posts, 2 );
 	}
@@ -5080,6 +5229,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->post_count, 0 );
 		$this->assertEquals( $query->found_posts, 0 );
 	}
@@ -5112,6 +5263,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -5136,6 +5289,8 @@ class TestPost extends BaseTestCase {
 		);
 
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 9, $query->post_count );
 		$this->assertEquals( 9, $query->found_posts );
 	}
@@ -5163,6 +5318,9 @@ class TestPost extends BaseTestCase {
 			's' => 'findme',
 		);
 		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+
 		$check = ElasticPress\Indexables::factory()->get( 'post' )->elasticpress_enabled( $query );
 		$this->assertTrue( $check );
 	}
@@ -5225,6 +5383,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, count( $query->posts ) );
 	}
 
@@ -5261,6 +5420,9 @@ class TestPost extends BaseTestCase {
 
 		$query1 = new \WP_Query( $query1_args );
 		$query2 = new \WP_Query( $query2_args );
+
+		$this->assertTrue( $query1->elasticsearch_success );
+		$this->assertTrue( $query2->elasticsearch_success );
 
 		$this->assertTrue( isset( $query1->posts[0]->elasticsearch ) );
 		$this->assertTrue( isset( $query2->posts[0]->elasticsearch ) );
@@ -5312,6 +5474,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 
@@ -5330,6 +5493,7 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
@@ -6250,6 +6414,8 @@ class TestPost extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $query->elasticsearch_success );
+
 		$blog_1_post = $query->posts[0];
 
 		$this->assertSame( $blog_1_id, $blog_1_post->site_id );
@@ -6268,6 +6434,8 @@ class TestPost extends BaseTestCase {
 				'posts_per_page' => 1,
 			]
 		);
+
+		$this->assertTrue( $query->elasticsearch_success );
 
 		$blog_2_post = $query->posts[0];
 

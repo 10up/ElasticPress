@@ -1176,12 +1176,12 @@ class Elasticsearch {
 				 *
 				 * @hook ep_do_intercept_request
 				 * @since 3.2.2
-				 * @since 4.0.0 added $type
+				 * @since 3.6.5 added $type
 				 * @param {array} $request New remote request response
 				 * @param  {array} $query Remote request arguments
 				 * @param  {args} $args Request arguments
 				 * @param  {int} $failures Number of failures
-				 * @param {string} $type Type of request
+				 * @param  {string} $type Type of request
 				 * @return {array} New request
 				 */
 				$request = apply_filters( 'ep_do_intercept_request', new WP_Error( 400, 'No Request defined' ), $query, $args, $failures, $type );

@@ -4,11 +4,53 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [3.6.5] - 2021-11-23
+
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
+
+Supported versions:
+
+||Current (3.6.5)|4.0.0|
+|---|:---:|:---:|
+|Elasticsearch|5.0 - 7.9|5.2 - 7.10|
+|WordPress|3.7.1+|5.6+|
+|PHP|5.6+|7.0+|
+
+### Added
+- Docs: Link to the support page in README.md. Props [@brandwaffle](https://github.com/brandwaffle) via [#2436](https://github.com/10up/ElasticPress/pull/2436).
+- New `ep_weighting_default_enabled_taxonomies` filter. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott) via [#2474](https://github.com/10up/ElasticPress/pull/2474).
+- `$blog_id` and `$indexable_slug` parameters to the `ep_keep_index` filter. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#2478](https://github.com/10up/ElasticPress/pull/2478).
+
+### Changed
+- Add `$type` parameter to `ep_do_intercept_request` filter. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia) via [#2443](https://github.com/10up/ElasticPress/pull/2443).
+- Cache the detected Posts mapping version, avoiding `get_mapping` calls in all admin requests. Props [@felipeelia](https://github.com/felipeelia) via [#2445](https://github.com/10up/ElasticPress/pull/2445).
+- Docs: Required ES and WP versions planned for ElasticPress 4.0.0. Props [@felipeelia](https://github.com/felipeelia) via [#2442](https://github.com/10up/ElasticPress/pull/2442).
+- The `admin.min.js` file was split in `notice.min.js` and `weighting.min.js`, being loaded accordingly. Props [@felipeelia](https://github.com/felipeelia) and [@barryceelen](https://github.com/barryceelen) via [#2476](https://github.com/10up/ElasticPress/pull/2476).
+
+### Fixed
+- Force fetching `ep_wpcli_sync_interrupted` transient from remote to allow for more reliable remote interruption. Props [@rinatkhaziev](https://github.com/rinatkhaziev) and [@rebeccahum](https://github.com/rebeccahum) via [#2433](https://github.com/10up/ElasticPress/pull/2433).
+- Duplicate orderby statement in Users query. Props [@brettshumaker](https://github.com/brettshumaker), [@pschoffer](https://github.com/pschoffer), and [@rebeccahum](https://github.com/rebeccahum) via [#2435](https://github.com/10up/ElasticPress/pull/2435).
+- When using offset and default maximum result window value for size, subtract offset from size. Props [@rebeccahum](https://github.com/rebeccahum) via [#2441](https://github.com/10up/ElasticPress/pull/2441).
+- Order for Custom Search Results in autosuggest. Props [@felipeelia](https://github.com/felipeelia) and [@johnwatkins0](https://github.com/johnwatkins0) via [#2447](https://github.com/10up/ElasticPress/pull/2447).
+- WP-CLI stats and status to output all indices related to ElasticPress. Props [@felipeelia](https://github.com/felipeelia) via [#2479](https://github.com/10up/ElasticPress/pull/2479).
+- Tests: Ensure that Posts related queries use ElasticPress. Props [@Rahmon](https://github.com/Rahmon) via [#2401](https://github.com/10up/ElasticPress/pull/2401).
+- Tests: PHPUnit and yoast/phpunit-polyfills. Props [@felipeelia](https://github.com/felipeelia) via [#2457](https://github.com/10up/ElasticPress/pull/2457).
+
+### Security
+- Bumped `path-parse` from 1.0.6 to 1.0.7. Props [@dependabot](https://github.com/dependabot) via [#2458](https://github.com/10up/ElasticPress/pull/2458).
+- Bumped `10up-toolkit` from 1.0.12 to 1.0.13. Props [@felipeelia](https://github.com/felipeelia) via [#2467](https://github.com/10up/ElasticPress/pull/2467).
+
 ## [3.6.4] - 2021-10-26
 
-**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, ~~will build a stable release version including built assets into a `stable` branch,~~ will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to ~~either `stable` or~~ `trunk` or to GitHub releases depending on whether you require built assets or not.
 
-Official PHP support is currently 5.6+. Minimum PHP version for ElasticPress 4.0.0 will be 7.0+.
+Supported versions:
+
+||Current (3.6.4)|4.0.0|
+|---|:---:|:---:|
+|Elasticsearch|5.0 - 7.9|5.2 - 7.10|
+|WordPress|3.7.1+|5.6+|
+|PHP|5.6+|7.0+|
 
 ### Added
 - WP-CLI: New `get-mapping` command. Props [@tfrommen](https://github.com/tfrommen), [@felipeelia](https://github.com/felipeelia), and [@Rahmon](https://github.com/Rahmon) via [#2414](https://github.com/10up/ElasticPress/pull/2414).
@@ -1097,8 +1139,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
-=======
-=======
+[3.6.5]: https://github.com/10up/ElasticPress/compare/3.6.4...3.6.5
 [3.6.4]: https://github.com/10up/ElasticPress/compare/3.6.3...3.6.4
 [3.6.3]: https://github.com/10up/ElasticPress/compare/3.6.2...3.6.3
 [3.6.2]: https://github.com/10up/ElasticPress/compare/3.6.1...3.6.2
