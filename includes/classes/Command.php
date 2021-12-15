@@ -1827,7 +1827,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @subcommand request
 	 *
-	 * @since 4.0.0
+	 * @since 3.6.6
 	 *
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
