@@ -50,6 +50,24 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 3.6.6 =
+
+ElasticPress 4.0 Beta 1 is [now available](https://github.com/10up/ElasticPress/releases/tag/4.0.0-beta.1) for non-production testing.
+
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
+
+Supported versions changes planned for ElasticPress 4.0.0:
+* Elasticsearch: from 5.0 - 7.9 to 5.2 - 7.10.
+* WordPress: from 3.7.1+ to 5.6+.
+* PHP: from 5.6+ to 7.0+.
+
+## Added
+* Ensure array query parameters do not contain empty items. Props [@roborourke](https://github.com/roborourke).
+
+## Fixed
+* Broken search pagination on hierarchical post types. Props [@tfrommen](https://github.com/tfrommen).
+* Synonyms erased when syncing via WP-CLI. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
+
 = 3.6.5 =
 
 **Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
