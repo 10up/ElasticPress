@@ -888,6 +888,32 @@ class Post extends Indexable {
 		);
 		$use_filters = false;
 
+		// Sanitize array query args. Elasticsearch will error if a terms query contains empty items like an
+		// empty string.
+		$keys_to_sanitize = [
+			'author__in',
+			'author__not_in',
+			'category__and',
+			'category__in',
+			'category__not_in',
+			'tag__and',
+			'tag__in',
+			'tag__not_in',
+			'tag_slug__and',
+			'tag_slug__in',
+			'post_parent__in',
+			'post_parent__not_in',
+			'post__in',
+			'post__not_in',
+			'post_name__in',
+		];
+		foreach ( $keys_to_sanitize as $key ) {
+			if ( ! isset( $args[ $key ] ) ) {
+				continue;
+			}
+			$args[ $key ] = array_filter( (array) $args[ $key ] );
+		}
+
 		/**
 		 * Tax Query support
 		 *
@@ -1657,6 +1683,15 @@ class Post extends Indexable {
 
 		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
 			$formatted_args['from'] = $args['posts_per_page'] * ( $args['paged'] - 1 );
+		}
+
+		/**
+		 * Fix negative offset. This happens, for example, on hierarchical post types.
+		 *
+		 * Ref: https://github.com/10up/ElasticPress/issues/2480
+		 */
+		if ( $formatted_args['from'] < 0 ) {
+			$formatted_args['from'] = 0;
 		}
 
 		if ( $use_filters ) {
