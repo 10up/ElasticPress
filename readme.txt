@@ -68,7 +68,6 @@ Supported versions changes planned for ElasticPress 4.0.0:
 ## Changed
 * Enabling features that require a reindex will now ask for confirmation. Props [@JakePT](https://github.com/JakePT), [@columbian-chris](https://github.com/columbian-chris), and [@brandwaffle](https://github.com/brandwaffle).
 
-
 ## Fixed
 * Broken search pagination on hierarchical post types. Props [@tfrommen](https://github.com/tfrommen).
 * Synonyms erased when syncing via WP-CLI. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
