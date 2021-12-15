@@ -20,6 +20,10 @@ Supported versions:
 
 ## Added
 - Ensure array query parameters do not contain empty items. Props [@roborourke](https://github.com/roborourke) via [#2462](https://github.com/10up/ElasticPress/pull/2462).
+- WP-CLI `request` subcommand. Props [@joehoyle](https://github.com/joehoyle) and [@felipeelia](https://github.com/felipeelia) via [#2484](https://github.com/10up/ElasticPress/pull/2484) and [#2523](https://github.com/10up/ElasticPress/pull/2523).
+
+## Changed
+- Enabling features that require a reindex will now ask for confirmation. Props [@JakePT](https://github.com/JakePT), [@columbian-chris](https://github.com/columbian-chris), and [@brandwaffle](https://github.com/brandwaffle) via [#2491](https://github.com/10up/ElasticPress/pull/2491) and [#2524](https://github.com/10up/ElasticPress/pull/2524).
 
 ## Fixed
 - Broken search pagination on hierarchical post types. Props [@tfrommen](https://github.com/tfrommen) via [#2511](https://github.com/10up/ElasticPress/pull/2511).
