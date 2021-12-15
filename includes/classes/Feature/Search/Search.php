@@ -75,9 +75,11 @@ class Search extends Feature {
 		add_action( 'init', [ $this, 'search_setup' ] );
 		add_filter( 'ep_sanitize_feature_settings', [ $this, 'sanitize_highlighting_settings' ] );
 
-		// Set up weighting sub-module
-		$this->weighting = new Weighting();
-		$this->weighting->setup();
+		if ( apply_filters( 'ep_load_search_weighting', true ) ) {
+			// Set up weighting sub-module
+			$this->weighting = new Weighting();
+			$this->weighting->setup();
+		}
 
 		$this->synonyms = new Synonyms();
 		$this->synonyms->setup();
