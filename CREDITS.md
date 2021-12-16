@@ -154,8 +154,10 @@ Thank you to all the people who have already contributed to this repository via 
 [Yoli (@yolih)](https://github.com/yolih),
 [Ryan DiMascio (@rdimascio)](https://github.com/rdimascio),
 [Brett Shumaker (@brettshumaker)](https://github.com/brettshumaker),
-[Robert O'Rourke (@roborourke)](https://github.com/roborourke), and
-[Joe Hoyle (@joehoyle)](https://github.com/joehoyle).
+[Robert O'Rourke (@roborourke)](https://github.com/roborourke),
+[Joe Hoyle (@joehoyle)](https://github.com/joehoyle),
+and
+[Stefan Fiedler (@Shrimpstronaut)](https://github.com/Shrimpstronaut).
 
 ## Libraries
 
