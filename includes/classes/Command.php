@@ -424,6 +424,9 @@ class Command extends WP_CLI_Command {
 			}
 
 			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
 				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
 			}
 		}
