@@ -137,6 +137,8 @@ class Elasticsearch {
 			$response_body = wp_remote_retrieve_body( $request );
 
 			$return = json_decode( $response_body );
+
+			Utils\wp_cache_set_ep_last_changed();
 		} else {
 			$return = false;
 		}
@@ -191,6 +193,8 @@ class Elasticsearch {
 
 		if ( ! is_wp_error( $request ) ) {
 			if ( isset( $request['response']['code'] ) && 200 === $request['response']['code'] ) {
+				Utils\wp_cache_set_ep_last_changed();
+
 				return true;
 			}
 		}
@@ -560,6 +564,8 @@ class Elasticsearch {
 			$response = json_decode( $response_body, true );
 
 			if ( ! empty( $response['found'] ) ) {
+				Utils\wp_cache_set_ep_last_changed();
+
 				return true;
 			}
 		}
@@ -659,6 +665,8 @@ class Elasticsearch {
 
 		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
+
+			Utils\wp_cache_set_ep_last_changed();
 
 			return json_decode( $response_body );
 		}
@@ -767,6 +775,8 @@ class Elasticsearch {
 		$request = $this->remote_request( $path, $request_args, [], 'create_network_alias' );
 
 		if ( ! is_wp_error( $request ) && ( 200 >= wp_remote_retrieve_response_code( $request ) && 300 > wp_remote_retrieve_response_code( $request ) ) ) {
+			Utils\wp_cache_set_ep_last_changed();
+
 			return true;
 		}
 
@@ -815,6 +825,8 @@ class Elasticsearch {
 
 		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
+
+			Utils\wp_cache_set_ep_last_changed();
 
 			return true;
 		}
@@ -927,6 +939,8 @@ class Elasticsearch {
 			return ( $updated && $opened );
 		}
 
+		Utils\wp_cache_set_ep_last_changed();
+
 		return $updated;
 	}
 
@@ -950,6 +964,8 @@ class Elasticsearch {
 		// 404 means the index was non-existent, but we should still pass this through as we will occasionally want to delete an already deleted index
 		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) || 404 === wp_remote_retrieve_response_code( $request ) ) ) {
 			$response_body = wp_remote_retrieve_body( $request );
+
+			Utils\wp_cache_set_ep_last_changed();
 
 			return json_decode( $response_body );
 		}
@@ -1040,6 +1056,8 @@ class Elasticsearch {
 		if ( 200 !== $response ) {
 			return new WP_Error( $response, wp_remote_retrieve_response_message( $request ), $request );
 		}
+
+		Utils\wp_cache_set_ep_last_changed();
 
 		return json_decode( wp_remote_retrieve_body( $request ), true );
 	}
