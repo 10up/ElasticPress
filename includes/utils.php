@@ -633,3 +633,22 @@ function is_integrated_request( $context, $types = [] ) {
 	 */
 	return apply_filters( 'ep_is_integrated_request', $is_integrated, $context, $types );
 }
+
+/**
+ * Sets the last changed times for ElasticPress and ElasticPress Network cache groups.
+ *
+ * @return void
+ *
+ * @since 3.7
+ */
+function wp_cache_set_ep_last_changed() {
+	/**
+	 * Set the `last_changed` for this specific blog / site.
+	 */
+	wp_cache_set( 'last_changed', microtime(), 'elasticpress' );
+
+	/**
+	 * Set the `last_changed` for this specific network (for all blogs / sites).
+	 */
+	wp_cache_set( 'last_changed', microtime(), 'elasticpress-network' );
+}
