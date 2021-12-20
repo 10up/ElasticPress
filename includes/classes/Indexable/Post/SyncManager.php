@@ -46,19 +46,22 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'wp_update_comment_count', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
-		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 
 		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+
+		// VIP: VIP-specific things
+		add_action( 'wp_update_comment_count', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
+		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
+		// End VIP
 	}
 
 	/**
@@ -153,7 +156,7 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
-	 * When a term is updated, re-index all posts attached to that term
+	 * VIP: When a term is updated, re-index all posts attached to that term.
 	 *
 	 * @param  int    $term_id Term id.
 	 * @param  int    $tt_id Term Taxonomy id.
@@ -247,7 +250,7 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
-	 * When a post's terms are changed, re-index
+	 * VIP: When a post's terms are changed, re-index.
 	 *
 	 * This catches term deletions via wp_delete_term(), because that function internally loops over all attached objects
 	 * and updates their terms. It will also end up firing whenever set_object_terms is called, but the queue will de-duplicate
