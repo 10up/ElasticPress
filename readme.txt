@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Tested up to: 5.8
-Stable tag:   3.6.5
+Stable tag:   3.6.6
 License:      GPLv2 or later
 License URI:  http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -11,9 +11,9 @@ A fast and flexible search and query engine for WordPress.
 == Description ==
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
-## ElasticPress 4.0.0 Beta is coming!
+## ElasticPress 4.0.0 Beta is now available!
 
-Planned to be released in early December, the first Beta for ElasticPress 4.0 will bring changes and new features. Make sure to read the [changes planned](https://github.com/10up/ElasticPress#planned-changes-for-400) before updating. Even after the release of Beta 1, the software will be still in development, so it will not be recommended to run it on a production site.
+The first Beta for ElasticPress 4.0 brings changes and new features, check the [release page](https://github.com/10up/ElasticPress/releases/tag/4.0.0-beta.1) for more info. ElasticPress 4.0 is still in development, so it is not recommended to run it on a production site.
 
 Here is a list of the amazing ElasticPress features included in the plugin:
 
@@ -49,6 +49,30 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 2. Search Fields & Weighting Dashboard
 
 == Changelog ==
+
+= 3.6.6 =
+
+ElasticPress 4.0 Beta 1 is [now available](https://github.com/10up/ElasticPress/releases/tag/4.0.0-beta.1) for non-production testing.
+
+**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
+
+Supported versions changes planned for ElasticPress 4.0.0:
+* Elasticsearch: from 5.0 - 7.9 to 5.2 - 7.10.
+* WordPress: from 3.7.1+ to 5.6+.
+* PHP: from 5.6+ to 7.0+.
+
+Added:
+* Ensure array query parameters do not contain empty items. Props [@roborourke](https://github.com/roborourke).
+* WP-CLI `request` subcommand. Props [@joehoyle](https://github.com/joehoyle) and [@felipeelia](https://github.com/felipeelia).
+
+Changed:
+* Enabling features that require a reindex will now ask for confirmation. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@Rahmon](https://github.com/Rahmon), [@columbian-chris](https://github.com/columbian-chris), and [@brandwaffle](https://github.com/brandwaffle).
+
+Fixed:
+* Broken search pagination on hierarchical post types. Props [@tfrommen](https://github.com/tfrommen).
+* Synonyms erased when syncing via WP-CLI. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
+* Deleting a metadata without passing an object id now updates all associated posts. Props [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia), and [@Shrimpstronaut](https://github.com/Shrimpstronaut).
+* Not indexable sites added to indexes list in WP-CLI commands. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia).
 
 = 3.6.5 =
 

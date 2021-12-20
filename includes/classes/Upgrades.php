@@ -46,6 +46,7 @@ class Upgrades {
 		$routines = [
 			'3.5.2' => [ 'upgrade_3_5_2', 'init' ],
 			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
+			'3.6.6' => [ 'upgrade_3_6_6', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -129,6 +130,40 @@ class Upgrades {
 	public function upgrade_3_5_3() {
 		delete_option( 'elasticpress_synonyms_post_id' );
 		delete_site_option( 'elasticpress_synonyms_post_id' );
+	}
+
+	/**
+	 * Upgrade routine of v3.6.6.
+	 *
+	 * Delete all synonyms that have the post content identical to the example we set.
+	 * In previous versions we had a bug that created several posts with it.
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/2516
+	 */
+	public function upgrade_3_6_6() {
+		global $wpdb;
+
+		$synonyms = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->synonyms;
+
+		if ( ! $synonyms ) {
+			return;
+		}
+
+		$synonyms_example_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_content = %s LIMIT 100",
+				$synonyms::POST_TYPE_NAME,
+				$synonyms->example_synonym_list()
+			)
+		);
+
+		if ( ! $synonyms_example_ids ) {
+			return;
+		}
+
+		foreach ( $synonyms_example_ids as $synonym_post_id ) {
+			wp_delete_post( $synonym_post_id, true );
+		}
 	}
 
 	/**
