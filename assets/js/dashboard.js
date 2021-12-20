@@ -50,7 +50,8 @@ $features.on('click', '.save-settings', function (event) {
 		}
 	});
 
-	const requiresConfirmation = requiresReindex && wasActive === '0' && settings.active === '1';
+	const requiresConfirmation =
+		requiresReindex === '1' && wasActive === '0' && settings.active === '1';
 
 	if (requiresConfirmation) {
 		// eslint-disable-next-line no-alert
@@ -167,10 +168,12 @@ $features.on('change', '.js-toggle-feature', function (event) {
 		.closest('.settings')
 		.querySelector('.requirements-status-notice--reindex');
 
+	if (!container) return;
+
 	const { value } = event.target;
 	const { requiresReindex, wasActive } = event.currentTarget.dataset;
 
-	if (requiresReindex && wasActive === '0' && value === '1') {
+	if (requiresReindex === '1' && wasActive === '0' && value === '1') {
 		container.style.display = 'block';
 	} else {
 		container.style.display = null;
