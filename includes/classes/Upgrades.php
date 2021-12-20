@@ -145,6 +145,10 @@ class Upgrades {
 
 		$synonyms = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->synonyms;
 
+		if ( ! $synonyms ) {
+			return;
+		}
+
 		$synonyms_example_ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_content = %s LIMIT 100",
