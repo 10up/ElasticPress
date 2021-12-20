@@ -603,6 +603,8 @@ $features.on('change', '.js-toggle-feature', function (event) {
 		.closest('.settings')
 		.querySelector('.requirements-status-notice--reindex');
 
+	if (!container) return;
+
 	const { value } = event.target;
 	const { requiresReindex, wasActive } = event.currentTarget.dataset;
 
