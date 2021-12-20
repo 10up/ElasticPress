@@ -18,7 +18,7 @@ ElasticPress 4.0 Beta 1 is [now available](https://github.com/10up/ElasticPress/
 
 Supported versions:
 
-||Current (3.6.4)|4.0.0|
+||Current (3.6.6)|4.0.0|
 |---|:---:|:---:|
 |Elasticsearch|5.0 - 7.9|5.2 - 7.10|
 |WordPress|3.7.1+|5.6+|
