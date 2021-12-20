@@ -72,6 +72,7 @@ Supported versions changes planned for ElasticPress 4.0.0:
 * Broken search pagination on hierarchical post types. Props [@tfrommen](https://github.com/tfrommen).
 * Synonyms erased when syncing via WP-CLI. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
 * Deleting a metadata without passing an object id now updates all associated posts. Props [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia), and [@Shrimpstronaut](https://github.com/Shrimpstronaut).
+* Not indexable sites added to indexes list in WP-CLI commands. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia).
 
 = 3.6.5 =
 

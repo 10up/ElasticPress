@@ -29,6 +29,7 @@ Supported versions:
 - Broken search pagination on hierarchical post types. Props [@tfrommen](https://github.com/tfrommen) via [#2511](https://github.com/10up/ElasticPress/pull/2511).
 - Synonyms erased when syncing via WP-CLI. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2517](https://github.com/10up/ElasticPress/pull/2517).
 - Deleting a metadata without passing an object id now updates all associated posts. Props [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia), and [@Shrimpstronaut](https://github.com/Shrimpstronaut) via [#2483](https://github.com/10up/ElasticPress/pull/2483) and [#2525](https://github.com/10up/ElasticPress/pull/2525).
+- Not indexable sites added to indexes list in WP-CLI commands. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#2531](https://github.com/10up/ElasticPress/pull/2531).
 
 ## [3.6.5] - 2021-11-30
 
