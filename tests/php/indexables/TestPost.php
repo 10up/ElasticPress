@@ -6447,4 +6447,55 @@ class TestPost extends BaseTestCase {
 		$this->assertArrayHasKey( 'terms.category.term_id', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms'] );
 		$this->assertContains( $cat, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['terms.category.term_id'] );
 	}
+
+	/**
+	 * Test if EP updates all posts when `delete_metadata()` is called with `$delete_all = true`
+	 *
+	 * @group  post
+	 */
+	public function testDeleteAllMetadata() {
+		Functions\create_and_sync_post(
+			array( 'post_title' => 'one' ),
+			array(
+				'common_meta_one' => 'lorem',
+				'common_meta_two' => 'ipsum',
+			)
+		);
+		Functions\create_and_sync_post(
+			array( 'post_title' => 'two' ),
+			array(
+				'common_meta_one' => 'lorem',
+				'common_meta_two' => 'ipsum',
+			)
+		);
+
+		delete_metadata( 'post', null, 'common_meta_one', 'lorem', true );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			array(
+				'post_type'    => 'post',
+				'ep_integrate' => true,
+				'meta_key'     => 'common_meta_one',
+				'meta_value'   => 'lorem',
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $query->found_posts, 0 );
+
+		$query = new \WP_Query(
+			array(
+				'post_type'    => 'post',
+				'ep_integrate' => true,
+				'meta_key'     => 'common_meta_two',
+				'meta_value'   => 'ipsum',
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $query->found_posts, 2 );
+	}
 }
