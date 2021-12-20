@@ -61,14 +61,14 @@ Supported versions changes planned for ElasticPress 4.0.0:
 * WordPress: from 3.7.1+ to 5.6+.
 * PHP: from 5.6+ to 7.0+.
 
-## Added
+Added:
 * Ensure array query parameters do not contain empty items. Props [@roborourke](https://github.com/roborourke).
 * WP-CLI `request` subcommand. Props [@joehoyle](https://github.com/joehoyle) and [@felipeelia](https://github.com/felipeelia).
 
-## Changed
+Changed:
 * Enabling features that require a reindex will now ask for confirmation. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@Rahmon](https://github.com/Rahmon), [@columbian-chris](https://github.com/columbian-chris), and [@brandwaffle](https://github.com/brandwaffle).
 
-## Fixed
+Fixed:
 * Broken search pagination on hierarchical post types. Props [@tfrommen](https://github.com/tfrommen).
 * Synonyms erased when syncing via WP-CLI. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
 * Deleting a metadata without passing an object id now updates all associated posts. Props [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia), and [@Shrimpstronaut](https://github.com/Shrimpstronaut).
