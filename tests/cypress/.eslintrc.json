@@ -2,5 +2,8 @@
   "plugins": [
     "cypress"
   ],
-	"extends": ["../../.eslintrc.js", "plugin:cypress/recommended"]
+	"extends": ["plugin:cypress/recommended", "../../.eslintrc.js"],
+  "rules": {
+    "jest/expect-expect": "off"
+  }
 }
