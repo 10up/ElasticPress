@@ -1,4 +1,4 @@
-describe('Can perform WordPress basic actions', () => {
+describe('WordPress basic actions', () => {
 	before(() => {
 		cy.wpCli('elasticpress index --setup --yes');
 	});
