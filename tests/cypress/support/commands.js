@@ -124,3 +124,92 @@ Cypress.Commands.add('publishPost', (postData) => {
 		cy.get('.components-snackbar').should('be.visible');
 	}
 });
+
+Cypress.Commands.add('updateFeatures', (newFeaturesValues = {}) => {
+	const features = {
+		search: {
+			active: 1,
+			highlight_enabled: true,
+			highlight_excerpt: true,
+			highlight_tag: 'mark',
+			highlight_color: '#157d84',
+		},
+		related_posts: {
+			active: 1,
+		},
+		facets: {
+			active: 1,
+		},
+		searchordering: {
+			active: 1,
+		},
+		autosuggest: {
+			active: 1,
+		},
+		woocommerce: {
+			active: 0,
+		},
+		protected_content: {
+			active: 0,
+		},
+		users: {
+			active: 1,
+		},
+		...newFeaturesValues,
+	};
+
+	const escapedFeatures = JSON.stringify(features);
+
+	cy.wpCliEval(
+		`\\$features = json_decode( '${escapedFeatures}', true ); update_option( 'ep_feature_settings', \\$features );`,
+	);
+});
+
+Cypress.Commands.add('updateWeighting', (newWeightingValues = null) => {
+	const defaultWeighting = {
+		post: {
+			post_title: {
+				weight: 1,
+				enabled: true,
+			},
+			post_content: {
+				weight: 1,
+				enabled: true,
+			},
+			post_excerpt: {
+				weight: 1,
+				enabled: true,
+			},
+			author_name: {
+				weight: 0,
+				enabled: false,
+			},
+		},
+		page: {
+			post_title: {
+				weight: 1,
+				enabled: true,
+			},
+			post_content: {
+				weight: 1,
+				enabled: true,
+			},
+			post_excerpt: {
+				weight: 1,
+				enabled: true,
+			},
+			author_name: {
+				weight: 0,
+				enabled: false,
+			},
+		},
+	};
+
+	const escapedWeighting = newWeightingValues
+		? JSON.stringify(newWeightingValues)
+		: JSON.stringify(defaultWeighting);
+
+	cy.wpCliEval(
+		`\\$weighting = json_decode( '${escapedWeighting}', true ); update_option( 'elasticpress_weighting', \\$weighting );`,
+	);
+});
