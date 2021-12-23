@@ -1,5 +1,9 @@
 name: E2E Test
 
+env:
+  NODE_VERSION: "12"
+  NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
+
 on:
   pull_request:
     branches:
@@ -15,6 +19,19 @@ jobs:
 
     - name: Set up Elasticsearch
       run: cd bin/es-docker/ && docker-compose up -d
+
+    - name: Prepare npm cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.NODE_CACHE }}
+        key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          npm-${{ env.NODE_VERSION }}-
+
+    - name: "Install node v${{ env.NODE_VERSION }}"
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Install dependencies
       run: npm i
