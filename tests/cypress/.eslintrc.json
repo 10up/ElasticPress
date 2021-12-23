@@ -4,6 +4,7 @@
   ],
 	"extends": ["plugin:cypress/recommended", "../../.eslintrc.js"],
   "rules": {
-    "jest/expect-expect": "off"
+    "jest/expect-expect": "off",
+    "jest/valid-expect": "off"
   }
 }
