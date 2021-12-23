@@ -31,8 +31,10 @@ before(() => {
 	};
 
 	const updateFeatures = (features) => {
-		const escapedFeatures = JSON.stringify(features).replace(/"/g, '"').replace(/'/g, "'");
-		cy.wpCli(`eval "update_option( 'ep_feature_settings', '${escapedFeatures}' );"`);
+		const escapedFeatures = JSON.stringify(features);
+		cy.wpCliEval(
+			`\\$features = json_decode( '${escapedFeatures}', true ); update_option( 'ep_feature_settings', \\$features );`,
+		);
 	};
 
 	cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {

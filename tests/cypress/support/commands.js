@@ -84,6 +84,16 @@ Cypress.Commands.add('wpCli', (command) => {
 	});
 });
 
+Cypress.Commands.add('wpCliEval', (command) => {
+	const escapedCommand = command.replace(/"/g, '\\"').replace(/^<\?php /, '');
+	cy.exec(`echo "<?php ${escapedCommand}" | npm run env run tests-cli "eval-file -"`).then(
+		(result) => {
+			result.stdout = result.stdout.split('\n').slice(3).join('\n');
+			cy.wrap(result);
+		},
+	);
+});
+
 Cypress.Commands.add('publishPost', (postData) => {
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
