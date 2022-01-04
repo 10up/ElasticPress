@@ -32,6 +32,13 @@ class SyncManager extends SyncManagerAbstract {
 	public $indexable_slug = 'post';
 
 	/**
+	 * Delete all post meta from other posts associated with a deleted post. Useful for attachments.
+	 *
+	 * @var bool
+	 */
+	public $delete_all_meta = false;
+
+	/**
 	 * Setup actions and filters
 	 *
 	 * @since 0.1.2
@@ -51,11 +58,29 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		// Called just because we need to know somehow if $delete_all is set before action_queue_meta_sync() runs.
+		add_filter( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ), 10, 5 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 
 		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+	}
+
+	/**
+	 * Whether to delete all meta from other posts that is associated with the deleted post.
+	 *
+	 * @param bool   $check       Whether to allow metadata deletion of the given type.
+	 * @param int    $object_id    ID of the object metadata is for.
+	 * @param string $meta_key    Metadata key.
+	 * @param mixed  $meta_value  Metadata value. Must be serializable if non-scalar.
+	 * @param bool   $delete_all  Whether to delete the matching metadata entries
+	 *                             for all objects, ignoring the specified $object_id
+	 * @return bool
+	 */
+	public function maybe_delete_meta_for_all( $check, $object_id, $meta_key, $meta_value, $delete_all ) {
+		$this->delete_all_meta = $delete_all;
+		return $check;
 	}
 
 	/**
@@ -95,9 +120,6 @@ class SyncManager extends SyncManagerAbstract {
 
 		$indexable = Indexables::factory()->get( $this->indexable_slug );
 
-		$indexable_post_statuses = $indexable->get_indexable_post_status();
-		$post_type               = get_post_type( $object_id );
-
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			// Bypass saving if doing autosave
 			// @codeCoverageIgnoreStart
@@ -122,33 +144,62 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$allowed_meta_to_be_indexed = $indexable->prepare_meta( $post );
-		if ( ! in_array( $meta_key, array_keys( $allowed_meta_to_be_indexed ), true ) ) {
-			return;
-		}
+		if ( empty( $object_id ) && $this->delete_all_meta ) {
+			add_filter( 'ep_is_integrated_request', '__return_true' );
 
-		if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
-			$indexable_post_types = $indexable->get_indexable_post_types();
+			$query = new \WP_Query(
+				[
+					'ep_integrate' => true,
+					'meta_key'     => $meta_key,
+					'meta_value'   => $meta_value,
+					'fields'       => 'ids',
+				]
+			);
 
-			if ( in_array( $post_type, $indexable_post_types, true ) ) {
-				/**
-				 * Filter to kill post sync
-				 *
-				 * @hook ep_post_sync_kill
-				 * @param {bool} $skip True meanas kill sync for post
-				 * @param  {int} $object_id ID of post
-				 * @param  {int} $object_id ID of post
-				 * @return {boolean} New value
-				 */
-				if ( apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id ) ) {
-					return;
+			remove_filter( 'ep_is_integrated_request', '__return_true' );
+
+			if ( $query->have_posts() && $query->elasticsearch_success ) {
+				$posts_to_be_synced = array_filter(
+					$query->posts,
+					function( $object_id ) {
+						return ! apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id );
+					}
+				);
+				if ( ! empty( $posts_to_be_synced ) ) {
+					$indexable->bulk_index( $posts_to_be_synced );
 				}
+			}
+		} else {
+			$indexable_post_statuses = $indexable->get_indexable_post_status();
+			$post_type               = get_post_type( $object_id );
 
-				$this->add_to_queue( $object_id );
+			$allowed_meta_to_be_indexed = $indexable->prepare_meta( $post );
+			if ( ! in_array( $meta_key, array_keys( $allowed_meta_to_be_indexed ), true ) ) {
+				return;
+			}
+
+			if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+				$indexable_post_types = $indexable->get_indexable_post_types();
+
+				if ( in_array( $post_type, $indexable_post_types, true ) ) {
+					/**
+					 * Filter to kill post sync
+					 *
+					 * @hook ep_post_sync_kill
+					 * @param {bool} $skip True meanas kill sync for post
+					 * @param  {int} $object_id ID of post
+					 * @param  {int} $object_id ID of post
+					 * @return {boolean} New value
+					 */
+					if ( apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id ) ) {
+						return;
+					}
+
+					$this->add_to_queue( $object_id );
+				}
 			}
 		}
 	}
-
 
 	/**
 	 * Delete ES post when WP post is deleted
