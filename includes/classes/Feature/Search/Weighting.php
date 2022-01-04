@@ -22,6 +22,18 @@ class Weighting {
 	 * Sets up the weighting module
 	 */
 	public function setup() {
+		/**
+		 * Filter to disable loading of Search weighting engine.
+		 * 
+		 * @hook ep_disable_search_weighting
+		 * @since 4.0
+		 * @param bool Whether to disable search weighting engine. Defaults to false.
+		 * @return bool Whether to disable search weighting engine.
+		 */
+		if ( apply_filters( 'ep_disable_search_weighting', false ) ) {
+			return;
+		}
+		
 		add_action( 'admin_menu', [ $this, 'add_weighting_submenu_page' ], 15 );
 		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
