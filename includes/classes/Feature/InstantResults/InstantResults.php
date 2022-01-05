@@ -646,12 +646,13 @@ class InstantResults extends Feature {
 		 * Post type facet.
 		 */
 		$facets['post_type'] = array(
-			'type'   => 'post_type',
-			'labels' => array(
+			'type'       => 'post_type',
+			'post_types' => [],
+			'labels'     => array(
 				'admin'    => __( 'Post type', 'elasticpress' ),
 				'frontend' => __( 'Type', 'elasticpress' ),
 			),
-			'aggs'   => array(
+			'aggs'       => array(
 				'post_types' => array(
 					'terms' => array(
 						'field' => 'post_type.raw',
@@ -677,12 +678,13 @@ class InstantResults extends Feature {
 			);
 
 			$facets[ $slug ] = array(
-				'type'   => 'taxonomy',
-				'labels' => array(
+				'type'       => 'taxonomy',
+				'post_types' => $taxonomy->object_type,
+				'labels'     => array(
 					'admin'    => $admin_label,
 					'frontend' => $labels->singular_name,
 				),
-				'aggs'   => array(
+				'aggs'       => array(
 					'taxonomy_terms' => array(
 						'terms' => array(
 							'field' => 'terms.' . $slug . '.facet',
@@ -698,12 +700,13 @@ class InstantResults extends Feature {
 		 */
 		if ( $this->is_woocommerce ) {
 			$facets['price_range'] = array(
-				'type'   => 'price_range',
-				'labels' => array(
+				'type'       => 'price_range',
+				'post_types' => [ 'product' ],
+				'labels'     => array(
 					'admin'    => __( 'Price range', 'elasticpress' ),
 					'frontend' => __( 'Price', 'elasticpress' ),
 				),
-				'aggs'   => array(
+				'aggs'       => array(
 					'max_price' => array(
 						'max' => array(
 							'field' => 'meta._price.double',
@@ -737,9 +740,10 @@ class InstantResults extends Feature {
 				$facet = $available_facets[ $key ];
 
 				$facets[] = array(
-					'name'  => $key,
-					'label' => $facet['labels']['frontend'],
-					'type'  => $facet['type'],
+					'name'      => $key,
+					'label'     => $facet['labels']['frontend'],
+					'type'      => $facet['type'],
+					'postTypes' => $facet['post_types'],
 				);
 			}
 		}
