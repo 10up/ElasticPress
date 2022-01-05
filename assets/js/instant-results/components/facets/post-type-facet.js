@@ -49,7 +49,7 @@ export default ({ defaultIsOpen, label }) => {
 			options.push({
 				checked: selectedPostTypes.includes(key),
 				id: `ep-search-post-type-${key}`,
-				label: postTypeLabels[key],
+				label: postTypeLabels[key].singular,
 				order: index,
 				value: key,
 			});
@@ -102,7 +102,7 @@ export default ({ defaultIsOpen, label }) => {
 						{selectedPostTypes.map((value) => (
 							<ActiveContraint
 								key={value}
-								label={postTypeLabels[value]}
+								label={postTypeLabels[value].singular}
 								onClick={() => onClear(value)}
 							/>
 						))}

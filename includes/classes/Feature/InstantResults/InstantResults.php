@@ -623,9 +623,12 @@ class InstantResults extends Feature {
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_object = get_post_type_object( $post_type );
-			$post_type_label  = get_post_type_labels( $post_type_object )->singular_name;
+			$post_type_labels = get_post_type_labels( $post_type_object );
 
-			$labels[ $post_type ] = $post_type_label;
+			$labels[ $post_type ] = array(
+				'plural'   => $post_type_labels->name,
+				'singular' => $post_type_labels->singular_name,
+			);
 		}
 
 		return $labels;
