@@ -1,16 +1,16 @@
 version: '2.2'
 services:
   elasticsearch:
-    image: 'docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION-5.6.16}'
+    build:
+      dockerfile: Dockerfile
+      context: .
+      args:
+        ES_VERSION: ${ES_VERSION-7.5.2}
     ports:
       - 8890:9200
     mem_limit: 1024M
     mem_reservation: 1024M
     volumes:
       - './elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:cached'
-      - './plugins:/usr/share/elasticsearch/plugins:cached'
-      - 'elasticsearchData:/usr/share/elasticsearch/data:delegated'
     environment:
       ES_JAVA_OPTS: '-Xms450m -Xmx450m'
-volumes:
-  elasticsearchData: {}
