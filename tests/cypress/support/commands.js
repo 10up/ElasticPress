@@ -123,6 +123,14 @@ Cypress.Commands.add('publishPost', (postData) => {
 
 		cy.get('.components-snackbar').should('be.visible');
 	}
+
+	/**
+	 * Give Elasticsearch some time to process the new post.
+	 *
+	 * @todo instead of waiting for an arbitrary time, we should ensure the post is stored.
+	 */
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(2000);
 });
 
 Cypress.Commands.add('updateFeatures', (newFeaturesValues = {}) => {

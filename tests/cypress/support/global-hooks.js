@@ -18,3 +18,11 @@ before(() => {
 		}
 	});
 });
+
+afterEach(() => {
+	if (cy.state('test').state === 'failed') {
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress')
+			.invoke('text')
+			.then((text) => cy.log(text));
+	}
+});
