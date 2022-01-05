@@ -7,6 +7,7 @@
     "10up-toolkit": "^1.0.13",
     "@wordpress/env": "^4.1.1",
     "cypress": "^8.5.0",
+    "cypress-file-upload": "^5.0.8",
     "eslint-plugin-cypress": "^2.12.1",
     "jsdoc": "^3.6.7",
     "terser-webpack-plugin": "^5.2.4",
@@ -50,7 +51,6 @@
       "stats-script.min": "./assets/js/stats.js",
       "synonyms-script.min": "./assets/js/synonyms/index.js",
       "weighting-script.min": "./assets/js/weighting.js",
-
       "autosuggest-styles.min": "./assets/css/autosuggest.css",
       "comments-styles.min": "./assets/css/comments.css",
       "dashboard-styles.min": "./assets/css/dashboard.css",
