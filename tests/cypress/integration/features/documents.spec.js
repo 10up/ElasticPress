@@ -40,10 +40,15 @@ describe('Documents Feature', () => {
 	it('Can search .pdf', () => {
 		cy.login();
 		enableDocumentsFeature();
+
+		// Check if the file is searchable right after the upload.
 		uploadFile('pdf-file.pdf', 'application/pdf');
-
 		cy.visit('/?s=dummy+pdf');
+		cy.get('body').should('contain.text', 'pdf-file');
 
+		// Check if the file is still searchable after a reindex.
+		cy.wpCli('elasticpress index --setup --yes');
+		cy.visit('/?s=dummy+pdf');
 		cy.get('body').should('contain.text', 'pdf-file');
 	});
 
