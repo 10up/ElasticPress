@@ -223,3 +223,17 @@ Cypress.Commands.add('updateWeighting', (newWeightingValues = null) => {
 		`\\$weighting = json_decode( '${escapedWeighting}', true ); update_option( 'elasticpress_weighting', \\$weighting );`,
 	);
 });
+
+Cypress.Commands.add('maybeEnableFeature', (featureName) => {
+	cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
+		if (!wpCliResponse.stdout.match(new RegExp(featureName, 'g'))) {
+			cy.wpCli(`elasticpress activate-feature ${featureName}`);
+		}
+	});
+});
+
+Cypress.Commands.add('getTotal', (totalNumber) => {
+	cy.get('.query-results')
+		.invoke('text')
+		.should('match', new RegExp(`"(total|value)": ${totalNumber}`, 'g'));
+});
