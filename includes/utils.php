@@ -518,7 +518,7 @@ function get_indexing_status() {
 				'method'        => 'none',
 				'items_indexed' => 0,
 				'total_items'   => -1,
-				'url'           => $url,
+				'url'           => ( ! empty( $url ) ) ? $url : '',
 			);
 
 			$index_status['indexing'] = true;
