@@ -1,4 +1,4 @@
-describe('Autosuggest', () => {
+describe('Autosuggest Feature', () => {
 	before(() => {
 		cy.wpCli('elasticpress index --setup --yes');
 	});
