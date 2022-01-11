@@ -26,6 +26,8 @@
     "build:docs": "rm -rf hook_docs && jsdoc -c hookdoc-conf.json elasticpress.php includes",
     "lint-style": "10up-toolkit lint-style",
     "env": "wp-env",
+    "env:start": "wp-env start && cd bin/es-docker/ && docker-compose up -d",
+    "cypress:setup": "./bin/setup-cypress-env.sh",
     "cypress:open": "cypress open --config-file tests/cypress/config.json",
     "cypress:run": "cypress run --config-file tests/cypress/config.json"
   },

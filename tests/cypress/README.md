@@ -12,14 +12,14 @@ ElasticPress e2e tests use [Cypress](https://www.cypress.io/), [wp-env](https://
 
 ### Start
 
-* Start the Elasticsearch container: `cd bin/es-docker/ && docker-compose up -d`
+* Start the local environment (WP env and Elasticsearch containers): `npm run env:start`
 * Install all node packages: `npm i`
 * Build assets: `npm run build`
-* Start WP env and initial setup: `npm run env start && ./bin/setup-cypress-env.sh`
+* Initial database setup: `npm run cypress:setup`
 * Open Cypress: `npm run cypress:open`
 
 ### Reset
 
 * Destroy the WP env: `npm run env destroy`
-* Restart WP env and redo initial setup: `npm run env start && ./bin/setup-cypress-env.sh`
+* Restart WP env and redo initial setup: `npm run env start && npm run cypress:setup`
 * Open Cypress: `npm run cypress:open`
