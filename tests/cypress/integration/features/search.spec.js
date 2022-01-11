@@ -75,6 +75,14 @@ describe('Post Search Feature', () => {
 			`post create --post_title='Duplicated post' --post_content='10up loves elasticpress' --post_author=1 --post_status='publish' --post_date='${yesterday}'`,
 		);
 
+		/**
+		 * Give Elasticsearch some time to process the new posts.
+		 *
+		 * @todo instead of waiting for an arbitrary time, we should ensure the posts were processed OR retry the next block.
+		 */
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(2000);
+
 		cy.visit('/?s=duplicated+post');
 		cy.contains('.site-content article:nth-of-type(1) h2', 'Duplicated post').should('exist');
 		cy.contains('.site-content article:nth-of-type(2) h2', 'Duplicated post').should('exist');
