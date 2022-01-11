@@ -266,7 +266,8 @@ function updateDisabledAttribute(element, value) {
 function updateSyncDash() {
 	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
 
-	const progressBarWidth = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
+	const progressBarWidth =
+		toProcess === 0 ? 0 : (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
 
 	if (
 		typeof progressBarWidth === 'number' &&
@@ -278,7 +279,7 @@ function updateSyncDash() {
 		progressBar.innerText = `${Math.trunc(width)}%`;
 	}
 
-	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
+	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli', 'interrupt'].includes(syncStatus);
 	if (isSyncing) {
 		progressBar.classList.remove('ep-sync-box__progressbar_complete');
 	} else {
@@ -308,6 +309,10 @@ function updateSyncDash() {
  * Cancel a sync
  */
 function cancelSync() {
+	toProcess = 0;
+	processed = 0;
+	totalProcessed = 0;
+
 	apiFetch({
 		url: ajaxurl,
 		method: 'POST',
@@ -315,10 +320,6 @@ function cancelSync() {
 			action: 'ep_cancel_index',
 			nonce: epDash.nonce,
 		}),
-	}).then(() => {
-		toProcess = 0;
-		processed = 0;
-		totalProcessed = 0;
 	});
 }
 
@@ -448,8 +449,9 @@ function updateStartDateTime(value) {
 function shouldInterruptSync(value) {
 	if (value) {
 		syncStatus = 'interrupt';
-		updateSyncDash();
 		cancelSync();
+		updateSyncDash();
+		addLineToOutput(__('Sync interrupted by WP-CLI command', 'elasticpress'));
 	}
 }
 
