@@ -23,6 +23,10 @@ afterEach(() => {
 	if (cy.state('test').state === 'failed') {
 		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress')
 			.invoke('text')
-			.then((text) => cy.log(text));
+			.then((text) => {
+				const parentTitle = cy.state('test').parent.title;
+				const testTitle = cy.state('test').title;
+				cy.writeFile(`tests/cypress/logs/${parentTitle} - ${testTitle}.log`, text);
+			});
 	}
 });

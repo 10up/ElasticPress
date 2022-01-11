@@ -54,6 +54,7 @@ jobs:
         path: |
           ${{ github.workspace }}/tests/cypress/screenshots/
           ${{ github.workspace }}/tests/cypress/videos/
+          ${{ github.workspace }}/tests/cypress/logs/
 
     - name: Stop Elasticsearch
       if: always()
