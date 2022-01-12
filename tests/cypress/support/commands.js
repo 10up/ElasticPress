@@ -237,3 +237,30 @@ Cypress.Commands.add('getTotal', (totalNumber) => {
 		.invoke('text')
 		.should('match', new RegExp(`"(total|value)": ${totalNumber}`, 'g'));
 });
+
+Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', network = false) => {
+	if (method === 'dashboard') {
+		if (network) {
+			cy.visitAdminPage('network/plugins.php');
+		} else {
+			cy.visitAdminPage('plugins.php');
+		}
+
+		cy.get('body').then(($body) => {
+			const $activateButton = $body.find(`[data-slug="${slug}"] .activate a`);
+			if ($activateButton.length) {
+				$activateButton.click();
+			}
+		});
+
+		return true;
+	}
+
+	let command = `wp plugin activate ${slug}`;
+	if (network) {
+		command += ' --network';
+	}
+	cy.wpCli(command);
+
+	return true;
+});
