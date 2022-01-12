@@ -232,6 +232,14 @@ Cypress.Commands.add('maybeEnableFeature', (featureName) => {
 	});
 });
 
+Cypress.Commands.add('maybeDisableFeature', (featureName) => {
+	cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
+		if (wpCliResponse.stdout.match(new RegExp(featureName, 'g'))) {
+			cy.wpCli(`elasticpress deactivate-feature ${featureName}`);
+		}
+	});
+});
+
 Cypress.Commands.add('getTotal', (totalNumber) => {
 	cy.get('.query-results')
 		.invoke('text')

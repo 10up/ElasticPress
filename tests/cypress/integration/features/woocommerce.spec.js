@@ -1,4 +1,8 @@
 describe('WooCommerce Feature', () => {
+	after(() => {
+		cy.wpCli('wp plugin deactivate woocommerce');
+	});
+
 	it('Can auto-activate the feature', () => {
 		cy.login();
 
@@ -11,7 +15,7 @@ describe('WooCommerce Feature', () => {
 	it('Can automatically start a sync if activate the feature', () => {
 		cy.login();
 
-		cy.wpCli(`elasticpress deactivate-feature woocommerce`);
+		cy.maybeDisableFeature('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-woocommerce .settings-button').click();
@@ -27,5 +31,55 @@ describe('WooCommerce Feature', () => {
 		cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
 			expect(wpCliResponse.stdout).to.contains('woocommerce');
 		});
+	});
+
+	it('Can fetch orders from Elasticsearch', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('protected_content');
+		cy.maybeEnableFeature('woocommerce');
+
+		cy.visitAdminPage('edit.php?post_type=shop_order');
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
+	});
+
+	it('Can fetch products from Elasticsearch in WP Dashboard', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('protected_content');
+		cy.maybeEnableFeature('woocommerce');
+
+		cy.visitAdminPage('edit.php?post_type=product');
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
+	});
+
+	it('Can fetch products from Elasticsearch in product category archives', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('woocommerce');
+
+		cy.visit('/product-category/uncategorized');
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
+	});
+
+	it('Can fetch products from Elasticsearch in product rivers', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('woocommerce');
+
+		cy.visit('/shop/?filter_size=small');
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
 	});
 });
