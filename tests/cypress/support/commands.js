@@ -78,9 +78,13 @@ Cypress.Commands.add('clearThenType', { prevSubject: true }, (subject, text) => 
 	cy.wrap(subject).clear().type(text);
 });
 
-Cypress.Commands.add('wpCli', (command) => {
+Cypress.Commands.add('wpCli', (command, ignoreFailures) => {
 	const escapedCommand = command.replace(/"/g, '\\"').replace(/^wp /, '');
-	cy.exec(`npm run env run tests-cli "${escapedCommand}"`).then((result) => {
+	const options = {};
+	if (ignoreFailures) {
+		options.failOnNonZeroExit = false;
+	}
+	cy.exec(`npm run env run tests-cli "${escapedCommand}"`, options).then((result) => {
 		result.stdout = result.stdout.split('\n').slice(3).join('\n');
 		cy.wrap(result);
 	});
@@ -163,7 +167,7 @@ Cypress.Commands.add('updateFeatures', (newFeaturesValues = {}) => {
 			active: 0,
 		},
 		users: {
-			active: 1,
+			active: 0,
 		},
 		...newFeaturesValues,
 	};
