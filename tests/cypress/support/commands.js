@@ -247,13 +247,13 @@ Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', network = fa
 		}
 
 		cy.get('body').then(($body) => {
-			const $activateButton = $body.find(`[data-slug="${slug}"] .activate a`);
+			const $activateButton = $body.find(`#activate-${slug}`);
 			if ($activateButton.length) {
-				$activateButton.click();
+				cy.get($activateButton).click();
 			}
 		});
 
-		return true;
+		return;
 	}
 
 	let command = `wp plugin activate ${slug}`;
@@ -261,6 +261,4 @@ Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', network = fa
 		command += ' --network';
 	}
 	cy.wpCli(command);
-
-	return true;
 });
