@@ -128,15 +128,6 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * Prevent order fields search meta query
-	 *
-	 * @since  2.1
-	 */
-	public function shop_order_search_fields() {
-		return [];
-	}
-
-	/**
 	 * Make sure all loop shop post ins are IDS. We have to pass post objects here since we override
 	 * the fields=>id query for the layered filter nav query
 	 *
@@ -394,7 +385,7 @@ class WooCommerce extends Feature {
 
 				// Search query
 				if ( 'shop_order' === $post_type ) {
-					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
+					$search_fields = $query->get( 'search_fields', array( 'ID^999999', 'post_title', 'post_content', 'post_excerpt' ) );
 
 					$search_fields['meta'] = array_map(
 						'wc_clean',
@@ -605,7 +596,7 @@ class WooCommerce extends Feature {
 	 * @param \WP_Query $query Current query
 	 */
 	public function maybe_hook_woocommerce_search_fields( $query ) {
-		global $pagenow, $wp;
+		global $pagenow, $wp, $wc_list_table;
 
 		if ( ! $this->should_integrate_with_query( $query ) ) {
 			return;
@@ -615,7 +606,7 @@ class WooCommerce extends Feature {
 			return;
 		}
 
-		add_filter( 'woocommerce_shop_order_search_fields', [ $this, 'shop_order_search_fields' ], 9999 );
+		remove_action( 'parse_query', [ $wc_list_table, 'search_custom_fields' ] );
 	}
 
 	/**
@@ -640,22 +631,8 @@ class WooCommerce extends Feature {
 		}
 
 		$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
-		$order_id        = absint( $search_key_safe );
-
-		/**
-		 * Order ID 0 is not valid value.
-		 */
-		$order = $order_id > 0 ? wc_get_order( $order_id ) : false;
-
-		// If the order doesn't exist, fallback to other fields
-		if ( ! $order ) {
-			unset( $wp->query_vars['post__in'] );
-			$wp->query_vars['s'] = $search_key_safe;
-		} else {
-			// we found the order. don't query ES
-			unset( $wp->query_vars['s'] );
-			$wp->query_vars['post__in'] = array( absint( $search_key_safe ) );
-		}
+		unset( $wp->query_vars['post__in'] );
+		$wp->query_vars['s'] = $search_key_safe;
 	}
 
 	/**
