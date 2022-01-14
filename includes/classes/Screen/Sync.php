@@ -182,6 +182,7 @@ class Sync {
 			]
 		);
 
+		$data['ajax_url']             = admin_url( 'admin-ajax.php' );
 		$data['install_sync']         = empty( $last_sync );
 		$data['install_complete_url'] = esc_url( $install_complete_url );
 		$data['sync_complete']        = esc_html__( 'Sync complete', 'elasticpress' );

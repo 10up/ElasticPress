@@ -1,8 +1,10 @@
 import apiFetch from '@wordpress/api-fetch';
 
 /* eslint-disable camelcase, no-use-before-define */
-const { ajaxurl, epDash, history } = window;
+const { epDash, history } = window;
 const { __, sprintf } = wp.i18n;
+
+const { ajax_url: ajaxurl = '' } = epDash;
 
 // Main elements of sync page
 const syncBox = document.querySelector('.ep-sync-data');
@@ -307,7 +309,7 @@ function updateSyncDash() {
  */
 function cancelSync() {
 	apiFetch({
-		path: ajaxurl,
+		url: ajaxurl,
 		method: 'POST',
 		body: new URLSearchParams({
 			action: 'ep_cancel_index',
@@ -322,7 +324,7 @@ function cancelSync() {
 
 function cliSync() {
 	const requestSettings = {
-		path: ajaxurl,
+		url: ajaxurl,
 		method: 'POST',
 		body: new URLSearchParams({
 			action: 'ep_cli_index',
@@ -458,7 +460,7 @@ function shouldInterruptSync(value) {
  */
 function sync(putMapping = false) {
 	const requestSettings = {
-		path: ajaxurl,
+		url: ajaxurl,
 		method: 'POST',
 		body: new URLSearchParams({
 			action: 'ep_index',

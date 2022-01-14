@@ -436,6 +436,9 @@ class Command extends WP_CLI_Command {
 			}
 
 			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
 				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
 			}
 		}
@@ -1356,7 +1359,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @subcommand request
 	 *
-	 * @since 4.0.0
+	 * @since 3.6.6
 	 *
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
