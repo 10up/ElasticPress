@@ -286,7 +286,7 @@ function updateSyncDash() {
 	} else if (syncStatus === 'interrupt') {
 		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
-		progressInfoElement.innerText = 'Sync interrupted';
+		progressInfoElement.innerText = __('Sync interrupted', 'elasticpress');
 
 		updateDisabledAttribute(deleteAndSyncButton, false);
 		updateDisabledAttribute(syncButton, false);
@@ -304,7 +304,7 @@ function updateSyncDash() {
 	} else {
 		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
-		progressInfoElement.innerText = 'Sync completed';
+		progressInfoElement.innerText = __('Sync completed', 'elasticpress');
 
 		progressBar.classList.add('ep-sync-box__progressbar_complete');
 
