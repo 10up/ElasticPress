@@ -279,9 +279,28 @@ function updateSyncDash() {
 		progressBar.innerText = `${Math.trunc(width)}%`;
 	}
 
-	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli', 'interrupt'].includes(syncStatus);
+	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
+
 	if (isSyncing) {
 		progressBar.classList.remove('ep-sync-box__progressbar_complete');
+	} else if (syncStatus === 'interrupt') {
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+
+		progressInfoElement.innerText = 'Sync interrupted';
+
+		updateDisabledAttribute(deleteAndSyncButton, false);
+		updateDisabledAttribute(syncButton, false);
+
+		hidePauseStopButtons();
+		hideResumeButton();
+
+		syncButton.style.display = 'flex';
+
+		const learnMoreLink = activeBox.querySelector('.ep-sync-box__learn-more-link');
+
+		if (learnMoreLink?.style) {
+			learnMoreLink.style.display = 'block';
+		}
 	} else {
 		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
