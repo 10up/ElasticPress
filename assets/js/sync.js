@@ -1,4 +1,5 @@
 import apiFetch from '@wordpress/api-fetch';
+import { dateI18n } from '@wordpress/date';
 
 /* eslint-disable camelcase, no-use-before-define */
 const { epDash, history } = window;
@@ -197,6 +198,8 @@ let processed = 0;
 let toProcess = 0;
 let totalProcessed = 0;
 let totalErrors = 0;
+
+updateLastSyncDateTime(epDash?.ep_last_sync_date);
 
 if (epDash.index_meta) {
 	if (epDash.index_meta.method === 'cli') {
@@ -426,16 +429,39 @@ function addErrorToOutput(text) {
 }
 
 /**
- * Update the start date time on active box
+ * Update the start datetime on active box
  *
- * @param {string} value The date time value
+ * @param {Date | string} dateValue The datetime value
  */
-function updateStartDateTime(value) {
-	if (value) {
+function updateStartDateTime(dateValue) {
+	if (dateValue) {
 		const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
 
 		if (startDateTime) {
-			startDateTime.innerText = value;
+			startDateTime.innerText = dateI18n(
+				// translators: index start date format, see https://wordpress.org/support/article/formatting-date-and-time/
+				__('D, F d, Y H:i', 'elasticpress'),
+				dateValue,
+			);
+		}
+	}
+}
+
+/**
+ * Update the last sync datetime
+ *
+ * @param {Date | string} dateValue Date object or string, parsable by moment.js.
+ */
+function updateLastSyncDateTime(dateValue) {
+	if (dateValue) {
+		const lastSyncDate = document.querySelector('.ep-last-sync__date');
+
+		if (lastSyncDate) {
+			lastSyncDate.innerText = dateI18n(
+				// translators: last sync datetime format, see https://wordpress.org/support/article/formatting-date-and-time/
+				__('D, F d, Y H:i', 'elasticpress'),
+				dateValue,
+			);
 		}
 	}
 }
@@ -494,7 +520,7 @@ function sync(putMapping = false) {
 			} else {
 				addLineToOutput(response.data.message);
 			}
-			updateStartDateTime(response.data?.index_meta?.start_date_time);
+			updateStartDateTime(response?.data?.index_meta?.start_date_time);
 			shouldInterruptSync(response.data?.index_meta?.should_interrupt_sync);
 
 			if (response.data?.method === 'cli') {
@@ -512,7 +538,6 @@ function sync(putMapping = false) {
 
 				const lastSyncStatusIcon = document.querySelector('.ep-last-sync__icon-status');
 				const lastSyncStatus = document.querySelector('.ep-last-sync__status');
-				const lastSyncDate = document.querySelector('.ep-last-sync__date');
 
 				lastSyncStatusIcon.src = response.data.totals.failed
 					? lastSyncStatusIcon.src?.replace(/thumbsup/, 'thumbsdown')
@@ -520,8 +545,8 @@ function sync(putMapping = false) {
 				lastSyncStatus.innerText = response.data.totals.failed
 					? __('Sync unsuccessful on ', 'elasticpress')
 					: __('Sync success on ', 'elasticpress');
-				lastSyncDate.innerText =
-					response.data.totals.end_date_time || lastSyncDate.innerText;
+
+				updateLastSyncDateTime(response.data?.totals?.end_date_time);
 
 				updateSyncDash();
 
