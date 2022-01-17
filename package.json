@@ -4,9 +4,9 @@
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
-    "10up-toolkit": "^1.0.13",
+    "10up-toolkit": "^2.0.0",
     "jsdoc": "^3.6.7",
-    "terser-webpack-plugin": "^5.2.4",
+    "terser-webpack-plugin": "^5.3.0",
     "wp-hookdoc": "^0.2.0"
   },
   "scripts": {
@@ -44,7 +44,6 @@
       "stats-script.min": "./assets/js/stats.js",
       "synonyms-script.min": "./assets/js/synonyms/index.js",
       "weighting-script.min": "./assets/js/weighting.js",
-
       "autosuggest-styles.min": "./assets/css/autosuggest.css",
       "comments-styles.min": "./assets/css/comments.css",
       "dashboard-styles.min": "./assets/css/dashboard.css",
@@ -63,7 +62,7 @@
     "@wordpress/i18n": "^3.20.0",
     "chart.js": "^2.9.4",
     "element-closest": "^3.0.2",
-    "promise-polyfill": "^8.2.0",
+    "promise-polyfill": "^8.2.1",
     "react": "^16.14.0",
     "react-beautiful-dnd": "^11.0.5",
     "react-dom": "^16.14.0",
