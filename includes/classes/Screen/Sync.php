@@ -152,6 +152,12 @@ class Sync {
 			$data['index_meta'] = $index_meta;
 		}
 
+		$ep_last_index = Utils\get_option( 'ep_last_index' );
+
+		if ( ! empty( $ep_last_index ) ) {
+			$data['ep_last_sync_date'] = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
+		}
+
 		/**
 		 * Filter indexable labels used in dashboard sync UI
 		 *

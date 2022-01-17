@@ -9,7 +9,6 @@
 use ElasticPress\Utils as Utils;
 
 $ep_last_index          = Utils\get_option( 'ep_last_index' );
-$ep_last_sync_date      = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
 $ep_last_sync_has_error = ! empty( $ep_last_index['failed'] );
 
 ?>
@@ -30,7 +29,7 @@ $ep_last_sync_has_error = ! empty( $ep_last_index['failed'] );
 						<p class="ep-last-sync__title">
 							<?php echo esc_html__( 'Last sync:', 'elasticpress' ); ?>
 						</p>
-						<?php if ( $ep_last_sync_date ) : ?>
+						<?php if ( $ep_last_index ) : ?>
 							<img
 								class="ep-last-sync__icon-status"
 								width="16"
@@ -39,10 +38,8 @@ $ep_last_sync_has_error = ! empty( $ep_last_index['failed'] );
 							<span class="ep-last-sync__status">
 								<?php echo $ep_last_sync_has_error ? esc_html__( 'Sync unsuccessful on ', 'elasticpress' ) : esc_html__( 'Sync success on ', 'elasticpress' ); ?>
 							</span>
-							<span class="ep-last-sync__date">
-								<?php echo esc_html( $ep_last_sync_date ); ?>
-							</span>
 						<?php endif; ?>
+						<span class="ep-last-sync__date"></span>
 					</div>
 				</div>
 				<div class="ep-sync-box__action">
