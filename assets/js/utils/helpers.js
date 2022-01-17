@@ -153,6 +153,5 @@ export const domReady = (callback) => {
 	}
 
 	// DOMContentLoaded has not fired yet, delay callback until then.
-	// eslint-disable-next-line @wordpress/no-global-event-listener
 	document.addEventListener('DOMContentLoaded', callback);
 };
