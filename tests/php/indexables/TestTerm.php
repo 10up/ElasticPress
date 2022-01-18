@@ -47,6 +47,15 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Get Term feature
+	 *
+	 * @return ElasticPress\Feature\Terms
+	 */
+	protected function get_feature() {
+		return ElasticPress\Features::factory()->get_registered_feature( 'terms' );
+	}
+
+	/**
 	 * Create and index terms for testing
 	 *
 	 * @since 3.3

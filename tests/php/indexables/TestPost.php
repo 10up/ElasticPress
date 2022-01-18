@@ -53,6 +53,15 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Get Search feature
+	 *
+	 * @return ElasticPress\Feature\Search\
+	 */
+	protected function get_feature() {
+		return ElasticPress\Features::factory()->get_registered_feature( 'search' );
+	}
+
+	/**
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 0.1.0

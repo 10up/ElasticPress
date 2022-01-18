@@ -60,6 +60,15 @@ class TestUser extends BaseTestCase {
 	}
 
 	/**
+	 * Get User feature
+	 *
+	 * @return ElasticPress\Feature\Users
+	 */
+	protected function get_feature() {
+		return ElasticPress\Features::factory()->get_registered_feature( 'users' );
+	}
+
+	/**
 	 * Create and index users for testing
 	 *
 	 * @since 3.0
