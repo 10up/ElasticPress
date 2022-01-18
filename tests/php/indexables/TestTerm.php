@@ -1539,4 +1539,36 @@ class TestTerm extends BaseTestCase {
 		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertEquals( 0, $term_query->found_terms );
 	}
+
+	/**
+	 * Test integration with Term Queries.
+	 */
+	public function testIntegrateSearchQueries() {
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
+
+		$query = new \WP_Term_Query( [
+			'ep_integrate' => false
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Term_Query( [
+			'ep_integrate' => 0
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Term_Query( [
+			'ep_integrate' => 'false'
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Term_Query( [
+			'search' => 'term'
+		] );
+
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+	}
 }
