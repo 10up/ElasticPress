@@ -274,3 +274,28 @@ Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', network = fa
 	}
 	cy.wpCli(command);
 });
+
+Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', network = false) => {
+	if (method === 'dashboard') {
+		if (network) {
+			cy.visitAdminPage('network/plugins.php');
+		} else {
+			cy.visitAdminPage('plugins.php');
+		}
+
+		cy.get('body').then(($body) => {
+			const $activateButton = $body.find(`#deactivate-${slug}`);
+			if ($activateButton.length) {
+				cy.get($activateButton).click();
+			}
+		});
+
+		return;
+	}
+
+	let command = `wp plugin deactivate ${slug}`;
+	if (network) {
+		command += ' --network';
+	}
+	cy.wpCli(command);
+});

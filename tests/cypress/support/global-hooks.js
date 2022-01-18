@@ -24,6 +24,9 @@ afterEach(() => {
 		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress')
 			.invoke('text')
 			.then((text) => {
+				if (!text) {
+					return;
+				}
 				const parentTitle = cy.state('test').parent.title;
 				const testTitle = cy.state('test').title;
 				cy.writeFile(`tests/cypress/logs/${parentTitle} - ${testTitle}.log`, text);
