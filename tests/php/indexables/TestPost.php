@@ -6498,4 +6498,36 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $query->found_posts, 2 );
 	}
+
+	/**
+	 * Test integration with Post Queries.
+	 */
+	public function testIntegrateSearchQueries() {
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
+
+		$query = new \WP_Query( [
+			'ep_integrate' => false
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Query( [
+			'ep_integrate' => 0
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Query( [
+			'ep_integrate' => 'false'
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Query( [
+			's' => 'post'
+		] );
+
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+	}
 }
