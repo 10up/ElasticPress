@@ -324,12 +324,15 @@ class Facets extends Feature {
 		}
 
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
-			$tax_query[] = [
-				'taxonomy' => isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy,
-				'field'    => 'slug',
-				'terms'    => array_keys( $filter['terms'] ),
-				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
-			];
+			$tax = isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy;
+			if ( ! $this->has_taxonomy_query( $tax_query, $tax ) ) {
+				$tax_query[] = [
+					'taxonomy' => $tax,
+					'field'    => 'slug',
+					'terms'    => array_keys( $filter['terms'] ),
+					'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
+				];
+			}
 		}
 
 		if ( ! empty( $selected_filters['taxonomies'] ) && 'any' === $settings['match_type'] ) {
@@ -337,6 +340,22 @@ class Facets extends Feature {
 		}
 
 		$query->set( 'tax_query', $tax_query );
+	}
+
+	/**
+	 * Determine if we have a taxonomy query before attempting to add a new one for each filter.
+	 *
+	 * @param $tax_query array The current tax_query.
+	 * @param $taxonomy string WP Taxonomy.
+	 * @return bool true or false.
+	 */
+	function has_taxonomy_query( $tax_query, $taxonomy ) {
+		foreach ( $tax_query as $query ) {
+			if ( is_array( $query ) && $taxonomy === $query['taxonomy'] ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
