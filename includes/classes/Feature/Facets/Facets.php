@@ -345,11 +345,11 @@ class Facets extends Feature {
 	/**
 	 * Determine if we already have a taxonomy query before attempting to add a new one for each filter.
 	 *
-	 * @param $tax_query array The current tax_query.
-	 * @param $taxonomy string WP Taxonomy.
+	 * @param  array  $tax_query The current tax_query.
+	 * @param  string $taxonomy WP Taxonomy.
 	 * @return bool true or false.
 	 */
-	function has_pre_existing_taxonomy_query( $tax_query, $taxonomy ) {
+	public function has_pre_existing_taxonomy_query( $tax_query, $taxonomy ) {
 		foreach ( $tax_query as $query ) {
 			if ( is_array( $query ) && $taxonomy === $query['taxonomy'] ) {
 				return true;
