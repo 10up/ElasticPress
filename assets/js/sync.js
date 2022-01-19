@@ -487,6 +487,15 @@ function updateLastSyncDateTime(dateValue) {
 }
 
 /**
+ * Check if a destructive index is running
+ *
+ * @return {boolean} Wheter or not is a destructive index
+ */
+function isDestructiveIndex() {
+	return activeBox === deleteAndSyncBox;
+}
+
+/**
  * Interrupt the sync process
  *
  * @param {boolean} value True to interrupt the sync process
@@ -496,7 +505,17 @@ function shouldInterruptSync(value) {
 		syncStatus = 'interrupt';
 		cancelSync();
 		updateSyncDash();
-		addLineToOutput(__('Sync interrupted by WP-CLI command', 'elasticpress'));
+
+		if (isDestructiveIndex()) {
+			addLineToOutput(
+				__(
+					'Sync interrupted by WP-CLI command. Searches could not work properly until you index all data.',
+					'elasticpress',
+				),
+			);
+		} else {
+			addLineToOutput(__('Sync interrupted by WP-CLI command', 'elasticpress'));
+		}
 	}
 }
 
