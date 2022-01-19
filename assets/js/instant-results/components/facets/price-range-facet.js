@@ -29,7 +29,7 @@ export default ({ defaultIsOpen, label }) => {
 				max_price: { value: maxAgg = null } = {},
 				min_price: { value: minAgg = null } = {},
 			} = {},
-			priceRange: [minArg = null, maxArg = null],
+			filters: { price_range: [minArg = null, maxArg = null] = [] },
 		},
 		dispatch,
 	} = useContext(Context);
@@ -70,7 +70,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * @param {number[]} values Lowest and highest values.
 	 */
 	const onAfterChange = (values) => {
-		dispatch({ type: 'SET_PRICE_RANGE', payload: values });
+		dispatch({ type: 'APPLY_FILTER', payload: { price_range: values } });
 	};
 
 	/**
@@ -87,7 +87,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * Handle clearing the filter.
 	 */
 	const onClear = () => {
-		dispatch({ type: 'SET_PRICE_RANGE', payload: [] });
+		dispatch({ type: 'APPLY_FILTER', payload: { price_range: [] } });
 	};
 
 	/**

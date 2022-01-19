@@ -32,7 +32,7 @@ export default ({ hit }) => {
 		},
 	} = hit;
 
-	const postTypeLabel = postTypeLabels?.[resultPostType];
+	const postTypeLabel = postTypeLabels[resultPostType]?.singular;
 
 	return (
 		<article

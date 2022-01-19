@@ -43,8 +43,8 @@ export default () => {
 			<div className="ep-search-page__body">
 				<Sidebar isOpen={isSidebarOpen}>
 					<Sort />
-					{facets.map(({ name, label, type }, index) => (
-						<Facet index={index} key={name} label={label} name={name} type={type} />
+					{facets.map((facet, index) => (
+						<Facet {...facet} index={index} />
 					))}
 				</Sidebar>
 

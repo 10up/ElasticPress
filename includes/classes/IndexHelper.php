@@ -104,7 +104,7 @@ class IndexHelper {
 			'sync_stack'      => [],
 			'network_alias'   => [],
 			'start_time'      => microtime( true ),
-			'start_date_time' => $start_date_time ? $start_date_time->format( 'D, F d, Y H:i' ) : false,
+			'start_date_time' => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
 			'totals'          => [
 				'total'      => 0,
 				'synced'     => 0,
@@ -742,7 +742,7 @@ class IndexHelper {
 
 		$end_date_time = date_create( 'now', wp_timezone() );
 
-		$totals['end_date_time'] = $end_date_time ? $end_date_time->format( 'D, F d, Y H:i' ) : false;
+		$totals['end_date_time'] = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
 		$totals['end_time_gmt']  = time();
 		$totals['total_time']    = microtime( true ) - $start_time;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );

@@ -31,6 +31,7 @@ export default () => {
 	 */
 	const onChange = (event) => {
 		dispatch({ type: 'SET_SEARCH_TERM', payload: event.target.value });
+		dispatch({ type: 'CLEAR_FILTERS' });
 	};
 
 	/**

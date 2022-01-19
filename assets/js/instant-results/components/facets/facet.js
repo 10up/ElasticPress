@@ -17,10 +17,11 @@ import TaxonomyTermsFacet from './taxonomy-terms-facet';
  * @param {number} props.index Facet index.
  * @param {string} props.name Facet name.
  * @param {string} props.label Facet label.
+ * @param {string} props.postTypes Facet post types.
  * @param {'post_type'|'price_range'|'taxonomy'} props.type Facet type.
  * @return {WPElement} Component element.
  */
-export default ({ index, label, name, type }) => {
+export default ({ index, label, name, postTypes, type }) => {
 	const defaultIsOpen = index < 2;
 
 	switch (type) {
@@ -30,7 +31,12 @@ export default ({ index, label, name, type }) => {
 			return <PriceRangeFacet defaultIsOpen={defaultIsOpen} label={label} />;
 		case 'taxonomy':
 			return (
-				<TaxonomyTermsFacet defaultIsOpen={defaultIsOpen} label={label} taxonomy={name} />
+				<TaxonomyTermsFacet
+					defaultIsOpen={defaultIsOpen}
+					label={label}
+					postTypes={postTypes}
+					taxonomy={name}
+				/>
 			);
 		default:
 			return <></>;

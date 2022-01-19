@@ -25,7 +25,7 @@ export default ({ defaultIsOpen, label }) => {
 	const {
 		state: {
 			isLoading,
-			postTypes: selectedPostTypes = [],
+			filters: { post_type: selectedPostTypes = [] },
 			postTypesAggregation: { post_types: { buckets = [] } = {} } = {},
 		},
 		dispatch,
@@ -49,7 +49,7 @@ export default ({ defaultIsOpen, label }) => {
 			options.push({
 				checked: selectedPostTypes.includes(key),
 				id: `ep-search-post-type-${key}`,
-				label: postTypeLabels[key],
+				label: postTypeLabels[key].singular,
 				order: index,
 				value: key,
 			});
@@ -70,7 +70,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * @param {string[]} postTypes Selected post types.
 	 */
 	const onChange = (postTypes) => {
-		dispatch({ type: 'SET_POST_TYPES', payload: postTypes });
+		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
 	};
 
 	/**
@@ -80,10 +80,11 @@ export default ({ defaultIsOpen, label }) => {
 	 */
 	const onClear = (postType) => {
 		const postTypes = [...selectedPostTypes];
+		const index = postTypes.indexOf(postType);
 
-		postTypes.splice(postTypes.indexOf(postType), 1);
+		postTypes.splice(index, 1);
 
-		dispatch({ type: 'SET_POST_TYPES', payload: postTypes });
+		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
 	};
 
 	return (
@@ -102,7 +103,7 @@ export default ({ defaultIsOpen, label }) => {
 						{selectedPostTypes.map((value) => (
 							<ActiveContraint
 								key={value}
-								label={postTypeLabels[value]}
+								label={postTypeLabels[value].singular}
 								onClick={() => onClear(value)}
 							/>
 						))}

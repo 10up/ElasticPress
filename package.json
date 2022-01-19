@@ -66,6 +66,7 @@
   "dependencies": {
     "@wordpress/api-fetch": "^5.2.6",
     "@wordpress/components": "^19.1.1",
+    "@wordpress/date": "^4.2.3",
     "@wordpress/element": "^4.0.4",
     "@wordpress/i18n": "^3.20.0",
     "@wordpress/icons": "^6.1.1",

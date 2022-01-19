@@ -7,6 +7,7 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { facets, postTypeLabels } from '../../config';
 import Context from '../../context';
 import Panel from '../common/panel';
 import CheckboxList from '../common/checkbox-list';
@@ -18,20 +19,43 @@ import { ActiveContraint } from '../tools/active-constraints';
  * @param {Object} props Components props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
  * @param {string} props.label Facet label.
+ * @param {Array} props.postTypes Facet post types.
  * @param {string} props.taxonomy Facet taxonomy.
  * @return {WPElement} Component element.
  */
-export default ({ defaultIsOpen, label, taxonomy }) => {
+export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 	const {
 		state: {
 			isLoading,
-			taxonomyTerms: { [taxonomy]: selectedTerms = [] },
+			filters: { [taxonomy]: selectedTerms = [] },
 			taxonomyTermsAggregations: {
 				[taxonomy]: { taxonomy_terms: { buckets = [] } = {} } = {},
 			} = {},
 		},
 		dispatch,
 	} = useContext(Context);
+
+	/**
+	 * A unique label for the facet. Adds additional context to the label if
+	 * another taxonomy with the same label is being used as a facet.
+	 */
+	const uniqueLabel = useMemo(() => {
+		const isNotUnique = facets.some(
+			(facet) => facet.label === label && facet.name !== taxonomy,
+		);
+
+		const typeLabels = postTypes.map((postType) => postTypeLabels[postType].plural);
+		const typeSeparator = __(', ', 'elasticpress');
+
+		return isNotUnique
+			? sprintf(
+					/* translators: %1$s: Facet label. $2$s: Facet post types. */
+					__('%1$s (%2$s)', 'elasticpress'),
+					label,
+					typeLabels.join(typeSeparator),
+			  )
+			: label;
+	}, [label, postTypes, taxonomy]);
 
 	/**
 	 * Create list of filter options from aggregation buckets.
@@ -89,7 +113,7 @@ export default ({ defaultIsOpen, label, taxonomy }) => {
 	 * @param {string[]} terms Selected terms.
 	 */
 	const onChange = (terms) => {
-		dispatch({ type: 'SET_TAXONOMY_TERMS', payload: { taxonomy, terms } });
+		dispatch({ type: 'APPLY_FILTERS', payload: { [taxonomy]: terms } });
 	};
 
 	/**
@@ -102,12 +126,12 @@ export default ({ defaultIsOpen, label, taxonomy }) => {
 
 		terms.splice(terms.indexOf(term), 1);
 
-		dispatch({ type: 'SET_TAXONOMY_TERMS', payload: { taxonomy, terms } });
+		dispatch({ type: 'APPLY_FILTERS', payload: { [taxonomy]: terms } });
 	};
 
 	return (
 		options.length > 0 && (
-			<Panel defaultIsOpen={defaultIsOpen} label={label}>
+			<Panel defaultIsOpen={defaultIsOpen} label={uniqueLabel}>
 				{(isOpen) => (
 					<>
 						{isOpen && (
