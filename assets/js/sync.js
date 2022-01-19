@@ -509,7 +509,7 @@ function shouldInterruptSync(value) {
 		if (isDestructiveIndex()) {
 			addLineToOutput(
 				__(
-					'Sync interrupted by WP-CLI command. Searches could not work properly until you index all data.',
+					'Your indexing process has been stopped by WP-CLI and your (ElasticPress.io||Elasticsearch) index could be missing content. To restart indexing, please click the Start button or use WP-CLI commands to perform the reindex. Please note that search results could be incorrect or incomplete until the reindex finishes.',
 					'elasticpress',
 				),
 			);
