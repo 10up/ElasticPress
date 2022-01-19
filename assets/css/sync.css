@@ -1,3 +1,26 @@
+#ep-sync-page {
+	--color-base-white: #fff;
+	--color-blue-01: #00a0d2;
+	--color-grey-01: #f1f1f1;
+	--color-green-01: #46b450;
+	--color-red-01: #b52727;
+	--color-dark-01: #333;
+	--max-width: 1200px;
+
+	--box-title: #1d2327;
+
+	--delete-sync-button-bg-color: rgba(181, 39, 39, 0.03);
+
+	--progress-bar-bg-color: rgba(0, 160, 210, 0.3);
+
+	--output-tab-color: #1e1e1e;
+
+	--log-bg-color: #1a1e24;
+	--log-line-number-color: #999;
+	--log-line-number-bg-color: #303030;
+
+}
+
 .elasticpress_page_elasticpress-sync .button:disabled {
 	cursor: not-allowed;
 }
@@ -7,7 +30,7 @@
 }
 
 .ep-sync-box__output {
-	background-color: #1a1e24;
+	background-color: var(--log-bg-color);
 	display: none;
 	margin-bottom: 20px;
 	max-height: 200px;
@@ -20,7 +43,7 @@
 }
 
 .ep-sync-box__output-wrapper {
-	color: #fff;
+	color: var(--color-base-white);
 	margin-left: 30px;
 	min-height: 200px;
 }
@@ -30,8 +53,8 @@
 }
 
 .ep-sync-box__output-line-number {
-	background-color: #303030;
-	color: #999;
+	background-color: var(--log-line-number-bg-color);
+	color: var(--log-line-number-color);
 	left: -30px;
 	min-width: 20px;
 	padding: 0 3px 0 5px;
@@ -55,7 +78,7 @@
 }
 
 .ep-sync-box__output-tab {
-	color: #1e1e1e;
+	color: var(--output-tab-color);
 	padding: 16px;
 }
 
@@ -64,7 +87,7 @@
 }
 
 .ep-sync-box__output-tab_active {
-	border-bottom: 4px solid #00a0d2;
+	border-bottom: 4px solid var(--color-blue-01);
 	padding-bottom: 12px;
 }
 
@@ -77,7 +100,7 @@
 }
 
 .elasticpress_page_elasticpress-sync .card {
-	max-width: 1200px;
+	max-width: var(--max-width);
 
 	& .ep-sync-box__description-actions {
 		display: flex;
@@ -145,7 +168,7 @@
 	}
 
 	& .ep-last-sync__date {
-		background-color: #f1f1f1;
+		background-color: var(--color-grey-01);
 		padding: 6px;
 	}
 
@@ -166,8 +189,8 @@
 	}
 
 	& .ep-sync-box__button-stop {
-		background-color: #00a0d2;
-		border-color: #00a0d2;
+		background-color: var(--color-blue-01);
+		border-color: var(--color-blue-01);
 		margin-left: 24px;
 	}
 
@@ -194,7 +217,7 @@
 	}
 
 	& .ep-sync-box__progressbar {
-		background-color: #f1f1f1;
+		background-color: var(--color-grey-01);
 		border-radius: 24px;
 		height: 20px;
 		margin: 15px 0;
@@ -208,8 +231,8 @@
 	}
 
 	& .ep-sync-box__progressbar_animated {
-		background-color: rgba(0, 160, 210, 0.3);
-		color: #333;
+		background-color: var(--progress-bar-bg-color);
+		color: var(--color-dark-01);
 		display: block;
 		height: 100%;
 		margin: 0;
@@ -219,8 +242,8 @@
 	}
 
 	& .ep-sync-box__progressbar_complete {
-		background-color: #46b450;
-		color: #fff;
+		background-color: var(--color-green-01);
+		color: var(--color-base-white);
 	}
 
 	& .ep-sync-box__sync-in-progress-info {
@@ -236,12 +259,12 @@
 	}
 
 	& .ep-sync-box__start-time {
-		color: #00a0d2;
+		color: var(--color-blue-01);
 		font-size: 14px;
 	}
 
 	& .ep-sync-box__start-time-date {
-		color: #333;
+		color: var(--color-dark-01);
 	}
 }
 
@@ -253,7 +276,7 @@
 	}
 
 	& .ep-delete-data-and-sync__title {
-		color: #1d2327;
+		color: var(--box-title);
 		font-size: 18px;
 		font-weight: 400;
 	}
@@ -273,9 +296,9 @@
 	}
 
 	& .ep-delete-data-and-sync__button {
-		background-color: rgba(181, 39, 39, 0.03);
-		border: 1px solid #b52727;
-		color: #b52727;
+		background-color: var(--delete-sync-button-bg-color);
+		border: 1px solid var(--color-red-01);
+		color: var(--color-red-01);
 		margin: 5px 0 12px;
 	}
 
