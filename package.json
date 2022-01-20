@@ -6,7 +6,7 @@
   "devDependencies": {
     "10up-toolkit": "^1.0.13",
     "@wordpress/env": "^4.1.1",
-    "cypress": "^8.5.0",
+    "cypress": "^9.3.1",
     "cypress-file-upload": "^5.0.8",
     "eslint-plugin-cypress": "^2.12.1",
     "jsdoc": "^3.6.7",
