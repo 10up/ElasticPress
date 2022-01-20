@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# cat ./bin/2022-01-20-16-39.sql | npm run env run tests-cli "wp db import -"
+
 # 172.17.0.1 is the IP Address of host when using Linux
 npm run env run tests-cli "wp config set EP_HOST 'http://172.17.0.1:8890/'"
 
@@ -19,3 +21,9 @@ npm run env run tests-cli "wp elasticpress index --setup --yes --show-errors"
 
 npm run env run tests-cli "wp option set posts_per_page 5"
 npm run env run tests-cli "wp user meta update wpsnapshots edit_post_per_page 5"
+
+# Generate a SQL file that can be imported later to make things faster
+SQL_FILENAME=./bin/$(date +'%F-%H-%M').sql
+npm run env run tests-cli "wp db export -" > $SQL_FILENAME
+# Remove npm output
+sed -i '1,4d' $SQL_FILENAME
