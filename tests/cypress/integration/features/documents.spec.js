@@ -47,9 +47,18 @@ describe('Documents Feature', () => {
 		cy.get('body').should('contain.text', 'pdf-file');
 
 		// Check if the file is still searchable after a reindex.
-		cy.wpCli('elasticpress index --setup --yes');
-		cy.visit('/?s=dummy+pdf');
-		cy.get('body').should('contain.text', 'pdf-file');
+		cy.wpCli('elasticpress index --setup --yes --show-errors').then(() => {
+			/**
+			 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
+			 *
+			 * @todo instead of waiting for an arbitrary time, we should ensure the file is processed.
+			 */
+			// eslint-disable-next-line cypress/no-unnecessary-waiting
+			cy.wait(500);
+
+			cy.visit('/?s=dummy+pdf');
+			cy.get('.hentry').should('contain.text', 'pdf-file');
+		});
 	});
 
 	it('Can search .pptx', () => {
@@ -62,6 +71,6 @@ describe('Documents Feature', () => {
 
 		cy.visit('/?s=dummy+slide');
 
-		cy.get('body').should('contain.text', 'pptx-file');
+		cy.get('.hentry').should('contain.text', 'pptx-file');
 	});
 });
