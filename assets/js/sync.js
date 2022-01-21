@@ -204,8 +204,20 @@ updateLastSyncDateTime(epDash?.ep_last_sync_date);
 if (epDash.index_meta) {
 	if (epDash.index_meta.method === 'cli') {
 		syncStatus = 'wpcli';
-		processed = epDash.index_meta.items_indexed;
-		toProcess = epDash.index_meta.total_items;
+		processed = epDash?.index_meta?.items_indexed;
+		toProcess = epDash?.index_meta?.total_items;
+
+		activeBox = epDash.index_meta.put_mapping ? deleteAndSyncBox : syncBox;
+
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+
+		progressInfoElement.innerText = __('WP-CLI sync in progress', 'elasticpress');
+
+		updateStartDateTime(epDash?.index_meta?.start_date_time);
+
+		updateDisabledAttribute(syncButton, true);
+
+		showProgress();
 
 		updateSyncDash();
 		cliSync();
