@@ -80,8 +80,8 @@ describe('Dashboard Sync', () => {
 
 		cy.wpCli('wp elasticpress delete-index --yes');
 
-		cy.deactivatePlugin('elasticpress', 'wp-cli');
-		cy.activatePlugin('elasticpress', 'wp-cli', true);
+		cy.deactivatePlugin('elasticpress', 'dashboard');
+		cy.activatePlugin('elasticpress', 'dashboard', true);
 
 		// Sync and remove, so EP doesn't think it is a fresh install.
 		cy.wpCli('wp elasticpress index --setup --yes');
