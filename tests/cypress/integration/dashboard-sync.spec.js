@@ -28,9 +28,9 @@ describe('Dashboard Sync', () => {
 
 	after(() => {
 		if (cy.state('test').state === 'failed') {
-			cy.wpCli('wp plugin deactivate elasticpress --network');
-			cy.wpCli('wp plugin activate elasticpress');
-			cy.wpCli('wp elasticpress clear-index');
+			cy.wpCli('wp plugin deactivate elasticpress --network', true);
+			cy.wpCli('wp plugin activate elasticpress', true);
+			cy.wpCli('wp elasticpress clear-index', true);
 			cy.visitAdminPage('admin.php?page=elasticpress-settings');
 			cy.get('body').then(($body) => {
 				const $cancelSyncButton = $body.find('.cancel-sync');
