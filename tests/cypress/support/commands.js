@@ -284,9 +284,9 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', network = 
 		}
 
 		cy.get('body').then(($body) => {
-			const $activateButton = $body.find(`#deactivate-${slug}`);
-			if ($activateButton.length) {
-				cy.get($activateButton).click();
+			const $deactivateButton = $body.find(`#deactivate-${slug}`);
+			if ($deactivateButton.length) {
+				cy.get($deactivateButton).click();
 			}
 		});
 

@@ -115,8 +115,8 @@ describe('Dashboard Sync', () => {
 				});
 		});
 
-		cy.deactivatePlugin('elasticpress', 'wp-cli', true);
-		cy.activatePlugin('elasticpress', 'wp-cli');
+		cy.deactivatePlugin('elasticpress', 'dashboard', true);
+		cy.activatePlugin('elasticpress', 'dashboard');
 
 		cy.wpCli('wp elasticpress index --setup --yes');
 	});
