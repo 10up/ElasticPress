@@ -386,9 +386,8 @@ class WooCommerce extends Feature {
 				// Search query
 				if ( 'shop_order' === $post_type ) {
 					$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
-					if ( is_numeric( $s ) ) {
-						// The regular ID field only accepts numbers, while the ES _id will work fine with strings.
-						$default_search_fields[] = '_id';
+					if ( is_int( $s ) ) {
+						$default_search_fields[] = 'ID';
 					}
 					$search_fields = $query->get( 'search_fields', $default_search_fields );
 
