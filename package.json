@@ -5,7 +5,7 @@
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
     "10up-toolkit": "^2.0.0",
-    "jsdoc": "^3.6.7",
+    "jsdoc": "^3.6.9",
     "terser-webpack-plugin": "^5.3.0",
     "wp-hookdoc": "^0.2.0"
   },
