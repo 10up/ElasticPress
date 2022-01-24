@@ -188,7 +188,9 @@ class TestWooCommerce extends BaseTestCase {
 				echo '<pre>';
 				print_r( $query );
 				echo '</pre>';
-			}
+			},
+			10,
+			2
 		);
 
 		$this->assertTrue( $query->elasticsearch_success );
