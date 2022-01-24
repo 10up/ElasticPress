@@ -178,6 +178,19 @@ class TestWooCommerce extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
+		// Log problems in the
+		add_action(
+			'ep_invalid_response',
+			function( $request, $query ) {
+				echo '<pre>';
+				print_r( $request );
+				echo '</pre>';
+				echo '<pre>';
+				print_r( $query );
+				echo '</pre>';
+			}
+		);
+
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
