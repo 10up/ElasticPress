@@ -385,7 +385,11 @@ class WooCommerce extends Feature {
 
 				// Search query
 				if ( 'shop_order' === $post_type ) {
-					$search_fields = $query->get( 'search_fields', array( 'ID', 'post_title', 'post_content', 'post_excerpt' ) );
+					$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
+					if ( is_int( $s ) ) {
+						$default_search_fields[] = 'ID';
+					}
+					$search_fields = $query->get( 'search_fields', $default_search_fields );
 
 					$search_fields['meta'] = array_map(
 						'wc_clean',
@@ -431,10 +435,11 @@ class WooCommerce extends Feature {
 						 *
 						 * @hook ep_woocommerce_shop_order_search_fields
 						 * @since 4.0.0
-						 * @param  {array} $fields Shop order fields
-						 * @return  {array} New fields
+						 * @param {array}    $fields Shop order fields
+						 * @param {WP_Query} $query  WP Query
+						 * @return {array} New fields
 						 */
-						apply_filters( 'ep_woocommerce_shop_order_search_fields', $search_fields )
+						apply_filters( 'ep_woocommerce_shop_order_search_fields', $search_fields, $query )
 					);
 				} elseif ( 'product' === $post_type && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
