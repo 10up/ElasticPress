@@ -176,8 +176,6 @@ class TestWooCommerce extends BaseTestCase {
 			'post_type' => 'shop_order',
 		);
 
-		$query = new \WP_Query( $args );
-
 		// Log problems in the
 		add_action(
 			'ep_invalid_response',
@@ -192,6 +190,8 @@ class TestWooCommerce extends BaseTestCase {
 			10,
 			2
 		);
+
+		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
