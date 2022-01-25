@@ -127,6 +127,18 @@ class TestComments extends BaseTestCase {
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
 		$query = new WP_Comment_Query( [
+			'ep_integrate' => 0
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new WP_Comment_Query( [
+			'ep_integrate' => 'false'
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new WP_Comment_Query( [
 			'search' => 'blog'
 		] );
 

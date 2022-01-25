@@ -87,7 +87,7 @@ class Users extends Feature {
 			return $enabled;
 		}
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOL ) ) {
 			$enabled = false;
 		} elseif ( ! empty( $query->query_vars['search'] ) ) {
 			$enabled = true;
