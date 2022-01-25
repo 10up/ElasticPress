@@ -473,7 +473,7 @@ class InstantResults extends Feature {
 	 */
 	public function apply_product_visibility( $query ) {
 		$product_visibility_terms  = wc_get_product_visibility_term_ids();
-		$product_visibility_not_in = $product_visibility_terms['exclude-from-search'];
+		$product_visibility_not_in = (array) $product_visibility_terms['exclude-from-search'];
 
 		if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) ) {
 			$product_visibility_not_in[] = $product_visibility_terms['outofstock'];
