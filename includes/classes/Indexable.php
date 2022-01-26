@@ -385,7 +385,7 @@ abstract class Indexable {
 		 */
 		$enabled = apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOL ) ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			$enabled = false;
 		}
 
