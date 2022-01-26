@@ -1,23 +1,23 @@
-#ep-sync-page {
-	--color-base-white: #fff;
-	--color-blue-01: #00a0d2;
-	--color-grey-01: #f1f1f1;
-	--color-green-01: #46b450;
-	--color-red-01: #b52727;
-	--color-dark-01: #333;
-	--max-width: 1200px;
+:root {
+	--ep-admin-color-base-white: #fff;
+	--ep-admin-color-blue-01: #00a0d2;
+	--ep-admin-color-grey-01: #f1f1f1;
+	--ep-admin-color-green-01: #46b450;
+	--ep-admin-color-red-01: #b52727;
+	--ep-admin-color-dark-01: #333;
+	--ep-admin-max-width: 1200px;
 
-	--box-title: #1d2327;
+	--ep-admin-box-title: #1d2327;
 
-	--delete-sync-button-bg-color: rgba(181, 39, 39, 0.03);
+	--ep-admin-delete-sync-button-bg-color: rgba(181, 39, 39, 0.03);
 
-	--progress-bar-bg-color: rgba(0, 160, 210, 0.3);
+	--ep-admin-progress-bar-bg-color: rgba(0, 160, 210, 0.3);
 
-	--output-tab-color: #1e1e1e;
+	--ep-admin-output-tab-color: #1e1e1e;
 
-	--log-bg-color: #1a1e24;
-	--log-line-number-color: #999;
-	--log-line-number-bg-color: #303030;
+	--ep-admin-log-bg-color: #1a1e24;
+	--ep-admin-log-line-number-color: #999;
+	--ep-admin-log-line-number-bg-color: #303030;
 
 }
 
@@ -30,7 +30,7 @@
 }
 
 .ep-sync-box__output {
-	background-color: var(--log-bg-color);
+	background-color: var(--ep-admin-log-bg-color);
 	display: none;
 	margin-bottom: 20px;
 	max-height: 200px;
@@ -43,7 +43,7 @@
 }
 
 .ep-sync-box__output-wrapper {
-	color: var(--color-base-white);
+	color: var(--ep-admin-color-base-white);
 	margin-left: 30px;
 	min-height: 200px;
 }
@@ -53,8 +53,8 @@
 }
 
 .ep-sync-box__output-line-number {
-	background-color: var(--log-line-number-bg-color);
-	color: var(--log-line-number-color);
+	background-color: var(--ep-admin-log-line-number-bg-color);
+	color: var(--ep-admin-log-line-number-color);
 	left: -30px;
 	min-width: 20px;
 	padding: 0 3px 0 5px;
@@ -78,7 +78,7 @@
 }
 
 .ep-sync-box__output-tab {
-	color: var(--output-tab-color);
+	color: var(--ep-admin-output-tab-color);
 	padding: 16px;
 }
 
@@ -87,7 +87,7 @@
 }
 
 .ep-sync-box__output-tab_active {
-	border-bottom: 4px solid var(--color-blue-01);
+	border-bottom: 4px solid var(--ep-admin-color-blue-01);
 	padding-bottom: 12px;
 }
 
@@ -100,7 +100,7 @@
 }
 
 .elasticpress_page_elasticpress-sync .card {
-	max-width: var(--max-width);
+	max-width: var(--ep-admin-max-width);
 
 	& .ep-sync-box__description-actions {
 		display: flex;
@@ -168,7 +168,7 @@
 	}
 
 	& .ep-last-sync__date {
-		background-color: var(--color-grey-01);
+		background-color: var(--ep-admin-color-grey-01);
 		padding: 6px;
 	}
 
@@ -189,8 +189,8 @@
 	}
 
 	& .ep-sync-box__button-stop {
-		background-color: var(--color-blue-01);
-		border-color: var(--color-blue-01);
+		background-color: var(--ep-admin-color-blue-01);
+		border-color: var(--ep-admin-color-blue-01);
 		margin-left: 24px;
 	}
 
@@ -217,7 +217,7 @@
 	}
 
 	& .ep-sync-box__progressbar {
-		background-color: var(--color-grey-01);
+		background-color: var(--ep-admin-color-grey-01);
 		border-radius: 24px;
 		height: 20px;
 		margin: 15px 0;
@@ -231,8 +231,8 @@
 	}
 
 	& .ep-sync-box__progressbar_animated {
-		background-color: var(--progress-bar-bg-color);
-		color: var(--color-dark-01);
+		background-color: var(--ep-admin-progress-bar-bg-color);
+		color: var(--ep-admin-color-dark-01);
 		display: block;
 		height: 100%;
 		margin: 0;
@@ -242,8 +242,8 @@
 	}
 
 	& .ep-sync-box__progressbar_complete {
-		background-color: var(--color-green-01);
-		color: var(--color-base-white);
+		background-color: var(--ep-admin-color-green-01);
+		color: var(--ep-admin-color-base-white);
 	}
 
 	& .ep-sync-box__sync-in-progress-info {
@@ -259,12 +259,12 @@
 	}
 
 	& .ep-sync-box__start-time {
-		color: var(--color-blue-01);
+		color: var(--ep-admin-color-blue-01);
 		font-size: 14px;
 	}
 
 	& .ep-sync-box__start-time-date {
-		color: var(--color-dark-01);
+		color: var(--ep-admin-color-dark-01);
 	}
 }
 
@@ -276,7 +276,7 @@
 	}
 
 	& .ep-delete-data-and-sync__title {
-		color: var(--box-title);
+		color: var(--ep-admin-box-title);
 		font-size: 18px;
 		font-weight: 400;
 	}
@@ -296,9 +296,9 @@
 	}
 
 	& .ep-delete-data-and-sync__button {
-		background-color: var(--delete-sync-button-bg-color);
-		border: 1px solid var(--color-red-01);
-		color: var(--color-red-01);
+		background-color: var(--ep-admin-delete-sync-button-bg-color);
+		border: 1px solid var(--ep-admin-color-red-01);
+		color: var(--ep-admin-color-red-01);
 		margin: 5px 0 12px;
 	}
 
