@@ -117,7 +117,7 @@ class Installer {
 	 * Check if it should use the features selected during the install to update the settings.
 	 */
 	public function maybe_set_features() {
-		if ( empty( $_POST ) || ! wp_verify_nonce( $_POST['ep_install_page_nonce'], 'ep_install_page' ) ) {
+		if ( empty( $_POST['ep_install_page_nonce'] ) || ! wp_verify_nonce( $_POST['ep_install_page_nonce'], 'ep_install_page' ) ) {
 			return;
 		}
 
