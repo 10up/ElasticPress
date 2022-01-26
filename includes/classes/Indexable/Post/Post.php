@@ -189,7 +189,42 @@ class Post extends Indexable {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
 		}
 
+		if ( 0 === $object_counts[ $cache_key ] ) {
+			// Do a DB count to make sure the query didn't just die and return 0.
+			$db_post_count = $this->get_total_objects_for_query_from_db( $normalized_query_args );
+
+			if ( $db_post_count !== $object_counts[ $cache_key ] ) {
+				$object_counts[ $cache_key ] = $db_post_count;
+			}
+		}
+
 		return $object_counts[ $cache_key ];
+	}
+
+	/**
+	 * Get total posts from DB for a specific query based on it's args.
+	 *
+	 * @param array $query_args The query args.
+	 * @return int The total posts.
+	 */
+	public function get_total_objects_for_query_from_db( $query_args ) {
+		$post_count = 0;
+
+		if ( ! isset( $query_args['post_type'] ) ) {
+			return $post_count;
+		}
+
+		foreach ( $query_args['post_type'] as $post_type ) {
+			$post_counts_by_post_status = wp_count_posts( $post_type );
+			foreach ( $post_counts_by_post_status as $post_status => $post_status_count ) {
+				if ( ! in_array( $post_status, $query_args['post_status'] ) ) {
+					continue;
+				}
+				$post_count += $post_status_count;
+			}
+		}
+
+		return $post_count;
 	}
 
 	/**
