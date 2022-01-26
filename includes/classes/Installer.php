@@ -71,26 +71,24 @@ class Installer {
 			return;
 		}
 
-		$host      = Utils\get_host();
 		$last_sync = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? get_site_option( 'ep_last_sync', false ) : get_option( 'ep_last_sync', false );
-
 		if ( ! empty( $last_sync ) ) {
 			$this->install_status = true;
 
 			return;
 		}
 
-		if ( empty( $host ) ) {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) && empty( $_POST['ep_host'] ) ) { // phpcs:ignore
 			$this->install_status = 2;
 
-			if ( ! empty( $_POST['ep_host'] ) ) { // phpcs:ignore
-				$this->install_status = 3;
-			}
-
 			return;
-		} else {
-			$this->install_status = 3;
 		}
+
+		$this->install_status = 3;
+
+		$this->maybe_set_features();
 	}
 
 	/**
@@ -113,6 +111,26 @@ class Installer {
 		 * @since  3.0
 		 */
 		return apply_filters( 'ep_install_status', $this->install_status );
+	}
+
+	/**
+	 * Check if it should use the features selected during the install to update the settings.
+	 */
+	public function maybe_set_features() {
+		if ( empty( $_POST ) || ! wp_verify_nonce( $_POST['ep_install_page_nonce'], 'ep_install_page' ) ) {
+			return;
+		}
+
+		if ( empty( $_POST['features'] ) || ! is_array( $_POST['features'] ) ) {
+			return;
+		}
+
+		$features = array_map( 'sanitize_text_field', $_POST['features'] );
+		foreach ( $features as $feature ) {
+			\ElasticPress\Features::factory()->activate_feature( $feature );
+		}
+
+		$this->install_status = 4;
 	}
 
 	/**
