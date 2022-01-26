@@ -76,8 +76,12 @@ $skip_install_url = add_query_arg(
 								<?php
 								$features = \ElasticPress\Features::factory()->registered_features;
 								foreach ( $features as $feature ) {
-									$feature_status    = $feature->requirements_status();
-									$should_be_checked = 0 === (int) $feature_status->code || $feature->is_active();
+									$feature_status_code = (int) $feature->requirements_status()->code;
+									if ( 2 === $feature_status_code ) {
+										continue;
+									}
+
+									$should_be_checked = 0 === $feature_status_code || $feature->is_active();
 									?>
 									<li>
 										<label>
