@@ -31,7 +31,7 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
 
     - name: Install dependencies
-      run: npm i
+      run: npm ci --include=dev
 
     - name: Set up WP environment with Elasticsearch
       run: npm run env:start
