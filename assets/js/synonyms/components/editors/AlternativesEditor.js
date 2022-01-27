@@ -5,7 +5,7 @@ import { Dispatch, State } from '../../context';
 /**
  * Synonyms editor component.
  *
- * @param {Object} props Props.
+ * @param {Object}   props              Props.
  * @param {Object[]} props.alternatives Defined alternatives (explicit mappings).
  * @return {React.FC} AlternativesEditor component
  */

@@ -184,7 +184,7 @@ class Post extends Indexable {
 			]
 		);
 
-		$cache_key = md5( get_current_blog_id() . json_encode( $normalized_query_args ) );
+		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
 
 		if ( ! isset( $object_counts[ $cache_key ] ) ) {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
