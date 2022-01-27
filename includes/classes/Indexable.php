@@ -478,7 +478,7 @@ abstract class Indexable {
 		$meta_types['time']     = '00:00:01';
 
 		// is this is a recognizable date format?
-		$new_date  = date_create( $meta_value, \wp_timezone() );
+		$new_date = date_create( $meta_value, \wp_timezone() );
 		if ( $new_date ) {
 			$timestamp = $new_date->getTimestamp();
 
