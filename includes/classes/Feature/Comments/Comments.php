@@ -154,7 +154,7 @@ class Comments extends Feature {
 				'callback'            => [ $this, 'handle_comments_search' ],
 				'permission_callback' => '__return_true',
 				'args'                => [
-					's' => [
+					's'         => [
 						'validate_callback' => function ( $param ) {
 							return ! empty( $param );
 						},
