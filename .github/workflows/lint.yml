@@ -17,7 +17,7 @@ on:
 
 jobs:
   es_css_lint:
-    name: ES and style Lint
+    name: ES and Style Lint
     runs-on: ubuntu-latest
 
     steps:
