@@ -1,0 +1,33 @@
+:root {
+	--ep-admin-color-base-white: #fff;
+	--ep-admin-color-blue: #00a0d2;
+	--ep-admin-color-grey: #f1f1f1;
+	--ep-admin-color-green: #46b450;
+	--ep-admin-color-red: #b52727;
+	--ep-admin-color-dark: #333;
+	--ep-admin-sync-card-max-width: 1200px;
+
+	--ep-admin-box-title: #1d2327;
+
+	--ep-admin-delete-sync-button-bg-color: rgba(181, 39, 39, 0.03);
+
+	--ep-admin-progress-bar-bg-color: rgba(0, 160, 210, 0.3);
+
+	--ep-admin-output-tab-color: #1e1e1e;
+
+	--ep-admin-log-bg-color: #1a1e24;
+	--ep-admin-log-line-number-color: #999;
+	--ep-admin-log-line-number-bg-color: #303030;
+
+	--ep-search-background-color: #fff;
+	--ep-search-alternate-background-color: #efefef;
+	--ep-search-border-color: #dfdfdf;
+	--ep-search-range-thumb-size: 1.625em;
+	--ep-search-range-track-size: 0.75em;
+
+	@media ( min-width: 768px ) {
+		--ep-search-range-thumb-size: 1.25em;
+		--ep-search-range-track-size: 0.5em;
+	}
+
+}

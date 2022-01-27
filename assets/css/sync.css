@@ -1,25 +1,4 @@
-:root {
-	--ep-admin-color-base-white: #fff;
-	--ep-admin-color-blue-01: #00a0d2;
-	--ep-admin-color-grey-01: #f1f1f1;
-	--ep-admin-color-green-01: #46b450;
-	--ep-admin-color-red-01: #b52727;
-	--ep-admin-color-dark-01: #333;
-	--ep-admin-max-width: 1200px;
-
-	--ep-admin-box-title: #1d2327;
-
-	--ep-admin-delete-sync-button-bg-color: rgba(181, 39, 39, 0.03);
-
-	--ep-admin-progress-bar-bg-color: rgba(0, 160, 210, 0.3);
-
-	--ep-admin-output-tab-color: #1e1e1e;
-
-	--ep-admin-log-bg-color: #1a1e24;
-	--ep-admin-log-line-number-color: #999;
-	--ep-admin-log-line-number-bg-color: #303030;
-
-}
+@import "config/vars.css";
 
 .elasticpress_page_elasticpress-sync .button:disabled {
 	cursor: not-allowed;
@@ -87,7 +66,7 @@
 }
 
 .ep-sync-box__output-tab_active {
-	border-bottom: 4px solid var(--ep-admin-color-blue-01);
+	border-bottom: 4px solid var(--ep-admin-color-blue);
 	padding-bottom: 12px;
 }
 
@@ -100,7 +79,7 @@
 }
 
 .elasticpress_page_elasticpress-sync .card {
-	max-width: var(--ep-admin-max-width);
+	max-width: var(--ep-admin-sync-card-max-width);
 
 	& .ep-sync-box__description-actions {
 		display: flex;
@@ -168,7 +147,7 @@
 	}
 
 	& .ep-last-sync__date {
-		background-color: var(--ep-admin-color-grey-01);
+		background-color: var(--ep-admin-color-grey);
 		padding: 6px;
 	}
 
@@ -189,8 +168,8 @@
 	}
 
 	& .ep-sync-box__button-stop {
-		background-color: var(--ep-admin-color-blue-01);
-		border-color: var(--ep-admin-color-blue-01);
+		background-color: var(--ep-admin-color-blue);
+		border-color: var(--ep-admin-color-blue);
 		margin-left: 24px;
 	}
 
@@ -217,7 +196,7 @@
 	}
 
 	& .ep-sync-box__progressbar {
-		background-color: var(--ep-admin-color-grey-01);
+		background-color: var(--ep-admin-color-grey);
 		border-radius: 24px;
 		height: 20px;
 		margin: 15px 0;
@@ -232,7 +211,7 @@
 
 	& .ep-sync-box__progressbar_animated {
 		background-color: var(--ep-admin-progress-bar-bg-color);
-		color: var(--ep-admin-color-dark-01);
+		color: var(--ep-admin-color-dark);
 		display: block;
 		height: 100%;
 		margin: 0;
@@ -242,7 +221,7 @@
 	}
 
 	& .ep-sync-box__progressbar_complete {
-		background-color: var(--ep-admin-color-green-01);
+		background-color: var(--ep-admin-color-green);
 		color: var(--ep-admin-color-base-white);
 	}
 
@@ -259,12 +238,12 @@
 	}
 
 	& .ep-sync-box__start-time {
-		color: var(--ep-admin-color-blue-01);
+		color: var(--ep-admin-color-blue);
 		font-size: 14px;
 	}
 
 	& .ep-sync-box__start-time-date {
-		color: var(--ep-admin-color-dark-01);
+		color: var(--ep-admin-color-dark);
 	}
 }
 
@@ -297,8 +276,8 @@
 
 	& .ep-delete-data-and-sync__button {
 		background-color: var(--ep-admin-delete-sync-button-bg-color);
-		border: 1px solid var(--ep-admin-color-red-01);
-		color: var(--ep-admin-color-red-01);
+		border: 1px solid var(--ep-admin-color-red);
+		color: var(--ep-admin-color-red);
 		margin: 5px 0 12px;
 	}
 
