@@ -24,6 +24,4 @@ npm run env run tests-cli "wp user meta update wpsnapshots edit_post_per_page 5"
 
 # Generate a SQL file that can be imported later to make things faster
 SQL_FILENAME=./bin/$(date +'%F-%H-%M').sql
-npm run env run tests-cli "wp db export -" > $SQL_FILENAME
-# Remove npm output
-sed -i '1,4d' $SQL_FILENAME
+npm --silent run env run tests-cli "wp db export -" > $SQL_FILENAME
