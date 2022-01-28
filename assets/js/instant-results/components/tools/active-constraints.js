@@ -19,8 +19,8 @@ const { Fill, Slot } = createSlotFill('ActiveContraints');
 /**
  * Active filter component.
  *
- * @param {Object} props Props.
- * @param {string} props.label Constraint label.
+ * @param {Object}   props         Props.
+ * @param {string}   props.label   Constraint label.
  * @param {Function} props.onClick Click handler.
  * @return {WPElement} Element.
  */

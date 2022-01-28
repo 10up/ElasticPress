@@ -6,7 +6,7 @@ import { apiEndpoint, apiHost } from './config';
  * after the last time it was run.
  *
  * @param {Function} callback Function to debounce.
- * @param {number} delay Milliseconds to delay.
+ * @param {number}   delay    Milliseconds to delay.
  * @return {Function} Debounced function.
  */
 export const useDebounce = (callback, delay) => {

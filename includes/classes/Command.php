@@ -1379,7 +1379,7 @@ class Command extends WP_CLI_Command {
 			add_filter(
 				'http_api_debug',
 				function ( $response, $context, $transport, $request_args, $url ) {
-					// phpcs:disab le WordPress.PHP.DevelopmentFunctions
+					// phpcs:disable WordPress.PHP.DevelopmentFunctions
 					WP_CLI::line(
 						sprintf(
 							/* translators: URL of the request */
