@@ -257,7 +257,7 @@ if (epDash.index_meta) {
  * Change the disabled attribute of an element
  *
  * @param {HTMLElement} element Element to be updated
- * @param {boolean} value The value used in disabled attribute
+ * @param {boolean}     value   The value used in disabled attribute
  */
 function updateDisabledAttribute(element, value) {
 	element.disabled = value;
