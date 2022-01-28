@@ -373,16 +373,6 @@ class WooCommerce extends Feature {
 			$query->query['ep_integrate']      = true;
 
 			if ( ! empty( $s ) ) {
-				$query->set( 'orderby', false ); // Just order by relevance.
-
-				/**
-				 * Default order when doing search in Woocommerce is 'ASC'
-				 * These lines will change it to 'DESC' as we want to most relevant result
-				 */
-				if ( empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
-					$query->set( 'order', 'DESC' );
-				}
-
 				// Search query
 				if ( 'shop_order' === $post_type ) {
 					$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
