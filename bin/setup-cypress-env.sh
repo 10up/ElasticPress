@@ -1,9 +1,18 @@
 #!/bin/bash
 
+# Determine what kind of env we're in
+
+if [ "$(uname | tr '[:upper:]' '[:lower:]')" = "darwin" ]; then
+  echo "Running tests on $(uname)"
+  ES_HOST="http://host.docker.internal:8890/"
+else
+  echo "Running tests on $(uname)"
+  ES_HOST="http://172.17.0.1:8890/"
+fi
 # cat ./bin/2022-01-20-16-39.sql | npm run env run tests-cli "wp db import -"
 
 # 172.17.0.1 is the IP Address of host when using Linux
-npm run env run tests-cli "wp config set EP_HOST 'http://172.17.0.1:8890/'"
+npm run env run tests-cli "wp config set EP_HOST ${ES_HOST}"
 
 npm run env run tests-cli "wp core multisite-convert"
 npm run env run tests-cli "wp user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password"
