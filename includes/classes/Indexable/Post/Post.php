@@ -228,7 +228,7 @@ class Post extends Indexable {
 
 		return $post_count;
 	}
-	
+
 	/**
 	 * Returns indexable post types for the current site
 	 *
