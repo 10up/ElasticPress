@@ -92,6 +92,7 @@ class IndexHelper {
 		Utils\update_option( 'ep_last_sync', time() );
 		Utils\delete_option( 'ep_need_upgrade_sync' );
 		Utils\delete_option( 'ep_feature_auto_activated_sync' );
+		delete_transient( 'ep_sync_interrupted' );
 
 		$start_date_time = date_create( 'now', wp_timezone() );
 
