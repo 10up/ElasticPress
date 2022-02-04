@@ -286,10 +286,10 @@ function updateSyncDash() {
 
 	let progressBarWidth;
 	if (isSyncing) {
-		progressBarWidth = 100;
-	} else {
 		progressBarWidth =
 			toProcess === 0 ? 0 : (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
+	} else {
+		progressBarWidth = 100;
 	}
 
 	if (
