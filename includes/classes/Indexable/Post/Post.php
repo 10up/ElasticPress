@@ -184,7 +184,7 @@ class Post extends Indexable {
 			]
 		);
 
-		$cache_key = md5( get_current_blog_id() . json_encode( $normalized_query_args ) );
+		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
 
 		if ( ! isset( $object_counts[ $cache_key ] ) ) {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
@@ -1625,6 +1625,8 @@ class Post extends Indexable {
 		 */
 
 		if ( ! empty( $args['s'] ) ) {
+			add_filter( 'ep_formatted_args_query', [ $this, 'adjust_query_fuzziness' ], 100, 4 );
+
 			/**
 			 * Filter formatted Elasticsearch post query (only contains query part)
 			 *
@@ -1894,6 +1896,39 @@ class Post extends Indexable {
 		$formatted_args = apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
 
 		return $formatted_args;
+	}
+
+	/**
+	 * Adjust the fuzziness parameter if needed.
+	 *
+	 * If using fields with type `long`, queries should not have a fuzziness parameter.
+	 *
+	 * @param array  $query         Current query
+	 * @param array  $query_vars    Query variables
+	 * @param string $search_text   Search text
+	 * @param array  $search_fields Search fields
+	 * @return array New query
+	 */
+	public function adjust_query_fuzziness( $query, $query_vars, $search_text, $search_fields ) {
+		if ( empty( array_intersect( $search_fields, [ 'ID', 'post_id', 'post_parent' ] ) ) ) {
+			return $query;
+		}
+
+		if ( ! isset( $query['bool'] ) || ! isset( $query['bool']['should'] ) ) {
+			return $query;
+		}
+
+		foreach ( $query['bool']['should'] as &$clause ) {
+			if ( ! isset( $clause['multi_match'] ) ) {
+				continue;
+			}
+
+			if ( isset( $clause['multi_match']['fuzziness'] ) ) {
+				unset( $clause['multi_match']['fuzziness'] );
+			}
+		}
+
+		return $query;
 	}
 
 	/**

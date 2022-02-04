@@ -6,8 +6,8 @@ import { WPElement } from '@wordpress/element';
 /**
  * Checkbox component.
  *
- * @param {Option} props Component props.
- * @param {string} props.id Checkbox ID.
+ * @param {Option} props       Component props.
+ * @param {string} props.id    Checkbox ID.
  * @param {string} props.label Checkbox label.
  *
  * @return {WPElement} Component element.

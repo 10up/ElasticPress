@@ -1,9 +1,9 @@
 /**
  * Small button component.
  *
- * @param {Object} props Props.
- * @param {WPElement} props.children Children.
- * @param {string} props.className Class attribute.
+ * @param {Object}    props           Props.
+ * @param {WPElement} props.children  Children.
+ * @param {string}    props.className Class attribute.
  * @return {WPElement} Element.
  */
 export default ({ children, className, ...props }) => {
