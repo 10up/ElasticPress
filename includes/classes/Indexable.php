@@ -344,6 +344,141 @@ abstract class Indexable {
 	}
 
 	/**
+	 * Bulk index objects but with a dynamic size of queue.
+	 *
+	 * @since  4.0.0
+	 * @param  array $object_ids Array of object IDs.
+	 * @return array[WP_Error|array] The return of each request made.
+	 */
+	public function bulk_index_dynamically( $object_ids ) {
+		$documents = [];
+
+		foreach ( $object_ids as $object_id ) {
+			$action_args = array(
+				'index' => array(
+					'_id' => absint( $object_id ),
+				),
+			);
+
+			$document = $this->prepare_document( $object_id );
+
+			/**
+			 * Conditionally kill indexing on a specific object
+			 *
+			 * @hook ep_bulk_index_action_args
+			 * @param  {array} $action_args Bulk action arguments
+			 * @param {array} $document Document to index
+			 * @since  3.0
+			 * @return {array}  New action args
+			 */
+			$document_str  = wp_json_encode( apply_filters( 'ep_bulk_index_action_args', $action_args, $document ) ) . "\n";
+			$document_str .= addcslashes( wp_json_encode( $document ), "\n" );
+			$document_str .= "\n\n";
+
+			$documents[] = $document_str;
+		}
+
+		$results = $this->send_bulk_index_request( $documents );
+
+		/**
+		 * Perform actions after a dynamic bulk indexing is completed
+		 *
+		 * @hook ep_after_bulk_index_dynamically
+		 * @since 4.0.0
+		 * @param {array}      $object_ids List of object ids attempted to be indexed
+		 * @param {string}     $slug Current indexable slug
+		 * @param {array|bool} $result Result of the Elasticsearch query. False on error.
+		 */
+		do_action( 'ep_after_bulk_index_dynamically', $object_ids, $this->slug, $results );
+
+		return $results;
+	}
+
+	/**
+	 * Bulk index documents through several requests with dynamic size.
+	 *
+	 * @param array $documents The documents to be sent to Elasticsearch (already formatted.)
+	 * @return array[WP_Error|array]
+	 */
+	protected function send_bulk_index_request( $documents ) {
+		static $min_buffer_size = MB_IN_BYTES / 8;
+		static $max_buffer_size = 1.5 * MB_IN_BYTES;
+		static $current_buffer_size;
+
+		if ( ! $current_buffer_size ) {
+			$current_buffer_size = $min_buffer_size;
+		}
+
+		$results = [];
+
+		$body = [];
+
+		/*
+		 * This script will use two main arrays: $body and $documents, being $body the
+		 * documents to be sent in the next request and $documents the list of docs to be indexed.
+		 * The do-while loop will stop if all documents are sent or if a request fails even sending
+		 * a buffer as small as possible.
+		 */
+		do {
+			// Move the next document to the body array.
+			$body[] = array_shift( $documents );
+
+			// If $documents is empty, we do want to send the request with the final docs (already in $body at this point.)
+			// Body is still too small, continue.
+			if ( mb_strlen( implode( '', $body ) ) < $current_buffer_size && ! empty( $documents ) ) {
+				continue;
+			}
+
+			if ( mb_strlen( implode( '', $body ) ) > $max_buffer_size ) {
+				// The last document added to body made it too big, so let's give it back.
+				array_unshift( $documents, array_pop( $body ) );
+			}
+
+			// Try the request.
+			timer_start();
+			$result       = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, implode( '', $body ) );
+			$request_time = timer_stop();
+
+			// @todo This needs to be removed before merge.
+			error_log( 'count( $body ): ' . count( $body ) );
+			error_log( 'count( $documents ): ' . count( $documents ) );
+			error_log( '$min_buffer_size: ' . $min_buffer_size );
+			error_log( '$max_buffer_size: ' . $max_buffer_size );
+			error_log( '$current_buffer_size: ' . $current_buffer_size );
+			error_log( 'Current request size: ' . mb_strlen( implode( '', $body ) ) );
+			error_log( 'ES Time: ' . ( is_array( $result ) && isset( $result['took'] ) ? $result['took'] / 1000 : '?' ) );
+			error_log( 'Request Time: ' . $request_time );
+			error_log( '==============================================' );
+
+			// It failed, possibly adjust the buffer size and try again.
+			if ( is_wp_error( $result ) ) {
+				// As the buffer is as small as possible, return the error.
+				if ( $current_buffer_size === $min_buffer_size ) {
+					$results[] = $result;
+					break;
+				}
+
+				// We have a too big buffer. Remove one doc from the body, and set both max and current as its size.
+				array_unshift( $documents, array_pop( $body ) );
+				$max_buffer_size     = mb_strlen( implode( '', $body ) );
+				$current_buffer_size = $max_buffer_size;
+				continue;
+			}
+
+			// Things worked so we can try to bump the buffer size.
+			if ( $current_buffer_size < $max_buffer_size && mb_strlen( implode( '', $body ) ) > $current_buffer_size ) {
+				$current_buffer_size = mb_strlen( implode( '', $body ) );
+			}
+
+			$results[] = $result;
+
+			$body = [];
+		} while ( ! empty( $documents ) );
+
+		return $results;
+	}
+
+	/**
 	 * Query Elasticsearch for documents
 	 *
 	 * @param  array  $formatted_args Formatted es query arguments.
