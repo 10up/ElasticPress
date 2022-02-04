@@ -282,7 +282,11 @@ function updateDisabledAttribute(element, value) {
 function updateSyncDash() {
 	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
 
-	const progressBarWidth = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
+	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
+
+	const progressBarWidth = isSyncing
+		? (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100
+		: 100;
 
 	if (
 		typeof progressBarWidth === 'number' &&
@@ -294,7 +298,6 @@ function updateSyncDash() {
 		progressBar.innerText = `${Math.trunc(width)}%`;
 	}
 
-	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
 	if (isSyncing) {
 		progressBar.classList.remove('ep-sync-box__progressbar_complete');
 	} else {
