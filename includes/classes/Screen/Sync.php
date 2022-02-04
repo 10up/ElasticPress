@@ -213,6 +213,7 @@ class Sync {
 		$data['sync_wpcli']           = esc_html__( 'WP CLI sync is occurring.', 'elasticpress' );
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
+		$data['is_epio']              = Utils\is_epio();
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );
 	}

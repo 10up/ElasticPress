@@ -5,7 +5,7 @@ import { dateI18n } from '@wordpress/date';
 const { epDash, history } = window;
 const { __, sprintf } = wp.i18n;
 
-const { ajax_url: ajaxurl = '' } = epDash;
+const { ajax_url: ajaxurl = '', is_epio } = epDash;
 
 // Main elements of sync page
 const syncBox = document.querySelector('.ep-sync-data');
@@ -284,9 +284,13 @@ function updateSyncDash() {
 
 	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
 
-	const progressBarWidth = isSyncing
-		? (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100
-		: 100;
+	let progressBarWidth;
+	if (isSyncing) {
+		progressBarWidth = 100;
+	} else {
+		progressBarWidth =
+			toProcess === 0 ? 0 : (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
+	}
 
 	if (
 		typeof progressBarWidth === 'number' &&
@@ -300,10 +304,28 @@ function updateSyncDash() {
 
 	if (isSyncing) {
 		progressBar.classList.remove('ep-sync-box__progressbar_complete');
+	} else if (syncStatus === 'interrupt') {
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+
+		progressInfoElement.innerText = __('Sync interrupted', 'elasticpress');
+
+		updateDisabledAttribute(deleteAndSyncButton, false);
+		updateDisabledAttribute(syncButton, false);
+
+		hidePauseStopButtons();
+		hideResumeButton();
+
+		syncButton.style.display = 'flex';
+
+		const learnMoreLink = activeBox.querySelector('.ep-sync-box__learn-more-link');
+
+		if (learnMoreLink?.style) {
+			learnMoreLink.style.display = 'block';
+		}
 	} else {
 		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
-		progressInfoElement.innerText = 'Sync completed';
+		progressInfoElement.innerText = __('Sync completed', 'elasticpress');
 
 		progressBar.classList.add('ep-sync-box__progressbar_complete');
 
@@ -327,6 +349,10 @@ function updateSyncDash() {
  * Cancel a sync
  */
 function cancelSync() {
+	toProcess = 0;
+	processed = 0;
+	totalProcessed = 0;
+
 	apiFetch({
 		url: ajaxurl,
 		method: 'POST',
@@ -334,10 +360,6 @@ function cancelSync() {
 			action: 'ep_cancel_index',
 			nonce: epDash.nonce,
 		}),
-	}).then(() => {
-		toProcess = 0;
-		processed = 0;
-		totalProcessed = 0;
 	});
 }
 
@@ -509,16 +531,38 @@ function updateLastSyncDateTime(dateValue) {
 }
 
 /**
+ * Check if a destructive index is running
+ *
+ * @return {boolean} Wheter or not is a destructive index
+ */
+function isDestructiveIndex() {
+	return activeBox === deleteAndSyncBox;
+}
+
+/**
  * Interrupt the sync process
  *
  * @param {boolean} value True to interrupt the sync process
  */
 function shouldInterruptSync(value) {
-	if (value) {
-		syncStatus = 'interrupt';
-		updateSyncDash();
-		cancelSync();
+	if (!value) {
+		return;
 	}
+
+	syncStatus = 'interrupt';
+
+	let logMessage = __('Sync interrupted by WP-CLI command', 'elasticpress');
+	if (isDestructiveIndex()) {
+		logMessage = sprintf(
+			// translators: ElasticPress.io or Elasticsearch
+			__(
+				'Your indexing process has been stopped by WP-CLI and your %s index could be missing content. To restart indexing, please click the Start button or use WP-CLI commands to perform the reindex. Please note that search results could be incorrect or incomplete until the reindex finishes.',
+				'elasticpress',
+			),
+			is_epio ? 'ElasticPress.io' : 'Elasticsearch',
+		);
+	}
+	stopIndex(__('Sync interrupted', 'elasticpress'), logMessage);
 }
 
 /**
@@ -729,23 +773,26 @@ document.querySelectorAll('.ep-sync-box__button-resume')?.forEach((button) => {
 	});
 });
 
+function stopIndex(syncMessage, logMessage) {
+	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
+
+	const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
+
+	updateSyncDash();
+
+	cancelSync();
+
+	progressInfoElement.innerText = syncMessage;
+
+	progressBar.style.width = `0`;
+	progressBar.innerText = ``;
+
+	addLineToOutput(logMessage);
+}
 document.querySelectorAll('.ep-sync-box__button-stop')?.forEach((button) => {
-	button?.addEventListener('click', function () {
-		syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
-
-		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
-		const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
-
-		updateSyncDash();
-
-		cancelSync();
-
-		progressInfoElement.innerText = __('Sync stopped', 'elasticpress');
-
-		progressBar.style.width = `0`;
-		progressBar.innerText = ``;
-
-		addLineToOutput(__('Sync stopped', 'elasticpress'));
+	button?.addEventListener('click', () => {
+		stopIndex(__('Sync stopped', 'elasticpress'), __('Sync stopped', 'elasticpress'));
 	});
 });
 
