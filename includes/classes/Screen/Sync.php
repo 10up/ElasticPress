@@ -50,10 +50,25 @@ class Sync {
 		$index_meta = Utils\get_indexing_status();
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
-			wp_send_json_success( $index_meta );
+			wp_send_json_success(
+				[
+					'message'    => sprintf(
+						/* translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID */
+						esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ),
+						$index_meta['offset'],
+						$index_meta['found_items'],
+						$index_meta['current_sync_item']['last_processed_object_id']
+					),
+					'index_meta' => $index_meta,
+				]
+			);
 		}
 
-		wp_send_json_success( array( 'is_finished' => true ) );
+		wp_send_json_success(
+			[
+				'is_finished' => true,
+			]
+		);
 	}
 
 	/**
