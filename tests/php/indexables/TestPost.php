@@ -864,7 +864,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test a taxonomy query with invalid terms
 	 *
-	 * @since 1.8
+	 * @since 4.0.0
 	 * @group post
 	 */
 	public function testTaxQueryWithInvalidTerms() {
