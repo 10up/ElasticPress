@@ -44,7 +44,7 @@ function hideResultsBox(inputElement) {
 /**
  * Update the result list
  *
- * @param {Object} comments Comments to be showed
+ * @param {Object}           comments     Comments to be showed
  * @param {HTMLInputElement} inputElement The input element used in the widget
  */
 const updateResultsBox = (comments, inputElement) => {
@@ -114,8 +114,8 @@ function hasMinimumLength(inputElement) {
 /**
  * Add class to the widget element while results are being loaded
  *
- * @param {boolean} isLoading Whether results are loading
- * @param {Node} inputElement Search input field
+ * @param {boolean} isLoading    Whether results are loading
+ * @param {Node}    inputElement Search input field
  */
 function setIsLoading(isLoading, inputElement) {
 	const widget = findAncestorByClass(inputElement, 'ep-widget-search-comments');

@@ -6,7 +6,7 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Star rating component.
  *
- * @param {Option} props Component props.
+ * @param {Option} props        Component props.
  * @param {string} props.rating Rating.
  *
  * @return {WPElement} Component element.

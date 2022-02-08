@@ -13,11 +13,11 @@ import { __ } from '@wordpress/i18n';
 /**
  * Modal components.
  *
- * @param {Object} props Component props.
+ * @param {Object}    props          Component props.
  * @param {WPElement} props.children Component children.
- * @param {boolean} props.isOpen Whether the modal is open.
- * @param {Function} props.onClose Callback to run when modal is closed.
- * @param {Object} ref Ref.
+ * @param {boolean}   props.isOpen   Whether the modal is open.
+ * @param {Function}  props.onClose  Callback to run when modal is closed.
+ * @param {Object}    ref            Ref.
  * @return {WPElement} React element.
  */
 const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
