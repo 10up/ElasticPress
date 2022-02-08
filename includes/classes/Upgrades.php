@@ -61,10 +61,12 @@ class Upgrades {
 		 * Note: if a upgrade routine method is hooked to some action,
 		 * this code will be executed *earlier* than the routine method.
 		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		} else {
-			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
+		if ( EP_VERSION !== $this->old_version ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
+			} else {
+				update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
+			}
 		}
 	}
 
