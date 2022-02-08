@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [3.6.7] - 2021-02-08
+
+## Changed
+- Only update ElasticPress when older version is detected in DB.
+
 ## [3.6.6] - 2021-12-20
 
 ElasticPress 4.0 Beta 1 is [now available](https://github.com/10up/ElasticPress/releases/tag/4.0.0-beta.1) for non-production testing.
