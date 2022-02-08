@@ -658,18 +658,97 @@ h2.ep-list-features {
  * Weighting
  */
 
-.weighting-settings .postbox {
+.weighting-settings {
 	box-sizing: border-box;
 	max-width: 650px;
 
-	& * {
-		box-sizing: border-box;
+	& .postbox {
+
+		& .components-range-control__number {
+			display: none;
+		}
+
+		& .postbox__header {
+			align-items: center;
+			border-bottom: 1px solid #c3c4c7;
+			display: flex;
+		}
+
+		& .undo-changes {
+			background-color: transparent;
+			border: 0;
+			color: #1e8cbe;
+			cursor: pointer;
+			margin-left: auto;
+			padding: 0 10px;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+
+		& * {
+			box-sizing: border-box;
+		}
 	}
+
+	& .add-meta-key-wrap {
+		align-items: center;
+		display: flex;
+
+		& legend {
+			top: 0;
+		}
+	}
+
+	& .add-meta-key {
+		width: 300px;
+	}
+
+	& .submit__button {
+		align-items: center;
+		background: #fff;
+		bottom: 0;
+		display: flex;
+		padding: 10px;
+		position: sticky;
+
+		& button {
+			margin-right: 10px;
+		}
+	}
+
+}
+
+.components-range-control__wrapper {
+	min-width: 100px;
+
+	& span:last-child {
+		background-color: #1e8cbe;
+		pointer-events: none;
+	}
+}
+
+div.components-base-control__field {
+	align-items: center;
+	display: flex;
+	height: 20px;
+	margin: 0;
+
+	& .components-base-control__label {
+		margin: 0;
+	}
+}
+
+.field-item .components-base-control__help {
+	margin-top: -10px;
+	padding: 0;
 }
 
 .weighting-settings .postbox h2.hndle {
 	color: #444;
 	cursor: inherit;
+	width: 110px;
 }
 
 .weighting-settings fieldset {
@@ -702,9 +781,26 @@ h2.ep-list-features {
 	background: #f9f9f9;
 }
 
-.weighting-settings .searchable {
+.field-item {
+	align-items: center;
+	display: flex;
+}
+
+.remove-meta-item {
+	cursor: pointer;
+
+	& path {
+		fill: #d84440;
+	}
+}
+
+.field-item p {
 	display: inline-block;
-	width: 120px;
+	padding: 0 10px;
+
+	& a {
+		text-decoration: none;
+	}
 }
 
 .weighting-settings .weighting {
@@ -713,7 +809,6 @@ h2.ep-list-features {
 }
 
 .weighting-settings .weighting label {
-	margin-right: 10px;
 	min-width: 80px;
 }
 
@@ -724,7 +819,7 @@ h2.ep-list-features {
 	height: 1em;
 	margin: 0;
 	vertical-align: middle;
-	width: 200px;
+	width: 120px;
 }
 
 .weighting-settings input[type="range"]:focus {

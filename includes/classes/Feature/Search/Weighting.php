@@ -41,6 +41,32 @@ class Weighting {
 	}
 
 	/**
+	 * Returns unique list of meta keys
+	 *
+	 * @param string $post_type Post type
+	 *
+	 * @return array
+	 */
+	public function get_meta_keys_for_post_type( $post_type ) {
+
+
+		$meta_keys = array();
+		$posts     = get_posts( array( 'post_type' => $post_type, 'limit' => -1 ) );
+
+
+		foreach ( $posts as $post ) {
+			$post_meta_keys = get_post_custom_keys( $post->ID );
+			var_dump($post_meta_keys);
+			$meta_keys      = array_merge( $meta_keys, $post_meta_keys );
+		}
+
+		// Use array_unique to remove duplicate meta_keys that we received from all posts
+		// Use array_values to reset the index of the array
+		return array_values( array_unique( $meta_keys ) );
+
+	}
+
+	/**
 	 * Returns a grouping of all the fields that support weighting for the post type
 	 *
 	 * @param string $post_type Post type
@@ -211,58 +237,7 @@ class Weighting {
 	public function render_settings_page() {
 		include EP_PATH . '/includes/partials/header.php'; ?>
 		<div class="wrap">
-
-			<h1><?php esc_html_e( 'Manage Search Fields & Weighting', 'elasticpress' ); ?></h1>
-			<p><?php esc_html_e( 'Adding more weight to an item will mean it will have more presence during searches. Add more weight to the items that are more important and need more prominence during searches.', 'elasticpress' ); ?></p>
-			<p><?php esc_html_e( 'For example, adding more weight to the title attribute will cause search matches on the post title to appear more prominently.', 'elasticpress' ); ?></p>
-
-			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" class="weighting-settings metabox-holder">
-				<input type="hidden" name="action" value="ep-weighting">
-				<?php wp_nonce_field( 'save-weighting', 'ep-weighting-nonce' ); ?>
-				<?php
-				if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
-					if ( $_GET['settings-updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification
-						?>
-						<div class="notice notice-success is-dismissible">
-							<p><?php esc_html_e( 'Changes Saved!', 'elasticpress' ); ?></p>
-						</div>
-					<?php else : ?>
-						<div class="notice notice-error is-dismissible">
-							<p><?php esc_html_e( 'An error occurred when saving!', 'elasticpress' ); ?></p>
-						</div>
-						<?php
-					endif;
-				endif;
-
-				/** Features Class @var Features $features */
-				$features = Features::factory();
-
-				/** Search Feature @var Feature\Search\Search $search */
-				$search = $features->get_registered_feature( 'search' );
-
-				$post_types = $search->get_searchable_post_types();
-
-				$current_values = $this->get_weighting_configuration();
-
-				foreach ( $post_types as $post_type ) :
-					$fields           = $this->get_weightable_fields_for_post_type( $post_type );
-					$post_type_object = get_post_type_object( $post_type );
-					?>
-					<div class="postbox">
-						<h2 class="hndle"><?php echo esc_html( $post_type_object->labels->menu_name ); ?></h2>
-
-						<?php
-						foreach ( $fields as $field_group ) :
-							$this->render_settings_section( $post_type, $field_group, $current_values );
-						endforeach;
-						?>
-					</div>
-					<?php
-				endforeach;
-
-				submit_button();
-				?>
-			</form>
+			<div id="ep-weighting-screen"></div>
 		</div>
 		<?php
 	}
@@ -309,12 +284,17 @@ class Weighting {
 				$weight         = 0;
 			}
 			?>
-			<fieldset>
+			<fieldset class="field-item">
 				<legend><?php echo esc_html( $field['label'] ); ?></legend>
 
+				<p class="indexable">
+					<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-indexable" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
+					<label for="<?php echo esc_attr( "{$post_type}-{$key}-indexable" ); ?>"><?php esc_html_e( 'Index', 'elasticpress' ); ?></label>
+				</p>
+
 				<p class="searchable">
-					<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
-					<label for="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>"><?php esc_html_e( 'Searchable', 'elasticpress' ); ?></label>
+					<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-searchable" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
+					<label for="<?php echo esc_attr( "{$post_type}-{$key}-searchable" ); ?>"><?php esc_html_e( 'Searchable', 'elasticpress' ); ?></label>
 				</p>
 
 				<p class="weighting">
@@ -326,6 +306,8 @@ class Weighting {
 					</label>
 					<input type="range" min="1" max="100" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]" <?php echo $range_disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 				</p>
+
+				<p class="undo-changes"><a href="#"><?php esc_html_e( 'Undo changes', 'elasticpress' ); ?></a></p>
 			</fieldset>
 			<?php
 		endif;
