@@ -56,7 +56,7 @@ return array(
 					 * @param  {array<string>} $filters Default filters
 					 * @return {array<string>} New filters
 					 */
-					'filter' => apply_filters( 'ep_default_analyzer_filters', array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ) ),
+					'filter'    => apply_filters( 'ep_default_analyzer_filters', array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ) ),
 					/**
 					 * Filter Elasticsearch default language in mapping
 					 *
@@ -398,6 +398,26 @@ return array(
 						'second'        => array( // Second (0 to 59).
 							'type' => 'integer',
 						),
+					),
+				),
+			),
+			'thumbnail'         => array(
+				'type'       => 'object',
+				'properties' => array(
+					'ID'     => array(
+						'type' => 'long',
+					),
+					'src'    => array(
+						'type' => 'text',
+					),
+					'width'  => array(
+						'type' => 'integer',
+					),
+					'height' => array(
+						'type' => 'integer',
+					),
+					'alt'    => array(
+						'type' => 'text',
 					),
 				),
 			),

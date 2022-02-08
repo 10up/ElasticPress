@@ -1,8 +1,8 @@
 ## Requirements
 
-* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.9**
-* [WordPress](http://wordpress.org) 3.7.1+
-* [PHP](https://php.net/) 5.6+
+* [Elasticsearch](https://www.elastic.co) 5.2+ **ElasticSearch max version supported: 7.10**
+* [WordPress](http://wordpress.org) 5.6+
+* [PHP](https://php.net/) 7.0+
 * A properly configured web server with object caching is highly recommended.
 
 ## Install Steps

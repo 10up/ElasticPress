@@ -204,9 +204,9 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' );
 		} else {
-			$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+			$url = admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 		}
 
 		$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
@@ -282,9 +282,9 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' );
 		} else {
-			$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
+			$url = admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 		}
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
@@ -350,9 +350,9 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress' );
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync' );
 		} else {
-			$url = admin_url( 'admin.php?page=elasticpress' );
+			$url = admin_url( 'admin.php?page=elasticpress-sync' );
 		}
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
@@ -451,10 +451,10 @@ class AdminNotices {
 			return false;
 		}
 
-		// First reduce version to major version i.e. 5.1 not 5.1.1.
+		// First reduce version to major version i.e. 7.10 not 7.10.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
-		// pad a version to have at least two parts (5 -> 5.0)
+		// pad a version to have at least two parts (7 -> 7.0)
 		$parts = explode( '.', $major_es_version );
 
 		if ( 1 === count( $parts ) ) {
@@ -511,7 +511,7 @@ class AdminNotices {
 			return false;
 		}
 
-		// First reduce version to major version i.e. 5.1 not 5.1.1.
+		// First reduce version to major version i.e. 7.10 not 7.10.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
 		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {

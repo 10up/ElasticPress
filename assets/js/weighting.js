@@ -1,3 +1,5 @@
+import jQuery from 'jquery';
+
 jQuery('.weighting-settings input[type=range]').on('input', function () {
 	const el = jQuery(this);
 

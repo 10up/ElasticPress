@@ -1,0 +1,17 @@
+.ep-search-options-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.ep-search-options-list__item {
+	margin: 0.5em 0;
+
+	&::before {
+		content: none;
+	}
+}
+
+.ep-search-options-list__sub-menu {
+	padding-left: 1em;
+}
