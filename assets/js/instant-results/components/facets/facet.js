@@ -34,8 +34,8 @@ export default ({ index, label, name, postTypes, type }) => {
 				<TaxonomyTermsFacet
 					defaultIsOpen={defaultIsOpen}
 					label={label}
+					name={name}
 					postTypes={postTypes}
-					taxonomy={name}
 				/>
 			);
 		default:

@@ -24,9 +24,9 @@ import { ActiveContraint } from '../tools/active-constraints';
 export default ({ defaultIsOpen, label }) => {
 	const {
 		state: {
+			aggregations: { post_type: { post_type: { buckets = [] } = {} } = {} },
+			args: { post_type: selectedPostTypes = [] },
 			isLoading,
-			filters: { post_type: selectedPostTypes = [] },
-			postTypesAggregation: { post_types: { buckets = [] } = {} } = {},
 		},
 		dispatch,
 	} = useContext(Context);

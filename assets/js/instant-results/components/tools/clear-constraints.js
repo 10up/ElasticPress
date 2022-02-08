@@ -18,7 +18,7 @@ import SmallButton from '../common/small-button';
  */
 export default () => {
 	const {
-		state: { filters },
+		state: { args },
 		dispatch,
 	} = useContext(Context);
 
@@ -32,8 +32,18 @@ export default () => {
 	 * @return {boolean} Whether there are active filters.
 	 */
 	const hasFilters = useMemo(() => {
-		return facets.some(({ name }) => filters[name]?.length > 0);
-	}, [filters]);
+		return facets.some(({ name, type }) => {
+			switch (type) {
+				case 'post_type':
+				case 'taxonomy':
+					return args[name]?.length > 0;
+				case 'price_range':
+					return args.max_price || args.min_price;
+				default:
+					return args[name];
+			}
+		});
+	}, [args]);
 
 	/**
 	 * Handle clicking button.

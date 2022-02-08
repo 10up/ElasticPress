@@ -7,6 +7,7 @@ import { facets, highlightTag, matchType } from './config';
  * Initial state.
  */
 export const initialArg = {
+	aggregations: {},
 	args: {
 		highlight: highlightTag,
 		offset: 0,
@@ -15,18 +16,12 @@ export const initialArg = {
 		per_page: 6,
 		relation: matchType === 'all' ? 'and' : 'or',
 		search: '',
-		elasticpress: '1',
 	},
-	filters: {},
 	isLoading: false,
 	isOpen: false,
 	isSidebarOpen: false,
-	poppingState: false,
-	postTypesAggregation: {},
-	priceRangeAggregations: {},
 	searchResults: [],
 	searchedTerm: '',
-	taxonomyTermsAggregations: {},
 	totalResults: 0,
 };
 
@@ -44,19 +39,25 @@ export const reducer = (state, { type, payload }) => {
 
 	switch (type) {
 		case 'APPLY_FILTERS': {
-			newState.args.offset = 0;
-			newState.filters = { ...state.filters, ...payload };
-
+			newState.args = { ...state.args, ...payload, offset: 0 };
 			break;
 		}
 		case 'CLEAR_FILTERS': {
-			newState.filters = facets.reduce(
-				(filters, { name }) => {
-					delete filters[name];
+			newState.args = facets.reduce(
+				(args, { name, type }) => {
+					switch (type) {
+						case 'price_range':
+							delete args.max_price;
+							delete args.min_price;
+							break;
+						default:
+							delete args[name];
+							break;
+					}
 
-					return filters;
+					return args;
 				},
-				{ ...state.filters },
+				{ ...state.args },
 			);
 
 			break;
@@ -75,11 +76,7 @@ export const reducer = (state, { type, payload }) => {
 		case 'NEW_SEARCH_RESULTS': {
 			const {
 				hits: { hits, total },
-				aggregations: {
-					post_type: postTypesAggregation,
-					price_range: priceRangeAggregation,
-					...taxonomyTermsAggregations
-				} = {},
+				aggregations,
 			} = payload;
 
 			/**
@@ -87,11 +84,9 @@ export const reducer = (state, { type, payload }) => {
 			 */
 			const totalNumber = typeof total === 'number' ? total : total.value;
 
-			newState.postTypesAggregation = postTypesAggregation;
-			newState.priceRangeAggregations = priceRangeAggregation;
+			newState.aggregations = aggregations;
 			newState.searchResults = hits;
 			newState.searchedTerm = newState.args.search;
-			newState.taxonomyTermsAggregations = taxonomyTermsAggregations;
 			newState.totalResults = totalNumber;
 
 			break;

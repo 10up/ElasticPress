@@ -184,7 +184,6 @@ const App = () => {
 		state.args.offset,
 		state.args.search,
 		state.isOpen,
-		state.filters,
 	]);
 
 	return (

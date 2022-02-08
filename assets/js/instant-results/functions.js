@@ -48,35 +48,19 @@ export const getPostTypesFromForm = (form) => {
  * @return {URLSearchParams} URLSearchParams instance.
  */
 export const getURLParamsFromState = (state) => {
-	const { args, filters } = state;
+	const { args } = state;
 
-	const filterArgs = Object.entries(filters).reduce((filterArgs, [filter, value]) => {
-		switch (filter) {
-			case 'price_range':
-				if (value.length > 0) {
-					filterArgs.min_price = value[0];
-					filterArgs.max_price = value[1];
-				}
-
-				break;
-			case 'post_type':
-				if (value.length > 0) {
-					filterArgs[filter] = value.join(',');
-				}
-
-				break;
-			default:
-				if (value.length > 0) {
-					filterArgs[`tax-${filter}`] = value.join(',');
-				}
-
-				break;
+	const init = Object.entries(args).reduce((init, [key, value]) => {
+		if (Array.isArray(value)) {
+			if (value.length > 0) {
+				init[key] = value.join(',');
+			}
+		} else {
+			init[key] = value;
 		}
 
-		return filterArgs;
+		return init;
 	}, {});
-
-	const init = { ...args, ...filterArgs };
 
 	return new URLSearchParams(init);
 };

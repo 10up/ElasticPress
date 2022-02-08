@@ -653,7 +653,7 @@ class InstantResults extends Feature {
 				'frontend' => __( 'Type', 'elasticpress' ),
 			),
 			'aggs'       => array(
-				'post_types' => array(
+				'post_type' => array(
 					'terms' => array(
 						'field' => 'post_type.raw',
 					),
@@ -668,6 +668,7 @@ class InstantResults extends Feature {
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		foreach ( $taxonomies as $slug => $taxonomy ) {
+			$name   = 'tax-' . $slug;
 			$labels = get_taxonomy_labels( $taxonomy );
 
 			$admin_label = sprintf(
@@ -677,7 +678,7 @@ class InstantResults extends Feature {
 				$slug
 			);
 
-			$facets[ $slug ] = array(
+			$facets[ $name ] = array(
 				'type'       => 'taxonomy',
 				'post_types' => $taxonomy->object_type,
 				'labels'     => array(
@@ -685,7 +686,7 @@ class InstantResults extends Feature {
 					'frontend' => $labels->singular_name,
 				),
 				'aggs'       => array(
-					'taxonomy_terms' => array(
+					$name => array(
 						'terms' => array(
 							'field' => 'terms.' . $slug . '.facet',
 							'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
