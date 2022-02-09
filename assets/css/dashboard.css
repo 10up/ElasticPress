@@ -480,7 +480,29 @@ h2.ep-list-features {
 	justify-content: center;
 	padding-left: 10%;
 	padding-right: 10%;
+	position: relative;
 	text-align: center;
+}
+
+.ep-feature-list {
+	text-align: left;
+
+	& li {
+		align-items: center;
+		display: flex;
+		margin: 4px 3px;
+		white-space: nowrap;
+	}
+}
+
+.ep-feature-info {
+	text-decoration: none;
+
+	& .dashicons {
+		font-size: 14px;
+		position: relative;
+		top: 2px;
+	}
 }
 
 .intro-box {
@@ -586,7 +608,7 @@ h2.ep-list-features {
 	left: -14em;
 	position: absolute;
 	top: 2.9em;
-	width: 34em;
+	width: 46em;
 	z-index: -1;
 }
 

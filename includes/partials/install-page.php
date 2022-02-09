@@ -72,7 +72,7 @@ $skip_install_url = add_query_arg(
 					<div class="ep-copy-text">
 						<p><?php esc_html_e( 'Select which features you would like to have enabled.', 'elasticpress' ); ?></p>
 						<?php if ( 3 === $install_status ) { ?>
-							<ul>
+							<ul class="ep-feature-list">
 								<?php
 								$features = \ElasticPress\Features::factory()->registered_features;
 								foreach ( $features as $feature ) {
@@ -92,6 +92,7 @@ $skip_install_url = add_query_arg(
 												<?php checked( $should_be_checked ); ?>>
 											<?php echo esc_html( $feature->title ); ?>
 										</label>
+										<a href="#" class="ep-feature-info" title="See description"><span class="dashicons dashicons-info"></span></a>
 									</li>
 									<?php
 								}
