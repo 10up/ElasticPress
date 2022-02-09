@@ -115,6 +115,28 @@ const App = () => {
 	};
 
 	/**
+	 * Reset current form changes.
+	 *
+	 * @param {string} postType name of the post type.
+	 */
+	const resetCurrentFormChanges = (postType) => {
+		const savedFormData = getSavedFormData(postType);
+		const excludeOldCurrentFormData = formData.filter((item) => item.name !== postType);
+
+		const newFormData = [...excludeOldCurrentFormData, savedFormData];
+
+		setFormData(sortListByOrder(newFormData));
+	};
+
+	/**
+	 * Check if current has changes.
+	 *
+	 * @param {string} postType name of the post type.
+	 */
+	const hasCurrentFormChanges = (postType) =>
+		JSON.stringify(getCurrentFormData(postType)) !== JSON.stringify(getSavedFormData(postType));
+
+	/**
 	 * Handle for submission.
 	 *
 	 * @param {Object} event react synthetic event.
@@ -166,11 +188,11 @@ const App = () => {
 							</label>
 						</fieldset>
 
-						{hasChanges && (
+						{hasCurrentFormChanges(postType.name) && (
 							<button
 								type="button"
 								className="undo-changes"
-								onClick={resetAllChanges}
+								onClick={() => resetCurrentFormChanges(postType.name)}
 							>
 								{__('Undo all changes', 'elasticpress')}
 							</button>
@@ -201,11 +223,20 @@ const App = () => {
 					{isSaving ? __('Saving…', 'elasticpress') : __('Save changes', 'elasticpress')}
 				</button>
 
-				<span>
+				<span className="note">
 					{hasChanges
 						? __('Please re-sync your data after saving.', 'elasticpress')
 						: __('You have nothing to save.', 'elasticpress')}
 				</span>
+
+				<button
+					type="button"
+					className="button button-primary reset-all-changes-button"
+					onClick={resetAllChanges}
+					disabled={!hasChanges}
+				>
+					{__('Reset all changes', 'elasticpress')}
+				</button>
 			</div>
 		</form>
 	);

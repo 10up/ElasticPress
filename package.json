@@ -75,6 +75,7 @@
     "focus-trap-react": "^8.8.2",
     "jquery": "^3.6.0",
     "promise-polyfill": "^8.2.1",
+    "prop-types": "^15.8.1",
     "react": "^16.14.0",
     "react-beautiful-dnd": "^11.0.5",
     "react-dom": "^16.14.0",

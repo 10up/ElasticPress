@@ -713,8 +713,12 @@ h2.ep-list-features {
 		padding: 10px;
 		position: sticky;
 
-		& button {
-			margin-right: 10px;
+		& .note {
+			margin-left: 10px;
+		}
+
+		& .reset-all-changes-button {
+			margin-left: auto;
 		}
 	}
 
