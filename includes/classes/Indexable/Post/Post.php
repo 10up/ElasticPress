@@ -1859,7 +1859,7 @@ class Post extends Indexable {
 
 				// Set up our terms object
 				$terms_obj = array(
-					'terms.' . $single_tax_query['taxonomy'] . '.' . $field => array_filter( $terms ),
+					'terms.' . $single_tax_query['taxonomy'] . '.' . $field => array_values( array_filter( $terms ) ),
 				);
 
 				$operator = ( ! empty( $single_tax_query['operator'] ) ) ? strtolower( $single_tax_query['operator'] ) : 'in';
