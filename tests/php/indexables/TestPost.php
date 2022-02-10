@@ -862,6 +862,95 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a taxonomy query with invalid terms
+	 *
+	 * @since 4.0.0
+	 * @group post
+	 */
+	public function testTaxQueryWithInvalidTerms() {
+		$post = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array(
+					'one',
+					'two',
+				),
+			)
+		);
+		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 3',
+				'tags_input'   => array(
+					'one',
+					'three',
+				),
+			)
+		);
+
+		$tags   = wp_get_post_tags( $post );
+		$tag_id = 0;
+
+		foreach ( $tags as $tag ) {
+			if ( 'one' === $tag->slug ) {
+				$tag_id = $tag->term_id;
+			}
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id, null ),
+					'field'    => 'term_id',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( null, $tag_id, false ),
+					'field'    => 'term_id',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id, null ),
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a category_name query
 	 *
 	 * @since 1.5
@@ -6538,5 +6627,34 @@ class TestPost extends BaseTestCase {
 		] );
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+	}
+
+	/**
+	 * Test if inserting a post and deleting another one in the thread works as expected.
+	 */
+	public function testInsertPostAndDeleteAnother() {
+		$post_to_be_deleted = Functions\create_and_sync_post( [ 'post_title' => 'To be deleted' ] );
+
+		$new_post_id = wp_insert_post(
+			[
+				'post_status' => 'publish',
+				'post_title'  => 'New Post ' . time(),
+			]
+		);
+
+		wp_delete_post( $post_to_be_deleted, true );
+
+		\ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		\ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query( [
+			'ep_integrate' => true,
+			'post__in'     => array( $post_to_be_deleted, $new_post_id ),
+		] );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $query->posts[0]->ID, $new_post_id );
 	}
 }

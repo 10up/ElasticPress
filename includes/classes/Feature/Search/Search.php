@@ -473,12 +473,12 @@ class Search extends Feature {
 										 * Filter search date weighting decay
 										 *
 										 * @hook epwr_decay
-										 * @param  {string} $decay Current decay
+										 * @param  {float} $decay Current decay
 										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
 										 * @param  {array} $args WP_Query arguments
-										 * @return  {string} New decay
+										 * @return  {float} New decay
 										 */
-										'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
+										'decay'  => apply_filters( 'epwr_decay', 0.25, $formatted_args, $args ),
 										/**
 										 * Filter search date weighting offset
 										 *
@@ -498,10 +498,10 @@ class Search extends Feature {
 								 *
 								 * @since 3.5.6
 								 * @hook epwr_weight
-								 * @param  {string} $weight Current weight
+								 * @param  {float} $weight Current weight
 								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
 								 * @param  {array} $args WP_Query arguments
-								 * @return  {string} New weight
+								 * @return  {float} New weight
 								 */
 								'weight' => apply_filters( 'epwr_weight', 0.001, $formatted_args, $args ),
 							),
@@ -576,7 +576,7 @@ class Search extends Feature {
 			return $enabled;
 		}
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOL ) ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			return false;
 		}
 

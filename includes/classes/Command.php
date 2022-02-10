@@ -933,7 +933,7 @@ class Command extends WP_CLI_Command {
 		$no_bulk = false;
 
 		if ( isset( $args['nobulk'] ) ) {
-			$no_bulk = true;
+			$no_bulk                                 = true;
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
@@ -1850,6 +1850,7 @@ class Command extends WP_CLI_Command {
 			add_filter(
 				'http_api_debug',
 				function ( $response, $context, $transport, $request_args, $url ) {
+					// phpcs:disab le WordPress.PHP.DevelopmentFunctions
 					WP_CLI::line(
 						sprintf(
 							/* translators: URL of the request */
@@ -1885,6 +1886,7 @@ class Command extends WP_CLI_Command {
 							print_r( $response, true )
 						)
 					);
+					// phpcs:enable WordPress.PHP.DevelopmentFunctions
 				},
 				10,
 				5

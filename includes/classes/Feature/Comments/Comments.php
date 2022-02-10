@@ -110,7 +110,7 @@ class Comments extends Feature {
 			return $enabled;
 		}
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOL ) ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			$enabled = false;
 		} elseif ( ! empty( $query->query_vars['search'] ) ) {
 			$enabled = true;
@@ -154,7 +154,7 @@ class Comments extends Feature {
 				'callback'            => [ $this, 'handle_comments_search' ],
 				'permission_callback' => '__return_true',
 				'args'                => [
-					's' => [
+					's'         => [
 						'validate_callback' => function ( $param ) {
 							return ! empty( $param );
 						},
