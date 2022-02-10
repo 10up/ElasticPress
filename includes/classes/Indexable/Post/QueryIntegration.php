@@ -13,7 +13,9 @@ use \WP_Query as WP_Query;
 use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -49,7 +51,7 @@ class QueryIntegration {
 		add_action( 'loop_end', array( $this, 'maybe_restore_blog' ), 10, 1 );
 
 		// Properly switch to blog if necessary
-		add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 1 );
+		add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 2 );
 
 		// Sets the correct value for found_posts
 		add_filter( 'found_posts', array( $this, 'found_posts' ), 10, 2 );
@@ -113,19 +115,41 @@ class QueryIntegration {
 			 * Manually setting a header as $wp_query isn't yet initialized when we
 			 * call: add_filter('wp_headers', 'filter_wp_headers');
 			 */
+			// @codeCoverageIgnoreStart
 			header( 'X-ElasticPress-Query: true' );
+			// @codeCoverageIgnoreEnd
 		}
 	}
 
 	/**
-	 * Switch to the correct site if the post site id is different than the actual one
+	 * Gets the blog ID that the class is currently switched to.
 	 *
-	 * @param WP_Post $post Post object
-	 * @since 0.9
+	 * @return int
 	 */
-	public function maybe_switch_to_blog( $post ) {
+	public function get_switched() {
+		return $this->switched;
+	}
+
+	/**
+	 * Switch to the correct site if the post site id is different than the actual one.
+	 *
+	 * Note: This function can bring a performance penalty in multisites with a high number of sites.
+	 *
+	 * @param WP_Post  $post Post object
+	 * @param WP_Query $query WP_Query instance. If null, the global query will be used.
+	 * @since 0.9
+	 * @since 3.6.2 `$query` parameter added.
+	 */
+	public function maybe_switch_to_blog( $post, $query = null ) {
+		global $wp_query;
+		if ( ! $query ) {
+			$query = $wp_query;
+		}
+
 		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( ! empty( $post->site_id ) && get_current_blog_id() !== $post->site_id ) {
@@ -139,9 +163,15 @@ class QueryIntegration {
 
 			$this->switched = $post->site_id;
 
-			remove_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 1 );
+			remove_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 2 );
 			setup_postdata( $post );
-			add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 1 );
+			add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 2 );
+
+			if ( $this->switched && ! $query->in_the_loop ) {
+				restore_current_blog();
+
+				$this->switched = false;
+			}
 		}
 
 	}
@@ -154,7 +184,9 @@ class QueryIntegration {
 	 */
 	public function maybe_restore_blog( $query ) {
 		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
 			return;
+			// @codeCoverageIgnoreEnd
 		}
 
 		if ( $this->switched ) {
@@ -219,8 +251,6 @@ class QueryIntegration {
 		 * No post types so bail
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
-			$this->posts_by_query[ spl_object_hash( $query ) ] = [];
-
 			return [];
 		}
 
@@ -256,7 +286,9 @@ class QueryIntegration {
 			$scope = apply_filters( 'ep_search_scope', $scope );
 
 			if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+				// @codeCoverageIgnoreStart
 				$scope = 'current';
+				// @codeCoverageIgnoreEnd
 			}
 
 			$index = null;
@@ -318,8 +350,6 @@ class QueryIntegration {
 			 */
 			do_action( 'ep_wp_query_non_cached_search', $new_posts, $ep_query, $query );
 		}
-
-		$this->posts_by_query[ spl_object_hash( $query ) ] = $new_posts;
 
 		/**
 		 * Fires before returning posts from query
@@ -405,6 +435,31 @@ class QueryIntegration {
 					$post->$key = $post_array[ $key ]['id'];
 				} elseif ( isset( $post_array[ $key ] ) ) {
 					$post->$key = $post_array[ $key ];
+				}
+			}
+
+			/**
+			 * Replace post attributes with highlighted versions if available.
+			 *
+			 * $post_array['highlight'] is set from $hit['highlight'] in Elasticsearch.php
+			 * when going through the returned results, and that is defined by
+			 * the Highlighting Feature on setup, calling ep_formatted_args to
+			 * define the highlight array of fields.
+			 */
+			if ( isset( $post_array['highlight'] ) ) {
+				foreach ( $post_array['highlight'] as $key => $val ) {
+					// e.g. $post->post_content
+					if ( isset( $post->$key ) ) {
+						/**
+						 * e.g. replaces post content value with the highlighted value
+						 * $post->post_content = implode( ' ', $post_array['highlight']['post_content'] );
+						 *
+						 * Depending on how highlight.fields.<field>.number_of_fragments is set in the query,
+						 * Elasticsearch can return an array with N entries, with N being the number
+						 * of matches found.
+						 */
+						$post->$key = implode( ' ', $val );
+					}
 				}
 			}
 

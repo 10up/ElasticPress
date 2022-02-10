@@ -49,7 +49,7 @@ return [
 					'max_shingle_size' => 5,
 				],
 				'ewp_word_delimiter' => [
-					'type'              => 'word_delimiter',
+					'type'              => 'word_delimiter_graph',
 					'preserve_original' => true,
 				],
 				'ewp_snowball'       => [
@@ -60,7 +60,7 @@ return [
 					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
-					'type'     => 'edgeNGram',
+					'type'     => 'edge_ngram',
 				],
 			],
 			'normalizer' => [
@@ -79,7 +79,6 @@ return [
 					'path_match' => 'meta.*',
 					'mapping'    => [
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => [
 							'value'    => [
 								'type'   => 'text',
@@ -136,7 +135,7 @@ return [
 			'name'             => [
 				'type'   => 'text',
 				'fields' => [
-					'name' => [
+					'name'     => [
 						'type' => 'text',
 					],
 					'sortable' => [
@@ -144,7 +143,7 @@ return [
 						'ignore_above' => 10922,
 						'normalizer'   => 'lowerasciinormalizer',
 					],
-					'raw'  => [
+					'raw'      => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 					],
@@ -186,7 +185,7 @@ return [
 					'description' => [
 						'type' => 'text',
 					],
-					'sortable' => [
+					'sortable'    => [
 						'type'         => 'keyword',
 						'ignore_above' => 10922,
 						'normalizer'   => 'lowerasciinormalizer',

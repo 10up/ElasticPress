@@ -8,11 +8,10 @@ jobs:
     name: New tag
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v2
     - name: WordPress Plugin Deploy
-      uses: 10up/actions-wordpress/dotorg-plugin-deploy@master
+      uses: 10up/action-wordpress-plugin-deploy@stable
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
         SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
         SLUG: elasticpress

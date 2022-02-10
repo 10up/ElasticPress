@@ -53,6 +53,23 @@ abstract class Feature {
 	public $requires_install_reindex;
 
 	/**
+	 * The order in the features screen
+	 *
+	 * @var int
+	 * @since  3.6.0
+	 */
+	public $order;
+
+	/**
+	 * Set if a feature should be on the left or right side
+	 *
+	 * @var string
+	 * @since  3.6.0
+	 */
+	public $group_order;
+
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -250,10 +267,16 @@ abstract class Feature {
 			<?php endforeach; ?>
 		<?php endif; ?>
 
+		<?php if ( $this->requires_install_reindex ) : ?>
+			<div class="requirements-status-notice requirements-status-notice--reindex" role="status">
+				<?php esc_html_e( 'Enabling this feature will require re-indexing your content.', 'elasticpress' ); ?>
+			</div>
+		<?php endif; ?>
+
 		<h3><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h3>
 
 		<div class="feature-fields">
-			<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+			<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>" data-requires-reindex="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>" data-was-active="<?php echo $this->is_active() ? '1' : '0'; ?>">
 				<div class="field-name status"><?php esc_html_e( 'Status', 'elasticpress' ); ?></div>
 				<div class="input-wrap <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?>">
 					<label for="feature_active_<?php echo esc_attr( $this->slug ); ?>_enabled"><input name="feature_active_<?php echo esc_attr( $this->slug ); ?>" id="feature_active_<?php echo esc_attr( $this->slug ); ?>_enabled" data-field-name="active" class="setting-field" <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?> type="radio" <?php if ( $this->is_active() ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
@@ -271,7 +294,13 @@ abstract class Feature {
 				<?php esc_html_e( 'Setting adjustments to this feature require a re-sync. Use WP-CLI.', 'elasticpress' ); ?>
 			</span>
 
-			<a data-feature="<?php echo esc_attr( $this->slug ); ?>" class="<?php if ( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ) : ?>disabled<?php endif; ?> button button-primary save-settings"><?php esc_html_e( 'Save', 'elasticpress' ); ?></a>
+			<a
+				data-feature="<?php echo esc_attr( $this->slug ); ?>"
+				data-requires-reindex="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>"
+				data-was-active="<?php echo $this->is_active() ? '1' : '0'; ?>"
+				class="<?php if ( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ) : ?>disabled<?php endif; ?> button button-primary save-settings">
+					<?php esc_html_e( 'Save', 'elasticpress' ); ?>
+			</a>
 		</div>
 		<?php
 	}

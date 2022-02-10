@@ -11,6 +11,7 @@ namespace ElasticPress\Feature\WooCommerce;
 use ElasticPress\Feature as Feature;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -293,31 +294,10 @@ class WooCommerce extends Feature {
 			if ( ! empty( $term ) ) {
 				$integrate = true;
 
-				$terms          = (array) $term;
-				$children_terms = [];
-
-				// to add child terms to the tax query
-				if ( is_taxonomy_hierarchical( $taxonomy ) ) {
-					foreach ( $terms as $term ) {
-						$term_object = get_term_by( 'slug', $term, $taxonomy );
-						if ( $term_object && property_exists( $term_object, 'term_id' ) ) {
-							$children = get_term_children( $term_object->term_id, $taxonomy );
-							if ( $children ) {
-								foreach ( $children as $child ) {
-									$child_object = get_term( $child, $taxonomy );
-									if ( $child_object && ! is_wp_error( $child_object ) && property_exists( $child_object, 'slug' ) ) {
-										$children_terms[] = $child_object->slug;
-									}
-								}
-							}
-						}
-					}
-				}
-				$terms       = array_merge( $terms, $children_terms );
 				$tax_query[] = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
-					'terms'    => $terms,
+					'terms'    => (array) $term,
 				);
 			}
 		}
@@ -454,7 +434,7 @@ class WooCommerce extends Feature {
 					);
 
 					$query->set( 'search_fields', $search_fields );
-				} elseif ( 'product' === $post_type ) {
+				} elseif ( 'product' === $post_type && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
 					// Remove author_name from this search.
@@ -569,9 +549,9 @@ class WooCommerce extends Feature {
 				'ID'                 => 'ID',
 				'menu_order'         => 'menu_order title date',
 				'menu_order title'   => 'menu_order title date',
-				'total_sales'        => 'meta.total_sales.long date',
+				'total_sales'        => 'meta.total_sales.double date',
 				'_wc_average_rating' => 'meta._wc_average_rating.double date',
-				'_price'             => 'meta._price.long date',
+				'_price'             => 'meta._price.double date',
 			)
 		);
 
@@ -739,6 +719,54 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Add WooCommerce Fields to the Weighting Dashboard.
+	 *
+	 * @since 3.x
+	 *
+	 * @param array  $fields    Current weighting fields.
+	 * @param string $post_type Current post type.
+	 * @return array            New fields.
+	 */
+	public function add_product_attributes_to_weighting( $fields, $post_type ) {
+		if ( 'product' === $post_type ) {
+			if ( ! empty( $fields['attributes']['children']['author_name'] ) ) {
+				unset( $fields['attributes']['children']['author_name'] );
+			}
+
+			$sku_key = 'meta._sku.value';
+
+			$fields['attributes']['children'][ $sku_key ] = array(
+				'key'   => $sku_key,
+				'label' => __( 'SKU', 'elasticpress' ),
+			);
+		}
+		return $fields;
+	}
+
+	/**
+	 * Add WooCommerce Fields to the default values of the Weighting Dashboard.
+	 *
+	 * @since 3.x
+	 *
+	 * @param array  $defaults  Default values for the post type.
+	 * @param string $post_type Current post type.
+	 * @return array
+	 */
+	public function add_product_default_post_type_weights( $defaults, $post_type ) {
+		if ( 'product' === $post_type ) {
+			if ( ! empty( $defaults['author_name'] ) ) {
+				unset( $defaults['author_name'] );
+			}
+
+			$defaults['meta._sku.value'] = array(
+				'enabled' => true,
+				'weight'  => 1,
+			);
+		}
+		return $defaults;
+	}
+
+	/**
 	 * Add WC post type to autosuggest
 	 *
 	 * @param array $post_types Array of post types (e.g. post, page).
@@ -774,6 +802,8 @@ class WooCommerce extends Feature {
 			add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
+			add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
+			add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		}
 	}
 
@@ -853,6 +883,7 @@ class WooCommerce extends Feature {
 			return $args;
 		}
 
+		// phpcs:disable WordPress.Security.NonceVerification
 		if ( empty( $_GET['min_price'] ) && empty( $_GET['max_price'] ) ) {
 			return $args;
 		}
@@ -861,6 +892,7 @@ class WooCommerce extends Feature {
 			/**
 			 * This logic is iffy but the WC price filter widget is not intended for use with search anyway
 			 */
+			$old_query = $args['query']['bool'];
 			unset( $args['query']['bool']['should'] );
 
 			if ( ! empty( $_GET['min_price'] ) ) {
@@ -872,7 +904,7 @@ class WooCommerce extends Feature {
 			}
 
 			$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
-			$args['query']['bool']['must'][1]['bool']                               = $args['query']['bool'];
+			$args['query']['bool']['must'][1]['bool']                               = $old_query;
 		} else {
 			unset( $args['query']['match_all'] );
 
@@ -888,6 +920,7 @@ class WooCommerce extends Feature {
 
 			$args['query']['range']['meta._price.long']['boost'] = 2.0;
 		}
+		// phpcs:enable WordPress.Security.NonceVerification
 
 		return $args;
 	}
@@ -914,35 +947,11 @@ class WooCommerce extends Feature {
 		 * @return  {bool} New skip value
 		 */
 		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
-			( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) ) {
+			( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) ) {
 			return false;
 		}
 
-		/**
-		 * Filter to integrate with admin queries
-		 *
-		 * @hook ep_admin_wp_query_integration
-		 * @param  {bool} $integrate True to integrate
-		 * @return  {bool} New value
-		 */
-		$admin_integration = apply_filters( 'ep_admin_wp_query_integration', false );
-
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			/**
-			 * Filter to integrate with admin ajax queries
-			 *
-			 * @hook ep_ajax_wp_query_integration
-			 * @param  {bool} $integrate True to integrate
-			 * @return  {bool} New value
-			 */
-			if ( ! apply_filters( 'ep_ajax_wp_query_integration', false ) ) {
-				return false;
-			} else {
-				$admin_integration = true;
-			}
-		}
-
-		if ( is_admin() && ! $admin_integration ) {
+		if ( ! Utils\is_integrated_request( $this->slug ) ) {
 			return false;
 		}
 

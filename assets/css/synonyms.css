@@ -1,0 +1,97 @@
+#synonym-root {
+
+	& .page-title-action {
+		margin-left: 10px;
+	}
+
+	& .postbox .hndle {
+		cursor: default;
+	}
+
+	& h2 {
+		color: #23282d;
+	}
+}
+
+.synonym-alternatives-editor,
+.synonym-set-editor {
+	display: flex;
+
+	& > .postbox {
+		width: 100%;
+
+		& > .hndle {
+			display: flex;
+		}
+	}
+
+	& .synonym-alternative-editor {
+		display: flex;
+	}
+
+	& .ep-synonyms__linked-multi-input {
+		flex: 1;
+		margin-bottom: 0.5em;
+	}
+
+	& .ep-synonyms__input {
+		border: 1px solid hsl(0, 0%, 80%);
+		margin-bottom: 0.5em;
+		margin-right: 1em;
+		width: 10em;
+	}
+
+	& .synonym-alternatives__primary-heading {
+		width: 11em;
+	}
+
+	& .synonym-alternatives__input-heading {
+		flex: 1;
+	}
+
+	& .ep-synonyms__linked-multi-input input:focus {
+		box-shadow: none;
+	}
+
+	&.invalid input {
+		border-color: #a00;
+	}
+}
+
+.synonym-alternative-editor,
+.synonym-set-editor {
+	margin-top: 0.625em;
+}
+
+button.synonym__remove {
+	background-color: transparent;
+	border: none;
+	color: #a00;
+	cursor: pointer;
+	margin: -8px 0 0 10px;
+	padding: 0;
+
+	& .dashicons-dismiss {
+		margin: -2px 2px 0 0;
+	}
+}
+
+.synonym__validation::before {
+	content: "";
+	flex-basis: 100%;
+	height: 0;
+}
+
+.synonym__validation,
+.synonym-solr-editor__validation p {
+	color: #a00;
+	font-style: italic;
+}
+
+.synonym__validation {
+	margin: 0 0 0.625em 0.5em;
+}
+
+.synonym-btn-group button.button {
+	margin-right: 0.625em;
+}

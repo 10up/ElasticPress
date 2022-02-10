@@ -33,13 +33,16 @@
     "10up/phpcs-composer": "dev-master",
     "wpackagist-plugin/woocommerce":"*",
     "phpunit/phpunit": "^7",
-    "10up/wpacceptance": "dev-master"
+    "10up/wpacceptance": "dev-master",
+    "phpcompatibility/phpcompatibility-wp": "*",
+    "yoast/phpunit-polyfills": "1.x-dev"
   },
   "scripts": {
     "lint": "phpcs elasticpress.php includes",
     "lint-fix": "phpcbf elasticpress.php includes",
     "test": "phpunit",
-    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password mysql trunk true"
+    "test-single-site": "phpunit -c single-site.xml.dist",
+    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password 127.0.0.1 latest true"
   },
   "extra": {
     "installer-paths": {

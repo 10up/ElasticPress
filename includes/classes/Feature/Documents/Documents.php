@@ -11,6 +11,7 @@ use ElasticPress\Feature as Feature;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\Utils as Utils;
 
 /**
  * Documents feature class.
@@ -114,7 +115,7 @@ class Documents extends Feature {
 	 * @since  2.3
 	 */
 	public function setup_document_search( $query ) {
-		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'public', 'ajax' ] ) ) {
 			return;
 		}
 
@@ -188,6 +189,7 @@ class Documents extends Feature {
 		if ( 'attachment' === $post['post_type'] ) {
 			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types(), true ) ) {
 				$index = Indexables::factory()->get( 'post' )->get_index_name();
+
 				/**
 				 * Filter documents pipeline ID
 				 *
@@ -195,7 +197,13 @@ class Documents extends Feature {
 				 * @param  {string} $id Pipeline ID
 				 * @return  {string} new ID
 				 */
-				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+				$pipeline_id = apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+
+				if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+					$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . $pipeline_id;
+				} else {
+					$path = trailingslashit( $index ) . '_doc/' . $post['ID'] . '?pipeline=' . $pipeline_id;
+				}
 			}
 		}
 
@@ -217,7 +225,16 @@ class Documents extends Feature {
 
 		$post_args['attachments'] = [];
 
-		if ( ! WP_Filesystem() ) {
+		/**
+		 * Filters the arguments passed to WP_Filesystem()
+		 *
+		 * @hook ep_filesystem_args
+		 * @param  {boolean} False (default value)
+		 * @return {array|false} Array of args, or false if none
+		 */
+		$filesystem_args = apply_filters( 'ep_filesystem_args', false );
+
+		if ( ! WP_Filesystem( $filesystem_args ) ) {
 			return $post_args;
 		}
 
@@ -307,6 +324,10 @@ class Documents extends Feature {
 	 */
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 1 );
+
+		if ( empty( Elasticsearch::factory()->get_elasticsearch_version( false ) ) ) {
+			return $status;
+		}
 
 		$plugins = Elasticsearch::factory()->get_elasticsearch_plugins();
 
@@ -504,5 +525,3 @@ class Documents extends Feature {
 		return $weights;
 	}
 }
-
-

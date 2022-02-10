@@ -27,13 +27,13 @@ class BasicTest extends TestBase {
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress' );
 
-		$I->click( '.start-sync' );
+		$I->executeJavaScript( 'document.querySelector( ".start-sync" ).click();' );
 
 		$I->waitUntilElementContainsText( 'Sync complete', '.sync-status' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-health' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-health' );
 
 		foreach ( $this->indexes as $index_name ) {
 			$I->seeText( $index_name );
@@ -46,13 +46,13 @@ class BasicTest extends TestBase {
 	 * @testdox I can search on the front end and ES returns a proper response code.
 	 */
 	public function testSearch() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
 		$I->loginAs( 'wpsnapshots' );
 
-		$I->moveTo( '/?s=test' );
+		$this->moveTo( $I, '/?s=test' );
 
 		$I->click( '#wp-admin-bar-debug-bar' );
 
@@ -72,7 +72,7 @@ class BasicTest extends TestBase {
 	 * @testdox I dont see a post in search that only matches by title when title is set as not searchable in the weighting dashboard.
 	 */
 	public function testWeightingOnOff() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -84,11 +84,13 @@ class BasicTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
-		$I->moveTo( '/?s=Test+ElasticPress+1' );
+		sleep( 2 );
+
+		$this->moveTo( $I, '/?s=Test+ElasticPress+1' );
 
 		$I->seeText( 'Test ElasticPress 1', '.hentry' );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-weighting' );
 
 		$I->click( '#post-post_title-enabled' );
 
@@ -96,9 +98,18 @@ class BasicTest extends TestBase {
 
 		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
 
-		$I->moveTo( '/?s=Test+ElasticPress+1' );
+		$this->moveTo( $I, '/?s=Test+ElasticPress+1' );
 
 		$I->dontSeeText( 'Test ElasticPress 1', '.hentry' );
+
+		// Reset Changed Settings.
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-weighting' );
+
+		$I->click( '#post-post_title-enabled' );
+
+		$I->click( '#submit' );
+
+		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
 	}
 
 	/**
@@ -107,7 +118,7 @@ class BasicTest extends TestBase {
 	 * @testdox I can increase post_title weighting and influence search results.
 	 */
 	public function testTitleContentWeighting() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
@@ -127,7 +138,7 @@ class BasicTest extends TestBase {
 
 		$this->publishPost( $data, $I );
 
-		$I->moveTo( '/?s=findme' );
+		$this->moveTo( $I, '/?s=findme' );
 
 		$posts = $I->getElements( '.post' );
 
@@ -135,7 +146,7 @@ class BasicTest extends TestBase {
 
 		$I->seeText( 'test weighting content', $first_post );
 
-		$I->moveTo( 'wp-admin/admin.php?page=elasticpress-weighting' );
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-weighting' );
 
 		$I->setElementProperty( 'input[name="weighting[post][post_title][weight]"]', 'value', 20 );
 
@@ -143,13 +154,20 @@ class BasicTest extends TestBase {
 
 		$I->waitUntilElementContainsText( 'Changes Saved', '.notice-success' );
 
-		$I->moveTo( '/?s=findme' );
+		$this->moveTo( $I, '/?s=findme' );
 
 		$posts = $I->getElements( '.post' );
 
 		$first_post = $posts[0];
 
 		$I->seeText( 'test weighting title findme', $first_post );
+
+		// Reset Changed Settings.
+		$this->moveTo( $I, 'wp-admin/admin.php?page=elasticpress-weighting' );
+
+		$I->setElementProperty( 'input[name="weighting[post][post_title][weight]"]', 'value', 1 );
+
+		$I->click( '#submit' );
 	}
 
 	/**
@@ -158,11 +176,11 @@ class BasicTest extends TestBase {
 	 * @testdox When I type in a search field on the front end, I see the autosuggest dropdown.
 	 */
 	public function testAutosuggestDropdownShows() {
-		$this->runCommand( 'wp elasticpress index --setup' );
+		$this->runCommand( 'wp elasticpress index --setup --yes' );
 
 		$I = $this->openBrowserPage();
 
-		$I->moveTo( '/' );
+		$this->moveTo( $I, '/' );
 
 		$I->waitUntilElementVisible( '.search-toggle' );
 
