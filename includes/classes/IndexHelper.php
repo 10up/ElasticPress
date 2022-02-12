@@ -648,10 +648,34 @@ class IndexHelper {
 			}
 		}
 
+		$from = $this->index_meta['offset'] - count( $this->current_query['objects'] );
+
+		if ( 0 !== $from && empty( $this->index_meta['skip_message_shown'] ) ) {
+			$this->output(
+				sprintf(
+				/* translators: 1. Number of objects indexed */
+					esc_html__( 'Skipping %1$d %2$s posts...', 'elasticpress' ),
+					$from,
+					esc_html( strtolower( $indexable->labels['plural'] ) )
+				),
+				'info',
+				'index_next_batch'
+			);
+		}
+
+		// From can never actually be 0, as we can't process post number 0.
+		if ( 0 === $from ) {
+			$from = 1;
+		}
+
+		$this->index_meta['skip_message_shown'] = true;
+
 		$this->output(
 			sprintf(
 				/* translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID */
-				esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ),
+				esc_html__( 'Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d', 'elasticpress' ),
+				esc_html( strtolower( $indexable->labels['plural'] ) ),
+				$from,
 				$this->index_meta['offset'],
 				$this->index_meta['found_items'],
 				$this->index_meta['current_sync_item']['last_processed_object_id']
