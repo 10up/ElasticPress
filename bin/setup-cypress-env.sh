@@ -9,6 +9,8 @@ npm run env run tests-cli "wp core multisite-convert"
 npm run env run tests-cli "wp user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password"
 npm run env run tests-cli "wp super-admin add wpsnapshots"
 
+npm run env run tests-cli "wp theme enable twentytwenty --network --activate"
+
 npm run env run tests-cli "wp import /var/www/html/wp-content/uploads/content-example.xml --authors=create"
 
 npm run env run tests-cli "wp plugin deactivate woocommerce"
