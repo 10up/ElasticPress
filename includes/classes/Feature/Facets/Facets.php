@@ -391,9 +391,18 @@ class Facets extends Feature {
 
 		$allowed_args = $this->get_allowed_query_args();
 
+		/**
+		 * Filter the facet filter name that's added to the URL
+		 *
+		 * @hook ep_facet_filter_name
+		 * @param   {string} Facet filter name
+		 * @return  {string} New facet filter name
+		 */
+		$filter_name = apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
+
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 0 === strpos( $key, 'filter_' ) ) {
-				$taxonomy = str_replace( 'filter_', '', $key );
+				$taxonomy = str_replace( $filter_name, '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(
 					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
@@ -418,12 +427,21 @@ class Facets extends Feature {
 	public function build_query_url( $filters ) {
 		$query_param = array();
 
+		/**
+		 * Filter the facet filter name that's added to the URL
+		 *
+		 * @hook ep_facet_filter_name
+		 * @param   {string} Facet filter name
+		 * @return  {string} New facet filter name
+		 */
+		$filter_name = apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
+
 		if ( ! empty( $filters['taxonomies'] ) ) {
 			$tax_filters = $filters['taxonomies'];
 
 			foreach ( $tax_filters as $taxonomy => $filter ) {
 				if ( ! empty( $filter['terms'] ) ) {
-					$query_param[ 'filter_' . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
+					$query_param[ $filter_name . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
 				}
 			}
 		}
