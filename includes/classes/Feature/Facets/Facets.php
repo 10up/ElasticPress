@@ -325,7 +325,7 @@ class Facets extends Feature {
 
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
 			$tax = isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy;
-			if ( ! $this->has_pre_existing_taxonomy_query( $tax_query, $tax ) ) {
+			if ( ! $this->has_taxonomy_query( $tax_query, $tax ) ) {
 				$tax_query[] = [
 					'taxonomy' => $tax,
 					'field'    => 'slug',
@@ -343,13 +343,13 @@ class Facets extends Feature {
 	}
 
 	/**
-	 * Determine if we already have a taxonomy query before attempting to add a new one for each filter.
+	 * Determine if we have a taxonomy query before attempting to add a new one for each filter.
 	 *
 	 * @param $tax_query array The current tax_query.
 	 * @param $taxonomy string WP Taxonomy.
 	 * @return bool true or false.
 	 */
-	function has_pre_existing_taxonomy_query( $tax_query, $taxonomy ) {
+	function has_taxonomy_query( $tax_query, $taxonomy ) {
 		foreach ( $tax_query as $query ) {
 			if ( is_array( $query ) && $taxonomy === $query['taxonomy'] ) {
 				return true;
