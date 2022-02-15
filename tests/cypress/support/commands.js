@@ -250,9 +250,9 @@ Cypress.Commands.add('getTotal', (totalNumber) => {
 		.should('match', new RegExp(`"(total|value)": ${totalNumber}`, 'g'));
 });
 
-Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', network = false) => {
+Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', mode = 'singleSite') => {
 	if (method === 'dashboard') {
-		if (network) {
+		if (mode === 'network') {
 			cy.visitAdminPage('network/plugins.php');
 		} else {
 			cy.visitAdminPage('plugins.php');
@@ -269,15 +269,15 @@ Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', network = fa
 	}
 
 	let command = `wp plugin activate ${slug}`;
-	if (network) {
+	if (mode === 'network') {
 		command += ' --network';
 	}
 	cy.wpCli(command);
 });
 
-Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', network = false) => {
+Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'singleSite') => {
 	if (method === 'dashboard') {
-		if (network) {
+		if (mode === 'network') {
 			cy.visitAdminPage('network/plugins.php');
 		} else {
 			cy.visitAdminPage('plugins.php');
@@ -294,7 +294,7 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', network = 
 	}
 
 	let command = `wp plugin deactivate ${slug}`;
-	if (network) {
+	if (mode === 'network') {
 		command += ' --network';
 	}
 	cy.wpCli(command);
