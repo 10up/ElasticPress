@@ -2,7 +2,7 @@
   "env": {
     "tests": {
       "themes": [
-        "https://downloads.wordpress.org/theme/twentytwenty.zip"
+        "https://downloads.wordpress.org/theme/twentytwentyone.zip"
       ],
       "plugins": [
         ".",

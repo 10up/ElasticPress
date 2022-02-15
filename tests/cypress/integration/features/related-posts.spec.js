@@ -23,7 +23,7 @@ describe('Related Posts Feature', () => {
 		openWidgetsPage();
 
 		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
-		cy.get('.block-editor-inserter__search-input').clearThenType('ElasticPress Related Posts');
+		cy.get('.components-search-control__input').clearThenType('ElasticPress Related Posts');
 
 		cy.get('.block-editor-inserter__no-results').should('exist');
 
@@ -36,7 +36,7 @@ describe('Related Posts Feature', () => {
 		openWidgetsPage();
 
 		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
-		cy.get('.block-editor-inserter__search-input').clearThenType('ElasticPress Related Posts');
+		cy.get('.components-search-control__input').clearThenType('ElasticPress Related Posts');
 
 		cy.get('.block-editor-inserter__no-results').should('not.exist');
 		cy.get('.block-editor-block-types-list').should(($widgetsList) => {
@@ -53,7 +53,9 @@ describe('Related Posts Feature', () => {
 		openWidgetsPage();
 
 		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
-		cy.get('.block-editor-inserter__panel-content [class*="ep-related-posts"]').click({
+		cy.get(
+			'.block-editor-inserter__panel-content [class*="legacy-widget/ep-related-posts"]',
+		).click({
 			force: true,
 		});
 		cy.get('input[name^="widget-ep-related-posts"][name$="[title]"]').clearThenType(
@@ -91,7 +93,7 @@ describe('Related Posts Feature', () => {
 		});
 
 		// Clicking on the "View Post" button.
-		cy.get('.post-publish-panel__postpublish-buttons a.components-button').click();
+		cy.get('.post-publish-panel__postpublish-buttons a.components-button.is-primary').click();
 		cy.get('body').should('contain.text', 'Related Posts');
 		cy.contains('a', 'test related posts 1').should('exist');
 		cy.contains('a', 'test related posts 2').should('exist');
