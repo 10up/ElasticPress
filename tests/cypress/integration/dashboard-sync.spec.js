@@ -46,7 +46,10 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.start-sync').click();
-		cy.get('.sync-status', { timeout: 60000 }).should('contain.text', 'Sync complete');
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 
 		canSeeIndexesNames();
 	});
@@ -64,7 +67,10 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.start-sync').click();
-		cy.get('.sync-status', { timeout: 60000 }).should('contain.text', 'Sync complete');
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
@@ -98,7 +104,10 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress');
 		cy.get('.start-sync').click();
-		cy.get('.sync-status', { timeout: 60000 }).should('contain.text', 'Sync complete');
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
@@ -139,7 +148,10 @@ describe('Dashboard Sync', () => {
 		cy.get('.sync-status').should('contain.text', 'Sync paused');
 
 		cy.get('.resume-sync').click();
-		cy.get('.sync-status', { timeout: 60000 }).should('contain.text', 'Sync complete');
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 
 		setPerIndexCycle(oldPostsPerCycle);
 
@@ -157,7 +169,10 @@ describe('Dashboard Sync', () => {
 		cy.get('.error-overlay').should('have.class', 'syncing');
 
 		cy.get('.resume-sync').click();
-		cy.get('.sync-status', { timeout: 60000 }).should('contain.text', 'Sync complete');
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 		cy.get('.error-overlay').should('not.have.class', 'syncing');
 	});
 
@@ -177,7 +192,10 @@ describe('Dashboard Sync', () => {
 		});
 
 		cy.get('.resume-sync').click();
-		cy.get('.sync-status', { timeout: 60000 }).should('contain.text', 'Sync complete');
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 
 		setPerIndexCycle(oldPostsPerCycle);
 	});

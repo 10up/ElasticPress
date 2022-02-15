@@ -10,7 +10,10 @@ describe('Protected Content Feature', () => {
 			return true;
 		});
 
-		cy.get('.sync-status', { timeout: 60000 }).should('contain.text', 'Sync complete');
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 
 		// eslint-disable-next-line jest/valid-expect-in-promise
 		cy.wpCli('elasticpress list-features').then((wpCliResponse) => {

@@ -45,7 +45,10 @@ describe('User Indexable', () => {
 		});
 
 		// Give it up to a minute to sync.
-		cy.get('.sync-status', { timeout: 60000 }).should('contain.text', 'Sync complete');
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 
 		// eslint-disable-next-line jest/valid-expect-in-promise
 		cy.wpCli('elasticpress list-features').then((wpCliResponse) => {

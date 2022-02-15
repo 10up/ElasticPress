@@ -6,5 +6,10 @@
   "videosFolder": "tests/cypress/videos",
   "downloadsFolder": "tests/cypress/downloads",
   "supportFile": "tests/cypress/support/index.js",
-  "video": false
+  "video": false,
+
+  "retries": {
+    "runMode": 1
+  },
+  "elasticPressIndexTimeout": 100000
 }
