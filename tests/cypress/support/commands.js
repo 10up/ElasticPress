@@ -84,20 +84,24 @@ Cypress.Commands.add('wpCli', (command, ignoreFailures) => {
 	if (ignoreFailures) {
 		options.failOnNonZeroExit = false;
 	}
-	cy.exec(`npm run env run tests-cli "${escapedCommand}"`, options).then((result) => {
-		result.stdout = result.stdout.split('\n').slice(3).join('\n');
+	cy.exec(`npm --silent run env run tests-cli "${escapedCommand}"`, options).then((result) => {
 		cy.wrap(result);
 	});
 });
 
 Cypress.Commands.add('wpCliEval', (command) => {
-	const escapedCommand = command.replace(/"/g, '\\"').replace(/^<\?php /, '');
-	cy.exec(`echo "<?php ${escapedCommand}" | npm run env run tests-cli "eval-file -"`).then(
-		(result) => {
-			result.stdout = result.stdout.split('\n').slice(3).join('\n');
-			cy.wrap(result);
-		},
-	);
+	const fName = (Math.random() + 1).toString(36).substring(7);
+
+	// this will be written "local" plugin directory
+	cy.writeFile(`${fName}`, command);
+
+	// which is read from it's proper location in the plugins directory
+	cy.exec(
+		`npm --silent run env run tests-cli "eval-file wp-content/plugins/elasticpress/${fName}"`,
+	).then((result) => {
+		cy.exec(`rm ${fName}`);
+		cy.wrap(result);
+	});
 });
 
 Cypress.Commands.add('publishPost', (postData) => {
