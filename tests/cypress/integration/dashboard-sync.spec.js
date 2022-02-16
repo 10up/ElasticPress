@@ -1,3 +1,5 @@
+/* global indexNames */
+
 describe('Dashboard Sync', () => {
 	function setPerIndexCycle(number) {
 		let oldValue;
@@ -13,17 +15,14 @@ describe('Dashboard Sync', () => {
 	}
 
 	function canSeeIndexesNames() {
-		cy.wpCli('elasticpress get-indexes').then((wpCliResponse) => {
-			const indexes = JSON.parse(wpCliResponse.stdout);
-			cy.visitAdminPage('admin.php?page=elasticpress-health');
-			cy.get('.metabox-holder')
-				.invoke('text')
-				.then((text) => {
-					indexes.forEach((index) => {
-						expect(text).to.contains(index);
-					});
+		cy.visitAdminPage('admin.php?page=elasticpress-health');
+		cy.get('.metabox-holder')
+			.invoke('text')
+			.then((text) => {
+				indexNames.forEach((index) => {
+					expect(text).to.contains(index);
 				});
-		});
+			});
 	}
 
 	after(() => {

@@ -1,4 +1,8 @@
 before(() => {
+	cy.wpCli('wp elasticpress get-indexes').then((wpCliResponse) => {
+		window.indexNames = JSON.parse(wpCliResponse.stdout);
+	});
+
 	cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
 		// Nothing needs to be done if EP.io.
 		if (!epHost.stdout.match(/elasticpress\.io/)) {
