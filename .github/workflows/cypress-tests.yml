@@ -108,6 +108,8 @@ jobs:
           ${{ github.workspace }}/tests/cypress/videos/
           ${{ github.workspace }}/tests/cypress/logs/
 
-    - name: Stop Elasticsearch
+    - name: Delete Elasticsearch indices
       if: always()
-      run: npm run env run tests-cli "wp elasticpress delete-index --yes"
+      run: |
+        npm run env run tests-cli "wp plugin activate elasticpress --network"
+        npm run env run tests-cli "wp elasticpress delete-index --network-wide --yes"

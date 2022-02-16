@@ -90,16 +90,17 @@ Cypress.Commands.add('wpCli', (command, ignoreFailures) => {
 });
 
 Cypress.Commands.add('wpCliEval', (command) => {
-	const fName = (Math.random() + 1).toString(36).substring(7);
+	const fileName = (Math.random() + 1).toString(36).substring(7);
 
 	// this will be written "local" plugin directory
-	cy.writeFile(`${fName}`, command);
+	const escapedCommand = command.replace(/"/g, '\\"').replace(/^<\?php /, '');
+	cy.writeFile(fileName, `<?php ${escapedCommand}`);
 
 	// which is read from it's proper location in the plugins directory
 	cy.exec(
-		`npm --silent run env run tests-cli "eval-file wp-content/plugins/elasticpress/${fName}"`,
+		`npm --silent run env run tests-cli "eval-file wp-content/plugins/elasticpress/${fileName}"`,
 	).then((result) => {
-		cy.exec(`rm ${fName}`);
+		cy.exec(`rm ${fileName}`);
 		cy.wrap(result);
 	});
 });
@@ -179,7 +180,7 @@ Cypress.Commands.add('updateFeatures', (newFeaturesValues = {}) => {
 	const escapedFeatures = JSON.stringify(features);
 
 	cy.wpCliEval(
-		`\\$features = json_decode( '${escapedFeatures}', true ); update_option( 'ep_feature_settings', \\$features );`,
+		`$features = json_decode( '${escapedFeatures}', true ); update_option( 'ep_feature_settings', $features );`,
 	);
 });
 
@@ -228,7 +229,7 @@ Cypress.Commands.add('updateWeighting', (newWeightingValues = null) => {
 		: JSON.stringify(defaultWeighting);
 
 	cy.wpCliEval(
-		`\\$weighting = json_decode( '${escapedWeighting}', true ); update_option( 'elasticpress_weighting', \\$weighting );`,
+		`$weighting = json_decode( '${escapedWeighting}', true ); update_option( 'elasticpress_weighting', $weighting );`,
 	);
 });
 
