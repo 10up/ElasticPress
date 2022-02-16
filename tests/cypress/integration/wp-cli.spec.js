@@ -1,10 +1,14 @@
 /* global indexNames */
 
 describe('WP-CLI Commands', () => {
-	function checkIfNotMissingIndexes() {
+	function checkIfNotMissingIndexes(mode = 'singleSite') {
 		cy.login();
 
-		cy.visitAdminPage('admin.php?page=elasticpress-health');
+		const healthUrl =
+			mode === 'network'
+				? 'network/admin.php?page=elasticpress-health'
+				: 'admin.php?page=elasticpress-health';
+		cy.visitAdminPage(healthUrl);
 		cy.get('.wrap')
 			.invoke('text')
 			.then((text) => {
@@ -12,8 +16,6 @@ describe('WP-CLI Commands', () => {
 					'We could not find any data for your Elasticsearch indices.',
 				);
 			});
-
-		cy.visitAdminPage('admin.php?page=elasticpress-health');
 		cy.get('.metabox-holder')
 			.invoke('text')
 			.then((text) => {
@@ -32,25 +34,6 @@ describe('WP-CLI Commands', () => {
 			});
 
 			checkIfNotMissingIndexes();
-		});
-
-		it('Can index all blogs in network if user specifies --network-wide argument', () => {
-			cy.login();
-
-			cy.activatePlugin('elasticpress', 'dashboard', 'network');
-
-			cy.visitAdminPage('network/sites.php');
-			cy.get('.index-toggle').check();
-
-			// eslint-disable-next-line jest/valid-expect-in-promise
-			cy.wpCli('wp elasticpress index --network-wide').then((wpCliResponse) => {
-				expect(wpCliResponse.stdout).to.contains('Indexing posts on site');
-				expect(wpCliResponse.stdout).to.contains('Number of posts indexed on site');
-			});
-
-			checkIfNotMissingIndexes();
-
-			cy.deactivatePlugin('elasticpress', 'dashboard', 'network');
 		});
 
 		it('Can clear the index in Elasticsearch, put the mapping again and then index all the posts if user specifies --setup argument', () => {
@@ -130,17 +113,22 @@ describe('WP-CLI Commands', () => {
 		});
 	});
 
-	context('wp elasticpress delete-index', () => {
-		it('Can delete the index of current blog', () => {});
+	it('Can delete the index of current blog if user runs wp elasticpress delete-index', () => {
+		// eslint-disable-next-line jest/valid-expect-in-promise
+		cy.wpCli('wp elasticpress delete-index --yes').then((wpCliResponse) => {
+			expect(wpCliResponse.stdout).to.contains('Index deleted');
 
-		it('Can delete all the index network-wide if user runs wp elasticpress delete-index --network-wide', () => {});
+			cy.login();
+
+			cy.visitAdminPage('admin.php?page=elasticpress-health');
+			cy.get('.wrap').should(
+				'contain.text',
+				'We could not find any data for your Elasticsearch indices.',
+			);
+		});
 	});
 
-	context('wp elasticpress put-mapping', () => {
-		it('Can put mapping of the current blog', () => {});
-
-		it('Can put mapping network-wide if user runs wp elasticpress put-mapping --network-wide', () => {});
-	});
+	it('Can put mapping of the current blog if user runs wp elasticpress put-mapping', () => {});
 
 	it('Can recreate the alias index which points to every index in the network if user runs wp elasticpress recreate-network-alias command', () => {});
 
@@ -157,4 +145,45 @@ describe('WP-CLI Commands', () => {
 	it('Can return a string indicating the index is not running', () => {});
 
 	it('Can return a string indicating with the appropriate fields if user runs wp elasticpress get-last-cli-index command', () => {});
+
+	context('multisite parameters', () => {
+		before(() => {
+			cy.login();
+
+			cy.activatePlugin('elasticpress', 'dashboard', 'network');
+
+			cy.visitAdminPage('network/sites.php');
+			cy.get('.index-toggle').check();
+		});
+
+		after(() => {
+			cy.deactivatePlugin('elasticpress', 'dashboard', 'network');
+		});
+
+		it('Can index all blogs in network if user specifies --network-wide argument', () => {
+			// eslint-disable-next-line jest/valid-expect-in-promise
+			cy.wpCli('wp elasticpress index --network-wide').then((wpCliResponse) => {
+				expect(wpCliResponse.stdout).to.contains('Indexing posts on site');
+				expect(wpCliResponse.stdout).to.contains('Number of posts indexed on site');
+			});
+
+			checkIfNotMissingIndexes('network');
+		});
+
+		it('Can delete all the index network-wide if user runs wp elasticpress delete-index --network-wide', () => {
+			// eslint-disable-next-line jest/valid-expect-in-promise
+			cy.wpCli('wp elasticpress delete-index --network-wide --yes').then((wpCliResponse) => {
+				expect(wpCliResponse.stdout).to.contains('Deleting post index for site');
+				expect(wpCliResponse.stdout).to.contains('Index deleted');
+			});
+
+			cy.visitAdminPage('network/admin.php?page=elasticpress-health');
+			cy.get('.wrap').should(
+				'contain.text',
+				'We could not find any data for your Elasticsearch indices.',
+			);
+		});
+
+		it('Can put mapping network-wide if user runs wp elasticpress put-mapping --network-wide', () => {});
+	});
 });
