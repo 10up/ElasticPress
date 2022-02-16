@@ -50,10 +50,7 @@ describe('User Indexable', () => {
 			'Sync complete',
 		);
 
-		// eslint-disable-next-line jest/valid-expect-in-promise
-		cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-			expect(wpCliResponse.stdout).to.contains('users');
-		});
+		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'users');
 	});
 
 	it('Can run a simple user sync', () => {

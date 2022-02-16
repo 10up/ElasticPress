@@ -15,10 +15,7 @@ describe('Protected Content Feature', () => {
 			'Sync complete',
 		);
 
-		// eslint-disable-next-line jest/valid-expect-in-promise
-		cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-			expect(wpCliResponse.stdout).to.contains('protected_content');
-		});
+		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'protected_content');
 	});
 
 	it('Can use Elasticsearch in the Posts List Admin Screen', () => {

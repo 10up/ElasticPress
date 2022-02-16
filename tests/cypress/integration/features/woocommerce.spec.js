@@ -30,10 +30,7 @@ describe('WooCommerce Feature', () => {
 			'Sync complete',
 		);
 
-		// eslint-disable-next-line jest/valid-expect-in-promise
-		cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-			expect(wpCliResponse.stdout).to.contains('woocommerce');
-		});
+		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'woocommerce');
 	});
 
 	it('Can fetch orders from Elasticsearch', () => {

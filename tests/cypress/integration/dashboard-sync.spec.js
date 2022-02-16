@@ -185,10 +185,9 @@ describe('Dashboard Sync', () => {
 		cy.get('.pause-sync').should('be.visible');
 		cy.get('.pause-sync').click();
 
-		// eslint-disable-next-line jest/valid-expect-in-promise
-		cy.wpCli('wp elasticpress index', true).then((wpCliResponse) => {
-			expect(wpCliResponse.stderr).to.contains('An index is already occurring');
-		});
+		cy.wpCli('wp elasticpress index', true)
+			.its('stderr')
+			.should('contain', 'An index is already occurring');
 
 		cy.get('.resume-sync').click();
 		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
