@@ -111,5 +111,6 @@ jobs:
     - name: Delete Elasticsearch indices
       if: always()
       run: |
-        npm run env run tests-cli "wp plugin activate elasticpress --network"
+        PLUGIN_NAME=$(basename "$PWD")
+        npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME} --network"
         npm run env run tests-cli "wp elasticpress delete-index --network-wide --yes"
