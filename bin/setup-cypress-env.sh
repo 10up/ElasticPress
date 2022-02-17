@@ -24,6 +24,8 @@ for opt in "$@"; do
 	esac
 done
 
+PLUGIN_NAME=$(basename "$PWD")
+
 if [ $DISPLAY_HELP -eq 1 ]; then
 	echo "This script will setup the environment for the Cypress tests"
 	echo "Usage: ${0##*/} [OPTIONS...]"
@@ -69,9 +71,9 @@ npm run env run tests-cli "wp plugin deactivate woocommerce"
 
 npm run env run tests-cli "wp plugin activate debug-bar debug-bar-elasticpress wordpress-importer --network"
 
-npm run env run tests-cli "wp plugin activate elasticpress"
+npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME}"
 
-npm run env run tests-cli "wp elasticpress index --setup --yes --show-errors"
+npm run env run tests-cli "wp ${PLUGIN_NAME} index --setup --yes --show-errors"
 
 npm run env run tests-cli "wp option set posts_per_page 5"
 npm run env run tests-cli "wp user meta update wpsnapshots edit_post_per_page 5"

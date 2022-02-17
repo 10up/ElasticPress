@@ -29,5 +29,8 @@ module.exports = async (on, config) => {
 		}
 	}
 
+	// Account for ElasticPress and elasticpress usages.
+	config.pluginName = process.cwd().split('/').pop();
+
 	return config;
 };
