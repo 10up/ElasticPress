@@ -99,8 +99,10 @@ Cypress.Commands.add('wpCliEval', (command) => {
 	// which is read from it's proper location in the plugins directory
 	cy.exec(
 		`npm --silent run env run tests-cli "eval-file wp-content/plugins/elasticpress/${fileName}"`,
+		{ failOnNonZeroExit: false },
 	).then((result) => {
 		cy.exec(`rm ${fileName}`);
+		cy.writeFile(`tests/cypress/logs/file-creation-${fileName}.log`, result.stderr);
 		cy.wrap(result);
 	});
 });
