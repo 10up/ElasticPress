@@ -1,31 +1,40 @@
+window.indexNames = null;
+
+let setFeatures = false;
+
 before(() => {
 	// Clear sync from previous tests.
 	cy.wpCli(
 		'wp eval \'delete_transient( "ep_wpcli_sync" ); delete_option( "ep_index_meta" ); delete_site_transient( "ep_wpcli_sync" ); delete_site_option( "ep_index_meta" );\'',
 	);
 
-	cy.wpCli('wp elasticpress get-indexes').then((wpCliResponse) => {
-		window.indexNames = JSON.parse(wpCliResponse.stdout);
-	});
+	if (!window.indexNames) {
+		cy.wpCli('wp elasticpress get-indexes').then((wpCliResponse) => {
+			window.indexNames = JSON.parse(wpCliResponse.stdout);
+		});
+	}
 
-	cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
-		// Nothing needs to be done if EP.io.
-		if (!epHost.stdout.match(/elasticpress\.io/)) {
-			cy.wpCli(
-				'eval "echo \\ElasticPress\\Indexables::factory()->get( \'post\' )->get_index_name();"',
-			).then((indexName) => {
-				const publicEpHost = epHost.stdout.replace('172.17.0.1', 'localhost');
-				cy.updateFeatures({
-					autosuggest: {
-						active: 1,
-						endpoint_url: `${publicEpHost}${indexName.stdout}/_search`,
-					},
+	if (!setFeatures) {
+		cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
+			// Nothing needs to be done if EP.io.
+			if (!epHost.stdout.match(/elasticpress\.io/)) {
+				cy.wpCli(
+					'eval "echo \\ElasticPress\\Indexables::factory()->get( \'post\' )->get_index_name();"',
+				).then((indexName) => {
+					const publicEpHost = epHost.stdout.replace('172.17.0.1', 'localhost');
+					cy.updateFeatures({
+						autosuggest: {
+							active: 1,
+							endpoint_url: `${publicEpHost}${indexName.stdout}/_search`,
+						},
+					});
 				});
-			});
-		} else {
-			cy.updateFeatures();
-		}
-	});
+			} else {
+				cy.updateFeatures();
+			}
+		});
+		setFeatures = true;
+	}
 });
 
 afterEach(() => {
