@@ -51,7 +51,7 @@ export default () => {
 	 * @return {void}
 	 */
 	const onClick = () => {
-		dispatch({ type: 'CLEAR_FILTERS' });
+		dispatch({ type: 'CLEAR_FACETS' });
 	};
 
 	return (

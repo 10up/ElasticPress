@@ -108,7 +108,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	 * @param {string[]} terms Selected terms.
 	 */
 	const onChange = (terms) => {
-		dispatch({ type: 'APPLY_FILTERS', payload: { [name]: terms } });
+		dispatch({ type: 'APPLY_ARGS', payload: { [name]: terms } });
 	};
 
 	/**
@@ -121,7 +121,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 
 		terms.splice(terms.indexOf(term), 1);
 
-		dispatch({ type: 'APPLY_FILTERS', payload: { [name]: terms } });
+		dispatch({ type: 'APPLY_ARGS', payload: { [name]: terms } });
 	};
 
 	return (

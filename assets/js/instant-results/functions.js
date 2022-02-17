@@ -1,7 +1,31 @@
 /**
  * Internal deendencies.
  */
-import { currencyCode } from './config';
+import { currencyCode, facets } from './config';
+
+/**
+ * Clear facet filters from a set of args.
+ *
+ * @param {Object} args Args to clear facets from.
+ * @return {Object} Cleared args.
+ */
+export const clearFacetsFromArgs = (args) => {
+	const clearedArgs = { ...args };
+
+	facets.forEach(({ name, type }) => {
+		switch (type) {
+			case 'price_range':
+				delete clearedArgs.max_price;
+				delete clearedArgs.min_price;
+				break;
+			default:
+				delete clearedArgs[name];
+				break;
+		}
+	});
+
+	return clearedArgs;
+};
 
 /**
  * Format a number as a price.

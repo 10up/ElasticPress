@@ -70,7 +70,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * @param {string[]} postTypes Selected post types.
 	 */
 	const onChange = (postTypes) => {
-		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
+		dispatch({ type: 'APPLY_ARGS', payload: { post_type: postTypes } });
 	};
 
 	/**
@@ -84,7 +84,7 @@ export default ({ defaultIsOpen, label }) => {
 
 		postTypes.splice(index, 1);
 
-		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
+		dispatch({ type: 'APPLY_ARGS', payload: { post_type: postTypes } });
 	};
 
 	return (

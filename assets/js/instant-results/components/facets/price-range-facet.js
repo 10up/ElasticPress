@@ -74,7 +74,7 @@ export default ({ defaultIsOpen, label }) => {
 	const onAfterChange = (values) => {
 		const [min_price, max_price] = values;
 
-		dispatch({ type: 'APPLY_FILTERS', payload: { min_price, max_price } });
+		dispatch({ type: 'APPLY_ARGS', payload: { min_price, max_price } });
 	};
 
 	/**
@@ -91,7 +91,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * Handle clearing the filter.
 	 */
 	const onClear = () => {
-		dispatch({ type: 'APPLY_FILTERS', payload: { max_price: null, min_price: null } });
+		dispatch({ type: 'APPLY_ARGS', payload: { max_price: null, min_price: null } });
 	};
 
 	/**
