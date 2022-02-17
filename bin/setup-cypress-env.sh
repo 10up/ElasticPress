@@ -73,7 +73,7 @@ npm run env run tests-cli "wp plugin activate debug-bar debug-bar-elasticpress w
 
 npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME}"
 
-npm run env run tests-cli "wp ${PLUGIN_NAME} index --setup --yes --show-errors"
+npm run env run tests-cli "wp elasticpress index --setup --yes --show-errors"
 
 npm run env run tests-cli "wp option set posts_per_page 5"
 npm run env run tests-cli "wp user meta update wpsnapshots edit_post_per_page 5"
