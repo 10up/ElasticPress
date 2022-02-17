@@ -1,4 +1,9 @@
 before(() => {
+	// Clear sync from previous tests.
+	cy.wpCli(
+		'wp eval \'delete_transient( "ep_wpcli_sync" ); delete_option( "ep_index_meta" ); delete_site_transient( "ep_wpcli_sync" ); delete_site_option( "ep_index_meta" );\'',
+	);
+
 	cy.wpCli('wp elasticpress get-indexes').then((wpCliResponse) => {
 		window.indexNames = JSON.parse(wpCliResponse.stdout);
 	});
