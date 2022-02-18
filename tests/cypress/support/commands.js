@@ -93,7 +93,7 @@ Cypress.Commands.add('wpCliEval', (command) => {
 	const fileName = (Math.random() + 1).toString(36).substring(7);
 
 	// this will be written "local" plugin directory
-	const escapedCommand = command.replace(/"/g, '\\"').replace(/^<\?php /, '');
+	const escapedCommand = command.replace(/^<\?php /, '');
 	cy.writeFile(fileName, `<?php ${escapedCommand}`);
 
 	const pluginName = Cypress.config('pluginName');
