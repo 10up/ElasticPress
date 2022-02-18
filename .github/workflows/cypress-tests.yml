@@ -5,6 +5,12 @@ env:
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
+  schedule:
+    - cron:  '0 0 * * *'
+  push:
+    branches:
+      - develop
+      - master
   pull_request:
     branches:
       - develop
