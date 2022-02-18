@@ -173,6 +173,17 @@ class User extends Indexable {
 
 					$use_filters = true;
 				}
+
+				// If there are no specific roles named, make sure the user is a member of the site.
+				if ( ! $use_filters ) {
+					$filter['bool']['must_not'][] = array(
+						'term' => array(
+							'capabilities.' . $blog_id . '.roles' => 0,
+						),
+					);
+
+					$use_filters = true;
+				}
 			}
 		}
 
