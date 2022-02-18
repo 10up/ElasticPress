@@ -1,7 +1,7 @@
 name: E2E Test
 
 env:
-  NODE_VERSION: "12"
+  NODE_VERSION: "14"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
