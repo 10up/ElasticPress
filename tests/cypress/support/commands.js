@@ -258,7 +258,6 @@ Cypress.Commands.add('getTotal', (totalNumber) => {
 });
 
 Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', mode = 'singleSite') => {
-	const pluginSlug = slug.replace('elasticpress', Cypress.config('pluginName'));
 	if (method === 'dashboard') {
 		if (mode === 'network') {
 			cy.visitAdminPage('network/plugins.php');
@@ -267,7 +266,7 @@ Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', mode = 'sing
 		}
 
 		cy.get('body').then(($body) => {
-			const $activateButton = $body.find(`#activate-${pluginSlug}`);
+			const $activateButton = $body.find(`#activate-${slug}`);
 			if ($activateButton.length) {
 				cy.get($activateButton).click();
 			}
@@ -276,6 +275,7 @@ Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', mode = 'sing
 		return;
 	}
 
+	const pluginSlug = slug.replace('elasticpress', Cypress.config('pluginName'));
 	let command = `wp plugin activate ${pluginSlug}`;
 	if (mode === 'network') {
 		command += ' --network';
@@ -284,7 +284,6 @@ Cypress.Commands.add('activatePlugin', (slug, method = 'dashboard', mode = 'sing
 });
 
 Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'singleSite') => {
-	const pluginSlug = slug.replace('elasticpress', Cypress.config('pluginName'));
 	if (method === 'dashboard') {
 		if (mode === 'network') {
 			cy.visitAdminPage('network/plugins.php');
@@ -293,7 +292,7 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 		}
 
 		cy.get('body').then(($body) => {
-			const $deactivateButton = $body.find(`#deactivate-${pluginSlug}`);
+			const $deactivateButton = $body.find(`#deactivate-${slug}`);
 			if ($deactivateButton.length) {
 				cy.get($deactivateButton).click();
 			}
@@ -302,6 +301,7 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 		return;
 	}
 
+	const pluginSlug = slug.replace('elasticpress', Cypress.config('pluginName'));
 	let command = `wp plugin deactivate ${pluginSlug}`;
 	if (mode === 'network') {
 		command += ' --network';
