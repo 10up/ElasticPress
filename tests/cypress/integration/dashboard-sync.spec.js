@@ -25,6 +25,10 @@ describe('Dashboard Sync', () => {
 			});
 	}
 
+	before(() => {
+		cy.login();
+	});
+
 	after(() => {
 		if (cy.state('test').state === 'failed') {
 			cy.wpCli('wp plugin deactivate elasticpress --network', true);
@@ -41,8 +45,6 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Can index content and see indexes names in the Health Screen', () => {
-		cy.login();
-
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.start-sync').click();
 		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
@@ -54,8 +56,6 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Can sync via Dashboard when activated in single site', () => {
-		cy.login();
-
 		cy.wpCli('wp elasticpress delete-index --yes');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-health');
@@ -81,8 +81,6 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Can sync via Dashboard when activated in multisite', () => {
-		cy.login();
-
 		cy.wpCli('wp elasticpress delete-index --yes');
 
 		cy.activatePlugin('elasticpress', 'wpCli', 'network');
@@ -129,8 +127,6 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Can pause the dashboard sync if left the page', () => {
-		cy.login();
-
 		const oldPostsPerCycle = setPerIndexCycle(10);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
@@ -157,8 +153,6 @@ describe('Dashboard Sync', () => {
 	});
 
 	it("Can't activate features during a sync", () => {
-		cy.login();
-
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
 		cy.get('.start-sync').click();
@@ -177,8 +171,6 @@ describe('Dashboard Sync', () => {
 	});
 
 	it("Can't index via WP-CLI if indexing via Dashboard", () => {
-		cy.login();
-
 		const oldPostsPerCycle = setPerIndexCycle(10);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
