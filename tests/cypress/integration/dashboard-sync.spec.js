@@ -85,11 +85,7 @@ describe('Dashboard Sync', () => {
 
 		cy.wpCli('wp elasticpress delete-index --yes');
 
-		/**
-		 * @todo Investigate why these were failing if through wp-cli.
-		 */
-		cy.deactivatePlugin('elasticpress');
-		cy.activatePlugin('elasticpress', 'dashboard', 'network');
+		cy.activatePlugin('elasticpress', 'wpCli', 'network');
 
 		// Sync and remove, so EP doesn't think it is a fresh install.
 		cy.wpCli('wp elasticpress index --setup --yes');
@@ -126,8 +122,8 @@ describe('Dashboard Sync', () => {
 				});
 		});
 
-		cy.deactivatePlugin('elasticpress', 'dashboard', 'network');
-		cy.activatePlugin('elasticpress');
+		cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
+		cy.activatePlugin('elasticpress', 'wpCli');
 
 		cy.wpCli('wp elasticpress index --setup --yes');
 	});
@@ -138,7 +134,10 @@ describe('Dashboard Sync', () => {
 		const oldPostsPerCycle = setPerIndexCycle(10);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
+
+		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
 		cy.get('.start-sync').click();
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.get('.pause-sync').should('be.visible');
 
 		cy.visitAdminPage('index.php');
@@ -161,7 +160,9 @@ describe('Dashboard Sync', () => {
 		cy.login();
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
 		cy.get('.start-sync').click();
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.get('.pause-sync').should('be.visible');
 		cy.get('.pause-sync').click();
 
@@ -181,9 +182,13 @@ describe('Dashboard Sync', () => {
 		const oldPostsPerCycle = setPerIndexCycle(10);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
 		cy.get('.start-sync').click();
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+
 		cy.get('.pause-sync').should('be.visible');
 		cy.get('.pause-sync').click();
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		cy.wpCli('wp elasticpress index', true)
 			.its('stderr')

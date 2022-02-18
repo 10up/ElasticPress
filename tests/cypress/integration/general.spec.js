@@ -10,9 +10,8 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 	it('Can see quick setup message after enabling the plugin for the first time', () => {
 		cy.login();
 
-		cy.deactivatePlugin('elasticpress');
-		cy.activatePlugin('fake-new-activation');
-		cy.activatePlugin('elasticpress');
+		cy.deactivatePlugin('elasticpress', 'wpCli');
+		cy.activatePlugin('fake-new-activation elasticpress', 'wpCli');
 
 		cy.get('.wrap').should('contain.text', 'ElasticPress is almost ready to go.');
 
@@ -22,15 +21,14 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 	it('Can sync all the posts if user setup plugin for the first time', () => {
 		cy.login();
 
-		cy.deactivatePlugin('elasticpress');
-		cy.activatePlugin('fake-new-activation');
-		cy.activatePlugin('elasticpress');
+		cy.deactivatePlugin('elasticpress', 'wpCli');
+		cy.activatePlugin('fake-new-activation elasticpress', 'wpCli');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 
 		cy.get('.setup-button').should('contain.text', 'Index Your Content');
 
-		cy.deactivatePlugin('fake-new-activation');
+		cy.deactivatePlugin('fake-new-activation', 'wpCli');
 	});
 
 	it('Can sync post data and meta details in Elasticsearch if user creates/updates a published post', () => {
@@ -53,9 +51,8 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 				return;
 			}
 
-			cy.deactivatePlugin('elasticpress');
-			cy.activatePlugin('unsupported-elasticsearch-version');
-			cy.activatePlugin('elasticpress');
+			cy.deactivatePlugin('elasticpress', 'wpCli');
+			cy.activatePlugin('unsupported-elasticsearch-version elasticpress', 'wpCli');
 
 			cy.visitAdminPage('plugins.php');
 			cy.get('.notice')
@@ -64,7 +61,7 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 					expect(text).to.contains('ElasticPress may or may not work properly.');
 				});
 
-			cy.deactivatePlugin('unsupported-elasticsearch-version');
+			cy.deactivatePlugin('unsupported-elasticsearch-version', 'wpCli');
 		});
 	});
 });

@@ -196,14 +196,14 @@ describe('WP-CLI Commands', () => {
 		before(() => {
 			cy.login();
 
-			cy.activatePlugin('elasticpress', 'dashboard', 'network');
+			cy.activatePlugin('elasticpress', 'wpCli', 'network');
 
 			cy.visitAdminPage('network/sites.php');
 			cy.get('.index-toggle').check();
 		});
 
 		after(() => {
-			cy.deactivatePlugin('elasticpress', 'dashboard', 'network');
+			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
 		});
 
 		it('Can index all blogs in network if user specifies --network-wide argument', () => {
