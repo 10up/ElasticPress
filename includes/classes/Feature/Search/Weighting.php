@@ -535,7 +535,7 @@ class Weighting {
 
 		$weights = array_diff_key( $weights, $ignore_keys );
 
-		$found_enabled = array_search( true, array_column( $weights, 'enabled' ), true );
+		$found_enabled = array_search( true, array_column( $weights, 'enabled' ) );
 
 		if ( false !== $found_enabled ) {
 			return true;
