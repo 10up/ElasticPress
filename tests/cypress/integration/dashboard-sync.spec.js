@@ -151,7 +151,7 @@ describe('Dashboard Sync', () => {
 		canSeeIndexesNames();
 	});
 
-	it.only("Can't activate features during a sync", () => {
+	it("Can't activate features during a sync", () => {
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
 		cy.get('.start-sync').click();
