@@ -31,8 +31,7 @@ describe('Dashboard Sync', () => {
 
 	after(() => {
 		if (cy.state('test').state === 'failed') {
-			cy.wpCli('wp plugin deactivate elasticpress --network', true);
-			cy.wpCli('wp plugin activate elasticpress', true);
+			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
 			cy.wpCli('wp elasticpress clear-index', true);
 			cy.visitAdminPage('admin.php?page=elasticpress-settings');
 			cy.get('body').then(($body) => {
@@ -152,7 +151,7 @@ describe('Dashboard Sync', () => {
 		canSeeIndexesNames();
 	});
 
-	it("Can't activate features during a sync", () => {
+	it.only("Can't activate features during a sync", () => {
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
 		cy.get('.start-sync').click();
@@ -162,12 +161,24 @@ describe('Dashboard Sync', () => {
 
 		cy.get('.error-overlay').should('have.class', 'syncing');
 
+		/**
+		 * When clicking on the resume button, we expect two requests:
+		 * 1. To index the last batch
+		 * 2. To set is as done
+		 */
 		cy.get('.resume-sync').click();
+		// eslint-disable-next-line jest/valid-expect-in-promise
+		cy.wait('@ajaxRequest').then((ajaxRequest) => {
+			cy.log(ajaxRequest.response.body);
+			expect(ajaxRequest.response.body.data.found_items).to.equal(
+				ajaxRequest.response.body.data.offset,
+			);
+		});
+		cy.wait('@ajaxRequest').its('response.body.data.found_items').should('eq', 0);
 		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
 			'contain.text',
 			'Sync complete',
 		);
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.get('.error-overlay').should('not.have.class', 'syncing');
 	});
 
