@@ -167,6 +167,7 @@ describe('Dashboard Sync', () => {
 			'contain.text',
 			'Sync complete',
 		);
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.get('.error-overlay').should('not.have.class', 'syncing');
 	});
 
