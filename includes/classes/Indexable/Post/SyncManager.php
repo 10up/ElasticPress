@@ -346,19 +346,6 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		/**
-		 * Filter to kill post sync
-		 *
-		 * @hook ep_post_sync_kill
-		 * @param {bool} $skip True means kill sync for post
-		 * @param  {int} $post_id ID of post
-		 * @param  {int} $post_id ID of post
-		 * @return {boolean} New value
-		 */
-		if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
-			return;
-		}
-
-		/**
 		 * Filter to allow skipping this action in case of custom handling
 		 *
 		 * @hook ep_skip_action_set_object_terms
@@ -375,29 +362,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$post = get_post( $post_id );
-		if ( ! is_object( $post ) ) {
-			return;
-		}
-
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
-
-		// Check post status
-		$indexable_post_statuses = $indexable->get_indexable_post_status();
-		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
-			return;
-		}
-
-		// Only re-index if the taxonomy is indexed for this post
-		$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
-		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
-		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
-			return;
-		}
-
-		// Check post type
-		$indexable_post_types = $indexable->get_indexable_post_types();
-		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+		if ( ! $this->should_reindex_post( $post_id, $taxonomy ) ) {
 			return;
 		}
 
@@ -460,42 +425,7 @@ class SyncManager extends SyncManagerAbstract {
 
 		// Add all of them to the queue
 		foreach ( $object_ids as $post_id ) {
-			/**
-			 * Filter to kill post sync
-			 *
-			 * @hook ep_post_sync_kill
-			 * @param {bool} $skip True meanas kill sync for post
-			 * @param  {int} $object_id ID of post
-			 * @param  {int} $object_id ID of post
-			 * @return {boolean} New value
-			 */
-			if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
-				return;
-			}
-
-			$post = get_post( $post_id );
-
-			// If post not found, skip to the next iteration
-			if ( ! is_object( $post ) ) {
-				continue;
-			}
-
-			// Check post status
-			$indexable_post_statuses = $indexable->get_indexable_post_status();
-			if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
-				continue;
-			}
-
-			// Only re-index if the taxonomy is indexed for this post
-			$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
-			$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
-			if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
-				continue;
-			}
-
-			// Check post type
-			$indexable_post_types = $indexable->get_indexable_post_types();
-			if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+			if ( ! $this->should_reindex_post( $post_id, $taxonomy ) ) {
 				continue;
 			}
 
@@ -533,19 +463,6 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		/**
-		 * Filter to kill post sync
-		 *
-		 * @hook ep_post_sync_kill
-		 * @param {bool} $skip True meanas kill sync for post
-		 * @param  {int} $object_id ID of post
-		 * @param  {int} $object_id ID of post
-		 * @return {boolean} New value
-		 */
-		if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
-			return;
-		}
-
-		/**
 		 * Filter to allow skipping this action in case of custom handling
 		 *
 		 * @hook ep_skip_action_deleted_term_relationships
@@ -559,31 +476,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$post = get_post( $post_id );
-
-		// If post not found, skip to the next iteration
-		if ( ! is_object( $post ) ) {
-			return;
-		}
-
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
-
-		// Check post status
-		$indexable_post_statuses = $indexable->get_indexable_post_status();
-		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
-			return;
-		}
-
-		// Only re-index if the taxonomy is indexed for this post
-		$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
-		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
-		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
-			return;
-		}
-
-		// Check post type
-		$indexable_post_types = $indexable->get_indexable_post_types();
-		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+		if ( ! $this->should_reindex_post( $post_id, $taxonomy ) ) {
 			return;
 		}
 
@@ -630,5 +523,55 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		restore_current_blog();
+	}
+
+	/**
+	 * Check if post attributes (post status, taxonomy, and type) match what is needed to reindex or not.
+	 *
+	 * @param int    $post_id  The post ID.
+	 * @param string $taxonomy The taxonomy slug.
+	 * @return boolean
+	 */
+	protected function should_reindex_post( $post_id, $taxonomy ) {
+		/**
+		 * Filter to kill post sync
+		 *
+		 * @hook ep_post_sync_kill
+		 * @param {bool} $skip True meanas kill sync for post
+		 * @param  {int} $object_id ID of post
+		 * @param  {int} $object_id ID of post
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
+			return false;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! is_object( $post ) ) {
+			return false;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Check post status
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
+		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+			return false;
+		}
+
+		// Only re-index if the taxonomy is indexed for this post
+		$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
+		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
+		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
+			return false;
+		}
+
+		// Check post type
+		$indexable_post_types = $indexable->get_indexable_post_types();
+		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+			return false;
+		}
+
+		return true;
 	}
 }
