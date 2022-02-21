@@ -401,8 +401,8 @@ class Facets extends Feature {
 		$filter_name = apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 0 === strpos( $key, 'filter_' ) ) {
-				$taxonomy = str_replace( $filter_name, '', $key );
+			if ( 0 === strpos( $key, $filter_name ) ) {
+				$taxonomy = str_replace( $filter_name	, '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(
 					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
