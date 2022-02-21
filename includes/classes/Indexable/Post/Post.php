@@ -976,7 +976,6 @@ class Post extends Indexable {
 		 *      terms array
 		 * @since 0.9.1
 		 */
-
 		if ( ! empty( $wp_query->tax_query ) && ! empty( $wp_query->tax_query->queries ) ) {
 			$args['tax_query'] = $wp_query->tax_query->queries;
 		}
