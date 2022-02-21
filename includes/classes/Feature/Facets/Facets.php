@@ -402,7 +402,7 @@ class Facets extends Feature {
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 0 === strpos( $key, $filter_name ) ) {
-				$taxonomy = str_replace( $filter_name	, '', $key );
+				$taxonomy = str_replace( $filter_name, '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(
 					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
