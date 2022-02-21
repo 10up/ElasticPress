@@ -385,7 +385,7 @@ abstract class Indexable {
 		 */
 		$enabled = apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			$enabled = false;
 		}
 
@@ -478,7 +478,7 @@ abstract class Indexable {
 		$meta_types['time']     = '00:00:01';
 
 		// is this is a recognizable date format?
-		$new_date  = date_create( $meta_value, \wp_timezone() );
+		$new_date = date_create( $meta_value, \wp_timezone() );
 		if ( $new_date ) {
 			$timestamp = $new_date->getTimestamp();
 
@@ -523,30 +523,6 @@ abstract class Indexable {
 		];
 
 		foreach ( $meta_queries as $single_meta_query ) {
-
-			/**
-			 * There is a strange case where meta_query looks like this:
-			 * array(
-			 *  "something" => array(
-			 *   array(
-			 *      'key' => ...
-			 *      ...
-			 *   )
-			 *  )
-			 * )
-			 *
-			 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
-			 *
-			 * @since  2.1
-			 */
-			if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
-				reset( $single_meta_query );
-				$first_key = key( $single_meta_query );
-
-				if ( is_array( $single_meta_query[ $first_key ] ) ) {
-					$single_meta_query = $single_meta_query[ $first_key ];
-				}
-			}
 
 			if ( ! empty( $single_meta_query['key'] ) ) {
 

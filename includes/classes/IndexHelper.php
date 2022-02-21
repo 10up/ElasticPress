@@ -92,15 +92,20 @@ class IndexHelper {
 		Utils\update_option( 'ep_last_sync', time() );
 		Utils\delete_option( 'ep_need_upgrade_sync' );
 		Utils\delete_option( 'ep_feature_auto_activated_sync' );
+		delete_transient( 'ep_sync_interrupted' );
+
+		$start_date_time = date_create( 'now', wp_timezone() );
 
 		$this->index_meta = [
-			'method'        => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
-			'offset'        => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
-			'start'         => true,
-			'sync_stack'    => [],
-			'network_alias' => [],
-			'start_time'    => microtime( true ),
-			'totals'        => [
+			'method'          => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
+			'put_mapping'     => ! empty( $this->args['put_mapping'] ),
+			'offset'          => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
+			'start'           => true,
+			'sync_stack'      => [],
+			'network_alias'   => [],
+			'start_time'      => microtime( true ),
+			'start_date_time' => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
+			'totals'          => [
 				'total'      => 0,
 				'synced'     => 0,
 				'skipped'    => 0,
@@ -125,37 +130,66 @@ class IndexHelper {
 					continue;
 				}
 
+				switch_to_blog( $site['blog_id'] );
+
 				foreach ( $non_global_indexables as $indexable ) {
-					$this->index_meta['sync_stack'][] = [
+					$sync_stack_item = [
 						'url'         => untrailingslashit( $site['domain'] . $site['path'] ),
 						'blog_id'     => (int) $site['blog_id'],
 						'indexable'   => $indexable,
 						'put_mapping' => ! empty( $this->args['put_mapping'] ),
 					];
 
+					$this->index_meta['current_sync_item'] = $sync_stack_item;
+
+					$objects_to_index = $this->get_objects_to_index();
+
+					$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
+
+					$this->index_meta['sync_stack'][] = $sync_stack_item;
+
 					if ( ! in_array( $indexable, $this->index_meta['network_alias'], true ) ) {
 						$this->index_meta['network_alias'][] = $indexable;
 					}
 				}
 			}
+
+			restore_current_blog();
 		} else {
 			foreach ( $non_global_indexables as $indexable ) {
-				$this->index_meta['sync_stack'][] = [
+				$sync_stack_item = [
 					'url'         => untrailingslashit( home_url() ),
 					'blog_id'     => (int) get_current_blog_id(),
 					'indexable'   => $indexable,
 					'put_mapping' => ! empty( $this->args['put_mapping'] ),
 				];
+
+				$this->index_meta['current_sync_item'] = $sync_stack_item;
+
+				$objects_to_index = $this->get_objects_to_index();
+
+				$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
+
+				$this->index_meta['sync_stack'][] = $sync_stack_item;
 			}
 		}
 
 		foreach ( $global_indexables as $indexable ) {
-			$this->index_meta['sync_stack'][] = [
+			$sync_stack_item = [
 				'indexable'   => $indexable,
 				'put_mapping' => ! empty( $this->args['put_mapping'] ),
 			];
+
+			$this->index_meta['current_sync_item'] = $sync_stack_item;
+
+			$objects_to_index = $this->get_objects_to_index();
+
+			$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
+
+			$this->index_meta['sync_stack'][] = $sync_stack_item;
 		}
 
+		$this->index_meta['current_sync_item'] = false;
 		/**
 		 * Fires at start of new index
 		 *
@@ -706,8 +740,11 @@ class IndexHelper {
 
 		$this->index_meta = null;
 
-		$totals['end_time_gmt'] = time();
-		$totals['total_time']   = microtime( true ) - $start_time;
+		$end_date_time = date_create( 'now', wp_timezone() );
+
+		$totals['end_date_time'] = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
+		$totals['end_time_gmt']  = time();
+		$totals['total_time']    = microtime( true ) - $start_time;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
 
@@ -793,11 +830,13 @@ class IndexHelper {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
 			Utils\delete_option( 'ep_index_meta' );
+			$totals = Utils\get_option( 'ep_last_index' );
 		}
 
 		$message = [
 			'message'    => $message_text,
 			'index_meta' => $this->index_meta,
+			'totals'     => $totals ?? [],
 			'status'     => $type,
 		];
 
@@ -837,11 +876,10 @@ class IndexHelper {
 	protected function output_index_errors( $failed_objects ) {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
-		$error_text = esc_html__( "The following failed to index:\r\n\r\n", 'elasticpress' );
+		$error_text = [];
 
 		foreach ( $failed_objects as $object ) {
-			$error_text .= '- ' . $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): ' . "\r\n";
-			$error_text .= '[' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] . "\r\n";
+			$error_text[] = $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'];
 		}
 
 		return $error_text;

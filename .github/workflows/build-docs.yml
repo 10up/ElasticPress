@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         path: 'wp-content/plugins/elasticpress'
 
@@ -52,7 +52,7 @@ jobs:
         wp cli-command-docs elasticpress --custom-order=index,activate-feature,deactivate-feature,list-features,get-algorithm-version,set-algorithm-version --remove=delete_transient_on_int,custom_get_transient --custom-intro='The following WP-CLI commands are supported by ElasticPress:' > wp-content/plugins/elasticpress/docs/wp-cli.md
 
     - name: Use Node.js 10
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
       with:
         node-version: '10.x'
 
@@ -65,7 +65,7 @@ jobs:
         CI: true
 
     - name: Deploy to GH Pages
-      uses: maxheld83/ghpages@v0.2.1
+      uses: maxheld83/ghpages@v0.3.0
       env:
         BUILD_DIR: 'docs-built/'
         GH_PAT: ${{ secrets.GH_PAT }}

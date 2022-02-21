@@ -1,0 +1,60 @@
+.has-ep-search-modal {
+	overflow: hidden;
+}
+
+.ep-search-modal {
+	--ep-search-modal-focus-within: 0;
+	background-color: rgba(43, 46, 56, 0.9);
+	bottom: 0;
+	display: flex;
+	left: 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+	z-index: 9999;
+
+	@nest .rtl & {
+		direction: rtl;
+		text-align: right;
+	}
+
+	@nest .admin-bar & {
+		top: 32px;
+
+		@media ( max-width: 782px ) {
+			top: 46px;
+		}
+	}
+
+	&[aria-hidden="true"] {
+		display: none;
+	}
+
+	&:focus-within {
+		--ep-search-modal-focus-within: 1;
+	}
+}
+
+.ep-search-modal__content {
+	background-color: var(--ep-search-background-color);
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+
+	@media ( min-width: 768px ) {
+		bottom: 1em;
+		margin: 0 auto;
+		max-width: calc(100% - 2em);
+		top: 1em;
+		width: 80em;
+	}
+}
+
+.ep-search-modal__close {
+	align-self: flex-end;
+	padding: 1em !important;
+}

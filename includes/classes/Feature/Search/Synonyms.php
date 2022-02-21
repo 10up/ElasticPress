@@ -12,6 +12,7 @@ use ElasticPress\Features;
 use ElasticPress\Indexables;
 use ElasticPress\Elasticsearch;
 use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -131,8 +132,22 @@ class Synonyms {
 			return;
 		}
 
-		wp_enqueue_script( 'ep_synonyms_scripts', EP_URL . 'dist/js/synonyms-script.min.js', [], EP_VERSION, true );
-		wp_enqueue_style( 'ep_synonyms_styles', EP_URL . 'dist/css/synonyms-styles.min.css', [], EP_VERSION, 'all' );
+		wp_enqueue_script(
+			'ep_synonyms_scripts',
+			EP_URL . 'dist/js/synonyms-script.min.js',
+			Utils\get_asset_info( 'synonyms-script', 'dependencies' ),
+			Utils\get_asset_info( 'synonyms-script', 'version' ),
+			true
+		);
+
+		wp_enqueue_style(
+			'ep_synonyms_styles',
+			EP_URL . 'dist/css/synonyms-styles.min.css',
+			Utils\get_asset_info( 'synonyms-styles', 'dependencies' ),
+			Utils\get_asset_info( 'synonyms-styles', 'version' ),
+			'all'
+		);
+
 		wp_localize_script(
 			'ep_synonyms_scripts',
 			'epSynonyms',
@@ -253,10 +268,11 @@ class Synonyms {
 					'post_type'      => self::POST_TYPE_NAME,
 					'posts_per_page' => 1,
 					'orderby'        => 'modified',
+					'post_status'    => 'any',
 				)
 			);
 
-			$this->synonym_post_id = 1 === $query_synonym_post->post_count ? $query_synonym_post->posts[0] : false;
+			$this->synonym_post_id = ( $query_synonym_post->post_count >= 1 ) ? $query_synonym_post->posts[0] : false;
 
 			if ( ! $this->synonym_post_id ) {
 				$this->synonym_post_id = $this->insert_default_synonym_post();

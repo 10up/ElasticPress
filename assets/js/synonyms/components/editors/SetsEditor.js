@@ -5,7 +5,7 @@ import { Dispatch, State } from '../../context';
 /**
  * Synonyms editor component.
  *
- * @param {Object} props Props
+ * @param {Object}   props      Props
  * @param {Object[]} props.sets Defined sets (equivalent synonyms).
  * @return {React.FC} SetsEditor component
  */

@@ -50,10 +50,25 @@ class Sync {
 		$index_meta = Utils\get_indexing_status();
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
-			wp_send_json_success( $index_meta );
+			wp_send_json_success(
+				[
+					'message'    => sprintf(
+						/* translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID */
+						esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ),
+						$index_meta['offset'],
+						$index_meta['found_items'],
+						$index_meta['current_sync_item']['last_processed_object_id']
+					),
+					'index_meta' => $index_meta,
+				]
+			);
 		}
 
-		wp_send_json_success( array( 'is_finished' => true ) );
+		wp_send_json_success(
+			[
+				'is_finished' => true,
+			]
+		);
 	}
 
 	/**
@@ -118,8 +133,20 @@ class Sync {
 		if ( 'sync' !== Screen::factory()->get_current_screen() ) {
 			return;
 		}
-		wp_enqueue_script( 'ep_sync_scripts', EP_URL . 'dist/js/sync-script.min.js', [ 'jquery' ], EP_VERSION, true );
-		wp_enqueue_style( 'ep_sync_style', EP_URL . 'dist/css/sync-styles.min.css', [], EP_VERSION );
+		wp_enqueue_script(
+			'ep_sync_scripts',
+			EP_URL . 'dist/js/sync-script.min.js',
+			Utils\get_asset_info( 'sync-script', 'dependencies' ),
+			Utils\get_asset_info( 'sync-script', 'version' ),
+			true
+		);
+
+		wp_enqueue_style(
+			'ep_sync_style',
+			EP_URL . 'dist/css/sync-styles.min.css',
+			Utils\get_asset_info( 'sync-styles', 'dependencies' ),
+			Utils\get_asset_info( 'sync-styles', 'version' )
+		);
 
 		$data       = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 		$index_meta = Utils\get_indexing_status();
@@ -138,6 +165,12 @@ class Sync {
 
 		if ( ! empty( $index_meta ) ) {
 			$data['index_meta'] = $index_meta;
+		}
+
+		$ep_last_index = Utils\get_option( 'ep_last_index' );
+
+		if ( ! empty( $ep_last_index ) ) {
+			$data['ep_last_sync_date'] = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
 		}
 
 		/**
@@ -170,6 +203,7 @@ class Sync {
 			]
 		);
 
+		$data['ajax_url']             = admin_url( 'admin-ajax.php' );
 		$data['install_sync']         = empty( $last_sync );
 		$data['install_complete_url'] = esc_url( $install_complete_url );
 		$data['sync_complete']        = esc_html__( 'Sync complete', 'elasticpress' );
@@ -179,6 +213,7 @@ class Sync {
 		$data['sync_wpcli']           = esc_html__( 'WP CLI sync is occurring.', 'elasticpress' );
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
+		$data['is_epio']              = Utils\is_epio();
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );
 	}

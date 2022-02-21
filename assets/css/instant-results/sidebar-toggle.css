@@ -1,0 +1,7 @@
+.ep-search-sidebar-toggle {
+	width: 100%;
+
+	@media ( min-width: 768px ) {
+		display: none;
+	}
+}

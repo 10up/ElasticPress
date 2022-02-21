@@ -22,9 +22,22 @@ class Weighting {
 	 * Sets up the weighting module
 	 */
 	public function setup() {
+		/**
+		 * Filter to disable loading of Search weighting engine.
+		 *
+		 * @hook ep_disable_search_weighting
+		 * @since 4.0
+		 * @param bool Whether to disable search weighting engine. Defaults to false.
+		 * @return bool Whether to disable search weighting engine.
+		 */
+		if ( apply_filters( 'ep_disable_search_weighting', false ) ) {
+			return;
+		}
+
 		add_action( 'admin_menu', [ $this, 'add_weighting_submenu_page' ], 15 );
 		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
+		add_filter( 'ep_query_weighting_fields', [ $this, 'adjust_weight_for_cross_fields' ], 10, 5 );
 	}
 
 	/**
@@ -126,12 +139,21 @@ class Weighting {
 			],
 		];
 
-		/*
+		$post_type_taxonomies = get_object_taxonomies( $post_type );
+
+		/**
+		 * Filter install status
+		 *
 		 * Previous behavior had post_tag and category enabled by default, so if this is supported on the post type
 		 * we add them as enabled by default
+		 *
+		 * @hook ep_weighting_default_enabled_taxonomies
+		 * @param  {array}  $enabled_taxonomies Taxonomies that should be enabled by default
+		 * @param  {string} $post_type          Post type slug
+		 * @return {array}  New taxonomies
+		 * @since  3.6.5
 		 */
-		$post_type_taxonomies = get_object_taxonomies( $post_type );
-		$enabled_by_default   = [ 'post_tag', 'category' ];
+		$enabled_by_default = apply_filters( 'ep_weighting_default_enabled_taxonomies', [ 'post_tag', 'category' ], $post_type );
 
 		foreach ( $enabled_by_default as $default_tax ) {
 			if ( in_array( $default_tax, $post_type_taxonomies, true ) ) {
@@ -654,5 +676,23 @@ class Weighting {
 		}
 
 		return $formatted_args;
+	}
+
+	/**
+	 * Adjust weighting when the type is cross_fields, as it just works with weight = 1.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param string $weighted_field The field and its weight as used in the ES query.
+	 * @param string $field          Field name
+	 * @param string $weight         Weight value
+	 * @param array  $fieldset       Current subset of formatted ES args
+	 * @return array New weighted field string
+	 */
+	public function adjust_weight_for_cross_fields( $weighted_field, $field, $weight, $fieldset ) {
+		if ( ! empty( $fieldset['type'] ) && 'cross_fields' === $fieldset['type'] ) {
+			$weighted_field = "{$field}^1";
+		}
+		return $weighted_field;
 	}
 }

@@ -12,6 +12,7 @@ use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Features;
 use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -409,8 +410,20 @@ class SearchOrdering extends Feature {
 		$screen = get_current_screen();
 
 		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && $screen instanceof \WP_Screen && self::POST_TYPE_NAME === $screen->post_type ) {
-			wp_enqueue_script( 'ep_ordering_scripts', EP_URL . 'dist/js/ordering-script.min.js', [ 'jquery' ], EP_VERSION, true );
-			wp_enqueue_style( 'ep_ordering_styles', EP_URL . 'dist/css/ordering-styles.min.css', [], EP_VERSION );
+			wp_enqueue_script(
+				'ep_ordering_scripts',
+				EP_URL . 'dist/js/ordering-script.min.js',
+				Utils\get_asset_info( 'ordering-script', 'dependencies' ),
+				Utils\get_asset_info( 'ordering-script', 'version' ),
+				true
+			);
+
+			wp_enqueue_style(
+				'ep_ordering_styles',
+				EP_URL . 'dist/css/ordering-styles.min.css',
+				Utils\get_asset_info( 'ordering-styles', 'dependencies' ),
+				Utils\get_asset_info( 'ordering-styles', 'version' )
+			);
 
 			$pointer_data = $this->get_pointer_data_for_localize();
 

@@ -119,8 +119,8 @@ class Search extends Feature {
 		wp_enqueue_style(
 			'searchterm-highlighting',
 			EP_URL . 'dist/css/highlighting-styles.min.css',
-			[],
-			EP_VERSION
+			Utils\get_asset_info( 'highlighting-styles', 'dependencies' ),
+			Utils\get_asset_info( 'highlighting-styles', 'version' )
 		);
 	}
 
@@ -574,6 +574,10 @@ class Search extends Feature {
 
 		if ( ! is_a( $query, 'WP_Query' ) ) {
 			return $enabled;
+		}
+
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return false;
 		}
 
 		if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
