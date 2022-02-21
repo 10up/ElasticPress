@@ -43,15 +43,15 @@ class TestFacets extends BaseTestCase {
 	public function testGetSelected() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 
-		parse_str( 'ep_filter_taxonomy=dolor', $_GET );
+		parse_str( 'filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
 
-		parse_str( 'ep_filter_taxonomy=dolor,sit', $_GET );
+		parse_str( 'filter_taxonomy=dolor,sit', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertSelectedTax( [ 'dolor' => true, 'sit' => true ], 'taxonomy', $selected );
 
-		parse_str( 'ep_filter_taxonomy=dolor,sit&ep_filter_othertax=amet', $_GET );
+		parse_str( 'filter_taxonomy=dolor,sit&filter_othertax=amet', $_GET );
 		$selected = $facet_feature->get_selected();
 
 		$this->assertIsArray( $selected );
@@ -62,13 +62,13 @@ class TestFacets extends BaseTestCase {
 		$this->assertSame( [ 'dolor' => true, 'sit' => true ], $selected['taxonomies']['taxonomy']['terms'] );
 		$this->assertSame( [ 'amet' => true ], $selected['taxonomies']['othertax']['terms'] );
 
-		parse_str( 's=searchterm&ep_filter_taxonomy=dolor', $_GET );
+		parse_str( 's=searchterm&filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
 		$this->assertArrayHasKey( 's', $selected );
 		$this->assertSame( 'searchterm', $selected['s'] );
 
-		parse_str( 'post_type=posttype&ep_filter_taxonomy=dolor', $_GET );
+		parse_str( 'post_type=posttype&filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
 		$this->assertArrayHasKey( 'post_type', $selected );
