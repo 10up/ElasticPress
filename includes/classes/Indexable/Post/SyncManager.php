@@ -61,6 +61,9 @@ class SyncManager extends SyncManagerAbstract {
 		// Called just because we need to know somehow if $delete_all is set before action_queue_meta_sync() runs.
 		add_filter( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ), 10, 5 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
+		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
+		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 
 		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
@@ -313,6 +316,289 @@ class SyncManager extends SyncManagerAbstract {
 				$this->add_to_queue( $post_id );
 			}
 		}
+	}
+
+	/**
+	 * When a post's terms are changed, re-index.
+	 *
+	 * This catches term deletions via wp_delete_term(), because that function internally loops over all attached objects
+	 * and updates their terms. It will also end up firing whenever set_object_terms is called, but the queue will de-duplicate
+	 * multiple instances per post. This won't happen for taxonomies that has a default term (like Uncategorized for categories),
+	 * hence why we also have `action_deleted_term_relationships`.
+	 *
+	 * @see set_object_terms
+	 * @param int    $post_id    Post ID.
+	 * @param array  $terms      An array of object terms.
+	 * @param array  $tt_ids     An array of term taxonomy IDs.
+	 * @param string $taxonomy   Taxonomy slug.
+	 * @param bool   $append     Whether to append new terms to the old terms.
+	 * @param array  $old_tt_ids Old array of term taxonomy IDs.
+	 * @since  4.0.0
+	 */
+	public function action_set_object_terms( $post_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			return;
+		}
+
+		/**
+		 * Filter to kill post sync
+		 *
+		 * @hook ep_post_sync_kill
+		 * @param {bool} $skip True means kill sync for post
+		 * @param  {int} $post_id ID of post
+		 * @param  {int} $post_id ID of post
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
+			return;
+		}
+
+		/**
+		 * Filter to allow skipping this action in case of custom handling
+		 *
+		 * @hook ep_skip_action_set_object_terms
+		 * @param {bool}   $skip       True means kill sync for post
+		 * @param {int}    $post_id    ID of post
+		 * @param {array}  $terms      An array of object terms.
+		 * @param {array}  $tt_ids     An array of term taxonomy IDs.
+		 * @param {string} $taxonomy   Taxonomy slug.
+		 * @param {bool}   $append     Whether to append new terms to the old terms.
+		 * @param {array}  $old_tt_ids Old array of term taxonomy IDs.
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_action_set_object_terms', false, $post_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) ) {
+			return;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! is_object( $post ) ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Check post status
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
+		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+			return;
+		}
+
+		// Only re-index if the taxonomy is indexed for this post
+		$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
+		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
+		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
+			return;
+		}
+
+		// Check post type
+		$indexable_post_types = $indexable->get_indexable_post_types();
+		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+			return;
+		}
+
+		/**
+		 * Fire before post is queued for syncing
+		 *
+		 * @since 4.0.0
+		 * @hook ep_sync_on_set_object_terms
+		 * @param {int}    $post_id    ID of post
+		 * @param {array}  $terms      An array of object terms.
+		 * @param {array}  $tt_ids     An array of term taxonomy IDs.
+		 * @param {string} $taxonomy   Taxonomy slug.
+		 * @param {bool}   $append     Whether to append new terms to the old terms.
+		 * @param {array}  $old_tt_ids Old array of term taxonomy IDs.
+		 */
+		do_action( 'ep_sync_on_set_object_terms', $post_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids );
+
+		$this->add_to_queue( $post_id );
+	}
+
+	/**
+	 * When a term is updated, re-index all posts attached to that term
+	 *
+	 * @param  int    $term_id    Term id.
+	 * @param  int    $tt_id Term Taxonomy id.
+	 * @param  string $taxonomy   Taxonomy name.
+	 * @since  4.0.0
+	 */
+	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
+		global $wpdb;
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			return;
+		}
+
+		// Find ID of all attached posts (query lifted from wp_delete_term())
+		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $tt_id ) );
+
+		if ( ! count( $object_ids ) ) {
+			return;
+		}
+
+		/**
+		 * Filter to allow skipping this action in case of custom handling
+		 *
+		 * @hook ep_skip_action_edited_term
+		 * @param {bool}   $skip       Current value of whether to skip running action_edited_term or not
+		 * @param {int}    $term_id    Term id.
+		 * @param {int}    $tt_id      Term Taxonomy id.
+		 * @param {string} $taxonomy   Taxonomy name.
+		 * @param {array}  $object_ids IDs of the objects attached to the term id.
+		 * @return {bool}  New value of whether to skip running action_edited_term or not
+		 */
+		if ( apply_filters( 'ep_skip_action_edited_term', false, $term_id, $tt_id, $taxonomy, $object_ids ) ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Add all of them to the queue
+		foreach ( $object_ids as $post_id ) {
+			/**
+			 * Filter to kill post sync
+			 *
+			 * @hook ep_post_sync_kill
+			 * @param {bool} $skip True meanas kill sync for post
+			 * @param  {int} $object_id ID of post
+			 * @param  {int} $object_id ID of post
+			 * @return {boolean} New value
+			 */
+			if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
+				return;
+			}
+
+			$post = get_post( $post_id );
+
+			// If post not found, skip to the next iteration
+			if ( ! is_object( $post ) ) {
+				continue;
+			}
+
+			// Check post status
+			$indexable_post_statuses = $indexable->get_indexable_post_status();
+			if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+				continue;
+			}
+
+			// Only re-index if the taxonomy is indexed for this post
+			$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
+			$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
+			if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
+				continue;
+			}
+
+			// Check post type
+			$indexable_post_types = $indexable->get_indexable_post_types();
+			if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+				continue;
+			}
+
+			/**
+			 * Fire before post is queued for syncing
+			 *
+			 * @hook ep_sync_on_edited_term
+			 * @param  {int} $post_id ID of post
+			 * @param  {int} $term_id ID of the term that was edited
+			 * @param  {int} $tt_id Taxonomy Term ID of the term that was edited
+			 * @param  {int} $taxonomy Taxonomy of the term that was edited
+			 */
+			do_action( 'ep_sync_on_edited_term', $post_id, $term_id, $tt_id, $taxonomy );
+
+			$this->add_to_queue( $post_id );
+		}
+	}
+
+	/**
+	 * When a term relationship is deleted, re-index all posts attached to that term
+	 *
+	 * @param int    $post_id  Post ID.
+	 * @param array  $tt_ids   An array of term taxonomy IDs.
+	 * @param string $taxonomy Taxonomy slug.
+	 * @since  4.0.0
+	 */
+	public function action_deleted_term_relationships( $post_id, $tt_ids, $taxonomy ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			return;
+		}
+
+		/**
+		 * Filter to kill post sync
+		 *
+		 * @hook ep_post_sync_kill
+		 * @param {bool} $skip True meanas kill sync for post
+		 * @param  {int} $object_id ID of post
+		 * @param  {int} $object_id ID of post
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
+			return;
+		}
+
+		/**
+		 * Filter to allow skipping this action in case of custom handling
+		 *
+		 * @hook ep_skip_action_deleted_term_relationships
+		 * @param {bool}   $skip       Current value of whether to skip running action_edited_term or not
+		 * @param {int}    $post_id  Post ID.
+		 * @param {array}  $tt_ids   An array of term taxonomy IDs.
+		 * @param {string} $taxonomy Taxonomy slug.
+		 * @return {bool}  New value of whether to skip running action_deleted_term_relationships or not
+		 */
+		if ( apply_filters( 'ep_skip_action_deleted_term_relationships', false, $post_id, $tt_ids, $taxonomy ) ) {
+			return;
+		}
+
+		$post = get_post( $post_id );
+
+		// If post not found, skip to the next iteration
+		if ( ! is_object( $post ) ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Check post status
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
+		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+			return;
+		}
+
+		// Only re-index if the taxonomy is indexed for this post
+		$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
+		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
+		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
+			return;
+		}
+
+		// Check post type
+		$indexable_post_types = $indexable->get_indexable_post_types();
+		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+			return;
+		}
+
+		/**
+		 * Fire before post is queued for syncing
+		 *
+		 * @hook ep_sync_on_deleted_term_relationships
+		 * @since 4.0.0
+		 * @param  {int}    $post_id ID of post
+		 * @param  {array}  $tt_ids   An array of term taxonomy IDs.
+		 * @param  {string} $taxonomy Taxonomy of the term that was edited
+		 */
+		do_action( 'ep_sync_on_deleted_term_relationships', $post_id, $tt_ids, $taxonomy );
+
+		$this->add_to_queue( $post_id );
 	}
 
 	/**

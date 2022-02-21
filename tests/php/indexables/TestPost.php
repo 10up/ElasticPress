@@ -6657,4 +6657,74 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 1, $query->found_posts );
 		$this->assertEquals( $query->posts[0]->ID, $new_post_id );
 	}
+
+	/**
+	 * Tests term deletion applied to posts
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostDeletedTerm() {
+		$cat = wp_create_category( 'test category' );
+		$tag = wp_insert_category( [ 'taxonomy' => 'post_tag', 'cat_name' => 'test-tag' ] );
+
+		$post_id = Functions\create_and_sync_post(
+			array(
+				'tags_input'    => array( $tag ),
+				'post_category' => array( $cat ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$this->assertNotEmpty( $document['terms']['category'] );
+		$this->assertNotEmpty( $document['terms']['post_tag'] );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+
+		wp_delete_term( $tag, 'post_tag' );
+		wp_delete_term( $cat, 'category' );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		// Category will fallback to Uncategorized.
+		$this->assertNotContains( $cat, wp_list_pluck( $document['terms']['category'], 'term_id' ) );
+		$this->assertArrayNotHasKey( 'post_tag', $document['terms'] );
+	}
+
+	/**
+	 * Tests term edition applied to posts
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostEditedTerm() {
+		$post_id = Functions\create_and_sync_post(
+			array(
+				'tags_input' => array( 'test-tag' ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$test_tag = get_term_by( 'name', 'test-tag', 'post_tag' );
+		wp_update_term(
+			$test_tag->term_id,
+			'post_tag',
+			[
+				'slug' => 'different-tag-slug',
+				'name' => 'Different Tag Name',
+			]
+		);
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$this->assertEquals( 'different-tag-slug', $document['terms']['post_tag'][0]['slug'] );
+		$this->assertEquals( 'Different Tag Name', $document['terms']['post_tag'][0]['name'] );
+	}
 }
