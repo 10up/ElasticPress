@@ -16,7 +16,7 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Taxonomy filter component.
  *
- * @param {Object} props Components props.
+ * @param {Object}  props Components props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
  * @param {string} props.label Facet label.
  * @param {string} props.name Facet name.
@@ -55,8 +55,8 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	/**
 	 * Create list of filter options from aggregation buckets.
 	 *
-	 * @param {Array} options List of options.
-	 * @param {Object} bucket Aggregation bucket.
+	 * @param {Array}  options    List of options.
+	 * @param {Object} bucket     Aggregation bucket.
 	 * @param {string} bucket.key Aggregation key.
 	 * @return {Array} Array of options.
 	 */
@@ -86,8 +86,8 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	/**
 	 * Reduce options to labels.
 	 *
-	 * @param {Object} labels List of options.
-	 * @param {Object} bucket Aggregation bucket.
+	 * @param {Object} labels     List of options.
+	 * @param {Object} bucket     Aggregation bucket.
 	 * @param {string} bucket.key Aggregation key.
 	 * @return {Object} Options and their labels.
 	 */

@@ -16,9 +16,9 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Post type facet component.
  *
- * @param {Object} props Props.
+ * @param {Object}  props               Props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
- * @param {string} props.label Facet label.
+ * @param {string}  props.label         Facet label.
  * @return {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label }) => {
@@ -34,10 +34,10 @@ export default ({ defaultIsOpen, label }) => {
 	/**
 	 * Create list of filter options from aggregation buckets.
 	 *
-	 * @param {Array} options List of options.
-	 * @param {Object} bucket Aggregation bucket.
+	 * @param {Array}  options    List of options.
+	 * @param {Object} bucket     Aggregation bucket.
 	 * @param {string} bucket.key Aggregation key.
-	 * @param {number} index Bucket index.
+	 * @param {number} index      Bucket index.
 	 * @return {Array} Array of options.
 	 */
 	const reduceOptions = useCallback(

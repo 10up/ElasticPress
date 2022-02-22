@@ -5,8 +5,8 @@ import { debounce } from './utils/helpers';
  * the number of terms exceeds the threshold determined
  * by the ep_facet_search_threshold filter
  *
- * @param {event} event - keyup
- * @param {Node} facetTerms - terms node
+ * @param {event} event      - keyup
+ * @param {Node}  facetTerms - terms node
  */
 const handleFacetSearch = (event, facetTerms) => {
 	const { target } = event;

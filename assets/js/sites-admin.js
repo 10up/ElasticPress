@@ -2,7 +2,6 @@ import jQuery from 'jquery';
 
 const { epsa } = window;
 
-// eslint-disable-next-line @wordpress/no-global-event-listener
 window.addEventListener('load', function () {
 	const toggles = document.getElementsByClassName('index-toggle');
 	for (let i = 0; i < toggles.length; i++) {

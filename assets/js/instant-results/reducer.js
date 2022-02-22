@@ -30,9 +30,9 @@ export const initialState = {
 /**
  * Reducer function for handling state changes.
  *
- * @param {Object} state The current state.
- * @param {Object} action Action data.
- * @param {string} action.type The action name.
+ * @param {Object} state          The current state.
+ * @param {Object} action         Action data.
+ * @param {string} action.type    The action name.
  * @param {Object} action.payload New state data from the action.
  * @return {Object} Updated state.
  */

@@ -31,7 +31,7 @@ export const clearFacetsFromArgs = (args) => {
 /**
  * Format a number as a price.
  *
- * @param {number} number Number to format.
+ * @param {number} number  Number to format.
  * @param {Object} options Formatter options.
  * @return {string} Formatted number.
  */
