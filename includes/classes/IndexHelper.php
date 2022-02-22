@@ -653,7 +653,7 @@ class IndexHelper {
 		if ( isset( $this->index_meta['show_skip_message'] ) && $this->index_meta['show_skip_message'] ) {
 			$this->output(
 				sprintf(
-				/* translators: 1. Number of objects skipped 2. Indexable type */
+					/* translators: 1. Number of objects skipped 2. Indexable type */
 					esc_html__( 'Skipping %1$d %2$s...', 'elasticpress' ),
 					$this->index_meta['from'],
 					esc_html( strtolower( $indexable->labels['plural'] ) )
