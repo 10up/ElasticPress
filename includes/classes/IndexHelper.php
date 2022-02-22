@@ -381,9 +381,11 @@ class IndexHelper {
 		$this->temporary_wp_actions = $wp_actions;
 
 		$this->current_query = $this->get_objects_to_index();
+		$is_offsetting       = 0 !== $this->index_meta['offset'];
 
-		$this->index_meta['found_items'] = (int) $this->current_query['total_objects'];
-
+		$this->index_meta['from']                       = $is_offsetting ? $this->index_meta['offset'] : 1;
+		$this->index_meta['show_skip_message']          = $is_offsetting && ! isset( $this->index_meta['show_skip_message'] );
+		$this->index_meta['found_items']                = (int) $this->current_query['total_objects'];
 		$this->index_meta['current_sync_item']['total'] = $this->index_meta['found_items'];
 
 		if ( $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
@@ -648,10 +650,27 @@ class IndexHelper {
 			}
 		}
 
+		if ( isset( $this->index_meta['show_skip_message'] ) && $this->index_meta['show_skip_message'] ) {
+			$this->output(
+				sprintf(
+					/* translators: 1. Number of objects skipped 2. Indexable type */
+					esc_html__( 'Skipping %1$d %2$s...', 'elasticpress' ),
+					$this->index_meta['from'],
+					esc_html( strtolower( $indexable->labels['plural'] ) )
+				),
+				'info',
+				'index_next_batch'
+			);
+
+			$this->index_meta['show_skip_message'] = false;
+		}
+
 		$this->output(
 			sprintf(
-				/* translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID */
-				esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ),
+				/* translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID */
+				esc_html__( 'Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d', 'elasticpress' ),
+				esc_html( strtolower( $indexable->labels['plural'] ) ),
+				$this->index_meta['from'],
 				$this->index_meta['offset'],
 				$this->index_meta['found_items'],
 				$this->index_meta['current_sync_item']['last_processed_object_id']
