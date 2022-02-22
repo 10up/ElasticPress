@@ -653,7 +653,7 @@ class IndexHelper {
 		if ( isset( $this->index_meta['show_skip_message'] ) && $this->index_meta['show_skip_message'] ) {
 			$this->output(
 				sprintf(
-				/* translators: 1. Number of objects indexed */
+				/* translators: 1. Number of objects skipped 2. Indexable type */
 					esc_html__( 'Skipping %1$d %2$s...', 'elasticpress' ),
 					$this->index_meta['from'],
 					esc_html( strtolower( $indexable->labels['plural'] ) )
@@ -667,7 +667,7 @@ class IndexHelper {
 
 		$this->output(
 			sprintf(
-				/* translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID */
+				/* translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID */
 				esc_html__( 'Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d', 'elasticpress' ),
 				esc_html( strtolower( $indexable->labels['plural'] ) ),
 				$this->index_meta['from'],
