@@ -390,15 +390,7 @@ class Facets extends Feature {
 		);
 
 		$allowed_args = $this->get_allowed_query_args();
-
-		/**
-		 * Filter the facet filter name that's added to the URL
-		 *
-		 * @hook ep_facet_filter_name
-		 * @param   {string} Facet filter name
-		 * @return  {string} New facet filter name
-		 */
-		$filter_name = apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
+		$filter_name  = $this->get_filter_name();
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 0 === strpos( $key, $filter_name ) ) {
@@ -427,21 +419,12 @@ class Facets extends Feature {
 	public function build_query_url( $filters ) {
 		$query_param = array();
 
-		/**
-		 * Filter the facet filter name that's added to the URL
-		 *
-		 * @hook ep_facet_filter_name
-		 * @param   {string} Facet filter name
-		 * @return  {string} New facet filter name
-		 */
-		$filter_name = apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
-
 		if ( ! empty( $filters['taxonomies'] ) ) {
 			$tax_filters = $filters['taxonomies'];
 
 			foreach ( $tax_filters as $taxonomy => $filter ) {
 				if ( ! empty( $filter['terms'] ) ) {
-					$query_param[ $filter_name . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
+					$query_param[ $this->get_filter_name() . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
 				}
 			}
 		}
@@ -531,5 +514,22 @@ class Facets extends Feature {
 		 * @return  {array} New post types
 		 */
 		return apply_filters( 'ep_facet_allowed_query_args', $args );
+	}
+
+	/**
+	 * Get the facet filter name.
+	 *
+	 * @return string The filter name.
+	 */
+	protected function get_filter_name() {
+		/**
+		 * Filter the facet filter name that's added to the URL
+		 *
+		 * @hook ep_facet_filter_name
+		 * @since 4.0.0
+		 * @param   {string} Facet filter name
+		 * @return  {string} New facet filter name
+		 */
+		return apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
 	}
 }
