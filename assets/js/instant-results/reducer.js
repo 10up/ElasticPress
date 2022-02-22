@@ -1,16 +1,16 @@
 /**
  * Internal dependencies.
  */
-import { highlightTag, matchType } from './config';
+import { matchType } from './config';
 import { clearFacetsFromArgs } from './functions';
 
 /**
  * Initial state.
  */
-export const initialArg = {
+export const initialState = {
 	aggregations: {},
 	args: {
-		highlight: highlightTag,
+		highlight: '',
 		offset: 0,
 		orderby: 'relevance',
 		order: 'desc',
