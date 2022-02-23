@@ -13,10 +13,10 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 		cy.deactivatePlugin('elasticpress', 'wpCli');
 		cy.activatePlugin('fake-new-activation elasticpress', 'wpCli');
 
-		cy.visitAdminPage('admin.php');
+		cy.visitAdminPage('/');
 		cy.get('.wrap').should('contain.text', 'ElasticPress is almost ready to go.');
 
-		cy.deactivatePlugin('fake-new-activation');
+		cy.deactivatePlugin('fake-new-activation', 'wpCli');
 	});
 
 	it('Can sync all the posts if user setup plugin for the first time', () => {
