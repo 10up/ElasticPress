@@ -661,11 +661,14 @@ class InstantResults extends Feature {
 					),
 				),
 			),
-			'args'       => array(
-				'post_type' => array(
-					'type' => 'strings',
-				),
-			),
+			/**
+			 * The post_type arg needs to be supported regardless of whether
+			 * the Post Type facet is present to be able to support setting the
+			 * post type from the search form.
+			 *
+			 * @see ElasticPress\Feature\InstantResults::get_args_schema()
+			 */
+			'args'       => array(),
 		);
 
 		/**
@@ -820,6 +823,9 @@ class InstantResults extends Feature {
 			'per_page'  => array(
 				'type'    => 'number',
 				'default' => 6,
+			),
+			'post_type' => array(
+				'type' => 'strings',
 			),
 			'search'    => array(
 				'type'    => 'string',
