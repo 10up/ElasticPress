@@ -4,64 +4,9 @@
 import { currencyCode } from './config';
 
 /**
- * Set API request args for post type.
- *
- * @param {string[]} postTypes Post types.
- * @return {Object} Price range args.
- */
-export const getArgsFromPostTypes = (postTypes) => {
-	const args = {};
-
-	if (postTypes.length > 0) {
-		args.post_type = postTypes;
-	}
-
-	return args;
-};
-
-/**
- * Set API request args for a price range.
- *
- * @param {number} min Minimum price.
- * @param {number} max Maximum price.
- * @return {Object} Request args.
- */
-export const getArgsFromPriceRange = (min, max) => {
-	const args = {};
-
-	if (min) {
-		args.min_price = min;
-	}
-
-	if (max) {
-		args.max_price = max;
-	}
-
-	return args;
-};
-
-/**
- * Set API request args for taxonomy terms.
- *
- * @param {Object[]} taxonomyTerms Taxonomies and their terms.
- * @return {Object} Request args.
- */
-export const getArgsFromTaxonomyTerms = (taxonomyTerms) => {
-	return Object.entries(taxonomyTerms).reduce((args, [taxonomy, terms]) => {
-		const param = `tax-${taxonomy}`;
-
-		if (terms.length > 0) {
-			args[param] = terms.join(',');
-		}
-
-		return args;
-	}, {});
-};
-
-/**
  * Format a number as a price.
  *
- * @param {number} number Number to format.
+ * @param {number} number  Number to format.
  * @param {Object} options Formatter options.
  * @return {string} Formatted number.
  */
@@ -77,24 +22,61 @@ export const formatPrice = (number, options) => {
 };
 
 /**
+ * Get the post types from a search form.
+ *
+ * @param {HTMLFormElement} form Form element.
+ * @return {Array} Post types.
+ */
+export const getPostTypesFromForm = (form) => {
+	const data = new FormData(form);
+
+	if (data.has('post_type')) {
+		return data.getAll('post_type').slice(-1);
+	}
+
+	if (data.has('post_type[]')) {
+		return data.getAll('post_type[]');
+	}
+
+	return [];
+};
+
+/**
  * Get query parameters for an API request from the state.
  *
  * @param {Object} state State.
  * @return {URLSearchParams} URLSearchParams instance.
  */
 export const getURLParamsFromState = (state) => {
-	const { args, postTypes, priceRange, taxonomyTerms } = state;
+	const { args, filters } = state;
 
-	const postTypeParam = getArgsFromPostTypes(postTypes);
-	const priceRangeParams = getArgsFromPriceRange(...priceRange);
-	const taxonomyTermsParams = getArgsFromTaxonomyTerms(taxonomyTerms);
+	const filterArgs = Object.entries(filters).reduce((filterArgs, [filter, value]) => {
+		switch (filter) {
+			case 'price_range':
+				if (value.length > 0) {
+					filterArgs.min_price = value[0];
+					filterArgs.max_price = value[1];
+				}
 
-	const init = {
-		...args,
-		...postTypeParam,
-		...priceRangeParams,
-		...taxonomyTermsParams,
-	};
+				break;
+			case 'post_type':
+				if (value.length > 0) {
+					filterArgs[filter] = value.join(',');
+				}
+
+				break;
+			default:
+				if (value.length > 0) {
+					filterArgs[`tax-${filter}`] = value.join(',');
+				}
+
+				break;
+		}
+
+		return filterArgs;
+	}, {});
+
+	const init = { ...args, ...filterArgs };
 
 	return new URLSearchParams(init);
 };

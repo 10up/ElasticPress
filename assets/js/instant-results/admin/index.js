@@ -8,7 +8,6 @@ import { render } from '@wordpress/element';
  */
 import FacetSelector from './components/facet-selector';
 
-// eslint-disable-next-line @wordpress/no-global-event-listener
 document.addEventListener('DOMContentLoaded', () => {
 	const input = document.getElementById('feature_instant_results_facets');
 

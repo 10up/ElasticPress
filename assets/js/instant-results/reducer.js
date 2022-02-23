@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import { highlightTag, matchType } from './config';
+import { facets, highlightTag, matchType } from './config';
 
 /**
  * Initial state.
@@ -17,17 +17,15 @@ export const initialArg = {
 		search: '',
 		elasticpress: '1',
 	},
+	filters: {},
 	isLoading: false,
 	isOpen: false,
 	isSidebarOpen: false,
 	poppingState: false,
-	postTypes: [],
 	postTypesAggregation: {},
-	priceRange: [],
 	priceRangeAggregations: {},
 	searchResults: [],
 	searchedTerm: '',
-	taxonomyTerms: {},
 	taxonomyTermsAggregations: {},
 	totalResults: 0,
 };
@@ -35,9 +33,9 @@ export const initialArg = {
 /**
  * Reducer function for handling state changes.
  *
- * @param {Object} state The current state.
- * @param {Object} action Action data.
- * @param {string} action.type The action name.
+ * @param {Object} state          The current state.
+ * @param {Object} action         Action data.
+ * @param {string} action.type    The action name.
  * @param {Object} action.payload New state data from the action.
  * @return {Object} Updated state.
  */
@@ -45,49 +43,27 @@ export const reducer = (state, { type, payload }) => {
 	const newState = { ...state };
 
 	switch (type) {
-		case 'CLEAR_FILTERS': {
-			newState.postTypes = [];
-			newState.priceRange = [];
-			newState.taxonomyTerms = {};
+		case 'APPLY_FILTERS': {
+			newState.args.offset = 0;
+			newState.filters = { ...state.filters, ...payload };
+
 			break;
 		}
-		case 'POP_STATE': {
-			newState.args = payload.args;
-			newState.isOpen = payload.isOpen;
-			newState.poppingState = true;
-			newState.postTypes = payload.postTypes;
-			newState.priceRange = payload.priceRange;
-			newState.taxonomyTerms = payload.taxonomyTerms;
+		case 'CLEAR_FILTERS': {
+			newState.filters = facets.reduce(
+				(filters, { name }) => {
+					delete filters[name];
+
+					return filters;
+				},
+				{ ...state.filters },
+			);
+
 			break;
 		}
 		case 'SET_SEARCH_TERM': {
 			newState.args.offset = 0;
 			newState.args.search = payload;
-
-			if (payload) {
-				newState.postTypes = [];
-				newState.priceRange = [];
-				newState.taxonomyTerms = {};
-			}
-
-			break;
-		}
-		case 'SET_POST_TYPES': {
-			newState.args.offset = 0;
-			newState.postTypes = payload;
-			break;
-		}
-		case 'SET_PRICE_RANGE': {
-			newState.args.offset = 0;
-			newState.priceRange = payload;
-			break;
-		}
-		case 'SET_TAXONOMY_TERMS': {
-			const newTaxonomyTerms = { ...newState.taxonomyTerms };
-
-			newTaxonomyTerms[payload.taxonomy] = payload.terms;
-			newState.args.offset = 0;
-			newState.taxonomyTerms = newTaxonomyTerms;
 			break;
 		}
 		case 'SORT_RESULTS': {
@@ -111,7 +87,6 @@ export const reducer = (state, { type, payload }) => {
 			 */
 			const totalNumber = typeof total === 'number' ? total : total.value;
 
-			newState.poppingState = false;
 			newState.postTypesAggregation = postTypesAggregation;
 			newState.priceRangeAggregations = priceRangeAggregation;
 			newState.searchResults = hits;

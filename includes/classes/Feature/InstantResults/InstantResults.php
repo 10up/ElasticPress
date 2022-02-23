@@ -473,7 +473,7 @@ class InstantResults extends Feature {
 	 */
 	public function apply_product_visibility( $query ) {
 		$product_visibility_terms  = wc_get_product_visibility_term_ids();
-		$product_visibility_not_in = $product_visibility_terms['exclude-from-search'];
+		$product_visibility_not_in = (array) $product_visibility_terms['exclude-from-search'];
 
 		if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) ) {
 			$product_visibility_not_in[] = $product_visibility_terms['outofstock'];
@@ -623,9 +623,12 @@ class InstantResults extends Feature {
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_object = get_post_type_object( $post_type );
-			$post_type_label  = get_post_type_labels( $post_type_object )->singular_name;
+			$post_type_labels = get_post_type_labels( $post_type_object );
 
-			$labels[ $post_type ] = $post_type_label;
+			$labels[ $post_type ] = array(
+				'plural'   => $post_type_labels->name,
+				'singular' => $post_type_labels->singular_name,
+			);
 		}
 
 		return $labels;
@@ -643,12 +646,13 @@ class InstantResults extends Feature {
 		 * Post type facet.
 		 */
 		$facets['post_type'] = array(
-			'type'   => 'post_type',
-			'labels' => array(
+			'type'       => 'post_type',
+			'post_types' => [],
+			'labels'     => array(
 				'admin'    => __( 'Post type', 'elasticpress' ),
 				'frontend' => __( 'Type', 'elasticpress' ),
 			),
-			'aggs'   => array(
+			'aggs'       => array(
 				'post_types' => array(
 					'terms' => array(
 						'field' => 'post_type.raw',
@@ -674,12 +678,13 @@ class InstantResults extends Feature {
 			);
 
 			$facets[ $slug ] = array(
-				'type'   => 'taxonomy',
-				'labels' => array(
+				'type'       => 'taxonomy',
+				'post_types' => $taxonomy->object_type,
+				'labels'     => array(
 					'admin'    => $admin_label,
 					'frontend' => $labels->singular_name,
 				),
-				'aggs'   => array(
+				'aggs'       => array(
 					'taxonomy_terms' => array(
 						'terms' => array(
 							'field' => 'terms.' . $slug . '.facet',
@@ -695,12 +700,13 @@ class InstantResults extends Feature {
 		 */
 		if ( $this->is_woocommerce ) {
 			$facets['price_range'] = array(
-				'type'   => 'price_range',
-				'labels' => array(
+				'type'       => 'price_range',
+				'post_types' => [ 'product' ],
+				'labels'     => array(
 					'admin'    => __( 'Price range', 'elasticpress' ),
 					'frontend' => __( 'Price', 'elasticpress' ),
 				),
-				'aggs'   => array(
+				'aggs'       => array(
 					'max_price' => array(
 						'max' => array(
 							'field' => 'meta._price.double',
@@ -734,9 +740,10 @@ class InstantResults extends Feature {
 				$facet = $available_facets[ $key ];
 
 				$facets[] = array(
-					'name'  => $key,
-					'label' => $facet['labels']['frontend'],
-					'type'  => $facet['type'],
+					'name'      => $key,
+					'label'     => $facet['labels']['frontend'],
+					'type'      => $facet['type'],
+					'postTypes' => $facet['post_types'],
 				);
 			}
 		}

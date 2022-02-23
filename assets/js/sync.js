@@ -1,10 +1,11 @@
 import apiFetch from '@wordpress/api-fetch';
+import { dateI18n } from '@wordpress/date';
 
 /* eslint-disable camelcase, no-use-before-define */
 const { epDash, history } = window;
 const { __, sprintf } = wp.i18n;
 
-const { ajax_url: ajaxurl = '' } = epDash;
+const { ajax_url: ajaxurl = '', is_epio } = epDash;
 
 // Main elements of sync page
 const syncBox = document.querySelector('.ep-sync-data');
@@ -196,13 +197,27 @@ let syncStack;
 let processed = 0;
 let toProcess = 0;
 let totalProcessed = 0;
-let totalErrors = 0;
+
+updateLastSyncDateTime(epDash?.ep_last_sync_date);
 
 if (epDash.index_meta) {
 	if (epDash.index_meta.method === 'cli') {
 		syncStatus = 'wpcli';
-		processed = epDash.index_meta.items_indexed;
-		toProcess = epDash.index_meta.total_items;
+		processed = epDash?.index_meta?.items_indexed;
+		toProcess = epDash?.index_meta?.total_items;
+
+		activeBox = epDash.index_meta.put_mapping ? deleteAndSyncBox : syncBox;
+
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+
+		progressInfoElement.innerText = __('WP-CLI sync in progress', 'elasticpress');
+
+		updateStartDateTime(epDash?.index_meta?.start_date_time);
+
+		updateDisabledAttribute(syncButton, true);
+		updateDisabledAttribute(deleteAndSyncButton, true);
+
+		showProgress();
 
 		updateSyncDash();
 		cliSync();
@@ -254,7 +269,7 @@ if (epDash.index_meta) {
  * Change the disabled attribute of an element
  *
  * @param {HTMLElement} element Element to be updated
- * @param {boolean} value The value used in disabled attribute
+ * @param {boolean}     value   The value used in disabled attribute
  */
 function updateDisabledAttribute(element, value) {
 	element.disabled = value;
@@ -266,7 +281,15 @@ function updateDisabledAttribute(element, value) {
 function updateSyncDash() {
 	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
 
-	const progressBarWidth = (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
+	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
+
+	let progressBarWidth;
+	if (isSyncing) {
+		progressBarWidth =
+			toProcess === 0 ? 0 : (parseInt(processed, 10) / parseInt(toProcess, 10)) * 100;
+	} else {
+		progressBarWidth = 100;
+	}
 
 	if (
 		typeof progressBarWidth === 'number' &&
@@ -278,13 +301,30 @@ function updateSyncDash() {
 		progressBar.innerText = `${Math.trunc(width)}%`;
 	}
 
-	const isSyncing = ['initialsync', 'sync', 'pause', 'wpcli'].includes(syncStatus);
 	if (isSyncing) {
 		progressBar.classList.remove('ep-sync-box__progressbar_complete');
+	} else if (syncStatus === 'interrupt') {
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+
+		progressInfoElement.innerText = __('Sync interrupted', 'elasticpress');
+
+		updateDisabledAttribute(deleteAndSyncButton, false);
+		updateDisabledAttribute(syncButton, false);
+
+		hidePauseStopButtons();
+		hideResumeButton();
+
+		syncButton.style.display = 'flex';
+
+		const learnMoreLink = activeBox.querySelector('.ep-sync-box__learn-more-link');
+
+		if (learnMoreLink?.style) {
+			learnMoreLink.style.display = 'block';
+		}
 	} else {
 		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
-		progressInfoElement.innerText = 'Sync completed';
+		progressInfoElement.innerText = __('Sync completed', 'elasticpress');
 
 		progressBar.classList.add('ep-sync-box__progressbar_complete');
 
@@ -308,6 +348,10 @@ function updateSyncDash() {
  * Cancel a sync
  */
 function cancelSync() {
+	toProcess = 0;
+	processed = 0;
+	totalProcessed = 0;
+
 	apiFetch({
 		url: ajaxurl,
 		method: 'POST',
@@ -315,10 +359,6 @@ function cancelSync() {
 			action: 'ep_cancel_index',
 			nonce: epDash.nonce,
 		}),
-	}).then(() => {
-		toProcess = 0;
-		processed = 0;
-		totalProcessed = 0;
 	});
 }
 
@@ -338,18 +378,35 @@ function cliSync() {
 		}
 
 		if (syncStatus === 'wpcli') {
-			toProcess = response.data?.total_items;
-			processed = response.data?.items_indexed;
+			toProcess = response.data?.index_meta?.total_items;
+			processed = response.data?.index_meta?.items_indexed;
+
+			if (response.data.index_meta?.current_sync_item?.failed) {
+				const message = response.data?.message;
+				if (Array.isArray(message)) {
+					message.forEach((item) => {
+						addErrorToOutput(item);
+						addLineToOutput(item);
+					});
+				} else if (typeof message === 'string') {
+					addErrorToOutput(message);
+					addLineToOutput(message);
+				}
+			} else {
+				addLineToOutput(response.data.message);
+			}
 
 			updateSyncDash();
 
-			if (response.data?.indexing) {
+			if (response.data?.index_meta?.indexing) {
 				cliSync();
 				return;
 			}
 		}
 
 		syncStatus = 'finished';
+		addLineToOutput('===============================');
+		addLineToOutput(__('WP-CLI sync is finished', 'elasticpress'));
 		updateSyncDash();
 	});
 }
@@ -360,7 +417,7 @@ function cliSync() {
  * @param {string} text Message to show on output
  */
 function addLineToOutput(text) {
-	if (activeBox) {
+	if (activeBox && text) {
 		const wrapperElement = activeBox.querySelector('.ep-sync-box__output-wrapper');
 
 		const lastLineNumberElement = activeBox.querySelector(
@@ -420,24 +477,64 @@ function addErrorToOutput(text) {
 
 		wrapperElement.append(line);
 
+		const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
+
+		errorTab.innerText = sprintf(
+			// translators: Number of errors
+			__('Errors (%d)', 'elasticpress'),
+			lineNumber.innerText,
+		);
+
 		const outputElement = activeBox.querySelector('.ep-sync-box__output-error');
 		outputElement.scrollTo(0, wrapperElement.scrollHeight);
 	}
 }
 
 /**
- * Update the start date time on active box
+ * Update the start datetime on active box
  *
- * @param {string} value The date time value
+ * @param {Date | string} dateValue The datetime value
  */
-function updateStartDateTime(value) {
-	if (value) {
+function updateStartDateTime(dateValue) {
+	if (dateValue) {
 		const startDateTime = activeBox.querySelector('.ep-sync-box__start-time-date');
 
 		if (startDateTime) {
-			startDateTime.innerText = value;
+			startDateTime.innerText = dateI18n(
+				// translators: index start date format, see https://wordpress.org/support/article/formatting-date-and-time/
+				__('D, F d, Y H:i', 'elasticpress'),
+				dateValue,
+			);
 		}
 	}
+}
+
+/**
+ * Update the last sync datetime
+ *
+ * @param {Date | string} dateValue Date object or string, parsable by moment.js.
+ */
+function updateLastSyncDateTime(dateValue) {
+	if (dateValue) {
+		const lastSyncDate = document.querySelector('.ep-last-sync__date');
+
+		if (lastSyncDate) {
+			lastSyncDate.innerText = dateI18n(
+				// translators: last sync datetime format, see https://wordpress.org/support/article/formatting-date-and-time/
+				__('D, F d, Y H:i', 'elasticpress'),
+				dateValue,
+			);
+		}
+	}
+}
+
+/**
+ * Check if a destructive index is running
+ *
+ * @return {boolean} Wheter or not is a destructive index
+ */
+function isDestructiveIndex() {
+	return activeBox === deleteAndSyncBox;
 }
 
 /**
@@ -446,11 +543,24 @@ function updateStartDateTime(value) {
  * @param {boolean} value True to interrupt the sync process
  */
 function shouldInterruptSync(value) {
-	if (value) {
-		syncStatus = 'interrupt';
-		updateSyncDash();
-		cancelSync();
+	if (!value) {
+		return;
 	}
+
+	syncStatus = 'interrupt';
+
+	let logMessage = __('Sync interrupted by WP-CLI command', 'elasticpress');
+	if (isDestructiveIndex()) {
+		logMessage = sprintf(
+			// translators: ElasticPress.io or Elasticsearch
+			__(
+				'Your indexing process has been stopped by WP-CLI and your %s index could be missing content. To restart indexing, please click the Start button or use WP-CLI commands to perform the reindex. Please note that search results could be incorrect or incomplete until the reindex finishes.',
+				'elasticpress',
+			),
+			is_epio ? 'ElasticPress.io' : 'Elasticsearch',
+		);
+	}
+	stopIndex(__('Sync interrupted', 'elasticpress'), logMessage);
 }
 
 /**
@@ -478,15 +588,6 @@ function sync(putMapping = false) {
 						addErrorToOutput(item);
 						addLineToOutput(item);
 					});
-					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
-
-					totalErrors += response.data.index_meta.current_sync_item.failed;
-
-					errorTab.innerText = sprintf(
-						// translators: Number of errors
-						__('Errors (%d)', 'elasticpress'),
-						totalErrors,
-					);
 				} else if (typeof message === 'string') {
 					addErrorToOutput(message);
 					addLineToOutput(message);
@@ -494,7 +595,7 @@ function sync(putMapping = false) {
 			} else {
 				addLineToOutput(response.data.message);
 			}
-			updateStartDateTime(response.data?.index_meta?.start_date_time);
+			updateStartDateTime(response?.data?.index_meta?.start_date_time);
 			shouldInterruptSync(response.data?.index_meta?.should_interrupt_sync);
 
 			if (response.data?.method === 'cli') {
@@ -512,7 +613,6 @@ function sync(putMapping = false) {
 
 				const lastSyncStatusIcon = document.querySelector('.ep-last-sync__icon-status');
 				const lastSyncStatus = document.querySelector('.ep-last-sync__status');
-				const lastSyncDate = document.querySelector('.ep-last-sync__date');
 
 				lastSyncStatusIcon.src = response.data.totals.failed
 					? lastSyncStatusIcon.src?.replace(/thumbsup/, 'thumbsdown')
@@ -520,8 +620,8 @@ function sync(putMapping = false) {
 				lastSyncStatus.innerText = response.data.totals.failed
 					? __('Sync unsuccessful on ', 'elasticpress')
 					: __('Sync success on ', 'elasticpress');
-				lastSyncDate.innerText =
-					response.data.totals.end_date_time || lastSyncDate.innerText;
+
+				updateLastSyncDateTime(response.data?.totals?.end_date_time);
 
 				updateSyncDash();
 
@@ -536,7 +636,6 @@ function sync(putMapping = false) {
 				processed = 0;
 				toProcess = 0;
 				totalProcessed = 0;
-				totalErrors = 0;
 
 				return;
 			}
@@ -662,23 +761,26 @@ document.querySelectorAll('.ep-sync-box__button-resume')?.forEach((button) => {
 	});
 });
 
+function stopIndex(syncMessage, logMessage) {
+	syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
+
+	const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+	const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
+
+	updateSyncDash();
+
+	cancelSync();
+
+	progressInfoElement.innerText = syncMessage;
+
+	progressBar.style.width = `0`;
+	progressBar.innerText = ``;
+
+	addLineToOutput(logMessage);
+}
 document.querySelectorAll('.ep-sync-box__button-stop')?.forEach((button) => {
-	button?.addEventListener('click', function () {
-		syncStatus = syncStatus === 'wpcli' ? 'interrupt' : 'cancel';
-
-		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
-		const progressBar = activeBox.querySelector('.ep-sync-box__progressbar_animated');
-
-		updateSyncDash();
-
-		cancelSync();
-
-		progressInfoElement.innerText = __('Sync stopped', 'elasticpress');
-
-		progressBar.style.width = `0`;
-		progressBar.innerText = ``;
-
-		addLineToOutput(__('Sync stopped', 'elasticpress'));
+	button?.addEventListener('click', () => {
+		stopIndex(__('Sync stopped', 'elasticpress'), __('Sync stopped', 'elasticpress'));
 	});
 });
 

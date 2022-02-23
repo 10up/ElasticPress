@@ -15,7 +15,7 @@ const { gmdateI18n } = wp.date;
 /**
  * Search result.
  *
- * @param {Object} props Component props.
+ * @param {Object} props     Component props.
  * @param {Object} props.hit Elasticsearch hit.
  * @return {WPElement} Component element.
  */
@@ -32,7 +32,7 @@ export default ({ hit }) => {
 		},
 	} = hit;
 
-	const postTypeLabel = postTypeLabels?.[resultPostType];
+	const postTypeLabel = postTypeLabels[resultPostType]?.singular;
 
 	return (
 		<article
