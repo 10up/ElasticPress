@@ -1,5 +1,5 @@
 describe('Post Search Feature - Weighting Functionality', () => {
-	it("Can't find a post by title it title is not marked as searchable", () => {
+	it("Can't find a post by title if title is not marked as searchable", () => {
 		cy.login();
 
 		cy.publishPost({
