@@ -23,21 +23,13 @@ describe('Dashboard Sync', () => {
 			'contain.text',
 			'Sync complete',
 		);
-
-		/**
-		 * In some specific scenario, if Cypress leaves the page too fast, EP will think a sync is happening.
-		 *
-		 * @todo instead of waiting for an arbitrary time, we should investigate this further.
-		 */
-		// eslint-disable-next-line cypress/no-unnecessary-waiting
-		cy.wait(2000);
 	}
 
 	before(() => {
 		cy.login();
 	});
 
-	after(() => {
+	afterEach(() => {
 		if (cy.state('test').state === 'failed') {
 			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
 			cy.wpCli('wp elasticpress clear-index', true);
