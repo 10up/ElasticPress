@@ -16,18 +16,18 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Taxonomy filter component.
  *
- * @param {Object} props Components props.
+ * @param {Object}  props               Components props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
- * @param {string} props.label Facet label.
- * @param {Array} props.postTypes Facet post types.
- * @param {string} props.taxonomy Facet taxonomy.
+ * @param {string}  props.label         Facet label.
+ * @param {Array}   props.postTypes     Facet post types.
+ * @param {string}  props.taxonomy      Facet taxonomy.
  * @return {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 	const {
 		state: {
 			isLoading,
-			taxonomyTerms: { [taxonomy]: selectedTerms = [] },
+			filters: { [taxonomy]: selectedTerms = [] },
 			taxonomyTermsAggregations: {
 				[taxonomy]: { taxonomy_terms: { buckets = [] } = {} } = {},
 			} = {},
@@ -60,8 +60,8 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 	/**
 	 * Create list of filter options from aggregation buckets.
 	 *
-	 * @param {Array} options List of options.
-	 * @param {Object} bucket Aggregation bucket.
+	 * @param {Array}  options    List of options.
+	 * @param {Object} bucket     Aggregation bucket.
 	 * @param {string} bucket.key Aggregation key.
 	 * @return {Array} Array of options.
 	 */
@@ -92,8 +92,8 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 	/**
 	 * Reduce options to labels.
 	 *
-	 * @param {Object} labels List of options.
-	 * @param {Object} bucket Aggregation bucket.
+	 * @param {Object} labels     List of options.
+	 * @param {Object} bucket     Aggregation bucket.
 	 * @param {string} bucket.key Aggregation key.
 	 * @return {Object} Options and their labels.
 	 */
@@ -114,7 +114,7 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 	 * @param {string[]} terms Selected terms.
 	 */
 	const onChange = (terms) => {
-		dispatch({ type: 'SET_TAXONOMY_TERMS', payload: { taxonomy, terms } });
+		dispatch({ type: 'APPLY_FILTERS', payload: { [taxonomy]: terms } });
 	};
 
 	/**
@@ -127,7 +127,7 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 
 		terms.splice(terms.indexOf(term), 1);
 
-		dispatch({ type: 'SET_TAXONOMY_TERMS', payload: { taxonomy, terms } });
+		dispatch({ type: 'APPLY_FILTERS', payload: { [taxonomy]: terms } });
 	};
 
 	return (

@@ -39,7 +39,7 @@ function submitSearchForm(input) {
  * Set the expanded aria state on the input
  *
  * @param {boolean} haveOptions - whether or not the autosuggest list contains results
- * @param {Node} input - search input
+ * @param {Node}    input       - search input
  */
 function toggleInputAria(haveOptions, input) {
 	input.setAttribute('aria-expanded', haveOptions);
@@ -48,8 +48,8 @@ function toggleInputAria(haveOptions, input) {
 /**
  * Set the active descendant aria attribute input
  *
- * @param {string} id - id of the currently selected element
- * @param {Node} input - search input
+ * @param {string} id    - id of the currently selected element
+ * @param {Node}   input - search input
  */
 function setInputActiveDescendant(id, input) {
 	input.setAttribute('aria-activedescendant', id);
@@ -58,8 +58,8 @@ function setInputActiveDescendant(id, input) {
 /**
  * Take selected item and fill the search input
  *
- * @param {Node} input - input element
- * @param {string} text - new input value
+ * @param {Node}   input - input element
+ * @param {string} text  - new input value
  */
 function selectAutosuggestItem(input, text) {
 	input.value = text; // eslint-disable-line no-param-reassign
@@ -95,7 +95,7 @@ function triggerAutosuggestEvent(detail) {
  * event hook for JS customizations, like GA
  *
  * @param {string} searchTerm - user defined search term
- * @param {string} url - post url from dataset in search result
+ * @param {string} url        - post url from dataset in search result
  */
 function goToAutosuggestItem(searchTerm, url) {
 	const detail = {
@@ -112,7 +112,7 @@ function goToAutosuggestItem(searchTerm, url) {
  * If epas.action is set to "navigate" (the default), redirects the browser to the URL of the selected item
  * If epas.action is set to any other value (such as "search"), fill in the value and perform the search
  *
- * @param {Node} input - search input
+ * @param {Node} input   - search input
  * @param {Node} element - search term result item
  * @return {Function} calls the submitSearchForm function
  */
@@ -146,9 +146,9 @@ function getJsonQuery() {
 /**
  * Build the search query from the search text
  *
- * @param {string} searchText - user search string
- * @param {string} placeholder - placeholder text to replace
- * @param {Object} options - Autosuggest settings
+ * @param {string} searchText    - user search string
+ * @param {string} placeholder   - placeholder text to replace
+ * @param {Object} options       - Autosuggest settings
  * @param {string} options.query - JSON query string to pass to ElasticSearch
  * @return {string} json representation of search query
  */
@@ -160,7 +160,7 @@ function buildSearchQuery(searchText, placeholder, { query }) {
 /**
  * Build the ajax request
  *
- * @param {string} query - json string
+ * @param {string} query      - json string
  * @param {string} searchTerm - user search term
  * @return {Object} AJAX object request
  */
@@ -210,8 +210,8 @@ async function esSearch(query, searchTerm) {
 /**
  * Update the auto suggest box with new options or hide if none
  *
- * @param {Array} options - search results
- * @param {string} input - search string
+ * @param {Array}  options - search results
+ * @param {string} input   - search string
  * @return {boolean} return true
  */
 function updateAutosuggestBox(options, input) {
@@ -321,7 +321,7 @@ function hideAutosuggestBox() {
 /**
  * Checks for any manually ordered posts and puts them in the correct place
  *
- * @param {Array} hits - ES results
+ * @param {Array}  hits       - ES results
  * @param {string} searchTerm - user search term
  * @return {Object} formatted hits
  */
@@ -370,7 +370,7 @@ function checkForOrderedPosts(hits, searchTerm) {
  * Add class to the form element while suggestions are being loaded
  *
  * @param {boolean} isLoading - whether suggestions are loading
- * @param {Node} input - search input field
+ * @param {Node}    input     - search input field
  */
 function setFormIsLoading(isLoading, input) {
 	const form = input.closest('form');

@@ -14,20 +14,20 @@ import SmallButton from './small-button';
  * Checkbox list component.
  *
  * @typedef {Object} Option
- * @property {number} count Number associated with option.
- * @property {string} id Option ID.
- * @property {string} label Option label.
- * @property {number} order Option order.
- * @property {string} parent Parent option value.
- * @property {any} value Option value.
+ * @property {number}   count          Number associated with option.
+ * @property {string}   id             Option ID.
+ * @property {string}   label          Option label.
+ * @property {number}   order          Option order.
+ * @property {string}   parent         Parent option value.
+ * @property {any}      value          Option value.
  *
- * @param {Object} props Component props.
- * @param {boolean} props.disabled Whether the checkboxes should be disabled.
- * @param {boolean} props.label List label.
- * @param {Function} props.onChange Checkbox change event callback function.
- * @param {Option[]} props.options Checkbox options.
- * @param {string} props.selected Selected values.
- * @param {string} props.sortBy How to sort options.
+ * @param    {Object}   props          Component props.
+ * @param    {boolean}  props.disabled Whether the checkboxes should be disabled.
+ * @param    {boolean}  props.label    List label.
+ * @param    {Function} props.onChange Checkbox change event callback function.
+ * @param    {Option[]} props.options  Checkbox options.
+ * @param    {string}   props.selected Selected values.
+ * @param    {string}   props.sortBy   How to sort options.
  * @return {WPElement} A React element.
  */
 export default ({ disabled, label, options, onChange, selected, sortBy }) => {
@@ -44,8 +44,8 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	/**
 	 * Reducer to group options by parent.
 	 *
-	 * @param {Object} items Options grouped by parent.
-	 * @param {Option} option Option details.
+	 * @param {Object} items         Options grouped by parent.
+	 * @param {Option} option        Option details.
 	 * @param {string} option.parent Option parent value.
 	 * @return {Object} Options grouped by parent.
 	 */
@@ -68,8 +68,8 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	 * Reducer to group top level options. Top level options are options
 	 * with a parent of '0' or without a parent.
 	 *
-	 * @param {Array} items Options without a parent.
-	 * @param {Option} option Option details.
+	 * @param {Array}  items         Options without a parent.
+	 * @param {Option} option        Option details.
 	 * @param {string} option.parent Option parent value.
 	 * @return {Object} Options without a parent.
 	 */

@@ -16,16 +16,16 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Post type facet component.
  *
- * @param {Object} props Props.
+ * @param {Object}  props               Props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
- * @param {string} props.label Facet label.
+ * @param {string}  props.label         Facet label.
  * @return {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label }) => {
 	const {
 		state: {
 			isLoading,
-			postTypes: selectedPostTypes = [],
+			filters: { post_type: selectedPostTypes = [] },
 			postTypesAggregation: { post_types: { buckets = [] } = {} } = {},
 		},
 		dispatch,
@@ -34,10 +34,10 @@ export default ({ defaultIsOpen, label }) => {
 	/**
 	 * Create list of filter options from aggregation buckets.
 	 *
-	 * @param {Array} options List of options.
-	 * @param {Object} bucket Aggregation bucket.
+	 * @param {Array}  options    List of options.
+	 * @param {Object} bucket     Aggregation bucket.
 	 * @param {string} bucket.key Aggregation key.
-	 * @param {number} index Bucket index.
+	 * @param {number} index      Bucket index.
 	 * @return {Array} Array of options.
 	 */
 	const reduceOptions = useCallback(
@@ -71,7 +71,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * @param {string[]} postTypes Selected post types.
 	 */
 	const onChange = (postTypes) => {
-		dispatch({ type: 'SET_POST_TYPES', payload: postTypes });
+		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
 	};
 
 	/**
@@ -81,10 +81,11 @@ export default ({ defaultIsOpen, label }) => {
 	 */
 	const onClear = (postType) => {
 		const postTypes = [...selectedPostTypes];
+		const index = postTypes.indexOf(postType);
 
-		postTypes.splice(postTypes.indexOf(postType), 1);
+		postTypes.splice(index, 1);
 
-		dispatch({ type: 'SET_POST_TYPES', payload: postTypes });
+		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
 	};
 
 	return (

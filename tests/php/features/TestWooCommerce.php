@@ -140,8 +140,6 @@ class TestWooCommerce extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'shop_order',
@@ -152,6 +150,80 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test search for shop orders by order ID
+	 *
+	 * @since 4.0.0
+	 * @group woocommerce
+	 */
+	public function testSearchShopOrderById() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_id = Functions\create_and_sync_post(
+			array(
+				'post_type' => 'shop_order',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'         => $shop_order_id,
+			'post_type' => 'shop_order',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test search for shop orders matching field and ID.
+	 *
+	 * If searching for a number that is an order ID and part of another order's metadata,
+	 * both should be returned.
+	 *
+	 * @since 4.0.0
+	 * @group woocommerce
+	 */
+	public function testSearchShopOrderByMetaFieldAndId() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_id_1 = Functions\create_and_sync_post(
+			array(
+				'post_type' => 'shop_order',
+			)
+		);
+
+		Functions\create_and_sync_post(
+			array(
+				'post_type' => 'shop_order',
+			),
+			array(
+				'_billing_phone' => 'Phone number that matches an order ID: ' . $shop_order_id_1,
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'         => $shop_order_id_1,
+			'post_type' => 'shop_order',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**

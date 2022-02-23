@@ -134,7 +134,7 @@ class Widget extends WP_Widget {
 		$orderby = isset( $instance['orderby'] ) ? $instance['orderby'] : 'count';
 		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
 
-		$terms     = Utils\get_term_tree( $terms, $orderby, $order, true );
+		$terms = Utils\get_term_tree( $terms, $orderby, $order, true );
 
 		$outputted_terms = array();
 

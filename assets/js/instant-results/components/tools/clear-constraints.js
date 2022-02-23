@@ -7,6 +7,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { facets } from '../../config';
 import Context from '../../context';
 import SmallButton from '../common/small-button';
 
@@ -17,24 +18,22 @@ import SmallButton from '../common/small-button';
  */
 export default () => {
 	const {
-		state: { postTypes, priceRange, taxonomyTerms },
+		state: { filters },
 		dispatch,
 	} = useContext(Context);
 
 	/**
 	 * Return whether there are active filters.
 	 *
+	 * Only filters that are available as facets are checked, as these are the
+	 * only filters that will be cleared. This is to support applying filters
+	 * that cannot be modified by the user.
+	 *
 	 * @return {boolean} Whether there are active filters.
 	 */
 	const hasFilters = useMemo(() => {
-		const [minPrice, maxPrice] = priceRange;
-
-		const hasPostTypes = postTypes.length > 0;
-		const hasPriceRange = Boolean(minPrice || maxPrice);
-		const hasTaxonomyTerms = Object.values(taxonomyTerms).some((terms) => terms.length > 0);
-
-		return hasPostTypes || hasPriceRange || hasTaxonomyTerms;
-	}, [postTypes, priceRange, taxonomyTerms]);
+		return facets.some(({ name }) => filters[name]?.length > 0);
+	}, [filters]);
 
 	/**
 	 * Handle clicking button.

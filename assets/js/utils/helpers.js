@@ -2,8 +2,8 @@
  * Simple throttling function for waiting a set amount of time after the last keypress
  * So we don't overload the server with too many requests at once
  *
- * @param {Function} fn - function to be debounced
- * @param {number} delay - integer
+ * @param {Function} fn    - function to be debounced
+ * @param {number}   delay - integer
  * @return {Function} - new function, with the provided function wrapped in a timeout
  */
 export const debounce = (fn, delay) => {
@@ -31,9 +31,9 @@ export const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\
 /**
  * Helper function to escape input to be treated as a literal string with a RegEx
  *
- * @param {string} string - string to replace
- * @param {string} term - tearm to search for
- * @param {string} replacement  replace value to use
+ * @param {string} string      - string to replace
+ * @param {string} term        - tearm to search for
+ * @param {string} replacement replace value to use
  * @return {string} replaced string
  */
 export const replaceGlobally = (string, term, replacement) => {
@@ -51,7 +51,7 @@ export const escapeDoubleQuotes = (str) => str.replace(/\\([\s\S])|(")/g, '&quot
 /**
  * Finds parent node with the provided class param
  *
- * @param {*} el - node to search for its ancestor
+ * @param {*} el        - node to search for its ancestor
  * @param {*} className - class attribute to search for
  * @return {Element} - ancestor element of provided el
  */
@@ -64,8 +64,8 @@ export const findAncestorByClass = (el, className) => {
 /**
  * Array pluck
  *
- * @param {Array} array - array to search
- * @param {string} key - array to search
+ * @param {Array}  array - array to search
+ * @param {string} key   - array to search
  * @return {Array} - new array
  */
 export const pluck = (array, key) => {
@@ -90,7 +90,7 @@ export const formatPostBody = (obj) => {
 /**
  * Helper method to wrap show/hide elements. Not exported.
  *
- * @param {Array} els - could possibly be a single node, or an array of nodes
+ * @param {Array}  els     - could possibly be a single node, or an array of nodes
  * @param {string} display - css display property to set
  */
 const showOrHideNodes = (els, display) => {
@@ -153,6 +153,5 @@ export const domReady = (callback) => {
 	}
 
 	// DOMContentLoaded has not fired yet, delay callback until then.
-	// eslint-disable-next-line @wordpress/no-global-event-listener
 	document.addEventListener('DOMContentLoaded', callback);
 };
