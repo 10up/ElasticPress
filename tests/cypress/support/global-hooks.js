@@ -15,22 +15,25 @@ before(() => {
 	}
 
 	if (!setFeatures) {
-		cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
-			// Nothing needs to be done if EP.io.
-			if (!epHost.stdout.match(/elasticpress\.io/)) {
-				cy.wpCli(
-					'eval "echo \\ElasticPress\\Indexables::factory()->get( \'post\' )->get_index_name();"',
-				).then((indexName) => {
-					const publicEpHost = epHost.stdout.replace('172.17.0.1', 'localhost');
-					cy.updateFeatures({
-						autosuggest: {
-							active: 1,
-							endpoint_url: `${publicEpHost}${indexName.stdout}/_search`,
-						},
-					});
-				});
-			} else {
+		cy.wpCliEval(
+			`if ( \\ElasticPress\\Utils\\is_epio() ) {
+				exit;
+			}
+			$host       = \\ElasticPress\\Utils\\get_host();
+			$host       = str_replace( '172.17.0.1', 'localhost', $host );
+			$index_name = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_index_name();
+			echo $host . $index_name . '/_search';
+			`,
+		).then((searchEndpointUrl) => {
+			if (searchEndpointUrl.stdout === '') {
 				cy.updateFeatures();
+			} else {
+				cy.updateFeatures({
+					autosuggest: {
+						active: 1,
+						endpoint_url: searchEndpointUrl.stdout,
+					},
+				});
 			}
 		});
 		setFeatures = true;
