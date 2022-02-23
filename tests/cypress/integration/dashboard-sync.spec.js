@@ -1,17 +1,10 @@
 /* global indexNames */
 
 describe('Dashboard Sync', () => {
-	function setPerIndexCycle(number) {
-		let oldValue;
-		cy.visitAdminPage('admin.php?page=elasticpress-settings');
-
-		cy.get('#ep_bulk_setting').then(($input) => {
-			oldValue = $input.val();
-			$input.val(number);
-		});
-		cy.get('#submit').click();
-
-		return oldValue;
+	let oldPostsPerCycle = 0;
+	function setPerIndexCycle(number = null) {
+		const newValue = number || oldPostsPerCycle;
+		cy.wpCli(`option set ep_bulk_setting ${newValue}`);
 	}
 
 	function canSeeIndexesNames() {
@@ -25,8 +18,27 @@ describe('Dashboard Sync', () => {
 			});
 	}
 
+	function resumeAndWait() {
+		cy.get('.resume-sync').click();
+		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
+
+		/**
+		 * In some specific scenario, if Cypress leaves the page too fast, EP will think a sync is happening.
+		 *
+		 * @todo instead of waiting for an arbitrary time, we should investigate this further.
+		 */
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(2000);
+	}
+
 	before(() => {
 		cy.login();
+		cy.wpCli('option get ep_bulk_setting').then((wpCliResponse) => {
+			oldPostsPerCycle = JSON.parse(wpCliResponse.stdout);
+		});
 	});
 
 	after(() => {
@@ -126,7 +138,7 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Can pause the dashboard sync if left the page', () => {
-		const oldPostsPerCycle = setPerIndexCycle(10);
+		setPerIndexCycle(10);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 
@@ -140,18 +152,16 @@ describe('Dashboard Sync', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.sync-status').should('contain.text', 'Sync paused');
 
-		cy.get('.resume-sync').click();
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		resumeAndWait();
 
-		setPerIndexCycle(oldPostsPerCycle);
+		setPerIndexCycle();
 
 		canSeeIndexesNames();
 	});
 
 	it("Can't activate features during a sync", () => {
+		setPerIndexCycle(10);
+
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
 		cy.get('.start-sync').click();
@@ -161,29 +171,14 @@ describe('Dashboard Sync', () => {
 
 		cy.get('.error-overlay').should('have.class', 'syncing');
 
-		/**
-		 * When clicking on the resume button, we expect two requests:
-		 * 1. To index the last batch
-		 * 2. To set is as done
-		 */
-		cy.get('.resume-sync').click();
-		// eslint-disable-next-line jest/valid-expect-in-promise
-		cy.wait('@ajaxRequest').then((ajaxRequest) => {
-			cy.log(ajaxRequest.response.body);
-			expect(ajaxRequest.response.body.data.found_items).to.equal(
-				ajaxRequest.response.body.data.offset,
-			);
-		});
-		cy.wait('@ajaxRequest').its('response.body.data.found_items').should('eq', 0);
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		resumeAndWait();
 		cy.get('.error-overlay').should('not.have.class', 'syncing');
+
+		setPerIndexCycle();
 	});
 
 	it("Can't index via WP-CLI if indexing via Dashboard", () => {
-		const oldPostsPerCycle = setPerIndexCycle(10);
+		setPerIndexCycle(10);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
@@ -198,12 +193,8 @@ describe('Dashboard Sync', () => {
 			.its('stderr')
 			.should('contain', 'An index is already occurring');
 
-		cy.get('.resume-sync').click();
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		resumeAndWait();
 
-		setPerIndexCycle(oldPostsPerCycle);
+		setPerIndexCycle();
 	});
 });
