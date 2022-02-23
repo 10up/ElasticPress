@@ -1,9 +1,8 @@
 /* global indexNames */
 
 describe('Dashboard Sync', () => {
-	let oldPostsPerCycle = 0;
 	function setPerIndexCycle(number = null) {
-		const newValue = number || oldPostsPerCycle;
+		const newValue = number || 350;
 		cy.wpCli(`option set ep_bulk_setting ${newValue}`);
 	}
 
@@ -36,9 +35,6 @@ describe('Dashboard Sync', () => {
 
 	before(() => {
 		cy.login();
-		cy.wpCli('option get ep_bulk_setting').then((wpCliResponse) => {
-			oldPostsPerCycle = JSON.parse(wpCliResponse.stdout);
-		});
 	});
 
 	after(() => {
