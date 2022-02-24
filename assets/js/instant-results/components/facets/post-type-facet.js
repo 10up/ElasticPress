@@ -41,13 +41,14 @@ export default ({ defaultIsOpen, label }) => {
 	 * @return {Array} Array of options.
 	 */
 	const reduceOptions = useCallback(
-		(options, { key }, index) => {
+		(options, { doc_count, key }, index) => {
 			if (!Object.prototype.hasOwnProperty.call(postTypeLabels, key)) {
 				return options;
 			}
 
 			options.push({
 				checked: selectedPostTypes.includes(key),
+				count: doc_count,
 				id: `ep-search-post-type-${key}`,
 				label: postTypeLabels[key].singular,
 				order: index,

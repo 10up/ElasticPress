@@ -66,11 +66,12 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 	 * @return {Array} Array of options.
 	 */
 	const reduceOptions = useCallback(
-		(options, { key }) => {
+		(options, { doc_count, key }) => {
 			const { name, parent, term_id, term_order } = JSON.parse(key);
 
 			options.push({
 				checked: selectedTerms.includes(term_id),
+				count: doc_count,
 				id: `ep-search-${taxonomy}-${term_id}`,
 				label: name,
 				parent: parent.toString(),
