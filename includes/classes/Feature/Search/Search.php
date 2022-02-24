@@ -616,15 +616,15 @@ class Search extends Feature {
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], '1' ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], '0' ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[decaying_enabled]" type="radio" <?php checked( (bool) $settings['decaying_enabled'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[decaying_enabled]" type="radio" <?php checked( ! (bool) $settings['decaying_enabled'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 		</div>
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Highlighting status', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( $settings['highlight_enabled'], '1' ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( $settings['highlight_enabled'], '0' ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( (bool) $settings['highlight_enabled'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( ! (bool) $settings['highlight_enabled'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'Wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the "ep-highlight" class for easy styling.' ); ?></p>
 			</div>
 		</div>
@@ -644,8 +644,8 @@ class Search extends Feature {
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Excerpt highlighting', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( $settings['highlight_excerpt'], '1' ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( $settings['highlight_excerpt'], '0' ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( (bool) $settings['highlight_excerpt'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( ! (bool) $settings['highlight_excerpt'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results. ', 'elasticpress' ); ?></p>
 			</div>
 		</div>

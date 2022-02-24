@@ -125,8 +125,8 @@ class Autosuggest extends Feature {
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Google Analytics Events', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[trigger_ga_event]" <?php checked( $settings['trigger_ga_event'], '1' ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[trigger_ga_event]" <?php checked( $settings['trigger_ga_event'], '0' ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[trigger_ga_event]" <?php checked( (bool) $settings['trigger_ga_event'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[trigger_ga_event]" <?php checked( ! (bool) $settings['trigger_ga_event'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
