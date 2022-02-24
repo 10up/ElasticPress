@@ -348,6 +348,31 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Return the mapping as a JSON object. If an index is specified, return its mapping only.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--index-name]
+	 * : The name of the index for which to return the mapping. If not passed, all mappings will be returned
+	 *
+	 * @subcommand get-mapping
+	 * @since      3.6.4
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_mapping( $args, $assoc_args ) {
+		$index_names = (array) ( isset( $assoc_args['index-name'] ) ? $assoc_args['index-name'] : $this->get_index_names() );
+
+		$path = join( ',', $index_names ) . '/_mapping';
+
+		$response = Elasticsearch::factory()->remote_request( $path );
+
+		$body = wp_remote_retrieve_body( $response );
+
+		WP_CLI::line( $body );
+	}
+
+	/**
 	 * Return all indexes from the cluster as a JSON object.
 	 *
 	 * @subcommand get-cluster-indexes
@@ -374,19 +399,39 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indexes( $args, $assoc_args ) {
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
-
-		foreach ( $sites as $site ) {
-			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-		}
-
-		$user_indexable = Indexables::factory()->get( 'user' );
-
-		if ( ! empty( $user_indexable ) ) {
-			$index_names[] = $user_indexable->get_index_name();
-		}
+		$index_names = $this->get_index_names();
 
 		WP_CLI::line( wp_json_encode( $index_names ) );
+	}
+
+	/**
+	 * Get all index names.
+	 *
+	 * @since 3.6.4
+	 * @return array
+	 */
+	protected function get_index_names() {
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+
+		$all_indexables = Indexables::factory()->get_all();
+
+		$global_indexes     = [];
+		$non_global_indexes = [];
+		foreach ( $all_indexables as $indexable ) {
+			if ( $indexable->global ) {
+				$global_indexes[] = $indexable->get_index_name();
+				continue;
+			}
+
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
+			}
+		}
+
+		return array_merge( $non_global_indexes, $global_indexes );
 	}
 
 	/**
@@ -888,7 +933,7 @@ class Command extends WP_CLI_Command {
 		$no_bulk = false;
 
 		if ( isset( $args['nobulk'] ) ) {
-			$no_bulk = true;
+			$no_bulk                                 = true;
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
@@ -1186,23 +1231,7 @@ class Command extends WP_CLI_Command {
 
 		$request_args = [ 'headers' => Elasticsearch::factory()->format_request_headers() ];
 
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
-
-		$term_indexable = Indexables::factory()->get( 'term' );
-
-		foreach ( $sites as $site ) {
-			$index_names[] = Indexables::factory()->get( 'post' )->get_index_name( $site['blog_id'] );
-
-			if ( ! empty( $term_indexable ) ) {
-				$index_names[] = $term_indexable->get_index_name( $site['blog_id'] );
-			}
-		}
-
-		$user_indexable = Indexables::factory()->get( 'user' );
-
-		if ( ! empty( $user_indexable ) ) {
-			$index_names[] = $user_indexable->get_index_name();
-		}
+		$registered_index_names = $this->get_index_names();
 
 		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
 
@@ -1215,7 +1244,7 @@ class Command extends WP_CLI_Command {
 		if ( is_array( $indexes_from_cat_indices_api ) ) {
 			$indexes_from_cat_indices_api = wp_list_pluck( $indexes_from_cat_indices_api, 'index' );
 
-			$index_names = array_intersect( $index_names, $indexes_from_cat_indices_api );
+			$index_names = array_intersect( $registered_index_names, $indexes_from_cat_indices_api );
 		} else {
 			WP_CLI::error( esc_html__( 'Failed to return status.', 'elasticpress' ) );
 		}
@@ -1247,24 +1276,7 @@ class Command extends WP_CLI_Command {
 
 		$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
 
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
-
-		$post_indexable = Indexables::factory()->get( 'post' );
-		$term_indexable = Indexables::factory()->get( 'term' );
-
-		foreach ( $sites as $site ) {
-			$index_names[] = $post_indexable->get_index_name( $site['blog_id'] );
-
-			if ( ! empty( $term_indexable ) ) {
-				$index_names[] = $term_indexable->get_index_name( $site['blog_id'] );
-			}
-		}
-
-		$user_indexable = Indexables::factory()->get( 'user' );
-
-		if ( ! empty( $user_indexable ) ) {
-			$index_names[] = $user_indexable->get_index_name();
-		}
+		$registered_index_names = $this->get_index_names();
 
 		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
 
@@ -1277,7 +1289,7 @@ class Command extends WP_CLI_Command {
 		if ( is_array( $indexes_from_cat_indices_api ) ) {
 			$indexes_from_cat_indices_api = wp_list_pluck( $indexes_from_cat_indices_api, 'index' );
 
-			$index_names = array_intersect( $index_names, $indexes_from_cat_indices_api );
+			$index_names = array_intersect( $registered_index_names, $indexes_from_cat_indices_api );
 		} else {
 			WP_CLI::error( esc_html__( 'Failed to return stats.', 'elasticpress' ) );
 		}
@@ -1291,20 +1303,8 @@ class Command extends WP_CLI_Command {
 		}
 		$body = json_decode( wp_remote_retrieve_body( $request ), true );
 
-		foreach ( $sites as $site ) {
-			$current_index = $post_indexable->get_index_name( $site['blog_id'] );
-
-			$this->render_stats( $current_index, $body );
-
-			if ( $term_indexable ) {
-				$this->render_stats( $term_indexable->get_index_name( $site['blog_id'] ), $body );
-			}
-		}
-
-		if ( ! empty( $user_indexable ) ) {
-			$user_index = $user_indexable->get_index_name();
-
-			$this->render_stats( $user_index, $body );
+		foreach ( $registered_index_names as $index_name ) {
+			$this->render_stats( $index_name, $body );
 		}
 	}
 
@@ -1751,7 +1751,11 @@ class Command extends WP_CLI_Command {
 		global $wpdb;
 
 		if ( wp_using_ext_object_cache() ) {
-			$should_interrupt_sync = wp_cache_get( $transient, 'transient' );
+			/**
+			* When external object cache is used we need to make sure to force a remote fetch,
+			* so that the value from the local memory is discarded.
+			*/
+			$should_interrupt_sync = wp_cache_get( $transient, 'transient', true );
 		} else {
 			$options = $wpdb->options;
 
@@ -1805,5 +1809,102 @@ class Command extends WP_CLI_Command {
 	 */
 	public static function skip_number_format_i18n( $formatted, $number, $decimals ) {
 		return number_format( $number, absint( $decimals ), '.', '' );
+	}
+
+	/**
+	 * Send a HTTP request to Elasticsearch
+	 *
+	 * ## OPTIONS
+	 *
+	 * <path>
+	 * : Path of the request. Example: `_cat/indices`
+	 *
+	 * [--method=<method>]
+	 * : HTTP Method (GET, POST, etc.)
+	 *
+	 * [--body=<json-body>]
+	 * : Request body
+	 *
+	 * [--debug-http-request]
+	 * : Enable debugging
+	 *
+	 * @subcommand request
+	 *
+	 * @since 3.6.6
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function request( $args, $assoc_args ) {
+		$path         = $args[0];
+		$method       = isset( $assoc_args['method'] ) ? $assoc_args['method'] : 'GET';
+		$body         = isset( $assoc_args['body'] ) ? $assoc_args['body'] : '';
+		$request_args = [
+			'method' => $method,
+		];
+		if ( 'GET' !== $method && ! empty( $body ) ) {
+			$request_args['body'] = $body;
+		}
+
+		if ( ! empty( $assoc_args['debug-http-request'] ) ) {
+			add_filter(
+				'http_api_debug',
+				function ( $response, $context, $transport, $request_args, $url ) {
+					// phpcs:disab le WordPress.PHP.DevelopmentFunctions
+					WP_CLI::line(
+						sprintf(
+							/* translators: URL of the request */
+							esc_html__( 'URL: %s', 'elasticpress' ),
+							$url
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: Request arguments (outputted with print_r()) */
+							esc_html__( 'Request Args: %s', 'elasticpress' ),
+							print_r( $request_args, true )
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: HTTP transport used */
+							esc_html__( 'Transport: %s', 'elasticpress' ),
+							$transport
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: Context under which the http_api_debug hook is fired */
+							esc_html__( 'Context: %s', 'elasticpress' ),
+							$context
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: HTTP response (outputted with print_r()) */
+							esc_html__( 'Response: %s', 'elasticpress' ),
+							print_r( $response, true )
+						)
+					);
+					// phpcs:enable WordPress.PHP.DevelopmentFunctions
+				},
+				10,
+				5
+			);
+		}
+		$response = Elasticsearch::factory()->remote_request( $path, $request_args, [], 'wp_cli_request' );
+
+		if ( is_wp_error( $response ) ) {
+			WP_CLI::error( $response->get_error_message() );
+		}
+
+		$response_body = wp_remote_retrieve_body( $response );
+		$content_type  = wp_remote_retrieve_header( $response, 'Content-Type' );
+		if ( preg_match( '/json/', $content_type ) ) {
+			// Re-encode the JSON to add space formatting
+			$response_body = wp_json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
+		}
+
+		WP_CLI::log( $response_body );
 	}
 }

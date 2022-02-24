@@ -4,6 +4,7 @@ import {
 	escapeDoubleQuotes,
 	replaceGlobally,
 	debounce,
+	domReady,
 } from './utils/helpers';
 import 'element-closest';
 import 'promise-polyfill/src/polyfill';
@@ -38,7 +39,7 @@ function submitSearchForm(input) {
  * Set the expanded aria state on the input
  *
  * @param {boolean} haveOptions - whether or not the autosuggest list contains results
- * @param {Node} input - search input
+ * @param {Node}    input       - search input
  */
 function toggleInputAria(haveOptions, input) {
 	input.setAttribute('aria-expanded', haveOptions);
@@ -47,8 +48,8 @@ function toggleInputAria(haveOptions, input) {
 /**
  * Set the active descendant aria attribute input
  *
- * @param {string} id - id of the currently selected element
- * @param {Node} input - search input
+ * @param {string} id    - id of the currently selected element
+ * @param {Node}   input - search input
  */
 function setInputActiveDescendant(id, input) {
 	input.setAttribute('aria-activedescendant', id);
@@ -57,8 +58,8 @@ function setInputActiveDescendant(id, input) {
 /**
  * Take selected item and fill the search input
  *
- * @param {Node} input - input element
- * @param {string} text - new input value
+ * @param {Node}   input - input element
+ * @param {string} text  - new input value
  */
 function selectAutosuggestItem(input, text) {
 	input.value = text; // eslint-disable-line no-param-reassign
@@ -94,7 +95,7 @@ function triggerAutosuggestEvent(detail) {
  * event hook for JS customizations, like GA
  *
  * @param {string} searchTerm - user defined search term
- * @param {string} url - post url from dataset in search result
+ * @param {string} url        - post url from dataset in search result
  */
 function goToAutosuggestItem(searchTerm, url) {
 	const detail = {
@@ -111,7 +112,7 @@ function goToAutosuggestItem(searchTerm, url) {
  * If epas.action is set to "navigate" (the default), redirects the browser to the URL of the selected item
  * If epas.action is set to any other value (such as "search"), fill in the value and perform the search
  *
- * @param {Node} input - search input
+ * @param {Node} input   - search input
  * @param {Node} element - search term result item
  * @return {Function} calls the submitSearchForm function
  */
@@ -145,9 +146,9 @@ function getJsonQuery() {
 /**
  * Build the search query from the search text
  *
- * @param {string} searchText - user search string
- * @param {string} placeholder - placeholder text to replace
- * @param {Object} options - Autosuggest settings
+ * @param {string} searchText    - user search string
+ * @param {string} placeholder   - placeholder text to replace
+ * @param {Object} options       - Autosuggest settings
  * @param {string} options.query - JSON query string to pass to ElasticSearch
  * @return {string} json representation of search query
  */
@@ -159,7 +160,7 @@ function buildSearchQuery(searchText, placeholder, { query }) {
 /**
  * Build the ajax request
  *
- * @param {string} query - json string
+ * @param {string} query      - json string
  * @param {string} searchTerm - user search term
  * @return {Object} AJAX object request
  */
@@ -209,8 +210,8 @@ async function esSearch(query, searchTerm) {
 /**
  * Update the auto suggest box with new options or hide if none
  *
- * @param {Array} options - search results
- * @param {string} input - search string
+ * @param {Array}  options - search results
+ * @param {string} input   - search string
  * @return {boolean} return true
  */
 function updateAutosuggestBox(options, input) {
@@ -320,7 +321,7 @@ function hideAutosuggestBox() {
 /**
  * Checks for any manually ordered posts and puts them in the correct place
  *
- * @param {Array} hits - ES results
+ * @param {Array}  hits       - ES results
  * @param {string} searchTerm - user search term
  * @return {Object} formatted hits
  */
@@ -362,14 +363,14 @@ function checkForOrderedPosts(hits, searchTerm) {
 		});
 	}
 
-	return hits;
+	return filteredHits;
 }
 
 /**
  * Add class to the form element while suggestions are being loaded
  *
  * @param {boolean} isLoading - whether suggestions are loading
- * @param {Node} input - search input field
+ * @param {Node}    input     - search input field
  */
 function setFormIsLoading(isLoading, input) {
 	const form = input.closest('form');
@@ -391,82 +392,8 @@ function init() {
 		return;
 	}
 
-	const epInputNodes = document.querySelectorAll(selectors);
-
-	// build the container into which we place the search results.
-	// These will be cloned later for each instance
-	// of autosuggest inputs
-	const epAutosuggest = document.createElement('div');
-	epAutosuggest.classList.add('ep-autosuggest');
-	const autosuggestList = document.createElement('ul');
-	autosuggestList.classList.add('autosuggest-list');
-	autosuggestList.setAttribute('role', 'listbox');
-	epAutosuggest.appendChild(autosuggestList);
-
-	// Build the auto-suggest containers
-	// excluding the facet search field and search block field
-	const epInputs = Array.from(epInputNodes).filter(
-		(node) =>
-			!node.classList.contains('facet-search') &&
-			!node.classList.contains('wp-block-search__input'),
-	);
-
-	// Handle search blocks separately
-	const epBlockInputs = Array.from(epInputNodes).filter((node) =>
-		node.classList.contains('wp-block-search__input'),
-	);
-
-	epInputs.forEach((input) => {
-		const epContainer = document.createElement('div');
-		epContainer.classList.add('ep-autosuggest-container');
-
-		// Disable autocomplete
-		input.setAttribute('autocomplete', 'off');
-
-		// insert the container - later we will place
-		// the input inside this container
-		input.insertAdjacentElement('afterend', epContainer);
-
-		// move the input inside the container
-		const form = input.closest('form');
-		const container = form.querySelector('.ep-autosuggest-container');
-		container.appendChild(input);
-
-		const clonedContainer = epAutosuggest.cloneNode(true);
-		input.insertAdjacentElement('afterend', clonedContainer);
-
-		// announce that this is has been done
-		const event = new CustomEvent('elasticpress.input.moved');
-		input.dispatchEvent(event);
-	});
-
-	/**
-	 * For search blocks, because we know the output mark up, we reuse it
-	 * for autosuggest.
-	 */
-	epBlockInputs.forEach((input) => {
-		// Disable autocomplete
-		input.setAttribute('autocomplete', 'off');
-
-		input.form.classList.add('ep-autosuggest-container');
-
-		const clonedContainer = epAutosuggest.cloneNode(true);
-		input.parentElement.insertAdjacentElement('afterend', clonedContainer);
-
-		// announce that this is has been done
-		const event = new CustomEvent('elasticpress.input.moved');
-		input.dispatchEvent(event);
-	});
-
-	if (epInputs.length > 0) {
-		epAutosuggest.setAttribute(
-			'style',
-			`
-			top: ${epInputs[0].offsetHeight - 1};
-			background-color: ${getComputedStyle(epInputs[0], 'background-color')}
-		`,
-		);
-	}
+	// For the Autosuggest element that will be cloned.
+	let autosuggestElement;
 
 	// to be used by the handleUpDown function
 	// to keep track of the currently selected result
@@ -509,7 +436,7 @@ function init() {
 		 * helper function to deselect results
 		 */
 		const deSelectResults = () => {
-			results.forEach((result) => {
+			Array.from(results).forEach((result) => {
 				result.classList.remove('selected');
 				result.setAttribute('aria-selected', 'false');
 			});
@@ -685,19 +612,171 @@ function init() {
 	};
 
 	/**
-	 * Listen for any events:
+	 * Wrap an element with an autosuggest container.
 	 *
-	 * keyup
-	 * send them for a query to the Elasticsearch server
-	 * handle up and down keys to move between results
-	 *
-	 * blur
-	 * hide the autosuggest box
+	 * @param {Element} element Element to wrap.
+	 * @return {void}
 	 */
-	[...epInputs, ...epBlockInputs].forEach((input) => {
+	const wrapInAutosuggestContainer = (element) => {
+		const epContainer = document.createElement('div');
+
+		epContainer.classList.add('ep-autosuggest-container');
+
+		element.insertAdjacentElement('afterend', epContainer);
+
+		epContainer.appendChild(element);
+	};
+
+	/**
+	 * Insert an autosuggest list after an element.
+	 *
+	 * @param {Element} element Element to add the autosuggest list after.
+	 * @return {void}
+	 */
+	const insertAutosuggestElement = (element) => {
+		if (!autosuggestElement) {
+			autosuggestElement = document.createElement('div');
+			autosuggestElement.classList.add('ep-autosuggest');
+
+			const autosuggestList = document.createElement('ul');
+
+			autosuggestList.classList.add('autosuggest-list');
+			autosuggestList.setAttribute('role', 'listbox');
+
+			autosuggestElement.appendChild(autosuggestList);
+		}
+
+		const clonedElement = autosuggestElement.cloneNode(true);
+
+		element.insertAdjacentElement('afterend', clonedElement);
+	};
+
+	/**
+	 * Prepare an input for Autosuggest.
+	 *
+	 * @param {Element} input Input to prepare.
+	 * @return {void}
+	 */
+	const prepareInputForAutosuggest = (input) => {
+		/**
+		 * Skip facet widget search fields.
+		 */
+		if (input.classList.contains('facet-search')) {
+			return;
+		}
+
+		/**
+		 * Disable autocomplete.
+		 */
+		input.setAttribute('autocomplete', 'off');
+
+		/**
+		 * We know the markup of the Search block, so we don't need to add a
+		 * wrapper.
+		 */
+		if (input.classList.contains('wp-block-search__input')) {
+			input.form.classList.add('ep-autosuggest-container');
+			insertAutosuggestElement(input.parentElement);
+		} else {
+			wrapInAutosuggestContainer(input);
+			insertAutosuggestElement(input);
+		}
+
+		/**
+		 * Dispatch an event announcing the input has moved.
+		 */
+		const event = new CustomEvent('elasticpress.input.moved');
+
+		input.dispatchEvent(event);
+
+		/**
+		 * Listen for any events:
+		 *
+		 * keyup
+		 * send them for a query to the Elasticsearch server
+		 * handle up and down keys to move between results
+		 *
+		 * blur
+		 * hide the autosuggest box
+		 */
 		input.addEventListener('keyup', handleKeyup);
 		input.addEventListener('blur', function () {
 			window.setTimeout(hideAutosuggestBox, 200);
 		});
-	});
+	};
+
+	/**
+	 * Find inputs within an element and prepare them for Autosuggest.
+	 *
+	 * @param {Element} element Element to find inputs within.
+	 * @return {void}
+	 */
+	const findAndPrepareInputsForAutosuggest = (element) => {
+		const inputs = element.querySelectorAll(selectors);
+
+		if (inputs) {
+			Array.from(inputs).forEach(prepareInputForAutosuggest);
+		}
+	};
+
+	/**
+	 * Observe the document for new potential Autosuggest inputs, and add
+	 * Autosuggest to any found inputs.
+	 *
+	 * @return {void}
+	 */
+	const observeDocumentForInputs = () => {
+		const target = document.body;
+		const config = {
+			subtree: true,
+			childList: true,
+		};
+
+		const observer = new MutationObserver((mutations, observer) => {
+			mutations.forEach((mutation) => {
+				Array.from(mutation.addedNodes).forEach((node) => {
+					if (node.nodeType !== Node.ELEMENT_NODE) {
+						return;
+					}
+
+					/**
+					 * Adding autosuggest to an input moves it in the DOM,
+					 * which would trigger our observer, so we need to
+					 * stop observing until it's been prepared.
+					 */
+					observer.disconnect();
+
+					/**
+					 * If the node is an input, prepare it for Autosuggest if
+					 * it matches the selectors, otherwise search the node for
+					 * inputs.
+					 */
+					if (node.tagName === 'INPUT') {
+						if (node.matches(selectors)) {
+							prepareInputForAutosuggest(node);
+						}
+					} else {
+						findAndPrepareInputsForAutosuggest(node);
+					}
+
+					/**
+					 * Resume observing.
+					 */
+					observer.observe(target, config);
+				});
+			});
+		});
+
+		observer.observe(target, config);
+	};
+
+	/**
+	 * Add autosuggest to any inputs in the document.
+	 */
+	findAndPrepareInputsForAutosuggest(document.body);
+
+	/**
+	 * When the DOM is ready start observing for new inputs.
+	 */
+	domReady(observeDocumentForInputs);
 }

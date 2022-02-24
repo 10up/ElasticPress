@@ -385,7 +385,7 @@ abstract class Indexable {
 		 */
 		$enabled = apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			$enabled = false;
 		}
 
@@ -478,7 +478,7 @@ abstract class Indexable {
 		$meta_types['time']     = '00:00:01';
 
 		// is this is a recognizable date format?
-		$new_date  = date_create( $meta_value, \wp_timezone() );
+		$new_date = date_create( $meta_value, \wp_timezone() );
 		if ( $new_date ) {
 			$timestamp = $new_date->getTimestamp();
 

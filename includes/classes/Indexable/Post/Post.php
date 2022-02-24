@@ -168,7 +168,7 @@ class Post extends Indexable {
 	 * @param array $query_args The query args.
 	 * @return int The query result's found_posts.
 	 */
-	private function get_total_objects_for_query( $query_args ) {
+	protected function get_total_objects_for_query( $query_args ) {
 		static $object_counts = [];
 
 		// Reset the pagination-related args for optimal caching.
@@ -183,13 +183,50 @@ class Post extends Indexable {
 			]
 		);
 
-		$cache_key = md5( json_encode( $normalized_query_args ) );
+		$cache_key = md5( wp_json_encode( $normalized_query_args ) );
 
 		if ( ! isset( $object_counts[ $cache_key ] ) ) {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
 		}
 
+		if ( 0 === $object_counts[ $cache_key ] ) {
+			// Do a DB count to make sure the query didn't just die and return 0.
+			$db_post_count = $this->get_total_objects_for_query_from_db( $normalized_query_args );
+
+			if ( $db_post_count !== $object_counts[ $cache_key ] ) {
+				$object_counts[ $cache_key ] = $db_post_count;
+			}
+		}
+
 		return $object_counts[ $cache_key ];
+	}
+
+	/**
+	 * Get total posts from DB for a specific query based on it's args.
+	 *
+	 * @param array $query_args The query args.
+	 * @since 4.0.0
+	 * @return int The total posts.
+	 */
+	protected function get_total_objects_for_query_from_db( $query_args ) {
+		$post_count = 0;
+
+		if ( ! isset( $query_args['post_type'] ) || isset( $query_args['ep_indexing_upper_limit_object_id'] )
+		|| isset( $query_args['ep_indexing_lower_limit_object_id'] ) ) {
+			return $post_count;
+		}
+
+		foreach ( $query_args['post_type'] as $post_type ) {
+			$post_counts_by_post_status = wp_count_posts( $post_type );
+			foreach ( $post_counts_by_post_status as $post_status => $post_status_count ) {
+				if ( ! in_array( $post_status, $query_args['post_status'], true ) ) {
+					continue;
+				}
+				$post_count += $post_status_count;
+			}
+		}
+
+		return $post_count;
 	}
 
 	/**
@@ -277,18 +314,36 @@ class Post extends Indexable {
 	 * @return string|WP_Error|false $version
 	 */
 	public function determine_mapping_version() {
-		$index   = $this->get_index_name();
-		$mapping = Elasticsearch::factory()->get_mapping( $index );
+		$version = get_transient( 'ep_post_mapping_version' );
 
-		if ( empty( $mapping ) ) {
-			return new \WP_Error( 'ep_failed_mapping_version', esc_html__( 'Error while fetching the mapping version.', 'elasticpress' ) );
+		if ( empty( $version ) ) {
+			$index   = $this->get_index_name();
+			$mapping = Elasticsearch::factory()->get_mapping( $index );
+
+			if ( empty( $mapping ) ) {
+				return new \WP_Error( 'ep_failed_mapping_version', esc_html__( 'Error while fetching the mapping version.', 'elasticpress' ) );
+			}
+
+			if ( ! isset( $mapping[ $index ] ) ) {
+				return false;
+			}
+
+			$version = $this->determine_mapping_version_based_on_existing( $mapping, $index );
+
+			set_transient(
+				'ep_post_mapping_version',
+				$version,
+				/**
+				 * Filter the post mapping version cache expiration.
+				 *
+				 * @hook ep_post_mapping_version_cache_expiration
+				 * @since 3.6.5
+				 * @param  {int} $version Time in seconds for the transient expiration
+				 * @return {int} New time
+				 */
+				apply_filters( 'ep_post_mapping_version_cache_expiration', DAY_IN_SECONDS )
+			);
 		}
-
-		if ( ! isset( $mapping[ $index ] ) ) {
-			return false;
-		}
-
-		$version = $this->determine_mapping_version_based_on_existing( $mapping, $index );
 
 		/**
 		 * Filter the mapping version for posts.
@@ -327,6 +382,8 @@ class Post extends Indexable {
 		 * @return  {array} New mapping
 		 */
 		$mapping = apply_filters( 'ep_post_mapping', $mapping );
+
+		delete_transient( 'ep_post_mapping_version' );
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
@@ -867,6 +924,32 @@ class Post extends Indexable {
 			),
 		);
 		$use_filters = false;
+
+		// Sanitize array query args. Elasticsearch will error if a terms query contains empty items like an
+		// empty string.
+		$keys_to_sanitize = [
+			'author__in',
+			'author__not_in',
+			'category__and',
+			'category__in',
+			'category__not_in',
+			'tag__and',
+			'tag__in',
+			'tag__not_in',
+			'tag_slug__and',
+			'tag_slug__in',
+			'post_parent__in',
+			'post_parent__not_in',
+			'post__in',
+			'post__not_in',
+			'post_name__in',
+		];
+		foreach ( $keys_to_sanitize as $key ) {
+			if ( ! isset( $args[ $key ] ) ) {
+				continue;
+			}
+			$args[ $key ] = array_filter( (array) $args[ $key ] );
+		}
 
 		/**
 		 * Tax Query support
@@ -1654,6 +1737,15 @@ class Post extends Indexable {
 			$formatted_args['from'] = $args['posts_per_page'] * ( $args['paged'] - 1 );
 		}
 
+		/**
+		 * Fix negative offset. This happens, for example, on hierarchical post types.
+		 *
+		 * Ref: https://github.com/10up/ElasticPress/issues/2480
+		 */
+		if ( $formatted_args['from'] < 0 ) {
+			$formatted_args['from'] = 0;
+		}
+
 		if ( $use_filters ) {
 			$formatted_args['post_filter'] = $filter;
 		}
@@ -1782,7 +1874,7 @@ class Post extends Indexable {
 
 				// Set up our terms object
 				$terms_obj = array(
-					'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
+					'terms.' . $single_tax_query['taxonomy'] . '.' . $field => array_values( array_filter( $terms ) ),
 				);
 
 				$operator = ( ! empty( $single_tax_query['operator'] ) ) ? strtolower( $single_tax_query['operator'] ) : 'in';

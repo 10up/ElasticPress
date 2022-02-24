@@ -155,7 +155,7 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_comment_statuses = Indexables::factory()->get( 'comment' )->get_indexable_comment_status();
 			$indexable_post_statuses    = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 
-			$has_allowed_comment_status = [ 'all' ] == $indexable_comment_statuses ? true : in_array( $comment_status, $indexable_comment_statuses, true );
+			$has_allowed_comment_status = [ 'all' ] === $indexable_comment_statuses ? true : in_array( $comment_status, $indexable_comment_statuses, true );
 			$has_allowed_post_status    = in_array( $post_status, $indexable_post_statuses, true );
 
 			if ( ! $has_allowed_comment_status || ! $has_allowed_post_status ) {

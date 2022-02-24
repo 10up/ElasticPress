@@ -82,9 +82,13 @@ button.synonym__remove {
 	height: 0;
 }
 
-.synonym__validation {
+.synonym__validation,
+.synonym-solr-editor__validation p {
 	color: #a00;
 	font-style: italic;
+}
+
+.synonym__validation {
 	margin: 0 0 0.625em 0.5em;
 }
 
