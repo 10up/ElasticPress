@@ -13,7 +13,7 @@ import { facets } from '../config';
 /**
  * Facet selector component.
  *
- * @param {Object} props Props.
+ * @param {Object} props              Props.
  * @param {string} props.defaultValue Default value.
  * @return {WPElement} Element.
  */

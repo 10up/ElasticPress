@@ -27,8 +27,8 @@ const mapEntry = (synonyms = [], id = '') => {
 /**
  * Reduce state to Solr spec.
  *
- * @param {Object} state Current state.
- * @param {Object[]} state.sets Array of synonym sets.
+ * @param {Object}   state              Current state.
+ * @param {Object[]} state.sets         Array of synonym sets.
  * @param {Object[]} state.alternatives Array of alternative sets.
  * @return {string} new state
  */
@@ -64,15 +64,15 @@ const reduceStateToSolr = ({ sets, alternatives }) => {
 /**
  * Reduce Solr text file to State.
  *
- * @param {string} solr A string in the Solr parseable synonym format.
- * @param {Object} currentState  The current sate.
+ * @param {string} solr         A string in the Solr parseable synonym format.
+ * @param {Object} currentState The current sate.
  * @return {Object} State
  */
 const reduceSolrToState = (solr, currentState) => {
 	/**
 	 * Format token.
 	 *
-	 * @param {string} value The value.
+	 * @param {string}  value   The value.
 	 * @param {boolean} primary Whether it's a primary.
 	 * @return {Object} Formated token
 	 */

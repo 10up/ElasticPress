@@ -312,7 +312,7 @@ class QueryIntegration {
 					// Otherwise, set it as a child of its parent.
 				} else {
 					$ref[ $c->comment_parent ]->add_child( $c );
-					$ref[ $c->comment_ID ]                                 = $c;
+					$ref[ $c->comment_ID ] = $c;
 				}
 			}
 
