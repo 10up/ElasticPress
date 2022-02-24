@@ -4,8 +4,8 @@
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
-    "10up-toolkit": "^2.0.0",
-    "@wordpress/env": "^4.1.1",
+    "10up-toolkit": "^2.1.1",
+    "@wordpress/env": "^4.2.2",
     "cypress": "^9.5.0",
     "cypress-file-upload": "^5.0.8",
     "eslint-plugin-cypress": "^2.12.1",
