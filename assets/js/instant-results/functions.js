@@ -70,13 +70,13 @@ export const getPostTypesFromForm = (form) => {
  * Get permalink URL parameters from args.
  *
  * @typedef {Object} ArgSchema
- * @property {string} type Arg type.
- * @property {any} [default] Default arg value.
- * @property {Array} [allowedValues] Array of allowed values.
+ * @property {string}    type            Arg type.
+ * @property {any}       [default]       Default arg value.
+ * @property {Array}     [allowedValues] Array of allowed values.
  *
- * @param {Object} args Args
- * @param {ArgSchema} schema Args schema.
- * @param {string} [prefix] Prefix to prepend to args.
+ * @param    {Object}    args            Args
+ * @param    {ArgSchema} schema          Args schema.
+ * @param    {string}    [prefix]        Prefix to prepend to args.
  * @return {URLSearchParams} URLSearchParams instance.
  */
 export const getUrlParamsFromArgs = (args, schema, prefix = '') => {
@@ -98,14 +98,14 @@ export const getUrlParamsFromArgs = (args, schema, prefix = '') => {
  * Build request args from URL parameters using a given schema.
  *
  * @typedef {Object} ArgSchema
- * @property {string} type Arg type.
- * @property {any} [default] Default arg value.
- * @property {Array} [allowedValues] Array of allowed values.
+ * @property {string}                     type            Arg type.
+ * @property {any}                        [default]       Default arg value.
+ * @property {Array}                      [allowedValues] Array of allowed values.
  *
- * @param {URLSearchParams} urlParams URL parameters.
- * @param {object.<string, ArgSchema>} schema Schema to build args from.
- * @param {string} [prefix] Parameter prefix.
- * @param {boolean} [useDefaults] Whether to populate params with default values.
+ * @param    {URLSearchParams}            urlParams       URL parameters.
+ * @param    {object.<string, ArgSchema>} schema          Schema to build args from.
+ * @param    {string}                     [prefix]        Parameter prefix.
+ * @param    {boolean}                    [useDefaults]   Whether to populate params with default values.
  * @return {object.<string, any>} Query args.
  */
 export const getArgsFromUrlParams = (urlParams, schema, prefix = '', useDefaults = true) => {

@@ -1,12 +1,12 @@
 /**
  * Sanitize an argument value based on its type.
  *
- * @param {*} value The value.
- * @param {Object} options Sanitization options.
- * @param {'integer'|'integers'|'string'|'strings'} options.type (optional) Value type.
- * @param {Array} options.allowedValues (optional) Allowed values.
- * @param {*} options.default (optional) Default value.
- * @param {boolean} [useDefaults] Whether to return default values.
+ * @param {*}                                     value                 The value.
+ * @param {Object}                                options               Sanitization options.
+ * @param {'number'|'numbers'|'string'|'strings'} options.type          (optional) Value type.
+ * @param {Array}                                 options.allowedValues (optional) Allowed values.
+ * @param {*}                                     options.default       (optional) Default value.
+ * @param {boolean}                               [useDefaults]         Whether to return default values.
  * @return {*} Sanitized value.
  */
 export const sanitizeArg = (value, options, useDefaults = true) => {
@@ -56,12 +56,12 @@ export const sanitizeArg = (value, options, useDefaults = true) => {
 /**
  * Sanitize a parameter value based on its type.
  *
- * @param {*} value The value.
- * @param {Object} options Sanitization options.
- * @param {'integer'|'integers'|'string'|'strings'} options.type (optional) Value type.
- * @param {Array} options.allowedValues (optional) Allowed values.
- * @param {*} options.default (optional) Default value.
- * @param {boolean} [useDefaults] Whether to return default values.
+ * @param {*}                                     value                 The value.
+ * @param {Object}                                options               Sanitization options.
+ * @param {'number'|'numbers'|'string'|'strings'} options.type          (optional) Value type.
+ * @param {Array}                                 options.allowedValues (optional) Allowed values.
+ * @param {*}                                     options.default       (optional) Default value.
+ * @param {boolean}                               [useDefaults]         Whether to return default values.
  * @return {*} Sanitized value.
  */
 export const sanitizeParam = (value, options, useDefaults = true) => {

@@ -16,11 +16,11 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Taxonomy filter component.
  *
- * @param {Object}  props Components props.
+ * @param {Object}  props               Components props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
- * @param {string} props.label Facet label.
- * @param {string} props.name Facet name.
- * @param {Array} props.postTypes Facet post types.
+ * @param {string}  props.label         Facet label.
+ * @param {string}  props.name          Facet name.
+ * @param {Array}   props.postTypes     Facet post types.
  * @return {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label, postTypes, name }) => {
