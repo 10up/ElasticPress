@@ -65,9 +65,6 @@ npm run env run tests-cli "wp core multisite-convert"
 npm run env run tests-cli "option set home 'http://localhost:8889'"
 npm run env run tests-cli "option set siteurl 'http://localhost:8889'"
 
-npm run env run tests-cli "wp user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password"
-npm run env run tests-cli "wp super-admin add wpsnapshots"
-
 npm run env run tests-cli "wp theme enable twentytwentyone --network --activate"
 
 npm run env run tests-cli "wp import /var/www/html/wp-content/uploads/content-example.xml --authors=create"
@@ -81,7 +78,7 @@ npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME}"
 npm run env run tests-cli "wp elasticpress index --setup --yes --show-errors"
 
 npm run env run tests-cli "wp option set posts_per_page 5"
-npm run env run tests-cli "wp user meta update wpsnapshots edit_post_per_page 5"
+npm run env run tests-cli "wp user meta update admin edit_post_per_page 5"
 
 # Generate a SQL file that can be imported later to make things faster
 SQL_FILENAME=./bin/$(date +'%F-%H-%M').sql
