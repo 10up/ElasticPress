@@ -17,7 +17,7 @@ describe('Autosuggest Feature', () => {
 		cy.get('.ep-autosuggest').should(($autosuggestList) => {
 			// eslint-disable-next-line no-unused-expressions
 			expect($autosuggestList).to.be.visible;
-			expect($autosuggestList[0].innerText).to.be.eq('Markup: HTML Tags and Formatting');
+			expect($autosuggestList[0].innerText).to.contains('Markup: HTML Tags and Formatting');
 		});
 	});
 

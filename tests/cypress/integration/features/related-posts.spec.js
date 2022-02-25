@@ -17,8 +17,8 @@ describe('Related Posts Feature', () => {
 		// Disable the feature.
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-related_posts .settings-button').click();
-		cy.get('#feature_active_related_posts_disabled').click();
-		cy.get('a.save-settings[data-feature="related_posts"]').click();
+		cy.get('.ep-feature-related_posts [name="settings[active]"][value="0"]').click();
+		cy.get('.ep-feature-related_posts .button-primary').click();
 
 		openWidgetsPage();
 
@@ -30,8 +30,8 @@ describe('Related Posts Feature', () => {
 		// Re-enable the feature.
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-related_posts .settings-button').click();
-		cy.get('#feature_active_related_posts_enabled').click();
-		cy.get('a.save-settings[data-feature="related_posts"]').click();
+		cy.get('.ep-feature-related_posts [name="settings[active]"][value="1"]').click();
+		cy.get('.ep-feature-related_posts .button-primary').click();
 
 		openWidgetsPage();
 
