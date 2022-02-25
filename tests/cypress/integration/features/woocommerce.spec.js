@@ -19,16 +19,15 @@ describe('WooCommerce Feature', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-woocommerce .settings-button').click();
-		cy.get('#feature_active_woocommerce_enabled').click();
-		cy.get('a.save-settings[data-feature="woocommerce"]').click();
+		cy.get('.ep-feature-woocommerce [name="settings[active]"][value="1"]').click();
+		cy.get('.ep-feature-woocommerce .button-primary').click();
 		cy.on('window:confirm', () => {
 			return true;
 		});
 
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+			timeout: Cypress.config('elasticPressIndexTimeout'),
+		}).should('contain.text', 'Sync completed');
 
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'woocommerce');
 	});

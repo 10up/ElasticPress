@@ -105,8 +105,8 @@ describe('Post Search Feature', () => {
 		cy.login();
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-search .settings-button').click();
-		cy.get('#highlighting_enabled').click();
-		cy.get('a.save-settings[data-feature="search"]').click();
+		cy.get('.ep-feature-search [name="settings[highlight_excerpt]"][value="1"]').click();
+		cy.get('.ep-feature-search .button-primary').click();
 
 		cy.publishPost({
 			title: 'test highlight color',

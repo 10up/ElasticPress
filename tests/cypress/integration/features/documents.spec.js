@@ -2,8 +2,8 @@ describe('Documents Feature', () => {
 	function enableDocumentsFeature() {
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-documents .settings-button').click();
-		cy.get('#feature_active_documents_enabled').click();
-		cy.get('a.save-settings[data-feature="documents"]').click();
+		cy.get('.ep-feature-documents [name="settings[active]"][value="1"]').click();
+		cy.get('.ep-feature-documents .button-primary').click();
 	}
 
 	function uploadFile(fileName, mimeType) {
