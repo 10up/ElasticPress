@@ -15,6 +15,8 @@
 const { readConfig } = require('@wordpress/env/lib/config');
 
 /**
+ * Dynamically set some configs.
+ *
  * @type {Cypress.PluginConfig}
  */
 // eslint-disable-next-line no-unused-vars
