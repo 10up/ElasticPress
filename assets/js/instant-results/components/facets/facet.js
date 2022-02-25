@@ -39,6 +39,6 @@ export default ({ index, label, name, postTypes, type }) => {
 				/>
 			);
 		default:
-			return <></>;
+			return null;
 	}
 };
