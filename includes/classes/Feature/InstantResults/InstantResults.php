@@ -842,11 +842,10 @@ class InstantResults extends Feature {
 		$available_facets = $this->get_facets();
 
 		foreach ( $selected_facets as $key ) {
-			$facet = $available_facets[ $key ];
-
-			$args = array_merge( $args, $facet['args'] );
+			if ( isset( $available_facets[ $key ] ) ) {
+				$args = array_merge( $args, $available_facets[ $key ]['args'] );
+			}
 		}
-
 		return $args;
 	}
 }
