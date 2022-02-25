@@ -60,6 +60,11 @@ if [ ! -z $EP_INDEX_PREFIX ]; then
 fi
 
 npm run env run tests-cli "wp core multisite-convert"
+
+# Not sure why, wp-env makes it http://localhost:8889/:8889
+npm run env run tests-cli "option set home 'http://localhost:8889'"
+npm run env run tests-cli "option set siteurl 'http://localhost:8889'"
+
 npm run env run tests-cli "wp user create wpsnapshots wpsnapshots@example.test --role=administrator --user_pass=password"
 npm run env run tests-cli "wp super-admin add wpsnapshots"
 
