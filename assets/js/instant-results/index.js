@@ -2,7 +2,15 @@
  * WordPress dependencies.
  */
 import { SlotFillProvider } from '@wordpress/components';
-import { render, useCallback, useEffect, useReducer, useRef, WPElement } from '@wordpress/element';
+import {
+	render,
+	useCallback,
+	useEffect,
+	useMemo,
+	useReducer,
+	useRef,
+	WPElement,
+} from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -210,8 +218,13 @@ const App = () => {
 		state.args.search,
 	]);
 
+	/**
+	 * Create context.
+	 */
+	const context = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+
 	return (
-		<Context.Provider value={{ state, dispatch }}>
+		<Context.Provider value={context}>
 			<SlotFillProvider>
 				<Modal
 					aria-label={__('Search results', 'elasticpress')}
