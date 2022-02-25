@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { useContext, useState, WPElement } from '@wordpress/element';
+import { useContext, useEffect, useState, WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
@@ -50,6 +50,19 @@ export default () => {
 	const onClear = () => {
 		dispatch({ type: 'NEW_SEARCH_TERM', payload: '' });
 	};
+
+	/**
+	 * Handle an external change to the search value, such as from popping
+	 * state.
+	 */
+	const handleSearch = () => {
+		setValue(search);
+	};
+
+	/**
+	 * Effects.
+	 */
+	useEffect(handleSearch, [search]);
 
 	return (
 		<>
