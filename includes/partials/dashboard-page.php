@@ -68,7 +68,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				<div class="postbox">
 					<h2 class="hndle">
 						<span><?php echo esc_html( $feature->title ); ?></span>
-						<a class="settings-button"><?php esc_html_e( 'settings', 'elasticpress' ); ?></a>
+						<button aria-expanded="false" type="button" class="settings-button"><?php esc_html_e( 'settings', 'elasticpress' ); ?></button>
 					</h2>
 
 					<div class="description inside">
