@@ -89,6 +89,11 @@ if ( $network_activated ) {
 }
 
 /**
+ * Set global cache groups.
+ */
+wp_cache_add_global_groups( 'elasticpress-network' );
+
+/**
  * Sets up the indexables and features.
  *
  * @return void
