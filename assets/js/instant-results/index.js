@@ -2,16 +2,25 @@
  * WordPress dependencies.
  */
 import { SlotFillProvider } from '@wordpress/components';
-import { render, useCallback, useEffect, useReducer, useRef, WPElement } from '@wordpress/element';
+import {
+	render,
+	useCallback,
+	useEffect,
+	useMemo,
+	useReducer,
+	useRef,
+	WPElement,
+} from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
+import { argsSchema, paramPrefix } from './config';
 import Context from './context';
-import { getPostTypesFromForm, getURLParamsFromState } from './functions';
-import { useDebounce, useGetResults } from './hooks';
-import { reducer, initialArg } from './reducer';
+import { getArgsFromUrlParams, getUrlParamsFromArgs, getPostTypesFromForm } from './functions';
+import { useGetResults } from './hooks';
+import { reducer, initialState } from './reducer';
 import Layout from './components/layout';
 import Modal from './components/common/modal';
 
@@ -22,7 +31,7 @@ import Modal from './components/common/modal';
  */
 const App = () => {
 	const getResults = useGetResults();
-	const [state, dispatch] = useReducer(reducer, initialArg);
+	const [state, dispatch] = useReducer(reducer, initialState);
 	const inputRef = useRef();
 	const modalRef = useRef();
 	const stateRef = useRef(state);
@@ -32,17 +41,12 @@ const App = () => {
 	/**
 	 * Close the modal.
 	 */
-	const openModal = useCallback(() => {
-		dispatch({ type: 'OPEN_MODAL' });
-	}, []);
-
-	/**
-	 * Close the modal.
-	 */
 	const closeModal = useCallback(() => {
 		dispatch({ type: 'CLOSE_MODAL' });
-		dispatch({ type: 'CLEAR_FILTERS' });
-		inputRef.current.focus();
+
+		if (inputRef.current) {
+			inputRef.current.focus();
+		}
 	}, []);
 
 	/**
@@ -74,7 +78,7 @@ const App = () => {
 	 * Perform a search.
 	 */
 	const doSearch = useCallback(async () => {
-		const urlParams = getURLParamsFromState(stateRef.current);
+		const urlParams = getUrlParamsFromArgs(stateRef.current.args, argsSchema);
 
 		startLoading();
 
@@ -86,9 +90,26 @@ const App = () => {
 	}, [finishLoading, getResults, startLoading, updateResults]);
 
 	/**
-	 * Debounced search function.
+	 * Push state to history.
 	 */
-	const doSearchDebounced = useDebounce(doSearch, 250);
+	const pushState = useCallback(() => {
+		const { history } = modalRef.current.ownerDocument.defaultView;
+		const { args, isOpen, isPoppingState } = stateRef.current;
+
+		if (isPoppingState) {
+			return;
+		}
+
+		const state = JSON.stringify({ ...args, isOpen });
+		const params = getUrlParamsFromArgs(args, argsSchema, paramPrefix).toString();
+		const url = isOpen ? `?${params}` : window.location.origin + window.location.pathname;
+
+		if (history.state) {
+			history.pushState(state, document.title, url);
+		} else {
+			history.replaceState(state, document.title, window.location.href);
+		}
+	}, []);
 
 	/**
 	 * Handle escape key press.
@@ -105,46 +126,45 @@ const App = () => {
 	);
 
 	/**
+	 * Handle popstate event.
+	 *
+	 * @param {Event} event popstate event.
+	 */
+	const onPopState = useCallback((event) => {
+		if (event.state) {
+			dispatch({ type: 'POP_STATE', payload: JSON.parse(event.state) });
+		}
+	}, []);
+
+	/**
 	 * Handle submitting the search form.
 	 *
 	 * @param {Event} event Input event.
 	 */
-	const onSubmit = useCallback(
-		(event) => {
-			event.preventDefault();
+	const onSubmit = useCallback((event) => {
+		event.preventDefault();
 
-			inputRef.current = event.target.s;
+		inputRef.current = event.target.s;
 
-			const searchTerm = inputRef.current.value;
-			const postTypes = getPostTypesFromForm(inputRef.current.form);
+		const search = inputRef.current.value;
+		const post_type = getPostTypesFromForm(inputRef.current.form);
 
-			dispatch({ type: 'SET_SEARCH_TERM', payload: searchTerm });
-			dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
-
-			openModal();
-		},
-		[openModal],
-	);
+		dispatch({ type: 'APPLY_ARGS', payload: { search, post_type } });
+	}, []);
 
 	/**
 	 * Handle changes to search parameters.
 	 */
 	const handleChanges = () => {
-		const {
-			args: { search },
-			isOpen,
-			searchedTerm,
-		} = stateRef.current;
+		const { isOpen } = stateRef.current;
+
+		pushState();
 
 		if (!isOpen) {
 			return;
 		}
 
-		if (search !== searchedTerm) {
-			doSearchDebounced();
-		} else {
-			doSearch();
-		}
+		doSearch();
 	};
 
 	/**
@@ -160,35 +180,51 @@ const App = () => {
 			input.form.addEventListener('submit', onSubmit);
 		});
 
-		modal.ownerDocument.body.addEventListener('keydown', onEscape);
+		modal.ownerDocument.defaultView.addEventListener('popstate', onPopState);
 
 		return () => {
 			inputs.forEach((input) => {
 				input.form.removeEventListener('submit', onSubmit);
 			});
 
-			modal.ownerDocument.body.removeEventListener('keydown', onEscape);
+			modal.ownerDocument.defaultView.removeEventListener('popstate', onPopState);
 		};
+	};
+
+	/**
+	 * Open modal with pre-defined args if they are found in the URL.
+	 */
+	const handleInit = () => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const args = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
+
+		if (Object.keys(args).length > 0) {
+			dispatch({ type: 'APPLY_ARGS', payload: args });
+		}
 	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(handleEvents, [onEscape, onSubmit]);
+	useEffect(handleInit, []);
+	useEffect(handleEvents, [onEscape, onPopState, onSubmit]);
 	useEffect(handleChanges, [
 		doSearch,
-		doSearchDebounced,
+		pushState,
 		state.args,
 		state.args.orderby,
 		state.args.order,
 		state.args.offset,
 		state.args.search,
-		state.isOpen,
-		state.filters,
 	]);
 
+	/**
+	 * Create context.
+	 */
+	const context = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+
 	return (
-		<Context.Provider value={{ state, dispatch }}>
+		<Context.Provider value={context}>
 			<SlotFillProvider>
 				<Modal
 					aria-label={__('Search results', 'elasticpress')}

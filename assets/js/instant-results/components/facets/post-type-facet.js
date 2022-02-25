@@ -24,9 +24,9 @@ import { ActiveContraint } from '../tools/active-constraints';
 export default ({ defaultIsOpen, label }) => {
 	const {
 		state: {
+			aggregations: { post_type: { post_type: { buckets = [] } = {} } = {} },
+			args: { post_type: selectedPostTypes = [] },
 			isLoading,
-			filters: { post_type: selectedPostTypes = [] },
-			postTypesAggregation: { post_types: { buckets = [] } = {} } = {},
 		},
 		dispatch,
 	} = useContext(Context);
@@ -71,7 +71,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * @param {string[]} postTypes Selected post types.
 	 */
 	const onChange = (postTypes) => {
-		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
+		dispatch({ type: 'APPLY_ARGS', payload: { post_type: postTypes } });
 	};
 
 	/**
@@ -85,7 +85,7 @@ export default ({ defaultIsOpen, label }) => {
 
 		postTypes.splice(index, 1);
 
-		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
+		dispatch({ type: 'APPLY_ARGS', payload: { post_type: postTypes } });
 	};
 
 	return (

@@ -280,11 +280,13 @@ class InstantResults extends Feature {
 			array(
 				'apiEndpoint'    => $api_endpoint,
 				'apiHost'        => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
+				'argsSchema'     => $this->get_args_schema(),
 				'currencyCode'   => $this->is_woocommerce ? get_woocommerce_currency() : false,
 				'facets'         => $this->get_facets_for_frontend(),
 				'highlightTag'   => $this->settings['highlight_tag'],
 				'isWooCommerce'  => $this->is_woocommerce,
 				'matchType'      => $this->settings['match_type'],
+				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
 			)
 		);
@@ -653,12 +655,20 @@ class InstantResults extends Feature {
 				'frontend' => __( 'Type', 'elasticpress' ),
 			),
 			'aggs'       => array(
-				'post_types' => array(
+				'post_type' => array(
 					'terms' => array(
 						'field' => 'post_type.raw',
 					),
 				),
 			),
+			/**
+			 * The post_type arg needs to be supported regardless of whether
+			 * the Post Type facet is present to be able to support setting the
+			 * post type from the search form.
+			 *
+			 * @see ElasticPress\Feature\InstantResults::get_args_schema()
+			 */
+			'args'       => array(),
 		);
 
 		/**
@@ -668,6 +678,7 @@ class InstantResults extends Feature {
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		foreach ( $taxonomies as $slug => $taxonomy ) {
+			$name   = 'tax-' . $slug;
 			$labels = get_taxonomy_labels( $taxonomy );
 
 			$admin_label = sprintf(
@@ -677,7 +688,7 @@ class InstantResults extends Feature {
 				$slug
 			);
 
-			$facets[ $slug ] = array(
+			$facets[ $name ] = array(
 				'type'       => 'taxonomy',
 				'post_types' => $taxonomy->object_type,
 				'labels'     => array(
@@ -685,11 +696,16 @@ class InstantResults extends Feature {
 					'frontend' => $labels->singular_name,
 				),
 				'aggs'       => array(
-					'taxonomy_terms' => array(
+					$name => array(
 						'terms' => array(
 							'field' => 'terms.' . $slug . '.facet',
 							'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
 						),
+					),
+				),
+				'args'       => array(
+					$name => array(
+						'type' => 'strings',
 					),
 				),
 			);
@@ -716,6 +732,14 @@ class InstantResults extends Feature {
 						'min' => array(
 							'field' => 'meta._price.double',
 						),
+					),
+				),
+				'args'       => array(
+					'max_price' => array(
+						'type' => 'number',
+					),
+					'min_price' => array(
+						'type' => 'number',
 					),
 				),
 			);
@@ -768,5 +792,60 @@ class InstantResults extends Feature {
 		}
 
 		return $facets;
+	}
+
+	/**
+	 * Get schema for search args.
+	 *
+	 * @return array Search args schema.
+	 */
+	public function get_args_schema() {
+		$args = array(
+			'highlight' => array(
+				'type'          => 'string',
+				'default'       => $this->settings['highlight_tag'],
+				'allowedValues' => [ $this->settings['highlight_tag'] ],
+			),
+			'offset'    => array(
+				'type'    => 'number',
+				'default' => 0,
+			),
+			'orderby'   => array(
+				'type'          => 'string',
+				'default'       => 'relevance',
+				'allowedValues' => [ 'date', 'price', 'relevance' ],
+			),
+			'order'     => array(
+				'type'          => 'string',
+				'default'       => 'desc',
+				'allowedValues' => [ 'asc', 'desc' ],
+			),
+			'per_page'  => array(
+				'type'    => 'number',
+				'default' => 6,
+			),
+			'post_type' => array(
+				'type' => 'strings',
+			),
+			'search'    => array(
+				'type'    => 'string',
+				'default' => '',
+			),
+			'relation'  => array(
+				'type'          => 'string',
+				'default'       => 'and',
+				'allowedValues' => [ 'and', 'or' ],
+			),
+		);
+
+		$selected_facets  = explode( ',', $this->settings['facets'] );
+		$available_facets = $this->get_facets();
+
+		foreach ( $selected_facets as $key ) {
+			if ( isset( $available_facets[ $key ] ) ) {
+				$args = array_merge( $args, $available_facets[ $key ]['args'] );
+			}
+		}
+		return $args;
 	}
 }
