@@ -741,7 +741,7 @@ class Command extends WP_CLI_Command {
 
 		$index_args = [
 			'method'         => 'cli',
-			'total_attempts' => 3,
+			'total_attempts' => 1,
 			'indexables'     => $indexables,
 			'put_mapping'    => ! empty( $setup_option ),
 			'output_method'  => [ $this, 'index_output' ],
