@@ -340,9 +340,36 @@ class Widget extends WP_Widget {
 		 */
 		$label = apply_filters( 'ep_facet_widget_term_label', $term->name, $term, $selected );
 
+		/**
+		 * Filter the accessible label for an individual facet term link.
+		 *
+		 * Used as the aria-label attribute for filter links. The accessible
+		 * label should include additional context around what action will be
+		 * performed by visiting the link, such as whether the filter will be
+		 * added or removed.
+		 *
+		 * @since 4.0.0
+		 * @hook ep_facet_widget_term_accessible_label
+		 * @param {string} $label Facet term accessible label.
+		 * @param {WP_Term} $term Term object.
+		 * @param {boolean} $selected Whether the term is selected.
+		 * @return {string} Individual facet term accessible label.
+		 */
+		$accessible_label = apply_filters(
+			'ep_facet_widget_term_accessible_label',
+			$selected
+				/* translators: %s: Filter term name. */
+				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $term->name )
+				/* translators: %s: Filter term name. */
+				: sprintf( __( 'Apply filter: %s', 'elasticpress' ), $term->name ),
+			$term,
+			$selected
+		);
+
 		$link = sprintf(
-			'<a %1$s rel="nofollow"><div class="ep-checkbox %2$s" role="presentation"></div>%3$s</a>',
-			$term->count ? $href : '',
+			'<a aria-label="%1$s" %2$s rel="nofollow"><div class="ep-checkbox %3$s" role="presentation"></div>%4$s</a>',
+			esc_attr( $accessible_label ),
+			$term->count ? $href : 'aria-role="link" aria-disabled="true"',
 			$selected ? 'checked' : '',
 			wp_kses_post( $label )
 		);

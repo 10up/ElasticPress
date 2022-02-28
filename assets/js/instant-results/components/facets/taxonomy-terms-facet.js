@@ -19,31 +19,26 @@ import { ActiveContraint } from '../tools/active-constraints';
  * @param {Object}  props               Components props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
  * @param {string}  props.label         Facet label.
+ * @param {string}  props.name          Facet name.
  * @param {Array}   props.postTypes     Facet post types.
- * @param {string}  props.taxonomy      Facet taxonomy.
  * @return {WPElement} Component element.
  */
-export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
+export default ({ defaultIsOpen, label, postTypes, name }) => {
 	const {
 		state: {
 			isLoading,
-			filters: { [taxonomy]: selectedTerms = [] },
-			taxonomyTermsAggregations: {
-				[taxonomy]: { taxonomy_terms: { buckets = [] } = {} } = {},
-			} = {},
+			args: { [name]: selectedTerms = [] },
+			aggregations: { [name]: { [name]: { buckets = [] } = {} } = {} } = {},
 		},
 		dispatch,
 	} = useContext(Context);
 
 	/**
 	 * A unique label for the facet. Adds additional context to the label if
-	 * another taxonomy with the same label is being used as a facet.
+	 * another facet with the same label is being used.
 	 */
 	const uniqueLabel = useMemo(() => {
-		const isNotUnique = facets.some(
-			(facet) => facet.label === label && facet.name !== taxonomy,
-		);
-
+		const isNotUnique = facets.some((facet) => facet.label === label && facet.name !== name);
 		const typeLabels = postTypes.map((postType) => postTypeLabels[postType].plural);
 		const typeSeparator = __(', ', 'elasticpress');
 
@@ -55,7 +50,7 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 					typeLabels.join(typeSeparator),
 			  )
 			: label;
-	}, [label, postTypes, taxonomy]);
+	}, [label, postTypes, name]);
 
 	/**
 	 * Create list of filter options from aggregation buckets.
@@ -66,13 +61,14 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 	 * @return {Array} Array of options.
 	 */
 	const reduceOptions = useCallback(
-		(options, { key }) => {
-			const { name, parent, term_id, term_order } = JSON.parse(key);
+		(options, { doc_count, key }) => {
+			const { name: label, parent, term_id, term_order } = JSON.parse(key);
 
 			options.push({
 				checked: selectedTerms.includes(term_id),
-				id: `ep-search-${taxonomy}-${term_id}`,
-				label: name,
+				count: doc_count,
+				id: `ep-search-${name}-${term_id}`,
+				label,
 				parent: parent.toString(),
 				order: term_order,
 				value: term_id.toString(),
@@ -80,7 +76,7 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 
 			return options;
 		},
-		[selectedTerms, taxonomy],
+		[selectedTerms, name],
 	);
 
 	/**
@@ -113,7 +109,7 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 	 * @param {string[]} terms Selected terms.
 	 */
 	const onChange = (terms) => {
-		dispatch({ type: 'APPLY_FILTERS', payload: { [taxonomy]: terms } });
+		dispatch({ type: 'APPLY_ARGS', payload: { [name]: terms } });
 	};
 
 	/**
@@ -126,7 +122,7 @@ export default ({ defaultIsOpen, label, postTypes, taxonomy }) => {
 
 		terms.splice(terms.indexOf(term), 1);
 
-		dispatch({ type: 'APPLY_FILTERS', payload: { [taxonomy]: terms } });
+		dispatch({ type: 'APPLY_ARGS', payload: { [name]: terms } });
 	};
 
 	return (

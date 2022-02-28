@@ -9,11 +9,12 @@ import { __ } from '@wordpress/i18n';
 const {
 	apiEndpoint,
 	apiHost,
+	argsSchema,
 	currencyCode,
 	facets,
-	highlightTag,
 	isWooCommerce,
 	matchType,
+	paramPrefix,
 	postTypeLabels,
 	taxonomyLabels,
 } = window.epInstantResults;
@@ -60,11 +61,12 @@ if (isWooCommerce) {
 export {
 	apiEndpoint,
 	apiHost,
+	argsSchema,
 	currencyCode,
 	facets,
-	highlightTag,
 	isWooCommerce,
 	matchType,
+	paramPrefix,
 	postTypeLabels,
 	sortOptions,
 	taxonomyLabels,

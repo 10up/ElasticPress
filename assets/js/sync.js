@@ -197,7 +197,6 @@ let syncStack;
 let processed = 0;
 let toProcess = 0;
 let totalProcessed = 0;
-let totalErrors = 0;
 
 updateLastSyncDateTime(epDash?.ep_last_sync_date);
 
@@ -389,15 +388,6 @@ function cliSync() {
 						addErrorToOutput(item);
 						addLineToOutput(item);
 					});
-					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
-
-					totalErrors += response.data.index_meta.current_sync_item.failed;
-
-					errorTab.innerText = sprintf(
-						// translators: Number of errors
-						__('Errors (%d)', 'elasticpress'),
-						totalErrors,
-					);
 				} else if (typeof message === 'string') {
 					addErrorToOutput(message);
 					addLineToOutput(message);
@@ -486,6 +476,14 @@ function addErrorToOutput(text) {
 		line.append(lineText);
 
 		wrapperElement.append(line);
+
+		const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
+
+		errorTab.innerText = sprintf(
+			// translators: Number of errors
+			__('Errors (%d)', 'elasticpress'),
+			lineNumber.innerText,
+		);
 
 		const outputElement = activeBox.querySelector('.ep-sync-box__output-error');
 		outputElement.scrollTo(0, wrapperElement.scrollHeight);
@@ -590,15 +588,6 @@ function sync(putMapping = false) {
 						addErrorToOutput(item);
 						addLineToOutput(item);
 					});
-					const errorTab = activeBox.querySelector('.ep-sync-box__output-tab-error');
-
-					totalErrors += response.data.index_meta.current_sync_item.failed;
-
-					errorTab.innerText = sprintf(
-						// translators: Number of errors
-						__('Errors (%d)', 'elasticpress'),
-						totalErrors,
-					);
 				} else if (typeof message === 'string') {
 					addErrorToOutput(message);
 					addLineToOutput(message);
@@ -647,7 +636,6 @@ function sync(putMapping = false) {
 				processed = 0;
 				toProcess = 0;
 				totalProcessed = 0;
-				totalErrors = 0;
 
 				return;
 			}

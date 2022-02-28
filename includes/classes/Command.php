@@ -918,7 +918,7 @@ class Command extends WP_CLI_Command {
 	 */
 	private function index_occurring() {
 		if ( Utils\is_indexing() ) {
-			WP_CLI::error( esc_html__( 'An index is already occuring. Try again later.', 'elasticpress' ) );
+			WP_CLI::error( esc_html__( 'An index is already occurring. Try again later.', 'elasticpress' ) );
 		}
 	}
 
