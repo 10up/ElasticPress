@@ -370,6 +370,15 @@ class WooCommerce extends Feature {
 		$query->query['suppress_filters'] = false;
 		$query->set( 'suppress_filters', false );
 
+		// Integrate with WooCommerce custom searches as well
+		$search = $query->get( 'search' );
+		if ( ! empty( $search ) ) {
+			$s = $search;
+			$query->set( 's', $s );
+		} else {
+			$s = $query->get( 's' );
+		}
+
 		$query->query_vars['ep_integrate'] = true;
 		$query->query['ep_integrate']      = true;
 
