@@ -182,7 +182,7 @@ function is_indexing_wpcli() {
 	$index_meta = IndexHelper::factory()->get_index_meta();
 
 	/**
-	 * Filter whether a CLI sync is occuring
+	 * Filter whether a CLI sync is occurring
 	 *
 	 * @since  3.0
 	 * @hook ep_is_indexing_wpcli
