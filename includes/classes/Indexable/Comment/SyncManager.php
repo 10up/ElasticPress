@@ -48,6 +48,22 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
+	 * Un-setup actions and filters (for multisite).
+	 *
+	 * @since 4.0
+	 */
+	public function site_unsetup() {
+		remove_action( 'wp_insert_comment', [ $this, 'action_sync_on_insert' ] );
+		remove_action( 'edit_comment', [ $this, 'action_sync_on_update' ] );
+		remove_action( 'transition_comment_status', [ $this, 'action_sync_on_transition_comment_status' ] );
+		remove_action( 'trashed_comment', [ $this, 'action_sync_on_delete' ] );
+		remove_action( 'deleted_comment', [ $this, 'action_sync_on_delete' ] );
+		remove_action( 'added_comment_meta', [ $this, 'action_queue_meta_sync' ] );
+		remove_action( 'deleted_comment_meta', [ $this, 'action_queue_meta_sync' ] );
+		remove_action( 'updated_comment_meta', [ $this, 'action_queue_meta_sync' ] );
+	}
+
+	/**
 	 * Sync ES index when new comments are saved
 	 *
 	 * @param int $comment_id Comment ID.

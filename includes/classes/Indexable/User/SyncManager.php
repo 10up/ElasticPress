@@ -43,6 +43,13 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
+	 * Dummy implementation of site unsetup method (for now)
+	 */
+	public function site_unsetup() {
+		return;
+	}
+
+	/**
 	 * When whitelisted meta is updated/added/deleted, queue the object for reindex
 	 *
 	 * @param  int       $meta_id Meta id.
