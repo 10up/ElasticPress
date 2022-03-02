@@ -11,10 +11,6 @@ A fast and flexible search and query engine for WordPress.
 == Description ==
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
-## ElasticPress 4.0.0 Beta is now available!
-
-The first Beta for ElasticPress 4.0 brings changes and new features, check the [release page](https://github.com/10up/ElasticPress/releases/tag/4.0.0-beta.1) for more info. ElasticPress 4.0 is still in development, so it is not recommended to run it on a production site.
-
 Here is a list of the amazing ElasticPress features included in the plugin:
 
 __Search__: Instantly find the content you’re looking for. The first time.
@@ -1078,6 +1074,9 @@ ElasticPress 1.6 contains a number of important enhancements and bug fixes. Most
 * Initial plugin
 
 == Upgrade Notice ==
+
+= 4.0.0 =
+**Note that ElasticPress 4.0.0 release removes built assets from the `develop` branch, replaced `master` with `trunk`, added a ZIP with the plugin and its built assets in the [GitHub Releases page](https://github.com/10up/ElasticPress/releases), and included a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub Releases depending on whether you require built assets or not.
 
 = 3.6.0 =
 **Note that the upcoming ElasticPress 3.7.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will build a stable release version including built assets into a `stable` branch, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to either `stable` or `trunk` depending on whether you require built assets or not.
