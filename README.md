@@ -48,6 +48,14 @@ ElasticPress requires these software with the following versions:
 
 The WooCommerce feature is compatible with the last two major versions of the [WooCommerce plugin](https://wordpress.org/plugins/woocommerce/).
 
+## Building Assets
+
+Simply downloading the repository files is not enough to have the plugin working, as CSS and JavaScript files are built during the release process. If you want to use a development version of the plugin you will to run
+
+`npm install && npm run build`
+
+[Node.js](https://nodejs.org/en/) (v14) and [npm](https://www.npmjs.com/) (v8) are required.
+
 ## React Components
 
 Interested in integrating ElasticPress in your headless WordPress website? Check out [ElasticPress React](https://github.com/10up/elasticpress-react).
