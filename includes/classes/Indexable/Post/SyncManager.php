@@ -71,6 +71,25 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
+	 * Un-setup actions and filters (for multisite).
+	 *
+	 * @since 4.0
+	 */
+	public function tear_down() {
+		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
+		remove_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ) );
+		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ) );
+		remove_filter( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ) );
+		remove_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ) );
+		remove_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
+		remove_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+		remove_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+	}
+
+	/**
 	 * Whether to delete all meta from other posts that is associated with the deleted post.
 	 *
 	 * @param bool   $check       Whether to allow metadata deletion of the given type.
