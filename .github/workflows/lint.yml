@@ -10,7 +10,7 @@ on:
   push:
     branches:
       - develop
-      - master
+      - trunk
   pull_request:
     branches:
       - develop
@@ -41,8 +41,8 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
 
-    - name: npm install
-      run: npm install
+    - name: npm ci
+      run: npm ci
 
     - name: es lint
       run: npm run lint-js
