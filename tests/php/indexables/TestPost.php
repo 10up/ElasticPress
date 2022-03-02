@@ -5285,36 +5285,48 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTagQuery() {
+		$tag1 = wp_insert_category( [ 'cat_name' => 'tag-1', 'taxonomy' => 'post_tag' ] );
+		$tag2 = wp_insert_category( [ 'cat_name' => 'tag-2', 'taxonomy' => 'post_tag' ] );
+		$tag3 = wp_insert_category( [ 'cat_name' => 'tag-3', 'taxonomy' => 'post_tag' ] );
+		$tag4 = wp_insert_category( [ 'cat_name' => 'tag-4', 'taxonomy' => 'post_tag' ] );
+		$tag5 = wp_insert_category( [ 'cat_name' => 'tag-5', 'taxonomy' => 'post_tag' ] );
+		$tag6 = wp_insert_category( [ 'cat_name' => 'tag-6', 'taxonomy' => 'post_tag' ] );
+
 		$post_id_1 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'findme test 1',
-				'tags_input'   => array( 'one', 'two' ),
+				'tags_input'   => array( $tag1, $tag2 ),
 			)
 		);
 		$post_id_2 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'findme test 2',
-				'tags_input'   => array( 'three', 'four', 'five', 'six' ),
+				'tags_input'   => array( $tag3, $tag4, $tag5, $tag6 ),
 			)
 		);
 
 		$post_id_3 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'findme test 3',
-				'tags_input'   => array( 'one', 'six' ),
+				'tags_input'   => array( $tag1, $tag2, $tag6 ),
 			)
 		);
 
-		$post_1_tags = get_the_tags( $post_id_1 );
-		$post_2_tags = get_the_tags( $post_id_2 );
-		$post_3_tags = get_the_tags( $post_id_3 );
+		/*
+		 *        |  1  |  2  |  3  |  4  |  5  |  6  |
+		 * post 1 |  x  |  x  |     |     |     |     |
+		 * post 2 |     |     |  x  |  x  |  x  |  x  |
+		 * post 3 |  x  |  x  |     |     |     |  x  |
+		 */
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
+		// Should find only posts with both tags 1 AND 2
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'post',
-			'tag__and'  => array( $post_1_tags[1]->term_id, $post_2_tags[1]->term_id ),
+			'tag__and'  => array( $tag1, $tag2 ),
+			'fields'    => 'ids',
 		);
 
 		$query = new \WP_Query( $args );
@@ -5322,25 +5334,37 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEqualsCanonicalizing( [ $post_id_1, $post_id_3 ], $query->posts );
 
-		// Verify we're only getting the posts we requested.
-		$post_names = wp_list_pluck( $query->posts, 'post_name' );
-
-		$this->assertContains( get_post_field( 'post_name', $post_id_1 ), $post_names );
-		$this->assertContains( get_post_field( 'post_name', $post_id_2 ), $post_names );
-		$this->assertNotContains( get_post_field( 'post_name', $post_id_3 ), $post_names );
-
+		// Should find only posts with tag 3
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'post',
-			'tag_id'    => $post_3_tags[1]->term_id,
+			'tag_id'    => $tag3,
+			'fields'    => 'ids',
 		);
 
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEqualsCanonicalizing( [ $post_id_2 ], $query->posts );
+
+		// Should find only posts with tags 1 OR 3
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+			'tag__in'    => array( $tag1, $tag3 ),
+			'fields'    => 'ids',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEqualsCanonicalizing( [ $post_id_1, $post_id_2, $post_id_3 ], $query->posts );
 	}
 
 	/**
@@ -5582,69 +5606,99 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testFormatArgsRootLevelTaxonomies() {
+		$cat1 = wp_create_category( 'category one' );
+		$cat2 = wp_create_category( 'category two' );
+		$tag1 = wp_insert_category( [ 'cat_name' => 'tag-1', 'taxonomy' => 'post_tag' ] );
+		$tag2 = wp_insert_category( [ 'cat_name' => 'tag-2', 'taxonomy' => 'post_tag' ] );
+		$tag3 = wp_insert_category( [ 'cat_name' => 'tag-3', 'taxonomy' => 'post_tag' ] );
 
-		$post = new \ElasticPress\Indexable\Post\Post();
-
-		$query = new \WP_Query();
-		$posts_per_page = (int) get_option( 'posts_per_page' );
-
-		$args = $post->format_args(
-			[
-				'cat'       => 123,
-				'tag'       => 'tag-slug',
-				'post_tag'  => 'post-tag-slug',
-			],
-			$query
+		$post1 = Functions\create_and_sync_post(
+			array(
+				'tags_input'    => array( $tag1, $tag2 ),
+				'post_category' => array( $cat1 ),
+			)
+		);
+		$post2 = Functions\create_and_sync_post(
+			array(
+				'tags_input'    => array( $tag1, $tag2, $tag3 ),
+				'post_category' => array( $cat2 ),
+			)
+		);
+		$post3 = Functions\create_and_sync_post(
+			array(
+				'post_category' => array( $cat1 ),
+			)
+		);
+		$post4 = Functions\create_and_sync_post(
+			array(
+				'tags_input' => array( $tag1, $tag3 ),
+			)
 		);
 
-		$this->assertSame( $posts_per_page, $args['size'] );
-
-		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
-
-		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
-
-		$this->assertSame( 123, $must_terms[0]['terms']['terms.category.term_id'][0] );
-		$this->assertSame( 'tag-slug', $must_terms[1]['terms']['terms.post_tag.slug'][0] );
-		$this->assertSame( 'post-tag-slug', $must_terms[2]['terms']['terms.post_tag.slug'][0] );
-
-		// Verify a bug fix where two different terms.post_tag.term_id
-		// parameters were being created. Should only be one parameter
-		// with the two IDs.
-		$args = $post->format_args(
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		
+		$query = new \WP_Query(
 			[
-				'tag__and' => [ 123, 456 ],
-				'tag_id'   => 123,
-			],
-			$query
+				'ep_integrate' => true,
+				'cat'          => $cat1,
+				'tag'          => 'tag-1',
+				'fields'       => 'ids',
+			]
 		);
-
-		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
-
-		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
-
-		$this->assertCount( 1, $must_terms );
-		$this->assertCount( 2, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 123, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 456, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-
-		// Verify we're append the tag_id to the array.
-		$args = $post->format_args(
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post1 ], $query->posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+		
+		$query = new \WP_Query(
 			[
-				'tag__and' => [ 123, 456 ],
-				'tag_id'   => 789,
-			],
-			$query
+				'ep_integrate' => true,
+				'tag__and'     => [ $tag1, $tag2 ],
+				'tag_id'       => $tag1,
+				'fields'       => 'ids',
+			]
 		);
-
-		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
-
-		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
-
-		$this->assertCount( 1, $must_terms );
-		$this->assertCount( 3, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 123, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 456, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 789, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post1, $post2 ], $query->posts );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'tag__and'     => [ $tag1, $tag2 ],
+				'tag_id'       => $tag3,
+				'fields'       => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post2 ], $query->posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+		
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'tag__in'      => [ $tag1, $tag2, $tag3 ],
+				'fields'       => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post1, $post2, $post4 ], $query->posts );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'category__in' => [ $cat1, $cat2 ],
+				'fields'       => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post1, $post2, $post3 ], $query->posts );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
 	}
 
 	/**
@@ -6074,7 +6128,7 @@ class TestPost extends BaseTestCase {
 	public function testQueryIntegrationConstructor() {
 
 		// Pretend we're indexing.
-		add_filter( 'ep_is_indexing', '__return_true' );
+		add_filter( 'ep_is_full_reindexing_post', '__return_true' );
 
 		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
 
@@ -6091,7 +6145,7 @@ class TestPost extends BaseTestCase {
 			$this->assertFalse( has_filter( $action, [ $query_integration, $function[0] ] ) );
 		}
 
-		remove_filter( 'ep_is_indexing', '__return_true' );
+		remove_filter( 'ep_is_full_reindexing_post', '__return_true' );
 
 		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
 

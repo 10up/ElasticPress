@@ -38,17 +38,15 @@ describe('User Indexable', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-users .settings-button').click();
-		cy.get('#feature_active_users_enabled').click();
-		cy.get('a.save-settings[data-feature="users"]').click();
+		cy.get('.ep-feature-users [name="settings[active]"][value="1"]').click();
+		cy.get('.ep-feature-users .button-primary').click();
 		cy.on('window:confirm', () => {
 			return true;
 		});
 
-		// Give it up to a minute to sync.
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+			timeout: Cypress.config('elasticPressIndexTimeout'),
+		}).should('contain.text', 'Sync completed');
 
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'users');
 	});

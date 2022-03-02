@@ -70,11 +70,11 @@ class Facets extends Feature {
 
 		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'all' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
-				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'any' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
+				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'all' ); ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
+				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'any' ); ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
@@ -149,8 +149,8 @@ class Facets extends Feature {
 		wp_enqueue_style(
 			'elasticpress-facets-admin',
 			EP_URL . 'dist/css/facets-admin-styles.min.css',
-			[],
-			EP_VERSION
+			Utils\get_asset_info( 'facets-admin-styles', 'dependencies' ),
+			Utils\get_asset_info( 'facets-admin-styles', 'version' )
 		);
 	}
 
@@ -163,16 +163,16 @@ class Facets extends Feature {
 		wp_register_script(
 			'elasticpress-facets',
 			EP_URL . 'dist/js/facets-script.min.js',
-			[],
-			EP_VERSION,
+			Utils\get_asset_info( 'facets-script', 'dependencies' ),
+			Utils\get_asset_info( 'facets-script', 'version' ),
 			true
 		);
 
 		wp_register_style(
 			'elasticpress-facets',
 			EP_URL . 'dist/css/facets-styles.min.css',
-			[],
-			EP_VERSION
+			Utils\get_asset_info( 'facets-styles', 'dependencies' ),
+			Utils\get_asset_info( 'facets-styles', 'version' )
 		);
 	}
 
@@ -390,10 +390,11 @@ class Facets extends Feature {
 		);
 
 		$allowed_args = $this->get_allowed_query_args();
+		$filter_name  = $this->get_filter_name();
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 0 === strpos( $key, 'filter_' ) ) {
-				$taxonomy = str_replace( 'filter_', '', $key );
+			if ( 0 === strpos( $key, $filter_name ) ) {
+				$taxonomy = str_replace( $filter_name, '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(
 					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
@@ -423,7 +424,7 @@ class Facets extends Feature {
 
 			foreach ( $tax_filters as $taxonomy => $filter ) {
 				if ( ! empty( $filter['terms'] ) ) {
-					$query_param[ 'filter_' . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
+					$query_param[ $this->get_filter_name() . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
 				}
 			}
 		}
@@ -513,5 +514,22 @@ class Facets extends Feature {
 		 * @return  {array} New post types
 		 */
 		return apply_filters( 'ep_facet_allowed_query_args', $args );
+	}
+
+	/**
+	 * Get the facet filter name.
+	 *
+	 * @return string The filter name.
+	 */
+	protected function get_filter_name() {
+		/**
+		 * Filter the facet filter name that's added to the URL
+		 *
+		 * @hook ep_facet_filter_name
+		 * @since 4.0.0
+		 * @param   {string} Facet filter name
+		 * @return  {string} New facet filter name
+		 */
+		return apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
 	}
 }

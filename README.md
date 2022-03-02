@@ -34,11 +34,19 @@ ElasticPress has an in depth documentation site. [Visit the docs ☞](http://10u
 
 ElasticPress FAQs and tutorials can be found on our support site. [Visit the support site ☞](https://elasticpress.zendesk.com/hc/en-us)
 
-## Requirements
+## Requirements and Compatibility
+
+### Requirements
+
+ElasticPress requires these software with the following versions:
 
 * [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.9**
 * [WordPress](http://wordpress.org) 3.7.1+
 * [PHP](https://php.net/) 5.6+
+
+### Compatibility
+
+The WooCommerce feature is compatible with the last two major versions of the [WooCommerce plugin](https://wordpress.org/plugins/woocommerce/).
 
 ## React Components
 

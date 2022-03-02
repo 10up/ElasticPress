@@ -1,3 +1,5 @@
+import jQuery from 'jquery';
+
 const { epAdmin, ajaxurl } = window;
 
 jQuery('.notice').on('click', '.notice-dismiss', (event) => {

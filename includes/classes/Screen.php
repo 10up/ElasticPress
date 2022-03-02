@@ -28,12 +28,23 @@ class Screen {
 	protected $screen = null;
 
 	/**
+	 * Sync screen instance
+	 *
+	 * @var Screen\Sync
+	 * @since  3.6.0
+	 */
+	public $sync_screen;
+
+	/**
 	 * Initialize class
 	 *
 	 * @since 3.0
 	 */
 	public function setup() {
 		add_action( 'admin_init', [ $this, 'determine_screen' ] );
+
+		$this->sync_screen = new Screen\Sync();
+		$this->sync_screen->setup();
 	}
 
 	/**
@@ -79,6 +90,10 @@ class Screen {
 				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
 					$this->screen = 'synonyms';
 				}
+			} elseif ( 'elasticpress-sync' === $_GET['page'] ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+					$this->screen = 'sync';
+				}
 			}
 		}
 		// phpcs:enable WordPress.Security.NonceVerification
@@ -104,6 +119,9 @@ class Screen {
 				break;
 			case 'health':
 				require_once __DIR__ . '/../partials/stats-page.php';
+				break;
+			case 'sync':
+				require_once __DIR__ . '/../partials/sync-page.php';
 				break;
 		}
 	}

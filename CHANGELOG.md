@@ -31,6 +31,41 @@ Supported versions:
 - Deleting a metadata without passing an object id now updates all associated posts. Props [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia), and [@Shrimpstronaut](https://github.com/Shrimpstronaut) via [#2483](https://github.com/10up/ElasticPress/pull/2483) and [#2525](https://github.com/10up/ElasticPress/pull/2525).
 - Not indexable sites added to indexes list in WP-CLI commands. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#2531](https://github.com/10up/ElasticPress/pull/2531).
 
+## [4.0.0-beta.1] - 2021-12-08
+
+This version requires a full reindex.
+
+Please note that 4.0 introduces a new search algorithm that may change the order of results displayed on your site. Additionally, this algorithm may be changed again during the beta process before a final 4.0 release algorithm is determined. Your feedback on this new algorithm is welcome via the Github [issues list](https://github.com/10up/ElasticPress/issues).
+
+New minimum versions are:
+
+||Min|Max|
+|---|:---:|:---:|
+|Elasticsearch|5.2|7.10|
+|WordPress|5.6+|latest|
+|PHP|7.0+|latest|
+
+**Note that the official ElasticPress 4.0.0 release will replace `master` with `trunk`. Built assets were already removed from the branch and added to the zip file attached to the GitHub release page.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
+
+### Added
+- Instant Results. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), and [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/) via [#2481](https://github.com/10up/ElasticPress/pull/2481) and [#2500](https://github.com/10up/ElasticPress/pull/2500).
+- New default search algorithm prioritizing exact matches, matches in the same field, then matches across different fields. Props [@brandwaffle](https://github.com/brandwaffle) and [@felipeelia](https://github.com/felipeelia) via [#2498](https://github.com/10up/ElasticPress/pull/2498).
+- WP-CLI `request` subcommand. Props [@joehoyle](https://github.com/joehoyle) and [@felipeelia](https://github.com/felipeelia) via [#2484](https://github.com/10up/ElasticPress/pull/2484).
+
+### Changed
+- Sync Page and code responsible for indexing. Props [@helen](https://github.com/helen), [@felipeelia](https://github.com/felipeelia), [@Rahmon](https://github.com/Rahmon), [@mckdemps](https://github.com/mckdemps), [@tott](https://github.com/tott), and [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/) via [#1835](https://github.com/10up/ElasticPress/pull/1835), [#2448](https://github.com/10up/ElasticPress/pull/2448), and [#2501](https://github.com/10up/ElasticPress/pull/2501).
+- When Protected Content is enabled, WordPress behavior for password protected content is correctly reproduced with ElasticPress enabled. Props [@rebeccahum](https://github.com/rebeccahum), [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia),  [@dinhtungdu](https://github.com/dinhtungdu), and [@cristianuibar](https://github.com/cristianuibar) via [#2408](https://github.com/10up/ElasticPress/pull/2408).
+- Enabling features that require a reindex will now ask for confirmation. Props [@JakePT](https://github.com/JakePT), [@columbian-chris](https://github.com/columbian-chris), and [@brandwaffle](https://github.com/brandwaffle) via [#2491](https://github.com/10up/ElasticPress/pull/2491).
+- Bump minimum required versions of Elasticsearch from 5.0 to 5.2 and WordPress from 3.7.1 to 5.6. Props [@felipeelia](https://github.com/felipeelia) via [#2475](https://github.com/10up/ElasticPress/pull/2475).
+- Bump minimum required PHP version from 5.6 to 7.0. Props [@felipeelia](https://github.com/felipeelia), [@ActuallyConnor](https://github.com/ActuallyConnor), and [@brandwaffle](https://github.com/brandwaffle) via [#2485](https://github.com/10up/ElasticPress/pull/2485).
+
+### Removed
+- Built assets (minified JavaScript and CSS files) from the repository. Props [@felipeelia](https://github.com/felipeelia) and [@jeffpaul](https://github.com/jeffpaul) via [#2486](https://github.com/10up/ElasticPress/pull/2486).
+
+### Fixed
+- Deleting a metadata without passing an object id now updates all associated posts. Props [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia), and [@Shrimpstronaut](https://github.com/Shrimpstronaut) via [#2483](https://github.com/10up/ElasticPress/pull/2483).
+- CSS issues on Features page. Props [@JakePT](https://github.com/JakePT) via [#2495](https://github.com/10up/ElasticPress/pull/2495).
+
 ## [3.6.5] - 2021-11-30
 
 **Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
@@ -1167,6 +1202,7 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
 [3.6.6]: https://github.com/10up/ElasticPress/compare/3.6.5...3.6.6
+[4.0.0-beta.1]: https://github.com/10up/ElasticPress/compare/3.6.5...4.0.0-beta.1
 [3.6.5]: https://github.com/10up/ElasticPress/compare/3.6.4...3.6.5
 [3.6.4]: https://github.com/10up/ElasticPress/compare/3.6.3...3.6.4
 [3.6.3]: https://github.com/10up/ElasticPress/compare/3.6.2...3.6.3

@@ -65,6 +65,7 @@ class Post extends Indexable {
 			'order'                           => 'desc',
 			'no_found_rows'                   => false,
 			'ep_indexing_advanced_pagination' => true,
+			'has_password'                    => false,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -88,7 +89,7 @@ class Post extends Indexable {
 		 */
 		$args = apply_filters( 'ep_index_posts_args', apply_filters( 'ep_post_query_db_args', wp_parse_args( $args, $defaults ) ) );
 
-		if ( isset( $args['include'] ) || isset( $args['post__in'] ) || 0 < $args['offset'] ) {
+		if ( isset( $args['post__in'] ) || 0 < $args['offset'] ) {
 			// Disable advanced pagination. Not useful if only indexing specific IDs.
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
@@ -183,7 +184,7 @@ class Post extends Indexable {
 			]
 		);
 
-		$cache_key = md5( wp_json_encode( $normalized_query_args ) );
+		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
 
 		if ( ! isset( $object_counts[ $cache_key ] ) ) {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
@@ -494,6 +495,7 @@ class Post extends Indexable {
 			'ping_status'           => $ping_status,
 			'menu_order'            => $menu_order,
 			'guid'                  => $post->guid,
+			'thumbnail'             => $this->prepare_thumbnail( $post ),
 		);
 
 		/**
@@ -520,6 +522,56 @@ class Post extends Indexable {
 		add_action( 'updated_postmeta', [ $this->sync_manager, 'action_queue_meta_sync' ], 10, 4 );
 
 		return $post_args;
+	}
+
+	/**
+	 * Prepare thumbnail to send to ES.
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return array|null Thumbnail data.
+	 */
+	public function prepare_thumbnail( $post ) {
+		$attachment_id = get_post_thumbnail_id( $post );
+
+		if ( ! $attachment_id ) {
+			return null;
+		}
+
+		/**
+		 * Filters the image size to use when indexing the post thumbnail.
+		 *
+		 * Defaults to the `woocommerce_thumbnail` size if WooCommerce is in
+		 * use. Otherwise the `thumbnail` size is used.
+		 *
+		 * @hook ep_thumbnail_image_size
+		 * @param string|int[] $image_size Image size. Can be any registered
+		 *                                 image size name, or an array of
+		 *                                 width and height values in pixels
+		 *                                 (in that order).
+		 * @param WP_Post $post Post being indexed.
+		 * @since 4.0.0
+		 * @return array Image size to pass to wp_get_attachment_image_src().
+		 */
+		$image_size = apply_filters(
+			'ep_post_thumbnail_image_size',
+			function_exists( 'WC' ) ? 'woocommerce_thumbnail' : 'thumbnail',
+			$post
+		);
+
+		$image_src = wp_get_attachment_image_src( $attachment_id, $image_size );
+		$image_alt = trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) );
+
+		if ( ! $image_src ) {
+			return null;
+		}
+
+		return [
+			'ID'     => $attachment_id,
+			'src'    => $image_src[0],
+			'width'  => $image_src[1],
+			'height' => $image_src[2],
+			'alt'    => $image_alt,
+		];
 	}
 
 	/**
@@ -961,116 +1013,8 @@ class Post extends Indexable {
 		 *      terms array
 		 * @since 0.9.1
 		 */
-
-		// Find root level taxonomies.
-		if ( empty( $args['tax_query'] ) ) {
-			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['category_name'] ),
-					'field'    => 'slug',
-				);
-			}
-
-			if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['cat'] ),
-					'field'    => 'term_id',
-				);
-			}
-		}
-
-		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
-			if ( ! is_array( $args['tag'] ) && false !== strpos( $args['tag'], ',' ) ) {
-				$args['tag'] = explode( ',', $args['tag'] );
-			}
-			$args['tax_query'][] = array(
-				'taxonomy' => 'post_tag',
-				'terms'    => (array) $args['tag'],
-				'field'    => 'slug',
-			);
-		}
-
-		if ( isset( $args['post_tag'] ) && ! empty( $args['post_tag'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'post_tag',
-				'terms'    => array( $args['post_tag'] ),
-				'field'    => 'slug',
-			);
-		}
-
-		$has_tag__and = false;
-
-		if ( isset( $args['tag__and'] ) && ! empty( $args['tag__and'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'post_tag',
-				'terms'    => $args['tag__and'],
-				'field'    => 'term_id',
-			);
-
-			$has_tag__and = true;
-		}
-
-		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) ) {
-
-			// If you pass tag__in as a parameter, core adds the first
-			// term ID as tag_id, so we only need to append it if we have
-			// already added term IDs.
-			if ( $has_tag__and ) {
-
-				$args['tax_query'] = array_map(
-					function( $tax_query ) use ( $args ) {
-						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'], true ) ) {
-							$tax_query['terms'][] = $args['tag_id'];
-						}
-
-						return $tax_query;
-					},
-					$args['tax_query']
-				);
-			} elseif ( empty( $args['tax_query'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => $args['tag_id'],
-					'field'    => 'term_id',
-				);
-			}
-		}
-
-		/**
-		 * Try to find other taxonomies set in the root of WP_Query
-		 *
-		 * @since 3.4
-		 * @since 3.4.2 Test taxonomies with their query_var value.
-		 */
-		$taxonomies = get_taxonomies( array(), 'objects' );
-
-		/**
-		 * Filter taxonomies to exclude from tax root check.
-		 * Default values prevent duplication of core's default taxonomies post_tag and category in ES query.
-		 *
-		 * @since 3.6.3
-		 * @hook ep_post_tax_excluded_wp_query_root_check
-		 * @param  {array} $taxonomies Taxonomies
-		 */
-		$excluded_tax_from_root_check = apply_filters(
-			'ep_post_tax_excluded_wp_query_root_check',
-			[
-				'category',
-				'post_tag',
-			]
-		);
-
-		foreach ( $taxonomies as $tax_slug => $tax ) {
-
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && ! in_array( $tax->name, $excluded_tax_from_root_check, true ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => $tax_slug,
-					'terms'    => (array) $args[ $tax->query_var ],
-					'field'    => 'slug',
-				);
-			}
+		if ( ! empty( $wp_query->tax_query ) && ! empty( $wp_query->tax_query->queries ) ) {
+			$args['tax_query'] = $wp_query->tax_query->queries;
 		}
 
 		if ( ! empty( $args['tax_query'] ) ) {
@@ -1418,7 +1362,7 @@ class Post extends Indexable {
 		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
-		$default_algorithm_version = '3.5';
+		$default_algorithm_version = '4.0';
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$search_algorithm_version_option = get_site_option( 'ep_search_algorithm_version', $default_algorithm_version );
 		} else {
@@ -1437,7 +1381,80 @@ class Post extends Indexable {
 
 		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
 
-		if ( '3.5' === $search_algorithm_version ) {
+		if ( '4.0' === $search_algorithm_version ) {
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'type'   => 'phrase',
+								'fields' => $search_fields,
+								/**
+								 * Filter boost for post match phrase query
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New phrase boost
+								 */
+								'boost'  => apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $args ),
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $search_text,
+								'fields'    => $search_fields,
+								/**
+								 * Filter boost for post match query
+								 *
+								 * @hook ep_match_boost
+								 * @param  {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New boost
+								 */
+								'boost'     => apply_filters( 'ep_match_boost', 1, $search_fields, $args ),
+								/**
+								 * Filter fuzziness for post match query
+								 *
+								 * @hook ep_match_fuzziness
+								 * @since 4.0.0
+								 * @param {string|int} $fuzziness Fuzziness
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {string} New boost
+								 */
+								'fuzziness' => apply_filters( 'ep_match_fuzziness', 'auto', $search_fields, $args ),
+								'operator'  => 'and',
+							),
+						),
+						array(
+							'multi_match' => [
+								'query'       => $search_text,
+								'type'        => 'cross_fields',
+								'fields'      => $search_fields,
+								/**
+								 * Filter boost for post match query
+								 *
+								 * @hook ep_match_cross_fields_boost
+								 * @since 4.0.0
+								 * @param  {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New boost
+								 */
+								'boost'       => apply_filters( 'ep_match_cross_fields_boost', 1, $search_fields, $args ),
+								'analyzer'    => 'standard',
+								'tie_breaker' => 0.5,
+								'operator'    => 'and',
+							],
+						),
+					),
+				),
+			);
+		} elseif ( '3.5' === $search_algorithm_version ) {
 			$query = array(
 				'bool' => array(
 					'should' => array(
@@ -1537,6 +1554,8 @@ class Post extends Indexable {
 		 */
 
 		if ( ! empty( $args['s'] ) ) {
+			add_filter( 'ep_formatted_args_query', [ $this, 'adjust_query_fuzziness' ], 100, 4 );
+
 			/**
 			 * Filter formatted Elasticsearch post query (only contains query part)
 			 *
@@ -1806,6 +1825,39 @@ class Post extends Indexable {
 		$formatted_args = apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
 
 		return $formatted_args;
+	}
+
+	/**
+	 * Adjust the fuzziness parameter if needed.
+	 *
+	 * If using fields with type `long`, queries should not have a fuzziness parameter.
+	 *
+	 * @param array  $query         Current query
+	 * @param array  $query_vars    Query variables
+	 * @param string $search_text   Search text
+	 * @param array  $search_fields Search fields
+	 * @return array New query
+	 */
+	public function adjust_query_fuzziness( $query, $query_vars, $search_text, $search_fields ) {
+		if ( empty( array_intersect( $search_fields, [ 'ID', 'post_id', 'post_parent' ] ) ) ) {
+			return $query;
+		}
+
+		if ( ! isset( $query['bool'] ) || ! isset( $query['bool']['should'] ) ) {
+			return $query;
+		}
+
+		foreach ( $query['bool']['should'] as &$clause ) {
+			if ( ! isset( $clause['multi_match'] ) ) {
+				continue;
+			}
+
+			if ( isset( $clause['multi_match']['fuzziness'] ) ) {
+				unset( $clause['multi_match']['fuzziness'] );
+			}
+		}
+
+		return $query;
 	}
 
 	/**
