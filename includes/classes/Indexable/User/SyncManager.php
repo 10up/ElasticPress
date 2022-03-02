@@ -46,7 +46,6 @@ class SyncManager extends SyncManagerAbstract {
 	 * Dummy implementation of site unsetup method (for now)
 	 */
 	public function tearDown() {
-		return;
 	}
 
 	/**

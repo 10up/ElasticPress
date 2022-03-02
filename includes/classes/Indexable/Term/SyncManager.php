@@ -55,7 +55,7 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'edited_terms', [ $this, 'action_sync_on_update' ] );
 		remove_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ] );
 		remove_action( 'deleted_term_meta', [ $this, 'action_queue_meta_sync' ] );
-		remove_action( 'updated_term_meta', [ $this, 'action_queue_meta_sync' ] ) ;
+		remove_action( 'updated_term_meta', [ $this, 'action_queue_meta_sync' ] );
 		remove_action( 'pre_delete_term', [ $this, 'action_queue_children_sync' ] );
 		remove_action( 'pre_delete_term', [ $this, 'action_sync_on_delete' ] );
 		remove_action( 'set_object_terms', [ $this, 'action_sync_on_object_update' ] );
