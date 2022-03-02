@@ -122,7 +122,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	 * @param {Option} option Option.
 	 * @return {WPElement} Render function.
 	 */
-	const displayOption = ({ id, label, value }) => {
+	const displayOption = ({ count, id, label, value }) => {
 		const children = childOptions[value];
 
 		if (!showAll && optionsShown >= optionsLimit) {
@@ -133,6 +133,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 			<li className="ep-search-options-list__item" key={value}>
 				<Checkbox
 					checked={selected.includes(value)}
+					count={count}
 					disabled={disabled}
 					id={id}
 					label={label}
@@ -198,29 +199,6 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 		listEl.current.focus();
 	};
 
-	/**
-	 * Show all button component.
-	 *
-	 * @return {WPElement} Element.
-	 */
-	const ShowAllButton = () =>
-		options.length > optionsLimit && (
-			<SmallButton aria-expanded={showAll} disabled={disabled} onClick={onToggleShowAll}>
-				{showAll
-					? __('Show fewer options', 'elasticpress')
-					: sprintf(
-							/* translators: %d: Number of additional options available. */
-							_n(
-								'Show %d more option',
-								'Show %d more options',
-								options.length - optionsLimit,
-								'elasticpress',
-							),
-							options.length - optionsLimit,
-					  )}
-			</SmallButton>
-		);
-
 	return (
 		<>
 			{options.length > 0 && (
@@ -240,7 +218,23 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 					}
 				</ul>
 			)}
-			<ShowAllButton />
+
+			{options.length > optionsLimit && (
+				<SmallButton aria-expanded={showAll} disabled={disabled} onClick={onToggleShowAll}>
+					{showAll
+						? __('Show fewer options', 'elasticpress')
+						: sprintf(
+								/* translators: %d: Number of additional options available. */
+								_n(
+									'Show %d more option',
+									'Show %d more options',
+									options.length - optionsLimit,
+									'elasticpress',
+								),
+								options.length - optionsLimit,
+						  )}
+				</SmallButton>
+			)}
 		</>
 	);
 };

@@ -14,7 +14,7 @@ $ep_last_sync_has_error = ! empty( $ep_last_index['failed'] );
 ?>
 <?php require_once __DIR__ . '/header.php'; ?>
 
-<div class="wrap">
+<div id="ep-sync-page" class="wrap">
 	<h1><?php esc_html_e( 'Sync Settings', 'elasticpress' ); ?></h1>
 
 	<div class="ep-sync-data">

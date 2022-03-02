@@ -1,32 +1,29 @@
 /**
  * Internal dependencies.
  */
-import { facets, highlightTag, matchType } from './config';
+import { matchType } from './config';
+import { clearFacetsFromArgs } from './functions';
 
 /**
  * Initial state.
  */
-export const initialArg = {
+export const initialState = {
+	aggregations: {},
 	args: {
-		highlight: highlightTag,
+		highlight: '',
 		offset: 0,
 		orderby: 'relevance',
 		order: 'desc',
 		per_page: 6,
 		relation: matchType === 'all' ? 'and' : 'or',
 		search: '',
-		elasticpress: '1',
 	},
-	filters: {},
 	isLoading: false,
 	isOpen: false,
 	isSidebarOpen: false,
-	poppingState: false,
-	postTypesAggregation: {},
-	priceRangeAggregations: {},
+	isPoppingState: false,
 	searchResults: [],
 	searchedTerm: '',
-	taxonomyTermsAggregations: {},
 	totalResults: 0,
 };
 
@@ -40,46 +37,29 @@ export const initialArg = {
  * @return {Object} Updated state.
  */
 export const reducer = (state, { type, payload }) => {
-	const newState = { ...state };
+	const newState = { ...state, isPoppingState: false };
 
 	switch (type) {
-		case 'APPLY_FILTERS': {
-			newState.args.offset = 0;
-			newState.filters = { ...state.filters, ...payload };
-
+		case 'APPLY_ARGS': {
+			newState.args = { ...newState.args, ...payload, offset: 0 };
+			newState.isOpen = true;
 			break;
 		}
-		case 'CLEAR_FILTERS': {
-			newState.filters = facets.reduce(
-				(filters, { name }) => {
-					delete filters[name];
-
-					return filters;
-				},
-				{ ...state.filters },
-			);
-
+		case 'CLEAR_FACETS': {
+			newState.args = clearFacetsFromArgs(newState.args);
 			break;
 		}
-		case 'SET_SEARCH_TERM': {
+		case 'NEW_SEARCH_TERM': {
+			newState.args = clearFacetsFromArgs(newState.args);
 			newState.args.offset = 0;
 			newState.args.search = payload;
-			break;
-		}
-		case 'SORT_RESULTS': {
-			newState.args.offset = 0;
-			newState.args.order = payload.order;
-			newState.args.orderby = payload.orderby;
+
 			break;
 		}
 		case 'NEW_SEARCH_RESULTS': {
 			const {
 				hits: { hits, total },
-				aggregations: {
-					post_type: postTypesAggregation,
-					price_range: priceRangeAggregation,
-					...taxonomyTermsAggregations
-				} = {},
+				aggregations,
 			} = payload;
 
 			/**
@@ -87,11 +67,9 @@ export const reducer = (state, { type, payload }) => {
 			 */
 			const totalNumber = typeof total === 'number' ? total : total.value;
 
-			newState.postTypesAggregation = postTypesAggregation;
-			newState.priceRangeAggregations = priceRangeAggregation;
+			newState.aggregations = aggregations;
 			newState.searchResults = hits;
 			newState.searchedTerm = newState.args.search;
-			newState.taxonomyTermsAggregations = taxonomyTermsAggregations;
 			newState.totalResults = totalNumber;
 
 			break;
@@ -116,12 +94,18 @@ export const reducer = (state, { type, payload }) => {
 			newState.isSidebarOpen = !state.isSidebarOpen;
 			break;
 		}
-		case 'OPEN_MODAL': {
-			newState.isOpen = true;
+		case 'CLOSE_MODAL': {
+			newState.args = clearFacetsFromArgs(newState.args);
+			newState.isOpen = false;
 			break;
 		}
-		case 'CLOSE_MODAL': {
-			newState.isOpen = false;
+		case 'POP_STATE': {
+			const { isOpen, ...args } = payload;
+
+			newState.args = args;
+			newState.isOpen = isOpen;
+			newState.isPoppingState = true;
+
 			break;
 		}
 		default:

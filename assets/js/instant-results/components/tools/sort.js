@@ -40,7 +40,7 @@ export default () => {
 	const onChange = (event) => {
 		const { orderby, order } = sortOptions[event.target.value];
 
-		dispatch({ type: 'SORT_RESULTS', payload: { orderby, order } });
+		dispatch({ type: 'APPLY_ARGS', payload: { orderby, order } });
 	};
 
 	return (

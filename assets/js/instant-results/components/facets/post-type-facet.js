@@ -24,9 +24,9 @@ import { ActiveContraint } from '../tools/active-constraints';
 export default ({ defaultIsOpen, label }) => {
 	const {
 		state: {
+			aggregations: { post_type: { post_type: { buckets = [] } = {} } = {} },
+			args: { post_type: selectedPostTypes = [] },
 			isLoading,
-			filters: { post_type: selectedPostTypes = [] },
-			postTypesAggregation: { post_types: { buckets = [] } = {} } = {},
 		},
 		dispatch,
 	} = useContext(Context);
@@ -41,13 +41,14 @@ export default ({ defaultIsOpen, label }) => {
 	 * @return {Array} Array of options.
 	 */
 	const reduceOptions = useCallback(
-		(options, { key }, index) => {
+		(options, { doc_count, key }, index) => {
 			if (!Object.prototype.hasOwnProperty.call(postTypeLabels, key)) {
 				return options;
 			}
 
 			options.push({
 				checked: selectedPostTypes.includes(key),
+				count: doc_count,
 				id: `ep-search-post-type-${key}`,
 				label: postTypeLabels[key].singular,
 				order: index,
@@ -70,7 +71,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * @param {string[]} postTypes Selected post types.
 	 */
 	const onChange = (postTypes) => {
-		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
+		dispatch({ type: 'APPLY_ARGS', payload: { post_type: postTypes } });
 	};
 
 	/**
@@ -84,7 +85,7 @@ export default ({ defaultIsOpen, label }) => {
 
 		postTypes.splice(index, 1);
 
-		dispatch({ type: 'APPLY_FILTERS', payload: { post_type: postTypes } });
+		dispatch({ type: 'APPLY_ARGS', payload: { post_type: postTypes } });
 	};
 
 	return (

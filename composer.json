@@ -33,7 +33,6 @@
     "10up/phpcs-composer": "dev-master",
     "wpackagist-plugin/woocommerce":"*",
     "phpunit/phpunit": "^7",
-    "10up/wpacceptance": "dev-master",
     "phpcompatibility/phpcompatibility-wp": "*",
     "yoast/phpunit-polyfills": "1.x-dev"
   },

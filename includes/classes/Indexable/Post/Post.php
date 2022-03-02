@@ -169,7 +169,7 @@ class Post extends Indexable {
 	 * @param array $query_args The query args.
 	 * @return int The query result's found_posts.
 	 */
-	private function get_total_objects_for_query( $query_args ) {
+	protected function get_total_objects_for_query( $query_args ) {
 		static $object_counts = [];
 
 		// Reset the pagination-related args for optimal caching.
@@ -190,7 +190,44 @@ class Post extends Indexable {
 			$object_counts[ $cache_key ] = ( new WP_Query( $normalized_query_args ) )->found_posts;
 		}
 
+		if ( 0 === $object_counts[ $cache_key ] ) {
+			// Do a DB count to make sure the query didn't just die and return 0.
+			$db_post_count = $this->get_total_objects_for_query_from_db( $normalized_query_args );
+
+			if ( $db_post_count !== $object_counts[ $cache_key ] ) {
+				$object_counts[ $cache_key ] = $db_post_count;
+			}
+		}
+
 		return $object_counts[ $cache_key ];
+	}
+
+	/**
+	 * Get total posts from DB for a specific query based on it's args.
+	 *
+	 * @param array $query_args The query args.
+	 * @since 4.0.0
+	 * @return int The total posts.
+	 */
+	protected function get_total_objects_for_query_from_db( $query_args ) {
+		$post_count = 0;
+
+		if ( ! isset( $query_args['post_type'] ) || isset( $query_args['ep_indexing_upper_limit_object_id'] )
+		|| isset( $query_args['ep_indexing_lower_limit_object_id'] ) ) {
+			return $post_count;
+		}
+
+		foreach ( $query_args['post_type'] as $post_type ) {
+			$post_counts_by_post_status = wp_count_posts( $post_type );
+			foreach ( $post_counts_by_post_status as $post_status => $post_status_count ) {
+				if ( ! in_array( $post_status, $query_args['post_status'], true ) ) {
+					continue;
+				}
+				$post_count += $post_status_count;
+			}
+		}
+
+		return $post_count;
 	}
 
 	/**
@@ -574,13 +611,13 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Prepare terms to send to ES.
+	 * Get an array of taxonomies that are indexable for the given post
 	 *
+	 * @since 4.0.0
 	 * @param WP_Post $post Post object
-	 * @since 0.1.0
-	 * @return array
+	 * @return array Array of WP_Taxonomy objects that should be indexed
 	 */
-	private function prepare_terms( $post ) {
+	public function get_indexable_post_taxonomies( $post ) {
 		$taxonomies          = get_object_taxonomies( $post->post_type, 'objects' );
 		$selected_taxonomies = [];
 
@@ -598,7 +635,36 @@ class Post extends Indexable {
 		 * @param  {WP_Post} Post object
 		 * @return  {array} New taxonomies
 		 */
-		$selected_taxonomies = apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
+		$selected_taxonomies = (array) apply_filters( 'ep_sync_taxonomies', $selected_taxonomies, $post );
+
+		// Important we validate here to ensure there are no invalid taxonomy values returned from the filter, as just one would cause wp_get_object_terms() to fail.
+		$validated_taxonomies = [];
+		foreach ( $selected_taxonomies as $selected_taxonomy ) {
+			// If we get a taxonomy name, we need to convert it to taxonomy object
+			if ( ! is_object( $selected_taxonomy ) && taxonomy_exists( (string) $selected_taxonomy ) ) {
+				$selected_taxonomy = get_taxonomy( $selected_taxonomy );
+			}
+
+			// We check if the $taxonomy object has a valid name property. Backward compatibility since WP_Taxonomy introduced in WP 4.7
+			if ( ! is_a( $selected_taxonomy, '\WP_Taxonomy' ) || ! property_exists( $selected_taxonomy, 'name' ) || ! taxonomy_exists( $selected_taxonomy->name ) ) {
+				continue;
+			}
+
+			$validated_taxonomies[] = $selected_taxonomy;
+		}
+
+		return $validated_taxonomies;
+	}
+
+	/**
+	 * Prepare terms to send to ES.
+	 *
+	 * @param WP_Post $post Post object
+	 * @since 0.1.0
+	 * @return array
+	 */
+	private function prepare_terms( $post ) {
+		$selected_taxonomies = $this->get_indexable_post_taxonomies( $post );
 
 		if ( empty( $selected_taxonomies ) ) {
 			return [];
@@ -616,16 +682,6 @@ class Post extends Indexable {
 		$allow_hierarchy = apply_filters( 'ep_sync_terms_allow_hierarchy', true );
 
 		foreach ( $selected_taxonomies as $taxonomy ) {
-			// If we get a taxonomy name, we need to convert it to taxonomy object
-			if ( ! is_object( $taxonomy ) && taxonomy_exists( (string) $taxonomy ) ) {
-				$taxonomy = get_taxonomy( $taxonomy );
-			}
-
-			// We check if the $taxonomy object as name property. Backward compatibility since WP_Taxonomy introduced in WP 4.7
-			if ( ! is_a( $taxonomy, '\WP_Taxonomy' ) || ! property_exists( $taxonomy, 'name' ) ) {
-				continue;
-			}
-
 			$object_terms = get_the_terms( $post->ID, $taxonomy->name );
 
 			if ( ! $object_terms || is_wp_error( $object_terms ) ) {
@@ -976,116 +1032,8 @@ class Post extends Indexable {
 		 *      terms array
 		 * @since 0.9.1
 		 */
-
-		// Find root level taxonomies.
-		if ( empty( $args['tax_query'] ) ) {
-			if ( isset( $args['category_name'] ) && ! empty( $args['category_name'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['category_name'] ),
-					'field'    => 'slug',
-				);
-			}
-
-			if ( isset( $args['cat'] ) && ! empty( $args['cat'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'category',
-					'terms'    => array( $args['cat'] ),
-					'field'    => 'term_id',
-				);
-			}
-		}
-
-		if ( isset( $args['tag'] ) && ! empty( $args['tag'] ) ) {
-			if ( ! is_array( $args['tag'] ) && false !== strpos( $args['tag'], ',' ) ) {
-				$args['tag'] = explode( ',', $args['tag'] );
-			}
-			$args['tax_query'][] = array(
-				'taxonomy' => 'post_tag',
-				'terms'    => (array) $args['tag'],
-				'field'    => 'slug',
-			);
-		}
-
-		if ( isset( $args['post_tag'] ) && ! empty( $args['post_tag'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'post_tag',
-				'terms'    => array( $args['post_tag'] ),
-				'field'    => 'slug',
-			);
-		}
-
-		$has_tag__and = false;
-
-		if ( isset( $args['tag__and'] ) && ! empty( $args['tag__and'] ) ) {
-			$args['tax_query'][] = array(
-				'taxonomy' => 'post_tag',
-				'terms'    => $args['tag__and'],
-				'field'    => 'term_id',
-			);
-
-			$has_tag__and = true;
-		}
-
-		if ( isset( $args['tag_id'] ) && ! empty( $args['tag_id'] ) && ! is_array( $args['tag_id'] ) ) {
-
-			// If you pass tag__in as a parameter, core adds the first
-			// term ID as tag_id, so we only need to append it if we have
-			// already added term IDs.
-			if ( $has_tag__and ) {
-
-				$args['tax_query'] = array_map(
-					function( $tax_query ) use ( $args ) {
-						if ( isset( $tax_query['taxonomy'] ) && 'post_tag' === $tax_query['taxonomy'] && ! in_array( $args['tag_id'], $tax_query['terms'], true ) ) {
-							$tax_query['terms'][] = $args['tag_id'];
-						}
-
-						return $tax_query;
-					},
-					$args['tax_query']
-				);
-			} elseif ( empty( $args['tax_query'] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => 'post_tag',
-					'terms'    => $args['tag_id'],
-					'field'    => 'term_id',
-				);
-			}
-		}
-
-		/**
-		 * Try to find other taxonomies set in the root of WP_Query
-		 *
-		 * @since 3.4
-		 * @since 3.4.2 Test taxonomies with their query_var value.
-		 */
-		$taxonomies = get_taxonomies( array(), 'objects' );
-
-		/**
-		 * Filter taxonomies to exclude from tax root check.
-		 * Default values prevent duplication of core's default taxonomies post_tag and category in ES query.
-		 *
-		 * @since 3.6.3
-		 * @hook ep_post_tax_excluded_wp_query_root_check
-		 * @param  {array} $taxonomies Taxonomies
-		 */
-		$excluded_tax_from_root_check = apply_filters(
-			'ep_post_tax_excluded_wp_query_root_check',
-			[
-				'category',
-				'post_tag',
-			]
-		);
-
-		foreach ( $taxonomies as $tax_slug => $tax ) {
-
-			if ( $tax->query_var && ! empty( $args[ $tax->query_var ] ) && ! in_array( $tax->name, $excluded_tax_from_root_check, true ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy' => $tax_slug,
-					'terms'    => (array) $args[ $tax->query_var ],
-					'field'    => 'slug',
-				);
-			}
+		if ( ! empty( $wp_query->tax_query ) && ! empty( $wp_query->tax_query->queries ) ) {
+			$args['tax_query'] = $wp_query->tax_query->queries;
 		}
 
 		if ( ! empty( $args['tax_query'] ) ) {
@@ -1982,7 +1930,7 @@ class Post extends Indexable {
 
 				// Set up our terms object
 				$terms_obj = array(
-					'terms.' . $single_tax_query['taxonomy'] . '.' . $field => $terms,
+					'terms.' . $single_tax_query['taxonomy'] . '.' . $field => array_values( array_filter( $terms ) ),
 				);
 
 				$operator = ( ! empty( $single_tax_query['operator'] ) ) ? strtolower( $single_tax_query['operator'] ) : 'in';

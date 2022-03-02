@@ -109,15 +109,11 @@ function register_indexable_posts() {
 	);
 
 	Features::factory()->register_feature(
-		new Feature\ProtectedContent\ProtectedContent()
+		new Feature\InstantResults\InstantResults()
 	);
 
 	Features::factory()->register_feature(
 		new Feature\Autosuggest\Autosuggest()
-	);
-
-	Features::factory()->register_feature(
-		new Feature\RelatedPosts\RelatedPosts()
 	);
 
 	Features::factory()->register_feature(
@@ -126,6 +122,18 @@ function register_indexable_posts() {
 
 	Features::factory()->register_feature(
 		new Feature\Facets\Facets()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\RelatedPosts\RelatedPosts()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\SearchOrdering\SearchOrdering()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\ProtectedContent\ProtectedContent()
 	);
 
 	Features::factory()->register_feature(
@@ -138,25 +146,17 @@ function register_indexable_posts() {
 		);
 	}
 
-	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Terms\Terms()
-		);
-	}
-
 	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
 		Features::factory()->register_feature(
 			new Feature\Users\Users()
 		);
 	}
 
-	Features::factory()->register_feature(
-		new Feature\SearchOrdering\SearchOrdering()
-	);
-
-	Features::factory()->register_feature(
-		new Feature\InstantResults\InstantResults()
-	);
+	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Terms\Terms()
+		);
+	}
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 

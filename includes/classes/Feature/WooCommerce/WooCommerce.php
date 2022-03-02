@@ -317,210 +317,219 @@ class WooCommerce extends Feature {
 		/**
 		 * If we have a WooCommerce specific query, lets hook it to ElasticPress and make the query ElasticSearch friendly
 		 */
-		if ( $integrate ) {
-			// Set tax_query again since we may have added things
-			$query->set( 'tax_query', $tax_query );
+		if ( ! $integrate ) {
+			return;
+		}
 
-			// Default to product if no post type is set
-			if ( empty( $post_type ) ) {
-				$post_type = 'product';
-				$query->set( 'post_type', 'product' );
-			}
+		// Set tax_query again since we may have added things
+		$query->set( 'tax_query', $tax_query );
 
-			// Handles the WC Top Rated Widget
-			if ( has_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) ) ) {
-				remove_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) );
-				$query->set( 'orderby', 'meta_value_num' );
-				$query->set( 'meta_key', '_wc_average_rating' );
-			}
+		// Default to product if no post type is set
+		if ( empty( $post_type ) ) {
+			$post_type = 'product';
+			$query->set( 'post_type', 'product' );
+		}
 
-			/**
-			 * WordPress have to be version 4.6 or newer to have "fields" support
-			 * since it requires the "posts_pre_query" filter.
-			 *
-			 * @see WP_Query::get_posts
-			 */
-			$fields = $query->get( 'fields', false );
-			if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ( 'ids' === $fields || 'id=>parent' === $fields ) ) {
-				$query->set( 'fields', 'default' );
-			}
+		// Handles the WC Top Rated Widget
+		if ( has_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) ) ) {
+			remove_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) );
+			$query->set( 'orderby', 'meta_value_num' );
+			$query->set( 'meta_key', '_wc_average_rating' );
+		}
 
-			/**
-			 * Handle meta queries
-			 */
-			$meta_query = $query->get( 'meta_query', [] );
-			$meta_key   = $query->get( 'meta_key', false );
-			$meta_value = $query->get( 'meta_value', false );
+		/**
+		 * WordPress have to be version 4.6 or newer to have "fields" support
+		 * since it requires the "posts_pre_query" filter.
+		 *
+		 * @see WP_Query::get_posts
+		 */
+		$fields = $query->get( 'fields', false );
+		if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ( 'ids' === $fields || 'id=>parent' === $fields ) ) {
+			$query->set( 'fields', 'default' );
+		}
 
-			if ( ! empty( $meta_key ) && ! empty( $meta_value ) ) {
-				$meta_query[] = array(
-					'key'   => $meta_key,
-					'value' => $meta_value,
+		/**
+		 * Handle meta queries
+		 */
+		$meta_query = $query->get( 'meta_query', [] );
+		$meta_key   = $query->get( 'meta_key', false );
+		$meta_value = $query->get( 'meta_value', false );
+
+		if ( ! empty( $meta_key ) && ! empty( $meta_value ) ) {
+			$meta_query[] = array(
+				'key'   => $meta_key,
+				'value' => $meta_value,
+			);
+
+			$query->set( 'meta_query', $meta_query );
+		}
+
+		/**
+		 * Make sure filters are suppressed
+		 */
+		$query->query['suppress_filters'] = false;
+		$query->set( 'suppress_filters', false );
+
+		// Integrate with WooCommerce custom searches as well
+		$search = $query->get( 'search' );
+		if ( ! empty( $search ) ) {
+			$s = $search;
+			$query->set( 's', $s );
+		} else {
+			$s = $query->get( 's' );
+		}
+
+		$query->query_vars['ep_integrate'] = true;
+		$query->query['ep_integrate']      = true;
+
+		if ( ! empty( $s ) ) {
+			// Search query
+			if ( 'shop_order' === $post_type ) {
+				$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
+				if ( is_int( $s ) ) {
+					$default_search_fields[] = 'ID';
+				}
+				$search_fields = $query->get( 'search_fields', $default_search_fields );
+
+				$search_fields['meta'] = array_map(
+					'wc_clean',
+					/**
+					 * Filter shop order meta fields to search for WooCommerce
+					 *
+					 * @hook shop_order_search_fields
+					 * @param  {array} $fields Shop order fields
+					 * @return  {array} New fields
+					 */
+					apply_filters(
+						'shop_order_search_fields',
+						array(
+							'_order_key',
+							'_billing_company',
+							'_billing_address_1',
+							'_billing_address_2',
+							'_billing_city',
+							'_billing_postcode',
+							'_billing_country',
+							'_billing_state',
+							'_billing_email',
+							'_billing_phone',
+							'_shipping_address_1',
+							'_shipping_address_2',
+							'_shipping_city',
+							'_shipping_postcode',
+							'_shipping_country',
+							'_shipping_state',
+							'_billing_last_name',
+							'_billing_first_name',
+							'_shipping_first_name',
+							'_shipping_last_name',
+							'_items',
+						)
+					)
 				);
 
-				$query->set( 'meta_query', $meta_query );
-			}
+				$query->set(
+					'search_fields',
+					/**
+					 * Filter all the shop order fields to search for WooCommerce
+					 *
+					 * @hook ep_woocommerce_shop_order_search_fields
+					 * @since 4.0.0
+					 * @param {array}    $fields Shop order fields
+					 * @param {WP_Query} $query  WP Query
+					 * @return {array} New fields
+					 */
+					apply_filters( 'ep_woocommerce_shop_order_search_fields', $search_fields, $query )
+				);
+			} elseif ( 'product' === $post_type && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
 
-			/**
-			 * Make sure filters are suppressed
-			 */
-			$query->query['suppress_filters'] = false;
-			$query->set( 'suppress_filters', false );
+				// Remove author_name from this search.
+				$search_fields = $this->remove_author( $search_fields );
 
-			$s = $query->get( 's' );
-
-			$query->query_vars['ep_integrate'] = true;
-			$query->query['ep_integrate']      = true;
-
-			if ( ! empty( $s ) ) {
-				// Search query
-				if ( 'shop_order' === $post_type ) {
-					$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
-					if ( is_int( $s ) ) {
-						$default_search_fields[] = 'ID';
-					}
-					$search_fields = $query->get( 'search_fields', $default_search_fields );
-
-					$search_fields['meta'] = array_map(
-						'wc_clean',
-						/**
-						 * Filter shop order meta fields to search for WooCommerce
-						 *
-						 * @hook shop_order_search_fields
-						 * @param  {array} $fields Shop order fields
-						 * @return  {array} New fields
-						 */
-						apply_filters(
-							'shop_order_search_fields',
-							array(
-								'_order_key',
-								'_billing_company',
-								'_billing_address_1',
-								'_billing_address_2',
-								'_billing_city',
-								'_billing_postcode',
-								'_billing_country',
-								'_billing_state',
-								'_billing_email',
-								'_billing_phone',
-								'_shipping_address_1',
-								'_shipping_address_2',
-								'_shipping_city',
-								'_shipping_postcode',
-								'_shipping_country',
-								'_shipping_state',
-								'_billing_last_name',
-								'_billing_first_name',
-								'_shipping_first_name',
-								'_shipping_last_name',
-								'_items',
-							)
-						)
-					);
-
-					$query->set(
-						'search_fields',
-						/**
-						 * Filter all the shop order fields to search for WooCommerce
-						 *
-						 * @hook ep_woocommerce_shop_order_search_fields
-						 * @since 4.0.0
-						 * @param {array}    $fields Shop order fields
-						 * @param {WP_Query} $query  WP Query
-						 * @return {array} New fields
-						 */
-						apply_filters( 'ep_woocommerce_shop_order_search_fields', $search_fields, $query )
-					);
-				} elseif ( 'product' === $post_type && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
-
-					// Remove author_name from this search.
-					$search_fields = $this->remove_author( $search_fields );
-
-					foreach ( $search_fields as $field_key => $field ) {
-						if ( 'author_name' === $field ) {
-							unset( $search_fields[ $field_key ] );
-						}
-					}
-
-					$search_fields['meta']       = ( ! empty( $search_fields['meta'] ) ) ? $search_fields['meta'] : [];
-					$search_fields['taxonomies'] = ( ! empty( $search_fields['taxonomies'] ) ) ? $search_fields['taxonomies'] : [];
-
-					$search_fields['meta']       = array_merge( $search_fields['meta'], array( '_sku' ) );
-					$search_fields['taxonomies'] = array_merge( $search_fields['taxonomies'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
-
-					$query->set( 'search_fields', $search_fields );
-				}
-			} else {
-				/**
-				 * For default sorting by popularity (total_sales) and rating
-				 * Woocommerce doesn't set the orderby correctly.
-				 * These lines will check the meta_key and correct the orderby based on that.
-				 * And this won't run in search result and only run in main query
-				 */
-				$meta_key = $query->get( 'meta_key', false );
-				if ( $meta_key && $query->is_main_query() ) {
-					switch ( $meta_key ) {
-						case 'total_sales':
-							$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
-							$query->set( 'order', 'DESC' );
-							break;
-						case '_wc_average_rating':
-							$query->set( 'orderby', $this->get_orderby_meta_mapping( '_wc_average_rating' ) );
-							$query->set( 'order', 'DESC' );
-							break;
+				foreach ( $search_fields as $field_key => $field ) {
+					if ( 'author_name' === $field ) {
+						unset( $search_fields[ $field_key ] );
 					}
 				}
-			}
 
+				$search_fields['meta']       = ( ! empty( $search_fields['meta'] ) ) ? $search_fields['meta'] : [];
+				$search_fields['taxonomies'] = ( ! empty( $search_fields['taxonomies'] ) ) ? $search_fields['taxonomies'] : [];
+
+				$search_fields['meta']       = array_merge( $search_fields['meta'], array( '_sku' ) );
+				$search_fields['taxonomies'] = array_merge( $search_fields['taxonomies'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
+
+				$query->set( 'search_fields', $search_fields );
+			}
+		} else {
 			/**
-			 * Set orderby and order for price/popularity when GET param not set
+			 * For default sorting by popularity (total_sales) and rating
+			 * Woocommerce doesn't set the orderby correctly.
+			 * These lines will check the meta_key and correct the orderby based on that.
+			 * And this won't run in search result and only run in main query
 			 */
-			if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && $query->is_main_query() ) {
-				switch ( $query->query_vars['orderby'] ) {
-					case 'price':
-						$query->set( 'order', $query->query_vars['order'] );
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
-						break;
-					case 'popularity':
+			$meta_key = $query->get( 'meta_key', false );
+			if ( $meta_key && $query->is_main_query() ) {
+				switch ( $meta_key ) {
+					case 'total_sales':
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
 						$query->set( 'order', 'DESC' );
 						break;
-				}
-			}
-
-			/**
-			 * Set orderby from GET param
-			 * Also make sure the orderby param affects only the main query
-			 */
-			if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
-
-				switch ( $_GET['orderby'] ) { // phpcs:ignore WordPress.Security.NonceVerification
-					case 'popularity':
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
-						$query->set( 'order', 'DESC' );
-						break;
-					case 'price':
-						$query->set( 'order', 'ASC' );
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
-						break;
-					case 'price-desc':
-						$query->set( 'order', 'DESC' );
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
-						break;
-					case 'rating':
+					case '_wc_average_rating':
 						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_wc_average_rating' ) );
 						$query->set( 'order', 'DESC' );
 						break;
-					case 'date':
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'date' ) );
-						break;
-					case 'ID':
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'ID' ) );
-						break;
-					default:
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 				}
+			}
+		}
+
+		/**
+		 * Set orderby and order for price/popularity when GET param not set
+		 */
+		if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && $query->is_main_query() ) {
+			switch ( $query->query_vars['orderby'] ) {
+				case 'price':
+					$query->set( 'order', $query->query_vars['order'] );
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+					break;
+				case 'popularity':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+			}
+		}
+
+		/**
+		 * Set orderby from GET param
+		 * Also make sure the orderby param affects only the main query
+		 */
+		if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
+
+			switch ( $_GET['orderby'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+				case 'popularity':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+				case 'price':
+					$query->set( 'order', 'ASC' );
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+					break;
+				case 'price-desc':
+					$query->set( 'order', 'DESC' );
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+					break;
+				case 'rating':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_wc_average_rating' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+				case 'date':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'date' ) );
+					break;
+				case 'ID':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'ID' ) );
+					break;
+				default:
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
 			}
 		}
 	}
