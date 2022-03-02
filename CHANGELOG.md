@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.0.0] - 2022-03-XX
+
+This version requires a full reindex.
+
 ## [3.6.6] - 2021-12-20
 
 ElasticPress 4.0 Beta 1 is [now available](https://github.com/10up/ElasticPress/releases/tag/4.0.0-beta.1) for non-production testing.
@@ -1200,7 +1204,8 @@ See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+mileston
 ## 0.1.0 - Unknown
 - Initial plugin release
 
-[Unreleased]: https://github.com/10up/ElasticPress/compare/master...develop
+[Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.0.0]: https://github.com/10up/ElasticPress/compare/3.6.6...4.0.0
 [3.6.6]: https://github.com/10up/ElasticPress/compare/3.6.5...3.6.6
 [4.0.0-beta.1]: https://github.com/10up/ElasticPress/compare/3.6.5...4.0.0-beta.1
 [3.6.5]: https://github.com/10up/ElasticPress/compare/3.6.4...3.6.5

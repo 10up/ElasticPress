@@ -50,6 +50,10 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 4.0.0 =
+
+This version requires a full reindex.
+
 = 3.6.6 =
 
 ElasticPress 4.0 Beta 1 is [now available](https://github.com/10up/ElasticPress/releases/tag/4.0.0-beta.1) for non-production testing.
