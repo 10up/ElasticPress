@@ -142,6 +142,7 @@ class Features {
 		}
 
 		$data = array(
+			'active'  => $sanitize_feature_settings[ $slug ]['active'],
 			'reindex' => false,
 		);
 

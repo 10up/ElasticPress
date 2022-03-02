@@ -1,0 +1,19 @@
+.ep-search-pagination {
+	align-items: center;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	margin-top: auto;
+	text-align: center;
+
+	@nest .rtl & {
+		direction: rtl;
+	}
+}
+
+.ep-search-pagination__next {
+	justify-self: end;
+}
+
+.ep-search-pagination__previous {
+	justify-self: start;
+}

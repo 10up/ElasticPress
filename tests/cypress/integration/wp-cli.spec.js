@@ -54,8 +54,8 @@ describe('WP-CLI Commands', () => {
 			cy.wpCli('wp elasticpress index --per-page=20')
 				.its('stdout')
 				.should('contain', 'Indexing posts')
-				.should('contain', 'Processed 20/')
-				.should('contain', 'Processed 40/')
+				.should('contain', '20 of')
+				.should('contain', '40 of')
 				.should('contain', 'Number of posts indexed');
 		});
 
@@ -63,10 +63,10 @@ describe('WP-CLI Commands', () => {
 			cy.wpCli('wp elasticpress index --nobulk')
 				.its('stdout')
 				.should('contain', 'Indexing posts')
-				.should('contain', 'Processed 1/')
-				.should('contain', 'Processed 2/')
-				.should('contain', 'Processed 3/')
-				.should('contain', 'Processed 4/')
+				.should('contain', '1 of')
+				.should('contain', '2 of')
+				.should('contain', '3 of')
+				.should('contain', '4 of')
 				.should('contain', 'Number of posts indexed');
 		});
 
@@ -74,8 +74,9 @@ describe('WP-CLI Commands', () => {
 			// eslint-disable-next-line jest/valid-expect-in-promise
 			cy.wpCli('wp elasticpress index --offset=10').then((wpCliResponse) => {
 				expect(wpCliResponse.stdout).to.contains('Indexing posts');
+				expect(wpCliResponse.stdout).to.contains('Skipping 10');
 
-				const match1 = wpCliResponse.stdout.match(/Processed (\d+)\/(?<total>\d+)./);
+				const match1 = wpCliResponse.stdout.match(/(\d+) of (?<total>\d+)./);
 				const match2 = wpCliResponse.stdout.match(
 					/Number of posts indexed: (?<indexed>\d+)/,
 				);

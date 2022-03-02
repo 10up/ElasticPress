@@ -18,11 +18,10 @@ describe('Dashboard Sync', () => {
 	}
 
 	function resumeAndWait() {
-		cy.get('.resume-sync').click();
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		cy.get('.ep-delete-data-and-sync .resume-sync').click();
+		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+			timeout: Cypress.config('elasticPressIndexTimeout'),
+		}).should('contain.text', 'Sync completed');
 	}
 
 	before(() => {
@@ -33,23 +32,15 @@ describe('Dashboard Sync', () => {
 		if (cy.state('test').state === 'failed') {
 			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
 			cy.wpCli('wp elasticpress clear-index', true);
-			cy.visitAdminPage('admin.php?page=elasticpress-settings');
-			cy.get('body').then(($body) => {
-				const $cancelSyncButton = $body.find('.cancel-sync');
-				if ($cancelSyncButton.length) {
-					$cancelSyncButton.click();
-				}
-			});
 		}
 	});
 
 	it('Can index content and see indexes names in the Health Screen', () => {
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.start-sync').click();
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.get('.ep-delete-data-and-sync__button-delete').click();
+		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+			timeout: Cypress.config('elasticPressIndexTimeout'),
+		}).should('contain.text', 'Sync completed');
 
 		canSeeIndexesNames();
 	});
@@ -63,12 +54,11 @@ describe('Dashboard Sync', () => {
 			'We could not find any data for your Elasticsearch indices.',
 		);
 
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.start-sync').click();
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.get('.ep-delete-data-and-sync__button-delete').click();
+		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+			timeout: Cypress.config('elasticPressIndexTimeout'),
+		}).should('contain.text', 'Sync completed');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
@@ -94,12 +84,11 @@ describe('Dashboard Sync', () => {
 			'We could not find any data for your Elasticsearch indices.',
 		);
 
-		cy.visitAdminPage('network/admin.php?page=elasticpress');
-		cy.get('.start-sync').click();
-		cy.get('.sync-status', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
-			'contain.text',
-			'Sync complete',
-		);
+		cy.visitAdminPage('network/admin.php?page=elasticpress-sync');
+		cy.get('.ep-delete-data-and-sync__button-delete').click();
+		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+			timeout: Cypress.config('elasticPressIndexTimeout'),
+		}).should('contain.text', 'Sync completed');
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
@@ -126,19 +115,22 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Can pause the dashboard sync if left the page', () => {
-		setPerIndexCycle(10);
+		setPerIndexCycle(20);
 
-		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 
-		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
-		cy.get('.start-sync').click();
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
+		cy.get('.ep-delete-data-and-sync__button-delete').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
-		cy.get('.pause-sync').should('be.visible');
+		cy.get('.ep-delete-data-and-sync .pause-sync').should('be.visible');
 
 		cy.visitAdminPage('index.php');
 
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.sync-status').should('contain.text', 'Sync paused');
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info').should(
+			'contain.text',
+			'Sync in progress',
+		);
 
 		resumeAndWait();
 
@@ -148,39 +140,42 @@ describe('Dashboard Sync', () => {
 	});
 
 	it("Can't activate features during a sync", () => {
-		setPerIndexCycle(10);
+		setPerIndexCycle(20);
+
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
+		cy.get('.ep-delete-data-and-sync__button-delete').click();
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
-		cy.get('.start-sync').click();
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
-		cy.get('.pause-sync').should('be.visible');
-		cy.get('.pause-sync').click();
-
 		cy.get('.error-overlay').should('have.class', 'syncing');
 
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		resumeAndWait();
+
+		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.error-overlay').should('not.have.class', 'syncing');
 
 		setPerIndexCycle();
 	});
 
 	it("Can't index via WP-CLI if indexing via Dashboard", () => {
-		setPerIndexCycle(10);
+		setPerIndexCycle(20);
 
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.intercept('POST', '/wp-admin/admin-ajax.php').as('ajaxRequest');
-		cy.get('.start-sync').click();
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
+		cy.get('.ep-delete-data-and-sync__button-delete').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
-		cy.get('.pause-sync').should('be.visible');
-		cy.get('.pause-sync').click();
+		cy.get('.ep-delete-data-and-sync .pause-sync').should('be.visible');
+		cy.get('.ep-delete-data-and-sync .pause-sync').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		cy.wpCli('wp elasticpress index', true)
 			.its('stderr')
 			.should('contain', 'An index is already occurring');
 
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		resumeAndWait();
 
 		setPerIndexCycle();

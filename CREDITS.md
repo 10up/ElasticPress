@@ -154,6 +154,10 @@ Thank you to all the people who have already contributed to this repository via 
 [Yoli (@yolih)](https://github.com/yolih),
 [Ryan DiMascio (@rdimascio)](https://github.com/rdimascio),
 [Brett Shumaker (@brettshumaker)](https://github.com/brettshumaker),
+[Connor Smyth (@ActuallyConnor)](https://github.com/ActuallyConnor),
+[Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/),
+[McKenna Dempsey (@mckdemps)](https://github.com/mckdemps),
+[Cristian Uibar (@cristianuibar)](https://github.com/cristianuibar)
 [Robert O'Rourke (@roborourke)](https://github.com/roborourke),
 [Joe Hoyle (@joehoyle)](https://github.com/joehoyle),
 and

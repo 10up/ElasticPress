@@ -36,7 +36,7 @@
 	<wp:base_blog_url>http://ep-wpa-snapshot.test</wp:base_blog_url>
 
 		<wp:author><wp:author_id>1</wp:author_id><wp:author_login><![CDATA[admin]]></wp:author_login><wp:author_email><![CDATA[user0@example.com]]></wp:author_email><wp:author_display_name><![CDATA[admin]]></wp:author_display_name><wp:author_first_name><![CDATA[]]></wp:author_first_name><wp:author_last_name><![CDATA[]]></wp:author_last_name></wp:author>
-	<wp:author><wp:author_id>12</wp:author_id><wp:author_login><![CDATA[wpsnapshots]]></wp:author_login><wp:author_email><![CDATA[wpsnapshots@wpsnapshots.test]]></wp:author_email><wp:author_display_name><![CDATA[wpsnapshots]]></wp:author_display_name><wp:author_first_name><![CDATA[]]></wp:author_first_name><wp:author_last_name><![CDATA[]]></wp:author_last_name></wp:author>
+	<wp:author><wp:author_id>12</wp:author_id><wp:author_login><![CDATA[admin]]></wp:author_login><wp:author_email><![CDATA[admin@admin.test]]></wp:author_email><wp:author_display_name><![CDATA[admin]]></wp:author_display_name><wp:author_first_name><![CDATA[]]></wp:author_first_name><wp:author_last_name><![CDATA[]]></wp:author_last_name></wp:author>
 
 		<wp:category>
 		<wp:term_id>1</wp:term_id>
@@ -3871,7 +3871,7 @@
 		<title>woocommerce-placeholder</title>
 		<link>http://ep-wpa-snapshot.test/woocommerce-placeholder/</link>
 		<pubDate>Fri, 17 Apr 2020 06:01:55 +0000</pubDate>
-		<dc:creator><![CDATA[wpsnapshots]]></dc:creator>
+		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">http://ep-wpa-snapshot.test/wp-content/uploads/2020/04/woocommerce-placeholder.png</guid>
 		<description></description>
 		<content:encoded><![CDATA[]]></content:encoded>
@@ -4827,7 +4827,7 @@
 		<title></title>
 		<link>http://ep-wpa-snapshot.test/?post_type=ep-synonym&#038;p=2002</link>
 		<pubDate></pubDate>
-		<dc:creator><![CDATA[wpsnapshots]]></dc:creator>
+		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">http://ep-wpa-snapshot.test/?post_type=ep-synonym&#038;p=2002</guid>
 		<description></description>
 		<content:encoded><![CDATA[# Defined sets ( equivalent synonyms).
@@ -14474,7 +14474,7 @@ Officia odio sint et veritatis consequatur ut. Ut numquam aspernatur consequatur
 		<title>Test</title>
 		<link>http://ep-wpa-snapshot.test/?p=1996</link>
 		<pubDate>Wed, 17 Feb 2021 15:43:13 +0000</pubDate>
-		<dc:creator><![CDATA[wpsnapshots]]></dc:creator>
+		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">http://ep-wpa-snapshot.test/?p=1996</guid>
 		<description></description>
 		<content:encoded><![CDATA[]]></content:encoded>
@@ -14509,7 +14509,7 @@ Officia odio sint et veritatis consequatur ut. Ut numquam aspernatur consequatur
 		<title>Test</title>
 		<link>http://ep-wpa-snapshot.test/blog/2021/02/17/test/</link>
 		<pubDate>Wed, 17 Feb 2021 15:43:57 +0000</pubDate>
-		<dc:creator><![CDATA[wpsnapshots]]></dc:creator>
+		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">http://ep-wpa-snapshot.test/?p=1998</guid>
 		<description></description>
 		<content:encoded><![CDATA[]]></content:encoded>
@@ -14532,7 +14532,7 @@ Officia odio sint et veritatis consequatur ut. Ut numquam aspernatur consequatur
 		<title>Test 2</title>
 		<link>http://ep-wpa-snapshot.test/blog/2021/02/17/test-2/</link>
 		<pubDate>Wed, 17 Feb 2021 15:47:35 +0000</pubDate>
-		<dc:creator><![CDATA[wpsnapshots]]></dc:creator>
+		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">http://ep-wpa-snapshot.test/?p=2000</guid>
 		<description></description>
 		<content:encoded><![CDATA[]]></content:encoded>
@@ -32477,7 +32477,7 @@ Incidunt repellendus voluptatem laudantium et aut delectus rem. Et velit ullam o
 		</wp:postmeta>
 							<wp:postmeta>
 		<wp:meta_key><![CDATA[_billing_email]]></wp:meta_key>
-		<wp:meta_value><![CDATA[wpsnapshots@wpsnapshots.test]]></wp:meta_value>
+		<wp:meta_value><![CDATA[admin@admin.test]]></wp:meta_value>
 		</wp:postmeta>
 							<wp:postmeta>
 		<wp:meta_key><![CDATA[_order_currency]]></wp:meta_key>
@@ -32517,7 +32517,7 @@ Incidunt repellendus voluptatem laudantium et aut delectus rem. Et velit ullam o
 		</wp:postmeta>
 							<wp:postmeta>
 		<wp:meta_key><![CDATA[_billing_address_index]]></wp:meta_key>
-		<wp:meta_value><![CDATA[         wpsnapshots@wpsnapshots.test ]]></wp:meta_value>
+		<wp:meta_value><![CDATA[         admin@admin.test ]]></wp:meta_value>
 		</wp:postmeta>
 							<wp:postmeta>
 		<wp:meta_key><![CDATA[_shipping_address_index]]></wp:meta_key>

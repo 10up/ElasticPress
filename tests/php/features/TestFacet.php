@@ -43,15 +43,15 @@ class TestFacets extends BaseTestCase {
 	public function testGetSelected() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 
-		parse_str( 'filter_taxonomy=dolor', $_GET );
+		parse_str( 'ep_filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
 
-		parse_str( 'filter_taxonomy=dolor,sit', $_GET );
+		parse_str( 'ep_filter_taxonomy=dolor,sit', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertSelectedTax( [ 'dolor' => true, 'sit' => true ], 'taxonomy', $selected );
 
-		parse_str( 'filter_taxonomy=dolor,sit&filter_othertax=amet', $_GET );
+		parse_str( 'ep_filter_taxonomy=dolor,sit&ep_filter_othertax=amet', $_GET );
 		$selected = $facet_feature->get_selected();
 
 		$this->assertIsArray( $selected );
@@ -62,13 +62,13 @@ class TestFacets extends BaseTestCase {
 		$this->assertSame( [ 'dolor' => true, 'sit' => true ], $selected['taxonomies']['taxonomy']['terms'] );
 		$this->assertSame( [ 'amet' => true ], $selected['taxonomies']['othertax']['terms'] );
 
-		parse_str( 's=searchterm&filter_taxonomy=dolor', $_GET );
+		parse_str( 's=searchterm&ep_filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
 		$this->assertArrayHasKey( 's', $selected );
 		$this->assertSame( 'searchterm', $selected['s'] );
 
-		parse_str( 'post_type=posttype&filter_taxonomy=dolor', $_GET );
+		parse_str( 'post_type=posttype&ep_filter_taxonomy=dolor', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
 		$this->assertArrayHasKey( 'post_type', $selected );
@@ -95,10 +95,10 @@ class TestFacets extends BaseTestCase {
 			]
 		];
 
-		$this->assertEquals( '/?filter_category=augue', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( '/?ep_filter_category=augue', $facet_feature->build_query_url( $filters ) );
 
 		$filters['s'] = 'dolor';
-		$this->assertEquals( '/?filter_category=augue&s=dolor', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( '/?ep_filter_category=augue&s=dolor', $facet_feature->build_query_url( $filters ) );
 
 		unset( $filters['s'] );
 		$filters = [
@@ -112,12 +112,12 @@ class TestFacets extends BaseTestCase {
 			]
 		];
 
-		$this->assertEquals( '/?filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
 
 		$_SERVER['REQUEST_URI'] = 'test/page/1';
 
 		$filters['s'] = 'dolor';
-		$this->assertEquals( 'test/?filter_category=augue%2Cconsectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( 'test/?ep_filter_category=augue%2Cconsectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
 	}
 
 	/**

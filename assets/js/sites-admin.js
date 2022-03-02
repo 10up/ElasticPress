@@ -1,3 +1,5 @@
+import jQuery from 'jquery';
+
 const { epsa } = window;
 
 window.addEventListener('load', function () {

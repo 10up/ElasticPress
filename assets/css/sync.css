@@ -1,0 +1,329 @@
+:root {
+	--ep-admin-color-base-white: #fff;
+	--ep-admin-color-blue-01: #00a0d2;
+	--ep-admin-color-grey-01: #f1f1f1;
+	--ep-admin-color-green-01: #46b450;
+	--ep-admin-color-red-01: #b52727;
+	--ep-admin-color-dark-01: #333;
+	--ep-admin-max-width: 1200px;
+
+	--ep-admin-box-title: #1d2327;
+
+	--ep-admin-delete-sync-button-bg-color: rgba(181, 39, 39, 0.03);
+
+	--ep-admin-progress-bar-bg-color: rgba(0, 160, 210, 0.3);
+
+	--ep-admin-output-tab-color: #1e1e1e;
+
+	--ep-admin-log-bg-color: #1a1e24;
+	--ep-admin-log-line-number-color: #999;
+	--ep-admin-log-line-number-bg-color: #303030;
+
+}
+
+.elasticpress_page_elasticpress-sync .button:disabled {
+	cursor: not-allowed;
+}
+
+.ep-sync-box__progress-wrapper {
+	display: none;
+}
+
+.ep-sync-box__output {
+	background-color: var(--ep-admin-log-bg-color);
+	display: none;
+	margin-bottom: 20px;
+	max-height: 200px;
+	overflow-y: scroll;
+	position: relative;
+}
+
+.ep-sync-box__output_active {
+	display: block;
+}
+
+.ep-sync-box__output-wrapper {
+	color: var(--ep-admin-color-base-white);
+	margin-left: 30px;
+	min-height: 200px;
+}
+
+.ep-sync-box__output-line {
+	position: relative;
+}
+
+.ep-sync-box__output-line-number {
+	background-color: var(--ep-admin-log-line-number-bg-color);
+	color: var(--ep-admin-log-line-number-color);
+	left: -30px;
+	min-width: 20px;
+	padding: 0 3px 0 5px;
+	position: absolute;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.ep-sync-box__output-line-text {
+	font-size: 12px;
+	padding-left: 14px;
+}
+
+.ep-sync-box__output-tabs {
+	align-items: center;
+	display: flex;
+}
+
+.ep-sync-box__output-tabs_hide {
+	display: none;
+}
+
+.ep-sync-box__output-tab {
+	color: var(--ep-admin-output-tab-color);
+	padding: 16px;
+}
+
+.ep-sync-box__output-tab:hover {
+	cursor: pointer;
+}
+
+.ep-sync-box__output-tab_active {
+	border-bottom: 4px solid var(--ep-admin-color-blue-01);
+	padding-bottom: 12px;
+}
+
+.ep-sync-box__output-tab_active:hover {
+	cursor: default;
+}
+
+.ep-sync-box__button-text {
+	height: 21px;
+}
+
+.elasticpress_page_elasticpress-sync .card {
+	max-width: var(--ep-admin-max-width);
+
+	& .ep-sync-box__description-actions {
+		display: flex;
+		flex-direction: column;
+
+		@media (min-width: 768px) {
+			flex-direction: row;
+			justify-content: space-between;
+		}
+	}
+
+	& .ep-sync-box__description {
+
+		@media (min-width: 768px) {
+			width: 69%;
+		}
+	}
+
+	& .ep-sync-box__action {
+		align-items: center;
+		display: flex;
+		flex-direction: column;
+		margin-top: 40px;
+
+		@media (min-width: 768px) {
+			width: 30%;
+		}
+
+		& .ep-sync-box__button {
+			align-items: center;
+			display: flex;
+			font-size: 24px;
+			font-weight: 700;
+			height: 68px;
+			justify-content: space-between;
+			padding: 20px 40px;
+			width: 228px;
+		}
+
+		& .ep-sync-box__icon-button {
+			font-size: 28px;
+			height: 28px;
+			width: 28px;
+
+		}
+
+		& .ep-sync-box__learn-more-link {
+			margin-top: 19px;
+		}
+
+	}
+
+	& .ep-sync-box__description_text {
+		font-size: 18px;
+	}
+
+	& .ep-last-sync {
+		margin-bottom: 12px;
+	}
+
+	& .ep-last-sync__title {
+		font-size: 20px;
+		font-weight: 700;
+		margin-bottom: 0.5em;
+	}
+
+	& .ep-last-sync__date {
+		background-color: var(--ep-admin-color-grey-01);
+		padding: 6px;
+	}
+
+	& .ep-sync-box__buttons {
+		display: flex;
+
+	}
+
+	& .ep-sync-box__button-resume,
+	& .ep-sync-box__button-pause,
+	& .ep-sync-box__button-stop {
+		align-items: center;
+		display: none;
+		flex-direction: column;
+		height: 68px;
+		justify-content: center;
+		width: 100px;
+	}
+
+	& .ep-sync-box__button-stop {
+		background-color: var(--ep-admin-color-blue-01);
+		border-color: var(--ep-admin-color-blue-01);
+		margin-left: 24px;
+	}
+
+	& .ep-sync-box__progress {
+		align-items: normal;
+		display: flex;
+		flex-direction: column;
+		margin-bottom: 5px;
+		margin-top: 19px;
+
+		@media (min-width: 768px) {
+			align-items: center;
+			flex-direction: row;
+		}
+	}
+
+	& .ep-sync-box__sync-in-progress {
+		display: flex;
+		flex-direction: row;
+
+		@media (min-width: 768px) {
+			width: 30%;
+		}
+	}
+
+	& .ep-sync-box__progressbar {
+		background-color: var(--ep-admin-color-grey-01);
+		border-radius: 24px;
+		height: 20px;
+		margin: 15px 0;
+		position: relative;
+		width: 100%;
+
+		@media (min-width: 768px) {
+			margin: 0;
+			width: 65%;
+		}
+	}
+
+	& .ep-sync-box__progressbar_animated {
+		background-color: var(--ep-admin-progress-bar-bg-color);
+		color: var(--ep-admin-color-dark-01);
+		display: block;
+		height: 100%;
+		margin: 0;
+		text-align: center;
+		transition: width 0.5s ease-in-out;
+		width: 0;
+	}
+
+	& .ep-sync-box__progressbar_complete {
+		background-color: var(--ep-admin-color-green-01);
+		color: var(--ep-admin-color-base-white);
+	}
+
+	& .ep-sync-box__sync-in-progress-info {
+		display: flex;
+		flex-direction: column;
+		margin-left: 12px;
+	}
+
+	& .ep-sync-box__progress-info {
+		font-size: 14px;
+		font-weight: 500;
+		margin-bottom: 5px;
+	}
+
+	& .ep-sync-box__start-time {
+		color: var(--ep-admin-color-blue-01);
+		font-size: 14px;
+	}
+
+	& .ep-sync-box__start-time-date {
+		color: var(--ep-admin-color-dark-01);
+	}
+}
+
+.elasticpress_page_elasticpress-sync .ep-delete-data-and-sync {
+	margin-top: 40px;
+
+	& .card {
+		margin-top: 17px;
+	}
+
+	& .ep-delete-data-and-sync__title {
+		color: var(--ep-admin-box-title);
+		font-size: 18px;
+		font-weight: 400;
+	}
+
+	& .ep-delete-data-and-sync__warning {
+		align-items: flex-start;
+		display: flex;
+
+		@media (min-width: 768px) {
+			width: 69%;
+		}
+	}
+
+	& .ep-delete-data-and-sync__warning-icon {
+		margin-right: 9px;
+		margin-top: 17px;
+	}
+
+	& .ep-delete-data-and-sync__button {
+		background-color: var(--ep-admin-delete-sync-button-bg-color);
+		border: 1px solid var(--ep-admin-color-red-01);
+		color: var(--ep-admin-color-red-01);
+		margin: 5px 0 12px;
+	}
+
+	& .ep-delete-data-and-sync__button-cancel {
+		display: none;
+	}
+
+	& .ep-sync-box__action {
+		flex-direction: column;
+		height: auto;
+		justify-content: center;
+		margin-top: 0;
+		width: 100%;
+
+		@media (min-width: 768px) {
+			flex-direction: row;
+			height: 68px;
+			justify-content: space-between;
+		}
+	}
+
+	& .ep-sync-box__buttons {
+
+		@media (min-width: 768px) {
+			margin-right: 5%;
+		}
+	}
+}
