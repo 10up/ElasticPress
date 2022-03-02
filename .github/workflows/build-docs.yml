@@ -3,7 +3,7 @@ name: Build Docs
 on:
   push:
     branches:
-     - master
+     - trunk
 
 jobs:
   build:
