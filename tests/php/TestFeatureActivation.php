@@ -64,6 +64,7 @@ class TestFeatureActivation extends BaseTestCase {
 	public function testNoActiveFeatures() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
+		delete_option( 'ep_feature_settings' );
 
 		ElasticPress\Features::factory()->setup_features();
 
@@ -81,6 +82,7 @@ class TestFeatureActivation extends BaseTestCase {
 	public function testAutoActivated() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
+		delete_option( 'ep_feature_settings' );
 
 		$this->handle_feature_activation();
 		ElasticPress\Features::factory()->setup_features();
@@ -110,6 +112,7 @@ class TestFeatureActivation extends BaseTestCase {
 	public function testRequirementStatuses() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
+		delete_option( 'ep_feature_settings' ); // VIP: Since we changed to per-site option, we need to fix the failing test.
 
 		$this->handle_feature_activation();
 		ElasticPress\Features::factory()->setup_features();
@@ -132,6 +135,7 @@ class TestFeatureActivation extends BaseTestCase {
 	public function testAutoActivateWithSimpleFeature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
+		delete_option( 'ep_feature_settings' ); // VIP: Since we changed to per-site option, we need to fix the failing test.
 
 		ElasticPress\Features::factory()->register_feature(
 			new FeatureTest()
@@ -154,6 +158,7 @@ class TestFeatureActivation extends BaseTestCase {
 	public function testAutoDeactivateWithFeature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
+		delete_option( 'ep_feature_settings' ); // VIP: Since we changed to per-site option, we need to fix the failing test.
 
 		ElasticPress\Features::factory()->register_feature(
 			new FeatureTest()
@@ -189,6 +194,7 @@ class TestFeatureActivation extends BaseTestCase {
 	public function testAutoActivateWithFeature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
+		delete_option( 'ep_feature_settings' );
 
 		ElasticPress\Features::factory()->register_feature(
 			new FeatureTest()
@@ -226,6 +232,7 @@ class TestFeatureActivation extends BaseTestCase {
 	public function testReqChangeNothingWithFeature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
+		delete_option( 'ep_feature_settings' ); // VIP: Since we changed to per-site option, we need to fix the failing test.
 
 		ElasticPress\Features::factory()->register_feature(
 			new FeatureTest()

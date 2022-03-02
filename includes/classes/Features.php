@@ -105,10 +105,10 @@ class Features {
 
 		$original_state = $feature->is_active();
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', [] );
+		// VIP: Every site should have its own option, rather than a network one.
+		$feature_settings = get_option( 'ep_feature_settings', [] );
+		if ( function_exists( 'vip_maybe_backfill_ep_option' ) ) { // TODO: Remove
+			$feature_settings = \vip_maybe_backfill_ep_option( $feature_settings, 'ep_feature_settings' );
 		}
 
 		if ( empty( $feature_settings[ $slug ] ) ) {
@@ -135,11 +135,8 @@ class Features {
 
 		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_feature_settings', $sanitize_feature_settings );
-		} else {
-			update_option( 'ep_feature_settings', $sanitize_feature_settings );
-		}
+		// VIP: Every site should have its own option, rather than a network one.
+		update_option( 'ep_feature_settings', $sanitize_feature_settings );
 
 		$data = array(
 			'reindex' => false,
@@ -210,10 +207,10 @@ class Features {
 		 * If feature settings aren't created, let's create them and finish
 		 */
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', false );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', false );
+		// VIP: Every site should have its own option, rather than a network one.
+		$feature_settings = get_option( 'ep_feature_settings', false );
+		if ( function_exists( 'vip_maybe_backfill_ep_option' ) ) { // TODO: Remove
+			$feature_settings = \vip_maybe_backfill_ep_option( $feature_settings, 'ep_feature_settings' );
 		}
 
 		if ( false === $feature_settings ) {

@@ -117,10 +117,10 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$active_features = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$active_features = get_option( 'ep_feature_settings', [] );
+		// VIP: Every site should have its own option, rather than a network one.
+		$active_features = get_option( 'ep_feature_settings', [] );
+		if ( function_exists( 'vip_maybe_backfill_ep_option' ) ) { // TODO: Remove
+			$active_features = \vip_maybe_backfill_ep_option( $active_features, 'ep_feature_settings' );
 		}
 
 		$key = array_search( $feature->slug, array_keys( $active_features ), true );
@@ -150,11 +150,12 @@ class Command extends WP_CLI_Command {
 	public function list_features( $args, $assoc_args ) {
 
 		if ( empty( $assoc_args['all'] ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$features = get_site_option( 'ep_feature_settings', [] );
-			} else {
-				$features = get_option( 'ep_feature_settings', [] );
+			// VIP: Every site should have its own option, rather than a network one.
+			$features = get_option( 'ep_feature_settings', [] );
+			if ( function_exists( 'vip_maybe_backfill_ep_option' ) ) { // TODO: Remove
+				$features = \vip_maybe_backfill_ep_option( $features, 'ep_feature_settings' );
 			}
+
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
 
 			foreach ( array_keys( $features ) as $feature_slug ) {
