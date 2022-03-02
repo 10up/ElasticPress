@@ -50,7 +50,7 @@ class SyncManager extends SyncManagerAbstract {
 	 *
 	 * @since 4.0
 	 */
-	public function site_unsetup() {
+	public function tearDown() {
 		remove_action( 'created_term', [ $this, 'action_sync_on_update' ] );
 		remove_action( 'edited_terms', [ $this, 'action_sync_on_update' ] );
 		remove_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ] );

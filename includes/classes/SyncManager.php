@@ -202,7 +202,7 @@ abstract class SyncManager {
 	 */
 	public function can_index_site() {
 		if ( ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) && ! Utils\is_site_indexable() ) {
-			$this->site_unsetup();
+			$this->tearDown();
 			return false;
 		}
 
@@ -279,5 +279,5 @@ abstract class SyncManager {
 	 *
 	 * @since 4.0
 	 */
-	abstract public function site_unsetup();
+	abstract public function tearDown();
 }

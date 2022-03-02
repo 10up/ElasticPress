@@ -52,7 +52,7 @@ class SyncManager extends SyncManagerAbstract {
 	 *
 	 * @since 4.0
 	 */
-	public function site_unsetup() {
+	public function tearDown() {
 		remove_action( 'wp_insert_comment', [ $this, 'action_sync_on_insert' ] );
 		remove_action( 'edit_comment', [ $this, 'action_sync_on_update' ] );
 		remove_action( 'transition_comment_status', [ $this, 'action_sync_on_transition_comment_status' ] );

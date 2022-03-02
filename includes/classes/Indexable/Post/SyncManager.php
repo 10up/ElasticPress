@@ -72,7 +72,7 @@ class SyncManager extends SyncManagerAbstract {
 	 *
 	 * @since 4.0
 	 */
-	public function site_unsetup() {
+	public function tearDown() {
 		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999 );
 		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999 );
 		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999 );
