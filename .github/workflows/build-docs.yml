@@ -3,7 +3,7 @@ name: Build Docs
 on:
   push:
     branches:
-     - master
+     - trunk
 
 jobs:
   build:
@@ -51,14 +51,14 @@ jobs:
         wp package install felipeelia/cli-command-docs:dev-trunk
         wp cli-command-docs elasticpress --custom-order=index,activate-feature,deactivate-feature,list-features,get-algorithm-version,set-algorithm-version --remove=delete_transient_on_int,custom_get_transient --custom-intro='The following WP-CLI commands are supported by ElasticPress:' > wp-content/plugins/elasticpress/docs/wp-cli.md
 
-    - name: Use Node.js 10
+    - name: Use Node.js 14
       uses: actions/setup-node@v2
       with:
-        node-version: '10.x'
+        node-version: '14.x'
 
-    - name: npm install, and build docs
+    - name: npm ci, and build docs
       run: |
-        npm install
+        npm ci
         npm -g install gulp-cli
         npm run build:docs
       env:
