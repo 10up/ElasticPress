@@ -6,23 +6,7 @@
 
 * Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
 
-**Please note:** master is the stable branch, but that will be changing with the 4.0.0 release (read more on that below).
-
-## ElasticPress 4.0.0
-
-ElasticPress 4.0 Beta 1 is [now available](https://github.com/10up/ElasticPress/releases/tag/4.0.0-beta.1) for non-production testing.
-
-### Planned changes
-
-**Note that the upcoming ElasticPress 4.0.0 release will remove built assets from the `develop` branch, will replace `master` with `trunk`, ~~will build a stable release version including built assets into a `stable` branch,~~ will add a zip with the plugin and its built assets in the GitHub release page, and will include a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to ~~either `stable` or~~ `trunk` or to GitHub releases depending on whether you require built assets or not.
-
-Supported versions:
-
-||Current (3.6.6)|4.0.0|
-|---|:---:|:---:|
-|Elasticsearch|5.0 - 7.9|5.2 - 7.10|
-|WordPress|3.7.1+|5.6+|
-|PHP|5.6+|7.0+|
+**Please note:** as of ElasticPress 4.0.0 `trunk` is the stable branch, built assets were removed from the `develop` branch, a ZIP with the plugin and its built assets are available on the [GitHub Releases page](https://github.com/10up/ElasticPress/releases), and will include a build script should you want to build assets from a branch.  As such, please ensure you have updated any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
 
 ## Overview
 
@@ -40,9 +24,9 @@ ElasticPress FAQs and tutorials can be found on our support site. [Visit the sup
 
 ElasticPress requires these software with the following versions:
 
-* [Elasticsearch](https://www.elastic.co) 5.0+ **ElasticSearch max version supported: 7.9**
-* [WordPress](http://wordpress.org) 3.7.1+
-* [PHP](https://php.net/) 5.6+
+* [Elasticsearch](https://www.elastic.co) 5.2+ **ElasticSearch max version supported: 7.10**
+* [WordPress](http://wordpress.org) 5.6+
+* [PHP](https://php.net/) 7.0+
 
 ### Compatibility
 
@@ -50,7 +34,7 @@ The WooCommerce feature is compatible with the last two major versions of the [W
 
 ## Building Assets
 
-Simply downloading the repository files is not enough to have the plugin working, as CSS and JavaScript files are built during the release process. If you want to use a development version of the plugin you will to run
+Simply downloading the repository files is not enough to have the plugin working, as CSS and JavaScript files are built during the release process. If you want to use a development version of the plugin you will to run:
 
 `npm install && npm run build`
 
@@ -77,6 +61,10 @@ A complete listing of all notable changes to ElasticPress are documented in [CHA
 ### 3.5
 
 **Search Algorithm Upgrade Notice:** Version 3.5 includes a revamp of the search algorithm. This is a backwards compatibility break. If you'd like to revert to the old search algorithm, you can use the following code: `add_filter( 'ep_search_algorithm_version', function() { return '3.4'; } );`. The new algorithm offers much more relevant search results and removes fuzziness which results in mostly unwanted results for most people. If you are hooking in and modifying the search query directly, it's possible this code might break and you might need to tweak it.
+
+### 4.0.0
+
+**Note that ElasticPress 4.0.0 release removes built assets from the `develop` branch, replaced `master` with `trunk`, added a ZIP with the plugin and its built assets in the [GitHub Releases page](https://github.com/10up/ElasticPress/releases), and included a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub Releases depending on whether you require built assets or not.
 
 ## Contributing
 
