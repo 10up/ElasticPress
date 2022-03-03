@@ -1022,10 +1022,6 @@ class Term extends Indexable {
 
 				break;
 
-			case 'description':
-				$es_field_name = 'description.sortable';
-				break;
-
 			case 'parent':
 			case 'count':
 			default:

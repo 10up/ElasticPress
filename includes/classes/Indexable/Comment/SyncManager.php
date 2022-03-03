@@ -48,6 +48,22 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
+	 * Un-setup actions and filters (for multisite).
+	 *
+	 * @since 4.0
+	 */
+	public function tear_down() {
+		remove_action( 'wp_insert_comment', [ $this, 'action_sync_on_insert' ] );
+		remove_action( 'edit_comment', [ $this, 'action_sync_on_update' ] );
+		remove_action( 'transition_comment_status', [ $this, 'action_sync_on_transition_comment_status' ] );
+		remove_action( 'trashed_comment', [ $this, 'action_sync_on_delete' ] );
+		remove_action( 'deleted_comment', [ $this, 'action_sync_on_delete' ] );
+		remove_action( 'added_comment_meta', [ $this, 'action_queue_meta_sync' ] );
+		remove_action( 'deleted_comment_meta', [ $this, 'action_queue_meta_sync' ] );
+		remove_action( 'updated_comment_meta', [ $this, 'action_queue_meta_sync' ] );
+	}
+
+	/**
 	 * Sync ES index when new comments are saved
 	 *
 	 * @param int $comment_id Comment ID.
@@ -155,7 +171,7 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_comment_statuses = Indexables::factory()->get( 'comment' )->get_indexable_comment_status();
 			$indexable_post_statuses    = Indexables::factory()->get( 'post' )->get_indexable_post_status();
 
-			$has_allowed_comment_status = [ 'all' ] == $indexable_comment_statuses ? true : in_array( $comment_status, $indexable_comment_statuses, true );
+			$has_allowed_comment_status = [ 'all' ] === $indexable_comment_statuses ? true : in_array( $comment_status, $indexable_comment_statuses, true );
 			$has_allowed_post_status    = in_array( $post_status, $indexable_post_statuses, true );
 
 			if ( ! $has_allowed_comment_status || ! $has_allowed_post_status ) {

@@ -25,7 +25,7 @@ import Sort from './tools/sort';
  */
 export default () => {
 	const {
-		state: { isLoading, isSidebarOpen },
+		state: { isLoading },
 	} = useContext(Context);
 
 	return (
@@ -41,10 +41,17 @@ export default () => {
 			</div>
 
 			<div className="ep-search-page__body">
-				<Sidebar isOpen={isSidebarOpen}>
+				<Sidebar>
 					<Sort />
-					{facets.map((facet, index) => (
-						<Facet {...facet} index={index} />
+					{facets.map(({ label, name, postTypes, type }, index) => (
+						<Facet
+							index={index}
+							key={name}
+							label={label}
+							name={name}
+							postTypes={postTypes}
+							type={type}
+						/>
 					))}
 				</Sidebar>
 

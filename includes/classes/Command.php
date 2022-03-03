@@ -918,12 +918,12 @@ class Command extends WP_CLI_Command {
 	 */
 	private function index_occurring() {
 		if ( Utils\is_indexing() ) {
-			WP_CLI::error( esc_html__( 'An index is already occuring. Try again later.', 'elasticpress' ) );
+			WP_CLI::error( esc_html__( 'An index is already occurring. Try again later.', 'elasticpress' ) );
 		}
 	}
 
 	/**
-	 * Delete transient that indicates indexing is occuring
+	 * Delete transient that indicates indexing is occurring
 	 *
 	 * @since 3.1
 	 */
@@ -1379,6 +1379,7 @@ class Command extends WP_CLI_Command {
 			add_filter(
 				'http_api_debug',
 				function ( $response, $context, $transport, $request_args, $url ) {
+					// phpcs:disable WordPress.PHP.DevelopmentFunctions
 					WP_CLI::line(
 						sprintf(
 							/* translators: URL of the request */
@@ -1414,6 +1415,7 @@ class Command extends WP_CLI_Command {
 							print_r( $response, true )
 						)
 					);
+					// phpcs:enable WordPress.PHP.DevelopmentFunctions
 				},
 				10,
 				5

@@ -15,14 +15,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: install node v10
+    - name: install node v14
       uses: actions/setup-node@v1
       with:
-        node-version: 10
+        node-version: 14
 
     - name: Build
       run: |
-        npm install
+        npm ci
         npm run build
 
     - name: WordPress Plugin Deploy

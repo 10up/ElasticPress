@@ -137,10 +137,10 @@ class InstantResults extends Feature {
 		$highlight_tags = array( 'mark', 'span', 'strong', 'em', 'i' );
 		?>
 
-		<div class="field" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<label for="instant-results-highlight-tag" class="field-name status"><?php echo esc_html_e( 'Highlight tag ', 'elasticpress' ); ?></label>
 			<div class="input-wrap">
-				<select id="instant-results-highlight-tag" name="instant-results-highlight-tag" class="setting-field" data-field-name="highlight_tag">
+				<select id="instant-results-highlight-tag" name="settings[highlight_tag]">
 					<option value=""><?php esc_html_e( 'None', 'elasticpress' ); ?></option>
 					<?php
 					foreach ( $highlight_tags as $highlight_tag ) {
@@ -156,21 +156,21 @@ class InstantResults extends Feature {
 				<p class="field-description"><?php esc_html_e( 'Highlight search terms in results with the selected HTML tag.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
-			<div class="field-name status"><?php esc_html_e( 'Facets', 'elasticpress' ); ?></div>
+		<div class="field">
+			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Facets', 'elasticpress' ); ?></label>
 			<div class="input-wrap">
-				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" data-field-name="facets" class="setting-field" id="feature_instant_results_facets">
+				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" name="settings[facets]" id="feature_instant_results_facets">
 			</div>
 		</div>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="instant-results_match_type_all">
-					<input name="instant-results-match_type" id="instant-results-match_type_all" data-field-name="match_type" class="setting-field" type="radio" <?php checked( $this->settings['match_type'], 'all' ); ?> value="all">
+				<label>
+					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'all' ); ?> value="all">
 					<?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?>
 				</label><br>
-				<label for="instant-results-match_type_any">
-					<input name="instant-results-match_type" id="instant-results_match_type_any" data-field-name="match_type" class="setting-field" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
+				<label>
+					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
 					<?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?>
 				</label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
@@ -280,11 +280,13 @@ class InstantResults extends Feature {
 			array(
 				'apiEndpoint'    => $api_endpoint,
 				'apiHost'        => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
+				'argsSchema'     => $this->get_args_schema(),
 				'currencyCode'   => $this->is_woocommerce ? get_woocommerce_currency() : false,
 				'facets'         => $this->get_facets_for_frontend(),
 				'highlightTag'   => $this->settings['highlight_tag'],
 				'isWooCommerce'  => $this->is_woocommerce,
 				'matchType'      => $this->settings['match_type'],
+				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
 			)
 		);
@@ -653,12 +655,20 @@ class InstantResults extends Feature {
 				'frontend' => __( 'Type', 'elasticpress' ),
 			),
 			'aggs'       => array(
-				'post_types' => array(
+				'post_type' => array(
 					'terms' => array(
 						'field' => 'post_type.raw',
 					),
 				),
 			),
+			/**
+			 * The post_type arg needs to be supported regardless of whether
+			 * the Post Type facet is present to be able to support setting the
+			 * post type from the search form.
+			 *
+			 * @see ElasticPress\Feature\InstantResults::get_args_schema()
+			 */
+			'args'       => array(),
 		);
 
 		/**
@@ -668,6 +678,7 @@ class InstantResults extends Feature {
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		foreach ( $taxonomies as $slug => $taxonomy ) {
+			$name   = 'tax-' . $slug;
 			$labels = get_taxonomy_labels( $taxonomy );
 
 			$admin_label = sprintf(
@@ -677,7 +688,7 @@ class InstantResults extends Feature {
 				$slug
 			);
 
-			$facets[ $slug ] = array(
+			$facets[ $name ] = array(
 				'type'       => 'taxonomy',
 				'post_types' => $taxonomy->object_type,
 				'labels'     => array(
@@ -685,11 +696,16 @@ class InstantResults extends Feature {
 					'frontend' => $labels->singular_name,
 				),
 				'aggs'       => array(
-					'taxonomy_terms' => array(
+					$name => array(
 						'terms' => array(
 							'field' => 'terms.' . $slug . '.facet',
 							'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
 						),
+					),
+				),
+				'args'       => array(
+					$name => array(
+						'type' => 'strings',
 					),
 				),
 			);
@@ -716,6 +732,14 @@ class InstantResults extends Feature {
 						'min' => array(
 							'field' => 'meta._price.double',
 						),
+					),
+				),
+				'args'       => array(
+					'max_price' => array(
+						'type' => 'number',
+					),
+					'min_price' => array(
+						'type' => 'number',
 					),
 				),
 			);
@@ -768,5 +792,60 @@ class InstantResults extends Feature {
 		}
 
 		return $facets;
+	}
+
+	/**
+	 * Get schema for search args.
+	 *
+	 * @return array Search args schema.
+	 */
+	public function get_args_schema() {
+		$args = array(
+			'highlight' => array(
+				'type'          => 'string',
+				'default'       => $this->settings['highlight_tag'],
+				'allowedValues' => [ $this->settings['highlight_tag'] ],
+			),
+			'offset'    => array(
+				'type'    => 'number',
+				'default' => 0,
+			),
+			'orderby'   => array(
+				'type'          => 'string',
+				'default'       => 'relevance',
+				'allowedValues' => [ 'date', 'price', 'relevance' ],
+			),
+			'order'     => array(
+				'type'          => 'string',
+				'default'       => 'desc',
+				'allowedValues' => [ 'asc', 'desc' ],
+			),
+			'per_page'  => array(
+				'type'    => 'number',
+				'default' => 6,
+			),
+			'post_type' => array(
+				'type' => 'strings',
+			),
+			'search'    => array(
+				'type'    => 'string',
+				'default' => '',
+			),
+			'relation'  => array(
+				'type'          => 'string',
+				'default'       => 'and',
+				'allowedValues' => [ 'and', 'or' ],
+			),
+		);
+
+		$selected_facets  = explode( ',', $this->settings['facets'] );
+		$available_facets = $this->get_facets();
+
+		foreach ( $selected_facets as $key ) {
+			if ( isset( $available_facets[ $key ] ) ) {
+				$args = array_merge( $args, $available_facets[ $key ]['args'] );
+			}
+		}
+		return $args;
 	}
 }

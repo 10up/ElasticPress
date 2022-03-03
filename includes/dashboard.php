@@ -478,8 +478,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		);
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'health' ], true ) ) {
-		wp_enqueue_script( 'wp-color-picker' );
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard' ], true ) ) {
 		wp_enqueue_script(
 			'ep_dashboard_scripts',
 			EP_URL . 'dist/js/dashboard-script.min.js',
@@ -493,10 +492,20 @@ function action_admin_enqueue_dashboard_scripts() {
 				admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 
 		$data = array(
-			'nonce'    => wp_create_nonce( 'ep_dashboard_nonce' ),
-			'sync_url' => $sync_url,
+			'syncUrl' => $sync_url,
 		);
+
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
+	}
+
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'settings' ], true ) ) {
+		wp_enqueue_script(
+			'ep_settings_scripts',
+			EP_URL . 'dist/js/settings-script.min.js',
+			Utils\get_asset_info( 'settings-script', 'dependencies' ),
+			Utils\get_asset_info( 'settings-script', 'version' ),
+			true
+		);
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {

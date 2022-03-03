@@ -174,12 +174,15 @@ h2.ep-list-features {
 
 .ep-feature .postbox .hndle .settings-button {
 	background-color: #efefef;
+	border: none;
 	border-radius: 4px;
 	color: inherit;
 	cursor: pointer;
 	display: inline-block;
 	float: right;
 	font-size: 13px;
+	font-weight: 400;
+	line-height: inherit;
 	margin-top: -4px;
 	padding: 4px 7px;
 	padding-left: 23px;
@@ -431,11 +434,6 @@ h2.ep-list-features {
 	display: block;
 }
 
-.ep-feature .learn-more,
-.ep-feature .collapse {
-	cursor: pointer;
-}
-
 .ep-feature.show-full .learn-more {
 	display: none;
 }
@@ -444,6 +442,7 @@ h2.ep-list-features {
 	content: "\f140";
 	font-family: dashicons;
 	font-size: 1.5em;
+	line-height: 1;
 	position: relative;
 	top: -0.07em;
 	vertical-align: middle;
@@ -453,6 +452,7 @@ h2.ep-list-features {
 	content: "\f142";
 	font-family: dashicons;
 	font-size: 1.5em;
+	line-height: 1;
 	position: relative;
 	top: -0.07em;
 	vertical-align: middle;

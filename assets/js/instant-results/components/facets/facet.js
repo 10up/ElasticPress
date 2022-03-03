@@ -13,12 +13,12 @@ import TaxonomyTermsFacet from './taxonomy-terms-facet';
 /**
  * Facet component.
  *
- * @param {Object} props Props.
- * @param {number} props.index Facet index.
- * @param {string} props.name Facet name.
- * @param {string} props.label Facet label.
- * @param {string} props.postTypes Facet post types.
- * @param {'post_type'|'price_range'|'taxonomy'} props.type Facet type.
+ * @param {Object}                               props           Props.
+ * @param {number}                               props.index     Facet index.
+ * @param {string}                               props.name      Facet name.
+ * @param {string}                               props.label     Facet label.
+ * @param {string}                               props.postTypes Facet post types.
+ * @param {'post_type'|'price_range'|'taxonomy'} props.type      Facet type.
  * @return {WPElement} Component element.
  */
 export default ({ index, label, name, postTypes, type }) => {
@@ -34,11 +34,11 @@ export default ({ index, label, name, postTypes, type }) => {
 				<TaxonomyTermsFacet
 					defaultIsOpen={defaultIsOpen}
 					label={label}
+					name={name}
 					postTypes={postTypes}
-					taxonomy={name}
 				/>
 			);
 		default:
-			return <></>;
+			return null;
 	}
 };
