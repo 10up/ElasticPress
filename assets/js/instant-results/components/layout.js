@@ -21,7 +21,7 @@ import Sort from './tools/sort';
 /**
  * Search dialog.
  *
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default () => {
 	const {

@@ -19,10 +19,10 @@ const { Fill, Slot } = createSlotFill('ActiveContraints');
 /**
  * Active filter component.
  *
- * @param {Object}   props         Props.
+ * @param {object}   props         Props.
  * @param {string}   props.label   Constraint label.
  * @param {Function} props.onClick Click handler.
- * @return {WPElement} Element.
+ * @returns {WPElement} Element.
  */
 export const ActiveContraint = ({ label, onClick }) => {
 	return (
@@ -46,7 +46,7 @@ export const ActiveContraint = ({ label, onClick }) => {
 /**
  * Active constraints component.
  *
- * @return {WPElement} Element.
+ * @returns {WPElement} Element.
  */
 export default () => {
 	return <Slot>{(fills) => fills}</Slot>;

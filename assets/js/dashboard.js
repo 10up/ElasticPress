@@ -15,7 +15,7 @@ const {
  * Determine whether a Feature's new settings will require a reindex.
  *
  * @param {FormData} data Form data.
- * @return {boolean} Whether a reindex will need to occur when saved.
+ * @returns {boolean} Whether a reindex will need to occur when saved.
  */
 const willChangeTriggerReindex = (data) => {
 	return (

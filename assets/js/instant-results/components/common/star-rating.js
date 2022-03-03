@@ -9,7 +9,7 @@ import { __, sprintf } from '@wordpress/i18n';
  * @param {Option} props        Component props.
  * @param {string} props.rating Rating.
  *
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default ({ rating }) => {
 	const label = sprintf(

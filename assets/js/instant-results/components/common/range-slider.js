@@ -11,8 +11,8 @@ import { WPElement } from '@wordpress/element';
 /**
  * Range slider component.
  *
- * @param {Object} props Props.
- * @return {WPElement} Element.
+ * @param {object} props Props.
+ * @returns {WPElement} Element.
  */
 export default ({ ...props }) => {
 	return (

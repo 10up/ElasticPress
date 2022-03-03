@@ -13,9 +13,9 @@ import { facets } from '../config';
 /**
  * Facet selector component.
  *
- * @param {Object} props              Props.
+ * @param {object} props              Props.
  * @param {string} props.defaultValue Default value.
- * @return {WPElement} Element.
+ * @returns {WPElement} Element.
  */
 export default ({ defaultValue, ...props }) => {
 	const defaultValues = defaultValue.split(',');
@@ -25,7 +25,7 @@ export default ({ defaultValue, ...props }) => {
 	 * Get the label for a facet from the facet key.
 	 *
 	 * @param {string} key Facet key.
-	 * @return {string} Facet label.
+	 * @returns {string} Facet label.
 	 */
 	const getLabelFromKey = (key) => {
 		return facets[key]?.label;
@@ -35,7 +35,7 @@ export default ({ defaultValue, ...props }) => {
 	 * Get the key for a facet from the facet label.
 	 *
 	 * @param {string} label Facet label.
-	 * @return {string} Facet key.
+	 * @returns {string} Facet key.
 	 */
 	const getKeyFromLabel = (label) => {
 		return Object.keys(facets).find((key) => {

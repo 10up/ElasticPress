@@ -6,13 +6,13 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Search results component.
  *
- * @param {Object}   props            Props.
+ * @param {object}   props            Props.
  * @param {number}   props.offset     Current items offset.
  * @param {Function} props.onNext     Next button handler.
  * @param {Function} props.onPrevious Previous button handler.
  * @param {number}   props.perPage    Items per page.
  * @param {number}   props.total      Total number of items.
- * @return {WPElement} Element.
+ * @returns {WPElement} Element.
  */
 export default ({ offset, onNext, onPrevious, perPage, total }) => {
 	/**
