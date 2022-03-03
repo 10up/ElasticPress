@@ -380,6 +380,50 @@ class TestAdminNotices extends BaseTestCase {
 	 *
 	 * - In admin
 	 * - Host set
+	 * - Old version of ElasticPress
+	 * - Upgrade sync is needed
+	 * - Elasticsearch version within bounds
+	 *
+	 * Do: Show upgrade sync with complement related to Instant Results
+	 *
+	 * @group admin-notices
+	 * @since 4.0.0
+	 */
+	public function testUpgradeSyncNoticeAndInstantResultsInAdmin() {
+		update_site_option( 'ep_last_sync', time() );
+		update_site_option( 'ep_need_upgrade_sync', true );
+		update_site_option( 'ep_version', '3.6.6' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
+
+		ElasticPress\Screen::factory()->set_current_screen( null );
+
+		// Instant Results not available.
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
+		$this->assertContains( 'PLACEHOLDER: Instant Results not available', $notices['upgrade_sync']['html'] );
+
+		// Instant Results available via custom proxy.
+		add_filter( 'ep_instant_results_available', '__return_true' );
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
+		$this->assertContains( 'PLACEHOLDER: Instant Results available via custom proxy', $notices['upgrade_sync']['html'] );
+		remove_filter( 'ep_instant_results_available', '__return_true' );
+
+		// Instant Results available via EP.io.
+		update_site_option( 'ep_host', 'https://prefix.elasticpress.io/' );
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
+		$this->assertContains( 'PLACEHOLDER: Instant Results available via EP.io', $notices['upgrade_sync']['html'] );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - In admin
+	 * - Host set
 	 * - Sync has occurred
 	 * - No upgrade sync is needed
 	 * - Feature auto activate sync is needed

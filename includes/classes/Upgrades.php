@@ -66,6 +66,8 @@ class Upgrades {
 		} else {
 			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 		}
+
+		add_filter( 'ep_admin_notices', [ $this, 'resync_notice_4_0_0_instant_results' ] );
 	}
 
 	/**
@@ -164,6 +166,42 @@ class Upgrades {
 		foreach ( $synonyms_example_ids as $synonym_post_id ) {
 			wp_delete_post( $synonym_post_id, true );
 		}
+	}
+
+	/**
+	 * Adjust the upgrade sync notice to warn users about Instant Results.
+	 *
+	 * As 4.0.0 introduces this new feature and it requires a resync, admin users
+	 * might want to enable the feature before the resync (and then resync only once.)
+	 *
+	 * @since 4.0.0
+	 * @todo Replace texts
+	 * @param array $notices All admin notices
+	 * @return array
+	 */
+	public function resync_notice_4_0_0_instant_results( $notices ) {
+		if ( ! isset( $notices['upgrade_sync'] ) ) {
+			return $notices;
+		}
+
+		$instant_results = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
+		if ( $instant_results->is_active() ) {
+			return $notices;
+		}
+
+		$feature_status   = $instant_results->requirements_status();
+		$appended_message = '';
+		if ( 1 < $feature_status->code ) {
+			$appended_message = esc_html__( 'PLACEHOLDER: Instant Results not available', 'elasticpress' );
+		} elseif ( \ElasticPress\Utils\is_epio() ) {
+			$appended_message = esc_html__( 'PLACEHOLDER: Instant Results available via EP.io', 'elasticpress' );
+		} else {
+			$appended_message = esc_html__( 'PLACEHOLDER: Instant Results available via custom proxy', 'elasticpress' );
+		}
+
+		$notices['upgrade_sync']['html'] .= '<br><br>' . $appended_message;
+
+		return $notices;
 	}
 
 	/**
