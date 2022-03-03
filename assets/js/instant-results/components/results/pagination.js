@@ -2,6 +2,7 @@
  * WordPress dependencies.
  */
 import { __, sprintf } from '@wordpress/i18n';
+import { WPElement } from '@wordpress/element';
 
 /**
  * Search results component.

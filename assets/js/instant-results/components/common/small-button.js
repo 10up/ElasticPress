@@ -1,3 +1,5 @@
+import { WPElement } from '@wordpress/element';
+
 /**
  * Small button component.
  *
