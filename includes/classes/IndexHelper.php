@@ -458,13 +458,13 @@ class IndexHelper {
 		}
 
 		if ( ! empty( $this->args['include'] ) ) {
-			$include          = explode( ',', str_replace( ' ', '', $this->args['include'] ) );
+			$include          = ( is_array( $this->args['include'] ) ) ? $this->args['include'] : explode( ',', str_replace( ' ', '', $this->args['include'] ) );
 			$args['include']  = array_map( 'absint', $include );
 			$args['per_page'] = count( $args['include'] );
 		}
 
 		if ( ! empty( $this->args['post_type'] ) ) {
-			$args['post_type'] = explode( ',', $this->args['post_type'] );
+			$args['post_type'] = ( is_array( $this->args['post_type'] ) ) ? $this->args['post_type'] : explode( ',', $this->args['post_type'] );
 			$args['post_type'] = array_map( 'trim', $args['post_type'] );
 		}
 

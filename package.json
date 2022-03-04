@@ -39,7 +39,8 @@
   },
   "engineStrict": true,
   "engines": {
-    "node": ">=8.11"
+    "node": ">=14",
+    "npm": ">=8"
   },
   "10up-toolkit": {
     "entry": {

@@ -923,7 +923,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Delete transient that indicates indexing is occuring
+	 * Delete transient that indicates indexing is occurring
 	 *
 	 * @since 3.1
 	 */
