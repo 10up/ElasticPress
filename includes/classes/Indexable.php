@@ -401,26 +401,52 @@ abstract class Indexable {
 	 * @return array[WP_Error|array]
 	 */
 	protected function send_bulk_index_request( $documents ) {
-		static $min_buffer_size = MB_IN_BYTES / 2;
-		static $max_buffer_size = 150 * MB_IN_BYTES;
-		static $current_buffer_size;
+		static $min_buffer_size, $max_buffer_size, $current_buffer_size, $incremental_step;
 
-		error_log( '' );
-		error_log( '' );
-		error_log( '' );
-		error_log( '==============================================' );
-		error_log( '============ STARTING A NEW BATCH ============' );
-		error_log( '==============================================' );
-		error_log( '' );
+		if ( ! $min_buffer_size ) {
+			/**
+			 * Filter the minimum buffer size for dynamic bulk index requests.
+			 *
+			 * @hook ep_dynamic_bulk_min_buffer_size
+			 * @since 4.0.0
+			 * @param {int} $min_buffer_size Min buffer size for dynamic bulk index (in bytes.)
+			 * @return {int} New size.
+			 */
+			$min_buffer_size = apply_filters( 'ep_dynamic_bulk_min_buffer_size', MB_IN_BYTES / 2 );
+		}
 
-		error_log( '' );
-		error_log( 'Documents count: ' . count( $documents ) );
-		error_log( 'Documents avg size: ' . ( mb_strlen( implode( '', $documents ) ) / count( $documents ) ) );
-		error_log( '' );
-		error_log( '==============================================' );
-		error_log( '' );
+		if ( ! $max_buffer_size ) {
+			/**
+			 * Filter the max buffer size for dynamic bulk index requests.
+			 *
+			 * @hook ep_dynamic_bulk_max_buffer_size
+			 * @since 4.0.0
+			 * @param {int} $max_buffer_size Max buffer size for dynamic bulk index (in bytes.)
+			 * @return {int} New size.
+			 */
+			$max_buffer_size = apply_filters( 'ep_dynamic_bulk_max_buffer_size', 150 * MB_IN_BYTES );
+		}
 
-		$incremental_step = MB_IN_BYTES / 2;
+		if ( ! $incremental_step ) {
+			/**
+			 * Filter the number of bytes the current buffer size should be incremented in case of success.
+			 *
+			 * @hook ep_dynamic_bulk_incremental_step
+			 * @since 4.0.0
+			 * @param {int} $incremental_step Number of bytes to add to the current buffer size.
+			 * @return {int} New incremental step.
+			 */
+			$incremental_step = apply_filters( 'ep_dynamic_bulk_incremental_step', MB_IN_BYTES / 2 );
+		}
+
+		/**
+		 * Perform actions before a new batch of documents is processed.
+		 *
+		 * @hook ep_before_send_dynamic_bulk_requests
+		 * @since 4.0.0
+		 * @param {array} $documents Array of documents to be sent to Elasticsearch.
+		 */
+		do_action( 'ep_before_send_dynamic_bulk_requests', $documents );
 
 		if ( ! $current_buffer_size ) {
 			$current_buffer_size = $min_buffer_size;
@@ -447,8 +473,14 @@ abstract class Indexable {
 				array_unshift( $documents, $next_document );
 			} else {
 				if ( mb_strlen( $next_document ) > $max_buffer_size ) {
-					error_log( 'Indexable too big. Request not sent.' );
-					error_log( '==============================================' );
+					/**
+					 * Perform actions when a post is bigger than the max buffer size.
+					 *
+					 * @hook ep_dynamic_bulk_post_too_big
+					 * @since 4.0.0
+					 * @param {string} $document JSON string of the post detected as too big.
+					 */
+					do_action( 'ep_dynamic_bulk_post_too_big', $next_document );
 					$results[] = new \WP_Error( 'ep_too_big_request_skipped', 'Indexable too big. Request not sent.' );
 					continue;
 				}
@@ -468,35 +500,35 @@ abstract class Indexable {
 			$request_time = timer_stop();
 			$requests++;
 
-			// @todo This needs to be removed before merge.
-			error_log( 'count( $body ): ' . count( $body ) );
-			error_log( 'count( $documents ): ' . count( $documents ) );
-			error_log( '$min_buffer_size: ' . $min_buffer_size );
-			error_log( '$max_buffer_size: ' . $max_buffer_size );
-			error_log( '$current_buffer_size: ' . $current_buffer_size );
-			error_log( 'Current request size: ' . mb_strlen( implode( '', $body ) ) );
-			error_log( 'ES Time: ' . ( is_array( $result ) && isset( $result['took'] ) ? $result['took'] / 1000 : '?' ) );
-			error_log( 'Request Time: ' . $request_time );
-			error_log( '==============================================' );
+			/**
+			 * Perform actions before a new batch of documents is processed.
+			 *
+			 * @hook ep_after_send_dynamic_bulk_request
+			 * @since 4.0.0
+			 * @param {WP_Error|array} $result              Result of the request.
+			 * @param {array}          $body                Array of documents sent to Elasticsearch.
+			 * @param {array}          $documents           Array of documents to be sent to Elasticsearch.
+			 * @param {int}            $min_buffer_size     Min buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $max_buffer_size     Max buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $current_buffer_size Current buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $request_time        Total time of the request.
+			 */
+			do_action( 'ep_after_send_dynamic_bulk_request', $result, $body, $documents, $min_buffer_size, $max_buffer_size, $current_buffer_size, $request_time );
 
 			// It failed, possibly adjust the buffer size and try again.
 			if ( is_wp_error( $result ) ) {
-				// Too many requests, wait.
+				// Too many requests, wait and try again.
 				if ( 429 === $result->get_error_code() ) {
 					sleep( 2 );
 				}
 
+				// If the error is not a "Request too big" then we really fail this batch of documents.
 				if ( 413 !== $result->get_error_code() ) {
 					$results[] = $result;
 					continue;
 				}
 
-				error_log( $result->get_error_code() . ' - ' . $result->get_error_message() );
-				error_log( '==============================================' );
-
 				if ( count( $body ) === 1 ) {
-					error_log( 'ONE POST TOO BIG' );
-					error_log( '==============================================' );
 					$max_buffer_size = min( $max_buffer_size, mb_strlen( implode( '', $body ) ) );
 					$results[]       = $result;
 					$body            = [];
@@ -505,9 +537,6 @@ abstract class Indexable {
 
 				// As the buffer is as small as possible, return the error.
 				if ( mb_strlen( implode( '', $body ) ) === $min_buffer_size ) {
-					error_log( 'THIS REALLY FAILED' );
-					error_log( '==============================================' );
-
 					$results[] = $result;
 					continue;
 				}
@@ -533,9 +562,15 @@ abstract class Indexable {
 			$body = [];
 		} while ( ! empty( $documents ) );
 
-		error_log( '' );
-		error_log( '# of requests: ' . $requests );
-		error_log( '==============================================' );
+		/**
+		 * Perform actions after a batch of documents was processed.
+		 *
+		 * @hook ep_after_send_dynamic_bulk_requests
+		 * @since 4.0.0
+		 * @param {array} $results  Array of results sent.
+		 * @param {int}   $requests Number of all requests sent.
+		 */
+		do_action( 'ep_after_send_dynamic_bulk_requests', $results, $requests );
 
 		return $results;
 	}
