@@ -319,7 +319,7 @@ This version requires a full reindex.
 * Custom sorting to features on the Features page. Props [@Rahmon](https://github.com/Rahmon) via [#1987](https://github.com/10up/ElasticPress/pull/1987)
 * Terms: add a new `facet` field to hold the entire term object in json format. Props [@moraleida](https://github.com/moraleida) via [#2071](https://github.com/10up/ElasticPress/pull/2071)
 * Elasticsearch connection check to Site Health page. Props [@spacedmonkey](https://github.com/spacedmonkey) and [@Rahmon](https://github.com/Rahmon) via [#2084](https://github.com/10up/ElasticPress/pull/2084)
-* Support for NOT LIKE operator for meta_query. Props [@Thalvik)](https://github.com/Thalvik) and [@Rahmon](https://github.com/Rahmon) via [#2157.](https://github.com/10up/ElasticPress/pull/2157)
+* Support for NOT LIKE operator for meta_query. Props [@Thalvik)](https://github.com/Thalvik) and [@Rahmon](https://github.com/Rahmon) via [#2157](https://github.com/10up/ElasticPress/pull/2157)
 * Support for `category__not_in` and `tag__not_in`. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#2174](https://github.com/10up/ElasticPress/pull/2174)
 * Support for `post__name_in`. Props [@jayhill90](https://github.com/jayhill90) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2194](https://github.com/10up/ElasticPress/pull/2194)
 * `$indexable_slug` property to `ElasticPress\Indexable\Post\SyncManager`. Props [@edwinsiebel](https://github.com/edwinsiebel) via [#2196](https://github.com/10up/ElasticPress/pull/2196)
@@ -579,6 +579,30 @@ Enhancements:
 * Integrate WooCommerce default filter by price widget with ES range query.
 
 See https://github.com/10up/ElasticPress/pulls?utf8=%E2%9C%93&q=is%3Apr+milestone%3A3.2.0+is%3Aclosed+
+
+## [3.1.4] - 2019-08-28
+Version 3.1.4 is a bug fix release.
+
+See fixes:
+https://github.com/10up/ElasticPress/pulls?q=is%3Apr+milestone%3A3.1.4+is%3Aclosed
+
+## [3.1.3] - 2019-08-22
+This is a bug fix release.
+* Check wpcli transient before integrating with queries.
+* Fix version comparison bug when comparing Elasticsearch versions.
+* Use proper taxonomy name for WooCommerce attributes.
+* Increase Elasticsearch minimum supported version to 5.0.
+* Fix product attribute archives.
+
+## [3.1.2] - 2019-08-16
+This is a bug fix release with some filter additions.
+
+- Add ep_es_query_results filter.
+- Add option to sync prior to shutdown.
+- Readme update around WPCLI post syncing. Props [@mmcachran](https://github.com/mmcachran).
+- Ignore sticky posts in `find_related`. Props [@columbian-chris](https://github.com/columbian-chris).
+- Weighting dashboard fixes around saving. [@oscarsanchez](https://github.com/oscarsanchez).
+- Weighting UI improvements. Props [@mlaroy](https://github.com/mlaroy).
 
 ## [3.1.1] - 2019-07-25
 ### Fixed
