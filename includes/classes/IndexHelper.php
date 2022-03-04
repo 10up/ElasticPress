@@ -609,7 +609,11 @@ class IndexHelper {
 						$should_retry = true;
 					}
 				} else {
-					$bulk_requests = $indexable->bulk_index_dynamically( $queued_items_ids );
+					if ( ! empty( $this->args['static_bulk'] ) ) {
+						$bulk_requests = [ $indexable->bulk_index( $queued_items_ids ) ];
+					} else {
+						$bulk_requests = $indexable->bulk_index_dynamically( $queued_items_ids );
+					}
 
 					$failed_objects = [];
 					foreach ( $bulk_requests as $return ) {
