@@ -63,6 +63,12 @@ $skip_install_url = add_query_arg(
 					<p class="ep-copy-text">
 						<?php echo wp_kses_post( __( 'The next step is to make sure you have a working Elasticsearch server. We recommend creating an <a href="https://elasticpress.io">ElasticPress.io</a> account or if you want you can set up your own hosting.', 'elasticpress' ) ); ?>
 					</p>
+					<?php if ( 2 === $install_status ) : ?>
+						<div class="setup-message">
+							<a class="setup-button" href="<?php echo esc_url( $setup_url ); ?>"><?php esc_html_e( 'Got hosting? Get Started', 'elasticpress' ); ?></a>
+							<p><a href="<?php echo esc_url( $skip_install_url ); ?>"><?php esc_html_e( 'Skip Install »', 'elasticpress' ); ?></a></p>
+						</div>
+					<?php endif; ?>
 				</div>
 				<div class="intro-box">
 					<div class="ep-circle <?php echo 3 === $install_status ? 'red-ep-circle' : 'white-ep-circle'; ?>">
@@ -71,7 +77,7 @@ $skip_install_url = add_query_arg(
 					<h2><?php esc_html_e( 'Select your features', 'elasticpress' ); ?></h2>
 					<div class="ep-copy-text">
 						<p><?php esc_html_e( 'ElasticPress will sync the data you select, then keep it up-to-date automatically.', 'elasticpress' ); ?></p>
-						<?php if ( 3 === $install_status ) { ?>
+						<?php if ( 3 === $install_status ) : ?>
 							<ul class="ep-feature-list">
 								<?php
 								$features = \ElasticPress\Features::factory()->registered_features;
@@ -123,9 +129,15 @@ $skip_install_url = add_query_arg(
 								}
 								?>
 							</ul>
-						<?php } ?>
-						<p><?php esc_html_e( 'Don\'t worry if you\'re not sure what features you need, you can always make changes to them later on.', 'elasticpress' ); ?></p>
+							<p><?php esc_html_e( 'Don\'t worry if you\'re not sure what features you need, you can always make changes to them later on.', 'elasticpress' ); ?></p>
+						<?php endif; ?>
 					</div>
+					<?php if ( 3 === $install_status ) : ?>
+						<div class="setup-message">
+							<button type="submit" class="setup-button"><?php esc_html_e( 'Save Features', 'elasticpress' ); ?></button>
+							<p><a href="<?php echo esc_url( $skip_install_url ); ?>"><?php esc_html_e( 'Skip Install »', 'elasticpress' ); ?></a></p>
+						</div>
+					<?php endif; ?>
 				</div>
 				<div class="intro-box">
 					<div class="ep-circle <?php echo 4 === $install_status ? 'red-ep-circle' : 'white-ep-circle'; ?>">
@@ -135,17 +147,13 @@ $skip_install_url = add_query_arg(
 					<p class="ep-copy-text">
 						<?php esc_html_e( 'Click below to index your content through ElasticPress. You can also activate optional Features such as Protected Content and Autosuggest in the Features page', 'elasticpress' ); ?>
 					</p>
+					<?php if ( 4 === $install_status ) : ?>
+						<div class="setup-message">
+							<a class="setup-button" href="<?php echo esc_url( $sync_url ); ?>"><?php esc_html_e( 'Index Your Content', 'elasticpress' ); ?></a>
+							<p><a href="<?php echo esc_url( $skip_install_url ); ?>"><?php esc_html_e( 'Skip Install »', 'elasticpress' ); ?></a></p>
+						</div>
+					<?php endif; ?>
 				</div>
-			</div>
-			<div class="setup-message">
-				<?php if ( 3 === $install_status ) : ?>
-					<button type="submit" class="setup-button"><?php esc_html_e( 'Save Features', 'elasticpress' ); ?></button>
-				<?php elseif ( 4 === $install_status ) : ?>
-					<a class="setup-button" href="<?php echo esc_url( $sync_url ); ?>"><?php esc_html_e( 'Index Your Content', 'elasticpress' ); ?></a>
-				<?php else : ?>
-					<a class="setup-button" href="<?php echo esc_url( $setup_url ); ?>"><?php esc_html_e( 'Got hosting? Get Started', 'elasticpress' ); ?></a>
-				<?php endif ?>
-				<p><a href="<?php echo esc_url( $skip_install_url ); ?>">Skip Install &#187;</a></p>
 			</div>
 		</form>
 	<?php endif; ?>
