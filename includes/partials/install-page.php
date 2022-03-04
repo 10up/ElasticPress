@@ -98,7 +98,26 @@ $skip_install_url = add_query_arg(
 												<?php checked( $should_be_checked ); ?>>
 											<?php echo esc_html( $feature->title ); ?>
 										</label>
-										<a href="#" class="ep-feature-info" title="See description"><span class="dashicons dashicons-info"></span></a>
+										<?php if ( $feature->summary ) : ?>
+											<span class="a11y-tip a11y-tip--no-delay">
+												<a href="<?php echo esc_url( $feature->docs_url ); ?>" class="a11y-tip__trigger ep-feature-info" target="_blank" rel="noreferrer noopener">
+													<span class="dashicons dashicons-info" role="presentation"></span>
+													<span class="screen-reader-text">
+														<?php
+														printf(
+															/* translators: %s: Feature name. */
+															esc_html__( 'Learn more about %s.', 'elasticpress' ),
+															esc_html( $feature->title )
+														);
+														?>
+													</span>
+												</a>
+												<span role="tooltip" class="a11y-tip__help a11y-tip__help--top">
+													<?php echo esc_html( $feature->summary ); ?>
+													<?php esc_html_e( 'Click to learn more.', 'elasticpress' ); ?>
+												</span>
+											</span>
+										<?php endif; ?>
 									</li>
 									<?php
 								}

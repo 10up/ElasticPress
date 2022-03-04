@@ -75,6 +75,7 @@
     "wpDependencyExternals": true
   },
   "dependencies": {
+    "@10up/component-tooltip": "^2.0.0",
     "@wordpress/api-fetch": "^5.2.6",
     "@wordpress/components": "^19.1.1",
     "@wordpress/date": "^4.2.3",

@@ -1,3 +1,5 @@
+@import "@10up/component-tooltip";
+
 :root {
 	--statusOk: #6aa000;
 	--statusWarning: #e3e600;
@@ -483,10 +485,6 @@ h2.ep-list-features {
 	position: relative;
 	text-align: center;
 
-	& a {
-		font-weight: 700;
-	}
-
 	& h2 {
 		color: #626262;
 		height: 8%;
@@ -501,6 +499,7 @@ h2.ep-list-features {
 
 .ep-feature-list {
 	display: inline-block;
+	margin: 0;
 	text-align: left;
 	vertical-align: top;
 
@@ -508,7 +507,10 @@ h2.ep-list-features {
 		align-items: center;
 		display: flex;
 		margin: 4px 3px;
-		white-space: nowrap;
+	}
+
+	& [role="tooltip"].a11y-tip__help--top {
+		font-size: inherit;
 	}
 }
 
@@ -565,6 +567,10 @@ h2.ep-list-features {
 
 .ep-copy-text {
 	padding: 0 15% 0 15%;
+
+	& a {
+		font-weight: 700;
+	}
 }
 
 @media (--tablet-max) {
@@ -647,7 +653,6 @@ h2.ep-list-features {
 
 .setup-message {
 	clear: both;
-	padding: 2em 0;
 	text-align: center;
 }
 
