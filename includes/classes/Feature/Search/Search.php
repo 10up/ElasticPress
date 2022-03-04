@@ -53,7 +53,12 @@ class Search extends Feature {
 
 		$this->title = esc_html__( 'Post Search', 'elasticpress' );
 
+		$this->summary = __( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#post-search', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
+
 		$this->default_settings         = [
 			'decaying_enabled'     => '1',
 			'synonyms_editor_mode' => 'simple',
@@ -536,17 +541,6 @@ class Search extends Feature {
 		}
 
 		return $formatted_args;
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 3.0
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**

@@ -31,6 +31,10 @@ class WooCommerce extends Feature {
 
 		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
 
+		$this->summary = __( '“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#woocommerce', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
@@ -799,17 +803,6 @@ class WooCommerce extends Feature {
 			add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
 			add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		}
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( '“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**

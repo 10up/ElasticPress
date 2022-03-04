@@ -32,6 +32,10 @@ class ProtectedContent extends Feature {
 
 		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
 
+		$this->summary = __( 'Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#protected-content', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
@@ -309,17 +313,6 @@ class ProtectedContent extends Feature {
 			}
 		}
 
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**
