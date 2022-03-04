@@ -96,16 +96,29 @@ class IndexHelper {
 
 		$start_date_time = date_create( 'now', wp_timezone() );
 
+		/**
+		 * There are two ways to control pagination of things that need to be indexed:
+		 * - offset:   The number of items to skip on each iteration
+		 * - id range: Given an ID range, process a batch and set the upper limit as the last processed ID -1
+		 *
+		 * Although in the first case offset is updated to really control the flow, in the
+		 * second it is updated to simply output the number of items processed.
+		 */
+		$pagination_method = ( ! empty( $this->args['offset'] ) || ! empty( $this->args['post-ids'] ) || ! empty( $this->args['include'] ) ) ?
+			'offset' :
+			'id_range';
+
 		$this->index_meta = [
-			'method'          => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
-			'put_mapping'     => ! empty( $this->args['put_mapping'] ),
-			'offset'          => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
-			'start'           => true,
-			'sync_stack'      => [],
-			'network_alias'   => [],
-			'start_time'      => microtime( true ),
-			'start_date_time' => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
-			'totals'          => [
+			'method'            => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
+			'put_mapping'       => ! empty( $this->args['put_mapping'] ),
+			'offset'            => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
+			'pagination_method' => $pagination_method,
+			'start'             => true,
+			'sync_stack'        => [],
+			'network_alias'     => [],
+			'start_time'        => microtime( true ),
+			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
+			'totals'            => [
 				'total'      => 0,
 				'synced'     => 0,
 				'skipped'    => 0,
@@ -381,12 +394,29 @@ class IndexHelper {
 		$this->temporary_wp_actions = $wp_actions;
 
 		$this->current_query = $this->get_objects_to_index();
-		$is_offsetting       = 0 !== $this->index_meta['offset'];
 
-		$this->index_meta['from']                       = $is_offsetting ? $this->index_meta['offset'] : 1;
-		$this->index_meta['show_skip_message']          = $is_offsetting && ! isset( $this->index_meta['show_skip_message'] );
+		$this->index_meta['from']                       = $this->index_meta['offset'];
 		$this->index_meta['found_items']                = (int) $this->current_query['total_objects'];
 		$this->index_meta['current_sync_item']['total'] = $this->index_meta['found_items'];
+
+		if ( 'offset' === $this->index_meta['pagination_method'] ) {
+			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
+
+			if ( empty( $this->index_meta['current_sync_item']['shown_skip_message'] ) ) {
+				$this->index_meta['current_sync_item']['shown_skip_message'] = true;
+
+				$this->output(
+					sprintf(
+						/* translators: 1. Number of objects skipped 2. Indexable type */
+						esc_html__( 'Skipping %1$d %2$s...', 'elasticpress' ),
+						$this->index_meta['from'],
+						esc_html( strtolower( $indexable->labels['plural'] ) )
+					),
+					'info',
+					'index_objects'
+				);
+			}
+		}
 
 		if ( $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
 			$this->index_next_batch();
@@ -450,8 +480,11 @@ class IndexHelper {
 
 		$args = [
 			'per_page' => absint( $per_page ),
-			'offset'   => $this->index_meta['offset'],
 		];
+
+		if ( 'offset' === $this->index_meta['pagination_method'] ) {
+			$args['offset'] = $this->index_meta['offset'];
+		}
 
 		if ( ! empty( $this->args['post-ids'] ) ) {
 			$args['include'] = $this->args['post-ids'];
@@ -477,8 +510,7 @@ class IndexHelper {
 			$args['ep_indexing_lower_limit_object_id'] = $this->args['lower_limit_object_id'];
 		}
 
-		if ( ! empty( $args['ep_indexing_advanced_pagination'] ) &&
-			! empty( $this->index_meta['current_sync_item']['last_processed_object_id'] ) &&
+		if ( ! empty( $this->index_meta['current_sync_item']['last_processed_object_id'] ) &&
 			is_numeric( $this->index_meta['current_sync_item']['last_processed_object_id'] )
 		) {
 			$args['ep_indexing_last_processed_object_id'] = $this->index_meta['current_sync_item']['last_processed_object_id'];
@@ -667,21 +699,6 @@ class IndexHelper {
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
-		}
-
-		if ( isset( $this->index_meta['show_skip_message'] ) && $this->index_meta['show_skip_message'] ) {
-			$this->output(
-				sprintf(
-					/* translators: 1. Number of objects skipped 2. Indexable type */
-					esc_html__( 'Skipping %1$d %2$s...', 'elasticpress' ),
-					$this->index_meta['from'],
-					esc_html( strtolower( $indexable->labels['plural'] ) )
-				),
-				'info',
-				'index_next_batch'
-			);
-
-			$this->index_meta['show_skip_message'] = false;
 		}
 
 		$this->output(
