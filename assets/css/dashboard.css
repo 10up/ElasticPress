@@ -478,14 +478,31 @@ h2.ep-list-features {
 .intro-container {
 	display: flex;
 	justify-content: center;
-	padding-left: 10%;
-	padding-right: 10%;
+	margin-left: 10%;
+	margin-right: 10%;
 	position: relative;
 	text-align: center;
+
+	& a {
+		font-weight: 700;
+	}
+
+	& h2 {
+		color: #626262;
+		height: 8%;
+	}
+
+	& p {
+		margin-left: auto;
+		margin-right: auto;
+		max-width: 300px;
+	}
 }
 
 .ep-feature-list {
+	display: inline-block;
 	text-align: left;
+	vertical-align: top;
 
 	& li {
 		align-items: center;
@@ -507,19 +524,6 @@ h2.ep-list-features {
 
 .intro-box {
 	width: 33%;
-}
-
-.intro-container a {
-	font-weight: 700;
-}
-
-.intro-container h2 {
-	color: #626262;
-	height: 8%;
-}
-
-.intro-container p {
-	max-width: 300px;
 }
 
 .intro-container-success {
@@ -583,7 +587,6 @@ h2.ep-list-features {
 	height: 6em;
 	line-height: 2.8em;
 	margin: 0 1em;
-	position: relative;
 	text-align: center;
 	width: 6em;
 }
@@ -601,23 +604,16 @@ h2.ep-list-features {
 	color: #fff;
 }
 
-.ep-middle-circle::after {
+.ep-circle--first::after {
 	background: #d4d4d4;
 	content: "";
 	height: 0.2em;
-	left: -14em;
+	left: 50%;
 	position: absolute;
 	top: 2.9em;
-	width: 46em;
+	transform: translateX(-50%);
+	width: 75%;
 	z-index: -1;
-}
-
-@media (--wide-max) {
-
-	.ep-middle-circle::after {
-		left: -8em;
-		width: 35em;
-	}
 }
 
 @media (--tablet-min) {
@@ -655,8 +651,10 @@ h2.ep-list-features {
 	text-align: center;
 }
 
-.setup-message .setup-button {
+.setup-button {
+	-webkit-appearance: none;
 	background-color: #e63e3b;
+	border: none;
 	border-radius: 10px;
 	box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.25);
 	color: #fff;
@@ -666,7 +664,7 @@ h2.ep-list-features {
 	text-decoration: none;
 }
 
-.setup-message .setup-button:hover {
+.setup-button:hover {
 	background-color: #b93431;
 	color: #ffe8ed;
 }

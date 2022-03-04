@@ -49,14 +49,14 @@ $skip_install_url = add_query_arg(
 			<?php wp_nonce_field( 'ep_install_page', 'ep_install_page_nonce' ); ?>
 			<div class="intro-container">
 				<div class="intro-box">
-					<div class="ep-circle white-ep-circle">
+					<div class="ep-circle ep-circle--first white-ep-circle">
 						<?php esc_html_e( 'Step', 'elasticpress' ); ?><p>1</p>
 					</div>
 					<h2><?php esc_html_e( 'Plugin has been installed', 'elasticpress' ); ?></h2>
 					<p class="ep-copy-text"><?php esc_html_e( 'You\'ve taken your first step into a faster and more flexible search and query engine for WordPress', 'elasticpress' ); ?></p>
 				</div>
 				<div class="intro-box">
-					<div class="ep-circle <?php echo 2 === $install_status ? 'red-ep-circle' : 'white-ep-circle'; ?> ep-middle-circle">
+					<div class="ep-circle <?php echo 2 === $install_status ? 'red-ep-circle' : 'white-ep-circle'; ?>">
 						<?php esc_html_e( 'Step', 'elasticpress' ); ?><p>2</p>
 					</div>
 					<h2><?php esc_html_e( 'Set up Elasticsearch hosting', 'elasticpress' ); ?></h2>
