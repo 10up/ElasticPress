@@ -36,7 +36,7 @@ $skip_install_url = add_query_arg(
 	<?php if ( isset( $_GET['install_complete'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification ?>
 		<div class="intro-container-success">
 			<h2 class="setup-complete">Setup Completed!</h2>
-			<div class="ep-circle red-ep-circle ep-config-success">
+			<div class="ep-circle ep-circle--active ep-config-success">
 				<span class="dashicons dashicons-yes"></span>
 			</div>
 			<p><?php esc_html_e( 'That’s it! You’re ready to experience faster search and gain the ability to create powerful queries on your site!', 'elasticpres' ); ?></p>
@@ -56,7 +56,7 @@ $skip_install_url = add_query_arg(
 					<p class="ep-copy-text"><?php esc_html_e( 'You\'ve taken your first step into a faster and more flexible search and query engine for WordPress', 'elasticpress' ); ?></p>
 				</div>
 				<div class="intro-box">
-					<div class="ep-circle <?php echo 2 === $install_status ? 'red-ep-circle' : 'white-ep-circle'; ?>">
+					<div class="ep-circle <?php echo 2 === $install_status ? 'ep-circle--active' : ''; ?>">
 						<?php esc_html_e( 'Step', 'elasticpress' ); ?><p>2</p>
 					</div>
 					<h2><?php esc_html_e( 'Set up Elasticsearch hosting', 'elasticpress' ); ?></h2>
@@ -71,7 +71,7 @@ $skip_install_url = add_query_arg(
 					<?php endif; ?>
 				</div>
 				<div class="intro-box">
-					<div class="ep-circle <?php echo 3 === $install_status ? 'red-ep-circle' : 'white-ep-circle'; ?>">
+					<div class="ep-circle <?php echo 3 === $install_status ? 'ep-circle--active' : ''; ?>">
 						<?php esc_html_e( 'Step', 'elasticpress' ); ?><p>3</p>
 					</div>
 					<h2><?php esc_html_e( 'Select your features', 'elasticpress' ); ?></h2>
@@ -140,7 +140,7 @@ $skip_install_url = add_query_arg(
 					<?php endif; ?>
 				</div>
 				<div class="intro-box">
-					<div class="ep-circle <?php echo 4 === $install_status ? 'red-ep-circle' : 'white-ep-circle'; ?>">
+					<div class="ep-circle <?php echo 4 === $install_status ? 'ep-circle--active' : ''; ?>">
 						<?php esc_html_e( 'Step', 'elasticpress' ); ?><p>4</p>
 					</div>
 					<h2><?php esc_html_e( 'Index your content', 'elasticpress' ); ?></h2>
