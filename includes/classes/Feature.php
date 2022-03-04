@@ -68,6 +68,14 @@ abstract class Feature {
 	 */
 	public $group_order;
 
+	/**
+	 * True if activation of this feature should be available during
+	 * installation.
+	 *
+	 * @since 4.0.0
+	 * @var boolean
+	 */
+	public $available_during_installation = false;
 
 	/**
 	 * Run on every page load for feature to set itself up

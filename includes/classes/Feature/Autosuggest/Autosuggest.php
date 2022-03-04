@@ -50,6 +50,8 @@ class Autosuggest extends Feature {
 			'trigger_ga_event'     => '0',
 		];
 
+		$this->available_during_installation = true;
+
 		parent::__construct();
 	}
 

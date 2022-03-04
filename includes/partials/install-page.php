@@ -70,14 +70,20 @@ $skip_install_url = add_query_arg(
 					</div>
 					<h2><?php esc_html_e( 'Select your features', 'elasticpress' ); ?></h2>
 					<div class="ep-copy-text">
-						<p><?php esc_html_e( 'Select which features you would like to have enabled.', 'elasticpress' ); ?></p>
+						<p><?php esc_html_e( 'ElasticPress will sync the data you select, then keep it up-to-date automatically.', 'elasticpress' ); ?></p>
 						<?php if ( 3 === $install_status ) { ?>
 							<ul class="ep-feature-list">
 								<?php
 								$features = \ElasticPress\Features::factory()->registered_features;
 								foreach ( $features as $feature ) {
-									$feature_status_code = (int) $feature->requirements_status()->code;
+									$feature_status_code  = (int) $feature->requirements_status()->code;
+									$activation_available = $feature->available_during_installation;
+
 									if ( 2 === $feature_status_code ) {
+										continue;
+									}
+
+									if ( ! $activation_available ) {
 										continue;
 									}
 
@@ -99,6 +105,7 @@ $skip_install_url = add_query_arg(
 								?>
 							</ul>
 						<?php } ?>
+						<p><?php esc_html_e( 'Don\'t worry if you\'re not sure what features you need, you can always make changes to them later on.', 'elasticpress' ); ?></p>
 					</div>
 				</div>
 				<div class="intro-box">

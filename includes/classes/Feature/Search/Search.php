@@ -62,6 +62,8 @@ class Search extends Feature {
 			'highlight_tag'        => 'mark',
 		];
 
+		$this->available_during_installation = true;
+
 		parent::__construct();
 	}
 

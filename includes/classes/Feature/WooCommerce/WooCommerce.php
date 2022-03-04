@@ -33,6 +33,8 @@ class WooCommerce extends Feature {
 
 		$this->requires_install_reindex = true;
 
+		$this->available_during_installation = true;
+
 		parent::__construct();
 	}
 
