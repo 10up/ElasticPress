@@ -566,6 +566,8 @@ class IndexHelper {
 				 */
 				do_action( 'ep_index_batch_new_attempt', $attempts, $total_attempts );
 
+				$should_retry = false;
+
 				if ( $nobulk ) {
 					$object_id = reset( $queued_items_ids );
 					$return    = $indexable->index( $object_id, true );
@@ -602,30 +604,47 @@ class IndexHelper {
 							$failed_objects[ $object->ID ] = null;
 						}
 					}
+
+					if ( is_wp_error( $return ) ) {
+						$should_retry = true;
+					}
 				} else {
-					$return = $indexable->bulk_index( $queued_items_ids );
+					if ( ! empty( $this->args['static_bulk'] ) ) {
+						$bulk_requests = [ $indexable->bulk_index( $queued_items_ids ) ];
+					} else {
+						$bulk_requests = $indexable->bulk_index_dynamically( $queued_items_ids );
+					}
 
-					/**
-					 * Fires after bulk indexing
-					 *
-					 * @hook ep_cli_{indexable_slug}_bulk_index
-					 * @param  {array} $objects Objects being indexed
-					 * @param  {array} response Elasticsearch bulk index response
-					 */
-					do_action( "ep_cli_{$indexable->slug}_bulk_index", $queued_items, $return );
+					$failed_objects = [];
+					foreach ( $bulk_requests as $return ) {
+						/**
+						 * Fires after bulk indexing
+						 *
+						 * @hook ep_cli_{indexable_slug}_bulk_index
+						 * @param  {array} $objects Objects being indexed
+						 * @param  {array} response Elasticsearch bulk index response
+						 */
+						do_action( "ep_cli_{$indexable->slug}_bulk_index", $queued_items, $return );
 
-					if ( is_array( $return ) && isset( $return['errors'] ) && true === $return['errors'] ) {
-						$failed_objects = array_filter(
-							$return['items'],
-							function( $item ) {
-								return ! empty( $item['index']['error'] );
-							}
-						);
+						if ( is_wp_error( $return ) ) {
+							$should_retry = true;
+						}
+						if ( is_array( $return ) && isset( $return['errors'] ) && true === $return['errors'] ) {
+							$failed_objects = array_merge(
+								$failed_objects,
+								array_filter(
+									$return['items'],
+									function( $item ) {
+										return ! empty( $item['index']['error'] );
+									}
+								)
+							);
+						}
 					}
 				}
 
 				// Things worked, we don't need to try again.
-				if ( ! is_wp_error( $return ) && ! count( $failed_objects ) ) {
+				if ( ! $should_retry && ! count( $failed_objects ) ) {
 					break;
 				}
 			}
@@ -839,9 +858,9 @@ class IndexHelper {
 	 * Output a message.
 	 *
 	 * @since 4.0.0
-	 * @param string $message_text Message to be outputted
-	 * @param string $type         Type of message
-	 * @param string $context      Context of the output
+	 * @param string|array $message_text Message to be outputted
+	 * @param string       $type         Type of message
+	 * @param string       $context      Context of the output
 	 * @return void
 	 */
 	protected function output( $message_text, $type = 'info', $context = '' ) {
