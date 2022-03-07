@@ -2,12 +2,12 @@
  * Sanitize an argument value based on its type.
  *
  * @param {*}                                     value                 The value.
- * @param {Object}                                options               Sanitization options.
+ * @param {object}                                options               Sanitization options.
  * @param {'number'|'numbers'|'string'|'strings'} options.type          (optional) Value type.
  * @param {Array}                                 options.allowedValues (optional) Allowed values.
  * @param {*}                                     options.default       (optional) Default value.
  * @param {boolean}                               [useDefaults]         Whether to return default values.
- * @return {*} Sanitized value.
+ * @returns {*} Sanitized value.
  */
 export const sanitizeArg = (value, options, useDefaults = true) => {
 	let sanitizedValue = null;
@@ -57,12 +57,12 @@ export const sanitizeArg = (value, options, useDefaults = true) => {
  * Sanitize a parameter value based on its type.
  *
  * @param {*}                                     value                 The value.
- * @param {Object}                                options               Sanitization options.
+ * @param {object}                                options               Sanitization options.
  * @param {'number'|'numbers'|'string'|'strings'} options.type          (optional) Value type.
  * @param {Array}                                 options.allowedValues (optional) Allowed values.
  * @param {*}                                     options.default       (optional) Default value.
  * @param {boolean}                               [useDefaults]         Whether to return default values.
- * @return {*} Sanitized value.
+ * @returns {*} Sanitized value.
  */
 export const sanitizeParam = (value, options, useDefaults = true) => {
 	let sanitizedValue = null;

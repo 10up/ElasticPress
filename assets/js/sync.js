@@ -531,7 +531,7 @@ function updateLastSyncDateTime(dateValue) {
 /**
  * Check if a destructive index is running
  *
- * @return {boolean} Wheter or not is a destructive index
+ * @returns {boolean} Wheter or not is a destructive index
  */
 function isDestructiveIndex() {
 	return activeBox === deleteAndSyncBox;

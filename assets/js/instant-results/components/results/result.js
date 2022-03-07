@@ -15,9 +15,9 @@ const { gmdateI18n } = wp.date;
 /**
  * Search result.
  *
- * @param {Object} props     Component props.
- * @param {Object} props.hit Elasticsearch hit.
- * @return {WPElement} Component element.
+ * @param {object} props     Component props.
+ * @param {object} props.hit Elasticsearch hit.
+ * @returns {WPElement} Component element.
  */
 export default ({ hit }) => {
 	const {
