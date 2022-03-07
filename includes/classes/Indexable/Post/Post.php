@@ -335,6 +335,8 @@ class Post extends Indexable {
 		 */
 		$mapping = apply_filters( 'ep_post_mapping', $mapping );
 
+		delete_transient( 'ep_post_mapping_version' );
+
 		return $mapping;
 	}
 
@@ -385,20 +387,6 @@ class Post extends Indexable {
 		 * @return  {string} New version string
 		 */
 		return apply_filters( 'ep_post_mapping_version_determined', $version );
-	}
-
-	/**
-	 * Send mapping to Elasticsearch
-	 *
-	 * @since  3.0
-	 * @return array
-	 */
-	public function put_mapping() {
-		$mapping = $this->generate_mapping();
-
-		delete_transient( 'ep_post_mapping_version' );
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
 
 	/**

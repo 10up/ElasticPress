@@ -801,18 +801,6 @@ class Comment extends Indexable {
 	}
 
 	/**
-	 * Put mapping for comments
-	 *
-	 * @since  3.6.0
-	 * @return boolean
-	 */
-	public function put_mapping() {
-		$mapping = $this->generate_mapping();
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
-	}
-
-	/**
 	 * Returns indexable comment types
 	 *
 	 * @since  3.6.0

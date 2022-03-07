@@ -1083,11 +1083,15 @@ abstract class Indexable {
 	}
 
 	/**
-	 * Must implement a method that handles sending mapping to ES
+	 * Send mapping to Elasticsearch
 	 *
 	 * @return boolean
 	 */
-	abstract public function put_mapping();
+	public function put_mapping() {
+		$mapping = $this->generate_mapping();
+
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+	}
 
 	/**
 	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
@@ -1109,9 +1113,13 @@ abstract class Indexable {
 	abstract public function query_db( $args );
 
 	/**
-	 * Must implement a method that generates the mapping array.
+	 * Shim function for backwards-compatibility on custom Indexables.
 	 *
 	 * @return array
 	 */
-	abstract public function generate_mapping();
+	public function generate_mapping() {
+		_doing_it_wrong( __METHOD__, 'The Indexable class should not call generate_mapping() directly.', 'ElasticPress 4.0' );
+
+		return [];
+	}
 }
