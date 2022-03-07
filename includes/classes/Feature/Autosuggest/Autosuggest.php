@@ -42,6 +42,10 @@ class Autosuggest extends Feature {
 
 		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
+		$this->summary = __( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#autosuggest', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		$this->default_settings = [
@@ -50,18 +54,9 @@ class Autosuggest extends Feature {
 			'trigger_ga_event'     => '0',
 		];
 
-		parent::__construct();
-	}
+		$this->available_during_installation = true;
 
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 2.4
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' ); ?></p>
-		<?php
+		parent::__construct();
 	}
 
 	/**

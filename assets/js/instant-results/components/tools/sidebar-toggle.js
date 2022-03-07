@@ -13,7 +13,7 @@ import Context from '../../context';
 /**
  * Open sidebar component.
  *
- * @return {WPElement} Element.
+ * @returns {WPElement} Element.
  */
 export default () => {
 	const {

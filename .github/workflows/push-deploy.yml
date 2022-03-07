@@ -15,10 +15,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: install node v14
-      uses: actions/setup-node@v1
+    - name: install node v16
+      uses: actions/setup-node@v2
       with:
-        node-version: 14
+        node-version: 16
 
     - name: Build
       run: |

@@ -16,10 +16,10 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Price range facet.
  *
- * @param {Object}  props               Props.
+ * @param {object}  props               Props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
  * @param {string}  props.label         Facet label.
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label }) => {
 	const {

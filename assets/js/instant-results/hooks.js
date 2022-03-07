@@ -7,7 +7,7 @@ import { apiEndpoint, apiHost } from './config';
  *
  * @param {Function} callback Function to debounce.
  * @param {number}   delay    Milliseconds to delay.
- * @return {Function} Debounced function.
+ * @returns {Function} Debounced function.
  */
 export const useDebounce = (callback, delay) => {
 	const timeout = useRef(null);
@@ -27,7 +27,7 @@ export const useDebounce = (callback, delay) => {
 /**
  * Get a callback function for retrieving search results.
  *
- * @return {Function} Memoized callback function for retrieving search results.
+ * @returns {Function} Memoized callback function for retrieving search results.
  */
 export const useGetResults = () => {
 	const abort = useRef(new AbortController());
@@ -37,7 +37,7 @@ export const useGetResults = () => {
 	 * Get new search results from the API.
 	 *
 	 * @param {URLSearchParams} urlParams Query arguments.
-	 * @return {Promise} Request promise.
+	 * @returns {Promise} Request promise.
 	 */
 	const getResults = async (urlParams) => {
 		const url = `${apiHost}${apiEndpoint}?${urlParams.toString()}`;

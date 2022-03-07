@@ -13,12 +13,12 @@ import { __ } from '@wordpress/i18n';
 /**
  * Modal components.
  *
- * @param {Object}    props          Component props.
+ * @param {object}    props          Component props.
  * @param {WPElement} props.children Component children.
  * @param {boolean}   props.isOpen   Whether the modal is open.
  * @param {Function}  props.onClose  Callback to run when modal is closed.
- * @param {Object}    ref            Ref.
- * @return {WPElement} React element.
+ * @param {object}    ref            Ref.
+ * @returns {WPElement} React element.
  */
 const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
 	/**
@@ -43,7 +43,7 @@ const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
 	/**
 	 * Handle binding events to outside DOM elements.
 	 *
-	 * @return {Function} Clean up function that removes events.
+	 * @returns {Function} Clean up function that removes events.
 	 */
 	const handleEvents = () => {
 		const { current: modalEl } = ref;

@@ -11,9 +11,9 @@ import Context from '../../context';
 /**
  * Search field component.
  *
- * @param {Object}    props          Props.
+ * @param {object}    props          Props.
  * @param {WPElement} props.children Children.
- * @return {WPElement} Element.
+ * @returns {WPElement} Element.
  */
 export default ({ children }) => {
 	const {

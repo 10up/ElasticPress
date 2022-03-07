@@ -7,8 +7,8 @@ import { sanitizeArg, sanitizeParam } from './utilities';
 /**
  * Clear facet filters from a set of args.
  *
- * @param {Object} args Args to clear facets from.
- * @return {Object} Cleared args.
+ * @param {object} args Args to clear facets from.
+ * @returns {object} Cleared args.
  */
 export const clearFacetsFromArgs = (args) => {
 	const clearedArgs = { ...args };
@@ -32,8 +32,8 @@ export const clearFacetsFromArgs = (args) => {
  * Format a number as a price.
  *
  * @param {number} number  Number to format.
- * @param {Object} options Formatter options.
- * @return {string} Formatted number.
+ * @param {object} options Formatter options.
+ * @returns {string} Formatted number.
  */
 export const formatPrice = (number, options) => {
 	const format = new Intl.NumberFormat(navigator.language, {
@@ -50,7 +50,7 @@ export const formatPrice = (number, options) => {
  * Get the post types from a search form.
  *
  * @param {HTMLFormElement} form Form element.
- * @return {Array} Post types.
+ * @returns {Array} Post types.
  */
 export const getPostTypesFromForm = (form) => {
 	const data = new FormData(form);
@@ -69,15 +69,15 @@ export const getPostTypesFromForm = (form) => {
 /**
  * Get permalink URL parameters from args.
  *
- * @typedef {Object} ArgSchema
+ * @typedef {object} ArgSchema
  * @property {string}    type            Arg type.
  * @property {any}       [default]       Default arg value.
  * @property {Array}     [allowedValues] Array of allowed values.
  *
- * @param    {Object}    args            Args
+ * @param    {object}    args            Args
  * @param    {ArgSchema} schema          Args schema.
  * @param    {string}    [prefix]        Prefix to prepend to args.
- * @return {URLSearchParams} URLSearchParams instance.
+ * @returns {URLSearchParams} URLSearchParams instance.
  */
 export const getUrlParamsFromArgs = (args, schema, prefix = '') => {
 	const urlParams = new URLSearchParams();
@@ -97,7 +97,7 @@ export const getUrlParamsFromArgs = (args, schema, prefix = '') => {
 /**
  * Build request args from URL parameters using a given schema.
  *
- * @typedef {Object} ArgSchema
+ * @typedef {object} ArgSchema
  * @property {string}                     type            Arg type.
  * @property {any}                        [default]       Default arg value.
  * @property {Array}                      [allowedValues] Array of allowed values.
@@ -106,7 +106,7 @@ export const getUrlParamsFromArgs = (args, schema, prefix = '') => {
  * @param    {object.<string, ArgSchema>} schema          Schema to build args from.
  * @param    {string}                     [prefix]        Parameter prefix.
  * @param    {boolean}                    [useDefaults]   Whether to populate params with default values.
- * @return {object.<string, any>} Query args.
+ * @returns {object.<string, any>} Query args.
  */
 export const getArgsFromUrlParams = (urlParams, schema, prefix = '', useDefaults = true) => {
 	const args = Object.entries(schema).reduce((args, [arg, options]) => {

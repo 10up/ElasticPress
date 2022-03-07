@@ -15,7 +15,7 @@ import Sort from '../tools/sort';
 /**
  * Search results component.
  *
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default () => {
 	const {

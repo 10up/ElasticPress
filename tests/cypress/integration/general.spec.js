@@ -19,7 +19,7 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 		cy.deactivatePlugin('fake-new-activation', 'wpCli');
 	});
 
-	it('Can sync all the posts if user setup plugin for the first time', () => {
+	it('Can select features if user is setting up plugin for the first time', () => {
 		cy.login();
 
 		cy.deactivatePlugin('elasticpress', 'wpCli');
@@ -27,7 +27,7 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 
-		cy.get('.setup-button').should('contain.text', 'Index Your Content');
+		cy.get('.setup-button').should('contain.text', 'Save Features');
 
 		cy.deactivatePlugin('fake-new-activation', 'wpCli');
 	});

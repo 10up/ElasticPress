@@ -27,7 +27,7 @@ import Modal from './components/common/modal';
 /**
  * component.
  *
- * @return {WPElement} Element.
+ * @returns {WPElement} Element.
  */
 const App = () => {
 	const getResults = useGetResults();
@@ -66,7 +66,7 @@ const App = () => {
 	/**
 	 * Update search results.
 	 *
-	 * @param {Object} response Search results.
+	 * @param {object} response Search results.
 	 */
 	const updateResults = useCallback((response) => {
 		if (response) {
@@ -170,7 +170,7 @@ const App = () => {
 	/**
 	 * Bind events to outside elements.
 	 *
-	 * @return {Function} A cleanup function that unbinds the events.
+	 * @returns {Function} A cleanup function that unbinds the events.
 	 */
 	const handleEvents = () => {
 		const inputs = document.querySelectorAll('form input[type="search"');

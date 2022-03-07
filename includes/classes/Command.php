@@ -646,6 +646,9 @@ class Command extends WP_CLI_Command {
 	 * [--nobulk]
 	 * : Disable bulk indexing
 	 *
+	 * [--static-bulk]
+	 * : Do not use dynamic bulk requests, i.e., send only one request per batch of documents.
+	 *
 	 * [--show-errors]
 	 * : Show all errors
 	 *
@@ -741,13 +744,14 @@ class Command extends WP_CLI_Command {
 
 		$index_args = [
 			'method'         => 'cli',
-			'total_attempts' => 3,
+			'total_attempts' => 1,
 			'indexables'     => $indexables,
 			'put_mapping'    => ! empty( $setup_option ),
 			'output_method'  => [ $this, 'index_output' ],
 			'network_wide'   => ( ! empty( $assoc_args['network-wide'] ) ) ? $assoc_args['network-wide'] : null,
 			'nobulk'         => $no_bulk,
 			'offset'         => ( ! empty( $assoc_args['offset'] ) ) ? absint( $assoc_args['offset'] ) : 0,
+			'static_bulk'    => ( ! empty( $assoc_args['static-bulk'] ) ) ? $assoc_args['static-bulk'] : null,
 		];
 
 		if ( isset( $assoc_args['show-errors'] ) || ( isset( $assoc_args['show-bulk-errors'] ) && ! $no_bulk ) || ( isset( $assoc_args['show-nobulk-errors'] ) && $no_bulk ) ) {
