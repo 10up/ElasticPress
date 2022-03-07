@@ -4,7 +4,7 @@ import { State, Dispatch } from '../../context';
 /**
  * Synonym Inspector
  *
- * @return {React.FC} SolrEditor Component
+ * @returns {React.FC} SolrEditor Component
  */
 const SolrEditor = () => {
 	const state = useContext(State);

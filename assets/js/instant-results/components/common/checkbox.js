@@ -11,7 +11,7 @@ import { WPElement } from '@wordpress/element';
  * @param {string} props.id    Checkbox ID.
  * @param {string} props.label Checkbox label.
  *
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default ({ count, id, label, ...props }) => {
 	return (
