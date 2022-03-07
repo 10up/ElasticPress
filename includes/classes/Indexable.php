@@ -1107,4 +1107,11 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	abstract public function query_db( $args );
+
+	/**
+	 * Must implement a method that generates the mapping array.
+	 *
+	 * @return array
+	 */
+	abstract public function generate_mapping();
 }

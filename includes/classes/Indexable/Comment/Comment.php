@@ -750,12 +750,12 @@ class Comment extends Indexable {
 	}
 
 	/**
-	 * Put mapping for comments
+	 * Generate the mapping array
 	 *
-	 * @since  3.6.0
-	 * @return boolean
+	 * @since 4.0.0
+	 * @return array
 	 */
-	public function put_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -796,6 +796,18 @@ class Comment extends Indexable {
 		 * @return  {array} New mapping
 		 */
 		$mapping = apply_filters( 'ep_comment_mapping', $mapping );
+
+		return $mapping;
+	}
+
+	/**
+	 * Put mapping for comments
+	 *
+	 * @since  3.6.0
+	 * @return boolean
+	 */
+	public function put_mapping() {
+		$mapping = $this->generate_mapping();
 
 		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}

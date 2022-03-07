@@ -309,6 +309,36 @@ class Post extends Indexable {
 	}
 
 	/**
+	 * Generate the mapping array
+	 *
+	 * @since 4.0.0
+	 * @return array
+	 */
+	public function generate_mapping() {
+		$mapping_file = $this->get_mapping_name();
+
+		/**
+		 * Filter post indexable mapping file
+		 *
+		 * @hook ep_post_mapping_file
+		 * @param {string} $file Path to file
+		 * @return  {string} New file path
+		 */
+		$mapping = require apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file );
+
+		/**
+		 * Filter post indexable mapping
+		 *
+		 * @hook ep_post_mapping
+		 * @param {array} $mapping Mapping
+		 * @return  {array} New mapping
+		 */
+		$mapping = apply_filters( 'ep_post_mapping', $mapping );
+
+		return $mapping;
+	}
+
+	/**
 	 * Determine version of mapping currently on the post index.
 	 *
 	 * @since 3.6.2
@@ -364,25 +394,7 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function put_mapping() {
-		$mapping_file = $this->get_mapping_name();
-
-		/**
-		 * Filter post indexable mapping file
-		 *
-		 * @hook ep_post_mapping_file
-		 * @param {string} $file Path to file
-		 * @return  {string} New file path
-		 */
-		$mapping = require apply_filters( 'ep_post_mapping_file', __DIR__ . '/../../../mappings/post/' . $mapping_file );
-
-		/**
-		 * Filter post indexable mapping
-		 *
-		 * @hook ep_post_mapping
-		 * @param {array} $mapping Mapping
-		 * @return  {array} New mapping
-		 */
-		$mapping = apply_filters( 'ep_post_mapping', $mapping );
+		$mapping = $this->generate_mapping();
 
 		delete_transient( 'ep_post_mapping_version' );
 
