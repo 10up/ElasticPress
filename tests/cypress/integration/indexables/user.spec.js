@@ -37,7 +37,9 @@ describe('User Indexable', () => {
 		cy.maybeDisableFeature('users');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-users form').submit();
+		cy.get('.ep-feature-users .settings-button').click();
+		cy.get('.ep-feature-users [name="settings[active]"][value="1"]').click();
+		cy.get('.ep-feature-users .button-primary').click();
 		cy.on('window:confirm', () => {
 			return true;
 		});
