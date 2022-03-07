@@ -398,17 +398,26 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\Screen::factory()->set_current_screen( null );
 
 		// Instant Results not available.
+		$not_available_full_text = '<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to <a href="https://elasticpress.zendesk.com/hc/en-us/articles/4413938931853-Considerations-for-self-hosted-Elasticsearch-setups">install and configure a PHP proxy</a>.';
 		ElasticPress\AdminNotices::factory()->process_notices();
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
-		$this->assertContains( 'PLACEHOLDER: Instant Results not available', $notices['upgrade_sync']['html'] );
+		$this->assertContains( $not_available_full_text, $notices['upgrade_sync']['html'] );
+
+		// Instant Results available.
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$features_url = admin_url( 'network/admin.php?page=elasticpress' );
+		} else {
+			$features_url = admin_url( 'admin.php?page=elasticpress' );
+		}
+		$available_full_text = '<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click <a href="' . $features_url . '">here</a> to activate the feature and start your sync.';
 
 		// Instant Results available via custom proxy.
 		add_filter( 'ep_instant_results_available', '__return_true' );
 		ElasticPress\AdminNotices::factory()->process_notices();
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
-		$this->assertContains( 'PLACEHOLDER: Instant Results available via custom proxy', $notices['upgrade_sync']['html'] );
+		$this->assertContains( $available_full_text, $notices['upgrade_sync']['html'] );
 		remove_filter( 'ep_instant_results_available', '__return_true' );
 
 		// Instant Results available via EP.io.
@@ -416,7 +425,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
-		$this->assertContains( 'PLACEHOLDER: Instant Results available via EP.io', $notices['upgrade_sync']['html'] );
+		$this->assertContains( $available_full_text, $notices['upgrade_sync']['html'] );
 	}
 
 	/**

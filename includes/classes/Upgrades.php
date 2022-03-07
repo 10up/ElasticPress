@@ -191,12 +191,34 @@ class Upgrades {
 
 		$feature_status   = $instant_results->requirements_status();
 		$appended_message = '';
-		if ( 1 < $feature_status->code ) {
-			$appended_message = esc_html__( 'PLACEHOLDER: Instant Results not available', 'elasticpress' );
-		} elseif ( \ElasticPress\Utils\is_epio() ) {
-			$appended_message = esc_html__( 'PLACEHOLDER: Instant Results available via EP.io', 'elasticpress' );
+		if ( 1 >= $feature_status->code ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$features_url = admin_url( 'network/admin.php?page=elasticpress' );
+			} else {
+				$features_url = admin_url( 'admin.php?page=elasticpress' );
+			}
+
+			$appended_message = wp_kses_post(
+				sprintf(
+					/* translators: 1: <a> tag (Zendesk article); 2. </a>; 3: <a> tag (link to Features screen); 4. </a>; */
+					__( '%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click %3$shere%4$s to activate the feature and start your sync.', 'elasticpress' ),
+					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">',
+					'</a>',
+					'<a href="' . $features_url . '">',
+					'</a>'
+				)
+			);
 		} else {
-			$appended_message = esc_html__( 'PLACEHOLDER: Instant Results available via custom proxy', 'elasticpress' );
+			$appended_message = wp_kses_post(
+				sprintf(
+					/* translators: 1: <a> tag (Zendesk article about Instant Results); 2. </a>; 3: <a> tag (Zendesk article about self hosted Elasticsearch setups); 4. </a>; */
+					__( '%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to %3$sinstall and configure a PHP proxy%4$s.', 'elasticpress' ),
+					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">',
+					'</a>',
+					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/4413938931853-Considerations-for-self-hosted-Elasticsearch-setups">',
+					'</a>'
+				)
+			);
 		}
 
 		$notices['upgrade_sync']['html'] .= '<br><br>' . $appended_message;
