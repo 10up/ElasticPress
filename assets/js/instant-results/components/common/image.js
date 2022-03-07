@@ -8,7 +8,7 @@ import { WPElement } from '@wordpress/element';
  *
  * @param {Option} props Component props.
  *
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default ({ alt, height, ID, src, width, ...props }) => {
 	return <img alt={alt} src={src} width={width} height={height} {...props} />;

@@ -14,7 +14,7 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Search field component.
  *
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default () => {
 	const {

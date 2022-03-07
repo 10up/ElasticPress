@@ -30,11 +30,11 @@ export const initialState = {
 /**
  * Reducer function for handling state changes.
  *
- * @param {Object} state          The current state.
- * @param {Object} action         Action data.
+ * @param {object} state          The current state.
+ * @param {object} action         Action data.
  * @param {string} action.type    The action name.
- * @param {Object} action.payload New state data from the action.
- * @return {Object} Updated state.
+ * @param {object} action.payload New state data from the action.
+ * @returns {object} Updated state.
  */
 export const reducer = (state, { type, payload }) => {
 	const newState = { ...state, isPoppingState: false };

@@ -7,7 +7,7 @@ const { epChartData } = window;
 /**
  * Generates a random string representing a color.
  *
- * @return {string} Random color
+ * @returns {string} Random color
  */
 function getRandomColor() {
 	const letters = '0123456789ABCDEF';
@@ -85,9 +85,9 @@ if (queriesTotalChart) {
 					/**
 					 * Appends the string operations before tooltip value
 					 *
-					 * @param {Object} item Chat item
-					 * @param {Object} data Data
-					 * @return {string} Operations
+					 * @param {object} item Chat item
+					 * @param {object} data Data
+					 * @returns {string} Operations
 					 */
 					label(item, data) {
 						const dataset = data.datasets[item.datasetIndex];
@@ -128,9 +128,9 @@ if (queriesTimeChart) {
 					/**
 					 * Appends the string milliseconds after tooltip value
 					 *
-					 * @param {Object} item Tooltip item
-					 * @param {Object} data Tooltip data
-					 * @return {string} current value in milliseconds
+					 * @param {object} item Tooltip item
+					 * @param {object} data Tooltip data
+					 * @returns {string} current value in milliseconds
 					 */
 					label(item, data) {
 						const dataset = data.datasets[item.datasetIndex];

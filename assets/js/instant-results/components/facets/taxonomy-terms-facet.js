@@ -16,12 +16,12 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Taxonomy filter component.
  *
- * @param {Object}  props               Components props.
+ * @param {object}  props               Components props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
  * @param {string}  props.label         Facet label.
  * @param {string}  props.name          Facet name.
  * @param {Array}   props.postTypes     Facet post types.
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label, postTypes, name }) => {
 	const {
@@ -56,9 +56,9 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	 * Create list of filter options from aggregation buckets.
 	 *
 	 * @param {Array}  options    List of options.
-	 * @param {Object} bucket     Aggregation bucket.
+	 * @param {object} bucket     Aggregation bucket.
 	 * @param {string} bucket.key Aggregation key.
-	 * @return {Array} Array of options.
+	 * @returns {Array} Array of options.
 	 */
 	const reduceOptions = useCallback(
 		(options, { doc_count, key }) => {
@@ -87,10 +87,10 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	/**
 	 * Reduce options to labels.
 	 *
-	 * @param {Object} labels     List of options.
-	 * @param {Object} bucket     Aggregation bucket.
+	 * @param {object} labels     List of options.
+	 * @param {object} bucket     Aggregation bucket.
 	 * @param {string} bucket.key Aggregation key.
-	 * @return {Object} Options and their labels.
+	 * @returns {object} Options and their labels.
 	 */
 	const reduceLabels = useCallback((labels, { label, value }) => {
 		labels[value] = label;
