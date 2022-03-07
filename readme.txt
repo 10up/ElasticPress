@@ -15,6 +15,8 @@ Here is a list of the amazing ElasticPress features included in the plugin:
 
 __Search__: Instantly find the content you’re looking for. The first time.
 
+__Instant Results__: A built for WordPress search experience that bypasses WordPress for optimal performance. Instant Results routes search queries through a dedicated API, separate from WordPress, returning results up to 10x faster than previous versions of ElasticPress.
+
 __WooCommerce__: “I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
 
 __Related Posts__: ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
@@ -43,6 +45,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 == Screenshots ==
 1. Features Page
 2. Search Fields & Weighting Dashboard
+3. Sync Page
+4. Synonyms Dashboard
+5. Instant Results modal
 
 == Changelog ==
 
