@@ -586,8 +586,8 @@ h2.ep-list-features {
 }
 
 .ep-circle {
-	border-radius: 50%;
 	background: #fff;
+	border-radius: 50%;
 	color: #626262;
 	display: inline-block;
 	font-size: 16px;
