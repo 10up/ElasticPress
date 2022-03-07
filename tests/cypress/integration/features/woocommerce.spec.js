@@ -1,6 +1,10 @@
 describe('WooCommerce Feature', () => {
+	before(() => {
+		cy.deactivatePlugin('woocommerce', 'wpCli');
+	});
+
 	after(() => {
-		cy.wpCli('wp plugin deactivate woocommerce');
+		cy.deactivatePlugin('woocommerce', 'wpCli');
 	});
 
 	it('Can auto-activate the feature', () => {
@@ -18,7 +22,9 @@ describe('WooCommerce Feature', () => {
 		cy.maybeDisableFeature('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-woocommerce form').submit();
+		cy.get('.ep-feature-woocommerce .settings-button').click();
+		cy.get('.ep-feature-woocommerce [name="settings[active]"][value="1"]').click();
+		cy.get('.ep-feature-woocommerce .button-primary').click();
 		cy.on('window:confirm', () => {
 			return true;
 		});
