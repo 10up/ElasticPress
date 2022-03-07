@@ -35,6 +35,7 @@ This changelog contains all changes made since 3.6.6 (including Beta 1.)
 - ARIA attributes to Facet widget links to improve accessibility. Props [@JakePT](https://github.com/JakePT) via [#2607](https://github.com/10up/ElasticPress/pull/2607).
 - Support for shareable URLs to Instant Results. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#2604](https://github.com/10up/ElasticPress/pull/2604).
 - Dynamic bulk requests limits. Instead of sending only one request per document batch, send several adjusting their sizes based on the Elasticsearch response. Props [@felipeelia](https://github.com/felipeelia), [@dinhtungdu](https://github.com/dinhtungdu), [@brandwaffle](https://github.com/brandwaffle), and [@Rahmon](https://github.com/Rahmon) via [#2585](https://github.com/10up/ElasticPress/pull/2585).
+- New step in the installation process: users can now select features before the initial sync. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), [Jonathan Netek](https://www.linkedin.com/in/jonathan-netek/), and [@brandwaffle](https://github.com/brandwaffle) via [#2572](https://github.com/10up/ElasticPress/pull/2572).
 
 ### Changed
 - Sync page and code responsible for indexing. Props [@helen](https://github.com/helen), [@felipeelia](https://github.com/felipeelia), [@Rahmon](https://github.com/Rahmon), [@mckdemps](https://github.com/mckdemps), [@tott](https://github.com/tott), and [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/) via [#1835](https://github.com/10up/ElasticPress/pull/1835), [#2448](https://github.com/10up/ElasticPress/pull/2448), and [#2501](https://github.com/10up/ElasticPress/pull/2501).
@@ -73,10 +74,11 @@ This changelog contains all changes made since 3.6.6 (including Beta 1.)
 - Type hints for `epwr_decay` and `epwr_weight` hooks. Props [@edwinsiebel](https://github.com/edwinsiebel) via [#2537](https://github.com/10up/ElasticPress/pull/2537).
 - Errors count in the new Sync page. Props [@felipeelia](https://github.com/felipeelia) via [#2590](https://github.com/10up/ElasticPress/pull/2590).
 - Multisite could index posts from a disabled indexing site. Props [@oscarssanchez](https://github.com/oscarssanchez), [@chrisvanpatten](https://github.com/chrisvanpatten), [@felipeelia](https://github.com/felipeelia) via [#2621](https://github.com/10up/ElasticPress/pull/2621).
+- New sync code and the `upper-limit-object-id` and `lower-limit-object-id` parameters in WP-CLI command. Props [@felipeelia](https://github.com/felipeelia) via [#2634](https://github.com/10up/ElasticPress/pull/2634).
 
 ## Security
 - Use most recent external GitHub Actions versions. Props [@felipeelia](https://github.com/felipeelia) and [@qazaqstan2025](https://github.com/qazaqstan2025) via [#2535](https://github.com/10up/ElasticPress/pull/2535).
-- Updated `10up-toolkit` from 1.0.13 to 2.1.1, `jsdoc` from 3.6.7 to 3.6.9, `terser-webpack-plugin` from 5.2.4 to 5.3.0, `@wordpress/env` from 4.1.1 to 4.2.2, and `promise-polyfill` from 8.2.0 to 8.2.1. Props [@felipeelia](https://github.com/felipeelia) via [#2559](https://github.com/10up/ElasticPress/pull/2559) and [#2611](https://github.com/10up/ElasticPress/pull/2611).
+- Updated `10up-toolkit` from 1.0.13 to 3.0.1, `jsdoc` from 3.6.7 to 3.6.9, `terser-webpack-plugin` from 5.2.4 to 5.3.0, `@wordpress/env` from 4.1.1 to 4.2.2, and `promise-polyfill` from 8.2.0 to 8.2.1. Props [@felipeelia](https://github.com/felipeelia) via [#2559](https://github.com/10up/ElasticPress/pull/2559), [#2611](https://github.com/10up/ElasticPress/pull/2611), and [#2631](https://github.com/10up/ElasticPress/pull/2631).
 - Bumped `follow-redirects` from 1.14.7 to 1.14.9. Props [@dependabot](https://github.com/dependabot) via [#2609](https://github.com/10up/ElasticPress/pull/2609).
 
 ## [3.6.6] - 2021-12-20

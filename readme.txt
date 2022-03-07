@@ -75,6 +75,7 @@ Added:
 * ARIA attributes to Facet widget links to improve accessibility. Props [@JakePT](https://github.com/JakePT).
 * Support for shareable URLs to Instant Results. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia).
 * Dynamic bulk requests limits. Instead of sending only one request per document batch, send several adjusting their sizes based on the Elasticsearch response. Props [@felipeelia](https://github.com/felipeelia), [@dinhtungdu](https://github.com/dinhtungdu), [@brandwaffle](https://github.com/brandwaffle), and [@Rahmon](https://github.com/Rahmon).
+* New step in the installation process: users can now select features before the initial sync. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), [Jonathan Netek](https://www.linkedin.com/in/jonathan-netek/), and [@brandwaffle](https://github.com/brandwaffle).
 
 Changed:
 * Sync page and code responsible for indexing. Props [@helen](https://github.com/helen), [@felipeelia](https://github.com/felipeelia), [@Rahmon](https://github.com/Rahmon), [@mckdemps](https://github.com/mckdemps), [@tott](https://github.com/tott), and [Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/).
@@ -113,10 +114,11 @@ Fixed:
 * Type hints for `epwr_decay` and `epwr_weight` hooks. Props [@edwinsiebel](https://github.com/edwinsiebel).
 * Errors count in the new Sync page. Props [@felipeelia](https://github.com/felipeelia).
 * Multisite could index posts from a disabled indexing site. Props [@oscarssanchez](https://github.com/oscarssanchez), [@chrisvanpatten](https://github.com/chrisvanpatten), [@felipeelia](https://github.com/felipeelia).
+* New sync code and the `upper-limit-object-id` and `lower-limit-object-id` parameters in WP-CLI command. Props [@felipeelia](https://github.com/felipeelia).
 
 Security:
 * Use most recent external GitHub Actions versions. Props [@felipeelia](https://github.com/felipeelia) and [@qazaqstan2025](https://github.com/qazaqstan2025).
-* Updated `10up-toolkit` from 1.0.13 to 2.1.1, `jsdoc` from 3.6.7 to 3.6.9, `terser-webpack-plugin` from 5.2.4 to 5.3.0, `@wordpress/env` from 4.1.1 to 4.2.2, and `promise-polyfill` from 8.2.0 to 8.2.1. Props [@felipeelia](https://github.com/felipeelia).
+* Updated `10up-toolkit` from 1.0.13 to 3.0.1, `jsdoc` from 3.6.7 to 3.6.9, `terser-webpack-plugin` from 5.2.4 to 5.3.0, `@wordpress/env` from 4.1.1 to 4.2.2, and `promise-polyfill` from 8.2.0 to 8.2.1. Props [@felipeelia](https://github.com/felipeelia).
 * Bumped `follow-redirects` from 1.14.7 to 1.14.9. Props [@dependabot](https://github.com/dependabot).
 
 = 3.6.6 - 2021-12-20 =
