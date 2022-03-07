@@ -175,7 +175,6 @@ class Upgrades {
 	 * might want to enable the feature before the resync (and then resync only once.)
 	 *
 	 * @since 4.0.0
-	 * @todo Replace texts
 	 * @param array $notices All admin notices
 	 * @return array
 	 */
