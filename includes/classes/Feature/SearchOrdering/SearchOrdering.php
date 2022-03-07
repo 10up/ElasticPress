@@ -45,8 +45,11 @@ class SearchOrdering extends Feature {
 
 		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
 
+		$this->summary = __( 'Insert specific posts into search results for specific search queries.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
-		$this->default_settings         = [];
 
 		parent::__construct();
 	}
@@ -175,15 +178,6 @@ class SearchOrdering extends Feature {
 		}
 
 		return parent::requirements_status();
-	}
-
-	/**
-	 * Output feature box summary
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Insert specific posts into search results for specific search queries.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**

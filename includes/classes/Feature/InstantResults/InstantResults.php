@@ -69,6 +69,10 @@ class InstantResults extends Feature {
 
 		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
 
+		$this->summary = __( 'Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#instant-results', 'elasticpress' );
+
 		$this->host = trailingslashit( Utils\get_host() );
 
 		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
@@ -87,18 +91,9 @@ class InstantResults extends Feature {
 
 		$this->requires_install_reindex = true;
 
-		parent::__construct();
-	}
+		$this->available_during_installation = true;
 
-	/**
-	 * Output feature summary.
-	 *
-	 * @return void
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Instantly display results after a WordPress search form is submitted.', 'elasticpress' ); ?></p>
-		<?php
+		parent::__construct();
 	}
 
 	/**
