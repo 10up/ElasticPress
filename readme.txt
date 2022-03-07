@@ -50,7 +50,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 **ElasticPress 4.0 contains some important changes. Make sure to read these highlights before upgrading:**
 * This version requires a full reindex.
-* It introduces a new search algorithm that may change the order of results displayed on your site.
+* It introduces a new search algorithm that may change the search results displayed on your site.
 * A new feature called "Instant Results" is available. As it requires a full reindex, if you plan to use it, we recommend you enable it first and reindex only once.
 * Users upgrading from Beta 1 need to re-save the Instant Results feature settings.
 * New minimum versions are:
