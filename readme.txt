@@ -45,6 +45,9 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 == Screenshots ==
 1. Features Page
 2. Search Fields & Weighting Dashboard
+3. Sync Page
+4. Synonyms Dashboard
+5. Instant Results modal
 
 == Changelog ==
 
