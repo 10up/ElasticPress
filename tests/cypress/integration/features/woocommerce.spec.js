@@ -1,6 +1,10 @@
 describe('WooCommerce Feature', () => {
+	before(() => {
+		cy.deactivatePlugin('woocommerce', 'wpCli');
+	});
+
 	after(() => {
-		cy.wpCli('wp plugin deactivate woocommerce');
+		cy.deactivatePlugin('woocommerce', 'wpCli');
 	});
 
 	it('Can auto-activate the feature', () => {

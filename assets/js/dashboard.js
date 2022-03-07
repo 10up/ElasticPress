@@ -1,4 +1,9 @@
 /**
+ * Internal dependencies.
+ */
+import Tooltip from '@10up/component-tooltip';
+
+/**
  * WordPress dependencies.
  */
 import { __ } from '@wordpress/i18n';
@@ -15,7 +20,7 @@ const {
  * Determine whether a Feature's new settings will require a reindex.
  *
  * @param {FormData} data Form data.
- * @return {boolean} Whether a reindex will need to occur when saved.
+ * @returns {boolean} Whether a reindex will need to occur when saved.
  */
 const willChangeTriggerReindex = (data) => {
 	return (
@@ -118,6 +123,14 @@ const onClick = (event) => {
  */
 const featuresEl = document.querySelector('.ep-features');
 
-featuresEl.addEventListener('change', onToggle);
-featuresEl.addEventListener('submit', onSubmit);
-featuresEl.addEventListener('click', onClick);
+if (featuresEl) {
+	featuresEl.addEventListener('change', onToggle);
+	featuresEl.addEventListener('submit', onSubmit);
+	featuresEl.addEventListener('click', onClick);
+}
+
+/**
+ * Tooltips.
+ */
+// eslint-disable-next-line no-new
+new Tooltip('.a11y-tip');

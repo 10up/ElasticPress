@@ -13,7 +13,7 @@ import SmallButton from './small-button';
 /**
  * Checkbox list component.
  *
- * @typedef {Object} Option
+ * @typedef {object} Option
  * @property {number}   count          Number associated with option.
  * @property {string}   id             Option ID.
  * @property {string}   label          Option label.
@@ -21,14 +21,14 @@ import SmallButton from './small-button';
  * @property {string}   parent         Parent option value.
  * @property {any}      value          Option value.
  *
- * @param    {Object}   props          Component props.
+ * @param    {object}   props          Component props.
  * @param    {boolean}  props.disabled Whether the checkboxes should be disabled.
  * @param    {boolean}  props.label    List label.
  * @param    {Function} props.onChange Checkbox change event callback function.
  * @param    {Option[]} props.options  Checkbox options.
  * @param    {string}   props.selected Selected values.
  * @param    {string}   props.sortBy   How to sort options.
- * @return {WPElement} A React element.
+ * @returns {WPElement} A React element.
  */
 export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	/**
@@ -44,10 +44,10 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	/**
 	 * Reducer to group options by parent.
 	 *
-	 * @param {Object} items         Options grouped by parent.
+	 * @param {object} items         Options grouped by parent.
 	 * @param {Option} option        Option details.
 	 * @param {string} option.parent Option parent value.
-	 * @return {Object} Options grouped by parent.
+	 * @returns {object} Options grouped by parent.
 	 */
 	const reduceOptionsByParent = (items, { parent, ...option }) => {
 		// eslint-disable-next-line eqeqeq
@@ -71,7 +71,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	 * @param {Array}  items         Options without a parent.
 	 * @param {Option} option        Option details.
 	 * @param {string} option.parent Option parent value.
-	 * @return {Object} Options without a parent.
+	 * @returns {object} Options without a parent.
 	 */
 	const reduceTopLevelOptions = (items, { parent, ...option }) => {
 		// eslint-disable-next-line eqeqeq
@@ -120,7 +120,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	 * Render an option.
 	 *
 	 * @param {Option} option Option.
-	 * @return {WPElement} Render function.
+	 * @returns {WPElement} Render function.
 	 */
 	const displayOption = ({ count, id, label, value }) => {
 		const children = childOptions[value];
@@ -162,7 +162,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	 *
 	 * @param {Option} a First option to compare.
 	 * @param {Option} b second option to compare.
-	 * @return {number} Comparison number.
+	 * @returns {number} Comparison number.
 	 */
 	const sortOptions = (a, b) => {
 		let comparison = 0;
@@ -182,7 +182,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	 * Render a list of options.
 	 *
 	 * @param {Option[]} options Options to display.
-	 * @return {WPElement[]} Array of elements.
+	 * @returns {WPElement[]} Array of elements.
 	 */
 	const displayOptions = (options) => {
 		return options.splice(0).sort(sortOptions).map(displayOption);
@@ -191,7 +191,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 	/**
 	 * Handle clicking the show more/fewer button.
 	 *
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const onToggleShowAll = () => {
 		setShowAll(!showAll);

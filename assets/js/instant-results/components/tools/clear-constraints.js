@@ -14,7 +14,7 @@ import SmallButton from '../common/small-button';
 /**
  * Active constraints component.
  *
- * @return {WPElement} Element.
+ * @returns {WPElement} Element.
  */
 export default () => {
 	const {
@@ -29,7 +29,7 @@ export default () => {
 	 * only filters that will be cleared. This is to support applying filters
 	 * that cannot be modified by the user.
 	 *
-	 * @return {boolean} Whether there are active filters.
+	 * @returns {boolean} Whether there are active filters.
 	 */
 	const hasFilters = useMemo(() => {
 		return facets.some(({ name, type }) => {
@@ -48,7 +48,7 @@ export default () => {
 	/**
 	 * Handle clicking button.
 	 *
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const onClick = () => {
 		dispatch({ type: 'CLEAR_FACETS' });

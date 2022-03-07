@@ -12,7 +12,6 @@ module.exports = ( { file, options, env } ) => { /* eslint-disable-line */
 					grid: true,
 				},
 			},
-			'postcss-object-fit-images': {},
 		},
 	};
 

@@ -13,7 +13,7 @@ import Context from '../../context';
 /**
  * Search results component.
  *
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default () => {
 	const {

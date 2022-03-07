@@ -69,7 +69,7 @@ function selectAutosuggestItem(input, text) {
  * Fires events when autosuggest results are clicked,
  * and if GA tracking is activated
  *
- * @param {Object} detail - value to pass on to the Custom Event
+ * @param {object} detail - value to pass on to the Custom Event
  */
 function triggerAutosuggestEvent(detail) {
 	const event = new CustomEvent('ep-autosuggest-click', { detail });
@@ -114,7 +114,7 @@ function goToAutosuggestItem(searchTerm, url) {
  *
  * @param {Node} input   - search input
  * @param {Node} element - search term result item
- * @return {Function} calls the submitSearchForm function
+ * @returns {Function} calls the submitSearchForm function
  */
 function selectItem(input, element) {
 	if (epas.action === 'navigate') {
@@ -129,7 +129,7 @@ function selectItem(input, element) {
  * Build the search query from the search text - the query is generated in PHP
  * and passed into the front end as window.epas = { "query...
  *
- * @return {string} json string
+ * @returns {string} json string
  */
 function getJsonQuery() {
 	if (typeof window.epas === 'undefined') {
@@ -148,9 +148,9 @@ function getJsonQuery() {
  *
  * @param {string} searchText    - user search string
  * @param {string} placeholder   - placeholder text to replace
- * @param {Object} options       - Autosuggest settings
+ * @param {object} options       - Autosuggest settings
  * @param {string} options.query - JSON query string to pass to ElasticSearch
- * @return {string} json representation of search query
+ * @returns {string} json representation of search query
  */
 function buildSearchQuery(searchText, placeholder, { query }) {
 	const newQuery = replaceGlobally(query, placeholder, searchText);
@@ -162,7 +162,7 @@ function buildSearchQuery(searchText, placeholder, { query }) {
  *
  * @param {string} query      - json string
  * @param {string} searchTerm - user search term
- * @return {Object} AJAX object request
+ * @returns {object} AJAX object request
  */
 async function esSearch(query, searchTerm) {
 	const fetchConfig = {
@@ -212,7 +212,7 @@ async function esSearch(query, searchTerm) {
  *
  * @param {Array}  options - search results
  * @param {string} input   - search string
- * @return {boolean} return true
+ * @returns {boolean} return true
  */
 function updateAutosuggestBox(options, input) {
 	let i;
@@ -296,7 +296,7 @@ function updateAutosuggestBox(options, input) {
 /**
  * Hide the auto suggest box
  *
- * @return {boolean} returns true
+ * @returns {boolean} returns true
  */
 function hideAutosuggestBox() {
 	const lists = document.querySelectorAll('.autosuggest-list');
@@ -323,7 +323,7 @@ function hideAutosuggestBox() {
  *
  * @param {Array}  hits       - ES results
  * @param {string} searchTerm - user search term
- * @return {Object} formatted hits
+ * @returns {object} formatted hits
  */
 function checkForOrderedPosts(hits, searchTerm) {
 	const toInsert = {};
@@ -425,7 +425,7 @@ function init() {
 		/**
 		 * helper function to get the currently selected result
 		 *
-		 * @return {number} index of the selected search result
+		 * @returns {number} index of the selected search result
 		 */
 		const getSelectedResultIndex = () => {
 			const resultsArr = Array.from(results);
@@ -506,7 +506,7 @@ function init() {
 	 * Get the searched post types from the search form.
 	 *
 	 * @param {HTMLFormElement} form - form containing the search input field
-	 * @return {Array} - post types
+	 * @returns {Array} - post types
 	 * @since 3.6.0
 	 */
 	function getPostTypesFromForm(form) {
@@ -615,7 +615,7 @@ function init() {
 	 * Wrap an element with an autosuggest container.
 	 *
 	 * @param {Element} element Element to wrap.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const wrapInAutosuggestContainer = (element) => {
 		const epContainer = document.createElement('div');
@@ -631,7 +631,7 @@ function init() {
 	 * Insert an autosuggest list after an element.
 	 *
 	 * @param {Element} element Element to add the autosuggest list after.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const insertAutosuggestElement = (element) => {
 		if (!autosuggestElement) {
@@ -655,7 +655,7 @@ function init() {
 	 * Prepare an input for Autosuggest.
 	 *
 	 * @param {Element} input Input to prepare.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const prepareInputForAutosuggest = (input) => {
 		/**
@@ -709,7 +709,7 @@ function init() {
 	 * Find inputs within an element and prepare them for Autosuggest.
 	 *
 	 * @param {Element} element Element to find inputs within.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const findAndPrepareInputsForAutosuggest = (element) => {
 		const inputs = element.querySelectorAll(selectors);
@@ -723,7 +723,7 @@ function init() {
 	 * Observe the document for new potential Autosuggest inputs, and add
 	 * Autosuggest to any found inputs.
 	 *
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const observeDocumentForInputs = () => {
 		const target = document.body;

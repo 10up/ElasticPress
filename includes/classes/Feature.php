@@ -37,6 +37,22 @@ abstract class Feature {
 	public $title;
 
 	/**
+	 * Feature summary
+	 *
+	 * @var string
+	 * @since  4.0.0
+	 */
+	public $summary;
+
+	/**
+	 * URL to feature documentation.
+	 *
+	 * @var string
+	 * @since  4.0.0
+	 */
+	public $docs_url;
+
+	/**
 	 * Optional feature default settings
 	 *
 	 * @since  2.2
@@ -68,6 +84,14 @@ abstract class Feature {
 	 */
 	public $group_order;
 
+	/**
+	 * True if activation of this feature should be available during
+	 * installation.
+	 *
+	 * @since 4.0.0
+	 * @var boolean
+	 */
+	public $available_during_installation = false;
 
 	/**
 	 * Run on every page load for feature to set itself up
@@ -77,11 +101,15 @@ abstract class Feature {
 	abstract public function setup();
 
 	/**
-	 * Implement to output feature box summary
+	 * Output feature box summary
 	 *
-	 * @since  3.0
+	 * @since 2.1
 	 */
-	abstract public function output_feature_box_summary();
+	public function output_feature_box_summary() {
+		if ( $this->summary ) {
+			echo '<p>' . esc_html( $this->summary ) . '</p>';
+		}
+	}
 
 	/**
 	 * Implement to output feature box long text

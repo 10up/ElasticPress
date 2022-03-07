@@ -33,8 +33,13 @@ class Facets extends Feature {
 
 		$this->title = esc_html__( 'Facets', 'elasticpress' );
 
+		$this->summary = __( 'Add controls to your website to filter content by one or more taxonomies.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#facets', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
-		$this->default_settings         = [
+
+		$this->default_settings = [
 			'match_type' => 'all',
 		];
 
@@ -467,17 +472,6 @@ class Facets extends Feature {
 	 */
 	public function register_widgets() {
 		register_widget( __NAMESPACE__ . '\Widget' );
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 2.5
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Add controls to your website to filter content by one or more taxonomies.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**
