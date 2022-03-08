@@ -949,7 +949,7 @@ class IndexHelper {
 	 * @return boolean
 	 */
 	public function is_full_reindexing( $indexable_slug, $blog_id = null ) {
-		if ( empty( $this->index_meta ) ) {
+		if ( empty( $this->index_meta ) || empty( $this->index_meta['put_mapping'] ) ) {
 			/**
 			 * Filter if a fully reindex is being done to an indexable
 			 *
@@ -976,10 +976,6 @@ class IndexHelper {
 				continue;
 			}
 
-			if ( empty( $sync_item['put_mapping'] ) ) {
-				break;
-			}
-
 			if (
 				( empty( $sync_item['blog_id'] ) && ! $blog_id ) ||
 				(int) $sync_item['blog_id'] === $blog_id
@@ -989,7 +985,7 @@ class IndexHelper {
 		}
 
 		/* this filter is documented above */
-		apply_filters( "ep_is_full_reindexing_{$indexable_slug}", $is_full_reindexing );
+		return apply_filters( "ep_is_full_reindexing_{$indexable_slug}", $is_full_reindexing );
 	}
 
 	/**
