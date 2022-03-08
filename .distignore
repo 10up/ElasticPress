@@ -19,6 +19,7 @@
 /.gitignore
 /.travis.yml
 /.stylelintrc
+/.wp-env.json
 /CHANGELOG.md
 /CODE_OF_CONDUCT.md
 /composer.json
