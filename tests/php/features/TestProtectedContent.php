@@ -323,9 +323,11 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
+		// Post title is indexed but content is not.
 		Functions\create_and_sync_post(
 			array(
-				'post_content' => 'findme 123',
+				'post_title'    => 'findmetitle 123',
+				'post_content'  => 'findmecontent 123',
 				'post_password' => 'test'
 			)
 		);
@@ -339,7 +341,7 @@ class TestProtectedContent extends BaseTestCase {
 		$wp_the_query = $query;
 
 		$args = array(
-			's' => 'findme',
+			's' => 'findmetitle',
 		);
 
 		$query->query( $args );
@@ -347,6 +349,16 @@ class TestProtectedContent extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		$new_query = new \WP_Query(
+			[
+				's' => 'findmecontent',
+			]
+		);
+
+		$this->assertTrue( $new_query->elasticsearch_success );
+		$this->assertEquals( 0, $new_query->post_count );
+		$this->assertEquals( 0, $new_query->found_posts );
 	}
 
 	/**
@@ -367,7 +379,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		Functions\create_and_sync_post(
 			array(
-				'post_content'  => 'findme 123',
+				'post_title'    => 'findmetitle 123',
 				'post_password' => 'test',
 			)
 		);
@@ -375,7 +387,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		$query = new \WP_Query(
 			array(
-				's' => 'findme',
+				's' => 'findmetitle',
 			)
 		);
 
