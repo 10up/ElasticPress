@@ -49,7 +49,7 @@ jobs:
         wp db create
         wp core install --url=example.com --title=Example --admin_user=supervisor --admin_password=strongpassword --admin_email=info@example.com
         cp -r ../ElasticPress/ ./wp-content/plugins/elasticpress
-        cd wp-content/plugins/
+        cd wp-content/plugins/elasticpress
         ls
         wp plugin activate elasticpress
 
