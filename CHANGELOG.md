@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 **Note that ElasticPress 4.0.0 release removes built assets from the `develop` branch, replaced `master` with `trunk`, added a ZIP with the plugin and its built assets in the [GitHub Releases page](https://github.com/10up/ElasticPress/releases), and included a build script should you want to build assets from a branch.**  As such, please plan to update any references you have from `master` to `trunk` or to GitHub Releases depending on whether you require built assets or not. (See changes in [#2622](https://github.com/10up/ElasticPress/pull/2622).)
 
+The Facets widget is not currently available within Full Site Editing mode.
+
 This changelog contains all changes made since 3.6.6 (including Beta 1.)
 
 ### Added
