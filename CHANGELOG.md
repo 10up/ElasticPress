@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-## [4.0.0] - 2022-03-XX
+## [4.0.0] - 2022-03-08
 
 **ElasticPress 4.0 contains some important changes. Make sure to read these highlights before upgrading:**
 - This version requires a full reindex.
