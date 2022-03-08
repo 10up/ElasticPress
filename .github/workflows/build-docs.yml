@@ -43,16 +43,12 @@ jobs:
       run: |
         cd ../
         mkdir wordpress
-        ls
         cd wordpress
         wp core download
         wp config create --dbname=wpclidocs --dbuser=root --dbpass=root --dbhost=127.0.0.1
         wp db create
         wp core install --url=example.com --title=Example --admin_user=supervisor --admin_password=strongpassword --admin_email=info@example.com
-        cp -r ../ElasticPress ./wp-content/plugins/
-        cd wp-content/plugins/elasticpress
-        ls
-        wp plugin list
+        cp -r ../ElasticPress/ ./wp-content/plugins/elasticpress
         wp plugin activate elasticpress
 
     - name: Generate WP-CLI Docs
