@@ -377,6 +377,7 @@ class InstantResults extends Feature {
 		add_filter( 'ep_intercept_remote_request', '__return_true' );
 		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
+		add_filter( 'ep_exclude_password_protected_from_search', '__return_true' );
 
 		$query = new \WP_Query(
 			array(
@@ -391,6 +392,7 @@ class InstantResults extends Feature {
 		remove_filter( 'ep_intercept_remote_request', '__return_true' );
 		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
 		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10 );
+		remove_filter( 'ep_exclude_password_protected_from_search', '__return_true' );
 
 		return $this->search_template;
 	}
