@@ -54,6 +54,7 @@ class ProtectedContent extends Feature {
 		add_filter( 'ep_post_formatted_args', [ $this, 'exclude_protected_posts' ], 10, 2 );
 		add_filter( 'ep_index_posts_args', [ $this, 'query_password_protected_posts' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'include_post_password' ], 10, 2 );
+		add_filter( 'ep_post_sync_args', [ $this, 'remove_fields_from_password_protected' ], 11, 2 );
 		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
 
 		if ( is_admin() ) {
@@ -222,6 +223,56 @@ class ProtectedContent extends Feature {
 
 		// Assign null value so we can use the EXISTS filter.
 		$post_args['post_password'] = ! empty( $post->post_password ) ? $post->post_password : null;
+
+		return $post_args;
+	}
+
+	/**
+	 * Prevent some fields in password protected posts from being indexed.
+	 *
+	 * As some solutions publicly expose full post contents, this method prevents password
+	 * protected posts to have their full content and their meta fields indexed. Developers
+	 * wanting to bypass this behavior can use the `ep_pc_skip_post_content_cleanup` filter.
+	 *
+	 * @param array $post_args Post arguments
+	 * @param int   $post_id   Post ID
+	 * @return array
+	 */
+	public function remove_fields_from_password_protected( $post_args, $post_id ) {
+		if ( empty( $post_args['post_password'] ) ) {
+			return $post_args;
+		}
+
+		/**
+		 * Filter to skip the password protected content clean up.
+		 *
+		 * @hook ep_pc_skip_post_content_cleanup
+		 * @since 4.0.0
+		 * @param  {bool} $skip Whether the password protected content should have their content, and meta removed.
+		 * @return {bool}
+		 */
+		if ( apply_filters( 'ep_pc_skip_post_content_cleanup', false ) ) {
+			return $post_args;
+		}
+
+		$fields_to_remove = [
+			'post_content_filtered',
+			'post_content',
+			'meta',
+			'thumbnail',
+			'post_content_plain',
+			'price_html',
+		];
+
+		foreach ( $fields_to_remove as $field ) {
+			if ( ! empty( $post_args[ $field ] ) ) {
+				if ( is_array( $post_args[ $field ] ) ) {
+					$post_args[ $field ] = [];
+				} else {
+					$post_args[ $field ] = '';
+				}
+			}
+		}
 
 		return $post_args;
 	}
