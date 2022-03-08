@@ -66,16 +66,8 @@ jobs:
       env:
         CI: true
 
-    - name: Make artifacts available
-      uses: actions/upload-artifact@v2
-      with:
-        name: test
-        retention-days: 2
-        path: |
-          ${{ github.workspace }}/wp-content/plugins/elasticpress/docs-built/
-
-    # - name: Deploy to GH Pages
-    #   uses: maxheld83/ghpages@v0.3.0
-    #   env:
-    #     BUILD_DIR: 'docs-built/'
-    #     GH_PAT: ${{ secrets.GH_PAT }}
+    - name: Deploy to GH Pages
+      uses: maxheld83/ghpages@v0.3.0
+      env:
+        BUILD_DIR: 'wp-content/plugins/elasticpress/docs-built/'
+        GH_PAT: ${{ secrets.GH_PAT }}
