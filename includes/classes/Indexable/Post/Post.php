@@ -544,13 +544,13 @@ class Post extends Indexable {
 		 * use. Otherwise the `thumbnail` size is used.
 		 *
 		 * @hook ep_thumbnail_image_size
-		 * @param string|int[] $image_size Image size. Can be any registered
+		 * @since 4.0.0
+		 * @param {string|int[]} $image_size Image size. Can be any registered
 		 *                                 image size name, or an array of
 		 *                                 width and height values in pixels
 		 *                                 (in that order).
-		 * @param WP_Post $post Post being indexed.
-		 * @since 4.0.0
-		 * @return array Image size to pass to wp_get_attachment_image_src().
+		 * @param {WP_Post} $post Post being indexed.
+		 * @return {array} Image size to pass to wp_get_attachment_image_src().
 		 */
 		$image_size = apply_filters(
 			'ep_post_thumbnail_image_size',
