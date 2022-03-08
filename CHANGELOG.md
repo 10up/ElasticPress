@@ -55,6 +55,7 @@ This changelog contains all changes made since 3.6.6 (including Beta 1.)
 - Features order in the Features screen. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#2618](https://github.com/10up/ElasticPress/pull/2618).
 - WooCommerce's `search` parameter also to be used by ElasticPress queries. Props [@felipeelia](https://github.com/felipeelia), [@dianfishekqi](https://github.com/dianfishekqi), and [@oscarssanchez](https://github.com/oscarssanchez) via [#2620](https://github.com/10up/ElasticPress/pull/2620).
 - Posts are now reindexed when a new term is associated with them and also when an associated term is updated or deleted. Props [@nickdaugherty](https://github.com/nickdaugherty), [@felipeelia](https://github.com/felipeelia), [@brandon-m-skinner](https://github.com/brandon-m-skinner), [@mckdemps](https://github.com/mckdemps), [@rebeccahum](https://github.com/rebeccahum) via [#2603](https://github.com/10up/ElasticPress/pull/2603).
+- Updated `jsdoc` from 3.6.9 to 3.6.10 and fixed the documentation of the `ep_thumbnail_image_size` filter. Props [@felipeelia](https://github.com/felipeelia) via [#2639](https://github.com/10up/ElasticPress/pull/2639).
 
 ### Removed
 - Built assets (minified JavaScript and CSS files) from the repository. Props [@felipeelia](https://github.com/felipeelia) and [@jeffpaul](https://github.com/jeffpaul) via [#2486](https://github.com/10up/ElasticPress/pull/2486).
