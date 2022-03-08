@@ -241,10 +241,11 @@ class ProtectedContent extends Feature {
 			 * Filter to exclude protected posts from search.
 			 *
 			 * @hook ep_exclude_password_protected_from_search
+			 * @since 4.0.0
 			 * @param  {bool} $exclude Exclude post from search.
 			 * @return {bool}
 			 */
-			if ( ! is_user_logged_in() && apply_filters( 'ep_exclude_password_protected_from_search', true ) ) {
+			if ( ! is_user_logged_in() || apply_filters( 'ep_exclude_password_protected_from_search', false ) ) {
 				$formatted_args['post_filter']['bool']['must_not'][] = array(
 					'exists' => array(
 						'field' => 'post_password',
