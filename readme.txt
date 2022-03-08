@@ -103,6 +103,7 @@ Changed:
 * Posts are now reindexed when a new term is associated with them and also when an associated term is updated or deleted. Props [@nickdaugherty](https://github.com/nickdaugherty), [@felipeelia](https://github.com/felipeelia), [@brandon-m-skinner](https://github.com/brandon-m-skinner), [@mckdemps](https://github.com/mckdemps), [@rebeccahum](https://github.com/rebeccahum).
 * Complement to the resync message related to Instant Results. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle).
 * Updated `jsdoc` from 3.6.9 to 3.6.10 and fixed the documentation of the `ep_thumbnail_image_size` filter. Props [@felipeelia](https://github.com/felipeelia).
+* Instant Results: type and initial value of search template and move save to the end of sync. Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT).
 
 Removed:
 * Built assets (minified JavaScript and CSS files) from the repository. Props [@felipeelia](https://github.com/felipeelia) and [@jeffpaul](https://github.com/jeffpaul).
