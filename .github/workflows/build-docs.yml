@@ -41,21 +41,21 @@ jobs:
 
     - name: Install WordPress
       run: |
-        cd ../../..
+        cd ../
+        mkdir wordpress
+        cd wordpress
         wp core download
         wp config create --dbname=wpclidocs --dbuser=root --dbpass=root --dbhost=127.0.0.1
         wp db create
         wp core install --url=example.com --title=Example --admin_user=supervisor --admin_password=strongpassword --admin_email=info@example.com
-        echo $PWD
-        ls
-        wp plugin list
+        cp ElasticPress ./wp-content/plugins/elasticpress
         wp plugin activate elasticpress
 
     - name: Generate WP-CLI Docs
       run: |
-        cd ../../..
+        cd ../wordpress
         wp package install felipeelia/cli-command-docs:dev-trunk
-        wp cli-command-docs elasticpress --custom-order=index,activate-feature,deactivate-feature,list-features,get-algorithm-version,set-algorithm-version --remove=delete_transient_on_int,custom_get_transient,stop_on_failed_mapping,call_ep_cli_put_mapping,should_interrupt_sync --custom-intro='The following WP-CLI commands are supported by ElasticPress:' > wp-content/plugins/elasticpress/docs/wp-cli.md
+        wp cli-command-docs elasticpress --custom-order=index,activate-feature,deactivate-feature,list-features,get-algorithm-version,set-algorithm-version --remove=delete_transient_on_int,custom_get_transient,stop_on_failed_mapping,call_ep_cli_put_mapping,should_interrupt_sync --custom-intro='The following WP-CLI commands are supported by ElasticPress:' > ${{ github.workspace }}/docs/wp-cli.md
 
     - name: Use Node.js 16
       uses: actions/setup-node@v2
@@ -69,6 +69,14 @@ jobs:
         npm run build:docs
       env:
         CI: true
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v2
+      with:
+        name: test
+        retention-days: 2
+        path: |
+          ${{ github.workspace }}/docs-built/
 
     # - name: Deploy to GH Pages
     #   uses: maxheld83/ghpages@v0.3.0
