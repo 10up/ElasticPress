@@ -48,9 +48,9 @@ class InstantResults extends Feature {
 	/**
 	 * Elasticsearch query template.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	protected $search_template = [];
+	protected $search_template = '';
 
 	/**
 	 * Feature settings
@@ -220,9 +220,8 @@ class InstantResults extends Feature {
 		add_filter( 'ep_formatted_args', [ $this, 'maybe_apply_aggs_args' ], 10, 3 );
 		add_filter( 'ep_post_mapping', [ $this, 'add_mapping_properties' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'add_post_sync_args' ], 10, 2 );
-		add_filter( 'ep_pre_dashboard_index', [ $this, 'epio_save_search_template' ] );
+		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
-		add_filter( 'ep_wp_cli_pre_index', [ $this, 'epio_save_search_template' ] );
 		add_action( 'pre_get_posts', [ $this, 'maybe_apply_product_visibility' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
 		add_action( 'wp_footer', [ $this, 'render' ] );
