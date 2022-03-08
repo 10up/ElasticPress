@@ -7,8 +7,8 @@ const Dispatch = createContext();
 /**
  * App Context.
  *
- * @param {Object} props Props.
- * @return {React.FC} AppContext component
+ * @param {object} props Props.
+ * @returns {React.FC} AppContext component
  */
 const AppContext = (props) => {
 	const { children } = props;

@@ -3,21 +3,22 @@ name: Linting
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "12"
+  NODE_VERSION: "16"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
   push:
     branches:
       - develop
-      - master
+      - trunk
   pull_request:
     branches:
       - develop
+      - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
 
 jobs:
-  eslint:
-    name: eslint
+  es_css_lint:
+    name: ES and Style Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -40,14 +41,17 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
 
-    - name: npm install
-      run: npm install
+    - name: npm ci
+      run: npm ci
 
-    - name: eslint
+    - name: es lint
       run: npm run lint-js
 
+    - name: style lint
+      run: npm run lint-style
+
   phpcs:
-    name: phpcs
+    name: PHP Lint
     runs-on: ubuntu-latest
 
     steps:

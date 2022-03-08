@@ -1,0 +1,123 @@
+name: E2E Test
+
+env:
+  NODE_VERSION: "16"
+  NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
+
+on:
+  schedule:
+    - cron:  '0 0 * * *'
+  push:
+    branches:
+      - develop
+      - trunk
+  pull_request:
+    branches:
+      - develop
+      - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
+
+jobs:
+  cypress_local:
+    name: Cypress - Local
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Prepare npm cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.NODE_CACHE }}
+        key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          npm-${{ env.NODE_VERSION }}-
+
+    - name: "Install node v${{ env.NODE_VERSION }}"
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: npm ci --include=dev
+
+    - name: Set up WP environment with Elasticsearch
+      run: npm run env:start
+
+    - name: Build asset
+      run: npm run build
+
+    - name: Set up database
+      run: npm run cypress:setup
+
+    - name: Test
+      run: npm run cypress:run
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: cypress-artifact
+        retention-days: 2
+        path: |
+          ${{ github.workspace }}/tests/cypress/screenshots/
+          ${{ github.workspace }}/tests/cypress/videos/
+          ${{ github.workspace }}/tests/cypress/logs/
+
+    - name: Stop Elasticsearch
+      if: always()
+      run: cd bin/es-docker/ && docker-compose down
+
+  cypress_epio:
+    name: Cypress - EP.io
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Prepare npm cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.NODE_CACHE }}
+        key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          npm-${{ env.NODE_VERSION }}-
+
+    - name: "Install node v${{ env.NODE_VERSION }}"
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: npm ci --include=dev
+
+    - name: Set up WP environment
+      run: npm run env start
+
+    - name: Build asset
+      run: npm run build
+
+    - name: Set up database
+      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }}
+
+    - name: Test
+      run: npm run cypress:run
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: cypress-artifact-epio
+        retention-days: 2
+        path: |
+          ${{ github.workspace }}/tests/cypress/screenshots/
+          ${{ github.workspace }}/tests/cypress/videos/
+          ${{ github.workspace }}/tests/cypress/logs/
+
+    - name: Delete Elasticsearch indices
+      if: always()
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME} --network"
+        npm run env run tests-cli "wp elasticpress delete-index --network-wide --yes"

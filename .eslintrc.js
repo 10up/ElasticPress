@@ -4,5 +4,5 @@ module.exports = {
 	...defaultEslintrc,
 	globals: {
 		jQuery: true,
-	}
+	},
 };

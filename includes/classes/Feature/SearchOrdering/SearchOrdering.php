@@ -12,6 +12,7 @@ use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Features;
 use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -44,8 +45,11 @@ class SearchOrdering extends Feature {
 
 		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
 
+		$this->summary = __( 'Insert specific posts into search results for specific search queries.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
-		$this->default_settings         = [];
 
 		parent::__construct();
 	}
@@ -174,15 +178,6 @@ class SearchOrdering extends Feature {
 		}
 
 		return parent::requirements_status();
-	}
-
-	/**
-	 * Output feature box summary
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Insert specific posts into search results for specific search queries.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**
@@ -409,8 +404,20 @@ class SearchOrdering extends Feature {
 		$screen = get_current_screen();
 
 		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && $screen instanceof \WP_Screen && self::POST_TYPE_NAME === $screen->post_type ) {
-			wp_enqueue_script( 'ep_ordering_scripts', EP_URL . 'dist/js/ordering-script.min.js', [ 'jquery' ], EP_VERSION, true );
-			wp_enqueue_style( 'ep_ordering_styles', EP_URL . 'dist/css/ordering-styles.min.css', [], EP_VERSION );
+			wp_enqueue_script(
+				'ep_ordering_scripts',
+				EP_URL . 'dist/js/ordering-script.min.js',
+				Utils\get_asset_info( 'ordering-script', 'dependencies' ),
+				Utils\get_asset_info( 'ordering-script', 'version' ),
+				true
+			);
+
+			wp_enqueue_style(
+				'ep_ordering_styles',
+				EP_URL . 'dist/css/ordering-styles.min.css',
+				Utils\get_asset_info( 'ordering-styles', 'dependencies' ),
+				Utils\get_asset_info( 'ordering-styles', 'version' )
+			);
 
 			$pointer_data = $this->get_pointer_data_for_localize();
 

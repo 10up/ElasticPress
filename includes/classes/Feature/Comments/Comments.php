@@ -25,8 +25,14 @@ class Comments extends Feature {
 	 * @since 3.6.0
 	 */
 	public function __construct() {
-		$this->slug                     = 'comments';
-		$this->title                    = esc_html__( 'Comments', 'elasticpress' );
+		$this->slug = 'comments';
+
+		$this->title = esc_html__( 'Comments', 'elasticpress' );
+
+		$this->summary = __( 'Improve comment search relevancy and query performance.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#comments', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		parent::__construct();
@@ -76,17 +82,6 @@ class Comments extends Feature {
 	}
 
 	/**
-	 * Output feature box summary
-	 *
-	 * @since 3.6.0
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Improve comment search relevancy and query performance.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Output feature box long text
 	 *
 	 * @since 3.6.0
@@ -110,7 +105,7 @@ class Comments extends Feature {
 			return $enabled;
 		}
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			$enabled = false;
 		} elseif ( ! empty( $query->query_vars['search'] ) ) {
 			$enabled = true;
@@ -154,7 +149,7 @@ class Comments extends Feature {
 				'callback'            => [ $this, 'handle_comments_search' ],
 				'permission_callback' => '__return_true',
 				'args'                => [
-					's' => [
+					's'         => [
 						'validate_callback' => function ( $param ) {
 							return ! empty( $param );
 						},

@@ -27,6 +27,10 @@ class Documents extends Feature {
 
 		$this->title = esc_html__( 'Documents', 'elasticpress' );
 
+		$this->summary = __( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#documents', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
 
 		parent::__construct();
@@ -343,17 +347,6 @@ class Documents extends Feature {
 		}
 
 		return $status;
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since  2.3
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**

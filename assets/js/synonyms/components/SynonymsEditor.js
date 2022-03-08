@@ -7,7 +7,7 @@ import SolrEditor from './editors/SolrEditor';
 /**
  * Synonyms editor component.
  *
- * @return {React.FC} Synonyms component
+ * @returns {React.FC} Synonyms component
  */
 const SynonymsEditor = () => {
 	const state = useContext(State);
@@ -30,8 +30,8 @@ const SynonymsEditor = () => {
 	/**
 	 * Checks if the form is valid.
 	 *
-	 * @param {Object} _state Current state.
-	 * @return {boolean} If the form is valid
+	 * @param {object} _state Current state.
+	 * @returns {boolean} If the form is valid
 	 */
 	const isValid = (_state) => {
 		return [..._state.sets, ..._state.alternatives].reduce((valid, item) => {

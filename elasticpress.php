@@ -3,9 +3,9 @@
  * Plugin Name:       ElasticPress
  * Plugin URI:        https://github.com/10up/ElasticPress
  * Description:       A fast and flexible search and query engine for WordPress.
- * Version:           3.6.6
- * Requires at least: 3.7.1
- * Requires PHP:      5.6
+ * Version:           4.0.0
+ * Requires at least: 5.6
+ * Requires PHP:      7.0
  * Author:            10up
  * Author URI:        http://10up.com
  * License:           GPL v2 or later
@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '3.6.6' );
+define( 'EP_VERSION', '4.0.0' );
 
 /**
  * PSR-4-ish autoloading
@@ -70,12 +70,12 @@ spl_autoload_register(
  *
  * EP_ES_VERSION_MIN <= YOUR ES VERSION <= EP_ES_VERSION_MAX
  *
- * We don't check minor releases so if your ES version if 5.1.1, we consider that 5.1 in our comparison.
+ * We don't check minor releases so if your ES version if 7.10.1, we consider that 7.10 in our comparison.
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '7.9' );
-define( 'EP_ES_VERSION_MIN', '5.0' );
+define( 'EP_ES_VERSION_MAX', '7.10' );
+define( 'EP_ES_VERSION_MIN', '5.2' );
 
 require_once __DIR__ . '/includes/compat.php';
 require_once __DIR__ . '/includes/utils.php';
@@ -109,15 +109,11 @@ function register_indexable_posts() {
 	);
 
 	Features::factory()->register_feature(
-		new Feature\ProtectedContent\ProtectedContent()
+		new Feature\InstantResults\InstantResults()
 	);
 
 	Features::factory()->register_feature(
 		new Feature\Autosuggest\Autosuggest()
-	);
-
-	Features::factory()->register_feature(
-		new Feature\RelatedPosts\RelatedPosts()
 	);
 
 	Features::factory()->register_feature(
@@ -126,6 +122,18 @@ function register_indexable_posts() {
 
 	Features::factory()->register_feature(
 		new Feature\Facets\Facets()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\RelatedPosts\RelatedPosts()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\SearchOrdering\SearchOrdering()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\ProtectedContent\ProtectedContent()
 	);
 
 	Features::factory()->register_feature(
@@ -138,21 +146,17 @@ function register_indexable_posts() {
 		);
 	}
 
-	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Terms\Terms()
-		);
-	}
-
 	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
 		Features::factory()->register_feature(
 			new Feature\Users\Users()
 		);
 	}
 
-	Features::factory()->register_feature(
-		new Feature\SearchOrdering\SearchOrdering()
-	);
+	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
+		Features::factory()->register_feature(
+			new Feature\Terms\Terms()
+		);
+	}
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
