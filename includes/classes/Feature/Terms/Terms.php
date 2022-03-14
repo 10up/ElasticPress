@@ -24,8 +24,14 @@ class Terms extends Feature {
 	 * @since 3.1
 	 */
 	public function __construct() {
-		$this->slug                     = 'terms';
-		$this->title                    = esc_html__( 'Terms', 'elasticpress' );
+		$this->slug = 'terms';
+
+		$this->title = esc_html__( 'Terms', 'elasticpress' );
+
+		$this->summary = __( 'Improve WP_Term_Query relevancy and query performance. This feature is only needed if you are using WP_Term_Query directly.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#terms', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		parent::__construct();
@@ -50,17 +56,6 @@ class Terms extends Feature {
 	public function search_setup() {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
 		add_filter( 'ep_term_fuzziness_arg', [ $this, 'set_admin_terms_search_fuzziness' ] );
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 3.1
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Improve WP_Term_Query relevancy and query performance. This feature is only needed if you are using WP_Term_Query directly.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**

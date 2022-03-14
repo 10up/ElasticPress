@@ -1,0 +1,27 @@
+.ep-search-panel {
+	border: 1px solid var(--ep-search-border-color);
+	margin: 0;
+	padding: 0;
+
+	@nest .ep-search-panel + & {
+		border-top-width: 0;
+	}
+}
+
+.ep-search-panel__heading {
+	font-size: inherit;
+	margin: 0;
+}
+
+.ep-search-panel__button {
+	padding: 1em !important;
+	width: 100% !important;
+}
+
+.ep-search-panel__content {
+	padding: 0 1em 1em 1em;
+
+	&[aria-hidden="true"] {
+		display: none;
+	}
+}
