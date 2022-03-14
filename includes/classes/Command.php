@@ -364,11 +364,14 @@ class Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--index-name]
+	 * [--index-name=<index_name>]
 	 * : The name of the index for which to return the mapping. If not passed, all mappings will be returned
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-mapping
-	 * @since      3.6.4
+	 * @since      3.6.4, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
@@ -379,9 +382,16 @@ class Command extends WP_CLI_Command {
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
-		$body = wp_remote_retrieve_body( $response );
+		$response_body = wp_remote_retrieve_body( $response );
 
-		WP_CLI::line( $body );
+		if ( ! empty( $assoc_args['pretty'] ) ) {
+			$content_type = wp_remote_retrieve_header( $response, 'Content-Type' );
+			if ( preg_match( '/json/', $content_type ) ) {
+				// Re-encode the JSON to add space formatting
+				$response_body = wp_json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
+			}
+		}
+		WP_CLI::line( $response_body );
 	}
 
 	/**
