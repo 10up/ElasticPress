@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 **This is a security release. Please update to the latest version of ElasticPress if the WooCommerce + Protected Content features are activated.**
 
 ### Fixed
-- Orders belonging to all users loaded in the My Account WooCommerce page. Props [@tomburtless](https://github.com/tomburtless) via [#2658](https://github.com/10up/ElasticPress/pull/2658).
+- Orders belonging to all users loaded in the My Account WooCommerce page. Props [@tomburtless](https://github.com/tomburtless) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2658](https://github.com/10up/ElasticPress/pull/2658).
 
 ## [4.0.0] - 2022-03-08
 
