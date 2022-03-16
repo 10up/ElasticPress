@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.0.1] - 2022-03-16
+**This is a security release. Please update to the latest version of ElasticPress if the WooCommerce + Protected Content features are activated.**
+
+### Fixed
+- Orders belonging to all users loaded in the My Account WooCommerce page. Props [@tomburtless](https://github.com/tomburtless) via [#2658](https://github.com/10up/ElasticPress/pull/2658).
+
 ## [4.0.0] - 2022-03-08
 
 **ElasticPress 4.0 contains some important changes. Make sure to read these highlights before upgrading:**
