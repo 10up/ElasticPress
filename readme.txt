@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Tested up to: 5.9.1
-Stable tag:   4.0.0
+Stable tag:   4.0.1
 License:      GPLv2 or later
 License URI:  http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,6 +50,13 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 5. Instant Results modal
 
 == Changelog ==
+
+= 4.0.1 - 2022-03-16 =
+
+**This is a security release affecting users running ElasticPress 4.0 with both the WooCommerce and Protected Content Features activated. Please update to the latest version of ElasticPress if the WooCommerce and Protected Content features are activated and you're using ElasticPress 4.0.**
+
+Security:
+* Orders belonging to all users loaded in the My Account WooCommerce page. Props [@tomburtless](https://github.com/tomburtless) and [@oscarssanchez](https://github.com/oscarssanchez).
 
 = 4.0.0 - 2022-03-08 =
 
