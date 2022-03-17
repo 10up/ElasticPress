@@ -125,4 +125,22 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 			'bar',
 		).should('exist');
 	});
+	it('Can preserve synonyms if a sync is performed', () => {
+		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
+		cy.get('.page-title-action').then(($button) => {
+			if ($button.text() === 'Switch to Advanced Text Editor') {
+				$button.click();
+			}
+		});
+
+		cy.get('#ep-synonym-input').clearThenType('foo => bar{enter}list,of,words');
+		cy.get('#synonym-root .button-primary').click();
+
+		cy.wpCli('elasticpress index --setup --yes');
+
+		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
+		cy.get('#ep-synonym-input')
+			.should('contain', 'foo => bar')
+			.should('contain', 'list, of, words');
+	});
 });
