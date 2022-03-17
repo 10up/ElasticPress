@@ -41,7 +41,7 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
 		cy.get('.synonym-sets-editor').within(() => {
 			cy.get('.synonym__remove').click();
-			cy.contains('.button', 'Add Set').as('addset').click();
+			cy.contains('.button', 'Add Set').click();
 			cy.get('.ep-synonyms__linked-multi-input').type(`${word1}{enter}${word2}{enter}`);
 		});
 		cy.get('#synonym-root .button-primary').click();
@@ -64,7 +64,7 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
 		cy.get('.synonym-alternatives-editor').within(() => {
 			cy.get('.synonym__remove').click();
-			cy.contains('.button', 'Add Alternative').as('addset').click();
+			cy.contains('.button', 'Add Alternative').click();
 			cy.get('.ep-synonyms__input').type(word1);
 			cy.get('.ep-synonyms__linked-multi-input').type(`${word2}{enter}`);
 		});
@@ -84,5 +84,45 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		// Check if it works
 		cy.visit(`/?s=${word1}`);
 		cy.contains('.site-content article h2', word2).should('not.exist');
+	});
+	it('Can use the Advanced Text Editor', () => {
+		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
+		cy.contains('.page-title-action', 'Switch to Advanced Text Editor').click();
+		cy.get('#ep-synonym-input').clearThenType(`{enter}
+		{enter}
+		{enter}
+		{enter}
+		{enter}
+		{enter}
+		{enter}
+		{enter}
+		{enter}
+		{enter}
+		{enter}
+		foo => bar
+		test =>
+		list,of,words
+		`);
+		cy.get('#synonym-root .button-primary').click();
+
+		cy.contains(
+			'.synonym-solr-editor__validation',
+			'Alternatives must have both a primary term and at least one alternative term.',
+		).should('exist');
+
+		cy.get('#ep-synonym-input').clearThenType('foo => bar{enter}list,of,words');
+		cy.get('#synonym-root .button-primary').click();
+		cy.contains('.notice-success', 'Successfully updated synonym filter.').should('exist');
+
+		cy.contains('.page-title-action', 'Switch to Visual Editor').click();
+		cy.contains('.synonym-set-editor div', 'list').should('exist');
+		cy.contains('.synonym-set-editor div', 'of').should('exist');
+		cy.contains('.synonym-set-editor div', 'words').should('exist');
+
+		cy.get('.synonym-alternative-editor input[value="foo"]').should('exist');
+		cy.contains(
+			'.synonym-alternative-editor .ep-synonyms__linked-multi-input div',
+			'bar',
+		).should('exist');
 	});
 });
