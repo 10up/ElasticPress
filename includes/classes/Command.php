@@ -1141,16 +1141,16 @@ class Command extends WP_CLI_Command {
 				if ( ( $loop_counter % 10 ) === 0 ) {
 					// Get a non-formatted version of the timer (1000.00 instead of 1,000.00)
 					add_filter( 'number_format_i18n', [ __CLASS__, 'skip_number_format_i18n' ], 10, 3 );
-					$time_elapsed_calc = timer_stop( 0, 2 ) * 1000;
-					remove_filter( 'number_format_i18n', [ __CLASS__, 'skip_number_format_i18n' ] );
+					$time_elapsed_calc = timer_stop( 0, 2 );
 
-					$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( $time_elapsed_calc - $time_elapsed ) . ')' : '';
+					$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) round( $time_elapsed_calc - $time_elapsed, 2 ) . 's)' : '';
 					$time_elapsed      = timer_stop( 0, 2 );
-					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
+					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $this->seconds_to_hr( $time_elapsed ) . $time_elapsed_diff  ) );
 
 					$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
 					$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
 					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
+					remove_filter( 'number_format_i18n', [ __CLASS__, 'skip_number_format_i18n' ] );
 				}
 			}
 
@@ -1783,5 +1783,18 @@ class Command extends WP_CLI_Command {
 	 */
 	public static function skip_number_format_i18n( $formatted, $number, $decimals ) {
 		return number_format( $number, absint( $decimals ), '.', '' );
+	}
+
+	/**
+	 * Convert seconds to hh:mm:ss format
+	 *
+	 * @param int $seconds
+	 * @return string
+	 */
+	private function seconds_to_hr( $seconds ) {
+		$hours = str_pad( floor( $seconds / 3600 ), 2, '0', STR_PAD_LEFT );
+		$minutes = str_pad( floor( ( $seconds / 60 ) % 60 ), 2, '0', STR_PAD_LEFT );
+		$seconds = str_pad( $seconds % 60, 2, '0', STR_PAD_LEFT );
+		return "$hours:$minutes:$seconds";
 	}
 }
