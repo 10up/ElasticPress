@@ -200,7 +200,7 @@ describe('WP-CLI Commands', () => {
 			cy.activatePlugin('elasticpress', 'wpCli', 'network');
 
 			cy.visitAdminPage('network/sites.php');
-			cy.get('.index-toggle').check();
+			cy.get('.index-toggle input').click();
 		});
 
 		after(() => {

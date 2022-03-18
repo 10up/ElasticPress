@@ -53,6 +53,7 @@ const ElasticPressToggleControl = ({ blogId, isDefaultChecked }) => {
 	return (
 		<ToggleControl
 			checked={isChecked}
+			className="index-toggle"
 			disabled={isLoading}
 			label={isChecked ? __('On', 'elasticpress') : __('Off', 'elasticpress')}
 			onChange={onChange}
