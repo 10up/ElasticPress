@@ -33,6 +33,15 @@ class Post extends Indexable {
 	public $slug = 'post';
 
 	/**
+	 * Flag to indicate if the indexable has support for
+	 * `id_range` pagination method during a sync.
+	 *
+	 * @var boolean
+	 * @since 4.0.2
+	 */
+	public $support_indexing_advanced_pagination = true;
+
+	/**
 	 * Create indexable and initialize dependencies
 	 *
 	 * @since  3.0

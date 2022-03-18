@@ -482,7 +482,7 @@ class IndexHelper {
 			'per_page' => absint( $per_page ),
 		];
 
-		if ( 'offset' === $this->index_meta['pagination_method'] ) {
+		if ( ! $indexable->support_indexing_advanced_pagination || 'offset' === $this->index_meta['pagination_method'] ) {
 			$args['offset'] = $this->index_meta['offset'];
 		}
 
