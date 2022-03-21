@@ -173,6 +173,22 @@ class User extends Indexable {
 
 					$use_filters = true;
 				}
+
+				// If there are no specific roles named, make sure the user is a member of the site.
+				if ( ! $use_filters ) {
+					$filter['bool']['must'][]     = array(
+						'exists' => array(
+							'field' => 'capabilities.' . $blog_id . '.roles',
+						),
+					);
+					$filter['bool']['must_not'][] = array(
+						'term' => array(
+							'capabilities.' . $blog_id . '.roles' => 0,
+						),
+					);
+
+					$use_filters = true;
+				}
 			}
 		}
 
@@ -876,7 +892,7 @@ class User extends Indexable {
 
 			if ( ! empty( $roles ) ) {
 				$prepared_roles[ (int) $site['blog_id'] ] = [
-					'roles' => array_keys( $roles ),
+					'roles' => array_keys( (array) $roles ),
 				];
 			}
 		}
