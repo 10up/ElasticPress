@@ -104,4 +104,49 @@ describe('User Indexable', () => {
 				expect(text).to.contain('"value": "Doe"');
 			});
 	});
+
+	it('Only returns users from the current blog', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('users');
+
+		const newUserData = {
+			userLogin: 'nobloguser',
+			userEmail: 'no-blog-user@example.com',
+		};
+
+		cy.wpCli(`wp user get ${newUserData.userLogin} --field=ID`, true).then((wpCliResponse) => {
+			if (wpCliResponse.code === 0) {
+				cy.wpCli(`wp user delete ${newUserData.userLogin} --yes --network`);
+				cy.wpCli('wp elasticpress index --setup --yes');
+			}
+		});
+
+		// Create a user without a blog.
+		cy.visitAdminPage('network/user-new.php');
+		cy.get('#username').clearThenType(newUserData.userLogin);
+		cy.get('#email').clearThenType(newUserData.userEmail);
+		cy.get('#add-user').click();
+		cy.get('#message.updated').should('be.visible');
+
+		// Searching for it should not return anything.
+		searchUser('nobloguser');
+		cy.get('.wp-list-table').should('contain.text', 'No users found.');
+		cy.getTotal(0);
+		cy.get('.ep-query-debug').should('contain.text', 'Query Response Code: HTTP 200');
+
+		// Add user to the blog.
+		cy.visitAdminPage('user-new.php');
+		cy.get('#adduser-email').clearThenType(newUserData.userLogin);
+		cy.get('#adduser-noconfirmation').check();
+		cy.get('#addusersub').click();
+		cy.get('#message.updated').should('be.visible');
+
+		// Searching for it should return it.
+		searchUser('nobloguser');
+		cy.get('.wp-list-table').should('contain.text', 'nobloguser');
+		cy.getTotal(1);
+		cy.get('.ep-query-debug').should('contain.text', 'Query Response Code: HTTP 200');
+		cy.get('.query-results').should('contain.text', '"user_email": "no-blog-user@example.com"');
+	});
 });
