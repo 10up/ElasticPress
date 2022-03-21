@@ -195,12 +195,7 @@ describe('WP-CLI Commands', () => {
 
 	context('multisite parameters', () => {
 		before(() => {
-			cy.login();
-
 			cy.activatePlugin('elasticpress', 'wpCli', 'network');
-
-			cy.visitAdminPage('network/sites.php');
-			cy.get('.index-toggle input').click();
 		});
 
 		after(() => {
