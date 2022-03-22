@@ -172,7 +172,7 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'         => $shop_order_id,
+			's'         => (string) $shop_order_id,
 			'post_type' => 'shop_order',
 		);
 
@@ -215,7 +215,7 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'         => $shop_order_id_1,
+			's'         => (string) $shop_order_id_1,
 			'post_type' => 'shop_order',
 		);
 
