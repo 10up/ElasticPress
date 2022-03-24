@@ -303,6 +303,25 @@ function updateSyncDash() {
 
 	if (isSyncing) {
 		progressBar.classList.remove('ep-sync-box__progressbar_complete');
+	} else if (syncStatus === 'error') {
+		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
+
+		progressInfoElement.innerText = __('Sync failed', 'elasticpress');
+
+		updateStartDateTime(new Date());
+		updateDisabledAttribute(deleteAndSyncButton, false);
+		updateDisabledAttribute(syncButton, false);
+
+		hidePauseStopButtons();
+		hideResumeButton();
+
+		syncButton.style.display = 'flex';
+
+		const learnMoreLink = activeBox.querySelector('.ep-sync-box__learn-more-link');
+
+		if (learnMoreLink?.style) {
+			learnMoreLink.style.display = 'block';
+		}
 	} else if (syncStatus === 'interrupt') {
 		const progressInfoElement = activeBox.querySelector('.ep-sync-box__progress-info');
 
@@ -662,6 +681,13 @@ function sync(putMapping = false) {
 			sync(putMapping);
 		})
 		.catch((response) => {
+			if (response && response.code === 'invalid_json') {
+				syncStatus = 'error';
+				updateSyncDash();
+				cancelSync();
+				addErrorToOutput(response.message);
+			}
+
 			if (
 				response &&
 				response.status &&
