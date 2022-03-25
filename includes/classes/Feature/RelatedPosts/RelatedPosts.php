@@ -114,7 +114,7 @@ class RelatedPosts extends Feature {
 	 *
 	 * @param  int $post_id Post ID
 	 * @param  int $return Return code
-	 * @since  3.4
+	 * @since  4.1.0
 	 * @return WP_Query
 	 */
 	public function get_related_query( $post_id, $return = 5 ) {

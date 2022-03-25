@@ -114,7 +114,8 @@ class TestRelatedPosts extends BaseTestCase {
 
 		$query = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->get_related_query( $post_id, 1 );
 
-		$this->assertTrue( ! empty( $query->posts ) );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNotEmpty( $query->posts );
 		$this->assertEquals( '1', $query->post_count );
 		$this->assertEquals( $related_post_title, $query->posts[0]->post_title );
 	}
