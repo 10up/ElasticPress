@@ -1115,6 +1115,7 @@ abstract class Indexable {
 	/**
 	 * Shim function for backwards-compatibility on custom Indexables.
 	 *
+	 * @since 4.1.0
 	 * @return array
 	 */
 	public function generate_mapping() {

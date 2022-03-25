@@ -752,7 +752,7 @@ class Comment extends Indexable {
 	/**
 	 * Generate the mapping array
 	 *
-	 * @since 4.0.0
+	 * @since 4.1.0
 	 * @return array
 	 */
 	public function generate_mapping() {
