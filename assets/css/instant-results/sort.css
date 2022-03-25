@@ -1,0 +1,24 @@
+.ep-search-sort {
+	flex-shrink: 0;
+	gap: 0.5em;
+	margin: 0;
+
+	@nest .ep-search-results & {
+		display: none;
+
+		@media ( min-width: 768px ) {
+			align-items: center;
+			display: flex;
+		}
+	}
+
+	@nest .ep-search-sidebar & {
+		display: flex;
+		flex-direction: column;
+		margin-bottom: 1em;
+
+		@media ( min-width: 768px ) {
+			display: none;
+		}
+	}
+}

@@ -1,18 +1,64 @@
-jQuery('.weighting-settings input[type=range]').on('input', function () {
-	const el = jQuery(this);
+/**
+ * WordPress dependencies.
+ */
+import domReady from '@wordpress/dom-ready';
 
-	el.prev('label').find('.weighting-value').text(el.val());
-});
+/**
+ * Initialize.
+ *
+ * @returns {void}
+ */
+const init = () => {
+	/**
+	 * Update the value in the range input label.
+	 *
+	 * @param {Element} el Range input element.
+	 */
+	const updateSliderValue = (el) => {
+		el.labels[0].querySelector('.weighting-value').textContent = el.disabled ? '0' : el.value;
+	};
 
-jQuery('.weighting-settings .searchable input[type=checkbox]').change(function () {
-	const $checkbox = jQuery(this);
-	const $rangeInput = $checkbox.parent().next('.weighting').find('input[type=range]');
-	const $weightDisplay = $rangeInput.prev('label').find('.weighting-value');
+	/**
+	 * Handle range slider input.
+	 *
+	 * @param {Event} event Input event.
+	 */
+	const onSliderInput = (event) => {
+		updateSliderValue(event.currentTarget);
+	};
 
-	// toggle range input
-	$rangeInput.prop('disabled', !this.checked);
+	/**
+	 * Handle checkbox change.
+	 *
+	 * @param {Event} event Change event.
+	 */
+	const onCheckboxChange = (event) => {
+		const el = event.currentTarget.closest('fieldset').querySelector('input[type="range"]');
 
-	// get new weight display value, and set it
-	const newWeightDisplay = !this.checked ? '0' : $rangeInput.val();
-	$weightDisplay.text(newWeightDisplay);
-});
+		el.disabled = !event.currentTarget.checked;
+
+		updateSliderValue(el);
+	};
+
+	/**
+	 * Bind events.
+	 */
+	const sliders = document.querySelectorAll('.weighting-settings input[type=range]');
+
+	for (const slider of sliders) {
+		slider.addEventListener('input', onSliderInput);
+	}
+
+	const checkboxes = document.querySelectorAll(
+		'.weighting-settings .searchable input[type=checkbox]',
+	);
+
+	for (const checkbox of checkboxes) {
+		checkbox.addEventListener('change', onCheckboxChange);
+	}
+};
+
+/**
+ * Initialize.
+ */
+domReady(init);

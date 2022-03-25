@@ -154,10 +154,25 @@ Thank you to all the people who have already contributed to this repository via 
 [Yoli (@yolih)](https://github.com/yolih),
 [Ryan DiMascio (@rdimascio)](https://github.com/rdimascio),
 [Brett Shumaker (@brettshumaker)](https://github.com/brettshumaker),
+[Connor Smyth (@ActuallyConnor)](https://github.com/ActuallyConnor),
+[Pratheep Chandrasekhar](https://www.linkedin.com/in/pratheepch/),
+[McKenna Dempsey (@mckdemps)](https://github.com/mckdemps),
+[Cristian Uibar (@cristianuibar)](https://github.com/cristianuibar)
 [Robert O'Rourke (@roborourke)](https://github.com/roborourke),
 [Joe Hoyle (@joehoyle)](https://github.com/joehoyle),
+[Stefan Fiedler (@Shrimpstronaut)](https://github.com/Shrimpstronaut),
+[Theo Savage (@tcrsavage)](https://github.com/tcrsavage),
+[Parham Ghaffarian (@ParhamG)](https://github.com/ParhamG),
+[Volodymyr Kolesnykov (@sjinks)](https://github.com/sjinks),
+[Siddharth Thevaril (@Sidsector9)](https://github.com/Sidsector9),
+[Mehidi Hassan (@mehidi258)](https://github.com/mehidi258),
+[Sathiya Venkatesan (@sathyapulse)](https://github.com/sathyapulse),
+[Dian Fishekqi (@dianfishekqi)](https://github.com/dianfishekqi),
+[@beazuadmin](https://github.com/beazuadmin),
+[Jonathan Netek](https://www.linkedin.com/in/jonathan-netek/),
+[Tom Burtless (@tomburtless)](https://github.com/tomburtless),
 and
-[Stefan Fiedler (@Shrimpstronaut)](https://github.com/Shrimpstronaut).
+[@qazaqstan2025](https://github.com/qazaqstan2025).
 
 ## Libraries
 

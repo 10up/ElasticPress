@@ -25,8 +25,14 @@ class Comments extends Feature {
 	 * @since 3.6.0
 	 */
 	public function __construct() {
-		$this->slug                     = 'comments';
-		$this->title                    = esc_html__( 'Comments', 'elasticpress' );
+		$this->slug = 'comments';
+
+		$this->title = esc_html__( 'Comments', 'elasticpress' );
+
+		$this->summary = __( 'Improve comment search relevancy and query performance.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#comments', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		parent::__construct();
@@ -73,17 +79,6 @@ class Comments extends Feature {
 		}
 
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 3.6.0
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Improve comment search relevancy and query performance.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**

@@ -4,8 +4,8 @@ import CreatableSelect from 'react-select/creatable';
 /**
  * Synonyms editor component.
  *
- * @param {Object} props Props.
- * @return {React.FC} MultiInput component
+ * @param {object} props Props.
+ * @returns {React.FC} MultiInput component
  */
 const MultiInput = (props) => {
 	const { tokens, setTokens } = props;
@@ -15,7 +15,7 @@ const MultiInput = (props) => {
 	 * Create option.
 	 *
 	 * @param {string} label Option label.
-	 * @return {Object} Option object
+	 * @returns {object} Option object
 	 */
 	const createOption = (label) => ({
 		label,
@@ -49,7 +49,7 @@ const MultiInput = (props) => {
 	 * Handle change.
 	 *
 	 * @param {string} _value The value.
-	 * @param {Object} data   Data with the action.
+	 * @param {object} data   Data with the action.
 	 */
 	const handleChange = (_value, data) => {
 		switch (data.action) {

@@ -1,11 +1,16 @@
 {
   "name": "elasticpress",
-  "version": "3.6.6",
+  "version": "4.0.1",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
-    "10up-toolkit": "^2.0.0",
-    "jsdoc": "^3.6.9",
+    "@wordpress/env": "^4.2.2",
+    "10up-toolkit": "^3.0.0",
+    "cypress": "^9.5.0",
+    "cypress-file-upload": "^5.0.8",
+    "eslint-plugin-cypress": "^2.12.1",
+    "jsdoc": "^3.6.10",
+    "postcss-preset-env": "^7.0.1",
     "terser-webpack-plugin": "^5.3.0",
     "wp-hookdoc": "^0.2.0"
   },
@@ -13,14 +18,19 @@
     "start": "composer install --ignore-platform-reqs && npm install && npm run build",
     "build": "10up-toolkit build",
     "watch": "10up-toolkit start",
-    "build-release": "npm install && composer install --no-dev -o && npm run build",
     "lint-release": "npm install && composer install && npm run lint",
-    "lint-js": "10up-toolkit lint-js assets/js",
+    "lint-js": "10up-toolkit lint-js assets/js tests/cypress",
     "lint-php": "composer run lint",
     "format-js": "10up-toolkit format-js assets/js",
     "lint": "npm run lint-style && npm run lint-js && npm run lint-php",
     "build:docs": "rm -rf hook_docs && jsdoc -c hookdoc-conf.json elasticpress.php includes",
-    "lint-style": "10up-toolkit lint-style"
+    "build:zip": "./bin/build-zip.sh",
+    "lint-style": "10up-toolkit lint-style",
+    "env": "wp-env",
+    "env:start": "wp-env start && cd bin/es-docker/ && docker-compose up -d",
+    "cypress:setup": "./bin/setup-cypress-env.sh",
+    "cypress:open": "cypress open --config-file tests/cypress/config.json",
+    "cypress:run": "cypress run --config-file tests/cypress/config.json"
   },
   "author": "10up",
   "repository": {
@@ -29,7 +39,8 @@
   },
   "engineStrict": true,
   "engines": {
-    "node": ">=8.11"
+    "node": ">=14",
+    "npm": ">=8"
   },
   "10up-toolkit": {
     "entry": {
@@ -37,9 +48,13 @@
       "comments-script.min": "./assets/js/comments.js",
       "dashboard-script.min": "./assets/js/dashboard.js",
       "facets-script.min": "./assets/js/facets.js",
+      "instant-results-script.min": "./assets/js/instant-results/index.js",
+      "instant-results-admin-script.min": "./assets/js/instant-results/admin/index.js",
       "notice-script.min": "./assets/js/notice.js",
       "ordering-script.min": "./assets/js/ordering/index.js",
       "related-posts-block-script.min": "./assets/js/blocks/related-posts/block.js",
+      "settings-script.min": "./assets/js/settings.js",
+      "sync-script.min": "./assets/js/sync.js",
       "sites-admin-script.min": "./assets/js/sites-admin.js",
       "stats-script.min": "./assets/js/stats.js",
       "synonyms-script.min": "./assets/js/synonyms/index.js",
@@ -50,23 +65,32 @@
       "facets-admin-styles.min": "./assets/css/facets-admin.css",
       "facets-styles.min": "./assets/css/facets.css",
       "highlighting-styles.min": "./assets/css/highlighting.css",
+      "instant-results-styles.min": "./assets/css/instant-results.css",
       "ordering-styles.min": "./assets/css/ordering.css",
       "related-posts-block-styles.min": "./assets/css/related-posts-block.css",
-      "sites-admin-styles.min": "./assets/css/sites-admin.css",
+      "sync-styles.min": "./assets/css/sync.css",
       "synonyms-styles.min": "./assets/css/synonyms.css"
     },
-    "wpDependencyExternals": false
+    "wpDependencyExternals": true
   },
   "dependencies": {
-    "@wordpress/api-fetch": "^3.23.1",
+    "@10up/component-tooltip": "^2.0.0",
+    "@wordpress/api-fetch": "^5.2.7",
+    "@wordpress/components": "^18.0.0",
+    "@wordpress/date": "^4.2.3",
+    "@wordpress/dom-ready": "^3.4.1",
+    "@wordpress/element": "^4.0.4",
     "@wordpress/i18n": "^3.20.0",
+    "@wordpress/icons": "^6.1.1",
     "chart.js": "^2.9.4",
     "element-closest": "^3.0.2",
+    "focus-trap-react": "^8.8.2",
     "promise-polyfill": "^8.2.1",
     "react": "^16.14.0",
     "react-beautiful-dnd": "^11.0.5",
     "react-dom": "^16.14.0",
     "react-select": "^3.2.0",
+    "react-slider": "^1.3.1",
     "uuid": "^8.3.2",
     "whatwg-fetch": "^3.6.2"
   }

@@ -15,7 +15,7 @@ class Edit extends Component {
 	/**
 	 * Setup class
 	 *
-	 * @param {Object} props Component properties
+	 * @param {object} props Component properties
 	 */
 	constructor(props) {
 		super(props);
@@ -36,10 +36,9 @@ class Edit extends Component {
 		// Use 0 if in the Widgets Screen
 		const postId = wp.data.select('core/editor').getCurrentPostId() ?? 0;
 
-		this.fetchRequest = wp
-			.apiFetch({
-				path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),
-			})
+		wp.apiFetch({
+			path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),
+		})
 			.then((posts) => {
 				this.setState({ posts });
 			})

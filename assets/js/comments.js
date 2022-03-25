@@ -44,7 +44,7 @@ function hideResultsBox(inputElement) {
 /**
  * Update the result list
  *
- * @param {Object}           comments     Comments to be showed
+ * @param {object}           comments     Comments to be showed
  * @param {HTMLInputElement} inputElement The input element used in the widget
  */
 const updateResultsBox = (comments, inputElement) => {
@@ -131,7 +131,7 @@ function setIsLoading(isLoading, inputElement) {
  *	Fetch comments
  *
  * @param {HTMLInputElement} inputElement The input element used in the widget
- * @return {(false|Promise)} Try to fetch comments
+ * @returns {(false|Promise)} Try to fetch comments
  */
 function fetchResults(inputElement) {
 	if (hasMinimumLength(inputElement)) {

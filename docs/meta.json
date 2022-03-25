@@ -28,5 +28,8 @@
     },
     "theme-integration": {
         "title": "Theme Integration"
+    },
+    "indexing-process": {
+      "title": "Indexing Process"
     }
 }

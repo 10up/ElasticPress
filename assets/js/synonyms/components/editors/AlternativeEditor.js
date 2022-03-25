@@ -5,8 +5,8 @@ import { Dispatch } from '../../context';
 /**
  * Alternative Editor
  *
- * @param {Object} props Props.
- * @return {React.FC} AlternativeEditor component
+ * @param {object} props Props.
+ * @returns {React.FC} AlternativeEditor component
  */
 const AlternativeEditor = (props) => {
 	const { id, synonyms, removeAction, updateAction } = props;
@@ -19,7 +19,7 @@ const AlternativeEditor = (props) => {
 	 * Create primary token
 	 *
 	 * @param {string} label Label.
-	 * @return {Object} Primary token
+	 * @returns {object} Primary token
 	 */
 	const createPrimaryToken = (label) => {
 		return {

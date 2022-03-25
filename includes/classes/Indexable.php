@@ -344,6 +344,238 @@ abstract class Indexable {
 	}
 
 	/**
+	 * Bulk index objects but with a dynamic size of queue.
+	 *
+	 * @since  4.0.0
+	 * @param  array $object_ids Array of object IDs.
+	 * @return array[WP_Error|array] The return of each request made.
+	 */
+	public function bulk_index_dynamically( $object_ids ) {
+		$documents = [];
+
+		foreach ( $object_ids as $object_id ) {
+			$action_args = array(
+				'index' => array(
+					'_id' => absint( $object_id ),
+				),
+			);
+
+			$document = $this->prepare_document( $object_id );
+
+			/**
+			 * Conditionally kill indexing on a specific object
+			 *
+			 * @hook ep_bulk_index_action_args
+			 * @param  {array} $action_args Bulk action arguments
+			 * @param {array} $document Document to index
+			 * @since  3.0
+			 * @return {array}  New action args
+			 */
+			$document_str  = wp_json_encode( apply_filters( 'ep_bulk_index_action_args', $action_args, $document ) ) . "\n";
+			$document_str .= addcslashes( wp_json_encode( $document ), "\n" );
+			$document_str .= "\n\n";
+
+			$documents[] = $document_str;
+		}
+
+		$results = $this->send_bulk_index_request( $documents );
+
+		/**
+		 * Perform actions after a dynamic bulk indexing is completed
+		 *
+		 * @hook ep_after_bulk_index_dynamically
+		 * @since 4.0.0
+		 * @param {array}      $object_ids List of object ids attempted to be indexed
+		 * @param {string}     $slug Current indexable slug
+		 * @param {array|bool} $result Result of the Elasticsearch query. False on error.
+		 */
+		do_action( 'ep_after_bulk_index_dynamically', $object_ids, $this->slug, $results );
+
+		return $results;
+	}
+
+	/**
+	 * Bulk index documents through several requests with dynamic size.
+	 *
+	 * @param array $documents The documents to be sent to Elasticsearch (already formatted.)
+	 * @return array[WP_Error|array]
+	 */
+	protected function send_bulk_index_request( $documents ) {
+		static $min_buffer_size, $max_buffer_size, $current_buffer_size, $incremental_step;
+
+		if ( ! $min_buffer_size ) {
+			/**
+			 * Filter the minimum buffer size for dynamic bulk index requests.
+			 *
+			 * @hook ep_dynamic_bulk_min_buffer_size
+			 * @since 4.0.0
+			 * @param {int} $min_buffer_size Min buffer size for dynamic bulk index (in bytes.)
+			 * @return {int} New size.
+			 */
+			$min_buffer_size = apply_filters( 'ep_dynamic_bulk_min_buffer_size', MB_IN_BYTES / 2 );
+		}
+
+		if ( ! $max_buffer_size ) {
+			/**
+			 * Filter the max buffer size for dynamic bulk index requests.
+			 *
+			 * @hook ep_dynamic_bulk_max_buffer_size
+			 * @since 4.0.0
+			 * @param {int} $max_buffer_size Max buffer size for dynamic bulk index (in bytes.)
+			 * @return {int} New size.
+			 */
+			$max_buffer_size = apply_filters( 'ep_dynamic_bulk_max_buffer_size', 150 * MB_IN_BYTES );
+		}
+
+		if ( ! $incremental_step ) {
+			/**
+			 * Filter the number of bytes the current buffer size should be incremented in case of success.
+			 *
+			 * @hook ep_dynamic_bulk_incremental_step
+			 * @since 4.0.0
+			 * @param {int} $incremental_step Number of bytes to add to the current buffer size.
+			 * @return {int} New incremental step.
+			 */
+			$incremental_step = apply_filters( 'ep_dynamic_bulk_incremental_step', MB_IN_BYTES / 2 );
+		}
+
+		/**
+		 * Perform actions before a new batch of documents is processed.
+		 *
+		 * @hook ep_before_send_dynamic_bulk_requests
+		 * @since 4.0.0
+		 * @param {array} $documents Array of documents to be sent to Elasticsearch.
+		 */
+		do_action( 'ep_before_send_dynamic_bulk_requests', $documents );
+
+		if ( ! $current_buffer_size ) {
+			$current_buffer_size = $min_buffer_size;
+		}
+
+		$results = [];
+
+		$body = [];
+
+		$requests = 0;
+
+		/*
+		 * This script will use two main arrays: $body and $documents, being $body the
+		 * documents to be sent in the next request and $documents the list of docs to be indexed.
+		 * The do-while loop will stop if all documents are sent or if a request fails even sending
+		 * a buffer as small as possible.
+		 */
+		do {
+			$next_document = array_shift( $documents );
+
+			// If the next document alone takes the entire current buffer size,
+			// let's add it back to the pipe and send what we have first
+			if ( mb_strlen( $next_document ) > $current_buffer_size && count( $body ) > 0 ) {
+				array_unshift( $documents, $next_document );
+			} else {
+				if ( mb_strlen( $next_document ) > $max_buffer_size ) {
+					/**
+					 * Perform actions when a post is bigger than the max buffer size.
+					 *
+					 * @hook ep_dynamic_bulk_post_too_big
+					 * @since 4.0.0
+					 * @param {string} $document JSON string of the post detected as too big.
+					 */
+					do_action( 'ep_dynamic_bulk_post_too_big', $next_document );
+					$results[] = new \WP_Error( 'ep_too_big_request_skipped', 'Indexable too big. Request not sent.' );
+					continue;
+				}
+				$body[] = $next_document;
+				if ( mb_strlen( implode( '', $body ) ) < $current_buffer_size && ! empty( $documents ) ) {
+					continue;
+				}
+				if ( mb_strlen( implode( '', $body ) ) > $max_buffer_size ) {
+					// The last document added to body made it too big, so let's give it back.
+					array_unshift( $documents, array_pop( $body ) );
+				}
+			}
+
+			// Try the request.
+			timer_start();
+			$result       = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, implode( '', $body ) );
+			$request_time = timer_stop();
+			$requests++;
+
+			/**
+			 * Perform actions before a new batch of documents is processed.
+			 *
+			 * @hook ep_after_send_dynamic_bulk_request
+			 * @since 4.0.0
+			 * @param {WP_Error|array} $result              Result of the request.
+			 * @param {array}          $body                Array of documents sent to Elasticsearch.
+			 * @param {array}          $documents           Array of documents to be sent to Elasticsearch.
+			 * @param {int}            $min_buffer_size     Min buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $max_buffer_size     Max buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $current_buffer_size Current buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $request_time        Total time of the request.
+			 */
+			do_action( 'ep_after_send_dynamic_bulk_request', $result, $body, $documents, $min_buffer_size, $max_buffer_size, $current_buffer_size, $request_time );
+
+			// It failed, possibly adjust the buffer size and try again.
+			if ( is_wp_error( $result ) ) {
+				// Too many requests, wait and try again.
+				if ( 429 === $result->get_error_code() ) {
+					sleep( 2 );
+				}
+
+				// If the error is not a "Request too big" then we really fail this batch of documents.
+				if ( 413 !== $result->get_error_code() ) {
+					$results[] = $result;
+					continue;
+				}
+
+				if ( count( $body ) === 1 ) {
+					$max_buffer_size = min( $max_buffer_size, mb_strlen( implode( '', $body ) ) );
+					$results[]       = $result;
+					$body            = [];
+					continue;
+				}
+
+				// As the buffer is as small as possible, return the error.
+				if ( mb_strlen( implode( '', $body ) ) === $min_buffer_size ) {
+					$results[] = $result;
+					continue;
+				}
+
+				// We have a too big buffer. Remove one doc from the body, and set both max and current as its size.
+				array_unshift( $documents, array_pop( $body ) );
+
+				$max_buffer_size = count( $body ) ?
+					max( $min_buffer_size, mb_strlen( implode( '', $body ) ) ) :
+					$min_buffer_size;
+
+				$current_buffer_size = $max_buffer_size;
+				continue;
+			}
+
+			// Things worked so we can try to bump the buffer size.
+			if ( $current_buffer_size < $max_buffer_size && mb_strlen( implode( '', $body ) ) > $current_buffer_size ) {
+				$current_buffer_size = min( ( $current_buffer_size + $incremental_step ), $max_buffer_size );
+			}
+
+			$results[] = $result;
+
+			$body = [];
+		} while ( ! empty( $documents ) );
+
+		/**
+		 * Perform actions after a batch of documents was processed.
+		 *
+		 * @hook ep_after_send_dynamic_bulk_requests
+		 * @since 4.0.0
+		 * @param {array} $results  Array of results sent.
+		 * @param {int}   $requests Number of all requests sent.
+		 */
+		do_action( 'ep_after_send_dynamic_bulk_requests', $results, $requests );
+
+		return $results;
+	}
+
+	/**
 	 * Query Elasticsearch for documents
 	 *
 	 * @param  array  $formatted_args Formatted es query arguments.
@@ -829,11 +1061,61 @@ abstract class Indexable {
 	}
 
 	/**
-	 * Must implement a method that handles sending mapping to ES
+	 * Get the indexable mapping.
+	 *
+	 * @since  3.6.0
+	 * @return boolean|array
+	 */
+	public function get_mapping() {
+		return Elasticsearch::factory()->get_mapping( $this->get_index_name() );
+	}
+
+	/**
+	 * Compare the mapping generated by the plugin and the mapping stored in Elasticsearch.
+	 *
+	 * @todo properly implement the check.
+	 *
+	 * @since  3.6.0
+	 * @return bool|WP_Error
+	 */
+	public function compare_mappings() {
+		if ( ! method_exists( $this, 'generate_mapping' ) ) {
+			return new \WP_Error( 'ep_generate_mapping_not_implemented' );
+		}
+
+		$new_mapping    = $this->generate_mapping();
+		$stored_mapping = $this->get_mapping();
+
+		return ( (string) $new_mapping['settings']['index.number_of_shards'] === $stored_mapping[ $this->get_index_name() ]['settings']['index']['number_of_shards'] );
+	}
+
+	/**
+	 * Utilitary function to check if the indexable is being fully reindexed, i.e.,
+	 * the index was deleted, a new mapping was sent and content is being reindexed.
+	 *
+	 * @param int|null $blog_id Blog ID
+	 * @return boolean
+	 */
+	public function is_full_reindexing( $blog_id = null ) {
+		if ( $this->global ) {
+			$blog_id = null;
+		} elseif ( ! $blog_id ) {
+			$blog_id = get_current_blog_id();
+		}
+
+		return \ElasticPress\IndexHelper::factory()->is_full_reindexing( $this->slug, $blog_id );
+	}
+
+	/**
+	 * Send mapping to Elasticsearch
 	 *
 	 * @return boolean
 	 */
-	abstract public function put_mapping();
+	public function put_mapping() {
+		$mapping = $this->generate_mapping();
+
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+	}
 
 	/**
 	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
@@ -853,4 +1135,16 @@ abstract class Indexable {
 	 * @return boolean
 	 */
 	abstract public function query_db( $args );
+
+	/**
+	 * Shim function for backwards-compatibility on custom Indexables.
+	 *
+	 * @since 4.1.0
+	 * @return array
+	 */
+	public function generate_mapping() {
+		_doing_it_wrong( __METHOD__, 'The Indexable class should not call generate_mapping() directly.', 'ElasticPress 4.0' );
+
+		return [];
+	}
 }

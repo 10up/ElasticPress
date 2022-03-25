@@ -27,6 +27,10 @@ class RelatedPosts extends Feature {
 
 		$this->title = esc_html__( 'Related Posts', 'elasticpress' );
 
+		$this->summary = __( 'ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#related-posts', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
 
 		parent::__construct();
@@ -343,17 +347,6 @@ class RelatedPosts extends Feature {
 	 */
 	public function register_widget() {
 		register_widget( __NAMESPACE__ . '\Widget' );
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**
