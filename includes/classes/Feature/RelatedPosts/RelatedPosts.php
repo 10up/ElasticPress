@@ -114,10 +114,10 @@ class RelatedPosts extends Feature {
 	 *
 	 * @param  int $post_id Post ID
 	 * @param  int $return Return code
-	 * @since  2.1
-	 * @return array|bool
+	 * @since  4.1.0
+	 * @return WP_Query
 	 */
-	public function find_related( $post_id, $return = 5 ) {
+	public function get_related_query( $post_id, $return = 5 ) {
 		$args = array(
 			'more_like'           => $post_id,
 			'posts_per_page'      => $return,
@@ -133,7 +133,22 @@ class RelatedPosts extends Feature {
 		 * @since  2.1
 		 * @return  {array} New arguments
 		 */
-		$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
+		return new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
+	}
+
+	/**
+	 * Search Elasticsearch for related content
+	 *
+	 * @param  int $post_id Post ID
+	 * @param  int $return Return code
+	 *
+	 * @since  2.1
+	 * @uses get_related_query
+	 *
+	 * @return array|bool
+	 */
+	public function find_related( $post_id, $return = 5 ) {
+		$query = $this->get_related_query( $post_id, $return = 5 );
 
 		if ( ! $query->have_posts() ) {
 			return false;
