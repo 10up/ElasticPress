@@ -385,8 +385,8 @@ class InstantResults extends Feature {
 		 * current user while the template is generated.
 		 *
 		 * @hook ep_search_template_user_id
-		 * @param int|WP $user_id User ID to use.
-		 *
+		 * @param  {int} $user_id User ID to use.
+		 * @return {int} New user ID to use.
 		 * @since 4.1.0
 		 */
 		$template_user_id = apply_filters( 'ep_search_template_user_id', 0 );
