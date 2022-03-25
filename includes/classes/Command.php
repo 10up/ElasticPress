@@ -382,23 +382,17 @@ class Command extends WP_CLI_Command {
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
-		$response_body = wp_remote_retrieve_body( $response );
-
-		if ( ! empty( $assoc_args['pretty'] ) ) {
-			$content_type = wp_remote_retrieve_header( $response, 'Content-Type' );
-			if ( preg_match( '/json/', $content_type ) ) {
-				// Re-encode the JSON to add space formatting
-				$response_body = wp_json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
-			}
-		}
-		WP_CLI::line( $response_body );
+		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
 	 * Return all indexes from the cluster as a JSON object.
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-cluster-indexes
-	 * @since      3.2
+	 * @since      3.2, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
@@ -407,23 +401,26 @@ class Command extends WP_CLI_Command {
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
-		$body = wp_remote_retrieve_body( $response );
-
-		WP_CLI::line( $body );
+		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
 	 * Return all index names as a JSON object.
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-indexes
-	 * @since      3.2
+	 * @since      3.2, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indexes( $args, $assoc_args ) {
 		$index_names = $this->get_index_names();
 
-		WP_CLI::line( wp_json_encode( $index_names ) );
+		$flag = ( ! empty( $assoc_args['pretty'] ) ) ? JSON_PRETTY_PRINT : null;
+
+		WP_CLI::line( wp_json_encode( $index_names, $flag ) );
 	}
 
 	/**
@@ -995,7 +992,11 @@ class Command extends WP_CLI_Command {
 	 * items_indexed | integer | Total number of items indexed
 	 * total_items | integer | Total number of items indexed or -1 if not yet determined
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-indexing-status
+	 * @since 3.5.1, `--pretty` introduced in 4.1.0
 	 */
 	public function get_indexing_status() {
 		$indexing_status = Utils\get_indexing_status();
@@ -1009,7 +1010,9 @@ class Command extends WP_CLI_Command {
 			];
 		}
 
-		WP_CLI::line( wp_json_encode( $indexing_status ) );
+		$flag = ( ! empty( $assoc_args['pretty'] ) ) ? JSON_PRETTY_PRINT : null;
+
+		WP_CLI::line( wp_json_encode( $indexing_status, $flag ) );
 	}
 
 	/**
@@ -1020,8 +1023,11 @@ class Command extends WP_CLI_Command {
 	 * [--clear]
 	 * : Clear the `ep_last_cli_index` option.
 	 *
-	 * @subcommand get-last-cli-index
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
+	 * @subcommand get-last-cli-index
+	 * @since 3.5.1, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
@@ -1033,8 +1039,9 @@ class Command extends WP_CLI_Command {
 			delete_site_option( 'ep_last_cli_index' );
 		}
 
-		WP_CLI::line( wp_json_encode( $last_sync ) );
+		$flag = ( ! empty( $assoc_args['pretty'] ) ) ? JSON_PRETTY_PRINT : null;
 
+		WP_CLI::line( wp_json_encode( $last_sync, $flag ) );
 	}
 
 
@@ -1371,9 +1378,12 @@ class Command extends WP_CLI_Command {
 	 * [--debug-http-request]
 	 * : Enable debugging
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand request
 	 *
-	 * @since 3.6.6
+	 * @since 3.6.6, `--pretty` introduced in 4.1.0
 	 *
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
@@ -1441,13 +1451,26 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( $response->get_error_message() );
 		}
 
-		$response_body = wp_remote_retrieve_body( $response );
-		$content_type  = wp_remote_retrieve_header( $response, 'Content-Type' );
-		if ( preg_match( '/json/', $content_type ) ) {
-			// Re-encode the JSON to add space formatting
-			$response_body = wp_json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
-		}
+		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
+	}
 
-		WP_CLI::log( $response_body );
+	/**
+	 * Print an HTTP response.
+	 *
+	 * @since 4.1.0
+	 * @param array   $response HTTP Response.
+	 * @param boolean $pretty   Whether the JSON response should be formatted or not.
+	 */
+	protected function print_json_response( $response, $pretty ) {
+		$response_body = wp_remote_retrieve_body( $response );
+
+		if ( $pretty ) {
+			$content_type = wp_remote_retrieve_header( $response, 'Content-Type' );
+			if ( preg_match( '/json/', $content_type ) ) {
+				// Re-encode the JSON to add space formatting
+				$response_body = wp_json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
+			}
+		}
+		WP_CLI::line( $response_body );
 	}
 }
