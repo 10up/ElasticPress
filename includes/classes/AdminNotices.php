@@ -288,12 +288,12 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
-			$html = esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' );
+			$html = esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you delete all data and start a fresh sync using WP-CLI.', 'elasticpress' );
 		} else {
-			$html = sprintf( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ), esc_url( $url ) );
+			$html = sprintf( __( 'The new version of ElasticPress requires that you <a href="%s">delete all data and start a fresh sync</a>.', 'elasticpress' ), esc_url( $url ) );
 		}
 
-		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the reindex has been performed.', 'elasticpress' );
+		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the full sync has been performed.', 'elasticpress' );
 
 		return [
 			'html'    => '<span class="dashicons dashicons-warning"></span> ' . $html . ' ' . $notice,
