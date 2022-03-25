@@ -623,18 +623,6 @@ class Term extends Indexable {
 	}
 
 	/**
-	 * Put mapping for terms
-	 *
-	 * @since  3.1
-	 * @return boolean
-	 */
-	public function put_mapping() {
-		$mapping = $this->generate_mapping();
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
-	}
-
-	/**
 	 * Prepare a term document for indexing
 	 *
 	 * @param  int $term_id Term ID
